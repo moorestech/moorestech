@@ -15,7 +15,7 @@ namespace StarterAssets
 
         private Rigidbody _trackedPlatformRigidbody;
         private Vector3 _trackedPlatformPosition;
-        private Quaternion _trackedPlatformRotation = Quaternion.identity;
+        private Quaternion _trackedPlatformRotation;
 
         public PlayerPlatformFollowService(Transform transform, CharacterController controller)
         {
@@ -29,8 +29,85 @@ namespace StarterAssets
         /// </summary>
         public void ApplyPlatformFollow(bool grounded, float groundedOffset, float groundedRadius, LayerMask groundLayers)
         {
-            var delta = ResolveMovingPlatformDelta(grounded, groundedOffset, groundedRadius, groundLayers);
+            var delta = ResolveMovingPlatformDelta();
             ApplyPlatformDelta(delta);
+
+            #region Internal
+
+            Vector3 ResolveMovingPlatformDelta()
+            {
+                // 接地していない、またはForceRide等で既にkinematic Rigidbody配下に親付けされている場合は適用しない
+                // Skip when airborne or already parented under a kinematic Rigidbody (e.g. ForceRide)
+                if (!grounded || IsParentedToKinematicRigidbody())
+                {
+                    _trackedPlatformRigidbody = null;
+                    return Vector3.zero;
+                }
+
+                var platform = FindGroundKinematicRigidbody();
+
+                var resolved = Vector3.zero;
+                if (platform != null && platform == _trackedPlatformRigidbody)
+                {
+                    // 前フレームの平台ローカルでのプレイヤー位置を、現フレームの平台ワールドへ再投影する
+                    // Reproject the player's prior platform-local position into the current platform world (handles curve rotation)
+                    var localOffset = Quaternion.Inverse(_trackedPlatformRotation) * (_transform.position - _trackedPlatformPosition);
+                    var expectedNewWorld = platform.transform.position + platform.transform.rotation * localOffset;
+                    resolved = expectedNewWorld - _transform.position;
+                }
+
+                _trackedPlatformRigidbody = platform;
+                if (platform != null)
+                {
+                    _trackedPlatformPosition = platform.transform.position;
+                    _trackedPlatformRotation = platform.transform.rotation;
+                }
+                return resolved;
+            }
+
+            void ApplyPlatformDelta(Vector3 platformDelta)
+            {
+                // CharacterControllerの衝突解消が水平deltaを吸収するため、enable切り替えでバイパスして直接transformへ書き込む
+                // Bypass CharacterController collision resolve by toggling enabled around a direct transform write
+                if (platformDelta.sqrMagnitude <= 0f)
+                {
+                    return;
+                }
+                _controller.enabled = false;
+                _transform.position += platformDelta;
+                _controller.enabled = true;
+            }
+
+            bool IsParentedToKinematicRigidbody()
+            {
+                // シーン階層上の単なる親付け（PlayerSystem等）は通し、kinematic Rigidbody直下のときだけ弾く
+                // Allow normal scene-hierarchy parenting; only block when nested under a kinematic Rigidbody
+                if (_transform.parent == null)
+                {
+                    return false;
+                }
+                var parentRigidbody = _transform.parent.GetComponentInParent<Rigidbody>();
+                return parentRigidbody != null && parentRigidbody.isKinematic;
+            }
+
+            Rigidbody FindGroundKinematicRigidbody()
+            {
+                // 接地判定と同じ球・同じレイヤで足元のColliderを探索する
+                // Probe the same grounded sphere and layers used by GroundedCheck
+                var spherePosition = new Vector3(_transform.position.x, _transform.position.y - groundedOffset, _transform.position.z);
+                var count = Physics.OverlapSphereNonAlloc(spherePosition, groundedRadius, _platformOverlapBuffer, groundLayers, QueryTriggerInteraction.Ignore);
+                for (var i = 0; i < count; i++)
+                {
+                    var rb = _platformOverlapBuffer[i].attachedRigidbody;
+                    if (rb != null && rb.isKinematic)
+                    {
+                        return rb;
+                    }
+                }
+                return null;
+            }
+
+            #endregion
         }
 
         /// <summary>
@@ -40,79 +117,6 @@ namespace StarterAssets
         public void ResetTracking()
         {
             _trackedPlatformRigidbody = null;
-        }
-
-        private Vector3 ResolveMovingPlatformDelta(bool grounded, float groundedOffset, float groundedRadius, LayerMask groundLayers)
-        {
-            // 接地していない、またはForceRide等で既にkinematic Rigidbody配下に親付けされている場合は適用しない
-            // Skip when airborne or already parented under a kinematic Rigidbody (e.g. ForceRide)
-            if (!grounded || IsParentedToKinematicRigidbody())
-            {
-                _trackedPlatformRigidbody = null;
-                return Vector3.zero;
-            }
-
-            var platform = FindGroundKinematicRigidbody(groundedOffset, groundedRadius, groundLayers);
-
-            var delta = Vector3.zero;
-            if (platform != null && platform == _trackedPlatformRigidbody)
-            {
-                // 前フレームの平台ローカルでのプレイヤー位置を、現フレームの平台ワールドへ再投影する
-                // Reproject the player's prior platform-local position into the current platform world (handles curve rotation)
-                var localOffset = Quaternion.Inverse(_trackedPlatformRotation) * (_transform.position - _trackedPlatformPosition);
-                var expectedNewWorld = platform.transform.position + platform.transform.rotation * localOffset;
-                delta = expectedNewWorld - _transform.position;
-            }
-
-            _trackedPlatformRigidbody = platform;
-            if (platform != null)
-            {
-                _trackedPlatformPosition = platform.transform.position;
-                _trackedPlatformRotation = platform.transform.rotation;
-            }
-            return delta;
-        }
-
-        private void ApplyPlatformDelta(Vector3 platformDelta)
-        {
-            // CharacterControllerの衝突解消が水平deltaを吸収するため、enable切り替えでバイパスして直接transformへ書き込む
-            // Bypass CharacterController collision resolve by toggling enabled around a direct transform write
-            if (platformDelta.sqrMagnitude <= 0f)
-            {
-                return;
-            }
-            _controller.enabled = false;
-            _transform.position += platformDelta;
-            _controller.enabled = true;
-        }
-
-        private bool IsParentedToKinematicRigidbody()
-        {
-            // シーン階層上の単なる親付け（PlayerSystem等）は通し、kinematic Rigidbody直下のときだけ弾く
-            // Allow normal scene-hierarchy parenting; only block when nested under a kinematic Rigidbody
-            if (_transform.parent == null)
-            {
-                return false;
-            }
-            var parentRigidbody = _transform.parent.GetComponentInParent<Rigidbody>();
-            return parentRigidbody != null && parentRigidbody.isKinematic;
-        }
-
-        private Rigidbody FindGroundKinematicRigidbody(float groundedOffset, float groundedRadius, LayerMask groundLayers)
-        {
-            // 接地判定と同じ球・同じレイヤで足元のColliderを探索する
-            // Probe the same grounded sphere and layers used by GroundedCheck
-            var spherePosition = new Vector3(_transform.position.x, _transform.position.y - groundedOffset, _transform.position.z);
-            var count = Physics.OverlapSphereNonAlloc(spherePosition, groundedRadius, _platformOverlapBuffer, groundLayers, QueryTriggerInteraction.Ignore);
-            for (var i = 0; i < count; i++)
-            {
-                var rb = _platformOverlapBuffer[i].attachedRigidbody;
-                if (rb != null && rb.isKinematic)
-                {
-                    return rb;
-                }
-            }
-            return null;
         }
     }
 }
