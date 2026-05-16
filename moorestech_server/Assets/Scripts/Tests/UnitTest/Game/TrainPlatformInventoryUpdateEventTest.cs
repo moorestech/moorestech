@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -40,18 +41,20 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(platformBlock, "貨物プラットフォームの設置に失敗しました。");
 
             var blockInventory = platformBlock.GetComponent<IBlockInventory>();
-            var receivedEvents = SubscribeBlockInventoryEvents(platformBlock.BlockInstanceId);
+            var (receivedEvents, subscription) = SubscribeBlockInventoryEvents(platformBlock.BlockInstanceId);
+            using (subscription)
+            {
+                // インベントリへSetItemし、対応するイベントが発火することを確認
+                // SetItem into inventory and confirm the matching update event fires
+                var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 4);
+                blockInventory.SetItem(0, stack);
 
-            // インベントリへSetItemし、対応するイベントが発火することを確認
-            // SetItem into inventory and confirm the matching update event fires
-            var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 4);
-            blockInventory.SetItem(0, stack);
-
-            Assert.AreEqual(1, receivedEvents.Count, "プラットフォームのスロット更新イベントが発火していません。");
-            Assert.AreEqual(0, receivedEvents[0].Slot);
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedEvents[0].ItemStack.Id);
-            Assert.AreEqual(4, receivedEvents[0].ItemStack.Count);
-            Assert.AreEqual(platformBlock.BlockInstanceId, receivedEvents[0].BlockInstanceId);
+                Assert.AreEqual(1, receivedEvents.Count, "プラットフォームのスロット更新イベントが発火していません。");
+                Assert.AreEqual(0, receivedEvents[0].Slot);
+                Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedEvents[0].ItemStack.Id);
+                Assert.AreEqual(4, receivedEvents[0].ItemStack.Count);
+                Assert.AreEqual(platformBlock.BlockInstanceId, receivedEvents[0].BlockInstanceId);
+            }
         }
 
         [Test]
@@ -64,16 +67,18 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
 
             var blockInventory = stationBlock.GetComponent<IBlockInventory>();
-            var receivedEvents = SubscribeBlockInventoryEvents(stationBlock.BlockInstanceId);
+            var (receivedEvents, subscription) = SubscribeBlockInventoryEvents(stationBlock.BlockInstanceId);
+            using (subscription)
+            {
+                var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3);
+                blockInventory.SetItem(2, stack);
 
-            var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3);
-            blockInventory.SetItem(2, stack);
-
-            Assert.AreEqual(1, receivedEvents.Count, "駅ブロックのスロット更新イベントが発火していません。");
-            Assert.AreEqual(2, receivedEvents[0].Slot);
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedEvents[0].ItemStack.Id);
-            Assert.AreEqual(3, receivedEvents[0].ItemStack.Count);
-            Assert.AreEqual(stationBlock.BlockInstanceId, receivedEvents[0].BlockInstanceId);
+                Assert.AreEqual(1, receivedEvents.Count, "駅ブロックのスロット更新イベントが発火していません。");
+                Assert.AreEqual(2, receivedEvents[0].Slot);
+                Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedEvents[0].ItemStack.Id);
+                Assert.AreEqual(3, receivedEvents[0].ItemStack.Count);
+                Assert.AreEqual(stationBlock.BlockInstanceId, receivedEvents[0].BlockInstanceId);
+            }
         }
 
         [Test]
@@ -85,14 +90,16 @@ namespace Tests.UnitTest.Game
             var platformBlock = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainItemPlatform, Vector3Int.zero, BlockDirection.North);
 
             var blockInventory = platformBlock.GetComponent<IBlockInventory>();
-            var receivedEvents = SubscribeBlockInventoryEvents(platformBlock.BlockInstanceId);
+            var (receivedEvents, subscription) = SubscribeBlockInventoryEvents(platformBlock.BlockInstanceId);
+            using (subscription)
+            {
+                var inserted = blockInventory.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 7), InsertItemContext.Empty);
 
-            var inserted = blockInventory.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 7), InsertItemContext.Empty);
-
-            Assert.AreEqual(0, inserted.Count, "プラットフォームの空スロットへ挿入できていません。");
-            Assert.AreEqual(1, receivedEvents.Count, "InsertItem経由でイベントが発火していません。");
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedEvents[0].ItemStack.Id);
-            Assert.AreEqual(7, receivedEvents[0].ItemStack.Count);
+                Assert.AreEqual(0, inserted.Count, "プラットフォームの空スロットへ挿入できていません。");
+                Assert.AreEqual(1, receivedEvents.Count, "InsertItem経由でイベントが発火していません。");
+                Assert.AreEqual(ForUnitTestItemId.ItemId1, receivedEvents[0].ItemStack.Id);
+                Assert.AreEqual(7, receivedEvents[0].ItemStack.Count);
+            }
         }
 
         [Test]
@@ -131,32 +138,34 @@ namespace Tests.UnitTest.Game
 
             // ここから新しい受信者でイベントを記録する
             // Now start recording events with a fresh receiver
-            var receivedEvents = SubscribeBlockInventoryEvents(cargoPlatformBlock.BlockInstanceId);
-
-            // 転送完了までUpdateを回す
-            // Run Update until the transfer completes
-            var transferTicks = GetCargoTransferTicks();
-            for (var i = 0; i < transferTicks; i++)
+            var (receivedEvents, subscription) = SubscribeBlockInventoryEvents(cargoPlatformBlock.BlockInstanceId);
+            using (subscription)
             {
-                trainPlatformItemTransferComponent.Update();
-                trainPlatformDockingComponent.Update();
+                // 転送完了までUpdateを回す
+                // Run Update until the transfer completes
+                var transferTicks = GetCargoTransferTicks();
+                for (var i = 0; i < transferTicks; i++)
+                {
+                    trainPlatformItemTransferComponent.Update();
+                    trainPlatformDockingComponent.Update();
+                }
+
+                Assert.AreEqual(ItemMaster.EmptyItemId, cargoInventory.GetItem(0).Id, "積み込み後にプラットフォームのスロットが空になっていません。");
+
+                // 0番スロットが空になったことを通知するイベントが少なくとも1件あること
+                // At least one event must report slot 0 becoming empty
+                var clearingEvent = receivedEvents.Find(e => e.Slot == 0 && e.ItemStack.Id == ItemMaster.EmptyItemId);
+                Assert.IsNotNull(clearingEvent, "積み込み後の空化を通知するイベントが発火していません。");
             }
-
-            Assert.AreEqual(ItemMaster.EmptyItemId, cargoInventory.GetItem(0).Id, "積み込み後にプラットフォームのスロットが空になっていません。");
-
-            // 0番スロットが空になったことを通知するイベントが少なくとも1件あること
-            // At least one event must report slot 0 becoming empty
-            var clearingEvent = receivedEvents.Find(e => e.Slot == 0 && e.ItemStack.Id == ItemMaster.EmptyItemId);
-            Assert.IsNotNull(clearingEvent, "積み込み後の空化を通知するイベントが発火していません。");
         }
 
-        private static List<BlockOpenableInventoryUpdateEventProperties> SubscribeBlockInventoryEvents(BlockInstanceId targetInstanceId)
+        private static (List<BlockOpenableInventoryUpdateEventProperties> events, IDisposable subscription) SubscribeBlockInventoryEvents(BlockInstanceId targetInstanceId)
         {
             var captured = new List<BlockOpenableInventoryUpdateEventProperties>();
-            ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
+            var subscription = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
                 .Where(properties => properties.BlockInstanceId == targetInstanceId)
                 .Subscribe(captured.Add);
-            return captured;
+            return (captured, subscription);
         }
 
         private static int GetCargoTransferTicks()
