@@ -57,14 +57,18 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public bool IsItemExist(ItemId itemId, int itemSlot)
         {
+            if (itemSlot < 0)
+            {
+                Debug.LogError("inventory index out of range  index:" + itemSlot);
+                return false;
+            }
+
             if (itemSlot < _mainInventory.Count) return _mainInventory[itemSlot].Id == itemId;
             
             var subIndex = itemSlot - _mainInventory.Count;
-            var subItemId = _subInventory.SubInventory[itemSlot - _mainInventory.Count].Id;
+            if (subIndex < _subInventory.SubInventory.Count) return _subInventory.SubInventory[subIndex].Id == itemId;
             
-            if (subIndex < _subInventory.Count) return subItemId == itemId;
-            
-            Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + itemSlot);
+            Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " SubInventoryDataCount:" + _subInventory.SubInventory.Count + " index:" + itemSlot);
             return false;
         }
         
@@ -72,15 +76,27 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             get
             {
+                if (index < 0)
+                {
+                    Debug.LogError("inventory index out of range  index:" + index);
+                    return ServerContext.ItemStackFactory.CreatEmpty();
+                }
+
                 if (index < _mainInventory.Count) return _mainInventory[index];
                 var subIndex = index - _mainInventory.Count;
-                if (subIndex < _subInventory.Count) return _subInventory.SubInventory[index - _mainInventory.Count];
+                if (subIndex < _subInventory.SubInventory.Count) return _subInventory.SubInventory[subIndex];
                 
-                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
+                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " SubInventoryDataCount:" + _subInventory.SubInventory.Count + " index:" + index);
                 return ServerContext.ItemStackFactory.CreatEmpty();
             }
             set
             {
+                if (index < 0)
+                {
+                    Debug.LogError("inventory index out of range  index:" + index);
+                    return;
+                }
+
                 if (index < _mainInventory.Count)
                 {
                     _mainInventory[index] = value;
@@ -89,14 +105,14 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 }
                 
                 var subIndex = index - _mainInventory.Count;
-                if (subIndex < _subInventory.Count)
+                if (subIndex < _subInventory.SubInventory.Count)
                 {
                     _subInventory.SubInventory[subIndex] = value;
                     _onItemChange.OnNext(index);
                     return;
                 }
                 
-                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " index:" + index);
+                Debug.LogError("sub inventory index out of range  SubInventoryCount:" + _subInventory.Count + " SubInventoryDataCount:" + _subInventory.SubInventory.Count + " index:" + index);
             }
         }
         

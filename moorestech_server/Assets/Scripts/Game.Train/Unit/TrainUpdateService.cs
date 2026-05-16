@@ -4,6 +4,7 @@ using Core.Update;
 using Game.Train.Diagram;
 using Game.Train.RailGraph;
 using UniRx;
+using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Game.Train.Unit
 {
@@ -182,15 +183,22 @@ namespace Game.Train.Unit
                 {
                     if (railNodes[i] != null)
                     {
-                        // 駅ノードならfront exitノードを全てのダイアグラムに追加
-                        // Add front-exit nodes from station nodes to every diagram.
-                        if ((railNodes[i].StationRef.NodeSide == StationNodeSide.Back) && (railNodes[i].StationRef.NodeRole == StationNodeRole.Exit))
+                        // 蒸気機関車駅のBack側Exitノードだけをデバッグ自動運転に登録する
+                        // Register only train station back-side exit nodes for debug auto-run.
+                        if (IsDebugAutoRunStationNode(railNodes[i]))
                         {
                             stationNodes.Add(railNodes[i]);
                         }
                     }
                 }
                 _diagramManager.ResetAndNotifyNodeAddition(stationNodes);
+            }
+
+            bool IsDebugAutoRunStationNode(RailNode railNode)
+            {
+                if (railNode.StationRef.NodeSide != StationNodeSide.Back) return false;
+                if (railNode.StationRef.NodeRole != StationNodeRole.Exit) return false;
+                return railNode.StationRef.StationBlock?.BlockMasterElement.BlockType == BlockTypeConst.TrainStation;
             }
 
             #endregion
