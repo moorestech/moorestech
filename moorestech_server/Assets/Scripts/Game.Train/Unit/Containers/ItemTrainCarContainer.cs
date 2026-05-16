@@ -7,18 +7,22 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Mooresmaster.Model.TrainModule;
+using UniRx;
 
 namespace Game.Train.Unit.Containers
 {
     public class ItemTrainCarContainer : IOpenableInventory, IFuelProviderTrainCarContainer
     {
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 
         // 通知の宛先は装着中の列車。Attach/Detach経由でのみ更新される
         // The current owning car; populated only through Attach/Detach lifecycle hooks.
         private TrainCar _attachedCar;
 
-        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        public IObservable<(int slot, IItemStack stack)> OnSlotChanged => _onSlotChangedSubject;
+        private readonly Subject<(int slot, IItemStack stack)> _onSlotChangedSubject = new();
+
 
         private ItemTrainCarContainer(int slotNumber)
         {
@@ -26,6 +30,7 @@ namespace Game.Train.Unit.Containers
                 (slot, itemStack) =>
                 {
                     _attachedCar?.NotifyInventoryUpdate(slot, itemStack);
+                    _onSlotChangedSubject.OnNext((slot, itemStack));
                 }, ServerContext.ItemStackFactory, slotNumber);
         }
 

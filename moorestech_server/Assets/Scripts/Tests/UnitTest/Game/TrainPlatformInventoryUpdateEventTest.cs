@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game
             var cargoParam = (TrainItemPlatformBlockParam)
                 MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
             var ticks = GameUpdater.SecondsToTicks(cargoParam.LoadingAnimeSpeed);
-            return (ticks > int.MaxValue ? int.MaxValue : (int)ticks) + 1;
+            return (int.MaxValue < ticks ? int.MaxValue : (int)ticks) + 1;
         }
     }
 }
