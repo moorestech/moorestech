@@ -1,7 +1,7 @@
 {
-  "version": "1.7.3",
+  "version": "1.6.3",
   "serverVersion": "1.6.3",
-  "updatedAt": "2026-04-22T08:17:45.351Z",
+  "updatedAt": "2026-05-15T07:55:57.450Z",
   "tools": [
     {
       "name": "clear-console",
@@ -60,23 +60,23 @@
     },
     {
       "name": "execute-dynamic-code",
-      "description": "Execute C# code dynamically in Unity Editor for editor automation.\n\nDirect statements only (no classes/namespaces/methods); return is optional (auto 'return null;' if omitted).\n\nYou may include using directives at the top; they are hoisted above the wrapper.\nExample:\n  using UnityEngine;\n  var x = Mathf.PI;\n  return x;\n\nDo:\n- Prefab/material wiring (PrefabUtility)\n- AddComponent + reference wiring (SerializedObject)\n- Scene/hierarchy edits\n\nDon't:\n- System.IO.* (File/Directory/Path)\n- AssetDatabase.CreateFolder / file writes\n- Create/edit .cs/.asmdef (use Terminal/IDE instead)\n\nNeed files/dirs? Run terminal commands.\n\nSee examples at {project_root}/.claude/skills/uloop-execute-dynamic-code/examples/",
+      "description": "Execute C# code dynamically in Unity Editor for editor automation.\r\n\r\nDirect statements only (no classes/namespaces/methods); return is optional (auto 'return null;' if omitted).\r\n\r\nYou may include using directives at the top; they are hoisted above the wrapper.\r\nExample:\r\n  using UnityEngine;\r\n  var x = Mathf.PI;\r\n  return x;\r\n\r\nDo:\r\n- Prefab/material wiring (PrefabUtility)\r\n- AddComponent + reference wiring (SerializedObject)\r\n- Scene/hierarchy edits\r\n\r\nDon't:\r\n- System.IO.* (File/Directory/Path)\r\n- AssetDatabase.CreateFolder / file writes\r\n- Create/edit .cs/.asmdef (use Terminal/IDE instead)\r\n\r\nNeed files/dirs? Run terminal commands.\r\n\r\nSee examples at {project_root}/.claude/skills/uloop-execute-dynamic-code/examples/",
       "inputSchema": {
         "type": "object",
         "properties": {
           "Code": {
             "type": "string",
-            "description": "Editor automation only — no file I/O, no script authoring.\n\nDirect statements only (no classes/namespaces/methods); return is optional (auto 'return null;' if omitted).\n\nYou may include using directives at the top; they are hoisted above the wrapper.\nExample:\n  using UnityEngine;\n  var x = Mathf.PI;\n  return x;\n\nDo:\n- Prefab/material wiring (PrefabUtility)\n- AddComponent + reference wiring (SerializedObject)\n- Scene/hierarchy edits\n\nDon’t:\n- System.IO.* (File/Directory/Path)\n- AssetDatabase.CreateFolder / file writes\n- Create/edit .cs/.asmdef (use Terminal/IDE instead)\n\nNeed files/dirs? Run terminal commands.",
+            "description": "Editor automation only — no file I/O, no script authoring.\r\n\r\nDirect statements only (no classes/namespaces/methods); return is optional (auto 'return null;' if omitted).\r\n\r\nYou may include using directives at the top; they are hoisted above the wrapper.\r\nExample:\r\n  using UnityEngine;\r\n  var x = Mathf.PI;\r\n  return x;\r\n\r\nDo:\r\n- Prefab/material wiring (PrefabUtility)\r\n- AddComponent + reference wiring (SerializedObject)\r\n- Scene/hierarchy edits\r\n\r\nDon’t:\r\n- System.IO.* (File/Directory/Path)\r\n- AssetDatabase.CreateFolder / file writes\r\n- Create/edit .cs/.asmdef (use Terminal/IDE instead)\r\n\r\nNeed files/dirs? Run terminal commands.",
             "default": ""
           },
           "Parameters": {
             "type": "object",
-            "description": "Advanced, optional parameters passed to the snippet.\n\n- For throwaway snippets, prefer defining locals directly in code\n- Keys are not preserved; values map to parameters[\"param0\"], parameters[\"param1\"], ...\n- Use when injecting UnityEngine.Object or sensitive values, or reusing a snippet with varying data\n- Use object values supported by the Editor; prefer fully-qualified type names for ambiguous refs (e.g., UnityEngine.Object)\n\n- Input type must be an OBJECT. Strings like \"{}\" are invalid.\n- Do: omit 'Parameters' entirely, or use {}\n- Don't: \"{}\" (string), \"{\"a\":1}\" (string)\n\nExamples:\nOK:   \"Parameters\": {}\nOK:   (omit the 'Parameters' property)\nNG:   \"Parameters\": \"{}\"",
+            "description": "Advanced, optional parameters passed to the snippet.\r\n\r\n- For throwaway snippets, prefer defining locals directly in code\r\n- Keys are not preserved; values map to parameters[\"param0\"], parameters[\"param1\"], ...\r\n- Use when injecting UnityEngine.Object or sensitive values, or reusing a snippet with varying data\r\n- Use object values supported by the Editor; prefer fully-qualified type names for ambiguous refs (e.g., UnityEngine.Object)\r\n\r\n- Input type must be an OBJECT. Strings like \"{}\" are invalid.\r\n- Do: omit 'Parameters' entirely, or use {}\r\n- Don't: \"{}\" (string), \"{\"a\":1}\" (string)\r\n\r\nExamples:\r\nOK:   \"Parameters\": {}\r\nOK:   (omit the 'Parameters' property)\r\nNG:   \"Parameters\": \"{}\"",
             "default": {}
           },
           "CompileOnly": {
             "type": "boolean",
-            "description": "Compile only (no execution).\n\n- Uses Roslyn validation to surface diagnostics\n- For new MonoBehaviours: create .cs → compile (mcp__uLoopMCP__compile with ForceRecompile=false) → ensure ErrorCount=0 → AddComponent",
+            "description": "Compile only (no execution).\r\n\r\n- Uses Roslyn validation to surface diagnostics\r\n- For new MonoBehaviours: create .cs → compile (mcp__uLoopMCP__compile with ForceRecompile=false) → ensure ErrorCount=0 → AddComponent",
             "default": false
           }
         },
