@@ -54,7 +54,7 @@ namespace Client.Game.InGame.Block
             gameObject.SetActive(active);
         }
         
-        public void PlaceBlock(Vector3Int blockPosition, BlockId blockId, BlockDirection blockDirection, BlockInstanceId blockInstanceId)
+        public void PlaceBlock(Vector3Int blockPosition, BlockId blockId, BlockDirection blockDirection, BlockInstanceId blockInstanceId, bool playPlaceAnimation)
         {
             // すでにブロックがあり、IDが違う場合は新しいブロックに置き換えるために削除する
             // If a block already exists and the ID is different, delete it to replace with a new block
@@ -81,9 +81,12 @@ namespace Client.Game.InGame.Block
             var rot = blockDirection.GetRotation();
 
             var block = ClientContext.BlockGameObjectPrefabContainer.CreateBlock(blockId, pos, rot, transform, blockPosition, blockDirection, blockInstanceId);
-            // 設置アニメーションを再生
-            // Play place animation
-            block.PlayPlaceAnimation().Forget();
+            if (playPlaceAnimation)
+            {
+                // 単発の配置イベントだけ設置アニメーションを再生する
+                // Play place animation only for single placement events
+                block.PlayPlaceAnimation().Forget();
+            }
             
             _blockObjectsDictionary.Add(blockPosition, block);
             _blockObjectsByInstanceIdDictionary.Add(blockInstanceId, block);

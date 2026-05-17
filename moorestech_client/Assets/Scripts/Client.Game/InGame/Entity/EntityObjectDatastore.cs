@@ -13,6 +13,7 @@ namespace Client.Game.InGame.Entity
     {
         private EntityObjectFactory _entityObjectFactory;
         private readonly Dictionary<long, (DateTime lastUpdate, IEntityObject objectEntity)> _entities = new();
+        private readonly HashSet<long> _creatingEntityIds = new();
         
         [Inject]
         public void Construct(TrainUnitClientCache trainUnitClientCache)
@@ -60,8 +61,19 @@ namespace Client.Game.InGame.Entity
 
                 // 新規エンティティの生成
                 // Create new entity
+                if (_creatingEntityIds.Contains(entity.InstanceId)) continue;
+                _creatingEntityIds.Add(entity.InstanceId);
                 _entityObjectFactory.CreateEntity(transform, entity).ContinueWith(entityObject =>
                 {
+                    // 生成完了前に同じIDの更新が来ても二重登録しない
+                    // Avoid duplicate registration when updates arrive before creation completes
+                    _creatingEntityIds.Remove(entity.InstanceId);
+                    if (_entities.ContainsKey(entity.InstanceId))
+                    {
+                        entityObject.Destroy();
+                        return entityObject;
+                    }
+
                     entityObject.Initialize(entity.InstanceId);
                     _entities.Add(entity.InstanceId, (DateTime.Now, entityObject));
                     return entityObject;
