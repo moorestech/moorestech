@@ -49,8 +49,6 @@ namespace Client.Game.InGame.Train.DebugView
             _builder.AppendLine("[TrainUnit Debug Status]");
             _builder.Append("tick=").Append(tickState.GetTick());
             _builder.Append(" sequence=").Append(tickState.GetTickSequenceId());
-            _builder.Append(" appliedUnified=").Append(tickState.GetAppliedTickUnifiedId());
-            _builder.Append(" maxBuffered=").Append(tickState.GetMaxBufferedTicks());
             _builder.Append(" units=").Append(trainCache.Units.Count);
             _builder.Append(" hash=0x").Append(trainCache.ComputeCurrentHash().ToString("X8"));
             _builder.AppendLine();
@@ -78,8 +76,7 @@ namespace Client.Game.InGame.Train.DebugView
             {
                 // RailPositionの先頭側と直前ノードを出し、ワープ前後の位置を追跡する
                 // Print rail head and just-passed node to track position around warps.
-                _builder.Append("  rail: length=").Append(railPosition.TrainLength);
-                _builder.Append(" distanceToNext=").Append(railPosition.GetDistanceToNextNode());
+                _builder.Append("  rail: distanceToNext=").Append(railPosition.GetDistanceToNextNode());
                 _builder.Append(" approaching={").Append(FormatNode(railPosition.GetNodeApproaching())).Append('}');
                 _builder.Append(" passed={").Append(FormatNode(railPosition.GetNodeJustPassed())).Append('}');
                 _builder.AppendLine();
@@ -98,7 +95,6 @@ namespace Client.Game.InGame.Train.DebugView
             {
                 var car = cars[i];
                 _builder.Append("  car[").Append(i).Append("] id=").Append(ShortText(car.TrainCarInstanceId.ToString()));
-                _builder.Append(" master=").Append(ShortGuid(car.TrainCarMasterId));
                 _builder.Append(" facing=").Append(car.IsFacingForward ? "forward" : "backward");
                 _builder.Append(" fuel=").Append(car.HasFuel ? "yes" : "no");
                 _builder.Append(" weight=").Append(car.Weight);
@@ -124,18 +120,13 @@ namespace Client.Game.InGame.Train.DebugView
             }
 
             var destination = node.ConnectionDestination;
-            return $"id={node.NodeId} guid={ShortGuid(node.NodeGuid)} dest={FormatDestination(destination)}";
+            return $"id={node.NodeId} dest={FormatDestination(destination)}";
         }
 
         private static string FormatDestination(ConnectionDestination destination)
         {
             var position = destination.blockPosition;
             return $"({position.x},{position.y},{position.z}) component={destination.componentIndex} front={destination.IsFront}";
-        }
-
-        private static string ShortGuid(Guid guid)
-        {
-            return ShortText(guid.ToString("N"));
         }
 
         private static string ShortText(string text)
