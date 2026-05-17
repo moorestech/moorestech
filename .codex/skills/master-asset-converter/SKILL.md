@@ -1,6 +1,6 @@
 ---
 name: master-asset-converter
-description: moorestech_masterリポジトリ内のPNGファイルを見つけてJPEGに変換し、アセット画像フォーマットを統一する。Use when: (1) moorestech_masterにPNG画像が混在している時 (2) 「PNGをJPEGに変換して」「画像フォーマットを統一して」と依頼された時 (3) 新しいアセット画像を追加した後にフォーマットを揃えたい時
+description: 'moorestech_masterリポジトリ内のPNGファイルを見つけてJPEGに変換し、アセット画像フォーマットを統一する。Use when: (1) moorestech_masterにPNG画像が混在している時 (2) 「PNGをJPEGに変換して」「画像フォーマットを統一して」と依頼された時 (3) 新しいアセット画像を追加した後にフォーマットを揃えたい時'
 ---
 
 # Master Asset Converter
