@@ -4,6 +4,7 @@ using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Service;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Blocks.TrainRail.ContainerComponents;
+using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate.Utility;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -15,9 +16,11 @@ namespace Game.Block.Factory.BlockTemplate
     public class VanillaTrainItemPlatformTemplate : IBlockTemplate
     {
         private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
 
-        public VanillaTrainItemPlatformTemplate(IRailGraphDatastore railGraphDatastore)
+        public VanillaTrainItemPlatformTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent, IRailGraphDatastore railGraphDatastore)
         {
+            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
             _railGraphDatastore = railGraphDatastore;
         }
         /// <summary>
@@ -37,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(TrainPlatformTransferComponent.TransferMode.LoadToTrain);
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
             var inserter = new ConnectingInventoryListPriorityInsertItemService(instanceId, inputConnectorComponent);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, inserter);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(instanceId, _blockInventoryUpdateEvent, trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, inserter);
 
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
@@ -74,7 +77,7 @@ namespace Game.Block.Factory.BlockTemplate
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(stationParam.InventoryConnectors, positionInfo);
             var inserter = new ConnectingInventoryListPriorityInsertItemService(instanceId, inputConnectorComponent);
-            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, inserter, componentStates);
+            var trainPlatformItemTransferComponent = new TrainPlatformItemContainerComponent(instanceId, _blockInventoryUpdateEvent, trainPlatformDockingComponent, trainPlatformTransferComponent, stationParam.ItemSlotCount, inserter, componentStates);
             
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
