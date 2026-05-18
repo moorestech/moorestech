@@ -100,6 +100,7 @@ properties:
       - GearPump
       - ElectricPump
       - GearElectricGenerator
+      - FilterSplitter
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -733,6 +734,16 @@ properties:
           default: 100
         - key: gear
           ref: gear
+      - when: FilterSplitter
+        type: object
+        implementationInterface:
+        - IInventoryConnectors
+        properties:
+        - key: filterSlotCountPerDirection
+          type: integer
+          default: 10
+        - key: inventoryConnectors
+          ref: inventoryConnects
 
     - key: overrideVerticalBlock
       type: object

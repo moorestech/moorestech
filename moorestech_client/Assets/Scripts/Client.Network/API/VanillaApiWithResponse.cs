@@ -280,6 +280,33 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
         }
 
+        // フィルター分岐器の状態取得・設定
+        // Get/Update filter splitter state
+        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> GetFilterSplitterState(Vector3Int position, CancellationToken ct)
+        {
+            var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
+                position, FilterSplitterStateProtocol.FilterSplitterOperation.Get, 0, 0, global::Game.Block.Blocks.FilterSplitter.FilterSplitterMode.Default, string.Empty);
+            return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
+        }
+
+        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SetFilterSplitterMode(
+            Vector3Int position, int directionIndex, global::Game.Block.Blocks.FilterSplitter.FilterSplitterMode mode, CancellationToken ct)
+        {
+            var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
+                position, FilterSplitterStateProtocol.FilterSplitterOperation.SetMode, directionIndex, 0, mode, string.Empty);
+            return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
+        }
+
+        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SetFilterSplitterItem(
+            Vector3Int position, int directionIndex, int slotIndex, Guid itemGuid, CancellationToken ct)
+        {
+            var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
+                position, FilterSplitterStateProtocol.FilterSplitterOperation.SetFilterItem, directionIndex, slotIndex,
+                global::Game.Block.Blocks.FilterSplitter.FilterSplitterMode.Default,
+                itemGuid == Guid.Empty ? string.Empty : itemGuid.ToString());
+            return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
+        }
+
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
             int playerId,
             int fromNodeId,
