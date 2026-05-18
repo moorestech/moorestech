@@ -14,24 +14,24 @@ namespace Game.Block.Factory.BlockTemplate.Utility
         /// 復元メイン
         /// </summary>
         //駅のように2つのRailComponentを持つブロックの復元処理
-        static public RailComponent[] Restore2RailComponents(BlockPositionInfo blockPositionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore)
+        static public RailComponent[] Restore2RailComponents(BlockPositionInfo blockPositionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore, float maxConnectableRailLength)
         {
             var railComponentPositions = new Vector3[2];
             railComponentPositions[0] = CalculateRailComponentPosition(blockPositionInfo, entryPosition);
             railComponentPositions[1] = CalculateRailComponentPosition(blockPositionInfo, exitPosition);
 
             var railComponents = new RailComponent[2];
-            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPositions[0], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0);
-            railComponents[1] = new RailComponent(railGraphDatastore, railComponentPositions[1], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 1);
+            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPositions[0], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength);
+            railComponents[1] = new RailComponent(railGraphDatastore, railComponentPositions[1], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 1, maxConnectableRailLength);
             return railComponents;
         }
 
         //駅以外、事実上橋脚ブロックの復元処理
-        static public RailComponent[] Restore1RailComponents(BlockPositionInfo blockPositionInfo, Vector3 componentPosition, IRailGraphDatastore railGraphDatastore)
+        static public RailComponent[] Restore1RailComponents(BlockPositionInfo blockPositionInfo, Vector3 componentPosition, IRailGraphDatastore railGraphDatastore, float maxConnectableRailLength)
         {
             var railComponentPosition = CalculateRailComponentPosition(blockPositionInfo, componentPosition);
             var railComponents = new RailComponent[1];
-            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPosition, blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0);
+            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPosition, blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength);
             return railComponents;
         }
 
@@ -57,7 +57,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
 
         // 指定数のRailComponentを作成し、必要に応じて自動的に接続します。
         // 今のところstation,cargoなど1つのブロックに2つのRailComponentを持つものだけを想定しています。
-        public static RailComponent[] Create2RailComponents(BlockPositionInfo positionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore)
+        public static RailComponent[] Create2RailComponents(BlockPositionInfo positionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore, float maxConnectableRailLength)
         {
             var positions = new Vector3[2];
             positions[0] = CalculateRailComponentPosition(positionInfo, entryPosition);
@@ -65,7 +65,7 @@ namespace Game.Block.Factory.BlockTemplate.Utility
             var components = new RailComponent[2];
             for (int i = 0; i < 2; i++)
             {
-                components[i] = new RailComponent(railGraphDatastore, positions[i], positionInfo.BlockDirection, positionInfo.OriginalPos, i);
+                components[i] = new RailComponent(railGraphDatastore, positions[i], positionInfo.BlockDirection, positionInfo.OriginalPos, i, maxConnectableRailLength);
             }
             // stationの前と後ろにそれぞれrailComponentがある、自動で接続する
             //components[0].ConnectRailComponent(components[1], true, true);

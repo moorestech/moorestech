@@ -38,7 +38,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 // プレビュー内容が変わった時だけ更新する
                 // Update only when preview data changes
                 _railChain.SetControlPoints(data.StartPoint, data.StartControlPoint, data.EndControlPoint, data.EndPoint);
-                _railChain.SetPreviewColor(data.HasEnoughRailItem ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor);
+                var placeable = data.HasEnoughRailItem && data.IsLengthValid;
+                _railChain.SetPreviewColor(placeable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor);
                 _railChain.Rebuild();
                 _previewDataCache = data;
             }
