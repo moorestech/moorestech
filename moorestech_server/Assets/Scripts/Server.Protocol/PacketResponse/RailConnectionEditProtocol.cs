@@ -239,7 +239,9 @@ namespace Server.Protocol.PacketResponse
         
         private static int CalculateRailItemRequiredCount(float railLength, RailItemMasterElement railMasterElement)
         {
-            return Mathf.CeilToInt(railLength * railMasterElement.ConsumptionPerUnitLength);
+            // 1アイテムで敷ける長さ(m)で割って必要個数を算出
+            // Divide by meters layable per item to compute required count
+            return Mathf.CeilToInt(railLength / railMasterElement.RailLengthPerItem);
         }
 
         [MessagePackObject]

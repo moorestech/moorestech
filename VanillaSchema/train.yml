@@ -83,7 +83,7 @@ properties:
         schemaId: items
         foreignKeyIdPath: /data/[*]/itemGuid
         displayElementPath: /data/[*]/name
-    - key: consumptionPerUnitLength
+    - key: railLengthPerItem
       type: integer
 - key: itemContainer
   type: object
