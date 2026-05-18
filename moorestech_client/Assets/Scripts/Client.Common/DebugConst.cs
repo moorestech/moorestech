@@ -17,6 +17,9 @@ namespace Client.Game
         public const string TrainAutoRunLabel = "Train auto run";
         public const string TrainAutoRunKey = "TrainAutoRun";
 
+        public const string TrainUnitDebugOverlayLabel = "Train unit debug overlay";
+        public const string TrainUnitDebugOverlayKey = "TrainUnitDebugOverlay";
+
         public const string PlacePreviewKeepLabel = "Place preview keep (no send)";
         public const string PlacePreviewKeepKey = "PlacePreviewKeep";
 
