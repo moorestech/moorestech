@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 197435551881399573, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
       propertyPath: m_text
-      value: "\u30BF\u30F3\u30B0\u30B9\u30C6\u30F3"
+      value: "\u30C1\u30BF\u30CB\u30A6\u30E0"
       objectReference: {fileID: 0}
     - target: {fileID: 356493735206346843, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
       propertyPath: veinItemGuid
-      value: 019e0a66-bc06-73e7-b9d3-ab225c468646
+      value: 582040ec-093b-4c8e-8fe3-f4ec030cf1ca
       objectReference: {fileID: 0}
     - target: {fileID: 4382336488861206257, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
       propertyPath: m_Name
-      value: VeinSet_Tungsten
+      value: VeinSet_Titanium
       objectReference: {fileID: 0}
     - target: {fileID: 4578605710860549581, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -64,14 +64,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7427273892608342011, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 7.31
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 6313329138770775130, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
-    - {fileID: 6159099791975141729, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 102545e4aec104a1ea56a3bb9b52b985, type: 3}
