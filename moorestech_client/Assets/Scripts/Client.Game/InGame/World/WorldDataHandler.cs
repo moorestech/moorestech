@@ -52,7 +52,7 @@ namespace Client.Game.InGame.World
             // viewにブロックがおかれたことを通知する
             // Notify view that a block has been placed
             var block = data.BlockData;
-            PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection, block.BlockInstanceId);
+            PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection, block.BlockInstanceId, true);
         }
         
         private void OnBlockRemove(byte[] packet)
@@ -95,7 +95,9 @@ namespace Client.Game.InGame.World
         {
             foreach (var block in worldData.Blocks)
             {
-                PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection, block.BlockInstanceId);
+                // ワールド同期では大量ブロックの初期配置アニメーションを抑止する
+                // Suppress initial placement animation for bulk world synchronization
+                PlaceBlock(block.BlockPos, block.BlockId, block.BlockDirection, block.BlockInstanceId, false);
             }
 
             if (worldData.Entities == null)
@@ -106,7 +108,7 @@ namespace Client.Game.InGame.World
             _entitiesDatastore.OnEntitiesUpdate(worldData.Entities);
         }
 
-        private void PlaceBlock(Vector3Int position, BlockId id, BlockDirection blockDirection, BlockInstanceId blockInstanceId)
+        private void PlaceBlock(Vector3Int position, BlockId id, BlockDirection blockDirection, BlockInstanceId blockInstanceId, bool playPlaceAnimation)
         {
             if (id == BlockConstant.NullBlockId)
             {
@@ -114,7 +116,7 @@ namespace Client.Game.InGame.World
                 return;
             }
 
-            _blockGameObjectDataStore.PlaceBlock(position, id, blockDirection, blockInstanceId);
+            _blockGameObjectDataStore.PlaceBlock(position, id, blockDirection, blockInstanceId, playPlaceAnimation);
         }
     }
 }
