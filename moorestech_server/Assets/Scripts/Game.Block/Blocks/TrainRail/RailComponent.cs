@@ -27,21 +27,26 @@ namespace Game.Block.Blocks.TrainRail
         //Vector3形式であるが、現時点でこの値自体の誤差は許容している。もしrailcomponent.positionを新規に使う場合すでに誤差が含まれていることを考慮すること
         public Vector3 Position { get; }
         public readonly Vector3 RailDirection;
-        
+
+        // このRailComponentから接続可能なレールセグメントの最大長(m)
+        // Maximum length (m) of a rail segment that can be connected from this RailComponent
+        public float MaxConnectableRailLength { get; }
+
         /// <summary>
         /// レール方向にBlockDirectionを用いるコンストラクタ
         /// </summary>
-        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, BlockDirection blockDirection, Vector3Int blockPosition, int componentIndex) : this(railGraphDatastore, position, ToVector3(blockDirection), blockPosition, componentIndex) { }
+        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, BlockDirection blockDirection, Vector3Int blockPosition, int componentIndex, float maxConnectableRailLength) : this(railGraphDatastore, position, ToVector3(blockDirection), blockPosition, componentIndex, maxConnectableRailLength) { }
 
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, Vector3 railDirection, Vector3Int blockPosition, int componentIndex)
+        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, Vector3 railDirection, Vector3Int blockPosition, int componentIndex, float maxConnectableRailLength)
         {
             _railGraphDatastore = railGraphDatastore;
 
             Position = position;
             RailDirection = railDirection;
+            MaxConnectableRailLength = maxConnectableRailLength;
 
             // ベジェ曲線の制御点を初期化
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));

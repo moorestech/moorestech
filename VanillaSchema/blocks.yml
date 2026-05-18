@@ -558,6 +558,9 @@ properties:
         - key: controlPointLength
           type: number
           default: 0.5
+        - key: maxConnectableRailLength
+          type: number
+          default: 100
       - when: TrainStation
         type: object
         implementationInterface:
@@ -587,6 +590,9 @@ properties:
         - key: loadingAnimeSpeed
           type: number
           default: 1
+        - key: maxConnectableRailLength
+          type: number
+          default: 100
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: TrainItemPlatform
@@ -619,6 +625,9 @@ properties:
         - key: loadingAnimeSpeed
           type: number
           default: 1
+        - key: maxConnectableRailLength
+          type: number
+          default: 100
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: TrainFluidPlatform
@@ -646,6 +655,9 @@ properties:
           type: number
           default: 1
         - key: capacity
+          type: number
+          default: 100
+        - key: maxConnectableRailLength
           type: number
           default: 100
         - key: fluidInventoryConnectors
