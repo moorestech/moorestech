@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Core
         public void DefaultModeCatchAllTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var (splitter, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(1));
+            var (_, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(1));
 
             // 全方向 Default のまま 3 アイテム挿入 → 各方向に 1 個ずつラウンドロビン
             // All directions stay Default; 3 inserts should round-robin one item each
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core
         public void WhitelistPriorityOverDefaultTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var (splitter, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(2));
+            var (_, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(2));
 
             // dir0 を Whitelist[ItemId1]、dir1/dir2 は Default
             // dir0 = Whitelist[ItemId1], dir1/dir2 = Default
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Core
         public void BlacklistRoutingTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var (splitter, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(3));
+            var (_, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(3));
 
             // dir0 を Blacklist[ItemId1]、dir1/dir2 は Default
             // dir0 = Blacklist[ItemId1], dir1/dir2 = Default
@@ -135,7 +135,7 @@ namespace Tests.CombinedTest.Core
         public void DuplicateFilterSlotItemsHandledCorrectlyTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var (splitter, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(5));
+            var (_, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(5));
 
             // dir0 の slot0/slot1 両方に ItemId1、その後 slot0 を ItemId2 に変更
             // Put ItemId1 in dir0 slot0 and slot1, then change slot0 to ItemId2
@@ -160,7 +160,7 @@ namespace Tests.CombinedTest.Core
 
             // 1個目: フィルター設定を行い save state を取得
             // First splitter: configure filters and capture save state
-            var (splitter1, component1, _) = CreateSplitterWithDummies(new BlockInstanceId(6));
+            var (_, component1, _) = CreateSplitterWithDummies(new BlockInstanceId(6));
             component1.SetMode(0, FilterSplitterMode.Whitelist);
             component1.SetFilterItem(0, 0, ForUnitTestItemId.ItemId1);
             component1.SetMode(1, FilterSplitterMode.Blacklist);
@@ -187,7 +187,7 @@ namespace Tests.CombinedTest.Core
         public void SetItemNormalizesInvalidInputTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var (splitter, component, _) = CreateSplitterWithDummies(new BlockInstanceId(8));
+            var (_, component, _) = CreateSplitterWithDummies(new BlockInstanceId(8));
 
             // count >= 2 を SetItem → 1 個に丸めて格納
             // SetItem with count >= 2 must be clamped to 1
@@ -200,8 +200,6 @@ namespace Tests.CombinedTest.Core
             component.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
             Assert.AreEqual(ItemMaster.EmptyItemId, component.GetItem(0).Id);
         }
-
-        #region Helpers
 
         // DummyBlockInventory は同 ID をスタックして 1 スロットにまとめるため、個数比較は Count 合計で行う
         // DummyBlockInventory stacks same-ID items into a single slot, so compare totals via Count sum
@@ -237,7 +235,5 @@ namespace Tests.CombinedTest.Core
 
             return (splitter, component, dummies);
         }
-
-        #endregion
     }
 }

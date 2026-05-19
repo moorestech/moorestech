@@ -104,11 +104,11 @@ namespace Game.Block.Blocks.FilterSplitter
             BlockException.CheckDestroy(this);
             if (itemStacks.Count == 0) return false;
 
-            // 受け入れ可能な方向が1つでもあればtrue
-            // Returns true if at least one direction can accept the item
+            // 受け入れ可能な方向が1つでもあればtrue (count <= 0 のスタックは InsertItem 側で拒否される)
+            // Returns true if at least one direction can accept the item; count<=0 stacks are rejected by InsertItem
             foreach (var stack in itemStacks)
             {
-                if (stack.Id == ItemMaster.EmptyItemId) continue;
+                if (stack.Id == ItemMaster.EmptyItemId || stack.Count <= 0) continue;
                 if (0 <= FindAnyEligibleDirection(stack.Id)) return true;
             }
             return false;
@@ -196,12 +196,20 @@ namespace Game.Block.Blocks.FilterSplitter
         public void SetMode(int directionIndex, FilterSplitterMode mode)
         {
             BlockException.CheckDestroy(this);
+            // Protocol 経由以外の呼び出しも壊れた値を入れられないようガード
+            // Guard component-level callers (not only protocol) from injecting undefined values
+            if (!Enum.IsDefined(typeof(FilterSplitterMode), mode))
+                throw new ArgumentOutOfRangeException(nameof(mode), mode, "Undefined FilterSplitterMode value");
             _directions[directionIndex].Mode = mode;
         }
 
         public void SetFilterItem(int directionIndex, int slotIndex, ItemId itemId)
         {
             BlockException.CheckDestroy(this);
+            // EmptyItemId はクリア、それ以外は master 存在チェック (save 時の例外を防ぐ)
+            // EmptyItemId means clear; otherwise verify the item exists in the master to avoid save-time errors
+            if (itemId != ItemMaster.EmptyItemId && !MasterHolder.ItemMaster.ExistItemId(itemId))
+                throw new ArgumentException($"ItemId {itemId} not registered in master", nameof(itemId));
             _directions[directionIndex].FilterItems[slotIndex] = itemId;
         }
 
@@ -402,7 +410,19 @@ namespace Game.Block.Blocks.FilterSplitter
                     }
                 }
 
-                BufferedItem = json.BufferedItem?.ToItemStack();
+                // SetItem と同じ正規化: 空 / 不正カウントは null、count >= 2 は 1 に丸める
+                // Apply the same normalization as SetItem: empty/invalid-count → null, count >= 2 → 1
+                var loadedItem = json.BufferedItem?.ToItemStack();
+                if (loadedItem == null || loadedItem.Id == ItemMaster.EmptyItemId || loadedItem.Count <= 0)
+                {
+                    BufferedItem = null;
+                }
+                else
+                {
+                    BufferedItem = loadedItem.Count == 1
+                        ? loadedItem
+                        : Game.Context.ServerContext.ItemStackFactory.Create(loadedItem.Id, 1, loadedItem.ItemInstanceId);
+                }
             }
         }
 
