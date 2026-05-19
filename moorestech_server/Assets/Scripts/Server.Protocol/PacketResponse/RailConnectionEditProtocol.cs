@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Blocks.TrainRail;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.TrainModule;
@@ -66,7 +64,7 @@ namespace Server.Protocol.PacketResponse
                         // 両端ブロックの「乗せられる最大レール長」のうち短い方を上限として比較
                         // Use min of both endpoints' max connectable rail length as the allowed limit
                         var allowedMaxLength = GetAllowedMaxRailLength(fromNode, toNode);
-                        if (length > allowedMaxLength)
+                        if (allowedMaxLength < length)
                             return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.RailLengthExceeded, data.Mode);
 
                         var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
@@ -216,24 +214,9 @@ namespace Server.Protocol.PacketResponse
         
         // 接続両端の「乗せられる最大レール長」の min を返す
         // Return the smaller of both endpoints' max connectable rail length
-        public static float GetAllowedMaxRailLength(IRailNode fromNode, IRailNode toNode)
+        public static float GetAllowedMaxRailLength(RailNode fromNode, RailNode toNode)
         {
-            var fromMax = ResolveMaxConnectableRailLength(fromNode);
-            var toMax = ResolveMaxConnectableRailLength(toNode);
-            return Mathf.Min(fromMax, toMax);
-        }
-
-        // RailNode から所属ブロックを引いて MaxConnectableRailLength を取得する
-        // Resolve MaxConnectableRailLength by looking up the source block of a RailNode
-        public static float ResolveMaxConnectableRailLength(IRailNode node)
-        {
-            // 解決できないノードは制限なし(float.MaxValue)とする
-            // Treat unresolved nodes as unlimited
-            if (node is not RailNode railNode) return float.MaxValue;
-            if (!railNode.HasConnectionDestination) return float.MaxValue;
-            var blockPos = (UnityEngine.Vector3Int)railNode.ConnectionDestination.blockPosition;
-            if (!ServerContext.WorldBlockDatastore.TryGetBlock<RailComponent>(blockPos, out var railComponent)) return float.MaxValue;
-            return railComponent.MaxConnectableRailLength;
+            return Mathf.Min(fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength);
         }
 
         public static float GetRailLength(IRailNode fromNode, IRailNode toNode)

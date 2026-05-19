@@ -99,23 +99,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         // Resolve MaxConnectableRailLength from the block referenced by ConnectionDestination
         public static float ResolveMaxConnectableRailLength(ConnectionDestination dest, BlockGameObjectDataStore blockGameObjectDataStore)
         {
-            if (blockGameObjectDataStore == null) return float.MaxValue;
             if (!blockGameObjectDataStore.TryGetBlockGameObject((Vector3Int)dest.blockPosition, out var blockGameObject)) return float.MaxValue;
             return GetMaxConnectableRailLength(blockGameObject.BlockMasterElement);
         }
 
-        // BlockMasterElement から各種 BlockParam の MaxConnectableRailLength を取り出す
-        // Extract MaxConnectableRailLength from each kind of BlockParam
+        // BlockMasterElement の BlockParam が IRailEndpointBlockParam を実装している場合に値を取り出す
+        // Read MaxConnectableRailLength via IRailEndpointBlockParam interface
         public static float GetMaxConnectableRailLength(BlockMasterElement element)
         {
-            return element.BlockParam switch
-            {
-                TrainRailBlockParam p => (float)p.MaxConnectableRailLength,
-                TrainStationBlockParam p => (float)p.MaxConnectableRailLength,
-                TrainItemPlatformBlockParam p => (float)p.MaxConnectableRailLength,
-                TrainFluidPlatformBlockParam p => (float)p.MaxConnectableRailLength,
-                _ => float.MaxValue,
-            };
+            return element.BlockParam is IRailEndpointBlockParam param ? (float)param.MaxConnectableRailLength : float.MaxValue;
         }
     }
 
