@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Item.Interface;
 using Core.Master;
@@ -10,6 +11,7 @@ using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.FilterSplitter;
 using Game.Context;
 using Game.PlayerInventory.Interface.Subscription;
+using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
 using VContainer;
@@ -27,10 +29,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
         [Inject] private LocalPlayerInventoryController _playerInventory;
 
-        public IReadOnlyList<Client.Game.InGame.UI.Inventory.Common.ItemSlotView> SubInventorySlotObjects => Array.Empty<Client.Game.InGame.UI.Inventory.Common.ItemSlotView>();
+        public IReadOnlyList<ItemSlotView> SubInventorySlotObjects => Array.Empty<ItemSlotView>();
         public int Count => 0;
         public List<IItemStack> SubInventory { get; } = new();
-        public ISubInventoryIdentifier ISubInventoryIdentifier { get; private set; }
+        // フィルター分岐器はプレイヤーインベントリ移動の対象外なので識別子は不要
+        // Filter splitter is not a target of player-inventory item moves, so identifier is unused
+        public ISubInventoryIdentifier ISubInventoryIdentifier { get; } = null;
 
         private readonly List<FilterSplitterDirectionColumnView> _columns = new();
         private readonly CompositeDisposable _subscriptions = new();
@@ -39,7 +43,6 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            ISubInventoryIdentifier = new BlockInventorySubInventoryIdentifier(blockGameObject.BlockPosInfo.OriginalPos);
             _blockPosition = blockGameObject.BlockPosInfo.OriginalPos;
 
             _cts = new CancellationTokenSource();
@@ -92,7 +95,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
         }
 
-        private void ApplySnapshot(Server.Protocol.PacketResponse.FilterSplitterStateProtocol.FilterSplitterStateResponse response)
+        private void ApplySnapshot(FilterSplitterStateProtocol.FilterSplitterStateResponse response)
         {
             for (var d = 0; d < _columns.Count && d < response.Directions.Count; d++)
             {
@@ -105,6 +108,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         {
             var ct = _cts?.Token ?? CancellationToken.None;
             var response = await ClientContext.VanillaApi.Response.SetFilterSplitterMode(_blockPosition, directionIndex, nextMode, ct);
+            if (ct.IsCancellationRequested) return;
             if (response == null || !response.Success) return;
             ApplySnapshot(response);
         }
@@ -128,6 +132,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
 
             var response = await ClientContext.VanillaApi.Response.SetFilterSplitterItem(_blockPosition, directionIndex, slotIndex, itemGuid, ct);
+            if (ct.IsCancellationRequested) return;
             if (response == null || !response.Success) return;
             ApplySnapshot(response);
         }

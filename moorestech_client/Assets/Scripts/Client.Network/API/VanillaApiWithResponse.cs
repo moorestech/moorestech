@@ -11,6 +11,7 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.Block.Blocks.FilterSplitter;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Gear.Common;
@@ -285,12 +286,12 @@ namespace Client.Network.API
         public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> GetFilterSplitterState(Vector3Int position, CancellationToken ct)
         {
             var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
-                position, FilterSplitterStateProtocol.FilterSplitterOperation.Get, 0, 0, global::Game.Block.Blocks.FilterSplitter.FilterSplitterMode.Default, string.Empty);
+                position, FilterSplitterStateProtocol.FilterSplitterOperation.Get, 0, 0, FilterSplitterMode.Default, string.Empty);
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }
 
         public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SetFilterSplitterMode(
-            Vector3Int position, int directionIndex, global::Game.Block.Blocks.FilterSplitter.FilterSplitterMode mode, CancellationToken ct)
+            Vector3Int position, int directionIndex, FilterSplitterMode mode, CancellationToken ct)
         {
             var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
                 position, FilterSplitterStateProtocol.FilterSplitterOperation.SetMode, directionIndex, 0, mode, string.Empty);
@@ -302,7 +303,7 @@ namespace Client.Network.API
         {
             var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
                 position, FilterSplitterStateProtocol.FilterSplitterOperation.SetFilterItem, directionIndex, slotIndex,
-                global::Game.Block.Blocks.FilterSplitter.FilterSplitterMode.Default,
+                FilterSplitterMode.Default,
                 itemGuid == Guid.Empty ? string.Empty : itemGuid.ToString());
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }

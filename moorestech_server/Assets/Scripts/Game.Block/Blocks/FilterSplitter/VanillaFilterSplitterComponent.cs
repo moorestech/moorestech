@@ -8,14 +8,14 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Block.Blocks.FilterSplitter
 {
     /// <summary>
     /// 出力方向ごとにアイテムをフィルタリングして分岐するブロック。
-    /// 受け取ったアイテムは出力方向ごとの内部バッファ(1スロット)を経由し、
-    /// Updateで実出力先へ送出される。出力方向の選択はラウンドロビン。
-    /// Filter splitter that routes incoming items per direction with a per-direction 1-slot buffer.
+    /// Whitelist/Blacklist で明示マッチした方向を優先、Default は fallback として使う。
+    /// Filter splitter that routes items per direction. Explicit (Whitelist/Blacklist) directions take priority, Default acts as fallback.
     /// </summary>
     public class VanillaFilterSplitterComponent : IBlockInventory, IBlockSaveState, IUpdatableBlockComponent
     {
@@ -41,11 +41,11 @@ namespace Game.Block.Blocks.FilterSplitter
         {
             _blockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
-            _filterSlotCount = filterSlotCountPerDirection;
+            _filterSlotCount = Math.Max(0, filterSlotCountPerDirection);
             _directions = new DirectionState[outputConnectorElements.Length];
             for (var i = 0; i < outputConnectorElements.Length; i++)
             {
-                _directions[i] = new DirectionState(outputConnectorElements[i].ConnectorGuid, filterSlotCountPerDirection);
+                _directions[i] = new DirectionState(outputConnectorElements[i].ConnectorGuid, _filterSlotCount);
             }
         }
 
@@ -61,12 +61,22 @@ namespace Game.Block.Blocks.FilterSplitter
             var saveData = JsonConvert.DeserializeObject<SaveJsonObject>(json);
             if (saveData?.Directions == null) return;
 
-            // 保存データの方向数とマスタの方向数が異なる場合は、両者の最小数まで復元
-            // Restore up to the minimum of saved direction count and master direction count
-            var count = Math.Min(saveData.Directions.Count, _directions.Length);
-            for (var i = 0; i < count; i++)
+            // 保存データの方向を ConnectorGuid ベースで現方向にマップして復元する
+            // Restore each saved direction by mapping its ConnectorGuid onto current directions
+            foreach (var savedDir in saveData.Directions)
             {
-                _directions[i].LoadFromJson(saveData.Directions[i]);
+                if (string.IsNullOrEmpty(savedDir.ConnectorGuid) || !Guid.TryParse(savedDir.ConnectorGuid, out var g))
+                {
+                    Debug.LogWarning($"FilterSplitter load: invalid connectorGuid '{savedDir.ConnectorGuid}', direction settings dropped");
+                    continue;
+                }
+                var currentIndex = FindDirectionIndexByGuid(g);
+                if (currentIndex < 0)
+                {
+                    Debug.LogWarning($"FilterSplitter load: connectorGuid {g} not found in current master, direction settings dropped");
+                    continue;
+                }
+                _directions[currentIndex].LoadFromJson(savedDir);
             }
         }
 
@@ -78,8 +88,8 @@ namespace Game.Block.Blocks.FilterSplitter
 
             if (itemStack.Count <= 0 || itemStack.Id == ItemMaster.EmptyItemId) return itemStack;
 
-            // フィルター適合かつバッファ空きのある方向をラウンドロビンで決定
-            // Find the next eligible direction (filter match + empty buffer) via round-robin
+            // 明示マッチ方向を優先し、なければ Default 方向をラウンドロビン
+            // Pick explicit match first, then fall back to Default directions via round-robin
             var directionIndex = SelectNextDirection(itemStack.Id);
             if (directionIndex < 0) return itemStack;
 
@@ -119,7 +129,16 @@ namespace Game.Block.Blocks.FilterSplitter
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
-            _directions[slot].BufferedItem = itemStack;
+            // empty / 不正カウントは null 化、count >= 2 は 1 に丸めて格納
+            // Normalize: empty/invalid count to null, clamp count to 1
+            if (itemStack == null || itemStack.Id == ItemMaster.EmptyItemId || itemStack.Count <= 0)
+            {
+                _directions[slot].BufferedItem = null;
+                return;
+            }
+            _directions[slot].BufferedItem = itemStack.Count == 1
+                ? itemStack
+                : ServerContext.ItemStackFactory.Create(itemStack.Id, 1, itemStack.ItemInstanceId);
         }
 
         #endregion
@@ -181,13 +200,7 @@ namespace Game.Block.Blocks.FilterSplitter
         public void SetFilterItem(int directionIndex, int slotIndex, ItemId itemId)
         {
             BlockException.CheckDestroy(this);
-            var dir = _directions[directionIndex];
-            // 旧アイテムをセットからも除外
-            // Remove old item from set as well
-            var prev = dir.FilterItems[slotIndex];
-            if (prev != ItemMaster.EmptyItemId) dir.FilterItemSet.Remove(prev);
-            dir.FilterItems[slotIndex] = itemId;
-            if (itemId != ItemMaster.EmptyItemId) dir.FilterItemSet.Add(itemId);
+            _directions[directionIndex].FilterItems[slotIndex] = itemId;
         }
 
         public IReadOnlyList<ItemId> GetFilterItems(int directionIndex)
@@ -208,10 +221,38 @@ namespace Game.Block.Blocks.FilterSplitter
             var count = _directions.Length;
             if (count == 0) return -1;
 
+            // 1パス目: Whitelist/Blacklist で明示マッチする方向を優先
+            // Pass 1: prefer directions that explicitly match (Whitelist/Blacklist)
+            var explicitIndex = TryPickRoundRobin(itemId, requireExplicitMatch: true);
+            if (0 <= explicitIndex) return explicitIndex;
+
+            // 2パス目: Default 方向を fallback として選ぶ
+            // Pass 2: fall back to Default directions
+            return TryPickRoundRobin(itemId, requireExplicitMatch: false);
+        }
+
+        private int TryPickRoundRobin(ItemId itemId, bool requireExplicitMatch)
+        {
+            var count = _directions.Length;
             for (var step = 1; step <= count; step++)
             {
                 var index = (_roundRobinIndex + step) % count;
-                if (IsDirectionEligible(index, itemId))
+                if (!CanAcceptInDirection(index)) continue;
+                var mode = _directions[index].Mode;
+                if (requireExplicitMatch)
+                {
+                    if (mode == FilterSplitterMode.Whitelist && _directions[index].ContainsFilterItem(itemId))
+                    {
+                        _roundRobinIndex = index;
+                        return index;
+                    }
+                    if (mode == FilterSplitterMode.Blacklist && !_directions[index].ContainsFilterItem(itemId))
+                    {
+                        _roundRobinIndex = index;
+                        return index;
+                    }
+                }
+                else if (mode == FilterSplitterMode.Default)
                 {
                     _roundRobinIndex = index;
                     return index;
@@ -222,29 +263,43 @@ namespace Game.Block.Blocks.FilterSplitter
 
         private int FindAnyEligibleDirection(ItemId itemId)
         {
+            // 明示マッチ方向を優先
+            // Prefer explicit match directions
             for (var i = 0; i < _directions.Length; i++)
             {
-                if (IsDirectionEligible(i, itemId)) return i;
+                if (!CanAcceptInDirection(i)) continue;
+                var mode = _directions[i].Mode;
+                if (mode == FilterSplitterMode.Whitelist && _directions[i].ContainsFilterItem(itemId)) return i;
+                if (mode == FilterSplitterMode.Blacklist && !_directions[i].ContainsFilterItem(itemId)) return i;
+            }
+            // Default 方向を fallback
+            // Default directions as fallback
+            for (var i = 0; i < _directions.Length; i++)
+            {
+                if (!CanAcceptInDirection(i)) continue;
+                if (_directions[i].Mode == FilterSplitterMode.Default) return i;
             }
             return -1;
         }
 
-        private bool IsDirectionEligible(int index, ItemId itemId)
+        private bool CanAcceptInDirection(int index)
         {
             var dir = _directions[index];
+            // バッファ占有中は受け取らない
+            // Skip directions whose buffer is occupied
             if (dir.BufferedItem != null) return false;
+            // 接続先が無い方向は受け取らない（永久滞留防止）
+            // Skip directions with no connected target (avoid permanent stalling)
+            return HasConnection(dir.ConnectorGuid);
+        }
 
-            switch (dir.Mode)
+        private bool HasConnection(Guid connectorGuid)
+        {
+            foreach (var pair in _connectorComponent.ConnectedTargets)
             {
-                case FilterSplitterMode.Default:
-                    return true;
-                case FilterSplitterMode.Whitelist:
-                    return dir.FilterItemSet.Contains(itemId);
-                case FilterSplitterMode.Blacklist:
-                    return !dir.FilterItemSet.Contains(itemId);
-                default:
-                    return false;
+                if (pair.Value.SelfConnector != null && pair.Value.SelfConnector.ConnectorGuid == connectorGuid) return true;
             }
+            return false;
         }
 
         private (IBlockInventory Inventory, ConnectedInfo Info)? FindConnectedTargetByGuid(Guid connectorGuid)
@@ -259,11 +314,19 @@ namespace Game.Block.Blocks.FilterSplitter
             return null;
         }
 
+        private int FindDirectionIndexByGuid(Guid connectorGuid)
+        {
+            for (var i = 0; i < _directions.Length; i++)
+            {
+                if (_directions[i].ConnectorGuid == connectorGuid) return i;
+            }
+            return -1;
+        }
+
         private class DirectionState
         {
             public readonly Guid ConnectorGuid;
             public readonly ItemId[] FilterItems;
-            public readonly HashSet<ItemId> FilterItemSet = new();
             public FilterSplitterMode Mode = FilterSplitterMode.Default;
             public IItemStack BufferedItem;
 
@@ -272,6 +335,17 @@ namespace Game.Block.Blocks.FilterSplitter
                 ConnectorGuid = connectorGuid;
                 FilterItems = new ItemId[slotCount];
                 for (var i = 0; i < slotCount; i++) FilterItems[i] = ItemMaster.EmptyItemId;
+            }
+
+            public bool ContainsFilterItem(ItemId itemId)
+            {
+                // 重複登録があっても誤判定にならないよう配列を直接走査
+                // Scan the array directly so duplicate entries don't corrupt judgment
+                for (var i = 0; i < FilterItems.Length; i++)
+                {
+                    if (FilterItems[i] == itemId) return true;
+                }
+                return false;
             }
 
             public DirectionSaveJsonObject ToJsonObject()
@@ -291,6 +365,7 @@ namespace Game.Block.Blocks.FilterSplitter
                 }
                 return new DirectionSaveJsonObject
                 {
+                    ConnectorGuid = ConnectorGuid.ToString(),
                     Mode = (int)Mode,
                     FilterItemGuids = itemGuids,
                     BufferedItem = BufferedItem == null ? null : new ItemStackSaveJsonObject(BufferedItem),
@@ -299,11 +374,19 @@ namespace Game.Block.Blocks.FilterSplitter
 
             public void LoadFromJson(DirectionSaveJsonObject json)
             {
-                Mode = (FilterSplitterMode)json.Mode;
-                FilterItemSet.Clear();
+                // 未知 mode 値は Default に fallback
+                // Unknown mode value falls back to Default
+                Mode = Enum.IsDefined(typeof(FilterSplitterMode), json.Mode)
+                    ? (FilterSplitterMode)json.Mode
+                    : FilterSplitterMode.Default;
                 if (json.FilterItemGuids != null)
                 {
-                    var count = Math.Min(json.FilterItemGuids.Count, FilterItems.Length);
+                    var saveCount = json.FilterItemGuids.Count;
+                    if (FilterItems.Length < saveCount)
+                    {
+                        Debug.LogWarning($"FilterSplitter load: saved slot count {saveCount} exceeds current master {FilterItems.Length}, extra slots dropped");
+                    }
+                    var count = Math.Min(saveCount, FilterItems.Length);
                     for (var i = 0; i < count; i++)
                     {
                         var guidStr = json.FilterItemGuids[i];
@@ -313,13 +396,7 @@ namespace Game.Block.Blocks.FilterSplitter
                             continue;
                         }
                         var idOrNull = MasterHolder.ItemMaster.GetItemIdOrNull(guid);
-                        if (idOrNull == null)
-                        {
-                            FilterItems[i] = ItemMaster.EmptyItemId;
-                            continue;
-                        }
-                        FilterItems[i] = idOrNull.Value;
-                        FilterItemSet.Add(idOrNull.Value);
+                        FilterItems[i] = idOrNull ?? ItemMaster.EmptyItemId;
                     }
                 }
 
@@ -334,6 +411,7 @@ namespace Game.Block.Blocks.FilterSplitter
 
         private class DirectionSaveJsonObject
         {
+            [JsonProperty("connectorGuid")] public string ConnectorGuid { get; set; }
             [JsonProperty("mode")] public int Mode { get; set; }
             [JsonProperty("filterItemGuids")] public List<string> FilterItemGuids { get; set; }
             [JsonProperty("bufferedItem")] public ItemStackSaveJsonObject BufferedItem { get; set; }
