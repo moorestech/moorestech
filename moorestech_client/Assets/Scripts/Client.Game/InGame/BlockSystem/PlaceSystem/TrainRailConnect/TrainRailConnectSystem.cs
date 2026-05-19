@@ -90,7 +90,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         // pierがない場合は設置不可。仮にデフォルトの最大長で判定する
                         // No pier in inventory: still preview with default max length
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue);
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, context.HoldingItemId);
                         ShowPreview(previewData);
                     }
                     else
@@ -102,7 +102,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         var pierBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(pierBlockId);
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
                         var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemStack.Id);
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength);
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, context.HoldingItemId);
                         ShowPreview(previewData);
 
                         if (!previewData.IsPlaceable) return;
@@ -131,7 +131,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     return;
                 }
                 
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, context.HoldingItemId);
                 ShowPreview(previewData);
 
                 if (!previewData.IsPlaceable) return;
