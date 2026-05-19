@@ -61,12 +61,12 @@ namespace Server.Protocol.PacketResponse
 
             static bool ValidateDirection(VanillaFilterSplitterComponent s, int directionIndex)
             {
-                return directionIndex >= 0 && directionIndex < s.DirectionCount;
+                return 0 <= directionIndex && directionIndex < s.DirectionCount;
             }
 
             static bool ValidateSlot(VanillaFilterSplitterComponent s, int slotIndex)
             {
-                return slotIndex >= 0 && slotIndex < s.FilterSlotCountPerDirection;
+                return 0 <= slotIndex && slotIndex < s.FilterSlotCountPerDirection;
             }
 
             static ItemId ResolveItemId(string itemGuidStr)
