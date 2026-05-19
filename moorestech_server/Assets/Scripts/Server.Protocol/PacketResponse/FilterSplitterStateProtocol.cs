@@ -11,9 +11,9 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    /// FilterSplitter ブロックのフィルター設定をGet/Updateする統合プロトコル。
-    /// OperationType により取得・モード変更・スロット設定を切り替える。
-    /// Combined Get/Update protocol for FilterSplitter filter configuration.
+    /// FilterSplitter ブロックのフィルター設定を取得・更新するプロトコル。
+    /// Operation により Get / SetMode / SetFilterItem を切り替える。
+    /// Protocol for getting/updating FilterSplitter filter configuration; dispatches by Operation.
     /// </summary>
     public class FilterSplitterStateProtocol : IPacketResponse
     {
@@ -37,20 +37,23 @@ namespace Server.Protocol.PacketResponse
 
             // 操作種別ごとに分岐し、最後に最新の全状態スナップショットを返す
             // Branch by operation type, then return latest full state snapshot
-            switch ((FilterSplitterOperation)request.Operation)
+            switch (request.Operation)
             {
                 case FilterSplitterOperation.Get:
                     break;
                 case FilterSplitterOperation.SetMode:
                     if (!ValidateDirection(splitter, request.DirectionIndex)) return FailResponse(FilterSplitterStateFailureReason.InvalidDirection);
                     if (!Enum.IsDefined(typeof(FilterSplitterMode), request.Mode)) return FailResponse(FilterSplitterStateFailureReason.InvalidMode);
-                    splitter.SetMode(request.DirectionIndex, (FilterSplitterMode)request.Mode);
+                    splitter.SetMode(request.DirectionIndex, request.Mode);
                     break;
                 case FilterSplitterOperation.SetFilterItem:
                     if (!ValidateDirection(splitter, request.DirectionIndex)) return FailResponse(FilterSplitterStateFailureReason.InvalidDirection);
                     if (!ValidateSlot(splitter, request.SlotIndex)) return FailResponse(FilterSplitterStateFailureReason.InvalidSlot);
-                    if (!TryResolveFilterItem(request.ItemGuidStr, out var itemId)) return FailResponse(FilterSplitterStateFailureReason.InvalidItem);
-                    splitter.SetFilterItem(request.DirectionIndex, request.SlotIndex, itemId);
+                    // EmptyItemId はクリア、それ以外は master 存在チェック
+                    // EmptyItemId means clear; otherwise verify the item exists in the master
+                    if (request.ItemId != ItemMaster.EmptyItemId && !MasterHolder.ItemMaster.ExistItemId(request.ItemId))
+                        return FailResponse(FilterSplitterStateFailureReason.InvalidItem);
+                    splitter.SetFilterItem(request.DirectionIndex, request.SlotIndex, request.ItemId);
                     break;
                 default:
                     return FailResponse(FilterSplitterStateFailureReason.UnknownOperation);
@@ -70,57 +73,23 @@ namespace Server.Protocol.PacketResponse
                 return 0 <= slotIndex && slotIndex < s.FilterSlotCountPerDirection;
             }
 
-            // 空文字 = クリア指示として success、解析失敗・master 未登録は false で InvalidItem を返す
-            // Empty string = clear request (success). Parse failure / unknown master GUID returns false → InvalidItem
-            static bool TryResolveFilterItem(string itemGuidStr, out ItemId resolved)
-            {
-                if (string.IsNullOrEmpty(itemGuidStr))
-                {
-                    resolved = ItemMaster.EmptyItemId;
-                    return true;
-                }
-                if (!Guid.TryParse(itemGuidStr, out var guid) || guid == Guid.Empty)
-                {
-                    resolved = ItemMaster.EmptyItemId;
-                    return false;
-                }
-                var idOrNull = MasterHolder.ItemMaster.GetItemIdOrNull(guid);
-                if (idOrNull == null)
-                {
-                    resolved = ItemMaster.EmptyItemId;
-                    return false;
-                }
-                resolved = idOrNull.Value;
-                return true;
-            }
-
             static FilterSplitterStateResponse FailResponse(FilterSplitterStateFailureReason reason)
             {
                 return new FilterSplitterStateResponse(false, reason, 0, 0, new List<DirectionStatePack>());
             }
 
-            FilterSplitterStateResponse BuildSnapshotResponse(VanillaFilterSplitterComponent s)
+            static FilterSplitterStateResponse BuildSnapshotResponse(VanillaFilterSplitterComponent s)
             {
                 var directions = new List<DirectionStatePack>(s.DirectionCount);
                 for (var d = 0; d < s.DirectionCount; d++)
                 {
                     var slots = s.GetFilterItems(d);
-                    var guidStrs = new List<string>(slots.Count);
-                    foreach (var id in slots)
-                    {
-                        if (id == ItemMaster.EmptyItemId)
-                        {
-                            guidStrs.Add(string.Empty);
-                        }
-                        else
-                        {
-                            guidStrs.Add(MasterHolder.ItemMaster.GetItemMaster(id).ItemGuid.ToString());
-                        }
-                    }
+                    var filterItemIds = new List<ItemId>(slots.Count);
+                    foreach (var id in slots) filterItemIds.Add(id);
                     directions.Add(new DirectionStatePack
                     {
-                        Mode = (int)s.GetMode(d),
-                        FilterItemGuids = guidStrs,
+                        Mode = s.GetMode(d),
+                        FilterItemIds = filterItemIds,
                     });
                 }
                 return new FilterSplitterStateResponse(true, FilterSplitterStateFailureReason.None, s.DirectionCount, s.FilterSlotCountPerDirection, directions);
@@ -135,24 +104,41 @@ namespace Server.Protocol.PacketResponse
         public class FilterSplitterStateRequest : ProtocolMessagePackBase
         {
             [Key(2)] public Vector3IntMessagePack Position { get; set; }
-            [Key(3)] public int Operation { get; set; }
+            [Key(3)] public FilterSplitterOperation Operation { get; set; }
             [Key(4)] public int DirectionIndex { get; set; }
             [Key(5)] public int SlotIndex { get; set; }
-            [Key(6)] public int Mode { get; set; }
-            [Key(7)] public string ItemGuidStr { get; set; }
+            [Key(6)] public FilterSplitterMode Mode { get; set; }
+            [Key(7)] public ItemId ItemId { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public FilterSplitterStateRequest() { }
+            public FilterSplitterStateRequest() { Tag = ProtocolTag; }
 
-            public FilterSplitterStateRequest(Vector3Int position, FilterSplitterOperation operation, int directionIndex, int slotIndex, FilterSplitterMode mode, string itemGuidStr)
+            // Operation ごとに必要なフィールドだけを設定する private コンストラクタ
+            // Private constructor; static factories below set only the fields each Operation needs
+            private FilterSplitterStateRequest(Vector3Int position, FilterSplitterOperation operation, int directionIndex, int slotIndex, FilterSplitterMode mode, ItemId itemId)
             {
                 Tag = ProtocolTag;
                 Position = new Vector3IntMessagePack(position);
-                Operation = (int)operation;
+                Operation = operation;
                 DirectionIndex = directionIndex;
                 SlotIndex = slotIndex;
-                Mode = (int)mode;
-                ItemGuidStr = itemGuidStr ?? string.Empty;
+                Mode = mode;
+                ItemId = itemId;
+            }
+
+            public static FilterSplitterStateRequest CreateGetRequest(Vector3Int position)
+            {
+                return new FilterSplitterStateRequest(position, FilterSplitterOperation.Get, 0, 0, FilterSplitterMode.Default, ItemMaster.EmptyItemId);
+            }
+
+            public static FilterSplitterStateRequest CreateSetModeRequest(Vector3Int position, int directionIndex, FilterSplitterMode mode)
+            {
+                return new FilterSplitterStateRequest(position, FilterSplitterOperation.SetMode, directionIndex, 0, mode, ItemMaster.EmptyItemId);
+            }
+
+            public static FilterSplitterStateRequest CreateSetFilterItemRequest(Vector3Int position, int directionIndex, int slotIndex, ItemId itemId)
+            {
+                return new FilterSplitterStateRequest(position, FilterSplitterOperation.SetFilterItem, directionIndex, slotIndex, FilterSplitterMode.Default, itemId);
             }
         }
 
@@ -182,8 +168,8 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class DirectionStatePack
         {
-            [Key(0)] public int Mode { get; set; }
-            [Key(1)] public List<string> FilterItemGuids { get; set; }
+            [Key(0)] public FilterSplitterMode Mode { get; set; }
+            [Key(1)] public List<ItemId> FilterItemIds { get; set; }
         }
 
         public enum FilterSplitterOperation

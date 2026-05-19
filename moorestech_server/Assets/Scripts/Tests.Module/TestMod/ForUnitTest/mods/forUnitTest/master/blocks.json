@@ -4023,6 +4023,51 @@
       "name": "TestTrainFluidPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000029",
       "overrideVerticalBlock": {}
+    },
+    {
+      "blockSize": [1, 1, 1],
+      "name": "TestFilterSplitter",
+      "blockType": "FilterSplitter",
+      "blockParam": {
+        "filterSlotCountPerDirection": 4,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [[0, 0, -1]],
+              "connectOption": { "inventoryOptions": [] },
+              "connectorGuid": "f1110000-0000-0000-0000-000000000010"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [[1, 0, 0]],
+              "connectOption": { "inventoryOptions": [] },
+              "connectorGuid": "f1110000-0000-0000-0000-000000000001"
+            },
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [[-1, 0, 0]],
+              "connectOption": { "inventoryOptions": [] },
+              "connectorGuid": "f1110000-0000-0000-0000-000000000002"
+            },
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [[0, 0, 1]],
+              "connectOption": { "inventoryOptions": [] },
+              "connectorGuid": "f1110000-0000-0000-0000-000000000003"
+            }
+          ]
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000031",
+      "blockGuid": "00000000-0000-0000-0000-000000000031",
+      "overrideVerticalBlock": {}
     }
   ],
   "gearChainItems": [

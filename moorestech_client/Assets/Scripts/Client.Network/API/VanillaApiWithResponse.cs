@@ -11,7 +11,6 @@ using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
-using Game.Block.Blocks.FilterSplitter;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Gear.Common;
@@ -281,30 +280,11 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
         }
 
-        // フィルター分岐器の状態取得・設定
-        // Get/Update filter splitter state
-        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> GetFilterSplitterState(Vector3Int position, CancellationToken ct)
+        // フィルター分岐器の状態取得・設定 (Get/SetMode/SetFilterItem を 1 メソッドで扱う)
+        // Filter splitter state request (single endpoint for Get / SetMode / SetFilterItem)
+        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SendFilterSplitterStateRequest(
+            FilterSplitterStateProtocol.FilterSplitterStateRequest request, CancellationToken ct)
         {
-            var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
-                position, FilterSplitterStateProtocol.FilterSplitterOperation.Get, 0, 0, FilterSplitterMode.Default, string.Empty);
-            return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
-        }
-
-        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SetFilterSplitterMode(
-            Vector3Int position, int directionIndex, FilterSplitterMode mode, CancellationToken ct)
-        {
-            var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
-                position, FilterSplitterStateProtocol.FilterSplitterOperation.SetMode, directionIndex, 0, mode, string.Empty);
-            return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
-        }
-
-        public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SetFilterSplitterItem(
-            Vector3Int position, int directionIndex, int slotIndex, Guid itemGuid, CancellationToken ct)
-        {
-            var request = new FilterSplitterStateProtocol.FilterSplitterStateRequest(
-                position, FilterSplitterStateProtocol.FilterSplitterOperation.SetFilterItem, directionIndex, slotIndex,
-                FilterSplitterMode.Default,
-                itemGuid == Guid.Empty ? string.Empty : itemGuid.ToString());
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }
 

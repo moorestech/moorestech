@@ -161,7 +161,9 @@ namespace Game.Block.Blocks.FilterSplitter
 
                 var context = new InsertItemContext(_blockInstanceId, target.Value.Info.SelfConnector, target.Value.Info.TargetConnector);
                 var result = target.Value.Inventory.InsertItem(dir.BufferedItem, context);
-                dir.BufferedItem = result.Id == ItemMaster.EmptyItemId ? null : result;
+                // 送信完了は「空 ID」または「Count <= 0」で判定（IItemStack 実装によって戻り値が異なるため両方見る）
+                // Treat both "empty id" and "count <= 0" as fully delivered (IItemStack implementations differ)
+                dir.BufferedItem = (result.Id == ItemMaster.EmptyItemId || result.Count <= 0) ? null : result;
             }
         }
 
