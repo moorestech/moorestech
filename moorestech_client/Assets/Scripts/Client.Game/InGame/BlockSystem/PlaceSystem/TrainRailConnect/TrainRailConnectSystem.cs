@@ -105,7 +105,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength);
                         ShowPreview(previewData);
 
-                        if (!previewData.IsLengthValid) return;
+                        if (!previewData.IsPlaceable) return;
 
                         // 設置
                         SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierInventorySlot);
@@ -134,8 +134,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore);
                 ShowPreview(previewData);
 
-                if (!previewData.HasEnoughRailItem) return;
-                if (!previewData.IsLengthValid) return;
+                if (!previewData.IsPlaceable) return;
 
                 SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);
             }
