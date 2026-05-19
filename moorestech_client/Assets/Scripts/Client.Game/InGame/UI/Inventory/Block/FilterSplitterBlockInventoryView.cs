@@ -56,10 +56,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             _cts?.Cancel();
             _cts?.Dispose();
             _subscriptions.Dispose();
-            if (this != null && gameObject != null) Destroy(gameObject);
+            Destroy(gameObject);
         }
-
-        #region Internal
 
         private async UniTask LoadStateAsync(CancellationToken ct)
         {
@@ -133,7 +131,5 @@ namespace Client.Game.InGame.UI.Inventory.Block
             if (response == null || !response.Success) return;
             ApplySnapshot(response);
         }
-
-        #endregion
     }
 }

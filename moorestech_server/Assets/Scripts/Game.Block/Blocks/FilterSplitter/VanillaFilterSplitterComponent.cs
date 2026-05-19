@@ -99,7 +99,7 @@ namespace Game.Block.Blocks.FilterSplitter
             foreach (var stack in itemStacks)
             {
                 if (stack.Id == ItemMaster.EmptyItemId) continue;
-                if (FindAnyEligibleDirection(stack.Id) >= 0) return true;
+                if (0 <= FindAnyEligibleDirection(stack.Id)) return true;
             }
             return false;
         }
@@ -178,12 +178,6 @@ namespace Game.Block.Blocks.FilterSplitter
             _directions[directionIndex].Mode = mode;
         }
 
-        public ItemId GetFilterItem(int directionIndex, int slotIndex)
-        {
-            BlockException.CheckDestroy(this);
-            return _directions[directionIndex].FilterItems[slotIndex];
-        }
-
         public void SetFilterItem(int directionIndex, int slotIndex, ItemId itemId)
         {
             BlockException.CheckDestroy(this);
@@ -208,8 +202,6 @@ namespace Game.Block.Blocks.FilterSplitter
         {
             IsDestroy = true;
         }
-
-        #region Internal Routing
 
         private int SelectNextDirection(ItemId itemId)
         {
@@ -266,10 +258,6 @@ namespace Game.Block.Blocks.FilterSplitter
             }
             return null;
         }
-
-        #endregion
-
-        #region Direction State
 
         private class DirectionState
         {
@@ -350,7 +338,5 @@ namespace Game.Block.Blocks.FilterSplitter
             [JsonProperty("filterItemGuids")] public List<string> FilterItemGuids { get; set; }
             [JsonProperty("bufferedItem")] public ItemStackSaveJsonObject BufferedItem { get; set; }
         }
-
-        #endregion
     }
 }

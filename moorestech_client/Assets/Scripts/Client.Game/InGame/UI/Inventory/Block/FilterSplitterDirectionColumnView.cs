@@ -37,7 +37,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
         public void Build(int directionIndex, int filterSlotCount)
         {
-            if (directionLabel != null) directionLabel.text = $"出力 {directionIndex + 1}";
+            directionLabel.text = $"出力 {directionIndex + 1}";
 
             // モードボタンの押下でクリック通知（モード自体は親から受け取る）
             // Button click only notifies; mode value is updated by parent
@@ -75,7 +75,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // Apply item view to each filter slot
             for (var i = 0; i < _slots.Count; i++)
             {
-                if (i >= filterItemGuids.Count || string.IsNullOrEmpty(filterItemGuids[i]))
+                if (filterItemGuids.Count <= i || string.IsNullOrEmpty(filterItemGuids[i]))
                 {
                     _slots[i].SetItem(null, 0);
                     continue;
