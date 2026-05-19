@@ -64,7 +64,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
         private async UniTask LoadStateAsync(CancellationToken ct)
         {
-            var response = await ClientContext.VanillaApi.Response.GetFilterSplitterState(_blockPosition, ct);
+            var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateGetRequest(_blockPosition);
+            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, ct);
             if (ct.IsCancellationRequested) return;
             if (response == null || !response.Success)
             {
@@ -100,14 +101,15 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var d = 0; d < _columns.Count && d < response.Directions.Count; d++)
             {
                 var dir = response.Directions[d];
-                _columns[d].ApplyState((FilterSplitterMode)dir.Mode, dir.FilterItemGuids ?? new List<string>());
+                _columns[d].ApplyState(dir.Mode, dir.FilterItemIds ?? new List<ItemId>());
             }
         }
 
         private async UniTaskVoid OnModeCycleRequested(int directionIndex, FilterSplitterMode nextMode)
         {
             var ct = _cts?.Token ?? CancellationToken.None;
-            var response = await ClientContext.VanillaApi.Response.SetFilterSplitterMode(_blockPosition, directionIndex, nextMode, ct);
+            var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetModeRequest(_blockPosition, directionIndex, nextMode);
+            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, ct);
             if (ct.IsCancellationRequested) return;
             if (response == null || !response.Success) return;
             ApplySnapshot(response);
@@ -117,21 +119,22 @@ namespace Client.Game.InGame.UI.Inventory.Block
         {
             var ct = _cts?.Token ?? CancellationToken.None;
 
-            // 左クリック: 持ち手アイテムがあればそれをフィルターに設定 / 右クリック: スロットをクリア
-            // Left click: if player holds an item, set it as filter / Right click: clear the slot
-            Guid itemGuid;
+            // 左クリック: 持ち手アイテムをそのままフィルターに設定 / 右クリック: スロットをクリア
+            // Left click: set the currently held item as filter / Right click: clear the slot
+            ItemId itemId;
             if (isLeftClick)
             {
                 var grab = _playerInventory?.GrabInventory;
                 if (grab == null || grab.Id == ItemMaster.EmptyItemId) return;
-                itemGuid = MasterHolder.ItemMaster.GetItemMaster(grab.Id).ItemGuid;
+                itemId = grab.Id;
             }
             else
             {
-                itemGuid = Guid.Empty;
+                itemId = ItemMaster.EmptyItemId;
             }
 
-            var response = await ClientContext.VanillaApi.Response.SetFilterSplitterItem(_blockPosition, directionIndex, slotIndex, itemGuid, ct);
+            var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetFilterItemRequest(_blockPosition, directionIndex, slotIndex, itemId);
+            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, ct);
             if (ct.IsCancellationRequested) return;
             if (response == null || !response.Success) return;
             ApplySnapshot(response);

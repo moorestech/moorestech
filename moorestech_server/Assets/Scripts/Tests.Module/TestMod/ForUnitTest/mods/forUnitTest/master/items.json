@@ -466,6 +466,19 @@
         "handGrabModel": "",
         "entityModel": ""
       }
+    },
+    {
+      "itemGuid": "00000000-0000-0000-1234-000000000031",
+      "imagePath": "",
+      "name": "TestFilterSplitter",
+      "maxStack": 100,
+      "sortPriority": 840,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "addressablePaths": {
+        "handGrabModel": "",
+        "entityModel": ""
+      }
     }
   ]
 }

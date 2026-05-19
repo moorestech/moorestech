@@ -61,7 +61,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
         }
 
-        public void ApplyState(FilterSplitterMode mode, IReadOnlyList<string> filterItemGuids)
+        public void ApplyState(FilterSplitterMode mode, IReadOnlyList<ItemId> filterItemIds)
         {
             _currentMode = mode;
             modeLabel.text = mode switch
@@ -76,23 +76,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // Apply item view to each filter slot
             for (var i = 0; i < _slots.Count; i++)
             {
-                if (filterItemGuids.Count <= i || string.IsNullOrEmpty(filterItemGuids[i]))
+                if (filterItemIds.Count <= i || filterItemIds[i] == ItemMaster.EmptyItemId)
                 {
                     _slots[i].SetItem(null, 0);
                     continue;
                 }
-                if (!Guid.TryParse(filterItemGuids[i], out var guid) || guid == Guid.Empty)
-                {
-                    _slots[i].SetItem(null, 0);
-                    continue;
-                }
-                var idOrNull = MasterHolder.ItemMaster.GetItemIdOrNull(guid);
-                if (idOrNull == null)
-                {
-                    _slots[i].SetItem(null, 0);
-                    continue;
-                }
-                var view = ClientContext.ItemImageContainer.GetItemView(idOrNull.Value);
+                var view = ClientContext.ItemImageContainer.GetItemView(filterItemIds[i]);
                 _slots[i].SetItem(view, 0);
             }
         }
