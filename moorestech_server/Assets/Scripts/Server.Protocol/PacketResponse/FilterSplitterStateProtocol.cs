@@ -43,12 +43,13 @@ namespace Server.Protocol.PacketResponse
                     break;
                 case FilterSplitterOperation.SetMode:
                     if (!ValidateDirection(splitter, request.DirectionIndex)) return FailResponse(FilterSplitterStateFailureReason.InvalidDirection);
+                    if (!Enum.IsDefined(typeof(FilterSplitterMode), request.Mode)) return FailResponse(FilterSplitterStateFailureReason.InvalidMode);
                     splitter.SetMode(request.DirectionIndex, (FilterSplitterMode)request.Mode);
                     break;
                 case FilterSplitterOperation.SetFilterItem:
                     if (!ValidateDirection(splitter, request.DirectionIndex)) return FailResponse(FilterSplitterStateFailureReason.InvalidDirection);
                     if (!ValidateSlot(splitter, request.SlotIndex)) return FailResponse(FilterSplitterStateFailureReason.InvalidSlot);
-                    var itemId = ResolveItemId(request.ItemGuidStr);
+                    if (!TryResolveFilterItem(request.ItemGuidStr, out var itemId)) return FailResponse(FilterSplitterStateFailureReason.InvalidItem);
                     splitter.SetFilterItem(request.DirectionIndex, request.SlotIndex, itemId);
                     break;
                 default:
@@ -69,12 +70,28 @@ namespace Server.Protocol.PacketResponse
                 return 0 <= slotIndex && slotIndex < s.FilterSlotCountPerDirection;
             }
 
-            static ItemId ResolveItemId(string itemGuidStr)
+            // 空文字 = クリア指示として success、解析失敗・master 未登録は false で InvalidItem を返す
+            // Empty string = clear request (success). Parse failure / unknown master GUID returns false → InvalidItem
+            static bool TryResolveFilterItem(string itemGuidStr, out ItemId resolved)
             {
-                if (string.IsNullOrEmpty(itemGuidStr)) return ItemMaster.EmptyItemId;
-                if (!Guid.TryParse(itemGuidStr, out var guid) || guid == Guid.Empty) return ItemMaster.EmptyItemId;
+                if (string.IsNullOrEmpty(itemGuidStr))
+                {
+                    resolved = ItemMaster.EmptyItemId;
+                    return true;
+                }
+                if (!Guid.TryParse(itemGuidStr, out var guid) || guid == Guid.Empty)
+                {
+                    resolved = ItemMaster.EmptyItemId;
+                    return false;
+                }
                 var idOrNull = MasterHolder.ItemMaster.GetItemIdOrNull(guid);
-                return idOrNull ?? ItemMaster.EmptyItemId;
+                if (idOrNull == null)
+                {
+                    resolved = ItemMaster.EmptyItemId;
+                    return false;
+                }
+                resolved = idOrNull.Value;
+                return true;
             }
 
             static FilterSplitterStateResponse FailResponse(FilterSplitterStateFailureReason reason)
@@ -184,6 +201,8 @@ namespace Server.Protocol.PacketResponse
             InvalidDirection = 3,
             InvalidSlot = 4,
             UnknownOperation = 5,
+            InvalidMode = 6,
+            InvalidItem = 7,
         }
 
         #endregion

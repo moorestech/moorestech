@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
 using Game.Block.Blocks.FilterSplitter;
@@ -91,7 +92,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     _slots[i].SetItem(null, 0);
                     continue;
                 }
-                var view = Client.Game.InGame.Context.ClientContext.ItemImageContainer.GetItemView(idOrNull.Value);
+                var view = ClientContext.ItemImageContainer.GetItemView(idOrNull.Value);
                 _slots[i].SetItem(view, 0);
             }
         }
