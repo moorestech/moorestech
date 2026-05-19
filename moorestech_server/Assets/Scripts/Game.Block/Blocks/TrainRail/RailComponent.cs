@@ -59,6 +59,8 @@ namespace Game.Block.Blocks.TrainRail
             BackNode.SetRailControlPoints(BackControlPoint, FrontControlPoint);
             FrontNode.SetConnectionDestination(new ConnectionDestination(blockPosition, componentIndex, true));
             BackNode.SetConnectionDestination(new ConnectionDestination(blockPosition, componentIndex, false));
+            FrontNode.SetMaxConnectableRailLength(maxConnectableRailLength);
+            BackNode.SetMaxConnectableRailLength(maxConnectableRailLength);
             _railGraphDatastore.AddNodePair(FrontNode, BackNode);
             return;
             

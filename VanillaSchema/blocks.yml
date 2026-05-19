@@ -26,6 +26,11 @@ defineInterface:
   properties:
   - key: itemSlotCount
     type: integer
+- interfaceName: IRailEndpointBlockParam
+  properties:
+  - key: maxConnectableRailLength
+    type: number
+    default: 100
 - interfaceName: IMinerParam
   properties:
   - key: outputItemSlotCount
@@ -548,6 +553,8 @@ properties:
           ref: gear
       - when: TrainRail
         type: object
+        implementationInterface:
+        - IRailEndpointBlockParam
         properties:
         - key: railPosition
           type: vector3
@@ -566,6 +573,7 @@ properties:
         implementationInterface:
         - IChestParam
         - IInventoryConnectors
+        - IRailEndpointBlockParam
         properties:
         - key: entryRailPosition
           type: vector3
@@ -600,6 +608,7 @@ properties:
         implementationInterface:
         - IChestParam
         - IInventoryConnectors
+        - IRailEndpointBlockParam
         properties:
         - key: entryRailPosition
           type: vector3
@@ -632,6 +641,8 @@ properties:
           ref: inventoryConnects
       - when: TrainFluidPlatform
         type: object
+        implementationInterface:
+        - IRailEndpointBlockParam
         properties:
         - key: entryRailPosition
           type: vector3
