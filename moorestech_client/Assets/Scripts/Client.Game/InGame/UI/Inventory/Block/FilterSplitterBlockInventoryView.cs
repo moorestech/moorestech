@@ -56,9 +56,13 @@ namespace Client.Game.InGame.UI.Inventory.Block
 
         public void DestroyUI()
         {
+            // 順序: in-flight タスクを Cancel → UniRx 購読破棄 → CTS Dispose → column 参照クリア → GameObject 破棄
+            // Order: cancel in-flight → dispose subscriptions → dispose CTS → release column refs → destroy GameObject
             _cts?.Cancel();
-            _cts?.Dispose();
             _subscriptions.Dispose();
+            _cts?.Dispose();
+            _cts = null;
+            _columns.Clear();
             Destroy(gameObject);
         }
 
@@ -101,23 +105,29 @@ namespace Client.Game.InGame.UI.Inventory.Block
             for (var d = 0; d < _columns.Count && d < response.Directions.Count; d++)
             {
                 var dir = response.Directions[d];
-                _columns[d].ApplyState(dir.Mode, dir.FilterItemIds ?? new List<ItemId>());
+                _columns[d].ApplyState(dir.Mode, dir.FilterItemIds ?? (IReadOnlyList<ItemId>)Array.Empty<ItemId>());
             }
         }
 
         private async UniTaskVoid OnModeCycleRequested(int directionIndex, FilterSplitterMode nextMode)
         {
-            var ct = _cts?.Token ?? CancellationToken.None;
+            // DestroyUI 後の Subject 通知で _cts が null になりうるため、ローカルでキャプチャしてから使う
+            // Cache _cts into a local in case DestroyUI nulls it before/during the async call
+            var cts = _cts;
+            if (cts == null) return;
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetModeRequest(_blockPosition, directionIndex, nextMode);
-            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, ct);
-            if (ct.IsCancellationRequested) return;
+            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, cts.Token);
+            if (cts.IsCancellationRequested) return;
             if (response == null || !response.Success) return;
             ApplySnapshot(response);
         }
 
         private async UniTaskVoid OnFilterSlotClicked(int directionIndex, int slotIndex, bool isLeftClick)
         {
-            var ct = _cts?.Token ?? CancellationToken.None;
+            // DestroyUI 後の Subject 通知で _cts が null になりうるため、ローカルでキャプチャしてから使う
+            // Cache _cts into a local in case DestroyUI nulls it before/during the async call
+            var cts = _cts;
+            if (cts == null) return;
 
             // 左クリック: 持ち手アイテムをそのままフィルターに設定 / 右クリック: スロットをクリア
             // Left click: set the currently held item as filter / Right click: clear the slot
@@ -134,8 +144,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
 
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetFilterItemRequest(_blockPosition, directionIndex, slotIndex, itemId);
-            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, ct);
-            if (ct.IsCancellationRequested) return;
+            var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, cts.Token);
+            if (cts.IsCancellationRequested) return;
             if (response == null || !response.Success) return;
             ApplySnapshot(response);
         }

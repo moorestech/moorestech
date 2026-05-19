@@ -158,8 +158,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(FilterSplitterStateProtocol.FilterSplitterStateFailureReason.InvalidSlot, response.FailureReason);
         }
 
-        #region Helpers
-
         private static void PlaceFilterSplitter()
         {
             ServerContext.WorldBlockDatastore.TryAddBlock(
@@ -178,7 +176,5 @@ namespace Tests.CombinedTest.Server.PacketTest
             var responseBytes = packet.GetPacketResponse(payload)[0];
             return MessagePackSerializer.Deserialize<FilterSplitterStateProtocol.FilterSplitterStateResponse>(responseBytes);
         }
-
-        #endregion
     }
 }

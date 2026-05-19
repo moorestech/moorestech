@@ -27,6 +27,10 @@ namespace Server.Protocol.PacketResponse
         {
             var request = MessagePackSerializer.Deserialize<FilterSplitterStateRequest>(payload);
 
+            // malformed payload で Position が null の場合は早期に拒否する
+            // Reject malformed payloads whose Position is null up-front
+            if (request.Position == null) return FailResponse(FilterSplitterStateFailureReason.InvalidRequest);
+
             var block = ServerContext.WorldBlockDatastore.GetBlock(request.Position.Vector3Int);
             if (block == null) return FailResponse(FilterSplitterStateFailureReason.BlockNotFound);
 
@@ -189,6 +193,7 @@ namespace Server.Protocol.PacketResponse
             UnknownOperation = 5,
             InvalidMode = 6,
             InvalidItem = 7,
+            InvalidRequest = 8,
         }
 
         #endregion
