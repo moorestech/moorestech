@@ -60,14 +60,16 @@ namespace Server.Protocol.PacketResponse
                             return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
 
                         var length = GetRailLength(fromNode, toNode);
-
-                        // 両端ブロックの「乗せられる最大レール長」のうち短い方を上限として比較
-                        // Use min of both endpoints' max connectable rail length as the allowed limit
-                        var allowedMaxLength = GetAllowedMaxRailLength(fromNode, toNode);
-                        if (allowedMaxLength < length)
-                            return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.RailLengthExceeded, data.Mode);
-
                         var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+
+                        // 長さ・両端ブロック上限・所持インベントリから設置可否を一括判定
+                        // Single placement viability check shared with the client preview
+                        var judgement = EvaluatePlacement(length, fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength, inventory.InventoryItems);
+                        if (!judgement.IsPlaceable)
+                            return ResponseRailConnectionEditMessagePack.CreateFailure(judgement.FailureReason, data.Mode);
+
+                        // 個別の選択レール種が所持されているか検証し、必要数を確定する
+                        // Validate the specific rail type the client picked and resolve the required count for consumption
                         var railTypeGuid = data.RailTypeGuid;
                         if (!TryResolveRailItemForPlacement(railTypeGuid, inventory.InventoryItems, length, out var placeRailItem, out var requiredCount))
                             return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
@@ -219,6 +221,29 @@ namespace Server.Protocol.PacketResponse
             return Mathf.Min(fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength);
         }
 
+        /// <summary>
+        /// 接続区間の長さ・両端ブロックの最大上限・所持インベントリから設置可否を一括判定する
+        /// Single entry point for placement viability: combines length-vs-limit and inventory-vs-required checks.
+        /// サーバー・クライアント双方からこのメソッドだけを呼ぶことで、設置条件の追加がここに集約される。
+        /// Server and client both call this so future placement rules only need to land in one place.
+        /// </summary>
+        public static RailPlacementJudgement EvaluatePlacement(float railLength, float fromMaxConnectableRailLength, float toMaxConnectableRailLength, IEnumerable<IItemStack> inventoryItems)
+        {
+            // 両端の上限の min をその接続区間の許容最大長とする
+            // Take the smaller endpoint limit as the allowed maximum for the segment
+            var allowedMax = Mathf.Min(fromMaxConnectableRailLength, toMaxConnectableRailLength);
+            if (allowedMax < railLength)
+                return new RailPlacementJudgement(RailConnectionEditFailureReason.RailLengthExceeded, railLength, allowedMax, Array.Empty<(RailItemMasterElement, int)>());
+
+            // 所持アイテムから設置可能なレール種を列挙
+            // Enumerate rail items that the player owns enough of for this length
+            var placeable = GetPlaceableRailItems(inventoryItems, railLength);
+            if (placeable.Length == 0)
+                return new RailPlacementJudgement(RailConnectionEditFailureReason.NotEnoughRailItem, railLength, allowedMax, placeable);
+
+            return new RailPlacementJudgement(RailConnectionEditFailureReason.None, railLength, allowedMax, placeable);
+        }
+
         public static float GetRailLength(IRailNode fromNode, IRailNode toNode)
         {
             var p0 = fromNode.FrontControlPoint.OriginalPosition;
@@ -346,6 +371,30 @@ namespace Server.Protocol.PacketResponse
             NotEnoughInventorySpace,
             RailLengthExceeded,
             UnknownError,
+        }
+    }
+
+    /// <summary>
+    /// レール設置可否の統合判定結果
+    /// Aggregated result of rail placement viability evaluation
+    /// </summary>
+    public readonly struct RailPlacementJudgement
+    {
+        public readonly RailConnectionEditProtocol.RailConnectionEditFailureReason FailureReason;
+        public readonly float RailLength;
+        public readonly float AllowedMaxLength;
+        public readonly (RailItemMasterElement element, int requiredCount)[] PlaceableRailItems;
+
+        public bool IsPlaceable => FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.None;
+
+        public Guid FirstPlaceableRailTypeGuid => PlaceableRailItems.Length > 0 ? PlaceableRailItems[0].element.ItemGuid : Guid.Empty;
+
+        public RailPlacementJudgement(RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, float railLength, float allowedMaxLength, (RailItemMasterElement element, int requiredCount)[] placeableRailItems)
+        {
+            FailureReason = failureReason;
+            RailLength = railLength;
+            AllowedMaxLength = allowedMaxLength;
+            PlaceableRailItems = placeableRailItems ?? Array.Empty<(RailItemMasterElement element, int requiredCount)>();
         }
     }
 }
