@@ -68,6 +68,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(TrainCarRidingInputProtocol.ProtocolTag, new TrainCarRidingInputProtocol(trainCarRidingInputBuffer, trainUpdateService));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUnitSnapshotNotifyEvent, trainUnitLookupDatastore, trainUnitMutationDatastore));
             _packetResponseDictionary.Add(SetTrainPlatformTransferModeProtocol.ProtocolTag, new SetTrainPlatformTransferModeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(FilterSplitterStateProtocol.ProtocolTag, new FilterSplitterStateProtocol(serviceProvider));
         }
         
         public List<byte[]> GetPacketResponse(byte[] payload)
