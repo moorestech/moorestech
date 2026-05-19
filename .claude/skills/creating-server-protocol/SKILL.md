@@ -98,6 +98,40 @@ namespace Server.Protocol.PacketResponse
 _packetResponseDictionary.Add(YourProtocol.ProtocolTag, new YourProtocol(serviceProvider));
 ```
 
+### Step 2.5: クライアント側 VanillaApi にメソッドを追加（**1プロトコル = 1メソッド**）
+
+`moorestech_client/Assets/Scripts/Client.Network/API/VanillaApiWithResponse.cs` にプロトコル送信用メソッドを **1個だけ** 追加する。
+
+**原則: 1プロトコル = 1 VanillaApi メソッド**。1つのプロトコルに対して複数のラッパーメソッド（`GetXxx` / `SetXxx` / `UpdateXxx` 等）を作ってはいけない。プロトコルが複数の Operation を持つ場合は、`Request` オブジェクトを呼び出し側で構築して渡す形にする。
+
+```csharp
+// 良い: 1メソッドだけ。呼び出し側が Request を構築する
+public async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
+    YourProtocol.YourRequestMessagePack request, CancellationToken ct)
+{
+    return await _packetExchangeManager.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
+}
+
+// 単純なプロトコルなら、全プロパティを引数に取って内部で Request を組む形も可
+public async UniTask<YourProtocol.YourResponseMessagePack> SendYourRequest(
+    Vector3Int position, int someField, CancellationToken ct)
+{
+    var request = new YourProtocol.YourRequestMessagePack(position, someField);
+    return await _packetExchangeManager.GetPacketResponse<YourProtocol.YourResponseMessagePack>(request, ct);
+}
+```
+
+**禁止例**: 1プロトコルに複数の Operation を持たせて、operation ごとに VanillaApi メソッドを生やす。これは「1プロトコル = N メソッド」になりラッパーが肥大化する。
+
+```csharp
+// 禁止: 1プロトコル (FilterSplitterStateProtocol) に対し 3 メソッド生やしている
+public async UniTask<...> GetFilterSplitterState(...) { ... }
+public async UniTask<...> SetFilterSplitterMode(...) { ... }
+public async UniTask<...> SetFilterSplitterItem(...) { ... }
+```
+
+このルールにより、プロトコルの追加コストが「1ファイル + 1 PacketResponseCreator 登録行 + 1 VanillaApi メソッド」に固定され、後続の Operation 追加が API 表面に波及しない。
+
 ### Step 3: テストを作成
 
 `/creating-server-tests` スキルを使用してテストを作成。配置先: `Tests/CombinedTest/Server/PacketTest/`
@@ -188,4 +222,63 @@ MCPツールまたは`unity-test.sh`でコンパイルを確認。
 - `[Obsolete]`付き引数なしコンストラクタは省略不可
 - イベント購読はUniRxの`.Subscribe()`を使用（`/csharp-event-pattern`参照）
 - コードのコメントは日本語・英語の2行セット
+
+## Request/Response メッセージ設計原則
+
+### enum を int に変換しない
+MessagePack は enum 型をそのままシリアライズできる。`int` への変換は型安全性を捨てているだけで、ワイヤ表現も同じバイト列。プロパティ型は enum をそのまま使う。
+
+```csharp
+// 良い
+[Key(3)] public FilterSplitterOperation Operation { get; set; }
+[Key(6)] public FilterSplitterMode Mode { get; set; }
+
+// 禁止: int に変換して受け渡しすると、受け側で `(EnumType)request.Operation` の cast が必要になる
+[Key(3)] public int Operation { get; set; }
+```
+
+### ItemId / BlockId 等の UnitGenerator 型はそのまま使う
+`Core.Master` の `ItemId` `BlockId` 等は UnitGenerator で `MessagePackFormatter` を生成済み。Guid 文字列に変換する必要は一切ない。クライアント・サーバー間で master が同期している前提で `ItemId` を直接送る。
+
+```csharp
+// 良い
+[Key(7)] public ItemId ItemId { get; set; }
+
+// 禁止: わざわざ Guid 文字列にして受け渡す（master 解決が往復する）
+[Key(7)] public string ItemGuidStr { get; set; }
+```
+
+### Operation で必要プロパティが変わる場合は static factory に分ける
+1 つの Request クラスで複数 Operation を扱い、Operation ごとに必要なフィールドが異なる場合、**呼び出し元が「使わないフィールドに何を入れるか」を悩まされる**設計は禁止。public コンストラクタは禁止し、private コンストラクタ + Operation ごとの `static CreateXxxRequest(...)` 形にする。`RailConnectionEditRequest` がこのパターン。
+
+```csharp
+[MessagePackObject]
+public class FilterSplitterStateRequest : ProtocolMessagePackBase
+{
+    [Key(2)] public Vector3IntMessagePack Position { get; set; }
+    [Key(3)] public FilterSplitterOperation Operation { get; set; }
+    [Key(4)] public int DirectionIndex { get; set; }
+    [Key(5)] public int SlotIndex { get; set; }
+    [Key(6)] public FilterSplitterMode Mode { get; set; }
+    [Key(7)] public ItemId ItemId { get; set; }
+
+    [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+    public FilterSplitterStateRequest() { Tag = ProtocolTag; }
+
+    // private コンストラクタ — 外部は static factory 経由でのみ生成する
+    // Private constructor; callers must use the static factories below
+    private FilterSplitterStateRequest(Vector3Int position, FilterSplitterOperation operation, int directionIndex, int slotIndex, FilterSplitterMode mode, ItemId itemId) { ... }
+
+    public static FilterSplitterStateRequest CreateGetRequest(Vector3Int position)
+        => new(position, FilterSplitterOperation.Get, 0, 0, FilterSplitterMode.Default, ItemMaster.EmptyItemId);
+
+    public static FilterSplitterStateRequest CreateSetModeRequest(Vector3Int position, int directionIndex, FilterSplitterMode mode)
+        => new(position, FilterSplitterOperation.SetMode, directionIndex, 0, mode, ItemMaster.EmptyItemId);
+
+    public static FilterSplitterStateRequest CreateSetFilterItemRequest(Vector3Int position, int directionIndex, int slotIndex, ItemId itemId)
+        => new(position, FilterSplitterOperation.SetFilterItem, directionIndex, slotIndex, FilterSplitterMode.Default, itemId);
+}
+```
+
+呼び出し側は `CreateXxxRequest` を見るだけで「この Operation には何が必要か」が型で分かる。public コンストラクタを生やすと「全 Operation のフィールドを全部書く」必要が出てきて、その負担が VanillaApi のラッパーに波及する（→「1プロトコル = N メソッド」原則違反の温床）。
 

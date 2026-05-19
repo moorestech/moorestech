@@ -47,6 +47,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.BaseCamp, new BaseCampBlockTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.GearPump, new VanillaGearPumpTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.ElectricPump, new VanillaElectricPumpTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.FilterSplitter, new VanillaFilterSplitterTemplate());
         }
     }
 }
