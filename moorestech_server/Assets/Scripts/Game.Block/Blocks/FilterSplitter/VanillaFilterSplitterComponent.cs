@@ -196,20 +196,12 @@ namespace Game.Block.Blocks.FilterSplitter
         public void SetMode(int directionIndex, FilterSplitterMode mode)
         {
             BlockException.CheckDestroy(this);
-            // Protocol 経由以外の呼び出しも壊れた値を入れられないようガード
-            // Guard component-level callers (not only protocol) from injecting undefined values
-            if (!Enum.IsDefined(typeof(FilterSplitterMode), mode))
-                throw new ArgumentOutOfRangeException(nameof(mode), mode, "Undefined FilterSplitterMode value");
             _directions[directionIndex].Mode = mode;
         }
 
         public void SetFilterItem(int directionIndex, int slotIndex, ItemId itemId)
         {
             BlockException.CheckDestroy(this);
-            // EmptyItemId はクリア、それ以外は master 存在チェック (save 時の例外を防ぐ)
-            // EmptyItemId means clear; otherwise verify the item exists in the master to avoid save-time errors
-            if (itemId != ItemMaster.EmptyItemId && !MasterHolder.ItemMaster.ExistItemId(itemId))
-                throw new ArgumentException($"ItemId {itemId} not registered in master", nameof(itemId));
             _directions[directionIndex].FilterItems[slotIndex] = itemId;
         }
 
