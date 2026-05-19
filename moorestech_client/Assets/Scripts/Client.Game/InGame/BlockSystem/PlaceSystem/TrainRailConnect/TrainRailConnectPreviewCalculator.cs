@@ -3,6 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
+using Core.Master;
 using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
@@ -21,7 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         /// 終点がノードの場合
         /// When the endpoint is a node
         /// </summary>
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, ItemId holdingRailItemId)
         {
             // 始点ノードを取得
             // Get the start node
@@ -37,12 +38,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 return TrainRailConnectPreviewData.Invalid;
             }
 
-            // 両端ブロックから最大レール長を解決し、サーバーと同じ判定を共有する
-            // Resolve both endpoints' max length and share the server-side judgement
+            // 両端ブロックから最大レール長を解決し、所持中レールアイテムでサーバーと同じ判定を共有する
+            // Resolve both endpoints' max length and share the server-side judgement using the held rail item
             var length = BezierUtility.GetBezierCurveLength(fromNode, toNode, 64);
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
             var toMax = ResolveMaxConnectableRailLength(to, blockGameObjectDataStore);
-            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, toMax, playerInventory);
+            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, toMax, playerInventory, holdingRailItemId);
 
             // 描画用の制御点を生成
             // Build render control points
@@ -50,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement);
         }
 
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, float placingBlockMaxConnectableRailLength)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, float placingBlockMaxConnectableRailLength, ItemId holdingRailItemId)
         {
             // 始点ノードを取得
             // Get the start node
@@ -77,11 +78,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Build render control points
             BezierUtility.BuildRenderControlPoints(startPosition, endPosition, startDirection, endDirection, out var p0, out var p1, out var p2, out var p3);
 
-            // 始点側ブロックの上限と配置予定ブロックの上限でサーバーと同じ判定を共有する
-            // Share server-side judgement using source block limit and placing block limit
+            // 始点側ブロックの上限と配置予定ブロックの上限で所持中レールアイテムを使ったサーバーと同じ判定を共有する
+            // Share server-side judgement using source block limit, placing block limit, and the held rail item
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
-            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, placingBlockMaxConnectableRailLength, playerInventory);
+            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, placingBlockMaxConnectableRailLength, playerInventory, holdingRailItemId);
 
             return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement);
         }
@@ -115,7 +116,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public bool IsPlaceable;
 
         public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement)
-            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.FirstPlaceableRailTypeGuid, judgement.IsPlaceable, true)
+            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable, true)
         {
         }
 
