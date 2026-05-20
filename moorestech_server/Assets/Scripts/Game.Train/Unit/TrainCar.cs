@@ -90,7 +90,7 @@ namespace Game.Train.Unit
             var weight = TrainCarMasterElement.Weight + (Container?.GetWeight() ?? 0);
             if (RemainFuelTime <= 0)
             {
-                if (masconLevel != 0 && Container is IFuelProviderTrainCarContainer fuelProviderTrainCarContainer) RemainFuelTime += fuelProviderTrainCarContainer.ConsumeFuel(this);
+                if (masconLevel > 0 && Container is IFuelProviderTrainCarContainer fuelProviderTrainCarContainer) RemainFuelTime += fuelProviderTrainCarContainer.ConsumeFuel(this);
                 if (RemainFuelTime <= 0) return (weight, 0);
             }
             
