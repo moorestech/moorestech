@@ -208,13 +208,6 @@ namespace Server.Protocol.PacketResponse
             Debug.Log($"Place rail item: {railItem.ItemGuid}, Required count: {requiredCount}");
             return true;
         }
-        
-        // 接続両端の「乗せられる最大レール長」の min を返す
-        // Return the smaller of both endpoints' max connectable rail length
-        public static float GetAllowedMaxRailLength(RailNode fromNode, RailNode toNode)
-        {
-            return Mathf.Min(fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength);
-        }
 
         /// <summary>
         /// 接続区間の長さ・両端ブロックの最大上限・所持インベントリ・選択レール種から設置可否と消費アイテムを一括で確定する
