@@ -140,7 +140,7 @@ namespace Game.Train.Unit
                     // Move toward the destination when not docked.
                     // 自動運転時のマスコン制御を共通ロジックで更新
                     // Update mascon level via shared auto-run calculation
-                    var input = new AutoRunMasconInput(_currentSpeed, _remainingDistance, (double)totalWeight); 
+                    var input = new AutoRunMasconInput(_currentSpeed, _remainingDistance, totalWeight);
                     masconLevel = TrainAutoRunMasconCalculator.Calculate(input);
                 }
             }
@@ -173,6 +173,8 @@ namespace Game.Train.Unit
             #region  internal
             (int,double) ConsumeFuelAndUpdateMasconlevel(int masconLevel)
             {
+                if (masconLevel <= 0) return (masconLevel, 0);
+
                 double totalTraction = 0;
                 totalBaseTractionForce = 0;
                 foreach (var car in _cars)
@@ -181,6 +183,7 @@ namespace Game.Train.Unit
                     totalTraction += traction;
                     totalBaseTractionForce += baseTractionForce;
                 }
+                if (totalBaseTractionForce <= 0) return (0, 0);
                 return ((int)(totalTraction / totalBaseTractionForce * MasterHolder.TrainUnitMaster.MasconLevelMaximum), totalBaseTractionForce);
             }
             

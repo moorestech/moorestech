@@ -25,6 +25,7 @@ namespace Core.Master
         public double AutoRunSpeedBufferRate => 1.0 - Train.MotionParameters.AutoRunSpeedBufferMargin;
         public double TractionForceAccelerationRate => Train.MotionParameters.TractionForceAccelerationRate;
         public double ManualControlDecelerationFactor => Train.MotionParameters.ManualControlDecelerationFactor;
+        public double MaxBrakeDecelerationMetersPerSecondSquared => Train.MotionParameters.MaxBrakeDecelerationKmhPerSecond / 3.6d;
         public int MasconLevelMaximum => Train.MotionParameters.MasconLevelMaximum;
 
         public TrainUnitMaster(JToken jToken)

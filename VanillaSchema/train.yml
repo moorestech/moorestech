@@ -126,6 +126,10 @@ properties:
   - key: manualControlDecelerationFactor
     type: number
     default: 1.0
+  # Unit: km/h/s. Converted to m/s^2 in TrainUnitMaster.
+  - key: maxBrakeDecelerationKmhPerSecond
+    type: number
+    default: 11
   - key: masconLevelMaximum
     type: integer
     default: 16777216

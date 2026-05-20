@@ -16,6 +16,7 @@
     "autoRunSpeedBufferMargin": 0.02,
     "tractionForceAccelerationRate": 0.1,
     "manualControlDecelerationFactor": 1.0,
+    "maxBrakeDecelerationKmhPerSecond": 11,
     "masconLevelMaximum": 16777216
   }
 }
