@@ -137,7 +137,7 @@ namespace Client.Network.API
         
         public void RemoveTrain(TrainCarInstanceId trainCarInstanceId)
         {
-            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarInstanceId.AsPrimitive());
+            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarInstanceId.AsPrimitive(), _playerId);
             _packetSender.Send(request);
         }
         
