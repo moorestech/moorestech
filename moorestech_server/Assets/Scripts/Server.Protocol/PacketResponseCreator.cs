@@ -22,9 +22,7 @@ namespace Server.Protocol
             // パケット生成に必要な列車系サービスを取得
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
-            var trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
             var railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
-            var trainUnitMutationDatastore = serviceProvider.GetService<ITrainUnitMutationDatastore>();
             var trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             var trainCarRidingInputBuffer = serviceProvider.GetService<TrainCarRidingInputBuffer>();
             _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
@@ -66,7 +64,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(PlaceTrainCarOnRailProtocol.ProtocolTag, new PlaceTrainCarOnRailProtocol(serviceProvider));
             _packetResponseDictionary.Add(AttachTrainCarToUnitProtocol.ProtocolTag, new AttachTrainCarToUnitProtocol(serviceProvider));
             _packetResponseDictionary.Add(TrainCarRidingInputProtocol.ProtocolTag, new TrainCarRidingInputProtocol(trainCarRidingInputBuffer, trainUpdateService));
-            _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(trainUnitSnapshotNotifyEvent, trainUnitLookupDatastore, trainUnitMutationDatastore));
+            _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetTrainPlatformTransferModeProtocol.ProtocolTag, new SetTrainPlatformTransferModeProtocol(serviceProvider));
             _packetResponseDictionary.Add(FilterSplitterStateProtocol.ProtocolTag, new FilterSplitterStateProtocol(serviceProvider));
         }
