@@ -34,7 +34,7 @@ namespace Game.Block.Factory.BlockTemplate
             // 駅ブロックは常に2つのRailComponentを持つ
             //①1つのstation内にある2つのRailComponentを直線レールで接続
             //②stationをつなげて設置した場合にピッタリ重なる位置のrailComponentを自動接続するための処理
-            var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①が行われる
+            var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore, (float)stationParam.MaxConnectableRailLength);//①が行われる
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);//②接続処理
             var station = new TrainStationComponent("test");
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(stationParam.LoadingAnimeSpeed);
@@ -73,7 +73,7 @@ namespace Game.Block.Factory.BlockTemplate
             // 現仕様では接続はRailSegment復元に委ねるため、ここでは登録のみ行う
             // In current flow, connections are restored by rail segments, so we only register here
             var stationParam = masterElement.BlockParam as TrainStationBlockParam;
-            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore);//①復元
+            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore, (float)stationParam.MaxConnectableRailLength);//①復元
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var station = new TrainStationComponent(componentStates);
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);

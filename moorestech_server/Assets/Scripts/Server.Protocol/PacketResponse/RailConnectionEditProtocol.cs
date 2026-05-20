@@ -58,36 +58,39 @@ namespace Server.Protocol.PacketResponse
                     case RailEditMode.Connect:
                         if (!_commandHandler.TryResolveNodes(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, out var fromNode, out var toNode))
                             return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
-                        
-                        var length = GetRailLength(fromNode, toNode);
-                        
-                        var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
-                        var railTypeGuid = data.RailTypeGuid;
-                        if (!TryResolveRailItemForPlacement(railTypeGuid, inventory.InventoryItems, length, out var placeRailItem, out var requiredCount))
-                            return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughRailItem, data.Mode);
 
-                        var connectResult = _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, railTypeGuid);
-                        
+                        var length = GetRailLength(fromNode, toNode);
+                        var inventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId).MainOpenableInventory;
+
+                        // 長さ・両端ブロック上限・所持インベントリ・選択レール種から設置可否と消費アイテムを一括確定
+                        // Single placement evaluation shared with the client preview
+                        var preferredRailItemId = data.RailTypeGuid == Guid.Empty ? ItemMaster.EmptyItemId : MasterHolder.ItemMaster.GetItemId(data.RailTypeGuid);
+                        var judgement = EvaluatePlacement(length, fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength, inventory.InventoryItems, preferredRailItemId);
+                        if (!judgement.IsPlaceable)
+                            return ResponseRailConnectionEditMessagePack.CreateFailure(judgement.FailureReason, data.Mode);
+
+
                         // 成功したらインベントリから引く
                         // Consume rail items on success
-                        if (connectResult && railTypeGuid != Guid.Empty)
+                        var connectResult = _commandHandler.TryConnect(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, data.RailTypeGuid);
+                        if (connectResult)
                         {
-                            var railItemId = MasterHolder.ItemMaster.GetItemId(placeRailItem.ItemGuid);
-                            var remainSubCount = requiredCount;
+                            var railItemId = MasterHolder.ItemMaster.GetItemId(judgement.SelectedRailItem.ItemGuid);
+                            var remainSubCount = judgement.RequiredCount;
                             foreach (var (stack, i) in inventory.InventoryItems.ToArray().Select((stack, i) => (stack, i)).Where(stack => stack.stack.Id == railItemId))
                             {
                                 var subCount = Mathf.Min(stack.Count, remainSubCount);
                                 Debug.Log($"Subtracting {subCount} from stack {stack.Id}");
                                 inventory.SetItem(i, stack.SubItem(subCount));
                                 remainSubCount -= subCount;
-                                
+
                                 if (remainSubCount == 0) break;
                             }
-                            
+
                             // 残りがまだあるということがあってはならない
-                            if (remainSubCount > 0) throw new Exception($"Rail item count is not enough. Required: {requiredCount}, Inventory: {inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count)}");
+                            if (remainSubCount > 0) throw new Exception($"Rail item count is not enough. Required: {judgement.RequiredCount}, Inventory: {inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count)}");
                         }
-                        
+
                         return ResponseRailConnectionEditMessagePack.Create(connectResult, connectResult ? RailConnectionEditFailureReason.None : RailConnectionEditFailureReason.InvalidNode, data.Mode);
                     case RailEditMode.Disconnect:
                         return HandleDisconnect(data);
@@ -206,6 +209,45 @@ namespace Server.Protocol.PacketResponse
             return true;
         }
         
+        // 接続両端の「乗せられる最大レール長」の min を返す
+        // Return the smaller of both endpoints' max connectable rail length
+        public static float GetAllowedMaxRailLength(RailNode fromNode, RailNode toNode)
+        {
+            return Mathf.Min(fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength);
+        }
+
+        /// <summary>
+        /// 接続区間の長さ・両端ブロックの最大上限・所持インベントリ・選択レール種から設置可否と消費アイテムを一括で確定する
+        /// Single entry point for placement viability: combines length-vs-limit, inventory-vs-required, and rail-type selection.
+        /// サーバー・クライアント双方からこのメソッドだけを呼ぶことで、設置条件の追加がここに集約される。
+        /// Server and client both call this so future placement rules only need to land in one place.
+        /// preferredRailItemId が ItemMaster.EmptyItemId なら設置可能なレール種の先頭を採用する
+        /// When preferredRailItemId is ItemMaster.EmptyItemId, picks the first placeable rail item
+        /// </summary>
+        public static RailPlacementJudgement EvaluatePlacement(float railLength, float fromMaxConnectableRailLength, float toMaxConnectableRailLength, IEnumerable<IItemStack> inventoryItems, ItemId preferredRailItemId)
+        {
+            // 両端の上限の min をその接続区間の許容最大長とする
+            // Take the smaller endpoint limit as the allowed maximum for the segment
+            if (Mathf.Min(fromMaxConnectableRailLength, toMaxConnectableRailLength) < railLength)
+                return new RailPlacementJudgement(RailConnectionEditFailureReason.RailLengthExceeded, null, 0);
+
+            // 所持アイテムから設置可能なレール種を列挙
+            // Enumerate rail items that the player owns enough of for this length
+            var placeable = GetPlaceableRailItems(inventoryItems, railLength);
+            if (placeable.Length == 0)
+                return new RailPlacementJudgement(RailConnectionEditFailureReason.NotEnoughRailItem, null, 0);
+
+            // 選択レール種を確定する。指定なしなら先頭、指定ありなら一致する ItemId のものを採用
+            // Resolve the selected rail item by ItemId: head when unspecified, matching entry otherwise
+            var selected = preferredRailItemId == ItemMaster.EmptyItemId
+                ? placeable[0]
+                : Array.Find(placeable, p => MasterHolder.ItemMaster.GetItemId(p.element.ItemGuid) == preferredRailItemId);
+            if (selected.element == null)
+                return new RailPlacementJudgement(RailConnectionEditFailureReason.NotEnoughRailItem, null, 0);
+
+            return new RailPlacementJudgement(RailConnectionEditFailureReason.None, selected.element, selected.requiredCount);
+        }
+
         public static float GetRailLength(IRailNode fromNode, IRailNode toNode)
         {
             var p0 = fromNode.FrontControlPoint.OriginalPosition;
@@ -331,7 +373,30 @@ namespace Server.Protocol.PacketResponse
             InvalidMode,
             NotEnoughRailItem,
             NotEnoughInventorySpace,
+            RailLengthExceeded,
             UnknownError,
+        }
+    }
+
+    /// <summary>
+    /// レール設置可否の統合判定結果。失敗理由、または採用レール種と必要数を保持する
+    /// Aggregated result of rail placement viability evaluation, exposing failure reason or the selected rail item with required count.
+    /// </summary>
+    public readonly struct RailPlacementJudgement
+    {
+        public readonly RailConnectionEditProtocol.RailConnectionEditFailureReason FailureReason;
+        public readonly RailItemMasterElement SelectedRailItem;
+        public readonly int RequiredCount;
+
+        public bool IsPlaceable => FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.None;
+
+        public Guid SelectedRailTypeGuid => SelectedRailItem != null ? SelectedRailItem.ItemGuid : Guid.Empty;
+
+        public RailPlacementJudgement(RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, RailItemMasterElement selectedRailItem, int requiredCount)
+        {
+            FailureReason = failureReason;
+            SelectedRailItem = selectedRailItem;
+            RequiredCount = requiredCount;
         }
     }
 }

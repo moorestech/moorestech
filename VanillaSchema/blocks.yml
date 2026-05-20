@@ -26,6 +26,11 @@ defineInterface:
   properties:
   - key: itemSlotCount
     type: integer
+- interfaceName: IRailEndpointBlockParam
+  properties:
+  - key: maxConnectableRailLength
+    type: number
+    default: 100
 - interfaceName: IMinerParam
   properties:
   - key: outputItemSlotCount
@@ -548,6 +553,8 @@ properties:
           ref: gear
       - when: TrainRail
         type: object
+        implementationInterface:
+        - IRailEndpointBlockParam
         properties:
         - key: railPosition
           type: vector3
@@ -558,11 +565,15 @@ properties:
         - key: controlPointLength
           type: number
           default: 0.5
+        - key: maxConnectableRailLength
+          type: number
+          default: 100
       - when: TrainStation
         type: object
         implementationInterface:
         - IChestParam
         - IInventoryConnectors
+        - IRailEndpointBlockParam
         properties:
         - key: entryRailPosition
           type: vector3
@@ -587,6 +598,9 @@ properties:
         - key: loadingAnimeSpeed
           type: number
           default: 1
+        - key: maxConnectableRailLength
+          type: number
+          default: 100
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: TrainItemPlatform
@@ -594,6 +608,7 @@ properties:
         implementationInterface:
         - IChestParam
         - IInventoryConnectors
+        - IRailEndpointBlockParam
         properties:
         - key: entryRailPosition
           type: vector3
@@ -619,10 +634,15 @@ properties:
         - key: loadingAnimeSpeed
           type: number
           default: 1
+        - key: maxConnectableRailLength
+          type: number
+          default: 100
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: TrainFluidPlatform
         type: object
+        implementationInterface:
+        - IRailEndpointBlockParam
         properties:
         - key: entryRailPosition
           type: vector3
@@ -646,6 +666,9 @@ properties:
           type: number
           default: 1
         - key: capacity
+          type: number
+          default: 100
+        - key: maxConnectableRailLength
           type: number
           default: 100
         - key: fluidInventoryConnectors

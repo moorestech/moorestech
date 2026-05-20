@@ -42,7 +42,8 @@ namespace Game.Block.Factory.BlockTemplate
             }
 
             var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(blockPositionInfo, trainRailParam.RailPosition);
-            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, state.RailBlockDirection, blockPositionInfo.OriginalPos, 0);
+            var maxConnectableRailLength = (float)trainRailParam.MaxConnectableRailLength;
+            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, state.RailBlockDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength);
 
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
             var components = new List<IBlockComponent>();
@@ -64,7 +65,8 @@ namespace Game.Block.Factory.BlockTemplate
             var railDirection = RailComponentStateDetailComponent.LoadRailDirection(componentStates);
             var railComponents = new RailComponent[1];
             var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(positionInfo, trainRailParam.RailPosition);
-            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railDirection, positionInfo.OriginalPos, 0);
+            var maxConnectableRailLength = (float)trainRailParam.MaxConnectableRailLength;
+            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railDirection, positionInfo.OriginalPos, 0, maxConnectableRailLength);
 
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
             var components = new List<IBlockComponent>();
