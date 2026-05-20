@@ -33,7 +33,7 @@ namespace Client.Editor.Toolbar
     internal static class ToolbarOverlayPositioner
     {
         private const string OverlayInitVersionKey = "moorestech_ToolbarOverlayInitVersion";
-        private const int CurrentOverlayInitVersion = 2;
+        private const int CurrentOverlayInitVersion = 3;
 
         private static bool _positioned;
 
@@ -72,6 +72,7 @@ namespace Client.Editor.Toolbar
             Overlay sceneReload = null;
             Overlay home = null;
             Overlay branchName = null;
+            Overlay noSavePlay = null;
 
             foreach (var o in overlayList)
             {
@@ -81,6 +82,7 @@ namespace Client.Editor.Toolbar
                 if (id.Contains("Scene Reload")) sceneReload = o;
                 if (id.Contains("moorestech/Home")) home = o;
                 if (id.Contains("moorestech/Branch Name")) branchName = o;
+                if (id.Contains("moorestech/NoSave Play")) noSavePlay = o;
             }
 
             if (playMode == null || timeScale == null || sceneReload == null || home == null) return;
@@ -88,11 +90,15 @@ namespace Client.Editor.Toolbar
             var dockBefore = typeof(Overlay).GetMethod("DockBefore", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             var dockAfter = typeof(Overlay).GetMethod("DockAfter", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-            // 配置順: BranchName → SceneReload → Home → PlayMode → TimeScale
-            // Order: BranchName → SceneReload → Home → PlayMode → TimeScale
+            // 配置順: BranchName → SceneReload → Home → PlayMode → TimeScale → NoSavePlay
+            // Order: BranchName → SceneReload → Home → PlayMode → TimeScale → NoSavePlay
             dockBefore?.Invoke(sceneReload, new object[] { playMode });
             dockBefore?.Invoke(home, new object[] { playMode });
             dockAfter?.Invoke(timeScale, new object[] { playMode });
+
+            // ゲーム速度コントロールの隣にセーブ無し起動ボタンを配置する
+            // Place the no-save launch button next to the game speed control
+            if (noSavePlay != null) dockAfter?.Invoke(noSavePlay, new object[] { timeScale });
 
             if (branchName != null)
             {

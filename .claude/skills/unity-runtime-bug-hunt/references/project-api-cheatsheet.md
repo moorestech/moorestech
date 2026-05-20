@@ -73,3 +73,16 @@ moorestech では `ServerGameUpdater.StartUpdate` が別スレッドで `GameUpd
 ### PlayMode 起動を伴うテストユーティリティ
 
 `Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil` にはPlayModeでのブロック配置・アイテム投入のヘルパーがある。動的コード相当のことを再現テストで書きたい時に参考になる。
+
+### セーブをロード・保存せず起動するオプション（バグ調査時は基本これ）
+
+バグ調査の再現性のため、**既存セーブをロードせず・オートセーブもしないクリーンな状態**で PlayMode 起動できる。調査中の世界が既存セーブで汚れたり、調査の操作（ブロック破壊・配置等）が本番セーブを破壊するのを防げる。再現条件が「まっさらな世界から」のときは原則これで起動する。
+
+PlayMode 突入前（EditMode 中）に SessionState フラグを立てる:
+
+```bash
+uloop execute-dynamic-code --project-path ./moorestech_client --code 'UnityEditor.SessionState.SetBool("moorestech_SkipSaveLoadPlayMode", true); return "set";'
+# その後に control-play-mode --action Play
+```
+
+`InitializeScenePipeline.ApplySkipSaveLoadModeIfNeeded` がこのフラグを読み、サーバを `AutoSave=false` + 一時 `saveFilePath` で起動する（= 既存セーブ非ロード・非保存）。フラグは PlayMode 終了（EditMode 復帰）時に `NoSaveLoadPlayToolbarElement` が自動クリアするので、毎回 Play 前に立て直す。Unity ツールバーの「NoSave Play」再生ボタンと同じ仕組み。
