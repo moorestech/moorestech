@@ -135,12 +135,13 @@ namespace Client.Game.InGame.Train.RailGraph
 
             // 端数は多めに生成し、終端Clampによる縮小で隙間を吸収する
             // Generate extra remainder coverage and let end clamping shrink the last segment
-            var remainderSteps = Mathf.Clamp(Mathf.CeilToInt(remainder / moduleLength * 8f), 1, 7);
+            var remainderSteps = Mathf.Clamp(Mathf.CeilToInt(remainder / moduleLength * 8f), 1, 8);
             var halfLength = _halfModulePrefab != null ? GetModuleLength(_halfModulePrefab, moduleLength * 0.5f) : moduleLength * 0.5f;
             var quarterLength = _quarterModulePrefab != null ? GetModuleLength(_quarterModulePrefab, moduleLength * 0.25f) : moduleLength * 0.25f;
             var eighthLength = _eighthModulePrefab != null ? GetModuleLength(_eighthModulePrefab, moduleLength * 0.125f) : moduleLength * 0.125f;
             TryCreatePartialSegment(ref remainderSteps, 4, _halfModulePrefab, halfLength, ref offset);
             TryCreatePartialSegment(ref remainderSteps, 2, _quarterModulePrefab, quarterLength, ref offset);
+            TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
             TryCreatePartialSegment(ref remainderSteps, 1, _eighthModulePrefab, eighthLength, ref offset);
             if (remainderSteps > 0)
             {
