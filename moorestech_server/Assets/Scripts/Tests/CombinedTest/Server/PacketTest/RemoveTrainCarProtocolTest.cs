@@ -70,7 +70,30 @@ namespace Tests.CombinedTest.Server.PacketTest
             }
         }
 
-        #region Internal
+        [Test]
+        public void RemoveTrainCar_PlayerInventoryFull_AbortsRemoval()
+        {
+            // 列車を1両配置する
+            // Place a single train car.
+            var (environment, trainCar) = SetupAndPlaceTrain();
+
+            // プレイヤーのメインインベントリを満杯にする
+            // Fill the player's main inventory completely.
+            var mainInventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var fillItemMaxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId2).MaxStack;
+            for (var i = 0; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, fillItemMaxStack));
+
+            // 削除プロトコルを実行する
+            // Execute the removal protocol.
+            var packet = MessagePackSerializer.Serialize(
+                new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive(), PlayerId));
+            environment.PacketResponseCreator.GetPacketResponse(packet);
+
+            // 満杯時は削除が中止され、列車はそのまま残る
+            // On a full inventory the removal is aborted and the train remains.
+            Assert.AreEqual(1, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count, "満杯時は削除が中止され列車が残るべき / Train should remain when inventory is full");
+        }
 
         private static bool InventoryContains(IOpenableInventory inventory, ItemId itemId, int count)
         {
@@ -80,7 +103,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var item = inventory.GetItem(i);
                 if (item.Id == itemId) total += item.Count;
             }
-            return total >= count;
+            return count <= total;
         }
 
         private (TrainTestEnvironment Environment, TrainCar TrainCar) SetupAndPlaceTrain()
@@ -113,7 +136,5 @@ namespace Tests.CombinedTest.Server.PacketTest
             var trainCar = environment.GetITrainLookupDatastore().GetRegisteredTrains().Last().Cars[0];
             return (environment, trainCar);
         }
-
-        #endregion
     }
 }

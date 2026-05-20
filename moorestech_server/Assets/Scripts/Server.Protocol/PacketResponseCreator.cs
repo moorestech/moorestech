@@ -22,9 +22,7 @@ namespace Server.Protocol
             // パケット生成に必要な列車系サービスを取得
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
-            var trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
             var railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
-            var trainUnitMutationDatastore = serviceProvider.GetService<ITrainUnitMutationDatastore>();
             var trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             var trainCarRidingInputBuffer = serviceProvider.GetService<TrainCarRidingInputBuffer>();
             _packetResponseDictionary.Add(InitialHandshakeProtocol.ProtocolTag, new InitialHandshakeProtocol(serviceProvider));
