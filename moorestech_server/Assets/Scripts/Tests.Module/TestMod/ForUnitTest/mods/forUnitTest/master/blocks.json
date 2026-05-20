@@ -2747,7 +2747,8 @@
           0.5,
           0.5
         ],
-        "controlPointLength": 0.5
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
       },
       "name": "TestTrainRail",
       "blockGuid": "00000000-0000-0000-0000-000000000024",
@@ -2819,7 +2820,8 @@
         ],
         "entryControlPointLength": 0.5,
         "exitControlPointLength": 0.5,
-        "loadingAnimeSpeed": 1
+        "loadingAnimeSpeed": 1,
+        "maxConnectableRailLength": 100
       },
       "name": "TestTrainStation",
       "blockGuid": "00000000-0000-0000-0000-000000000025",
@@ -2891,7 +2893,8 @@
           8
         ],
         "itemSlotCount": 10,
-        "loadingAnimeSpeed": 1
+        "loadingAnimeSpeed": 1,
+        "maxConnectableRailLength": 100
       },
       "name": "TestTrainItemPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000026",
@@ -4018,7 +4021,8 @@
           8
         ],
         "capacity": 1000,
-        "loadingAnimeSpeed": 1
+        "loadingAnimeSpeed": 1,
+        "maxConnectableRailLength": 100
       },
       "name": "TestTrainFluidPlatform",
       "blockGuid": "00000000-0000-0000-0000-000000000029",
