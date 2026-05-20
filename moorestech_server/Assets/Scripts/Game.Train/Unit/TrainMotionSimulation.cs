@@ -29,6 +29,7 @@ namespace Game.Train.Unit
         {
             var mascon = 0;
             var remaining = Math.Max(0, input.RemainingDistance);
+            /*
             var maxSpeed = Math.Sqrt(remaining * MasterHolder.TrainUnitMaster.AutoRunMaxSpeedDistanceCoefficient) + MasterHolder.TrainUnitMaster.AutoRunMaxSpeedOffset;
             if (maxSpeed > input.CurrentSpeed)
             {
@@ -41,7 +42,7 @@ namespace Game.Train.Unit
                 var subspeed = maxSpeed - bufferedSpeed;
                 mascon = Math.Max((int)subspeed, -MasterHolder.TrainUnitMaster.MasconLevelMaximum);
             }
-
+            */
             return mascon;
         }
     }
