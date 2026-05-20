@@ -186,10 +186,12 @@ namespace Game.Block.Blocks.GearChainPole
                 if (targetPole != null) targetPole.TryRemoveChainConnection(BlockInstanceId, out _);
             }
 
-            // コンポーネントのリソースを解放する
-            // Release component resources
-            _connectorComponent.Destroy();
+            // ギアネットワークから除去する。隣接ギアの噛み合いを次数判定に含めるため、コネクタ生存中に実行する
+            // Remove from the gear network while the connector is still alive so adjacent gear meshing counts toward the degree check
             GearNetworkDatastore.RemoveGear(this);
+
+            // コネクタはBlockComponentManagerが別コンポーネントとして破棄するため、ここでは破棄しない
+            // The connector is destroyed separately by BlockComponentManager, so it must not be destroyed here
             _chainTargets.Clear();
             _onChangeBlockState.Dispose();
             IsDestroy = true;
