@@ -26,7 +26,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var param = masterElement.BlockParam as TrainFluidPlatformBlockParam;
 
-            var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, param.EntryRailPosition, param.ExitRailPosition, _railGraphDatastore);
+            var railComponents = RailComponentUtility.Create2RailComponents(positionInfo, param.EntryRailPosition, param.ExitRailPosition, _railGraphDatastore, (float)param.MaxConnectableRailLength);
             RailComponentUtility.RegisterAndConnetStationBlocks(railComponents, _railGraphDatastore);
 
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(param.LoadingAnimeSpeed);
@@ -58,7 +58,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var param = masterElement.BlockParam as TrainFluidPlatformBlockParam;
 
-            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, param.EntryRailPosition, param.ExitRailPosition, _railGraphDatastore);
+            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, param.EntryRailPosition, param.ExitRailPosition, _railGraphDatastore, (float)param.MaxConnectableRailLength);
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);
 
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, param.LoadingAnimeSpeed);

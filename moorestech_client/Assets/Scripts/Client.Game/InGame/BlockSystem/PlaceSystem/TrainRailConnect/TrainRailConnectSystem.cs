@@ -88,18 +88,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     
                     if (!pierSlots.Any())
                     {
-                        // pierがない場合は設置不可
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
+                        // pierがない場合は設置不可。仮にデフォルトの最大長で判定する
+                        // No pier in inventory: still preview with default max length
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, context.HoldingItemId);
                         ShowPreview(previewData);
                     }
                     else
                     {
-                        // pierがある場合は設置可能
+                        // pierがある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
+                        // Pier available: pass the placing TrainRail block's max length
                         var (itemStack, pierInventorySlot) = pierSlots.First();
+                        var pierBlockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
+                        var pierBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(pierBlockId);
+                        var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
                         var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemStack.Id);
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory);
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, context.HoldingItemId);
                         ShowPreview(previewData);
-                        
+
+                        if (!previewData.IsPlaceable) return;
+
                         // 設置
                         SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierInventorySlot);
                     }
@@ -124,12 +131,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     return;
                 }
                 
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, context.HoldingItemId);
                 ShowPreview(previewData);
-                
-                if (!previewData.HasEnoughRailItem) return;
-                
-                SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);   
+
+                if (!previewData.IsPlaceable) return;
+
+                SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);
             }
             
             #region Internal

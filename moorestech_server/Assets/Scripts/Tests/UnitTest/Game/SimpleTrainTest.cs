@@ -141,7 +141,7 @@ namespace Tests.UnitTest.Game
                 listIsCreated.Add((x, y, z));
                 listIsDestroy.Remove((x, y, z));
                 var blockPosition = new Vector3Int(x, y, z);
-                railBlocks[x, y, z] = new RailComponent(railGraphDatastore, new Vector3(x, y, z), BlockDirection.North, blockPosition, 0);
+                railBlocks[x, y, z] = new RailComponent(railGraphDatastore, new Vector3(x, y, z), BlockDirection.North, blockPosition, 0, 100f);
 
                 var (x1, y1, z1) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
                 var (x2, y2, z2) = listIsCreated[UnityEngine.Random.Range(0, listIsCreated.Count)];
