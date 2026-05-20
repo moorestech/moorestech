@@ -2,7 +2,6 @@ using System;
 using Core.Master;
 using Core.Update;
 using Game.Train.RailCalc;
-using UnityEngine.Windows;
 
 namespace Game.Train.Unit
 {
@@ -110,7 +109,9 @@ namespace Game.Train.Unit
             }
             if (input.MasconLevel < 0)
             {
-                
+                var brakeRate = -input.MasconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
+                var brakeAcceleration = MasterHolder.TrainUnitMaster.ManualControlDecelerationFactor * brakeRate;
+                speed = ApplyOpposingAcceleration(speed, brakeAcceleration, GameUpdater.SecondsPerTick);
             }
             var updatedSign = Math.Sign(speed);
             if (sign != updatedSign)
@@ -118,24 +119,36 @@ namespace Game.Train.Unit
                 speed = 0;
             }
             
-            // 空気抵抗
-            var resistForce = Math.Abs(speed) * MasterHolder.TrainUnitMaster.SpeedWeight * MasterHolder.TrainUnitMaster.Friction +
-                              speed * speed * MasterHolder.TrainUnitMaster.SpeedWeight * MasterHolder.TrainUnitMaster.AirResistance;
-            var resistSign = Math.Sign(speed);
-            speed -= resistSign * resistForce;
-            var postResistSign = Math.Sign(speed);
-            if (resistSign != postResistSign)
-            {
-                speed = 0;
-            }
+            var resistanceAcceleration = CalculateResistanceAcceleration(speed, input.TotalWeight);
+            speed = ApplyOpposingAcceleration(speed, resistanceAcceleration, GameUpdater.SecondsPerTick);
             
             var distanceMeters = speed * GameUpdater.SecondsPerTick;
             var floatDistance = distanceMeters * BezierUtility.RAIL_LENGTH_SCALE;
             var accumulated = input.AccumulatedDistance + floatDistance;
             var distance = (int)Math.Truncate(accumulated);
             accumulated -= distance;
-            
             return new TrainMotionStepResult(speed, accumulated, distance);
+            
+    #region Internal
+            
+            static double CalculateResistanceAcceleration(double speed, int totalWeight)
+            {
+                if (speed == 0) return 0;
+                var rollingResistanceForce = MasterHolder.TrainUnitMaster.Friction * totalWeight * 9.80665;
+                var airResistanceForce = MasterHolder.TrainUnitMaster.AirResistance * speed * speed;
+                var resistanceForce = rollingResistanceForce + airResistanceForce;
+                return resistanceForce / totalWeight;
+            }
+            
+            static double ApplyOpposingAcceleration(double speed, double acceleration, double secondsPerTick)
+            {
+                if (speed == 0 || acceleration <= 0) return speed;
+                var sign = Math.Sign(speed);
+                var nextSpeed = speed - sign * acceleration * secondsPerTick;
+                return sign != Math.Sign(nextSpeed) ? 0 : nextSpeed;
+            }
+            
+    #endregion
         }
     }
 }
