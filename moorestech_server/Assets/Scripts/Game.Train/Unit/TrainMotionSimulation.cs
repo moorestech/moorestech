@@ -10,7 +10,7 @@ namespace Game.Train.Unit
         public AutoRunMasconInput(
             double currentSpeed,
             int remainingDistance,
-            double totalWeight)
+            int totalWeight)
         {
             CurrentSpeed = currentSpeed;
             RemainingDistance = remainingDistance;
@@ -19,7 +19,7 @@ namespace Game.Train.Unit
 
         public double CurrentSpeed { get; }
         public int RemainingDistance { get; }
-        public double TotalWeight { get; }
+        public int TotalWeight { get; }
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ namespace Game.Train.Unit
                 speed = ApplyOpposingAcceleration(speed, brakeAcceleration, GameUpdater.SecondsPerTick);
             }
             var updatedSign = Math.Sign(speed);
-            if (sign != updatedSign)
+            if (sign != 0 && sign != updatedSign)
             {
                 speed = 0;
             }
