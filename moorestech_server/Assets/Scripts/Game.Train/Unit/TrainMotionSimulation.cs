@@ -1,5 +1,8 @@
 using System;
 using Core.Master;
+using Core.Update;
+using Game.Train.RailCalc;
+using UnityEngine.Windows;
 
 namespace Game.Train.Unit
 {
@@ -54,18 +57,21 @@ namespace Game.Train.Unit
             double currentSpeed,
             double accumulatedDistance,
             int masconLevel,
-            double tractionForce)
+            double totalTraction,
+            int totalweight)
         {
             CurrentSpeed = currentSpeed;
             AccumulatedDistance = accumulatedDistance;
             MasconLevel = masconLevel;
-            TractionForce = tractionForce;
+            TotalTraction = totalTraction;
+            TotalWeight = totalweight;
         }
-
         public double CurrentSpeed { get; }
         public double AccumulatedDistance { get; }
         public int MasconLevel { get; }
-        public double TractionForce { get; }
+        public double TotalTraction { get; }
+        public int TotalWeight { get; }
+        
     }
 
     /// <summary>
@@ -87,7 +93,7 @@ namespace Game.Train.Unit
     }
 
     /// <summary>
-    /// 速度と進行距離のシミュレーション
+    /// 速度と進行距離のシミュレーション、空気抵抗、摩擦
     /// Static helper for per-tick distance simulation
     /// </summary>
     public static class TrainDistanceSimulator
@@ -95,21 +101,24 @@ namespace Game.Train.Unit
         public static TrainMotionStepResult Step(in TrainMotionStepInput input)
         {
             var speed = input.CurrentSpeed;
+            var sign = Math.Sign(speed);
             if (input.MasconLevel > 0)
             {
-                speed += input.TractionForce * MasterHolder.TrainUnitMaster.TractionForceAccelerationRate;
+                var masconRate = input.MasconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
+                var acceleration = input.TotalTraction / input.TotalWeight * masconRate;
+                speed += acceleration * GameUpdater.SecondsPerTick;
             }
-            else
+            if (input.MasconLevel < 0)
             {
-                var sign = Math.Sign(speed);
-                speed += sign * input.MasconLevel * MasterHolder.TrainUnitMaster.ManualControlDecelerationFactor;
-                var updatedSign = Math.Sign(speed);
-                if (sign != updatedSign)
-                {
-                    speed = 0;
-                }
+                
             }
-
+            var updatedSign = Math.Sign(speed);
+            if (sign != updatedSign)
+            {
+                speed = 0;
+            }
+            
+            // 空気抵抗
             var resistForce = Math.Abs(speed) * MasterHolder.TrainUnitMaster.SpeedWeight * MasterHolder.TrainUnitMaster.Friction +
                               speed * speed * MasterHolder.TrainUnitMaster.SpeedWeight * MasterHolder.TrainUnitMaster.AirResistance;
             var resistSign = Math.Sign(speed);
@@ -119,11 +128,13 @@ namespace Game.Train.Unit
             {
                 speed = 0;
             }
-
-            var floatDistance = speed * MasterHolder.TrainUnitMaster.SpeedWeight;
+            
+            var distanceMeters = speed * GameUpdater.SecondsPerTick;
+            var floatDistance = distanceMeters * BezierUtility.RAIL_LENGTH_SCALE;
             var accumulated = input.AccumulatedDistance + floatDistance;
             var distance = (int)Math.Truncate(accumulated);
             accumulated -= distance;
+            
             return new TrainMotionStepResult(speed, accumulated, distance);
         }
     }
