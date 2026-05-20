@@ -9,14 +9,17 @@ namespace Game.Train.Unit
     {
         public AutoRunMasconInput(
             double currentSpeed,
-            int remainingDistance)
+            int remainingDistance,
+            double totalWeight)
         {
             CurrentSpeed = currentSpeed;
             RemainingDistance = remainingDistance;
+            TotalWeight = totalWeight;
         }
 
         public double CurrentSpeed { get; }
         public int RemainingDistance { get; }
+        public double TotalWeight { get; }
     }
 
     /// <summary>
@@ -27,9 +30,9 @@ namespace Game.Train.Unit
     {
         public static int Calculate(in AutoRunMasconInput input)
         {
+            /* 
             var mascon = 0;
             var remaining = Math.Max(0, input.RemainingDistance);
-            /*
             var maxSpeed = Math.Sqrt(remaining * MasterHolder.TrainUnitMaster.AutoRunMaxSpeedDistanceCoefficient) + MasterHolder.TrainUnitMaster.AutoRunMaxSpeedOffset;
             if (maxSpeed > input.CurrentSpeed)
             {
@@ -42,8 +45,37 @@ namespace Game.Train.Unit
                 var subspeed = maxSpeed - bufferedSpeed;
                 mascon = Math.Max((int)subspeed, -MasterHolder.TrainUnitMaster.MasconLevelMaximum);
             }
-            */
             return mascon;
+            */
+            
+            const double TargetBrakeRate = 7.0d / 8.0d;
+            var maxMascon = MasterHolder.TrainUnitMaster.MasconLevelMaximum;
+            var speed = Math.Abs(input.CurrentSpeed);
+            var remainingMeters = Math.Max(0, input.RemainingDistance) / (double)BezierUtility.RAIL_LENGTH_SCALE;
+            
+            if (remainingMeters <= 0)
+            {
+                return speed > 0 ? -(int)Math.Round(maxMascon * TargetBrakeRate) : 0;
+            }
+            
+            var maxBrakeAcceleration = MasterHolder.TrainUnitMaster.MaxBrakeDecelerationMetersPerSecondSquared;
+            
+// ここは本当は totalWeight が必要。
+// airResistance は weight で割って加速度にする必要がある。
+            var resistanceAcceleration = TrainDistanceSimulator.CalculateResistanceAcceleration(speed, input.TotalWeight);
+            var requiredTotalDeceleration = speed * speed / (2.0d * remainingMeters);
+            var requiredBrakeAcceleration = Math.Max(0, requiredTotalDeceleration - resistanceAcceleration);
+            var requiredBrakeRate = requiredBrakeAcceleration / maxBrakeAcceleration;
+// まだ 7/8 ブレーキ曲線に入っていないなら加速。
+// ここで弱いブレーキを遠くから入れない。
+            if (requiredBrakeRate < TargetBrakeRate)
+            {
+                return maxMascon;
+            }
+// 曲線に入ったら、必要量を毎tick再計算する。
+// 通常は 7/8 付近に張り付く。
+            var brakeRate = Math.Min(requiredBrakeRate, TargetBrakeRate);
+            return -(int)Math.Round(maxMascon * brakeRate);
         }
     }
 
@@ -91,7 +123,7 @@ namespace Game.Train.Unit
         public double NewAccumulatedDistance { get; }
         public int DistanceToMove { get; }
     }
-
+    
     /// <summary>
     /// 速度と進行距離のシミュレーション、空気抵抗、摩擦
     /// Static helper for per-tick distance simulation
@@ -110,8 +142,8 @@ namespace Game.Train.Unit
             }
             if (input.MasconLevel < 0)
             {
-                var brakeRate = -input.MasconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-                var brakeAcceleration = MasterHolder.TrainUnitMaster.ManualControlDecelerationFactor * brakeRate;
+                var brakeRate = Math.Min(Math.Abs((double)input.MasconLevel) / MasterHolder.TrainUnitMaster.MasconLevelMaximum, 1.0d);
+                var brakeAcceleration = MasterHolder.TrainUnitMaster.MaxBrakeDecelerationMetersPerSecondSquared * brakeRate;
                 speed = ApplyOpposingAcceleration(speed, brakeAcceleration, GameUpdater.SecondsPerTick);
             }
             var updatedSign = Math.Sign(speed);
@@ -130,17 +162,7 @@ namespace Game.Train.Unit
             accumulated -= distance;
             return new TrainMotionStepResult(speed, accumulated, distance);
             
-    #region Internal
-            
-            static double CalculateResistanceAcceleration(double speed, int totalWeight)
-            {
-                if (speed == 0) return 0;
-                var rollingResistanceForce = MasterHolder.TrainUnitMaster.Friction * totalWeight * 9.80665;
-                var airResistanceForce = MasterHolder.TrainUnitMaster.AirResistance * speed * speed;
-                var resistanceForce = rollingResistanceForce + airResistanceForce;
-                return resistanceForce / totalWeight;
-            }
-            
+            #region Internal
             static double ApplyOpposingAcceleration(double speed, double acceleration, double secondsPerTick)
             {
                 if (speed == 0 || acceleration <= 0) return speed;
@@ -148,8 +170,17 @@ namespace Game.Train.Unit
                 var nextSpeed = speed - sign * acceleration * secondsPerTick;
                 return sign != Math.Sign(nextSpeed) ? 0 : nextSpeed;
             }
-            
-    #endregion
+            #endregion
         }
+        
+        public static double CalculateResistanceAcceleration(double speed, int totalWeight)
+        {
+            if (speed == 0) return 0;
+            var rollingResistanceForce = MasterHolder.TrainUnitMaster.Friction * totalWeight * 9.80665;
+            var airResistanceForce = MasterHolder.TrainUnitMaster.AirResistance * speed * speed;
+            var resistanceForce = rollingResistanceForce + airResistanceForce;
+            return resistanceForce / totalWeight;
+        }
+
     }
 }
