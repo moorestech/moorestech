@@ -19,6 +19,10 @@ namespace Game.Train.RailGraph
         public StationReference StationRef { get; set; }
         public ConnectionDestination ConnectionDestination { get; private set; } = ConnectionDestination.Default;
         public bool HasConnectionDestination => !ConnectionDestination.IsDefault();
+
+        // この RailNode の所属ブロックが受け入れ可能なレールセグメントの最大長(m)
+        // Max length (m) of a rail segment connectable from the block that owns this node
+        public float MaxConnectableRailLength { get; private set; } = float.MaxValue;
         public Guid Guid { get; }
         Guid IRailNode.NodeGuid => Guid;
         public IRailGraphProvider GraphProvider => _graphDatastore;
@@ -97,6 +101,11 @@ namespace Game.Train.RailGraph
         public void SetConnectionDestination(ConnectionDestination destination)
         {
             ConnectionDestination = destination;
+        }
+
+        public void SetMaxConnectableRailLength(float maxConnectableRailLength)
+        {
+            MaxConnectableRailLength = maxConnectableRailLength;
         }
 
         //RailGraphに登録する
