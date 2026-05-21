@@ -21,6 +21,9 @@ namespace Game.Train.Unit
     [Serializable]
     public class TrainCarSaveData
     {
+        // 車両インスタンスID。セーブ/ロードを跨いで安定させる（乗車状態の参照先に使う）。
+        // Train car instance id. Kept stable across save/load (used as the riding-state reference).
+        public long TrainCarInstanceId { get; set; }
         public Guid TrainCarMasterId { get; set; }
         public bool IsFacingForward { get; set; }
         public SerializableVector3Int? DockingBlockPosition { get; set; }
