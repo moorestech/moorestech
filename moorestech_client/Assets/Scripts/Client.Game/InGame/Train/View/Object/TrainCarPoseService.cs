@@ -3,14 +3,13 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.View.Object
 {
     /// <summary>
-    /// 列車車両の表示姿勢とRigidbody状態を同期するサービス
-    /// Service that synchronizes train-car render pose and Rigidbody state.
+    /// 列車車両の表示姿勢を同期するサービス
+    /// Service that synchronizes train-car render pose.
     /// </summary>
     public class TrainCarPoseService
     {
         private const float ModelYawOffsetDegrees = -90f;
 
-        private readonly Rigidbody _rigidbody;
         private readonly Transform _transform;
 
         /// <summary>
@@ -19,30 +18,15 @@ namespace Client.Game.InGame.Train.View.Object
         /// </summary>
         public float ModelForwardCenterOffset { get; }
 
-        public TrainCarPoseService(Rigidbody rigidbody, Transform transform, Renderer[] renderers)
+        public TrainCarPoseService(Transform transform, Renderer[] renderers)
         {
-            _rigidbody = rigidbody;
             _transform = transform;
-
-            // Rigidbodyは当たり判定用に残し、列車Transformはtick計算結果で直接動かす。
-            // Keep the Rigidbody for collision while the train Transform is driven directly.
-            ConfigureRigidbody();
 
             // モデル境界から姿勢計算用の中心補正量を求める。
             // Resolve the model center offset used by pose calculation.
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
 
             #region Internal
-
-            void ConfigureRigidbody()
-            {
-                // 物理エンジンが列車Transformを補間・外挿しないようにする。
-                // Prevent the physics engine from interpolating or extrapolating the train Transform.
-                _rigidbody.isKinematic = true;
-                _rigidbody.useGravity = false;
-                _rigidbody.interpolation = RigidbodyInterpolation.None;
-                _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            }
 
             float ResolveModelForwardCenterOffset()
             {
@@ -66,11 +50,6 @@ namespace Client.Game.InGame.Train.View.Object
             // tickで決まった姿勢を表示Transformへ即時反映する。
             // Apply the tick-resolved pose to the visible Transform immediately.
             _transform.SetPositionAndRotation(position, rotation);
-
-            // RigidbodyはTransformを主導せず、同じ姿勢へ同期するだけにする。
-            // Keep the Rigidbody synchronized without letting it drive the Transform.
-            _rigidbody.position = position;
-            _rigidbody.rotation = rotation;
         }
     }
 }
