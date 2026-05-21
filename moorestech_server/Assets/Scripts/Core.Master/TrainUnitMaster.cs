@@ -18,13 +18,6 @@ namespace Core.Master
         
         public double Friction => Train.MotionParameters.Friction / (double)10000000;
         public double AirResistance => Train.MotionParameters.AirResistance / (double)10000000;
-        public double SpeedWeight => Train.MotionParameters.SpeedWeight;
-        public double AutoRunMaxSpeedDistanceCoefficient => Train.MotionParameters.AutoRunMaxSpeedDistanceCoefficient;
-        public double AutoRunMaxSpeedOffset => Train.MotionParameters.AutoRunMaxSpeedOffset;
-        public double AutoRunSpeedBufferMargin => Train.MotionParameters.AutoRunSpeedBufferMargin;
-        public double AutoRunSpeedBufferRate => 1.0 - Train.MotionParameters.AutoRunSpeedBufferMargin;
-        public double TractionForceAccelerationRate => Train.MotionParameters.TractionForceAccelerationRate;
-        public double ManualControlDecelerationFactor => Train.MotionParameters.ManualControlDecelerationFactor;
         public double MaxBrakeDecelerationMetersPerSecondSquared => Train.MotionParameters.MaxBrakeDecelerationKmhPerSecond / 3.6d;
         public int MasconLevelMaximum => Train.MotionParameters.MasconLevelMaximum;
 
