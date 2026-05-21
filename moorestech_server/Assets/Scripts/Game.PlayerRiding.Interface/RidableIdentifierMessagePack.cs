@@ -1,6 +1,6 @@
 using MessagePack;
 
-namespace Server.Util.MessagePack
+namespace Game.PlayerRiding.Interface
 {
     // 乗り物の種類。InventoryType に倣う enum discriminator。
     // Kind of ridable. An enum discriminator, mirroring InventoryType.

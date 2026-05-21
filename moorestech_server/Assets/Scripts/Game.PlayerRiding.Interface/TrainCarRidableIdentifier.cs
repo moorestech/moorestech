@@ -1,5 +1,3 @@
-using Server.Util.MessagePack;
-
 namespace Game.PlayerRiding.Interface
 {
     // 列車車両を指す識別子。TrainInventorySubInventoryIdentifier に倣う。

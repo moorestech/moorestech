@@ -1,7 +1,6 @@
 using Game.PlayerRiding.Interface;
 using MessagePack;
 using NUnit.Framework;
-using Server.Util.MessagePack;
 
 namespace Tests.UnitTest.PlayerRiding
 {

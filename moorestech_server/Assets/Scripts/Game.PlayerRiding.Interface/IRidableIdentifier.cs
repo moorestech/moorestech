@@ -1,5 +1,3 @@
-using Server.Util.MessagePack;
-
 namespace Game.PlayerRiding.Interface
 {
     // 乗り物を指す識別子の共通インターフェース。ISubInventoryIdentifier に倣う。

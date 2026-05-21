@@ -1,11 +1,9 @@
 using System;
-using Server.Util.MessagePack;
 
 namespace Game.PlayerRiding.Interface
 {
-    // IRidableIdentifier と RidableIdentifierMessagePack の相互変換。
-    // ISubInventoryIdentifierExtension と SubscribeInventoryProtocol.ConvertIdentifier に倣う。
-    // Two-way conversion between IRidableIdentifier and RidableIdentifierMessagePack.
+    // IRidableIdentifier と RidableIdentifierMessagePack を相互変換する（ISubInventoryIdentifierExtension に倣う）。
+    // Two-way conversion between IRidableIdentifier and RidableIdentifierMessagePack, mirroring ISubInventoryIdentifierExtension.
     public static class RidableIdentifierConverter
     {
         public static RidableIdentifierMessagePack ToMessagePack(this IRidableIdentifier identifier)
