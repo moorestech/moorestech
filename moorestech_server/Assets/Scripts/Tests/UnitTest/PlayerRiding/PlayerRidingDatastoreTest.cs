@@ -70,5 +70,39 @@ namespace Tests.UnitTest.PlayerRiding
             Assert.AreEqual(RideActionResult.Success, datastore.TryDismount(1));
             Assert.IsFalse(datastore.TryGetRidingState(1, out _));
         }
+
+        [Test]
+        public void PlayerRidingDatastore_OnRidableRemoved_DismountsRidersOfThatRidable()
+        {
+            // 乗り物Aに乗っているプレイヤーは OnRidableRemoved(A) でクリアされ、他乗り物の乗員は残る
+            // Riders of removed ridable A are cleared; riders of other ridables remain.
+            var (datastore, carA, carB) = RidingTestHelper.CreateDatastoreWithTwoTrainCars(2);
+            var idA = new TrainCarRidableIdentifier(carA.TrainCarInstanceId.AsPrimitive());
+            var idB = new TrainCarRidableIdentifier(carB.TrainCarInstanceId.AsPrimitive());
+            datastore.TryRide(1, idA, out _);
+            datastore.TryRide(2, idB, out _);
+
+            var dismounted = datastore.OnRidableRemoved(idA);
+
+            CollectionAssert.Contains(dismounted, 1);
+            Assert.AreEqual(1, dismounted.Count);
+            Assert.IsFalse(datastore.TryGetRidingState(1, out _));
+            Assert.IsTrue(datastore.TryGetRidingState(2, out _));
+        }
+
+        [Test]
+        public void PlayerRidingDatastore_OnRidableRemoved_IsIdempotent()
+        {
+            // 既に降車済みに対する OnRidableRemoved は no-op（冪等。仕様書セクション4.4）
+            // OnRidableRemoved on an already-cleared ridable is a no-op (idempotent).
+            var (datastore, carA, _) = RidingTestHelper.CreateDatastoreWithTwoTrainCars(2);
+            var idA = new TrainCarRidableIdentifier(carA.TrainCarInstanceId.AsPrimitive());
+            datastore.TryRide(1, idA, out _);
+
+            datastore.OnRidableRemoved(idA);
+            var second = datastore.OnRidableRemoved(idA);
+
+            Assert.AreEqual(0, second.Count);
+        }
     }
 }
