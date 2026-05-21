@@ -38,15 +38,25 @@
 
 ## 4. サーバー側コンポーネント
 
+### 4.0 データフローの原則
+- 乗車状態の決定ロジック（乗車可否・空席割当・降車・ログイン復帰判定・車両消失時の降車）は **`PlayerRidingDatastore` に集約**する。
+- `RidableResolver` を参照するのは `PlayerRidingDatastore` のみ。プロトコル（`RideActionProtocol`）・`InitialHandshakeProtocol`・車両削除ハンドラは `RidableResolver` を直接触らず、すべて `PlayerRidingDatastore` のメソッドを呼ぶだけにする。
+- 依存方向: `RideActionProtocol` / `InitialHandshakeProtocol` / 車両削除ハンドラ → `PlayerRidingDatastore` → `RidableResolver` → 既存データストア。一方向で循環しない。
+
 ### 4.1 PlayerRidingDatastore
 - `playerId ⇄ RidingState` を双方向管理する新規データストア。
 - 乗り物識別子 → 乗員一覧 の逆引きも提供（`IRidableIdentifier` の `Equals` / `GetHashCode` をキーに使う）。
+- `RidableResolver` を内部依存として保持し、乗車状態の決定ロジックを公開メソッドとして提供する。少なくとも以下を持つ:
+  - `TryRide(playerId, IRidableIdentifier) → RideActionResult` … 乗り物解決・乗車中チェック・空席割当を内部で行い、成功時は `RidingState` を設定。成功時は割り当てた `seatIndex` も返す。
+  - `TryDismount(playerId) → RideActionResult` … 乗車中チェックののち `RidingState` をクリア。
+  - `EvaluateOnLogin(playerId) → 復帰結果` … ログイン復帰判定（セクション8）。
+  - `OnRidableRemoved(IRidableIdentifier)` … 車両消失時の乗員降車（セクション4.4）。
 - `PlayerEntity`（Game.Entity.Interface）には乗車フィールドを持たせない。責務分離のため独立コンポーネントとする。
 - セーブ対象（後述）。
 - 凍結降車座標は持たない。降車座標が必要な場合は `EntitiesDatastore` の値（＝最後にクライアントが送った座標）を使う。
 
 ### 4.2 RidableResolver
-- `IRidableIdentifier` から乗り物の実体（`IRidable`）を解決する。
+- `IRidableIdentifier` から乗り物の実体（`IRidable`）を解決する。`PlayerRidingDatastore` からのみ使われる（4.0参照）。
 - 中央レジストリは設けない。`InventoryItemMoveProtocol.ResolveSubInventory` と同じく、`RidableType` の enum 判定 ＋ 既存データストアのルックアップで解決する。
 - `RidableType.TrainCar` → 既存 `TrainUnitLookupDatastore.TryGetTrainCar(TrainCarInstanceId)` で `TrainCar` を取得（車両単位）。
 - 解決できない（乗り物が存在しない）場合は null を返す。
@@ -60,7 +70,7 @@
 - 編成単位の削除イベント（`TrainUnitSnapshotNotifyEvent.NotifyDeleted`）は `TrainInstanceId` しか持たず、車両1両削除でも編成全体の delete snapshot が出るため、これを「乗り物破棄」の検知には使わない（Codex 指摘②）。
 - 代わりに、**車両 ID を持つ既存イベント `TrainUpdateEvent.OnTrainCarRemoved` を購読する**。このイベントは削除された `TrainCar` を特定できる。
 - 起動タイミング: `TrainUnitDatastore` 等の更新が完了し `RidableResolver` で当該車両が解決できなくなった後にハンドラが走るよう、イベント発火点を確認する（計画段階で `OnTrainCarRemoved` の発火順を検証。datastore 更新前に走るなら順序対策が必要）。
-- ハンドラ処理: 削除された `TrainCar` の `TrainCarRidableIdentifier` を持つ `RidingState` を `PlayerRidingDatastore` の逆引きで列挙し、以下を行う。
+- ハンドラ処理: 削除された `TrainCar` の `TrainCarRidableIdentifier` を引数に `PlayerRidingDatastore.OnRidableRemoved()` を呼ぶ。`PlayerRidingDatastore` は逆引きで該当 `RidingState` を列挙し以下を行う。
   - **接続中の乗員**: `RidingState` をクリアし `RidingStateEvent`（降車）を broadcast。プレイヤー座標はクライアント権威のため上書きしない（クライアントも車両消失を検知し自己降車する。セクション9）。
   - **切断中の乗員**: `RidingState` はそのまま残す。ログイン時に検知され降車処理される（セクション8）。
 - 降車処理は冪等とする。既に降車済みの `RidingState` に対する降車は no-op。`OnTrainCarRemoved` と train snapshot の到達順がクライアントで前後しても、二重降車・逆順降車が壊れないようにする（セクション9・11）。
@@ -73,12 +83,12 @@
 ### 5.1 RideActionProtocol（C→S、request-response、統合プロトコル）
 - 乗車要求と降車要求を1本のプロトコルに統合し、`enum RideActionType { Ride, Dismount }` で区別する。
 - リクエストペイロード: `playerId`, `RideActionType action`, `RidableIdentifierMessagePack target`（Ride時のみ有効）。
-- レスポンスペイロード: 成否（`enum RideActionResult { Success, NoSeatAvailable, RidableNotFound, AlreadyRiding, NotRiding }` 等）。
-- サーバーは受信した `RidableIdentifierMessagePack` を `IRidableIdentifier` に逆変換し、`RidableResolver` で `IRidable` を解決する。
-- `Ride` 時: 乗り物が解決できなければ `RidableNotFound`。既に乗車中なら `AlreadyRiding`（移乗は不可、先に降車が必要）。空席（接続中プレイヤーが占有していない座席）が無ければ `NoSeatAvailable`。割当成功なら `RidingState` を設定し `RidingStateEvent` を broadcast、`Success` を返す。
-- `Dismount` 時: 乗車中でなければ `NotRiding`。乗車中なら `RidingState` をクリアし `RidingStateEvent` を broadcast、`Success` を返す。
-- 反映の責務分担（自分が届く保証のため、Codex 指摘⑤）:
-  - **プレイヤー起因の乗車・降車**（自分が出した `RideActionProtocol`）: クライアントは `RideActionResult` レスポンスで見た目を反映する。`RidingStateEvent` には依存しない（自分の request-response は確実に届く）。ローカル予測はしない。
+- レスポンスペイロード: 成否（`enum RideActionResult { Success, NoSeatAvailable, RidableNotFound, AlreadyRiding, NotRiding }` 等）。Ride 成功時は割り当てられた `seatIndex` も返す。
+- サーバー処理: 受信した `RidableIdentifierMessagePack` を `IRidableIdentifier` に逆変換し、`PlayerRidingDatastore.TryRide()` / `TryDismount()` を呼ぶだけ。`RidableResolver` や空席判定をプロトコル側に書かない（4.0参照）。
+- `Ride` 時: `PlayerRidingDatastore.TryRide()` の結果（`RidableNotFound` / `AlreadyRiding` / `NoSeatAvailable` / `Success`）をそのままレスポンスにする。`Success` 時はサーバーが `RidingStateEvent` を broadcast（他プレイヤー・将来のリモート描画用）。
+- `Dismount` 時: `PlayerRidingDatastore.TryDismount()` の結果（`NotRiding` / `Success`）をレスポンスにする。`Success` 時はサーバーが `RidingStateEvent` を broadcast。
+- 反映の責務分担（broadcast 待ちによる遅延を避けるため）:
+  - **プレイヤー起因の乗車・降車**（自分が出した `RideActionProtocol`）: 要求元クライアントは `RideActionResult` レスポンスを確認し、**自分で**見た目を反映する。乗車 `Success` なら返ってきた `seatIndex` の座席へプレイヤーをテレポート（parent ＋ 位置合わせ）。降車 `Success` なら座席から解除。`RidingStateEvent` の自分宛 broadcast を待たない。ローカル予測はしない（レスポンス受信後に反映）。
   - **サーバー起因の降車**（乗り物破棄など）: クライアントは `RidingStateEvent` の受信、または「乗車中の対象車両が削除されたら強制降車」の自己検知で反映する（セクション9）。この時点でクライアントは既にイベントポーリング登録済みのため broadcast は届く。
 
 ### 5.2 RidingStateEventPacket（S→C broadcast）
@@ -122,9 +132,9 @@
 
 ## 8. ログイン時の復帰（InitialHandshakeProtocol 拡張）
 
-ログイン時、`PlayerRidingDatastore` にそのプレイヤーの `RidingState` があれば以下を判定する。
+`InitialHandshakeProtocol` は `PlayerRidingDatastore.EvaluateOnLogin(playerId)` を呼ぶだけ。判定ロジックは `PlayerRidingDatastore` 内に置く（4.0参照）。`PlayerRidingDatastore` はそのプレイヤーの `RidingState` があれば以下を判定する。
 
-- **`RidableResolver` で乗り物を解決でき、記録席が有効かつ空いている** → 乗車復帰。`RidingState` を維持し、レスポンスで自プレイヤーの乗車状態を返す（セクション5.3）。`RidingStateEvent`（乗車）を broadcast。サーバーはプレイヤー座標を設定しない（クライアントが自己を座席に parent し、以後そのワールド座標を送信する）。
+- **`RidableResolver` で乗り物を解決でき、記録席が有効かつ空いている** → 乗車復帰。`RidingState` を維持し、結果（復帰した乗車状態）を返す。`InitialHandshakeProtocol` はその結果をレスポンスに含める（セクション5.3）。`RidingStateEvent`（乗車）を broadcast。サーバーはプレイヤー座標を設定しない（クライアントが自己を座席に parent し、以後そのワールド座標を送信する）。
 - **それ以外（乗り物が消失、記録席が範囲外、または記録席を他プレイヤーが使用中）** → `RidingState` をクリア。レスポンスは「乗車なし」。プレイヤー座標は `EntitiesDatastore` が保持する値（最後にクライアントが送った座標＝実質的に切断時点の座標）をそのまま使う。
 
 復帰可否の条件:
@@ -138,8 +148,12 @@
 - クライアント側も `IRidableIdentifier` から対象の乗り物オブジェクトを解決する。中央レジストリは設けず、`RidableType` 判定で既存のクライアント側ルックアップを使う（`TrainSubInventorySource` が `TrainCarInstanceId` から `TrainCarEntityObject` を得るのと同じ要領）。`RidableType.TrainCar` → `TrainCarInstanceId` から `TrainCarEntityObject` を解決する。
 - 座席位置はマスタの座席オフセットを `TrainCarEntityObject` に対し相対適用して決める。
 - `PlayerPositionSender` は乗車中も停止しない。乗車中はプレイヤーが乗り物に parent されるため、送信される座標は自然に乗り物追従座標になる。
-- 入力: E キーで最寄りの乗り物を探索し `RideActionProtocol(Ride)` を送信。乗車中に E キーで `RideActionProtocol(Dismount)` を送信。`RideActionResult` で成否を受ける。
-- `RidingStateEventPacket`（自分の `playerId` 分）受信で、自プレイヤーを座席に parent / 解除する。サーバー起因の降車（乗り物破棄など）もこれで反映する。
+- 入力: E キーで最寄りの乗り物を探索し `RideActionProtocol(Ride)` を送信。乗車中に E キーで `RideActionProtocol(Dismount)` を送信。
+- **要求元クライアントの反映（broadcast 待ちにしない）**: `RideActionProtocol` のレスポンス（`RideActionResult`）を確認し、要求元クライアント自身が反映する。
+  - 乗車 `Success`: レスポンスの `seatIndex` の座席へ自プレイヤーをテレポート（乗り物オブジェクトへ parent ＋ 座席オフセットで位置合わせ）。
+  - 降車 `Success`: 座席から解除（parent 解除）。
+  - 失敗（`NoSeatAvailable` 等）: 何もしない。
+- `RidingStateEventPacket`（自分の `playerId` 分）受信は、**サーバー起因の降車**（乗り物破棄など）の反映にのみ使う。自分が出した `RideActionProtocol` の結果反映には使わない（上記レスポンス経由で済むため）。
 - 既存 `TrainCarRidingPlayerController` が持つ「乗車中の対象車両が削除されたら強制降車」の自己検知は安全網として残す。
 - 既存 `ForceRide` / `ForceDismount`（デバッグシート）は、この正規経路を呼ぶ形に置き換える。
 - 既存の操舵入力送信（`TrainCarRidingInputSender` → `TrainCarRidingInputProtocol`）は維持する。
