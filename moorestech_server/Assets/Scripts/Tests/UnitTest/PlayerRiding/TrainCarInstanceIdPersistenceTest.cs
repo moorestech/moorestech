@@ -21,6 +21,11 @@ namespace Tests.UnitTest.PlayerRiding
             var originalId = car.TrainCarInstanceId;
 
             var saveData = car.CreateTrainCarSaveData();
+
+            // セーブデータに ID が long として正しく書き出されていることを直接確認する
+            // Directly verify the id is written into the save data as a long.
+            Assert.AreEqual(originalId.AsPrimitive(), saveData.TrainCarInstanceId);
+
             var restored = TrainCar.RestoreTrainCar(saveData);
 
             Assert.AreEqual(originalId, restored.TrainCarInstanceId);
