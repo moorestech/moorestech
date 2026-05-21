@@ -145,6 +145,7 @@ namespace Game.Train.Unit
 
             return new TrainCarSaveData
             {
+                TrainCarInstanceId = this._trainCarInstanceId.AsPrimitive(),
                 TrainCarMasterId = this.TrainCarMasterElement.TrainCarGuid,
                 IsFacingForward = this.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
@@ -161,7 +162,7 @@ namespace Game.Train.Unit
 
             if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(data.TrainCarMasterId, out var trainCarMaster)) throw new Exception("trainCarMaster is not found");
             var isFacingForward = data.IsFacingForward;
-            var car = new TrainCar(trainCarMaster, isFacingForward);
+            var car = new TrainCar(trainCarMaster, isFacingForward, new TrainCarInstanceId(data.TrainCarInstanceId));
 
             if (data.DockingBlockPosition.HasValue)
             {
