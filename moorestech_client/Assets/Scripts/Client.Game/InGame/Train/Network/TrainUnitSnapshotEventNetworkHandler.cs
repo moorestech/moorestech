@@ -68,7 +68,7 @@ namespace Client.Game.InGame.Train.Network
                     // Deletion tombstones remove cache and visuals at the same tick.
                     if (messagePack.IsDeleted)
                     {
-                        ApplyDelete(messagePack.TrainInstanceId);
+                        ApplyDelete(messagePack.TrainUnitInstanceId);
                         return;
                     }
 
@@ -79,26 +79,26 @@ namespace Client.Game.InGame.Train.Network
 
                     // 更新通知は既存車両を再利用しつつ不足分のみ差し替える
                     // Update notifications reconcile only the changed train-car visuals.
-                    ApplyUpsert(messagePack.TrainInstanceId, messagePack.Snapshot.ToModel());
+                    ApplyUpsert(messagePack.TrainUnitInstanceId, messagePack.Snapshot.ToModel());
                 }
             }
 
-            void ApplyDelete(TrainInstanceId trainInstanceId)
+            void ApplyDelete(TrainUnitInstanceId trainUnitInstanceId)
             {
-                if (_cache.TryGet(trainInstanceId, out var existingUnit))
+                if (_cache.TryGet(trainUnitInstanceId, out var existingUnit))
                 {
                     for (var i = 0; i < existingUnit.Cars.Count; i++)
                     {
                         _trainCarDatastore.RemoveTrainEntity(existingUnit.Cars[i].TrainCarInstanceId);
                     }
                 }
-                _cache.Remove(trainInstanceId);
+                _cache.Remove(trainUnitInstanceId);
             }
 
-            void ApplyUpsert(TrainInstanceId trainInstanceId, TrainUnitSnapshotBundle bundle)
+            void ApplyUpsert(TrainUnitInstanceId trainUnitInstanceId, TrainUnitSnapshotBundle bundle)
             {
                 var previousCarIds = new HashSet<TrainCarInstanceId>();
-                if (_cache.TryGet(trainInstanceId, out var existingUnit))
+                if (_cache.TryGet(trainUnitInstanceId, out var existingUnit))
                 {
                     for (var i = 0; i < existingUnit.Cars.Count; i++)
                     {

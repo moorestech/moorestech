@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse
             // Apply removal
             var createdTrainUnit = requestTrainUnit.RemoveCar(trainCarInstanceId);
 
-            TrainInstanceId delid = requestTrainUnit.TrainInstanceId;//削除するもの
+            TrainUnitInstanceId delid = requestTrainUnit.TrainUnitInstanceId;//削除するもの
             List<TrainUnit> createList = new List<TrainUnit>();//新規生成か更新するもの
 
             // requestTrainUnitの中身が変更されて実在しているか
