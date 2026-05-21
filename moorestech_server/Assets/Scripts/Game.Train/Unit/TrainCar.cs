@@ -21,7 +21,7 @@ namespace Game.Train.Unit
     /// </summary>
     public class TrainCar : ITrainDiagramCar
     {
-        private readonly TrainCarInstanceId _trainCarInstanceId = TrainCarInstanceId.Create();
+        private readonly TrainCarInstanceId _trainCarInstanceId;
         
         // 列車のマスターデータ
         public TrainCarMasterElement TrainCarMasterElement { get; }
@@ -42,8 +42,18 @@ namespace Game.Train.Unit
         
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
+        // 新規車両用: インスタンスIDを新規採番する
+        // For new cars: generates a fresh instance id.
         public TrainCar(TrainCarMasterElement trainCarMaster, bool isFacingForward)
+            : this(trainCarMaster, isFacingForward, TrainCarInstanceId.Create())
         {
+        }
+
+        // セーブ復元用: 保存済みインスタンスIDを引き継ぐ
+        // For save restore: carries over the persisted instance id.
+        public TrainCar(TrainCarMasterElement trainCarMaster, bool isFacingForward, TrainCarInstanceId trainCarInstanceId)
+        {
+            _trainCarInstanceId = trainCarInstanceId;
             TrainCarMasterElement = trainCarMaster;
             TractionForce = trainCarMaster.TractionForce;
             Length = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
