@@ -179,6 +179,11 @@ namespace Game.Train.Unit
             (int,double) ConsumeFuelAndUpdateMasconlevel(int masconLevel)
             {
                 if (masconLevel <= 0) return (masconLevel, 0);
+                if (_currentSpeed > 1e-4)
+                {
+                    // 秒速x m/sの速度でNがpowerに負けてサチる部分の計算
+                    masconLevel = (int)(masconLevel * Math.Clamp(10.0 / _currentSpeed, 0.0, 1.0));
+                }
 
                 double totalTraction = 0;
                 totalBaseTractionForce = 0;

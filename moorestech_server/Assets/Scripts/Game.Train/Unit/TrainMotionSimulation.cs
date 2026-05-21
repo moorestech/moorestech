@@ -32,15 +32,13 @@ namespace Game.Train.Unit
     public static class TrainAutoRunMasconCalculator
     {
         private const double TargetBrakeRate = 7.0d / 8.0d;
-        private const double MaxBrakeRate = 1.0d;
-        private const double AutoSpeedTrackingGain = 1.25d;
 
         public static int Calculate(in AutoRunMasconInput input)
         {
             var maxMascon = MasterHolder.TrainUnitMaster.MasconLevelMaximum;
             var speed = Math.Abs(input.CurrentSpeed);
             // 手前で速度0停止しても再加速できるようしないようマージンをセット
-            var remainingMeters = Math.Max(1, BezierUtility.RAIL_LENGTH_SCALE / 4 + input.RemainingDistance) / (double)BezierUtility.RAIL_LENGTH_SCALE;
+            var remainingMeters = Math.Max(1, BezierUtility.RAIL_LENGTH_SCALE / 6 + input.RemainingDistance) / (double)BezierUtility.RAIL_LENGTH_SCALE;
             
             var maxBrakeAcceleration = MasterHolder.TrainUnitMaster.MaxBrakeDecelerationMetersPerSecondSquared;
             if (maxBrakeAcceleration <= 0)
@@ -56,7 +54,7 @@ namespace Game.Train.Unit
             var allowedSpeed = Math.Sqrt(2.0d * curveAcceleration * remainingMeters);
             // 許容速度との差を1tick分の加速度へ変換し、曲線が要求する再加速も許可する。
             // Convert the speed gap into per-tick acceleration and allow curve-driven re-acceleration.
-            var targetAcceleration = (allowedSpeed - speed) / GameUpdater.SecondsPerTick * AutoSpeedTrackingGain;
+            var targetAcceleration = (allowedSpeed - speed) / GameUpdater.SecondsPerTick;
 
             if (targetAcceleration >= 0)
             {
@@ -71,7 +69,7 @@ namespace Game.Train.Unit
 
             // 曲線が減速を要求する場合だけ、必要量を最大ブレーキまで出す。
             // Apply braking only when the curve requires deceleration, capped at full brake.
-            var brakeRate = Math.Min(-targetAcceleration / maxBrakeAcceleration, MaxBrakeRate);
+            var brakeRate = Math.Min(-targetAcceleration / maxBrakeAcceleration, 1.0);
             return -(int)Math.Round(maxMascon * brakeRate);
         }
     }

@@ -40,7 +40,7 @@ namespace Client.Game.InGame.Train.View.Object
             {
                 // 走行速度に応じた再生速度を Animator に適用する
                 // Apply playback speed synchronized to train movement
-                var playbackSpeed = (float)(Math.Abs(currentSpeed) * AnimationSpeed);
+                var playbackSpeed = (float)(currentSpeed * AnimationSpeed);
                 for (var i = 0; i < _animators.Length; i++)
                 {
                     var animator = _animators[i];
