@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Train.View
 
         private TrainUnitClientCache _trainCache;
         private TrainUnitTickState _tickState;
-        private TrainUnitClientSimulator _clientSimulator;
+        private ITrainUnitRenderInterpolationProvider _renderInterpolationProvider;
         private TrainCarEntityObject _trainCarEntity;
         private ITrainCarObjectProcessor[] _processors;
         private TrainCarRenderSnapshot _currentRenderSnapshot;
@@ -24,14 +24,14 @@ namespace Client.Game.InGame.Train.View
         private bool _hasPreviousRenderSnapshot;
         private bool _isReady;
 
-        public void Initialize(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache, TrainUnitTickState tickState, TrainUnitClientSimulator clientSimulator)
+        public void Initialize(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache, TrainUnitTickState tickState, ITrainUnitRenderInterpolationProvider renderInterpolationProvider)
         {
             // 依存参照と表示 processor 一覧を初期化時に保持する
             // Store dependency references and view processors during initialization
             _trainCarEntity = trainCarEntity;
             _trainCache = trainCache;
             _tickState = tickState;
-            _clientSimulator = clientSimulator;
+            _renderInterpolationProvider = renderInterpolationProvider;
             _currentRenderSnapshot = default;
             _previousRenderSnapshot = default;
             _lastSnapshotTick = 0;
@@ -136,7 +136,7 @@ namespace Client.Game.InGame.Train.View
                 return false;
             }
 
-            var rate = (float)_clientSimulator.GetRenderInterpolationRate();
+            var rate = (float)_renderInterpolationProvider.GetRenderInterpolationRate();
             position = Vector3.LerpUnclamped(previousPosition, currentPosition, rate);
             rotation = Quaternion.SlerpUnclamped(previousRotation, currentRotation, rate);
             return true;
