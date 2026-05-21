@@ -33,7 +33,7 @@
   "motionParameters": {
     "friction": 35300,
     "airResistance": 117,
-    "maxBrakeDecelerationKmhPerSecond": 11,
+    "maxBrakeDecelerationKmhPerSecond": 9,
     "masconLevelMaximum": 16777216
   }
 }
