@@ -42,12 +42,16 @@ namespace Client.Game.InGame.Train.Unit
             var currentRidingTrainCarInstanceId = _trainCarRidingState.CurrentRidingTrainCarInstanceId;
             if (currentRidingTrainCarInstanceId.HasValue && currentRidingTrainCarInstanceId.Value == _mountedTrainCarInstanceId.Value)
             {
+                if (!_trainCarObjectDatastore.TryGetEntity(_mountedTrainCarInstanceId.Value, out var entity))
+                {
+                    ReleaseMountedPlayer(true);
+                    return;
+                }
+
                 var playerObjectController = ResolvePlayerObjectController();
                 if (playerObjectController != null)
                 {
-                    var playerTransform = playerObjectController.transform;
-                    playerTransform.localPosition = RidingLocalPosition;
-                    playerTransform.localRotation = RidingLocalRotation;
+                    playerObjectController.SetRideFollowTarget(entity.transform, RidingLocalPosition, RidingLocalRotation);
                 }
                 return;
             }
@@ -73,9 +77,8 @@ namespace Client.Game.InGame.Train.Unit
             }
 
             var playerTransform = playerObjectController.transform;
-            playerTransform.SetParent(entity.transform, false);
-            playerTransform.localPosition = RidingLocalPosition;
-            playerTransform.localRotation = RidingLocalRotation;
+            playerTransform.SetParent(null, true);
+            playerObjectController.SetRideFollowTarget(entity.transform, RidingLocalPosition, RidingLocalRotation);
             playerObjectController.SetControllable(false);
             _mountedTrainCarInstanceId = targetCarId;
             return true;
@@ -101,6 +104,7 @@ namespace Client.Game.InGame.Train.Unit
             var playerObjectController = ResolvePlayerObjectController();
             if (playerObjectController != null)
             {
+                playerObjectController.ClearRideFollowTarget();
                 if (_mountedTrainCarInstanceId.HasValue)
                 {
                     var playerTransform = playerObjectController.transform;
