@@ -136,10 +136,26 @@ namespace Client.Game.InGame.Train.View
                 return false;
             }
 
-            var rate = (float)_renderInterpolationProvider.GetRenderInterpolationRate();
-            position = Vector3.LerpUnclamped(previousPosition, currentPosition, rate);
-            rotation = Quaternion.SlerpUnclamped(previousRotation, currentRotation, rate);
+            var baseInterpolationRate = (float)_renderInterpolationProvider.GetRenderInterpolationRate();
+            var snapshotTickDelta = _currentRenderSnapshot.Tick >= _previousRenderSnapshot.Tick ? _currentRenderSnapshot.Tick - _previousRenderSnapshot.Tick : 0;
+            var interpolationRate = CalculateSnapshotGapInterpolationRate(baseInterpolationRate, snapshotTickDelta);
+            position = Vector3.LerpUnclamped(previousPosition, currentPosition, interpolationRate);
+            rotation = Quaternion.SlerpUnclamped(previousRotation, currentRotation, interpolationRate);
             return true;
+        }
+
+        private static float CalculateSnapshotGapInterpolationRate(float baseInterpolationRate, uint snapshotTickDelta)
+        {
+            // 欠落snapshotがある時は古いsnapshotからの経過tick量に変換する
+            // Convert to elapsed ticks from the older snapshot when intermediate snapshots are missing
+            if (snapshotTickDelta < 2)
+            {
+                return baseInterpolationRate;
+            }
+
+            // 例: 2tick差でbase 0.5なら2tick区間内の1.5tick地点として扱う
+            // Example: with a 2-tick gap and base 0.5, use the 1.5-tick point inside that range
+            return (snapshotTickDelta - 1 + baseInterpolationRate) / snapshotTickDelta;
         }
 
         private bool TryResolveRenderPose(TrainCarRenderSnapshot renderSnapshot, out Vector3 position, out Quaternion rotation)
