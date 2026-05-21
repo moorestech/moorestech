@@ -25,5 +25,19 @@ namespace Tests.UnitTest.PlayerRiding
 
             Assert.AreEqual(originalId, restored.TrainCarInstanceId);
         }
+
+        [Test]
+        public void TrainUnitDatastore_EnsureTrainCarInstanceIdsUnique_ThrowsOnDuplicate()
+        {
+            // 同一 TrainCarInstanceId が重複したら例外になり、ユニークなら通ることを確認
+            // Duplicate TrainCarInstanceId values throw; a unique set passes.
+            var id = new TrainCarInstanceId(42L);
+            var other = new TrainCarInstanceId(43L);
+
+            Assert.DoesNotThrow(() =>
+                TrainUnitDatastore.EnsureTrainCarInstanceIdsUnique(new[] { id, other }));
+            Assert.Throws<System.Exception>(() =>
+                TrainUnitDatastore.EnsureTrainCarInstanceIdsUnique(new[] { id, id }));
+        }
     }
 }
