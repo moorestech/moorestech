@@ -35,15 +35,30 @@ namespace Client.Game.InGame.Player
         
         [SerializeField] private ThirdPersonController controller;
         [SerializeField] private Animator animator;
+        private CharacterController characterController;
+        private Transform rideFollowTarget;
+        private Vector3 rideFollowLocalPosition;
+        private Quaternion rideFollowLocalRotation;
         
         public void Initialize(InitialHandshakeResponse initialHandshakeResponse)
         {
             controller.Initialize();
+            characterController = GetComponent<CharacterController>();
             SetPlayerPosition(initialHandshakeResponse.PlayerPos);
         }
         
         private void LateUpdate()
         {
+            // 乗車中は補間済み車両poseを最後に反映する
+            // Apply the interpolated train-car pose last while riding
+            if (rideFollowTarget != null)
+            {
+                ApplyRideFollowPose();
+                return;
+            }
+
+            // 通常時だけ落下復帰処理を行う
+            // Run fall recovery only during normal player control
             if (transform.localPosition.y < -50)
             {
                 var point = SlopeBlockPlaceSystem.GetGroundPoint(transform.position);
@@ -87,6 +102,34 @@ namespace Client.Game.InGame.Player
         public void SetControllable(bool enable)
         {
             controller.SetControllable(enable);
+        }
+
+        public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
+        {
+            // 乗車追従のローカル基準を保存する
+            // Store the local basis used for riding follow
+            rideFollowTarget = target;
+            rideFollowLocalPosition = localPosition;
+            rideFollowLocalRotation = localRotation;
+        }
+
+        public void ClearRideFollowTarget()
+        {
+            rideFollowTarget = null;
+        }
+
+        private void ApplyRideFollowPose()
+        {
+            // 車両の補間済みposeからプレイヤーのworld poseを作る
+            // Build the player world pose from the interpolated train-car pose
+            var worldPosition = rideFollowTarget.TransformPoint(rideFollowLocalPosition);
+            var worldRotation = rideFollowTarget.rotation * rideFollowLocalRotation;
+
+            // CharacterControllerの補正を避けて直接同期する
+            // Bypass CharacterController correction while applying the pose directly
+            characterController.enabled = false;
+            transform.SetPositionAndRotation(worldPosition, worldRotation);
+            characterController.enabled = true;
         }
     }
 }
