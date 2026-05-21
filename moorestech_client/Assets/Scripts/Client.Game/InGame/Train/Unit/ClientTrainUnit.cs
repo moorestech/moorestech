@@ -238,6 +238,7 @@ namespace Client.Game.InGame.Train.Unit
                 var (found, newPath) = TryFindPathToSimulationTarget(approaching);
                 if (!found)
                 {
+                    Debug.LogWarning("クライアント側で分岐またぎの解決に失敗");
                     break;
                 }
 
