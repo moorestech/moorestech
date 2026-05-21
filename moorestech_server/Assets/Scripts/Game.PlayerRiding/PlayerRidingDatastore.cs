@@ -107,6 +107,81 @@ namespace Game.PlayerRiding
             return dismounted;
         }
 
+        // ログイン時の復帰判定（仕様書セクション8）。
+        // 復帰可なら RidingState を維持して true、不可ならクリアして false を返す。
+        // Login-time evaluation. Keeps the RidingState and returns true if restorable, else clears and returns false.
+        public bool EvaluateOnLogin(int playerId)
+        {
+            if (!_ridingStateByPlayerId.TryGetValue(playerId, out var state))
+            {
+                return false;
+            }
+
+            var ridable = _ridableResolver.Resolve(state.Identifier);
+            // 乗り物が消失している
+            // The ridable no longer exists.
+            if (ridable == null)
+            {
+                _ridingStateByPlayerId.Remove(playerId);
+                return false;
+            }
+            // 記録席が範囲外（マスタ変更・セーブ手編集対策。仕様書セクション8）
+            // The recorded seat is out of range (guards against master changes / hand-edited saves).
+            if (state.SeatIndex < 0 || state.SeatIndex >= ridable.SeatCount)
+            {
+                _ridingStateByPlayerId.Remove(playerId);
+                return false;
+            }
+            // 記録席を接続中の別プレイヤーが使用中
+            // The recorded seat is taken by another connected player.
+            if (IsSeatOccupiedByConnectedPlayer(state.Identifier, state.SeatIndex, playerId))
+            {
+                _ridingStateByPlayerId.Remove(playerId);
+                return false;
+            }
+            return true;
+        }
+
+        // 乗車状態を全件セーブDTOに変換する（仕様書セクション10）。
+        // Converts all riding states into save DTOs.
+        public List<PlayerRidingSaveData> GetSaveData()
+        {
+            var list = new List<PlayerRidingSaveData>();
+            foreach (var pair in _ridingStateByPlayerId)
+            {
+                var identifier = pair.Value.Identifier;
+                // 現状 TrainCar のみ。新 RidableType 追加時はここに分岐を足す。
+                // Only TrainCar for now; add a branch here when new RidableTypes appear.
+                var trainCar = (TrainCarRidableIdentifier)identifier;
+                list.Add(new PlayerRidingSaveData
+                {
+                    PlayerId = pair.Key,
+                    RidableType = (byte)identifier.Type,
+                    TrainCarInstanceId = trainCar.TrainCarInstanceId,
+                    SeatIndex = pair.Value.SeatIndex,
+                });
+            }
+            return list;
+        }
+
+        // セーブDTOから乗車状態を復元する。参照先の存在検証はしない（ログイン時まで遅延。仕様書セクション10）。
+        // Restores riding states from save DTOs. No reference validation here (deferred to login).
+        public void LoadSaveData(IReadOnlyList<PlayerRidingSaveData> saveData)
+        {
+            _ridingStateByPlayerId.Clear();
+            if (saveData == null) return;
+            foreach (var data in saveData)
+            {
+                IRidableIdentifier identifier = (RidableType)data.RidableType switch
+                {
+                    RidableType.TrainCar => new TrainCarRidableIdentifier(data.TrainCarInstanceId),
+                    _ => null,
+                };
+                if (identifier == null) continue;
+                _ridingStateByPlayerId[data.PlayerId] = new RidingState(identifier, data.SeatIndex);
+            }
+        }
+
         // 同じ (identifier, seatIndex) を持つ接続中の別プレイヤーがいるか
         // Whether a connected other player occupies the same (identifier, seatIndex).
         private bool IsSeatOccupiedByConnectedPlayer(IRidableIdentifier identifier, int seatIndex, int excludePlayerId)

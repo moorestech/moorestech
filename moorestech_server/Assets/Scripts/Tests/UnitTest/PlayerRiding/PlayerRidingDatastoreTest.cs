@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.PlayerRiding;
 using Game.PlayerRiding.Interface;
 using NUnit.Framework;
 
@@ -103,6 +105,60 @@ namespace Tests.UnitTest.PlayerRiding
             var second = datastore.OnRidableRemoved(idA);
 
             Assert.AreEqual(0, second.Count);
+        }
+
+        [Test]
+        public void PlayerRidingDatastore_EvaluateOnLogin_RestoresWhenSeatValidAndFree()
+        {
+            // 乗り物が存在し記録席が有効・空き → 復帰（RidingState 維持）
+            // Ridable exists, recorded seat valid and free -> restored (RidingState kept).
+            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
+            datastore.LoadSaveData(new List<PlayerRidingSaveData>
+            {
+                new() { PlayerId = 1, RidableType = (byte)RidableType.TrainCar, TrainCarInstanceId = car.TrainCarInstanceId.AsPrimitive(), SeatIndex = 0 },
+            });
+
+            var restored = datastore.EvaluateOnLogin(1);
+
+            Assert.IsTrue(restored);
+            Assert.IsTrue(datastore.TryGetRidingState(1, out _));
+        }
+
+        [Test]
+        public void PlayerRidingDatastore_EvaluateOnLogin_DismountsWhenRidableMissingOrSeatOutOfRange()
+        {
+            // 乗り物消失・席範囲外はいずれも復帰不可でクリアされる（仕様書セクション8）
+            // Missing ridable or out-of-range seat both fail to restore and are cleared.
+            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
+            datastore.LoadSaveData(new List<PlayerRidingSaveData>
+            {
+                new() { PlayerId = 1, RidableType = (byte)RidableType.TrainCar, TrainCarInstanceId = -1L, SeatIndex = 0 },
+                new() { PlayerId = 2, RidableType = (byte)RidableType.TrainCar, TrainCarInstanceId = car.TrainCarInstanceId.AsPrimitive(), SeatIndex = 99 },
+            });
+
+            Assert.IsFalse(datastore.EvaluateOnLogin(1));
+            Assert.IsFalse(datastore.EvaluateOnLogin(2));
+            Assert.IsFalse(datastore.TryGetRidingState(1, out _));
+            Assert.IsFalse(datastore.TryGetRidingState(2, out _));
+        }
+
+        [Test]
+        public void PlayerRidingDatastore_SaveData_RoundTrips()
+        {
+            // GetSaveData → LoadSaveData で乗車状態が往復することを確認
+            // Riding state round-trips through GetSaveData -> LoadSaveData.
+            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+            datastore.TryRide(7, id, out _);
+
+            var saveData = datastore.GetSaveData();
+
+            var (datastore2, _) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
+            datastore2.LoadSaveData(saveData);
+
+            Assert.IsTrue(datastore2.TryGetRidingState(7, out var state));
+            Assert.AreEqual(0, state.SeatIndex);
+            Assert.IsTrue(state.Identifier.Equals(id));
         }
     }
 }
