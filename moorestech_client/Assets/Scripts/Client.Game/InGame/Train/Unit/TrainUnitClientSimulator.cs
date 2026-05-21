@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // この遅延秒数を超えたぶんだけを均等早送り対象にする。
         // Only the lag that exceeds this threshold is distributed as fast-forward.
-        private const double FastForwardStartLagSeconds = 0.1d;
+        private const double FastForwardStartLagSeconds = 0.6d;
         private static readonly double FastForwardStartLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
         // 1フレームで追いつく最大Tick数
         // Maximum ticks to catch up in a single frame.
