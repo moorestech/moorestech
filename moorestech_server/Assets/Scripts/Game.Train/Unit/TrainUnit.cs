@@ -99,10 +99,15 @@ namespace Game.Train.Unit
         // Called once per tick and returns the traveled distance.
         public int Update(TrainUnitManualCommand manualCommand)
         {
-            // まずはtotal weightを計算
+            // まずはtotal weightと牽引力上限を計算
+            // First calculate total weight and traction capacity.
             int totalWeight = 0;
+            double totalTractionCapacity = 0;
             foreach (var car in _cars)
+            {
                 totalWeight += car.GetWeight();
+                totalTractionCapacity += car.TractionForce;
+            }
             
             if (IsAutoRun)
             {
@@ -140,7 +145,7 @@ namespace Game.Train.Unit
                     // Move toward the destination when not docked.
                     // 自動運転時のマスコン制御を共通ロジックで更新
                     // Update mascon level via shared auto-run calculation
-                    var input = new AutoRunMasconInput(_currentSpeed, _remainingDistance, totalWeight);
+                    var input = new AutoRunMasconInput(_currentSpeed, _remainingDistance, totalWeight, totalTractionCapacity);
                     masconLevel = TrainAutoRunMasconCalculator.Calculate(input);
                 }
             }

@@ -13,6 +13,10 @@ namespace Tests.Util
     {
         public static readonly Guid TestFuelItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         public const double TestFuelDuration = 999999;
+        public const int DefaultTestCarWeight = 320;
+        // 自動運転テストでは400000N入力が新物理のブレーキより強くなりすぎない重量にする。
+        // Auto-run tests use enough mass to keep legacy 400000N traction below the new braking envelope.
+        public const int StableAutoRunTestWeight = 160000;
 
         // 任意値でTrainCarを生成する基本メソッド
         // Creates a train car from explicit parameters and optional GUIDs.
@@ -25,7 +29,20 @@ namespace Tests.Util
             int length,
             bool isFacingForward)
         {
-            var element = CreateMasterElement(masterId, trainCarGuid, itemGuid, tractionForce, inventorySlotCount, length);
+            return CreateTrainCarWithItemContainer(masterId, trainCarGuid, itemGuid, tractionForce, inventorySlotCount, length, isFacingForward, DefaultTestCarWeight);
+        }
+
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCarWithItemContainer(
+            int masterId,
+            Guid trainCarGuid,
+            Guid itemGuid,
+            int tractionForce,
+            int inventorySlotCount,
+            int length,
+            bool isFacingForward,
+            int weight)
+        {
+            var element = CreateMasterElement(masterId, trainCarGuid, itemGuid, tractionForce, inventorySlotCount, length, weight);
             var itemContainer = ItemTrainCarContainer.CreateWithEmptySlots(inventorySlotCount);
             var trainCar = new TrainCar(element, isFacingForward);
             trainCar.SetContainer(itemContainer);
@@ -45,6 +62,17 @@ namespace Tests.Util
             bool isFacingForward)
         {
             return CreateTrainCarWithItemContainer(masterId, Guid.Empty, Guid.Empty, tractionForce, inventorySlotCount, length, isFacingForward);
+        }
+
+        public static (TrainCar trainCar, ItemTrainCarContainer itemContainer) CreateTrainCarWithItemContainer(
+            int masterId,
+            int tractionForce,
+            int inventorySlotCount,
+            int length,
+            bool isFacingForward,
+            int weight)
+        {
+            return CreateTrainCarWithItemContainer(masterId, Guid.Empty, Guid.Empty, tractionForce, inventorySlotCount, length, isFacingForward, weight);
         }
 
         // TrainCarMasterElementだけを取得するヘルパー
@@ -68,10 +96,22 @@ namespace Tests.Util
             int inventorySlotCount,
             int length)
         {
+            return CreateMasterElement(masterId, trainCarGuid, itemGuid, tractionForce, inventorySlotCount, length, DefaultTestCarWeight);
+        }
+
+        public static TrainCarMasterElement CreateMasterElement(
+            int masterId,
+            Guid trainCarGuid,
+            Guid itemGuid,
+            int tractionForce,
+            int inventorySlotCount,
+            int length,
+            int weight)
+        {
             var fuelItems = tractionForce > 0
                 ? new[] { new TrainFuelItemsElement(0, TestFuelItemGuid, (float)TestFuelDuration) }
                 : null;
-            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, 320, tractionForce, inventorySlotCount, length, "None", 0f, fuelItems, null);
+            return new TrainCarMasterElement(masterId, trainCarGuid, itemGuid, null, weight, tractionForce, inventorySlotCount, length, "None", 0f, fuelItems, null);
         }
 
         public static (TrainCar trainCar, FluidTrainCarContainer fluidContainer) CreateTrainCarWithFluidContainer(
@@ -81,7 +121,18 @@ namespace Tests.Util
             int length,
             bool isFacingForward)
         {
-            var element = CreateMasterElement(masterId, Guid.Empty, Guid.Empty, tractionForce, 0, length);
+            return CreateTrainCarWithFluidContainer(masterId, tractionForce, fluidCapacity, length, isFacingForward, DefaultTestCarWeight);
+        }
+
+        public static (TrainCar trainCar, FluidTrainCarContainer fluidContainer) CreateTrainCarWithFluidContainer(
+            int masterId,
+            int tractionForce,
+            double fluidCapacity,
+            int length,
+            bool isFacingForward,
+            int weight)
+        {
+            var element = CreateMasterElement(masterId, Guid.Empty, Guid.Empty, tractionForce, 0, length, weight);
             var fluidContainer = new FluidTrainCarContainer(new FluidContainer(fluidCapacity));
             var trainCar = new TrainCar(element, isFacingForward);
             trainCar.SetContainer(fluidContainer);
