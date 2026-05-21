@@ -12,15 +12,15 @@ namespace Client.Game.InGame.Train.Unit
         // ローカルで追跡する列車一覧
         // Internal dictionary holding every tracked train
         private readonly RailGraphClientCache _railGraphProvider;
-        private readonly Dictionary<TrainInstanceId, ClientTrainUnit> _units = new();
+        private readonly Dictionary<TrainUnitInstanceId, ClientTrainUnit> _units = new();
         // 車両スナップショット索引
         // Index for train car snapshots
         private readonly Dictionary<TrainCarInstanceId, TrainCarCacheEntry> _carIndex = new();
-        private readonly Dictionary<TrainInstanceId, List<TrainCarInstanceId>> _carIdsByTrain = new();
+        private readonly Dictionary<TrainUnitInstanceId, List<TrainCarInstanceId>> _carIdsByTrain = new();
 
         // 列車一覧の読み取り専用ビュー
         // Read-only view for external systems
-        public IReadOnlyDictionary<TrainInstanceId, ClientTrainUnit> Units => _units;
+        public IReadOnlyDictionary<TrainUnitInstanceId, ClientTrainUnit> Units => _units;
 
         public TrainUnitClientCache(RailGraphClientCache railGraphProvider)
         {
@@ -44,14 +44,14 @@ namespace Client.Game.InGame.Train.Unit
             for (var i = 0; i < snapshots.Count; i++)
             {
                 var bundle = snapshots[i];
-                if (bundle.Simulation.TrainInstanceId == TrainInstanceId.Empty)
+                if (bundle.Simulation.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
                 {
                     continue;
                 }
 
-                var unit = new ClientTrainUnit(bundle.Simulation.TrainInstanceId, _railGraphProvider);
+                var unit = new ClientTrainUnit(bundle.Simulation.TrainUnitInstanceId, _railGraphProvider);
                 unit.SnapshotUpdate(bundle.Simulation, bundle.RailPositionSnapshot);
-                _units[bundle.Simulation.TrainInstanceId] = unit;
+                _units[bundle.Simulation.TrainUnitInstanceId] = unit;
                 BuildCarIndexForUnit(unit);
             }
         }
@@ -76,14 +76,14 @@ namespace Client.Game.InGame.Train.Unit
         // Apply a diff snapshot for a single train
         public ClientTrainUnit Upsert(TrainUnitSnapshotBundle snapshot)
         {
-            var trainInstanceId = snapshot.Simulation.TrainInstanceId;
-            if (!_units.TryGetValue(trainInstanceId, out var unit))
+            var trainUnitInstanceId = snapshot.Simulation.TrainUnitInstanceId;
+            if (!_units.TryGetValue(trainUnitInstanceId, out var unit))
             {
-                unit = new ClientTrainUnit(trainInstanceId, _railGraphProvider);
-                _units[trainInstanceId] = unit;
+                unit = new ClientTrainUnit(trainUnitInstanceId, _railGraphProvider);
+                _units[trainUnitInstanceId] = unit;
             }
 
-            RemoveCarIndex(trainInstanceId);
+            RemoveCarIndex(trainUnitInstanceId);
             unit.SnapshotUpdate(snapshot.Simulation, snapshot.RailPositionSnapshot);
             BuildCarIndexForUnit(unit);
             return unit;
@@ -91,9 +91,9 @@ namespace Client.Game.InGame.Train.Unit
 
         // pre sim差分イベントを対象TrainUnitへ反映する
         // Apply a pre-simulation diff event to the target train.
-        public bool ApplyPreSimulationDiff(TrainInstanceId trainInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId, bool isReversedThisTick)
+        public bool ApplyPreSimulationDiff(TrainUnitInstanceId trainUnitInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId, bool isReversedThisTick)
         {
-            if (!_units.TryGetValue(trainInstanceId, out var unit))
+            if (!_units.TryGetValue(trainUnitInstanceId, out var unit))
             {
                 return false;
             }
@@ -103,16 +103,16 @@ namespace Client.Game.InGame.Train.Unit
             var didReverse = unit.ApplyPreSimulationDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeId, isReversedThisTick);
             if (didReverse)
             {
-                RemoveCarIndex(trainInstanceId);
+                RemoveCarIndex(trainUnitInstanceId);
                 BuildCarIndexForUnit(unit);
             }
             return true;
         }
 
-        public bool Remove(TrainInstanceId trainInstanceId)
+        public bool Remove(TrainUnitInstanceId trainUnitInstanceId)
         {
-            RemoveCarIndex(trainInstanceId);
-            return _units.Remove(trainInstanceId);
+            RemoveCarIndex(trainUnitInstanceId);
+            return _units.Remove(trainUnitInstanceId);
         }
 
         // 車両スナップショット索引を取得する
@@ -138,9 +138,9 @@ namespace Client.Game.InGame.Train.Unit
 
         // 列車情報の取得を試みる
         // Try retrieving the train info
-        public bool TryGet(TrainInstanceId trainInstanceId, out ClientTrainUnit unit)
+        public bool TryGet(TrainUnitInstanceId trainUnitInstanceId, out ClientTrainUnit unit)
         {
-            return _units.TryGetValue(trainInstanceId, out unit);
+            return _units.TryGetValue(trainUnitInstanceId, out unit);
         }
 
         internal void CopyUnitsTo(List<ClientTrainUnit> buffer)
@@ -173,7 +173,7 @@ namespace Client.Game.InGame.Train.Unit
                 carIds.Add(carSnapshot.TrainCarInstanceId);
             }
 
-            _carIdsByTrain[unit.TrainInstanceId] = carIds;
+            _carIdsByTrain[unit.TrainUnitInstanceId] = carIds;
 
             #region Internal
 
@@ -188,13 +188,13 @@ namespace Client.Game.InGame.Train.Unit
             #endregion
         }
 
-        private void RemoveCarIndex(TrainInstanceId trainInstanceId)
+        private void RemoveCarIndex(TrainUnitInstanceId trainUnitInstanceId)
         {
             // 列車に紐づく車両索引を削除する
             // Remove car index entries for the target train
-            if (!_carIdsByTrain.TryGetValue(trainInstanceId, out var carIds)) return;
+            if (!_carIdsByTrain.TryGetValue(trainUnitInstanceId, out var carIds)) return;
             for (var i = 0; i < carIds.Count; i++) _carIndex.Remove(carIds[i]);
-            _carIdsByTrain.Remove(trainInstanceId);
+            _carIdsByTrain.Remove(trainUnitInstanceId);
         }
         
         private readonly struct TrainCarCacheEntry

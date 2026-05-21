@@ -10,7 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     {
         // 要件1: N'+M' と既存TrainUnitの重複から、最短の接続先1件を確定する。
         // Requirement 1: Resolve one nearest attach target from overlaps between N'+M' and existing train units.
-        internal static IReadOnlyList<TrainInstanceId> ResolveOverlapTrainUnitsForAttachSnap(
+        internal static IReadOnlyList<TrainUnitInstanceId> ResolveOverlapTrainUnitsForAttachSnap(
             TrainUnitClientCache trainUnitCache,
             RailPosition centerRailPosition,
             RailPositionOverlapDetector.OverlapIndex attachProbeOverlapIndex,
@@ -18,12 +18,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             int trainLength,
             int attachSnapAdditionalMarginLength,
             out RailPosition attachSnapStartPoint,
-            out TrainInstanceId attachTargetTrainInstanceId,
+            out TrainUnitInstanceId attachTargetTrainUnitInstanceId,
             out bool attachSnapFacingForward,
             out TrainCarAttachTargetEndpoint attachSnapTargetEndpoint)
         {
             attachSnapStartPoint = null;
-            attachTargetTrainInstanceId = TrainInstanceId.Empty;
+            attachTargetTrainUnitInstanceId = TrainUnitInstanceId.Empty;
             attachSnapFacingForward = true;
             attachSnapTargetEndpoint = TrainCarAttachTargetEndpoint.Head;
 
@@ -35,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 allTrainUnitOverlapIndex == null ||
                 !RailPositionOverlapDetector.HasOverlap(attachProbeOverlapIndex, allTrainUnitOverlapIndex))
             {
-                return Array.Empty<TrainInstanceId>();
+                return Array.Empty<TrainUnitInstanceId>();
             }
 
             // many-to-one再探索で最短候補1件を選定し、向きとendpointを同時に確定する。
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             var centerForwardPoint = centerRailPosition.GetHeadRailPosition();
             var centerBackwardPoint = centerForwardPoint.DeepCopy();
             centerBackwardPoint.Reverse();
-            var nearestTrainInstanceId = TrainInstanceId.Empty;
+            var nearestTrainUnitInstanceId = TrainUnitInstanceId.Empty;
             var nearestDistance = int.MaxValue;
             var nearestSnapStartPoint = default(RailPosition);
             var nearestAttachFacingForward = true;
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             foreach (var pair in trainUnitCache.Units)
             {
-                var trainInstanceId = pair.Key;
+                var trainUnitInstanceId = pair.Key;
                 var unit = pair.Value;
                 if (unit == null || unit.RailPosition == null)
                 {
@@ -77,22 +77,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 }
 
                 nearestDistance = distance;
-                nearestTrainInstanceId = trainInstanceId;
+                nearestTrainUnitInstanceId = trainUnitInstanceId;
                 nearestSnapStartPoint = snapStartPoint;
                 nearestAttachFacingForward = attachFacingForward;
                 nearestAttachTargetEndpoint = attachTargetEndpoint;
             }
 
-            if (nearestTrainInstanceId == TrainInstanceId.Empty)
+            if (nearestTrainUnitInstanceId == TrainUnitInstanceId.Empty)
             {
-                return Array.Empty<TrainInstanceId>();
+                return Array.Empty<TrainUnitInstanceId>();
             }
 
             attachSnapStartPoint = nearestSnapStartPoint;
-            attachTargetTrainInstanceId = nearestTrainInstanceId;
+            attachTargetTrainUnitInstanceId = nearestTrainUnitInstanceId;
             attachSnapFacingForward = nearestAttachFacingForward;
             attachSnapTargetEndpoint = nearestAttachTargetEndpoint;
-            return new[] { nearestTrainInstanceId };
+            return new[] { nearestTrainUnitInstanceId };
 
             #region Internal
 

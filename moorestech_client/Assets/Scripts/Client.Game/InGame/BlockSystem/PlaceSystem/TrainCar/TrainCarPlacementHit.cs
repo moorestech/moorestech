@@ -22,26 +22,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public TrainCarPlacementHit(
             bool isPlaceable,
             RailPosition railPosition,
-            IReadOnlyList<TrainInstanceId> overlapTrainInstanceIds,
+            IReadOnlyList<TrainUnitInstanceId> overlapTrainUnitInstanceIds,
             TrainCarPlacementMode placementMode,
-            TrainInstanceId targetTrainInstanceId,
+            TrainUnitInstanceId targetTrainUnitInstanceId,
             bool attachCarFacingForward,
             TrainCarAttachTargetEndpoint attachTargetEndpoint)
         {
             IsPlaceable = isPlaceable;
             RailPosition = railPosition;
-            OverlapTrainInstanceIds = overlapTrainInstanceIds ?? Array.Empty<TrainInstanceId>();
+            OverlapTrainUnitInstanceIds = overlapTrainUnitInstanceIds ?? Array.Empty<TrainUnitInstanceId>();
             PlacementMode = placementMode;
-            TargetTrainInstanceId = targetTrainInstanceId;
+            TargetTrainUnitInstanceId = targetTrainUnitInstanceId;
             AttachCarFacingForward = attachCarFacingForward;
             AttachTargetEndpoint = attachTargetEndpoint;
         }
 
         public bool IsPlaceable { get; }
         public RailPosition RailPosition { get; }
-        public IReadOnlyList<TrainInstanceId> OverlapTrainInstanceIds { get; }
+        public IReadOnlyList<TrainUnitInstanceId> OverlapTrainUnitInstanceIds { get; }
         public TrainCarPlacementMode PlacementMode { get; }
-        public TrainInstanceId TargetTrainInstanceId { get; }
+        public TrainUnitInstanceId TargetTrainUnitInstanceId { get; }
         public bool AttachCarFacingForward { get; }
         public TrainCarAttachTargetEndpoint AttachTargetEndpoint { get; }
     }

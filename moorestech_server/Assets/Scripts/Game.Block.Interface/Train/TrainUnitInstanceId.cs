@@ -4,11 +4,11 @@ using UnitGenerator;
 namespace Game.Train.Unit
 {
     [UnitOf(typeof(Guid), UnitGenerateOptions.MessagePackFormatter)]
-    public readonly partial struct TrainInstanceId
+    public readonly partial struct TrainUnitInstanceId
     {
-        public static TrainInstanceId Create()
+        public static TrainUnitInstanceId Create()
         {
-            return new TrainInstanceId(Guid.NewGuid());
+            return new TrainUnitInstanceId(Guid.NewGuid());
         }
     }
 }

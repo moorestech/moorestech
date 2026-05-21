@@ -56,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // 接続スナップ判定で抽出された重複対象TrainUnitを描画ハイライトする
             // Highlight overlapped train units resolved by attach-snap overlap detection
-            _trainCarObjectDatastore.SetPlacementOverlapHighlight(hit.OverlapTrainInstanceIds);
+            _trainCarObjectDatastore.SetPlacementOverlapHighlight(hit.OverlapTrainUnitInstanceIds);
 
             // プレビュー表示可否と描画状態を更新する
             // Update preview visibility and rendering
@@ -83,16 +83,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 // Await placement response and validate result
                 if (placementHit.PlacementMode == TrainCarPlacementMode.AttachToExistingTrainUnit)
                 {
-                    if (placementHit.TargetTrainInstanceId == TrainInstanceId.Empty)
+                    if (placementHit.TargetTrainUnitInstanceId == TrainUnitInstanceId.Empty)
                     {
-                        Debug.LogWarning("[TrainCarPlaceSystem] AttachTrainCar failed. reason=InvalidTargetTrainInstanceId");
+                        Debug.LogWarning("[TrainCarPlaceSystem] AttachTrainCar failed. reason=InvalidTargetTrainUnitInstanceId");
                         return;
                     }
 
                     // 既存編成への連結モードで設置を要求する
                     // Request attach-mode placement to existing train unit
                     var attachResponse = await ClientContext.VanillaApi.Response.AttachTrainCarToUnit(
-                        placementHit.TargetTrainInstanceId,
+                        placementHit.TargetTrainUnitInstanceId,
                         placementHit.RailPosition,
                         hotBarSlot,
                         placementHit.AttachCarFacingForward,

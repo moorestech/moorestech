@@ -29,7 +29,7 @@ namespace Server.Event.EventReceive
 
         private void OnNotified(TrainUnitSnapshotNotifyEventData notifyEventData)
         {
-            if (notifyEventData.TrainInstanceId == TrainInstanceId.Empty)
+            if (notifyEventData.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
             {
                 return;
             }
@@ -47,7 +47,7 @@ namespace Server.Event.EventReceive
             if (notifyEventData.IsDeleted)
             {
                 return new TrainUnitSnapshotEventMessagePack(
-                    notifyEventData.TrainInstanceId,
+                    notifyEventData.TrainUnitInstanceId,
                     true,
                     null,
                     tick,
@@ -56,7 +56,7 @@ namespace Server.Event.EventReceive
 
             var snapshot = TrainUnitSnapshotFactory.CreateSnapshot(notifyEventData.TrainUnit);
             return new TrainUnitSnapshotEventMessagePack(
-                notifyEventData.TrainInstanceId,
+                notifyEventData.TrainUnitInstanceId,
                 false,
                 new TrainUnitSnapshotBundleMessagePack(snapshot),
                 tick,

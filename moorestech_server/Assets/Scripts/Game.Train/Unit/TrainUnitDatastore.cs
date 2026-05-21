@@ -4,7 +4,7 @@ namespace Game.Train.Unit
 {
     public class TrainUnitDatastore : ITrainUnitMutationDatastore, ITrainUnitLookupDatastore
     {
-        private readonly Dictionary<TrainInstanceId, TrainUnit> _trainUnitsById = new();
+        private readonly Dictionary<TrainUnitInstanceId, TrainUnit> _trainUnitsById = new();
         private readonly Dictionary<TrainCarInstanceId, TrainUnit> _trainUnitsByCarId = new();
         private readonly Dictionary<TrainCarInstanceId, TrainCar> _trainCarsById = new();
 
@@ -12,14 +12,14 @@ namespace Game.Train.Unit
 
         public void RegisterTrain(TrainUnit trainUnit)
         {
-            if (trainUnit == null || trainUnit.TrainInstanceId == TrainInstanceId.Empty)
+            if (trainUnit == null || trainUnit.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
             {
                 return;
             }
 
             // 列車本体の正本を登録し、派生 index を張り直す
             // Register the source-of-truth train unit and rebuild derived indexes.
-            _trainUnitsById[trainUnit.TrainInstanceId] = trainUnit;
+            _trainUnitsById[trainUnit.TrainUnitInstanceId] = trainUnit;
             RebuildCarToUnitIndex();
         }
 
@@ -32,11 +32,11 @@ namespace Game.Train.Unit
 
             // 列車登録を外したら car -> unit も必ず再計算する
             // Recompute car -> unit after removing a registered train.
-            _trainUnitsById.Remove(trainUnit.TrainInstanceId);
+            _trainUnitsById.Remove(trainUnit.TrainUnitInstanceId);
             RebuildCarToUnitIndex();
         }
 
-        public bool TryGetTrainUnit(TrainInstanceId id, out TrainUnit trainUnit)
+        public bool TryGetTrainUnit(TrainUnitInstanceId id, out TrainUnit trainUnit)
         {
             return _trainUnitsById.TryGetValue(id, out trainUnit);
         }

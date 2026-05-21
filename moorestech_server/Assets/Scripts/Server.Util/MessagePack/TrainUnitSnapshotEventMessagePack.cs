@@ -9,7 +9,7 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class TrainUnitSnapshotEventMessagePack
     {
-        [Key(0)] public TrainInstanceId TrainInstanceId { get; set; }
+        [Key(0)] public TrainUnitInstanceId TrainUnitInstanceId { get; set; }
         [Key(1)] public bool IsDeleted { get; set; }
         [Key(2)] public TrainUnitSnapshotBundleMessagePack Snapshot { get; set; }
         [Key(3)] public uint ServerTick { get; set; }
@@ -21,13 +21,13 @@ namespace Server.Util.MessagePack
         }
 
         public TrainUnitSnapshotEventMessagePack(
-            TrainInstanceId trainInstanceId,
+            TrainUnitInstanceId trainUnitInstanceId,
             bool isDeleted,
             TrainUnitSnapshotBundleMessagePack snapshot,
             uint serverTick,
             uint tickSequenceId)
         {
-            TrainInstanceId = trainInstanceId;
+            TrainUnitInstanceId = trainUnitInstanceId;
             IsDeleted = isDeleted;
             Snapshot = snapshot;
             ServerTick = serverTick;

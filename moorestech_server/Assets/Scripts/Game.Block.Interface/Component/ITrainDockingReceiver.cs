@@ -4,7 +4,7 @@ namespace Game.Block.Interface.Component
 {
     public interface ITrainDockHandle
     {
-        TrainInstanceId TrainInstanceId { get; }
+        TrainUnitInstanceId TrainUnitInstanceId { get; }
         long TrainCarInstanceId { get; }
         int CarIndex { get; }
     }

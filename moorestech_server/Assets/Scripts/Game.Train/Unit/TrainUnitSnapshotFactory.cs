@@ -23,7 +23,7 @@ namespace Game.Train.Unit
             }
 
             return new TrainSimulationSnapshot(
-                train.TrainInstanceId,
+                train.TrainUnitInstanceId,
                 train.CurrentSpeed,
                 train.AccumulatedDistance,
                 train.masconLevel,
