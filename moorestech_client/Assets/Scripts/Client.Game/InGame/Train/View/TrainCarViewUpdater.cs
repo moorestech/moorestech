@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
 {
+    // プレイヤーの足場追従が同フレームの列車姿勢を読むよう、通常Updateより先に動かす
+    // Run before normal Update so player platform follow reads the same-frame train pose
+    [DefaultExecutionOrder(-200)]
     public sealed class TrainCarViewUpdater : MonoBehaviour
     {
         // 列車モデルの前方軸補正をレール進行方向に合わせる

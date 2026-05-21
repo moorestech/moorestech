@@ -39,6 +39,8 @@ namespace Client.Game.InGame.Player
         private Transform rideFollowTarget;
         private Vector3 rideFollowLocalPosition;
         private Quaternion rideFollowLocalRotation;
+        private bool rideFollowStoredControllerEnabled;
+        private bool rideFollowDisabledController;
         
         public void Initialize(InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -106,6 +108,10 @@ namespace Client.Game.InGame.Player
 
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
         {
+            // 乗車中はThirdPersonController側の重力・Move・足場追従を止める
+            // Stop ThirdPersonController gravity, Move, and platform follow while riding
+            DisableControllerForRideFollowIfNeeded();
+
             // 乗車追従のローカル基準を保存する
             // Store the local basis used for riding follow
             rideFollowTarget = target;
@@ -115,6 +121,9 @@ namespace Client.Game.InGame.Player
 
         public void ClearRideFollowTarget()
         {
+            // 乗車追従で止めたThirdPersonControllerの実行状態を戻す
+            // Restore the ThirdPersonController execution state disabled for riding follow
+            RestoreControllerAfterRideFollowIfNeeded();
             rideFollowTarget = null;
         }
 
@@ -130,6 +139,33 @@ namespace Client.Game.InGame.Player
             characterController.enabled = false;
             transform.SetPositionAndRotation(worldPosition, worldRotation);
             characterController.enabled = true;
+        }
+
+        private void DisableControllerForRideFollowIfNeeded()
+        {
+            if (rideFollowTarget != null || rideFollowDisabledController)
+            {
+                return;
+            }
+
+            // 解除時に元の有効状態へ戻せるよう、乗車開始時だけ保存する
+            // Store the original enabled state only when riding starts so dismount can restore it
+            rideFollowStoredControllerEnabled = controller.enabled;
+            controller.enabled = false;
+            rideFollowDisabledController = true;
+        }
+
+        private void RestoreControllerAfterRideFollowIfNeeded()
+        {
+            if (!rideFollowDisabledController)
+            {
+                return;
+            }
+
+            // UI等で元々無効だった場合は、その無効状態を維持する
+            // Preserve an originally disabled controller state such as UI control locks
+            controller.enabled = rideFollowStoredControllerEnabled;
+            rideFollowDisabledController = false;
         }
     }
 }
