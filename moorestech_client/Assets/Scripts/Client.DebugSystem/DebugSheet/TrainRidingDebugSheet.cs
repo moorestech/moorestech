@@ -47,7 +47,7 @@ namespace Client.DebugSystem
                     rows.Add(new TrainCarDebugRow(
                         carSnapshot.TrainCarInstanceId,
                         $"Car: {i} | Speed: {unit.CurrentSpeed:F2}",
-                        unit.TrainInstanceId.ToString(),
+                        unit.TrainUnitInstanceId.ToString(),
                         carSnapshot.TrainCarInstanceId.ToString()));
                 }
             }

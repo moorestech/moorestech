@@ -23,11 +23,11 @@ namespace Game.Train.Unit
                 return hash;
             }
 
-            // TrainInstanceId順に並べて順序非依存にする
-            // Sort by TrainInstanceId to keep the hash order-independent
+            // TrainUnitInstanceId順に並べて順序非依存にする
+            // Sort by TrainUnitInstanceId to keep the hash order-independent
             var ordered = new List<TrainUnitSnapshotBundle>(bundles);
             ordered.Sort((left, right) =>
-                left.Simulation.TrainInstanceId.AsPrimitive().CompareTo(right.Simulation.TrainInstanceId.AsPrimitive()));
+                left.Simulation.TrainUnitInstanceId.AsPrimitive().CompareTo(right.Simulation.TrainUnitInstanceId.AsPrimitive()));
 
             for (var i = 0; i < ordered.Count; i++)
             {
@@ -45,7 +45,7 @@ namespace Game.Train.Unit
             // Simulation/RailPositionの要素を順に混ぜる
             // Mix simulation and rail position fields in order
             var simulation = bundle.Simulation;
-            var hash = MixGuid(current, simulation.TrainInstanceId.AsPrimitive());
+            var hash = MixGuid(current, simulation.TrainUnitInstanceId.AsPrimitive());
             hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.CurrentSpeed));
             hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.AccumulatedDistance));
             hash = Mix(hash, simulation.MasconLevel);

@@ -111,7 +111,7 @@ namespace Game.Train.Unit
                     {
                         continue;
                     }
-                    diffs.Add(new TrainTickDiffData(trainUnit.TrainInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick));
+                    diffs.Add(new TrainTickDiffData(trainUnit.TrainUnitInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick));
                 }
                 // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
@@ -206,15 +206,15 @@ namespace Game.Train.Unit
 
         public readonly struct TrainTickDiffData
         {
-            public TrainInstanceId TrainInstanceId { get; }
+            public TrainUnitInstanceId TrainUnitInstanceId { get; }
             public int MasconLevelDiff { get; }
             public bool IsNowDockingSpeedZero { get; }
             public int ApproachingNodeIdDiff { get; }
             public bool IsReversedThisTick { get; }
 
-            public TrainTickDiffData(TrainInstanceId trainInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick)
+            public TrainTickDiffData(TrainUnitInstanceId trainUnitInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick)
             {
-                TrainInstanceId = trainInstanceId;
+                TrainUnitInstanceId = trainUnitInstanceId;
                 MasconLevelDiff = masconLevelDiff;
                 IsNowDockingSpeedZero = isNowDockingSpeedZero;
                 ApproachingNodeIdDiff = approachingNodeIdDiff;

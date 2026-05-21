@@ -5,7 +5,7 @@ namespace Game.Train.Unit
     public interface ITrainUnitLookupDatastore
     {
         IReadOnlyCollection<TrainUnit> GetRegisteredTrains();
-        bool TryGetTrainUnit(TrainInstanceId id, out TrainUnit trainUnit);
+        bool TryGetTrainUnit(TrainUnitInstanceId id, out TrainUnit trainUnit);
         bool TryGetTrainUnitByCar(TrainCarInstanceId id, out TrainUnit trainUnit);
         bool TryGetTrainCar(TrainCarInstanceId id, out TrainCar trainCar);
     }

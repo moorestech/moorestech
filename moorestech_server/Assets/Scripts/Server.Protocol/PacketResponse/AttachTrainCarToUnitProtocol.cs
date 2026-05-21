@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse
             {
                 // リクエストを検証する
                 // Validate request payload
-                if (data == null || data.RailPosition == null || data.TargetTrainInstanceId == TrainInstanceId.Empty)
+                if (data == null || data.RailPosition == null || data.TargetTrainUnitInstanceId == TrainUnitInstanceId.Empty)
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InvalidRequest);
                 }
@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 連結先編成を解決する
                 // Resolve target train unit
-                if (!_trainUnitLookupDatastore.TryGetTrainUnit(data.TargetTrainInstanceId, out var targetTrain))
+                if (!_trainUnitLookupDatastore.TryGetTrainUnit(data.TargetTrainUnitInstanceId, out var targetTrain))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.TrainNotFound);
                 }
@@ -255,7 +255,7 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class AttachTrainCarToUnitRequestMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public TrainInstanceId TargetTrainInstanceId { get; set; }
+            [Key(2)] public TrainUnitInstanceId TargetTrainUnitInstanceId { get; set; }
             [Key(3)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
             [Key(4)] public int HotBarSlot { get; set; }
             [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
@@ -270,7 +270,7 @@ namespace Server.Protocol.PacketResponse
             }
 
             public AttachTrainCarToUnitRequestMessagePack(
-                TrainInstanceId targetTrainInstanceId,
+                TrainUnitInstanceId targetTrainUnitInstanceId,
                 RailPositionSnapshotMessagePack railPosition,
                 int hotBarSlot,
                 int playerId,
@@ -278,7 +278,7 @@ namespace Server.Protocol.PacketResponse
                 bool attachToTargetTrainHead)
             {
                 Tag = ProtocolTag;
-                TargetTrainInstanceId = targetTrainInstanceId;
+                TargetTrainUnitInstanceId = targetTrainUnitInstanceId;
                 RailPosition = railPosition;
                 HotBarSlot = hotBarSlot;
                 PlayerId = playerId;
