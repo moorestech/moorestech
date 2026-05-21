@@ -1,3 +1,4 @@
+using Game.PlayerRiding.Interface;
 using MessagePack;
 using NUnit.Framework;
 using Server.Util.MessagePack;
@@ -18,6 +19,21 @@ namespace Tests.UnitTest.PlayerRiding
 
             Assert.AreEqual(RidableType.TrainCar, restored.RidableType);
             Assert.AreEqual("123456789012345", restored.TrainCarInstanceId);
+        }
+
+        [Test]
+        public void TrainCarRidableIdentifier_EqualityAndHashCode_AreBasedOnInstanceId()
+        {
+            // 同じ TrainCarInstanceId を持つ識別子は等価で、HashCode も一致する
+            // Identifiers with the same TrainCarInstanceId are equal and share a hash code.
+            var a = new TrainCarRidableIdentifier(777L);
+            var b = new TrainCarRidableIdentifier(777L);
+            var c = new TrainCarRidableIdentifier(778L);
+
+            Assert.AreEqual(RidableType.TrainCar, a.Type);
+            Assert.IsTrue(a.Equals(b));
+            Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
+            Assert.IsFalse(a.Equals(c));
         }
     }
 }
