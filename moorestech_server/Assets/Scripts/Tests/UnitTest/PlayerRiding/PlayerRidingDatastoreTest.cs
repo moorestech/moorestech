@@ -34,5 +34,41 @@ namespace Tests.UnitTest.PlayerRiding
                 ((TrainCarRidableIdentifier)existing.Identifier).TrainCarInstanceId);
             Assert.IsNull(missing);
         }
+
+        [Test]
+        public void PlayerRidingDatastore_TryRide_AssignsFreeSeat_AndRejectsWhenFull()
+        {
+            // 座席2席の車両: 1人目・2人目は乗車成功、3人目は NoSeatAvailable
+            // A 2-seat car: first and second riders succeed, third gets NoSeatAvailable.
+            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+
+            Assert.AreEqual(RideActionResult.Success, datastore.TryRide(1, id, out _));
+            Assert.AreEqual(RideActionResult.Success, datastore.TryRide(2, id, out _));
+            Assert.AreEqual(RideActionResult.NoSeatAvailable, datastore.TryRide(3, id, out _));
+        }
+
+        [Test]
+        public void PlayerRidingDatastore_TryRide_RejectsWhenAlreadyRiding_AndUnknownRidable()
+        {
+            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+
+            Assert.AreEqual(RideActionResult.Success, datastore.TryRide(1, id, out _));
+            Assert.AreEqual(RideActionResult.AlreadyRiding, datastore.TryRide(1, id, out _));
+            Assert.AreEqual(RideActionResult.RidableNotFound, datastore.TryRide(2, new TrainCarRidableIdentifier(-1L), out _));
+        }
+
+        [Test]
+        public void PlayerRidingDatastore_TryDismount_ClearsState()
+        {
+            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+
+            Assert.AreEqual(RideActionResult.NotRiding, datastore.TryDismount(1));
+            datastore.TryRide(1, id, out _);
+            Assert.AreEqual(RideActionResult.Success, datastore.TryDismount(1));
+            Assert.IsFalse(datastore.TryGetRidingState(1, out _));
+        }
     }
 }
