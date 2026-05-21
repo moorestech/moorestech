@@ -32,10 +32,10 @@ namespace Client.Game.InGame.Train.View.Object
         public event Action<TrainCarInstanceId> TrainCarEntityRemoving;
 
         [Inject]
-        public void Construct(TrainUnitClientCache trainUnitClientCache, TrainUnitTickState tickState, TrainUnitClientSimulator clientSimulator)
+        public void Construct(TrainUnitClientCache trainUnitClientCache, TrainUnitTickState tickState, ITrainUnitRenderInterpolationProvider renderInterpolationProvider)
         {
             _trainUnitClientCache = trainUnitClientCache;
-            _carObjectFactory = new TrainCarObjectFactory(trainUnitClientCache, tickState, clientSimulator);
+            _carObjectFactory = new TrainCarObjectFactory(trainUnitClientCache, tickState, renderInterpolationProvider);
         }
 
         public void OnTrainObjectUpdate(IReadOnlyList<TrainCarSnapshot> carSnapshots)

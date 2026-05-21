@@ -18,15 +18,15 @@ namespace Client.Game.InGame.Train.View.Object
     {
         private readonly TrainUnitClientCache _trainCache;
         private readonly TrainUnitTickState _tickState;
-        private readonly TrainUnitClientSimulator _clientSimulator;
+        private readonly ITrainUnitRenderInterpolationProvider _renderInterpolationProvider;
 
-        public TrainCarObjectFactory(TrainUnitClientCache trainCache, TrainUnitTickState tickState, TrainUnitClientSimulator clientSimulator)
+        public TrainCarObjectFactory(TrainUnitClientCache trainCache, TrainUnitTickState tickState, ITrainUnitRenderInterpolationProvider renderInterpolationProvider)
         {
             // 姿勢更新に必要な依存を保持する
             // Hold dependencies required for pose updates
             _trainCache = trainCache;
             _tickState = tickState;
-            _clientSimulator = clientSimulator;
+            _renderInterpolationProvider = renderInterpolationProvider;
         }
 
         public async UniTask<TrainCarEntityObject> CreateTrainCarObject(Transform parent, TrainCarSnapshot carSnapshot)
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.Train.View.Object
                 // 車両姿勢更新コンポーネントを関連付ける
                 // Attach pose update component for this car
                 var poseUpdater = trainObject.AddComponent<TrainCarViewUpdater>();
-                poseUpdater.Initialize(trainEntityObject, _trainCache, _tickState, _clientSimulator);
+                poseUpdater.Initialize(trainEntityObject, _trainCache, _tickState, _renderInterpolationProvider);
 
                 // 子 renderer に削除対象と collider を追加する
                 // Add delete targets and colliders to child renderers
