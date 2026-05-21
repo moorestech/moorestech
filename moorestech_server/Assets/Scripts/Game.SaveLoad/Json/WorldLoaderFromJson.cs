@@ -8,6 +8,7 @@ using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
+using Game.PlayerRiding;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.Research;
@@ -38,11 +39,13 @@ namespace Game.SaveLoad.Json
         private readonly TrainSaveLoadService _trainSaveLoadService;
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly TrainDockingStateRestorer _trainDockingStateRestorer;
+        private readonly PlayerRidingDatastore _playerRidingDatastore;
 
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
-            IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer)
+            IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
+            PlayerRidingDatastore playerRidingDatastore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -59,6 +62,7 @@ namespace Game.SaveLoad.Json
             _trainSaveLoadService = trainSaveLoadService;
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _trainDockingStateRestorer = trainDockingStateRestorer;
+            _playerRidingDatastore = playerRidingDatastore;
         }
         
         public void LoadOrInitialize()
@@ -127,6 +131,10 @@ namespace Game.SaveLoad.Json
 
             _trainSaveLoadService.RestoreTrainStates(load.TrainUnits);
             _trainDockingStateRestorer.RestoreDockingState();
+
+            // 乗車状態は列車復元後にロードする。参照整合の解決はログイン時まで遅延する（仕様書セクション8・10）。
+            // Load riding states after trains are restored; reference resolution is deferred to login.
+            _playerRidingDatastore.LoadSaveData(load.PlayerRidingStates);
         }
         
         public void WorldInitialize()

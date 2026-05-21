@@ -3,6 +3,7 @@ using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
+using Game.PlayerRiding;
 using Game.Research;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.Train.SaveLoad;
@@ -23,6 +24,7 @@ namespace Game.SaveLoad.Json
         private readonly IResearchDataStore _researchDataStore;
         private readonly TrainSaveLoadService _trainSaveLoadService;
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
+        private readonly PlayerRidingDatastore _playerRidingDatastore;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -33,7 +35,8 @@ namespace Game.SaveLoad.Json
             CraftTreeManager craftTreeManager,
             IResearchDataStore researchDataStore,
             TrainSaveLoadService trainSaveLoadService,
-            RailGraphSaveLoadService railGraphSaveLoadService)
+            RailGraphSaveLoadService railGraphSaveLoadService,
+            PlayerRidingDatastore playerRidingDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -44,6 +47,7 @@ namespace Game.SaveLoad.Json
             _researchDataStore = researchDataStore;
             _trainSaveLoadService = trainSaveLoadService;
             _railGraphSaveLoadService = railGraphSaveLoadService;
+            _playerRidingDatastore = playerRidingDatastore;
         }
 
         public string AssembleSaveJson()
@@ -62,7 +66,8 @@ namespace Game.SaveLoad.Json
                 _craftTreeManager.GetSaveJsonObject(),
                 _researchDataStore.GetSaveJsonObject(),
                 _trainSaveLoadService.GetSaveJsonObject(),
-                _railGraphSaveLoadService.GetSaveData()
+                _railGraphSaveLoadService.GetSaveData(),
+                _playerRidingDatastore.GetSaveData()
             );
 
             return JsonConvert.SerializeObject(saveData);
