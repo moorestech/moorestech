@@ -14,7 +14,8 @@
         "ClassLibrary",
         "Game.Entity.Interface",
         "Unity.Collections",
-        "Game.Fluid"
+        "Game.Fluid",
+        "Game.PlayerRiding.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
