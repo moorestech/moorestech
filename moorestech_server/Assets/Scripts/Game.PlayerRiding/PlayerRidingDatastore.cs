@@ -85,6 +85,28 @@ namespace Game.PlayerRiding
             return RideActionResult.Success;
         }
 
+        // 乗り物が破棄されたとき、その乗り物に乗っていた全プレイヤーの RidingState をクリアする。
+        // 戻り値は降車させた playerId 一覧（接続中の乗員へ降車イベントを broadcast するために使う。Phase 3）。
+        // Clears riding states of all players on a removed ridable. Returns the dismounted player ids.
+        public IReadOnlyList<int> OnRidableRemoved(IRidableIdentifier identifier)
+        {
+            var dismounted = new List<int>();
+            foreach (var pair in _ridingStateByPlayerId)
+            {
+                if (pair.Value.Identifier.Equals(identifier))
+                {
+                    dismounted.Add(pair.Key);
+                }
+            }
+            // 降車処理は冪等（既に消えていれば dismounted は空。仕様書セクション4.4）
+            // Idempotent: if nothing matched, dismounted is empty.
+            foreach (var playerId in dismounted)
+            {
+                _ridingStateByPlayerId.Remove(playerId);
+            }
+            return dismounted;
+        }
+
         // 同じ (identifier, seatIndex) を持つ接続中の別プレイヤーがいるか
         // Whether a connected other player occupies the same (identifier, seatIndex).
         private bool IsSeatOccupiedByConnectedPlayer(IRidableIdentifier identifier, int seatIndex, int excludePlayerId)

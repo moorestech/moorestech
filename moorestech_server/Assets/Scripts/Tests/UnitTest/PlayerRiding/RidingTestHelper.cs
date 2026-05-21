@@ -61,6 +61,18 @@ namespace Tests.UnitTest.PlayerRiding
             return (datastore, car);
         }
 
+        // 座席付き車両を別々の列車として2両登録した PlayerRidingDatastore を生成する。
+        // Creates a PlayerRidingDatastore with two seated cars registered as separate trains.
+        public static (PlayerRidingDatastore datastore, TrainCar carA, TrainCar carB) CreateDatastoreWithTwoTrainCars(int seatCount)
+        {
+            var environment = TrainTestHelper.CreateEnvironment();
+            var trainDatastore = new TrainUnitDatastore();
+            var carA = RegisterSeatedCarOnNewTrain(environment, trainDatastore, seatCount, 0);
+            var carB = RegisterSeatedCarOnNewTrain(environment, trainDatastore, seatCount, 200);
+            var datastore = new PlayerRidingDatastore(new RidableResolver(trainDatastore), new AlwaysConnectedChecker());
+            return (datastore, carA, carB);
+        }
+
         // 新しいレール上に座席付き車両を1両だけ載せた TrainUnit を作り datastore に登録する。
         // Builds a TrainUnit carrying one seated car on a fresh rail pair and registers it.
         private static TrainCar RegisterSeatedCarOnNewTrain(TrainTestEnvironment environment, TrainUnitDatastore datastore, int seatCount, int railZ)
