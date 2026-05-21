@@ -17,7 +17,7 @@
 - 「乗車状態」は「プレイヤー ⇄ 乗り物 ⇄ 座席」の**関係のみ**を表す。プレイヤーのワールド座標の権威はクライアントのまま変更しない。
 - クライアントは乗車中も自分のワールド座標（乗り物に追従した位置）を送信し続ける。サーバーはプレイヤー座標に応じて配信内容を変えるため座標を必要とする。
 - 乗車状態（プレイヤーがどの乗り物のどの座席にいるか）はサーバー権威。クライアントは要求を送るだけで、確定はサーバーが行い配信する。プレイヤーのワールド座標はクライアント権威。両者は直交し、サーバーはプレイヤー座標を上書きしない。
-- 座席は1人乗り。1つの乗り物が複数座席を持つ。運転席と乗客席の区別は無く、乗車中の誰でも操舵入力を送れる。
+- 座席は1人乗り。1つの乗り物が複数座席を持つ。運転席と乗客席の区別は無い。操舵入力は乗車中のプレイヤーが送る想定だが、入力送信可否のサーバー検証は本仕様では行わない（5.4・セクション12参照）。よって現状は乗車していなくても操舵入力を送れる余地が残るが、これは既知の制限として許容する。
 - 乗り物はエンティティ（`IEntity`）ではない。列車などはそれぞれ専用 ID（`TrainCarInstanceId`）で管理・同期されている。よって「エンティティに乗る」ではなく「**識別子で指す何かに乗る**」概念として設計する。識別子は moorestech 既存の `ISubInventoryIdentifier` / `InventoryIdentifierMessagePack` パターンに合わせる。
 - 「乗れるもの」の抽象単位は `TrainUnit`（編成）ではなく `TrainCar`（車両）単位とする。
 
@@ -57,10 +57,13 @@
 - `SeatCount` はマスタデータ（座席スキーマ、後述）から取得する。
 
 ### 4.4 乗り物破棄の検知
-- 破棄検知はイベント粒度に依存しない。既存の列車削除イベント（`TrainUnitSnapshotNotifyEvent.NotifyDeleted`）は編成単位（`TrainInstanceId`）の情報しか持たず、車両1両削除でも編成全体の delete snapshot が出るため、これを直接「乗り物破棄」として扱わない（Codex 指摘②）。
-- 代わりに**再検証（reconciliation）方式**を採る。列車の構成変更（車両削除・編成分割・`TrainUnit` 破棄など）が起きた後に、`PlayerRidingDatastore` の全 `RidingState` を `RidableResolver` で再解決し、解決できなくなった（車両が存在しない）状態を検出する。
-- 解決できなくなった `RidingState` のうち、**接続中の乗員**: `RidingState` をクリアし `RidingStateEvent`（降車）を broadcast。プレイヤー座標はクライアント権威のため上書きしない（クライアントが車両消失を検知し自己降車する。セクション9）。
-- 解決できなくなった `RidingState` のうち、**切断中の乗員**: `RidingState` はそのまま残す。ログイン時に検知され降車処理される（セクション8）。
+- 編成単位の削除イベント（`TrainUnitSnapshotNotifyEvent.NotifyDeleted`）は `TrainInstanceId` しか持たず、車両1両削除でも編成全体の delete snapshot が出るため、これを「乗り物破棄」の検知には使わない（Codex 指摘②）。
+- 代わりに、**車両 ID を持つ既存イベント `TrainUpdateEvent.OnTrainCarRemoved` を購読する**。このイベントは削除された `TrainCar` を特定できる。
+- 起動タイミング: `TrainUnitDatastore` 等の更新が完了し `RidableResolver` で当該車両が解決できなくなった後にハンドラが走るよう、イベント発火点を確認する（計画段階で `OnTrainCarRemoved` の発火順を検証。datastore 更新前に走るなら順序対策が必要）。
+- ハンドラ処理: 削除された `TrainCar` の `TrainCarRidableIdentifier` を持つ `RidingState` を `PlayerRidingDatastore` の逆引きで列挙し、以下を行う。
+  - **接続中の乗員**: `RidingState` をクリアし `RidingStateEvent`（降車）を broadcast。プレイヤー座標はクライアント権威のため上書きしない（クライアントも車両消失を検知し自己降車する。セクション9）。
+  - **切断中の乗員**: `RidingState` はそのまま残す。ログイン時に検知され降車処理される（セクション8）。
+- 降車処理は冪等とする。既に降車済みの `RidingState` に対する降車は no-op。`OnTrainCarRemoved` と train snapshot の到達順がクライアントで前後しても、二重降車・逆順降車が壊れないようにする（セクション9・11）。
 
 ### 4.5 座標導出は不要
 - プレイヤー座標はクライアントが送信し続けるため、サーバー側で乗り物から毎tick座標を導出する処理は設けない。
@@ -74,12 +77,15 @@
 - サーバーは受信した `RidableIdentifierMessagePack` を `IRidableIdentifier` に逆変換し、`RidableResolver` で `IRidable` を解決する。
 - `Ride` 時: 乗り物が解決できなければ `RidableNotFound`。既に乗車中なら `AlreadyRiding`（移乗は不可、先に降車が必要）。空席（接続中プレイヤーが占有していない座席）が無ければ `NoSeatAvailable`。割当成功なら `RidingState` を設定し `RidingStateEvent` を broadcast、`Success` を返す。
 - `Dismount` 時: 乗車中でなければ `NotRiding`。乗車中なら `RidingState` をクリアし `RidingStateEvent` を broadcast、`Success` を返す。
-- クライアントは乗車・降車をローカル予測しない。`RideActionResult` と `RidingStateEvent` を受けて初めて見た目を反映する。
+- 反映の責務分担（自分が届く保証のため、Codex 指摘⑤）:
+  - **プレイヤー起因の乗車・降車**（自分が出した `RideActionProtocol`）: クライアントは `RideActionResult` レスポンスで見た目を反映する。`RidingStateEvent` には依存しない（自分の request-response は確実に届く）。ローカル予測はしない。
+  - **サーバー起因の降車**（乗り物破棄など）: クライアントは `RidingStateEvent` の受信、または「乗車中の対象車両が削除されたら強制降車」の自己検知で反映する（セクション9）。この時点でクライアントは既にイベントポーリング登録済みのため broadcast は届く。
 
 ### 5.2 RidingStateEventPacket（S→C broadcast）
 - `EventProtocolProvider.AddBroadcastEvent` 経由で配信。
 - ペイロード: `playerId`, `RidableIdentifierMessagePack? target`, `int? seatIndex`（降車時は null）。
-- 乗車・降車の両方を表現する。クライアントは現状、自分の `playerId` のイベントのみを処理する（セクション9）。他プレイヤー分は将来のリモートプレイヤー描画実装時に消費する。
+- 乗車・降車の両方を表現する。クライアントは現状、自分の `playerId` の **サーバー起因イベント**（主にサーバー起因の降車）のみを処理する（セクション9）。他プレイヤー分は将来のリモートプレイヤー描画実装時に消費する。
+- クライアント側のイベント適用は冪等とする（同じ降車イベントを複数回受けても、自己検知降車と重なっても壊れない。セクション4.4・11）。
 
 ### 5.3 ログイン時の自プレイヤー乗車状態の伝達
 - ログイン時のサーバー側評価（セクション8）の結果（復帰した `RidingState`、または無し）を、`InitialHandshakeProtocol` のレスポンスに含めて返す。クライアントはスポーン時に自分が乗車中かを知り、自己を座席に parent できる。
@@ -87,6 +93,7 @@
 
 ### 5.4 既存 TrainCarRidingInputProtocol
 - 変更しない。乗車状態に基づく操舵入力の検証（入力の `RidingTrainCarInstanceId` と乗車中車両の一致確認）は、複雑度が増すため本仕様では実施しない（Codex 指摘⑩、対応見送り）。
+- この結果、乗車していないプレイヤーが操舵入力を送れる余地が残るが、既知の制限として許容する（セクション2・12）。将来、検証を入れる場合は本プロトコルに `PlayerRidingDatastore` 参照を追加する拡張点として残す。
 
 ## 6. マスタデータ
 
@@ -99,11 +106,15 @@
 
 切断検知は「切断したプレイヤーの座席を他プレイヤーが使えるようにする」ために必須。座席は1人乗りであり、切断プレイヤーの `RidingState` はログイン復帰用に保持され続けるため、座席占有の判定を「接続中プレイヤーのみ」で行う必要がある。
 
-- 接続受付（`ServerListenAcceptor` / `UserPacketHandler`）でクライアント切断は検知可能（`Socket.Receive` が 0 を返す → `Cleanup`）。ただし現状ソケットと `playerId` が紐付いておらず、`Cleanup` で `playerId` の登録解除も行われていない。
-- 本仕様で以下を新設する:
-  - `InitialHandshakeProtocol` 受信時に、その接続（`UserPacketHandler`）に `playerId` を記録し、`playerId ⇄ 接続` の対応を管理する。
-  - 接続の `Cleanup`（切断）時に、記録した `playerId` で「プレイヤー切断イベント」を発火する。
-  - サーバーは各プレイヤーの接続中フラグを管理する。「接続中」＝有効な接続が存在すること。
+現状把握（計画段階で再確認すること）:
+- `UserPacketHandler` はソケットから受信した `byte[]` を `ReceiveQueueProcessor` に渡すだけで、接続コンテキストは `PacketResponseCreator` / 各プロトコルに渡らない。よって「どの接続の handshake か」をプロトコル層から識別する経路が現状ない。
+- 切断時の挙動: 通常切断（`Socket.Receive` が 0）と例外時で扱いが異なる。`Cleanup` が必ず呼ばれるとは限らない。
+
+本仕様で以下を新設する:
+- **接続コンテキストの導線**: 接続（`UserPacketHandler` 等）を一意に表すコンテキストを、少なくとも `InitialHandshakeProtocol` の処理まで渡せるようにする。これにより handshake 受信時に「この接続 ⇄ `playerId`」を登録できる。導線の具体形（プロトコルへ接続コンテキストを渡す／handshake を接続層で特別扱いする等）は計画段階で決める。
+- **切断イベント**: 通常切断・例外切断のいずれの経路でも、接続終了時に登録済み `playerId` で「プレイヤー切断イベント」が必ず1回発火するようにする。
+- サーバーは各プレイヤーの接続中フラグを管理する。「接続中」＝有効な接続が存在すること。
+- `playerId` の値自体は既存プロトコル同様 payload から受け取る（接続に紐付けた認証済み `playerId` でのなりすまし対策は既存プロトコル全体の課題であり、本仕様の対象外。セクション12）。接続 ⇄ `playerId` の紐付けは切断検知の目的にのみ使う。
 - 座席占有の判定（乗車要求時の空席割当、ログイン復帰時の空席判定）は**接続中プレイヤーの `RidingState` のみ**を対象とする。切断中プレイヤーの `RidingState` は座席占有としてカウントしない。
 - 切断プレイヤーの `RidingState` は `PlayerRidingDatastore` に保持し続ける（ログイン復帰用）。
 - 同一 `playerId` での二重接続の制御は本仕様の対象外とする。「1 `playerId` = 1 接続」を前提として進める（別タスク）。
@@ -113,10 +124,12 @@
 
 ログイン時、`PlayerRidingDatastore` にそのプレイヤーの `RidingState` があれば以下を判定する。
 
-- **`RidableResolver` で乗り物を解決でき、記録席が空いている** → 乗車復帰。`RidingState` を維持し、レスポンスで自プレイヤーの乗車状態を返す（セクション5.3）。`RidingStateEvent`（乗車）を broadcast。サーバーはプレイヤー座標を設定しない（クライアントが自己を座席に parent し、以後そのワールド座標を送信する）。
-- **それ以外（乗り物が消失、または記録席を他プレイヤーが使用中）** → `RidingState` をクリア。レスポンスは「乗車なし」。プレイヤー座標は `EntitiesDatastore` が保持する値（最後にクライアントが送った座標＝実質的に切断時点の座標）をそのまま使う。
+- **`RidableResolver` で乗り物を解決でき、記録席が有効かつ空いている** → 乗車復帰。`RidingState` を維持し、レスポンスで自プレイヤーの乗車状態を返す（セクション5.3）。`RidingStateEvent`（乗車）を broadcast。サーバーはプレイヤー座標を設定しない（クライアントが自己を座席に parent し、以後そのワールド座標を送信する）。
+- **それ以外（乗り物が消失、記録席が範囲外、または記録席を他プレイヤーが使用中）** → `RidingState` をクリア。レスポンスは「乗車なし」。プレイヤー座標は `EntitiesDatastore` が保持する値（最後にクライアントが送った座標＝実質的に切断時点の座標）をそのまま使う。
 
-「記録席が空いている」＝同じ `(identifier, seatIndex)` を持つ**接続中の別プレイヤー**がいないこと（判定対象からログイン中の本人は除外する）。
+復帰可否の条件:
+- 「記録席が有効」＝ `0 <= seatIndex < 解決した IRidable.SeatCount`。マスタ変更やセーブ手編集で範囲外になり得るため必ず検査する（Codex 指摘⑦）。範囲外なら復帰せず降車扱い。
+- 「記録席が空いている」＝同じ `(identifier, seatIndex)` を持つ**接続中の別プレイヤー**がいないこと（判定対象からログイン中の本人は除外する）。
 
 ## 9. クライアント側
 
@@ -134,10 +147,11 @@
 ## 10. セーブ／ロード
 
 - **`TrainCarSaveData` に `TrainCarInstanceId` を永続化する**。現状 `TrainCar` は生成のたびに新しい `TrainCarInstanceId` を採番し、`TrainCarSaveData` に ID を保存していないため、保存した `RidingState` の参照先がロード後に解決できない（Codex 指摘①、確定の不具合）。`TrainCarSaveData` に ID を含め、`TrainSaveLoadService` のロード（`RestoreTrainStates` / `RestoreTrainCar` 相当）で保存済み ID を再利用する。AGENTS.md より後方互換は考慮不要。これは列車インベントリ識別子（`TrainInventorySubInventoryIdentifier`）の安定化にも寄与する。
+- **ID 一意性**: 永続 ID を導入するため、ロードした `TrainCarInstanceId` の一意性を担保する。`TrainCar` を datastore に登録する箇所で ID 重複を検出したらエラーとする。新規採番（`TrainCarInstanceId.Create()` 相当）は既存登録 ID と衝突しない値を返すようにする（採番ロジックの是正は計画段階で扱う）。
 - `WorldSaveAllInfoV1` に `playerRidingStates` を追加する。各要素 `{ playerId, 識別子, seatIndex }`。
 - 識別子の保存は `RidableType` ＋ 型別ペイロード（TrainCar なら `TrainCarInstanceId`）で行う。`RidableIdentifierMessagePack` と同じ enum discriminator 構造を JSON でも踏襲する。
 - 凍結降車座標は保存しない（座標は既存のエンティティ座標セーブで保持される）。
-- **ロード順序を明示する**: ①レール → ②列車（`TrainCarInstanceId` 再利用込み）→ ③エンティティ → ④`playerRidingStates`。`playerRidingStates` のロードは `PlayerRidingDatastore` を埋めるだけで、参照先（乗り物）の存在検証・整合は行わない。整合の解決はログイン時（セクション8）まで遅延する。
+- **ロード順序**: ワールド全体のロード順序（ワールドブロック → レール → 列車 → エンティティ等の既存順序）は変更しない。`playerRidingStates` のロードのみ追加し、**列車復元より後**に行う。`playerRidingStates` のロードは `PlayerRidingDatastore` を埋めるだけで、参照先（乗り物）の存在検証・整合・席範囲検査は行わない。整合の解決はログイン時（セクション8）まで遅延する。
 
 ## 11. エッジケース整理
 
@@ -152,13 +166,16 @@
 | 切断中に乗り物破壊 | `RidingState` は消えた乗り物を指したまま → ログイン時に検知し降車 |
 | ログイン時に乗り物消失 | `RidingState` クリア、`EntitiesDatastore` の座標から開始 |
 | ログイン時に記録席を他プレイヤーが使用中 | `RidingState` クリア、`EntitiesDatastore` の座標から開始 |
-| ログイン時に記録席が空き＆乗り物存在 | 乗車復帰、ハンドシェイク応答で自乗車状態を返す、broadcast |
+| ログイン時に記録席が範囲外（`seatIndex >= SeatCount`） | `RidingState` クリア、`EntitiesDatastore` の座標から開始 |
+| ログイン時に記録席が有効・空き＆乗り物存在 | 乗車復帰、ハンドシェイク応答で自乗車状態を返す、broadcast |
+| 同じ降車を二重に受信（自己検知＋サーバーイベント等） | 冪等処理で no-op、壊れない |
 
 ## 12. スコープ外
 
 - 他プレイヤー（リモートプレイヤー）の描画システム。現状 moorestech に存在しないため、他プレイヤーが乗車している表現は実装しない。サーバーの `RidingStateEvent` broadcast は将来の実装に備えた配信のみ。
 - 同一 `playerId` の二重接続の制御。「1 `playerId` = 1 接続」を前提とする。
-- 操舵入力の乗車状態検証（入力車両と乗車中車両の一致確認）。複雑度のため見送り。
+- payload の `playerId` のなりすまし対策（接続に紐付けた認証済み `playerId` の強制）。既存プロトコル全体に共通する課題であり、本仕様だけで是正しない。
+- 操舵入力の乗車状態検証（入力車両と乗車中車両の一致確認）。複雑度のため見送り。乗車していないプレイヤーが操舵入力を送れる余地が残る。
 - 切断プレイヤーの一般的なゴースト化対策（乗車に関係しない接続管理の作り込み）。
 - 運転席／乗客席の権限区別。
 - 列車以外の `IRidable` 実装（車・船・動物等）。本仕様は抽象だけ用意し実装は列車のみ。
