@@ -27,7 +27,7 @@
 
 - **`RidableType`** … enum（byte）。`TrainCar` から開始。将来 `Car` / `Boat` 等を追加。`InventoryType` に倣う。
 - **`IRidableIdentifier`** … 乗り物を指す識別子インターフェース。`RidableType Type { get; }` を持ち、`Equals` / `GetHashCode` をオーバーライドする（Dictionary / HashSet のキーに使うため）。`ISubInventoryIdentifier` に倣う。
-- **`TrainCarRidableIdentifier : IRidableIdentifier`** … `Type => RidableType.TrainCar`、フィールド `TrainCarInstanceId TrainCarInstanceId`。`Equals` / `GetHashCode` は `TrainCarInstanceId` ベース。`TrainInventorySubInventoryIdentifier` に倣う。
+- **`TrainCarRidableIdentifier : IRidableIdentifier`** … `Type => RidableType.TrainCar`、フィールド `long TrainCarInstanceId`。`Equals` / `GetHashCode` は `TrainCarInstanceId` ベース。`TrainInventorySubInventoryIdentifier` に倣う。識別子の型は `TrainCarInstanceId` 構造体ではなく primitive `long` を使う（`TrainInventorySubInventoryIdentifier` と同じく、識別子アセンブリと `Game.Train` のアセンブリ循環参照を避けるため）。サーバーでの解決時に `new TrainCarInstanceId(long)` へ変換する。
 - **`RidableIdentifierMessagePack`** … ネットワーク用。enum discriminator ＋ ペイロード方式（MessagePackUnion は使わない）。`[MessagePackObject]`、`[Key(0)] RidableType`、`[Key(1)] string TrainCarInstanceId`（TrainCar の場合のみ設定、`long.ToString()`）。ファクトリ `CreateTrainCarMessage(TrainCarInstanceId)`。`InventoryIdentifierMessagePack` に倣う。
 - **識別子の相互変換** … `IRidableIdentifier.ToMessagePack()` 拡張メソッドと、`RidableIdentifierMessagePack` → `IRidableIdentifier` の逆変換（enum 判定の switch）。`ISubInventoryIdentifierExtension` および `SubscribeInventoryProtocol.ConvertIdentifier` に倣う。
 - **`RidingState`** … プレイヤー1人の乗車状態。`{ IRidableIdentifier identifier, int seatIndex }`。
@@ -67,7 +67,7 @@
 - `SeatCount` はマスタデータ（座席スキーマ、後述）から取得する。
 
 ### 4.4 乗り物破棄の検知
-- 編成単位の削除イベント（`TrainUnitSnapshotNotifyEvent.NotifyDeleted`）は `TrainInstanceId` しか持たず、車両1両削除でも編成全体の delete snapshot が出るため、これを「乗り物破棄」の検知には使わない（Codex 指摘②）。
+- 編成単位の削除イベント（`TrainUnitSnapshotNotifyEvent.NotifyDeleted`）は `TrainUnitInstanceId` しか持たず、車両1両削除でも編成全体の delete snapshot が出るため、これを「乗り物破棄」の検知には使わない（Codex 指摘②）。
 - 代わりに、**車両 ID を持つ既存イベント `TrainUpdateEvent.OnTrainCarRemoved` を購読する**。このイベントは削除された `TrainCar` を特定できる。
 - 起動タイミング: `TrainUnitDatastore` 等の更新が完了し `RidableResolver` で当該車両が解決できなくなった後にハンドラが走るよう、イベント発火点を確認する（計画段階で `OnTrainCarRemoved` の発火順を検証。datastore 更新前に走るなら順序対策が必要）。
 - ハンドラ処理: 削除された `TrainCar` の `TrainCarRidableIdentifier` を引数に `PlayerRidingDatastore.OnRidableRemoved()` を呼ぶ。`PlayerRidingDatastore` は逆引きで該当 `RidingState` を列挙し以下を行う。
