@@ -1,8 +1,15 @@
 using System;
+using System.Collections.Generic;
+using Game.Block.Blocks.TrainRail;
+using Game.Block.Interface;
+using Game.PlayerRiding;
+using Game.Train.RailGraph;
+using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Mooresmaster.Model.RidableSeatModule;
 using Mooresmaster.Model.TrainModule;
 using Tests.Util;
+using UnityEngine;
 
 namespace Tests.UnitTest.PlayerRiding
 {
@@ -17,20 +24,56 @@ namespace Tests.UnitTest.PlayerRiding
             // TrainCar コンストラクタが ServerContext を参照するため DI 環境を先に用意する
             // The TrainCar constructor reads ServerContext, so set up the DI environment first.
             TrainTestHelper.CreateEnvironment();
-            var master = CreateTrainCarMasterWithSeats(seatCount);
+            var master = CreateTrainCarMasterWithSeats(seatCount, 5);
             return new TrainCar(master, true);
         }
 
-        // 座席数 seatCount の TrainCarMasterElement を生成する。
-        // Builds a TrainCarMasterElement with seatCount ridable seats.
-        public static TrainCarMasterElement CreateTrainCarMasterWithSeats(int seatCount)
+        // 座席数 seatCount・長さ length の TrainCarMasterElement を生成する。
+        // Builds a TrainCarMasterElement with seatCount ridable seats and the given length.
+        public static TrainCarMasterElement CreateTrainCarMasterWithSeats(int seatCount, int length)
         {
             var seats = new RidableSeat[seatCount];
             for (var i = 0; i < seatCount; i++)
             {
                 seats[i] = new RidableSeat(0f, 0f, 0f);
             }
-            return new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 320, 0, 1, 5, "None", 0f, null, null, seats);
+            return new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 320, 0, 1, length, "None", 0f, null, null, seats);
+        }
+
+        // TrainUnitDatastore に座席付き車両を1両登録し、RidableResolver とともに返す。
+        // Registers one seated car into a TrainUnitDatastore and returns it with a RidableResolver.
+        public static (RidableResolver resolver, TrainUnitDatastore datastore, TrainCar car) CreateResolverWithOneTrainCar()
+        {
+            var environment = TrainTestHelper.CreateEnvironment();
+            var datastore = new TrainUnitDatastore();
+            var car = RegisterSeatedCarOnNewTrain(environment, datastore, 1, 0);
+            return (new RidableResolver(datastore), datastore, car);
+        }
+
+        // 新しいレール上に座席付き車両を1両だけ載せた TrainUnit を作り datastore に登録する。
+        // Builds a TrainUnit carrying one seated car on a fresh rail pair and registers it.
+        private static TrainCar RegisterSeatedCarOnNewTrain(TrainTestEnvironment environment, TrainUnitDatastore datastore, int seatCount, int railZ)
+        {
+            var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, railZ), BlockDirection.North);
+            var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, railZ), BlockDirection.North);
+            railA.FrontNode.ConnectNode(railB.FrontNode);
+            railB.BackNode.ConnectNode(railA.BackNode);
+            railB.FrontNode.ConnectNode(railA.FrontNode);
+            railA.BackNode.ConnectNode(railB.BackNode);
+
+            // レール間距離から車両長を割り出し、座席付きマスタで車両を生成する
+            // Derive car length from the rail gap and build the car from a seated master.
+            var distance = railB.FrontNode.GetDistanceToNode(railA.FrontNode);
+            var master = CreateTrainCarMasterWithSeats(seatCount, Mathf.Max(1, distance / 1024 / 20));
+            var car = new TrainCar(master, true);
+
+            var railPosition = new RailPosition(
+                new List<IRailNode> { railB.FrontNode, railA.FrontNode }, car.Length, Mathf.Max(1, distance / 10));
+            var trainUnit = new TrainUnit(
+                railPosition, new List<TrainCar> { car },
+                environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+            datastore.RegisterTrain(trainUnit);
+            return car;
         }
     }
 }

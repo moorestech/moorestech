@@ -18,5 +18,21 @@ namespace Tests.UnitTest.PlayerRiding
             Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive(),
                 ((TrainCarRidableIdentifier)ridable.Identifier).TrainCarInstanceId);
         }
+
+        [Test]
+        public void RidableResolver_ResolvesExistingTrainCar_AndReturnsNullForMissing()
+        {
+            // 登録済み車両は解決でき、未知のIDは null を返す
+            // A registered car resolves; an unknown id returns null.
+            var (resolver, _, car) = RidingTestHelper.CreateResolverWithOneTrainCar();
+
+            var existing = resolver.Resolve(new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive()));
+            var missing = resolver.Resolve(new TrainCarRidableIdentifier(-1L));
+
+            Assert.IsNotNull(existing);
+            Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive(),
+                ((TrainCarRidableIdentifier)existing.Identifier).TrainCarInstanceId);
+            Assert.IsNull(missing);
+        }
     }
 }

@@ -1,0 +1,19 @@
+{
+    "name": "Game.PlayerRiding",
+    "rootNamespace": "",
+    "references": [
+        "Game.PlayerRiding.Interface",
+        "Game.Train",
+        "Game.Context",
+        "Server.Util"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
