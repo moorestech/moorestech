@@ -37,6 +37,8 @@
         "Game.Paths",
         "Game.Research",
         "Game.Action",
+        "Game.PlayerRiding",
+        "Game.PlayerRiding.Interface",
         "UniRx"
     ],
     "includePlatforms": [],
