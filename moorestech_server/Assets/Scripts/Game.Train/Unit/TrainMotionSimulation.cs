@@ -10,16 +10,19 @@ namespace Game.Train.Unit
         public AutoRunMasconInput(
             double currentSpeed,
             int remainingDistance,
-            int totalWeight)
+            int totalWeight,
+            double totalTraction)
         {
             CurrentSpeed = currentSpeed;
             RemainingDistance = remainingDistance;
             TotalWeight = totalWeight;
+            TotalTraction = totalTraction;
         }
 
         public double CurrentSpeed { get; }
         public int RemainingDistance { get; }
         public int TotalWeight { get; }
+        public double TotalTraction { get; }
     }
 
     /// <summary>
@@ -28,53 +31,47 @@ namespace Game.Train.Unit
     /// </summary>
     public static class TrainAutoRunMasconCalculator
     {
+        private const double TargetBrakeRate = 7.0d / 8.0d;
+        private const double MaxBrakeRate = 1.0d;
+        private const double AutoSpeedTrackingGain = 1.25d;
+
         public static int Calculate(in AutoRunMasconInput input)
         {
-            /* 
-            var mascon = 0;
-            var remaining = Math.Max(0, input.RemainingDistance);
-            var maxSpeed = Math.Sqrt(remaining * MasterHolder.TrainUnitMaster.AutoRunMaxSpeedDistanceCoefficient) + MasterHolder.TrainUnitMaster.AutoRunMaxSpeedOffset;
-            if (maxSpeed > input.CurrentSpeed)
-            {
-                mascon = MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-            }
-
-            var bufferedSpeed = input.CurrentSpeed * MasterHolder.TrainUnitMaster.AutoRunSpeedBufferRate;
-            if (maxSpeed < bufferedSpeed)
-            {
-                var subspeed = maxSpeed - bufferedSpeed;
-                mascon = Math.Max((int)subspeed, -MasterHolder.TrainUnitMaster.MasconLevelMaximum);
-            }
-            return mascon;
-            */
-            
-            const double TargetBrakeRate = 7.0d / 8.0d;
             var maxMascon = MasterHolder.TrainUnitMaster.MasconLevelMaximum;
             var speed = Math.Abs(input.CurrentSpeed);
-            var remainingMeters = Math.Max(0, input.RemainingDistance) / (double)BezierUtility.RAIL_LENGTH_SCALE;
-            
-            if (remainingMeters <= 0)
-            {
-                return speed > 0 ? -(int)Math.Round(maxMascon * TargetBrakeRate) : 0;
-            }
+            // 手前で速度0停止しても再加速できるようしないようマージンをセット
+            var remainingMeters = Math.Max(1, BezierUtility.RAIL_LENGTH_SCALE / 4 + input.RemainingDistance) / (double)BezierUtility.RAIL_LENGTH_SCALE;
             
             var maxBrakeAcceleration = MasterHolder.TrainUnitMaster.MaxBrakeDecelerationMetersPerSecondSquared;
-            
-// ここは本当は totalWeight が必要。
-// airResistance は weight で割って加速度にする必要がある。
-            var resistanceAcceleration = TrainDistanceSimulator.CalculateResistanceAcceleration(speed, input.TotalWeight);
-            var requiredTotalDeceleration = speed * speed / (2.0d * remainingMeters);
-            var requiredBrakeAcceleration = Math.Max(0, requiredTotalDeceleration - resistanceAcceleration);
-            var requiredBrakeRate = requiredBrakeAcceleration / maxBrakeAcceleration;
-// まだ 7/8 ブレーキ曲線に入っていないなら加速。
-// ここで弱いブレーキを遠くから入れない。
-            if (requiredBrakeRate < TargetBrakeRate)
+            if (maxBrakeAcceleration <= 0)
             {
                 return maxMascon;
             }
-// 曲線に入ったら、必要量を毎tick再計算する。
-// 通常は 7/8 付近に張り付く。
-            var brakeRate = Math.Min(requiredBrakeRate, TargetBrakeRate);
+
+            var totalWeight = input.TotalWeight;
+            // 残距離から7/8ブレーキ曲線上の許容速度を求める。
+            // Calculate the allowed speed on the 7/8 brake curve from the remaining distance.
+            var resistanceAcceleration = TrainDistanceSimulator.CalculateResistanceAcceleration(speed, totalWeight);
+            var curveAcceleration = maxBrakeAcceleration * TargetBrakeRate + resistanceAcceleration;
+            var allowedSpeed = Math.Sqrt(2.0d * curveAcceleration * remainingMeters);
+            // 許容速度との差を1tick分の加速度へ変換し、曲線が要求する再加速も許可する。
+            // Convert the speed gap into per-tick acceleration and allow curve-driven re-acceleration.
+            var targetAcceleration = (allowedSpeed - speed) / GameUpdater.SecondsPerTick * AutoSpeedTrackingGain;
+
+            if (targetAcceleration >= 0)
+            {
+                var maxTractionAcceleration = input.TotalTraction / totalWeight;
+                if (maxTractionAcceleration <= 0)
+                {
+                    return 0;
+                }
+                var tractionRate = Math.Min(targetAcceleration / maxTractionAcceleration, 1.0d);
+                return (int)Math.Round(maxMascon * tractionRate);
+            }
+
+            // 曲線が減速を要求する場合だけ、必要量を最大ブレーキまで出す。
+            // Apply braking only when the curve requires deceleration, capped at full brake.
+            var brakeRate = Math.Min(-targetAcceleration / maxBrakeAcceleration, MaxBrakeRate);
             return -(int)Math.Round(maxMascon * brakeRate);
         }
     }
