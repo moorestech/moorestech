@@ -13,26 +13,26 @@ namespace Game.Train.Event
         
         public void NotifySnapshot(TrainUnit trainUnit)
         {
-            if (trainUnit == null || trainUnit.TrainInstanceId == TrainInstanceId.Empty)
+            if (trainUnit == null || trainUnit.TrainUnitInstanceId == TrainUnitInstanceId.Empty)
             {
                 return;
             }
             trainUnit.ResetDiff();
             // 単機スナップショットの更新を通知する
             // Notify that a single train unit snapshot should be updated.
-            _subject.OnNext(new TrainUnitSnapshotNotifyEventData(trainUnit.TrainInstanceId, false, trainUnit));
+            _subject.OnNext(new TrainUnitSnapshotNotifyEventData(trainUnit.TrainUnitInstanceId, false, trainUnit));
         }
 
-        public void NotifyDeleted(TrainInstanceId trainInstanceId)
+        public void NotifyDeleted(TrainUnitInstanceId trainUnitInstanceId)
         {
-            if (trainInstanceId == TrainInstanceId.Empty)
+            if (trainUnitInstanceId == TrainUnitInstanceId.Empty)
             {
                 return;
             }
 
             // 編成削除通知を発行する
             // Notify that a train unit has been deleted.
-            _subject.OnNext(new TrainUnitSnapshotNotifyEventData(trainInstanceId, true, null));
+            _subject.OnNext(new TrainUnitSnapshotNotifyEventData(trainUnitInstanceId, true, null));
         }
     }
 }

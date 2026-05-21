@@ -16,7 +16,7 @@ namespace Game.Train.Unit
             _carIndex = carIndex;
         }
 
-        public TrainInstanceId TrainInstanceId => _trainUnit.TrainInstanceId;
+        public TrainUnitInstanceId TrainUnitInstanceId => _trainUnit.TrainUnitInstanceId;
         public long TrainCarInstanceId => _trainCar.TrainCarInstanceId.AsPrimitive();
         public int CarIndex => _carIndex;
 
