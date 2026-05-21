@@ -35,5 +35,18 @@ namespace Tests.UnitTest.PlayerRiding
             Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
             Assert.IsFalse(a.Equals(c));
         }
+
+        [Test]
+        public void RidableIdentifierConverter_RoundTripsBetweenInterfaceAndMessagePack()
+        {
+            // IRidableIdentifier → MessagePack → IRidableIdentifier の往復で等価性が保たれる
+            // Round trip IRidableIdentifier -> MessagePack -> IRidableIdentifier preserves equality.
+            IRidableIdentifier original = new TrainCarRidableIdentifier(999L);
+
+            var messagePack = original.ToMessagePack();
+            var restored = RidableIdentifierConverter.FromMessagePack(messagePack);
+
+            Assert.IsTrue(original.Equals(restored));
+        }
     }
 }
