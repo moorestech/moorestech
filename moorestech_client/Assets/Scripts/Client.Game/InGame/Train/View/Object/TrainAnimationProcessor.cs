@@ -5,7 +5,7 @@ namespace Client.Game.InGame.Train.View.Object
 {
     public sealed class TrainAnimationProcessor : MonoBehaviour, ITrainCarObjectProcessor
     {
-        private const double AnimationSpeed = 0.0025;
+        private const double AnimationSpeed = 0.61;
 
         private Animator[] _animators;
         private float[] _animatorBaseSpeeds;
