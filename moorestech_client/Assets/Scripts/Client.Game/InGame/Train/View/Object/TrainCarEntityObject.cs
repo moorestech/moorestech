@@ -81,11 +81,6 @@ namespace Client.Game.InGame.Train.View.Object
             }
         }
 
-        private void FixedUpdate()
-        {
-            _poseService.ApplyToPhysics();
-        }
-
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
         // Local function to send the auto-run state for all trains
         void OnTrainAutoRunChanged(bool isEnabled)

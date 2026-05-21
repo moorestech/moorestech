@@ -71,5 +71,13 @@ namespace Client.Game.InGame.Train.Unit
                 }
             }
         }
+        
+        // 描画用 補間
+        // 
+        public double GetRenderInterpolationRate()
+        {
+            var progress = _estimatedClientTick - _tickState.GetTick();
+            return progress;
+        }
     }
 }

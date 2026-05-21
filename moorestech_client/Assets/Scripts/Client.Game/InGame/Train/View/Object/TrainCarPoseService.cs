@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.View.Object
 {
     /// <summary>
-    /// 列車車両のRigidbody姿勢制御を担う純粋C#サービス
-    /// Pure C# service responsible for train car rigidbody pose control
+    /// 列車車両の表示姿勢とRigidbody状態を同期するサービス
+    /// Service that synchronizes train-car render pose and Rigidbody state.
     /// </summary>
     public class TrainCarPoseService
     {
@@ -12,14 +12,10 @@ namespace Client.Game.InGame.Train.View.Object
 
         private readonly Rigidbody _rigidbody;
         private readonly Transform _transform;
-        private Vector3 _requestedPosition;
-        private Quaternion _requestedRotation = Quaternion.identity;
-        private bool _hasRequestedPose;
-        private bool _hasAppliedInitialPose;
 
         /// <summary>
         /// モデル中心の前後オフセット
-        /// Model forward center offset
+        /// Model forward center offset.
         /// </summary>
         public float ModelForwardCenterOffset { get; }
 
@@ -27,31 +23,36 @@ namespace Client.Game.InGame.Train.View.Object
         {
             _rigidbody = rigidbody;
             _transform = transform;
-            // Rigidbodyをkinematic用に設定する
-            // Configure the Rigidbody for kinematic pose driving
+
+            // Rigidbodyは当たり判定用に残し、列車Transformはtick計算結果で直接動かす。
+            // Keep the Rigidbody for collision while the train Transform is driven directly.
             ConfigureRigidbody();
-            // モデル中心の前後オフセットをキャッシュする
-            // Cache the model forward center offset
+
+            // モデル境界から姿勢計算用の中心補正量を求める。
+            // Resolve the model center offset used by pose calculation.
             ModelForwardCenterOffset = ResolveModelForwardCenterOffset();
 
             #region Internal
 
             void ConfigureRigidbody()
             {
-                // 列車Colliderの移動を物理エンジンへ渡すためRigidbodyをkinematicに設定する
-                // Set the Rigidbody kinematic so train collider movement is handled by physics
+                // 物理エンジンが列車Transformを補間・外挿しないようにする。
+                // Prevent the physics engine from interpolating or extrapolating the train Transform.
                 _rigidbody.isKinematic = true;
                 _rigidbody.useGravity = false;
-                _rigidbody.interpolation = RigidbodyInterpolation.Interpolate;
+                _rigidbody.interpolation = RigidbodyInterpolation.None;
                 _rigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
             }
 
             float ResolveModelForwardCenterOffset()
             {
-                // レンダラの境界中心から前後オフセットを算出する
-                // Compute forward offset from renderer bounds center
+                // Renderer群のワールド境界中心をローカル前後軸へ射影する。
+                // Project the combined renderer bounds center onto the local forward axis.
                 var combined = renderers[0].bounds;
                 for (var i = 1; i < renderers.Length; i++) combined.Encapsulate(renderers[i].bounds);
+
+                // モデルの見た目軸とレール進行方向の差分を補正して中心を測る。
+                // Measure the center after correcting the model axis against rail direction.
                 var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
                 var localCenter = transform.InverseTransformPoint(combined.center);
                 return Vector3.Dot(localCenter, localForwardAxis);
@@ -60,47 +61,16 @@ namespace Client.Game.InGame.Train.View.Object
             #endregion
         }
 
-        /// <summary>
-        /// 物理更新で反映する列車姿勢を要求する
-        /// Request the train pose to apply during physics updates
-        /// </summary>
         public void RequestPose(Vector3 position, Quaternion rotation)
         {
-            _requestedPosition = position;
-            _requestedRotation = rotation;
-            _hasRequestedPose = true;
+            // tickで決まった姿勢を表示Transformへ即時反映する。
+            // Apply the tick-resolved pose to the visible Transform immediately.
+            _transform.SetPositionAndRotation(position, rotation);
 
-            // 初回だけ物理補間せずに正しい位置へ配置する
-            // Snap only the first pose so the train starts at the correct location
-            if (_hasAppliedInitialPose)
-            {
-                return;
-            }
-
+            // RigidbodyはTransformを主導せず、同じ姿勢へ同期するだけにする。
+            // Keep the Rigidbody synchronized without letting it drive the Transform.
             _rigidbody.position = position;
             _rigidbody.rotation = rotation;
-            _transform.SetPositionAndRotation(position, rotation);
-            _hasAppliedInitialPose = true;
-        }
-
-        /// <summary>
-        /// FixedUpdateで姿勢要求を物理エンジンへ反映する
-        /// Apply the pose request to the physics engine on FixedUpdate
-        /// </summary>
-        public void ApplyToPhysics()
-        {
-            // 姿勢要求が届くまで物理更新は行わない
-            // Skip physics movement until a pose request is available
-            if (!_hasRequestedPose)
-            {
-                return;
-            }
-
-            // kinematic Rigidbody経由でCollider移動を物理エンジンへ反映する
-            // Apply collider movement through the kinematic Rigidbody
-            _rigidbody.interpolation = RigidbodyInterpolation.Extrapolate;
-            _rigidbody.MovePosition(_requestedPosition);
-            _rigidbody.MoveRotation(_requestedRotation);
         }
     }
 }
