@@ -106,9 +106,9 @@ namespace Server.Protocol.PacketResponse
                         
                         if (emptySlotIndex == -1) continue;
                         
-                        var item = ServerContext.ItemStackFactory.Create(fuel.ItemGuid, 10);
+                        var item = ServerContext.ItemStackFactory.Create(fuel.ItemGuid, 100);
                         itemTrainCarContainer.SetItem(emptySlotIndex, item);
-                        Debug.Log($"add fuel to train car {MasterHolder.ItemMaster.GetItemMaster(fuel.ItemGuid).Name} x 10");
+                        Debug.Log($"add fuel to train car {MasterHolder.ItemMaster.GetItemMaster(fuel.ItemGuid).Name} x 100");
                     }
                 }
             }
