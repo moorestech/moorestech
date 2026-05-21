@@ -13,22 +13,28 @@ namespace Client.Game.InGame.Train.View
         private const float ModelYawOffsetDegrees = -90f;
 
         private TrainUnitClientCache _trainCache;
+        private TrainUnitTickState _tickState;
+        private TrainUnitClientSimulator _clientSimulator;
         private TrainCarEntityObject _trainCarEntity;
         private ITrainCarObjectProcessor[] _processors;
         private TrainCarRenderSnapshot _currentRenderSnapshot;
         private TrainCarRenderSnapshot _previousRenderSnapshot;
+        private uint _lastSnapshotTick;
         private bool _hasCurrentRenderSnapshot;
         private bool _hasPreviousRenderSnapshot;
         private bool _isReady;
 
-        public void Initialize(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache)
+        public void Initialize(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache, TrainUnitTickState tickState, TrainUnitClientSimulator clientSimulator)
         {
             // 依存参照と表示 processor 一覧を初期化時に保持する
             // Store dependency references and view processors during initialization
             _trainCarEntity = trainCarEntity;
             _trainCache = trainCache;
+            _tickState = tickState;
+            _clientSimulator = clientSimulator;
             _currentRenderSnapshot = default;
             _previousRenderSnapshot = default;
+            _lastSnapshotTick = 0;
             _hasCurrentRenderSnapshot = false;
             _hasPreviousRenderSnapshot = false;
             _processors = GetComponentsInChildren<ITrainCarObjectProcessor>();
@@ -54,7 +60,7 @@ namespace Client.Game.InGame.Train.View
 
             // 今回の出力 snapshot を解決して姿勢と context を組み立てる
             // Resolve the output snapshot and build pose plus context
-            if (!TryResolveCurrentOutputSnapshot(out var outputSnapshot))
+            if (!TryResolveOutputPose(out var position, out var rotation, out var contextSnapshot))
             {
                 DispatchProcessors(TrainCarContext.CreateUnavailable());
                 return;
@@ -62,23 +68,23 @@ namespace Client.Game.InGame.Train.View
 
             // render snapshot から列車姿勢を計算する
             // Compute the car pose from the render snapshot
-            if (!TryResolveRenderPose(outputSnapshot, out var position, out var rotation))
-            {
-                DispatchProcessors(TrainCarContext.CreateUnavailable());
-                return;
-            }
-
             // レール由来の姿勢を GameObject に反映する
             // Apply the rail-derived pose to the GameObject
             _trainCarEntity.SetDirectPose(position, rotation);
-            DispatchProcessors(CreateContext(outputSnapshot));
+            DispatchProcessors(CreateContext(contextSnapshot));
         }
 
         private void UpdateCurrentRenderSnapshot()
         {
+            var currentTick = _tickState.GetTick();
+            if (_hasCurrentRenderSnapshot && currentTick == _lastSnapshotTick)
+            {
+                return;
+            }
+
             // 最新 snapshot を読めた時だけ current を更新する
             // Update the current snapshot only when the cache lookup succeeds
-            if (!TryResolveLatestRenderSnapshot(out var latestRenderSnapshot))
+            if (!TryResolveLatestRenderSnapshot(currentTick, out var latestRenderSnapshot))
             {
                 return;
             }
@@ -90,24 +96,49 @@ namespace Client.Game.InGame.Train.View
                 _previousRenderSnapshot = _currentRenderSnapshot;
                 _hasPreviousRenderSnapshot = true;
             }
+            else
+            {
+                _previousRenderSnapshot = latestRenderSnapshot;
+                _hasPreviousRenderSnapshot = true;
+            }
 
             // 今回の表示基準となる current snapshot を差し替える
             // Replace the current snapshot used for rendering
             _currentRenderSnapshot = latestRenderSnapshot;
             _hasCurrentRenderSnapshot = true;
+            _lastSnapshotTick = latestRenderSnapshot.Tick;
         }
 
-        private bool TryResolveCurrentOutputSnapshot(out TrainCarRenderSnapshot outputSnapshot)
+        private bool TryResolveOutputPose(out Vector3 position, out Quaternion rotation, out TrainCarRenderSnapshot contextSnapshot)
         {
             // 補間導入前は current snapshot をそのまま出力する
             // Before interpolation, output the current snapshot as-is
-            outputSnapshot = default;
+            position = default;
+            rotation = Quaternion.identity;
+            contextSnapshot = default;
             if (!_hasCurrentRenderSnapshot)
             {
                 return false;
             }
 
-            outputSnapshot = _currentRenderSnapshot;
+            contextSnapshot = _currentRenderSnapshot;
+            if (!_hasPreviousRenderSnapshot)
+            {
+                return TryResolveRenderPose(_currentRenderSnapshot, out position, out rotation);
+            }
+
+            if (!TryResolveRenderPose(_previousRenderSnapshot, out var previousPosition, out var previousRotation))
+            {
+                return false;
+            }
+            if (!TryResolveRenderPose(_currentRenderSnapshot, out var currentPosition, out var currentRotation))
+            {
+                return false;
+            }
+
+            var rate = (float)_clientSimulator.GetRenderInterpolationRate();
+            position = Vector3.LerpUnclamped(previousPosition, currentPosition, rate);
+            rotation = Quaternion.SlerpUnclamped(previousRotation, currentRotation, rate);
             return true;
         }
 
@@ -151,7 +182,7 @@ namespace Client.Game.InGame.Train.View
             }
         }
 
-        private bool TryResolveLatestRenderSnapshot(out TrainCarRenderSnapshot renderSnapshot)
+        private bool TryResolveLatestRenderSnapshot(uint tick, out TrainCarRenderSnapshot renderSnapshot)
         {
             // 出力値を先に初期化する
             // Initialize output values first
@@ -172,7 +203,7 @@ namespace Client.Game.InGame.Train.View
                 return false;
             }
 
-            renderSnapshot = TrainCarRenderSnapshot.Create(railPosition, frontOffset, rearOffset, snapshot.IsFacingForward, unit.CurrentSpeed, unit.MasconLevel);
+            renderSnapshot = TrainCarRenderSnapshot.Create(tick, railPosition.DeepCopy(), frontOffset, rearOffset, snapshot.IsFacingForward, unit.CurrentSpeed, unit.MasconLevel);
             return true;
         }
 
