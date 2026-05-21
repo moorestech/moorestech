@@ -5,6 +5,7 @@ using Game.CraftTree.Json;
 using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
+using Game.PlayerRiding;
 using Game.Research;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
@@ -29,7 +30,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<PlayerCraftTreeJsonObject> craftTreeInfo,
             ResearchSaveJsonObject research,
             List<TrainUnitSaveData> trainUnits,
-            List<RailSegmentSaveData> railSegments)
+            List<RailSegmentSaveData> railSegments,
+            List<PlayerRidingSaveData> playerRidingStates)
         {
             World = world;
             Inventory = inventory;
@@ -42,6 +44,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             Research = research;
             TrainUnits = trainUnits ?? new List<TrainUnitSaveData>();
             RailSegments = railSegments ?? new List<RailSegmentSaveData>();
+            PlayerRidingStates = playerRidingStates ?? new List<PlayerRidingSaveData>();
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -56,5 +59,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("research")] public ResearchSaveJsonObject Research { get; }
         [JsonProperty("trainUnits")] public List<TrainUnitSaveData> TrainUnits { get; }
         [JsonProperty("railSegments")] public List<RailSegmentSaveData> RailSegments { get; }
+        [JsonProperty("playerRidingStates")] public List<PlayerRidingSaveData> PlayerRidingStates { get; }
     }
 }
