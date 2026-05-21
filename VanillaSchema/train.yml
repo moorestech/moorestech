@@ -73,7 +73,6 @@ properties:
           default: 1
     - key: ridableSeats
       type: array
-      optional: true
       items:
         ref: ridableSeat
 - key: railItems
