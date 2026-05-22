@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.PlayerConnection;
 using Game.PlayerRiding.Interface;
 
 namespace Game.PlayerRiding
@@ -153,15 +154,14 @@ namespace Game.PlayerRiding
             var list = new List<PlayerRidingSaveData>();
             foreach (var pair in _ridingStateByPlayerId)
             {
+                // 識別子の直列化は型ごとの GetSaveState() に委譲する（乗り物種別の増加に DTO 非依存）。
+                // Identifier serialization is delegated to each type's GetSaveState().
                 var identifier = pair.Value.Identifier;
-                // 現状 TrainCar のみ。新 RidableType 追加時はここに分岐を足す。
-                // Only TrainCar for now; add a branch here when new RidableTypes appear.
-                var trainCar = (TrainCarRidableIdentifier)identifier;
                 list.Add(new PlayerRidingSaveData
                 {
                     PlayerId = pair.Key,
                     RidableType = (byte)identifier.Type,
-                    TrainCarInstanceId = trainCar.TrainCarInstanceId,
+                    IdentifierState = identifier.GetSaveState(),
                     SeatIndex = pair.Value.SeatIndex,
                 });
             }
@@ -176,11 +176,9 @@ namespace Game.PlayerRiding
             if (saveData == null) return;
             foreach (var data in saveData)
             {
-                IRidableIdentifier identifier = (RidableType)data.RidableType switch
-                {
-                    RidableType.TrainCar => new TrainCarRidableIdentifier(data.TrainCarInstanceId),
-                    _ => null,
-                };
+                // 判別子とペイロード文字列から識別子を復元する。未知の型は読み飛ばす。
+                // Restore the identifier from the discriminator and payload; skip unknown types.
+                var identifier = RidableIdentifierConverter.FromSaveState((RidableType)data.RidableType, data.IdentifierState);
                 if (identifier == null) continue;
                 _ridingStateByPlayerId[data.PlayerId] = new RidingState(identifier, data.SeatIndex);
             }

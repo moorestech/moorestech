@@ -172,7 +172,7 @@ namespace Server.Boot
 
             // 乗車コア。IPlayerConnectionChecker は Phase 3 で実接続レジストリへ差し替える。
             // Riding core. IPlayerConnectionChecker is swapped for the real registry in Phase 3.
-            services.AddSingleton<Game.PlayerRiding.Interface.IPlayerConnectionChecker, Game.PlayerRiding.AlwaysConnectedChecker>();
+            services.AddSingleton<Game.PlayerConnection.IPlayerConnectionChecker, Game.PlayerConnection.AlwaysConnectedChecker>();
             services.AddSingleton<Game.PlayerRiding.RidableResolver>();
             services.AddSingleton<Game.PlayerRiding.PlayerRidingDatastore>();
 
