@@ -47,6 +47,8 @@ using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using Game.PlayerRiding.Interface;
+using Game.Train.Unit;
 using Game.UnlockState;
 using UnityEngine;
 using VContainer;
@@ -280,8 +282,36 @@ namespace Client.Starter
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();
-            
+
+            // ログイン時に乗車中だった場合、乗車状態を復元する（仕様書セクション5.3・8）。
+            // Restore riding state when the player was riding at login time.
+            RestoreRidingState(initialHandshakeResponse);
+
             return _resolver;
+        }
+
+        // ハンドシェイク応答の RidingTarget を見て乗車状態を復元する。実 parent は TrainCarRidingPlayerController.Tick() が車両生成後に行う。
+        // Restores riding state from the handshake response; actual parenting is done by TrainCarRidingPlayerController.Tick() once the car object exists.
+        private void RestoreRidingState(InitialHandshakeResponse initialHandshakeResponse)
+        {
+            var ridingTarget = initialHandshakeResponse.RidingTarget;
+            if (ridingTarget == null)
+            {
+                return;
+            }
+
+            // 列車車両のみ対応（クライアント実装は列車のみ・仕様書セクション9）。
+            // Train cars only (client scope is train-only).
+            if (new RidableType(ridingTarget.RidableType) != RidableType.TrainCar)
+            {
+                return;
+            }
+            if (!long.TryParse(ridingTarget.TrainCarInstanceId, out var instanceId))
+            {
+                return;
+            }
+
+            _resolver.Resolve<TrainCarRidingState>().SetRidingTrainCar(new TrainCarInstanceId(instanceId));
         }
     }
 }
