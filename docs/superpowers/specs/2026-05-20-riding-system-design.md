@@ -116,18 +116,18 @@
 
 切断検知は「切断したプレイヤーの座席を他プレイヤーが使えるようにする」ために必須。座席は1人乗りであり、切断プレイヤーの `RidingState` はログイン復帰用に保持され続けるため、座席占有の判定を「接続中プレイヤーのみ」で行う必要がある。
 
-現状把握（計画段階で再確認すること）:
-- `UserPacketHandler` はソケットから受信した `byte[]` を `ReceiveQueueProcessor` に渡すだけで、接続コンテキストは `PacketResponseCreator` / 各プロトコルに渡らない。よって「どの接続の handshake か」をプロトコル層から識別する経路が現状ない。
-- 切断時の挙動: 通常切断（`Socket.Receive` が 0）と例外時で扱いが異なる。`Cleanup` が必ず呼ばれるとは限らない。
+背景:
+- `UserPacketHandler` はソケットから受信した `byte[]` を `ReceiveQueueProcessor` に渡すだけで、当初は接続コンテキストが `PacketResponseCreator` / 各プロトコルに渡らず、「どの接続の handshake か」をプロトコル層から識別できなかった。
+- 切断時の挙動: 通常切断（`Socket.Receive` が 0）と例外時で扱いが異なり、`Cleanup` が必ず呼ばれるとは限らなかった。
 
-本仕様で以下を新設する:
-- **接続コンテキストの導線**: 接続（`UserPacketHandler` 等）を一意に表すコンテキストを、少なくとも `InitialHandshakeProtocol` の処理まで渡せるようにする。これにより handshake 受信時に「この接続 ⇄ `playerId`」を登録できる。導線の具体形（プロトコルへ接続コンテキストを渡す／handshake を接続層で特別扱いする等）は計画段階で決める。
+本仕様で以下を新設・実装した:
+- **接続コンテキストの導線（実装済み）**: 接続単位の `PacketResponseContext` を `IPacketResponse.GetResponse(byte[], PacketResponseContext)` の必須引数とし、全プロトコル共通で受け取る。`ServerListenAcceptor` が接続ごとに1つ生成し、`ReceiveQueueProcessor` 経由でプロトコル層へ渡す。`InitialHandshakeProtocol` は handshake 受信時に `context.BindPlayerId(playerId)` で「この接続 ⇄ `playerId`」を記録し、`UserPacketHandler.Cleanup` がそれを読んで `Unregister` する。`PacketResponseContext` は書き込み（メインスレッド）と読み取り（受信スレッド）がスレッドをまたぐため `lock` で保護する。当初検討した「二重インタフェース（`IConnectionAwarePacketResponse`）／handshake を接続層で特別扱い」案は、特殊な経路を残すため不採用とした。
 - **切断イベント**: 通常切断・例外切断のいずれの経路でも、接続終了時に登録済み `playerId` で「プレイヤー切断イベント」が必ず1回発火するようにする。
 - サーバーは各プレイヤーの接続中フラグを管理する。「接続中」＝有効な接続が存在すること。
 - `playerId` の値自体は既存プロトコル同様 payload から受け取る（接続に紐付けた認証済み `playerId` でのなりすまし対策は既存プロトコル全体の課題であり、本仕様の対象外。セクション12）。接続 ⇄ `playerId` の紐付けは切断検知の目的にのみ使う。
 - 座席占有の判定（乗車要求時の空席割当、ログイン復帰時の空席判定）は**接続中プレイヤーの `RidingState` のみ**を対象とする。切断中プレイヤーの `RidingState` は座席占有としてカウントしない。
 - 切断プレイヤーの `RidingState` は `PlayerRidingDatastore` に保持し続ける（ログイン復帰用）。
-- 同一 `playerId` での二重接続の制御は本仕様の対象外とする。「1 `playerId` = 1 接続」を前提として進める（別タスク）。
+- 同一 `playerId` での多重接続は許可しない。「1 `playerId` = 1 接続」を前提とし、接続管理は `PlayerConnectionRegistry` の `HashSet<int>` で行う（参照カウントは不要）。
 - 切断検知は乗車システムが必要とする最小限に留める。汎用的なプレイヤーライフサイクル管理（切断プレイヤーの一般的なゴースト化対策など）は本仕様の対象外とし、別タスクとする。
 
 ## 8. ログイン時の復帰（InitialHandshakeProtocol 拡張）
