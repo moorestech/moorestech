@@ -92,6 +92,24 @@ Phase 1 実装中に確定した事実・計画からの逸脱・ユーザー判
 - Codex 観点2（`AttachTrainCarToUnitProtocol` の部分状態）は、重複検出が削除されたため
   現状は無効化。Phase 2/3 で新たな登録時バリデーションを入れる場合は再考。
 
+### Phase 2 デュアルレビューで判明した Phase 3 申し送り（2026-05-22）
+
+Phase 2 完了後の外部監査（Codex）で、Phase 3 で対応すべき項目が3点判明した:
+- **`OnTrainCarRemoved` の発火順**: `TrainCar.Destroy()` 由来の車両削除イベントは
+  `TrainUnitDatastore` の `RegisterTrain/UnregisterTrain` 更新より**前**に発火する。
+  仕様§4.4 は「`RidableResolver` で当該車両が解決できなくなった後にハンドラが走る」前提。
+  Phase 3 で `OnTrainCarRemoved` を購読して `PlayerRidingDatastore.OnRidableRemoved` を
+  呼ぶ際、発火点を datastore 更新後へ移すか、削除プロトコル側で更新後に呼ぶこと。
+- **`EvaluateOnLogin` の戻り値**: 現状 `bool` のみ。仕様§8 は復帰した `RidingState` を
+  `InitialHandshakeProtocol` のレスポンスに含める想定。Phase 3 で `EvaluateOnLogin` 後に
+  `TryGetRidingState` を呼ぶ二段構えにするか、`EvaluateOnLogin` が結果 DTO を返す API に
+  寄せるか決める。
+- **不正な `IRidableIdentifier` 入力**: `RidableResolver.Resolve` / `PlayerRidingDatastore.TryRide`
+  は `null` や未知の `IRidableIdentifier` 実装で例外になる（`identifier.Type` / キャスト）。
+  Phase 3 のプロトコル入力は外部データなので、protocol 層で検証するか `Resolve` 入口で
+  `null`／型不一致を `RidableNotFound` 相当（`null` 解決）に倒すこと。`long.Parse` の
+  不正データ耐性（上記）と同じ経路の話。
+
 ## 7. 計画書の更新が必要な箇所
 
 Phase 2/3/4 計画書（`docs/superpowers/plans/2026-05-21-riding-phase{2,3,4}-*.md`）は
