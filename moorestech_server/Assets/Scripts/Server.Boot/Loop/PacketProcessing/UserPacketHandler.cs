@@ -17,6 +17,7 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly Socket _client;
         private readonly ReceiveQueueProcessor _receiveQueueProcessor;
         private readonly SendQueueProcessor _sendQueueProcessor;
+        
         private readonly PlayerConnectionRegistry _connectionRegistry;
         private readonly PacketResponseContext _packetResponseContext;
         private bool _cleaned;
