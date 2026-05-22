@@ -9,9 +9,9 @@ namespace Game.PlayerRiding
     public class PlayerRidingSaveData
     {
         public int PlayerId { get; set; }
-        // 乗り物種別の判別子（Game.PlayerRiding.Interface.RidableType を byte で保存）
-        // Discriminator of the ridable type (Game.PlayerRiding.Interface.RidableType stored as a byte).
-        public byte RidableType { get; set; }
+        // 乗り物種別の判別子（Game.PlayerRiding.Interface.RidableType の primitive 文字列）
+        // Discriminator of the ridable type (the RidableType primitive string).
+        public string RidableType { get; set; }
         // RidableType ごとの識別子ペイロード（IRidableIdentifier.GetSaveState() が返す文字列）
         // Per-type identifier payload produced by IRidableIdentifier.GetSaveState().
         public string IdentifierState { get; set; }

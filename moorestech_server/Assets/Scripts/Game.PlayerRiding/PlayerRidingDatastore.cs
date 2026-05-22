@@ -6,7 +6,7 @@ namespace Game.PlayerRiding
 {
     // 乗車状態の中核データストア。乗車可否・空席割当・降車の決定ロジックを集約する（仕様書セクション4.0・4.1）。
     // Core datastore for riding state. Owns ride/dismount decision logic.
-    public class PlayerRidingDatastore
+    public class PlayerRidingDatastore : IPlayerRidingDatastore
     {
         // 座席占有判定で「除外するプレイヤーなし」を表す番兵値
         // Sentinel passed to the seat-occupancy check when no player should be excluded.
@@ -160,7 +160,7 @@ namespace Game.PlayerRiding
                 list.Add(new PlayerRidingSaveData
                 {
                     PlayerId = pair.Key,
-                    RidableType = (byte)identifier.Type,
+                    RidableType = identifier.Type.AsPrimitive(),
                     IdentifierState = identifier.GetSaveState(),
                     SeatIndex = pair.Value.SeatIndex,
                 });
@@ -178,7 +178,7 @@ namespace Game.PlayerRiding
             {
                 // 判別子とペイロード文字列から識別子を復元する。未知の型は読み飛ばす。
                 // Restore the identifier from the discriminator and payload; skip unknown types.
-                var identifier = RidableIdentifierConverter.FromSaveState((RidableType)data.RidableType, data.IdentifierState);
+                var identifier = RidableIdentifierConverter.FromSaveState(new RidableType(data.RidableType), data.IdentifierState);
                 if (identifier == null) continue;
                 _ridingStateByPlayerId[data.PlayerId] = new RidingState(identifier, data.SeatIndex);
             }

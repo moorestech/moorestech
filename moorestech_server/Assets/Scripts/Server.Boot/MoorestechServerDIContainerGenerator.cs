@@ -175,6 +175,7 @@ namespace Server.Boot
             services.AddSingleton<Game.PlayerConnection.IPlayerConnectionChecker, Game.PlayerConnection.AlwaysConnectedChecker>();
             services.AddSingleton<Game.PlayerRiding.RidableResolver>();
             services.AddSingleton<Game.PlayerRiding.PlayerRidingDatastore>();
+            services.AddSingleton<Game.PlayerRiding.Interface.IPlayerRidingDatastore>(provider => provider.GetService<Game.PlayerRiding.PlayerRidingDatastore>());
 
             //JSONファイルのセーブシステムの読み込み
             // Register JSON save system services.

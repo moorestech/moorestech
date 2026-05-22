@@ -134,7 +134,7 @@ namespace Tests.UnitTest.PlayerRiding
             var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
             datastore.LoadSaveData(new List<PlayerRidingSaveData>
             {
-                new() { PlayerId = 1, RidableType = (byte)RidableType.TrainCar, IdentifierState = car.TrainCarInstanceId.AsPrimitive().ToString(), SeatIndex = 0 },
+                new() { PlayerId = 1, RidableType = RidableType.TrainCar.AsPrimitive(), IdentifierState = car.TrainCarInstanceId.AsPrimitive().ToString(), SeatIndex = 0 },
             });
 
             var restored = datastore.EvaluateOnLogin(1);
@@ -151,8 +151,8 @@ namespace Tests.UnitTest.PlayerRiding
             var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar(2);
             datastore.LoadSaveData(new List<PlayerRidingSaveData>
             {
-                new() { PlayerId = 1, RidableType = (byte)RidableType.TrainCar, IdentifierState = "-1", SeatIndex = 0 },
-                new() { PlayerId = 2, RidableType = (byte)RidableType.TrainCar, IdentifierState = car.TrainCarInstanceId.AsPrimitive().ToString(), SeatIndex = 99 },
+                new() { PlayerId = 1, RidableType = RidableType.TrainCar.AsPrimitive(), IdentifierState = "-1", SeatIndex = 0 },
+                new() { PlayerId = 2, RidableType = RidableType.TrainCar.AsPrimitive(), IdentifierState = car.TrainCarInstanceId.AsPrimitive().ToString(), SeatIndex = 99 },
             });
 
             Assert.IsFalse(datastore.EvaluateOnLogin(1));
