@@ -161,6 +161,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<TrainCarRidingInputSender>();
             builder.RegisterEntryPoint<TrainCarRidingInteractInput>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
+            builder.RegisterEntryPoint<RidingStateEventHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             
             // 設置システム
