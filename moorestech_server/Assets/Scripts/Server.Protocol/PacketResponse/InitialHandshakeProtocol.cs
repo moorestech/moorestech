@@ -48,42 +48,40 @@ namespace Server.Protocol.PacketResponse
 
             ResponseInitialHandshakeMessagePack CreateResponse()
             {
-                var playerPos = GetPlayerPosition(new EntityInstanceId(data.PlayerId));
+                // 乗り物に乗っているかどうかの状態の取得
+                // Get the riding state if the player is currently riding something.
                 RidableIdentifierMessagePack ridingTarget = null;
                 var ridingSeatIndex = -1;
-
-                // ログイン時に保存済み乗車状態を検証し、復帰できる場合だけレスポンスに含める。
-                // Validate saved riding state at login and include it in the response only when restorable.
                 if (_playerRidingDatastore.EvaluateOnLogin(data.PlayerId)
                     && _playerRidingDatastore.TryGetRidingState(data.PlayerId, out var state))
                 {
                     ridingTarget = state.Identifier.ToMessagePack();
                     ridingSeatIndex = state.SeatIndex;
                 }
+                
+                var playerPos = GetPlayerPosition(new EntityInstanceId(data.PlayerId));
 
                 return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex);
             }
+            
+            Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
+            {
+                if (_entitiesDatastore.Exists(playerId))
+                {
+                    //プレイヤーがいるのでセーブされた座標を返す
+                    var pos = _entitiesDatastore.GetPosition(playerId);
+                    return new Vector3MessagePack(pos.x, pos.y, pos.z);
+                }
+                
+                var spawnPoint = _worldSettingsDatastore.WorldSpawnPoint;
+                var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId, spawnPoint);
+                _entitiesDatastore.Add(playerEntity);
+                
+                //プレイヤーのデータがなかったのでスポーン地点を取得する
+                return new Vector3MessagePack(spawnPoint);
+            }
 
             #endregion
-        }
-        
-        
-        private Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
-        {
-            if (_entitiesDatastore.Exists(playerId))
-            {
-                //プレイヤーがいるのでセーブされた座標を返す
-                var pos = _entitiesDatastore.GetPosition(playerId);
-                return new Vector3MessagePack(pos.x, pos.y, pos.z);
-            }
-            
-            var spawnPoint = _worldSettingsDatastore.WorldSpawnPoint;
-            var playerEntity = _entityFactory.CreateEntity(VanillaEntityType.VanillaPlayer, playerId, spawnPoint);
-            _entitiesDatastore.Add(playerEntity);
-            
-            
-            //プレイヤーのデータがなかったのでスポーン地点を取得する
-            return new Vector3MessagePack(spawnPoint);
         }
         
         [MessagePackObject]
