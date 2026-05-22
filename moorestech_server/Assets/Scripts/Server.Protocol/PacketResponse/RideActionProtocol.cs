@@ -28,11 +28,6 @@ namespace Server.Protocol.PacketResponse
 
             (RideActionResult result, int seatIndex) ResolveAction(int playerId)
             {
-                if (playerId < 0)
-                {
-                    return (RideActionResult.InvalidPlayer, -1);
-                }
-
                 // Action ごとの状態変更を実行し、乗車成功時は割り当て seatIndex を同時に返す。
                 // Execute each action and return the assigned seat index together on ride success.
                 switch (data.Action)
