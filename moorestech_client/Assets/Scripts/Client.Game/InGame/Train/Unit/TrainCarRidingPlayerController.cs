@@ -36,6 +36,9 @@ namespace Client.Game.InGame.Train.Unit
         {
             if (!_mountedTrainCarInstanceId.HasValue)
             {
+                // 乗車状態はあるが未 parent（ログイン復帰）の場合、車両オブジェクト生成を待って parent する。
+                // Riding state set but not yet parented (login restore): wait for the car object, then parent.
+                TryMountPendingRidingState();
                 return;
             }
 
@@ -87,6 +90,24 @@ namespace Client.Game.InGame.Train.Unit
         public void ApplyDismount()
         {
             ReleaseMountedPlayer(true);
+        }
+
+        // 乗車状態が復元済み（IsRiding）かつ未 parent のとき、対象車両が生成され次第 parent する。
+        // When riding state is restored but not yet parented, parent the player once the target car object exists.
+        private void TryMountPendingRidingState()
+        {
+            var pendingCarId = _trainCarRidingState.CurrentRidingTrainCarInstanceId;
+            if (!pendingCarId.HasValue)
+            {
+                return;
+            }
+
+            if (!_trainCarObjectDatastore.TryGetEntity(pendingCarId.Value, out _))
+            {
+                return;
+            }
+
+            ApplyRide(pendingCarId.Value);
         }
 
         public void HandleRemovingTrainCar(TrainCarInstanceId trainCarInstanceId)

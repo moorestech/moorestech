@@ -21,7 +21,9 @@
         "Unity.ResourceManager",
         "Server.Util",
         "Client.WebUiHost",
-        "UniRx"
+        "UniRx",
+        "Game.Train",
+        "Game.PlayerRiding.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
