@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.PlayerRiding;
+using Game.PlayerRiding.Interface;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -61,6 +62,18 @@ namespace Tests.UnitTest.PlayerRiding
             return (datastore, car);
         }
 
+        // 接続状態を制御できる checker と座席付き車両1両を持つ PlayerRidingDatastore を生成する。
+        // Creates a PlayerRidingDatastore with a controllable connection checker and one seated car.
+        public static (PlayerRidingDatastore datastore, TestPlayerConnectionChecker checker, TrainCar car) CreateDatastoreWithCheckerAndOneTrainCar(int seatCount)
+        {
+            var environment = TrainTestHelper.CreateEnvironment();
+            var trainDatastore = new TrainUnitDatastore();
+            var car = RegisterSeatedCarOnNewTrain(environment, trainDatastore, seatCount, 0);
+            var checker = new TestPlayerConnectionChecker();
+            var datastore = new PlayerRidingDatastore(new RidableResolver(trainDatastore), checker);
+            return (datastore, checker, car);
+        }
+
         // 座席付き車両を別々の列車として2両登録した PlayerRidingDatastore を生成する。
         // Creates a PlayerRidingDatastore with two seated cars registered as separate trains.
         public static (PlayerRidingDatastore datastore, TrainCar carA, TrainCar carB) CreateDatastoreWithTwoTrainCars(int seatCount)
@@ -97,6 +110,23 @@ namespace Tests.UnitTest.PlayerRiding
                 environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
             datastore.RegisterTrain(trainUnit);
             return car;
+        }
+    }
+
+    // テスト用の接続状態 checker。既定は全員接続中、SetDisconnected で個別に切断扱いにできる。
+    // Test connection checker: everyone connected by default; SetDisconnected marks a player offline.
+    public sealed class TestPlayerConnectionChecker : IPlayerConnectionChecker
+    {
+        private readonly HashSet<int> _disconnectedPlayerIds = new();
+
+        public void SetDisconnected(int playerId)
+        {
+            _disconnectedPlayerIds.Add(playerId);
+        }
+
+        public bool IsConnected(int playerId)
+        {
+            return !_disconnectedPlayerIds.Contains(playerId);
         }
     }
 }

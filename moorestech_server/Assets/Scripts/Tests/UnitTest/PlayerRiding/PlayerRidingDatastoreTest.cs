@@ -108,6 +108,25 @@ namespace Tests.UnitTest.PlayerRiding
         }
 
         [Test]
+        public void PlayerRidingDatastore_OnRidableRemoved_KeepsDisconnectedRiders()
+        {
+            // 接続中の乗員のみ降車させ、切断中の乗員は RidingState を残す（仕様書セクション4.4）
+            // Only connected riders are dismounted; disconnected riders keep their RidingState.
+            var (datastore, checker, car) = RidingTestHelper.CreateDatastoreWithCheckerAndOneTrainCar(2);
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+            datastore.TryRide(1, id, out _);
+            datastore.TryRide(2, id, out _);
+            checker.SetDisconnected(2);
+
+            var dismounted = datastore.OnRidableRemoved(id);
+
+            CollectionAssert.Contains(dismounted, 1);
+            Assert.AreEqual(1, dismounted.Count);
+            Assert.IsFalse(datastore.TryGetRidingState(1, out _));
+            Assert.IsTrue(datastore.TryGetRidingState(2, out _));
+        }
+
+        [Test]
         public void PlayerRidingDatastore_EvaluateOnLogin_RestoresWhenSeatValidAndFree()
         {
             // 乗り物が存在し記録席が有効・空き → 復帰（RidingState 維持）
