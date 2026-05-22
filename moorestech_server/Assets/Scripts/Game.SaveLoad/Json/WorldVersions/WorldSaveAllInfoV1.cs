@@ -5,7 +5,7 @@ using Game.CraftTree.Json;
 using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.PlayerInventory.Interface;
-using Game.PlayerRiding;
+using Game.PlayerRiding.Interface;
 using Game.Research;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
