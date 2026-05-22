@@ -10,14 +10,16 @@ namespace Game.PlayerRiding
     // Core datastore for riding state. Owns ride/dismount decision logic.
     public class PlayerRidingDatastore : IPlayerRidingDatastore
     {
+        public IObservable<RidingStateChange> OnRidingStateChanged => _ridingStateChangedSubject;
+        private readonly Subject<RidingStateChange> _ridingStateChangedSubject = new();
+        
         // 座席占有判定で「除外するプレイヤーなし」を表す番兵値
         // Sentinel passed to the seat-occupancy check when no player should be excluded.
         private const int NoExcludePlayerId = -1;
 
         private readonly RidableResolver _ridableResolver;
         private readonly IPlayerConnectionChecker _connectionChecker;
-        private readonly Subject<RidingStateChange> _ridingStateChangedSubject = new();
-
+        
         // playerId -> RidingState
         private readonly Dictionary<int, RidingState> _ridingStateByPlayerId = new();
 
@@ -27,7 +29,6 @@ namespace Game.PlayerRiding
             _connectionChecker = connectionChecker;
         }
 
-        public IObservable<RidingStateChange> OnRidingStateChanged => _ridingStateChangedSubject;
 
         public bool TryGetRidingState(int playerId, out RidingState ridingState)
         {

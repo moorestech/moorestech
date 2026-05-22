@@ -37,19 +37,20 @@ namespace Server.Event.EventReceive
 
             // 状態変化ペイロードを broadcast キューへ積む。
             // Enqueue the state-change payload into the broadcast queue.
-            var payload = MessagePackSerializer.Serialize(messagePack);
-            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
-        }
-
-        private static RidableIdentifierMessagePack GetTarget(RidingStateChange change)
-        {
-            if (change.IsDismount)
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, MessagePackSerializer.Serialize(messagePack));
+            
+            #region Internal
+            
+            RidableIdentifierMessagePack GetTarget(RidingStateChange state)
             {
-                return null;
+                return state.IsDismount ? 
+                    null : 
+                    change.State.Identifier.ToMessagePack();
             }
-
-            return change.State.Identifier.ToMessagePack();
+            
+        #endregion
         }
+
     }
 
     [MessagePackObject]
@@ -70,7 +71,5 @@ namespace Server.Event.EventReceive
             Target = target;
             SeatIndex = seatIndex;
         }
-
-        [IgnoreMember] public bool IsDismount => StateType == RidingStateEventPacket.DismountStateType;
     }
 }

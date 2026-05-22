@@ -40,7 +40,6 @@ namespace Tests.UnitTest.PlayerRiding
             Assert.AreEqual(1, dismount.PlayerId);
             Assert.AreEqual(RidingStateEventPacket.DismountStateType, dismount.StateType);
             Assert.AreEqual(-1, dismount.SeatIndex);
-            Assert.IsTrue(dismount.IsDismount);
         }
 
         private static EventProtocol.ResponseEventProtocolMessagePack PollEvents(TrainTestEnvironment environment, int playerId)
