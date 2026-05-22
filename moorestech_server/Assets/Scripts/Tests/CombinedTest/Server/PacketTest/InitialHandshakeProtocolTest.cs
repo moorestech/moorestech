@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Map.Interface.Json;
+using Game.PlayerConnection;
 using Game.World.DataStore.WorldSettings;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -49,6 +50,20 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
             Assert.AreEqual(0, handShakeResponse.PlayerPos.Y);
             Assert.AreEqual(-100, handShakeResponse.PlayerPos.Z);
+        }
+
+        [Test]
+        public void Handshake_RegistersPlayerConnection()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
+            var connectionChecker = serviceProvider.GetService<IPlayerConnectionChecker>();
+
+            packet.GetPacketResponse(GetHandshakePacket(PlayerId));
+
+            // ハンドシェイクプロトコルが接続登録を担当する。
+            // The handshake protocol owns connection registration.
+            Assert.IsTrue(connectionChecker.IsConnected(PlayerId));
         }
         
         private byte[] GetHandshakePacket(int playerId)

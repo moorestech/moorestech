@@ -2,9 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Threading;
 using Game.PlayerConnection;
-using MessagePack;
 using Server.Protocol;
-using Server.Protocol.PacketResponse;
 using Server.Util;
 using UnityEngine;
 
@@ -20,15 +18,16 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly ReceiveQueueProcessor _receiveQueueProcessor;
         private readonly SendQueueProcessor _sendQueueProcessor;
         private readonly PlayerConnectionRegistry _connectionRegistry;
+        private readonly PacketResponseContext _packetResponseContext;
         private bool _cleaned;
-        private int? _playerId;
 
-        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry)
+        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, PacketResponseContext packetResponseContext)
         {
             _client = client;
             _receiveQueueProcessor = receiveQueueProcessor;
             _sendQueueProcessor = sendQueueProcessor;
             _connectionRegistry = connectionRegistry;
+            _packetResponseContext = packetResponseContext;
         }
 
         public void StartListen(CancellationToken token)
@@ -75,25 +74,10 @@ namespace Server.Boot.Loop.PacketProcessing
             // パケット処理はメインスレッドに委譲
             foreach (var packet in packets)
             {
-                TryBindPlayerId(packet);
                 _receiveQueueProcessor.EnqueuePacket(packet);
             }
 
             return false;
-        }
-
-        // ハンドシェイクパケットを覗いて、この接続に playerId を紐付ける。
-        // Peeks the handshake packet to bind this connection to a playerId.
-        private void TryBindPlayerId(byte[] packet)
-        {
-            if (_playerId.HasValue) return;
-
-            var basePack = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(packet);
-            if (basePack.Tag != InitialHandshakeProtocol.ProtocolTag) return;
-
-            var handshake = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.RequestInitialHandshakeMessagePack>(packet);
-            _playerId = handshake.PlayerId;
-            _connectionRegistry.Register(handshake.PlayerId);
         }
 
         private void Cleanup()
@@ -103,10 +87,9 @@ namespace Server.Boot.Loop.PacketProcessing
 
             // 接続終了時、紐付いた playerId を登録解除して切断イベントを発火する。
             // On connection end, unregister the bound playerId and fire the disconnect event.
-            if (_playerId.HasValue)
+            if (_packetResponseContext.PlayerId.HasValue)
             {
-                _connectionRegistry.Unregister(_playerId.Value);
-                _playerId = null;
+                _connectionRegistry.Unregister(_packetResponseContext.PlayerId.Value);
             }
 
             _receiveQueueProcessor.Dispose();
