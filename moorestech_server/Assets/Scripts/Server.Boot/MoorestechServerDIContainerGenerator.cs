@@ -170,9 +170,10 @@ namespace Server.Boot
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
 
-            // 乗車コア。IPlayerConnectionChecker は Phase 3 で実接続レジストリへ差し替える。
-            // Riding core. IPlayerConnectionChecker is swapped for the real registry in Phase 3.
-            services.AddSingleton<Game.PlayerConnection.IPlayerConnectionChecker, Game.PlayerConnection.AlwaysConnectedChecker>();
+            // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
+            // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
+            services.AddSingleton<Game.PlayerConnection.PlayerConnectionRegistry>();
+            services.AddSingleton<Game.PlayerConnection.IPlayerConnectionChecker>(provider => provider.GetService<Game.PlayerConnection.PlayerConnectionRegistry>());
             services.AddSingleton<Game.PlayerRiding.RidableResolver>();
             services.AddSingleton<Game.PlayerRiding.PlayerRidingDatastore>();
             services.AddSingleton<Game.PlayerRiding.Interface.IPlayerRidingDatastore>(provider => provider.GetService<Game.PlayerRiding.PlayerRidingDatastore>());
