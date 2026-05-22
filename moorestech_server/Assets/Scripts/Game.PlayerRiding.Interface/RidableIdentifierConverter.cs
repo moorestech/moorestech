@@ -2,8 +2,8 @@ using System;
 
 namespace Game.PlayerRiding.Interface
 {
-    // IRidableIdentifier と RidableIdentifierMessagePack を相互変換する（ISubInventoryIdentifierExtension に倣う）。
-    // Two-way conversion between IRidableIdentifier and RidableIdentifierMessagePack, mirroring ISubInventoryIdentifierExtension.
+    // IRidableIdentifier と各種シリアライズ表現を相互変換する（ISubInventoryIdentifierExtension に倣う）。
+    // Converts between IRidableIdentifier and its serialized representations, mirroring ISubInventoryIdentifierExtension.
     public static class RidableIdentifierConverter
     {
         public static RidableIdentifierMessagePack ToMessagePack(this IRidableIdentifier identifier)
@@ -17,11 +17,12 @@ namespace Game.PlayerRiding.Interface
 
         public static IRidableIdentifier FromMessagePack(RidableIdentifierMessagePack messagePack)
         {
-            return messagePack.RidableType switch
+            var type = new RidableType(messagePack.RidableType);
+            if (type == RidableType.TrainCar)
             {
-                RidableType.TrainCar => new TrainCarRidableIdentifier(long.Parse(messagePack.TrainCarInstanceId)),
-                _ => throw new ArgumentException($"Unknown RidableType: {messagePack.RidableType}")
-            };
+                return new TrainCarRidableIdentifier(long.Parse(messagePack.TrainCarInstanceId));
+            }
+            throw new ArgumentException($"Unknown RidableType: {messagePack.RidableType}");
         }
 
         // RidableType と GetSaveState() のペイロード文字列から IRidableIdentifier を復元する（セーブロード用）。
@@ -30,11 +31,11 @@ namespace Game.PlayerRiding.Interface
         // Unknown types return null instead of throwing so the loader can skip the row.
         public static IRidableIdentifier FromSaveState(RidableType type, string saveState)
         {
-            return type switch
+            if (type == RidableType.TrainCar)
             {
-                RidableType.TrainCar => new TrainCarRidableIdentifier(long.Parse(saveState)),
-                _ => null
-            };
+                return new TrainCarRidableIdentifier(long.Parse(saveState));
+            }
+            return null;
         }
     }
 }

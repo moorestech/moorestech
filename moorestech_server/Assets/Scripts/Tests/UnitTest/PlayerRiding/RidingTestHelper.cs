@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.PlayerConnection;
@@ -8,7 +9,6 @@ using Game.PlayerRiding.Interface;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
-using Mooresmaster.Model.RidableSeatModule;
 using Mooresmaster.Model.TrainModule;
 using Tests.Util;
 using UnityEngine;
@@ -26,20 +26,22 @@ namespace Tests.UnitTest.PlayerRiding
             // TrainCar コンストラクタが ServerContext を参照するため DI 環境を先に用意する
             // The TrainCar constructor reads ServerContext, so set up the DI environment first.
             TrainTestHelper.CreateEnvironment();
-            var master = CreateTrainCarMasterWithSeats(seatCount, 5);
-            return new TrainCar(master, true);
+            return new TrainCar(FindTrainCarMasterWithSeatCount(seatCount), true);
         }
 
-        // 座席数 seatCount・長さ length の TrainCarMasterElement を生成する。
-        // Builds a TrainCarMasterElement with seatCount ridable seats and the given length.
-        public static TrainCarMasterElement CreateTrainCarMasterWithSeats(int seatCount, int length)
+        // テストMOD（forUnitTest）の train.json から、指定座席数の trainCar マスタを取得する。
+        // マスタは JSON で定義する方針のため、テストコード内でマスタを動的生成しない。
+        // Looks up the trainCar master with the given seat count from the test mod's train.json.
+        public static TrainCarMasterElement FindTrainCarMasterWithSeatCount(int seatCount)
         {
-            var seats = new RidableSeat[seatCount];
-            for (var i = 0; i < seatCount; i++)
+            foreach (var master in MasterHolder.TrainUnitMaster.Train.TrainCars)
             {
-                seats[i] = new RidableSeat(0f, 0f, 0f);
+                if (master.RidableSeats.Length == seatCount)
+                {
+                    return master;
+                }
             }
-            return new TrainCarMasterElement(1, Guid.Empty, Guid.Empty, null, 320, 0, 1, length, "None", 0f, null, null, seats);
+            throw new InvalidOperationException($"forUnitTest mod に座席数 {seatCount} の trainCar マスタが定義されていません。");
         }
 
         // TrainUnitDatastore に座席付き車両を1両登録し、RidableResolver とともに返す。
@@ -98,11 +100,10 @@ namespace Tests.UnitTest.PlayerRiding
             railB.FrontNode.ConnectNode(railA.FrontNode);
             railA.BackNode.ConnectNode(railB.BackNode);
 
-            // レール間距離から車両長を割り出し、座席付きマスタで車両を生成する
-            // Derive car length from the rail gap and build the car from a seated master.
+            // 座席数に対応するマスタ（forUnitTest mod 定義）から車両を生成する
+            // Build the car from the test-mod master that has the requested seat count.
             var distance = railB.FrontNode.GetDistanceToNode(railA.FrontNode);
-            var master = CreateTrainCarMasterWithSeats(seatCount, Mathf.Max(1, distance / 1024 / 20));
-            var car = new TrainCar(master, true);
+            var car = new TrainCar(FindTrainCarMasterWithSeatCount(seatCount), true);
 
             var railPosition = new RailPosition(
                 new List<IRailNode> { railB.FrontNode, railA.FrontNode }, car.Length, Mathf.Max(1, distance / 10));
