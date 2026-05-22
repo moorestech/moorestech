@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Map.Interface.Json;
 using Game.PlayerConnection;
+using Game.PlayerRiding.Interface;
 using Game.World.DataStore.WorldSettings;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -13,6 +14,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;
 using Server.Protocol;
+using Tests.Util;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -65,6 +67,31 @@ namespace Tests.CombinedTest.Server.PacketTest
             // ハンドシェイクプロトコルが接続登録を担当する。
             // The handshake protocol owns connection registration.
             Assert.IsTrue(connectionChecker.IsConnected(PlayerId));
+        }
+
+        [Test]
+        public void Handshake_ReturnsRestoredRidingState_WhenLoginRestoreSucceeds()
+        {
+            // ログイン復帰できる保存済み乗車状態をレスポンスに含める。
+            // Includes restorable saved riding state in the handshake response.
+            var environment = TrainTestHelper.CreateEnvironment();
+            environment.ServiceProvider.GetService<IWorldSettingsDatastore>().Initialize(environment.ServiceProvider.GetService<MapInfoJson>());
+            var car = Tests.UnitTest.PlayerRiding.RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            datastore.LoadSaveData(new List<PlayerRidingSaveData>
+            {
+                new(PlayerId, RidableType.TrainCar.AsPrimitive(), car.TrainCarInstanceId.AsPrimitive().ToString(), 0),
+            });
+
+            var response = environment.PacketResponseCreator.GetPacketResponse(
+                GetHandshakePacket(PlayerId),
+                new PacketResponseContext())[0];
+            var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
+
+            Assert.IsNotNull(handshakeResponse.RidingTarget);
+            Assert.AreEqual(RidableType.TrainCar.AsPrimitive(), handshakeResponse.RidingTarget.RidableType);
+            Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive().ToString(), handshakeResponse.RidingTarget.TrainCarInstanceId);
+            Assert.AreEqual(0, handshakeResponse.RidingSeatIndex);
         }
         
         private byte[] GetHandshakePacket(int playerId)

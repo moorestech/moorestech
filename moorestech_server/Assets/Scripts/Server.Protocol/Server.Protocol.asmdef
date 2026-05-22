@@ -28,7 +28,8 @@
     "Game.Research",
     "Game.Train",
     "Game.Gear",
-    "Game.PlayerConnection"
+    "Game.PlayerConnection",
+    "Game.PlayerRiding.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

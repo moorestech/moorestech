@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using Game.PlayerConnection;
 using Game.PlayerRiding;
 using Game.PlayerRiding.Interface;
+using Game.Train.Event;
 using Game.Train.Unit;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Tests.Util;
+using UniRx;
 
 namespace Tests.UnitTest.PlayerRiding
 {
@@ -90,6 +92,30 @@ namespace Tests.UnitTest.PlayerRiding
         }
 
         [Test]
+        public void PlayerRidingDatastore_FiresRidingStateChanged_OnRideAndDismount()
+        {
+            // 乗車と降車の成功時に状態変化イベントを通知する。
+            // Successful ride and dismount operations publish riding-state changes.
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 1);
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+            var changes = new List<RidingStateChange>();
+            using var subscription = datastore.OnRidingStateChanged.Subscribe(changes.Add);
+
+            datastore.TryRide(1, id, out _);
+            datastore.TryDismount(1);
+
+            Assert.AreEqual(2, changes.Count);
+            Assert.IsFalse(changes[0].IsDismount);
+            Assert.AreEqual(1, changes[0].PlayerId);
+            Assert.AreEqual(0, changes[0].State.SeatIndex);
+            Assert.IsTrue(changes[1].IsDismount);
+            Assert.AreEqual(1, changes[1].PlayerId);
+        }
+
+        [Test]
         public void PlayerRidingDatastore_OnRidableRemoved_DismountsRidersOfThatRidable()
         {
             // 乗り物Aに乗っているプレイヤーは OnRidableRemoved(A) でクリアされ、他乗り物の乗員は残る
@@ -150,6 +176,24 @@ namespace Tests.UnitTest.PlayerRiding
             Assert.AreEqual(1, dismounted.Count);
             Assert.IsFalse(datastore.TryGetRidingState(1, out _));
             Assert.IsTrue(datastore.TryGetRidingState(2, out _));
+        }
+
+        [Test]
+        public void TrainCarRemovedRidingHandler_DismountsConnectedRider()
+        {
+            // TrainUpdateEvent の車両削除通知で接続中プレイヤーを降車させる。
+            // A train-car removal notification dismounts connected riders.
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 1);
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+            datastore.TryRide(1, id, out _);
+
+            var trainUpdateEvent = (TrainUpdateEvent)environment.ServiceProvider.GetService<ITrainUpdateEvent>();
+            trainUpdateEvent.InvokeTrainCarRemoved(car.TrainCarInstanceId);
+
+            Assert.IsFalse(datastore.TryGetRidingState(1, out _));
         }
 
         [Test]
