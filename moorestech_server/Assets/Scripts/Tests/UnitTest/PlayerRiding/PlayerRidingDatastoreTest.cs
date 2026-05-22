@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using Game.PlayerConnection;
 using Game.PlayerRiding;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Tests.Util;
 
@@ -14,8 +16,8 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // TrainCar が IRidable であり、SeatCount をマスタの座席数から返すことを確認
             // TrainCar implements IRidable and exposes SeatCount from master data.
-            TrainTestHelper.CreateEnvironment();
-            var car = new TrainCar(RidingTestHelper.GetSeatedTrainCarMaster(), true);
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             IRidable ridable = car;
 
             Assert.IsInstanceOf<TrainCarRidableIdentifier>(ridable.Identifier);
@@ -29,7 +31,9 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // 登録済み車両は解決でき、未知のIDは null を返す
             // A registered car resolves; an unknown id returns null.
-            var (resolver, _, car) = RidingTestHelper.CreateResolverWithOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var resolver = environment.ServiceProvider.GetService<RidableResolver>();
 
             var existing = resolver.Resolve(new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive()));
             var missing = resolver.Resolve(new TrainCarRidableIdentifier(-1L));
@@ -45,7 +49,9 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // 座席2席の車両: 1人目・2人目は乗車成功、3人目は NoSeatAvailable
             // A 2-seat car: first and second riders succeed, third gets NoSeatAvailable.
-            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
 
             Assert.AreEqual(RideActionResult.Success, datastore.TryRide(1, id, out _));
@@ -56,7 +62,9 @@ namespace Tests.UnitTest.PlayerRiding
         [Test]
         public void PlayerRidingDatastore_TryRide_RejectsWhenAlreadyRiding_AndUnknownRidable()
         {
-            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
 
             Assert.AreEqual(RideActionResult.Success, datastore.TryRide(1, id, out _));
@@ -67,7 +75,9 @@ namespace Tests.UnitTest.PlayerRiding
         [Test]
         public void PlayerRidingDatastore_TryDismount_ClearsState()
         {
-            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
 
             Assert.AreEqual(RideActionResult.NotRiding, datastore.TryDismount(1));
@@ -81,7 +91,10 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // 乗り物Aに乗っているプレイヤーは OnRidableRemoved(A) でクリアされ、他乗り物の乗員は残る
             // Riders of removed ridable A are cleared; riders of other ridables remain.
-            var (datastore, carA, carB) = RidingTestHelper.CreateDatastoreWithTwoTrainCars();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var carA = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var carB = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 200);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var idA = new TrainCarRidableIdentifier(carA.TrainCarInstanceId.AsPrimitive());
             var idB = new TrainCarRidableIdentifier(carB.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(1, idA, out _);
@@ -100,7 +113,9 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // 既に降車済みに対する OnRidableRemoved は no-op（冪等。仕様書セクション4.4）
             // OnRidableRemoved on an already-cleared ridable is a no-op (idempotent).
-            var (datastore, carA, _) = RidingTestHelper.CreateDatastoreWithTwoTrainCars();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var carA = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var idA = new TrainCarRidableIdentifier(carA.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(1, idA, out _);
 
@@ -115,7 +130,13 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // 接続中の乗員のみ降車させ、切断中の乗員は RidingState を残す（仕様書セクション4.4）
             // Only connected riders are dismounted; disconnected riders keep their RidingState.
-            var (datastore, checker, car) = RidingTestHelper.CreateDatastoreWithCheckerAndOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            // 接続状態を切り替えて検証するため、checker を差し替えた PlayerRidingDatastore を用いる
+            // （DI 既定の AlwaysConnectedChecker では切断状態を再現できない）。
+            // Uses a PlayerRidingDatastore with a controllable checker; the DI default cannot simulate a disconnect.
+            var checker = new TestPlayerConnectionChecker();
+            var datastore = new PlayerRidingDatastore(environment.ServiceProvider.GetService<RidableResolver>(), checker);
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(1, id, out _);
             datastore.TryRide(2, id, out _);
@@ -134,7 +155,9 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // 乗り物が存在し記録席が有効・空き → 復帰（RidingState 維持）
             // Ridable exists, recorded seat valid and free -> restored (RidingState kept).
-            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             datastore.LoadSaveData(new List<PlayerRidingSaveData>
             {
                 new() { PlayerId = 1, RidableType = RidableType.TrainCar.AsPrimitive(), IdentifierState = car.TrainCarInstanceId.AsPrimitive().ToString(), SeatIndex = 0 },
@@ -151,7 +174,9 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // 乗り物消失・席範囲外はいずれも復帰不可でクリアされる（仕様書セクション8）
             // Missing ridable or out-of-range seat both fail to restore and are cleared.
-            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             datastore.LoadSaveData(new List<PlayerRidingSaveData>
             {
                 new() { PlayerId = 1, RidableType = RidableType.TrainCar.AsPrimitive(), IdentifierState = "-1", SeatIndex = 0 },
@@ -169,18 +194,38 @@ namespace Tests.UnitTest.PlayerRiding
         {
             // GetSaveData → LoadSaveData で乗車状態が往復することを確認
             // Riding state round-trips through GetSaveData -> LoadSaveData.
-            var (datastore, car) = RidingTestHelper.CreateDatastoreWithOneTrainCar();
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(7, id, out _);
 
             var saveData = datastore.GetSaveData();
 
-            var (datastore2, _) = RidingTestHelper.CreateDatastoreWithOneTrainCar();
+            var environment2 = TrainTestHelper.CreateEnvironment();
+            var datastore2 = environment2.ServiceProvider.GetService<IPlayerRidingDatastore>();
             datastore2.LoadSaveData(saveData);
 
             Assert.IsTrue(datastore2.TryGetRidingState(7, out var state));
             Assert.AreEqual(0, state.SeatIndex);
             Assert.IsTrue(state.Identifier.Equals(id));
+        }
+
+        // 接続状態を制御できるテスト用 checker。既定は全員接続中、SetDisconnected で個別に切断扱いにする。
+        // Test connection checker: everyone connected by default; SetDisconnected marks a player offline.
+        private sealed class TestPlayerConnectionChecker : IPlayerConnectionChecker
+        {
+            private readonly HashSet<int> _disconnectedPlayerIds = new();
+
+            public void SetDisconnected(int playerId)
+            {
+                _disconnectedPlayerIds.Add(playerId);
+            }
+
+            public bool IsConnected(int playerId)
+            {
+                return !_disconnectedPlayerIds.Contains(playerId);
+            }
         }
     }
 }
