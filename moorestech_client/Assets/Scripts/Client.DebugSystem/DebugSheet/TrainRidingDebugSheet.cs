@@ -33,7 +33,7 @@ namespace Client.DebugSystem
                     Debug.Log("Train riding state is already clear.");
                 }
 
-                ridingPlayerController.ForceDismount();
+                ridingPlayerController.ApplyDismount();
             });
 
             var rows = new List<TrainCarDebugRow>();
@@ -74,7 +74,7 @@ namespace Client.DebugSystem
                 var row = rows[i];
                 AddButton(row.Label, clicked: () =>
                 {
-                    if (!ridingPlayerController.ForceRide(row.TrainCarInstanceId))
+                    if (!ridingPlayerController.ApplyRide(row.TrainCarInstanceId))
                     {
                         Debug.LogWarning($"Failed to force ride train car: {row.TrainCarInstanceId}");
                     }

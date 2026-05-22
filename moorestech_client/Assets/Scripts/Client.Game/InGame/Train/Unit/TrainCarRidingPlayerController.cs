@@ -59,7 +59,7 @@ namespace Client.Game.InGame.Train.Unit
             ReleaseMountedPlayer(false);
         }
 
-        public bool ForceRide(TrainCarInstanceId targetCarId)
+        public bool ApplyRide(TrainCarInstanceId targetCarId)
         {
             _trainCarRidingState.SetRidingTrainCar(targetCarId);
 
@@ -84,7 +84,7 @@ namespace Client.Game.InGame.Train.Unit
             return true;
         }
 
-        public void ForceDismount()
+        public void ApplyDismount()
         {
             ReleaseMountedPlayer(true);
         }
