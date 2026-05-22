@@ -14,6 +14,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UniRx;
 using static Server.Protocol.PacketResponse.GetChallengeInfoProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -53,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
             var messagePack = new RequestChallengeMessagePack();
-            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext())[0];
             var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // 検証
@@ -94,7 +95,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 現在のチャレンジ情報をリクエスト
             // Request current challenge information
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext())[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // 検証
@@ -131,7 +132,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 最初はCategory2のチャレンジは開始されていないことを確認
             var messagePack = new RequestChallengeMessagePack();
-            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            var response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext())[0];
             var challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // Category2のチャレンジが開始されていないことを確認
@@ -164,7 +165,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // Challenge5が開始されていることを確認
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext())[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             var allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
@@ -182,7 +183,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 最新のチャレンジ情報を取得
             messagePack = new RequestChallengeMessagePack();
-            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            response = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext())[0];
             challengeInfo = MessagePackSerializer.Deserialize<ResponseChallengeInfoMessagePack>(response);
             
             // Category2がアンロックされていることを確認

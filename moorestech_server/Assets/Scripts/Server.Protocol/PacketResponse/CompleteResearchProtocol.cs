@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse
             _researchDataStore = serviceProvider.GetService<IResearchDataStore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<RequestCompleteResearchMessagePack>(payload);
 

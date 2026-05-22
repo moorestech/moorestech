@@ -12,6 +12,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.PlaceBlockFromHotBarProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -37,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(BlockItemId, 3));
             
             //ブロックを置く
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, 0));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, 0), new PacketResponseContext());
             
             //ブロックが置かれているかチェック
             var world = ServerContext.WorldBlockDatastore;
@@ -47,20 +48,20 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //既にブロックがあるところに置こうとしてもアイテムが減らないテスト
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, 0));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, 0), new PacketResponseContext());
             //アイテムが減っていないかのチェック
             Assert.AreEqual(2,
                 inventory.MainOpenableInventory.GetItem(slot).Count);
             
             //ホットバー内のアイテムを使い切る
-            packet.GetPacketResponse(CreateUseHotBarProtocol(3, 4, 0));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(4, 4, 0));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(3, 4, 0), new PacketResponseContext());
+            packet.GetPacketResponse(CreateUseHotBarProtocol(4, 4, 0), new PacketResponseContext());
             //ホットバーのアイテムが空になっているかのテスト
             Assert.AreEqual(itemStackFactory.CreatEmpty(), inventory.MainOpenableInventory.GetItem(slot));
             
             
             //さらにブロックを置こうとしても置けないテスト
-            packet.GetPacketResponse(CreateUseHotBarProtocol(10, 10, 0));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(10, 10, 0), new PacketResponseContext());
             Assert.True(world.GetBlock(new Vector3Int(10, 10)) == null);
         }
         
@@ -83,10 +84,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //ブロックを置く
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, BlockDirection.North));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 5, BlockDirection.East));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 6, BlockDirection.South));
-            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 7, BlockDirection.West));
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 4, BlockDirection.North), new PacketResponseContext());
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 5, BlockDirection.East), new PacketResponseContext());
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 6, BlockDirection.South), new PacketResponseContext());
+            packet.GetPacketResponse(CreateUseHotBarProtocol(2, 7, BlockDirection.West), new PacketResponseContext());
             
             //ブロックの向きをチェック
             Assert.AreEqual(BlockDirection.North, worldBlockDatastore.GetBlockDirection(new Vector3Int(2, 4)));

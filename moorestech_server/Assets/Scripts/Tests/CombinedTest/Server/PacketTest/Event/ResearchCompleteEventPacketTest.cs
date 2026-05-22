@@ -8,6 +8,7 @@ using Server.Event.EventReceive;
 using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using static Tests.CombinedTest.Game.ResearchDataStoreTest;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -19,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             // イベントがないことを確認する
-            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
 
@@ -27,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             CompleteResearchForTest(serviceProvider, Research1Guid);
 
             // イベントを受け取り、テストする
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
 
             var researchEvents = eventMessagePack.Events
@@ -44,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             CompleteResearchForTest(serviceProvider, Research2Guid);
 
             // イベントを受け取り、テストする
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId));
+            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
 
             researchEvents = eventMessagePack.Events

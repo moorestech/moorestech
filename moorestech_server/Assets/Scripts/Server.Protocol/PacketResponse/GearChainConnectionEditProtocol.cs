@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             // 要求データをデシリアライズする
             // Deserialize request payload

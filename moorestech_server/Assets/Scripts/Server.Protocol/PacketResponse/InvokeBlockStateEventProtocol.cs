@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<RequestInvokeBlockStateProtocolMessagePack>(payload);
             
