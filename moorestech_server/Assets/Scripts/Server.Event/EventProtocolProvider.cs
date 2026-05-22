@@ -36,17 +36,6 @@ namespace Server.Event
                 foreach (var key in _events.Keys) _events[key].Add(eventMessagePack);
             }
         }
-
-        public void RegisterPlayer(int playerId)
-        {
-            lock (_events)
-            {
-                if (!_events.ContainsKey(playerId))
-                {
-                    _events.Add(playerId, new List<EventMessagePack>());
-                }
-            }
-        }
         
         public List<EventMessagePack> GetEventBytesList(int playerId)
         {

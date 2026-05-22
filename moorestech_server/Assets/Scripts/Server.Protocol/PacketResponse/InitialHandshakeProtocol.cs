@@ -22,7 +22,6 @@ namespace Server.Protocol.PacketResponse
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly PlayerConnectionRegistry _connectionRegistry;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
-        private readonly Server.Event.EventProtocolProvider _eventProtocolProvider;
         
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
@@ -31,14 +30,12 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
-            _eventProtocolProvider = serviceProvider.GetService<Server.Event.EventProtocolProvider>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
             _connectionRegistry.Register(data.PlayerId);
-            _eventProtocolProvider.RegisterPlayer(data.PlayerId);
             context.BindPlayerId(data.PlayerId);
             
             var response = CreateResponse();

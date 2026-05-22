@@ -2,20 +2,9 @@ using System;
 using Game.PlayerRiding.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
-    // 乗車種別。Ride は乗車要求、Dismount は降車要求。
-    // Riding action kind: Ride requests boarding, Dismount requests leaving.
-    public enum RideActionType : byte
-    {
-        Ride,
-        Dismount,
-    }
-
-    // 乗車/降車要求プロトコル（C -> S）。乗車状態の変更は PlayerRidingDatastore へ委譲する。
-    // Ride/dismount request protocol (C -> S). Riding-state changes are delegated to PlayerRidingDatastore.
     public class RideActionProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:rideAction";
@@ -30,40 +19,28 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestRideActionMessagePack>(payload);
-            var playerId = GetAuthorizedPlayerId();
-            var result = ResolveAction();
-            var seatIndex = GetSeatIndexWhenRideSucceeded(result);
+            
+            var result = ResolveAction(data.PlayerId);
+            var seatIndex = GetSeatIndexWhenRideSucceeded(result, data.PlayerId);
             return new ResponseRideActionMessagePack((byte)result, seatIndex);
 
             #region Internal
 
-            int GetAuthorizedPlayerId()
-            {
-                // 接続コンテキストに紐付いた playerId だけを状態変更対象にする。
-                // Only the playerId bound to this connection may mutate riding state.
-                if (!context.PlayerId.HasValue || context.PlayerId.Value != data.PlayerId)
-                {
-                    return -1;
-                }
-
-                return context.PlayerId.Value;
-            }
-
-            RideActionResult ResolveAction()
+            RideActionResult ResolveAction(int playerId)
             {
                 if (playerId < 0)
                 {
                     return RideActionResult.InvalidPlayer;
                 }
 
-                var action = (RideActionType)data.Action;
+                var action = data.Action;
+                
+                // 修正 switchに書き換える
                 if (action == RideActionType.Dismount)
                 {
                     return _playerRidingDatastore.TryDismount(playerId);
                 }
 
-                // 外部入力の Target はプロトコル境界で検証し、不正値は RidableNotFound に倒す。
-                // Validate external Target data at the protocol boundary and map invalid values to RidableNotFound.
                 if (action != RideActionType.Ride || !TryCreateIdentifier(data.Target, out var identifier))
                 {
                     return RideActionResult.RidableNotFound;
@@ -71,10 +48,11 @@ namespace Server.Protocol.PacketResponse
 
                 return _playerRidingDatastore.TryRide(playerId, identifier, out _);
             }
-
-            int GetSeatIndexWhenRideSucceeded(RideActionResult result)
+            
+            // 修正 ResolveActionと同時に実行する
+            int GetSeatIndexWhenRideSucceeded(RideActionResult result,int playerId)
             {
-                if ((RideActionType)data.Action != RideActionType.Ride || result != RideActionResult.Success)
+                if (data.Action != RideActionType.Ride || result != RideActionResult.Success)
                 {
                     return -1;
                 }
@@ -89,6 +67,7 @@ namespace Server.Protocol.PacketResponse
                 return -1;
             }
 
+            // 修正 RidableIdentifierConverter.FromMessagePackを使えばいいだろバカか
             bool TryCreateIdentifier(RidableIdentifierMessagePack target, out IRidableIdentifier identifier)
             {
                 identifier = null;
@@ -115,13 +94,13 @@ namespace Server.Protocol.PacketResponse
         public class RequestRideActionMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public byte Action { get; set; }
+            [Key(3)] public RideActionType Action { get; set; }
             [Key(4)] public RidableIdentifierMessagePack Target { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RequestRideActionMessagePack() { }
 
-            public RequestRideActionMessagePack(int playerId, byte action, RidableIdentifierMessagePack target)
+            public RequestRideActionMessagePack(int playerId, RideActionType action, RidableIdentifierMessagePack target)
             {
                 Tag = ProtocolTag;
                 PlayerId = playerId;
@@ -146,5 +125,11 @@ namespace Server.Protocol.PacketResponse
                 SeatIndex = seatIndex;
             }
         }
+    }
+    
+    public enum RideActionType : byte
+    {
+        Ride,
+        Dismount,
     }
 }
