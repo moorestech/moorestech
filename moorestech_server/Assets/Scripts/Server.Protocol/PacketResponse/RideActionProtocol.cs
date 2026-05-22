@@ -34,8 +34,10 @@ namespace Server.Protocol.PacketResponse
                 {
                     case RideActionType.Ride:
                         var identifier = RidableIdentifierConverter.FromMessagePack(data.Target);
+                        if (identifier == null) return (RideActionResult.RidableNotFound, -1);
+                        
                         var rideResult = _playerRidingDatastore.TryRide(playerId, identifier, out var seatIndex);
-                        if (rideResult != RideActionResult.Success)
+                        if (rideResult != RideActionResult.Success) 
                         {
                             seatIndex = -1;
                         }
