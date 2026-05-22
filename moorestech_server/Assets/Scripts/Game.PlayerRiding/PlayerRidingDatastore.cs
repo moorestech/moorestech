@@ -157,13 +157,11 @@ namespace Game.PlayerRiding
                 // 識別子の直列化は型ごとの GetSaveState() に委譲する（乗り物種別の増加に DTO 非依存）。
                 // Identifier serialization is delegated to each type's GetSaveState().
                 var identifier = pair.Value.Identifier;
-                list.Add(new PlayerRidingSaveData
-                {
-                    PlayerId = pair.Key,
-                    RidableType = identifier.Type.AsPrimitive(),
-                    IdentifierState = identifier.GetSaveState(),
-                    SeatIndex = pair.Value.SeatIndex,
-                });
+                list.Add(new PlayerRidingSaveData(
+                    pair.Key,
+                    identifier.Type.AsPrimitive(),
+                    identifier.GetSaveState(),
+                    pair.Value.SeatIndex));
             }
             return list;
         }
