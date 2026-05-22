@@ -21,11 +21,14 @@ using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.Paths;
+using Game.PlayerConnection;
 using Game.PlayerInventory;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.Interface.Subscription;
+using Game.PlayerRiding;
+using Game.PlayerRiding.Interface;
 using Game.Research;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -172,10 +175,9 @@ namespace Server.Boot
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
-            services.AddSingleton<Game.PlayerConnection.IPlayerConnectionChecker, Game.PlayerConnection.PlayerConnectionRegistry>();
-            services.AddSingleton<Game.PlayerRiding.RidableResolver>();
-            services.AddSingleton<Game.PlayerRiding.PlayerRidingDatastore>();
-            services.AddSingleton<Game.PlayerRiding.Interface.IPlayerRidingDatastore>(provider => provider.GetService<Game.PlayerRiding.PlayerRidingDatastore>());
+            services.AddSingleton<IPlayerConnectionChecker, PlayerConnectionRegistry>();
+            services.AddSingleton<RidableResolver>();
+            services.AddSingleton<IPlayerRidingDatastore, PlayerRidingDatastore>();
 
             //JSONファイルのセーブシステムの読み込み
             // Register JSON save system services.
