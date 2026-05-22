@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var challengeCategories = CompletedChallengeEventPacket.GetChallengeCategories(_challengeDatastore, _gameUnlockStateDataController);
             

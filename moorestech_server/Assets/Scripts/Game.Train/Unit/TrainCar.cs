@@ -4,6 +4,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
+using Game.PlayerRiding.Interface;
 using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.SaveLoad;
@@ -20,7 +21,7 @@ namespace Game.Train.Unit
     /// 列車編成を構成する1両を表すクラス
     /// Represents a single car within a train formation.
     /// </summary>
-    public class TrainCar : ITrainDiagramCar
+    public class TrainCar : ITrainDiagramCar, IRidable
     {
         private readonly TrainCarInstanceId _trainCarInstanceId;
         
@@ -37,6 +38,12 @@ namespace Game.Train.Unit
         //列車が駅とドッキングしているかどうか
         public bool IsDocked => dockingblock != null; // ドッキングしているかどうかのプロパティ
         public TrainCarInstanceId TrainCarInstanceId => _trainCarInstanceId;
+
+        // IRidable 実装: 乗り物としての識別子と座席数を公開する
+        // IRidable implementation: exposes the ridable identifier and seat count.
+        IRidableIdentifier IRidable.Identifier => new TrainCarRidableIdentifier(_trainCarInstanceId.AsPrimitive());
+        int IRidable.SeatCount => TrainCarMasterElement.RidableSeats?.Length ?? 0;
+
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
         public bool IsFacingForward { get; private set; }
         public double RemainFuelTime { get; private set; }

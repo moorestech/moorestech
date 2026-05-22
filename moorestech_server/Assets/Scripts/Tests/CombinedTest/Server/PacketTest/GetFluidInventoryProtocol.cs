@@ -16,6 +16,7 @@ using MachineFluidIOTest = Tests.CombinedTest.Core.MachineFluidIOTest;
 using FuelGearGeneratorTest = Tests.CombinedTest.Core.FuelGearGeneratorTest;
 using FluidTest = Tests.CombinedTest.Core.FluidTest;
 using System;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -53,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // プロトコル経由で液体を取得
             var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
-            var response = packet.GetPacketResponse(request)[0];
+            var response = packet.GetPacketResponse(request, new PacketResponseContext())[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // 機械の液体とプロトコルで取得した液体を比較
@@ -93,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // プロトコル経由で液体を取得
             var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
-            var response = packet.GetPacketResponse(request)[0];
+            var response = packet.GetPacketResponse(request, new PacketResponseContext())[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // 蒸気タンクの内容を確認
@@ -122,7 +123,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // プロトコル経由で液体を取得
             var request = MessagePackSerializer.Serialize(new GetFluidInventoryRequestMessagePack(Vector3Int.zero));
-            var response = packet.GetPacketResponse(request)[0];
+            var response = packet.GetPacketResponse(request, new PacketResponseContext())[0];
             var data = MessagePackSerializer.Deserialize<GetFluidInventoryResponseMessagePack>(response);
             
             // パイプの液体を確認

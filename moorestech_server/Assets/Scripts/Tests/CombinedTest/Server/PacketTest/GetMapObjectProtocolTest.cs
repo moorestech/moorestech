@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.MapObjectAcquisitionProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -41,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 少ないダメージでアイテムが入手できないことのテスト
             // Test that small damage does not yield items
             var messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, 5);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext());
 
             Assert.AreEqual(itemFactory.CreatEmpty(), playerInventory.GetItem(itemSlot));
 
@@ -49,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // アイテムがもらえるだけのダメージを与えてアイテムを入手できることのテスト
             // Test that sufficient damage yields items
             messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, 5);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext());
 
             var obtainedItem = playerInventory.GetItem(itemSlot);
             Assert.AreEqual(expectedItemId, obtainedItem.Id);
@@ -61,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 大きくダメージを与えて2回分のアイテムを入手できることのテスト
             // Test that large damage yields items for crossing 2 thresholds
             messagePack = new GetMapObjectProtocolProtocolMessagePack(PlayerId, mapObject.InstanceId, 20);
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext());
 
             obtainedItem = playerInventory.GetItem(itemSlot);
             Assert.AreEqual(expectedItemId, obtainedItem.Id);

@@ -20,6 +20,7 @@ using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RemoveBlockProtocol;
 using System;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -46,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Remove block using protocol
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId), new PacketResponseContext()));
             Assert.True(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
 
@@ -105,7 +106,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // プロトコルを使ってブロックを削除
             // Try to remove block using protocol
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId), new PacketResponseContext()));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
 
@@ -146,7 +147,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プロトコルを使ってブロックを削除
-            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId)));
+            var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0), PlayerId), new PacketResponseContext()));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.Unknown, response.FailureReason);
             
@@ -171,7 +172,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // RailPositionを登録して手動削除ガードの監視対象にする
             // Register a RailPosition so the manual removal guard can observe it.
             CreateTrainOnNode(environment, railA.FrontNode);
-            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId)));
+            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId), new PacketResponseContext()));
             Assert.False(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.NodeInUseByTrain, response.FailureReason);
 
@@ -191,7 +192,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 列車に使われていない橋脚は通常どおり削除できる
             // A pier unused by trains can still be removed normally.
             TrainTestHelper.PlaceRail(environment, railPos, BlockDirection.East);
-            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId)));
+            var response = GetRemoveBlockResponse(environment.PacketResponseCreator.GetPacketResponse(RemoveBlock(railPos, PlayerId), new PacketResponseContext()));
             Assert.True(response.Success);
             Assert.AreEqual(RemoveBlockFailureReason.None, response.FailureReason);
 

@@ -19,6 +19,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -55,7 +56,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Execute the removal protocol.
             var packet = MessagePackSerializer.Serialize(
                 new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive(), PlayerId));
-            environment.PacketResponseCreator.GetPacketResponse(packet);
+            environment.PacketResponseCreator.GetPacketResponse(packet, new PacketResponseContext());
 
             // 列車が削除され、車両ブロック本体がインベントリへ返却されている
             // The train is removed and the car block item is refunded to the inventory.
@@ -88,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Execute the removal protocol.
             var packet = MessagePackSerializer.Serialize(
                 new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive(), PlayerId));
-            environment.PacketResponseCreator.GetPacketResponse(packet);
+            environment.PacketResponseCreator.GetPacketResponse(packet, new PacketResponseContext());
 
             // 満杯時は削除が中止され、列車はそのまま残る
             // On a full inventory the removal is aborted and the train remains.
@@ -131,7 +132,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 配置プロトコルで列車を生成する
             // Create the train through the placement protocol.
             var placePacket = MessagePackSerializer.Serialize(new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, HotBarSlot, PlayerId));
-            environment.PacketResponseCreator.GetPacketResponse(placePacket);
+            environment.PacketResponseCreator.GetPacketResponse(placePacket, new PacketResponseContext());
 
             var trainCar = environment.GetITrainLookupDatastore().GetRegisteredTrains().Last().Cars[0];
             return (environment, trainCar);

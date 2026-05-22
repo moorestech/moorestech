@@ -51,7 +51,9 @@
         "Game.Fluid",
         "Game.Action",
         "Game.Research",
-        "Game.PlayerRiding.Interface"
+        "Game.PlayerRiding.Interface",
+        "Game.PlayerRiding",
+        "Game.PlayerConnection"
     ],
     "includePlatforms": [
         "Editor"

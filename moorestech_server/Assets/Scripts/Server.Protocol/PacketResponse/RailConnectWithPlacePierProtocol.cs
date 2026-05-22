@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse
             _commandHandler = serviceProvider.GetService<RailConnectionCommandHandler>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<RailConnectWithPlacePierRequest>(payload);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(request.PlayerId);

@@ -21,6 +21,7 @@ using UnityEngine;
 using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
 using System;
 using ItemTrainCarContainer = global::Game.Train.Unit.Containers.ItemTrainCarContainer;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -43,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
                 ItemMoveInventoryInfo.CreateMain(), 0,
-                ItemMoveInventoryInfo.CreateGrab(), 0));
+                ItemMoveInventoryInfo.CreateGrab(), 0), new PacketResponseContext());
 
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), mainInventory.GetItem(0));
@@ -53,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 ItemMoveInventoryInfo.CreateGrab(), 0,
-                ItemMoveInventoryInfo.CreateMain(), 0));
+                ItemMoveInventoryInfo.CreateMain(), 0), new PacketResponseContext());
 
 
             //移っているかチェック
@@ -82,7 +83,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
                 ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize,
-                ItemMoveInventoryInfo.CreateGrab(), 0));
+                ItemMoveInventoryInfo.CreateGrab(), 0), new PacketResponseContext());
 
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), chestComponent.GetItem(1));
@@ -92,7 +93,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 ItemMoveInventoryInfo.CreateGrab(), 0,
-                ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize));
+                ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10))), 1 + PlayerInventoryConst.MainInventorySize), new PacketResponseContext());
 
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), chestComponent.GetItem(1));
@@ -114,7 +115,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Move items from train to grab inventory
             environment.PacketResponseCreator.GetPacketResponse(GetPacket(7,
                 ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive())), 1 + PlayerInventoryConst.MainInventorySize,
-                ItemMoveInventoryInfo.CreateGrab(), 0));
+                ItemMoveInventoryInfo.CreateGrab(), 0), new PacketResponseContext());
 
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), itemContainer.InventoryItems[1]);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 7), grabInventory.GetItem(0));
@@ -123,7 +124,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Move items from grab inventory back to train
             environment.PacketResponseCreator.GetPacketResponse(GetPacket(5,
                 ItemMoveInventoryInfo.CreateGrab(), 0,
-                ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive())), 1 + PlayerInventoryConst.MainInventorySize));
+                ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive())), 1 + PlayerInventoryConst.MainInventorySize), new PacketResponseContext());
 
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), itemContainer.InventoryItems[1]);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 2), grabInventory.GetItem(0));

@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             // リクエストからPlayerIdを取得
             // Get PlayerId from request

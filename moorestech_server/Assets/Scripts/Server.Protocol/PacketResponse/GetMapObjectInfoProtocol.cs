@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var sendMapObjects = new List<MapObjectsInfoMessagePack>();
             foreach (var mapObject in ServerContext.MapObjectDatastore.MapObjects)

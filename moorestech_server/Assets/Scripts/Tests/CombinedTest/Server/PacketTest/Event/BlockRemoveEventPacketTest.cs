@@ -13,6 +13,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -26,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             //イベントキューにIDを登録する
-            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0));
+            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             var worldBlock = ServerContext.WorldBlockDatastore;
@@ -39,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             BlockPlace(1, 4, 4, worldBlock, blockFactory);
             
             //イベントを取得
-            response = packetResponse.GetPacketResponse(EventRequestData(0));
+            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(4, eventMessagePack.Events.Count);
             
@@ -48,7 +49,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             worldDataStore.RemoveBlock(new Vector3Int(4, 0), BlockRemoveReason.ManualRemove);
             
             //イベントを取得
-            response = packetResponse.GetPacketResponse(EventRequestData(0));
+            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             Assert.AreEqual(1, eventMessagePack.Events.Count);
@@ -60,7 +61,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             worldDataStore.RemoveBlock(new Vector3Int(3, 1), BlockRemoveReason.ManualRemove);
             worldDataStore.RemoveBlock(new Vector3Int(1, 4), BlockRemoveReason.ManualRemove);
             //イベントを取得
-            response = packetResponse.GetPacketResponse(EventRequestData(0));
+            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(2, eventMessagePack.Events.Count);
             pos = AnalysisResponsePacket(eventMessagePack.Events[0].Payload);
