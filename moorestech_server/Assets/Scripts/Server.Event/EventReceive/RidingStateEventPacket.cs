@@ -8,23 +8,32 @@ namespace Server.Event.EventReceive
 {
     // 乗車状態変化を全クライアントへ broadcast するイベントパケット。
     // Broadcasts riding-state changes to all clients.
-    public class RidingStateEventPacket
+    public class RidingStateEventPacket : IDisposable
     {
         public const string EventTag = "va:event:ridingState";
+        public const byte RideStateType = 0;
+        public const byte DismountStateType = 1;
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IDisposable _ridingStateChangedSubscription;
 
         public RidingStateEventPacket(EventProtocolProvider eventProtocolProvider, IPlayerRidingDatastore playerRidingDatastore)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            playerRidingDatastore.OnRidingStateChanged.Subscribe(OnRidingStateChanged);
+            _ridingStateChangedSubscription = playerRidingDatastore.OnRidingStateChanged.Subscribe(OnRidingStateChanged);
+        }
+
+        public void Dispose()
+        {
+            _ridingStateChangedSubscription.Dispose();
         }
 
         private void OnRidingStateChanged(RidingStateChange change)
         {
             var target = GetTarget(change);
             var seatIndex = change.IsDismount ? -1 : change.State.SeatIndex;
-            var messagePack = new RidingStateEventMessagePack(change.PlayerId, target, seatIndex);
+            var stateType = change.IsDismount ? DismountStateType : RideStateType;
+            var messagePack = new RidingStateEventMessagePack(change.PlayerId, stateType, target, seatIndex);
 
             // 状態変化ペイロードを broadcast キューへ積む。
             // Enqueue the state-change payload into the broadcast queue.
@@ -47,19 +56,21 @@ namespace Server.Event.EventReceive
     public class RidingStateEventMessagePack
     {
         [Key(0)] public int PlayerId { get; set; }
-        [Key(1)] public RidableIdentifierMessagePack Target { get; set; }
-        [Key(2)] public int SeatIndex { get; set; }
+        [Key(1)] public byte StateType { get; set; }
+        [Key(2)] public RidableIdentifierMessagePack Target { get; set; }
+        [Key(3)] public int SeatIndex { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RidingStateEventMessagePack() { }
 
-        public RidingStateEventMessagePack(int playerId, RidableIdentifierMessagePack target, int seatIndex)
+        public RidingStateEventMessagePack(int playerId, byte stateType, RidableIdentifierMessagePack target, int seatIndex)
         {
             PlayerId = playerId;
+            StateType = stateType;
             Target = target;
             SeatIndex = seatIndex;
         }
 
-        [IgnoreMember] public bool IsDismount => Target == null;
+        [IgnoreMember] public bool IsDismount => StateType == RidingStateEventPacket.DismountStateType;
     }
 }

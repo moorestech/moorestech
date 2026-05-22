@@ -22,7 +22,7 @@ namespace Tests.UnitTest.PlayerRiding
             var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
             var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Ride, target);
 
-            var response = SendRideAction(environment, request);
+            var response = SendRideAction(environment, request, CreateBoundContext(1));
 
             Assert.AreEqual((byte)RideActionResult.Success, response.Result);
             Assert.AreEqual(0, response.SeatIndex);
@@ -38,7 +38,7 @@ namespace Tests.UnitTest.PlayerRiding
             RegisterPlayer(environment, 1);
             var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Dismount, null);
 
-            var response = SendRideAction(environment, request);
+            var response = SendRideAction(environment, request, CreateBoundContext(1));
 
             Assert.AreEqual((byte)RideActionResult.NotRiding, response.Result);
             Assert.AreEqual(-1, response.SeatIndex);
@@ -58,20 +58,67 @@ namespace Tests.UnitTest.PlayerRiding
             };
             var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Ride, target);
 
-            var response = SendRideAction(environment, request);
+            var response = SendRideAction(environment, request, CreateBoundContext(1));
 
             Assert.AreEqual((byte)RideActionResult.RidableNotFound, response.Result);
             Assert.AreEqual(-1, response.SeatIndex);
         }
 
+        [Test]
+        public void RideAction_Ride_WithDifferentContextPlayer_DoesNotMutateState()
+        {
+            // 接続に紐付いた playerId と異なる要求は状態を変更しない。
+            // Requests for a playerId different from the bound connection do not mutate state.
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            RegisterPlayer(environment, 1);
+            RegisterPlayer(environment, 2);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
+            var request = new RideActionProtocol.RequestRideActionMessagePack(2, (byte)RideActionType.Ride, target);
+
+            var response = SendRideAction(environment, request, CreateBoundContext(1));
+
+            Assert.AreEqual((byte)RideActionResult.InvalidPlayer, response.Result);
+            Assert.AreEqual(-1, response.SeatIndex);
+            Assert.IsFalse(datastore.TryGetRidingState(2, out _));
+        }
+
+        [Test]
+        public void RideAction_Ride_WithoutHandshakeContext_DoesNotMutateState()
+        {
+            // handshake 前の要求は接続所有者が不明なので拒否する。
+            // Requests before handshake are rejected because the connection owner is unknown.
+            var environment = TrainTestHelper.CreateEnvironment();
+            var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            RegisterPlayer(environment, 1);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
+            var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Ride, target);
+
+            var response = SendRideAction(environment, request, new PacketResponseContext());
+
+            Assert.AreEqual((byte)RideActionResult.InvalidPlayer, response.Result);
+            Assert.AreEqual(-1, response.SeatIndex);
+            Assert.IsFalse(datastore.TryGetRidingState(1, out _));
+        }
+
         private static RideActionProtocol.ResponseRideActionMessagePack SendRideAction(
             TrainTestEnvironment environment,
-            RideActionProtocol.RequestRideActionMessagePack request)
+            RideActionProtocol.RequestRideActionMessagePack request,
+            PacketResponseContext context)
         {
             var responseBytes = environment.PacketResponseCreator.GetPacketResponse(
                 MessagePackSerializer.Serialize(request),
-                new PacketResponseContext())[0];
+                context)[0];
             return MessagePackSerializer.Deserialize<RideActionProtocol.ResponseRideActionMessagePack>(responseBytes);
+        }
+
+        private static PacketResponseContext CreateBoundContext(int playerId)
+        {
+            var context = new PacketResponseContext();
+            context.BindPlayerId(playerId);
+            return context;
         }
 
         private static void RegisterPlayer(TrainTestEnvironment environment, int playerId)
