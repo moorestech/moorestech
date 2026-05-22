@@ -28,11 +28,12 @@ namespace Server.Boot.Loop
                 Debug.Log("接続確立");
 
                 // 送信・受信キュープロセッサを作成
+                var packetResponseContext = new PacketResponseContext();
                 var sendQueueProcessor = new SendQueueProcessor(client);
-                var receiveQueueProcessor = new ReceiveQueueProcessor(packetResponseCreator, sendQueueProcessor);
+                var receiveQueueProcessor = new ReceiveQueueProcessor(packetResponseCreator, sendQueueProcessor, packetResponseContext);
 
                 // 受信スレッドを起動
-                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry).StartListen(token));
+                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry, packetResponseContext).StartListen(token));
                 receiveThread.Name = "[moorestech] 受信スレッド";
                 receiveThread.Start();
             }

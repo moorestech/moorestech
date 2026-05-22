@@ -66,7 +66,7 @@ namespace Server.Boot
             //サーバーの起動とゲームアップデートの開始
             var cancellationToken = new CancellationTokenSource();
             var token = cancellationToken.Token;
-            var connectionRegistry = serviceProvider.GetService<PlayerConnectionRegistry>();
+            var connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
             var connectionUpdateThread = new Thread(() => new ServerListenAcceptor().StartServer(packet, connectionRegistry, token));

@@ -76,7 +76,7 @@ namespace Server.Protocol
             try
             {
                 request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
-                response = _packetResponseDictionary[request.Tag].GetResponse(payload);
+                response = GetResponse(payload, request.Tag, null);
             }
             catch (Exception e)
             {
@@ -91,6 +91,41 @@ namespace Server.Protocol
             var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
 
             return new List<byte[]> { responseBytes };
+        }
+
+        public List<byte[]> GetPacketResponse(byte[] payload, PacketResponseContext context)
+        {
+            ProtocolMessagePackBase request = null;
+            ProtocolMessagePackBase response = null;
+            try
+            {
+                request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
+                response = GetResponse(payload, request.Tag, context);
+            }
+            catch (Exception e)
+            {
+                // TODO ログ基盤
+                // TODO logging infrastructure
+                Debug.LogError($"PacketResponseCreator Error:{e.Message}\n{e.StackTrace}");
+            }
+
+            if (response == null) return new List<byte[]>();
+
+            response.SequenceId = request.SequenceId;
+            var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
+
+            return new List<byte[]> { responseBytes };
+        }
+
+        private ProtocolMessagePackBase GetResponse(byte[] payload, string tag, PacketResponseContext context)
+        {
+            var packetResponse = _packetResponseDictionary[tag];
+            if (packetResponse is IConnectionAwarePacketResponse connectionAwarePacketResponse)
+            {
+                return connectionAwarePacketResponse.GetResponse(payload, context);
+            }
+
+            return packetResponse.GetResponse(payload);
         }
     }
 }

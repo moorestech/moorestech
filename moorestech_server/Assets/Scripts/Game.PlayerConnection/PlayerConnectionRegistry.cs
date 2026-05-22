@@ -8,7 +8,7 @@ namespace Game.PlayerConnection
     // Tracks connected playerIds and serves as the riding system's IPlayerConnectionChecker.
     public class PlayerConnectionRegistry : IPlayerConnectionChecker
     {
-        private readonly Dictionary<int, int> _connectionCountByPlayerId = new();
+        private readonly HashSet<int> _connectedPlayerIds = new();
         private readonly object _lock = new();
         private readonly Subject<int> _disconnectedSubject = new();
 
@@ -18,35 +18,20 @@ namespace Game.PlayerConnection
         {
             lock (_lock)
             {
-                _connectionCountByPlayerId.TryGetValue(playerId, out var count);
-                _connectionCountByPlayerId[playerId] = count + 1;
+                _connectedPlayerIds.Add(playerId);
             }
         }
 
         public void Unregister(int playerId)
         {
-            var disconnected = false;
+            bool disconnected;
             lock (_lock)
             {
-                if (!_connectionCountByPlayerId.TryGetValue(playerId, out var count))
-                {
-                    return;
-                }
-
-                // 同一 playerId の重複接続がある場合は最後の接続終了まで online とみなす。
-                // Duplicate connections stay online until the final connection closes.
-                if (1 < count)
-                {
-                    _connectionCountByPlayerId[playerId] = count - 1;
-                    return;
-                }
-
-                _connectionCountByPlayerId.Remove(playerId);
-                disconnected = true;
+                disconnected = _connectedPlayerIds.Remove(playerId);
             }
 
-            // 最後の接続が閉じた playerId だけ切断通知を出す。
-            // Notify only when the player's final connection closes.
+            // 登録済み playerId の切断だけを通知する。
+            // Notify only when a registered player actually disconnects.
             if (disconnected)
             {
                 _disconnectedSubject.OnNext(playerId);
@@ -57,7 +42,7 @@ namespace Game.PlayerConnection
         {
             lock (_lock)
             {
-                return _connectionCountByPlayerId.ContainsKey(playerId);
+                return _connectedPlayerIds.Contains(playerId);
             }
         }
     }
