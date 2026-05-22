@@ -13,6 +13,8 @@ namespace Client.DebugSystem
     {
         protected override string Title => "Train Riding Debug";
 
+        // 注意: このシートは ApplyRide/ApplyDismount をローカルのみで呼び、RideActionProtocol を経由しない。サーバー権威の乗車検証には使えない（デバッグ専用）。
+        // Note: this sheet calls ApplyRide/ApplyDismount locally only, bypassing RideActionProtocol; not for verifying server-authoritative riding (debug-only).
         public override IEnumerator Initialize()
         {
             var resolver = ClientDIContext.DIContainer?.DIContainerResolver;
@@ -74,7 +76,7 @@ namespace Client.DebugSystem
                 var row = rows[i];
                 AddButton(row.Label, clicked: () =>
                 {
-                    if (!ridingPlayerController.ApplyRide(row.TrainCarInstanceId))
+                    if (!ridingPlayerController.ApplyRide(row.TrainCarInstanceId, 0))
                     {
                         Debug.LogWarning($"Failed to force ride train car: {row.TrainCarInstanceId}");
                     }

@@ -64,7 +64,7 @@ namespace Client.Game.InGame.Train.Unit
             // On success the requesting client teleports itself to the seat.
             if (response != null && response.Result == RideActionResult.Success)
             {
-                _ridingPlayerController.ApplyRide(nearest.TrainCarInstanceId);
+                _ridingPlayerController.ApplyRide(nearest.TrainCarInstanceId, response.SeatIndex);
             }
         }
 
