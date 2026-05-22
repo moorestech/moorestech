@@ -30,18 +30,36 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestRideActionMessagePack>(payload);
+            var playerId = GetAuthorizedPlayerId();
             var result = ResolveAction();
             var seatIndex = GetSeatIndexWhenRideSucceeded(result);
             return new ResponseRideActionMessagePack((byte)result, seatIndex);
 
             #region Internal
 
+            int GetAuthorizedPlayerId()
+            {
+                // 接続コンテキストに紐付いた playerId だけを状態変更対象にする。
+                // Only the playerId bound to this connection may mutate riding state.
+                if (!context.PlayerId.HasValue || context.PlayerId.Value != data.PlayerId)
+                {
+                    return -1;
+                }
+
+                return context.PlayerId.Value;
+            }
+
             RideActionResult ResolveAction()
             {
+                if (playerId < 0)
+                {
+                    return RideActionResult.InvalidPlayer;
+                }
+
                 var action = (RideActionType)data.Action;
                 if (action == RideActionType.Dismount)
                 {
-                    return _playerRidingDatastore.TryDismount(data.PlayerId);
+                    return _playerRidingDatastore.TryDismount(playerId);
                 }
 
                 // 外部入力の Target はプロトコル境界で検証し、不正値は RidableNotFound に倒す。
@@ -51,7 +69,7 @@ namespace Server.Protocol.PacketResponse
                     return RideActionResult.RidableNotFound;
                 }
 
-                return _playerRidingDatastore.TryRide(data.PlayerId, identifier, out _);
+                return _playerRidingDatastore.TryRide(playerId, identifier, out _);
             }
 
             int GetSeatIndexWhenRideSucceeded(RideActionResult result)
@@ -63,7 +81,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 成功後の確定状態から seatIndex を返す。
                 // Return the seat index from the confirmed state after success.
-                if (_playerRidingDatastore.TryGetRidingState(data.PlayerId, out var state))
+                if (_playerRidingDatastore.TryGetRidingState(playerId, out var state))
                 {
                     return state.SeatIndex;
                 }
@@ -71,26 +89,26 @@ namespace Server.Protocol.PacketResponse
                 return -1;
             }
 
+            bool TryCreateIdentifier(RidableIdentifierMessagePack target, out IRidableIdentifier identifier)
+            {
+                identifier = null;
+                if (target == null || target.RidableType != RidableType.TrainCar.AsPrimitive())
+                {
+                    return false;
+                }
+
+                // TrainCarInstanceId は外部データなので parse 失敗を通常の失敗結果に変換する。
+                // TrainCarInstanceId is external data, so parse failure becomes a normal failure result.
+                if (!long.TryParse(target.TrainCarInstanceId, out var trainCarInstanceId))
+                {
+                    return false;
+                }
+
+                identifier = new TrainCarRidableIdentifier(trainCarInstanceId);
+                return true;
+            }
+
             #endregion
-        }
-
-        private static bool TryCreateIdentifier(RidableIdentifierMessagePack target, out IRidableIdentifier identifier)
-        {
-            identifier = null;
-            if (target == null || target.RidableType != RidableType.TrainCar.AsPrimitive())
-            {
-                return false;
-            }
-
-            // TrainCarInstanceId は外部データなので parse 失敗を通常の失敗結果に変換する。
-            // TrainCarInstanceId is external data, so parse failure becomes a normal failure result.
-            if (!long.TryParse(target.TrainCarInstanceId, out var trainCarInstanceId))
-            {
-                return false;
-            }
-
-            identifier = new TrainCarRidableIdentifier(trainCarInstanceId);
-            return true;
         }
 
         [MessagePackObject]

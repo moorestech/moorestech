@@ -9,6 +9,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
+using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -88,10 +89,31 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new PacketResponseContext())[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
+            Assert.AreEqual(InitialHandshakeProtocol.RestoredRidingStateType, handshakeResponse.RidingStateType);
+            Assert.IsTrue(handshakeResponse.HasRidingState);
             Assert.IsNotNull(handshakeResponse.RidingTarget);
             Assert.AreEqual(RidableType.TrainCar.AsPrimitive(), handshakeResponse.RidingTarget.RidableType);
             Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive().ToString(), handshakeResponse.RidingTarget.TrainCarInstanceId);
             Assert.AreEqual(0, handshakeResponse.RidingSeatIndex);
+        }
+
+        [Test]
+        public void Handshake_RegistersEventQueue_ForRidingStateBroadcast()
+        {
+            // handshake 後は初回 EventProtocol 呼び出し前でも broadcast を受け取れる。
+            // After handshake, broadcast events are queued even before the first EventProtocol call.
+            var environment = TrainTestHelper.CreateEnvironment();
+            environment.ServiceProvider.GetService<IWorldSettingsDatastore>().Initialize(environment.ServiceProvider.GetService<MapInfoJson>());
+            var car = Tests.UnitTest.PlayerRiding.RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
+            environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext());
+
+            datastore.TryRide(PlayerId, id, out _);
+
+            var eventResponse = environment.PacketResponseCreator.GetPacketResponse(GetEventPacket(PlayerId), new PacketResponseContext())[0];
+            var events = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(eventResponse);
+            Assert.IsTrue(events.Events.Exists(e => e.Tag == RidingStateEventPacket.EventTag));
         }
         
         private byte[] GetHandshakePacket(int playerId)
@@ -105,6 +127,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             return MessagePackSerializer.Serialize(
                 new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(playerId, pos));
+        }
+
+        private byte[] GetEventPacket(int playerId)
+        {
+            return MessagePackSerializer.Serialize(new EventProtocol.EventProtocolMessagePack(playerId));
         }
     }
 }

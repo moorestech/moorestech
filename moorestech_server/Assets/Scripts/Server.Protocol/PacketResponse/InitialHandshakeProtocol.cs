@@ -14,12 +14,15 @@ namespace Server.Protocol.PacketResponse
     public class InitialHandshakeProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:initialHandshake";
+        public const byte NoRidingStateType = 0;
+        public const byte RestoredRidingStateType = 1;
         
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly PlayerConnectionRegistry _connectionRegistry;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly Server.Event.EventProtocolProvider _eventProtocolProvider;
         
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
@@ -28,35 +31,41 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
+            _eventProtocolProvider = serviceProvider.GetService<Server.Event.EventProtocolProvider>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
             _connectionRegistry.Register(data.PlayerId);
+            _eventProtocolProvider.RegisterPlayer(data.PlayerId);
             context.BindPlayerId(data.PlayerId);
             
-            var response = CreateResponse(data.PlayerId);
+            var response = CreateResponse();
             
             return response;
-        }
 
-        private ResponseInitialHandshakeMessagePack CreateResponse(int playerId)
-        {
-            var playerPos = GetPlayerPosition(new EntityInstanceId(playerId));
-            RidableIdentifierMessagePack ridingTarget = null;
-            var ridingSeatIndex = -1;
+            #region Internal
 
-            // ログイン時に保存済み乗車状態を検証し、復帰できる場合だけレスポンスに含める。
-            // Validate saved riding state at login and include it in the response only when restorable.
-            if (_playerRidingDatastore.EvaluateOnLogin(playerId)
-                && _playerRidingDatastore.TryGetRidingState(playerId, out var state))
+            ResponseInitialHandshakeMessagePack CreateResponse()
             {
-                ridingTarget = state.Identifier.ToMessagePack();
-                ridingSeatIndex = state.SeatIndex;
+                var playerPos = GetPlayerPosition(new EntityInstanceId(data.PlayerId));
+                RidableIdentifierMessagePack ridingTarget = null;
+                var ridingSeatIndex = -1;
+
+                // ログイン時に保存済み乗車状態を検証し、復帰できる場合だけレスポンスに含める。
+                // Validate saved riding state at login and include it in the response only when restorable.
+                if (_playerRidingDatastore.EvaluateOnLogin(data.PlayerId)
+                    && _playerRidingDatastore.TryGetRidingState(data.PlayerId, out var state))
+                {
+                    ridingTarget = state.Identifier.ToMessagePack();
+                    ridingSeatIndex = state.SeatIndex;
+                }
+
+                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex);
             }
 
-            return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex);
+            #endregion
         }
         
         
@@ -99,8 +108,9 @@ namespace Server.Protocol.PacketResponse
         public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public Vector3MessagePack PlayerPos { get; set; }
-            [Key(3)] public RidableIdentifierMessagePack RidingTarget { get; set; }
-            [Key(4)] public int RidingSeatIndex { get; set; }
+            [Key(3)] public byte RidingStateType { get; set; }
+            [Key(4)] public RidableIdentifierMessagePack RidingTarget { get; set; }
+            [Key(5)] public int RidingSeatIndex { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
@@ -117,9 +127,12 @@ namespace Server.Protocol.PacketResponse
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;
+                RidingStateType = ridingTarget == null ? NoRidingStateType : RestoredRidingStateType;
                 RidingTarget = ridingTarget;
                 RidingSeatIndex = ridingSeatIndex;
             }
+
+            [IgnoreMember] public bool HasRidingState => RidingStateType == RestoredRidingStateType;
         }
     }
 }
