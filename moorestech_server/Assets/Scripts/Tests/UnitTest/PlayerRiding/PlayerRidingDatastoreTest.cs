@@ -52,6 +52,7 @@ namespace Tests.UnitTest.PlayerRiding
             var environment = TrainTestHelper.CreateEnvironment();
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 1, 2, 3);
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
 
             Assert.AreEqual(RideActionResult.Success, datastore.TryRide(1, id, out _));
@@ -65,6 +66,7 @@ namespace Tests.UnitTest.PlayerRiding
             var environment = TrainTestHelper.CreateEnvironment();
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 1, 2);
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
 
             Assert.AreEqual(RideActionResult.Success, datastore.TryRide(1, id, out _));
@@ -78,6 +80,7 @@ namespace Tests.UnitTest.PlayerRiding
             var environment = TrainTestHelper.CreateEnvironment();
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 1);
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
 
             Assert.AreEqual(RideActionResult.NotRiding, datastore.TryDismount(1));
@@ -95,6 +98,7 @@ namespace Tests.UnitTest.PlayerRiding
             var carA = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var carB = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 200);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 1, 2);
             var idA = new TrainCarRidableIdentifier(carA.TrainCarInstanceId.AsPrimitive());
             var idB = new TrainCarRidableIdentifier(carB.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(1, idA, out _);
@@ -116,6 +120,7 @@ namespace Tests.UnitTest.PlayerRiding
             var environment = TrainTestHelper.CreateEnvironment();
             var carA = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 1);
             var idA = new TrainCarRidableIdentifier(carA.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(1, idA, out _);
 
@@ -132,15 +137,12 @@ namespace Tests.UnitTest.PlayerRiding
             // Only connected riders are dismounted; disconnected riders keep their RidingState.
             var environment = TrainTestHelper.CreateEnvironment();
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
-            // 接続状態を切り替えて検証するため、checker を差し替えた PlayerRidingDatastore を用いる
-            // （DI 既定の AlwaysConnectedChecker では切断状態を再現できない）。
-            // Uses a PlayerRidingDatastore with a controllable checker; the DI default cannot simulate a disconnect.
-            var checker = new TestPlayerConnectionChecker();
-            var datastore = new PlayerRidingDatastore(environment.ServiceProvider.GetService<RidableResolver>(), checker);
+            var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            var registry = RegisterConnectedPlayers(environment, 1, 2);
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(1, id, out _);
             datastore.TryRide(2, id, out _);
-            checker.SetDisconnected(2);
+            registry.Unregister(2);
 
             var dismounted = datastore.OnRidableRemoved(id);
 
@@ -197,6 +199,7 @@ namespace Tests.UnitTest.PlayerRiding
             var environment = TrainTestHelper.CreateEnvironment();
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
+            RegisterConnectedPlayers(environment, 7);
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
             datastore.TryRide(7, id, out _);
 
@@ -211,21 +214,18 @@ namespace Tests.UnitTest.PlayerRiding
             Assert.IsTrue(state.Identifier.Equals(id));
         }
 
-        // 接続状態を制御できるテスト用 checker。既定は全員接続中、SetDisconnected で個別に切断扱いにする。
-        // Test connection checker: everyone connected by default; SetDisconnected marks a player offline.
-        private sealed class TestPlayerConnectionChecker : IPlayerConnectionChecker
+        private static PlayerConnectionRegistry RegisterConnectedPlayers(TrainTestEnvironment environment, params int[] playerIds)
         {
-            private readonly HashSet<int> _disconnectedPlayerIds = new();
+            var registry = environment.ServiceProvider.GetService<PlayerConnectionRegistry>();
 
-            public void SetDisconnected(int playerId)
+            // 乗車判定は実機側と同じ接続レジストリを IPlayerConnectionChecker として使う。
+            // Riding checks use the same connection registry as the runtime IPlayerConnectionChecker.
+            foreach (var playerId in playerIds)
             {
-                _disconnectedPlayerIds.Add(playerId);
+                registry.Register(playerId);
             }
 
-            public bool IsConnected(int playerId)
-            {
-                return !_disconnectedPlayerIds.Contains(playerId);
-            }
+            return registry;
         }
     }
 }

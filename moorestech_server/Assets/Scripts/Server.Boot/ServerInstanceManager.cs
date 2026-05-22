@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Game.PlayerConnection;
 using Core.Update;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -65,9 +66,10 @@ namespace Server.Boot
             //サーバーの起動とゲームアップデートの開始
             var cancellationToken = new CancellationTokenSource();
             var token = cancellationToken.Token;
+            var connectionRegistry = serviceProvider.GetService<PlayerConnectionRegistry>();
             
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
-            var connectionUpdateThread = new Thread(() => new ServerListenAcceptor().StartServer(packet, token));
+            var connectionUpdateThread = new Thread(() => new ServerListenAcceptor().StartServer(packet, connectionRegistry, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             

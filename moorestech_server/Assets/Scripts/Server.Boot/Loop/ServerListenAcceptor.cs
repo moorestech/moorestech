@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Game.PlayerConnection;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Protocol;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace Server.Boot.Loop
     {
         private const int Port = 11564;
 
-        public void StartServer(PacketResponseCreator packetResponseCreator, CancellationToken token)
+        public void StartServer(PacketResponseCreator packetResponseCreator, PlayerConnectionRegistry connectionRegistry, CancellationToken token)
         {
             //ソケットの作成
             var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -31,7 +32,7 @@ namespace Server.Boot.Loop
                 var receiveQueueProcessor = new ReceiveQueueProcessor(packetResponseCreator, sendQueueProcessor);
 
                 // 受信スレッドを起動
-                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor).StartListen(token));
+                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry).StartListen(token));
                 receiveThread.Name = "[moorestech] 受信スレッド";
                 receiveThread.Start();
             }
