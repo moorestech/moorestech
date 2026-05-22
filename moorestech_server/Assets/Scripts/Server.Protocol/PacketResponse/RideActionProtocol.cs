@@ -19,55 +19,54 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestRideActionMessagePack>(payload);
-            
-            var result = ResolveAction(data.PlayerId);
-            var seatIndex = GetSeatIndexWhenRideSucceeded(result, data.PlayerId);
+            var playerId = GetAuthorizedPlayerId();
+            var result = ResolveAction(out var seatIndex);
             return new ResponseRideActionMessagePack((byte)result, seatIndex);
 
             #region Internal
 
-            RideActionResult ResolveAction(int playerId)
+            int GetAuthorizedPlayerId()
             {
+                // 接続コンテキストに紐付いた playerId だけを状態変更対象にする。
+                // Only the playerId bound to this connection may mutate riding state.
+                if (!context.PlayerId.HasValue || context.PlayerId.Value != data.PlayerId)
+                {
+                    return -1;
+                }
+
+                return context.PlayerId.Value;
+            }
+
+            RideActionResult ResolveAction(out int seatIndex)
+            {
+                seatIndex = -1;
                 if (playerId < 0)
                 {
                     return RideActionResult.InvalidPlayer;
                 }
 
-                var action = data.Action;
-                
-                // 修正 switchに書き換える
-                if (action == RideActionType.Dismount)
+                // Action ごとの状態変更を実行し、乗車成功時は割り当て seatIndex を同時に返す。
+                // Execute each action and return the assigned seat index together on ride success.
+                switch (data.Action)
                 {
-                    return _playerRidingDatastore.TryDismount(playerId);
+                    case RideActionType.Ride:
+                        if (!TryCreateIdentifier(data.Target, out var identifier))
+                        {
+                            return RideActionResult.RidableNotFound;
+                        }
+                        var rideResult = _playerRidingDatastore.TryRide(playerId, identifier, out seatIndex);
+                        if (rideResult != RideActionResult.Success)
+                        {
+                            seatIndex = -1;
+                        }
+                        return rideResult;
+                    case RideActionType.Dismount:
+                        return _playerRidingDatastore.TryDismount(playerId);
+                    default:
+                        return RideActionResult.RidableNotFound;
                 }
-
-                if (action != RideActionType.Ride || !TryCreateIdentifier(data.Target, out var identifier))
-                {
-                    return RideActionResult.RidableNotFound;
-                }
-
-                return _playerRidingDatastore.TryRide(playerId, identifier, out _);
-            }
-            
-            // 修正 ResolveActionと同時に実行する
-            int GetSeatIndexWhenRideSucceeded(RideActionResult result,int playerId)
-            {
-                if (data.Action != RideActionType.Ride || result != RideActionResult.Success)
-                {
-                    return -1;
-                }
-
-                // 成功後の確定状態から seatIndex を返す。
-                // Return the seat index from the confirmed state after success.
-                if (_playerRidingDatastore.TryGetRidingState(playerId, out var state))
-                {
-                    return state.SeatIndex;
-                }
-
-                return -1;
             }
 
-            // 修正 RidableIdentifierConverter.FromMessagePackを使えばいいだろバカか
             bool TryCreateIdentifier(RidableIdentifierMessagePack target, out IRidableIdentifier identifier)
             {
                 identifier = null;
@@ -76,14 +75,15 @@ namespace Server.Protocol.PacketResponse
                     return false;
                 }
 
-                // TrainCarInstanceId は外部データなので parse 失敗を通常の失敗結果に変換する。
-                // TrainCarInstanceId is external data, so parse failure becomes a normal failure result.
+                // 外部入力の値検証後、共通 converter で識別子へ変換する。
+                // After validating external input, use the shared converter to create the identifier.
                 if (!long.TryParse(target.TrainCarInstanceId, out var trainCarInstanceId))
                 {
                     return false;
                 }
 
-                identifier = new TrainCarRidableIdentifier(trainCarInstanceId);
+                var validatedTarget = RidableIdentifierMessagePack.CreateTrainCarMessage(trainCarInstanceId);
+                identifier = RidableIdentifierConverter.FromMessagePack(validatedTarget);
                 return true;
             }
 

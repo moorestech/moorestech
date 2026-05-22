@@ -20,7 +20,7 @@ namespace Tests.UnitTest.PlayerRiding
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             RegisterPlayer(environment, 1);
             var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
-            var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Ride, target);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(1, RideActionType.Ride, target);
 
             var response = SendRideAction(environment, request, CreateBoundContext(1));
 
@@ -36,7 +36,7 @@ namespace Tests.UnitTest.PlayerRiding
             var environment = TrainTestHelper.CreateEnvironment();
             RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             RegisterPlayer(environment, 1);
-            var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Dismount, null);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(1, RideActionType.Dismount, null);
 
             var response = SendRideAction(environment, request, CreateBoundContext(1));
 
@@ -56,7 +56,7 @@ namespace Tests.UnitTest.PlayerRiding
                 RidableType = RidableType.TrainCar.AsPrimitive(),
                 TrainCarInstanceId = "invalid",
             };
-            var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Ride, target);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(1, RideActionType.Ride, target);
 
             var response = SendRideAction(environment, request, CreateBoundContext(1));
 
@@ -75,7 +75,7 @@ namespace Tests.UnitTest.PlayerRiding
             RegisterPlayer(environment, 2);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
-            var request = new RideActionProtocol.RequestRideActionMessagePack(2, (byte)RideActionType.Ride, target);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(2, RideActionType.Ride, target);
 
             var response = SendRideAction(environment, request, CreateBoundContext(1));
 
@@ -94,7 +94,7 @@ namespace Tests.UnitTest.PlayerRiding
             RegisterPlayer(environment, 1);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
-            var request = new RideActionProtocol.RequestRideActionMessagePack(1, (byte)RideActionType.Ride, target);
+            var request = new RideActionProtocol.RequestRideActionMessagePack(1, RideActionType.Ride, target);
 
             var response = SendRideAction(environment, request, new PacketResponseContext());
 
