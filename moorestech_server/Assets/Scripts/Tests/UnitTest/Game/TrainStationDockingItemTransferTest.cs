@@ -7,6 +7,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -15,6 +16,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
+using UniRx;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game
@@ -146,6 +148,63 @@ namespace Tests.UnitTest.Game
             var carStack = itemContainer.InventoryItems[0];
             Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id, "列車貨車が貨物プラットフォームのアイテムを受け取っていません。");
             Assert.AreEqual(maxStack, carStack.Count, "列車貨車が貨物プラットフォームから全量を受け取っていません。");
+        }
+
+        [Test]
+        public void CargoPlatformNotifiesSnapshotWhenMovingItemContainerToEmptyTrainCar()
+        {
+            var env = TrainTestHelper.CreateEnvironment();
+
+            var (cargoPlatformBlock, railComponents) = TrainTestHelper.PlaceBlockWithRailComponents(
+                env,
+                ForUnitTestModBlockId.TestTrainItemPlatform,
+                Vector3Int.zero,
+                BlockDirection.North);
+
+            var trainPlatformItemTransferComponent = cargoPlatformBlock.GetComponent<TrainPlatformItemContainerComponent>();
+            var trainPlatformDockingComponent = cargoPlatformBlock.GetComponent<TrainPlatformDockingComponent>();
+            Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory));
+
+            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            cargoInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
+
+            var entryNode = railComponents[0].FrontNode;
+            var exitNode = railComponents[1].FrontNode;
+            var platformSegmentLength = cargoPlatformBlock.BlockPositionInfo.BlockSize.z;
+            var railNodes = new List<IRailNode> { exitNode, entryNode };
+            var railPosition = new RailPosition(railNodes, platformSegmentLength, 0);
+            var element = TrainTestCarFactory.CreateMasterElement(0, 400000, 1, platformSegmentLength);
+            var trainCar = new TrainCar(element, true);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
+            env.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
+
+            var notifiedCount = 0;
+            var notifiedTrainId = TrainUnitInstanceId.Empty;
+            using var subscription = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().OnTrainUnitSnapshotNotified.Subscribe(data =>
+            {
+                notifiedCount++;
+                notifiedTrainId = data.TrainUnitInstanceId;
+            });
+
+            trainUnit.trainUnitStationDocking.TryDockWhenStopped();
+
+            var transferTicks = GetCargoTransferTicks();
+            for (var i = 0; i < transferTicks; i++)
+            {
+                trainPlatformItemTransferComponent.Update();
+                trainPlatformDockingComponent.Update();
+            }
+
+            Assert.IsInstanceOf<ItemTrainCarContainer>(trainCar.Container);
+            var itemContainer = (ItemTrainCarContainer)trainCar.Container;
+            var carStack = itemContainer.InventoryItems[0];
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, carStack.Id);
+            Assert.AreEqual(maxStack, carStack.Count);
+            Assert.AreEqual(1, notifiedCount);
+            Assert.AreEqual(trainUnit.TrainUnitInstanceId, notifiedTrainId);
+
+            env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
+            env.GetITrainUnitMutationDatastore().UnregisterTrain(trainUnit);
         }
 
         [Test]

@@ -9,7 +9,13 @@ namespace Game.Train.Event
     public sealed class TrainUnitSnapshotNotifyEvent : ITrainUnitSnapshotNotifyEvent
     {
         private readonly Subject<TrainUnitSnapshotNotifyEventData> _subject = new();
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         public IObservable<TrainUnitSnapshotNotifyEventData> OnTrainUnitSnapshotNotified => _subject;
+
+        public TrainUnitSnapshotNotifyEvent(ITrainUnitLookupDatastore trainUnitLookupDatastore)
+        {
+            _trainUnitLookupDatastore = trainUnitLookupDatastore;
+        }
         
         public void NotifySnapshot(TrainUnit trainUnit)
         {
@@ -23,6 +29,15 @@ namespace Game.Train.Event
             _subject.OnNext(new TrainUnitSnapshotNotifyEventData(trainUnit.TrainUnitInstanceId, false, trainUnit));
         }
 
+        public void NotifySnapshotByCar(TrainCar trainCar)
+        {
+            // 車両から所属TrainUnitを解決し、既存の単機snapshot通知経路に流す。
+            // Resolve the owning TrainUnit from the car and reuse the existing per-unit snapshot path.
+            if (!_trainUnitLookupDatastore.TryGetTrainUnitByCar(trainCar.TrainCarInstanceId, out var trainUnit)) return;
+
+            NotifySnapshot(trainUnit);
+        }
+        
         public void NotifyDeleted(TrainUnitInstanceId trainUnitInstanceId)
         {
             if (trainUnitInstanceId == TrainUnitInstanceId.Empty)
