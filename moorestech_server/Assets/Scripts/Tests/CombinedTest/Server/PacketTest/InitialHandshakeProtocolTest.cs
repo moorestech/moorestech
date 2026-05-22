@@ -89,7 +89,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new PacketResponseContext())[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
-            Assert.AreEqual(InitialHandshakeProtocol.RestoredRidingStateType, handshakeResponse.RidingStateType);
+            Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.RidingStateType);
             Assert.IsTrue(handshakeResponse.HasRidingState);
             Assert.IsNotNull(handshakeResponse.RidingTarget);
             Assert.AreEqual(RidableType.TrainCar.AsPrimitive(), handshakeResponse.RidingTarget.RidableType);

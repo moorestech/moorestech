@@ -34,11 +34,11 @@ namespace Tests.UnitTest.PlayerRiding
             var ride = MessagePackSerializer.Deserialize<RidingStateEventMessagePack>(ridingEvents[0].Payload);
             var dismount = MessagePackSerializer.Deserialize<RidingStateEventMessagePack>(ridingEvents[1].Payload);
             Assert.AreEqual(1, ride.PlayerId);
-            Assert.AreEqual(RidingStateEventPacket.RideStateType, ride.StateType);
+            Assert.AreEqual(RidingStateEventType.Ride, ride.StateType);
             Assert.AreEqual(0, ride.SeatIndex);
             Assert.IsNotNull(ride.Target);
             Assert.AreEqual(1, dismount.PlayerId);
-            Assert.AreEqual(RidingStateEventPacket.DismountStateType, dismount.StateType);
+            Assert.AreEqual(RidingStateEventType.Dismount, dismount.StateType);
             Assert.AreEqual(-1, dismount.SeatIndex);
         }
 

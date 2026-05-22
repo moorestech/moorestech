@@ -6,6 +6,7 @@ using Game.PlayerRiding.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -14,14 +15,13 @@ namespace Server.Protocol.PacketResponse
     public class InitialHandshakeProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:initialHandshake";
-        public const byte NoRidingStateType = 0;
-        public const byte RestoredRidingStateType = 1;
         
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly PlayerConnectionRegistry _connectionRegistry;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly EventProtocolProvider _eventProtocolProvider;
         
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
@@ -30,12 +30,14 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
+            _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
             _connectionRegistry.Register(data.PlayerId);
+            _eventProtocolProvider.RegisterPlayer(data.PlayerId);
             context.BindPlayerId(data.PlayerId);
             
             var response = CreateResponse();
@@ -105,18 +107,13 @@ namespace Server.Protocol.PacketResponse
         public class ResponseInitialHandshakeMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public Vector3MessagePack PlayerPos { get; set; }
-            [Key(3)] public byte RidingStateType { get; set; }
+            [Key(3)] public InitialHandshakeRidingStateType RidingStateType { get; set; }
             [Key(4)] public RidableIdentifierMessagePack RidingTarget { get; set; }
             [Key(5)] public int RidingSeatIndex { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
             
-            public ResponseInitialHandshakeMessagePack(Vector3MessagePack playerPos)
-                : this(playerPos, null, -1)
-            {
-            }
-
             public ResponseInitialHandshakeMessagePack(
                 Vector3MessagePack playerPos,
                 RidableIdentifierMessagePack ridingTarget,
@@ -124,12 +121,18 @@ namespace Server.Protocol.PacketResponse
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;
-                RidingStateType = ridingTarget == null ? NoRidingStateType : RestoredRidingStateType;
+                RidingStateType = ridingTarget == null ? InitialHandshakeRidingStateType.None : InitialHandshakeRidingStateType.Restored;
                 RidingTarget = ridingTarget;
                 RidingSeatIndex = ridingSeatIndex;
             }
 
-            [IgnoreMember] public bool HasRidingState => RidingStateType == RestoredRidingStateType;
+            [IgnoreMember] public bool HasRidingState => RidingStateType == InitialHandshakeRidingStateType.Restored;
         }
+    }
+
+    public enum InitialHandshakeRidingStateType : byte
+    {
+        None,
+        Restored,
     }
 }

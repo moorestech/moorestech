@@ -11,8 +11,6 @@ namespace Server.Event.EventReceive
     public class RidingStateEventPacket : IDisposable
     {
         public const string EventTag = "va:event:ridingState";
-        public const byte RideStateType = 0;
-        public const byte DismountStateType = 1;
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly IDisposable _ridingStateChangedSubscription;
@@ -32,7 +30,7 @@ namespace Server.Event.EventReceive
         {
             var target = GetTarget(change);
             var seatIndex = change.IsDismount ? -1 : change.State.SeatIndex;
-            var stateType = change.IsDismount ? DismountStateType : RideStateType;
+            var stateType = change.IsDismount ? RidingStateEventType.Dismount : RidingStateEventType.Ride;
             var messagePack = new RidingStateEventMessagePack(change.PlayerId, stateType, target, seatIndex);
 
             // 状態変化ペイロードを broadcast キューへ積む。
@@ -57,19 +55,25 @@ namespace Server.Event.EventReceive
     public class RidingStateEventMessagePack
     {
         [Key(0)] public int PlayerId { get; set; }
-        [Key(1)] public byte StateType { get; set; }
+        [Key(1)] public RidingStateEventType StateType { get; set; }
         [Key(2)] public RidableIdentifierMessagePack Target { get; set; }
         [Key(3)] public int SeatIndex { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public RidingStateEventMessagePack() { }
 
-        public RidingStateEventMessagePack(int playerId, byte stateType, RidableIdentifierMessagePack target, int seatIndex)
+        public RidingStateEventMessagePack(int playerId, RidingStateEventType stateType, RidableIdentifierMessagePack target, int seatIndex)
         {
             PlayerId = playerId;
             StateType = stateType;
             Target = target;
             SeatIndex = seatIndex;
         }
+    }
+
+    public enum RidingStateEventType : byte
+    {
+        Ride,
+        Dismount,
     }
 }

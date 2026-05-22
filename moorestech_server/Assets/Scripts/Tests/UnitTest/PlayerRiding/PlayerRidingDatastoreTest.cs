@@ -179,7 +179,7 @@ namespace Tests.UnitTest.PlayerRiding
         }
 
         [Test]
-        public void TrainCarRemovedRidingHandler_DismountsConnectedRider()
+        public void RemovedRidableRidingHandler_DismountsConnectedRider()
         {
             // TrainUpdateEvent の車両削除通知で接続中プレイヤーを降車させる。
             // A train-car removal notification dismounts connected riders.
