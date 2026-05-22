@@ -69,14 +69,14 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(FilterSplitterStateProtocol.ProtocolTag, new FilterSplitterStateProtocol(serviceProvider));
         }
         
-        public List<byte[]> GetPacketResponse(byte[] payload)
+        public List<byte[]> GetPacketResponse(byte[] payload, PacketResponseContext context)
         {
             ProtocolMessagePackBase request = null;
             ProtocolMessagePackBase response = null;
             try
             {
                 request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
-                response = _packetResponseDictionary[request.Tag].GetResponse(payload);
+                response = _packetResponseDictionary[request.Tag].GetResponse(payload, context);
             }
             catch (Exception e)
             {

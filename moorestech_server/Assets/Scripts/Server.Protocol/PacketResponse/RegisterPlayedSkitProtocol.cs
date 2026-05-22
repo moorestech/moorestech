@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RegisterPlayedSkitMessagePack>(payload);
             var info = _challengeDatastore.CurrentChallengeInfo;

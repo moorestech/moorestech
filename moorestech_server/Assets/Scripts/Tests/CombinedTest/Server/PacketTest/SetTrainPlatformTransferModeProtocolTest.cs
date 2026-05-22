@@ -10,6 +10,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -98,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var request = new SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeRequest(position, mode);
             var payload = MessagePackSerializer.Serialize(request);
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(payload);
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(payload, new PacketResponseContext());
 
             Assert.AreEqual(1, responseBytes.Count);
             return MessagePackSerializer.Deserialize<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(responseBytes[0]);

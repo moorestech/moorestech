@@ -143,7 +143,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private CompleteResearchProtocol.ResponseCompleteResearchMessagePack SendCompleteResearchRequest(PacketResponseCreator packet, Guid researchGuid)
         {
             var requestData = MessagePackSerializer.Serialize(new CompleteResearchProtocol.RequestCompleteResearchMessagePack(PlayerId, researchGuid));
-            var response = packet.GetPacketResponse(requestData);
+            var response = packet.GetPacketResponse(requestData, new PacketResponseContext());
             
             return MessagePackSerializer.Deserialize<CompleteResearchProtocol.ResponseCompleteResearchMessagePack>(response[0]);
         }

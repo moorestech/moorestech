@@ -12,6 +12,7 @@ using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -24,7 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
-            var response = packetResponse.GetPacketResponse(EventRequestData(0));
+            var response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
@@ -34,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             playerInventoryData.MainOpenableInventory.SetItem(5, itemStackFactory.Create(new ItemId(1), 5));
             
             //追加時のイベントのキャッチ
-            response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
+            response = packetResponse.GetPacketResponse(EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             var data = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
             Assert.AreEqual(5, data.Slot);
@@ -44,10 +45,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //インベントリ内のアイテムの移動を実際に移動のプロトコルを用いてテストする
             //分割のイベントのテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 5, 3));
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 4, 3));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 5, 3), new PacketResponseContext());
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 4, 3), new PacketResponseContext());
             
-            response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
+            response = packetResponse.GetPacketResponse(EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             Assert.AreEqual(4, eventMessagePack.Events.Count);
@@ -72,10 +73,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //合成のテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 4, 3));
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 5, 3));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 4, 3), new PacketResponseContext());
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 5, 3), new PacketResponseContext());
             
-            response = packetResponse.GetPacketResponse(EventRequestData(PlayerId));
+            response = packetResponse.GetPacketResponse(EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             Assert.AreEqual(4, eventMessagePack.Events.Count);

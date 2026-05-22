@@ -16,7 +16,7 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = eventProtocolProvider;
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<EventProtocolMessagePack>(payload);
             

@@ -17,13 +17,15 @@ namespace Server.Boot.Loop.PacketProcessing
     {
         private readonly PacketResponseCreator _packetResponseCreator;
         private readonly SendQueueProcessor _sendQueueProcessor;
+        private readonly PacketResponseContext _packetResponseContext;
         private readonly IDisposable _updateSubscription;
         private readonly ConcurrentQueue<byte[]> _receiveQueue = new();
 
-        public ReceiveQueueProcessor(PacketResponseCreator packetResponseCreator, SendQueueProcessor sendQueueProcessor)
+        public ReceiveQueueProcessor(PacketResponseCreator packetResponseCreator, SendQueueProcessor sendQueueProcessor, PacketResponseContext packetResponseContext)
         {
             _packetResponseCreator = packetResponseCreator;
             _sendQueueProcessor = sendQueueProcessor;
+            _packetResponseContext = packetResponseContext;
 
             // GameUpdaterのUpdate時にキューを処理
             _updateSubscription = GameUpdater.LateUpdateObservable.Subscribe(_ => ProcessReceiveQueue());
@@ -40,7 +42,7 @@ namespace Server.Boot.Loop.PacketProcessing
             // この処理は常に一瞬で終わる（送信はSendQueueProcessorに委譲）
             while (_receiveQueue.TryDequeue(out var packet))
             {
-                var results = _packetResponseCreator.GetPacketResponse(packet);
+                var results = _packetResponseCreator.GetPacketResponse(packet, _packetResponseContext);
                 foreach (var result in results)
                 {
                     // パケット長ヘッダーを付与して送信データを構築

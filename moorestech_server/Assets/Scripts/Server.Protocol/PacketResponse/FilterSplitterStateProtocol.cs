@@ -23,7 +23,7 @@ namespace Server.Protocol.PacketResponse
         {
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<FilterSplitterStateRequest>(payload);
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Entity.Interface;
+using Game.PlayerConnection;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,17 +17,21 @@ namespace Server.Protocol.PacketResponse
         private readonly IEntitiesDatastore _entitiesDatastore;
         private readonly IEntityFactory _entityFactory;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
+        private readonly PlayerConnectionRegistry _connectionRegistry;
         
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
+            _connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
+            _connectionRegistry.Register(data.PlayerId);
+            context.BindPlayerId(data.PlayerId);
             
             var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(new EntityInstanceId(data.PlayerId)));
             

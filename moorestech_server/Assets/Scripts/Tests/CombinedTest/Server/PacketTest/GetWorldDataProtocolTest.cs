@@ -11,6 +11,7 @@ using UnityEngine;
 using static Server.Protocol.PacketResponse.RequestWorldDataProtocol;
 using Random = System.Random;
 using System;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -39,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
             // Create request with PlayerId (Tag is correctly set)
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack(0));
-            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes)[0];
+            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes, new PacketResponseContext())[0];
             var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes);
             
             //検証
@@ -69,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // PlayerIdを指定してリクエストを作成（Tagが正しく設定される）
             // Create request with PlayerId (Tag is correctly set)
             var requestBytes = MessagePackSerializer.Serialize(new RequestWorldDataMessagePack(0));
-            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes)[0];
+            byte[] responseBytes = packetResponse.GetPacketResponse(requestBytes, new PacketResponseContext())[0];
             var responseWorld = MessagePackSerializer.Deserialize<ResponseWorldDataMessagePack>(responseBytes);
             
             //ブロックが設置されていることを確認する

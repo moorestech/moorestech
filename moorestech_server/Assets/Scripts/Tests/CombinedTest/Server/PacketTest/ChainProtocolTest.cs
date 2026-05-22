@@ -16,6 +16,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -48,7 +49,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 接続プロトコルを送信する
             // Send connect protocol
-            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId, chainItemId)).First();
+            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId, chainItemId), new PacketResponseContext()).First();
             var typedConnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(connectBytes.ToArray());
             Assert.True(typedConnect.IsSuccess);
 
@@ -61,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 切断プロトコルを送信する
             // Send disconnect protocol
-            var disconnectBytes = packet.GetPacketResponse(Disconnect(posA, posB)).First();
+            var disconnectBytes = packet.GetPacketResponse(Disconnect(posA, posB), new PacketResponseContext()).First();
             var typedDisconnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(disconnectBytes.ToArray());
             Assert.True(typedDisconnect.IsSuccess);
         }

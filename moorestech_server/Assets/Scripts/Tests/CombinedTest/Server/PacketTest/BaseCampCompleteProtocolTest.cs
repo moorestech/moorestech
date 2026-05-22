@@ -14,6 +14,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 using System;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -46,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 納品完了プロトコルを送信
             var completeRequest = MessagePackSerializer.Serialize(new CompleteBaseCampProtocol.CompleteBaseCampProtocolMessagePack(1, position));
-            packetResponse.GetPacketResponse(completeRequest);
+            packetResponse.GetPacketResponse(completeRequest, new PacketResponseContext());
             
             // ブロックが変換されたことを確認
             var transformedBlock = worldBlockDatastore.GetBlock(position);

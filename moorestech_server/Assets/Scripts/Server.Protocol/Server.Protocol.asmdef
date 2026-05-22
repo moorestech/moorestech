@@ -27,7 +27,8 @@
     "Game.Fluid",
     "Game.Research",
     "Game.Train",
-    "Game.Gear"
+    "Game.Gear",
+    "Game.PlayerConnection"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

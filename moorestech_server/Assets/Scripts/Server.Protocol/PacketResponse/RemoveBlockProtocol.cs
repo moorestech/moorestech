@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload);
             

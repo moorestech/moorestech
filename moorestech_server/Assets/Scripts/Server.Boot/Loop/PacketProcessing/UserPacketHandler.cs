@@ -1,6 +1,8 @@
 using System;
 using System.Net.Sockets;
 using System.Threading;
+using Game.PlayerConnection;
+using Server.Protocol;
 using Server.Util;
 using UnityEngine;
 
@@ -15,12 +17,18 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly Socket _client;
         private readonly ReceiveQueueProcessor _receiveQueueProcessor;
         private readonly SendQueueProcessor _sendQueueProcessor;
+        
+        private readonly PlayerConnectionRegistry _connectionRegistry;
+        private readonly PacketResponseContext _packetResponseContext;
+        private bool _cleaned;
 
-        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor)
+        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, PacketResponseContext packetResponseContext)
         {
             _client = client;
             _receiveQueueProcessor = receiveQueueProcessor;
             _sendQueueProcessor = sendQueueProcessor;
+            _connectionRegistry = connectionRegistry;
+            _packetResponseContext = packetResponseContext;
         }
 
         public void StartListen(CancellationToken token)
@@ -43,14 +51,16 @@ namespace Server.Boot.Loop.PacketProcessing
             }
             catch (OperationCanceledException)
             {
-                Cleanup();
                 Debug.Log("切断されました");
             }
             catch (Exception e)
             {
-                Cleanup();
                 Debug.LogError("moorestech内のロジックによるエラーで切断");
                 Debug.LogException(e);
+            }
+            finally
+            {
+                Cleanup();
             }
         }
 
@@ -73,6 +83,16 @@ namespace Server.Boot.Loop.PacketProcessing
 
         private void Cleanup()
         {
+            if (_cleaned) return;
+            _cleaned = true;
+
+            // 接続終了時、紐付いた playerId を登録解除して切断イベントを発火する。
+            // On connection end, unregister the bound playerId and fire the disconnect event.
+            if (_packetResponseContext.PlayerId.HasValue)
+            {
+                _connectionRegistry.Unregister(_packetResponseContext.PlayerId.Value);
+            }
+
             _receiveQueueProcessor.Dispose();
             _sendQueueProcessor.Dispose();
             _client.Close();
