@@ -26,43 +26,36 @@ namespace Client.Game.InGame.Train.View
             var railNodes = railPosition.GetRailNodes();
             if (railNodes == null || railNodes.Count < 2) return false;
 
-            // 先頭セグメントを基準に距離を評価する
-            // Evaluate distance starting from the head segment
+            // 先頭から最後尾方向へ、有効な描画セグメントだけで距離を評価する
+            // Evaluate distance from head to rear using only drawable-length segments.
             var distanceToNext = railPosition.GetDistanceToNextNode();
-            var headAhead = railNodes[0];
-            var headBehind = railNodes[1];
-            var headLength = headBehind.GetDistanceToNode(headAhead);
-            if (headLength <= 0) return false;
-
-            var distanceFromBehindToHead = headLength - distanceToNext;
-            if (distanceFromBehindToHead < 0) return false;
-            if (distanceFromHead <= distanceFromBehindToHead)
-            {
-                var distanceFromBehind = distanceFromBehindToHead - distanceFromHead;
-                return TryGetPoseOnSegment(headBehind, headAhead, distanceFromBehind, out position, out forward);
-            }
-
-            // 残距離で後方セグメントを辿る
-            // Walk rear segments by consuming the remaining distance
-            var remaining = distanceFromHead - distanceFromBehindToHead;
-            for (var i = 1; i < railNodes.Count - 1; i++)
+            var remaining = distanceFromHead;
+            for (var i = 0; i < railNodes.Count - 1; i++)
             {
                 var ahead = railNodes[i];
                 var behind = railNodes[i + 1];
                 var segmentLength = behind.GetDistanceToNode(ahead);
-                if (segmentLength <= 0) return false;
-                if (remaining <= segmentLength)
+                if (segmentLength < 0) return false;
+                if (segmentLength == 0) continue;
+
+                // 先頭セグメントだけは、列車先頭が既に進んだぶんを除外する
+                // For the head segment, exclude the portion still ahead of the train head.
+                var availableLength = i == 0 ? segmentLength - distanceToNext : segmentLength;
+                if (availableLength < 0) return false;
+                if (availableLength == 0) continue;
+
+                // 対象距離がこのセグメント内なら、後方ノードからの距離に変換して姿勢を返す
+                // If the target lies on this segment, convert it to distance from the rear node.
+                if (remaining <= availableLength)
                 {
-                    var distanceFromBehind = segmentLength - remaining;
+                    var distanceFromBehind = i == 0 ? availableLength - remaining : segmentLength - remaining;
                     return TryGetPoseOnSegment(behind, ahead, distanceFromBehind, out position, out forward);
                 }
-                remaining -= segmentLength;
+                remaining -= availableLength;
             }
 
             return false;
         }
-
-        #region Internal
 
         private static bool TryGetPoseOnSegment(IRailNode behind, IRailNode ahead, int distanceFromBehind, out Vector3 position, out Vector3 forward)
         {
@@ -111,6 +104,5 @@ namespace Client.Game.InGame.Train.View
         }
 
 
-        #endregion
     }
 }

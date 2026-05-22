@@ -156,18 +156,19 @@ namespace Client.Game.InGame.Train.Unit
             int SimulateMotionStep()
             {
                 // 速度と距離のステップ計算
-                var tractionForce = MasconLevel > 0 ? UpdateTractionForce(MasconLevel) : 0.0;
-                var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, tractionForce);
+                var (totalWeight, totalTraction) = GetWeightAndTractionForce();
+                //var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, tractionForce);
+                var stepInput = new TrainMotionStepInput(CurrentSpeed, AccumulatedDistance, MasconLevel, totalTraction, totalWeight);
                 var stepResult = TrainDistanceSimulator.Step(stepInput);
                 CurrentSpeed = stepResult.NewSpeed;
                 AccumulatedDistance = stepResult.NewAccumulatedDistance;
                 return stepResult.DistanceToMove;
                 // 加速力を計算する
                 // Calculate traction force
-                double UpdateTractionForce(int masconLevel)
+                (int,double) GetWeightAndTractionForce()
                 {
                     var localCars = _cars ?? Array.Empty<TrainCarSnapshot>();
-                    if (localCars.Count == 0) return 0;
+                    if (localCars.Count == 0) return (0, 0);
                     int totalWeight = 0;
                     int totalTraction = 0;
                     foreach (var car in localCars)
@@ -176,8 +177,9 @@ namespace Client.Game.InGame.Train.Unit
                         totalWeight += weight;
                         totalTraction += traction;
                     }
-                    if (totalWeight == 0) return 0;
-                    return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
+                    return (totalWeight, totalTraction);
+                    //if (totalWeight == 0) return 0;
+                    //return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
                     (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
                     {
                         MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
@@ -236,6 +238,7 @@ namespace Client.Game.InGame.Train.Unit
                 var (found, newPath) = TryFindPathToSimulationTarget(approaching);
                 if (!found)
                 {
+                    Debug.LogWarning("クライアント側で分岐またぎの解決に失敗");
                     break;
                 }
 
