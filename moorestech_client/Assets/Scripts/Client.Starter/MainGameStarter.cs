@@ -159,6 +159,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             builder.RegisterEntryPoint<TrainCarRidingInputSender>();
+            builder.RegisterEntryPoint<TrainCarRidingInteractInput>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             
