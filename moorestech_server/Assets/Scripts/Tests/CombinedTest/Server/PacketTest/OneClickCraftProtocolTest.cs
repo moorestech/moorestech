@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.OneClickCraft;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -24,7 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerInventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             
             var craftElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)), new PacketResponseContext());
             
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id.AsPrimitive());
@@ -47,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 playerInventoryData.MainOpenableInventory.SetItem(i, item);
             }
             
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)), new PacketResponseContext());
             
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
             var resultItemGuid = MasterHolder.ItemMaster.GetItemId(craftElement.CraftResultItemGuid);
@@ -75,7 +76,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var oneSubItem = playerInventoryData.MainOpenableInventory.GetItem(0).SubItem(1);
             playerInventoryData.MainOpenableInventory.SetItem(0, oneSubItem);
             
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)), new PacketResponseContext());
             
             //アイテムがクラフトされていないことをテスト
             var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
@@ -112,7 +113,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             //クラフト実行
             var craftGuid = craftElement.CraftRecipeGuid;
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftGuid)));
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftGuid)), new PacketResponseContext());
             
             //アイテムが維持されていることをテスト
             for (var i = 0; i < craftElement.RequiredItems.Length; i++)

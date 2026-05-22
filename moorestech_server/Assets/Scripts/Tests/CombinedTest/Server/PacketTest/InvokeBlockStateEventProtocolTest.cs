@@ -13,6 +13,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InvokeBlockStateEventProtocol;
 using System;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -37,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Act
             var request = new RequestInvokeBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(payload);
+            var response = packet.GetPacketResponse(payload, new PacketResponseContext());
             
             // Assert
             // プロトコルがnullを返すため、レスポンスが空になることを確認
@@ -69,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Act
             var request = new RequestInvokeBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(payload);
+            var response = packet.GetPacketResponse(payload, new PacketResponseContext());
             
             // Assert
             // プロトコルがnullを返すため、レスポンスが空になることを確認

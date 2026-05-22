@@ -17,6 +17,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -48,14 +49,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             electricMachineComponent.SupplyEnergy(new ElectricPower(100));
             
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
-            packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             
             //アップデートしてステートを更新する
             GameUpdater.UpdateOneTick();
             
             
             //ステートが実行中になっているかをチェック
-            List<byte[]> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0));
+            List<byte[]> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             // ブロックステート変更イベントを明示的に選択する
             // Select the change block state event explicitly

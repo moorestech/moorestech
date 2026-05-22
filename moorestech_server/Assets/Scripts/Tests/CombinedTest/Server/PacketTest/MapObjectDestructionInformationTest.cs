@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -23,7 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mapObjectDatastore.Get(mapObjectDatastore.MapObjects[0].InstanceId).Destroy();
             
             
-            var responseArray = packet.GetPacketResponse(MapObjectDestructionInformationProtocol())[0];
+            var responseArray = packet.GetPacketResponse(MapObjectDestructionInformationProtocol(), new PacketResponseContext())[0];
             var response = MessagePackSerializer.Deserialize<ResponseMapObjectInfosMessagePack>(responseArray.ToArray());
             
             foreach (var mapObject in mapObjectDatastore.MapObjects)

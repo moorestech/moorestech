@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse
             _trainUpdateService = trainUpdateService;
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var input = MessagePackSerializer.Deserialize<TrainCarRidingInputMessagePack>(payload);
             _inputBuffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(

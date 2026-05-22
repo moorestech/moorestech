@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -23,7 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //からの時のデータ要求
             var payload = MessagePackSerializer.Serialize(new RequestPlayerInventoryProtocolMessagePack(playerId));
             //データの検証
-            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0]);
+            var data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, new PacketResponseContext())[0]);
             Assert.AreEqual(playerId, data.PlayerId);
             
             //プレイヤーインベントリの検証
@@ -47,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //2回目のデータ要求
-            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload)[0]);
+            data = MessagePackSerializer.Deserialize<PlayerInventoryResponseProtocolMessagePack>(packet.GetPacketResponse(payload, new PacketResponseContext())[0]);
             Assert.AreEqual(playerId, data.PlayerId);
             
             //データの検証

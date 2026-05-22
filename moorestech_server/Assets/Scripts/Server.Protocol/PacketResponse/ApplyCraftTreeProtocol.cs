@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse
             _craftTreeManager = serviceProvider.GetService<CraftTreeManager>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<ApplyCraftProtocolMessagePack>(payload);
             

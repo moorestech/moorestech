@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<PlaceTrainOnRailRequestMessagePack>(payload);
             return ExecuteRequest(request);

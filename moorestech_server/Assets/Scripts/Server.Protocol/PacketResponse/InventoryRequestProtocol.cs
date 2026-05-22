@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             // リクエストをデシリアライズ
             // Deserialize request

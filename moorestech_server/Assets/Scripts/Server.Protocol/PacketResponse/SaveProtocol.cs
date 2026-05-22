@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse
             _worldSaveDataSaver = serviceProvider.GetService<IWorldSaveDataSaver>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             Debug.Log("セーブ開始");
             _worldSaveDataSaver.Save();

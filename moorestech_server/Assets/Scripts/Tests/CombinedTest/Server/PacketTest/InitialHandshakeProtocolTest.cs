@@ -12,6 +12,7 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -28,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             
             //最初のハンドシェイクを実行
-            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
+            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
             var handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             
@@ -40,11 +41,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)));
+            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext());
             
             
             //再度ハンドシェイクを実行して座標が変更されていることを確認
-            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId))[0];
+            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
@@ -59,7 +60,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             var connectionChecker = serviceProvider.GetService<IPlayerConnectionChecker>();
 
-            packet.GetPacketResponse(GetHandshakePacket(PlayerId));
+            packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext());
 
             // ハンドシェイクプロトコルが接続登録を担当する。
             // The handshake protocol owns connection registration.

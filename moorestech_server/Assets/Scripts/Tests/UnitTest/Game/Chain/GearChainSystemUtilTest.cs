@@ -230,7 +230,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックBをプロトコル経由で破壊する
             // Destroy block B via protocol
-            _packet.GetPacketResponse(CreateRemoveBlockPacket(posB, PlayerId));
+            _packet.GetPacketResponse(CreateRemoveBlockPacket(posB, PlayerId), new PacketResponseContext());
             Assert.False(worldBlockDatastore.Exists(posB));
             Assert.AreEqual(3, CountItem(inventory, _chainItemId));
 
@@ -279,7 +279,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // ブロックAをプロトコル経由で破壊する
             // Destroy block A via protocol
-            _packet.GetPacketResponse(CreateRemoveBlockPacket(posA, PlayerId));
+            _packet.GetPacketResponse(CreateRemoveBlockPacket(posA, PlayerId), new PacketResponseContext());
             Assert.False(worldBlockDatastore.Exists(posA));
             Assert.AreEqual(4, CountItem(inventory, _chainItemId));
 

@@ -15,6 +15,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -85,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 // プロトコルで列車を配置
                 // Place train through protocol
                 var packet = CreatePlaceTrainPacket(railPosition, HotBarSlot, PlayerId);
-                environment.PacketResponseCreator.GetPacketResponse(packet);
+                environment.PacketResponseCreator.GetPacketResponse(packet, new PacketResponseContext());
             }
 
             void ValidateResult()

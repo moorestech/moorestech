@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
             _trainUnitMutationDatastore = serviceProvider.GetService<ITrainUnitMutationDatastore>();
         }
 
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var request = MessagePackSerializer.Deserialize<AttachTrainCarToUnitRequestMessagePack>(payload);
             return ExecuteRequest(request);

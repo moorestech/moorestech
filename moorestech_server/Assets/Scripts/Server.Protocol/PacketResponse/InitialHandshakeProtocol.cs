@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class InitialHandshakeProtocol : IConnectionAwarePacketResponse
+    public class InitialHandshakeProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:initialHandshake";
         
@@ -27,16 +27,11 @@ namespace Server.Protocol.PacketResponse
             _connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
-        {
-            return GetResponse(payload, null);
-        }
-
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
             _connectionRegistry.Register(data.PlayerId);
-            context?.BindPlayerId(data.PlayerId);
+            context.BindPlayerId(data.PlayerId);
             
             var response = new ResponseInitialHandshakeMessagePack(GetPlayerPosition(new EntityInstanceId(data.PlayerId)));
             

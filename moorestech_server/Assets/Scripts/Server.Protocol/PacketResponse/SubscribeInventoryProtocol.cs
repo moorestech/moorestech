@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse
             _inventorySubscriptionStore = serviceProvider.GetService<IInventorySubscriptionStore>();
         }
         
-        public ProtocolMessagePackBase GetResponse(byte[] payload)
+        public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<SubscribeInventoryRequestMessagePack>(payload);
             

@@ -4,11 +4,28 @@ namespace Server.Protocol
     // Per-connection protocol context. Carries the handshaken playerId to disconnect cleanup.
     public class PacketResponseContext
     {
-        public int? PlayerId { get; private set; }
+        // BindPlayerId はメインスレッド、PlayerId 読み取りは受信スレッドから呼ばれるため lock で保護する。
+        // BindPlayerId runs on the main thread while PlayerId is read on the receive thread, so guard with a lock.
+        private readonly object _lock = new();
+        private int? _playerId;
+
+        public int? PlayerId
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _playerId;
+                }
+            }
+        }
 
         public void BindPlayerId(int playerId)
         {
-            PlayerId = playerId;
+            lock (_lock)
+            {
+                _playerId = playerId;
+            }
         }
     }
 }

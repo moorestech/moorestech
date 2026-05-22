@@ -9,6 +9,7 @@ using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.GetGameUnlockStateProtocol;
 using static Tests.Module.TestMod.ForUnitTestCraftRecipeId;
 using static Tests.Module.TestMod.ForUnitTestItemId;
+using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -39,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // サーバーからアンロック状態を取得
             // Get the unlock state from the server
             var messagePack = new RequestGameUnlockStateProtocolMessagePack();
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext())[0];
             var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
@@ -61,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 再びサーバーからアンロック状態を取得
             // Get the unlock state from the server again
-            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack))[0];
+            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext())[0];
             response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
             
             Assert.True(response.UnlockedCraftRecipeGuids.Contains(Craft1));
