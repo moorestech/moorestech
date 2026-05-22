@@ -19,30 +19,18 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestRideActionMessagePack>(payload);
-            var playerId = GetAuthorizedPlayerId();
-            var result = ResolveAction(out var seatIndex);
-            return new ResponseRideActionMessagePack((byte)result, seatIndex);
+            
+            var result = ResolveAction(data.PlayerId);
+            
+            return new ResponseRideActionMessagePack(result);
 
             #region Internal
 
-            int GetAuthorizedPlayerId()
+            (RideActionResult result, int seatIndex) ResolveAction(int playerId)
             {
-                // 接続コンテキストに紐付いた playerId だけを状態変更対象にする。
-                // Only the playerId bound to this connection may mutate riding state.
-                if (!context.PlayerId.HasValue || context.PlayerId.Value != data.PlayerId)
-                {
-                    return -1;
-                }
-
-                return context.PlayerId.Value;
-            }
-
-            RideActionResult ResolveAction(out int seatIndex)
-            {
-                seatIndex = -1;
                 if (playerId < 0)
                 {
-                    return RideActionResult.InvalidPlayer;
+                    return (RideActionResult.InvalidPlayer, -1);
                 }
 
                 // Action ごとの状態変更を実行し、乗車成功時は割り当て seatIndex を同時に返す。
@@ -50,43 +38,21 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Action)
                 {
                     case RideActionType.Ride:
-                        if (!TryCreateIdentifier(data.Target, out var identifier))
-                        {
-                            return RideActionResult.RidableNotFound;
-                        }
-                        var rideResult = _playerRidingDatastore.TryRide(playerId, identifier, out seatIndex);
+                        var identifier = RidableIdentifierConverter.FromMessagePack(data.Target);
+                        var rideResult = _playerRidingDatastore.TryRide(playerId, identifier, out var seatIndex);
                         if (rideResult != RideActionResult.Success)
                         {
                             seatIndex = -1;
                         }
-                        return rideResult;
+                        
+                        return (rideResult, seatIndex);
                     case RideActionType.Dismount:
-                        return _playerRidingDatastore.TryDismount(playerId);
+                        return (_playerRidingDatastore.TryDismount(playerId), -1);
                     default:
-                        return RideActionResult.RidableNotFound;
+                        return (RideActionResult.RidableNotFound, -1);
                 }
             }
-
-            bool TryCreateIdentifier(RidableIdentifierMessagePack target, out IRidableIdentifier identifier)
-            {
-                identifier = null;
-                if (target == null || target.RidableType != RidableType.TrainCar.AsPrimitive())
-                {
-                    return false;
-                }
-
-                // 外部入力の値検証後、共通 converter で識別子へ変換する。
-                // After validating external input, use the shared converter to create the identifier.
-                if (!long.TryParse(target.TrainCarInstanceId, out var trainCarInstanceId))
-                {
-                    return false;
-                }
-
-                var validatedTarget = RidableIdentifierMessagePack.CreateTrainCarMessage(trainCarInstanceId);
-                identifier = RidableIdentifierConverter.FromMessagePack(validatedTarget);
-                return true;
-            }
-
+            
             #endregion
         }
 
@@ -112,17 +78,17 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ResponseRideActionMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public byte Result { get; set; }
+            [Key(2)] public RideActionResult Result { get; set; }
             [Key(3)] public int SeatIndex { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseRideActionMessagePack() { }
 
-            public ResponseRideActionMessagePack(byte result, int seatIndex)
+            public ResponseRideActionMessagePack((RideActionResult result, int seatIndex) actionResult)
             {
                 Tag = ProtocolTag;
-                Result = result;
-                SeatIndex = seatIndex;
+                Result = actionResult.result;
+                SeatIndex = actionResult.seatIndex;
             }
         }
     }
