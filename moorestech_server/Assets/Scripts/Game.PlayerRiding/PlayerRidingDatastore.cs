@@ -7,6 +7,10 @@ namespace Game.PlayerRiding
     // Core datastore for riding state. Owns ride/dismount decision logic.
     public class PlayerRidingDatastore
     {
+        // 座席占有判定で「除外するプレイヤーなし」を表す番兵値
+        // Sentinel passed to the seat-occupancy check when no player should be excluded.
+        private const int NoExcludePlayerId = -1;
+
         private readonly RidableResolver _ridableResolver;
         private readonly IPlayerConnectionChecker _connectionChecker;
 
@@ -61,7 +65,7 @@ namespace Game.PlayerRiding
                 // Returns the smallest seat index not occupied by a connected player.
                 for (var seat = 0; seat < seatCount; seat++)
                 {
-                    if (!IsSeatOccupiedByConnectedPlayer(target, seat))
+                    if (!IsSeatOccupiedByConnectedPlayer(target, seat, NoExcludePlayerId))
                     {
                         return seat;
                     }
@@ -85,15 +89,15 @@ namespace Game.PlayerRiding
             return RideActionResult.Success;
         }
 
-        // 乗り物が破棄されたとき、その乗り物に乗っていた全プレイヤーの RidingState をクリアする。
-        // 戻り値は降車させた playerId 一覧（接続中の乗員へ降車イベントを broadcast するために使う。Phase 3）。
-        // Clears riding states of all players on a removed ridable. Returns the dismounted player ids.
+        // 乗り物が破棄されたとき、その乗り物の乗員のうち接続中のプレイヤーのみ降車させる。
+        // 切断中の乗員は RidingState を残し、ログイン時に降車検知させる（仕様書セクション4.4・8）。
+        // On ridable removal, dismounts only connected riders; disconnected riders keep their RidingState for login-time detection.
         public IReadOnlyList<int> OnRidableRemoved(IRidableIdentifier identifier)
         {
             var dismounted = new List<int>();
             foreach (var pair in _ridingStateByPlayerId)
             {
-                if (pair.Value.Identifier.Equals(identifier))
+                if (pair.Value.Identifier.Equals(identifier) && _connectionChecker.IsConnected(pair.Key))
                 {
                     dismounted.Add(pair.Key);
                 }
@@ -127,7 +131,7 @@ namespace Game.PlayerRiding
             }
             // 記録席が範囲外（マスタ変更・セーブ手編集対策。仕様書セクション8）
             // The recorded seat is out of range (guards against master changes / hand-edited saves).
-            if (state.SeatIndex < 0 || state.SeatIndex >= ridable.SeatCount)
+            if (state.SeatIndex < 0 || ridable.SeatCount <= state.SeatIndex)
             {
                 _ridingStateByPlayerId.Remove(playerId);
                 return false;
@@ -198,11 +202,6 @@ namespace Game.PlayerRiding
                 }
             }
             return false;
-        }
-
-        private bool IsSeatOccupiedByConnectedPlayer(IRidableIdentifier identifier, int seatIndex)
-        {
-            return IsSeatOccupiedByConnectedPlayer(identifier, seatIndex, -1);
         }
     }
 }
