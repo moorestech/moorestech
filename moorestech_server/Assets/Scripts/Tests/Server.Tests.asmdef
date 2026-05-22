@@ -50,7 +50,8 @@
         "Game.UnlockState",
         "Game.Fluid",
         "Game.Action",
-        "Game.Research"
+        "Game.Research",
+        "Game.PlayerRiding.Interface"
     ],
     "includePlatforms": [
         "Editor"
