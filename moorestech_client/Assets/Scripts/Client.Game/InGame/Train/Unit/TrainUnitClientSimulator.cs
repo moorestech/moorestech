@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // この遅延秒数を超えたぶんだけを均等早送り対象にする。
         // Only the lag that exceeds this threshold is distributed as fast-forward.
-        private const double FastForwardStartLagSeconds = 0.1d;
+        private const double FastForwardStartLagSeconds = 0.7d;
         private static readonly double FastForwardStartLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
         // 1フレームで追いつく最大Tick数
         // Maximum ticks to catch up in a single frame.
@@ -23,17 +23,20 @@ namespace Client.Game.InGame.Train.Unit
         private readonly TrainUnitTickState _tickState;
         private readonly ITrainUnitHashTickGate _hashTickGate;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
+        private readonly TrainUnitRenderInterpolationState _renderInterpolationState;
 
         private double _estimatedClientTick;
 
         public TrainUnitClientSimulator(
             TrainUnitTickState tickState,
             ITrainUnitHashTickGate hashTickGate,
-            TrainUnitFutureMessageBuffer futureMessageBuffer)
+            TrainUnitFutureMessageBuffer futureMessageBuffer,
+            TrainUnitRenderInterpolationState renderInterpolationState)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
             _futureMessageBuffer = futureMessageBuffer;
+            _renderInterpolationState = renderInterpolationState;
         }
 
         public void Tick()
@@ -70,6 +73,20 @@ namespace Client.Game.InGame.Train.Unit
                     break;             
                 }
             }
+
+            // 描画補間率を表示側が simulator に依存せず読めるように記録する
+            // Record render interpolation rate so view code can avoid depending on the simulator
+            RecordRenderInterpolationRate();
+
+            #region Internal
+
+            void RecordRenderInterpolationRate()
+            {
+                var progress = _estimatedClientTick - _tickState.GetTick();
+                _renderInterpolationState.SetRenderInterpolationRate(progress);
+            }
+
+            #endregion
         }
     }
 }

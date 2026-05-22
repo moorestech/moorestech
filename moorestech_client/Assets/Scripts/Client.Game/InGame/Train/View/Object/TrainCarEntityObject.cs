@@ -32,11 +32,27 @@ namespace Client.Game.InGame.Train.View.Object
         {
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);//////////////////
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
-            // Rigidbody/姿勢制御をサービスへ委譲する
-            // Delegate rigidbody and pose control to the service
             var rigidbody = GetComponent<Rigidbody>();
+            ConfigureRigidbodyForContact(rigidbody);
+
+            // 表示姿勢制御をサービスへ委譲する
+            // Delegate render pose control to the service
             var renderers = GetComponentsInChildren<Renderer>(true);
-            _poseService = new TrainCarPoseService(rigidbody, transform, renderers);
+            _poseService = new TrainCarPoseService(transform, renderers);
+
+            #region Internal
+
+            void ConfigureRigidbodyForContact(Rigidbody targetRigidbody)
+            {
+                // Rigidbodyは乗車・接触検出用に限定し、列車姿勢はTransform更新で決める。
+                // Restrict the Rigidbody to riding/contact detection while train pose stays Transform-driven.
+                targetRigidbody.isKinematic = true;
+                targetRigidbody.useGravity = false;
+                targetRigidbody.interpolation = RigidbodyInterpolation.None;
+                targetRigidbody.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            }
+
+            #endregion
         }
 
         public void SetTrain(TrainCarInstanceId trainCarInstanceId, TrainCarMasterElement trainCarMasterElement)
@@ -79,11 +95,6 @@ namespace Client.Game.InGame.Train.View.Object
                 OnTrainAutoRunChanged(_debugAutoRun);
                 Debug.Log($"[Debug] Train auto run changed: {_debugAutoRun}");
             }
-        }
-
-        private void FixedUpdate()
-        {
-            _poseService.ApplyToPhysics();
         }
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数

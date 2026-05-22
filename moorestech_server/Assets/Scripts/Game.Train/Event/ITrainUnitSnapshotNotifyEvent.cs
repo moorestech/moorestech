@@ -11,5 +11,6 @@ namespace Game.Train.Event
 
         void NotifySnapshot(TrainUnit trainUnit);
         void NotifyDeleted(TrainUnitInstanceId trainUnitInstanceId);
+        void NotifySnapshotByCar(TrainCar trainCar);
     }
 }

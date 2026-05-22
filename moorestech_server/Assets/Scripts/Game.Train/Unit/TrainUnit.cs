@@ -99,6 +99,16 @@ namespace Game.Train.Unit
         // Called once per tick and returns the traveled distance.
         public int Update(TrainUnitManualCommand manualCommand)
         {
+            // まずはtotal weightと牽引力上限を計算
+            // First calculate total weight and traction capacity.
+            int totalWeight = 0;
+            double totalTractionCapacity = 0;
+            foreach (var car in _cars)
+            {
+                totalWeight += car.GetWeight();
+                totalTractionCapacity += car.TractionForce;
+            }
+            
             if (IsAutoRun)
             {
                 // まず diagram の変更有無を確認する。
@@ -133,7 +143,10 @@ namespace Game.Train.Unit
                 {
                     // ドッキング中でなければ目的地に向かって進む。
                     // Move toward the destination when not docked.
-                    UpdateMasconLevel();
+                    // 自動運転時のマスコン制御を共通ロジックで更新
+                    // Update mascon level via shared auto-run calculation
+                    var input = new AutoRunMasconInput(_currentSpeed, _remainingDistance, totalWeight, totalTractionCapacity);
+                    masconLevel = TrainAutoRunMasconCalculator.Calculate(input);
                 }
             }
             else
@@ -154,13 +167,53 @@ namespace Game.Train.Unit
                     ManualInput(manualCommand);
                 }
             }
-
-            // マスコンレベルから燃料を消費しつつ速度を計算する。
-            // Consume fuel and update speed from the decided mascon level.
-            // マスコン確定後に進む距離を算出する。
-            // Calculate the travel distance after the mascon decision.
-            var distanceToMove = SimulateMotionStep();
+            
+            // マスコンレベルから燃料を消費、残燃料が0なら新規マスコンレベルはここで0になる
+            // 
+            double totalBaseTractionForce = 0;
+            (masconLevel, totalBaseTractionForce) = ConsumeFuelAndUpdateMasconlevel(masconLevel);
+            var distanceToMove = SimulateMotionStep(masconLevel, totalBaseTractionForce);
             return UpdateTrainByDistance(distanceToMove, manualCommand);
+            
+            #region  internal
+            (int,double) ConsumeFuelAndUpdateMasconlevel(int masconLevel)
+            {
+                if (masconLevel <= 0) return (masconLevel, 0);
+                if (_currentSpeed > 1e-4)
+                {
+                    // 秒速x m/sの速度でNがpowerに負けてサチる部分の計算
+                    masconLevel = (int)(masconLevel * Math.Clamp(10.0 / _currentSpeed, 0.0, 1.0));
+                }
+
+                double totalTraction = 0;
+                totalBaseTractionForce = 0;
+                foreach (var car in _cars)
+                {
+                    var (traction, baseTractionForce) = car.ConsumeFuelAndResolveTraction(masconLevel); //ここで燃料が消費される
+                    totalTraction += traction;
+                    totalBaseTractionForce += baseTractionForce;
+                }
+                if (totalBaseTractionForce <= 0) return (0, 0);
+                return ((int)(totalTraction / totalBaseTractionForce * MasterHolder.TrainUnitMaster.MasconLevelMaximum), totalBaseTractionForce);
+            }
+            
+            // 速度と距離のステップ計算
+            // Simulate velocity and distance per tick
+            int SimulateMotionStep(int masconLevel, double totalTraction)
+            {
+                // 共通化部分。現在速度から空気抵抗、摩擦、マスコンレベルと重量に応じた加速をやる
+                var stepInput = new TrainMotionStepInput(
+                    _currentSpeed,
+                    _accumulatedDistance,
+                    masconLevel,
+                    totalTraction,
+                    totalWeight);
+                var stepResult = TrainDistanceSimulator.Step(stepInput);
+                _currentSpeed = stepResult.NewSpeed;
+                _accumulatedDistance = stepResult.NewAccumulatedDistance;
+                return stepResult.DistanceToMove;                
+            }
+            #endregion
         }
 
         // キー操作系。
@@ -199,33 +252,8 @@ namespace Game.Train.Unit
             }
             trainDiagram.NextEntryAndDepartureReset();
         }
-
-        // 自動運転時のマスコン制御を共通ロジックで更新
-        // Update mascon level via shared auto-run calculation
-        public void UpdateMasconLevel()
-        {
-            var input = new AutoRunMasconInput(
-                _currentSpeed,
-                _remainingDistance);
-            masconLevel = TrainAutoRunMasconCalculator.Calculate(input);
-        }
-
-        // 速度と距離のステップ計算
-        // Simulate velocity and distance per tick
-        private int SimulateMotionStep()
-        {
-            var tractionForce = masconLevel > 0 ? UpdateTractionForce(masconLevel) : 0.0;
-            var stepInput = new TrainMotionStepInput(
-                _currentSpeed,
-                _accumulatedDistance,
-                masconLevel,
-                tractionForce);
-            var stepResult = TrainDistanceSimulator.Step(stepInput);
-            _currentSpeed = stepResult.NewSpeed;
-            _accumulatedDistance = stepResult.NewAccumulatedDistance;
-            return stepResult.DistanceToMove;
-        }
         
+
         // Update の距離 int 版。
         // Integer-distance variant of Update.
         // distanceToMove の距離だけ絶対に進め、実際に進んだ距離を返す。
@@ -383,22 +411,6 @@ namespace Game.Train.Unit
             }
 
             return sortedNodes[0];
-        }
-
-        // 毎フレーム燃料在庫を確認しながら加速力を計算する。
-        // Calculate traction while checking fuel availability each frame.
-        public double UpdateTractionForce(int masconLevel)
-        {
-            int totalWeight = 0;
-            int totalTraction = 0;
-            foreach (var car in _cars)
-            {
-                car.ConsumeFuel(GameUpdater.SecondsPerTick, masconLevel);
-                var (weight, traction) = car.GetWeightAndTraction(masconLevel); //forceに応じて燃料が消費される:未実装
-                totalWeight += weight;
-                totalTraction += traction;
-            }
-            return (double)totalTraction / totalWeight * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum;
         }
 
         // diagram の現在目的地にちょうど 0 距離で到達したかを判定する。

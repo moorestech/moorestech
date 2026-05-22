@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.Train.Event;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Game.World.Interface.DataStore;
@@ -28,6 +29,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
         
         public SendCommandProtocol(ServiceProvider serviceProvider)
         {
@@ -35,6 +37,7 @@ namespace Server.Protocol.PacketResponse
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
             _trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
+            _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload)
@@ -83,7 +86,11 @@ namespace Server.Protocol.PacketResponse
                     foreach (var trainCar in trainUnit.Cars)
                     {
                         if (trainCar.TractionForce <= 0) continue;
-                        if (trainCar.Container == null) trainCar.SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(trainCar.TrainCarMasterElement.InventorySlots));
+                        if (trainCar.Container == null)
+                        {
+                            trainCar.SetContainer(ItemTrainCarContainer.CreateWithEmptySlots(trainCar.TrainCarMasterElement.InventorySlots));
+                            _trainUnitSnapshotNotifyEvent.NotifySnapshotByCar(trainCar);
+                        }
                         if (trainCar.Container is not ItemTrainCarContainer itemTrainCarContainer) continue;
                         
                         var emptySlotIndex = -1;
@@ -99,9 +106,9 @@ namespace Server.Protocol.PacketResponse
                         
                         if (emptySlotIndex == -1) continue;
                         
-                        var item = ServerContext.ItemStackFactory.Create(fuel.ItemGuid, 10);
+                        var item = ServerContext.ItemStackFactory.Create(fuel.ItemGuid, 100);
                         itemTrainCarContainer.SetItem(emptySlotIndex, item);
-                        Debug.Log($"add fuel to train car {MasterHolder.ItemMaster.GetItemMaster(fuel.ItemGuid).Name} x 10");
+                        Debug.Log($"add fuel to train car {MasterHolder.ItemMaster.GetItemMaster(fuel.ItemGuid).Name} x 100");
                     }
                 }
             }

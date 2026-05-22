@@ -9,6 +9,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
+using Game.Train.Event;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
 using MessagePack;
@@ -152,6 +153,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                     // Hand the populated container to the train car and replace the platform with a fresh empty one
                     var handedOff = SwapWithEmptyContainerAndEmitClearedEvents();
                     dockedCar.SetContainer(handedOff);
+                    ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
                     _dockingComponent.StartRetracting();
                     return;
                 }

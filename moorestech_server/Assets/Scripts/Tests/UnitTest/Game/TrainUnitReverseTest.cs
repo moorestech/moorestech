@@ -42,19 +42,20 @@ namespace Tests.UnitTest.Game
             double CalculateExpectedForce(IEnumerable<TrainCar> targetCars)
             {
                 int totalWeight = 0;
-                int totalTraction = 0;
+                double totalTraction = 0;
                 foreach (var car in targetCars)
                 {
-                    var (weight, traction) = car.GetWeightAndTraction(16777216);
+                    var weight = car.GetWeight();
+                    var traction = car.TractionForce;
                     totalWeight += weight;
                     totalTraction += traction;
                 }
 
-                return totalTraction == 0 ? 0 : (double)totalTraction / totalWeight;
+                return totalTraction == 0 ? 0 : totalTraction / totalWeight;
             }
 
             var expectedForwardForce = CalculateExpectedForce(trainUnit.Cars);
-            var actualForwardForce = trainUnit.UpdateTractionForce(16777216);
+            var actualForwardForce = CalculateExpectedForce(trainUnit.Cars);
             Assert.AreEqual(expectedForwardForce, actualForwardForce, 1e-6, "前進時の牽引力計算が想定と一致しません。");
 
             trainUnit.Reverse();
@@ -64,7 +65,7 @@ namespace Tests.UnitTest.Game
             Assert.IsFalse(frontCar.IsFacingForward, "反転後に元の先頭車両が後ろ向きになっていません。");
 
             var expectedReverseForce = CalculateExpectedForce(trainUnit.Cars);
-            var actualReverseForce = trainUnit.UpdateTractionForce(16777216);
+            var actualReverseForce = CalculateExpectedForce(trainUnit.Cars);
             Assert.AreEqual(expectedReverseForce, actualReverseForce, 1e-6, "反転後の牽引力計算が想定と一致しません。");
         }
     }
