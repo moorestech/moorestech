@@ -105,7 +105,7 @@ namespace Client.Network.API
         }
 
         public async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
-            TrainInstanceId targetTrainInstanceId,
+            TrainUnitInstanceId targetTrainUnitInstanceId,
             RailPosition railPosition,
             int hotBarSlot,
             bool attachCarFacingForward,
@@ -116,7 +116,7 @@ namespace Client.Network.API
             // Get response for attaching a car to an existing train unit
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
             var request = new AttachTrainCarToUnitProtocol.AttachTrainCarToUnitRequestMessagePack(
-                targetTrainInstanceId,
+                targetTrainUnitInstanceId,
                 railPositionSnapshot,
                 hotBarSlot,
                 _playerConnectionSetting.PlayerId,

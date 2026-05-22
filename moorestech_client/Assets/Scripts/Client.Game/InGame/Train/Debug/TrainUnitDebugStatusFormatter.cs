@@ -61,7 +61,7 @@ namespace Client.Game.InGame.Train.DebugView
 
             // TrainUnit単位で移動状態と編成状態をまとめる
             // Group movement and formation state by TrainUnit.
-            _builder.Append('[').Append(index).Append("] train=").Append(ShortText(unit.TrainInstanceId.ToString()));
+            _builder.Append('[').Append(index).Append("] train=").Append(ShortText(unit.TrainUnitInstanceId.ToString()));
             _builder.Append(" cars=").Append(cars.Count);
             _builder.Append(" speed=").Append(unit.CurrentSpeed.ToString("F3"));
             _builder.Append(" accumulated=").Append(unit.AccumulatedDistance.ToString("F3"));
@@ -109,7 +109,7 @@ namespace Client.Game.InGame.Train.DebugView
 
         private static int CompareUnits(ClientTrainUnit left, ClientTrainUnit right)
         {
-            return string.CompareOrdinal(left.TrainInstanceId.ToString(), right.TrainInstanceId.ToString());
+            return string.CompareOrdinal(left.TrainUnitInstanceId.ToString(), right.TrainUnitInstanceId.ToString());
         }
 
         private static string FormatNode(IRailNode node)

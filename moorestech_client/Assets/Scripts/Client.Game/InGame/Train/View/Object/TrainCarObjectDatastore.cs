@@ -91,7 +91,7 @@ namespace Client.Game.InGame.Train.View.Object
 
         // 設置候補と重なったTrainUnitを可視化する
         // Highlight train units that overlap with placement candidates
-        public void SetPlacementOverlapHighlight(IReadOnlyCollection<TrainInstanceId> overlapTrainIds)
+        public void SetPlacementOverlapHighlight(IReadOnlyCollection<TrainUnitInstanceId> overlapTrainIds)
         {
             // 重複対象がなければ終了する
             // Exit early when no overlap targets are provided
@@ -100,7 +100,7 @@ namespace Client.Game.InGame.Train.View.Object
                 ClearAllHighlight();
                 return;
             }
-            var overlapTrainIdSet = new HashSet<TrainInstanceId>(overlapTrainIds);
+            var overlapTrainIdSet = new HashSet<TrainUnitInstanceId>(overlapTrainIds);
 
             // 可読性優先で毎フレーム再適用する
             // Re-apply highlights every frame for readability
@@ -225,7 +225,7 @@ namespace Client.Game.InGame.Train.View.Object
             _activeTrainCars.Remove(trainCarInstanceId);
         }
 
-        private HashSet<TrainCarInstanceId> CollectOverlapCarIds(ISet<TrainInstanceId> overlapTrainIds)
+        private HashSet<TrainCarInstanceId> CollectOverlapCarIds(ISet<TrainUnitInstanceId> overlapTrainIds)
         {
             var overlapCarIds = new HashSet<TrainCarInstanceId>();
             foreach (var pair in _entities)
@@ -235,7 +235,7 @@ namespace Client.Game.InGame.Train.View.Object
                 {
                     continue;
                 }
-                if (!overlapTrainIds.Contains(unit.TrainInstanceId))
+                if (!overlapTrainIds.Contains(unit.TrainUnitInstanceId))
                 {
                     continue;
                 }

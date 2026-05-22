@@ -10,7 +10,7 @@ namespace Game.Block.Blocks.TrainRail
 {
     public class TrainPlatformDockingComponent : ITrainDockingReceiver, IBlockSaveState, IUpdatableBlockComponent
     {
-        public TrainInstanceId? DockedTrainId;
+        public TrainUnitInstanceId? DockedTrainId;
         private long? _dockedTrainCarInstanceId;
         [CanBeNull] public TrainCar DockedTrainCar { get; private set; }
         [CanBeNull] private TrainDockHandle _dockedHandle;
@@ -112,7 +112,7 @@ namespace Game.Block.Blocks.TrainRail
         {
             if (handle == null) return false;
             if (!DockedTrainId.HasValue && !_dockedTrainCarInstanceId.HasValue) return true;
-            return DockedTrainId == handle.TrainInstanceId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId;
+            return DockedTrainId == handle.TrainUnitInstanceId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId;
         }
         
         public void ForceUndock()
@@ -124,9 +124,9 @@ namespace Game.Block.Blocks.TrainRail
         public void OnTrainDocked(ITrainDockHandle handle)
         {
             if (handle == null) return;
-            if (DockedTrainId.HasValue && DockedTrainId != handle.TrainInstanceId) return;
+            if (DockedTrainId.HasValue && DockedTrainId != handle.TrainUnitInstanceId) return;
             if (_dockedTrainCarInstanceId.HasValue && _dockedTrainCarInstanceId != handle.TrainCarInstanceId) return;
-            DockedTrainId = handle.TrainInstanceId;
+            DockedTrainId = handle.TrainUnitInstanceId;
             _dockedTrainCarInstanceId = handle.TrainCarInstanceId;
             _dockedHandle = handle as TrainDockHandle;
             UpdateDockedReferences(handle);
@@ -135,7 +135,7 @@ namespace Game.Block.Blocks.TrainRail
         public void OnTrainDockedTick(ITrainDockHandle handle)
         {
             if (handle == null) return;
-            if (DockedTrainId != handle.TrainInstanceId || _dockedTrainCarInstanceId != handle.TrainCarInstanceId) return;
+            if (DockedTrainId != handle.TrainUnitInstanceId || _dockedTrainCarInstanceId != handle.TrainCarInstanceId) return;
             _dockedHandle = handle as TrainDockHandle;
             if (DockedTrainCar != null) return;
             UpdateDockedReferences(handle);
@@ -144,7 +144,7 @@ namespace Game.Block.Blocks.TrainRail
         public void OnTrainUndocked(ITrainDockHandle handle)
         {
             if (handle == null) return;
-            if (DockedTrainId == handle.TrainInstanceId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId)
+            if (DockedTrainId == handle.TrainUnitInstanceId && _dockedTrainCarInstanceId == handle.TrainCarInstanceId)
             {
                 ClearDockedReferences();
                 if (ArmState is ArmState.Extending or ArmState.Extended) StartRetracting();
