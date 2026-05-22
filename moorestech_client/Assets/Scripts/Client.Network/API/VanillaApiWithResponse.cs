@@ -14,6 +14,7 @@ using Game.Train.Unit;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Gear.Common;
+using Game.PlayerRiding.Interface;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -123,6 +124,15 @@ namespace Client.Network.API
                 attachCarFacingForward,
                 attachToTargetTrainHead);
             return await _packetExchangeManager.GetPacketResponse<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack>(request, ct);
+        }
+
+        // 乗車/降車をサーバーに要求し、結果を受け取る（仕様書セクション5.1）。
+        // Requests ride/dismount from the server and returns the result.
+        public async UniTask<RideActionProtocol.ResponseRideActionMessagePack> RideAction(
+            RideActionType action, RidableIdentifierMessagePack target, CancellationToken ct)
+        {
+            var request = new RideActionProtocol.RequestRideActionMessagePack(_playerConnectionSetting.PlayerId, action, target);
+            return await _packetExchangeManager.GetPacketResponse<RideActionProtocol.ResponseRideActionMessagePack>(request, ct);
         }
 
         public async UniTask<PlayerInventoryResponse> GetMyPlayerInventory(CancellationToken ct)

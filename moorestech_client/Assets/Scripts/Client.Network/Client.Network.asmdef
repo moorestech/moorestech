@@ -44,7 +44,8 @@
     "Game.CraftTree",
     "Game.Research",
     "Game.Train",
-    "Game.Gear"
+    "Game.Gear",
+    "Game.PlayerRiding.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
