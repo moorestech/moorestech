@@ -7,11 +7,19 @@ namespace Game.PlayerRiding.Interface
     [Serializable]
     public class PlayerRidingSaveData
     {
-        public int PlayerId { get; set; }
-        
-        public string RidableType { get; set; }
-        public string IdentifierState { get; set; }
-        
-        public int SeatIndex { get; set; }
+        public int PlayerId { get; }
+
+        public string RidableType { get; }
+        public string IdentifierState { get; }
+
+        public int SeatIndex { get; }
+
+        public PlayerRidingSaveData(int playerId, string ridableType, string identifierState, int seatIndex)
+        {
+            PlayerId = playerId;
+            RidableType = ridableType;
+            IdentifierState = identifierState;
+            SeatIndex = seatIndex;
+        }
     }
 }

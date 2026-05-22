@@ -20,7 +20,13 @@ namespace Game.PlayerRiding.Interface
             var type = new RidableType(messagePack.RidableType);
             if (type == RidableType.TrainCar)
             {
-                return new TrainCarRidableIdentifier(long.Parse(messagePack.TrainCarInstanceId));
+                // パケットは外部データ。不正なペイロードは ArgumentException で決定的に失敗させる。
+                // Packets are external data; fail deterministically with ArgumentException on a malformed payload.
+                if (!long.TryParse(messagePack.TrainCarInstanceId, out var instanceId))
+                {
+                    throw new ArgumentException($"Invalid TrainCarInstanceId: {messagePack.TrainCarInstanceId}");
+                }
+                return new TrainCarRidableIdentifier(instanceId);
             }
             throw new ArgumentException($"Unknown RidableType: {messagePack.RidableType}");
         }
@@ -33,7 +39,13 @@ namespace Game.PlayerRiding.Interface
         {
             if (type == RidableType.TrainCar)
             {
-                return new TrainCarRidableIdentifier(long.Parse(saveState));
+                // 不正なペイロードは前方互換のため例外にせず null を返し、呼び出し側で読み飛ばす。
+                // A malformed payload returns null instead of throwing so the loader can skip the row.
+                if (!long.TryParse(saveState, out var instanceId))
+                {
+                    return null;
+                }
+                return new TrainCarRidableIdentifier(instanceId);
             }
             return null;
         }

@@ -24,17 +24,18 @@ namespace Game.PlayerConnection
 
         public void Unregister(int playerId)
         {
-            bool disconnected;
+            // リスト更新と切断通知を 1 ロックで原子的に行う。Unregister は接続ごとの受信スレッドから並行で呼ばれ、
+            // 排他ロック内の OnNext なら Subject.OnNext（並行呼び出し非対応）の競合も同時に防げる。
+            // Update the set and fire the disconnect notification atomically under one lock.
+            // Unregister runs concurrently on per-connection threads; OnNext inside the exclusive lock avoids the Subject race.
             lock (_lock)
             {
-                disconnected = _connectedPlayerIds.Remove(playerId);
-            }
-
-            // 登録済み playerId の切断だけを通知する。
-            // Notify only when a registered player actually disconnects.
-            if (disconnected)
-            {
-                _disconnectedSubject.OnNext(playerId);
+                // 登録済み playerId の切断だけを通知する。
+                // Notify only when a registered player actually disconnects.
+                if (_connectedPlayerIds.Remove(playerId))
+                {
+                    _disconnectedSubject.OnNext(playerId);
+                }
             }
         }
 
