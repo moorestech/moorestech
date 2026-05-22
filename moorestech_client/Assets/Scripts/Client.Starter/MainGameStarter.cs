@@ -311,7 +311,7 @@ namespace Client.Starter
                 return;
             }
 
-            _resolver.Resolve<TrainCarRidingState>().SetRidingTrainCar(new TrainCarInstanceId(instanceId));
+            _resolver.Resolve<TrainCarRidingState>().SetRidingTrainCar(new TrainCarInstanceId(instanceId), initialHandshakeResponse.RidingSeatIndex);
         }
     }
 }
