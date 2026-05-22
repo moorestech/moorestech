@@ -138,11 +138,11 @@ namespace Tests.UnitTest.Game
             env.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
 
             var notifiedCount = 0;
-            var notifiedTrainId = TrainInstanceId.Empty;
+            var notifiedTrainId = TrainUnitInstanceId.Empty;
             using var subscription = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
                 notifiedCount++;
-                notifiedTrainId = data.TrainInstanceId;
+                notifiedTrainId = data.TrainUnitInstanceId;
             });
 
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -166,7 +166,7 @@ namespace Tests.UnitTest.Game
             Assert.AreSame(fluidContainer, fluidContainerComponent.Container);
             Assert.IsNull(trainCar.Container);
             Assert.AreEqual(1, notifiedCount);
-            Assert.AreEqual(trainUnit.TrainInstanceId, notifiedTrainId);
+            Assert.AreEqual(trainUnit.TrainUnitInstanceId, notifiedTrainId);
 
             env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
             env.GetITrainUnitMutationDatastore().UnregisterTrain(trainUnit);
@@ -320,11 +320,11 @@ namespace Tests.UnitTest.Game
             env.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
 
             var notifiedCount = 0;
-            var notifiedTrainId = TrainInstanceId.Empty;
+            var notifiedTrainId = TrainUnitInstanceId.Empty;
             using var subscription = ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().OnTrainUnitSnapshotNotified.Subscribe(data =>
             {
                 notifiedCount++;
-                notifiedTrainId = data.TrainInstanceId;
+                notifiedTrainId = data.TrainUnitInstanceId;
             });
             
             trainUnit.trainUnitStationDocking.TryDockWhenStopped();
@@ -348,7 +348,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(platformAmount, trainFluidContainer.Container.Amount, 0.001);
             Assert.AreEqual(waterFluidId, trainFluidContainer.Container.FluidId);
             Assert.AreEqual(1, notifiedCount);
-            Assert.AreEqual(trainUnit.TrainInstanceId, notifiedTrainId);
+            Assert.AreEqual(trainUnit.TrainUnitInstanceId, notifiedTrainId);
 
             env.GetTrainDiagramManager().UnregisterDiagram(trainUnit.trainDiagram);
             env.GetITrainUnitMutationDatastore().UnregisterTrain(trainUnit);
