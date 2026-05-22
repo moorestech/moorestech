@@ -71,6 +71,10 @@ properties:
         - key: fuelDurationPerUnitVolume
           type: number
           default: 1
+    - key: ridableSeats
+      type: array
+      items:
+        ref: ridableSeat
 - key: railItems
   type: array
   overrideCodeGeneratePropertyName: RailItemMasterElement
