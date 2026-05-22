@@ -10,7 +10,7 @@ namespace Game.Train.Event
         IObservable<TrainUnitSnapshotNotifyEventData> OnTrainUnitSnapshotNotified { get; }
 
         void NotifySnapshot(TrainUnit trainUnit);
+        void NotifyDeleted(TrainUnitInstanceId trainUnitInstanceId);
         void NotifySnapshotByCar(TrainCar trainCar);
-        void NotifyDeleted(TrainInstanceId trainInstanceId);
     }
 }

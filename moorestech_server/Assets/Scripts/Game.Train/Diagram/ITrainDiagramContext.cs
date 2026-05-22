@@ -11,7 +11,7 @@ namespace Game.Train.Diagram
 
     public interface ITrainDiagramContext
     {
-        TrainInstanceId TrainInstanceId { get; }
+        TrainUnitInstanceId TrainUnitInstanceId { get; }
         IReadOnlyList<ITrainDiagramCar> Cars { get; }
         bool IsAutoRun { get; }
         bool IsDocked { get; }

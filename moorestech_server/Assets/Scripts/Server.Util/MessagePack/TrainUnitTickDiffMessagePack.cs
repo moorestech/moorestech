@@ -9,7 +9,7 @@ namespace Server.Util.MessagePack
     [MessagePackObject]
     public class TrainUnitTickDiffMessagePack
     {
-        [Key(0)] public TrainInstanceId TrainInstanceId { get; set; }
+        [Key(0)] public TrainUnitInstanceId TrainUnitInstanceId { get; set; }
         [Key(1)] public int MasconLevelDiff { get; set; }
         [Key(2)] public bool IsNowDockingSpeedZero { get; set; }
         [Key(3)] public int ApproachingNodeIdDiff { get; set; }
@@ -22,7 +22,7 @@ namespace Server.Util.MessagePack
 
         public TrainUnitTickDiffMessagePack(TrainUpdateService.TrainTickDiffData diff)
         {
-            TrainInstanceId = diff.TrainInstanceId;
+            TrainUnitInstanceId = diff.TrainUnitInstanceId;
             MasconLevelDiff = diff.MasconLevelDiff;
             IsNowDockingSpeedZero = diff.IsNowDockingSpeedZero;
             ApproachingNodeIdDiff = diff.ApproachingNodeIdDiff;
