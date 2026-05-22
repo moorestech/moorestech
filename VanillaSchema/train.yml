@@ -112,24 +112,10 @@ properties:
   - key: airResistance
     type: integer
     default: 117
-  - key: speedWeight
+  # Unit: km/h/s. Converted to m/s^2 in TrainUnitMaster.
+  - key: maxBrakeDecelerationKmhPerSecond
     type: number
-    default: 0.09
-  - key: autoRunMaxSpeedDistanceCoefficient
-    type: number
-    default: 10000.0
-  - key: autoRunMaxSpeedOffset
-    type: number
-    default: 10.0
-  - key: autoRunSpeedBufferMargin
-    type: number
-    default: 0.02
-  - key: tractionForceAccelerationRate
-    type: number
-    default: 0.1
-  - key: manualControlDecelerationFactor
-    type: number
-    default: 1.0
+    default: 11
   - key: masconLevelMaximum
     type: integer
     default: 16777216

@@ -142,8 +142,8 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(fixture.RearCar.IsFacingForward, "manual reverse 後に新しい先頭車両の向きが前向きになっていません。");
             Assert.IsFalse(fixture.FrontCar.IsFacingForward, "manual reverse 後に元の先頭車両の向きが反転していません。");
 
-            var expectedTractionForce = CalculateExpectedForce(fixture.TrainUnit.Cars);
-            var actualTractionForce = fixture.TrainUnit.UpdateTractionForce(TractionMasconLevel);
+            var expectedTractionForce = CalculateExpectedForce(new[] { fixture.FrontCar, fixture.RearCar });
+            var actualTractionForce = CalculateExpectedForce(fixture.TrainUnit.Cars);
 
             Assert.AreEqual(expectedTractionForce, actualTractionForce, 1e-6, "manual reverse 後に牽引力計算が壊れています。");
         }
@@ -159,11 +159,12 @@ namespace Tests.UnitTest.Game
         private static double CalculateExpectedForce(IReadOnlyList<TrainCar> cars)
         {
             var totalWeight = 0;
-            var totalTraction = 0;
+            double totalTraction = 0;
 
             foreach (var car in cars)
             {
-                var (weight, traction) = car.GetWeightAndTraction(TractionMasconLevel);
+                var weight = car.GetWeight();
+                var traction = car.TractionForce;
                 totalWeight += weight;
                 totalTraction += traction;
             }
@@ -173,7 +174,7 @@ namespace Tests.UnitTest.Game
                 return 0;
             }
 
-            return (double)totalTraction / totalWeight;
+            return totalTraction / totalWeight;
         }
 
         private static TrainFixture CreateSingleCarFixture()
@@ -187,7 +188,7 @@ namespace Tests.UnitTest.Game
             Assert.Greater(distance, 0, "テスト用レール間の距離が正しく計算できていません。");
 
             var carLength = Mathf.Max(1, distance / 1024 / 20);
-            var frontCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, carLength, true).trainCar;
+            var frontCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 5000, 0, carLength, true).trainCar;
             var trainUnit = CreateTrainUnit(environment, new List<TrainCar> { frontCar }, railA.FrontNode, railB.FrontNode, distance);
 
             return new TrainFixture(trainUnit, frontCar, null, railA.FrontNode);
@@ -204,8 +205,8 @@ namespace Tests.UnitTest.Game
             Assert.Greater(distance, 0, "テスト用レール間の距離が正しく計算できていません。");
 
             var carLength = Mathf.Max(1, distance / 1024 / 20);
-            var frontCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 240000000, 0, carLength, true).trainCar;
-            var rearCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 120000000, 0, carLength, false).trainCar;
+            var frontCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 5000, 0, carLength, true).trainCar;
+            var rearCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 2500, 0, carLength, false).trainCar;
             var trainUnit = CreateTrainUnit(environment, new List<TrainCar> { frontCar, rearCar }, railA.FrontNode, railB.FrontNode, distance);
 
             return new TrainFixture(trainUnit, frontCar, rearCar, railA.FrontNode);

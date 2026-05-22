@@ -1,6 +1,7 @@
 using System;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Train.Diagram;
@@ -39,6 +40,8 @@ namespace Game.Train.Unit
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
         public bool IsFacingForward { get; private set; }
         public double RemainFuelTime { get; private set; }
+        public double CurrentFuelTimePerItem { get; private set; }
+        public double RemainFuelRate => CurrentFuelTimePerItem <= 0 ? 0 : Clamp01(RemainFuelTime / CurrentFuelTimePerItem);// 消費燃料1個あたり何%分残りあるか
         
         private readonly TrainUpdateEvent _trainUpdateEvent;
 
@@ -86,31 +89,47 @@ namespace Game.Train.Unit
             #endregion
         }
         
-        public void ConsumeFuel(double time, int masconLevel)
+        // 加速時入力masconlevelから消費燃料を考慮しtrainunitが最後に使用するためのmasconlevelを算出するため
+        public (double tractionForce, double baseTractionForce) ConsumeFuelAndResolveTraction(int masconLevel)
         {
-            if (RemainFuelTime <= 0) return;
-
-            var normalizedMasconLevel = masconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
-            RemainFuelTime -= time * Math.Abs(normalizedMasconLevel);
+            // 加速に制限が出る燃料ならここでmasconLevelをクランプするように
+            if (TractionForce == 0) return (0, 0);
+            return (ConsumeFuel(masconLevel) * TractionForce * masconLevel / MasterHolder.TrainUnitMaster.MasconLevelMaximum, TractionForce);
+            
+            // masconLevelの加速が適応される前提で先に燃料消費をする。残燃料しだいでmasconLevelの分消費できないことがあるので理想のうち何割消費したかを返す
+            double ConsumeFuel(int masconLevel)
+            {
+                if (masconLevel <= 0) return 0.0;
+                var normalizedMasconLevel = masconLevel / (double)MasterHolder.TrainUnitMaster.MasconLevelMaximum;
+                //予定消費燃料数
+                double baseConsume = GameUpdater.SecondsPerTick * normalizedMasconLevel;
+                double fuelConsumed = baseConsume;
+                while (fuelConsumed > 0.0)
+                {
+                    if (RemainFuelTime >= fuelConsumed)
+                    {
+                        RemainFuelTime -= fuelConsumed;
+                        fuelConsumed = 0.0;
+                        break;
+                    }
+                    fuelConsumed -= RemainFuelTime;
+                    RemainFuelTime = 0.0;
+                    LoadFuelItemIfEmpty();
+                    if (RemainFuelTime == 0.0) break;
+                }
+                return (baseConsume - fuelConsumed) / baseConsume;
+            }
         }
-
-        //重さ、推進力を得る
-        public (int weight, int tractionForce) GetWeightAndTraction(int masconLevel)
+        public int GetWeight()
         {
             var weight = TrainCarMasterElement.Weight + (Container?.GetWeight() ?? 0);
-            if (RemainFuelTime <= 0)
-            {
-                if (masconLevel != 0 && Container is IFuelProviderTrainCarContainer fuelProviderTrainCarContainer) RemainFuelTime += fuelProviderTrainCarContainer.ConsumeFuel(this);
-                if (RemainFuelTime <= 0) return (weight, 0);
-            }
-            
-            var tractionForce = TractionForce;
-            return (weight, tractionForce);
+            return weight;
         }
-
+        
         public void SetRemainFuelTime(double value)
         {
-            RemainFuelTime = value;
+            RemainFuelTime = Math.Max(0, value);
+            CurrentFuelTimePerItem = RemainFuelTime;
         }
 
         public void SetFacingForward(bool isFacingForward)
@@ -178,7 +197,7 @@ namespace Game.Train.Unit
             var restoredContainer = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
             car.SetContainer(restoredContainer);
 
-            car.RemainFuelTime = data.RemainFuelTime;
+            car.SetRemainFuelTime(data.RemainFuelTime);
             
             return car;
         }
@@ -198,6 +217,28 @@ namespace Game.Train.Unit
         public bool IsInventoryEmpty()
         {
             return Container?.IsEmpty() ?? true;
+        }
+
+        private void LoadFuelItemIfEmpty()
+        {
+            if (RemainFuelTime > 0) return;
+
+            CurrentFuelTimePerItem = 0;
+            if (Container is not IFuelProviderTrainCarContainer fuelProviderTrainCarContainer) return;
+
+            // 燃料1個ぶんの総量を記録し、残量率を計算できる状態にする。
+            // Store the total value of one fuel item so remaining percentage can be calculated.
+            var fuelTime = fuelProviderTrainCarContainer.ConsumeFuel(this);
+            if (fuelTime <= 0) return;
+            RemainFuelTime = fuelTime;
+            CurrentFuelTimePerItem = fuelTime;
+        }
+
+        private static double Clamp01(double value)
+        {
+            if (value <= 0) return 0;
+            if (value >= 1) return 1;
+            return value;
         }
     }
 }

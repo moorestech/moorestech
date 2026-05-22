@@ -5,7 +5,9 @@ using Core.Update;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface.Component;
+using Game.Context;
 using Game.Fluid;
+using Game.Train.Event;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
@@ -126,6 +128,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             {
                 dockedCar.SetContainer(Container);
                 Container = null;
+                ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
                 _dockingComponent.StartRetracting();
                 return;
             }
@@ -149,6 +152,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             {
                 Container = trainContainer;
                 dockedCar.SetContainer(null);
+                ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshotByCar(dockedCar);
                 _dockingComponent.StartRetracting();
                 return;
             }
