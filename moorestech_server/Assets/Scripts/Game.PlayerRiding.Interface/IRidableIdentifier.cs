@@ -6,6 +6,10 @@ namespace Game.PlayerRiding.Interface
     {
         RidableType Type { get; }
 
+        // セーブ用に自身を文字列へ直列化する。型ごとに固有のペイロード形式を持つ（DTO は Type と本文字列のみ保持）。
+        // Serializes this identifier into a save-payload string. Each type owns its own payload format.
+        string GetSaveState();
+
         // Dictionary / HashSet のキーに使うので Equals と GetHashCode をオーバーライドする
         // Used as Dictionary / HashSet keys, so Equals and GetHashCode must be overridden.
         bool Equals(object obj);

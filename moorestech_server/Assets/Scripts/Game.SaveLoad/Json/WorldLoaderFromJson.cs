@@ -132,8 +132,6 @@ namespace Game.SaveLoad.Json
             _trainSaveLoadService.RestoreTrainStates(load.TrainUnits);
             _trainDockingStateRestorer.RestoreDockingState();
 
-            // 乗車状態は列車復元後にロードする。参照整合の解決はログイン時まで遅延する（仕様書セクション8・10）。
-            // Load riding states after trains are restored; reference resolution is deferred to login.
             _playerRidingDatastore.LoadSaveData(load.PlayerRidingStates);
         }
         

@@ -23,5 +23,18 @@ namespace Game.PlayerRiding.Interface
                 _ => throw new ArgumentException($"Unknown RidableType: {messagePack.RidableType}")
             };
         }
+
+        // RidableType と GetSaveState() のペイロード文字列から IRidableIdentifier を復元する（セーブロード用）。
+        // 未知の型はセーブの前方互換のため例外にせず null を返し、呼び出し側で読み飛ばす。
+        // Restores an IRidableIdentifier from a RidableType and its GetSaveState() payload (save-load path).
+        // Unknown types return null instead of throwing so the loader can skip the row.
+        public static IRidableIdentifier FromSaveState(RidableType type, string saveState)
+        {
+            return type switch
+            {
+                RidableType.TrainCar => new TrainCarRidableIdentifier(long.Parse(saveState)),
+                _ => null
+            };
+        }
     }
 }

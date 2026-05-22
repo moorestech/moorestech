@@ -1,13 +1,7 @@
 {
-    "name": "Game.PlayerRiding",
+    "name": "Game.PlayerConnection",
     "rootNamespace": "",
-    "references": [
-        "Game.PlayerRiding.Interface",
-        "Game.PlayerConnection",
-        "Game.Train",
-        "Game.Context",
-        "Server.Util"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

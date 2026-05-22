@@ -15,6 +15,13 @@ namespace Game.PlayerRiding.Interface
             TrainCarInstanceId = trainCarInstanceId;
         }
 
+        // セーブ用ペイロード: 車両インスタンスIDの十進文字列
+        // Save payload: the decimal string of the train car instance id.
+        public string GetSaveState()
+        {
+            return TrainCarInstanceId.ToString();
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is TrainCarRidableIdentifier other)
