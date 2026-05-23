@@ -202,7 +202,7 @@ namespace Client.Starter
             builder.Register<NormalPlayerState>(Lifetime.Singleton);
             builder.Register<RidingPlayerState>(Lifetime.Singleton);
             builder.Register<PlayerStateDictionary>(Lifetime.Singleton);
-            builder.Register<PlayerStateController>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<ITickable>().As<IDisposable>();
+            builder.Register<PlayerStateController>(Lifetime.Singleton).AsSelf().As<ITickable>();
             
             // スキット関連
             // register skit related
