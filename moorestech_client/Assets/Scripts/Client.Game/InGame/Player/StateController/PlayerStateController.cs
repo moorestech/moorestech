@@ -1,38 +1,24 @@
 using System;
-using Client.Game.InGame.UI.UIState;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Player.StateController
 {
-    // UIStateControl の変化を受け取り、プレイヤー側のステート（Normal / Riding）を駆動するコントローラ。
-    // 依存方向は常に UIState → PlayerStateController（PlayerStateController から UIState への能動呼び出しは禁止）。
-    // Drives player-side state (Normal / Riding) in response to UIStateControl changes.
-    // Dependency always flows UIState → PlayerStateController (never the reverse).
-    public class PlayerStateController : IInitializable, ITickable, IDisposable
+    // プレイヤー側のステート（Normal / Riding）を保持・遷移するコントローラ。
+    // 自発的な遷移判定は持たず、必ず外部（UIState 側）からの SetState 呼び出しで状態が変化する。
+    // 依存方向は UIStateControl → PlayerStateController の一本道で、逆方向の参照は行わない。
+    // Holds and transitions player-side state (Normal / Riding).
+    // Never decides transitions itself: external callers (UIState side) drive changes via SetState.
+    // Dependency flows one-way UIStateControl → PlayerStateController; no reverse reference.
+    public class PlayerStateController : ITickable
     {
         private readonly PlayerStateDictionary _stateDictionary;
-        private readonly UIStateControl _uiStateControl;
 
         public PlayerStateEnum CurrentState { get; private set; } = PlayerStateEnum.Normal;
         public event Action<PlayerStateEnum> OnStateChanged;
 
-        public PlayerStateController(PlayerStateDictionary stateDictionary, UIStateControl uiStateControl)
+        public PlayerStateController(PlayerStateDictionary stateDictionary)
         {
             _stateDictionary = stateDictionary;
-            _uiStateControl = uiStateControl;
-        }
-
-        public void Initialize()
-        {
-            // UIStateControl.Start() で初期 OnEnter が呼ばれた後にイベントを購読する。
-            // Subscribe after UIStateControl.Start() has fired its initial OnEnter.
-            _uiStateControl.OnStateChanged += HandleUIStateChanged;
-            _stateDictionary.GetState(CurrentState).OnEnter(new PlayerTransitContext(CurrentState));
-        }
-
-        public void Dispose()
-        {
-            _uiStateControl.OnStateChanged -= HandleUIStateChanged;
         }
 
         public void Tick()
@@ -40,9 +26,10 @@ namespace Client.Game.InGame.Player.StateController
             _stateDictionary.GetState(CurrentState).Tick();
         }
 
-        private void HandleUIStateChanged(UIStateEnum uiState)
+        // 外部（UIStateControl など）から呼ばれる唯一の状態変更入口。
+        // The only entry point that mutates the current state; called by UIStateControl etc.
+        public void SetState(PlayerStateEnum nextState)
         {
-            var nextState = MapUIStateToPlayerState(uiState);
             if (nextState == CurrentState) return;
 
             var lastState = CurrentState;
@@ -52,15 +39,6 @@ namespace Client.Game.InGame.Player.StateController
             _stateDictionary.GetState(nextState).OnEnter(new PlayerTransitContext(lastState));
 
             OnStateChanged?.Invoke(nextState);
-        }
-
-        // 現状は TrainHUDScreen のみ Riding に対応する。インベントリ等から戻った直後も
-        // UIState=GameScreen なので Normal となる。乗車中インベントリは将来課題。
-        // Currently only TrainHUDScreen maps to Riding. After returning from inventory etc.,
-        // UIState=GameScreen so player state becomes Normal. Inventory-while-riding is future work.
-        private static PlayerStateEnum MapUIStateToPlayerState(UIStateEnum uiState)
-        {
-            return uiState == UIStateEnum.TrainHUDScreen ? PlayerStateEnum.Riding : PlayerStateEnum.Normal;
         }
     }
 }
