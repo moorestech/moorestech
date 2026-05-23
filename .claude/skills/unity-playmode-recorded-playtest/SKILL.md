@@ -25,6 +25,16 @@ EditMode テストでは本番アセットも MonoBehaviour Update も UI Prefab
 
 ## 重要な設計判断 (ユーザー指示を反映)
 
+### 探索と実行計画作成は必ずサブエージェントに先行委譲する
+PlayMode 起動・録画・シナリオ実行に着手する**前に、必ずサブエージェント（Plan または general-purpose）へコード/データの探索と実行計画作成を委譲する**。メインエージェントがいきなり PlayMode を起動してはならない。理由: playtest シナリオは「設置プロトコルの呼び方」「ブロックの前提依存（例: 鉄道は先にレール設置が必要）」「絶対座標と connector offset」「readiness 判定条件」「legacy Input 箇所」など、コードとマスタデータを実際に読まないと確定できない情報に依存する。これを探索しないまま実行すると、設置失敗・接続不一致・無限ループ polling などで録画が無駄になる。サブエージェントには次を必ず調査・出力させる:
+- 検証対象シナリオを成立させる**前提手順の連鎖**（依存ブロック・必要アイテム・操作順序）
+- 各操作の**呼び出し経路**（API / controller 層 / simulate-keyboard / リフレクション遷移のどれを使うか）
+- **絶対座標とconnector offset の表**（複数ブロック連結時。後述「座標設計」参照）
+- プロジェクトの**readiness 判定条件**と NoSave フラグ等の起動前提
+- Step 単位に分解した**実行計画**（各 Step の uloop コマンドと期待結果）
+
+メインはこの実行計画を受け取ってから Step 1 以降を実行する。
+
 ### 録画は Unity Recorder 一択
 macOS の `screencapture -V` や `ffmpeg -f avfoundation` を使うアプローチも技術的には可能だが、**OS 越し画面キャプチャはフォーカス・解像度・他ウィンドウ重なりに脆弱**。Unity Recorder は GameView レンダリング結果を内部で直接受け取るので、Unity ウィンドウが他アプリの裏に隠れていても録画品質が変わらない。「フォーカス不要」が要件のとき OS 録画は選択肢から外す。
 
@@ -51,11 +61,12 @@ uloop execute-dynamic-code --project-path ./moorestech_client --code 'UnityEdito
 ## 全体フロー
 
 ```
+0. サブエージェントにコード/データ探索 + 実行計画作成を委譲 (必須・後述 Step 0)
 1. (前提) Unity 起動、CLI Loop サーバ起動済み
 2. uloop control-play-mode --action Play     # PlayMode 突入
 3. shell sleep 15-25 + readiness polling      # ブート待機
 4. uloop execute-dynamic-code で Recorder 起動 (AppDomain に保持)
-5. シナリオ実行ループ (Step 5 a/b/c を組み合わせる)
+5. シナリオ実行ループ (Step 5 a/b/c を組み合わせる) — Step 0 の実行計画に従う
    a. API 叩き                       # 設置・データ操作
    b. simulate-keyboard / mouse      # 本物のキー入力 (新 InputSystem 配下のみ)
    c. リフレクションで状態強制遷移   # legacy Input にしか届かない遷移を代替
@@ -65,6 +76,18 @@ uloop execute-dynamic-code --project-path ./moorestech_client --code 'UnityEdito
 9. uloop control-play-mode --action Stop      # PlayMode 終了
 10. 動画ファイル確認 (`/tmp/<name>.mp4`)
 ```
+
+## Step 0: サブエージェントによる探索と実行計画作成 (必須)
+
+PlayMode 起動より前に行う。**メインは Plan または general-purpose サブエージェントを起動**し、検証対象シナリオについて以下を調査・出力させる:
+
+1. **前提手順の連鎖** — シナリオを成立させるために先行して必要な操作（依存ブロック・必要アイテム・操作順序）。例: 「列車に乗る」には先にレール設置 → 列車設置が要る。
+2. **各操作の呼び出し経路** — API 直叩き / controller 層 / simulate-keyboard / リフレクション遷移 のどれを使うか。コードを grep して legacy `Input.GetKeyDown` 箇所も特定させる。
+3. **絶対座標と connector offset の表** — 複数ブロックを連結するなら YAML を読んで `inputConnects[].offset` / `outputConnects[].offset` を絶対座標で計算した表（「座標設計」節参照）。
+4. **readiness 判定条件と起動前提** — ブート完了判定の static 条件、NoSave フラグ等。
+5. **Step 単位の実行計画** — 各 Step の uloop コマンドと期待結果を列挙したもの。
+
+メインはこの実行計画を受領・確認してから Step 1 以降に進む。探索を省略してメインが直接 PlayMode を起動することは禁止。
 
 ## Step 1: PlayMode 起動とブート待機
 
