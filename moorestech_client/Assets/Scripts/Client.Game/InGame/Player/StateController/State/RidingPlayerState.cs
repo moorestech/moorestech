@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Player.StateController.State
         {
             _rideContext = context as RidingPlayerStateContext;
             
-            if (_rideContext?.CurrentCarId != null && _trainCarObjectDatastore.TryGetEntity(_rideContext.CurrentCarId.Value, out var targetEntity))
+            if (_rideContext?.CurrentCarId != null && _trainCarObjectDatastore.TryGetEntity(_rideContext.CurrentCarId, out var targetEntity))
             {
                 var seatPosition = ResolveSeatLocalPosition(targetEntity, _rideContext.CurrentSeatIndex);
                 
@@ -51,11 +51,9 @@ namespace Client.Game.InGame.Player.StateController.State
         {
             if (_rideContext == null) return;
 
-            if (!_rideContext.CurrentCarId.HasValue) return;
-
             // 車両がすでに破棄されていたら乗車を解除する
             // If the car has already been destroyed, release the ride follow.
-            if (!_trainCarObjectDatastore.TryGetEntity(_rideContext.CurrentCarId.Value, out _))
+            if (!_trainCarObjectDatastore.TryGetEntity(_rideContext.CurrentCarId, out _))
             {
                 var player = ResolvePlayerObjectController();
                 player.ClearRideFollowTarget();
@@ -79,7 +77,7 @@ namespace Client.Game.InGame.Player.StateController.State
 
             Vector3 ResolveDismountPose(PlayerObjectController playerObject)
             {
-                if (_rideContext?.CurrentCarId != null && _trainCarObjectDatastore.TryGetEntity(_rideContext.CurrentCarId.Value, out var entity))
+                if (_rideContext != null && _trainCarObjectDatastore.TryGetEntity(_rideContext.CurrentCarId, out var entity))
                 {
                     var marker = entity.GetComponentInChildren<TrainCarDismountPoint>(true);
                     
