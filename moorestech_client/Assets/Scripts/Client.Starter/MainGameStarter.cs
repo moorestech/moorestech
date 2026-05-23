@@ -289,39 +289,29 @@ namespace Client.Starter
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();
 
-            // ログイン時に乗車中だった場合、乗車状態を復元する（仕様書セクション5.3・8）。
-            // Restore riding state when the player was riding at login time.
-            RestoreRidingState(initialHandshakeResponse);
+            // 列車乗車などログイン中の特殊な状態を再現する
+            // Reproduce special states during login, such as riding a train.
+            RestoreSpecificState(initialHandshakeResponse);
 
             return _resolver;
         }
 
-        // ハンドシェイク応答の RidingTarget を見て乗車情報を TrainHUDScreenState に保留登録する。
-        // 実 parent は TrainHUDScreenState の OnEnter が pending を取り出した時点で起動する。
-        // ※ UIState 自体を起動時に TrainHUDScreen へ自動遷移させる手段は後続作業で検討する（現状未対応）。
-        // Caches the ride info into TrainHUDScreenState as a pending restore.
-        // The actual parenting kicks in when TrainHUDScreenState.OnEnter consumes the pending value.
-        // Note: auto-transitioning to TrainHUDScreen at startup is deferred to follow-up work (currently not wired).
-        private void RestoreRidingState(InitialHandshakeResponse initialHandshakeResponse)
+        private void RestoreSpecificState(InitialHandshakeResponse init)
         {
-            var ridingTarget = initialHandshakeResponse.RidingTarget;
-            if (ridingTarget == null)
+            var context = new UITransitContext(UIStateEnum.GameScreen);
+            var uiState = UIStateEnum.GameScreen;
+            
+            if (init.RidingTarget != null && init.RidingTarget.RidableType == RidableType.TrainCar)
             {
-                return;
+                var request = new InitialRideTrainCarRequest(new TrainCarInstanceId(init.RidingTarget.TrainCarInstanceId), init.RidingSeatIndex);
+                var container = UITransitContextContainer.Create(request);
+                
+                context = new UITransitContext(UIStateEnum.TrainHUDScreen, container);
+                uiState = UIStateEnum.TrainHUDScreen;
+                
             }
-
-            // 列車車両のみ対応（クライアント実装は列車のみ・仕様書セクション9）。
-            // Train cars only (client scope is train-only).
-            if (new RidableType(ridingTarget.RidableType) != RidableType.TrainCar)
-            {
-                return;
-            }
-            if (!long.TryParse(ridingTarget.TrainCarInstanceId, out var instanceId))
-            {
-                return;
-            }
-
-            _resolver.Resolve<TrainHUDScreenState>().PreparePendingRide(new TrainCarInstanceId(instanceId), initialHandshakeResponse.RidingSeatIndex);
+            
+            _resolver.Resolve<UIStateControl>().Initialize(uiState, context);
         }
     }
 }

@@ -34,19 +34,22 @@ namespace Client.Game.InGame.UI.UIState.State
             _trainUnitClientCache = trainUnitClientCache;
         }
 
-        // ハンドシェイク応答で乗車中だった場合、本 State の OnEnter で参照される pending 情報を仕込む。
-        // Caches pending ride info from the handshake response, consumed by the next OnEnter.
-        public void PreparePendingRide(TrainCarInstanceId carId, int seatIndex)
-        {
-        }
-
         public void OnEnter(UITransitContext context)
         {
             KeyControlDescription.Instance.SetText("E: 降車\nW/A/S/D: 列車操作\n");
-
+            
             // サーバー強制降車イベントを購読する。HUDに居る間だけ反映
             // Subscribe to server-forced dismount events; only applied while this HUD is active.
             _eventSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(RidingStateEventPacket.EventTag, OnRidingStateEventReceived);
+            
+            // 初期値として乗車完了済みの場合は即時反映
+            // If the player is already riding at the time of entering, reflect that immediately.
+            if (context.TryGetContext<InitialRideTrainCarRequest>(out var rideRequest))
+            {
+                _rideContext = new RidingPlayerStateContext(rideRequest.TargetCarId, rideRequest.SeatIndex);
+                _playerStateController.SetState(PlayerStateEnum.Riding, _rideContext);
+                return;
+            }
 
             // サーバー側に乗車リクエストを送る
             // Send a ride request to the server.
@@ -61,7 +64,7 @@ namespace Client.Game.InGame.UI.UIState.State
             {
                 if(_cts  != null) return;
                 
-                var rideRequest = context?.GetContext<RideVehicleRequest>();
+                var rideRequest = context.GetContext<RideTrainCarRequest>();
                 
                 _cts  = new CancellationTokenSource();
                 var target = RidableIdentifierMessagePack.CreateTrainCarMessage(rideRequest.TargetCarId.AsPrimitive());
@@ -69,6 +72,8 @@ namespace Client.Game.InGame.UI.UIState.State
                 
                 if (response is { Result: RideActionResult.Success })
                 {
+                    // 乗車を実行
+                    // Execute riding.
                     _rideContext = new RidingPlayerStateContext(rideRequest.TargetCarId, response.SeatIndex);
                     _playerStateController.SetState(PlayerStateEnum.Riding, _rideContext);
                 }
@@ -89,10 +94,13 @@ namespace Client.Game.InGame.UI.UIState.State
                 var message = MessagePackSerializer.Deserialize<RidingStateEventMessagePack>(payload);
                 if (message.PlayerId != ClientContext.PlayerConnectionSetting.PlayerId) return;
 
+                // 降車とゲームスクリーンへの遷移
+                // Dismount and transition to GameScreen.
                 if (message.StateType == RidingStateEventType.Dismount)
                 {
                     _playerStateController.SetState(PlayerStateEnum.Normal, null);
                 }
+                _toGameScreen = false;
             }
 
             #endregion
