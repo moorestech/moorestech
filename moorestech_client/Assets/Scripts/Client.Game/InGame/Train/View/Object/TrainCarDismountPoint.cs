@@ -6,8 +6,6 @@ namespace Client.Game.InGame.Train.View.Object
     // Placed on a train-car Prefab to point at the dismount Transform via a SerializeField.
     public sealed class TrainCarDismountPoint : MonoBehaviour
     {
-        [SerializeField] private Transform dismountPoint;
-
-        public Transform Point => dismountPoint;
+        public Vector3 Position => transform.position;
     }
 }

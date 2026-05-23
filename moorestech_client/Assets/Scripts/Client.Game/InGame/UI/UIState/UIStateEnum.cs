@@ -12,10 +12,6 @@
         ChallengeList,
         ResearchTree,
         Debug,
-        // 列車に乗車中の HUD ステート。現状は GameScreen と同じ見た目だが、
-        // 将来的に乗車専用 UI を表示する余地として独立させる。
-        // HUD state while riding a train. Currently looks identical to GameScreen but
-        // kept separate so riding-only UI can be added later.
         TrainHUDScreen,
     }
 }
