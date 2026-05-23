@@ -78,10 +78,6 @@ namespace Client.Game.InGame.Train.View.Object
             return true;
         }
 
-        // 全車両オブジェクトを列挙する（近傍検索用）。
-        // Enumerates all train-car objects (for nearest-car search).
-        public IEnumerable<TrainCarEntityObject> AllEntities => _entities.Values;
-
         public bool TryGetEntity(TrainCarInstanceId id, out TrainCarEntityObject entity)
         {
             if (!_entities.TryGetValue(id, out entity))

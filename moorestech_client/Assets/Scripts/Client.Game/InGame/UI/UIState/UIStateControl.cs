@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Player.StateController;
+using Client.Game.InGame.Train.Unit;
 using UnityEngine;
 using VContainer;
 
@@ -11,6 +12,9 @@ namespace Client.Game.InGame.UI.UIState
         // UIState → PlayerStateController の一本道で押し出す。逆方向参照は行わない。
         // Push player-state changes one-way from UIState; never reference the player side back.
         [Inject] private PlayerStateController _playerStateController;
+        // PauseMenu 等 UI 中断中も Riding を維持するため、UIStateEnum ではなくドメイン真実 (IsRiding) を見る。
+        // Look at the domain truth (IsRiding) instead of UIStateEnum so PauseMenu etc. preserve Riding state.
+        [Inject] private TrainCarRidingState _trainCarRidingState;
 
         public event Action<UIStateEnum> OnStateChanged;
         public UIStateEnum CurrentState { get; private set; } = UIStateEnum.GameScreen;
@@ -18,9 +22,9 @@ namespace Client.Game.InGame.UI.UIState
         private void Start()
         {
             _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(CurrentState));
-            // 初期状態を Player 側にも同期する（GameScreen → Normal）。
-            // Sync the initial state to the player side as well (GameScreen → Normal).
-            _playerStateController.SetState(MapUIStateToPlayerState(CurrentState));
+            // 初期状態を Player 側にも同期する。
+            // Sync the initial state to the player side as well.
+            _playerStateController.SetState(ResolvePlayerState());
         }
 
         //UIステート
@@ -41,18 +45,20 @@ namespace Client.Game.InGame.UI.UIState
             _uiStateDictionary.GetState(lastState).OnExit();
             _uiStateDictionary.GetState(CurrentState).OnEnter(nextContext);
 
-            OnStateChanged?.Invoke(CurrentState);
+            // プレイヤー側ステートを先に押し出してから UI 側購読者へ通知する。
+            // Push the player-side state first, then notify UI-side subscribers.
+            _playerStateController.SetState(ResolvePlayerState());
 
-            // プレイヤー側ステートも合わせて押し出す（PlayerStateController は自発的に切り替わらない設計）。
-            // Push the player-side state as well (PlayerStateController never self-transitions).
-            _playerStateController.SetState(MapUIStateToPlayerState(CurrentState));
+            OnStateChanged?.Invoke(CurrentState);
         }
 
-        // UIState → PlayerState の射影。現状は TrainHUDScreen のみ Riding に対応し、それ以外は Normal。
-        // Projection UIState → PlayerState. Currently only TrainHUDScreen maps to Riding; everything else is Normal.
-        private static PlayerStateEnum MapUIStateToPlayerState(UIStateEnum uiState)
+        // PlayerState はドメイン真実 (TrainCarRidingState.IsRiding) で決まる。
+        // UIStateEnum の値（PauseMenu / TrainHUDScreen / GameScreen 等）は遷移トリガーであって判定基準ではない。
+        // PlayerState is decided by the domain truth (TrainCarRidingState.IsRiding).
+        // UIStateEnum values are transition triggers, not the deciding factor.
+        private PlayerStateEnum ResolvePlayerState()
         {
-            return uiState == UIStateEnum.TrainHUDScreen ? PlayerStateEnum.Riding : PlayerStateEnum.Normal;
+            return _trainCarRidingState.IsRiding ? PlayerStateEnum.Riding : PlayerStateEnum.Normal;
         }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.Player.StateController
@@ -14,7 +13,6 @@ namespace Client.Game.InGame.Player.StateController
         private readonly PlayerStateDictionary _stateDictionary;
 
         public PlayerStateEnum CurrentState { get; private set; } = PlayerStateEnum.Normal;
-        public event Action<PlayerStateEnum> OnStateChanged;
 
         public PlayerStateController(PlayerStateDictionary stateDictionary)
         {
@@ -27,18 +25,17 @@ namespace Client.Game.InGame.Player.StateController
         }
 
         // 外部（UIStateControl など）から呼ばれる唯一の状態変更入口。
+        // OnExit → CurrentState 更新 → OnEnter の順で実行する（OnExit 例外時の中間状態を防ぐ）。
         // The only entry point that mutates the current state; called by UIStateControl etc.
+        // Order is OnExit → CurrentState update → OnEnter so that an exception in OnExit doesn't leave CurrentState half-updated.
         public void SetState(PlayerStateEnum nextState)
         {
             if (nextState == CurrentState) return;
 
             var lastState = CurrentState;
-            CurrentState = nextState;
-
             _stateDictionary.GetState(lastState).OnExit();
-            _stateDictionary.GetState(nextState).OnEnter(new PlayerTransitContext(lastState));
-
-            OnStateChanged?.Invoke(nextState);
+            CurrentState = nextState;
+            _stateDictionary.GetState(nextState).OnEnter();
         }
     }
 }

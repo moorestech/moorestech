@@ -6,7 +6,7 @@ namespace Client.Game.InGame.Player.StateController
     // no GetNextUpdate (dependency direction: UIState → PlayerStateController).
     public interface IPlayerState
     {
-        void OnEnter(PlayerTransitContext context);
+        void OnEnter();
         void Tick();
         void OnExit();
     }
