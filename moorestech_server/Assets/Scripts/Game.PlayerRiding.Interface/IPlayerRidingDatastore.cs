@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Game.PlayerRiding.Interface
@@ -7,6 +8,7 @@ namespace Game.PlayerRiding.Interface
     // Contract for the riding-state datastore. Callers depend on this abstraction, not the concrete class.
     public interface IPlayerRidingDatastore
     {
+        IObservable<RidingStateChange> OnRidingStateChanged { get; }
         bool TryGetRidingState(int playerId, out RidingState ridingState);
         RideActionResult TryRide(int playerId, IRidableIdentifier identifier, out int assignedSeatIndex);
         RideActionResult TryDismount(int playerId);

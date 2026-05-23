@@ -6,7 +6,8 @@
         "Game.PlayerConnection",
         "Game.Train",
         "Game.Context",
-        "Server.Util"
+        "Server.Util",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

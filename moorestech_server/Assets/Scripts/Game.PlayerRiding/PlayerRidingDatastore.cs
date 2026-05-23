@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Game.PlayerConnection;
 using Game.PlayerRiding.Interface;
+using UniRx;
 
 namespace Game.PlayerRiding
 {
@@ -8,13 +10,16 @@ namespace Game.PlayerRiding
     // Core datastore for riding state. Owns ride/dismount decision logic.
     public class PlayerRidingDatastore : IPlayerRidingDatastore
     {
+        public IObservable<RidingStateChange> OnRidingStateChanged => _ridingStateChangedSubject;
+        private readonly Subject<RidingStateChange> _ridingStateChangedSubject = new();
+        
         // 座席占有判定で「除外するプレイヤーなし」を表す番兵値
         // Sentinel passed to the seat-occupancy check when no player should be excluded.
         private const int NoExcludePlayerId = -1;
 
         private readonly RidableResolver _ridableResolver;
         private readonly IPlayerConnectionChecker _connectionChecker;
-
+        
         // playerId -> RidingState
         private readonly Dictionary<int, RidingState> _ridingStateByPlayerId = new();
 
@@ -23,6 +28,7 @@ namespace Game.PlayerRiding
             _ridableResolver = ridableResolver;
             _connectionChecker = connectionChecker;
         }
+
 
         public bool TryGetRidingState(int playerId, out RidingState ridingState)
         {
@@ -56,6 +62,7 @@ namespace Game.PlayerRiding
 
             _ridingStateByPlayerId[playerId] = new RidingState(identifier, freeSeat);
             assignedSeatIndex = freeSeat;
+            _ridingStateChangedSubject.OnNext(new RidingStateChange(playerId, RidingStateChangeType.Ride, _ridingStateByPlayerId[playerId]));
             return RideActionResult.Success;
 
             #region Internal
@@ -87,6 +94,7 @@ namespace Game.PlayerRiding
             }
 
             _ridingStateByPlayerId.Remove(playerId);
+            _ridingStateChangedSubject.OnNext(new RidingStateChange(playerId, RidingStateChangeType.Dismount, null));
             return RideActionResult.Success;
         }
 
@@ -108,6 +116,7 @@ namespace Game.PlayerRiding
             foreach (var playerId in dismounted)
             {
                 _ridingStateByPlayerId.Remove(playerId);
+                _ridingStateChangedSubject.OnNext(new RidingStateChange(playerId, RidingStateChangeType.Dismount, null));
             }
             return dismounted;
         }
@@ -128,6 +137,7 @@ namespace Game.PlayerRiding
             if (ridable == null)
             {
                 _ridingStateByPlayerId.Remove(playerId);
+                _ridingStateChangedSubject.OnNext(new RidingStateChange(playerId, RidingStateChangeType.Dismount, null));
                 return false;
             }
             // 記録席が範囲外（マスタ変更・セーブ手編集対策。仕様書セクション8）
@@ -135,6 +145,7 @@ namespace Game.PlayerRiding
             if (state.SeatIndex < 0 || ridable.SeatCount <= state.SeatIndex)
             {
                 _ridingStateByPlayerId.Remove(playerId);
+                _ridingStateChangedSubject.OnNext(new RidingStateChange(playerId, RidingStateChangeType.Dismount, null));
                 return false;
             }
             // 記録席を接続中の別プレイヤーが使用中
@@ -142,8 +153,10 @@ namespace Game.PlayerRiding
             if (IsSeatOccupiedByConnectedPlayer(state.Identifier, state.SeatIndex, playerId))
             {
                 _ridingStateByPlayerId.Remove(playerId);
+                _ridingStateChangedSubject.OnNext(new RidingStateChange(playerId, RidingStateChangeType.Dismount, null));
                 return false;
             }
+            _ridingStateChangedSubject.OnNext(new RidingStateChange(playerId, RidingStateChangeType.Ride, state));
             return true;
         }
 
