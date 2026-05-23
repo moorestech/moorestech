@@ -3,11 +3,10 @@ using UnitGenerator;
 namespace Game.PlayerRiding.Interface
 {
     /// <summary>
-    /// 乗り物の種類を表す判別子。string ベースの UnitOf 型で、型安全と mod による種別追加の両立を図る。
-    /// mod は独自の文字列値で <c>new RidableType("MyMod.MyVehicle")</c> のように新種別を構築できる。
-    /// Discriminator for a ridable kind. A string-based UnitOf type: type-safe yet extensible by mods.
+    /// 乗り物タイプを表す識別子。拡張性のためにstringベース
+    /// A string-based identifier representing the type of ridable, designed for extensibility.
     /// </summary>
-    [UnitOf(typeof(string))]
+    [UnitOf(typeof(string), UnitGenerateOptions.MessagePackFormatter )]
     public readonly partial struct RidableType
     {
         // ビルトインの乗り物種別。
