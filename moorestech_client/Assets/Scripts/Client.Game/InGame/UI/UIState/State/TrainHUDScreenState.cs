@@ -22,7 +22,6 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly PlayerStateController _playerStateController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
         private readonly InGameCameraController _inGameCameraController;
-        private readonly PauseMenuStateService _pauseMenuStateService;
         
         private bool _isDismountTrain = false;
         private RidingPlayerStateContext _rideContext;
@@ -36,7 +35,6 @@ namespace Client.Game.InGame.UI.UIState.State
             _playerStateController = playerStateController;
             _trainUnitClientCache = trainUnitClientCache;
             _inGameCameraController = inGameCameraController;
-            _pauseMenuStateService = pauseMenuStateService;
         }
 
         public void OnEnter(UITransitContext context)
