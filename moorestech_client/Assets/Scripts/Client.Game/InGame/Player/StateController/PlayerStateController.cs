@@ -23,9 +23,9 @@ namespace Client.Game.InGame.Player.StateController
         }
 
         // 外部から呼ばれる唯一の状態変更入口。
-        // context は遷移先の State が必要な情報を保持する（例: Riding なら IPlayerRideContext）。null 可。
+        // context は遷移先の State が必要な情報を保持する（例: Riding なら RidingPlayerStateContext）。null 可。
         // The only entry point that mutates the current state.
-        // context carries information the target State needs (e.g. IPlayerRideContext for Riding); nullable.
+        // context carries information the target State needs (e.g. RidingPlayerStateContext for Riding); nullable.
         public void SetState(PlayerStateEnum nextState, IPlayerStateContext context)
         {
             if (nextState == CurrentState) return;

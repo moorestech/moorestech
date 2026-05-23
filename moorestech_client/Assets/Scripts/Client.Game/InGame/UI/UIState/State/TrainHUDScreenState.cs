@@ -18,22 +18,21 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     // 列車に乗車中の HUD ステート。本 State が列車関連処理の唯一の起点であり、
     // 乗降状態の保持・RPC 送受信・サーバー強制降車購読・WASD 送信を一手に担う。
-    // PlayerStateController には IPlayerRideContext として自分を渡し、RidingPlayerState は
-    // 毎フレーム context 経由で現在乗るべき列車を問い合わせる。
+    // RidingPlayerStateContext を 1 instance 所有し、PlayerStateController 経由で
+    // RidingPlayerState に渡す。状態変化（座席確定・強制降車）は context のメソッド経由で反映する。
     // HUD state while riding a train. This state is the sole entry point for train-related processing:
     // ride-state persistence, RPC send/receive, server-forced dismount subscription, and WASD input forwarding.
-    // The state hands itself to PlayerStateController as IPlayerRideContext so RidingPlayerState can
-    // query "the car to mount" through the context every frame.
-    public class TrainHUDScreenState : IUIState, IPlayerRideContext
+    // Owns a single RidingPlayerStateContext instance and hands it to RidingPlayerState via PlayerStateController.
+    // State updates (seat confirmation, forced dismount) mutate the context through its methods.
+    public class TrainHUDScreenState : IUIState
     {
         private readonly PlayerStateController _playerStateController;
         private readonly InGameCameraController _inGameCameraController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
 
-        // 現在乗車中の車両 id と座席 index。null / -1 は「乗車していない / RPC 応答未到達」。
-        // Current riding car id and seat index. null / -1 means "not riding" / "RPC reply pending".
-        private TrainCarInstanceId? _currentCarId;
-        private int _currentSeatIndex = -1;
+        // 乗降状態の真実値を保持する context。RidingPlayerState はこの context のプロパティを毎フレーム読む。
+        // Source-of-truth context for ride state; RidingPlayerState reads its properties each frame.
+        private readonly RidingPlayerStateContext _rideContext = new();
 
         // ログイン復帰時に MainGameStarter から push される保留中の乗車情報。
         // Pending ride info pushed from MainGameStarter on login restore.
@@ -60,21 +59,6 @@ namespace Client.Game.InGame.UI.UIState.State
             _pendingRideSeatIndex = seatIndex;
         }
 
-        // RidingPlayerState から毎フレーム呼ばれる context API。
-        // Context API called every frame from RidingPlayerState.
-        public bool TryGetCurrentRideTarget(out TrainCarInstanceId carId, out int seatIndex)
-        {
-            if (_currentCarId.HasValue && _currentSeatIndex >= 0)
-            {
-                carId = _currentCarId.Value;
-                seatIndex = _currentSeatIndex;
-                return true;
-            }
-            carId = default;
-            seatIndex = -1;
-            return false;
-        }
-
         public void OnEnter(UITransitContext context)
         {
             _inGameCameraController.SetControllable(true);
@@ -85,28 +69,26 @@ namespace Client.Game.InGame.UI.UIState.State
             // Subscribe to server-forced dismount events; only applied while this HUD is active.
             _eventSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(RidingStateEventPacket.EventTag, OnRidingStateEventReceived);
 
-            // 1) GameScreen からの E 入力経由: container から乗車要求を取り出し RPC を発射。
-            // 1) Via E-press from GameScreen: pull the ride request from the container and fire the RPC.
+            // 1) GameScreen からの E 入力経由: container から乗車要求を取り出し RPC を発射（seat 未確定で context 初期化）。
+            // 1) Via E-press from GameScreen: pull the ride request and fire the RPC (init context with seat unconfirmed).
             var rideRequest = context?.GetContext<RideVehicleRequest>();
             if (rideRequest != null)
             {
-                _currentCarId = rideRequest.TargetCarId;
-                _currentSeatIndex = -1;
+                _rideContext.SetRideTarget(rideRequest.TargetCarId, -1);
                 SendRideRequestAsync(rideRequest.TargetCarId).Forget(LogRpcFault);
             }
             // 2) ログイン復帰経路: PreparePendingRide で仕込まれた値を使う（座席既知）。
             // 2) Login-restore path: consume the value cached by PreparePendingRide (seat already known).
             else if (_pendingRideCarId.HasValue)
             {
-                _currentCarId = _pendingRideCarId.Value;
-                _currentSeatIndex = _pendingRideSeatIndex;
+                _rideContext.SetRideTarget(_pendingRideCarId.Value, _pendingRideSeatIndex);
                 _pendingRideCarId = null;
                 _pendingRideSeatIndex = -1;
             }
 
-            // プレイヤーステートを Riding に押し出し、自身を context として渡す。
-            // Push player state to Riding with self as the context.
-            _playerStateController.SetState(PlayerStateEnum.Riding, this);
+            // プレイヤーステートを Riding に押し出し、所有する context を渡す。
+            // Push player state to Riding with the owned context.
+            _playerStateController.SetState(PlayerStateEnum.Riding, _rideContext);
 
             #region Internal
 
@@ -121,8 +103,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 if (message.StateType == RidingStateEventType.Dismount)
                 {
-                    _currentCarId = null;
-                    _currentSeatIndex = -1;
+                    _rideContext.Clear();
                 }
             }
 
@@ -138,16 +119,15 @@ namespace Client.Game.InGame.UI.UIState.State
                 }
                 finally
                 {
-                    // 成功なら座席番号付きで確定、失敗・例外・null 応答のいずれでも内部状態をクリアして GameScreen に戻す。
+                    // 成功なら座席番号付きで確定、失敗・例外・null 応答のいずれでも context をクリアして GameScreen に戻す。
                     // Finalize with seat index on success; clear and bounce to GameScreen on failure / exception / null response.
                     if (success)
                     {
-                        _currentSeatIndex = response.SeatIndex;
+                        _rideContext.SetRideTarget(carId, response.SeatIndex);
                     }
                     else
                     {
-                        _currentCarId = null;
-                        _currentSeatIndex = -1;
+                        _rideContext.Clear();
                     }
                 }
             }
@@ -157,16 +137,16 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // 内部状態が空（RPC 失敗 / 強制降車 / 自発降車成功）なら GameScreen に戻る。
-            // Bounce back to GameScreen when the internal state is empty (RPC failure / forced dismount / self-dismount success).
-            if (!_currentCarId.HasValue) return new UITransitContext(UIStateEnum.GameScreen);
+            // context が空（RPC 失敗 / 強制降車 / 自発降車成功）なら GameScreen に戻る。
+            // Bounce back to GameScreen when the context is empty (RPC failure / forced dismount / self-dismount success).
+            if (!_rideContext.CurrentCarId.HasValue) return new UITransitContext(UIStateEnum.GameScreen);
 
             // 緊急退避用に PauseMenu のみ許可する。
             // Allow only the PauseMenu as an escape hatch.
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
-            // E で降車 RPC を fire-and-forget。次フレーム以降に IsRiding=false 経路で GameScreen へ。
-            // Fire-and-forget dismount RPC on E; flips to GameScreen on the next frame via the empty-state path.
+            // E で降車 RPC を fire-and-forget。次フレーム以降に空 context 経路で GameScreen へ。
+            // Fire-and-forget dismount RPC on E; flips to GameScreen on the next frame via the empty-context path.
             if (UnityEngine.Input.GetKeyDown(KeyCode.E))
             {
                 SendDismountRequestAsync().Forget(LogRpcFault);
@@ -174,9 +154,9 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // WASD 操舵入力を送信する。RPC 応答未到達 (seat=-1) のうちは送らない。
             // Forward WASD steering input. Skip while the seat is unconfirmed (seat=-1, RPC pending).
-            if (_currentSeatIndex >= 0)
+            if (_rideContext.CurrentSeatIndex >= 0)
             {
-                SendWasdInput(_currentCarId.Value);
+                SendWasdInput(_rideContext.CurrentCarId.Value);
             }
 
             return null;
@@ -194,12 +174,11 @@ namespace Client.Game.InGame.UI.UIState.State
                 }
                 finally
                 {
-                    // 成功なら内部状態をクリアし次フレームで GameScreen へ。失敗時はそのまま残す（サーバー側で降車が起きていない可能性）。
-                    // On success clear internal state and bounce next frame; on failure keep state (server may not have dismounted).
+                    // 成功なら context をクリアし次フレームで GameScreen へ。失敗時は維持（サーバー側で降車が起きていない可能性）。
+                    // On success clear context and bounce next frame; on failure keep state (server may not have dismounted).
                     if (success)
                     {
-                        _currentCarId = null;
-                        _currentSeatIndex = -1;
+                        _rideContext.Clear();
                     }
                 }
             }
@@ -210,8 +189,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Force dismount if the target car disappeared from the cache (mirrors prior TrainCarRidingInputSender).
                 if (!_trainUnitClientCache.TryGetCarSnapshot(carId, out _, out _, out _, out _))
                 {
-                    _currentCarId = null;
-                    _currentSeatIndex = -1;
+                    _rideContext.Clear();
                     return;
                 }
 
@@ -237,8 +215,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // The dismount work (unparent / pose warp) is owned by RidingPlayerState.OnExit.
             _playerStateController.SetState(PlayerStateEnum.Normal, null);
 
-            _currentCarId = null;
-            _currentSeatIndex = -1;
+            _rideContext.Clear();
         }
 
         // fire-and-forget RPC の例外を UnobservedTaskException 経由 log のみに頼らず明示的に拾う。
