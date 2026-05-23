@@ -14,11 +14,9 @@ namespace Client.Game.InGame.UI.UIState.State.PauseMenu
             pauseMenu.gameObject.SetActive(false);
         }
         
-        public UITransitContext GetNextUpdate()
+        public bool IsClosePause()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
-            
-            return null;
+            return InputManager.UI.CloseUI.GetKeyDown;
         }
         
         public void OnEnter()

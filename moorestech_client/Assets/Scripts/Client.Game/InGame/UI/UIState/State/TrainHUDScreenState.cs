@@ -6,6 +6,7 @@ using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using Client.Game.InGame.UI.UIState.State.TrainHUDScreen;
 using Cysharp.Threading.Tasks;
 using Game.PlayerRiding.Interface;
 using MessagePack;
@@ -21,30 +22,34 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly PlayerStateController _playerStateController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
-        private readonly InGameCameraController _inGameCameraController;
-        
+        private readonly TrainHudScreenUIStateController _subStateController;
+
         private bool _isDismountTrain = false;
         private RidingPlayerStateContext _rideContext;
-        
+
         private IDisposable _eventSubscription;
         private CancellationTokenSource _cts;
-        
+
 
         public TrainHUDScreenState(PlayerStateController playerStateController, TrainUnitClientCache trainUnitClientCache, InGameCameraController inGameCameraController, PauseMenuStateService pauseMenuStateService)
         {
             _playerStateController = playerStateController;
             _trainUnitClientCache = trainUnitClientCache;
-            _inGameCameraController = inGameCameraController;
+            _subStateController = new TrainHudScreenUIStateController(pauseMenuStateService, inGameCameraController);
         }
 
         public void OnEnter(UITransitContext context)
         {
-            _inGameCameraController.SetControllable(true);
-            KeyControlDescription.Instance.SetText("E: 降車\nW/A/S/D: 列車操作\n");
+            // 入れ子サブステートを初期化（GameScreenから開始）
+            // Initialize the nested sub-state controller (starts at GameScreen).
+            _subStateController.StartSubState();
             
             // サーバー強制降車イベントを購読する。HUDに居る間だけ反映
             // Subscribe to server-forced dismount events; only applied while this HUD is active.
             _eventSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(RidingStateEventPacket.EventTag, OnRidingStateEventReceived);
+            
+            _rideContext = null;
+            _isDismountTrain = false;
             
             // 初期値として乗車完了済みの場合は即時反映
             // If the player is already riding at the time of entering, reflect that immediately.
@@ -57,8 +62,6 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // サーバー側に乗車リクエストを送る
             // Send a ride request to the server.
-            _rideContext = null;
-            _isDismountTrain = false;
             SendRideRequestAsync().Forget(LogRpcFault);
 
 
@@ -113,26 +116,33 @@ namespace Client.Game.InGame.UI.UIState.State
         public UITransitContext GetNextUpdate()
         {
             if (_isDismountTrain) return new UITransitContext(UIStateEnum.GameScreen);
-            
+
             // まだ乗車が完了していないのであれば何もしない
             // If riding is not yet completed, do nothing.
             if (_rideContext == null) return null;
-            
+
             // 対象車両が消えたら強制降車
             // Force dismount if the target car has disappeared.
             if (!_trainUnitClientCache.TryGetCarSnapshot( _rideContext.CurrentCarId, out _, out _, out _, out _))  return new UITransitContext(UIStateEnum.GameScreen);
-            
-            
-            // 戻る操作のリクエスト
-            // Request dismount
+                
+            // TrainHUD内部のサブUIステートを実行
+            // Run the nested sub-state for the Train HUD.
+            _subStateController.Update();
+            if (_subStateController.CurrentState != TrainHudScreenUIStateEnum.GameScreen) return null;
+
+            // GameScreenだけ降車処理、列車操作入力を受け付け
+            // Only process dismount and train control input on the GameScreen.
             if (UnityEngine.Input.GetKeyDown(KeyCode.E))
             {
                 SendDismountRequestAsync().Forget(LogRpcFault);
             }
             
-            // 列車操作入力を送る
-            // Send train control inputs.
-            SendWasdInput();
+            ClientContext.VanillaApi.SendOnly.SendTrainCarRidingInput(
+                _rideContext.CurrentCarId,
+                UnityEngine.Input.GetKey(KeyCode.W),
+                UnityEngine.Input.GetKey(KeyCode.A),
+                UnityEngine.Input.GetKey(KeyCode.S),
+                UnityEngine.Input.GetKey(KeyCode.D));
 
             return null;
 
@@ -154,17 +164,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 
                 _cts = null;
             }
-
-            void SendWasdInput()
-            {
-                ClientContext.VanillaApi.SendOnly.SendTrainCarRidingInput(
-                    _rideContext.CurrentCarId,
-                    UnityEngine.Input.GetKey(KeyCode.W),
-                    UnityEngine.Input.GetKey(KeyCode.A),
-                    UnityEngine.Input.GetKey(KeyCode.S),
-                    UnityEngine.Input.GetKey(KeyCode.D));
-            }
-
+            
             #endregion
         }
 
@@ -172,11 +172,15 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _eventSubscription?.Dispose();
             _eventSubscription = null;
-            
+
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
             _rideContext = null;
+
+            // 入れ子サブステートを終了（必要に応じてポーズメニューを閉じる）
+            // Tear down the nested sub-state (closes the pause menu if it is open).
+            _subStateController.ShutdownSubState();
 
             // ステートを変更して降車処理を実行
             // Change state to trigger dismount processing.
