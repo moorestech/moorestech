@@ -9,9 +9,6 @@ namespace Client.Game.InGame.Train.Unit
     public sealed class TrainCarRidingPlayerController : ITickable, IInitializable, System.IDisposable
     {
         private static readonly Quaternion RidingLocalRotation = Quaternion.identity;
-        // 車両が消滅していて座席マスタが引けない場合の降車位置フォールバック（プレイヤーローカル＝右へ1.5m上へ0.5m）。
-        // Fallback dismount offset (player-local) used when the car entity is gone and the seat master can't be read.
-        private static readonly Vector3 FallbackDismountOffset = new(1.5f, 0.5f, 0f);
 
         private readonly TrainCarRidingState _trainCarRidingState;
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
@@ -151,12 +148,11 @@ namespace Client.Game.InGame.Train.Unit
                 if (_mountedTrainCarInstanceId.HasValue)
                 {
                     var playerTransform = playerObjectController.transform;
-                    var worldRotation = playerTransform.rotation;
-                    var dismountWorldPosition = ResolveDismountWorldPosition(playerTransform);
+                    var (dismountPosition, dismountRotation) = ResolveDismountPose(playerTransform);
 
                     playerTransform.SetParent(null, true);
-                    playerObjectController.SetPlayerPosition(dismountWorldPosition);
-                    playerTransform.rotation = worldRotation;
+                    playerObjectController.SetPlayerPosition(dismountPosition);
+                    playerTransform.rotation = dismountRotation;
                 }
 
                 playerObjectController.SetControllable(true);
@@ -169,27 +165,24 @@ namespace Client.Game.InGame.Train.Unit
             }
         }
 
-        // 車両エンティティと座席マスタが取れる場合は、車両ローカル座標の降車オフセットを世界座標に変換して返す。
-        // Returns the world-space dismount position derived from the seat master's car-local offset.
-        private Vector3 ResolveDismountWorldPosition(Transform playerTransform)
+        // 車両 Prefab の TrainCarDismountPoint が指す Transform に位置・回転ごとワープする。Prefab 未配線時は車両直上にフォールバック。
+        // Warps to the Transform pointed to by TrainCarDismountPoint on the car Prefab; falls back to the car's own pose when unwired.
+        private (Vector3 position, Quaternion rotation) ResolveDismountPose(Transform playerTransform)
         {
             if (_mountedTrainCarInstanceId.HasValue
                 && _trainCarObjectDatastore.TryGetEntity(_mountedTrainCarInstanceId.Value, out var entity)
                 && entity != null)
             {
-                var seats = entity.TrainCarMasterElement.RidableSeats;
-                var seatIndex = _trainCarRidingState.CurrentSeatIndex;
-                if (seats != null && 0 <= seatIndex && seatIndex < seats.Length)
+                var marker = entity.GetComponentInChildren<TrainCarDismountPoint>(true);
+                if (marker != null && marker.Point != null)
                 {
-                    var seat = seats[seatIndex];
-                    var localOffset = new Vector3((float)seat.DismountOffsetX, (float)seat.DismountOffsetY, (float)seat.DismountOffsetZ);
-                    return entity.transform.position + entity.transform.rotation * localOffset;
+                    return (marker.Point.position, marker.Point.rotation);
                 }
+
+                return (entity.transform.position, entity.transform.rotation);
             }
 
-            // 車両が無い／マスタが引けない時は、現在のプレイヤー姿勢から既定の横方向に着地する。
-            // Fallback: dismount sideways from the current player pose when the car is gone or the master is missing.
-            return playerTransform.position + playerTransform.rotation * FallbackDismountOffset;
+            return (playerTransform.position, playerTransform.rotation);
         }
 
         private static PlayerObjectController ResolvePlayerObjectController()
