@@ -26,6 +26,8 @@ namespace Client.Game.InGame.Train.Unit
         public bool TryGetInteractTransit(out UITransitContext context)
         {
             context = null;
+            
+            // TODO ほかプレイヤーが列車に乗っているかどうかをチェックする
             if (!UnityEngine.Input.GetKeyDown(KeyCode.E)) return false;
             if (!TryFindNearbyTrainCar(out var car)) return false;
 

@@ -128,8 +128,7 @@ namespace Client.Network.API
 
         // 乗車/降車をサーバーに要求し、結果を受け取る（仕様書セクション5.1）。
         // Requests ride/dismount from the server and returns the result.
-        public async UniTask<RideActionProtocol.ResponseRideActionMessagePack> RideAction(
-            RideActionType action, RidableIdentifierMessagePack target, CancellationToken ct)
+        public async UniTask<RideActionProtocol.ResponseRideActionMessagePack> RideAction(RideActionType action, RidableIdentifierMessagePack target, CancellationToken ct)
         {
             var request = new RideActionProtocol.RequestRideActionMessagePack(_playerConnectionSetting.PlayerId, action, target);
             return await _packetExchangeManager.GetPacketResponse<RideActionProtocol.ResponseRideActionMessagePack>(request, ct);
