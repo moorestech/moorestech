@@ -1,3 +1,5 @@
+using VContainer.Unity;
+
 namespace Client.Game.InGame.Player.StateController
 {
     // プレイヤーステート遷移時に渡される context のマーカー基底。
@@ -6,5 +8,10 @@ namespace Client.Game.InGame.Player.StateController
     // Concrete contexts derive from this (e.g. IPlayerRideContext).
     public interface IPlayerStateContext
     {
+    }
+    
+    public class RidingPlayerStateContext : IPlayerStateContext
+    {
+        // ここに必要なプロパティを書く
     }
 }
