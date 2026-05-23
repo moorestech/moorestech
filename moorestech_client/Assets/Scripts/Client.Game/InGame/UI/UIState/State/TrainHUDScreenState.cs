@@ -16,14 +16,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    // 列車に乗車中の HUD ステート。本 State が列車関連処理の唯一の起点であり、
-    // 乗降状態の保持・RPC 送受信・サーバー強制降車購読・WASD 送信を一手に担う。
-    // RidingPlayerStateContext を 1 instance 所有し、PlayerStateController 経由で
-    // RidingPlayerState に渡す。状態変化（座席確定・強制降車）は context のメソッド経由で反映する。
-    // HUD state while riding a train. This state is the sole entry point for train-related processing:
-    // ride-state persistence, RPC send/receive, server-forced dismount subscription, and WASD input forwarding.
-    // Owns a single RidingPlayerStateContext instance and hands it to RidingPlayerState via PlayerStateController.
-    // State updates (seat confirmation, forced dismount) mutate the context through its methods.
+    // 列車に乗車中の HUD ステート。State が列車関連処理の唯一の起点である
+    // Train HUD state, the single source of truth for all train-related processing while riding.
     public class TrainHUDScreenState : IUIState
     {
         private readonly PlayerStateController _playerStateController;
@@ -62,15 +56,12 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnEnter(UITransitContext context)
         {
             _inGameCameraController.SetControllable(true);
-            InputManager.MouseCursorVisible(false);
             KeyControlDescription.Instance.SetText("E: 降車\nW/A/S/D: 列車操作\n");
 
             // サーバー強制降車イベントを購読する。HUD に居る間だけ反映する設計。
             // Subscribe to server-forced dismount events; only applied while this HUD is active.
             _eventSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(RidingStateEventPacket.EventTag, OnRidingStateEventReceived);
 
-            // 1) GameScreen からの E 入力経由: container から乗車要求を取り出し RPC を発射（seat 未確定で context 初期化）。
-            // 1) Via E-press from GameScreen: pull the ride request and fire the RPC (init context with seat unconfirmed).
             var rideRequest = context?.GetContext<RideVehicleRequest>();
             if (rideRequest != null)
             {
