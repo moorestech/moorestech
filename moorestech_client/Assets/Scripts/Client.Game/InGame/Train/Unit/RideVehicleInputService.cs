@@ -42,8 +42,6 @@ namespace Client.Game.InGame.Train.Unit
                 nearest = null;
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
 
-                // 車両は MeshCollider を Block レイヤーで持つ（TrainCarObjectFactory 参照）。
-                // Train cars carry MeshColliders on the Block layer (see TrainCarObjectFactory).
                 var hitCount = Physics.OverlapSphereNonAlloc(playerPos, RideableDistance, _overlapBuffer, LayerConst.BlockOnlyLayerMask);
                 var nearestSqr = float.PositiveInfinity;
                 for (var i = 0; i < hitCount; i++)
