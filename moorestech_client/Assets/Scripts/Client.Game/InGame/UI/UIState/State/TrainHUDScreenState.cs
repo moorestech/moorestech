@@ -100,7 +100,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 {
                     _playerStateController.SetState(PlayerStateEnum.Normal, null);
                 }
-                _toGameScreen = false;
+                _toGameScreen = true;
             }
 
             #endregion
@@ -167,8 +167,9 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _eventSubscription?.Dispose();
             _eventSubscription = null;
-            _cts.Cancel();
-            _cts.Dispose();
+            
+            _cts?.Cancel();
+            _cts?.Dispose();
             _cts = null;
             _rideContext = null;
 

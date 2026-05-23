@@ -1,4 +1,5 @@
 using Client.Common;
+using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.UIState;
@@ -46,14 +47,14 @@ namespace Client.Game.InGame.Train.Unit
                 var nearestSqr = float.PositiveInfinity;
                 for (var i = 0; i < hitCount; i++)
                 {
-                    var car = _overlapBuffer[i].GetComponentInParent<TrainCarEntityObject>();
+                    var car = _overlapBuffer[i].GetComponentInParent<TrainCarEntityChildrenObject>();
                     if (car == null) continue;
 
                     var sqr = (car.transform.position - playerPos).sqrMagnitude;
                     if (sqr < nearestSqr)
                     {
                         nearestSqr = sqr;
-                        nearest = car;
+                        nearest = car.TrainCarEntityObject;
                     }
                 }
 
