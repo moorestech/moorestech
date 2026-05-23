@@ -178,6 +178,7 @@ namespace Server.Boot
             services.AddSingleton<IPlayerConnectionChecker, PlayerConnectionRegistry>();
             services.AddSingleton<RidableResolver>();
             services.AddSingleton<IPlayerRidingDatastore, PlayerRidingDatastore>();
+            services.AddSingleton<RemovedRidableRidingHandler>();
 
             //JSONファイルのセーブシステムの読み込み
             // Register JSON save system services.
@@ -213,6 +214,7 @@ namespace Server.Boot
             services.AddSingleton<TrainUnitSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
+            services.AddSingleton<RidingStateEventPacket>();
             
             //データのセーブシステム
             // Register data save helpers.
@@ -249,6 +251,8 @@ namespace Server.Boot
             serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
             serviceProvider.GetService<RailNodeRemovedEventPacket>();
             serviceProvider.GetService<RailConnectionRemovedEventPacket>();
+            serviceProvider.GetService<RidingStateEventPacket>();
+            serviceProvider.GetService<RemovedRidableRidingHandler>();
             
             serverContext.SetMainServiceProvider(serviceProvider);
             

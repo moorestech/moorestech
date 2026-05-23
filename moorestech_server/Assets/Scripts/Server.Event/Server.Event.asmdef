@@ -20,7 +20,8 @@
     "Game.CraftTree",
     "Game.Research",
     "Game.Train",
-    "Game.Entity.Interface"
+    "Game.Entity.Interface",
+    "Game.PlayerRiding.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
