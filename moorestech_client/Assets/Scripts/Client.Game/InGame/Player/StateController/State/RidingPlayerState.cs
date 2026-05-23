@@ -4,18 +4,19 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Player.StateController.State
 {
-    // 乗車中の Player ステート。Tick で context (TrainHUDScreenState 側) に「現在乗るべき列車」を毎フレーム照会し、
-    // 車両 entity が揃ったタイミングで親付け＋カメラ追従を設定する。OnExit で降車 pose を適用する。
-    // Riding player state. Polls the context (TrainHUDScreenState side) every frame for the current car
+    // 乗車中の Player ステート。Tick で context (RidingPlayerStateContext) のプロパティを参照して
+    // 現在乗るべき列車を取得し、車両 entity が揃ったタイミングで親付け＋カメラ追従を設定する。
+    // OnExit で降車 pose を適用する。
+    // Riding player state. Reads the current ride target from the context (RidingPlayerStateContext) every frame
     // and applies parenting + camera follow when the car entity is ready. OnExit warps to the dismount pose.
     public class RidingPlayerState : IPlayerState
     {
         private static readonly Quaternion RidingLocalRotation = Quaternion.identity;
 
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
-        // 現在乗るべき列車情報を提供する context。OnEnter で渡される。
-        // Context that provides the current ride target; assigned in OnEnter.
-        private IPlayerRideContext _rideContext;
+        // 列車ステート (TrainHUDScreenState) が所有する context の参照。
+        // Reference to the context owned by the train state (TrainHUDScreenState).
+        private RidingPlayerStateContext _rideContext;
         // 実際に親付けが完了している車両 id。null の間は未 parent（RPC 応答待ち or 車両未生成）。
         // The car id we have actually parented onto; null while unparented (waiting for RPC or car spawn).
         private TrainCarInstanceId? _mountedTrainCarInstanceId;
@@ -28,9 +29,9 @@ namespace Client.Game.InGame.Player.StateController.State
 
         public void OnEnter(IPlayerStateContext context)
         {
-            // context は Riding に来る限り IPlayerRideContext であることが約束されている（呼び出し側 = TrainHUDScreenState）。
-            // The caller (TrainHUDScreenState) is contracted to pass an IPlayerRideContext when entering Riding.
-            _rideContext = context as IPlayerRideContext;
+            // context は Riding 遷移時に必ず RidingPlayerStateContext で渡される契約（呼び出し側 = TrainHUDScreenState）。
+            // The caller (TrainHUDScreenState) is contracted to pass a RidingPlayerStateContext when entering Riding.
+            _rideContext = context as RidingPlayerStateContext;
             _mountedTrainCarInstanceId = null;
         }
 
@@ -38,9 +39,12 @@ namespace Client.Game.InGame.Player.StateController.State
         {
             if (_rideContext == null) return;
 
-            // context から「現在乗るべき列車」を取得。RPC 応答未到達などで未確定なら待つ。
-            // Pull the current ride target from the context; wait while still unresolved (e.g. awaiting RPC).
-            if (!_rideContext.TryGetCurrentRideTarget(out var targetId, out var seatIndex)) return;
+            // context から「現在乗るべき列車」を取得。null / -1 のうちは RPC 応答待ち等で未確定。
+            // Pull the current ride target from the context; null / -1 means RPC reply pending etc.
+            if (!_rideContext.CurrentCarId.HasValue) return;
+            var targetId = _rideContext.CurrentCarId.Value;
+            var seatIndex = _rideContext.CurrentSeatIndex;
+            if (seatIndex < 0) return;
 
             // 車両 entity が未生成 or 破棄済みのとき: 既に mount 済みなら dangling target を解除する。
             // When the car entity is missing (not yet spawned or already destroyed), clear any dangling mount.
