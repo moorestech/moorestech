@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0.9}
+  m_AnchoredPosition: {x: 0.402, y: 0.9}
   m_SizeDelta: {x: 3.07, y: 1.04}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &5610376271367864223
@@ -208,7 +208,7 @@ Transform:
   m_GameObject: {fileID: 6581781324976194478}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.0000029206271}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.466, y: 0, z: 0.508}
   m_LocalScale: {x: 3, y: 0.28079, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -280,6 +280,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4055338108127479809}
+  - component: {fileID: 8970321347178031582}
   m_Layer: 0
   m_Name: VeinSet_Water
   m_TagString: Untagged
@@ -296,7 +297,7 @@ Transform:
   m_GameObject: {fileID: 7662968858483991192}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 584.603, y: 81.879974, z: 384.53}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -304,3 +305,19 @@ Transform:
   - {fileID: 417152736223826584}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8970321347178031582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7662968858483991192}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab55ae7ca5e5b4a9ea515634b264dae6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Map.MapVein.FluidMapVeinGameObject
+  veinFluidGuid: 9eae6979-d56a-4991-9107-b8161acec430
+  bounds:
+    m_Center: {x: 0.5, y: 0.5, z: 0.5}
+    m_Extent: {x: 1.5, y: 0.5, z: 1.5}
