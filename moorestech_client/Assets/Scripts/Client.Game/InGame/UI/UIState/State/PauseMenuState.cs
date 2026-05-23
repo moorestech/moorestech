@@ -13,7 +13,7 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public UITransitContext GetNextUpdate()
         {
-            return _pauseMenuStateService.GetNextUpdate();
+            return _pauseMenuStateService.IsClosePause() ? new UITransitContext(UIStateEnum.GameScreen) : null;
         }
 
         public void OnEnter(UITransitContext context)
