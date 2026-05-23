@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Player.StateController.State
         public RidingPlayerState(TrainCarObjectDatastore trainCarObjectDatastore)
         {
             _trainCarObjectDatastore = trainCarObjectDatastore;
-            trainCarObjectDatastore.OnInitializeComplete.Subscribe(() =>
+            trainCarObjectDatastore.OnInitializeComplete.Subscribe(_ =>
             {
                 _isInitialized  = true;
                 // 初期化終了かつコンテキストがあれば再適用する
