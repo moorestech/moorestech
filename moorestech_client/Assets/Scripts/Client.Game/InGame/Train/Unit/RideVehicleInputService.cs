@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Client.Common;
 using Client.Game.InGame.Context;
@@ -40,14 +41,70 @@ namespace Client.Game.InGame.Train.Unit
             if (!TryFindNearbyTrainCar(out var car)) return false;
 
             // 楽観的に IsRiding=true（seat=-1 のまま）にしてから RPC を fire-and-forget で送る。
-            // RPC 失敗時は継続側で ClearRidingTrainCar し、TrainHUDScreenState が GameScreen へ戻す。
+            // RPC 失敗時は継続側で必ず ClearRidingTrainCar し、TrainHUDScreenState が GameScreen へ戻す。
             // Optimistically mark riding (seat stays -1) and fire the ride RPC.
-            // On failure, the continuation clears state and TrainHUDScreenState falls back to GameScreen.
+            // On failure, the continuation always clears state and TrainHUDScreenState falls back to GameScreen.
             _trainCarRidingState.SetRidingTrainCar(car.TrainCarInstanceId, -1);
-            SendRideRequestAsync(car).Forget();
+            SendRideRequestAsync(car).Forget(LogRpcFault);
 
             context = new UITransitContext(UIStateEnum.TrainHUDScreen);
             return true;
+
+            #region Internal
+
+            async UniTask SendRideRequestAsync(TrainCarEntityObject targetCar)
+            {
+                var target = RidableIdentifierMessagePack.CreateTrainCarMessage(targetCar.TrainCarInstanceId.AsPrimitive());
+                RideActionProtocol.ResponseRideActionMessagePack response = null;
+                var success = false;
+                try
+                {
+                    response = await ClientContext.VanillaApi.Response.RideAction(RideActionType.Ride, target, CancellationToken.None);
+                    success = response != null && response.Result == RideActionResult.Success;
+                }
+                finally
+                {
+                    // 成功なら座席番号付きで確定、失敗・例外・null 応答のいずれでも楽観的セットを戻す。
+                    // Finalize with seat index on success; roll back on failure, exception, or null response.
+                    if (success)
+                    {
+                        _trainCarRidingState.SetRidingTrainCar(targetCar.TrainCarInstanceId, response.SeatIndex);
+                    }
+                    else
+                    {
+                        _trainCarRidingState.ClearRidingTrainCar();
+                    }
+                }
+            }
+
+            // プレイヤー周囲を OverlapSphere で探索し、最寄りの TrainCarEntityObject を返す。
+            // Searches around the player via OverlapSphere and returns the closest TrainCarEntityObject.
+            bool TryFindNearbyTrainCar(out TrainCarEntityObject nearest)
+            {
+                nearest = null;
+                var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+
+                // 車両は MeshCollider を Block レイヤーで持つ（TrainCarObjectFactory 参照）。
+                // Train cars carry MeshColliders on the Block layer (see TrainCarObjectFactory).
+                var hitCount = Physics.OverlapSphereNonAlloc(playerPos, RideableDistance, _overlapBuffer, LayerConst.BlockOnlyLayerMask);
+                var nearestSqr = float.PositiveInfinity;
+                for (var i = 0; i < hitCount; i++)
+                {
+                    var car = _overlapBuffer[i].GetComponentInParent<TrainCarEntityObject>();
+                    if (car == null) continue;
+
+                    var sqr = (car.transform.position - playerPos).sqrMagnitude;
+                    if (sqr < nearestSqr)
+                    {
+                        nearestSqr = sqr;
+                        nearest = car;
+                    }
+                }
+
+                return nearest != null;
+            }
+
+            #endregion
         }
 
         // 乗車中に E が押されたら降車 RPC を fire-and-forget で送る。
@@ -56,64 +113,41 @@ namespace Client.Game.InGame.Train.Unit
         {
             if (!UnityEngine.Input.GetKeyDown(KeyCode.E)) return false;
 
-            SendDismountRequestAsync().Forget();
+            SendDismountRequestAsync().Forget(LogRpcFault);
             return true;
-        }
 
-        private async UniTaskVoid SendRideRequestAsync(TrainCarEntityObject car)
-        {
-            var target = RidableIdentifierMessagePack.CreateTrainCarMessage(car.TrainCarInstanceId.AsPrimitive());
-            var response = await ClientContext.VanillaApi.Response.RideAction(RideActionType.Ride, target, CancellationToken.None);
+            #region Internal
 
-            // 成功なら座席番号付きで確定、失敗なら楽観的セットを戻す。
-            // On success, finalize with the seat index; on failure, roll back the optimistic state.
-            if (response != null && response.Result == RideActionResult.Success)
+            async UniTask SendDismountRequestAsync()
             {
-                _trainCarRidingState.SetRidingTrainCar(car.TrainCarInstanceId, response.SeatIndex);
-            }
-            else
-            {
-                _trainCarRidingState.ClearRidingTrainCar();
-            }
-        }
-
-        private async UniTaskVoid SendDismountRequestAsync()
-        {
-            var response = await ClientContext.VanillaApi.Response.RideAction(RideActionType.Dismount, null, CancellationToken.None);
-
-            // 成功なら ClearRidingTrainCar し、TrainHUDScreenState が GameScreen へ戻す。
-            // On success clear the state; TrainHUDScreenState transits back to GameScreen.
-            if (response != null && response.Result == RideActionResult.Success)
-            {
-                _trainCarRidingState.ClearRidingTrainCar();
-            }
-        }
-
-        // プレイヤー周囲を OverlapSphere で探索し、最寄りの TrainCarEntityObject を返す。
-        // Searches around the player via OverlapSphere and returns the closest TrainCarEntityObject.
-        private bool TryFindNearbyTrainCar(out TrainCarEntityObject nearest)
-        {
-            nearest = null;
-            var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-
-            // 車両は MeshCollider を Block レイヤーで持つ（TrainCarObjectFactory 参照）。
-            // Train cars carry MeshColliders on the Block layer (see TrainCarObjectFactory).
-            var hitCount = Physics.OverlapSphereNonAlloc(playerPos, RideableDistance, _overlapBuffer, LayerConst.BlockOnlyLayerMask);
-            var nearestSqr = float.PositiveInfinity;
-            for (var i = 0; i < hitCount; i++)
-            {
-                var car = _overlapBuffer[i].GetComponentInParent<TrainCarEntityObject>();
-                if (car == null) continue;
-
-                var sqr = (car.transform.position - playerPos).sqrMagnitude;
-                if (sqr < nearestSqr)
+                RideActionProtocol.ResponseRideActionMessagePack response = null;
+                var success = false;
+                try
                 {
-                    nearestSqr = sqr;
-                    nearest = car;
+                    response = await ClientContext.VanillaApi.Response.RideAction(RideActionType.Dismount, null, CancellationToken.None);
+                    success = response != null && response.Result == RideActionResult.Success;
+                }
+                finally
+                {
+                    // 成功なら ClearRidingTrainCar し、TrainHUDScreenState が GameScreen へ戻す。
+                    // 失敗・例外時は state を変えない（サーバー側で降車が発生していない可能性のため、TrainHUDScreen 維持）。
+                    // On success clear the state; TrainHUDScreenState transits back to GameScreen.
+                    // On failure / exception leave the state untouched (server may not have dismounted, so stay in TrainHUDScreen).
+                    if (success)
+                    {
+                        _trainCarRidingState.ClearRidingTrainCar();
+                    }
                 }
             }
 
-            return nearest != null;
+            #endregion
+        }
+
+        // fire-and-forget RPC で例外が UnobservedTaskException 経由 log にしか出ないのを避けるため、明示的にここで拾う。
+        // Surface fire-and-forget RPC exceptions explicitly instead of relying on UnobservedTaskException.
+        private static void LogRpcFault(Exception exception)
+        {
+            Debug.LogWarning($"[RideVehicleInputService] RPC fault: {exception}");
         }
     }
 }
