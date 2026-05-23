@@ -99,8 +99,8 @@ namespace Client.Game.InGame.UI.UIState.State
                 if (message.StateType == RidingStateEventType.Dismount)
                 {
                     _playerStateController.SetState(PlayerStateEnum.Normal, null);
+                    _toGameScreen = true;
                 }
-                _toGameScreen = true;
             }
 
             #endregion
