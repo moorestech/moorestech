@@ -92,8 +92,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.RidingStateType);
             Assert.IsTrue(handshakeResponse.HasRidingState);
             Assert.IsNotNull(handshakeResponse.RidingTarget);
-            Assert.AreEqual(RidableType.TrainCar.AsPrimitive(), handshakeResponse.RidingTarget.RidableType);
-            Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive().ToString(), handshakeResponse.RidingTarget.TrainCarInstanceId);
+            Assert.AreEqual(RidableType.TrainCar, handshakeResponse.RidingTarget.RidableType);
+            Assert.AreEqual(car.TrainCarInstanceId.AsPrimitive(), handshakeResponse.RidingTarget.TrainCarInstanceId);
             Assert.AreEqual(0, handshakeResponse.RidingSeatIndex);
         }
 
