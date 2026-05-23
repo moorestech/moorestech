@@ -108,9 +108,13 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // 乗れなかったのでGameScreenに戻る
-            // Failed to ride, bounce back to GameScreen.
+            // 乗れなかった、強制降車が起きた等の理由でゲームスクリーンへ戻る
+            // Transition back to GameScreen if unable to ride or if a forced dismount occurs.
             if (_toGameScreen) return new UITransitContext(UIStateEnum.GameScreen);
+            
+            // まだ乗車が完了していないのであれば何もしない
+            // If riding is not yet completed, do nothing.
+            if (_rideContext == null) return null;
             
             // 対象車両が cache から消えたら強制降車する
             // Force dismount if the target vehicle disappears from the cache.
