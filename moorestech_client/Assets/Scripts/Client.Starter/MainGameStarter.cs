@@ -20,6 +20,8 @@ using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.Player.StateController;
+using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Skit;
@@ -161,7 +163,6 @@ namespace Client.Starter
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             builder.RegisterEntryPoint<TrainCarRidingInputSender>();
-            builder.RegisterEntryPoint<TrainCarRidingInteractInput>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<RidingStateEventHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
@@ -191,8 +192,17 @@ namespace Client.Starter
             builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<DebugBlockInfoState>(Lifetime.Singleton);
+            builder.Register<TrainHUDScreenState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
+            builder.Register<RideVehicleInputService>(Lifetime.Singleton);
+
+            // プレイヤーステート（UIState → PlayerStateController の単方向依存）
+            // Player state framework (one-way dependency: UIState → PlayerStateController)
+            builder.Register<NormalPlayerState>(Lifetime.Singleton);
+            builder.Register<RidingPlayerState>(Lifetime.Singleton);
+            builder.Register<PlayerStateDictionary>(Lifetime.Singleton);
+            builder.Register<PlayerStateController>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<ITickable>().As<IDisposable>();
             
             // スキット関連
             // register skit related
@@ -208,7 +218,6 @@ namespace Client.Starter
             builder.Register<ClientStationReferenceRegistry>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainCarRidingState>(Lifetime.Singleton);
-            builder.Register<TrainCarRidingPlayerController>(Lifetime.Singleton).AsSelf().As<ITickable>().As<IInitializable>().As<IDisposable>();
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<TrainUnitRenderInterpolationState>(Lifetime.Singleton).AsSelf().As<ITrainUnitRenderInterpolationProvider>();
@@ -290,8 +299,12 @@ namespace Client.Starter
             return _resolver;
         }
 
-        // ハンドシェイク応答の RidingTarget を見て乗車状態を復元する。実 parent は TrainCarRidingPlayerController.Tick() が車両生成後に行う。
-        // Restores riding state from the handshake response; actual parenting is done by TrainCarRidingPlayerController.Tick() once the car object exists.
+        // ハンドシェイク応答の RidingTarget を見て乗車状態を復元する。
+        // 実 parent は次フレーム以降 GameScreenState が IsRiding を検知して TrainHUDScreen へ遷移し、
+        // PlayerStateController.RidingPlayerState.Tick が車両生成後に行う。
+        // Restores riding state from the handshake response.
+        // The actual parenting happens once GameScreenState detects IsRiding next frame and transits to TrainHUDScreen;
+        // PlayerStateController.RidingPlayerState.Tick then parents after the car entity is created.
         private void RestoreRidingState(InitialHandshakeResponse initialHandshakeResponse)
         {
             var ridingTarget = initialHandshakeResponse.RidingTarget;

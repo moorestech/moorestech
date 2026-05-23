@@ -13,8 +13,10 @@ namespace Client.DebugSystem
     {
         protected override string Title => "Train Riding Debug";
 
-        // 注意: このシートは ApplyRide/ApplyDismount をローカルのみで呼び、RideActionProtocol を経由しない。サーバー権威の乗車検証には使えない（デバッグ専用）。
-        // Note: this sheet calls ApplyRide/ApplyDismount locally only, bypassing RideActionProtocol; not for verifying server-authoritative riding (debug-only).
+        // 注意: このシートは TrainCarRidingState を直接書き換えるだけで RideActionProtocol を経由しない。
+        // 実 parent / 降車 pose は PlayerStateController 経由（UIState遷移後）で次フレーム以降に行われる。
+        // Note: this sheet only mutates TrainCarRidingState and bypasses RideActionProtocol.
+        // Actual parenting / dismount pose runs on a later frame via PlayerStateController (after the UI state transitions).
         public override IEnumerator Initialize()
         {
             var resolver = ClientDIContext.DIContainer?.DIContainerResolver;
@@ -24,7 +26,6 @@ namespace Client.DebugSystem
                 yield break;
             }
 
-            var ridingPlayerController = resolver.Resolve<TrainCarRidingPlayerController>();
             var trainCarRidingState = resolver.Resolve<TrainCarRidingState>();
             var trainUnitClientCache = resolver.Resolve<TrainUnitClientCache>();
 
@@ -35,7 +36,7 @@ namespace Client.DebugSystem
                     Debug.Log("Train riding state is already clear.");
                 }
 
-                ridingPlayerController.ApplyDismount();
+                trainCarRidingState.ClearRidingTrainCar();
             });
 
             var rows = new List<TrainCarDebugRow>();
@@ -76,10 +77,10 @@ namespace Client.DebugSystem
                 var row = rows[i];
                 AddButton(row.Label, clicked: () =>
                 {
-                    if (!ridingPlayerController.ApplyRide(row.TrainCarInstanceId, 0))
-                    {
-                        Debug.LogWarning($"Failed to force ride train car: {row.TrainCarInstanceId}");
-                    }
+                    // 既に乗車中なら一旦解除してから上書きする（PlayerStateController 側で再 parent される）。
+                    // Clear first when already riding, then overwrite (PlayerStateController re-parents on the new car).
+                    trainCarRidingState.ClearRidingTrainCar();
+                    trainCarRidingState.SetRidingTrainCar(row.TrainCarInstanceId, 0);
                 });
             }
 
