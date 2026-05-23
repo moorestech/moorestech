@@ -13,3 +13,14 @@ properties:
 - key: offsetZ
   type: number
   default: 0
+# 降車位置（車両ローカル座標）。常に列車の隣へ着地させるための座席ごとのオフセット。
+# Dismount position in the car's local coordinates; per-seat offset so the player always lands beside the car.
+- key: dismountOffsetX
+  type: number
+  default: 2.0
+- key: dismountOffsetY
+  type: number
+  default: 0
+- key: dismountOffsetZ
+  type: number
+  default: 0

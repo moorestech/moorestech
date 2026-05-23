@@ -29,8 +29,8 @@
       "defaultContainerType": "None",
       "fluidCapacity": 0,
       "ridableSeats": [
-        { "offsetX": 0, "offsetY": 0, "offsetZ": 0 },
-        { "offsetX": 0, "offsetY": 0, "offsetZ": 0 }
+        { "offsetX": 0, "offsetY": 0, "offsetZ": 0, "dismountOffsetX": 2, "dismountOffsetY": 0, "dismountOffsetZ": 0 },
+        { "offsetX": 0, "offsetY": 0, "offsetZ": 0, "dismountOffsetX": 2, "dismountOffsetY": 0, "dismountOffsetZ": 0 }
       ]
     }
   ],
