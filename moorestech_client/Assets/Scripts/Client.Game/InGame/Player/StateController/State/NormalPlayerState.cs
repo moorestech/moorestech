@@ -6,7 +6,7 @@ namespace Client.Game.InGame.Player.StateController.State
     // (the dismount pose restoration runs inside RidingPlayerState.OnExit).
     public class NormalPlayerState : IPlayerState
     {
-        public void OnEnter()
+        public void OnEnter(IPlayerStateContext context)
         {
         }
 
