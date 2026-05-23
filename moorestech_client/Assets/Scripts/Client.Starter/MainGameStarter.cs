@@ -162,9 +162,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
-            builder.RegisterEntryPoint<TrainCarRidingInputSender>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
-            builder.RegisterEntryPoint<RidingStateEventHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             
             // 設置システム
@@ -217,7 +215,6 @@ namespace Client.Starter
             builder.Register<RailGraphClientCache>(Lifetime.Singleton);
             builder.Register<ClientStationReferenceRegistry>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
-            builder.Register<TrainCarRidingState>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<TrainUnitRenderInterpolationState>(Lifetime.Singleton).AsSelf().As<ITrainUnitRenderInterpolationProvider>();
@@ -299,12 +296,12 @@ namespace Client.Starter
             return _resolver;
         }
 
-        // ハンドシェイク応答の RidingTarget を見て乗車状態を復元する。
-        // 実 parent は次フレーム以降 GameScreenState が IsRiding を検知して TrainHUDScreen へ遷移し、
-        // PlayerStateController.RidingPlayerState.Tick が車両生成後に行う。
-        // Restores riding state from the handshake response.
-        // The actual parenting happens once GameScreenState detects IsRiding next frame and transits to TrainHUDScreen;
-        // PlayerStateController.RidingPlayerState.Tick then parents after the car entity is created.
+        // ハンドシェイク応答の RidingTarget を見て乗車情報を TrainHUDScreenState に保留登録する。
+        // 実 parent は TrainHUDScreenState の OnEnter が pending を取り出した時点で起動する。
+        // ※ UIState 自体を起動時に TrainHUDScreen へ自動遷移させる手段は後続作業で検討する（現状未対応）。
+        // Caches the ride info into TrainHUDScreenState as a pending restore.
+        // The actual parenting kicks in when TrainHUDScreenState.OnEnter consumes the pending value.
+        // Note: auto-transitioning to TrainHUDScreen at startup is deferred to follow-up work (currently not wired).
         private void RestoreRidingState(InitialHandshakeResponse initialHandshakeResponse)
         {
             var ridingTarget = initialHandshakeResponse.RidingTarget;
@@ -324,7 +321,7 @@ namespace Client.Starter
                 return;
             }
 
-            _resolver.Resolve<TrainCarRidingState>().SetRidingTrainCar(new TrainCarInstanceId(instanceId), initialHandshakeResponse.RidingSeatIndex);
+            _resolver.Resolve<TrainHUDScreenState>().PreparePendingRide(new TrainCarInstanceId(instanceId), initialHandshakeResponse.RidingSeatIndex);
         }
     }
 }

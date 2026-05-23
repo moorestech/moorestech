@@ -1,51 +1,50 @@
-using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Game.Train.Unit;
 using UnityEngine;
 
 namespace Client.Game.InGame.Player.StateController.State
 {
-    // 乗車中の Player ステート。Tick で TrainCarRidingState と TrainCarObjectDatastore をポーリングし
+    // 乗車中の Player ステート。Tick で context (TrainHUDScreenState 側) に「現在乗るべき列車」を毎フレーム照会し、
     // 車両 entity が揃ったタイミングで親付け＋カメラ追従を設定する。OnExit で降車 pose を適用する。
-    // Riding player state. Polls TrainCarRidingState + TrainCarObjectDatastore in Tick and
-    // applies parenting + camera follow when the car entity is ready. OnExit warps to the dismount pose.
+    // Riding player state. Polls the context (TrainHUDScreenState side) every frame for the current car
+    // and applies parenting + camera follow when the car entity is ready. OnExit warps to the dismount pose.
     public class RidingPlayerState : IPlayerState
     {
         private static readonly Quaternion RidingLocalRotation = Quaternion.identity;
 
-        private readonly TrainCarRidingState _trainCarRidingState;
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
+        // 現在乗るべき列車情報を提供する context。OnEnter で渡される。
+        // Context that provides the current ride target; assigned in OnEnter.
+        private IPlayerRideContext _rideContext;
         // 実際に親付けが完了している車両 id。null の間は未 parent（RPC 応答待ち or 車両未生成）。
         // The car id we have actually parented onto; null while unparented (waiting for RPC or car spawn).
         private TrainCarInstanceId? _mountedTrainCarInstanceId;
         private Vector3 _mountedSeatLocalPosition;
 
-        public RidingPlayerState(TrainCarRidingState trainCarRidingState, TrainCarObjectDatastore trainCarObjectDatastore)
+        public RidingPlayerState(TrainCarObjectDatastore trainCarObjectDatastore)
         {
-            _trainCarRidingState = trainCarRidingState;
             _trainCarObjectDatastore = trainCarObjectDatastore;
         }
 
-        public void OnEnter()
+        public void OnEnter(IPlayerStateContext context)
         {
-            // 念のため未 parent 状態にリセット。実 parent は Tick で行う。
-            // Reset to unparented; real parenting happens in Tick.
+            // context は Riding に来る限り IPlayerRideContext であることが約束されている（呼び出し側 = TrainHUDScreenState）。
+            // The caller (TrainHUDScreenState) is contracted to pass an IPlayerRideContext when entering Riding.
+            _rideContext = context as IPlayerRideContext;
             _mountedTrainCarInstanceId = null;
         }
 
         public void Tick()
         {
-            var targetId = _trainCarRidingState.CurrentRidingTrainCarInstanceId;
-            if (!targetId.HasValue) return;
+            if (_rideContext == null) return;
 
-            // RPC 応答未到達なら待つ。
-            // Wait until the RPC response has assigned a seat.
-            var seatIndex = _trainCarRidingState.CurrentSeatIndex;
-            if (seatIndex < 0) return;
+            // context から「現在乗るべき列車」を取得。RPC 応答未到達などで未確定なら待つ。
+            // Pull the current ride target from the context; wait while still unresolved (e.g. awaiting RPC).
+            if (!_rideContext.TryGetCurrentRideTarget(out var targetId, out var seatIndex)) return;
 
             // 車両 entity が未生成 or 破棄済みのとき: 既に mount 済みなら dangling target を解除する。
             // When the car entity is missing (not yet spawned or already destroyed), clear any dangling mount.
-            if (!_trainCarObjectDatastore.TryGetEntity(targetId.Value, out var entity))
+            if (!_trainCarObjectDatastore.TryGetEntity(targetId, out var entity))
             {
                 ClearDanglingMountIfNeeded();
                 return;
@@ -53,9 +52,9 @@ namespace Client.Game.InGame.Player.StateController.State
 
             // 初回 or 異なる車両へ移ったタイミングで parent し直す。
             // Parent on first attach or when the target car changes.
-            if (!_mountedTrainCarInstanceId.HasValue || _mountedTrainCarInstanceId.Value != targetId.Value)
+            if (!_mountedTrainCarInstanceId.HasValue || _mountedTrainCarInstanceId.Value != targetId)
             {
-                MountToCar(targetId.Value, entity, seatIndex);
+                MountToCar(targetId, entity, seatIndex);
             }
 
             // 毎フレーム ride follow を再適用する（既存挙動踏襲・安全策）。
@@ -132,6 +131,7 @@ namespace Client.Game.InGame.Player.StateController.State
             }
 
             _mountedTrainCarInstanceId = null;
+            _rideContext = null;
 
             #region Internal
 
