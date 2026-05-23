@@ -44,6 +44,7 @@ using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Network.API;
@@ -194,6 +195,7 @@ namespace Client.Starter
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             builder.Register<RideVehicleInputService>(Lifetime.Singleton);
+            builder.Register<PauseMenuStateService>(Lifetime.Singleton);
 
             // プレイヤーステート（UIState → PlayerStateController の単方向依存）
             // Player state framework (one-way dependency: UIState → PlayerStateController)

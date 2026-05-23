@@ -1,12 +1,13 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Cysharp.Threading.Tasks;
 using Game.PlayerRiding.Interface;
-using Game.Train.Unit;
 using MessagePack;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
@@ -20,22 +21,27 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly PlayerStateController _playerStateController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
+        private readonly InGameCameraController _inGameCameraController;
+        private readonly PauseMenuStateService _pauseMenuStateService;
         
-        private bool _toGameScreen = false;
+        private bool _isDismountTrain = false;
         private RidingPlayerStateContext _rideContext;
         
         private IDisposable _eventSubscription;
         private CancellationTokenSource _cts;
         
 
-        public TrainHUDScreenState(PlayerStateController playerStateController, TrainUnitClientCache trainUnitClientCache)
+        public TrainHUDScreenState(PlayerStateController playerStateController, TrainUnitClientCache trainUnitClientCache, InGameCameraController inGameCameraController, PauseMenuStateService pauseMenuStateService)
         {
             _playerStateController = playerStateController;
             _trainUnitClientCache = trainUnitClientCache;
+            _inGameCameraController = inGameCameraController;
+            _pauseMenuStateService = pauseMenuStateService;
         }
 
         public void OnEnter(UITransitContext context)
         {
+            _inGameCameraController.SetControllable(true);
             KeyControlDescription.Instance.SetText("E: 降車\nW/A/S/D: 列車操作\n");
             
             // サーバー強制降車イベントを購読する。HUDに居る間だけ反映
@@ -54,7 +60,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // サーバー側に乗車リクエストを送る
             // Send a ride request to the server.
             _rideContext = null;
-            _toGameScreen = false;
+            _isDismountTrain = false;
             SendRideRequestAsync().Forget(LogRpcFault);
 
 
@@ -81,7 +87,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 {
                     // 乗車できなかったのでGameScreenに戻る
                     // Failed to ride, bounce back
-                    _toGameScreen = true;
+                    _isDismountTrain = true;
                 }
                 
                 _cts = null;
@@ -99,7 +105,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 if (message.StateType == RidingStateEventType.Dismount)
                 {
                     _playerStateController.SetState(PlayerStateEnum.Normal, null);
-                    _toGameScreen = true;
+                    _isDismountTrain = true;
                 }
             }
 
@@ -108,18 +114,15 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // 乗れなかった、強制降車が起きた等の理由でゲームスクリーンへ戻る
-            // Transition back to GameScreen if unable to ride or if a forced dismount occurs.
-            if (_toGameScreen) return new UITransitContext(UIStateEnum.GameScreen);
+            if (_isDismountTrain) return new UITransitContext(UIStateEnum.GameScreen);
             
             // まだ乗車が完了していないのであれば何もしない
             // If riding is not yet completed, do nothing.
             if (_rideContext == null) return null;
             
-            // 対象車両が cache から消えたら強制降車する
-            // Force dismount if the target vehicle disappears from the cache.
-            var carId = _rideContext.CurrentCarId.Value;
-            if (!_trainUnitClientCache.TryGetCarSnapshot(carId, out _, out _, out _, out _))  return new UITransitContext(UIStateEnum.GameScreen);
+            // 対象車両が消えたら強制降車
+            // Force dismount if the target car has disappeared.
+            if (!_trainUnitClientCache.TryGetCarSnapshot( _rideContext.CurrentCarId, out _, out _, out _, out _))  return new UITransitContext(UIStateEnum.GameScreen);
             
             
             // 戻る操作のリクエスト
@@ -131,7 +134,7 @@ namespace Client.Game.InGame.UI.UIState.State
             
             // 列車操作入力を送る
             // Send train control inputs.
-            SendWasdInput(carId);
+            SendWasdInput();
 
             return null;
 
@@ -148,16 +151,16 @@ namespace Client.Game.InGame.UI.UIState.State
                 {
                     // 降車したので GameScreen へ
                     // Successfully dismounted, transition to GameScreen.
-                    _toGameScreen = true;
+                    _isDismountTrain = true;
                 }
                 
                 _cts = null;
             }
 
-            void SendWasdInput(TrainCarInstanceId carId)
+            void SendWasdInput()
             {
                 ClientContext.VanillaApi.SendOnly.SendTrainCarRidingInput(
-                    carId,
+                    _rideContext.CurrentCarId,
                     UnityEngine.Input.GetKey(KeyCode.W),
                     UnityEngine.Input.GetKey(KeyCode.A),
                     UnityEngine.Input.GetKey(KeyCode.S),
