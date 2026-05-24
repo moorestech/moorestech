@@ -17,7 +17,8 @@ namespace Client.Game.InGame.UI.UIState
             PlaceBlockState placeBlockState,
             ChallengeListState challengeListState,
             ResearchTreeState researchTreeState,
-            DebugBlockInfoState debugBlockInfoState)
+            DebugBlockInfoState debugBlockInfoState,
+            TrainHUDScreenState trainHUDScreenState)
         {
             _stateDictionary.Add(UIStateEnum.GameScreen, gameScreenState);
             _stateDictionary.Add(UIStateEnum.PlayerInventory, playerInventoryState);
@@ -29,6 +30,7 @@ namespace Client.Game.InGame.UI.UIState
             _stateDictionary.Add(UIStateEnum.ChallengeList, challengeListState);
             _stateDictionary.Add(UIStateEnum.ResearchTree, researchTreeState);
             _stateDictionary.Add(UIStateEnum.Debug, debugBlockInfoState);
+            _stateDictionary.Add(UIStateEnum.TrainHUDScreen, trainHUDScreenState);
         }
         
         public IUIState GetState(UIStateEnum state)

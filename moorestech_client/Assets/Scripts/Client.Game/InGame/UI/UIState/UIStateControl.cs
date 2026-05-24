@@ -9,14 +9,14 @@ namespace Client.Game.InGame.UI.UIState
         [Inject] private UIStateDictionary _uiStateDictionary;
         
         public event Action<UIStateEnum> OnStateChanged;
-        public UIStateEnum CurrentState { get; private set; } = UIStateEnum.GameScreen;
+        public UIStateEnum CurrentState { get; private set; }
         
-        private void Start()
+        public void Initialize(UIStateEnum initialState, UITransitContext initialContext)
         {
-            _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(CurrentState));
+            CurrentState = initialState;
+            _uiStateDictionary.GetState(CurrentState).OnEnter(initialContext);
         }
-
-        //UIステート
+        
         // UI state
         private void Update()
         {

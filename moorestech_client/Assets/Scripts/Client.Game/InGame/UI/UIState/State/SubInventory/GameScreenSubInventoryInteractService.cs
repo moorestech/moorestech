@@ -33,9 +33,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
                 _blockGameObjectDataStore.TryGetBlockGameObject(blockPos, out var blockGameObject) && // ブロックのGameObjectを取得 Get Block GameObject
                 blockGameObject.BlockMasterElement.IsBlockOpenable()) // ブロックが開けるタイプか確認 Check if block is openable
             {
-                var container = new UITransitContextContainer();
-                var blockSubInventorySource = new BlockSubInventorySource(blockGameObject);
-                container.Set<ISubInventorySource>(blockSubInventorySource);
+                var container = UITransitContextContainer.Create<ISubInventorySource>(new BlockSubInventorySource(blockGameObject));
                 
                 uiTransitContext = new UITransitContext(UIStateEnum.SubInventory, container);
                 return true;
@@ -43,9 +41,8 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             
             if (BlockClickDetectUtil.TryGetCursorOnComponent(out TrainCarEntityChildrenObject trainEntity))
             {
-                var container = new UITransitContextContainer();
-                var trainSubInventorySource = new TrainSubInventorySource(trainEntity.TrainCarEntityObject);
-                container.Set<ISubInventorySource>(trainSubInventorySource);
+                var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(trainEntity.TrainCarEntityObject));
+                
                 uiTransitContext = new UITransitContext(UIStateEnum.SubInventory, container);
                 return true;
             }

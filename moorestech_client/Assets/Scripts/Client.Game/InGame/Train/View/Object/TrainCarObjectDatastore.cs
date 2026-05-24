@@ -10,6 +10,10 @@ namespace Client.Game.InGame.Train.View.Object
 {
     public class TrainCarObjectDatastore : MonoBehaviour
     {
+        public IObservable<UniRx.Unit> OnInitializeComplete => _initializeCompleteSubject;
+        private readonly UniRx.Subject<UniRx.Unit> _initializeCompleteSubject = new();
+        
+        
         // TrainCar 表示オブジェクトの生成を担当する
         // Creates TrainCar view objects
         private TrainCarObjectFactory _carObjectFactory;
@@ -177,6 +181,7 @@ namespace Client.Game.InGame.Train.View.Object
                 finally
                 {
                     _pendingCreation.Remove(targetId);
+                    _initializeCompleteSubject.OnNext(UniRx.Unit.Default);
                 }
             }
 

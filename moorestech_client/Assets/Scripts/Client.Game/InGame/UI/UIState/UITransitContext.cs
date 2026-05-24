@@ -28,6 +28,12 @@ namespace Client.Game.InGame.UI.UIState
         {
             return _container == null ? default : _container.Get<T>();
         }
+        
+        public bool TryGetContext<T>(out T context)
+        {
+            context = GetContext<T>();
+            return !EqualityComparer<T>.Default.Equals(context, default);
+        }
     }
     
     /// <summary>
@@ -53,6 +59,32 @@ namespace Client.Game.InGame.UI.UIState
             }
             
             return default;
+        }
+        
+        public UITransitContextContainer() { }
+        
+        public static UITransitContextContainer Create<T>(T value)
+        {
+            var container = new UITransitContextContainer();
+            container.Set(value);
+            return container;
+        }
+        
+        public static UITransitContextContainer Create<T1, T2>(T1 value1, T2 value2)
+        {
+            var container = new UITransitContextContainer();
+            container.Set(value1);
+            container.Set(value2);
+            return container;
+        }
+        
+        public static UITransitContextContainer Create<T1, T2, T3>(T1 value1, T2 value2, T3 value3)
+        {
+            var container = new UITransitContextContainer();
+            container.Set(value1);
+            container.Set(value2);
+            container.Set(value3);
+            return container;
         }
     }
 }
