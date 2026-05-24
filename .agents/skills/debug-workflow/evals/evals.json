@@ -1,0 +1,105 @@
+{
+  "skill": "debug-workflow",
+  "version": 1,
+  "notes": "trigger 精度評価用。should_trigger は本スキル発動が期待されるクエリ、should_not_trigger は誤発動防止用ニアミス。各クエリは最低 3 回実行して trigger_rate を計測する (推奨閾値: should_trigger > 0.5, should_not_trigger < 0.5)。train/validation 分割は推奨 60:40。",
+  "should_trigger": [
+    {
+      "id": "st-01",
+      "split": "train",
+      "prompt": "テストが落ちる。原因調べて",
+      "rationale": "テスト失敗 + 原因調査依頼 — 中核 use case"
+    },
+    {
+      "id": "st-02",
+      "split": "train",
+      "prompt": "ボタン押しても反応しないんだけどなんで?",
+      "rationale": "「動かない」のカジュアル表現"
+    },
+    {
+      "id": "st-03",
+      "split": "train",
+      "prompt": "実装したはずなのに期待した動きにならない。デバッグ手伝って",
+      "rationale": "「期待した動きにならない」+「デバッグ」明示"
+    },
+    {
+      "id": "st-04",
+      "split": "train",
+      "prompt": "ログ見ても原因がわからない。一緒に調査して",
+      "rationale": "原因不明 + 共同調査依頼"
+    },
+    {
+      "id": "st-05",
+      "split": "train",
+      "prompt": "なぜ X が null になるのか調べたい",
+      "rationale": "null の原因調査 — 典型的なバグ調査"
+    },
+    {
+      "id": "st-06",
+      "split": "validation",
+      "prompt": "リファクタしたら別のところが壊れた。原因特定して",
+      "rationale": "リグレッション調査"
+    },
+    {
+      "id": "st-07",
+      "split": "validation",
+      "prompt": "意図した状態にならない。複数観点で確認したい",
+      "rationale": "「複数観点」キーワード + 状態問題"
+    },
+    {
+      "id": "st-08",
+      "split": "validation",
+      "prompt": "サーバー側は Success 返してるのにクライアントが反応しない",
+      "rationale": "クライアント-サーバー連携バグ — debug 必須"
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "id": "snt-01",
+      "split": "train",
+      "prompt": "この型定義をレビューして",
+      "rationale": "コードレビュー依頼 — code-reviewer の領分"
+    },
+    {
+      "id": "snt-02",
+      "split": "train",
+      "prompt": "新しいログイン画面を作って",
+      "rationale": "新規機能実装 — debug ではない"
+    },
+    {
+      "id": "snt-03",
+      "split": "train",
+      "prompt": "この関数を 3 つに分割してリファクタして",
+      "rationale": "リファクタ依頼 — バグ調査ではない"
+    },
+    {
+      "id": "snt-04",
+      "split": "train",
+      "prompt": "コンパイルエラーが出てる。直して",
+      "rationale": "静的に自明な型エラー — 並列起動はオーバーキル (Gotchas で警告対象)"
+    },
+    {
+      "id": "snt-05",
+      "split": "train",
+      "prompt": "テストを 1 件追加して",
+      "rationale": "テスト追加依頼 — テスト失敗の調査ではない"
+    },
+    {
+      "id": "snt-06",
+      "split": "validation",
+      "prompt": "PR を作って",
+      "rationale": "PR 作成依頼 — pr-create スキル領分"
+    },
+    {
+      "id": "snt-07",
+      "split": "validation",
+      "prompt": "この設計をレビューして第三者意見もほしい",
+      "rationale": "code-review-orchestration / external-audit 領分"
+    },
+    {
+      "id": "snt-08",
+      "split": "validation",
+      "prompt": "差分を difit で見たい",
+      "rationale": "difit-diff-viewer 領分 — debug ではない"
+    }
+  ]
+}
