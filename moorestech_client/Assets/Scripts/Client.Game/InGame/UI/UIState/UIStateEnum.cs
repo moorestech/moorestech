@@ -12,5 +12,6 @@
         ChallengeList,
         ResearchTree,
         Debug,
+        TrainHUDScreen,
     }
 }

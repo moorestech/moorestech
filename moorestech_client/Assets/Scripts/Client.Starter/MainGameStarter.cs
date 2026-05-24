@@ -20,6 +20,8 @@ using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.Player.StateController;
+using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Skit;
@@ -42,11 +44,14 @@ using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using Game.PlayerRiding.Interface;
+using Game.Train.Unit;
 using Game.UnlockState;
 using UnityEngine;
 using VContainer;
@@ -158,7 +163,6 @@ namespace Client.Starter
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
-            builder.RegisterEntryPoint<TrainCarRidingInputSender>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             
@@ -187,8 +191,18 @@ namespace Client.Starter
             builder.Register<ChallengeListState>(Lifetime.Singleton);
             builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<DebugBlockInfoState>(Lifetime.Singleton);
+            builder.Register<TrainHUDScreenState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
+            builder.Register<RideVehicleInputService>(Lifetime.Singleton);
+            builder.Register<PauseMenuStateService>(Lifetime.Singleton);
+
+            // プレイヤーステート（UIState → PlayerStateController の単方向依存）
+            // Player state framework (one-way dependency: UIState → PlayerStateController)
+            builder.Register<NormalPlayerState>(Lifetime.Singleton);
+            builder.Register<RidingPlayerState>(Lifetime.Singleton);
+            builder.Register<PlayerStateDictionary>(Lifetime.Singleton);
+            builder.Register<PlayerStateController>(Lifetime.Singleton).AsSelf().As<ITickable>();
             
             // スキット関連
             // register skit related
@@ -203,8 +217,6 @@ namespace Client.Starter
             builder.Register<RailGraphClientCache>(Lifetime.Singleton);
             builder.Register<ClientStationReferenceRegistry>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
-            builder.Register<TrainCarRidingState>(Lifetime.Singleton);
-            builder.Register<TrainCarRidingPlayerController>(Lifetime.Singleton).AsSelf().As<ITickable>().As<IInitializable>().As<IDisposable>();
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<TrainUnitRenderInterpolationState>(Lifetime.Singleton).AsSelf().As<ITrainUnitRenderInterpolationProvider>();
@@ -278,8 +290,30 @@ namespace Client.Starter
             _resolver.Resolve<ChallengeManager>();
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();
-            
+
+            // 列車乗車などログイン中の特殊な状態を再現する
+            // Reproduce special states during login, such as riding a train.
+            RestoreSpecificState(initialHandshakeResponse);
+
             return _resolver;
+        }
+
+        private void RestoreSpecificState(InitialHandshakeResponse init)
+        {
+            var context = new UITransitContext(UIStateEnum.GameScreen);
+            var uiState = UIStateEnum.GameScreen;
+            
+            if (init.RidingTarget != null && init.RidingTarget.RidableType == RidableType.TrainCar)
+            {
+                var request = new InitialRideTrainCarRequest(new TrainCarInstanceId(init.RidingTarget.TrainCarInstanceId), init.RidingSeatIndex);
+                var container = UITransitContextContainer.Create(request);
+                
+                context = new UITransitContext(UIStateEnum.TrainHUDScreen, container);
+                uiState = UIStateEnum.TrainHUDScreen;
+                
+            }
+            
+            _resolver.Resolve<UIStateControl>().Initialize(uiState, context);
         }
     }
 }

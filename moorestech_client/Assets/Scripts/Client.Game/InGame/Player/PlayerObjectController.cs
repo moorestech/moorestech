@@ -117,6 +117,8 @@ namespace Client.Game.InGame.Player
             rideFollowTarget = target;
             rideFollowLocalPosition = localPosition;
             rideFollowLocalRotation = localRotation;
+            
+            SetControllable(false);
         }
 
         public void ClearRideFollowTarget()
@@ -125,6 +127,7 @@ namespace Client.Game.InGame.Player
             // Restore the ThirdPersonController execution state disabled for riding follow
             RestoreControllerAfterRideFollowIfNeeded();
             rideFollowTarget = null;
+            SetControllable(true);
         }
 
         private void ApplyRideFollowPose()

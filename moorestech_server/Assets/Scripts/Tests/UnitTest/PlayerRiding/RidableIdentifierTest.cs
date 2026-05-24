@@ -16,8 +16,8 @@ namespace Tests.UnitTest.PlayerRiding
             var bytes = MessagePackSerializer.Serialize(original);
             var restored = MessagePackSerializer.Deserialize<RidableIdentifierMessagePack>(bytes);
 
-            Assert.AreEqual(RidableType.TrainCar.AsPrimitive(), restored.RidableType);
-            Assert.AreEqual("123456789012345", restored.TrainCarInstanceId);
+            Assert.AreEqual(RidableType.TrainCar, restored.RidableType);
+            Assert.AreEqual(123456789012345L, restored.TrainCarInstanceId);
         }
 
         [Test]

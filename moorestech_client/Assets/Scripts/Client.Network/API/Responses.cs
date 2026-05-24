@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.CraftTree.Models;
+using Game.PlayerRiding.Interface;
 using Game.Research;
 using Game.Train.Unit;
 using Mooresmaster.Model.ChallengesModule;
@@ -28,7 +29,11 @@ namespace Client.Network.API
         public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
         public RailGraphSnapshotMessagePack RailGraphSnapshot { get; }
         public TrainUnitSnapshotResponse TrainUnitSnapshots { get; }
-        
+        // ログイン時の乗車復帰情報（未乗車なら RidingTarget は null）。
+        // Login-time riding restore info (RidingTarget is null when not riding).
+        public RidableIdentifierMessagePack RidingTarget { get; }
+        public int RidingSeatIndex { get; }
+
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
             (
@@ -54,6 +59,8 @@ namespace Client.Network.API
             ResearchNodeStates = responses.researchNodeStates;
             RailGraphSnapshot = responses.railGraphSnapshot;
             TrainUnitSnapshots = responses.trainUnitSnapshots;
+            RidingTarget = initialHandshake.RidingTarget;
+            RidingSeatIndex = initialHandshake.RidingSeatIndex;
         }
     }
     

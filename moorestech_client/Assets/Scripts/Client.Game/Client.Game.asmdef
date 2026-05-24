@@ -60,6 +60,7 @@
         "Game.Fluid",
         "Game.Research",
         "Game.Train",
+        "Game.PlayerRiding.Interface",
         "Unity.Mathematics",
         "Unity.Splines"
     ],

@@ -1,36 +1,29 @@
-﻿using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.UIState.UIObject;
-using Client.Input;
+﻿using Client.Game.InGame.UI.UIState.State.PauseMenu;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
     public class PauseMenuState : IUIState
     {
-        private readonly PauseMenuObject _pauseMenu;
+        private readonly PauseMenuStateService _pauseMenuStateService;
         
-        public PauseMenuState(PauseMenuObject pauseMenu)
+        public PauseMenuState(PauseMenuStateService pauseMenu)
         {
-            _pauseMenu = pauseMenu;
-            pauseMenu.gameObject.SetActive(false);
+            _pauseMenuStateService = pauseMenu;
         }
         
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.CloseUI.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
-
-            return null;
+            return _pauseMenuStateService.IsClosePause() ? new UITransitContext(UIStateEnum.GameScreen) : null;
         }
 
         public void OnEnter(UITransitContext context)
         {
-            _pauseMenu.gameObject.SetActive(true);
-            InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("Esc: ゲームに戻る");
+            _pauseMenuStateService.OnEnter();
         }
         
         public void OnExit()
         {
-            _pauseMenu.gameObject.SetActive(false);
+            _pauseMenuStateService.OnExit();
         }
     }
 }
