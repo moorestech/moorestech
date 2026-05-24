@@ -100,7 +100,7 @@ namespace Client.Game.InGame.Player.StateController.State
                 {
                     var marker = entity.GetComponentInChildren<TrainCarDismountPoint>(true);
                     
-                    if (marker != null) return marker.Position;
+                    if (marker != null) return marker.transform.position;
                     return entity.transform.position;
                 }
 
