@@ -138,15 +138,15 @@ namespace Client.Game.InGame.UI.UIState.State
             }
             
             
-            var isInput = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.D);
+            var isInput = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKeyDown(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKeyDown(KeyCode.D);
             if (isInput)
             {
                 ClientContext.VanillaApi.SendOnly.SendTrainCarRidingInput(
                     _rideContext.CurrentCarId,
                     UnityEngine.Input.GetKey(KeyCode.W),
-                    UnityEngine.Input.GetKey(KeyCode.A),
+                    UnityEngine.Input.GetKeyDown(KeyCode.A),
                     UnityEngine.Input.GetKey(KeyCode.S),
-                    UnityEngine.Input.GetKey(KeyCode.D));
+                    UnityEngine.Input.GetKeyDown(KeyCode.D));
             }
             
 

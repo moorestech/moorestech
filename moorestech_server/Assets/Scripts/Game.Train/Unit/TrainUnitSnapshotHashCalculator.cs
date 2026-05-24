@@ -49,6 +49,7 @@ namespace Game.Train.Unit
             hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.CurrentSpeed));
             hash = MixLong(hash, BitConverter.DoubleToInt64Bits(simulation.AccumulatedDistance));
             hash = Mix(hash, simulation.MasconLevel);
+            hash = Mix(hash, simulation.ManualBranchSelectionIndex);
             hash = MixCars(hash, simulation.Cars);
             hash = MixRailPosition(hash, bundle.RailPositionSnapshot);
             return hash;

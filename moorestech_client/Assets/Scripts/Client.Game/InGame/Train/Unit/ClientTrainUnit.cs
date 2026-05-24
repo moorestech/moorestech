@@ -22,6 +22,7 @@ namespace Client.Game.InGame.Train.Unit
         public double CurrentSpeed { get; set; }
         public double AccumulatedDistance { get; set; }
         public int MasconLevel { get; set; }
+        private int _manualBranchSelectionIndex;
 
         private IReadOnlyList<TrainCarSnapshot> _cars;
         // 車両スナップショットを外部に公開する
@@ -44,6 +45,7 @@ namespace Client.Game.InGame.Train.Unit
             CurrentSpeed = simulation.CurrentSpeed;
             AccumulatedDistance = simulation.AccumulatedDistance;
             MasconLevel = simulation.MasconLevel;
+            _manualBranchSelectionIndex = simulation.ManualBranchSelectionIndex;
             RailPosition = RailPositionFactory.Restore(railPosition, _railGraphProvider);
             _cars = simulation.Cars ?? Array.Empty<TrainCarSnapshot>();
             _simulationTargetNode = RailPosition?.GetNodeApproaching();
@@ -51,7 +53,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // pre sim差分イベントを反映する
         // Apply pre-simulation diff values from the server.
-        public bool ApplyPreSimulationDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId, bool isReversedThisTick)
+        public bool ApplyPreSimulationDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId, bool isReversedThisTick, int manualBranchSelectionIndexDiff)
         {
             // reverse は同 tick の速度・距離シミュレーション前に反映する
             // Apply reverse before the same-tick velocity and distance simulation
@@ -63,6 +65,7 @@ namespace Client.Game.InGame.Train.Unit
             // マスコンと分岐目標をサーバー通知値に合わせる
             // Align mascon and branch target with server-notified values
             MasconLevel += masconLevelDiff;
+            _manualBranchSelectionIndex += manualBranchSelectionIndexDiff;
             if (approachingNodeId != -1)
             {
                 _railGraphTraversalProvider.TryGetNode(approachingNodeId, out _simulationTargetNode);
@@ -136,6 +139,7 @@ namespace Client.Game.InGame.Train.Unit
                     CurrentSpeed,
                     AccumulatedDistance,
                     MasconLevel,
+                    _manualBranchSelectionIndex,
                     carSnapshots);
             }
 

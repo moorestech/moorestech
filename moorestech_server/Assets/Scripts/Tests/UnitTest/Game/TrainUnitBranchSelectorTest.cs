@@ -45,6 +45,20 @@ namespace Tests.UnitTest.Game
             Assert.AreSame(upper, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, TrainUnitBranchCommand.Next));
         }
 
+        [Test]
+        public void SelectManualBranchNode_ClampsLargeSelectionIndexToEdge()
+        {
+            var justPassed = CreateNode(100, new Vector3(0f, 0f, -10f), Vector3.forward, Vector3.back);
+            var junction = CreateNode(200, Vector3.zero, Vector3.forward, Vector3.back);
+            var right = CreateCandidate(1, new Vector3(10f, 0f, 10f), junction);
+            var left = CreateCandidate(50, new Vector3(-10f, 0f, 10f), junction);
+            var straight = CreateCandidate(20, new Vector3(0f, 0f, 10f), junction);
+            var candidates = new IRailNode[] { right, left, straight };
+
+            Assert.AreSame(left, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, 100));
+            Assert.AreSame(right, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, -100));
+        }
+
         private static TestRailNode CreateCandidate(int nodeId, Vector3 position, IRailNode junction)
         {
             var backDirection = (junction.FrontControlPoint.OriginalPosition - position).normalized;

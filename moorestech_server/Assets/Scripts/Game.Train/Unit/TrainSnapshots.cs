@@ -80,12 +80,14 @@ namespace Game.Train.Unit
             double currentSpeed,
             double accumulatedDistance,
             int masconLevel,
+            int manualBranchSelectionIndex,
             IReadOnlyList<TrainCarSnapshot> cars)
         {
             TrainUnitInstanceId = trainUnitInstanceId;
             CurrentSpeed = currentSpeed;
             AccumulatedDistance = accumulatedDistance;
             MasconLevel = masconLevel;
+            ManualBranchSelectionIndex = manualBranchSelectionIndex;
             Cars = cars;
         }
 
@@ -93,6 +95,7 @@ namespace Game.Train.Unit
         public double CurrentSpeed { get; }
         public double AccumulatedDistance { get; }
         public int MasconLevel { get; }
+        public int ManualBranchSelectionIndex { get; }
         public IReadOnlyList<TrainCarSnapshot> Cars { get; }
     }
 
