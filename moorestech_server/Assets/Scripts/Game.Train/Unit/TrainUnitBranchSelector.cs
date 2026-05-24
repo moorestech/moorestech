@@ -12,7 +12,7 @@ namespace Game.Train.Unit
         private const float DirectionEpsilon = 1e-6f;
         private const float CompareEpsilon = 0.0001f;
 
-        public static IRailNode SelectManualBranchNode(IRailNode justPassedNode, IRailNode junctionNode, IReadOnlyList<IRailNode> connectedNodes, TrainUnitBranchCommand branchCommand)
+        public static IRailNode SelectManualBranchNode(IRailNode justPassedNode, IRailNode junctionNode, IReadOnlyList<IRailNode> connectedNodes, int branchSelectionIndex)
         {
             if (connectedNodes.Count == 0)
             {
@@ -27,16 +27,12 @@ namespace Game.Train.Unit
             // Sort candidate nodes from left to right by the incoming travel direction.
             var candidates = BuildBranchCandidates(justPassedNode, junctionNode, connectedNodes);
             var straightIndex = ResolveStraightCandidateIndex(candidates);
-            if (branchCommand == TrainUnitBranchCommand.Previous)
-            {
-                return SelectCandidateByOffset(candidates, straightIndex, -1);
-            }
 
-            // D入力だけ右隣を選び、ニュートラルは直進候補を維持する。
-            // Only D input selects the right neighbor; neutral keeps the straight candidate.
-            if (branchCommand == TrainUnitBranchCommand.Next)
+            // 正のindexは左、負のindexは右へずらし、端でclampする。
+            // Positive index shifts left, negative shifts right, and clamps at the edge.
+            if (branchSelectionIndex != 0)
             {
-                return SelectCandidateByOffset(candidates, straightIndex, 1);
+                return SelectCandidateByOffset(candidates, straightIndex, -branchSelectionIndex);
             }
             return candidates[straightIndex].Node;
         }
@@ -155,11 +151,7 @@ namespace Game.Train.Unit
 
         private static IRailNode SelectCandidateByOffset(IReadOnlyList<BranchCandidate> candidates, int straightIndex, int offset)
         {
-            var selectedIndex = straightIndex + offset;
-            if (selectedIndex < 0 || selectedIndex >= candidates.Count)
-            {
-                return candidates[straightIndex].Node;
-            }
+            var selectedIndex = Mathf.Clamp(straightIndex + offset, 0, candidates.Count - 1);
             return candidates[selectedIndex].Node;
         }
 

@@ -20,12 +20,18 @@ namespace Client.Game.InGame.UI.UIState.State
     // Train HUD state, the single source of truth for all train-related processing while riding.
     public class TrainHUDScreenState : IUIState
     {
+        private const float TrainInputHeartbeatIntervalSeconds = 2f;
+
         private readonly PlayerStateController _playerStateController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
         private readonly TrainHudScreenUIStateController _subStateController;
 
         private bool _isDismountTrain = false;
         private RidingPlayerStateContext _rideContext;
+        private bool _hasSentTrainMoveInput;
+        private bool _lastSentMoveForward;
+        private bool _lastSentMoveBackward;
+        private float _lastTrainInputSentAt;
 
         private IDisposable _eventSubscription;
         private CancellationTokenSource _cts;
@@ -50,6 +56,10 @@ namespace Client.Game.InGame.UI.UIState.State
             
             _rideContext = null;
             _isDismountTrain = false;
+            _hasSentTrainMoveInput = false;
+            _lastSentMoveForward = false;
+            _lastSentMoveBackward = false;
+            _lastTrainInputSentAt = 0f;
             
             // 初期値として乗車完了済みの場合は即時反映
             // If the player is already riding at the time of entering, reflect that immediately.
@@ -137,16 +147,25 @@ namespace Client.Game.InGame.UI.UIState.State
                 SendDismountRequestAsync().Forget(LogRpcFault);
             }
             
-            
-            var isInput = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKeyDown(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKeyDown(KeyCode.D);
+            var moveForward = UnityEngine.Input.GetKey(KeyCode.W);
+            var selectPreviousBranch = UnityEngine.Input.GetKeyDown(KeyCode.A);
+            var moveBackward = UnityEngine.Input.GetKey(KeyCode.S);
+            var selectNextBranch = UnityEngine.Input.GetKeyDown(KeyCode.D);
+            var moveForwardChanged = !_hasSentTrainMoveInput || moveForward != _lastSentMoveForward;
+            var moveBackwardChanged = !_hasSentTrainMoveInput || moveBackward != _lastSentMoveBackward;
+            var isHeartbeatDue = _hasSentTrainMoveInput && Time.realtimeSinceStartup - _lastTrainInputSentAt >= TrainInputHeartbeatIntervalSeconds;
+            var isInput = moveForwardChanged || moveBackwardChanged || isHeartbeatDue || selectPreviousBranch || selectNextBranch;
             if (isInput)
             {
                 ClientContext.VanillaApi.SendOnly.SendTrainCarRidingInput(
-                    _rideContext.CurrentCarId,
-                    UnityEngine.Input.GetKey(KeyCode.W),
-                    UnityEngine.Input.GetKeyDown(KeyCode.A),
-                    UnityEngine.Input.GetKey(KeyCode.S),
-                    UnityEngine.Input.GetKeyDown(KeyCode.D));
+                    moveForward,
+                    moveBackward,
+                    selectPreviousBranch,
+                    selectNextBranch);
+                _hasSentTrainMoveInput = true;
+                _lastSentMoveForward = moveForward;
+                _lastSentMoveBackward = moveBackward;
+                _lastTrainInputSentAt = Time.realtimeSinceStartup;
             }
             
 

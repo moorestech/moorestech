@@ -46,6 +46,8 @@ namespace Game.Train.Unit
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
         private bool _isReversedThisTick;
+        private int _manualBranchSelectionIndex;
+        private int _previousManualBranchSelectionIndex;
         public TrainUnit(
             RailPosition initialPosition,
             List<TrainCar> cars,
@@ -85,9 +87,15 @@ namespace Game.Train.Unit
         public void ResetDiff()
         {
             _previousMasconLevel = masconLevel;
+            _previousManualBranchSelectionIndex = _manualBranchSelectionIndex;
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
             _isReversedThisTick = false;
+        }
+
+        public int GetManualBranchSelectionIndex()
+        {
+            return _manualBranchSelectionIndex;
         }
         
         public int Update()
@@ -225,6 +233,7 @@ namespace Game.Train.Unit
                 Reverse();
             }
             masconLevel = ConvertManualMasconCommandToMasconLevel(manualCommand.MasconCommand);
+            _manualBranchSelectionIndex += manualCommand.BranchSelectionIndexDelta;
         }
 
         private static int ConvertManualMasconCommandToMasconLevel(TrainUnitMasconCommand masconCommand)
@@ -348,9 +357,14 @@ namespace Game.Train.Unit
                     // A/D があれば進行方向を基準に左右候補を選ぶ。
                     // When A/D is present, choose left/right candidates from the current travel direction.
                     var justPassed = _railPosition.GetNodeJustPassed();
-                    var nextNode = TrainUnitBranchSelector.SelectManualBranchNode(justPassed, approaching, nextNodelist, manualCommand.BranchCommand);
+                    var isBranchSelectionConsumed = nextNodelist.Count >= 2;
+                    var nextNode = TrainUnitBranchSelector.SelectManualBranchNode(justPassed, approaching, nextNodelist, _manualBranchSelectionIndex);
                     _railPosition.AddNodeToHead(nextNode);
                     _pendingApproachingNodeId = nextNode.NodeId;
+                    if (isBranchSelectionConsumed)
+                    {
+                        _manualBranchSelectionIndex = 0;
+                    }
                 }
                 //----------------------------------------------------------------------------------------
                 loopCount++;
@@ -386,7 +400,7 @@ namespace Game.Train.Unit
         
         // masconLevel などの差分を抽出する。
         // Extract mascon and other per-tick diffs.
-        public (int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick) GetTickDiff()
+        public (int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick, int manualBranchSelectionIndexDiff) GetTickDiff()
         {
             var ret1 = masconLevel - _previousMasconLevel;
             _previousMasconLevel = masconLevel;
@@ -396,7 +410,9 @@ namespace Game.Train.Unit
             _pendingApproachingNodeId = -1;
             var ret4 = _isReversedThisTick;
             _isReversedThisTick = false;
-            return (ret1, ret2, ret3, ret4);
+            var ret5 = _manualBranchSelectionIndex - _previousManualBranchSelectionIndex;
+            _previousManualBranchSelectionIndex = _manualBranchSelectionIndex;
+            return (ret1, ret2, ret3, ret4, ret5);
         }
 
         public void DiagramValidation() 

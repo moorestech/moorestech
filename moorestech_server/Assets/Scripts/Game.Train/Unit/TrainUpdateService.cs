@@ -66,10 +66,12 @@ namespace Game.Train.Unit
             // Reset per-tick ordering counter when tick advances.
             _tickSequenceId = 0;
 
-            //simulation
+            // 乗車入力をtickごとに一括集計し、各TrainUnitへ適用する。
+            // Aggregate riding inputs once per tick and apply them to each TrainUnit.
+            var manualCommands = _trainCarRidingManualCommandResolver.ResolveAll(_executedTick);
             foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
             {
-                var manualCommand = _trainCarRidingManualCommandResolver.Resolve(trainUnit, _executedTick);
+                var manualCommand = manualCommands.TryGetValue(trainUnit, out var command) ? command : TrainUnitManualCommand.Default;
                 trainUnit.Update(manualCommand);
             }
 

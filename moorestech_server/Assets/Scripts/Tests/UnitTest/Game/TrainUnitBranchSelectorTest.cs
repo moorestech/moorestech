@@ -23,9 +23,9 @@ namespace Tests.UnitTest.Game
             var straight = CreateCandidate(20, new Vector3(0f, 0f, 10f), junction);
             var candidates = new IRailNode[] { right, left, straight };
 
-            Assert.AreSame(left, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, TrainUnitBranchCommand.Previous));
-            Assert.AreSame(straight, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, TrainUnitBranchCommand.Neutral));
-            Assert.AreSame(right, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, TrainUnitBranchCommand.Next));
+            Assert.AreSame(left, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, 1));
+            Assert.AreSame(straight, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, 0));
+            Assert.AreSame(right, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, -1));
         }
 
         [Test]
@@ -40,9 +40,9 @@ namespace Tests.UnitTest.Game
             var lower = CreateCandidate(1, new Vector3(0f, -2f, 10f), junction);
             var candidates = new IRailNode[] { upper, lower };
 
-            Assert.AreSame(lower, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, TrainUnitBranchCommand.Previous));
-            Assert.AreSame(lower, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, TrainUnitBranchCommand.Neutral));
-            Assert.AreSame(upper, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, TrainUnitBranchCommand.Next));
+            Assert.AreSame(lower, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, 1));
+            Assert.AreSame(lower, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, 0));
+            Assert.AreSame(upper, TrainUnitBranchSelector.SelectManualBranchNode(justPassed, junction, candidates, -1));
         }
 
         [Test]

@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
+using Game.PlayerRiding.Interface;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using NUnit.Framework;
 using Tests.Util;
+using UniRx;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game
@@ -17,9 +20,9 @@ namespace Tests.UnitTest.Game
         {
             var fixture = CreateForwardFacingFixture();
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, true, false, false, false));
+            buffer.SetLatestInput(CreateInput(2, 10, false, false, true, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
 
@@ -32,10 +35,10 @@ namespace Tests.UnitTest.Game
         {
             var fixture = CreateForwardFacingFixture();
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(3, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, true, false, false, false));
+            buffer.SetLatestInput(CreateInput(2, 10, true, false, false, false));
+            buffer.SetLatestInput(CreateInput(3, 10, false, false, true, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
 
@@ -48,10 +51,10 @@ namespace Tests.UnitTest.Game
         {
             var fixture = CreateForwardFacingFixture();
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(3, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, false, false, true, false));
+            buffer.SetLatestInput(CreateInput(2, 10, false, false, true, false));
+            buffer.SetLatestInput(CreateInput(3, 10, true, false, false, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
 
@@ -66,8 +69,8 @@ namespace Tests.UnitTest.Game
             RunTicks(fixture.TrainUnit, 8, new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate));
 
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, false, false, true, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
             Assert.IsFalse(command.ReverseRequested, "走行中の後退要求はまず brake になるべきです。");
@@ -80,8 +83,8 @@ namespace Tests.UnitTest.Game
             var fixture = CreateForwardFacingFixture();
 
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, true, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, false, false, true, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
             Assert.IsTrue(command.ReverseRequested, "停止中の後退要求は reverse 付きで解決されるべきです。");
@@ -94,8 +97,8 @@ namespace Tests.UnitTest.Game
             var fixture = CreateBackwardFacingFixture();
 
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, true, false, false, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
             Assert.IsTrue(command.ReverseRequested, "後ろ向き車両での W は train 後退なので reverse 付きになるべきです。");
@@ -107,15 +110,15 @@ namespace Tests.UnitTest.Game
         {
             var fixture = CreateForwardFacingFixture();
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, false, false, true));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, false, true));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(3, fixture.RidingCar.TrainCarInstanceId, 10, false, true, false, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, false, false, false, true));
+            buffer.SetLatestInput(CreateInput(2, 10, false, false, false, true));
+            buffer.SetLatestInput(CreateInput(3, 10, false, true, false, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
 
             Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "A/D だけの入力で mascon が変化しています。");
-            Assert.AreEqual(TrainUnitBranchCommand.Next, command.BranchCommand, "D 多数が next 分岐選択に解決されていません。");
+            Assert.AreEqual(-1, command.BranchSelectionIndexDelta, "D 多数が next 分岐選択に解決されていません。");
         }
 
         [Test]
@@ -123,14 +126,14 @@ namespace Tests.UnitTest.Game
         {
             var fixture = CreateForwardFacingFixture();
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, true, false, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, fixture.RidingCar.TrainCarInstanceId, 10, false, false, false, true));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, false, true, false, false));
+            buffer.SetLatestInput(CreateInput(2, 10, false, false, false, true));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var command = resolver.Resolve(fixture.TrainUnit, 10);
 
             Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "A/D 同数だけの入力で mascon が変化しています。");
-            Assert.AreEqual(TrainUnitBranchCommand.Neutral, command.BranchCommand, "A/D 同数が neutral 分岐選択に解決されていません。");
+            Assert.AreEqual(0, command.BranchSelectionIndexDelta, "A/D 同数が neutral 分岐選択に解決されていません。");
         }
 
         [Test]
@@ -138,8 +141,8 @@ namespace Tests.UnitTest.Game
         {
             var fixture = CreateForwardFacingFixture();
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, true, false, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, false, true, false, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
             var firstCommand = resolver.Resolve(fixture.TrainUnit, 100);
             var secondCommand = resolver.Resolve(fixture.TrainUnit, 100);
@@ -159,9 +162,9 @@ namespace Tests.UnitTest.Game
             datastore.RegisterTrain(secondFixture.TrainUnit);
 
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, firstFixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(2, secondFixture.RidingCar.TrainCarInstanceId, 11, false, false, true, false));
-            var resolver = new TrainCarRidingManualCommandResolver(datastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, true, false, false, false));
+            buffer.SetLatestInput(CreateInput(2, 11, false, false, true, false));
+            var resolver = CreateResolver(datastore, buffer, (1, firstFixture.RidingCar), (2, secondFixture.RidingCar));
 
             var firstCommand = resolver.Resolve(firstFixture.TrainUnit, 11);
             var secondCommand = resolver.Resolve(secondFixture.TrainUnit, 11);
@@ -176,13 +179,26 @@ namespace Tests.UnitTest.Game
         {
             var fixture = CreateForwardFacingFixture();
             var buffer = new TrainCarRidingInputBuffer();
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, true, false, false, false));
-            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+            buffer.SetLatestInput(CreateInput(1, 10, true, false, false, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
 
-            var command = resolver.Resolve(fixture.TrainUnit, 30);
+            var command = resolver.Resolve(fixture.TrainUnit, 90);
 
-            Assert.IsFalse(command.ReverseRequested, "20 tick 経過した入力は reverse 要求として扱わないべきです。");
-            Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "20 tick 経過した入力は neutral として扱うべきです。");
+            Assert.IsFalse(command.ReverseRequested, "timeout 経過した入力は reverse 要求として扱わないべきです。");
+            Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "timeout 経過した入力は neutral として扱うべきです。");
+        }
+
+        [Test]
+        public void Resolve_InputFromFutureTick_ReturnsDefault()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(CreateInput(1, 100, true, false, false, false));
+            var resolver = CreateResolver(fixture.TrainUnitDatastore, buffer, fixture.RidingCar, 1, 2, 3);
+
+            var command = resolver.Resolve(fixture.TrainUnit, 10);
+
+            Assert.AreEqual(TrainUnitMasconCommand.Neutral, command.MasconCommand, "現在 tick より未来の入力は neutral として扱うべきです。");
         }
 
         private static void RunTicks(TrainUnit trainUnit, int tickCount, TrainUnitManualCommand manualCommand)
@@ -238,6 +254,96 @@ namespace Tests.UnitTest.Game
             railB.BackNode.ConnectNode(railA.BackNode);
             railB.FrontNode.ConnectNode(railA.FrontNode);
             railA.BackNode.ConnectNode(railB.BackNode);
+        }
+
+        private static TrainCarRidingInputBuffer.TrainCarRidingInputState CreateInput(int playerId, uint receivedTick, bool moveForward, bool selectPreviousBranch, bool moveBackward, bool selectNextBranch)
+        {
+            return new TrainCarRidingInputBuffer.TrainCarRidingInputState(playerId, receivedTick, moveForward, selectPreviousBranch, moveBackward, selectNextBranch);
+        }
+
+        private static TrainCarRidingManualCommandResolver CreateResolver(ITrainUnitLookupDatastore trainUnitLookupDatastore, TrainCarRidingInputBuffer buffer, TrainCar ridingCar, params int[] playerIds)
+        {
+            var ridingDatastore = new TestPlayerRidingDatastore();
+            foreach (var playerId in playerIds)
+            {
+                ridingDatastore.SetRiding(playerId, ridingCar);
+            }
+
+            return new TrainCarRidingManualCommandResolver(trainUnitLookupDatastore, buffer, ridingDatastore);
+        }
+
+        private static TrainCarRidingManualCommandResolver CreateResolver(ITrainUnitLookupDatastore trainUnitLookupDatastore, TrainCarRidingInputBuffer buffer, params (int playerId, TrainCar ridingCar)[] riders)
+        {
+            var ridingDatastore = new TestPlayerRidingDatastore();
+            foreach (var rider in riders)
+            {
+                ridingDatastore.SetRiding(rider.playerId, rider.ridingCar);
+            }
+
+            return new TrainCarRidingManualCommandResolver(trainUnitLookupDatastore, buffer, ridingDatastore);
+        }
+
+        private sealed class TestPlayerRidingDatastore : IPlayerRidingDatastore
+        {
+            public IObservable<RidingStateChange> OnRidingStateChanged => _ridingStateChangedSubject;
+            private readonly Subject<RidingStateChange> _ridingStateChangedSubject = new();
+            private readonly Dictionary<int, RidingState> _states = new();
+
+            public bool TryGetRidingState(int playerId, out RidingState ridingState)
+            {
+                return _states.TryGetValue(playerId, out ridingState);
+            }
+
+            public RideActionResult TryRide(int playerId, IRidableIdentifier identifier, out int assignedSeatIndex)
+            {
+                assignedSeatIndex = 0;
+                _states[playerId] = new RidingState(identifier, assignedSeatIndex);
+                return RideActionResult.Success;
+            }
+
+            public RideActionResult TryDismount(int playerId)
+            {
+                return _states.Remove(playerId) ? RideActionResult.Success : RideActionResult.NotRiding;
+            }
+
+            public IReadOnlyList<int> OnRidableRemoved(IRidableIdentifier identifier)
+            {
+                var removedPlayerIds = new List<int>();
+                foreach (var pair in _states)
+                {
+                    if (pair.Value.Identifier.Equals(identifier))
+                    {
+                        removedPlayerIds.Add(pair.Key);
+                    }
+                }
+
+                foreach (var playerId in removedPlayerIds)
+                {
+                    _states.Remove(playerId);
+                }
+
+                return removedPlayerIds;
+            }
+
+            public bool EvaluateOnLogin(int playerId)
+            {
+                return _states.ContainsKey(playerId);
+            }
+
+            public List<PlayerRidingSaveData> GetSaveData()
+            {
+                return new List<PlayerRidingSaveData>();
+            }
+
+            public void LoadSaveData(IReadOnlyList<PlayerRidingSaveData> saveData)
+            {
+                _states.Clear();
+            }
+
+            public void SetRiding(int playerId, TrainCar ridingCar)
+            {
+                _states[playerId] = new RidingState(new TrainCarRidableIdentifier(ridingCar.TrainCarInstanceId.AsPrimitive()), 0);
+            }
         }
 
         private readonly struct TrainResolverFixture
