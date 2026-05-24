@@ -345,9 +345,10 @@ namespace Game.Train.Unit
                         _currentSpeed = 0;
                         break;//もう進めない
                     }
-                    // A/D があれば既存デフォルト候補を基準に deterministic な前後候補を選ぶ。
-                    // When A/D is present, choose a deterministic neighboring candidate around the current default.
-                    var nextNode = SelectManualBranchNode(nextNodelist, manualCommand.BranchCommand);
+                    // A/D があれば進行方向を基準に左右候補を選ぶ。
+                    // When A/D is present, choose left/right candidates from the current travel direction.
+                    var justPassed = _railPosition.GetNodeJustPassed();
+                    var nextNode = TrainUnitBranchSelector.SelectManualBranchNode(justPassed, approaching, nextNodelist, manualCommand.BranchCommand);
                     _railPosition.AddNodeToHead(nextNode);
                     _pendingApproachingNodeId = nextNode.NodeId;
                 }
@@ -359,58 +360,6 @@ namespace Game.Train.Unit
                 }
             }
             return totalMoved;
-        }
-
-        private static IRailNode SelectManualBranchNode(IReadOnlyList<IRailNode> connectedNodes, TrainUnitBranchCommand branchCommand)
-        {
-            if (connectedNodes.Count == 1 || branchCommand == TrainUnitBranchCommand.Neutral)
-            {
-                return connectedNodes[0];
-            }
-
-            // ニュートラル時の既存デフォルト候補を基準に、NodeId順で前後候補を選ぶ。
-            // Choose previous/next by NodeId order around the existing neutral default candidate.
-            var defaultNode = connectedNodes[0];
-            var sortedNodes = BuildSortedBranchCandidates(connectedNodes);
-            if (branchCommand == TrainUnitBranchCommand.Previous)
-            {
-                return SelectPreviousBranchNode(sortedNodes, defaultNode.NodeId);
-            }
-
-            return SelectNextBranchNode(sortedNodes, defaultNode.NodeId);
-        }
-
-        private static List<IRailNode> BuildSortedBranchCandidates(IReadOnlyList<IRailNode> connectedNodes)
-        {
-            var sortedNodes = connectedNodes.ToList();
-            sortedNodes.Sort((left, right) => left.NodeId.CompareTo(right.NodeId));
-            return sortedNodes;
-        }
-
-        private static IRailNode SelectPreviousBranchNode(IReadOnlyList<IRailNode> sortedNodes, int defaultNodeId)
-        {
-            for (var i = sortedNodes.Count - 1; i >= 0; i--)
-            {
-                if (sortedNodes[i].NodeId < defaultNodeId)
-                {
-                    return sortedNodes[i];
-                }
-            }
-
-            return sortedNodes[sortedNodes.Count - 1];
-        }
-
-        private static IRailNode SelectNextBranchNode(IReadOnlyList<IRailNode> sortedNodes, int defaultNodeId)
-        {
-            for (var i = 0; i < sortedNodes.Count; i++)
-            {
-                if (sortedNodes[i].NodeId > defaultNodeId)
-                {
-                    return sortedNodes[i];
-                }
-            }
-
-            return sortedNodes[0];
         }
 
         // diagram の現在目的地にちょうど 0 距離で到達したかを判定する。
