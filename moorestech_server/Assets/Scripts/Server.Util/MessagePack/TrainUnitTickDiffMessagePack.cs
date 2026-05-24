@@ -14,6 +14,7 @@ namespace Server.Util.MessagePack
         [Key(2)] public bool IsNowDockingSpeedZero { get; set; }
         [Key(3)] public int ApproachingNodeIdDiff { get; set; }
         [Key(4)] public bool IsReversedThisTick { get; set; }
+        [Key(5)] public int ManualBranchSelectionIndexDiff { get; set; }
 
         [Obsolete("Reserved for MessagePack.")]
         public TrainUnitTickDiffMessagePack()
@@ -27,6 +28,7 @@ namespace Server.Util.MessagePack
             IsNowDockingSpeedZero = diff.IsNowDockingSpeedZero;
             ApproachingNodeIdDiff = diff.ApproachingNodeIdDiff;
             IsReversedThisTick = diff.IsReversedThisTick;
+            ManualBranchSelectionIndexDiff = diff.ManualBranchSelectionIndexDiff;
         }
     }
 }

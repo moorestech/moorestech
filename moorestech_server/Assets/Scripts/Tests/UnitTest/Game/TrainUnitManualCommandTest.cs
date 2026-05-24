@@ -98,6 +98,19 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void ManualBranchSelection_EmitsTickDiffOnce()
+        {
+            var fixture = CreateTwoCarFixture();
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, 1));
+
+            var firstDiff = fixture.TrainUnit.GetTickDiff();
+            var secondDiff = fixture.TrainUnit.GetTickDiff();
+
+            Assert.AreEqual(1, firstDiff.manualBranchSelectionIndexDiff, "manual branch selection should be sent as a tick diff.");
+            Assert.AreEqual(0, secondDiff.manualBranchSelectionIndexDiff, "manual branch selection diff should be consumed once.");
+        }
+
+        [Test]
         public void ManualCommand_IsIgnoredDuringAutoRun()
         {
             var fixture = CreateTwoCarFixture();

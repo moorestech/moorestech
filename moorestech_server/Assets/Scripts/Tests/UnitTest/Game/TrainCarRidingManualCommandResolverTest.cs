@@ -134,6 +134,21 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void Resolve_BranchSelectionInput_IsConsumedOnceWithoutTtl()
+        {
+            var fixture = CreateForwardFacingFixture();
+            var buffer = new TrainCarRidingInputBuffer();
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, fixture.RidingCar.TrainCarInstanceId, 10, false, true, false, false));
+            var resolver = new TrainCarRidingManualCommandResolver(fixture.TrainUnitDatastore, buffer);
+
+            var firstCommand = resolver.Resolve(fixture.TrainUnit, 100);
+            var secondCommand = resolver.Resolve(fixture.TrainUnit, 100);
+
+            Assert.AreEqual(1, firstCommand.BranchSelectionIndexDelta, "Branch selection key-down should survive the movement TTL.");
+            Assert.AreEqual(0, secondCommand.BranchSelectionIndexDelta, "Branch selection key-down should be consumed once.");
+        }
+
+        [Test]
         public void Resolve_NewerTickOnOtherTrain_WinsOnlyForOwningTrain()
         {
             var firstFixture = CreateForwardFacingFixture();

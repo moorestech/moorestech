@@ -91,7 +91,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // pre sim差分イベントを対象TrainUnitへ反映する
         // Apply a pre-simulation diff event to the target train.
-        public bool ApplyPreSimulationDiff(TrainUnitInstanceId trainUnitInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId, bool isReversedThisTick)
+        public bool ApplyPreSimulationDiff(TrainUnitInstanceId trainUnitInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeId, bool isReversedThisTick, int manualBranchSelectionIndexDiff)
         {
             if (!_units.TryGetValue(trainUnitInstanceId, out var unit))
             {
@@ -100,7 +100,7 @@ namespace Client.Game.InGame.Train.Unit
 
             // reverse diff は車両順とオフセット索引を変えるため、適用後に index を組み直す
             // Rebuild indexes after reverse diff because car order and offsets change
-            var didReverse = unit.ApplyPreSimulationDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeId, isReversedThisTick);
+            var didReverse = unit.ApplyPreSimulationDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeId, isReversedThisTick, manualBranchSelectionIndexDiff);
             if (didReverse)
             {
                 RemoveCarIndex(trainUnitInstanceId);

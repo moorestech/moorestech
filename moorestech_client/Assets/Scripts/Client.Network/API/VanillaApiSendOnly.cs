@@ -129,9 +129,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void SendTrainCarRidingInput(TrainCarInstanceId ridingTrainCarInstanceId, bool w, bool a, bool s, bool d)
+        public void SendTrainCarRidingInput(TrainCarInstanceId ridingTrainCarInstanceId, bool moveForward, bool selectPreviousBranch, bool moveBackward, bool selectNextBranch)
         {
-            var request = new TrainCarRidingInputMessagePack(_playerId, ridingTrainCarInstanceId.AsPrimitive(), w, a, s, d);
+            var request = new TrainCarRidingInputMessagePack(_playerId, ridingTrainCarInstanceId.AsPrimitive(), moveForward, selectPreviousBranch, moveBackward, selectNextBranch);
             _packetSender.Send(request);
         }
         

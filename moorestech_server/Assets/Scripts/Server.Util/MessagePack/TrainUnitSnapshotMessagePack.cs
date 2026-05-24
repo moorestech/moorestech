@@ -39,6 +39,7 @@ namespace Server.Util.MessagePack
         [Key(2)] public double AccumulatedDistance { get; set; }
         [Key(3)] public int MasconLevel { get; set; }
         [Key(4)] public List<TrainCarSnapshotMessagePack> Cars { get; set; }
+        [Key(5)] public int ManualBranchSelectionIndex { get; set; }
 
         [Obsolete("Reserved for MessagePack serialization.")]
         public TrainSimulationSnapshotMessagePack() { }
@@ -49,6 +50,7 @@ namespace Server.Util.MessagePack
             CurrentSpeed = snapshot.CurrentSpeed;
             AccumulatedDistance = snapshot.AccumulatedDistance;
             MasconLevel = snapshot.MasconLevel;
+            ManualBranchSelectionIndex = snapshot.ManualBranchSelectionIndex;
             Cars = snapshot.Cars?.Select(car => new TrainCarSnapshotMessagePack(car)).ToList()
                    ?? new List<TrainCarSnapshotMessagePack>();
         }
@@ -61,6 +63,7 @@ namespace Server.Util.MessagePack
                 CurrentSpeed,
                 AccumulatedDistance,
                 MasconLevel,
+                ManualBranchSelectionIndex,
                 cars);
         }
     }
