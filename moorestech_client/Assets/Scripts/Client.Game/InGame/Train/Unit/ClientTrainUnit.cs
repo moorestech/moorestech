@@ -38,6 +38,11 @@ namespace Client.Game.InGame.Train.Unit
             TrainUnitInstanceId = trainUnitInstanceId;
         }
 
+        public int GetManualBranchSelectionIndex()
+        {
+            return _manualBranchSelectionIndex;
+        }
+
         // スナップショットの内容で内部状態を更新
         // Update internal state by the received snapshot
         public void SnapshotUpdate(TrainSimulationSnapshot simulation, RailPositionSaveData railPosition)
