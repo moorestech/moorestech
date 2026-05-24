@@ -1,129 +1,172 @@
+using System.Collections.Generic;
+using Core.Update;
+using Game.PlayerRiding.Interface;
+
 namespace Game.Train.Unit
 {
     public sealed class TrainCarRidingManualCommandResolver
     {
-        // 乗車入力は受信tickから20tick未満だけ有効とし、通信断や降車漏れで入力が残り続けるのを防ぐ。
-        // Riding input is valid for fewer than 20 server ticks to prevent stale controls after disconnects or missed dismounts.
-        private const uint ManualInputTimeToLiveTicks = 20;
+        // 入力heartbeatより長い保険timeoutで、途絶したW/Sをニュートラルへ戻す。
+        // Use a timeout longer than the input heartbeat to return stale W/S input to neutral.
+        private static readonly uint ManualInputTimeToLiveTicks = (uint)(GameUpdater.TicksPerSecond * 4);
 
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly TrainCarRidingInputBuffer _inputBuffer;
+        private readonly IPlayerRidingDatastore _playerRidingDatastore;
 
-        public TrainCarRidingManualCommandResolver(ITrainUnitLookupDatastore trainUnitLookupDatastore, TrainCarRidingInputBuffer inputBuffer)
+        public TrainCarRidingManualCommandResolver(ITrainUnitLookupDatastore trainUnitLookupDatastore, TrainCarRidingInputBuffer inputBuffer, IPlayerRidingDatastore playerRidingDatastore)
         {
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
             _inputBuffer = inputBuffer;
+            _playerRidingDatastore = playerRidingDatastore;
         }
 
         public TrainUnitManualCommand Resolve(TrainUnit trainUnit, uint currentTick)
         {
-            var trainDirectionVote = 0;
-            var branchSelectionVote = 0;
+            var commands = ResolveAll(currentTick);
+            return commands.TryGetValue(trainUnit, out var command) ? command : TrainUnitManualCommand.Default;
+        }
 
-            foreach (var inputState in _inputBuffer.GetLatestInputs())
+        public IReadOnlyDictionary<TrainUnit, TrainUnitManualCommand> ResolveAll(uint currentTick)
+        {
+            var expiredPlayerIds = new List<int>();
+            var trainDirectionVotes = new Dictionary<TrainUnit, int>();
+            var branchSelectionIndexDeltas = new Dictionary<TrainUnit, int>();
+
+            foreach (var inputState in _inputBuffer.GetLatestMoveInputs())
             {
                 // 期限切れ入力は多数決から除外する。
                 // Exclude expired inputs from the vote.
                 if (IsExpired(inputState, currentTick))
                 {
+                    expiredPlayerIds.Add(inputState.PlayerId);
                     continue;
                 }
 
-                // 対象外の train に乗っている入力は、この train の票にしない。
-                // Do not count inputs riding a different train.
-                if (!_trainUnitLookupDatastore.TryGetTrainUnitByCar(inputState.RidingTrainCarInstanceId, out var ridingTrainUnit))
+                if (!TryResolveRidingTrainCar(inputState.PlayerId, out var ridingTrainUnit, out var ridingTrainCar))
                 {
+                    expiredPlayerIds.Add(inputState.PlayerId);
                     continue;
                 }
 
-                if (!ReferenceEquals(ridingTrainUnit, trainUnit))
-                {
-                    continue;
-                }
-
-                if (!_trainUnitLookupDatastore.TryGetTrainCar(inputState.RidingTrainCarInstanceId, out var ridingTrainCar))
-                {
-                    continue;
-                }
-
-                // 車両向きを考慮して train 前後方向の票へ変換し、全員分を合算する。
-                // Convert each input with car facing into a train direction vote and sum all riders.
-                trainDirectionVote += ResolveTrainDirectionVote(ridingTrainCar, inputState);
-                // A/D は次の分岐候補選択の票として扱い、同数ならニュートラルに戻す。
-                // Treat A/D as votes for the next branch candidate, and fall back to neutral on ties.
-                branchSelectionVote += ResolveBranchSelectionVote(inputState);
+                AddVote(trainDirectionVotes, ridingTrainUnit, ResolveTrainDirectionVote(ridingTrainCar, inputState));
             }
 
-            return ResolveManualCommand(trainUnit, trainDirectionVote, branchSelectionVote);
+            foreach (var playerId in expiredPlayerIds)
+            {
+                _inputBuffer.ClearPlayerMoveInput(playerId);
+            }
+
+            foreach (var input in _inputBuffer.ConsumeBranchSelectionInputs())
+            {
+                if (!TryResolveRidingTrainCar(input.PlayerId, out var ridingTrainUnit, out _))
+                {
+                    continue;
+                }
+
+                AddVote(branchSelectionIndexDeltas, ridingTrainUnit, input.BranchSelectionIndexDelta);
+            }
+
+            return BuildCommands(trainDirectionVotes, branchSelectionIndexDeltas);
         }
 
-        private static bool IsExpired(TrainCarRidingInputBuffer.TrainCarRidingInputState inputState, uint currentTick)
+        private static bool IsExpired(TrainCarRidingInputBuffer.TrainCarRidingMoveInputState inputState, uint currentTick)
         {
             if (currentTick < inputState.ReceivedTick)
             {
-                return false;
+                return true;
             }
 
             return currentTick - inputState.ReceivedTick >= ManualInputTimeToLiveTicks;
         }
 
-        private static int ResolveTrainDirectionVote(TrainCar ridingTrainCar, TrainCarRidingInputBuffer.TrainCarRidingInputState inputState)
+        private static int ResolveTrainDirectionVote(TrainCar ridingTrainCar, TrainCarRidingInputBuffer.TrainCarRidingMoveInputState inputState)
         {
-            if (inputState.W == inputState.S)
+            if (inputState.MoveForward == inputState.MoveBackward)
             {
                 return 0;
             }
 
-            var wantsTrainForward = inputState.W
+            var wantsTrainForward = inputState.MoveForward
                 ? ridingTrainCar.IsFacingForward
                 : !ridingTrainCar.IsFacingForward;
             return wantsTrainForward ? 1 : -1;
         }
 
-        private static int ResolveBranchSelectionVote(TrainCarRidingInputBuffer.TrainCarRidingInputState inputState)
+        private bool TryResolveRidingTrainCar(int playerId, out TrainUnit ridingTrainUnit, out TrainCar ridingTrainCar)
         {
-            if (inputState.A == inputState.D)
+            ridingTrainUnit = null;
+            ridingTrainCar = null;
+            if (!_playerRidingDatastore.TryGetRidingState(playerId, out var state))
             {
-                return 0;
+                return false;
             }
 
-            return inputState.A ? -1 : 1;
+            if (state.Identifier is not TrainCarRidableIdentifier trainCarIdentifier)
+            {
+                return false;
+            }
+
+            var ridingTrainCarInstanceId = new TrainCarInstanceId(trainCarIdentifier.TrainCarInstanceId);
+            if (!_trainUnitLookupDatastore.TryGetTrainUnitByCar(ridingTrainCarInstanceId, out ridingTrainUnit))
+            {
+                return false;
+            }
+
+            return _trainUnitLookupDatastore.TryGetTrainCar(ridingTrainCarInstanceId, out ridingTrainCar);
         }
 
-        private static TrainUnitManualCommand ResolveManualCommand(TrainUnit trainUnit, int trainDirectionVote, int branchSelectionVote)
+        private static IReadOnlyDictionary<TrainUnit, TrainUnitManualCommand> BuildCommands(IReadOnlyDictionary<TrainUnit, int> trainDirectionVotes, IReadOnlyDictionary<TrainUnit, int> branchSelectionIndexDeltas)
         {
-            var branchCommand = ResolveBranchCommand(branchSelectionVote);
+            var commands = new Dictionary<TrainUnit, TrainUnitManualCommand>();
+            foreach (var pair in trainDirectionVotes)
+            {
+                branchSelectionIndexDeltas.TryGetValue(pair.Key, out var branchSelectionIndexDelta);
+                commands[pair.Key] = ResolveManualCommand(pair.Key, pair.Value, branchSelectionIndexDelta);
+            }
+
+            foreach (var pair in branchSelectionIndexDeltas)
+            {
+                if (commands.ContainsKey(pair.Key))
+                {
+                    continue;
+                }
+
+                commands[pair.Key] = ResolveManualCommand(pair.Key, 0, pair.Value);
+            }
+
+            return commands;
+        }
+
+        private static void AddVote(Dictionary<TrainUnit, int> votes, TrainUnit trainUnit, int vote)
+        {
+            if (votes.TryGetValue(trainUnit, out var current))
+            {
+                votes[trainUnit] = current + vote;
+                return;
+            }
+
+            votes[trainUnit] = vote;
+        }
+
+        private static TrainUnitManualCommand ResolveManualCommand(TrainUnit trainUnit, int trainDirectionVote, int branchSelectionIndexDelta)
+        {
             if (trainDirectionVote == 0)
             {
-                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, branchCommand);
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, branchSelectionIndexDelta);
             }
 
             if (trainDirectionVote > 0)
             {
-                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate, branchCommand);
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Accelerate, branchSelectionIndexDelta);
             }
 
             if (trainUnit.CurrentSpeed > 0)
             {
-                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Brake, branchCommand);
+                return new TrainUnitManualCommand(false, TrainUnitMasconCommand.Brake, branchSelectionIndexDelta);
             }
 
-            return new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate, branchCommand);
-        }
-
-        private static TrainUnitBranchCommand ResolveBranchCommand(int branchSelectionVote)
-        {
-            if (branchSelectionVote < 0)
-            {
-                return TrainUnitBranchCommand.Previous;
-            }
-
-            if (branchSelectionVote > 0)
-            {
-                return TrainUnitBranchCommand.Next;
-            }
-
-            return TrainUnitBranchCommand.Neutral;
+            return new TrainUnitManualCommand(true, TrainUnitMasconCommand.Accelerate, branchSelectionIndexDelta);
         }
     }
 }

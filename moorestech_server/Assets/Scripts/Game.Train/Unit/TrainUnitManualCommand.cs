@@ -7,30 +7,23 @@ namespace Game.Train.Unit
         Accelerate = 1
     }
 
-    public enum TrainUnitBranchCommand
-    {
-        Previous = -1,
-        Neutral = 0,
-        Next = 1
-    }
-
     public readonly struct TrainUnitManualCommand
     {
-        public static readonly TrainUnitManualCommand Default = new(false, TrainUnitMasconCommand.Neutral, TrainUnitBranchCommand.Neutral);
+        public static readonly TrainUnitManualCommand Default = new(false, TrainUnitMasconCommand.Neutral, 0);
         public readonly bool ReverseRequested;
         public readonly TrainUnitMasconCommand MasconCommand;
-        public readonly TrainUnitBranchCommand BranchCommand;
+        public readonly int BranchSelectionIndexDelta;
 
         public TrainUnitManualCommand(bool reverseRequested, TrainUnitMasconCommand masconCommand)
-            : this(reverseRequested, masconCommand, TrainUnitBranchCommand.Neutral)
+            : this(reverseRequested, masconCommand, 0)
         {
         }
 
-        public TrainUnitManualCommand(bool reverseRequested, TrainUnitMasconCommand masconCommand, TrainUnitBranchCommand branchCommand)
+        public TrainUnitManualCommand(bool reverseRequested, TrainUnitMasconCommand masconCommand, int branchSelectionIndexDelta)
         {
             ReverseRequested = reverseRequested;
             MasconCommand = masconCommand;
-            BranchCommand = branchCommand;
+            BranchSelectionIndexDelta = branchSelectionIndexDelta;
         }
     }
 }
