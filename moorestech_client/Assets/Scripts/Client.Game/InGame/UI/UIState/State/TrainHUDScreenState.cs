@@ -108,7 +108,6 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Dismount and transition to GameScreen.
                 if (message.StateType == RidingStateEventType.Dismount)
                 {
-                    _playerStateController.SetState(PlayerStateEnum.Normal, null);
                     _isDismountTrain = true;
                 }
             }
@@ -120,7 +119,6 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             if (_isDismountTrain)
             {
-                _branchRoutePreviewController.Hide();
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
 
@@ -132,7 +130,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Force dismount if the target car has disappeared.
             if (!_trainUnitClientCache.TryGetCarSnapshot( _rideContext.CurrentCarId, out var ridingTrainUnit, out _, out _, out _))
             {
-                _branchRoutePreviewController.Hide();
+                _isDismountTrain = true;
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
                 
