@@ -23,12 +23,11 @@ namespace Server.Protocol.PacketResponse
             var input = MessagePackSerializer.Deserialize<TrainCarRidingInputMessagePack>(payload);
             _inputBuffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(
                 input.PlayerId,
-                new TrainCarInstanceId(input.RidingTrainCarInstanceId),
                 _trainUpdateService.GetCurrentTick(),
-                input.W,
-                input.A,
-                input.S,
-                input.D));
+                input.MoveForward,
+                input.SelectPreviousBranch,
+                input.MoveBackward,
+                input.SelectNextBranch));
             return null;
         }
 
@@ -36,11 +35,10 @@ namespace Server.Protocol.PacketResponse
         public class TrainCarRidingInputMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public long RidingTrainCarInstanceId { get; set; }
-            [Key(4)] public bool W { get; set; }
-            [Key(5)] public bool A { get; set; }
-            [Key(6)] public bool S { get; set; }
-            [Key(7)] public bool D { get; set; }
+            [Key(3)] public bool MoveForward { get; set; }
+            [Key(4)] public bool MoveBackward { get; set; }
+            [Key(5)] public bool SelectPreviousBranch { get; set; }
+            [Key(6)] public bool SelectNextBranch { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public TrainCarRidingInputMessagePack()
@@ -48,15 +46,14 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
             }
 
-            public TrainCarRidingInputMessagePack(int playerId, long ridingTrainCarInstanceId, bool w, bool a, bool s, bool d)
+            public TrainCarRidingInputMessagePack(int playerId, bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
             {
                 Tag = ProtocolTag;
                 PlayerId = playerId;
-                RidingTrainCarInstanceId = ridingTrainCarInstanceId;
-                W = w;
-                A = a;
-                S = s;
-                D = d;
+                MoveForward = moveForward;
+                MoveBackward = moveBackward;
+                SelectPreviousBranch = selectPreviousBranch;
+                SelectNextBranch = selectNextBranch;
             }
         }
     }

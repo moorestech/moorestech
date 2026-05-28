@@ -1,22 +1,24 @@
+using System;
+using System.Collections.Generic;
+using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using NUnit.Framework;
+using UniRx;
 
 namespace Tests.UnitTest.Game
 {
     public class TrainCarRidingInputBufferTest
     {
         [Test]
-        public void SetLatestInput_OlderTickFromSamePlayer_IsIgnored()
+        public void SetLatestInput_LastPayloadFromSamePlayer_IsUsed()
         {
             var buffer = new TrainCarRidingInputBuffer();
-            var carId = new TrainCarInstanceId(10);
 
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, carId, 5, true, false, false, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, new TrainCarInstanceId(20), 4, false, false, true, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, 5, true, false, false, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, 4, false, false, true, false));
 
             var latestInput = GetSingleInput(buffer);
-            Assert.AreEqual(carId, latestInput.RidingTrainCarInstanceId, "同一プレイヤーの古い tick 入力で最新入力が上書きされています。");
-            Assert.IsTrue(latestInput.W, "古い tick 入力で W 状態が失われています。");
+            Assert.IsTrue(latestInput.MoveBackward, "後着入力の後退入力状態が保持されていません。");
         }
 
         [Test]
@@ -24,23 +26,82 @@ namespace Tests.UnitTest.Game
         {
             var buffer = new TrainCarRidingInputBuffer();
 
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, new TrainCarInstanceId(10), 5, true, false, false, false));
-            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, new TrainCarInstanceId(20), 5, false, false, true, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, 5, true, false, false, false));
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, 5, false, false, true, false));
 
             var latestInput = GetSingleInput(buffer);
-            Assert.AreEqual(new TrainCarInstanceId(20), latestInput.RidingTrainCarInstanceId, "同 tick の後着入力が採用されていません。");
-            Assert.IsTrue(latestInput.S, "同 tick の後着入力のボタン状態が保持されていません。");
+            Assert.IsTrue(latestInput.MoveBackward, "同 tick の後着入力の後退入力状態が保持されていません。");
         }
 
-        private static TrainCarRidingInputBuffer.TrainCarRidingInputState GetSingleInput(TrainCarRidingInputBuffer buffer)
+        [Test]
+        public void RidingStateChange_ClearsMoveAndBranchInput()
         {
-            foreach (var input in buffer.GetLatestInputs())
+            var ridingDatastore = new TestPlayerRidingDatastore();
+            var buffer = new TrainCarRidingInputBuffer(ridingDatastore);
+            buffer.SetLatestInput(new TrainCarRidingInputBuffer.TrainCarRidingInputState(1, 5, true, true, false, false));
+
+            ridingDatastore.Publish(new RidingStateChange(1, RidingStateChangeType.Dismount, null));
+
+            Assert.AreEqual(0, buffer.GetLatestMoveInputs().Count, "降車後に W/S 状態が残っています。");
+            Assert.AreEqual(0, buffer.ConsumeBranchSelectionInputs().Count, "降車後に A/D 押下イベントが残っています。");
+        }
+
+        private static TrainCarRidingInputBuffer.TrainCarRidingMoveInputState GetSingleInput(TrainCarRidingInputBuffer buffer)
+        {
+            foreach (var input in buffer.GetLatestMoveInputs())
             {
                 return input;
             }
 
             Assert.Fail("入力が 1 件も保持されていません。");
             return default;
+        }
+
+        private sealed class TestPlayerRidingDatastore : IPlayerRidingDatastore
+        {
+            public IObservable<RidingStateChange> OnRidingStateChanged => _subject;
+            private readonly Subject<RidingStateChange> _subject = new();
+
+            public bool TryGetRidingState(int playerId, out RidingState ridingState)
+            {
+                ridingState = null;
+                return false;
+            }
+
+            public RideActionResult TryRide(int playerId, IRidableIdentifier identifier, out int assignedSeatIndex)
+            {
+                assignedSeatIndex = -1;
+                return RideActionResult.RidableNotFound;
+            }
+
+            public RideActionResult TryDismount(int playerId)
+            {
+                return RideActionResult.NotRiding;
+            }
+
+            public IReadOnlyList<int> OnRidableRemoved(IRidableIdentifier identifier)
+            {
+                return Array.Empty<int>();
+            }
+
+            public bool EvaluateOnLogin(int playerId)
+            {
+                return false;
+            }
+
+            public List<PlayerRidingSaveData> GetSaveData()
+            {
+                return new List<PlayerRidingSaveData>();
+            }
+
+            public void LoadSaveData(IReadOnlyList<PlayerRidingSaveData> saveData)
+            {
+            }
+
+            public void Publish(RidingStateChange change)
+            {
+                _subject.OnNext(change);
+            }
         }
     }
 }
