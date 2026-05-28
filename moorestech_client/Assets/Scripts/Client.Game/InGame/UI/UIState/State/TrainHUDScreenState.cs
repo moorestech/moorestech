@@ -16,13 +16,15 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    // 列車に乗車中の HUD ステート。State が列車関連処理の唯一の起点である
-    // Train HUD state, the single source of truth for all train-related processing while riding.
+    // 列車に乗車中の HUD ステート。状態遷移と列車系UI処理の呼び出しを担当する
+    // Train HUD state, responsible for state transitions and dispatching train UI work while riding.
     public class TrainHUDScreenState : IUIState
     {
         private readonly PlayerStateController _playerStateController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
         private readonly TrainHudScreenUIStateController _subStateController;
+        private readonly TrainRidingInputSender _trainRidingInputSender = new();
+        private readonly TrainBranchRoutePreviewController _branchRoutePreviewController = new();
 
         private bool _isDismountTrain = false;
         private RidingPlayerStateContext _rideContext;
@@ -50,6 +52,7 @@ namespace Client.Game.InGame.UI.UIState.State
             
             _rideContext = null;
             _isDismountTrain = false;
+            _trainRidingInputSender.Reset();
             
             // 初期値として乗車完了済みの場合は即時反映
             // If the player is already riding at the time of entering, reflect that immediately.
@@ -105,7 +108,6 @@ namespace Client.Game.InGame.UI.UIState.State
                 // Dismount and transition to GameScreen.
                 if (message.StateType == RidingStateEventType.Dismount)
                 {
-                    _playerStateController.SetState(PlayerStateEnum.Normal, null);
                     _isDismountTrain = true;
                 }
             }
@@ -115,7 +117,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            if (_isDismountTrain) return new UITransitContext(UIStateEnum.GameScreen);
+            if (_isDismountTrain)
+            {
+                return new UITransitContext(UIStateEnum.GameScreen);
+            }
 
             // まだ乗車が完了していないのであれば何もしない
             // If riding is not yet completed, do nothing.
@@ -123,12 +128,22 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 対象車両が消えたら強制降車
             // Force dismount if the target car has disappeared.
-            if (!_trainUnitClientCache.TryGetCarSnapshot( _rideContext.CurrentCarId, out _, out _, out _, out _))  return new UITransitContext(UIStateEnum.GameScreen);
+            if (!_trainUnitClientCache.TryGetCarSnapshot( _rideContext.CurrentCarId, out var ridingTrainUnit, out _, out _, out _))
+            {
+                _isDismountTrain = true;
+                return new UITransitContext(UIStateEnum.GameScreen);
+            }
                 
             // TrainHUD内部のサブUIステートを実行
             // Run the nested sub-state for the Train HUD.
             _subStateController.Update();
-            if (_subStateController.CurrentState != TrainHudScreenUIStateEnum.GameScreen) return null;
+            if (_subStateController.CurrentState != TrainHudScreenUIStateEnum.GameScreen)
+            {
+                _branchRoutePreviewController.Hide();
+                return null;
+            }
+
+            _branchRoutePreviewController.Update(ridingTrainUnit);
 
             // GameScreenだけ降車処理、列車操作入力を受け付け
             // Only process dismount and train control input on the GameScreen.
@@ -136,19 +151,8 @@ namespace Client.Game.InGame.UI.UIState.State
             {
                 SendDismountRequestAsync().Forget(LogRpcFault);
             }
-            
-            
-            var isInput = UnityEngine.Input.GetKey(KeyCode.W) || UnityEngine.Input.GetKey(KeyCode.A) || UnityEngine.Input.GetKey(KeyCode.S) || UnityEngine.Input.GetKey(KeyCode.D);
-            if (isInput)
-            {
-                ClientContext.VanillaApi.SendOnly.SendTrainCarRidingInput(
-                    _rideContext.CurrentCarId,
-                    UnityEngine.Input.GetKey(KeyCode.W),
-                    UnityEngine.Input.GetKey(KeyCode.A),
-                    UnityEngine.Input.GetKey(KeyCode.S),
-                    UnityEngine.Input.GetKey(KeyCode.D));
-            }
-            
+
+            _trainRidingInputSender.Update();
 
             return null;
 
@@ -191,6 +195,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // ステートを変更して降車処理を実行
             // Change state to trigger dismount processing.
             _playerStateController.SetState(PlayerStateEnum.Normal, null);
+            _branchRoutePreviewController.Destroy();
 
         }
 

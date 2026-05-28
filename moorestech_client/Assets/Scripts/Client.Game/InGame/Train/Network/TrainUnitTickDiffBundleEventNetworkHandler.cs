@@ -78,7 +78,7 @@ namespace Client.Game.InGame.Train.Network
                             {
                                 continue;
                             }
-                            _cache.ApplyPreSimulationDiff(diff.TrainUnitInstanceId, diff.MasconLevelDiff, diff.IsNowDockingSpeedZero, diff.ApproachingNodeIdDiff, diff.IsReversedThisTick);
+                            _cache.ApplyPreSimulationDiff(diff.TrainUnitInstanceId, diff.MasconLevelDiff, diff.IsNowDockingSpeedZero, diff.ApproachingNodeIdDiff, diff.IsReversedThisTick, diff.ManualBranchSelectionIndexDiff);
                         }
                     }
                     // sim本体

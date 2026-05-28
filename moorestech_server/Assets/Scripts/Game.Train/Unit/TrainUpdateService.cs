@@ -66,10 +66,12 @@ namespace Game.Train.Unit
             // Reset per-tick ordering counter when tick advances.
             _tickSequenceId = 0;
 
-            //simulation
+            // 乗車入力をtickごとに一括集計し、各TrainUnitへ適用する。
+            // Aggregate riding inputs once per tick and apply them to each TrainUnit.
+            var manualCommands = _trainCarRidingManualCommandResolver.ResolveAll(_executedTick);
             foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
             {
-                var manualCommand = _trainCarRidingManualCommandResolver.Resolve(trainUnit, _executedTick);
+                var manualCommand = manualCommands.TryGetValue(trainUnit, out var command) ? command : TrainUnitManualCommand.Default;
                 trainUnit.Update(manualCommand);
             }
 
@@ -106,20 +108,20 @@ namespace Game.Train.Unit
                 var diffs = new List<TrainTickDiffData>();
                 foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
                 {
-                    var (masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick) = trainUnit.GetTickDiff();
-                    if (!HasDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick))
+                    var (masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick, manualBranchSelectionIndexDiff) = trainUnit.GetTickDiff();
+                    if (!HasDiff(masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick, manualBranchSelectionIndexDiff))
                     {
                         continue;
                     }
-                    diffs.Add(new TrainTickDiffData(trainUnit.TrainUnitInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick));
+                    diffs.Add(new TrainTickDiffData(trainUnit.TrainUnitInstanceId, masconLevelDiff, isNowDockingSpeedZero, approachingNodeIdDiff, isReversedThisTick, manualBranchSelectionIndexDiff));
                 }
                 // 差分0件でもsim実行トリガとして同tickイベントを送る。
                 // Emit the same-tick event even when diffs are empty as a simulation trigger.
                 _onPreSimulationDiffEvent.OnNext((tick, diffs));
                 
-                bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick)
+                bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick, int manualBranchSelectionIndexDiff)
                 {
-                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1 || isReversedThisTick;
+                    return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1 || isReversedThisTick || manualBranchSelectionIndexDiff != 0;
                 }
             }
             #endregion
@@ -211,14 +213,16 @@ namespace Game.Train.Unit
             public bool IsNowDockingSpeedZero { get; }
             public int ApproachingNodeIdDiff { get; }
             public bool IsReversedThisTick { get; }
+            public int ManualBranchSelectionIndexDiff { get; }
 
-            public TrainTickDiffData(TrainUnitInstanceId trainUnitInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick)
+            public TrainTickDiffData(TrainUnitInstanceId trainUnitInstanceId, int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick, int manualBranchSelectionIndexDiff)
             {
                 TrainUnitInstanceId = trainUnitInstanceId;
                 MasconLevelDiff = masconLevelDiff;
                 IsNowDockingSpeedZero = isNowDockingSpeedZero;
                 ApproachingNodeIdDiff = approachingNodeIdDiff;
                 IsReversedThisTick = isReversedThisTick;
+                ManualBranchSelectionIndexDiff = manualBranchSelectionIndexDiff;
             }
         }
 

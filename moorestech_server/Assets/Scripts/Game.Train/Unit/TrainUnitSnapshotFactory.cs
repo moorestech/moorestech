@@ -27,6 +27,7 @@ namespace Game.Train.Unit
                 train.CurrentSpeed,
                 train.AccumulatedDistance,
                 train.masconLevel,
+                train.GetManualBranchSelectionIndex(),
                 carSnapshots);
         }
 
