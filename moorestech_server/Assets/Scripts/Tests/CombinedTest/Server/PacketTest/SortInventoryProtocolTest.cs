@@ -63,6 +63,31 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void MainInventoryStackOverflowMergeTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            // 合計が最大スタックを超える同種アイテムを2スロットに分割配置する
+            // Place a same item split across two slots so the total exceeds the max stack.
+            var itemId = new ItemId(2);
+            var maxStack = MasterHolder.ItemMaster.GetItemMaster(itemId).MaxStack;
+            mainInventory.SetItem(0, itemId, maxStack - 5);
+            mainInventory.SetItem(3, itemId, 10);
+
+            packet.GetPacketResponse(GetPacket(ItemMoveInventoryInfo.CreateMain()), new PacketResponseContext());
+
+            // 先頭スロットは最大スタックまで詰まり、あふれた5個が次スロットへ流れる
+            // The first slot fills to max stack and the overflowing 5 items flow into the next slot.
+            Assert.AreEqual(itemStackFactory.Create(itemId, maxStack), mainInventory.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(itemId, 5), mainInventory.GetItem(1));
+            Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(2).Id);
+            Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(3).Id);
+        }
+
+        [Test]
         public void BlockInventorySortTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
