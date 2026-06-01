@@ -11,6 +11,7 @@ using Game.Context;
 using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.Main
@@ -27,6 +28,10 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public Transform SubInventoryParent => subInventoryParent.transform;
         [SerializeField] private Transform subInventoryParent;
+
+        //インベントリ整理ボタン
+        //Inventory sort button
+        [SerializeField] private Button sortInventoryButton;
         
         //現在スプリットドラッグしているスロットのリスト
         private readonly List<ItemSplitDragSlot> _itemSplitDraggedSlots = new();
@@ -47,6 +52,10 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private void Awake()
         {
             foreach (var mainInventorySlotObject in mainInventorySlotObjects) mainInventorySlotObject.OnPointerEvent.Subscribe(ItemSlotUIEvent);
+
+            //整理ボタンのクリックでメイン＋開いているサブインベントリを整理する
+            //Clicking the sort button tidies the main and currently open sub inventory.
+            if (sortInventoryButton != null) sortInventoryButton.onClick.AddListener(() => _playerInventory.SortInventory());
         }
         
         private void Update()

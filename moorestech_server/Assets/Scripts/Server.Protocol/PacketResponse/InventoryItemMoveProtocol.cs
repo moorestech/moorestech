@@ -65,49 +65,9 @@ namespace Server.Protocol.PacketResponse
 
         private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, InventoryIdentifierMessagePack inventoryIdentifier)
         {
-            return inventoryType switch
-            {
-                ItemMoveInventoryType.MainInventory => _playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory,
-                ItemMoveInventoryType.GrabInventory => _playerInventoryDataStore.GetInventoryData(playerId).GrabInventory,
-                ItemMoveInventoryType.SubInventory => ResolveSubInventory(inventoryIdentifier),
-                _ => null,
-            };
-
-            #region Internal
-
-            IOpenableInventory ResolveSubInventory(InventoryIdentifierMessagePack identifier)
-            {
-                // ブロック/列車インベントリの場合はInventoryIdentifierから情報を取得
-                // Get information from InventoryIdentifier for block/train inventory.
-                if (identifier == null) return null;
-
-                return identifier.InventoryType switch
-                {
-                    InventoryType.Block => ResolveBlockInventory(identifier),
-                    InventoryType.Train => ResolveTrainInventory(identifier),
-                    _ => null,
-                };
-            }
-
-            IOpenableInventory ResolveBlockInventory(InventoryIdentifierMessagePack identifier)
-            {
-                var pos = identifier.BlockPosition.Vector3Int;
-                return ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
-                    ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
-                    : null;
-            }
-
-            IOpenableInventory ResolveTrainInventory(InventoryIdentifierMessagePack identifier)
-            {
-                // 列車カーのアイテムコンテナをIOpenableInventoryとして返す
-                // Return the target train car item container as IOpenableInventory.
-                var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
-                if (!_trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar)) return null;
-                if (trainCar.Container is not ItemTrainCarContainer itemContainer) return null;
-                return itemContainer;
-            }
-
-            #endregion
+            // 解決ロジックは整理プロトコルと共通化している
+            // Resolution logic is shared with the sort protocol.
+            return OpenableInventoryResolver.Resolve(inventoryType, playerId, inventoryIdentifier, _playerInventoryDataStore, _trainUnitLookupDatastore);
         }
 
         [MessagePackObject]

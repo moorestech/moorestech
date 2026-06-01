@@ -37,6 +37,12 @@ namespace Client.Network.API
             var request = new InventoryItemMoveProtocol.InventoryItemMoveProtocolMessagePack(_playerId, count, itemMoveType, fromInv, fromSlot, toInv, toSlot);
             _packetSender.Send(request);
         }
+
+        public void SortInventory(ItemMoveInventoryInfo target)
+        {
+            var request = new SortInventoryProtocol.SortInventoryProtocolMessagePack(_playerId, target);
+            _packetSender.Send(request);
+        }
         
         public void PlaceHotBarBlock(List<PlaceInfo> placePositions, int hotBarSlot)
         {

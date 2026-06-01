@@ -101,6 +101,19 @@ namespace Client.Game.InGame.UI.Inventory.Main
             #endregion
         }
         
+        public void SortInventory()
+        {
+            // メインインベントリを整理（ホットバー除外はサーバー側で実施）
+            // Sort the main inventory (hotbar exclusion is handled on the server).
+            ClientContext.VanillaApi.SendOnly.SortInventory(ItemMoveInventoryInfo.CreateMain());
+
+            // 開いているサブインベントリがあれば整理する
+            // Also sort the currently open sub-inventory, if any.
+            if (_subInventory != null && _subInventory.IsEnableSubInventory())
+                ClientContext.VanillaApi.SendOnly.SortInventory(
+                    ItemMoveInventoryInfo.CreateSubInventory(_subInventory.ISubInventoryIdentifier.ToMessagePack()));
+        }
+
         public void SetGrabItem(IItemStack itemStack)
         {
             GrabInventory = itemStack;
