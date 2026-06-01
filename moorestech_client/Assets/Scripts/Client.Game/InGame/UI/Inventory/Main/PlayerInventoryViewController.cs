@@ -55,7 +55,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
             //整理ボタンのクリックでメイン＋開いているサブインベントリを整理する
             //Clicking the sort button tidies the main and currently open sub inventory.
-            if (sortInventoryButton != null) sortInventoryButton.onClick.AddListener(() => _playerInventory.SortInventory());
+            sortInventoryButton.onClick.AddListener(() => _playerInventory.SortInventory());
         }
         
         private void Update()

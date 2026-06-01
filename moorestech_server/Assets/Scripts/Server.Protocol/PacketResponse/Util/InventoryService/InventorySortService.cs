@@ -48,17 +48,17 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
 
             void MergeItem(List<IItemStack> dest, IItemStack item)
             {
-                // 既存スタックへ最大スタック数・メタデータ互換性を尊重して加算し、余りは新スタックとして追加する
-                // Add into existing stacks honoring max-stack and metadata compatibility; append the remainder as a new stack.
+                // 既存スタックへ最大スタックまで詰め、あふれた分は次スタック／新スタックへ流す
+                // Fill existing stacks up to max stack; overflow flows into the next or a new stack.
                 var remaining = item;
-                for (var i = 0; i < dest.Count && remaining.Count > 0; i++)
+                for (var i = 0; i < dest.Count && 0 < remaining.Count; i++)
                 {
-                    if (!dest[i].IsAllowedToAdd(remaining)) continue;
+                    if (!dest[i].IsAllowedToAddWithRemain(remaining)) continue;
                     var result = dest[i].AddItem(remaining);
                     dest[i] = result.ProcessResultItemStack;
                     remaining = result.RemainderItemStack;
                 }
-                if (remaining.Count > 0) dest.Add(remaining);
+                if (0 < remaining.Count) dest.Add(remaining);
             }
 
             #endregion
