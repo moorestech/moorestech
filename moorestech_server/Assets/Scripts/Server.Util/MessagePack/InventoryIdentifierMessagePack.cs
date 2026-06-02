@@ -3,12 +3,6 @@ using UnityEngine;
 
 namespace Server.Util.MessagePack
 {
-    public enum InventoryType : byte
-    {
-        Block,
-        Train,
-    }
-    
     /// <summary>
     /// インベントリ識別子を保持するMessagePackクラス
     /// MessagePack class that holds inventory identifier
@@ -29,9 +23,33 @@ namespace Server.Util.MessagePack
         /// Train car instance id for train inventory
         /// </summary>
         [Key(2)] public string TrainCarInstanceId { get; set; }
+
+        /// <summary>
+        /// プレイヤーインベントリの場合のPlayerId
+        /// Player id for player inventory
+        /// </summary>
+        [Key(3)] public int PlayerId { get; set; }
         
         
         public InventoryIdentifierMessagePack() { }
+
+        public static InventoryIdentifierMessagePack CreateMainMessage(int playerId)
+        {
+            return new InventoryIdentifierMessagePack
+            {
+                InventoryType = InventoryType.Main,
+                PlayerId = playerId,
+            };
+        }
+
+        public static InventoryIdentifierMessagePack CreateGrabMessage(int playerId)
+        {
+            return new InventoryIdentifierMessagePack
+            {
+                InventoryType = InventoryType.Grab,
+                PlayerId = playerId,
+            };
+        }
         
         public static InventoryIdentifierMessagePack CreateBlockMessage(Vector3Int position)
         {
