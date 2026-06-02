@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using Core.Inventory;
-using Game.Block.Interface.Component;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Train.Unit;
-using Game.Train.Unit.Containers;
-using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Util.InventoryService.Resolver;
 using Server.Util.MessagePack;
 
@@ -22,12 +19,16 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         
-        public OpenableInventoryResolver(IPlayerInventoryDataStore playerInventoryDataStore)
+        public OpenableInventoryResolver(IPlayerInventoryDataStore playerInventoryDataStore, ITrainUnitLookupDatastore trainUnitLookupDatastore)
         {
             _playerInventoryDataStore = playerInventoryDataStore;
-            
-            // WIP リゾルバ基盤 _resolvers.Add(InventoryType.Block, new BlockInventoryIdentifierResolver());
-            // WIP _resolvers.Add(InventoryType.Train, new TrainInventoryIdentifierResolver());
+            _trainUnitLookupDatastore = trainUnitLookupDatastore;
+            _resolvers = new Dictionary<InventoryType, IInventoryIdentifierResolver>();
+
+            // 外部対象インベントリは専用リゾルバへ委譲する
+            // Delegate external target inventories to dedicated resolvers.
+            AddResolver(new BlockInventoryIdentifierResolver(ServerContext.WorldBlockDatastore));
+            AddResolver(new TrainInventoryIdentifierResolver(_trainUnitLookupDatastore));
         }
         
         
@@ -36,38 +37,40 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             IPlayerInventoryDataStore playerInventoryDataStore,
             ITrainUnitLookupDatastore trainUnitLookupDatastore)
         {
+            var resolver = new OpenableInventoryResolver(playerInventoryDataStore, trainUnitLookupDatastore);
+            return resolver.Resolve(inventoryIdentifier);
+        }
+
+        public IOpenableInventory Resolve(InventoryIdentifierMessagePack inventoryIdentifier)
+        {
             if (inventoryIdentifier == null) return null;
 
+            // プレイヤーインベントリはPlayerIdで直接解決する
+            // Resolve player inventories directly by player id.
             return inventoryIdentifier.InventoryType switch
             {
-                InventoryType.Main => playerInventoryDataStore.GetInventoryData(inventoryIdentifier.PlayerId).MainOpenableInventory,
-                InventoryType.Grab => playerInventoryDataStore.GetInventoryData(inventoryIdentifier.PlayerId).GrabInventory,
-                InventoryType.Block => ResolveBlockInventory(inventoryIdentifier),
-                InventoryType.Train => ResolveTrainInventory(inventoryIdentifier),
-                _ => null,
+                InventoryType.Main => _playerInventoryDataStore.GetInventoryData(inventoryIdentifier.PlayerId).MainOpenableInventory,
+                InventoryType.Grab => _playerInventoryDataStore.GetInventoryData(inventoryIdentifier.PlayerId).GrabInventory,
+                _ => ResolveByIdentifier(inventoryIdentifier),
             };
 
             #region Internal
 
-            IOpenableInventory ResolveBlockInventory(InventoryIdentifierMessagePack identifier)
+            IOpenableInventory ResolveByIdentifier(InventoryIdentifierMessagePack identifier)
             {
-                var pos = identifier.BlockPosition.Vector3Int;
-                return ServerContext.WorldBlockDatastore.ExistsComponent<IOpenableBlockInventoryComponent>(pos)
-                    ? ServerContext.WorldBlockDatastore.GetBlock<IOpenableBlockInventoryComponent>(pos)
+                // InventoryTypeに対応するリゾルバへ委譲する
+                // Delegate to the resolver registered for the inventory type.
+                return _resolvers.TryGetValue(identifier.InventoryType, out var resolver)
+                    ? resolver.Resolve(identifier)
                     : null;
             }
 
-            IOpenableInventory ResolveTrainInventory(InventoryIdentifierMessagePack identifier)
-            {
-                // 列車カーのアイテムコンテナを IOpenableInventory として返す
-                // Return the target train car item container as IOpenableInventory.
-                var trainCarInstanceId = new TrainCarInstanceId(long.Parse(identifier.TrainCarInstanceId));
-                if (!trainUnitLookupDatastore.TryGetTrainCar(trainCarInstanceId, out var trainCar)) return null;
-                if (trainCar.Container is not ItemTrainCarContainer itemContainer) return null;
-                return itemContainer;
-            }
-
             #endregion
+        }
+
+        private void AddResolver(IInventoryIdentifierResolver resolver)
+        {
+            _resolvers.Add(resolver.InventoryType, resolver);
         }
     }
 }
