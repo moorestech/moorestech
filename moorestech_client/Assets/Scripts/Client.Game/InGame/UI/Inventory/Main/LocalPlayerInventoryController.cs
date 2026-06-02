@@ -41,7 +41,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             if (isMoveSendData) SendMoveItemData();
             
-            #region InternalMethod
+            #region Internal
             
             void SetInventory()
             {
@@ -83,9 +83,13 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             void SendMoveItemData()
             {
+                // ローカル結合スロットをサーバーのインベントリ内スロットへ変換する
+                // Convert combined local slots into inventory-local server slots.
                 var fromIdentifier = GetServerInventoryIdentifier(from, fromSlot);
                 var toIdentifier = GetServerInventoryIdentifier(to, toSlot);
-                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromIdentifier, fromSlot, toIdentifier, toSlot);
+                var fromServerSlot = GetServerInventorySlot(from, fromSlot);
+                var toServerSlot = GetServerInventorySlot(to, toSlot);
+                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromIdentifier, fromServerSlot, toIdentifier, toServerSlot);
             }
             
             InventoryIdentifierMessagePack GetServerInventoryIdentifier(LocalMoveInventoryType localType, int localSlot)
@@ -96,6 +100,18 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
                         : _subInventory.ISubInventoryIdentifier.ToMessagePack(),
                     LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
+                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
+                };
+            }
+
+            int GetServerInventorySlot(LocalMoveInventoryType localType, int localSlot)
+            {
+                return localType switch
+                {
+                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
+                        ? localSlot
+                        : localSlot - PlayerInventoryConst.MainInventorySize,
+                    LocalMoveInventoryType.Grab => 0,
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }

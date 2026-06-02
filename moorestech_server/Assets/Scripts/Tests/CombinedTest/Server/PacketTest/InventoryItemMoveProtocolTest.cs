@@ -110,7 +110,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //インベントリを持っているアイテムに移す
             packet.GetPacketResponse(GetPacket(7,
-                InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10)), 1 + PlayerInventoryConst.MainInventorySize,
+                InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10)), 1,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0), new PacketResponseContext());
 
             //移っているかチェック
@@ -121,7 +121,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //持っているアイテムをインベントリに移す
             packet.GetPacketResponse(GetPacket(5,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0,
-                InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10)), 1 + PlayerInventoryConst.MainInventorySize), new PacketResponseContext());
+                InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10)), 1), new PacketResponseContext());
 
             //移っているかチェック
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), chestComponent.GetItem(1));
@@ -142,7 +142,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 列車から手持ちへ移動
             // Move items from train to grab inventory
             environment.PacketResponseCreator.GetPacketResponse(GetPacket(7,
-                InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive()), 1 + PlayerInventoryConst.MainInventorySize,
+                InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive()), 1,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0), new PacketResponseContext());
 
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 3), itemContainer.InventoryItems[1]);
@@ -152,7 +152,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Move items from grab inventory back to train
             environment.PacketResponseCreator.GetPacketResponse(GetPacket(5,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0,
-                InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive()), 1 + PlayerInventoryConst.MainInventorySize), new PacketResponseContext());
+                InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive()), 1), new PacketResponseContext());
 
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 8), itemContainer.InventoryItems[1]);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 2), grabInventory.GetItem(0));

@@ -31,17 +31,11 @@ namespace Server.Protocol.PacketResponse
             if (fromInventory == null) return null;
 
             var fromSlot = data.FromSlot;
-            if (data.FromInventoryIdentifier.InventoryType.IsSubInventory())
-                fromSlot -= PlayerInventoryConst.MainInventorySize;
-
 
             var toInventory = GetInventory(data.ToInventoryIdentifier);
             if (toInventory == null) return null;
 
             var toSlot = data.ToSlot;
-            if (data.ToInventoryIdentifier.InventoryType.IsSubInventory())
-                toSlot -= PlayerInventoryConst.MainInventorySize;
-
 
             switch (data.ItemMoveType)
             {
