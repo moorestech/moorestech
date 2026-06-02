@@ -7,6 +7,8 @@ using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Util.MessagePack;
+using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Client.Game.InGame.UI.Inventory.Main
 {
@@ -81,19 +83,19 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             void SendMoveItemData()
             {
-                var fromInfo = GetServerInventoryInfo(from, fromSlot);
-                var toInfo = GetServerInventoryInfo(to, toSlot);
-                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo, fromSlot, toInfo, toSlot);
+                var fromIdentifier = GetServerInventoryIdentifier(from, fromSlot);
+                var toIdentifier = GetServerInventoryIdentifier(to, toSlot);
+                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromIdentifier, fromSlot, toIdentifier, toSlot);
             }
             
-            ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType, int localSlot)
+            InventoryIdentifierMessagePack GetServerInventoryIdentifier(LocalMoveInventoryType localType, int localSlot)
             {
                 return localType switch
                 {
                     LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
-                        ? ItemMoveInventoryInfo.CreateMain()
-                        : ItemMoveInventoryInfo.CreateSubInventory(_subInventory.ISubInventoryIdentifier.ToMessagePack()),
-                    LocalMoveInventoryType.Grab => ItemMoveInventoryInfo.CreateGrab(),
+                        ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
+                        : _subInventory.ISubInventoryIdentifier.ToMessagePack(),
+                    LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }
@@ -105,13 +107,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             // メインインベントリを整理（ホットバー除外はサーバー側で実施）
             // Sort the main inventory (hotbar exclusion is handled on the server).
-            ClientContext.VanillaApi.SendOnly.SortInventory(ItemMoveInventoryInfo.CreateMain());
+            ClientContext.VanillaApi.SendOnly.SortInventory(CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId));
 
             // 開いているサブインベントリがあれば整理する
             // Also sort the currently open sub-inventory, if any.
             if (_subInventory != null && _subInventory.IsEnableSubInventory())
-                ClientContext.VanillaApi.SendOnly.SortInventory(
-                    ItemMoveInventoryInfo.CreateSubInventory(_subInventory.ISubInventoryIdentifier.ToMessagePack()));
+                ClientContext.VanillaApi.SendOnly.SortInventory(_subInventory.ISubInventoryIdentifier.ToMessagePack());
         }
 
         public void SetGrabItem(IItemStack itemStack)

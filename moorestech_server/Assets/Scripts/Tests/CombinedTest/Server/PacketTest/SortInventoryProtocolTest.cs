@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -44,7 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // メインインベントリを整理
             // Sort the main inventory.
-            packet.GetPacketResponse(GetPacket(ItemMoveInventoryInfo.CreateMain()), new PacketResponseContext());
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext());
 
             // 同種が結合され、ItemId 昇順に詰め直されている
             // Same items are merged and re-packed in ItemId ascending order.
@@ -77,7 +76,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mainInventory.SetItem(0, itemId, maxStack - 5);
             mainInventory.SetItem(3, itemId, 10);
 
-            packet.GetPacketResponse(GetPacket(ItemMoveInventoryInfo.CreateMain()), new PacketResponseContext());
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext());
 
             // 先頭スロットは最大スタックまで詰まり、あふれた5個が次スロットへ流れる
             // The first slot fills to max stack and the overflowing 5 items flow into the next slot.
@@ -107,7 +106,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // チェスト（サブインベントリ）を整理
             // Sort the chest (sub-inventory).
-            packet.GetPacketResponse(GetPacket(ItemMoveInventoryInfo.CreateSubInventory(InventoryIdentifierMessagePack.CreateBlockMessage(chestPosition))), new PacketResponseContext());
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(chestPosition)), new PacketResponseContext());
 
             // 同種結合＋ItemId 昇順（ホットバー除外なし、全スロット対象）
             // Same items merged and re-packed in ItemId order (no hotbar exclusion; all slots).
@@ -117,9 +116,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(ItemMaster.EmptyItemId, chestComponent.GetItem(4).Id);
         }
 
-        private byte[] GetPacket(ItemMoveInventoryInfo target)
+        private byte[] GetPacket(InventoryIdentifierMessagePack target)
         {
-            return MessagePackSerializer.Serialize(new SortInventoryProtocolMessagePack(PlayerId, target));
+            return MessagePackSerializer.Serialize(new SortInventoryProtocolMessagePack(target));
         }
     }
 }

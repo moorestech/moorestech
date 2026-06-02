@@ -32,15 +32,15 @@ namespace Client.Network.API
         }
         
         
-        public void ItemMove(int count, ItemMoveType itemMoveType, ItemMoveInventoryInfo fromInv, int fromSlot, ItemMoveInventoryInfo toInv, int toSlot)
+        public void ItemMove(int count, ItemMoveType itemMoveType, InventoryIdentifierMessagePack fromInv, int fromSlot, InventoryIdentifierMessagePack toInv, int toSlot)
         {
-            var request = new InventoryItemMoveProtocol.InventoryItemMoveProtocolMessagePack(_playerId, count, itemMoveType, fromInv, fromSlot, toInv, toSlot);
+            var request = new InventoryItemMoveProtocol.InventoryItemMoveProtocolMessagePack(count, itemMoveType, fromInv, fromSlot, toInv, toSlot);
             _packetSender.Send(request);
         }
 
-        public void SortInventory(ItemMoveInventoryInfo target)
+        public void SortInventory(InventoryIdentifierMessagePack target)
         {
-            var request = new SortInventoryProtocol.SortInventoryProtocolMessagePack(_playerId, target);
+            var request = new SortInventoryProtocol.SortInventoryProtocolMessagePack(target);
             _packetSender.Send(request);
         }
         
