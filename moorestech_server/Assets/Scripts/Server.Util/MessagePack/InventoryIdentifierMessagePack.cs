@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Server.Util.MessagePack
 {
-    public enum InventoryType : byte
+    public enum InventoryType
     {
         Block,
         Train,

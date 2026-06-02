@@ -32,7 +32,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
         }
         
         
-        public IOpenableInventory Resolve(
+        public static IOpenableInventory Resolve(
             ItemMoveInventoryType inventoryType,
             int playerId,
             InventoryIdentifierMessagePack inventoryIdentifier,
