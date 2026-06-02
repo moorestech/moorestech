@@ -4,8 +4,8 @@ using Game.PlayerInventory.Interface;
 using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService;
+using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -32,12 +32,12 @@ namespace Server.Protocol.PacketResponse
 
             // 対象インベントリを解決（存在しなければ何もしない）
             // Resolve the target inventory; do nothing if it cannot be found.
-            var inventory = OpenableInventoryResolver.Resolve(data.Target.InventoryType, data.PlayerId, data.Target.InventoryIdentifier, _playerInventoryDataStore, _trainUnitLookupDatastore);
+            var inventory = OpenableInventoryResolver.Resolve(data.Target, _playerInventoryDataStore, _trainUnitLookupDatastore);
             if (inventory == null) return null;
 
             // メインインベントリのときはホットバーを整理対象から除外する
             // Exclude the hotbar from sorting when the target is the main inventory.
-            var excludeSlots = data.Target.InventoryType == ItemMoveInventoryType.MainInventory
+            var excludeSlots = data.Target.InventoryType == InventoryType.Main
                 ? PlayerInventoryConst.HotBarSlots
                 : Array.Empty<int>();
 
@@ -51,18 +51,15 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class SortInventoryProtocolMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public int PlayerId { get; set; }
-
-            [Key(3)] public InventoryItemMoveProtocol.ItemMoveInventoryInfoMessagePack Target { get; set; }
+            [Key(2)] public InventoryIdentifierMessagePack Target { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SortInventoryProtocolMessagePack() { }
 
-            public SortInventoryProtocolMessagePack(int playerId, ItemMoveInventoryInfo target)
+            public SortInventoryProtocolMessagePack(InventoryIdentifierMessagePack target)
             {
                 Tag = ProtocolTag;
-                PlayerId = playerId;
-                Target = new InventoryItemMoveProtocol.ItemMoveInventoryInfoMessagePack(target, 0);
+                Target = target;
             }
         }
 

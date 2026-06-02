@@ -6,7 +6,6 @@ using Game.PlayerInventory.Interface;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Game.World.Interface.DataStore;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Protocol.PacketResponse.Util.InventoryService.Resolver;
 using Server.Util.MessagePack;
 
@@ -33,35 +32,22 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
         
         
         public static IOpenableInventory Resolve(
-            ItemMoveInventoryType inventoryType,
-            int playerId,
             InventoryIdentifierMessagePack inventoryIdentifier,
             IPlayerInventoryDataStore playerInventoryDataStore,
             ITrainUnitLookupDatastore trainUnitLookupDatastore)
         {
-            return inventoryType switch
+            if (inventoryIdentifier == null) return null;
+
+            return inventoryIdentifier.InventoryType switch
             {
-                ItemMoveInventoryType.MainInventory => playerInventoryDataStore.GetInventoryData(playerId).MainOpenableInventory,
-                ItemMoveInventoryType.GrabInventory => playerInventoryDataStore.GetInventoryData(playerId).GrabInventory,
-                ItemMoveInventoryType.SubInventory => ResolveSubInventory(inventoryIdentifier),
+                InventoryType.Main => playerInventoryDataStore.GetInventoryData(inventoryIdentifier.PlayerId).MainOpenableInventory,
+                InventoryType.Grab => playerInventoryDataStore.GetInventoryData(inventoryIdentifier.PlayerId).GrabInventory,
+                InventoryType.Block => ResolveBlockInventory(inventoryIdentifier),
+                InventoryType.Train => ResolveTrainInventory(inventoryIdentifier),
                 _ => null,
             };
 
             #region Internal
-
-            IOpenableInventory ResolveSubInventory(InventoryIdentifierMessagePack identifier)
-            {
-                // ブロック/列車インベントリの場合は InventoryIdentifier から情報を取得
-                // Get information from InventoryIdentifier for block/train inventory.
-                if (identifier == null) return null;
-
-                return identifier.InventoryType switch
-                {
-                    InventoryType.Block => ResolveBlockInventory(identifier),
-                    InventoryType.Train => ResolveTrainInventory(identifier),
-                    _ => null,
-                };
-            }
 
             IOpenableInventory ResolveBlockInventory(InventoryIdentifierMessagePack identifier)
             {
