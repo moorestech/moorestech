@@ -1,7 +1,6 @@
 using System;
 using Core.Inventory;
 using Game.PlayerInventory.Interface;
-using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.InventoryService;
@@ -17,13 +16,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:invItemMove";
 
-        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly OpenableInventoryResolver _openableInventoryResolver;
 
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
-            _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
+            _openableInventoryResolver = serviceProvider.GetService<OpenableInventoryResolver>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -61,7 +58,7 @@ namespace Server.Protocol.PacketResponse
 
         private IOpenableInventory GetInventory(InventoryIdentifierMessagePack inventoryIdentifier)
         {
-            return OpenableInventoryResolver.Resolve(inventoryIdentifier, _playerInventoryDataStore, _trainUnitLookupDatastore);
+            return _openableInventoryResolver.Resolve(inventoryIdentifier);
         }
 
         [MessagePackObject]
