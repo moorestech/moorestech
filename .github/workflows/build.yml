@@ -40,6 +40,11 @@ jobs:
           #   isDedicatedServer: true
 
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.longpaths true
+
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -135,6 +140,11 @@ jobs:
             runner: macos-latest
 
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.longpaths true
+
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
