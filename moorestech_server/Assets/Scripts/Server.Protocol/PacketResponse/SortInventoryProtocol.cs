@@ -1,7 +1,5 @@
 using System;
-using Core.Inventory;
 using Game.PlayerInventory.Interface;
-using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.InventoryService;
@@ -17,13 +15,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:sortInventory";
 
-        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        private readonly OpenableInventoryResolver _openableInventoryResolver;
 
         public SortInventoryProtocol(ServiceProvider serviceProvider)
         {
-            _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
-            _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
+            _openableInventoryResolver = serviceProvider.GetService<OpenableInventoryResolver>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -32,7 +28,7 @@ namespace Server.Protocol.PacketResponse
 
             // 対象インベントリを解決（存在しなければ何もしない）
             // Resolve the target inventory; do nothing if it cannot be found.
-            var inventory = OpenableInventoryResolver.Resolve(data.Target, _playerInventoryDataStore, _trainUnitLookupDatastore);
+            var inventory = _openableInventoryResolver.Resolve(data.Target);
             if (inventory == null) return null;
 
             // メインインベントリのときはホットバーを整理対象から除外する
