@@ -32,9 +32,7 @@ namespace Server.Protocol.PacketResponse
 
             // 対象インベントリを解決（存在しなければ何もしない）
             // Resolve the target inventory; do nothing if it cannot be found.
-            var inventory = OpenableInventoryResolver.Resolve(
-                data.Target.InventoryType, data.PlayerId, data.Target.InventoryIdentifier,
-                _playerInventoryDataStore, _trainUnitLookupDatastore);
+            var inventory = OpenableInventoryResolver.Resolve(data.Target.InventoryType, data.PlayerId, data.Target.InventoryIdentifier, _playerInventoryDataStore, _trainUnitLookupDatastore);
             if (inventory == null) return null;
 
             // メインインベントリのときはホットバーを整理対象から除外する
@@ -55,10 +53,6 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public int PlayerId { get; set; }
 
-            /// <summary>
-            /// 整理対象インベントリの指定（slot は未使用）
-            /// Target inventory specifier (slot is unused)
-            /// </summary>
             [Key(3)] public InventoryItemMoveProtocol.ItemMoveInventoryInfoMessagePack Target { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

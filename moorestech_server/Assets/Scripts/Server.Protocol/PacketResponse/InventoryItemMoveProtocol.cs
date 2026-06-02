@@ -61,8 +61,6 @@ namespace Server.Protocol.PacketResponse
 
         private IOpenableInventory GetInventory(ItemMoveInventoryType inventoryType, int playerId, InventoryIdentifierMessagePack inventoryIdentifier)
         {
-            // 解決ロジックは整理プロトコルと共通化している
-            // Resolution logic is shared with the sort protocol.
             return OpenableInventoryResolver.Resolve(inventoryType, playerId, inventoryIdentifier, _playerInventoryDataStore, _trainUnitLookupDatastore);
         }
 
