@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Inventory;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -6,6 +7,7 @@ using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using Game.World.Interface.DataStore;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Protocol.PacketResponse.Util.InventoryService.Resolver;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryService
@@ -14,9 +16,23 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
     /// アイテム移動・整理プロトコルで共通利用する、インベントリ種別から IOpenableInventory を解決するユーティリティ
     /// Utility shared by item move/sort protocols to resolve an IOpenableInventory from an inventory type
     /// </summary>
-    public static class OpenableInventoryResolver
+    public class OpenableInventoryResolver
     {
-        public static IOpenableInventory Resolve(
+        private readonly Dictionary<InventoryType, IInventoryIdentifierResolver> _resolvers;
+        
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
+        
+        public OpenableInventoryResolver(IPlayerInventoryDataStore playerInventoryDataStore)
+        {
+            _playerInventoryDataStore = playerInventoryDataStore;
+            
+            // WIP リゾルバ基盤 _resolvers.Add(InventoryType.Block, new BlockInventoryIdentifierResolver());
+            // WIP _resolvers.Add(InventoryType.Train, new TrainInventoryIdentifierResolver());
+        }
+        
+        
+        public IOpenableInventory Resolve(
             ItemMoveInventoryType inventoryType,
             int playerId,
             InventoryIdentifierMessagePack inventoryIdentifier,
