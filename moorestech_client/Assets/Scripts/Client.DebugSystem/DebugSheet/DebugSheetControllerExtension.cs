@@ -43,7 +43,8 @@ namespace Client.DebugSystem
                 // ベースのEnumPickerCellプレハブを複製し、専用キー名の非アクティブテンプレートとして登録する
                 // Clone the base EnumPickerCell prefab and register it as an inactive template under the dedicated key
                 var basePrefab = container.GetPrefab("EnumPickerCell");
-                var template = UnityEngine.Object.Instantiate(basePrefab, debugPage.transform);
+                var template = UnityEngine.Object.Instantiate(basePrefab);
+                template.transform.SetParent(debugPage.transform, false);
                 template.name = typeKey;
                 template.SetActive(false);
                 container.AddPrefab(template);
