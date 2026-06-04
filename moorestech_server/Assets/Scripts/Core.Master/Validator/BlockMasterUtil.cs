@@ -143,6 +143,26 @@ namespace Core.Master.Validator
                             }
                         }
                     }
+
+                    // ElectricToGearGenerator: outputModes
+                    // ElectricToGearGenerator: outputModes
+                    if (block.BlockParam is ElectricToGearGeneratorBlockParam electricToGear)
+                    {
+                        if (electricToGear.OutputModes == null || electricToGear.OutputModes.Length == 0)
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} has empty outputModes\n";
+                        }
+                        else
+                        {
+                            foreach (var mode in electricToGear.OutputModes)
+                            {
+                                if (mode.RequiredPower <= 0)
+                                    logs += $"[BlockMaster] Name:{block.Name} outputMode requiredPower must be > 0 (got {mode.RequiredPower})\n";
+                                if (mode.Rpm < 0 || mode.Torque < 0)
+                                    logs += $"[BlockMaster] Name:{block.Name} outputMode rpm/torque must be >= 0\n";
+                            }
+                        }
+                    }
                 }
 
                 return logs;

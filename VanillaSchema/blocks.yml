@@ -105,6 +105,7 @@ properties:
       - GearPump
       - ElectricPump
       - GearToElectricGenerator
+      - ElectricToGearGenerator
       - FilterSplitter
     - key: itemGuid
       type: uuid
@@ -755,6 +756,30 @@ properties:
         - key: maxGeneratedPower
           type: number
           default: 100
+        - key: gear
+          ref: gear
+      - when: ElectricToGearGenerator
+        type: object
+        implementationInterface:
+        - IGearConnectors
+        properties:
+        - key: teethCount
+          type: integer
+          default: 10
+        - key: outputModes
+          type: array
+          items:
+            type: object
+            properties:
+            - key: rpm
+              type: number
+              default: 0
+            - key: torque
+              type: number
+              default: 0
+            - key: requiredPower
+              type: number
+              default: 0
         - key: gear
           ref: gear
       - when: FilterSplitter
