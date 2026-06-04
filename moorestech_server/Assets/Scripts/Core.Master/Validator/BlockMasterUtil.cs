@@ -148,6 +148,12 @@ namespace Core.Master.Validator
                     // ElectricToGearGenerator: outputModes
                     if (block.BlockParam is ElectricToGearGeneratorBlockParam electricToGear)
                     {
+                        // teethCount はギア比計算 (connectGear.TeethCount / gear.TeethCount) の除数になるため 0/負値を弾く
+                        // teethCount is a divisor in the gear-ratio calc, so reject 0/negative to avoid Infinity/NaN RPM
+                        if (electricToGear.TeethCount <= 0)
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} teethCount must be > 0 (got {electricToGear.TeethCount})\n";
+                        }
                         if (electricToGear.OutputModes == null || electricToGear.OutputModes.Length == 0)
                         {
                             logs += $"[BlockMaster] Name:{block.Name} has empty outputModes\n";

@@ -63,6 +63,19 @@ namespace Game.Block.Blocks.ElectricToGear
             {
                 _selectedIndex = ClampIndex(index);
             }
+
+            #region Internal
+
+            // 保存値が現在の outputModes 範囲外でも安全な index に丸める
+            // Clamp a restored index into the current outputModes range
+            int ClampIndex(int i)
+            {
+                if (i < 0) return 0;
+                if (i >= _param.OutputModes.Length) return _param.OutputModes.Length - 1;
+                return i;
+            }
+
+            #endregion
         }
 
         #region IElectricConsumer
@@ -154,13 +167,6 @@ namespace Game.Block.Blocks.ElectricToGear
             }
 
             #endregion
-        }
-
-        private int ClampIndex(int index)
-        {
-            if (index < 0) return 0;
-            if (index >= _param.OutputModes.Length) return _param.OutputModes.Length - 1;
-            return index;
         }
     }
 }
