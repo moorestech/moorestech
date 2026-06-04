@@ -125,6 +125,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1afaa129b8e3241af8a05447cdb40df0
+    m_Address: Vanilla/Block/Iron_conveyor_mini_chest
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 1b7c45dd4914c49f89afd1440e3fb692
     m_Address: Vanilla/Block/Shaft Iron
     m_ReadOnly: 0
