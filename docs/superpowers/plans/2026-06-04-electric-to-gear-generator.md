@@ -106,9 +106,10 @@ Expected: `BlockTypeConst.ElectricToGearGenerator` と `ElectricToGearGeneratorB
 
 `CurrentMode => _param.OutputModes[_selectedIndex]` は `outputModes` が空だと即クラッシュする。マスタ検証の定石（`validate-schema` スキル、既存 `BlockMasterUtil` 等のバリデーション箇所）に倣い、`ElectricToGearGeneratorBlockParam` に対して以下を検証する処理を追加する:
 - `outputModes.Length > 0`（最低 1 エントリ）
-- 各エントリの `rpm >= 0`、`torque >= 0`、`requiredPower >= 0`
+- 各エントリの `rpm >= 0`、`torque >= 0`
+- 各エントリの `requiredPower > 0`（外部監査#2: 出力モードが電力0だと充足率が永久に0で回らないため、正の電力を必須にする）
 
-既存ブロックのマスタ検証がどこで行われているか `grep -rn "BlockMasterUtil\|ValidateBlock\|MasterValidat" moorestech_server/Assets/Scripts` で確認し、同じ場所に追加する。検証が見つからない/仕組みが無い場合は、`VanillaElectricToGearGeneratorTemplate.Create` 冒頭で `outputModes.Length > 0` を assert（満たさなければ明確な例外メッセージ）する形でも可。
+既存ブロックのマスタ検証がどこで行われているか `grep -rn "BlockMasterUtil\|ValidateBlock\|MasterValidat" moorestech_server/Assets/Scripts` で確認し、同じ場所に追加する。検証が見つからない/仕組みが無い場合は、`VanillaElectricToGearGeneratorTemplate.Create` 冒頭で同条件を assert（満たさなければ明確な例外メッセージ）する形でも可。**検証コードを追加したファイルも Step 6 の commit 対象に含める。**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー 0。
@@ -207,7 +208,7 @@ using Mooresmaster.Model.BlocksModule;
 namespace Game.Block.Blocks.ElectricToGear
 {
     public class ElectricToGearGeneratorComponent :
-        GearEnergyTransformer, IGearGenerator, IElectricConsumer, IBlockStateDetail, IBlockSaveState
+        GearEnergyTransformer, IGearGenerator, IElectricConsumer, IUpdatableBlockComponent, IBlockStateDetail, IBlockSaveState
     {
         public int TeethCount => _param.TeethCount;
         public bool GenerateIsClockwise => true;
@@ -229,6 +230,7 @@ namespace Game.Block.Blocks.ElectricToGear
         private int _selectedIndex;
         private ElectricPower _suppliedPower;
         private float _electricFulfillmentRate;
+        private bool _poweredThisTick;
 
         // 選択中の出力エントリ。index は常に範囲内に保つ。
         // The currently selected output entry; index is always kept in range.
@@ -270,6 +272,7 @@ namespace Game.Block.Blocks.ElectricToGear
         public void SupplyEnergy(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
+            _poweredThisTick = true;
             UpdateFulfillment(power);
         }
 
@@ -283,6 +286,20 @@ namespace Game.Block.Blocks.ElectricToGear
         }
 
         #endregion
+
+        // 電力網から切断されると SupplyEnergy が呼ばれなくなる。そのままだと最後の充足率を保持して
+        // 切断後もギア出力を続けてしまうため、SupplyEnergy が来なかったティックは出力を0に落とす（外部監査#4対応）。
+        // When disconnected from the grid, SupplyEnergy stops being called. Without this, the component would keep
+        // its last fulfillment and produce gear output after disconnection; so any tick with no SupplyEnergy resets output to 0 (audit #4).
+        public void Update()
+        {
+            BlockException.CheckDestroy(this);
+            if (!_poweredThisTick)
+            {
+                UpdateFulfillment(new ElectricPower(0));
+            }
+            _poweredThisTick = false;
+        }
 
         // プロトコルから呼ばれる出力モード切替。範囲外 index は無視する。
         // Output-mode switch called by the protocol; out-of-range index is ignored.
@@ -537,6 +554,7 @@ git commit -m "test: add TestElectricToGearGenerator mod data + block id"
 ```csharp
 using System;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -612,6 +630,14 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(1, c.SelectedIndex);
             c.SetSelectedMode(-1);
             Assert.AreEqual(1, c.SelectedIndex);
+
+            // 電力網から切断（SupplyEnergy が来ない）→ Update で出力が0に落ちる（外部監査#4: 切断後も出し続けない）。
+            // Disconnected (no SupplyEnergy) → Update drops output to 0 (audit #4: don't keep producing after disconnect).
+            c.SupplyEnergy(new ElectricPower((float)mode1.RequiredPower)); // 一旦フル供給に戻す / restore full supply
+            c.Update(); // 同tickに供給があった扱い / counts as supplied this tick
+            c.Update(); // 供給の無いtick → 0へ / a tick with no supply → 0
+            Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.01f);
+            Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
         }
     }
 }
@@ -1023,6 +1049,21 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 
 ---
 
+## Known Limitation / 任意のギア網ハードニング（外部監査#1の残課題）
+
+外部監査A の修正（無電力時 `GenerateRpm=0`）で「最速起点の支配」は防げるが、**方向ロック**は残る。`GearNetwork.CalcGearInfo` は到達した generator の `GenerateIsClockwise` を `GenerateRpm`/`GenerateTorque` に関係なくチェックするため（[GearNetwork.cs:138](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）、無電力（出力0）の ElectricToGear でも逆向き接続だと網全体を `Rocked` させ得る。
+
+ただしこれは ElectricToGear 固有ではなく、**既存のギア網の挙動**（燃料切れ `FuelGearGenerator` も `GenerateIsClockwise` を保持し同様に方向ロックし得る）。本 Plan の新規バグではないため、Plan1 のスコープ外とする。
+
+恒久対策が必要なら**別タスク（共有インフラ変更）**として:
+- `GearNetwork` の最速起点選定（[:55](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）と方向ロック判定（[:138](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）で、`GenerateTorque * GenerateRpm > epsilon` の generator だけを「能動的 generator」として扱う。
+- 既存のギア系テスト全体を回帰（`FuelGearGenerator` の挙動も変わるため）。
+- 「無電力モーターが逆向き接続でも `Rocked` させない」統合テストを追加。
+
+この変更は既存ブロックの挙動も変えるプロダクト判断なので、実施可否はユーザーに確認する。
+
+---
+
 ## Self-Review メモ（計画作成者による確認）
 
 - **Spec カバレッジ:** 出力テーブル（Task 1, 5）／RPM 固定・トルクドループ（Task 3, 6）／要求電力固定（Task 3, 6）／requiredPower 明示（Task 1, 5）／ランタイム選択（Task 8, 9）／選択の永続化（Task 3, 7）／クライアント同期状態（Task 2）／ギア網統合（Task 7.5）／送電範囲表示（Task 10）。クライアント選択 UI は Out of Scope に明記。
@@ -1035,3 +1076,10 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 - **B（モード切替の漏れ）:** `SetSelectedMode` が旧充足率を残し、低消費→高出力切替直後の1ティックだけ高トルクを無料出力する問題 → `UpdateFulfillment` を `SupplyEnergy` と `SetSelectedMode` の両方から呼ぶ（Task 3）。Task 6 でアサート。
 - **C（実装計画のAPIズレ）:** `TryAddLoadedBlock`/引数なし`RemoveBlock` は実在せず → `IWorldSaveDataSaver`/`IWorldSaveDataLoader` の正式 save/load パターンに置換（Task 7）。`GetComponent<T>` の `Game.Block.Interface.Extension` using、プロトコルの `Microsoft.Extensions.DependencyInjection` using を追加（Task 6/7/8/9）。`outputModes` 空/負値のマスタ検証を追加（Task 1 Step 5）。
 - **D（テスト不足・スコープ表記）:** ギア網統合テスト（Task 7.5）とプロトコル失敗系テスト（Task 9）を追加。`DisplayEnergizedRange` はクライアント変更なのでスコープ表記を「サーバーコア＋プロトコル＋最低限のクライアント表示判定」に修正。
+
+### 第2ラウンド監査の反映
+
+- **#4（重大寄り・新規発見）:** 電力網から切断されると `SupplyEnergy` が呼ばれなくなり、最後の充足率を保持して切断後もギア出力を続ける問題 → `IUpdatableBlockComponent` を実装し、`Update()` で「このティックに `SupplyEnergy` が来なかったら出力を0に落とす」フラグ方式の減衰を追加（Task 3）。`EnergySegment` 等の共有インフラを触らず自己完結。Task 6 で `Update()` 2回呼びの decay を決定的にアサート。
+- **#2 追補:** 出力モードの `requiredPower > 0` をマスタ検証に追加（Task 1 Step 5）。
+- **#1 残課題（方向ロック）:** ElectricToGear 固有でなく既存ギア網の挙動のため Plan1 スコープ外とし、「Known Limitation」節に共有インフラ変更の任意タスクとして明記（実施可否はユーザー判断）。
+- **C 微修正:** Task 6 の using に `Core.Update`（Task 7.5 の `GameUpdater.UpdateOneTick` 用）を追加。マスタ検証ファイルを commit 対象に明記。Request/Response の nested 化は既存パターン整合の任意改善として注記済み。
