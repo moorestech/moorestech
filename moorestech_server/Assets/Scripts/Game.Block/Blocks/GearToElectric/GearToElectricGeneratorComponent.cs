@@ -7,19 +7,19 @@ using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 
-namespace Game.Block.Blocks.GearElectric
+namespace Game.Block.Blocks.GearToElectric
 {
-    public class GearElectricGeneratorComponent : GearEnergyTransformer, IGear, IElectricGenerator, IUpdatableBlockComponent, IBlockStateDetail
+    public class GearToElectricGeneratorComponent : GearEnergyTransformer, IGear, IElectricGenerator, IUpdatableBlockComponent, IBlockStateDetail
     {
         public int TeethCount => _param.TeethCount;
         public float EnergyFulfillmentRate { get; private set; }
 
 
-        private readonly GearElectricGeneratorBlockParam _param;
+        private readonly GearToElectricGeneratorBlockParam _param;
         private ElectricPower _currentGeneratedPower;
 
-        public GearElectricGeneratorComponent(
-            GearElectricGeneratorBlockParam param,
+        public GearToElectricGeneratorComponent(
+            GearToElectricGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
             base(param.GearConsumption, blockInstanceId, connectorComponent)
@@ -74,14 +74,14 @@ namespace Game.Block.Blocks.GearElectric
 
             BlockStateDetail CreateDetail()
             {
-                var detail = new GearElectricGeneratorBlockStateDetail(
+                var detail = new GearToElectricGeneratorBlockStateDetail(
                     IsCurrentClockwise,
                     CurrentRpm,
                     CurrentTorque,
                     EnergyFulfillmentRate,
                     _currentGeneratedPower);
                 var serialized = MessagePackSerializer.Serialize(detail);
-                return new BlockStateDetail(GearElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey, serialized);
+                return new BlockStateDetail(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey, serialized);
             }
 
             #endregion
