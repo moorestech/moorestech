@@ -15,12 +15,12 @@ namespace Game.Block.Blocks.ElectricToGear
         public int TeethCount => _param.TeethCount;
         public bool GenerateIsClockwise => true;
 
-        // RPM は選択モードで固定。ただし実効出力が無い（充足率0=電力0）ときは RPM も 0 にする。
-        // トルク0の generator が固定RPMのまま網の最速起点になり、実際に動ける他の generator を
-        // OverRequirePower で停止/方向ロックさせるのを防ぐ（外部監査A: 重大）。
-        // RPM is fixed by the mode, but drops to 0 when there is no effective output (fulfillment 0).
-        // This stops a torque-0 generator from becoming the fastest origin and stalling real generators (audit A: critical).
-        public RPM GenerateRpm => _electricFulfillmentRate > 0f ? new RPM((float)CurrentMode.Rpm) : new RPM(0);
+        // RPM は選択モードで固定。ただし実効トルクが0（充足率0=電力0、またはモードのトルクが0）のときは RPM も 0 にする。
+        // 実効出力0の generator が固定RPMのまま網の最速起点になり、実際に動ける他の generator を
+        // OverRequirePower で停止/方向ロックさせるのを防ぐ（外部監査A: 重大。給電済みでもトルク0設定なら同様に支配を防ぐ）。
+        // RPM is fixed by the mode, but drops to 0 when effective torque is 0 (no power, or a torque-0 mode).
+        // This stops a zero-output generator from becoming the fastest origin and stalling real generators (audit A: critical; also guards a powered torque-0 mode).
+        public RPM GenerateRpm => (_electricFulfillmentRate > 0f && CurrentMode.Torque > 0) ? new RPM((float)CurrentMode.Rpm) : new RPM(0);
 
         // トルクは電力充足率でドループ。
         // Torque droops by electric fulfillment.
