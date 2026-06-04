@@ -19,10 +19,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
 
-# クラスタ閾値 (nodeGraph 座標) — 4 パターンの検証で確認済み
+# クラスタ閾値 (nodeGraph 座標)
 X_COLUMN_THRESHOLD = 100   # research 内アイテムの列クラスタリング
 Y_ROW_THRESHOLD = 100      # 同 depth research の行クラスタリング
 
@@ -47,7 +46,7 @@ def cluster_sorted(values_with_keys, threshold):
     return clusters
 
 
-def recalc(mod_dir: Path, *, validate_patterns=None) -> dict:
+def recalc(mod_dir: Path) -> dict:
     items_path = mod_dir / "master" / "items.json"
     blocks_path = mod_dir / "master" / "blocks.json"
     research_path = mod_dir / "master" / "research.json"
@@ -184,22 +183,6 @@ def recalc(mod_dir: Path, *, validate_patterns=None) -> dict:
         if "sortPriority" in b and ig in new_priority:
             b["sortPriority"] = new_priority[ig]
 
-    # ----- パターン検証 (任意) -----
-    name_to_priority = {it["name"]: it["sortPriority"] for it in items}
-    if validate_patterns:
-        all_ok = True
-        for p in validate_patterns:
-            missing = [n for n in p if n not in name_to_priority]
-            if missing:
-                print(f"  SKIP (missing items): {p} -> {missing}", file=sys.stderr)
-                continue
-            prios = [name_to_priority[n] for n in p]
-            ok = prios == sorted(prios)
-            all_ok = all_ok and ok
-            print(f"  {'OK' if ok else 'NG'}: {p} -> {prios}")
-        if not all_ok:
-            raise SystemExit("Pattern verification failed.")
-
     # ----- items / blocks の並べ替え -----
     items.sort(key=lambda it: it["sortPriority"])
 
@@ -236,14 +219,6 @@ def recalc(mod_dir: Path, *, validate_patterns=None) -> dict:
     }
 
 
-DEFAULT_PATTERNS = [
-    ["鉄鉱石", "鉄鉱石の粉", "大きな木の歯車", "鉄インゴット"],
-    ["鉄板", "鉄のロッド", "鉄のワイヤー", "複合鉄板", "鉄のフレーム"],
-    ["鉄の歯車ベルトコンベア", "鉄の上り歯車ベルトコンベア", "鉄の下り歯車ベルトコンベア", "鉄の歯車ベルトコンベア分岐機"],
-    ["銅のワイヤー", "銅板", "電柱", "回転発電機", "電気炉"],
-]
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n", 1)[0])
     ap.add_argument(
@@ -251,11 +226,6 @@ def main():
         required=True,
         type=Path,
         help="mod root (例: /path/to/moorestech_master/server_v8/mods/moorestechAlphaMod_8)",
-    )
-    ap.add_argument(
-        "--no-validate",
-        action="store_true",
-        help="既定パターン (鉄鉱石系等) の検証を省略する",
     )
     ap.add_argument(
         "--quiet",
@@ -267,10 +237,7 @@ def main():
     if not args.mod_dir.is_dir():
         ap.error(f"--mod-dir not found: {args.mod_dir}")
 
-    patterns = None if args.no_validate else DEFAULT_PATTERNS
-    if patterns:
-        print("=== Pattern verification ===")
-    result = recalc(args.mod_dir, validate_patterns=patterns)
+    result = recalc(args.mod_dir)
 
     print(f"\nUpdated {result['items_count']} items.")
     print(

@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 707198914220913348}
   - component: {fileID: 5753750153514555964}
   - component: {fileID: 2342641385665283819}
-  m_Layer: 0
+  - component: {fileID: 3256696663648454375}
+  m_Layer: 9
   m_Name: Terrain_0_-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -93,6 +94,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: ac733fbd580bf4e829321d516e456c68, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &3256696663648454375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 127688200802271047}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &304176383787628783
 GameObject:
   m_ObjectHideFlags: 0
@@ -104,7 +117,8 @@ GameObject:
   - component: {fileID: 1426215607895239692}
   - component: {fileID: 4105421572925557467}
   - component: {fileID: 1118602015503288747}
-  m_Layer: 0
+  - component: {fileID: 3728265013494814720}
+  m_Layer: 9
   m_Name: Terrain_-2_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -186,6 +200,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 6db73e5f065c44b1abdc863595c667b1, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &3728265013494814720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 304176383787628783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &406466995732776943
 GameObject:
   m_ObjectHideFlags: 0
@@ -197,7 +223,8 @@ GameObject:
   - component: {fileID: 5226323212694074731}
   - component: {fileID: 3134315745802650863}
   - component: {fileID: 8575716175381912202}
-  m_Layer: 0
+  - component: {fileID: 6007544412298536074}
+  m_Layer: 9
   m_Name: Terrain_-1_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -279,6 +306,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: fe413b2366b314ec5b2a33973c1b97e3, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &6007544412298536074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 406466995732776943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &640119048719078141
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,7 +329,8 @@ GameObject:
   - component: {fileID: 5571545215836494452}
   - component: {fileID: 2759176396646757662}
   - component: {fileID: 4547781673285480315}
-  m_Layer: 0
+  - component: {fileID: 6036311149807047411}
+  m_Layer: 9
   m_Name: Terrain_1_-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -372,6 +412,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: dc156d6245ce749d18d1fbc06a5c78cc, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &6036311149807047411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 640119048719078141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &894403425675535063
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,7 +435,8 @@ GameObject:
   - component: {fileID: 799904352685996169}
   - component: {fileID: 933308108055728980}
   - component: {fileID: 4854036770476494635}
-  m_Layer: 0
+  - component: {fileID: 5282327082015369770}
+  m_Layer: 9
   m_Name: Terrain_-2_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -465,6 +518,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: ecd8a159eab5c4018a9fd1f8623c2b09, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &5282327082015369770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 894403425675535063}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &1545842248921868356
 GameObject:
   m_ObjectHideFlags: 0
@@ -476,7 +541,8 @@ GameObject:
   - component: {fileID: 4041510863285109602}
   - component: {fileID: 3170139753866412348}
   - component: {fileID: 6283671389368822401}
-  m_Layer: 0
+  - component: {fileID: 9067133814011504623}
+  m_Layer: 9
   m_Name: Terrain_1_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -558,6 +624,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: bafc1429496b44081adcccad934f8f2c, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &9067133814011504623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1545842248921868356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &2545189340199696870
 GameObject:
   m_ObjectHideFlags: 0
@@ -569,7 +647,8 @@ GameObject:
   - component: {fileID: 4859757924813154328}
   - component: {fileID: 1378906227196705251}
   - component: {fileID: 2574398028592825689}
-  m_Layer: 0
+  - component: {fileID: 1956247315804721355}
+  m_Layer: 9
   m_Name: Terrain_0_-2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -651,6 +730,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 4b7b97d5543bf42ae93bfcf22e065693, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &1956247315804721355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2545189340199696870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &2883066202740006441
 GameObject:
   m_ObjectHideFlags: 0
@@ -662,7 +753,8 @@ GameObject:
   - component: {fileID: 1992849290936752735}
   - component: {fileID: 2321884162478542496}
   - component: {fileID: 5908428893076415172}
-  m_Layer: 0
+  - component: {fileID: 6161767876213698831}
+  m_Layer: 9
   m_Name: Terrain_0_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -744,6 +836,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 21c229356a0f64d72a0c51b09de341b6, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &6161767876213698831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2883066202740006441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &3193340445861632378
 GameObject:
   m_ObjectHideFlags: 0
@@ -755,7 +859,8 @@ GameObject:
   - component: {fileID: 7944723420111548896}
   - component: {fileID: 3043728174638059794}
   - component: {fileID: 7394071687163563652}
-  m_Layer: 0
+  - component: {fileID: 5467073152606786418}
+  m_Layer: 9
   m_Name: Terrain_-1_-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -837,6 +942,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: da8a52afab2834d5bb6e8b0a8527d8be, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &5467073152606786418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3193340445861632378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &3212591542573505523
 GameObject:
   m_ObjectHideFlags: 0
@@ -848,7 +965,8 @@ GameObject:
   - component: {fileID: 3999591461176705513}
   - component: {fileID: 4997519888340910471}
   - component: {fileID: 8792898935638749342}
-  m_Layer: 0
+  - component: {fileID: 9144900019504071004}
+  m_Layer: 9
   m_Name: Terrain_-2_-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -930,6 +1048,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 4d61796dc76304c1cb72979d74ce839d, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &9144900019504071004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3212591542573505523}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &3499256060416765120
 GameObject:
   m_ObjectHideFlags: 0
@@ -941,7 +1071,8 @@ GameObject:
   - component: {fileID: 7236141080228000654}
   - component: {fileID: 688690927325459810}
   - component: {fileID: 6407385133684758468}
-  m_Layer: 0
+  - component: {fileID: 8129248748675117664}
+  m_Layer: 9
   m_Name: Terrain_-1_-2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1023,6 +1154,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 4cbb70609b3b040efa46a0497c2c950a, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &8129248748675117664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3499256060416765120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &3872675649551019526
 GameObject:
   m_ObjectHideFlags: 0
@@ -1034,7 +1177,8 @@ GameObject:
   - component: {fileID: 8831183370376092504}
   - component: {fileID: 1795318830594914035}
   - component: {fileID: 7746047601802373932}
-  m_Layer: 0
+  - component: {fileID: 4068112568885044096}
+  m_Layer: 9
   m_Name: Terrain_-2_-2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1116,6 +1260,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 3884e1113c2104b4ca4131736aa44b90, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &4068112568885044096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3872675649551019526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &3930585791909013176
 GameObject:
   m_ObjectHideFlags: 0
@@ -1127,7 +1283,8 @@ GameObject:
   - component: {fileID: 8912456025246776665}
   - component: {fileID: 3653400816318760615}
   - component: {fileID: 1648001702155215398}
-  m_Layer: 0
+  - component: {fileID: 2728145753459586236}
+  m_Layer: 9
   m_Name: Terrain_2_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1209,6 +1366,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: c18e963d26722438f97a1321f02df4c3, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &2728145753459586236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3930585791909013176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &4109525655090221180
 GameObject:
   m_ObjectHideFlags: 0
@@ -1220,7 +1389,8 @@ GameObject:
   - component: {fileID: 931730552670209693}
   - component: {fileID: 5545753668270801478}
   - component: {fileID: 6695274062288501991}
-  m_Layer: 0
+  - component: {fileID: 3942491973075570379}
+  m_Layer: 9
   m_Name: Terrain_-1_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1302,6 +1472,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 4576d789cbd6d46f99e4bd26012d0baf, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &3942491973075570379
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4109525655090221180}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &4759373784143528231
 GameObject:
   m_ObjectHideFlags: 0
@@ -1313,7 +1495,8 @@ GameObject:
   - component: {fileID: 6147538371135570421}
   - component: {fileID: 8195503772989052907}
   - component: {fileID: 6802955094873292940}
-  m_Layer: 0
+  - component: {fileID: 6219016936498975365}
+  m_Layer: 9
   m_Name: Terrain_1_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1395,6 +1578,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 4a9d6c4b54e3f4527b8c9639fdd42ca7, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &6219016936498975365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4759373784143528231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &5185609357475565919
 GameObject:
   m_ObjectHideFlags: 0
@@ -1406,7 +1601,8 @@ GameObject:
   - component: {fileID: 515908604538133346}
   - component: {fileID: 501903422210369576}
   - component: {fileID: 1769662594520635832}
-  m_Layer: 0
+  - component: {fileID: 2478436163588081404}
+  m_Layer: 9
   m_Name: Terrain_2_-2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1488,6 +1684,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 08d1eb68220f045c5a2435794f260fb3, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &2478436163588081404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5185609357475565919}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &5750121106653337977
 GameObject:
   m_ObjectHideFlags: 0
@@ -1499,7 +1707,8 @@ GameObject:
   - component: {fileID: 9183629407871237154}
   - component: {fileID: 3989220510115323624}
   - component: {fileID: 7298577669543509727}
-  m_Layer: 0
+  - component: {fileID: 1678796938685183131}
+  m_Layer: 9
   m_Name: Terrain_0_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1581,6 +1790,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 623c86ebdf7934730ba06137fad3d28b, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &1678796938685183131
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5750121106653337977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &5805098070580874337
 GameObject:
   m_ObjectHideFlags: 0
@@ -1592,7 +1813,8 @@ GameObject:
   - component: {fileID: 6880946433906271517}
   - component: {fileID: 691153402422757708}
   - component: {fileID: 2532628388415827181}
-  m_Layer: 0
+  - component: {fileID: 7158852366585212951}
+  m_Layer: 9
   m_Name: Terrain_2_-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1674,6 +1896,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 5ebc9c4e81dba4f7fa90a07471ffdc65, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &7158852366585212951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5805098070580874337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &6336316145367461941
 GameObject:
   m_ObjectHideFlags: 0
@@ -1685,7 +1919,8 @@ GameObject:
   - component: {fileID: 5354013852049011308}
   - component: {fileID: 7082287048293834863}
   - component: {fileID: 6787931890490570799}
-  m_Layer: 0
+  - component: {fileID: 3412703641690181737}
+  m_Layer: 9
   m_Name: Terrain_-2_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1767,6 +2002,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 4f5e45d4800e0409197834b42b5c660d, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &3412703641690181737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6336316145367461941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &6349496744885944404
 GameObject:
   m_ObjectHideFlags: 0
@@ -1778,7 +2025,8 @@ GameObject:
   - component: {fileID: 2257714781154801392}
   - component: {fileID: 1857218421775459996}
   - component: {fileID: 4306484343652488143}
-  m_Layer: 0
+  - component: {fileID: 8968048098577394090}
+  m_Layer: 9
   m_Name: Terrain_2_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1860,6 +2108,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 29fdfdb7d1f334b91b2998f505064fcd, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &8968048098577394090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6349496744885944404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &6672168902277312759
 GameObject:
   m_ObjectHideFlags: 0
@@ -1929,7 +2189,8 @@ GameObject:
   - component: {fileID: 8715414849521180070}
   - component: {fileID: 7816120379668441790}
   - component: {fileID: 4411390952429301854}
-  m_Layer: 0
+  - component: {fileID: 1075948211780593897}
+  m_Layer: 9
   m_Name: Terrain_0_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2011,6 +2272,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: bc35bd39f9d574b58b8375b4e301bc30, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &1075948211780593897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6721009145398169707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &7251302040117161870
 GameObject:
   m_ObjectHideFlags: 0
@@ -2022,7 +2295,8 @@ GameObject:
   - component: {fileID: 6486350297533713552}
   - component: {fileID: 6310203311030591193}
   - component: {fileID: 409275446982659696}
-  m_Layer: 0
+  - component: {fileID: 8156461662999493726}
+  m_Layer: 9
   m_Name: Terrain_-1_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2104,6 +2378,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 3e16c377c9aa748929ee5463411cc64e, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &8156461662999493726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7251302040117161870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &8056550516744638879
 GameObject:
   m_ObjectHideFlags: 0
@@ -2115,7 +2401,8 @@ GameObject:
   - component: {fileID: 7521064329523348104}
   - component: {fileID: 6177931292540291526}
   - component: {fileID: 2534068406452705957}
-  m_Layer: 0
+  - component: {fileID: 4709641351919599113}
+  m_Layer: 9
   m_Name: Terrain_1_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2197,6 +2484,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 34830d123f2414a029709f9445d38d7c, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &4709641351919599113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8056550516744638879}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &8339737633240639010
 GameObject:
   m_ObjectHideFlags: 0
@@ -2208,7 +2507,8 @@ GameObject:
   - component: {fileID: 8340775088578647462}
   - component: {fileID: 7249464896356343214}
   - component: {fileID: 494683283115251659}
-  m_Layer: 0
+  - component: {fileID: 6528010466354586122}
+  m_Layer: 9
   m_Name: Terrain_1_-2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2290,6 +2590,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: f4068fe2a6f6d4bc2a6140a260ff9bc7, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &6528010466354586122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8339737633240639010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1 &9079117098080209535
 GameObject:
   m_ObjectHideFlags: 0
@@ -2301,7 +2613,8 @@ GameObject:
   - component: {fileID: 5743474075305969954}
   - component: {fileID: 4809352954625378269}
   - component: {fileID: 1400116588146537416}
-  m_Layer: 0
+  - component: {fileID: 6831098017749554167}
+  m_Layer: 9
   m_Name: Terrain_2_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2383,6 +2696,18 @@ TerrainCollider:
   serializedVersion: 2
   m_TerrainData: {fileID: 15600000, guid: 808d8a75355604d17be35184defb4ce9, type: 2}
   m_EnableTreeColliders: 1
+--- !u!114 &6831098017749554167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9079117098080209535}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dbd479f18647efa68f96831c8ee001, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.GroundGameObject
 --- !u!1001 &2867721262460347243
 PrefabInstance:
   m_ObjectHideFlags: 0
