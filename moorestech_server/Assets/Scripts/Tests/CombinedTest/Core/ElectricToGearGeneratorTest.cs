@@ -109,6 +109,28 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0f, motor.GenerateRpm.AsPrimitive(), 0.001f);
         }
 
+        [Test]
+        public void TorqueZeroModeKeepsRpmZeroEvenWhenFullyPowered()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var world = ServerContext.WorldBlockDatastore;
+            world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            var c = block.GetComponent<ElectricToGearGeneratorComponent>();
+            var param = (ElectricToGearGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestElectricToGearGenerator).BlockParam;
+
+            // index 3 = rpm 60, torque 0, requiredPower 10。トルク0モードを満充足にする。
+            // index 3 is the torque-0 mode; supply it to full fulfillment.
+            var mode3 = param.OutputModes[3];
+            c.SetSelectedMode(3);
+            c.SupplyEnergy(new ElectricPower((float)mode3.RequiredPower));
+
+            // 満充足でもトルク0なら GenerateRpm は0（実効トルクゲート）。網の最速起点を奪わない。
+            // Even at full fulfillment, a torque-0 mode yields GenerateRpm 0 (effective-torque gate); never dominates the network.
+            Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.001f);
+            Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
+        }
+
         private void ChangeFilePath(SaveJsonFilePath instance, string fileName)
         {
             var fieldInfo = typeof(SaveJsonFilePath).GetField("<Path>k__BackingField",
