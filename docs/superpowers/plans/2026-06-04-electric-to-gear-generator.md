@@ -104,22 +104,37 @@ Expected: `BlockTypeConst.ElectricToGearGenerator` と `ElectricToGearGeneratorB
 
 - [ ] **Step 5: マスタデータ検証を追加する（外部監査C対応）**
 
-`CurrentMode => _param.OutputModes[_selectedIndex]` は `outputModes` が空だと即クラッシュする。マスタ検証の定石（`validate-schema` スキル、既存 `BlockMasterUtil` 等のバリデーション箇所）に倣い、`ElectricToGearGeneratorBlockParam` に対して以下を検証する処理を追加する:
-- `outputModes.Length > 0`（最低 1 エントリ）
-- 各エントリの `rpm >= 0`、`torque >= 0`
-- 各エントリの `requiredPower > 0`（外部監査#2: 出力モードが電力0だと充足率が永久に0で回らないため、正の電力を必須にする）
+`CurrentMode => _param.OutputModes[_selectedIndex]` は `outputModes` が空だと即クラッシュする。**ロード時**に弾くため、`Core.Master/Validator/BlockMasterUtil.cs` の `BlockParamValidation()` ローカル関数（既存の `is ElectricGeneratorBlockParam ...` 等が並ぶ箇所）に分岐を追加する（外部監査C: テンプレート例外より早期に検出できる）:
 
-既存ブロックのマスタ検証がどこで行われているか `grep -rn "BlockMasterUtil\|ValidateBlock\|MasterValidat" moorestech_server/Assets/Scripts` で確認し、同じ場所に追加する。検証が見つからない/仕組みが無い場合は、`VanillaElectricToGearGeneratorTemplate.Create` 冒頭で同条件を assert（満たさなければ明確な例外メッセージ）する形でも可。**検証コードを追加したファイルも Step 6 の commit 対象に含める。**
+```csharp
+                    // ElectricToGearGenerator: outputModes
+                    // ElectricToGearGenerator: outputModes
+                    if (block.BlockParam is ElectricToGearGeneratorBlockParam electricToGear)
+                    {
+                        if (electricToGear.OutputModes == null || electricToGear.OutputModes.Length == 0)
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} has empty outputModes\n";
+                        }
+                        else
+                        {
+                            foreach (var mode in electricToGear.OutputModes)
+                            {
+                                if (mode.RequiredPower <= 0)
+                                    logs += $"[BlockMaster] Name:{block.Name} outputMode requiredPower must be > 0 (got {mode.RequiredPower})\n";
+                                if (mode.Rpm < 0 || mode.Torque < 0)
+                                    logs += $"[BlockMaster] Name:{block.Name} outputMode rpm/torque must be >= 0\n";
+                            }
+                        }
+                    }
+```
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: エラー 0。
+Expected: エラー 0。`BlockMasterUtil.cs` も Step 6 の commit に含める。
 
 - [ ] **Step 6: Commit**
 
 ```bash
-# 自動生成物 + Step 5 で検証を追加したファイル（例 BlockMasterUtil.cs）も add に含める
-git add VanillaSchema/blocks.yml
-# git add moorestech_server/Assets/Scripts/.../<検証を追加したファイル>.cs
+git add VanillaSchema/blocks.yml moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs
 git commit -m "feat(schema): add ElectricToGearGenerator block type with outputModes table + validation"
 ```
 
@@ -304,12 +319,12 @@ namespace Game.Block.Blocks.ElectricToGear
             _poweredThisTick = false;
         }
 
-        // プロトコルから呼ばれる出力モード切替。範囲外 index は無視する。
-        // Output-mode switch called by the protocol; out-of-range index is ignored.
-        public void SetSelectedMode(int index)
+        // プロトコルから呼ばれる出力モード切替。範囲内なら適用して true、範囲外は無視して false。
+        // Output-mode switch called by the protocol; returns true if applied, false if out-of-range (ignored).
+        public bool SetSelectedMode(int index)
         {
             BlockException.CheckDestroy(this);
-            if (index < 0 || index >= _param.OutputModes.Length) return;
+            if (index < 0 || index >= _param.OutputModes.Length) return false;
             _selectedIndex = index;
 
             // 直前の供給電力を新モードの requiredPower で再評価する。これをしないと、低消費→高出力モードへ
@@ -317,6 +332,7 @@ namespace Game.Block.Blocks.ElectricToGear
             // Re-evaluate the last supplied power against the new mode's requiredPower; otherwise a low→high
             // switch emits one free high-torque tick at the stale fulfillment (external audit B).
             UpdateFulfillment(_suppliedPower);
+            return true;
         }
 
         public int SelectedIndex => _selectedIndex;
@@ -627,11 +643,11 @@ namespace Tests.CombinedTest.Core
             // fulfillment > 0 so RPM is mode1.rpm.
             Assert.AreEqual((float)mode1.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
 
-            // 範囲外 index は無視（mode1 のまま）。
-            // Out-of-range index ignored (stays at mode1).
-            c.SetSelectedMode(99);
+            // 範囲外 index は false を返して無視（mode1 のまま）。
+            // Out-of-range index returns false and is ignored (stays at mode1).
+            Assert.IsFalse(c.SetSelectedMode(99));
             Assert.AreEqual(1, c.SelectedIndex);
-            c.SetSelectedMode(-1);
+            Assert.IsFalse(c.SetSelectedMode(-1));
             Assert.AreEqual(1, c.SelectedIndex);
 
             // 電力網から切断（SupplyEnergy が来ない）→ Update で出力が0に落ちる（外部監査#4: 切断後も出し続けない）。
@@ -831,19 +847,33 @@ namespace Server.Protocol.PacketResponse
             var block = ServerContext.WorldBlockDatastore.GetBlock(request.Position.Vector3Int);
             if (block == null)
             {
-                return new SetElectricToGearOutputModeResponse(false, request.Index);
+                return new SetElectricToGearOutputModeResponse(false, request.Index, SetElectricToGearOutputModeFailureReason.BlockNotFound);
             }
 
-            // ElectricToGear コンポーネントを取り出し、モードを切り替える
-            // Fetch the ElectricToGear component and switch the mode
+            // ElectricToGear コンポーネントを取り出す
+            // Fetch the ElectricToGear component
             if (!block.ComponentManager.TryGetComponent<ElectricToGearGeneratorComponent>(out var component))
             {
-                return new SetElectricToGearOutputModeResponse(false, request.Index);
+                return new SetElectricToGearOutputModeResponse(false, request.Index, SetElectricToGearOutputModeFailureReason.NotElectricToGear);
             }
 
-            component.SetSelectedMode(request.Index);
-            return new SetElectricToGearOutputModeResponse(true, component.SelectedIndex);
+            // モード切替を試みる。範囲外 index は適用されず false が返る（外部監査: 成功と不正値無視を区別する）。
+            // Try to switch the mode; out-of-range index is not applied and returns false (audit: distinguish applied vs ignored).
+            if (!component.SetSelectedMode(request.Index))
+            {
+                return new SetElectricToGearOutputModeResponse(false, component.SelectedIndex, SetElectricToGearOutputModeFailureReason.InvalidIndex);
+            }
+
+            return new SetElectricToGearOutputModeResponse(true, component.SelectedIndex, SetElectricToGearOutputModeFailureReason.None);
         }
+    }
+
+    public enum SetElectricToGearOutputModeFailureReason
+    {
+        None,
+        BlockNotFound,
+        NotElectricToGear,
+        InvalidIndex,
     }
 
     [MessagePackObject]
@@ -870,17 +900,19 @@ namespace Server.Protocol.PacketResponse
     {
         [Key(2)] public bool Success { get; set; }
         [Key(3)] public int AppliedIndex { get; set; }
+        [Key(4)] public SetElectricToGearOutputModeFailureReason FailureReason { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public SetElectricToGearOutputModeResponse()
         {
         }
 
-        public SetElectricToGearOutputModeResponse(bool success, int appliedIndex)
+        public SetElectricToGearOutputModeResponse(bool success, int appliedIndex, SetElectricToGearOutputModeFailureReason failureReason)
         {
             Tag = SetElectricToGearOutputModeProtocol.ProtocolTag;
             Success = success;
             AppliedIndex = appliedIndex;
+            FailureReason = failureReason;
         }
     }
 }
@@ -953,10 +985,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(2, response.AppliedIndex);
             Assert.AreEqual(2, c.SelectedIndex);
 
-            // 範囲外 index は無視され、現状維持。
-            // Out-of-range index is ignored; state preserved.
+            // 範囲外 index は適用されず Success=false / FailureReason=InvalidIndex。状態は維持。
+            // Out-of-range index is not applied → Success=false / FailureReason=InvalidIndex; state preserved.
             var response2 = Send(packet, new SetElectricToGearOutputModeRequest(Pos, 99));
-            Assert.IsTrue(response2.Success);
+            Assert.IsFalse(response2.Success);
+            Assert.AreEqual(SetElectricToGearOutputModeFailureReason.InvalidIndex, response2.FailureReason);
             Assert.AreEqual(2, response2.AppliedIndex);
             Assert.AreEqual(2, c.SelectedIndex);
         }
@@ -966,28 +999,28 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // ブロックが無い座標 → Success=false（外部監査D: 失敗系も確認）。
-            // No block at the position → Success=false (audit D: cover failure cases).
+            // ブロックが無い座標 → Success=false / BlockNotFound（外部監査D: 失敗系も確認）。
+            // No block at the position → Success=false / BlockNotFound (audit D: cover failure cases).
             var noBlock = Send(packet, new SetElectricToGearOutputModeRequest(new Vector3Int(5, 0, 0), 1));
             Assert.IsFalse(noBlock.Success);
+            Assert.AreEqual(SetElectricToGearOutputModeFailureReason.BlockNotFound, noBlock.FailureReason);
 
-            // ElectricToGear ではない別ブロックを置いて送る → Success=false。
-            // Place a different (non-ElectricToGear) block and send → Success=false.
+            // ElectricToGear ではない別ブロックを置いて送る → Success=false / NotElectricToGear。
+            // Place a different (non-ElectricToGear) block and send → Success=false / NotElectricToGear.
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestGearToElectricGenerator, new Vector3Int(8, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var wrongBlock = Send(packet, new SetElectricToGearOutputModeRequest(new Vector3Int(8, 0, 0), 1));
             Assert.IsFalse(wrongBlock.Success);
+            Assert.AreEqual(SetElectricToGearOutputModeFailureReason.NotElectricToGear, wrongBlock.FailureReason);
         }
 
-        #region Internal
-
+        // AGENTS.md: クラス直下の private メソッドを #region Internal で囲わない。通常の private static にする。
+        // AGENTS.md: do not wrap class-level private methods in #region Internal; keep them as plain private static.
         private static SetElectricToGearOutputModeResponse Send(PacketResponseCreator packet, SetElectricToGearOutputModeRequest request)
         {
             var payload = MessagePackSerializer.Serialize(request);
             var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext())[0];
             return MessagePackSerializer.Deserialize<SetElectricToGearOutputModeResponse>(responseBytes);
         }
-
-        #endregion
     }
 }
 ```
@@ -1054,7 +1087,10 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 
 ## Known Limitation / 任意のギア網ハードニング（外部監査#1の残課題）
 
-外部監査A の修正（無電力時 `GenerateRpm=0`）で「最速起点の支配」は防げるが、**方向ロック**は残る。`GearNetwork.CalcGearInfo` は到達した generator の `GenerateIsClockwise` を `GenerateRpm`/`GenerateTorque` に関係なくチェックするため（[GearNetwork.cs:138](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）、無電力（出力0）の ElectricToGear でも逆向き接続だと網全体を `Rocked` させ得る。
+外部監査A の修正（無電力時 `GenerateRpm=0`）で「**完全無電力**のモーターによる最速起点の支配」は防げる。ただし `GearNetwork` は最速起点を `GenerateRpm` **だけ**で選び `GenerateTorque` を見ない（[GearNetwork.cs:55](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）ため、次の 2 つは残る共通仕様（いずれも RPM 優先の起点選定が根因。ElectricToGear 固有でなく `FuelGearGenerator` 等も同様）:
+
+- **部分給電の高RPMモード支配:** 充足率がわずかでも `> 0` なら `GenerateRpm` は選択モードの満値（例 240）を返す。1%給電の 240rpm モーターでも網速度を 240 に支配し得る。トルクは極小なので、負荷があれば `OverRequirePower` で網が止まる（=弱いモーターが網を実質停止させる）。Task 6/7.5 のゼロ電力テストは **exact-0 の支配回避のみ**を保証し、この部分給電ケースは未検証。
+- **方向ロック:** `GearNetwork.CalcGearInfo` は到達した generator の `GenerateIsClockwise` を `GenerateRpm`/`GenerateTorque` に関係なくチェックする（[GearNetwork.cs:138](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）ため、無電力（出力0）の ElectricToGear でも逆向き接続だと網全体を `Rocked` させ得る。
 
 ただしこれは ElectricToGear 固有ではなく、**既存のギア網の挙動**（燃料切れ `FuelGearGenerator` も `GenerateIsClockwise` を保持し同様に方向ロックし得る）。本 Plan の新規バグではないため、Plan1 のスコープ外とする。
 
@@ -1086,3 +1122,13 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 - **#2 追補:** 出力モードの `requiredPower > 0` をマスタ検証に追加（Task 1 Step 5）。
 - **#1 残課題（方向ロック）:** ElectricToGear 固有でなく既存ギア網の挙動のため Plan1 スコープ外とし、「Known Limitation」節に共有インフラ変更の任意タスクとして明記（実施可否はユーザー判断）。
 - **C 微修正:** Task 6 の using に `Core.Update`（Task 7.5 の `GameUpdater.UpdateOneTick` 用）を追加。マスタ検証ファイルを commit 対象に明記。Request/Response の nested 化は既存パターン整合の任意改善として注記済み。
+
+### 第3ラウンド監査（新規セッション 019e9318・先入観なしの独立レビュー）の反映
+
+別セッションで確定版を白紙レビューさせ、前2ラウンドのアンカリングを排して再確認した。
+
+- **電力網統合テストの必須化（重大指摘 → 一次情報で再評価し取り下げ）:** 監査は当初「full-network 統合テスト必須」としたが、実在の電力消費ブロック `ElectricPumpTest.cs:99` も消費数式を `SupplyEnergy` 直呼びで検証しており、セグメント所属は `ConnectElectricSegmentTest` が全消費者共通で検証する、というリポジトリのコンベンションを提示。監査人も「必須は言い過ぎ、推奨に下げる」と再評価。→ Task 7.5 の電力網統合テストは「推奨」据え置き（disconnect の実ネットワーク版も推奨に明記済み）。`SupplyEnergy` 直呼び＋`Update()`直呼び＋ギア網起点テストは必須のまま。
+- **部分給電の高RPM支配（中・同意）:** 充足率がわずかでも>0 なら高RPMモードが網速度を支配し得る（RPM優先起点選定の共通仕様）。設計修正でなく Known Limitation に明記し、ゼロ電力テストは exact-0 保証と注記。
+- **マスタ検証の置き場所（中・同意）:** テンプレート例外フォールバックを廃し、`BlockMasterUtil.BlockParamValidation()` にロード時検証を追加（Task 1 Step 5 に具体コード記載）。
+- **プロトコルの不正値応答（軽微・同意）:** 範囲外 index で `Success=true` は紛らわしい → `SetSelectedMode` を `bool` 返却にし、`SetElectricToGearOutputModeFailureReason`（None/BlockNotFound/NotElectricToGear/InvalidIndex）を追加。範囲外は `Success=false`（Task 3/8/9）。
+- **AGENTS.md 違反（軽微・同意）:** Task 9 のクラス直下 private メソッドを囲う `#region Internal` を削除（Task 3 の `GetBlockStateDetails` 内 region はメソッド内ローカル関数用なので規約適合・維持）。
