@@ -150,11 +150,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: true
           submodules: recursive
       - name: Update submodules
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive
+
+      # Windows Docker コンテナ内で UPM が Git LFS パッケージを解決できるよう
+      # git-lfs をグローバルにセットアップする (game-ci の Windows イメージに未設定)
+      - name: Setup Git LFS for Docker (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git lfs install --system
 
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable
