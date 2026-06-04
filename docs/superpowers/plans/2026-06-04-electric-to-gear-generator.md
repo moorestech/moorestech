@@ -117,8 +117,10 @@ Expected: エラー 0。
 - [ ] **Step 6: Commit**
 
 ```bash
+# 自動生成物 + Step 5 で検証を追加したファイル（例 BlockMasterUtil.cs）も add に含める
 git add VanillaSchema/blocks.yml
-git commit -m "feat(schema): add ElectricToGearGenerator block type with outputModes table"
+# git add moorestech_server/Assets/Scripts/.../<検証を追加したファイル>.cs
+git commit -m "feat(schema): add ElectricToGearGenerator block type with outputModes table + validation"
 ```
 
 ---
@@ -288,9 +290,10 @@ namespace Game.Block.Blocks.ElectricToGear
         #endregion
 
         // 電力網から切断されると SupplyEnergy が呼ばれなくなる。そのままだと最後の充足率を保持して
-        // 切断後もギア出力を続けてしまうため、SupplyEnergy が来なかったティックは出力を0に落とす（外部監査#4対応）。
-        // When disconnected from the grid, SupplyEnergy stops being called. Without this, the component would keep
-        // its last fulfillment and produce gear output after disconnection; so any tick with no SupplyEnergy resets output to 0 (audit #4).
+        // 切断後もギア出力を続けてしまう。SupplyEnergy が来ないティックで出力を0へ落とすことで、
+        // 購読順に依らず最大1〜2 update 以内に必ず0へ収束させる（即時ではない／外部監査#4対応）。
+        // When disconnected, SupplyEnergy stops being called. Resetting output on a no-supply tick guarantees
+        // convergence to 0 within at most 1-2 updates regardless of subscription order (not instant; audit #4).
         public void Update()
         {
             BlockException.CheckDestroy(this);
@@ -774,7 +777,7 @@ git commit -m "test: ElectricToGearGenerator selectedIndex survives save/load"
         }
 ```
 
-> 補足（推奨追加）: 電力網経由の収束テスト（電柱＋発電機＋ ElectricToGear を接続し、`SupplyEnergy` ではなく `EnergySegment` 経由で給電して 2 ティック程度で `GenerateTorque` が期待値に収束すること）は `ConnectElectricSegmentTest.cs` の配線パターンを手本に追加する。tick 順依存（監査B）の実挙動を押さえられる。本 Plan1 のスコープ内で時間が許せば実装する。
+> 補足（推奨追加）: 電力網経由の統合テストを `ConnectElectricSegmentTest.cs` の配線パターンを手本に追加する。`SupplyEnergy` 直呼びでなく実際に電柱＋発電機＋ ElectricToGear を接続し、(1) 2 ティック程度で `GenerateTorque` が期待値へ収束すること（tick 順依存=監査B の実挙動）、(2) **給電後に電柱／接続を外し、`GameUpdater.UpdateOneTick()` を 2 ティック回すと `GenerateRpm`/`GenerateTorque` が 0 になること（切断減衰=監査#4 の実挙動。Task 6 の `Update()` 直呼びテストの実ネットワーク版）** を確認する。本 Plan1 のスコープ内で時間が許せば実装する。
 
 - [ ] **Step 2: Unity 再起動 → テスト実行**
 
@@ -1072,7 +1075,7 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 
 ### 外部監査（Codex, session 019e92f9-17de-7472-a4ae-10fef23f9b9a）反映済みの修正
 
-- **A（重大・設計の穴）:** 固定RPMの generator が電力0でトルク0のまま網の最速起点を奪い、実generatorを `OverRequirePower` 停止/方向ロックさせる問題 → `GenerateRpm` を充足率0時に0化（Task 3）。Task 7.5 の統合テストで保証。
+- **A（重大・設計の穴）:** 固定RPMの generator が電力0でトルク0のまま網の**最速起点を奪い**、実generatorを `OverRequirePower` 停止させる問題 → `GenerateRpm` を充足率0時に0化（Task 3）。Task 7.5 の統合テストで保証。**方向ロックは別問題で未解消（Known Limitation 節参照）。**
 - **B（モード切替の漏れ）:** `SetSelectedMode` が旧充足率を残し、低消費→高出力切替直後の1ティックだけ高トルクを無料出力する問題 → `UpdateFulfillment` を `SupplyEnergy` と `SetSelectedMode` の両方から呼ぶ（Task 3）。Task 6 でアサート。
 - **C（実装計画のAPIズレ）:** `TryAddLoadedBlock`/引数なし`RemoveBlock` は実在せず → `IWorldSaveDataSaver`/`IWorldSaveDataLoader` の正式 save/load パターンに置換（Task 7）。`GetComponent<T>` の `Game.Block.Interface.Extension` using、プロトコルの `Microsoft.Extensions.DependencyInjection` using を追加（Task 6/7/8/9）。`outputModes` 空/負値のマスタ検証を追加（Task 1 Step 5）。
 - **D（テスト不足・スコープ表記）:** ギア網統合テスト（Task 7.5）とプロトコル失敗系テスト（Task 9）を追加。`DisplayEnergizedRange` はクライアント変更なのでスコープ表記を「サーバーコア＋プロトコル＋最低限のクライアント表示判定」に修正。
