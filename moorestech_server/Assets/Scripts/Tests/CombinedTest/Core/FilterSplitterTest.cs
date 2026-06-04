@@ -31,8 +31,12 @@ namespace Tests.CombinedTest.Core
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (_, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(1));
 
-            // 全方向 Default のまま 3 アイテム挿入 → 各方向に 1 個ずつラウンドロビン
-            // All directions stay Default; 3 inserts should round-robin one item each
+            // 初期値は Whitelist のため、全方向を明示的に Default に設定する
+            // Initial mode is Whitelist, so explicitly set every direction to Default
+            for (var d = 0; d < component.DirectionCount; d++) component.SetMode(d, FilterSplitterMode.Default);
+
+            // 全方向 Default で 3 アイテム挿入 → 各方向に 1 個ずつラウンドロビン
+            // All directions Default; 3 inserts should round-robin one item each
             for (var i = 0; i < 3; i++)
             {
                 var stack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1);
@@ -78,10 +82,12 @@ namespace Tests.CombinedTest.Core
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (_, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(3));
 
-            // dir0 を Blacklist[ItemId1]、dir1/dir2 は Default
-            // dir0 = Blacklist[ItemId1], dir1/dir2 = Default
+            // dir0 を Blacklist[ItemId1]、dir1/dir2 は Default（初期値 Whitelist から明示変更）
+            // dir0 = Blacklist[ItemId1], dir1/dir2 = Default (explicitly changed from initial Whitelist)
             component.SetMode(0, FilterSplitterMode.Blacklist);
             component.SetFilterItem(0, 0, ForUnitTestItemId.ItemId1);
+            component.SetMode(1, FilterSplitterMode.Default);
+            component.SetMode(2, FilterSplitterMode.Default);
 
             // ItemId1 は dir0 では拒否され Default 方向 (dir1/dir2) にラウンドロビンで流れる
             // ItemId1 is rejected by dir0; it round-robins through Default (dir1/dir2)
@@ -111,6 +117,10 @@ namespace Tests.CombinedTest.Core
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (splitter, component, dummies) = CreateSplitterWithDummies(new BlockInstanceId(4));
+
+            // 初期値は Whitelist のため、全方向を明示的に Default に設定する
+            // Initial mode is Whitelist, so explicitly set every direction to Default
+            for (var d = 0; d < component.DirectionCount; d++) component.SetMode(d, FilterSplitterMode.Default);
 
             // dir1 の接続を外す
             // Disconnect dir1 from the splitter
