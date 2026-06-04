@@ -8,7 +8,8 @@
 
 **Tech Stack:** C# / Unity / moorestech サーバー。Mooresmaster SourceGenerator（YAML→C#）、MessagePack、NUnit。`uloop` CLI（compile / run-tests）。
 
-**スコープ外（別 Plan）:** クライアント側のモード選択 UI（Unity prefab/UI、別ツーリング）と、実プレイ用 Mod データ・アイテム画像（`../moorestech_master`）。本 Plan はサーバーコア＋プロトコル＋自動テストのみで、NUnit で完結して動作確認できる。
+**本 Plan の範囲:** サーバーコア＋切替プロトコル＋自動テスト＋最低限のクライアント表示判定（`DisplayEnergizedRange` の 1 行。送電範囲ハイライト対象に含めるだけの非 UI 変更）。NUnit で完結して動作確認できる。
+**スコープ外（別 Plan）:** クライアント側のモード選択 UI（Unity prefab/UI、別ツーリング）と、実プレイ用 Mod データ・アイテム画像（`../moorestech_master`）。
 
 **前提となる設計図解:** `/Users/katsumi/infographics/electric-to-gear-generator`（`http://127.0.0.1:5180/`）。
 
@@ -101,7 +102,18 @@ Expected: コンパイル成功。エラー 0。生成された `BlockTypeConst.
 Run: `grep -rn "ElectricToGearGenerator" moorestech_client/Assets/**/Mooresmaster.Model.BlocksModule* 2>/dev/null | head`
 Expected: `BlockTypeConst.ElectricToGearGenerator` と `ElectricToGearGeneratorBlockParam`、配列要素型（例 `ElectricToGearGeneratorBlockParam.OutputModesElement`、プロパティ `Rpm` / `Torque` / `RequiredPower` は `double`）が見つかる。**配列要素型の正確な名前とプロパティ型をここで確定し、以降のタスクのコードを合わせる**（本 Plan は要素型を `OutputModesElement`、各値を `double` と仮定して書いている。差異があれば後続のキャストを調整する）。
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: マスタデータ検証を追加する（外部監査C対応）**
+
+`CurrentMode => _param.OutputModes[_selectedIndex]` は `outputModes` が空だと即クラッシュする。マスタ検証の定石（`validate-schema` スキル、既存 `BlockMasterUtil` 等のバリデーション箇所）に倣い、`ElectricToGearGeneratorBlockParam` に対して以下を検証する処理を追加する:
+- `outputModes.Length > 0`（最低 1 エントリ）
+- 各エントリの `rpm >= 0`、`torque >= 0`、`requiredPower >= 0`
+
+既存ブロックのマスタ検証がどこで行われているか `grep -rn "BlockMasterUtil\|ValidateBlock\|MasterValidat" moorestech_server/Assets/Scripts` で確認し、同じ場所に追加する。検証が見つからない/仕組みが無い場合は、`VanillaElectricToGearGeneratorTemplate.Create` 冒頭で `outputModes.Length > 0` を assert（満たさなければ明確な例外メッセージ）する形でも可。
+
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: エラー 0。
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add VanillaSchema/blocks.yml
@@ -200,9 +212,15 @@ namespace Game.Block.Blocks.ElectricToGear
         public int TeethCount => _param.TeethCount;
         public bool GenerateIsClockwise => true;
 
-        // RPM は選択モードで固定。トルクは電力充足率でドループ。
-        // RPM is fixed by the selected mode; torque droops by electric fulfillment.
-        public RPM GenerateRpm => new RPM((float)CurrentMode.Rpm);
+        // RPM は選択モードで固定。ただし実効出力が無い（充足率0=電力0）ときは RPM も 0 にする。
+        // トルク0の generator が固定RPMのまま網の最速起点になり、実際に動ける他の generator を
+        // OverRequirePower で停止/方向ロックさせるのを防ぐ（外部監査A: 重大）。
+        // RPM is fixed by the mode, but drops to 0 when there is no effective output (fulfillment 0).
+        // This stops a torque-0 generator from becoming the fastest origin and stalling real generators (audit A: critical).
+        public RPM GenerateRpm => _electricFulfillmentRate > 0f ? new RPM((float)CurrentMode.Rpm) : new RPM(0);
+
+        // トルクは電力充足率でドループ。
+        // Torque droops by electric fulfillment.
         public Torque GenerateTorque => new Torque((float)CurrentMode.Torque * _electricFulfillmentRate);
 
         public string SaveKey => "electricToGearGenerator";
@@ -252,7 +270,13 @@ namespace Game.Block.Blocks.ElectricToGear
         public void SupplyEnergy(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
+            UpdateFulfillment(power);
+        }
 
+        // 供給電力を保存し、現在モードの requiredPower に対する充足率を再計算する。
+        // Store supplied power and recompute fulfillment against the current mode's requiredPower.
+        private void UpdateFulfillment(ElectricPower power)
+        {
             _suppliedPower = power;
             var required = (float)CurrentMode.RequiredPower;
             _electricFulfillmentRate = required > 0f ? Math.Min(power.AsPrimitive() / required, 1f) : 0f;
@@ -267,6 +291,12 @@ namespace Game.Block.Blocks.ElectricToGear
             BlockException.CheckDestroy(this);
             if (index < 0 || index >= _param.OutputModes.Length) return;
             _selectedIndex = index;
+
+            // 直前の供給電力を新モードの requiredPower で再評価する。これをしないと、低消費→高出力モードへ
+            // 切替えた直後の1ティックだけ旧充足率で高トルクを無料出力してしまう（外部監査B対応）。
+            // Re-evaluate the last supplied power against the new mode's requiredPower; otherwise a low→high
+            // switch emits one free high-torque tick at the stale fulfillment (external audit B).
+            UpdateFulfillment(_suppliedPower);
         }
 
         public int SelectedIndex => _selectedIndex;
@@ -508,6 +538,7 @@ git commit -m "test: add TestElectricToGearGenerator mod data + block id"
 using System;
 using Core.Master;
 using Game.Block.Blocks.ElectricToGear;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
@@ -533,32 +564,46 @@ namespace Tests.CombinedTest.Core
             var mode0 = param.OutputModes[0]; // rpm 60, torque 50, power 30
             var mode1 = param.OutputModes[1]; // rpm 120, torque 100, power 100
 
-            // 既定は index 0。要求電力は mode0.requiredPower、RPM は mode0.rpm 固定。
-            // Default index 0: request = mode0.requiredPower, RPM fixed at mode0.rpm.
+            // 既定 index 0。要求電力は固定で読める。供給前は充足率0なので RPM は 0（外部監査A: 無電力では回らない）。
+            // Default index 0: request is readable (fixed); before any supply, fulfillment 0 → RPM 0 (audit A).
             Assert.AreEqual((float)mode0.RequiredPower, c.RequestEnergy.AsPrimitive(), 0.001f);
-            Assert.AreEqual((float)mode0.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
+            Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
 
-            // フル供給 → トルクは選択値、RPM 固定。
-            // Full supply → torque at selected value, RPM fixed.
+            // フル供給 → 充足率1。RPM は mode0.rpm、トルクは mode0.torque。
+            // Full supply → fulfillment 1: RPM = mode0.rpm, torque = mode0.torque.
             c.SupplyEnergy(new ElectricPower((float)mode0.RequiredPower));
+            Assert.AreEqual((float)mode0.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
             Assert.AreEqual((float)mode0.Torque, c.GenerateTorque.AsPrimitive(), 0.01f);
-            Assert.AreEqual((float)mode0.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
 
-            // 半分供給 → トルク半減、RPM は変わらない（ドループ）。
-            // Half supply → torque halves, RPM unchanged (droop).
+            // 半分供給 → トルク半減、RPM は固定（回ってはいる）。
+            // Half supply → torque halves, RPM stays fixed (still spinning).
             c.SupplyEnergy(new ElectricPower((float)mode0.RequiredPower * 0.5f));
-            Assert.AreEqual((float)mode0.Torque * 0.5f, c.GenerateTorque.AsPrimitive(), 0.01f);
             Assert.AreEqual((float)mode0.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
+            Assert.AreEqual((float)mode0.Torque * 0.5f, c.GenerateTorque.AsPrimitive(), 0.01f);
 
-            // 電力ゼロ → トルク 0。
-            // Zero supply → torque 0.
+            // 電力ゼロ → トルク0かつ RPM0（外部監査A）。
+            // Zero supply → torque 0 AND RPM 0 (audit A).
             c.SupplyEnergy(new ElectricPower(0));
             Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.01f);
+            Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
 
-            // モード切替 → 要求電力と RPM が mode1 に即切替。
-            // Mode switch → request and RPM jump to mode1.
+            // mode0 をフル供給に戻してから mode1 へ切替（外部監査B: 切替直後に旧充足率で高トルクを出さない）。
+            // Re-supply mode0 to fulfillment 1, then switch to mode1 (audit B: no stale full torque on switch).
+            c.SupplyEnergy(new ElectricPower((float)mode0.RequiredPower));
             c.SetSelectedMode(1);
+
+            // 要求電力は mode1 に即切替（固定値）。
+            // Request switches to mode1 immediately (fixed value).
             Assert.AreEqual((float)mode1.RequiredPower, c.RequestEnergy.AsPrimitive(), 0.001f);
+
+            // 直前供給 mode0.req(30) を mode1.req(100) で再評価 → 充足率 0.3。
+            // トルクは満充足(100)ではなく 30 付近になる（旧充足率の高トルクを出さない）。
+            // Last supply mode0.req(30) re-evaluated against mode1.req(100) → fulfillment 0.3.
+            // Torque is ~30, NOT the full 100 (no stale high-torque tick).
+            var expectedFulfillment = (float)mode0.RequiredPower / (float)mode1.RequiredPower;
+            Assert.AreEqual((float)mode1.Torque * expectedFulfillment, c.GenerateTorque.AsPrimitive(), 0.5f);
+            // 充足率>0 なので RPM は mode1.rpm。
+            // fulfillment > 0 so RPM is mode1.rpm.
             Assert.AreEqual((float)mode1.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
 
             // 範囲外 index は無視（mode1 のまま）。
@@ -593,38 +638,60 @@ git commit -m "test: ElectricToGearGenerator fixed-RPM torque-droop and mode swi
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/ElectricToGearGeneratorTest.cs`（テストメソッド追加）
 
-> `GetSaveState()` の文字列を `componentStates` 辞書に詰め、テンプレートの `Load` 経路で復元して `selectedIndex` が戻ることを確認する。
+> 外部監査C対応: `TryAddLoadedBlock` / 引数なし `RemoveBlock` は実在しない。`SaveJsonFileTest.cs` と同じ「実ファイルへ Save → 別コンテナで Load」の正式パターンで検証する。`ChangeFilePath` ヘルパーは `SaveJsonFileTest.cs:77-86` から**そのままコピー**する（`<Path>k__BackingField` をリフレクションで差し替える実装）。
 
 - [ ] **Step 1: save/load テストを追加**
 
-`ElectricToGearGeneratorTest` クラス内に追加:
+`ElectricToGearGeneratorTest.cs` の using に以下を追加:
+
+```csharp
+using System.IO;
+using System.Reflection;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
+using Microsoft.Extensions.DependencyInjection;
+```
+
+`ElectricToGearGeneratorTest` クラス内に追加（`SaveJsonFileTest.cs` の手順を踏襲）:
 
 ```csharp
         [Test]
         public void SelectedIndexSurvivesSaveLoad()
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
+            // セーブ側コンテナでブロックを置き、mode 2 を選んで実ファイルへ保存する。
+            // On the save-side container, place the block, select mode 2, and save to a real file.
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
             world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            var c = block.GetComponent<ElectricToGearGeneratorComponent>();
+            block.GetComponent<ElectricToGearGeneratorComponent>().SetSelectedMode(2);
 
-            // モードを 2 に変更し、ブロックの全コンポーネント状態をセーブする。
-            // Switch to mode 2 and save the block's full component state.
-            c.SetSelectedMode(2);
-            var saved = block.GetSaveState(); // Dictionary<string,string> 相当（既存 IBlock のセーブ API）
+            ChangeFilePath(saveServiceProvider.GetService<SaveJsonFilePath>(), "ElectricToGearSaveLoadTest.json");
+            saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
 
-            // 同じ座標に置き直すためいったん撤去し、セーブ状態からロードする。
-            // Remove and re-create the block at the same position, loading from saved state.
-            world.RemoveBlock(Vector3Int.zero);
-            world.TryAddLoadedBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, saved, out var reloaded);
-            var rc = reloaded.GetComponent<ElectricToGearGeneratorComponent>();
+            // ロード側コンテナを新規生成し、同じファイルから読み戻す。
+            // Create a fresh load-side container and load from the same file.
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            ChangeFilePath(loadServiceProvider.GetService<SaveJsonFilePath>(), "ElectricToGearSaveLoadTest.json");
+            loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            Assert.AreEqual(2, rc.SelectedIndex);
+            var reloaded = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
+            File.Delete(saveServiceProvider.GetService<SaveJsonFilePath>().Path);
+
+            Assert.AreEqual(2, reloaded.GetComponent<ElectricToGearGeneratorComponent>().SelectedIndex);
+        }
+
+        // SaveJsonFileTest.cs:77-86 からそのままコピーしたヘルパー。
+        // Helper copied verbatim from SaveJsonFileTest.cs:77-86.
+        private void ChangeFilePath(SaveJsonFilePath instance, string fileName)
+        {
+            var fieldInfo = typeof(SaveJsonFilePath).GetField("<Path>k__BackingField",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var path = Path.Combine(Environment.CurrentDirectory, "../", "moorestech_server", fileName);
+            fieldInfo.SetValue(instance, path);
         }
 ```
 
-> 注: `block.GetSaveState()`（ブロック単位のコンポーネント状態取得）と `world.TryAddLoadedBlock(...)`（セーブ状態からの復元配置）の正確な API 名は、既存の save/load テスト（例: `FilterSplitter` や belt の save テスト）を `grep "GetSaveState\|AddLoadedBlock\|LoadBlock"` で確認し、合わせる。シグネチャが異なる場合はそのプロジェクトの定石に従って呼び出しを差し替える。狙いは「mode 2 を選んで save→load し、index 2 が復元される」こと。
+> 注: `block.GetComponent<T>()` は `Game.Block.Interface.Extension` の拡張メソッド（Task 6 の using に追加済み）。`ChangeFilePath` の実装は必ず `SaveJsonFileTest.cs` の現物を確認し、リフレクション対象（バッキングフィールド名）が変わっていないか確かめる。
 
 - [ ] **Step 2: テスト実行**
 
@@ -636,6 +703,63 @@ Expected: 2 テストとも PASS。
 ```bash
 git add moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/ElectricToGearGeneratorTest.cs
 git commit -m "test: ElectricToGearGenerator selectedIndex survives save/load"
+```
+
+---
+
+## Task 7.5: ギア網統合テスト（外部監査A/D対応・重大）
+
+**Files:**
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/ElectricToGearGeneratorTest.cs`（テストメソッド追加）
+
+> 外部監査の最重要指摘: `SupplyEnergy` 直呼びの単体テストだけでは「電力0のモーターが固定RPMで網の最速起点を奪う」問題（監査A）を検出できない。実際にギア網へ接続して、無電力の ElectricToGear が網速度を支配しないことを確認する。`GearToElectricGeneratorTest` の隣接配置パターンを踏襲する。
+
+- [ ] **Step 1: 統合テストを追加**
+
+`ElectricToGearGeneratorTest` クラス内に追加。配置 API・tick 前進・`SimpleGearGenerator` の rpm 取得方法は `GearToElectricGeneratorTest.cs` を確認して合わせる（隣接座標・接続方向・`AdvanceTime` 相当）:
+
+```csharp
+        [Test]
+        public void UnpoweredMotorDoesNotDominateGearNetwork()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+
+            // 高RPMモード(index 2 = rpm 240)の ElectricToGear を無電力で置く。
+            // Place an ElectricToGear in its high-RPM mode (index 2 = rpm 240) WITHOUT supplying power.
+            world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var motorBlock);
+            var motor = motorBlock.GetComponent<ElectricToGearGeneratorComponent>();
+            motor.SetSelectedMode(2); // rpm 240（ただし無電力なので充足率0）
+
+            // 本物の SimpleGearGenerator を隣に置いて網を駆動する。
+            // Place a real SimpleGearGenerator next to it to drive the network.
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var driveBlock);
+
+            // 1ティック進める（GameUpdater.UpdateOneTick を GearToElectricGeneratorTest の AdvanceTime と同様に回す）。
+            // Advance one tick (drive GameUpdater.UpdateOneTick like GearToElectricGeneratorTest's AdvanceTime).
+            GameUpdater.UpdateOneTick();
+
+            // 監査A: 無電力モーターは GenerateRpm=0 なので最速起点になれず、網速度は SimpleGearGenerator が決める。
+            // 240 に張り付いていないこと（=モーターが網を支配していないこと）を確認する。
+            // Audit A: the unpowered motor has GenerateRpm=0, so it can't be the origin; the SimpleGearGenerator sets the speed.
+            // Assert the network is NOT pinned at the motor's 240 (i.e. the motor doesn't dominate).
+            Assert.AreNotEqual(240f, motor.CurrentRpm.AsPrimitive(), 0.001f);
+            Assert.AreEqual(0f, motor.GenerateRpm.AsPrimitive(), 0.001f);
+        }
+```
+
+> 補足（推奨追加）: 電力網経由の収束テスト（電柱＋発電機＋ ElectricToGear を接続し、`SupplyEnergy` ではなく `EnergySegment` 経由で給電して 2 ティック程度で `GenerateTorque` が期待値に収束すること）は `ConnectElectricSegmentTest.cs` の配線パターンを手本に追加する。tick 順依存（監査B）の実挙動を押さえられる。本 Plan1 のスコープ内で時間が許せば実装する。
+
+- [ ] **Step 2: Unity 再起動 → テスト実行**
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ElectricToGearGeneratorTest"`
+Expected: 全テスト PASS。`UnpoweredMotorDoesNotDominateGearNetwork` が、監査A の修正（`GenerateRpm` の充足率0時0化）が効いていることを保証する。
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/ElectricToGearGeneratorTest.cs
+git commit -m "test: unpowered ElectricToGear does not dominate gear network (audit A)"
 ```
 
 ---
@@ -655,6 +779,7 @@ using System;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Context;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -768,6 +893,7 @@ git commit -m "feat: add SetElectricToGearOutputModeProtocol"
 ```csharp
 using System;
 using Game.Block.Blocks.ElectricToGear;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using MessagePack;
 using NUnit.Framework;
@@ -804,6 +930,23 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(response2.Success);
             Assert.AreEqual(2, response2.AppliedIndex);
             Assert.AreEqual(2, c.SelectedIndex);
+        }
+
+        [Test]
+        public void FailsGracefullyForMissingOrWrongBlock()
+        {
+            var (packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // ブロックが無い座標 → Success=false（外部監査D: 失敗系も確認）。
+            // No block at the position → Success=false (audit D: cover failure cases).
+            var noBlock = Send(packet, new SetElectricToGearOutputModeRequest(new Vector3Int(5, 0, 0), 1));
+            Assert.IsFalse(noBlock.Success);
+
+            // ElectricToGear ではない別ブロックを置いて送る → Success=false。
+            // Place a different (non-ElectricToGear) block and send → Success=false.
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestGearToElectricGenerator, new Vector3Int(8, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var wrongBlock = Send(packet, new SetElectricToGearOutputModeRequest(new Vector3Int(8, 0, 0), 1));
+            Assert.IsFalse(wrongBlock.Success);
         }
 
         #region Internal
@@ -882,6 +1025,13 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 
 ## Self-Review メモ（計画作成者による確認）
 
-- **Spec カバレッジ:** 出力テーブル（Task 1, 5）／RPM 固定・トルクドループ（Task 3, 6）／要求電力固定（Task 3, 6）／requiredPower 明示（Task 1, 5）／ランタイム選択（Task 8, 9）／選択の永続化（Task 3, 7）／クライアント同期状態（Task 2）／送電範囲表示（Task 10）。クライアント選択 UI は Out of Scope に明記。
-- **型整合:** `SetSelectedMode(int)` / `SelectedIndex`（int getter）/ `RequestEnergy` / `GenerateRpm` / `GenerateTorque` は Task 3 定義と Task 6/8/9 の参照で一致。状態キー `"ElectricToGearGenerator"`、SaveKey `"electricToGearGenerator"`、ProtocolTag `"va:setElectricToGearOutputMode"`。
-- **要確認（実装時）:** 生成配列要素型名（`OutputModesElement` 仮定, Task 1 Step 4）／`number`→`double` キャスト／save-load の `GetSaveState`・`TryAddLoadedBlock` 系 API 名（Task 7 注記）／プロトコル基底クラスの using（Task 8 注記）。いずれも該当タスク内に確認手順を明記済み。
+- **Spec カバレッジ:** 出力テーブル（Task 1, 5）／RPM 固定・トルクドループ（Task 3, 6）／要求電力固定（Task 3, 6）／requiredPower 明示（Task 1, 5）／ランタイム選択（Task 8, 9）／選択の永続化（Task 3, 7）／クライアント同期状態（Task 2）／ギア網統合（Task 7.5）／送電範囲表示（Task 10）。クライアント選択 UI は Out of Scope に明記。
+- **型整合:** `SetSelectedMode(int)` / `SelectedIndex`（int getter）/ `RequestEnergy` / `GenerateRpm` / `GenerateTorque` / `UpdateFulfillment(ElectricPower)` は Task 3 定義と Task 6/7/7.5/8/9 の参照で一致。状態キー `"ElectricToGearGenerator"`、SaveKey `"electricToGearGenerator"`、ProtocolTag `"va:setElectricToGearOutputMode"`。
+- **要確認（実装時）:** 生成配列要素型名（`OutputModesElement` 仮定, Task 1 Step 4）／`number`→`double` キャスト／`SimpleGearGenerator` の rpm 設定・取得 API と隣接配置（Task 7.5、`GearToElectricGeneratorTest.cs` 参照）／プロトコル戻りタプル形（Task 9 注記）。いずれも該当タスク内に確認手順を明記済み。
+
+### 外部監査（Codex, session 019e92f9-17de-7472-a4ae-10fef23f9b9a）反映済みの修正
+
+- **A（重大・設計の穴）:** 固定RPMの generator が電力0でトルク0のまま網の最速起点を奪い、実generatorを `OverRequirePower` 停止/方向ロックさせる問題 → `GenerateRpm` を充足率0時に0化（Task 3）。Task 7.5 の統合テストで保証。
+- **B（モード切替の漏れ）:** `SetSelectedMode` が旧充足率を残し、低消費→高出力切替直後の1ティックだけ高トルクを無料出力する問題 → `UpdateFulfillment` を `SupplyEnergy` と `SetSelectedMode` の両方から呼ぶ（Task 3）。Task 6 でアサート。
+- **C（実装計画のAPIズレ）:** `TryAddLoadedBlock`/引数なし`RemoveBlock` は実在せず → `IWorldSaveDataSaver`/`IWorldSaveDataLoader` の正式 save/load パターンに置換（Task 7）。`GetComponent<T>` の `Game.Block.Interface.Extension` using、プロトコルの `Microsoft.Extensions.DependencyInjection` using を追加（Task 6/7/8/9）。`outputModes` 空/負値のマスタ検証を追加（Task 1 Step 5）。
+- **D（テスト不足・スコープ表記）:** ギア網統合テスト（Task 7.5）とプロトコル失敗系テスト（Task 9）を追加。`DisplayEnergizedRange` はクライアント変更なのでスコープ表記を「サーバーコア＋プロトコル＋最低限のクライアント表示判定」に修正。
