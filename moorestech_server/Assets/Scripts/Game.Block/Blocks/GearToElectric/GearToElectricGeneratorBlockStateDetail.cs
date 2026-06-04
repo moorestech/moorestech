@@ -3,18 +3,18 @@ using Game.EnergySystem;
 using Game.Gear.Common;
 using MessagePack;
 
-namespace Game.Block.Blocks.GearElectric
+namespace Game.Block.Blocks.GearToElectric
 {
     [Serializable]
     [MessagePackObject]
-    public class GearElectricGeneratorBlockStateDetail : GearStateDetail
+    public class GearToElectricGeneratorBlockStateDetail : GearStateDetail
     {
-        public const string GearGeneratorBlockStateDetailKey = "GearElectricGenerator";
+        public const string GearGeneratorBlockStateDetailKey = "GearToElectricGenerator";
 
         [Key(7)] public float EnergyFulfillmentRate { get; set; }
         [Key(8)] public float GeneratedElectricPower { get; set; }
 
-        public GearElectricGeneratorBlockStateDetail(
+        public GearToElectricGeneratorBlockStateDetail(
             bool isClockwise,
             RPM currentRpm,
             Torque currentTorque,
@@ -27,7 +27,7 @@ namespace Game.Block.Blocks.GearElectric
         }
 
         [Obsolete("Deserialize only")]
-        public GearElectricGeneratorBlockStateDetail()
+        public GearToElectricGeneratorBlockStateDetail()
         {
         }
     }
