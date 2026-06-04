@@ -1089,7 +1089,8 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 
 外部監査A の修正（無電力時 `GenerateRpm=0`）で「**完全無電力**のモーターによる最速起点の支配」は防げる。ただし `GearNetwork` は最速起点を `GenerateRpm` **だけ**で選び `GenerateTorque` を見ない（[GearNetwork.cs:55](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）ため、次の 2 つは残る共通仕様（いずれも RPM 優先の起点選定が根因。ElectricToGear 固有でなく `FuelGearGenerator` 等も同様）:
 
-- **部分給電の高RPMモード支配:** 充足率がわずかでも `> 0` なら `GenerateRpm` は選択モードの満値（例 240）を返す。1%給電の 240rpm モーターでも網速度を 240 に支配し得る。トルクは極小なので、負荷があれば `OverRequirePower` で網が止まる（=弱いモーターが網を実質停止させる）。Task 6/7.5 のゼロ電力テストは **exact-0 の支配回避のみ**を保証し、この部分給電ケースは未検証。
+- **部分給電の高RPMモード支配:** 充足率がわずかでも `> 0`（かつモードのトルク `> 0`）なら `GenerateRpm` は選択モードの満値（例 240）を返す。1%給電の 240rpm モーターでも網速度を 240 に支配し得る。トルクは極小なので、負荷があれば `OverRequirePower` で網が止まる（=弱いモーターが網を実質停止させる）。Task 6/7.5 のゼロ電力テストは **exact-0 の支配回避のみ**を保証し、この部分給電ケースは未検証。
+  - **実装後レビュー（最終コードレビュー）で閉じたサブケース:** `torque: 0, rpm: 60` のように**トルク0設定のモードを満充足**にすると、`GenerateRpm` が固定値を返して網を支配し得る穴があった（充足率ゲートだけでは塞げない）。`GenerateRpm` を「充足率 `> 0` **かつ** `CurrentMode.Torque > 0`」のときのみ非0にする実効トルクゲートへ変更して閉じた（commit `bedc12be1`）。これにより「実効トルク0の generator は網を回さない」という不変条件が、無電力・トルク0設定の**両方**で成立する。残る部分給電ケース（トルク>0・低充足率）はRPM優先起点選定の共通仕様として未解決のまま。
 - **方向ロック:** `GearNetwork.CalcGearInfo` は到達した generator の `GenerateIsClockwise` を `GenerateRpm`/`GenerateTorque` に関係なくチェックする（[GearNetwork.cs:138](file:///Users/katsumi/moorestech-worktrees/tree1/moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs)）ため、無電力（出力0）の ElectricToGear でも逆向き接続だと網全体を `Rocked` させ得る。
 
 ただしこれは ElectricToGear 固有ではなく、**既存のギア網の挙動**（燃料切れ `FuelGearGenerator` も `GenerateIsClockwise` を保持し同様に方向ロックし得る）。本 Plan の新規バグではないため、Plan1 のスコープ外とする。
