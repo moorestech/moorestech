@@ -2,7 +2,7 @@ using System;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Gear;
-using Game.Block.Blocks.GearElectric;
+using Game.Block.Blocks.GearToElectric;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
-    public class GearElectricGeneratorTest
+    public class GearToElectricGeneratorTest
     {
         [Test]
         public void OutputEnergyScalesWithGearSupply()
@@ -24,12 +24,12 @@ namespace Tests.CombinedTest.Core
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var world = ServerContext.WorldBlockDatastore;
-            world.TryAddBlock(ForUnitTestModBlockId.TestGearElectricGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
+            world.TryAddBlock(ForUnitTestModBlockId.TestGearToElectricGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var driveBlock);
 
-            var generatorComponent = generatorBlock.GetComponent<GearElectricGeneratorComponent>();
+            var generatorComponent = generatorBlock.GetComponent<GearToElectricGeneratorComponent>();
             var driveComponent = driveBlock.GetComponent<SimpleGearGeneratorComponent>();
-            var param = (GearElectricGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestGearElectricGenerator).BlockParam;
+            var param = (GearToElectricGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestGearToElectricGenerator).BlockParam;
 
             // フル出力
             // Full output
