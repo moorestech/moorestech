@@ -329,7 +329,7 @@ namespace Game.Block.Blocks.FilterSplitter
         {
             public readonly Guid ConnectorGuid;
             public readonly ItemId[] FilterItems;
-            public FilterSplitterMode Mode = FilterSplitterMode.Default;
+            public FilterSplitterMode Mode = FilterSplitterMode.Whitelist;
             public IItemStack BufferedItem;
 
             public DirectionState(Guid connectorGuid, int slotCount)
