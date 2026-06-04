@@ -4090,7 +4090,8 @@
         "outputModes": [
           { "rpm": 60, "torque": 50, "requiredPower": 30 },
           { "rpm": 120, "torque": 100, "requiredPower": 100 },
-          { "rpm": 240, "torque": 150, "requiredPower": 300 }
+          { "rpm": 240, "torque": 150, "requiredPower": 300 },
+          { "rpm": 60, "torque": 0, "requiredPower": 10 }
         ],
         "gear": {
           "gearConnects": [
