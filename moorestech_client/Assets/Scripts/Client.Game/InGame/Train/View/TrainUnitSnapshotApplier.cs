@@ -68,9 +68,6 @@ namespace Client.Game.InGame.Train.View
                     bundles.Add(bundle);
                     CollectTrainCarInstanceIds(bundle, activeTrainCarInstanceIds);
 
-                    // 車両オブジェクトを生成する
-                    // Create train car objects
-                    _trainCarDatastore.OnTrainObjectUpdate(bundle.Simulation.Cars);
                 }
             }
 
@@ -88,6 +85,12 @@ namespace Client.Game.InGame.Train.View
                     $"serverHash={response.UnitsHash}, clientHash={localHashAfterApply}, cacheTrainCount={_cache.Units.Count}");
             }
 
+            // cache更新後に列車表示オブジェクトの生成を依頼する
+            // Request train view object creation after cache update
+            for (var i = 0; i < bundles.Count; i++)
+            {
+                _trainCarDatastore.OnTrainObjectUpdate(bundles[i].Simulation.Cars);
+            }
             _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarInstanceIds);
             _tickState.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
 
