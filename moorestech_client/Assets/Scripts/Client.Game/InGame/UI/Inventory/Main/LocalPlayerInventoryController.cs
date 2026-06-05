@@ -7,6 +7,8 @@ using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
+using Server.Util.MessagePack;
+using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Client.Game.InGame.UI.Inventory.Main
 {
@@ -39,7 +41,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             if (isMoveSendData) SendMoveItemData();
             
-            #region InternalMethod
+            #region Internal
             
             void SetInventory()
             {
@@ -81,19 +83,35 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             void SendMoveItemData()
             {
-                var fromInfo = GetServerInventoryInfo(from, fromSlot);
-                var toInfo = GetServerInventoryInfo(to, toSlot);
-                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromInfo, fromSlot, toInfo, toSlot);
+                // ローカル結合スロットをサーバーのインベントリ内スロットへ変換する
+                // Convert combined local slots into inventory-local server slots.
+                var fromIdentifier = GetServerInventoryIdentifier(from, fromSlot);
+                var toIdentifier = GetServerInventoryIdentifier(to, toSlot);
+                var fromServerSlot = GetServerInventorySlot(from, fromSlot);
+                var toServerSlot = GetServerInventorySlot(to, toSlot);
+                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromIdentifier, fromServerSlot, toIdentifier, toServerSlot);
             }
             
-            ItemMoveInventoryInfo GetServerInventoryInfo(LocalMoveInventoryType localType, int localSlot)
+            InventoryIdentifierMessagePack GetServerInventoryIdentifier(LocalMoveInventoryType localType, int localSlot)
             {
                 return localType switch
                 {
                     LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
-                        ? ItemMoveInventoryInfo.CreateMain()
-                        : ItemMoveInventoryInfo.CreateSubInventory(_subInventory.ISubInventoryIdentifier.ToMessagePack()),
-                    LocalMoveInventoryType.Grab => ItemMoveInventoryInfo.CreateGrab(),
+                        ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
+                        : _subInventory.ISubInventoryIdentifier.ToMessagePack(),
+                    LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
+                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
+                };
+            }
+
+            int GetServerInventorySlot(LocalMoveInventoryType localType, int localSlot)
+            {
+                return localType switch
+                {
+                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
+                        ? localSlot
+                        : localSlot - PlayerInventoryConst.MainInventorySize,
+                    LocalMoveInventoryType.Grab => 0,
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
             }
@@ -101,6 +119,18 @@ namespace Client.Game.InGame.UI.Inventory.Main
             #endregion
         }
         
+        public void SortInventory()
+        {
+            // メインインベントリを整理（ホットバー除外はサーバー側で実施）
+            // Sort the main inventory (hotbar exclusion is handled on the server).
+            ClientContext.VanillaApi.SendOnly.SortInventory(CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId));
+
+            // 開いているサブインベントリがあれば整理する
+            // Also sort the currently open sub-inventory, if any.
+            if (_subInventory != null && _subInventory.IsEnableSubInventory())
+                ClientContext.VanillaApi.SendOnly.SortInventory(_subInventory.ISubInventoryIdentifier.ToMessagePack());
+        }
+
         public void SetGrabItem(IItemStack itemStack)
         {
             GrabInventory = itemStack;

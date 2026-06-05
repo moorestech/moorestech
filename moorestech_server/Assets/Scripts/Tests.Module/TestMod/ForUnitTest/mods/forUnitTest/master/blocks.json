@@ -3731,8 +3731,8 @@
     {
       "blockGuid": "00000000-0000-0000-0000-000000000028",
       "itemGuid": "11110000-0000-0000-0000-000000000000",
-      "name": "TestGearElectricGenerator",
-      "blockType": "GearElectricGenerator",
+      "name": "TestGearToElectricGenerator",
+      "blockType": "GearToElectricGenerator",
       "blockSize": [
         1,
         1,
