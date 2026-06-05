@@ -5,6 +5,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
@@ -15,6 +16,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -129,6 +131,22 @@ namespace Tests.CombinedTest.Core
             // Even at full fulfillment, a torque-0 mode yields GenerateRpm 0 (effective-torque gate); never dominates the network.
             Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.001f);
             Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
+        }
+
+        [Test]
+        public void ModeSwitchFiresOnChangeBlockState()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+
+            var observable = block.GetComponent<IBlockStateObservable>();
+            var fired = 0;
+            using var _ = observable.OnChangeBlockState.Subscribe(__ => fired++);
+
+            var before = fired;
+            block.GetComponent<ElectricToGearGeneratorComponent>().SetSelectedMode(2);
+            Assert.Greater(fired, before, "SetSelectedMode で OnChangeBlockState が発火していない");
         }
 
         private void ChangeFilePath(SaveJsonFilePath instance, string fileName)
