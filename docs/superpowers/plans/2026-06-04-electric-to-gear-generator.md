@@ -1080,6 +1080,7 @@ git commit -m "feat(client): include ElectricToGearGenerator in energized-range 
 ## Out of Scope（別 Plan で実施）
 
 - **Plan 2: クライアントのモード選択 UI。** プレイヤーがブロック UI で `outputModes` の 1 行を選び、`SetElectricToGearOutputModeProtocol` を送る UI。`ElectricToGearGeneratorBlockStateDetail.SelectedIndex` を読んで現在モードを表示。Unity prefab/UI 作業を含むため別ツーリング（`uloop execute-dynamic-code` か手動）。
+  - **状態push同期の粒度（all-code-review で保留→ユーザー判断: Plan 2 へ先送り）:** 現状 `ElectricToGearGeneratorComponent` は独自の `IBlockStateObservable` を持たず、状態push（`OnChangeBlockState`）は基底 `GearEnergyTransformer`（`SimpleGearService` のRPM/トルク変化）に依存する。これは直接の鏡像 `GearToElectricGeneratorComponent` と同一の実装（バグではない）。ただし「ギア出力が変わらないモード変更（例: 同一 rpm+torque の別モードへ切替）」や未給電中の選択変更は即時push同期されない（操作クライアントにはプロトコル応答で index が即返るため、当人の表示は更新される）。Plan 2 でモード選択UIを作る際、ライブ更新が必要なら `FuelGearGeneratorComponent` 方式（独自 Subject を持ち、基底のギア状態変化を転送しつつ `SetSelectedMode`/`UpdateFulfillment` で明示発火）を採用する。
 - **実プレイ用 Mod データ・アイテム画像。** `../moorestech_master` の `blocks.json` / `items.json` 追加と画像アセット。`master-asset-converter` / sortPriority 再計算系スキルを使用。
 - **ブロック見た目（prefab、ギア回転アニメ）。** `ElectricToGearGeneratorBlockStateDetail` の `CurrentRpm` / `SelectedIndex` を使った回転表現。
 
