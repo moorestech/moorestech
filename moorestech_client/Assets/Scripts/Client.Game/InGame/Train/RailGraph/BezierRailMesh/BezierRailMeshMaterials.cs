@@ -107,7 +107,7 @@ namespace Client.Game.InGame.Train.RailGraph
         internal static Material ResolvePreviewMaterial()
         {
             if (BezierRailMesh._previewMaterialLoaded) return BezierRailMesh._previewBaseMaterial;
-            BezierRailMesh._previewBaseMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            BezierRailMesh._previewBaseMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
             BezierRailMesh._previewMaterialLoaded = true;
             return BezierRailMesh._previewBaseMaterial;
         }

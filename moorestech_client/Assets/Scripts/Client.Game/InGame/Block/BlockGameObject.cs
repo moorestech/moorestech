@@ -144,11 +144,10 @@ namespace Client.Game.InGame.Block
         public void SetRemovePreviewing()
         {
             if (_isShaderAnimating) return;
-            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            var placePreviewMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
             
             _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName ,MaterialConst.NotPlaceableColor);
-            Resources.UnloadAsset(placePreviewMaterial);
         }
         
         public void ResetMaterial()

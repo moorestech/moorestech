@@ -19,10 +19,18 @@ namespace Client.Game.InGame.Train.View.Object
         /// Model forward center offset
         /// </summary>
         public float ModelForwardCenterOffset => _poseService.ModelForwardCenterOffset;
-        private bool _debugAutoRun = false;//////////////////
 
+        private bool _debugAutoRun = false;//////////////////
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private TrainCarPoseService _poseService;
+        private MaterialPreviewState _materialPreviewState = MaterialPreviewState.Normal;
+
+        private enum MaterialPreviewState
+        {
+            Normal,
+            RemovePreviewing,
+            PlacementOverlapPreviewing,
+        }
 
         /// <summary>
         /// 初期化を行う
@@ -61,7 +69,6 @@ namespace Client.Game.InGame.Train.View.Object
             TrainCarMasterElement = trainCarMasterElement;
         }
 
-
         /// <summary>
         /// 物理更新で反映する列車姿勢を設定する
         /// Set the train pose to apply during physics updates
@@ -77,9 +84,9 @@ namespace Client.Game.InGame.Train.View.Object
         /// </summary>
         public void Destroy()
         {
+            _rendererMaterialReplacerController?.DestroyMaterial();
             Destroy(gameObject);
         }
-
 
         /// <summary>
         /// 毎フレーム呼ばれ
@@ -87,8 +94,8 @@ namespace Client.Game.InGame.Train.View.Object
         /// </summary>
         private void Update()
         {
-            // デバッグ用：列車の自動運転（AutoRun）の ON/OFF が変化したらサーバへ通知する。
-            // （監視は TrainCar 側で行い、変化があったタイミングでコマンド送信する）
+            // デバッグ用：列車の自動運転（AutoRun）の ON/OFF が変化したらサーバへ通知する
+            // Notify the server when the debug train AutoRun state changes
             if (_debugAutoRun != DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey))
             {
                 _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);
@@ -99,7 +106,7 @@ namespace Client.Game.InGame.Train.View.Object
 
         // 自動運転（AutoRun）の状態をサーバへ送信するローカル関数
         // Local function to send the auto-run state for all trains
-        void OnTrainAutoRunChanged(bool isEnabled)
+        private void OnTrainAutoRunChanged(bool isEnabled)
         {
             // サーバへ「列車自動運転」の切り替えコマンドを送信する
             // Send the auto-run toggle command for all trains to the server
@@ -111,27 +118,42 @@ namespace Client.Game.InGame.Train.View.Object
 
         public void SetRemovePreviewing()
         {
-            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
-
-            _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
+            // 同じ削除プレビュー状態では材質差し替えを繰り返さない
+            // Avoid repeated material replacement while already in remove preview
+            if (_materialPreviewState != MaterialPreviewState.RemovePreviewing)
+            {
+                var placePreviewMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
+                _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
+                _materialPreviewState = MaterialPreviewState.RemovePreviewing;
+            }
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
-            Resources.UnloadAsset(placePreviewMaterial);
         }
 
         // 事実上、新規でTrainCarを設置しようとしたときに連結できますよを視覚的に知らせるための表示のみ用
+        // This preview only visually indicates that a new TrainCar can be connected
         public void SetPlacementOverlapPreviewing()
         {
+            // 同じ設置重複ハイライトでは材質差し替えを繰り返さない
+            // Avoid repeated material replacement while already in placement overlap preview
+            if (_materialPreviewState != MaterialPreviewState.PlacementOverlapPreviewing)
+            {
+                var placePreviewMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
+                _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
+                _materialPreviewState = MaterialPreviewState.PlacementOverlapPreviewing;
+            }
             // 設置候補重複ハイライトは設置可能色(青)で表示する
             // Show placement-overlap highlight in placeable color (blue)
-            var placePreviewMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
-            _rendererMaterialReplacerController.CopyAndSetMaterial(placePreviewMaterial);
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.PlaceableColor);
-            Resources.UnloadAsset(placePreviewMaterial);
         }
 
         public void ResetMaterial()
         {
+            if (_materialPreviewState == MaterialPreviewState.Normal)
+            {
+                return;
+            }
             _rendererMaterialReplacerController.ResetMaterial();
+            _materialPreviewState = MaterialPreviewState.Normal;
         }
     }
 }
