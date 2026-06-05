@@ -192,10 +192,6 @@ namespace Client.Game.InGame.Train.Unit
                     (int, int) GetWeightAndTraction(TrainCarSnapshot trainCarSnapshot)
                     {
                         MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarSnapshot.TrainCarMasterId, out var trainElement);
-                        if (!trainCarSnapshot.HasFuel)
-                        {
-                            return (trainCarSnapshot.Weight, 0);
-                        }
                         return (trainCarSnapshot.Weight, trainElement.TractionForce);
                     }
                 }
@@ -314,7 +310,7 @@ namespace Client.Game.InGame.Train.Unit
             for (var i = 0; i < localCars.Count; i++)
             {
                 var source = localCars[localCars.Count - 1 - i];
-                reversedCars[i] = new TrainCarSnapshot(source.TrainCarInstanceId, source.TrainCarMasterId, !source.IsFacingForward, source.HasFuel, source.Weight);
+                reversedCars[i] = new TrainCarSnapshot(source.TrainCarInstanceId, source.TrainCarMasterId, !source.IsFacingForward, source.Weight);
             }
             _cars = reversedCars;
         }
