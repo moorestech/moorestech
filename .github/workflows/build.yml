@@ -150,19 +150,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
           submodules: recursive
       - name: Update submodules
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive
 
-      # Windows Docker コンテナ内で UPM が Git LFS パッケージを解決できるよう
-      # git-lfs をグローバルにセットアップする (game-ci の Windows イメージに未設定)
-      - name: Setup Git LFS for Docker (Windows)
+      # Windows Docker コンテナ内では UPM の git clone + LFS が失敗するため、
+      # ホスト上でパッケージを事前取得し、ローカルパスに差し替える
+      - name: Pre-fetch CefUnity package (Windows)
         if: runner.os == 'Windows'
         shell: bash
-        run: git lfs install --system
+        run: |
+          git clone --depth 1 --branch main https://github.com/KurisuJuha/cef-unity-moorestech.git _cef_pkg
+          cd _cef_pkg && git lfs pull && cd ..
+          cp -r _cef_pkg/Assets/CefUnity moorestech_client/CefUnityLocal
+          cd moorestech_client/Packages
+          python3 -c "
+          import json
+          with open('manifest.json', 'r') as f:
+              data = json.load(f)
+          data['dependencies']['jp.juha.cefunitysample'] = 'file:../CefUnityLocal'
+          with open('manifest.json', 'w') as f:
+              json.dump(data, f, indent=2)
+          "
 
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable
