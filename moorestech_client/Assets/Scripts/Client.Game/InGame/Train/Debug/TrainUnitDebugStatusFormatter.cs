@@ -89,14 +89,13 @@ namespace Client.Game.InGame.Train.DebugView
         {
             var count = Math.Min(cars.Count, MaxDisplayedCarsPerTrain);
 
-            // 車両ごとの向きと燃料有無を出し、牽引力の怪しさを追えるようにする
-            // Show per-car direction and fuel flags to inspect traction-related behavior.
+            // 車両ごとの向きと重量を出し、編成状態を追えるようにする
+            // Show per-car direction and weight to inspect formation state.
             for (var i = 0; i < count; i++)
             {
                 var car = cars[i];
                 _builder.Append("  car[").Append(i).Append("] id=").Append(ShortText(car.TrainCarInstanceId.ToString()));
                 _builder.Append(" facing=").Append(car.IsFacingForward ? "forward" : "backward");
-                _builder.Append(" fuel=").Append(car.HasFuel ? "yes" : "no");
                 _builder.Append(" weight=").Append(car.Weight);
                 _builder.AppendLine();
             }
