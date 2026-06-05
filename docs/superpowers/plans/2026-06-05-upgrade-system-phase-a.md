@@ -2,9 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 全機械共通のモジュールスロット基盤を作り、機械に挿したモジュールで「速度・生産性・省エネ」を変えられるようにする（品質軸=フェーズBは対象外）。
+**Goal:** `VanillaMachineProcessorComponent` を使う機械（**ElectricMachine と GearMachine の両方**）にモジュールスロット基盤を作り、挿したモジュールで「速度・生産性・省エネ」を変えられるようにする（品質軸=フェーズBは対象外）。Miner系（別プロセッサ）は対象外で別フォロー。
 
-**Architecture:** 新スキーマ `modules.yml` と `ModuleMaster` でモジュールを定義し、`blocks.yml` に `moduleSlotCount` を追加。機械ブロックに専用サブインベントリ（既存 `IOpenableBlockInventoryComponent` とは別の新インターフェース。`[DisallowMultiple]` 衝突回避）を足し、ブロックstateで永続化。処理開始時にスロット内容から効果を集計（clamp付き純粋関数）してスナップショットし、処理時間・消費電力・追加産出に適用する。
+**スコープ注記（Codex監査反映）:** `VanillaGearMachineTemplate` も同じ `VanillaMachineProcessorComponent` を使うため、プロセッサ改修は両者に効く。`blocks.yml` の `moduleSlotCount` とテンプレート組み込みは ElectricMachine と GearMachine の両ケースに行う。「全機械共通」を謳う以上、片方だけだと完了条件が嘘になる。
+
+**Architecture:** 新スキーマ `modules.yml` と `ModuleMaster` でモジュールを定義し、`blocks.yml` に `moduleSlotCount` を追加。機械ブロックに専用サブインベントリ（既存 `IOpenableBlockInventoryComponent` とは別の新インターフェース。`[DisallowMultiple]` 衝突回避）を足し、ブロックstateで永続化。処理開始時にスロット内容から効果を集計（clamp付き純粋関数）してスナップショットし、処理時間・消費電力・追加産出に適用する。**効果スナップショットはセーブにも永続化**し、処理中セーブ/ロードで進捗・効果が壊れないようにする。
 
 **Tech Stack:** Unity / C# / NUnit / Mooresmaster SourceGenerator / uloop CLI
 
@@ -58,7 +60,13 @@
 
 # タスク群A1: モジュールマスタ基盤
 
-ゴール: `modules.yml` を追加し、`MasterHolder.ModuleMaster` からモジュール定義をロードできる。`blocks.yml` の `moduleSlotCount` が `ElectricMachineBlockParam.ModuleSlotCount` として読める。
+ゴール: `modules.yml` を追加し、`MasterHolder.ModuleMaster` からモジュール定義をロードできる。`blocks.yml` の `moduleSlotCount` が `ElectricMachineBlockParam.ModuleSlotCount` / `GearMachineBlockParam.ModuleSlotCount` として読める。
+
+> **重要（Codex監査反映・既存mod破壊の回避）:** `MasterHolder.GetJson` は `JsonContents[jsonFileName]` の直アクセスのため、`ModuleMaster` を Load に追加した瞬間 `modules.json` を持たない全mod（master repo, sandbox 等）が落ちる。対策を**両方**行う:
+> 1. `MasterHolder` 側に「`modules` が無ければ空の `Modules` を使う」許容ロードを実装（`modules` は新規・任意のため）。実装は Task A1-3 Step4 に含む。
+> 2. テストmodに最小 `modules.json` を Task A1-5 で配置し、**A1-5 を A1-3 より先に実施**する（テスト前提データを先に置く）。
+>
+> 実順序: **A1-1 → A1-2 → A1-4 → A1-5 → A1-3**（マスタ型生成 → スキーマ拡張 → テストデータ → ModuleMaster実装＋配線）。
 
 ### Task A1-1: modules.yml スキーマ作成
 
@@ -267,14 +275,32 @@ namespace Core.Master
 public static ModuleMaster ModuleMaster { get; private set; }
 ```
 
-`Load(MasterJsonFileContainer ...)` 内、`ItemMaster` 初期化の後に追加:
+`Load(MasterJsonFileContainer ...)` 内、`ItemMaster` 初期化の後に追加。**`modules.json` を持たないmodで落ちないよう、不在時は空JSONで生成する**（`GetJson` の直アクセスを避ける）:
 
 ```csharp
-// モジュールマスタをロード（ItemMaster に依存）
-// Load module master (depends on ItemMaster)
-ModuleMaster = new ModuleMaster(GetJson(masterJsonFileContainer, new JsonFileName("modules")));
+// モジュールマスタをロード（ItemMaster に依存。modules不在modでは空扱い）
+// Load module master (depends on ItemMaster; treat absent modules as empty)
+var modulesJson = TryGetJsonOrNull(masterJsonFileContainer, new JsonFileName("modules"))
+                  ?? JToken.Parse("{\"data\":[]}");
+ModuleMaster = new ModuleMaster(modulesJson);
 InitializeMaster(ModuleMaster);
 ```
+
+`GetJson` の隣に許容版ヘルパーを追加（既存 `GetJson` を Read して `JsonContents` のキー存在チェック付き版を作る）:
+
+```csharp
+// 指定ファイルが無ければ null を返す（新規・任意マスタ用）
+// Return null when the file is absent (for new/optional masters)
+private static JToken TryGetJsonOrNull(MasterJsonFileContainer container, JsonFileName jsonFileName)
+{
+    var index = 0;
+    var contents = container.ConfigJsons[index].JsonContents;
+    if (!contents.ContainsKey(jsonFileName)) return null;
+    return (JToken)JsonConvert.DeserializeObject(contents[jsonFileName]);
+}
+```
+
+> `ModuleMaster.Validate` は空データ（`Data.Length == 0`）で必ず成功すること（foreachが回らないので自然に成功）。
 
 - [ ] **Step 5: テスト用 modules.json と blocks.json を用意（Task A1-5 を参照して先に最小データを置く）**
 
@@ -304,15 +330,17 @@ git commit -m "feat(master): add ModuleMaster and load modules.json"
 - Modify: `VanillaSchema/blocks.yml`
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`
 
-- [ ] **Step 1: ElectricMachine ケースに moduleSlotCount を追加**
+- [ ] **Step 1: ElectricMachine と GearMachine の両ケースに moduleSlotCount を追加**
 
-`blocks.yml` の `- when: ElectricMachine` の `properties:` に追加（既存 `inputSlotCount` 等の隣）:
+`blocks.yml` の `- when: ElectricMachine` と `- when: GearMachine` の各 `properties:` に追加（既存 `inputSlotCount` 等の隣）。`IMachineParam` インターフェース定義側に置けば両方で共有できるなら、そちらに1箇所追加でもよい（`defineInterface` の `IMachineParam` に `moduleSlotCount` を足す方式。既存スキーマ構造を Read して判断）:
 
 ```yaml
         - key: moduleSlotCount
           type: integer
           default: 0
 ```
+
+> `IMachineParam` 共有プロパティとして定義できれば、生成型は両 BlockParam に `ModuleSlotCount` を持ち、A2のテンプレート組み込みも `machineParam.ModuleSlotCount` で統一できる。
 
 - [ ] **Step 2: 生成トリガー更新**
 
@@ -554,6 +582,12 @@ namespace Game.Block.Blocks.Machine.Module
             // 範囲外は拒否
             // Reject out-of-range
             if (slot < 0 || slot >= SlotCount) return false;
+            // 1スロット1枚専用。Count!=1 は拒否
+            // One module per slot; reject Count != 1
+            if (moduleItem == null || moduleItem.Count != 1) return false;
+            // 既に装着済みのスロットは拒否（無条件上書きで紛失させない）
+            // Reject if the slot is already occupied (do not silently overwrite/lose it)
+            if (_slots[slot].Id != ItemMaster.EmptyItemId) return false;
             // モジュール定義の無いアイテムは拒否
             // Reject items that have no module definition
             var element = ResolveModuleOrNull(moduleItem);
@@ -600,9 +634,24 @@ namespace Game.Block.Blocks.Machine.Module
 
 > `ItemStackFactory.CreatEmpty()` の綴り（実コード上 `CreatEmpty`）に注意。`ItemStack.cs`/テストで確認済み。
 
-- [ ] **Step 4: VanillaMachineTemplate に組み込み（New と Load 両方）**
+- [ ] **Step 3.5: 装着済みスロットへの拒否テストを追加**
 
-`VanillaMachineTemplate.cs` を Read し、`New()` で `machineParam.ModuleSlotCount` を使って生成、components に追加。`Load()` では `componentStates` を渡す復元コンストラクタを使う。
+A2-2 Step1 のテストに、同一スロットへ2枚目を挿すと false、`Count=2` のモジュールも false になるケースを追加する。
+
+```csharp
+            // 装着済みスロットへの再挿入は拒否
+            // Re-inserting into an occupied slot is rejected
+            var second = moduleSlot.TryInsertModule(0, itemStackFactory.Create(moduleItemId, 1));
+            Assert.IsFalse(second);
+            // Count!=1 は拒否
+            // Count != 1 is rejected
+            var stacked = moduleSlot.TryInsertModule(2, itemStackFactory.Create(moduleItemId, 2));
+            Assert.IsFalse(stacked);
+```
+
+- [ ] **Step 4: VanillaMachineTemplate と VanillaGearMachineTemplate に組み込み（New と Load 両方）**
+
+`VanillaMachineTemplate.cs` と `VanillaGearMachineTemplate.cs` の両方を Read し、`New()` で `machineParam.ModuleSlotCount` を使って生成、components に追加。`Load()` では `componentStates` を渡す復元コンストラクタを使う。両テンプレートとも同一の `MachineModuleSlotComponent` を使う。
 
 `New()` 内、components 追加箇所付近:
 
@@ -881,13 +930,16 @@ git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/Machin
 git commit -m "feat(block): add MachineModuleEffect aggregation with clamps"
 ```
 
-### Task A3-2: プロセッサに効果スナップショット＋処理時間/消費を適用
+### Task A3-2: プロセッサに効果スナップショット＋処理時間適用＋セーブ永続化
 
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineSaveComponent.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs`
+- Modify: `VanillaMachineTemplate.cs` / `VanillaGearMachineTemplate.cs`（プロセッサ生成にモジュールスロット注入）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs`
 
-> プロセッサが `IModuleSlotInventoryComponent` を参照できるよう、`VanillaMachineTemplate.New()`/`Load()` でプロセッサ生成時にモジュールスロットを注入する（コンストラクタ引数追加）。スナップショットは `Idle()` の処理開始時に1回行い、当該処理サイクル中は固定（設計仕様 §5.4）。
+> **Codex監査反映の必須事項:** 既存ロードは `RemainingSeconds`＋`RecipeGuid` だけ復元し、`_processingRecipeTicks` をベース時間から**再計算**する（`BlockTemplateUtil.MachineLoadState` → プロセッサ復元コンストラクタ）。速度短縮済みの処理を保存すると進捗率が狂い、`_currentEffect` が null だと生産性追加産出も消える。よって**効果スナップショットをセーブに永続化**し、ロード時は再計算せず保存値を使う。
 
 - [ ] **Step 1: 失敗するテストを書く（速度モジュールで処理が速くなる）**
 
@@ -906,19 +958,13 @@ git commit -m "feat(block): add MachineModuleEffect aggregation with clamps"
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
 
-            // モジュール無し機械
-            // Machine without module
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var plain);
-            // モジュール有り機械
-            // Machine with speed module
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, new Vector3Int(5, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var boosted);
 
             var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == "Speed");
             var speedItemId = MasterHolder.ItemMaster.GetItemId(speedModule.ItemGuid);
             boosted.GetComponent<IModuleSlotInventoryComponent>().TryInsertModule(0, itemStackFactory.Create(speedItemId, 1));
 
-            // 両機械に入力投入
-            // Insert inputs into both machines
             foreach (var inputItem in recipe.InputItems)
             {
                 plain.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
@@ -928,42 +974,41 @@ git commit -m "feat(block): add MachineModuleEffect aggregation with clamps"
             var plainProc = plain.GetComponent<VanillaMachineProcessorComponent>();
             var boostedProc = boosted.GetComponent<VanillaMachineProcessorComponent>();
 
-            // レシピ時間の半分強だけ進める（速度0.5効果→1/1.5の時間で先に終わる想定）
-            // Advance for a bit over half the recipe time
-            var halfTicks = GameUpdater.SecondsToTicks(recipe.Time) * 3 / 4 + 2;
-            for (uint i = 0; i < halfTicks; i++)
+            // レシピ時間の3/4強だけ進める（速度効果で boosted は先に完了する想定）
+            // Advance for ~3/4 of the recipe time (boosted finishes first thanks to speed effect)
+            var partialTicks = GameUpdater.SecondsToTicks(recipe.Time) * 3 / 4 + 2;
+            for (uint i = 0; i < partialTicks; i++)
             {
                 plainProc.SupplyPower(100000); boostedProc.SupplyPower(100000);
                 GameUpdater.RunFrames(1);
             }
 
-            // boosted は完了(Idle)に戻り、plain はまだ処理中
-            // boosted returned to Idle (done) while plain is still processing
             Assert.AreEqual(ProcessState.Idle, boostedProc.CurrentState);
             Assert.AreEqual(ProcessState.Processing, plainProc.CurrentState);
         }
 ```
 
-> `SupplyPower` の引数は `float`。テスト機械の `recipe.Time` と `moduleSlotCount`（A1-5で4に設定済み）に依存。閾値tick数はレシピ時間に応じて調整（コメントの想定が崩れる場合は `effectValue` を上げる）。
+> 閾値tick数はテスト機械の `recipe.Time` と `effectValue`(A1-5で0.5) に依存。想定が崩れる場合は `effectValue` を上げる。`First(m => m.EffectAxis == "Speed")` は enum生成なら `== ModuleEffectAxis.Speed` に合わせる。
 
 - [ ] **Step 2: テストが失敗することを確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpeedModuleShortensProcessingTest"`
 Expected: FAIL（効果未適用で両機械が同時進行）。
 
-- [ ] **Step 3: プロセッサに効果適用を実装**
+- [ ] **Step 3: プロセッサに効果フィールド＋スナップショットを実装**
 
-`VanillaMachineProcessorComponent` を以下のように変更:
-
-(a) フィールドとコンストラクタ引数にモジュールスロットを追加:
+(a) フィールド追加:
 
 ```csharp
 private readonly IModuleSlotInventoryComponent _moduleSlot;
+private readonly BlockInstanceId _blockInstanceId; // 決定的乱数seed用（A3-4で使用）
+private MachineModuleEffect _currentEffect;          // 処理開始時にスナップショット
+private int _processedCycleCount;                    // 完了回数（決定的乱数・セーブ対象。A3-4）
 ```
 
-両コンストラクタに `IModuleSlotInventoryComponent moduleSlot` 引数を末尾に追加し（デフォルト引数禁止のため呼び出し側=Templateを必ず更新）、`_moduleSlot = moduleSlot;` を代入。
+(b) 両コンストラクタに `IModuleSlotInventoryComponent moduleSlot, BlockInstanceId blockInstanceId` を**末尾に追加**（デフォルト引数禁止のため呼び出し側を必ず更新）。代入を追加。復元コンストラクタには後述の保存値（スケール済みticks・効果・cycleCount）も引数に追加する（Step5）。
 
-(b) `Idle()` の処理開始時に効果をスナップショットし、処理時間に適用:
+(c) `Idle()` の開始時に効果をスナップショットし、処理時間に適用（最低1tickにclamp）:
 
 ```csharp
             if (isStartProcess)
@@ -978,60 +1023,246 @@ private readonly IModuleSlotInventoryComponent _moduleSlot;
                 // 処理時間に時間倍率を適用し、最低1tickにclamp
                 // Apply time multiplier to processing ticks, clamp to at least 1 tick
                 var baseTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
-                var scaled = (uint)System.Math.Max(1, (long)System.Math.Round(baseTicks * _currentEffect.ProcessingTimeMultiplier));
-                _processingRecipeTicks = scaled;
+                _processingRecipeTicks = (uint)System.Math.Max(1, (long)System.Math.Round(baseTicks * _currentEffect.ProcessingTimeMultiplier));
                 _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
                 RemainingTicks = _processingRecipeTicks;
             }
 ```
 
-`_currentEffect` フィールドを追加（`private MachineModuleEffect _currentEffect;`）。
-
-(c) 消費電力倍率の適用方針: フェーズAでは `Processing()` の電力消費判定に `PowerMultiplier` を反映する。`MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, RequestPower)` の `RequestPower` を実効値 `RequestPower * _currentEffect.PowerMultiplier` に置き換える形で適用（要 `MachineCurrentPowerToSubSecond` のシグネチャ確認）。最小実装としてまず処理時間のみ反映し、電力はTask A3-3で追加してもよい。
-
 必要 using: `using Game.Block.Interface.Component;` `using Game.Block.Blocks.Machine.Module;`
 
-(d) `VanillaMachineTemplate.New()`/`Load()` のプロセッサ生成箇所で、生成済みの `moduleSlot` を渡すよう引数を追加。
+- [ ] **Step 4: セーブに効果スナップショットを永続化**
 
-- [ ] **Step 4: Unity再起動 → コンパイル**
+`VanillaMachineSaveComponent.GetSaveState()` の `VanillaMachineJsonObject` 構築に、効果スナップショット復元に必要なフィールドを追加。`VanillaMachineJsonObject` クラスにも対応プロパティを追加（`JsonProperty` 名は新規でよい）:
+
+```csharp
+            // 効果スナップショットを永続化（処理中セーブ/ロードで進捗・効果を保つ）
+            // Persist effect snapshot so progress/effect survive mid-process save/load
+            ProcessingTotalTicks = _vanillaMachineProcessorComponent.ProcessingRecipeTicks,
+            EffectPowerMultiplier = _vanillaMachineProcessorComponent.CurrentPowerMultiplier,
+            EffectExtraOutputChance = _vanillaMachineProcessorComponent.CurrentExtraOutputChance,
+            ProcessedCycleCount = _vanillaMachineProcessorComponent.ProcessedCycleCount,
+```
+
+プロセッサ側に公開アクセサを追加（単純getter禁止規約のため、保存に必要な値は明示的な読み取り専用プロパティで露出。値変更は内部のみ）:
+
+```csharp
+public uint ProcessingRecipeTicks => _processingRecipeTicks;
+public float CurrentPowerMultiplier => _currentEffect?.PowerMultiplier ?? 1f;
+public float CurrentExtraOutputChance => _currentEffect?.ExtraOutputChance ?? 0f;
+public int ProcessedCycleCount => _processedCycleCount;
+```
+
+> 「単純getter/setter禁止」は値の**設定**を `SetHoge` にする規約。読み取り専用の計算/露出プロパティは許容範囲（既存 `RecipeGuid` 等が同様）。
+
+- [ ] **Step 5: ロードでスナップショットを復元（再計算しない）**
+
+`BlockTemplateUtil.MachineLoadState` を編集し、`VanillaMachineJsonObject` の保存値からプロセッサを復元する。復元コンストラクタを以下のシグネチャに変更:
+
+```csharp
+public VanillaMachineProcessorComponent(
+    VanillaMachineInputInventory input, VanillaMachineOutputInventory output,
+    ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
+    float requestPower,
+    IModuleSlotInventoryComponent moduleSlot, BlockInstanceId blockInstanceId,
+    uint processingTotalTicks, float powerMultiplier, float extraOutputChance, int processedCycleCount)
+{
+    // ... 既存代入 ...
+    // ベース時間からの再計算をやめ、保存済みスケール済みticksを使う
+    // Do NOT recompute from base time; use the saved scaled total ticks
+    _processingRecipeTicks = processingTotalTicks > 0
+        ? processingTotalTicks
+        : (processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0);
+    _currentEffect = MachineModuleEffect.FromSaved(powerMultiplier, extraOutputChance);
+    _processedCycleCount = processedCycleCount;
+    // ... RequestPower, RemainingTicks, CurrentState 代入 ...
+}
+```
+
+`MachineModuleEffect` に保存値からの復元ファクトリを追加:
+
+```csharp
+// セーブ値から効果を復元（処理時間倍率は残tickに反映済みのため中立1fでよい）
+// Rebuild effect from saved values (time multiplier already baked into remaining ticks, so neutral 1f)
+public static MachineModuleEffect FromSaved(float powerMultiplier, float extraOutputChance)
+{
+    return new MachineModuleEffect(1f, powerMultiplier, extraOutputChance);
+}
+```
+
+`MachineLoadState` 内で上記新コンストラクタへ保存値（`jsonObject.ProcessingTotalTicks` 等）と `moduleSlot`・`blockInstanceId` を渡す。`moduleSlot` は同じ Load 経路で生成済みのものを使う（生成順を調整）。
+
+- [ ] **Step 6: Unity再起動 → コンパイル**
 
 Run: Unity再起動後 `uloop compile --project-path ./moorestech_client`
-Expected: 成功（コンストラクタ呼び出し側=Template/復元ユーティリティ `BlockTemplateUtil.MachineLoadState` も引数追加が必要なら合わせて修正）。
+Expected: 成功（`New()` 側プロセッサ生成のコンストラクタ呼び出しも引数追加に合わせて修正。`New()` では `processingTotalTicks=0, powerMultiplier=1, extraOutputChance=0, processedCycleCount=0` 相当の初期値、または `machineRecipe` を取る第1コンストラクタ側に `moduleSlot`/`blockInstanceId` を足す）。
 
-- [ ] **Step 5: テストが通ることを確認**
+- [ ] **Step 7: テストが通ることを確認**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineModuleSlotTest"`
-Expected: 全テストPASS。
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpeedModuleShortensProcessingTest"`
+Expected: PASS。
 
-- [ ] **Step 6: 既存機械テストの回帰確認**
+- [ ] **Step 8: 既存機械テストの回帰確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineIOTest|GearMachineIoTest"`
-Expected: PASS（モジュール0枚=中立効果で従来挙動を維持）。
+Expected: PASS（モジュール0枚=中立効果で従来挙動維持）。
 
-- [ ] **Step 7: コミット**
+- [ ] **Step 9: コミット**
 
 ```bash
 cd ~/moorestech
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs
-git commit -m "feat(block): apply module effect snapshot to machine processing time"
+git add moorestech_server/Assets/Scripts/Game.Block/ moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs
+git commit -m "feat(block): snapshot module effect, apply to time, persist across save/load"
 ```
 
-### Task A3-3: 生産性の追加産出と出力容量予約
+### Task A3-3: 省エネ/速度の消費電力倍率を RequestEnergy に適用
 
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaElectricMachineComponent.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs`
 
-> 設計仕様 §7.1: 開始前に「最大追加産出まで」を出力容量に予約してから開始する。フェーズAでは追加産出を「同一出力アイテムを確率で+1個」とする最小仕様。乱数源は決定性のため固定シード経路を使う（既存に乱数ユーティリティがあれば流用、無ければ後述）。
+> **Codex監査反映:** `VanillaElectricMachineComponent.RequestEnergy` は常に `RequestPower` を返す。`GetSubTicks` の requiredPower だけ変えると、電力網への要求量と実効要求量がズレる。よって**実効要求電力をプロセッサに持たせ、RequestEnergy と GetSubTicks の両方が同じ値を使う**。
+>
+> スコープ: 電力倍率は electric 経路に適用する。GearMachine の消費（RPM/トルク）への省エネ適用は別フォロー（処理時間効果は A3-2 で両機械に効く）。
 
-- [ ] **Step 1: 失敗するテストを書く（出力満杯時は開始しない）**
-
-出力スロットを埋めた状態で、生産性モジュールの最大追加分を考慮して処理が開始されないことを検証。
+- [ ] **Step 1: 失敗するテストを書く（省エネで要求電力が下がる）**
 
 ```csharp
-        // 生産性モジュール装着時、追加産出の最大分が出力に入らないなら処理を開始しないことを検証
-        // Verify processing does not start if the max extra output cannot fit in the output slots
+        // 省エネモジュールで処理中の要求電力が下がることを検証
+        // Verify an efficiency module lowers requested power during processing
+        [Test]
+        public void EfficiencyModuleLowersRequestPowerTest()
+        {
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+
+            var effModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == "Efficiency");
+            block.GetComponent<IModuleSlotInventoryComponent>().TryInsertModule(0, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(effModule.ItemGuid), 1));
+
+            foreach (var inputItem in recipe.InputItems)
+                block.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+
+            var electric = block.GetComponent<VanillaElectricMachineComponent>();
+            var proc = block.GetComponent<VanillaMachineProcessorComponent>();
+            var baseRequest = proc.RequestPower;
+
+            proc.SupplyPower(100000);
+            GameUpdater.RunFrames(1); // 処理開始 → スナップショット
+
+            // 処理中の実効要求電力がベースより低い（effectValue 0.3 → 1/1.3 倍）
+            // Effective requested power during processing is lower than base
+            Assert.Less(electric.RequestEnergy.AsPrimitive(), baseRequest);
+        }
+```
+
+- [ ] **Step 2: テストが失敗することを確認**
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "EfficiencyModuleLowersRequestPowerTest"`
+Expected: FAIL（RequestEnergy が常に RequestPower）。
+
+- [ ] **Step 3: 実効要求電力を実装**
+
+プロセッサに実効要求電力プロパティを追加:
+
+```csharp
+// 処理中はモジュールの電力倍率を反映した実効要求電力。アイドル中はベース
+// Effective requested power: applies module power multiplier while processing, base while idle
+public float EffectiveRequestPower => CurrentState == ProcessState.Processing
+    ? RequestPower * (_currentEffect?.PowerMultiplier ?? 1f)
+    : RequestPower;
+```
+
+`VanillaElectricMachineComponent.RequestEnergy` を変更:
+
+```csharp
+public ElectricPower RequestEnergy => new ElectricPower(_vanillaMachineProcessorComponent.EffectiveRequestPower);
+```
+
+`Processing()` の `GetSubTicks` の requiredPower も実効値に合わせ、要求と進行を一致させる:
+
+```csharp
+            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, EffectiveRequestPower);
+```
+
+- [ ] **Step 4: Unity再起動 → コンパイル → テスト**
+
+Run: Unity再起動後 `uloop compile --project-path ./moorestech_client`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "EfficiencyModuleLowersRequestPowerTest|MachineIOTest"`
+Expected: PASS（回帰なし）。
+
+- [ ] **Step 5: コミット**
+
+```bash
+cd ~/moorestech
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/
+git commit -m "feat(block): apply module power multiplier to effective request power"
+```
+
+### Task A3-4: 生産性の追加産出（正しい追加出力API＋仮想容量予約＋決定的乱数）
+
+**Files:**
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs`
+
+> **Codex監査反映（3点）:**
+> 1. `InsertOutputSlot` の2回呼びは液体まで倍増し破綻 → 追加産出は**アイテム出力のみ1セット**を入れる専用API。
+> 2. 既存 `IsAllowedToOutputItem` は各出力を独立OR判定で、複数出力のスロット食い合いを無視 → **仮想インベントリへ順次挿入してシミュレート**する判定を新設。
+> 3. 抽選に共有 static Random（`MachineCurrentPowerToSubSecond`）を流用すると順序/ロード依存 → **保存される `_processedCycleCount` と `_blockInstanceId` から導出する決定的乱数**を使う。
+
+- [ ] **Step 1: 失敗するテストを書く（容量予約＋確率1.0で追加産出）**
+
+```csharp
+        // 生産性(確率1.0)モジュールで、完了時に出力が1セット余分に得られることを検証
+        // With a productivity module (chance 1.0), completion yields one extra set of item outputs
+        [Test]
+        public void ProductivityExtraOutputTest()
+        {
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+
+            // effectValue 1.0 の生産性モジュール（A1-5の TestProductivityModule）
+            // Productivity module with effectValue 1.0
+            var prodModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == "Productivity");
+            block.GetComponent<IModuleSlotInventoryComponent>().TryInsertModule(0, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(prodModule.ItemGuid), 1));
+
+            foreach (var inputItem in recipe.InputItems)
+                block.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+
+            var proc = block.GetComponent<VanillaMachineProcessorComponent>();
+            var totalTicks = GameUpdater.SecondsToTicks(recipe.Time) * 4 + 20; // 生産性ペナルティで延びるため余裕
+            for (uint i = 0; i < totalTicks; i++) { proc.SupplyPower(100000); GameUpdater.RunFrames(1); }
+
+            // 出力 = レシピ出力 ×2（基本＋追加1セット）
+            // Output equals recipe output x2 (base + one extra set)
+            var (_, output) = GetInputOutputSlot(block.GetComponent<VanillaMachineBlockInventoryComponent>());
+            var expected = recipe.OutputItems[0].Count * 2;
+            Assert.AreEqual(expected, output.Sum(s => s.Count));
+
+            #region Internal
+            (System.Collections.Generic.List<IItemStack>, System.Collections.Generic.List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent inv)
+            {
+                // MachineIOTest.cs と同じリフレクションで input/output を取得
+                // Reuse the reflection helper pattern from MachineIOTest.cs
+                // ... 実装は MachineIOTest.cs を踏襲 ...
+                return (null, null);
+            }
+            #endregion
+        }
+
+        // 出力が満杯で追加産出分が入らないとき、処理を開始しないことを検証
+        // When output is full and extra output cannot fit, processing does not start
         [Test]
         public void ProductivityReservesOutputCapacityTest()
         {
@@ -1046,9 +1277,9 @@ git commit -m "feat(block): apply module effect snapshot to machine processing t
             var prodModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == "Productivity");
             block.GetComponent<IModuleSlotInventoryComponent>().TryInsertModule(0, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(prodModule.ItemGuid), 1));
 
-            // 出力スロットを満杯にする（既存テストの出力スロット操作ヘルパー/リフレクションを使用）
-            // Fill output slots (use existing output-slot helper/reflection from MachineIOTest)
-            // ... 出力スロットを recipe.OutputItems で満杯に設定 ...
+            // 出力スロットを満杯に（基本出力は入るが追加1セットは入らない状態）にする
+            // Fill output so the base output fits but the extra set does not
+            // ... VanillaMachineOutputInventory への直接set（リフレクション/SetItem）で満杯化 ...
 
             foreach (var inputItem in recipe.InputItems)
                 block.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
@@ -1057,35 +1288,84 @@ git commit -m "feat(block): apply module effect snapshot to machine processing t
             proc.SupplyPower(100000);
             GameUpdater.RunFrames(1);
 
-            // 追加産出の余地が無いので処理開始しない
-            // Should not start because there is no room for extra output
             Assert.AreEqual(ProcessState.Idle, proc.CurrentState);
         }
 ```
 
-> 出力スロット満杯化の具体手段は `MachineIOTest.cs` の `GetInputOutputSlot` リフレクションパターンを流用。テスト実装時に `VanillaMachineOutputInventory` への直接set手段を確認。
+> 出力満杯化と input/output 取得は `MachineIOTest.cs` のリフレクションパターンを実装時に Read して埋める。
 
 - [ ] **Step 2: テストが失敗することを確認**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ProductivityReservesOutputCapacityTest"`
-Expected: FAIL（予約未実装で処理開始してしまう）。
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ProductivityExtraOutputTest|ProductivityReservesOutputCapacityTest"`
+Expected: FAIL。
 
-- [ ] **Step 3: 出力容量の最大見積もりチェックを実装**
+- [ ] **Step 3: 出力インベントリに仮想容量判定＋アイテム専用追加出力を実装**
 
-`VanillaMachineOutputInventory` に「レシピ出力＋追加最大分が入るか」を判定するメソッドを追加（既存 `IsAllowedToOutputItem(recipe)` を拡張）:
+`VanillaMachineOutputInventory` に追加。仮想判定は既存スロットを複製し、レシピ出力＋追加セットを順次 `AddItem` してあふれないか確認する:
 
 ```csharp
-        // レシピ出力に加え、追加産出の最大分まで格納できるか判定する
-        // Check whether recipe output plus the maximum extra output can be stored
-        public bool IsAllowedToOutputItemWithExtra(MachineRecipeMasterElement recipe, int maxExtraPerOutput)
+        // レシピ出力に加え、追加産出 extraSets セット分のアイテム出力まで格納できるか仮想挿入で判定
+        // Check via virtual insertion whether recipe outputs plus extraSets of item outputs can be stored
+        public bool CanStoreOutputs(MachineRecipeMasterElement recipe, int extraSets)
         {
-            // 既存 IsAllowedToOutputItem のロジックを基に、各出力 count に maxExtra を加えて判定
-            // Based on existing IsAllowedToOutputItem, add maxExtra to each output count
-            // ... 実装は既存メソッドを Read して踏襲 ...
+            // 現在の各スロットを複製した仮想スロットを作る
+            // Build virtual slots copied from current slots
+            var virtualSlots = OutputSlot.Select(s => s).ToList();
+
+            // (1 + extraSets) セット分のアイテム出力を順次挿入できるか
+            // Try to insert (1 + extraSets) sets of item outputs sequentially
+            var totalSets = 1 + System.Math.Max(0, extraSets);
+            for (var set = 0; set < totalSets; set++)
+            {
+                foreach (var itemOutput in recipe.OutputItems)
+                {
+                    var id = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
+                    var stack = ServerContext.ItemStackFactory.Create(id, itemOutput.Count);
+                    if (!TryVirtualInsert(virtualSlots, stack)) return false;
+                }
+            }
+
+            // 液体出力は従来どおり基本1セット分のみ判定（追加産出はアイテムのみ）
+            // Fluids: check only the base set (extra output is item-only)
+            return IsFluidOutputAllowed(recipe);
+
+            #region Internal
+            bool TryVirtualInsert(System.Collections.Generic.List<IItemStack> slots, IItemStack stack)
+            {
+                for (var i = 0; i < slots.Count; i++)
+                {
+                    if (!slots[i].IsAllowedToAddWithRemain(stack)) continue;
+                    var result = slots[i].AddItem(stack);
+                    slots[i] = result.ProcessResultItemStack;
+                    if (result.RemainderItemStack.Count == 0) return true;
+                    stack = result.RemainderItemStack;
+                }
+                return false;
+            }
+            #endregion
+        }
+
+        // アイテム出力のみを1セット格納する（生産性の追加産出用。液体は入れない）
+        // Insert one set of item outputs only (for productivity extra output; no fluids)
+        public void InsertItemOutputsOnly(MachineRecipeMasterElement recipe)
+        {
+            foreach (var itemOutput in recipe.OutputItems)
+                for (var i = 0; i < OutputSlot.Count; i++)
+                {
+                    var id = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
+                    var stack = ServerContext.ItemStackFactory.Create(id, itemOutput.Count);
+                    if (!OutputSlot[i].IsAllowedToAdd(stack)) continue;
+                    _itemDataStoreService.SetItem(i, OutputSlot[i].AddItem(stack).ProcessResultItemStack);
+                    break;
+                }
         }
 ```
 
-`Idle()` の開始条件を、`_currentEffect` がまだ無い段階のため「装着モジュールから事前集計した effect」で判定する。開始条件に使うため、`Idle()` 冒頭で effect を集計してから容量判定する:
+`IsFluidOutputAllowed` は既存 `IsAllowedToOutputItem` の液体判定部分を切り出す（既存コードを Read して流用）。`_itemDataStoreService` のフィールド名は既存 `InsertOutputSlot` 実装に合わせる。
+
+- [ ] **Step 4: プロセッサで開始判定・完了時抽選を実装**
+
+`Idle()` の開始条件を仮想容量判定に差し替え、開始前に効果を集計して maxExtraSets を予約:
 
 ```csharp
         private void Idle()
@@ -1093,14 +1373,14 @@ Expected: FAIL（予約未実装で処理開始してしまう）。
             var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
             if (!isGetRecipe) return;
 
-            // 開始判定のため先に効果を集計（追加産出の最大分を予約）
-            // Aggregate effect first for start check (reserve max extra output)
+            // 開始判定のため先に効果を集計（追加産出の最大セット数を予約）
+            // Aggregate effect first for the start check (reserve the max extra output sets)
             var effect = MachineModuleEffect.Aggregate(_moduleSlot.GetEquippedModules());
-            var maxExtra = effect.ExtraOutputChance > 0f ? 1 : 0;
+            var maxExtraSets = effect.ExtraOutputChance > 0f ? 1 : 0;
 
             var isStartProcess = CurrentState == ProcessState.Idle &&
                    _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
-                   _vanillaMachineOutputInventory.IsAllowedToOutputItemWithExtra(recipe, maxExtra);
+                   _vanillaMachineOutputInventory.CanStoreOutputs(recipe, maxExtraSets);
 
             if (isStartProcess)
             {
@@ -1115,9 +1395,7 @@ Expected: FAIL（予約未実装で処理開始してしまう）。
         }
 ```
 
-- [ ] **Step 4: 完了時に追加産出を抽選して出力**
-
-`Processing()` の完了分岐で、`_currentEffect.ExtraOutputChance` に基づき追加産出を出力する。乱数は決定性のため、既存の決定的乱数（あれば）を使用。無ければ `RemainingTicks`/instanceId 等から導出する決定的判定でも可（フェーズAの最小実装）。
+`Processing()` の完了分岐で基本出力＋確率で追加出力＋cycleCount更新:
 
 ```csharp
             if (subTicks >= RemainingTicks)
@@ -1126,54 +1404,109 @@ Expected: FAIL（予約未実装で処理開始してしまう）。
                 CurrentState = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
 
-                // 生産性: 確率で追加産出（決定性のある乱数源を使用）
-                // Productivity: probabilistic extra output (use a deterministic RNG source)
-                if (_currentEffect != null && _currentEffect.ExtraOutputChance > 0f && RollExtraOutput(_currentEffect.ExtraOutputChance))
+                // 生産性: 決定的乱数で追加産出（アイテムのみ1セット）
+                // Productivity: deterministic roll for one extra set of item outputs
+                if (_currentEffect != null && _currentEffect.ExtraOutputChance > 0f &&
+                    DeterministicRoll(_blockInstanceId, _processedCycleCount) < _currentEffect.ExtraOutputChance)
                 {
-                    _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
+                    _vanillaMachineOutputInventory.InsertItemOutputsOnly(_processingRecipe);
                 }
+                _processedCycleCount++;
             }
 ```
 
-`RollExtraOutput(float chance)` はローカル/privateで実装。決定的乱数源は実装時に既存ユーティリティを調査して採用（無ければ最小実装＋TODOコメントは禁止のため、決定的な実装を必ず置く）。
+決定的乱数を private static で実装（共有 static Random は使わない。保存される値のみから導出）:
 
-- [ ] **Step 5: Unity再起動 → コンパイル**
+```csharp
+        // blockInstanceId と完了回数から決定的に [0,1) を返す（セーブ/ロード・更新順に非依存）
+        // Deterministic [0,1) from blockInstanceId and cycle count (independent of save/load and update order)
+        private static double DeterministicRoll(BlockInstanceId blockInstanceId, int cycleCount)
+        {
+            // 64bit splitmix風のハッシュで decorrelate
+            // Decorrelate with a splitmix64-like hash
+            ulong x = (ulong)blockInstanceId.AsPrimitive() * 0x9E3779B97F4A7C15UL + (ulong)(uint)cycleCount;
+            x ^= x >> 30; x *= 0xBF58476D1CE4E5B9UL;
+            x ^= x >> 27; x *= 0x94D049BB133111EBUL;
+            x ^= x >> 31;
+            return (x >> 11) * (1.0 / (1UL << 53));
+        }
+```
+
+> `BlockInstanceId.AsPrimitive()` の型を確認し、`ulong` キャストを合わせる。
+
+- [ ] **Step 5: Unity再起動 → コンパイル → テスト**
 
 Run: Unity再起動後 `uloop compile --project-path ./moorestech_client`
-Expected: 成功。
-
-- [ ] **Step 6: テストが通ることを確認**
-
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineModuleSlotTest"`
-Expected: 全テストPASS。
+Expected: 全PASS。
 
-- [ ] **Step 7: 既存機械テストの回帰確認**
+- [ ] **Step 6: 回帰確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineIOTest|GearMachineIoTest|PowerGeneratorTest"`
 Expected: PASS。
 
-- [ ] **Step 8: コミット**
+- [ ] **Step 7: コミット**
 
 ```bash
 cd ~/moorestech
 git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/
-git commit -m "feat(block): reserve output capacity and emit productivity extra output"
+git commit -m "feat(block): productivity extra output with virtual capacity reservation and deterministic roll"
 ```
 
-### Task A3-4: 処理中の抜き差しがサイクルに影響しないことの検証
+### Task A3-5: 処理中セーブ/ロードと抜き差しのスナップショット検証
 
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs`
 
-- [ ] **Step 1: 失敗しない（=既に通る想定）テストを書く**
+> **Codex監査反映:** A3-4以前の弱い検証を、(1)処理中セーブ/ロードで効果が壊れない (2)処理中の抜き差しでスナップショットが維持される、の2本に強化する。
 
-スナップショット方針が正しければ通る回帰テスト。処理開始後にモジュールを抜いても当該サイクルの残りtickが変わらないことを検証。
+- [ ] **Step 1: 処理中セーブ/ロードのテストを書く**
+
+速度モジュールで処理開始 → 数tick進める → save → reload。reload後の合計tickが「スナップショット済み(短縮済み)」で、ベース再計算に戻っていないことを検証。
 
 ```csharp
-        // 処理開始後にモジュールを抜いても、進行中サイクルの効果が変わらないことを検証
-        // Verify removing a module mid-process does not change the in-flight cycle's effect
+        // 処理中にセーブ/ロードしても、短縮済みの進捗と効果が保持されることを検証
+        // Verify shortened progress and effect survive a mid-process save/load
         [Test]
-        public void EffectSnapshotPersistsDuringProcessingTest()
+        public void EffectSurvivesMidProcessSaveLoadTest()
+        {
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+
+            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == "Speed");
+            block.GetComponent<IModuleSlotInventoryComponent>().TryInsertModule(0, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(speedModule.ItemGuid), 1));
+            foreach (var inputItem in recipe.InputItems)
+                block.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+
+            var proc = block.GetComponent<VanillaMachineProcessorComponent>();
+            proc.SupplyPower(100000); GameUpdater.RunFrames(1); // 開始（スナップショット）
+            var totalTicksBefore = proc.ProcessingRecipeTicks;
+
+            // 処理中にセーブ/ロード
+            // Save/load mid-process
+            var state = block.GetSaveState();
+            var reloaded = ServerContext.BlockFactory.Load(block.BlockGuid, block.BlockInstanceId, state, block.BlockPositionInfo);
+            var reloadedProc = reloaded.GetComponent<VanillaMachineProcessorComponent>();
+
+            // 合計tickが短縮済みのまま（ベース時間からの再計算で増えていない）
+            // Total ticks remain shortened (not recomputed back to base)
+            Assert.AreEqual(totalTicksBefore, reloadedProc.ProcessingRecipeTicks);
+            Assert.Less(reloadedProc.ProcessingRecipeTicks, GameUpdater.SecondsToTicks(recipe.Time));
+        }
+```
+
+- [ ] **Step 2: 処理中の抜き差しテストを書く（スナップショット維持）**
+
+```csharp
+        // 処理開始後にモジュールを抜いても、進行中サイクルの合計tickが変わらないことを検証
+        // Verify removing a module mid-process does not change the in-flight cycle's total ticks
+        [Test]
+        public void EffectSnapshotPersistsAfterModuleRemovalTest()
         {
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -1186,58 +1519,55 @@ git commit -m "feat(block): reserve output capacity and emit productivity extra 
             var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == "Speed");
             var slot = block.GetComponent<IModuleSlotInventoryComponent>();
             slot.TryInsertModule(0, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(speedModule.ItemGuid), 1));
-
             foreach (var inputItem in recipe.InputItems)
                 block.GetComponent<VanillaMachineBlockInventoryComponent>().InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
 
             var proc = block.GetComponent<VanillaMachineProcessorComponent>();
-            proc.SupplyPower(100000);
-            GameUpdater.RunFrames(1); // 処理開始（スナップショット）
+            proc.SupplyPower(100000); GameUpdater.RunFrames(1);
+            var totalTicks = proc.ProcessingRecipeTicks;
 
-            Assert.AreEqual(ProcessState.Processing, proc.CurrentState);
-            var ticksAfterStart = proc.RemainingTicks;
+            slot.RemoveModule(0); // 処理中に抜く
 
-            // 処理中にモジュールを抜く
-            // Remove the module mid-process
-            slot.RemoveModule(0);
-
-            // 1tick進めて、残tickが「速度効果込みの進行」を維持していることを確認（中立に戻らない）
-            // Advance one tick; remaining ticks keep progressing under the snapshotted (speeded) effect
-            proc.SupplyPower(100000);
-            GameUpdater.RunFrames(1);
-            Assert.Less(proc.RemainingTicks, ticksAfterStart);
+            proc.SupplyPower(100000); GameUpdater.RunFrames(1);
+            // 合計tickは開始時スナップショットのまま（中立に戻らない）
+            // Total ticks stay at the start snapshot (do not revert to neutral)
+            Assert.AreEqual(totalTicks, proc.ProcessingRecipeTicks);
             Assert.AreEqual(ProcessState.Processing, proc.CurrentState);
         }
 ```
 
-- [ ] **Step 2: テストを実行**
+- [ ] **Step 3: テスト実行**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "EffectSnapshotPersistsDuringProcessingTest"`
-Expected: PASS（A3-2のスナップショット実装で既に保証）。FAILなら `Idle()` で effect をフィールドに固定しているか確認。
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "EffectSurvivesMidProcessSaveLoadTest|EffectSnapshotPersistsAfterModuleRemovalTest"`
+Expected: PASS（A3-2の永続化・スナップショット実装で保証）。FAILなら Load経路の保存値復元（A3-2 Step5）を確認。
 
-- [ ] **Step 3: コミット**
+- [ ] **Step 4: コミット**
 
 ```bash
 cd ~/moorestech
 git add moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs
-git commit -m "test(block): verify module effect snapshot persists during processing"
+git commit -m "test(block): verify effect snapshot survives mid-process save/load and module removal"
 ```
 
 ---
 
 ## フェーズA完了条件チェック（設計仕様 §8.5）
 
-- [x] モジュール専用サブインベントリの保存／同期／移動制限 — A2（同期はネットワークプロトコル拡張が別途必要。下記「フェーズAの残課題」参照）
-- [x] 処理開始時の効果スナップショット — A3-2 / A3-4
+- [x] モジュール専用サブインベントリの**保存**と**移動制限**（挿入制限・通常搬入不可・装着済み上書き拒否） — A2
+- [x] 処理開始時の効果スナップショット**＋セーブ永続化** — A3-2 / A3-5
 - [x] 加算後の clamp — A3-1
-- [x] 生産性追加産出の出力容量・最大見積もり予約 — A3-3
+- [x] 消費電力倍率を実効要求電力(RequestEnergy)に適用 — A3-3
+- [x] 生産性追加産出の**仮想容量予約**と**決定的抽選** — A3-4
 - [x] 効果集計の統一結果に品質フックの場所を確保 — `MachineModuleEffect` に Quality 軸の集計分岐を空けてある（A3-1）
+- [ ] **ネットワーク同期** — 本プランの**範囲外**（下記）。サブインベントリの保存・移動制限・サーバー操作APIまでは本プランで完結するが、クライアントへの同期は未対応。
+
+> **完了の定義（矛盾回避）:** 本プランの「完了」は**サーバーサイドのロジック＋セーブ＋サーバー操作API**まで。ネット同期とクライアントUIは含めない（テストは direct component test で成立する）。設計仕様 §8.5 が挙げる「同期」はフェーズA全体の完了条件だが、本実装プランのスコープからは外し、別プランに送る。
 
 ## フェーズAの残課題（このプランの範囲外・要フォロー）
 
-- **ネットワーク同期とクライアントUI**: モジュールスロットの内容をクライアントへ送り、装着UIを出す部分。サーバー側のロジック完結後、別プランで実装（プロトコル拡張＋クライアント実装）。本プランはサーバーロジックとセーブまで。
-- **消費電力倍率の本適用**: A3-2(c)で方針を示したが、`MachineCurrentPowerToSubSecond` のシグネチャ次第で別タスク化の可能性。
-- **決定的乱数源の確定**: A3-3 の追加産出抽選。既存ユーティリティ調査の上で確定する。
+- **ネットワーク同期とクライアントUI**: モジュールスロットの内容をクライアントへ送り、装着UIを出す部分。別プランで実装（プロトコル拡張＋クライアント実装）。
+- **GearMachine の消費（RPM/トルク）への省エネ適用**: A3-3 の電力倍率は electric 経路のみ。歯車機械の消費削減は別フォロー（処理時間効果は両機械で有効）。
+- **プレイヤーによるモジュール装着の正式操作経路**: A2 でサーバー側 API（`TryInsertModule`/`RemoveModule`）は用意するが、プレイヤー操作プロトコル経由の装着は同期と合わせて別プラン。
 
 ---
 
