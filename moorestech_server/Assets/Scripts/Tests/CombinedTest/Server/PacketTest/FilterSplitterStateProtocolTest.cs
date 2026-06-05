@@ -33,11 +33,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(response.Success);
             Assert.AreEqual(3, response.DirectionCount);
             Assert.AreEqual(4, response.FilterSlotCountPerDirection);
-            // 初期状態は全方向 Default
-            // Initial state is Default for all directions
+            // 初期状態は全方向 Whitelist
+            // Initial state is Whitelist for all directions
             for (var d = 0; d < response.DirectionCount; d++)
             {
-                Assert.AreEqual(FilterSplitterMode.Default, response.Directions[d].Mode);
+                Assert.AreEqual(FilterSplitterMode.Whitelist, response.Directions[d].Mode);
             }
         }
 
@@ -72,11 +72,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             PlaceFilterSplitter();
 
-            var response = Send(packet, FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetModeRequest(SplitterPos, 1, FilterSplitterMode.Whitelist));
+            // dir1 のみ Blacklist へ変更（初期値 Whitelist との差分で「dir1 だけ変わる」ことを検証）
+            // Change only dir1 to Blacklist; dir0 must stay at the initial Whitelist
+            var response = Send(packet, FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetModeRequest(SplitterPos, 1, FilterSplitterMode.Blacklist));
 
             Assert.IsTrue(response.Success);
-            Assert.AreEqual(FilterSplitterMode.Whitelist, response.Directions[1].Mode);
-            Assert.AreEqual(FilterSplitterMode.Default, response.Directions[0].Mode);
+            Assert.AreEqual(FilterSplitterMode.Blacklist, response.Directions[1].Mode);
+            Assert.AreEqual(FilterSplitterMode.Whitelist, response.Directions[0].Mode);
         }
 
         [Test]

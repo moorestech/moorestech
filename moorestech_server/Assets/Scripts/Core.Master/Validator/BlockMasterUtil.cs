@@ -255,7 +255,7 @@ namespace Core.Master.Validator
                     GearMinerBlockParam miner => miner.GearConsumption,
                     GearMapObjectMinerBlockParam mapMiner => mapMiner.GearConsumption,
                     GearPumpBlockParam pump => pump.GearConsumption,
-                    GearElectricGeneratorBlockParam electric => electric.GearConsumption,
+                    GearToElectricGeneratorBlockParam electric => electric.GearConsumption,
                     _ => null,
                 };
             }
