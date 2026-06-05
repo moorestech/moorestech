@@ -34,7 +34,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.GearChainPole, new VanillaGearChainPoleTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.SimpleGearGenerator, new VanillaSimpleGearGeneratorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.FuelGearGenerator, new VanillaFuelGearGeneratorTemplate());
-            BlockTypesDictionary.Add(BlockTypeConst.GearElectricGenerator, new VanillaGearElectricGeneratorTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.GearToElectricGenerator, new VanillaGearToElectricGeneratorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.GearMiner, new VanillaGearMinerTemplate(blockInventoryEvent));
             BlockTypesDictionary.Add(BlockTypeConst.GearMapObjectMiner, new VanillaGearMapObjectMinerTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.GearMachine, new VanillaGearMachineTemplate(blockInventoryEvent));

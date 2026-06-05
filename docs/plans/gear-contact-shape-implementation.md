@@ -144,7 +144,7 @@ if (isConnect && selfOption is GearConnectOption selfGear && targetOption is Gea
 | FuelGearGenerator | tooth |
 | GearBeltConveyor | shaft |
 | GearMiner | tooth |
-| GearElectricGenerator | tooth |
+| GearToElectricGenerator | tooth |
 | GearPump | tooth |
 
 ---

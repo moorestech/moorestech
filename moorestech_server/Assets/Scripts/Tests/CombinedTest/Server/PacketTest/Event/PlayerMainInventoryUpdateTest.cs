@@ -13,6 +13,7 @@ using Tests.Module.TestMod;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
 using Server.Protocol;
+using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -111,16 +112,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             InventoryItemMoveProtocolMessagePack messagePack;
             if (toGrab)
             {
-                var from = ItemMoveInventoryInfo.CreateMain();
-                var to = ItemMoveInventoryInfo.CreateGrab();
-                messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot,
+                var from = CreateMainMessage(PlayerId);
+                var to = CreateGrabMessage(PlayerId);
+                messagePack = new InventoryItemMoveProtocolMessagePack(itemCount, ItemMoveType.SwapSlot,
                     from, inventorySlot, to, 0);
             }
             else
             {
-                var from = ItemMoveInventoryInfo.CreateGrab();
-                var to = ItemMoveInventoryInfo.CreateMain();
-                messagePack = new InventoryItemMoveProtocolMessagePack(PlayerId, itemCount, ItemMoveType.SwapSlot,
+                var from = CreateGrabMessage(PlayerId);
+                var to = CreateMainMessage(PlayerId);
+                messagePack = new InventoryItemMoveProtocolMessagePack(itemCount, ItemMoveType.SwapSlot,
                     from, 0, to, inventorySlot);
             }
             

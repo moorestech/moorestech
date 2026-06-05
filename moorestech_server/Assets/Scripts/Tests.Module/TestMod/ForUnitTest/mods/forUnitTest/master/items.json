@@ -404,7 +404,7 @@
     {
       "itemGuid": "11110000-0000-0000-0000-000000000000",
       "imagePath": "",
-      "name": "TestGearElectricGenerator",
+      "name": "TestGearToElectricGenerator",
       "maxStack": 100,
       "sortPriority": 740,
       "initialUnlocked": true,
