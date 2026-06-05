@@ -542,6 +542,15 @@
       "sortPriority": 710,
       "initialUnlocked": false,
       "recipeViewType": "IsUnlocked"
+    },
+    {
+      "itemGuid": "11110a01-0000-0000-0000-000000000000",
+      "imagePath": "",
+      "name": "TestElectricToGearGeneratorUI",
+      "maxStack": 100,
+      "sortPriority": 950,
+      "initialUnlocked": true,
+      "recipeViewType": "IsUnlocked"
     }
   ]
 }
