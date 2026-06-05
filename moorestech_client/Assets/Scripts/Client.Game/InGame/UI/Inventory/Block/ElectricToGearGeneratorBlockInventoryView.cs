@@ -129,5 +129,14 @@ namespace Client.Game.InGame.UI.Inventory.Block
         {
             Destroy(gameObject);
         }
+
+#if UNITY_EDITOR
+        // テスト用: 指定 index の選択操作をプログラムから起動する（行クリック相当）。
+        // Test-only: drive a selection for the given index (equivalent to a row click).
+        public void SelectModeForTest(int index)
+        {
+            OnRowSelected(index);
+        }
+#endif
     }
 }
