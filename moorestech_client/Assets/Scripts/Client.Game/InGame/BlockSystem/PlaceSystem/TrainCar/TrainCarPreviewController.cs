@@ -107,7 +107,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             {
                 // プレビュー材質を適用する
                 // Apply preview material
-                var placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+                var placeMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
                 if (placeMaterial == null)
                 {
                     return false;

@@ -12,16 +12,18 @@ namespace Client.Game.InGame.Train.View.Object
     {
         public IObservable<UniRx.Unit> OnInitializeComplete => _initializeCompleteSubject;
         private readonly UniRx.Subject<UniRx.Unit> _initializeCompleteSubject = new();
-        
-        
+
         // TrainCar 表示オブジェクトの生成を担当する
         // Creates TrainCar view objects
         private TrainCarObjectFactory _carObjectFactory;
         // 車両と列車の最新 cache を参照する
         // References the latest train/car cache
         private TrainUnitClientCache _trainUnitClientCache;
+
         // 現在 scene 上に存在する車両 entity 一覧
         // Maps active scene entities by car id
+        // 生成済み train car view を car id で管理する
+        // Store active train car views by car id
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
         // ハイライト中の車両 id を保持する
         // Stores car ids with active highlight state
@@ -32,6 +34,13 @@ namespace Client.Game.InGame.Train.View.Object
         // 非同期生成中で重複生成を防ぎたい車両 id を保持する
         // Tracks car ids currently being created asynchronously
         private readonly HashSet<TrainCarInstanceId> _pendingCreation = new();
+
+        // ハイライト更新用 buffer はフレームごとの確保を避ける
+        // Reuse highlight buffers to avoid per-frame allocation
+        private readonly HashSet<TrainUnitInstanceId> _overlapTrainIdBuffer = new();
+        private readonly HashSet<TrainCarInstanceId> _overlapCarIdBuffer = new();
+        private readonly List<TrainCarInstanceId> _highlightAddBuffer = new();
+        private readonly List<TrainCarInstanceId> _highlightRemoveBuffer = new();
 
         public event Action<TrainCarInstanceId> TrainCarEntityRemoving;
 
@@ -64,6 +73,9 @@ namespace Client.Game.InGame.Train.View.Object
             {
                 _activeTrainCars.Add(activeId);
             }
+
+            // snapshot に存在しない view だけ破棄する
+            // Destroy only views missing from the latest snapshot
             var removeIds = CollectMissingEntityIds(activeIdSet);
             RemoveEntities(removeIds);
         }
@@ -104,13 +116,19 @@ namespace Client.Game.InGame.Train.View.Object
                 ClearAllHighlight();
                 return;
             }
-            var overlapTrainIdSet = new HashSet<TrainUnitInstanceId>(overlapTrainIds);
 
-            // 可読性優先で毎フレーム再適用する
-            // Re-apply highlights every frame for readability
-            var overlapCarIds = CollectOverlapCarIds(overlapTrainIdSet);
-            ClearAllHighlight();
-            ApplyHighlight(overlapCarIds);
+            // 対象 train unit を reusable buffer に集める
+            // Copy target train units into a reusable buffer
+            _overlapTrainIdBuffer.Clear();
+            foreach (var overlapTrainId in overlapTrainIds)
+            {
+                _overlapTrainIdBuffer.Add(overlapTrainId);
+            }
+
+            // 現在のハイライトとの差分だけを反映する
+            // Apply only the difference from current highlight state
+            CollectOverlapCarIds(_overlapTrainIdBuffer, _overlapCarIdBuffer);
+            ApplyHighlightDiff(_overlapCarIdBuffer);
         }
 
         public void ClearPlacementOverlapHighlight()
@@ -124,10 +142,18 @@ namespace Client.Game.InGame.Train.View.Object
             {
                 return;
             }
-            var removeIds = new List<TrainCarInstanceId>(_highlightedTrainCars);
-            for (var i = 0; i < removeIds.Count; i++)
+
+            // 走査中に HashSet を変更しないよう buffer へ退避する
+            // Copy ids to a buffer before mutating the hash set
+            _highlightRemoveBuffer.Clear();
+            foreach (var trainCarInstanceId in _highlightedTrainCars)
             {
-                var removeId = removeIds[i];
+                _highlightRemoveBuffer.Add(trainCarInstanceId);
+            }
+
+            for (var i = 0; i < _highlightRemoveBuffer.Count; i++)
+            {
+                var removeId = _highlightRemoveBuffer[i];
                 if (_entities.TryGetValue(removeId, out var entity) && entity != null)
                 {
                     entity.ResetMaterial();
@@ -144,8 +170,8 @@ namespace Client.Game.InGame.Train.View.Object
                 return;
             }
 
-            // 新規車両の生成処理を予約する
-            // Reserve async creation for a new train car
+            // 非同期生成中の重複生成を防ぐ
+            // Reserve this id to prevent duplicate async creation
             _pendingCreation.Add(trainCarInstanceId);
             CreateAndRegisterAsync(trainCarInstanceId, carSnapshot).Forget();
 
@@ -159,8 +185,8 @@ namespace Client.Game.InGame.Train.View.Object
                 {
                     var entityObject = await _carObjectFactory.CreateTrainCarObject(transform, snapshot);
 
-                    // 生成対象が最新スナップショットで無効なら登録しない
-                    // Skip registration when the target car is no longer active
+                    // 最新 snapshot から消えた車両は登録せず破棄する
+                    // Destroy the object if the target car disappeared before registration
                     if (!_activeTrainCars.Contains(targetId))
                     {
                         entityObject.Destroy();
@@ -230,9 +256,9 @@ namespace Client.Game.InGame.Train.View.Object
             _activeTrainCars.Remove(trainCarInstanceId);
         }
 
-        private HashSet<TrainCarInstanceId> CollectOverlapCarIds(ISet<TrainUnitInstanceId> overlapTrainIds)
+        private void CollectOverlapCarIds(ISet<TrainUnitInstanceId> overlapTrainIds, ISet<TrainCarInstanceId> overlapCarIds)
         {
-            var overlapCarIds = new HashSet<TrainCarInstanceId>();
+            overlapCarIds.Clear();
             foreach (var pair in _entities)
             {
                 var trainCarInstanceId = pair.Key;
@@ -246,13 +272,45 @@ namespace Client.Game.InGame.Train.View.Object
                 }
                 overlapCarIds.Add(trainCarInstanceId);
             }
-            return overlapCarIds;
         }
 
-        private void ApplyHighlight(ISet<TrainCarInstanceId> overlapCarIds)
+        private void ApplyHighlightDiff(ISet<TrainCarInstanceId> overlapCarIds)
         {
+            _highlightRemoveBuffer.Clear();
+            foreach (var carId in _highlightedTrainCars)
+            {
+                if (!overlapCarIds.Contains(carId))
+                {
+                    _highlightRemoveBuffer.Add(carId);
+                }
+            }
+
+            // 外れた車両だけ元材質へ戻す
+            // Restore only cars that left the overlap target set
+            for (var i = 0; i < _highlightRemoveBuffer.Count; i++)
+            {
+                var carId = _highlightRemoveBuffer[i];
+                if (_entities.TryGetValue(carId, out var entity) && entity != null)
+                {
+                    entity.ResetMaterial();
+                }
+                _highlightedTrainCars.Remove(carId);
+            }
+
+            _highlightAddBuffer.Clear();
             foreach (var carId in overlapCarIds)
             {
+                if (!_highlightedTrainCars.Contains(carId))
+                {
+                    _highlightAddBuffer.Add(carId);
+                }
+            }
+
+            // 新しく対象になった車両だけ青ハイライトへ切り替える
+            // Apply blue highlight only to newly targeted cars
+            for (var i = 0; i < _highlightAddBuffer.Count; i++)
+            {
+                var carId = _highlightAddBuffer[i];
                 if (!_entities.TryGetValue(carId, out var entity) || entity == null)
                 {
                     continue;

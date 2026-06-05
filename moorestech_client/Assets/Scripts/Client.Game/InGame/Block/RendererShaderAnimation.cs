@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Block
             _rendererMaterialReplacerController ??= new RendererMaterialReplacerController(gameObject);
             
             //マテリアルを更新
-            var placeAnimationMaterial = Resources.Load<Material>(MaterialConst.PlaceBlockAnimationMaterial);
+            var placeAnimationMaterial = MaterialConst.GetPlaceBlockAnimationMaterial();
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeAnimationMaterial);
             
             //マテリアルにセット
@@ -53,7 +53,7 @@ namespace Client.Game.InGame.Block
             _rendererMaterialReplacerController ??= new RendererMaterialReplacerController(gameObject);
             
             //マテリアルを更新
-            var placeAnimationMaterial = Resources.Load<Material>(MaterialConst.PlaceBlockAnimationMaterial);
+            var placeAnimationMaterial = MaterialConst.GetPlaceBlockAnimationMaterial();
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeAnimationMaterial);
             
             //マテリアルにセット
