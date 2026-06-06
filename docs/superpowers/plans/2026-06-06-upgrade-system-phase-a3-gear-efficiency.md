@@ -15,6 +15,37 @@
 
 ---
 
+## ⚠ 設計改訂（2026-06-06）— サブクラスを作らない（ユーザーレビュー反映）
+
+**当初の `MachineGearEnergyTransformer : GearEnergyTransformer` サブクラス案は不採用。** 既存の歯車関連コンポーネントから要求トルクを変えれば足りる。以降のタスク群 A3g-2-2（サブクラス実装）と A3g-2-3（生成順入れ替え）は下記で置き換える。
+
+**改訂後の実装:**
+1. 既存 `GearEnergyTransformer`（実ファイル名 `GearEnergyTransformerComponent.cs`）に**消費倍率プロバイダ**を足す。デフォルトは中立 1.0 なので他の歯車部品（発電機・コンベア等）に無影響:
+   ```csharp
+   private System.Func<float> _consumptionMultiplier = () => 1f;
+   public void SetConsumptionMultiplier(System.Func<float> provider) => _consumptionMultiplier = provider;
+   // GetRequiredTorque 内で baseTorque に _consumptionMultiplier() を乗じる
+   ```
+2. `VanillaGearMachineComponent`（既に processor と transformer を保持し仲介している）が配線する:
+   ```csharp
+   _gearEnergyTransformer.SetConsumptionMultiplier(() => _vanillaMachineProcessorComponent.CurrentPowerMultiplier);
+   ```
+   倍率は**トルク照会時にスナップショット値を読む**（`OnGearUpdate` での push は処理サイクルに対して古くなりうるため、プロバイダ経由で都度読む）。
+3. `VanillaMachineProcessorComponent.CurrentPowerMultiplier`（処理中はスナップショット倍率、Idle 時 1.0）を公開する点は当初どおり（タスク群 A3g-1）。
+
+**改訂後のファイル変更（A3）:**
+- 修正: `Game.Block/Blocks/Gear/GearEnergyTransformerComponent.cs`（消費倍率プロバイダ・既定1.0）
+- 修正: `Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs`（プロバイダ配線）
+- 修正: `Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs`（`CurrentPowerMultiplier` 公開）
+- 新規: なし（`MachineGearEnergyTransformer.cs` は作らない）
+- `VanillaGearMachineTemplate.cs` の生成順入れ替えも不要（サブクラスを作らないため）
+
+**テストは当初どおり**「省エネ装着の歯車機械が未装着より小さい要求トルクを出す／未装着は中立／下限clamp」をサーバー統合テストで検証（タスク群 A3g-2-1・A3g-3 はそのまま有効）。
+
+> 以降の「調査済みの実パターン」「ファイル構成」とタスク群 A3g-2-2/A3g-2-3 は、上の改訂で置き換わる箇所を含む歴史的記録。実装は本改訂ブロックに従うこと。
+
+---
+
 ## 調査済みの実パターン（着手前に必読）
 
 - **消費の算出点:** `Game.Block/Blocks/Gear/GearEnergyTransformer.cs:45` `public virtual Torque GetRequiredTorque(RPM rpm, bool isClockwise)` → `GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm)`。`_consumption == null`（発電機）は常に 0 を返す。
