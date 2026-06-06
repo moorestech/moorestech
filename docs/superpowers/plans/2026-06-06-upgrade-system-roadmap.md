@@ -1,6 +1,12 @@
 # アップグレードシステム 今後のコード変更ロードマップ
 
-> **For agentic workers:** これは複数サブシステムにまたがる**ロードマップ（索引）**。各フェーズの詳細な逐次TDD手順は、依存元フェーズが**実装着地した後**に個別プラン（`docs/superpowers/plans/2026-XX-XX-upgrade-system-*.md`）として書き起こす。riding-system が phase1〜4 を個別ファイルに割ったのと同じ運用。本書はその割り方・順序・ファイル単位の変更範囲・依存関係を確定する。
+> **For agentic workers:** これは複数サブシステムにまたがる**ロードマップ（索引）**。各フェーズの詳細な逐次TDDプランは**作成済み**（下記リンク）。riding-system が phase1〜4 を個別ファイルに割ったのと同じ運用。本書は割り方・順序・依存関係を示す目次。
+>
+> **詳細プラン（全て作成済み）:**
+> - Phase A（サーバー基盤）: [`2026-06-05-upgrade-system-phase-a.md`](2026-06-05-upgrade-system-phase-a.md)
+> - Phase A2（同期＋UI）: [`2026-06-06-upgrade-system-phase-a2-sync-ui.md`](2026-06-06-upgrade-system-phase-a2-sync-ui.md)
+> - Phase A3（GearMachine省エネ）: [`2026-06-06-upgrade-system-phase-a3-gear-efficiency.md`](2026-06-06-upgrade-system-phase-a3-gear-efficiency.md)
+> - Phase B（品質軸）: [`2026-06-06-upgrade-system-phase-b-quality.md`](2026-06-06-upgrade-system-phase-b-quality.md) ← **着手前に B-0 の3決定をユーザー承認**
 
 **Goal:** 設計仕様（`2026-06-05-upgrade-system-design.md`）とPhase A計画（`2026-06-05-upgrade-system-phase-a.md`）の先にある「今後の具体的なコード変更」を、依存順に並んだ着手可能な単位へ分解する。
 
@@ -28,7 +34,7 @@
 **推奨実装順:** A → **A2（同期+UI）** → A3（GearMachine省エネ）→ B（品質軸）。
 理由: A2 が無いとモジュールはコード上存在するだけで遊べない（=ドッグフード不能）。A3 は小さく独立で、いつ入れてもよい。B は設計・実装とも最大なので、A の効果集計APIが実プレイで検証されてから着手するのが安全。
 
-**各フェーズの「詳細TDDプラン化」タイミング:** そのフェーズの直前。依存元（特にPhase A）が実装着地し、参照する実APIのシグネチャが確定してから個別プランを書く。先に書くと空論になり、A実装時のAPI微調整で全面書き直しになる。
+**詳細TDDプランは全て作成済み（上記リンク）。** 各プラン冒頭に「API名はPhase A計画に追従。A実装でシグネチャが変わったら同期」のヘッダを付けてある（drift対策）。Phase A 実装でAPIが微調整されたら、A2/A3/B の該当箇所を同期すること。
 
 ---
 
@@ -73,7 +79,7 @@
 
 **完了条件:** プレイヤーが機械を開き、モジュールを装着でき、装着が画面とセーブの両方に反映される。
 
-→ **詳細プラン:** `2026-XX-XX-upgrade-system-phase-a2-sync-ui.md`（A着地後に作成）
+→ **詳細プラン（作成済み）:** [`2026-06-06-upgrade-system-phase-a2-sync-ui.md`](2026-06-06-upgrade-system-phase-a2-sync-ui.md)
 
 ---
 
@@ -105,7 +111,7 @@
 
 **完了条件:** 省エネモジュールが電力機械・歯車機械の両方で消費を下げる。設計仕様§5.1「全機械共通」の嘘を解消。
 
-→ **詳細プラン:** `2026-XX-XX-upgrade-system-phase-a3-gear-efficiency.md`（A着地後。小規模なら A2 プランに同梱も可）
+→ **詳細プラン（作成済み）:** [`2026-06-06-upgrade-system-phase-a3-gear-efficiency.md`](2026-06-06-upgrade-system-phase-a3-gear-efficiency.md)
 
 ---
 
@@ -166,7 +172,7 @@
 
 **完了条件:** 品質モジュールで産出物が決定的分布に従い上位レベル化し、セーブ/UIに矛盾なく反映。
 
-→ **詳細プラン:** `2026-XX-XX-upgrade-system-phase-b-quality.md`（A着地後、B-0決定後に作成）
+→ **詳細プラン（作成済み）:** [`2026-06-06-upgrade-system-phase-b-quality.md`](2026-06-06-upgrade-system-phase-b-quality.md)（B-0でユーザー承認が必要な3決定あり）
 
 ---
 
