@@ -408,6 +408,20 @@ git commit -m "test(master): add test module data and moduleSlotCount to test ma
 
 ゴール: 機械にモジュール専用スロットが付き、モジュールアイテムのみ挿入可・通常搬入不可・ブロックstateで永続化される。
 
+> ## ⚠ 設計改訂（2026-06-06）— 独立コンポーネントを作らず、既存機械インベントリの第3レンジにする（ユーザーレビュー反映）
+>
+> **当初は `IModuleSlotInventoryComponent` ＋ 専用 `MachineModuleSlotComponent`（別コンポーネント）として実装する設計（Task A2-1・A2-2）だったが、不採用。** 既存 `VanillaMachineBlockInventoryComponent` は既に入力スロット＋出力スロットを**統一スロット番号**で束ねている（`GetItem`/`SetItem`/`GetSlotSize` がスロット番号で振り分け、`InventoryItems` が両者連結）。モジュールスロットはその後ろに続く**第3レンジ**として足すのが正しい。これで `[DisallowMultiple]` 衝突の懸念自体が消える（新コンポーネントを足さないため）。
+>
+> **改訂後の実装（Task A2-1・A2-2 を置き換え）:**
+> - 新規: `Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs` — 入力/出力インベントリ（`VanillaMachineInputInventory`/`VanillaMachineOutputInventory`）と同じ作りで N 個のモジュールスロットを保持。
+> - 修正: `VanillaMachineBlockInventoryComponent.cs` — スロット番号ルーティングに第3レンジを追加。`GetItem`/`SetItem`/`GetSlotSize`/`InventoryItems`/`CreateCopiedItems` を `input + output + module` に拡張。
+> - 修正: `VanillaMachineSaveComponent.cs` — 既存の入力/出力スロット永続化にモジュールスロットも含める。
+> - 効果集計（タスク群A3）は、別コンポーネントの `GetEquippedModules()` ではなく**この機械インベントリのモジュールスロット範囲を読む**（アクセサ名は実装で確定）。
+> - 通常搬入禁止は自動的に満たされる: 搬送系の `InsertItem` は入力サブインベントリにしか入らないため、モジュールスロットがベルト等で埋まることはない。
+> - 「モジュールのみ・Count==1・上書き拒否」のプレイヤー装着制限は、**フェーズA2 の per-slot 挿入ガード＋移動プロトコルの事前確認**で守る（A2 計画の設計改訂参照）。Phase A 段階ではスロット枠の追加・保存・読み取りまでで、移動制限は A2 に委ねる。
+>
+> **以降の Task A2-1・A2-2・A2-3 は歴史的記録（不採用の独立コンポーネント案）。実装は本改訂ブロックに従う。**
+
 ### Task A2-1: IModuleSlotInventoryComponent インターフェース
 
 **Files:**
