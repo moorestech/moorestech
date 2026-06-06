@@ -1,0 +1,6 @@
+node_modules/
+.vite/
+.playwright-cli/
+dist/
+*.log
+.DS_Store
