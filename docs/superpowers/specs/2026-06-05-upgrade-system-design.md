@@ -168,7 +168,7 @@ clamp の下限値は modules.yml / グローバル設定で定義する。
   - **出力slot offset**: モジュールは output の**後ろ**に足すので、既存の input/output の slot index は不変。
   - **通常搬入**: 搬送系の `InsertItem` は入力サブインベントリにしか入らないため、モジュールスロットは自動投入で埋まらない（追加対処不要）。
   - **手動移動の不正挿入**: per-slot 挿入ガード（`IsItemAllowedToInsert`）＋移動プロトコルの事前確認で「モジュール・Count==1」のみ許可（フェーズA2）。`InventoryItemMoveService` は可否未チェックで swap するため、ここを足さないと誤投入が消える。
-  - **整理（InventorySortService）**: ⚠ 要対処。全スロットを並べ替える整理処理がモジュールスロット範囲を巻き込まないよう、**整理対象から module レンジを除外**する（または整理が module レンジを跨がない）。実装時に `InventorySortService` を確認すること。
+  - **整理（InventorySortService）**: ⚠ 要対処。`InventorySortService.Sort` は `Enumerable.Range(0, GetSlotSize())` で全スロットを並べ替え `SetItem` で書き戻すため、放置するとモジュールが整理で散らばる。ただし**同サービスは既に `excludeSlots` 引数を持つ**ので、module レンジを除外指定するだけでよい（新機構は不要）。
   - **UI・購読同期**: モジュールスロットも全スロット同期に自動で乗る。クライアント側は末尾 `moduleCount` 個を専用の行として描画する。
 - モジュールスロットへの**通常搬入は禁止**（上記のとおり自動で満たされる）。プレイヤーの明示装着のみ。
 - 永続化は既存の機械インベントリ保存（`VanillaMachineSaveComponent`）にモジュールスロットを含める。アイテムは独立 ItemId なので既存のアイテム保存スキーマに手を入れない。
