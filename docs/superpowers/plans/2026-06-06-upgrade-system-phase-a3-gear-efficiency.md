@@ -26,18 +26,17 @@
    public void SetConsumptionMultiplier(System.Func<float> provider) => _consumptionMultiplier = provider;
    // GetRequiredTorque 内で baseTorque に _consumptionMultiplier() を乗じる
    ```
-2. `VanillaGearMachineComponent`（既に processor と transformer を保持し仲介している）が配線する:
+2. `VanillaGearMachineComponent`（既に transformer を保持し仲介している）が配線する。**倍率はプロセッサ経由で横流しせず、効果コンポーネントから取得する**（ユーザーレビュー第2弾）:
    ```csharp
-   _gearEnergyTransformer.SetConsumptionMultiplier(() => _vanillaMachineProcessorComponent.CurrentPowerMultiplier);
+   _gearEnergyTransformer.SetConsumptionMultiplier(() => _machineModuleEffectComponent.PowerMultiplier);
    ```
-   倍率は**トルク照会時にスナップショット値を読む**（`OnGearUpdate` での push は処理サイクルに対して古くなりうるため、プロバイダ経由で都度読む）。
-3. `VanillaMachineProcessorComponent.CurrentPowerMultiplier`（処理中はスナップショット倍率、Idle 時 1.0）を公開する点は当初どおり（タスク群 A3g-1）。
+   倍率は**トルク照会時に読む**（`OnGearUpdate` での push は処理サイクルに対して古くなりうるため、プロバイダ経由で都度読む）。
+3. 倍率の単一源は `MachineModuleEffectComponent`（フェーズA で新設。モジュールスロットを読み 4 軸の倍率を集計・clamp して公開）。プロセッサも歯車もこの公開値を取得する（プロセッサに `CurrentPowerMultiplier` を持たせて歯車へ渡す旧案は不要）。
 
 **改訂後のファイル変更（A3）:**
 - 修正: `Game.Block/Blocks/Gear/GearEnergyTransformerComponent.cs`（消費倍率プロバイダ・既定1.0）
-- 修正: `Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs`（プロバイダ配線）
-- 修正: `Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs`（`CurrentPowerMultiplier` 公開）
-- 新規: なし（`MachineGearEnergyTransformer.cs` は作らない）
+- 修正: `Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs`（効果コンポーネントの倍率を配線）
+- 新規: なし（`MachineGearEnergyTransformer.cs` は作らない。`MachineModuleEffectComponent` はフェーズA で作成済み前提）
 - `VanillaGearMachineTemplate.cs` の生成順入れ替えも不要（サブクラスを作らないため）
 
 **テストは当初どおり**「省エネ装着の歯車機械が未装着より小さい要求トルクを出す／未装着は中立／下限clamp」をサーバー統合テストで検証（タスク群 A3g-2-1・A3g-3 はそのまま有効）。
