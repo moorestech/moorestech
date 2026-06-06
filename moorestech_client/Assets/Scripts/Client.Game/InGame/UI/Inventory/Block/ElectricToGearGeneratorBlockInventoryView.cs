@@ -109,10 +109,17 @@ namespace Client.Game.InGame.UI.Inventory.Block
             async UniTask SendAsync(int idx)
             {
                 _isSending = true;
-                var ct = this.GetCancellationTokenOnDestroy();
-                await ClientContext.VanillaApi.Response.SetElectricToGearOutputMode(_blockPosition, idx, ct);
-                if (this == null) return; // 破棄後は触らない / don't touch after destroy
-                _isSending = false;
+                try
+                {
+                    var ct = this.GetCancellationTokenOnDestroy();
+                    await ClientContext.VanillaApi.Response.SetElectricToGearOutputMode(_blockPosition, idx, ct);
+                }
+                finally
+                {
+                    // 例外・キャンセルを含む全経路で送信フラグを戻し、入力ロックを防ぐ。
+                    // Reset the sending flag on every path (incl. exception/cancel) to avoid input lock.
+                    if (this != null) _isSending = false; // 破棄後は触らない / don't touch after destroy
+                }
                 // 表示は次 Update の StateDetail に従う（楽観更新しない）。
                 // Display follows StateDetail next Update (no optimistic update).
             }
