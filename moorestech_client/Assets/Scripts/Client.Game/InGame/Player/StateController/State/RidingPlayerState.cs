@@ -42,21 +42,27 @@ namespace Client.Game.InGame.Player.StateController.State
             // Check the validity of the TrainCar and apply it.
             if (rideContext?.CurrentCarId != null && _trainCarObjectDatastore.TryGetEntity(rideContext.CurrentCarId, out var targetEntity))
             {
-                var seatPosition = ResolveSeatLocalPosition(targetEntity, rideContext.CurrentSeatIndex);
+                var followTarget = ResolveSeatFollowTarget(targetEntity, rideContext.CurrentSeatIndex);
                 
                 var player = ResolvePlayerObjectController();
-                player.SetRideFollowTarget(targetEntity.transform, seatPosition, RidingLocalRotation);
+                player.SetRideFollowTarget(followTarget, Vector3.zero, RidingLocalRotation);
             }
             
             #region Internal
             
-            static Vector3 ResolveSeatLocalPosition(TrainCarEntityObject targetEntity, int targetSeatIndex)
+            static Transform ResolveSeatFollowTarget(TrainCarEntityObject targetEntity, int targetSeatIndex)
             {
-                var seats = targetEntity.TrainCarMasterElement.RidableSeats;
-                if (seats == null || targetSeatIndex < 0 || seats.Length <= targetSeatIndex) return Vector3.zero;
-                
-                var seat = seats[targetSeatIndex];
-                return new Vector3(seat.OffsetX, seat.OffsetY, seat.OffsetZ);
+                // Prefab上の座席markerを追従対象にする
+                // Use the Prefab seat marker as the follow target
+                if (targetEntity.TryGetSeatPosition(targetSeatIndex, out var seatTransform))
+                {
+                    return seatTransform;
+                }
+
+                // marker未設定時はroot原点へfallbackしてエラーを出す
+                // Fall back to the root origin and log an error when the marker is missing
+                Debug.LogError($"TrainCar SeatPosition not found. TrainCarInstanceId:{targetEntity.TrainCarInstanceId.AsPrimitive()} SeatIndex:{targetSeatIndex}");
+                return targetEntity.transform;
             }
             
             #endregion

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
@@ -23,6 +25,7 @@ namespace Client.Game.InGame.Train.View.Object
         private bool _debugAutoRun = false;//////////////////
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private TrainCarPoseService _poseService;
+        private SeatPosition[] _seatPositions = Array.Empty<SeatPosition>();
         private MaterialPreviewState _materialPreviewState = MaterialPreviewState.Normal;
 
         private enum MaterialPreviewState
@@ -47,8 +50,41 @@ namespace Client.Game.InGame.Train.View.Object
             // Delegate render pose control to the service
             var renderers = GetComponentsInChildren<Renderer>(true);
             _poseService = new TrainCarPoseService(transform, renderers);
+            _seatPositions = ResolveSeatPositions();
 
             #region Internal
+
+            SeatPosition[] ResolveSeatPositions()
+            {
+                // Prefab上の座席markerを一括取得してindex順に保持する
+                // Collect Prefab seat markers once and keep them ordered by index
+                var markers = GetComponentsInChildren<SeatPosition>(true);
+                if (markers == null || markers.Length == 0)
+                {
+                    return Array.Empty<SeatPosition>();
+                }
+                Array.Sort(markers, (left, right) => left.GetSeatIndex().CompareTo(right.GetSeatIndex()));
+
+                // index重複はログを出して最初のmarkerだけを採用する
+                // Log duplicate indexes and keep only the first marker
+                var uniqueMarkers = new List<SeatPosition>(markers.Length);
+                for (var i = 0; i < markers.Length; i++)
+                {
+                    var marker = markers[i];
+                    if (marker.GetSeatIndex() < 0)
+                    {
+                        Debug.LogError($"TrainCar SeatPosition has negative index. TrainCar:{name} SeatIndex:{marker.GetSeatIndex()}");
+                        continue;
+                    }
+                    if (uniqueMarkers.Count > 0 && uniqueMarkers[uniqueMarkers.Count - 1].GetSeatIndex() == marker.GetSeatIndex())
+                    {
+                        Debug.LogError($"TrainCar SeatPosition index duplicated. TrainCar:{name} SeatIndex:{marker.GetSeatIndex()}");
+                        continue;
+                    }
+                    uniqueMarkers.Add(marker);
+                }
+                return uniqueMarkers.ToArray();
+            }
 
             void ConfigureRigidbodyForContact(Rigidbody targetRigidbody)
             {
@@ -76,6 +112,54 @@ namespace Client.Game.InGame.Train.View.Object
         public void SetDirectPose(Vector3 position, Quaternion rotation)
         {
             _poseService.RequestPose(position, rotation);
+        }
+
+        public bool IsPoseServiceReady()
+        {
+            return _poseService != null;
+        }
+
+        public bool TryGetSeatPosition(int seatIndex, out Transform seatTransform)
+        {
+            // cached markerから指定indexの座席Transformを探す
+            // Find the requested seat Transform from cached markers
+            seatTransform = null;
+            if (seatIndex < 0)
+            {
+                return false;
+            }
+            for (var i = 0; i < _seatPositions.Length; i++)
+            {
+                if (_seatPositions[i].GetSeatIndex() != seatIndex)
+                {
+                    continue;
+                }
+                seatTransform = _seatPositions[i].transform;
+                return true;
+            }
+            return false;
+        }
+
+        public int GetVisualPartCount()
+        {
+            return _poseService.GetVisualPartCount();
+        }
+
+        public bool TryGetVisualPartLengthMeters(int index, out int lengthMeters)
+        {
+            return _poseService.TryGetVisualPartLengthMeters(index, out lengthMeters);
+        }
+
+        public bool TryGetVisualPartModelForwardCenterOffset(int index, out float modelForwardCenterOffset)
+        {
+            return _poseService.TryGetVisualPartModelForwardCenterOffset(index, out modelForwardCenterOffset);
+        }
+
+        public void SetDirectPartPose(int index, Vector3 position, Quaternion rotation)
+        {
+            // 分割表示 part の world pose を姿勢サービスへ委譲する
+            // Delegate split visual-part world pose to the pose service
+            _poseService.RequestPartPose(index, position, rotation);
         }
 
         /// <summary>

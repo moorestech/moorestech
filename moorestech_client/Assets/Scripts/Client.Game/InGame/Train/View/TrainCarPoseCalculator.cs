@@ -11,6 +11,10 @@ namespace Client.Game.InGame.Train.View
         private const int ArcLengthSamples = 64;
         private const float MinCurveLength = 1e-4f;
 
+        // 列車モデルの前方軸補正をレール進行方向に合わせる
+        // Model forward axis correction to match rail direction
+        public const float ModelYawOffsetDegrees = -90f;
+
         // 列車先頭から指定距離の位置と向きを算出する
         // Calculate position and forward direction at the specified head distance
         public static bool TryGetPose(RailPosition railPosition, int distanceFromHead, out Vector3 position, out Vector3 forward)
@@ -55,6 +59,81 @@ namespace Client.Game.InGame.Train.View
             }
 
             return false;
+        }
+
+        // 前後 offset から車両または表示 part の中心姿勢を計算する
+        // Compute a car or visual-part center pose from front/rear offsets
+        public static bool TryResolveCarPose(RailPosition railPosition, int frontOffset, int rearOffset, out Vector3 position, out Vector3 forward)
+        {
+            // 出力値を先に初期化する
+            // Initialize output values first
+            position = default;
+            forward = Vector3.forward;
+            if (!TryGetPose(railPosition, frontOffset, out var frontPosition, out var frontForward))
+            {
+                return false;
+            }
+
+            // 後端位置を解決し、前後点の中央を表示中心にする
+            // Resolve the rear point and use the midpoint as the visual center
+            if (!TryGetPose(railPosition, rearOffset, out var rearPosition, out _))
+            {
+                return false;
+            }
+            position = (frontPosition + rearPosition) * 0.5f;
+
+            // 前後差分が退化する場合は先頭側 tangent を fallback に使う
+            // Fall back to the head-side tangent when front/rear delta degenerates
+            var delta = frontPosition - rearPosition;
+            forward = delta.sqrMagnitude > 1e-6f ? delta.normalized : (frontForward.sqrMagnitude > 1e-6f ? frontForward.normalized : Vector3.forward);
+            return true;
+        }
+
+        // renderer 中心補正込みの最終 Transform 姿勢を計算する
+        // Compute the final Transform pose including renderer-center correction
+        public static bool TryResolveRenderPose(RailPosition railPosition, int frontOffset, int rearOffset, bool isFacingForward, float modelForwardCenterOffset, out Vector3 position, out Quaternion rotation)
+        {
+            // 出力値を先に初期化する
+            // Initialize output values first
+            position = default;
+            rotation = Quaternion.identity;
+            if (!TryResolveCarPose(railPosition, frontOffset, rearOffset, out position, out var forward))
+            {
+                return false;
+            }
+
+            // モデル軸補正と中心 offset を適用する
+            // Apply model-axis correction and center offset
+            rotation = BuildRotation(forward, isFacingForward);
+            var modelForward = ResolveModelForward(rotation);
+            position -= modelForward * modelForwardCenterOffset;
+            return true;
+        }
+
+        // 正規化した前方ベクトルから回転を構成する
+        // Build rotation from the normalized forward vector
+        public static Quaternion BuildRotation(Vector3 forward, bool isFacingForward)
+        {
+            var safeForward = forward.sqrMagnitude > 1e-6f ? forward.normalized : Vector3.forward;
+            var rotation = Quaternion.LookRotation(safeForward, Vector3.up);
+
+            // モデル軸補正と編成向き反転を適用する
+            // Apply model axis correction and formation facing inversion
+            rotation = rotation * Quaternion.Euler(0f, ModelYawOffsetDegrees, 0f);
+            if (!isFacingForward)
+            {
+                rotation = rotation * Quaternion.Euler(0f, 180f, 0f);
+            }
+
+            return rotation;
+        }
+
+        // 現在 rotation におけるモデル前方軸を求める
+        // Resolve the model forward axis under the current rotation
+        public static Vector3 ResolveModelForward(Quaternion rotation)
+        {
+            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
+            return rotation * localForwardAxis;
         }
 
         private static bool TryGetPoseOnSegment(IRailNode behind, IRailNode ahead, int distanceFromBehind, out Vector3 position, out Vector3 forward)

@@ -56,7 +56,7 @@ namespace Tests.UnitTest.Game
         {
             // テスト用に最小限の値だけを指定し、他は安全な既定値で埋める
             // Fill in minimal values for tests; other fields use safe defaults.
-            return new TrainCarMasterElement(0, Guid.NewGuid(), Guid.Empty, null, 100, 0, inventorySlots, 1, defaultContainerType, fluidCapacity, null, null, null);
+            return new TrainCarMasterElement(0, Guid.NewGuid(), Guid.Empty, null, 100, 0, inventorySlots, 1, defaultContainerType, fluidCapacity, null, null, 0);
         }
     }
 }

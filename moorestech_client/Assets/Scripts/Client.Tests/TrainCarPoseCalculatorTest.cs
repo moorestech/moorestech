@@ -59,6 +59,65 @@ namespace Client.Tests
             Assert.That(forward.sqrMagnitude, Is.GreaterThan(0.5f));
         }
 
+        [Test]
+        public void TryBuildNormalizedPartLengths_NormalizesEngineAndTenderToCarLength()
+        {
+            // 13m + 7m の authored 比率を現在の車両 rail 長へ正規化する
+            // Normalize the authored 13m + 7m ratio to the current car rail length.
+            var authoredLengths = new[] { 13, 7 };
+            var normalizedLengths = new int[2];
+            var resolved = TrainCarPartPoseCalculator.TryBuildNormalizedPartLengths(20480, authoredLengths, normalizedLengths, out var partCount);
+
+            // 合計が車両長に一致し、Engine/Tender 比率が維持されることを確認する
+            // Verify the total matches the car length and preserves the Engine/Tender ratio.
+            Assert.IsTrue(resolved);
+            Assert.AreEqual(2, partCount);
+            Assert.AreEqual(13312, normalizedLengths[0]);
+            Assert.AreEqual(7168, normalizedLengths[1]);
+        }
+
+        [Test]
+        public void TryBuildPartSpan_ReflectsModelFrontCoordinates_WhenCarFacesBackward()
+        {
+            // reverse 後も model front 側の Engine が物理的な同じ側に残るよう span を反映する
+            // Reflect spans so the model-front Engine remains on the same physical side after reverse.
+            var engineLength = 13;
+            var tenderLength = 7;
+            var carFrontOffset = 0;
+            var carRearOffset = 20;
+
+            // forward では rail head 側から Engine/Tender の順に並ぶ
+            // In forward mode, Engine/Tender are ordered from the rail head.
+            Assert.IsTrue(TrainCarPartPoseCalculator.TryBuildPartSpan(carFrontOffset, carRearOffset, 0, engineLength, true, out var forwardEngine));
+            Assert.IsTrue(TrainCarPartPoseCalculator.TryBuildPartSpan(carFrontOffset, carRearOffset, engineLength, tenderLength, true, out var forwardTender));
+
+            // backward では rail head は入れ替わるが、Engine/Tender の物理側は入れ替わらない
+            // In backward mode, the rail head swaps but Engine/Tender physical sides do not.
+            Assert.IsTrue(TrainCarPartPoseCalculator.TryBuildPartSpan(carFrontOffset, carRearOffset, 0, engineLength, false, out var backwardEngine));
+            Assert.IsTrue(TrainCarPartPoseCalculator.TryBuildPartSpan(carFrontOffset, carRearOffset, engineLength, tenderLength, false, out var backwardTender));
+            Assert.AreEqual(0, forwardEngine.FrontOffset);
+            Assert.AreEqual(13, forwardEngine.RearOffset);
+            Assert.AreEqual(13, forwardTender.FrontOffset);
+            Assert.AreEqual(20, forwardTender.RearOffset);
+            Assert.AreEqual(7, backwardEngine.FrontOffset);
+            Assert.AreEqual(20, backwardEngine.RearOffset);
+            Assert.AreEqual(0, backwardTender.FrontOffset);
+            Assert.AreEqual(7, backwardTender.RearOffset);
+        }
+
+        [Test]
+        public void BuildRotation_KeepsModelVisualDirection_WhenRailHeadSwapsOnReverse()
+        {
+            // reverse では rail head だけが入れ替わり、モデル見た目の向きは変えない
+            // On reverse, only the rail head swaps while the model visual direction stays unchanged.
+            var forwardRotation = TrainCarPoseCalculator.BuildRotation(Vector3.forward, true);
+            var backwardRotation = TrainCarPoseCalculator.BuildRotation(Vector3.back, false);
+
+            // rail forward と facing 反転が相殺され、余計な反転が入らないことを確認する
+            // Verify rail-forward and facing inversion cancel without applying an extra visual flip.
+            Assert.That(Quaternion.Angle(forwardRotation, backwardRotation), Is.LessThan(0.001f));
+        }
+
         private sealed class TestRailNode : IRailNode
         {
             private readonly Dictionary<IRailNode, int> _distances = new();
