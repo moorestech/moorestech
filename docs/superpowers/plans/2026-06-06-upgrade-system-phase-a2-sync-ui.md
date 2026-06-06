@@ -24,18 +24,17 @@
 - `InventoryType.ModuleSlot` / `ModuleSlotInventoryIdentifierResolver` — 既存 `InventoryType.Block` ＋ スロット番号で装着先を指定できるため不要。
 - `MachineModuleSlotComponent` の `IOpenableInventory` アダプタ / `ModuleSlotSubInventorySource` — モジュールスロットが既存ブロックインベントリの一部なので不要。
 
+**さらなる改訂（2026-06-06・ユーザーレビュー第2弾）:** `InventoryItemMoveProtocol` も**無改変**にする。当初足そうとした per-slot 挿入ガード（移動プロトコルの事前可否確認）も**不要**＝「完全に既存システムに乗せる」。モジュールスロットへの挿入制限は設けない（出力スロットが今でも任意投入を許すのと同じ既存挙動に揃える）。非モジュールがスロットに入っても、**効果コンポーネント（`MachineModuleEffectComponent`）がモジュールだけを数える**ので無視されるだけ。よって A2 は**クライアントの描画のみ**。
+
 **A2 で実際にやること（これだけ）:**
-1. **per-slot 挿入ガード（唯一の新規ロジック）**: `VanillaMachineBlockInventoryComponent` に `bool IsItemAllowedToInsert(int slot, IItemStack)` を足す（モジュールスロット範囲なら「モジュール定義あり＆Count==1」のみ true、入力/出力は true）。`InventoryItemMoveProtocol.GetResponse` が移動実行前に移動先スロットの可否を確認し、不可なら move しない。
-   - **なぜ必要か**: `InventoryItemMoveService` は可否を見ずに `SetItem`/`ReplaceItem` し、swap 分岐は両側を SetItem する。単にモジュール側 SetItem で無視すると、移動元が先に上書きされ**誤投入アイテムが消える**。出力スロットも現状この可否チェックを持たない（再利用できる既存ガードが無い）ため、ここだけは新規が要る。
-   - 代替（要ユーザー判断）: 制限を設けず「何でも置けるが効果はモジュールだけ」にすれば per-slot ガードも不要（完全に新規ゼロ）。既定は制限ありを推奨。
-2. **クライアント UI（タスク群 A2-3 を流用）**: 機械 View にモジュールスロット範囲（`GetSlotSize()` の末尾 `moduleCount` 個）を描画。装着は既存のドラッグ＆ドロップが `InventoryItemMoveProtocol`（`InventoryType.Block`＋モジュールスロット番号）を送れば成立する。`ModuleSlotSubInventorySource` の新設は不要で、既存の `BlockSubInventorySource` がそのまま使える。
+1. **クライアント UI（タスク群 A2-3 を流用）**: 機械 View にモジュールスロット範囲（`GetSlotSize()` の末尾 `moduleCount` 個）を描画。装着は既存のドラッグ＆ドロップが `InventoryItemMoveProtocol`（`InventoryType.Block`＋モジュールスロット番号）を送れば**そのまま**成立する。`ModuleSlotSubInventorySource` の新設は不要で、既存の `BlockSubInventorySource` がそのまま使える。
 
 **改訂後のファイル変更（A2）:**
-- 修正: `Game.Block/Blocks/Machine/Inventory/VanillaMachineBlockInventoryComponent.cs`（`IsItemAllowedToInsert`）
-- 修正: `Server.Protocol/PacketResponse/InventoryItemMoveProtocol.cs`（移動先スロットの可否を事前確認）
 - 修正: `Client.Game/.../Inventory/Block/MachineBlockInventoryView.cs` / `GearMachineBlockInventoryView.cs`（モジュールスロット範囲を描画）
 - 修正: 機械インベントリ prefab（**手編集禁止**。`uloop execute-dynamic-code` or ユーザー依頼）
-- 新規: なし
+- 新規・サーバー側修正: **なし**（プロトコル・サービス・インベントリは無改変）
+
+> ⚠ 整理（`InventorySortService`）だけは別途、module レンジを既存の `excludeSlots` 引数で除外する（プロトコル変更ではなく、整理呼び出しの引数指定）。これは A2 のプロトコル無改変とは独立の対処。
 
 **以降の「設計判断」節〜タスク群 A2-2 は歴史的記録（不採用案）。実装は上のリストに従い、テストは「移動プロトコル経由でモジュール装着できる／非モジュールは弾かれ消えない／既存 InventoryRequest がモジュールスロットを含めて返す」をサーバー統合テストで検証する。タスク群 A2-4（PlayMode 往復）はそのまま有効。**
 

@@ -416,9 +416,10 @@ git commit -m "test(master): add test module data and moduleSlotCount to test ma
 > - 新規: `Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs` — 入力/出力インベントリ（`VanillaMachineInputInventory`/`VanillaMachineOutputInventory`）と同じ作りで N 個のモジュールスロットを保持。
 > - 修正: `VanillaMachineBlockInventoryComponent.cs` — スロット番号ルーティングに第3レンジを追加。`GetItem`/`SetItem`/`GetSlotSize`/`InventoryItems`/`CreateCopiedItems` を `input + output + module` に拡張。
 > - 修正: `VanillaMachineSaveComponent.cs` — 既存の入力/出力スロット永続化にモジュールスロットも含める。
-> - 効果集計（タスク群A3）は、別コンポーネントの `GetEquippedModules()` ではなく**この機械インベントリのモジュールスロット範囲を読む**（アクセサ名は実装で確定）。
+> - **効果は専用コンポーネント `MachineModuleEffectComponent`（新規）に集約する**（ユーザーレビュー第2弾）。これが機械インベントリのモジュールスロット範囲を読み、4 軸の倍率（時間/消費/追加産出/品質）を集計・clamp して公開する。**プロセッサも歯車も、生スロットを各自で読まず、この効果コンポーネントから倍率値を取得する**（タスク群A3 の `MachineModuleEffect` はこのコンポーネントが内部で使う純粋集計関数として残す）。
 > - 通常搬入禁止は自動的に満たされる: 搬送系の `InsertItem` は入力サブインベントリにしか入らないため、モジュールスロットがベルト等で埋まることはない。
-> - 「モジュールのみ・Count==1・上書き拒否」のプレイヤー装着制限は、**フェーズA2 の per-slot 挿入ガード＋移動プロトコルの事前確認**で守る（A2 計画の設計改訂参照）。Phase A 段階ではスロット枠の追加・保存・読み取りまでで、移動制限は A2 に委ねる。
+> - **プレイヤー装着の挿入制限は設けない**（ユーザーレビュー第2弾）。移動プロトコルもインベントリも無改変で、非モジュールがスロットに入っても効果コンポーネントが無視するだけ（出力スロットが任意投入を許す既存挙動に揃える）。よってフェーズA2 は per-slot ガードも移動プロトコル変更も行わず、クライアント描画のみ。
+> - 整理（`InventorySortService`）だけは module レンジを既存の `excludeSlots` 引数で除外する（仕様§6参照）。
 >
 > **以降の Task A2-1・A2-2・A2-3 は歴史的記録（不採用の独立コンポーネント案）。実装は本改訂ブロックに従う。**
 
