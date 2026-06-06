@@ -10,7 +10,9 @@ using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using NUnit.Framework;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -46,7 +48,9 @@ namespace Client.Tests.EditModeInPlayingTest
 
             // テスト終了後にデバッグオブジェクト無効化フラグをクリア
             // Clear debug objects disabled flag after test.
+#if UNITY_EDITOR
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+#endif
 
             #region Internal
 
@@ -84,7 +88,9 @@ namespace Client.Tests.EditModeInPlayingTest
 
             // テスト終了後にデバッグオブジェクト無効化フラグをクリア
             // Clear debug objects disabled flag after test.
+#if UNITY_EDITOR
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+#endif
 
             #region Internal
 
