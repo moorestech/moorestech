@@ -10,7 +10,7 @@
       "trainCarGuid": "dc82cf3f-709d-49eb-bdb2-67ffcaff561b",
       "defaultContainerType": "None",
       "fluidCapacity": 0,
-      "ridableSeats": [],
+      "ridableSeatCount": 0,
       "trainFuelItems": [
         {
           "itemGuid": "00000000-0000-0000-1234-000000000001",
@@ -28,10 +28,7 @@
       "trainCarGuid": "22222222-2222-2222-2222-222222222222",
       "defaultContainerType": "None",
       "fluidCapacity": 0,
-      "ridableSeats": [
-        { "offsetX": 0, "offsetY": 0, "offsetZ": 0 },
-        { "offsetX": 0, "offsetY": 0, "offsetZ": 0 }
-      ]
+      "ridableSeatCount": 2
     }
   ],
   "railItems": [

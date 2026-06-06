@@ -42,7 +42,7 @@ namespace Game.Train.Unit
         // IRidable 実装: 乗り物としての識別子と座席数を公開する
         // IRidable implementation: exposes the ridable identifier and seat count.
         IRidableIdentifier IRidable.Identifier => new TrainCarRidableIdentifier(_trainCarInstanceId.AsPrimitive());
-        int IRidable.SeatCount => TrainCarMasterElement.RidableSeats?.Length ?? 0;
+        int IRidable.SeatCount => TrainCarMasterElement.RidableSeatCount;
 
         public IBlock dockingblock { get; set; }// このTrainCarがcargoやstation駅blockでドッキングしているときにのみ非nullになる。前輪を登録
         public bool IsFacingForward { get; private set; }

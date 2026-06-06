@@ -447,6 +447,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1813724243172454067}
+  - component: {fileID: 7735212354988690014}
   m_Layer: 0
   m_Name: SeatPos_1
   m_TagString: Untagged
@@ -469,6 +470,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1533150498824386709}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7735212354988690014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1031760719246419044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 448ae581836fa104cbadb7da3b8b45c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.SeatPosition
+  seatIndex: 0
 --- !u!1 &1037140268125931158
 GameObject:
   m_ObjectHideFlags: 0
@@ -923,7 +937,6 @@ Transform:
   m_Children:
   - {fileID: 3911718430046426659}
   - {fileID: 7481160612837698015}
-  - {fileID: 7455705527811558744}
   - {fileID: 1813724243172454067}
   - {fileID: 8987106220800630575}
   - {fileID: 1284722551157697077}
@@ -4309,37 +4322,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &6699522829557476299
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7455705527811558744}
-  m_Layer: 0
-  m_Name: SeatPos
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7455705527811558744
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6699522829557476299}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -6.547, y: 0.968, z: 0.025}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1533150498824386709}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6704721123293902347
 GameObject:
   m_ObjectHideFlags: 0
@@ -4777,6 +4759,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8987106220800630575}
+  - component: {fileID: 3308023942857293740}
   m_Layer: 0
   m_Name: SeatPos_2
   m_TagString: Untagged
@@ -4799,6 +4782,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1533150498824386709}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3308023942857293740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8104802360241652193}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 448ae581836fa104cbadb7da3b8b45c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.SeatPosition
+  seatIndex: 1
 --- !u!1 &8138299992824883828
 GameObject:
   m_ObjectHideFlags: 0

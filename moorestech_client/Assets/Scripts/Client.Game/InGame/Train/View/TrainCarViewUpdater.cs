@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Game.Train.RailPositions;
@@ -11,10 +12,6 @@ namespace Client.Game.InGame.Train.View
     [DefaultExecutionOrder(-200)]
     public sealed class TrainCarViewUpdater : MonoBehaviour
     {
-        // 列車モデルの前方軸補正をレール進行方向に合わせる
-        // Model forward axis correction to match rail direction
-        private const float ModelYawOffsetDegrees = -90f;
-
         private TrainUnitClientCache _trainCache;
         private TrainUnitTickState _tickState;
         private ITrainUnitRenderInterpolationProvider _renderInterpolationProvider;
@@ -26,6 +23,14 @@ namespace Client.Game.InGame.Train.View
         private bool _hasCurrentRenderSnapshot;
         private bool _hasPreviousRenderSnapshot;
         private bool _isReady;
+        private bool _visualPartBuffersInitialized;
+        private int _visualPartCount;
+        private int[] _visualPartAuthoredLengths;
+        private int[] _visualPartNormalizedLengths;
+        private TrainCarPartSpan[] _visualPartSpans;
+        private TrainCarPoseResult[] _previousVisualPartPoses;
+        private TrainCarPoseResult[] _currentVisualPartPoses;
+        private TrainCarPoseResult[] _outputVisualPartPoses;
 
         public void Initialize(TrainCarEntityObject trainCarEntity, TrainUnitClientCache trainCache, TrainUnitTickState tickState, ITrainUnitRenderInterpolationProvider renderInterpolationProvider)
         {
@@ -40,6 +45,7 @@ namespace Client.Game.InGame.Train.View
             _lastSnapshotTick = 0;
             _hasCurrentRenderSnapshot = false;
             _hasPreviousRenderSnapshot = false;
+            _visualPartBuffersInitialized = false;
             _processors = GetComponentsInChildren<ITrainCarObjectProcessor>();
             for (var i = 0; i < _processors.Length; i++)
             {
@@ -56,6 +62,15 @@ namespace Client.Game.InGame.Train.View
             {
                 return;
             }
+
+            // TrainCarEntityObject の姿勢サービス生成後に分割表示を初期化する
+            // Initialize split visuals after TrainCarEntityObject creates the pose service
+            if (!_trainCarEntity.IsPoseServiceReady())
+            {
+                DispatchProcessors(TrainCarContext.CreateUnavailable());
+                return;
+            }
+            EnsureVisualPartBuffersInitialized();
 
             // cache から今回の render snapshot を更新する
             // Refresh the current render snapshot from the cache
@@ -74,7 +89,54 @@ namespace Client.Game.InGame.Train.View
             // レール由来の姿勢を GameObject に反映する
             // Apply the rail-derived pose to the GameObject
             _trainCarEntity.SetDirectPose(position, rotation);
+            if (!TryApplyOutputVisualPartPoses())
+            {
+                DispatchProcessors(TrainCarContext.CreateUnavailable());
+                return;
+            }
             DispatchProcessors(CreateContext(contextSnapshot));
+        }
+
+        private void EnsureVisualPartBuffersInitialized()
+        {
+            // part marker は Prefab 初期化後に一度だけ読む
+            // Read part markers once after Prefab initialization
+            if (_visualPartBuffersInitialized)
+            {
+                return;
+            }
+            InitializeVisualPartBuffers();
+            _visualPartBuffersInitialized = true;
+        }
+
+        private void InitializeVisualPartBuffers()
+        {
+            // Prefab marker から part 数と authored 長を一度だけ読む
+            // Read part count and authored lengths from Prefab markers once
+            _visualPartCount = _trainCarEntity.GetVisualPartCount();
+            if (_visualPartCount <= 0)
+            {
+                _visualPartAuthoredLengths = Array.Empty<int>();
+                _visualPartNormalizedLengths = Array.Empty<int>();
+                _visualPartSpans = Array.Empty<TrainCarPartSpan>();
+                _previousVisualPartPoses = Array.Empty<TrainCarPoseResult>();
+                _currentVisualPartPoses = Array.Empty<TrainCarPoseResult>();
+                _outputVisualPartPoses = Array.Empty<TrainCarPoseResult>();
+                return;
+            }
+
+            // per-frame allocation を避けるため part 用 buffer を保持する
+            // Keep visual-part buffers to avoid per-frame allocation
+            _visualPartAuthoredLengths = new int[_visualPartCount];
+            _visualPartNormalizedLengths = new int[_visualPartCount];
+            _visualPartSpans = new TrainCarPartSpan[_visualPartCount];
+            _previousVisualPartPoses = new TrainCarPoseResult[_visualPartCount];
+            _currentVisualPartPoses = new TrainCarPoseResult[_visualPartCount];
+            _outputVisualPartPoses = new TrainCarPoseResult[_visualPartCount];
+            for (var i = 0; i < _visualPartCount; i++)
+            {
+                _trainCarEntity.TryGetVisualPartLengthMeters(i, out _visualPartAuthoredLengths[i]);
+            }
         }
 
         private void UpdateCurrentRenderSnapshot()
@@ -147,6 +209,108 @@ namespace Client.Game.InGame.Train.View
             return true;
         }
 
+        private bool TryApplyOutputVisualPartPoses()
+        {
+            // 分割表示がない車両は root pose のみで完了する
+            // Cars without split visuals complete with the root pose only
+            if (_visualPartCount <= 0)
+            {
+                return true;
+            }
+            if (!_hasCurrentRenderSnapshot)
+            {
+                return false;
+            }
+
+            // snapshot pair から part ごとの補間済み pose を作る
+            // Build interpolated per-part poses from the snapshot pair
+            if (!TryResolveOutputVisualPartPoses())
+            {
+                return false;
+            }
+            for (var i = 0; i < _visualPartCount; i++)
+            {
+                var pose = _outputVisualPartPoses[i];
+                _trainCarEntity.SetDirectPartPose(i, pose.Position, pose.Rotation);
+            }
+            return true;
+        }
+
+        private bool TryResolveOutputVisualPartPoses()
+        {
+            // previous がない初回は current pose をそのまま使う
+            // Use the current pose as-is on the first frame without previous data
+            if (!_hasPreviousRenderSnapshot)
+            {
+                return TryResolveVisualPartPoses(_currentRenderSnapshot, _outputVisualPartPoses);
+            }
+            if (!TryResolveVisualPartPoses(_previousRenderSnapshot, _previousVisualPartPoses))
+            {
+                return false;
+            }
+            if (!TryResolveVisualPartPoses(_currentRenderSnapshot, _currentVisualPartPoses))
+            {
+                return false;
+            }
+
+            // root pose と同じ補間率で各 part を補間する
+            // Interpolate each part with the same rate used by the root pose
+            var baseInterpolationRate = (float)_renderInterpolationProvider.GetRenderInterpolationRate();
+            var snapshotTickDelta = _currentRenderSnapshot.Tick >= _previousRenderSnapshot.Tick ? _currentRenderSnapshot.Tick - _previousRenderSnapshot.Tick : 0;
+            var interpolationRate = CalculateSnapshotGapInterpolationRate(baseInterpolationRate, snapshotTickDelta);
+            for (var i = 0; i < _visualPartCount; i++)
+            {
+                var previous = _previousVisualPartPoses[i];
+                var current = _currentVisualPartPoses[i];
+                var position = Vector3.LerpUnclamped(previous.Position, current.Position, interpolationRate);
+                var rotation = Quaternion.SlerpUnclamped(previous.Rotation, current.Rotation, interpolationRate);
+                _outputVisualPartPoses[i] = new TrainCarPoseResult(position, rotation);
+            }
+            return true;
+        }
+
+        private bool TryResolveVisualPartPoses(TrainCarRenderSnapshot renderSnapshot, TrainCarPoseResult[] outputPoses)
+        {
+            // 車両長へ part 比率を正規化する
+            // Normalize part ratios to the current car length
+            var carLength = renderSnapshot.RearOffset - renderSnapshot.FrontOffset;
+            if (!TrainCarPartPoseCalculator.TryBuildNormalizedPartLengths(carLength, _visualPartAuthoredLengths, _visualPartNormalizedLengths, out var partCount))
+            {
+                return false;
+            }
+            if (partCount != _visualPartCount || outputPoses.Length < partCount)
+            {
+                return false;
+            }
+
+            // model front から順に span を作り、現在の RailPosition 上で姿勢へ変換する
+            // Build spans from model front and convert each to a pose on the current RailPosition
+            var partStartOffset = 0;
+            for (var i = 0; i < partCount; i++)
+            {
+                var partLength = _visualPartNormalizedLengths[i];
+                if (!TrainCarPartPoseCalculator.TryBuildPartSpan(renderSnapshot.FrontOffset, renderSnapshot.RearOffset, partStartOffset, partLength, renderSnapshot.IsFacingForward, out _visualPartSpans[i]))
+                {
+                    return false;
+                }
+                if (!_trainCarEntity.TryGetVisualPartModelForwardCenterOffset(i, out var modelForwardCenterOffset))
+                {
+                    return false;
+                }
+
+                // part renderer の中心補正込みで Transform pose を解く
+                // Resolve Transform pose including each part renderer-center correction
+                var span = _visualPartSpans[i];
+                if (!TrainCarPoseCalculator.TryResolveRenderPose(renderSnapshot.RailPosition, span.FrontOffset, span.RearOffset, renderSnapshot.IsFacingForward, modelForwardCenterOffset, out var position, out var rotation))
+                {
+                    return false;
+                }
+                outputPoses[i] = new TrainCarPoseResult(position, rotation);
+                partStartOffset += partLength;
+            }
+            return true;
+        }
+
         private static float CalculateSnapshotGapInterpolationRate(float baseInterpolationRate, uint snapshotTickDelta)
         {
             // 欠落snapshotがある時は古いsnapshotからの経過tick量に変換する
@@ -170,17 +334,10 @@ namespace Client.Game.InGame.Train.View
 
             // レール上の前後位置から車両姿勢を計算する
             // Compute rail pose from front and rear wheel positions
-            if (!TryResolveCarPose(renderSnapshot.RailPosition, renderSnapshot.FrontOffset, renderSnapshot.RearOffset, out position, out var forward))
+            if (!TrainCarPoseCalculator.TryResolveRenderPose(renderSnapshot.RailPosition, renderSnapshot.FrontOffset, renderSnapshot.RearOffset, renderSnapshot.IsFacingForward, _trainCarEntity.ModelForwardCenterOffset, out position, out rotation))
             {
                 return false;
             }
-
-            // モデル補正込みで最終姿勢を構成する
-            // Finalize rotation and forward offset with model correction
-            rotation = BuildRotation(forward, renderSnapshot.IsFacingForward);
-            var localForwardAxis = Quaternion.Euler(0f, -ModelYawOffsetDegrees, 0f) * Vector3.forward;
-            var modelForward = rotation * localForwardAxis;
-            position -= modelForward * _trainCarEntity.ModelForwardCenterOffset;
             return true;
         }
 
@@ -226,43 +383,5 @@ namespace Client.Game.InGame.Train.View
             return true;
         }
 
-        private bool TryResolveCarPose(RailPosition railPosition, int frontOffset, int rearOffset, out Vector3 position, out Vector3 forward)
-        {
-            // 前後輪位置から車両中心姿勢を計算する
-            // Compute the car pose from front and rear wheel positions
-            position = default;
-            forward = Vector3.forward;
-            if (!TrainCarPoseCalculator.TryGetPose(railPosition, frontOffset, out var frontPosition, out var frontForward))
-            {
-                return false;
-            }
-            if (!TrainCarPoseCalculator.TryGetPose(railPosition, rearOffset, out var rearPosition, out _))
-            {
-                return false;
-            }
-
-            position = (frontPosition + rearPosition) * 0.5f;
-            var delta = frontPosition - rearPosition;
-            forward = delta.sqrMagnitude > 1e-6f ? delta.normalized : (frontForward.sqrMagnitude > 1e-6f ? frontForward.normalized : Vector3.forward);
-            return true;
-        }
-
-        private Quaternion BuildRotation(Vector3 forward, bool isFacingForward)
-        {
-            // 正規化した前方ベクトルから回転を構成する
-            // Build rotation from the normalized forward vector
-            var safeForward = forward.sqrMagnitude > 1e-6f ? forward.normalized : Vector3.forward;
-            var rotation = Quaternion.LookRotation(safeForward, Vector3.up);
-
-            // モデル軸補正と編成向き反転を適用する
-            // Apply model axis correction and formation facing inversion
-            rotation = rotation * Quaternion.Euler(0f, ModelYawOffsetDegrees, 0f);
-            if (!isFacingForward)
-            {
-                rotation = rotation * Quaternion.Euler(0f, 180f, 0f);
-            }
-
-            return rotation;
-        }
     }
 }
