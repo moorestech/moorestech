@@ -117,3 +117,5 @@ moorestech_server/UserSettings/UnityMcpSettings.json
 **/terraform/*.pem
 **/terraform/build.log
 **/terraform/.terraform.lock.hcl
+docs/superpowers/infographic/upgrade-system/.playwright-cli
+docs/superpowers/infographic/upgrade-system/.vite
