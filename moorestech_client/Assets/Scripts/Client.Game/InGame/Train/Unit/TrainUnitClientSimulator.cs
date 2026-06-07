@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Train.Unit
 
         // この遅延秒数を超えたぶんだけを均等早送り対象にする。
         // Only the lag that exceeds this threshold is distributed as fast-forward.
-        private const double FastForwardStartLagSeconds = 0.7d;
+        private const double FastForwardStartLagSeconds = 0.4d;
         private static readonly double FastForwardStartLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
         // 1フレームで追いつく最大Tick数
         // Maximum ticks to catch up in a single frame.
@@ -44,12 +44,18 @@ namespace Client.Game.InGame.Train.Unit
             // 現在フレーム分の通常進行tickを加算する。
             // Add normal tick progress based on the current frame delta.
             _estimatedClientTick += Time.deltaTime / TickSeconds;
-            double pendingTicks = Math.Floor(_estimatedClientTick) - _tickState.GetMaxBufferedTicks();
+            double pendingTicks = _estimatedClientTick - _tickState.GetMaxBufferedTicks();
             if (pendingTicks < -FastForwardStartLagTicks)
             {
-                _estimatedClientTick += 0.5 * (_tickState.GetMaxBufferedTicks() - _estimatedClientTick) + 0.1;
+                _estimatedClientTick += 0.1 * (_tickState.GetMaxBufferedTicks() - _estimatedClientTick) + 0.1;
             }
-            int loopTicks = Mathf.Min((int)Math.Max(0, Math.Floor(_estimatedClientTick) - _tickState.GetTick()), MaxCatchUpTicksPerFrame);
+            var nextCount = Math.Max(0, _estimatedClientTick - _tickState.GetTick());
+            int loopTicks = (int)nextCount;
+            if (nextCount >= MaxCatchUpTicksPerFrame)
+            {
+                _estimatedClientTick = _tickState.GetTick() + 4.0;
+                loopTicks = MaxCatchUpTicksPerFrame;
+            }
             
             for (var i = 0; i < loopTicks; i++)
             {
@@ -70,7 +76,7 @@ namespace Client.Game.InGame.Train.Unit
                 else
                 {
                     _estimatedClientTick = _tickState.GetTick() + 1;
-                    break;             
+                    break;
                 }
             }
 
@@ -82,7 +88,7 @@ namespace Client.Game.InGame.Train.Unit
 
             void RecordRenderInterpolationRate()
             {
-                var progress = _estimatedClientTick - _tickState.GetTick();
+                var progress = Math.Min(_estimatedClientTick - _tickState.GetTick(), FastForwardStartLagSeconds / TickSeconds * 2.0);
                 _renderInterpolationState.SetRenderInterpolationRate(progress);
             }
 
