@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
@@ -10,6 +11,8 @@ namespace Client.Game.InGame.Train.View
     {
         private const int ArcLengthSamples = 64;
         private const float MinCurveLength = 1e-4f;
+        private const int MaxArcLengthCacheEntries = 4096;
+        private static readonly Dictionary<ArcLengthCacheKey, ArcLengthCacheEntry> ArcLengthCache = new();
 
         // 列車モデルの前方軸補正をレール進行方向に合わせる
         // Model forward axis correction to match rail direction
@@ -152,10 +155,10 @@ namespace Client.Game.InGame.Train.View
             BezierUtility.BuildRenderControlPoints(behind.FrontControlPoint, ahead.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
             // 弧長テーブルを用いてtを解決する
             // Resolve t with arc-length lookup
-            var arcLength = BuildArcLengthTable(p0, p1, p2, p3, out var arcLengths);
+            var arcLengthCache = GetArcLengthCache(p0, p1, p2, p3);
             var distanceWorld = distanceFromBehind / BezierUtility.RAIL_LENGTH_SCALE;
             var delta = p3 - p0;
-            var t = arcLength > MinCurveLength ? BezierUtility.DistanceToTime(distanceWorld, arcLength, arcLengths) : ComputeLinearT(distanceWorld, delta);
+            var t = arcLengthCache.CurveLength > MinCurveLength ? BezierUtility.DistanceToTime(distanceWorld, arcLengthCache.CurveLength, arcLengthCache.ArcLengths) : ComputeLinearT(distanceWorld, delta);
             // 位置と向きを計算する
             // Compute position and forward vector
             position = BezierUtility.GetBezierPoint(p0, p1, p2, p3, t);
@@ -164,12 +167,30 @@ namespace Client.Game.InGame.Train.View
             return true;
         }
 
-        private static float BuildArcLengthTable(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, out float[] arcLengths)
+        private static ArcLengthCacheEntry GetArcLengthCache(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
         {
-            // 弧長テーブルは毎回生成する
-            // Build arc-length table every time
-            arcLengths = Array.Empty<float>();
-            return BezierUtility.BuildArcLengthTable(p0, p1, p2, p3, ArcLengthSamples, ref arcLengths);
+            // 同じrail segment形状の弧長テーブルを再利用する
+            // Reuse arc-length lookup tables for the same rail segment shape
+            var key = new ArcLengthCacheKey(p0, p1, p2, p3, ArcLengthSamples);
+            if (ArcLengthCache.TryGetValue(key, out var entry))
+            {
+                return entry;
+            }
+
+            // rail編集時にcacheが無制限に増えないよう上限でクリアする
+            // Keep the cache bounded when rail topology is edited repeatedly
+            if (ArcLengthCache.Count >= MaxArcLengthCacheEntries)
+            {
+                ArcLengthCache.Clear();
+            }
+
+            // 初回だけテーブルを作り、以後のpose解決ではallocationしない
+            // Build the table once and avoid allocation on later pose resolves
+            var arcLengths = Array.Empty<float>();
+            var curveLength = BezierUtility.BuildArcLengthTable(p0, p1, p2, p3, ArcLengthSamples, ref arcLengths);
+            entry = new ArcLengthCacheEntry(curveLength, arcLengths);
+            ArcLengthCache.Add(key, entry);
+            return entry;
         }
 
         
@@ -180,6 +201,69 @@ namespace Client.Game.InGame.Train.View
             // Compute linear interpolation t
             var straightLength = Mathf.Max(MinCurveLength, delta.magnitude);
             return Mathf.Clamp01(distanceWorld / straightLength);
+        }
+
+        private readonly struct ArcLengthCacheEntry
+        {
+            public readonly float CurveLength;
+            public readonly float[] ArcLengths;
+
+            public ArcLengthCacheEntry(float curveLength, float[] arcLengths)
+            {
+                CurveLength = curveLength;
+                ArcLengths = arcLengths;
+            }
+        }
+
+        private readonly struct ArcLengthCacheKey : IEquatable<ArcLengthCacheKey>
+        {
+            private readonly Vector3 _p0;
+            private readonly Vector3 _p1;
+            private readonly Vector3 _p2;
+            private readonly Vector3 _p3;
+            private readonly int _samples;
+
+            public ArcLengthCacheKey(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, int samples)
+            {
+                // Bezier制御点とサンプル数をcache keyとして固定する
+                // Store Bezier control points and sample count as the cache key
+                _p0 = p0;
+                _p1 = p1;
+                _p2 = p2;
+                _p3 = p3;
+                _samples = samples;
+            }
+
+            public bool Equals(ArcLengthCacheKey other)
+            {
+                // Vector3.Equalsで同一segment形状だけをcache hitにする
+                // Use Vector3.Equals so only the same segment shape hits the cache
+                return _samples == other._samples &&
+                       _p0.Equals(other._p0) &&
+                       _p1.Equals(other._p1) &&
+                       _p2.Equals(other._p2) &&
+                       _p3.Equals(other._p3);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is ArcLengthCacheKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    // Unity環境差を避けるためHashCode.Combineを使わず合成する
+                    // Compose the hash manually instead of relying on HashCode.Combine
+                    var hash = _samples;
+                    hash = (hash * 397) ^ _p0.GetHashCode();
+                    hash = (hash * 397) ^ _p1.GetHashCode();
+                    hash = (hash * 397) ^ _p2.GetHashCode();
+                    hash = (hash * 397) ^ _p3.GetHashCode();
+                    return hash;
+                }
+            }
         }
 
 
