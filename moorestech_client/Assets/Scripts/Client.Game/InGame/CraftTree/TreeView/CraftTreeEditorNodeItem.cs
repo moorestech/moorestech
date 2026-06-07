@@ -130,9 +130,12 @@ namespace Client.Game.InGame.CraftTree.TreeView
             List<CraftTreeNode> GetMaterialItems(RecipeViewerItemRecipes recipes)
             {
                 var materials = new List<CraftTreeNode>();
-                if (recipes.UnlockedCraftRecipes().Count == 0 && recipes.MachineRecipes.Count != 0)
+                var unlockedMachineRecipes = recipes.UnlockedMachineRecipes();
+                if (recipes.UnlockedCraftRecipes().Count == 0 && unlockedMachineRecipes.Count != 0)
                 {
-                    var machineRecipe = recipes.MachineRecipes.FirstOrDefault();
+                    // アンロック済み機械レシピだけをクラフトツリーに展開
+                    // Expand only unlocked machine recipes into the craft tree
+                    var machineRecipe = unlockedMachineRecipes.FirstOrDefault();
                     foreach (var inputItem in machineRecipe.Value.First().InputItems)
                     {
                         var itemId = MasterHolder.ItemMaster.GetItemId(inputItem.ItemGuid);

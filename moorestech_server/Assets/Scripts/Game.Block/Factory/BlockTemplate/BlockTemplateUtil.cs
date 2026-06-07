@@ -10,6 +10,7 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
@@ -52,7 +53,8 @@ namespace Game.Block.Factory.BlockTemplate
                 inputTankCount,
                 innerTankCapacity,
                 blockInventoryUpdateEvent,
-                blockInstanceId
+                blockInstanceId,
+                ServerContext.GetService<IGameUnlockStateDataController>()
             );
             
             var output = new VanillaMachineOutputInventory(
