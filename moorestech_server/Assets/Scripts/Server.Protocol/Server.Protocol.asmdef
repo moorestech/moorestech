@@ -28,6 +28,7 @@
     "Game.Research",
     "Game.Train",
     "Game.Gear",
+    "Game.EnergySystem",
     "Game.PlayerConnection",
     "Game.PlayerRiding.Interface"
   ],

@@ -2497,6 +2497,79 @@
           "outputConnects": []
         }
       }
+    },
+    {
+      "initialUnlocked": true,
+      "sortPriority": 950,
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestElectricToGearGeneratorUI",
+      "blockType": "ElectricToGearGenerator",
+      "blockParam": {
+        "teethCount": 10,
+        "outputModes": [
+          { "rpm": 60, "torque": 50, "requiredPower": 30 },
+          { "rpm": 120, "torque": 100, "requiredPower": 100 },
+          { "rpm": 240, "torque": 150, "requiredPower": 300 }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000001"
+            }
+          ]
+        }
+      },
+      "itemGuid": "11110a01-0000-0000-0000-000000000000",
+      "blockGuid": "00000000-0000-0000-0000-0000000000a1",
+      "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricToGearBlockInventory",
+      "overrideVerticalBlock": {}
     }
   ],
   "gearChainItems": []
