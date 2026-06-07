@@ -128,7 +128,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 var unlockedRecipes = kv.Value
                     .Where(m => infos[m.MachineRecipeGuid].IsUnlocked)
                     .ToList();
-                if (unlockedRecipes.Count > 0)
+                if (0 < unlockedRecipes.Count)
                 {
                     result.Add(blockId, unlockedRecipes);
                 }
