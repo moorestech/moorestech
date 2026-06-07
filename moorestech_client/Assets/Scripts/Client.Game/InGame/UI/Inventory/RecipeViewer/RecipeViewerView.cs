@@ -59,12 +59,13 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             // クラフトレシピがある場合はそれを最初に表示する
             // Show craft recipes first if available
             var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes().Count != 0;
+            var hasUnlockedMachineRecipe = unlockedMachineRecipes.Count != 0;
             craftInventoryView.SetActive(isFirstCraft);
-            machineRecipeView.SetActive(!isFirstCraft);
+            machineRecipeView.SetActive(!isFirstCraft && hasUnlockedMachineRecipe);
 
             // アンロック済み機械レシピがあれば表示
             // Show unlocked machine recipes if available
-            if (!isFirstCraft && unlockedMachineRecipes.Count != 0)
+            if (!isFirstCraft && hasUnlockedMachineRecipe)
             {
                 machineRecipeView.DisplayRecipe(0);
             }

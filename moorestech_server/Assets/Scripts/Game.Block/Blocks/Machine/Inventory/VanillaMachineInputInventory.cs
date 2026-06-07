@@ -83,7 +83,11 @@ namespace Game.Block.Blocks.Machine.Inventory
 
             // アンロックされていないレシピは機械で使用不可にする
             // Locked recipes cannot be used by machines
-            var unlockInfo = _gameUnlockStateData.MachineRecipeUnlockStateInfos[recipe.MachineRecipeGuid];
+            if (!_gameUnlockStateData.MachineRecipeUnlockStateInfos.TryGetValue(recipe.MachineRecipeGuid, out var unlockInfo))
+            {
+                recipe = null;
+                return false;
+            }
             if (unlockInfo.IsUnlocked) return true;
 
             recipe = null;

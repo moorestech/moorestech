@@ -124,6 +124,7 @@ namespace Game.UnlockState
             LoadItemUnlockStateInfos();
             LoadChallengeCategoryUnlockStateInfos();
             LoadMachineRecipeUnlockStateInfos();
+            BackfillMachineRecipeUnlockStateInfos();
 
             #region Internal
 
@@ -165,6 +166,19 @@ namespace Game.UnlockState
                 {
                     var state = new MachineRecipeUnlockStateInfo(machineRecipeUnlockStateInfo);
                     _machineRecipeUnlockStateInfos[state.MachineRecipeGuid] = state;
+                }
+            }
+
+            void BackfillMachineRecipeUnlockStateInfos()
+            {
+                foreach (var machineRecipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
+                {
+                    var guid = machineRecipe.MachineRecipeGuid;
+                    if (MachineRecipeUnlockStateInfos.ContainsKey(guid)) continue;
+
+                    // セーブに存在しない機械レシピはマスタ定義から補完する
+                    // Backfill machine recipes missing from saved unlock state
+                    _machineRecipeUnlockStateInfos.Add(guid, new MachineRecipeUnlockStateInfo(guid, machineRecipe.InitialUnlocked));
                 }
             }
 
