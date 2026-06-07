@@ -24147,7 +24147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarVisualPart
   order: 1
-  lengthMeters: 7
+  lengthMeters: 6.876
   poseTarget: {fileID: 423851768867714051}
 --- !u!1 &5900702336525497026
 GameObject:
@@ -29244,7 +29244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarVisualPart
   order: 0
-  lengthMeters: 13
+  lengthMeters: 13.124
   poseTarget: {fileID: 8106943619181904106}
 --- !u!1 &7086620021742879290
 GameObject:
