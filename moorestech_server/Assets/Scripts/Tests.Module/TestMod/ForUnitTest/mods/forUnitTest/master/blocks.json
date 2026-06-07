@@ -4072,6 +4072,67 @@
       "itemGuid": "00000000-0000-0000-1234-000000000031",
       "blockGuid": "00000000-0000-0000-0000-000000000031",
       "overrideVerticalBlock": {}
+    },
+    {
+      "blockGuid": "00000000-0000-0000-0000-000000000099",
+      "itemGuid": "11110009-0000-0000-0000-000000000000",
+      "name": "TestElectricToGearGenerator",
+      "blockType": "ElectricToGearGenerator",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "blockParam": {
+        "teethCount": 10,
+        "outputModes": [
+          { "rpm": 60, "torque": 50, "requiredPower": 30 },
+          { "rpm": 120, "torque": 100, "requiredPower": 100 },
+          { "rpm": 240, "torque": 150, "requiredPower": 300 },
+          { "rpm": 60, "torque": 0, "requiredPower": 10 }
+        ],
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "72231375-1dcb-4af7-8314-9eaa783116e9"
+            }
+          ]
+        }
+      },
+      "overrideVerticalBlock": {}
     }
   ],
   "gearChainItems": [
