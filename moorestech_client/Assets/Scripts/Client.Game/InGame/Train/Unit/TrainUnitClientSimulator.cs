@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Train.Unit
         private readonly TrainUnitTickState _tickState;
         private readonly ITrainUnitHashTickGate _hashTickGate;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
-        private readonly TrainUnitRenderInterpolationState _renderInterpolationState;
+        private readonly TrainUnitRenderTickState _renderTickState;
 
         private double _estimatedClientTick;
 
@@ -31,12 +31,12 @@ namespace Client.Game.InGame.Train.Unit
             TrainUnitTickState tickState,
             ITrainUnitHashTickGate hashTickGate,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
-            TrainUnitRenderInterpolationState renderInterpolationState)
+            TrainUnitRenderTickState renderTickState)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
             _futureMessageBuffer = futureMessageBuffer;
-            _renderInterpolationState = renderInterpolationState;
+            _renderTickState = renderTickState;
         }
 
         public void Tick()
@@ -80,16 +80,15 @@ namespace Client.Game.InGame.Train.Unit
                 }
             }
 
-            // 描画補間率を表示側が simulator に依存せず読めるように記録する
-            // Record render interpolation rate so view code can avoid depending on the simulator
-            RecordRenderInterpolationRate();
+            // 推定描画 tick を表示側が simulator に依存せず読めるように記録する
+            // Record render tick so view code can avoid depending on the simulator
+            RecordRenderTick();
 
             #region Internal
 
-            void RecordRenderInterpolationRate()
+            void RecordRenderTick()
             {
-                var progress = Math.Min(_estimatedClientTick - _tickState.GetTick(), FastForwardStartLagSeconds / TickSeconds * 2.0);
-                _renderInterpolationState.SetRenderInterpolationRate(progress);
+                _renderTickState.SetRenderTick(_estimatedClientTick);
             }
 
             #endregion
