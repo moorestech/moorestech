@@ -1,3 +1,4 @@
+using Client.Game.InGame.Riding;
 using Client.Game.InGame.Train.View.Object;
 using UniRx;
 using UnityEngine;
@@ -54,7 +55,8 @@ namespace Client.Game.InGame.Player.StateController.State
             {
                 // Prefab上の座席markerを追従対象にする
                 // Use the Prefab seat marker as the follow target
-                if (targetEntity.TryGetSeatPosition(targetSeatIndex, out var seatTransform))
+                var seatPositionResolver = targetEntity.GetComponent<SeatPositionResolver>();
+                if (seatPositionResolver.TryGetSeatPosition(targetSeatIndex, out var seatTransform))
                 {
                     return seatTransform;
                 }
