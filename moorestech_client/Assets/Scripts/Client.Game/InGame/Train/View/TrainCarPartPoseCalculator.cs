@@ -31,7 +31,7 @@ namespace Client.Game.InGame.Train.View
     {
         // part 表示長の比率を、現在の車両 rail 長へ正規化する
         // Normalize visual-part authored lengths to the current car rail length
-        public static bool TryBuildNormalizedPartLengths(int carLength, IReadOnlyList<int> authoredPartLengths, int[] normalizedPartLengths, out int partCount)
+        public static bool TryBuildNormalizedPartLengths(int carLength, IReadOnlyList<float> authoredPartLengths, int[] normalizedPartLengths, out int partCount)
         {
             // 出力値を先に初期化する
             // Initialize output values first
@@ -47,7 +47,7 @@ namespace Client.Game.InGame.Train.View
 
             // authored 長の合計を検証し、正規化の基準にする
             // Validate authored total length and use it as the normalization base
-            var authoredTotal = 0;
+            var authoredTotal = 0f;
             for (var i = 0; i < authoredPartLengths.Count; i++)
             {
                 var authoredLength = authoredPartLengths[i];

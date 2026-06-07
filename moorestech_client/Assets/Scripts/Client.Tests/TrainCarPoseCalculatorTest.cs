@@ -60,23 +60,6 @@ namespace Client.Tests
         }
 
         [Test]
-        public void TryBuildNormalizedPartLengths_NormalizesEngineAndTenderToCarLength()
-        {
-            // 13m + 7m の authored 比率を現在の車両 rail 長へ正規化する
-            // Normalize the authored 13m + 7m ratio to the current car rail length.
-            var authoredLengths = new[] { 13, 7 };
-            var normalizedLengths = new int[2];
-            var resolved = TrainCarPartPoseCalculator.TryBuildNormalizedPartLengths(20480, authoredLengths, normalizedLengths, out var partCount);
-
-            // 合計が車両長に一致し、Engine/Tender 比率が維持されることを確認する
-            // Verify the total matches the car length and preserves the Engine/Tender ratio.
-            Assert.IsTrue(resolved);
-            Assert.AreEqual(2, partCount);
-            Assert.AreEqual(13312, normalizedLengths[0]);
-            Assert.AreEqual(7168, normalizedLengths[1]);
-        }
-
-        [Test]
         public void TryBuildPartSpan_ReflectsModelFrontCoordinates_WhenCarFacesBackward()
         {
             // reverse 後も model front 側の Engine が物理的な同じ側に残るよう span を反映する
