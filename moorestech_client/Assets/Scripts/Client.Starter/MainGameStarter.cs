@@ -219,7 +219,7 @@ namespace Client.Starter
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
-            builder.Register<TrainUnitRenderInterpolationState>(Lifetime.Singleton).AsSelf().As<ITrainUnitRenderInterpolationProvider>();
+            builder.Register<TrainUnitRenderTickState>(Lifetime.Singleton).AsSelf().As<ITrainUnitRenderTickProvider>();
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
