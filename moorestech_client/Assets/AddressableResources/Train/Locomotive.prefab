@@ -29649,7 +29649,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3750141718728814288}
-  - component: {fileID: 8149132332923981584}
+  - component: {fileID: 892611490101455382}
   m_Layer: 0
   m_Name: SeatPos
   m_TagString: Untagged
@@ -29672,7 +29672,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8106943619181904106}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8149132332923981584
+--- !u!114 &892611490101455382
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -29683,7 +29683,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 448ae581836fa104cbadb7da3b8b45c7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.SeatPosition
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Riding.SeatPosition
   seatIndex: 0
 --- !u!1 &7194384773972862010
 GameObject:
