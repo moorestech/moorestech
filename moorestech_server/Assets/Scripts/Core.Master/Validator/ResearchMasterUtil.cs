@@ -105,6 +105,21 @@ namespace Core.Master.Validator
                             }
                             break;
                         }
+                        case UnlockMachineRecipeGameActionParam unlockMachineRecipe:
+                        {
+                            if (unlockMachineRecipe.UnlockMachineRecipeGuids == null) break;
+                            foreach (var machineRecipeGuid in unlockMachineRecipe.UnlockMachineRecipeGuids)
+                            {
+                                // 機械レシピの参照先が存在することを検証
+                                // Validate that the referenced machine recipe exists
+                                var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(machineRecipeGuid);
+                                if (recipe == null)
+                                {
+                                    localErrors += $"[ResearchMaster] Research:{researchName} has invalid ClearedAction.UnlockMachineRecipeGuid:{machineRecipeGuid}\n";
+                                }
+                            }
+                            break;
+                        }
                         case GiveItemGameActionParam giveItem:
                         {
                             if (giveItem.RewardItems == null) break;

@@ -47,19 +47,25 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             }
             
             _currentRecipe = recipeViewerItemRecipes;
-            
+
+            // アンロック済みレシピを1回だけ取得して各ビューに渡す
+            // Compute unlocked machine recipes once and pass to each view
+            var unlockedMachineRecipes = recipeViewerItemRecipes.UnlockedMachineRecipes();
+
             craftInventoryView.SetRecipes(recipeViewerItemRecipes);
-            machineRecipeView.SetRecipes(recipeViewerItemRecipes);
-            recipeTabView.SetRecipeTabView(recipeViewerItemRecipes);
-            
+            machineRecipeView.SetRecipes(recipeViewerItemRecipes, unlockedMachineRecipes);
+            recipeTabView.SetRecipeTabView(recipeViewerItemRecipes, unlockedMachineRecipes);
+
             // クラフトレシピがある場合はそれを最初に表示する
+            // Show craft recipes first if available
             var isFirstCraft = recipeViewerItemRecipes.UnlockedCraftRecipes().Count != 0;
+            var hasUnlockedMachineRecipe = unlockedMachineRecipes.Count != 0;
             craftInventoryView.SetActive(isFirstCraft);
-            machineRecipeView.SetActive(!isFirstCraft);
-            
-            // SetRecipesの中で最初のレシピが自動選択されるようになったので
-            // DisplayRecipe(0)の呼び出しは不要
-            if (!isFirstCraft && recipeViewerItemRecipes.MachineRecipes.Count != 0)
+            machineRecipeView.SetActive(!isFirstCraft && hasUnlockedMachineRecipe);
+
+            // アンロック済み機械レシピがあれば表示
+            // Show unlocked machine recipes if available
+            if (!isFirstCraft && hasUnlockedMachineRecipe)
             {
                 machineRecipeView.DisplayRecipe(0);
             }
