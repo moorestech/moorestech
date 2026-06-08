@@ -28,7 +28,7 @@ namespace Core.Master
                 fluidIds.Add(fluidContainer.FluidId);
             }
             
-            return MasterHolder.MachineRecipesMaster.TryGetRecipeElement(blockId, itemIds, fluidIds,out recipe);
+            return MasterHolder.MachineRecipesMaster.TryGetRecipeElement(blockId, itemIds, fluidIds, out recipe);
         }
         
         public static bool RecipeConfirmation(
