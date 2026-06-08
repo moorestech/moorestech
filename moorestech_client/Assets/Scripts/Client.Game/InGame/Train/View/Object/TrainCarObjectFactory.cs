@@ -1,46 +1,46 @@
 using System;
+using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
+using Client.Game.InGame.Riding;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
 using Core.Master;
-using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View.Object
 {
     /// <summary>
-    /// 列車エンティティを生成するファクトリー
-    /// Factory to create train entity
+    ///     列車entityをPrefabから生成し、通常描画に必要なruntime部品を接続する。
+    ///     Creates train entities from Prefabs and wires runtime-only rendering parts.
     /// </summary>
     public class TrainCarObjectFactory
     {
         private readonly TrainUnitClientCache _trainCache;
         private readonly TrainUnitTickState _tickState;
-        private readonly ITrainUnitRenderInterpolationProvider _renderInterpolationProvider;
+        private readonly Dictionary<Guid, GameObject> _prefabCacheByTrainCarMasterId = new();
 
-        public TrainCarObjectFactory(TrainUnitClientCache trainCache, TrainUnitTickState tickState, ITrainUnitRenderInterpolationProvider renderInterpolationProvider)
+        public TrainCarObjectFactory(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
         {
-            // 姿勢更新に必要な依存を保持する
-            // Hold dependencies required for pose updates
+            // 姿勢更新とsnapshot参照に必要な依存だけを保持する
+            // Keep only dependencies required for pose updates and snapshot lookup
             _trainCache = trainCache;
             _tickState = tickState;
-            _renderInterpolationProvider = renderInterpolationProvider;
         }
 
-        public async UniTask<TrainCarEntityObject> CreateTrainCarObject(Transform parent, TrainCarSnapshot carSnapshot)
+        public TrainCarEntityObject CreateTrainCarObject(Transform parent, TrainCarSnapshot carSnapshot)
         {
-            // スナップショットからマスターデータを取得する
-            // Retrieve master data from snapshot
+            // snapshotから列車のマスタを解決する
+            // Resolve train master data from the snapshot
             if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(carSnapshot.TrainCarMasterId, out var trainCarMasterElement))
             {
                 throw new InvalidOperationException($"TrainCar master not found. TrainCarMasterId:{carSnapshot.TrainCarMasterId}");
             }
 
-            // 指定 Addressable をそのまま読み、失敗時は例外にする
-            // Load the requested Addressable directly and fail hard when it is missing
-            var loadedPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCarMasterElement.AddressablePath);
+            // PrefabはTrainCarMasterId単位で初回だけ同期ロードする
+            // Load the Prefab synchronously only once per TrainCarMasterId
+            var loadedPrefab = ResolvePrefab();
             if (loadedPrefab == null)
             {
                 throw new InvalidOperationException($"TrainCar prefab load failed. AddressablePath:{trainCarMasterElement.AddressablePath}");
@@ -50,37 +50,46 @@ namespace Client.Game.InGame.Train.View.Object
 
             #region Internal
 
+            GameObject ResolvePrefab()
+            {
+                if (_prefabCacheByTrainCarMasterId.TryGetValue(carSnapshot.TrainCarMasterId, out var cachedPrefab))
+                {
+                    return cachedPrefab;
+                }
+
+                var loaded = AddressableLoader.LoadDefault<GameObject>(trainCarMasterElement.AddressablePath);
+                if (loaded != null)
+                {
+                    _prefabCacheByTrainCarMasterId[carSnapshot.TrainCarMasterId] = loaded;
+                }
+                return loaded;
+            }
+
             TrainCarEntityObject CreateTrainEntity(GameObject prefab)
             {
                 var trainObject = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
 
+                // entity本体には通常描画用のIDとRigidbodyだけを初期化する
+                // Initialize the entity itself with runtime id and Rigidbody setup only
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
-                trainEntityObject.SetTrain(carSnapshot.TrainCarInstanceId, trainCarMasterElement);
+                trainEntityObject.Initialize(carSnapshot.TrainCarInstanceId, trainCarMasterElement);
 
-                // Animator を持つ車両には animation processor を補う
-                // Ensure animated cars have a dedicated animation processor
+                // animation processorと座席resolverはPrefab構造から補完する
+                // Add animation processors and seat resolver from the Prefab structure
                 AttachAnimationProcessorIfNeeded(trainObject);
+                AttachSeatPositionResolverIfNeeded(trainObject);
 
-                // 車両姿勢更新コンポーネントを関連付ける
-                // Attach pose update component for this car
-                var poseUpdater = trainObject.AddComponent<TrainCarViewUpdater>();
-                poseUpdater.Initialize(trainEntityObject, _trainCache, _tickState, _renderInterpolationProvider);
+                // visual targetは非Mono controllerとして作り、通常描画とpreview系表示の入口を共有する
+                // Create the visual target as a non-Mono controller shared by runtime and preview-style visuals
+                var visualTarget = new TrainCarRailPositionVisualController(trainObject);
+                trainEntityObject.SetVisualTarget(visualTarget);
 
-                // 子 renderer に削除対象と collider を追加する
-                // Add delete targets and colliders to child renderers
-                foreach (var mesh in trainEntityObject.GetComponentsInChildren<MeshRenderer>())
-                {
-                    mesh.gameObject.AddComponent<TrainCarEntityChildrenObject>();
-                    mesh.gameObject.AddComponent<MeshCollider>();
-                }
+                var renderInterpolator = new TrainCarEntityRenderInterpolator(trainEntityObject, visualTarget, _trainCache, _tickState);
+                trainEntityObject.SetRenderInterpolator(renderInterpolator);
 
-                // 既存分も含めて子オブジェクトを初期化する
-                // Initialize child objects including already existing ones
-                foreach (var trainCarEntityChildren in trainEntityObject.GetComponentsInChildren<TrainCarEntityChildrenObject>())
-                {
-                    trainCarEntityChildren.Initialize(trainEntityObject);
-                }
-
+                // renderer子オブジェクトには削除targetとraycast用colliderだけを配る
+                // Give renderer children only delete targets and raycast colliders
+                AttachDeleteTargets(trainObject, trainEntityObject, visualTarget);
                 return trainEntityObject;
             }
 
@@ -96,6 +105,37 @@ namespace Client.Game.InGame.Train.View.Object
                 }
 
                 targetTrainObject.AddComponent<TrainAnimationProcessor>();
+            }
+
+            void AttachSeatPositionResolverIfNeeded(GameObject targetTrainObject)
+            {
+                if (targetTrainObject.GetComponent<SeatPositionResolver>() != null)
+                {
+                    return;
+                }
+
+                targetTrainObject.AddComponent<SeatPositionResolver>();
+            }
+
+            void AttachDeleteTargets(GameObject targetTrainObject, TrainCarEntityObject trainEntityObject, ITrainCarVisualTarget visualTarget)
+            {
+                var meshRenderers = targetTrainObject.GetComponentsInChildren<MeshRenderer>(true);
+                for (var i = 0; i < meshRenderers.Length; i++)
+                {
+                    var target = meshRenderers[i].gameObject;
+                    var childObject = target.GetComponent<TrainCarEntityChildrenObject>();
+                    if (childObject == null)
+                    {
+                        childObject = target.AddComponent<TrainCarEntityChildrenObject>();
+                    }
+
+                    if (target.GetComponent<MeshCollider>() == null)
+                    {
+                        target.AddComponent<MeshCollider>();
+                    }
+
+                    childObject.Initialize(trainEntityObject, visualTarget);
+                }
             }
 
             #endregion

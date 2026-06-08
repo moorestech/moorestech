@@ -1,9 +1,11 @@
+using System.Collections.Generic;
+using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
-using System.Threading;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
@@ -13,19 +15,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private readonly ITrainCarPlacementDetector _detector;
         private readonly TrainCarPreviewController _previewController;
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
+        private readonly TrainUnitClientCache _trainUnitClientCache;
 
-        public TrainCarPlaceSystem(ITrainCarPlacementDetector detector, TrainCarPreviewController previewController, TrainCarObjectDatastore trainCarObjectDatastore)
+        public TrainCarPlaceSystem(
+            ITrainCarPlacementDetector detector,
+            TrainCarPreviewController previewController,
+            TrainCarObjectDatastore trainCarObjectDatastore,
+            TrainUnitClientCache trainUnitClientCache)
         {
             _detector = detector;
             _previewController = previewController;
             _trainCarObjectDatastore = trainCarObjectDatastore;
+            _trainUnitClientCache = trainUnitClientCache;
         }
 
         public void Enable()
         {
             _detector.ResetSelection();
             _previewController.SetActive(true);
-            _trainCarObjectDatastore.ClearPlacementOverlapHighlight();
         }
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
@@ -37,29 +44,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 _detector.ResetSelection();
             }
 
-            // Rキーで「反転優先」の順序で次候補へ進める
-            // Advance to the next candidate in reverse-priority order on R key
-            // TODO InputManager整備
+            // Rキーで候補順を進める
+            // Advance to the next placement candidate on the R key
             if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
             {
                 _detector.AdvanceSelection();
             }
 
             // レール上の設置候補を検出する
-            // Detect placement candidate on the rail
+            // Detect the placement candidate on the rail
             if (!_detector.TryDetect(context.HoldingItemId, out var hit))
             {
-                _trainCarObjectDatastore.ClearPlacementOverlapHighlight();
                 _previewController.SetActive(false);
                 return;
             }
 
-            // 接続スナップ判定で抽出された重複対象TrainUnitを描画ハイライトする
-            // Highlight overlapped train units resolved by attach-snap overlap detection
-            _trainCarObjectDatastore.SetPlacementOverlapHighlight(hit.OverlapTrainUnitInstanceIds);
+            // 既存列車へのスナップ対象はこのフレームだけハイライトを要求する
+            // Request one-frame highlight for existing trains that are snap targets
+            RequestPlacementOverlapHighlight(hit.OverlapTrainUnitInstanceIds);
 
-            // プレビュー表示可否と描画状態を更新する
-            // Update preview visibility and rendering
+            // railpositionからpreviewを描画する
+            // Render the preview directly from railposition
             var railPosition = hit.RailPosition;
             var hasPreview = railPosition != null && _previewController.ShowPreview(context.HoldingItemId, railPosition, hit.IsPlaceable);
             _previewController.SetActive(hasPreview);
@@ -68,8 +73,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return;
             }
 
-            // クリックで設置リクエストを送信する
-            // Send placement request on click
+            // クリック時に設置リクエストを送る
+            // Send the placement request on click
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
                 RequestPlacementAsync(hit, context.CurrentSelectHotbarSlotIndex).Forget();
@@ -79,8 +84,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, int hotBarSlot)
             {
-                // レスポンスを待機して結果を検証する
-                // Await placement response and validate result
+                // 既存編成への連結modeでは対象unitを明示して送る
+                // In attach mode, send the target unit explicitly
                 if (placementHit.PlacementMode == TrainCarPlacementMode.AttachToExistingTrainUnit)
                 {
                     if (placementHit.TargetTrainUnitInstanceId == TrainUnitInstanceId.Empty)
@@ -89,8 +94,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         return;
                     }
 
-                    // 既存編成への連結モードで設置を要求する
-                    // Request attach-mode placement to existing train unit
                     var attachResponse = await ClientContext.VanillaApi.Response.AttachTrainCarToUnit(
                         placementHit.TargetTrainUnitInstanceId,
                         placementHit.RailPosition,
@@ -105,8 +108,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return;
                 }
 
-                // 新規編成作成モードで設置を要求する
-                // Request placement in new-train creation mode
+                // 新規編成modeではRailPositionのみで設置を依頼する
+                // In new-unit mode, request placement with only the RailPosition
                 var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
                 if (placeResponse == null || !placeResponse.Success)
                 {
@@ -120,8 +123,36 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         public void Disable()
         {
             _detector.ResetSelection();
-            _trainCarObjectDatastore.ClearPlacementOverlapHighlight();
             _previewController.SetActive(false);
+        }
+
+        private void RequestPlacementOverlapHighlight(IReadOnlyCollection<TrainUnitInstanceId> overlapTrainUnitIds)
+        {
+            if (overlapTrainUnitIds == null || overlapTrainUnitIds.Count == 0)
+            {
+                return;
+            }
+
+            // overlapしたunit配下のcarへ直接overlayを要求する
+            // Request overlays directly for cars under overlapped units
+            foreach (var overlapTrainUnitId in overlapTrainUnitIds)
+            {
+                if (!_trainUnitClientCache.TryGet(overlapTrainUnitId, out var trainUnit))
+                {
+                    continue;
+                }
+
+                var cars = trainUnit.Cars;
+                for (var i = 0; i < cars.Count; i++)
+                {
+                    if (!_trainCarObjectDatastore.TryGetEntity(cars[i].TrainCarInstanceId, out var entity))
+                    {
+                        continue;
+                    }
+
+                    entity.RequestOneFrameOverlay(TrainCarVisualMaterialMode.PlacementOverlapHighlight);
+                }
+            }
         }
     }
 }

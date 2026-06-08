@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Client.Game.InGame.Train.View
 {
@@ -29,56 +28,28 @@ namespace Client.Game.InGame.Train.View
 
     public static class TrainCarPartPoseCalculator
     {
-        // part 表示長の比率を、現在の車両 rail 長へ正規化する
-        // Normalize visual-part authored lengths to the current car rail length
-        public static bool TryBuildNormalizedPartLengths(int carLength, IReadOnlyList<float> authoredPartLengths, int[] normalizedPartLengths, out int partCount)
+        // model front 基準の比率spanを、現在の rail head 基準 offset へ写像する
+        // Map a model-front-based ratio span to the current rail-head-based offsets
+        public static bool TryBuildPartSpanByRatio(int carFrontOffset, int carRearOffset, float partFrontRatio, float partRearRatio, bool isFacingForward, out TrainCarPartSpan span)
         {
-            // 出力値を先に初期化する
-            // Initialize output values first
-            partCount = 0;
-            if (carLength <= 0 || authoredPartLengths == null || normalizedPartLengths == null)
+            // 出力値を先に初期化し、比率指定の妥当性を検証する
+            // Initialize output values first and validate the ratio range
+            span = default;
+            var carLength = carRearOffset - carFrontOffset;
+            if (carLength <= 0 || partFrontRatio < 0f || partRearRatio > 1f || partFrontRatio >= partRearRatio)
             {
                 return false;
             }
-            if (authoredPartLengths.Count == 0 || normalizedPartLengths.Length < authoredPartLengths.Count)
-            {
-                return false;
-            }
-
-            // authored 長の合計を検証し、正規化の基準にする
-            // Validate authored total length and use it as the normalization base
-            var authoredTotal = 0f;
-            for (var i = 0; i < authoredPartLengths.Count; i++)
-            {
-                var authoredLength = authoredPartLengths[i];
-                if (authoredLength <= 0)
-                {
-                    return false;
-                }
-                authoredTotal += authoredLength;
-            }
-            if (authoredTotal <= 0)
+            if (float.IsNaN(partFrontRatio) || float.IsNaN(partRearRatio) || float.IsInfinity(partFrontRatio) || float.IsInfinity(partRearRatio))
             {
                 return false;
             }
 
-            // 最後の part に丸め誤差を吸収させ、合計を必ず車両長へ合わせる
-            // Let the last part absorb rounding error so the sum always matches car length
-            var assignedLength = 0;
-            for (var i = 0; i < authoredPartLengths.Count; i++)
-            {
-                var isLast = i == authoredPartLengths.Count - 1;
-                var normalized = isLast ? carLength - assignedLength : (int)Math.Round(carLength * (authoredPartLengths[i] / (double)authoredTotal));
-                if (normalized <= 0)
-                {
-                    return false;
-                }
-                normalizedPartLengths[i] = normalized;
-                assignedLength += normalized;
-            }
-
-            partCount = authoredPartLengths.Count;
-            return assignedLength == carLength;
+            // 比率を親span内の整数offsetへ丸め、既存の向き反映ロジックへ渡す
+            // Round ratios into integer offsets inside the parent span and reuse existing facing logic
+            var partStartOffset = (int)Math.Round(carLength * partFrontRatio);
+            var partEndOffset = (int)Math.Round(carLength * partRearRatio);
+            return TryBuildPartSpan(carFrontOffset, carRearOffset, partStartOffset, partEndOffset - partStartOffset, isFacingForward, out span);
         }
 
         // model front 基準の part span を、現在の rail head 基準 offset へ写像する

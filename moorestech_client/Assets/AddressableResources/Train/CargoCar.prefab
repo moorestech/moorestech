@@ -465,6 +465,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1533150498824386709}
+  - component: {fileID: -8361010410264363922}
   m_Layer: 7
   m_Name: CargoCar
   m_TagString: Untagged
@@ -493,6 +494,20 @@ Transform:
   - {fileID: 2018882677680221514}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-8361010410264363922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1384433415333219953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 946aafcbcb9a6504597eeda04bc981dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualApplier
+  frontOffset: 0
+  rearOffset: 1
 --- !u!1 &1486508118035667364
 GameObject:
   m_ObjectHideFlags: 0

@@ -1351,6 +1351,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3997502586252908732}
+  - component: {fileID: 5627726820663387031}
   m_Layer: 7
   m_Name: Locomotive
   m_TagString: Untagged
@@ -1376,6 +1377,20 @@ Transform:
   - {fileID: 5880015850774466425}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5627726820663387031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 385943538787049933}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 946aafcbcb9a6504597eeda04bc981dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualApplier
+  frontOffset: 0
+  rearOffset: 1
 --- !u!1 &421740599484143576
 GameObject:
   m_ObjectHideFlags: 0
@@ -18904,7 +18919,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 423851768867714051}
-  - component: {fileID: 693936744532825440}
+  - component: {fileID: -2006830512310805326}
   m_Layer: 0
   m_Name: Tender
   m_TagString: Untagged
@@ -18929,7 +18944,7 @@ Transform:
   - {fileID: 4185323139127087697}
   m_Father: {fileID: 5880015850774466425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &693936744532825440
+--- !u!114 &-2006830512310805326
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -18938,12 +18953,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 5849627517654082979}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef279f5b4e4e5f342ac53df3fe0384ec, type: 3}
+  m_Script: {fileID: 11500000, guid: 946aafcbcb9a6504597eeda04bc981dc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarVisualPart
-  order: 1
-  lengthMeters: 6.876
-  poseTarget: {fileID: 423851768867714051}
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualApplier
+  frontOffset: 0.6562
+  rearOffset: 1
 --- !u!1 &5900702336525497026
 GameObject:
   m_ObjectHideFlags: 0
@@ -23192,7 +23206,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8106943619181904106}
-  - component: {fileID: 6631968318014111074}
+  - component: {fileID: -4546658084676697175}
   m_Layer: 0
   m_Name: Engine
   m_TagString: Untagged
@@ -23217,7 +23231,7 @@ Transform:
   - {fileID: 3750141718728814288}
   m_Father: {fileID: 5880015850774466425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6631968318014111074
+--- !u!114 &-4546658084676697175
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -23226,12 +23240,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 7069167222198907708}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef279f5b4e4e5f342ac53df3fe0384ec, type: 3}
+  m_Script: {fileID: 11500000, guid: 946aafcbcb9a6504597eeda04bc981dc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarVisualPart
-  order: 0
-  lengthMeters: 13.124
-  poseTarget: {fileID: 8106943619181904106}
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualApplier
+  frontOffset: 0
+  rearOffset: 0.6562
 --- !u!1 &7086620021742879290
 GameObject:
   m_ObjectHideFlags: 0
