@@ -93,9 +93,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 946aafcbcb9a6504597eeda04bc981dc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualApplier
-  frontOffset: 0
-  rearOffset: 1
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualPoseUpdater
+  frontOffsetRatio: 0
+  rearOffsetRatio: 1
 --- !u!1 &587362476390986449
 GameObject:
   m_ObjectHideFlags: 0
@@ -1018,9 +1018,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 946aafcbcb9a6504597eeda04bc981dc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualApplier
-  frontOffset: 0.6562
-  rearOffset: 1
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualPoseUpdater
+  frontOffsetRatio: 0.6562
+  rearOffsetRatio: 1
 --- !u!1 &6369769213162240768
 GameObject:
   m_ObjectHideFlags: 0
@@ -1328,9 +1328,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 946aafcbcb9a6504597eeda04bc981dc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualApplier
-  frontOffset: 0
-  rearOffset: 0.6562
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Train.View.Object.TrainCarRailPositionVisualPoseUpdater
+  frontOffsetRatio: 0
+  rearOffsetRatio: 0.6562
 --- !u!1 &7180313710204825095
 GameObject:
   m_ObjectHideFlags: 0

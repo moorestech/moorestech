@@ -1,0 +1,120 @@
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Train.View;
+using UnityEngine;
+
+namespace Client.Game.InGame.Train.View.Object
+{
+    [DisallowMultipleComponent]
+    public sealed class TrainCarRailPositionVisualPoseUpdater : MonoBehaviour
+    {
+        [SerializeField] private float frontOffsetRatio;
+        [SerializeField] private float rearOffsetRatio = 1f;
+
+        private readonly List<TrainCarRailPositionVisualPoseUpdater> _childPoseUpdaterBuffer = new();
+        private TrainCarRailPositionVisualPoseUpdater[] _childPoseUpdaters = Array.Empty<TrainCarRailPositionVisualPoseUpdater>();
+        private float _modelForwardCenterOffset;
+        private bool _isInitialized;
+
+        public bool UpdatePose(TrainCarRailPositionVisualState visualState)
+        {
+            // Prefab階層から直近の子 updater を初回だけ解決する
+            // Resolve nearest child updaters from the Prefab hierarchy only once
+            EnsureInitialized();
+            return UpdatePoseRecursive(visualState);
+        }
+
+        private void EnsureInitialized()
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
+
+            // 自身の姿勢補正値と直近の子 updater だけを保持する
+            // Cache this updater pose offset and only the nearest child updaters
+            _modelForwardCenterOffset = TrainCarRailPositionVisualUtility.ResolveModelForwardCenterOffset(transform);
+            _childPoseUpdaters = ResolveDirectChildPoseUpdaters();
+            for (var i = 0; i < _childPoseUpdaters.Length; i++)
+            {
+                _childPoseUpdaters[i].EnsureInitialized();
+            }
+            _isInitialized = true;
+        }
+
+        private bool UpdatePoseRecursive(TrainCarRailPositionVisualState parentVisualState)
+        {
+            if (!TryBuildLocalVisualState(parentVisualState, out var localVisualState))
+            {
+                return false;
+            }
+
+            // 自分の span に姿勢を合わせてから子 updater へ再帰的に分配する
+            // Align this span first and then distribute it recursively to child updaters
+            if (!TrainCarRailPositionVisualUtility.TryResolvePose(localVisualState, _modelForwardCenterOffset, out var pose))
+            {
+                return false;
+            }
+            transform.SetPositionAndRotation(pose.Position, pose.Rotation);
+
+            for (var i = 0; i < _childPoseUpdaters.Length; i++)
+            {
+                if (!_childPoseUpdaters[i].UpdatePoseRecursive(localVisualState))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool TryBuildLocalVisualState(TrainCarRailPositionVisualState parentVisualState, out TrainCarRailPositionVisualState localVisualState)
+        {
+            localVisualState = default;
+            if (!TrainCarPartPoseCalculator.TryBuildPartSpanByRatio(
+                    parentVisualState.FrontOffset,
+                    parentVisualState.RearOffset,
+                    frontOffsetRatio,
+                    rearOffsetRatio,
+                    parentVisualState.IsFacingForward,
+                    out var span))
+            {
+                return false;
+            }
+
+            // 親 span 内の比率からこの updater が担当する railposition span を作る
+            // Build the railposition span this updater owns from ratios inside the parent span
+            localVisualState = TrainCarRailPositionVisualState.Create(
+                parentVisualState.RailPosition,
+                span.FrontOffset,
+                span.RearOffset,
+                parentVisualState.IsFacingForward);
+            return true;
+        }
+
+        private TrainCarRailPositionVisualPoseUpdater[] ResolveDirectChildPoseUpdaters()
+        {
+            _childPoseUpdaterBuffer.Clear();
+            for (var i = 0; i < transform.childCount; i++)
+            {
+                CollectNearestChildPoseUpdaters(transform.GetChild(i));
+            }
+            return _childPoseUpdaterBuffer.ToArray();
+        }
+
+        private void CollectNearestChildPoseUpdaters(Transform current)
+        {
+            if (current.TryGetComponent<TrainCarRailPositionVisualPoseUpdater>(out var childPoseUpdater))
+            {
+                _childPoseUpdaterBuffer.Add(childPoseUpdater);
+                return;
+            }
+
+            // updater を持たない中間 GameObject は透明な階層として子を探索する
+            // Treat intermediate GameObjects without an updater as transparent hierarchy nodes
+            for (var i = 0; i < current.childCount; i++)
+            {
+                CollectNearestChildPoseUpdaters(current.GetChild(i));
+            }
+        }
+    }
+}

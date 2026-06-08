@@ -8,7 +8,7 @@ namespace Client.Game.InGame.Train.View.Object
     public sealed class TrainCarRailPositionVisualController : ITrainCarVisualTarget
     {
         private readonly RendererMaterialReplacerController _materialController;
-        private readonly TrainCarRailPositionVisualApplier _visualApplier;
+        private readonly TrainCarRailPositionVisualPoseUpdater _visualPoseUpdater;
         private TrainCarVisualMaterialMode _baseMaterialMode = TrainCarVisualMaterialMode.Normal;
         private TrainCarVisualMaterialMode _overlayMaterialMode = TrainCarVisualMaterialMode.Normal;
         private TrainCarVisualMaterialMode _appliedMaterialMode = TrainCarVisualMaterialMode.Normal;
@@ -16,23 +16,23 @@ namespace Client.Game.InGame.Train.View.Object
 
         public TrainCarRailPositionVisualController(GameObject targetObject)
         {
-            // 対象オブジェクト構造からmaterial管理とrailposition描画実装を一度だけ組み立てる
-            // Build material handling and railposition visual implementation once from the target object structure
+            // 対象オブジェクト構造から material 管理と railposition pose 更新入口を組み立てる
+            // Build material handling and the railposition pose update entry point from the target object structure
             _materialController = new RendererMaterialReplacerController(targetObject);
-            _visualApplier = ResolveVisualApplier(targetObject);
+            _visualPoseUpdater = ResolveVisualPoseUpdater(targetObject);
         }
 
         public bool UpdateVisual(TrainCarRailPositionVisualState visualState)
         {
-            // 1フレームoverlayの期限を確認してからrailposition描画を行う
-            // Expire one-frame overlays before drawing the railposition state
+            // 1フレーム overlay の期限を確認してから railposition pose を更新する
+            // Expire one-frame overlays before updating the railposition pose
             RefreshOneFrameOverlay();
-            return _visualApplier.ApplyVisualState(visualState);
+            return _visualPoseUpdater.UpdatePose(visualState);
         }
 
         public void SetMaterialMode(TrainCarVisualMaterialMode materialMode)
         {
-            // previewや削除表示など継続するmaterial状態を指定する
+            // preview や削除表示など継続する material 状態を指定する
             // Set persistent material state for preview and removal views
             _baseMaterialMode = materialMode;
             ApplyMaterialMode(ResolveEffectiveMaterialMode());
@@ -52,17 +52,17 @@ namespace Client.Game.InGame.Train.View.Object
             _materialController.DestroyMaterial();
         }
 
-        private static TrainCarRailPositionVisualApplier ResolveVisualApplier(GameObject targetObject)
+        private static TrainCarRailPositionVisualPoseUpdater ResolveVisualPoseUpdater(GameObject targetObject)
         {
-            var visualApplier = targetObject.GetComponent<TrainCarRailPositionVisualApplier>();
-            if (visualApplier == null)
+            var visualPoseUpdater = targetObject.GetComponent<TrainCarRailPositionVisualPoseUpdater>();
+            if (visualPoseUpdater == null)
             {
-                throw new InvalidOperationException($"TrainCarRailPositionVisualApplier is missing on train root. Object:{targetObject.name}");
+                throw new InvalidOperationException($"TrainCarRailPositionVisualPoseUpdater is missing on train root. Object:{targetObject.name}");
             }
 
-            // Prefab rootに置かれた再帰applierをrailposition描画の入口にする
-            // Use the recursive applier on the Prefab root as the railposition drawing entry point
-            return visualApplier;
+            // Prefab root の pose updater を railposition 入力の描画入口にする
+            // Use the pose updater on the Prefab root as the railposition drawing entry point
+            return visualPoseUpdater;
         }
 
         private void RefreshOneFrameOverlay()
@@ -76,7 +76,7 @@ namespace Client.Game.InGame.Train.View.Object
                 return;
             }
 
-            // 次フレームまで要求が続かなければ継続material状態へ戻す
+            // 次フレームまで要求が続かなければ継続 material 状態へ戻す
             // Return temporary highlights to the persistent material state when no frame request remains
             _overlayMaterialMode = TrainCarVisualMaterialMode.Normal;
             ApplyMaterialMode(ResolveEffectiveMaterialMode());
@@ -99,7 +99,7 @@ namespace Client.Game.InGame.Train.View.Object
             }
             _appliedMaterialMode = materialMode;
 
-            // 通常表示ではshared materialへ戻し、runtime materialを破棄する
+            // 通常表示では shared material へ戻し、runtime material を破棄する
             // Normal rendering restores shared materials and destroys runtime materials
             if (materialMode == TrainCarVisualMaterialMode.Normal)
             {
