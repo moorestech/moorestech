@@ -11,22 +11,21 @@ namespace Client.Game.InGame.Train.View.Object
         [SerializeField] private float frontOffsetRatio;
         [SerializeField] private float rearOffsetRatio = 1f;
 
-        private readonly List<TrainCarRailPositionVisualPoseUpdater> _childPoseUpdaterBuffer = new();
         private TrainCarRailPositionVisualPoseUpdater[] _childPoseUpdaters = Array.Empty<TrainCarRailPositionVisualPoseUpdater>();
         private float _modelForwardCenterOffset;
-        private bool _isInitialized;
+        private bool _isBuilt;
 
         public bool UpdatePose(TrainCarRailPositionVisualState visualState)
         {
-            // Prefab階層から直近の子 updater を初回だけ解決する
-            // Resolve nearest child updaters from the Prefab hierarchy only once
-            EnsureInitialized();
+            // Prefab階層からこの updater tree を初回だけ build する
+            // Build this updater tree from the Prefab hierarchy only once
+            Build();
             return UpdatePoseRecursive(visualState);
         }
 
-        private void EnsureInitialized()
+        private void Build()
         {
-            if (_isInitialized)
+            if (_isBuilt)
             {
                 return;
             }
@@ -34,12 +33,12 @@ namespace Client.Game.InGame.Train.View.Object
             // 自身の姿勢補正値と直近の子 updater だけを保持する
             // Cache this updater pose offset and only the nearest child updaters
             _modelForwardCenterOffset = TrainCarRailPositionVisualUtility.ResolveModelForwardCenterOffset(transform);
-            _childPoseUpdaters = ResolveDirectChildPoseUpdaters();
+            _childPoseUpdaters = BuildNearestChildPoseUpdaters();
             for (var i = 0; i < _childPoseUpdaters.Length; i++)
             {
-                _childPoseUpdaters[i].EnsureInitialized();
+                _childPoseUpdaters[i].Build();
             }
-            _isInitialized = true;
+            _isBuilt = true;
         }
 
         private bool UpdatePoseRecursive(TrainCarRailPositionVisualState parentVisualState)
@@ -91,21 +90,21 @@ namespace Client.Game.InGame.Train.View.Object
             return true;
         }
 
-        private TrainCarRailPositionVisualPoseUpdater[] ResolveDirectChildPoseUpdaters()
+        private TrainCarRailPositionVisualPoseUpdater[] BuildNearestChildPoseUpdaters()
         {
-            _childPoseUpdaterBuffer.Clear();
+            var childPoseUpdaters = new List<TrainCarRailPositionVisualPoseUpdater>();
             for (var i = 0; i < transform.childCount; i++)
             {
-                CollectNearestChildPoseUpdaters(transform.GetChild(i));
+                CollectNearestChildPoseUpdaters(transform.GetChild(i), childPoseUpdaters);
             }
-            return _childPoseUpdaterBuffer.ToArray();
+            return childPoseUpdaters.ToArray();
         }
 
-        private void CollectNearestChildPoseUpdaters(Transform current)
+        private static void CollectNearestChildPoseUpdaters(Transform current, List<TrainCarRailPositionVisualPoseUpdater> childPoseUpdaters)
         {
             if (current.TryGetComponent<TrainCarRailPositionVisualPoseUpdater>(out var childPoseUpdater))
             {
-                _childPoseUpdaterBuffer.Add(childPoseUpdater);
+                childPoseUpdaters.Add(childPoseUpdater);
                 return;
             }
 
@@ -113,7 +112,7 @@ namespace Client.Game.InGame.Train.View.Object
             // Treat intermediate GameObjects without an updater as transparent hierarchy nodes
             for (var i = 0; i < current.childCount; i++)
             {
-                CollectNearestChildPoseUpdaters(current.GetChild(i));
+                CollectNearestChildPoseUpdaters(current.GetChild(i), childPoseUpdaters);
             }
         }
     }
