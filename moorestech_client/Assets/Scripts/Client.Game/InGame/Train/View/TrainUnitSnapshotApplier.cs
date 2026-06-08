@@ -55,24 +55,21 @@ namespace Client.Game.InGame.Train.View
                 return;
             }
 
-            // スナップショットをモデルに変換して列車IDを収集する
-            // Iterate snapshots and collect train car ids
+            // スナップショットをモデルに変換する
+            // Convert received snapshots into model bundles
             var snapshots = response.Snapshots;
             var bundles = new List<TrainUnitSnapshotBundle>(snapshots?.Count ?? 0);
-            var activeTrainCarInstanceIds = new HashSet<TrainCarInstanceId>();
             if (snapshots != null)
             {
                 for (var i = 0; i < snapshots.Count; i++)
                 {
                     var bundle = snapshots[i];
                     bundles.Add(bundle);
-                    CollectTrainCarInstanceIds(bundle, activeTrainCarInstanceIds);
-
                 }
             }
 
-            // キャッシュ更新後に不要な列車エンティティを除去する
-            // Remove stale train entities after cache update
+            // full snapshotはcacheとviewを同じ単位で全差し替えする
+            // Replace both cache and views as one full-snapshot boundary
             _cache.OverrideAll(bundles);
             var localHashAfterApply = _cache.ComputeCurrentHash();
             if (localHashAfterApply != response.UnitsHash)
@@ -85,27 +82,10 @@ namespace Client.Game.InGame.Train.View
                     $"serverHash={response.UnitsHash}, clientHash={localHashAfterApply}, cacheTrainCount={_cache.Units.Count}");
             }
 
-            // cache更新後に列車表示オブジェクトの生成を依頼する
-            // Request train view object creation after cache update
-            for (var i = 0; i < bundles.Count; i++)
-            {
-                _trainCarDatastore.OnTrainObjectUpdate(bundles[i].Simulation.Cars);
-            }
-            _trainCarDatastore.RemoveTrainEntitiesNotInSnapshot(activeTrainCarInstanceIds);
+            // cache更新後に列車表示オブジェクトを全再生成する
+            // Recreate all train view objects after cache replacement
+            _trainCarDatastore.RecreateAllTrainEntities(bundles);
             _tickState.RecordAppliedTickUnifiedId(snapshotTickUnifiedId);
-
-            #region Internal
-
-            void CollectTrainCarInstanceIds(TrainUnitSnapshotBundle bundle, ISet<TrainCarInstanceId> target)
-            {
-                // 車両スナップショットからIDを集計する
-                // Collect train car ids from the snapshot
-                var cars = bundle.Simulation.Cars;
-                if (cars == null) return;
-                for (var i = 0; i < cars.Count; i++) target.Add(cars[i].TrainCarInstanceId);
-            }
-
-            #endregion
         }
     }
 }
