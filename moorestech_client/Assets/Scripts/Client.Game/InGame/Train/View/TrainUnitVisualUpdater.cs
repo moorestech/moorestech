@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object;
 using Core.Master;
+using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 
@@ -9,23 +10,32 @@ namespace Client.Game.InGame.Train.View
 {
     public sealed class TrainUnitVisualUpdater
     {
+        private const double RenderInterpolationDelayTicks = 1d;
+
         private readonly TrainCarObjectDatastore _trainCarDatastore;
+        private readonly IRailGraphProvider _railGraphProvider;
+        private readonly IRailGraphTraversalProvider _railGraphTraversalProvider;
 
         private bool _hasPrevious;
         private bool _hasCurrent;
         private TrainUnitRenderSnapshot _previous;
         private TrainUnitRenderSnapshot _current;
 
-        public TrainUnitVisualUpdater(TrainCarObjectDatastore trainCarDatastore)
+        public TrainUnitVisualUpdater(
+            TrainCarObjectDatastore trainCarDatastore,
+            IRailGraphProvider railGraphProvider,
+            IRailGraphTraversalProvider railGraphTraversalProvider)
         {
             // car object の実体解決だけを受け取り、unit 管理は上位 system に任せる
             // Receive only car object resolution and leave unit management to the upper system
             _trainCarDatastore = trainCarDatastore;
+            _railGraphProvider = railGraphProvider;
+            _railGraphTraversalProvider = railGraphTraversalProvider;
         }
 
-        public void Update(ClientTrainUnit unit, double renderTick)
+        public void Update(ClientTrainUnit unit, double renderTick, double currentSimulationTick)
         {
-            if (!TryCreateCurrentSnapshot(unit, renderTick, out var currentSnapshot))
+            if (!TryCreateCurrentSnapshot(unit, currentSimulationTick, out var currentSnapshot))
             {
                 // RailPosition が無効な unit は描画不可として扱い、補間履歴も破棄する
                 // Treat units with invalid RailPosition as unavailable and discard interpolation history
@@ -36,11 +46,14 @@ namespace Client.Game.InGame.Train.View
 
             // unit 単位で保持した旧新 snapshot から、今回描画に使う snapshot を選ぶ
             // Select the snapshot to render from the previous/current snapshots owned by this unit updater
-            var renderSnapshot = PushAndResolve(currentSnapshot);
+            if (!TryPushAndResolve(currentSnapshot, renderTick, out var renderSnapshot))
+            {
+                return;
+            }
             ApplySnapshot(renderSnapshot);
             
             #region internal
-            bool TryCreateCurrentSnapshot(ClientTrainUnit unit, double renderTick, out TrainUnitRenderSnapshot snapshot)
+            bool TryCreateCurrentSnapshot(ClientTrainUnit unit, double snapshotTick, out TrainUnitRenderSnapshot snapshot)
             {
                 snapshot = default;
                 if (unit.RailPosition == null)
@@ -52,7 +65,7 @@ namespace Client.Game.InGame.Train.View
                 // RailPosition is mutable, so always freeze it with DeepCopy for render history
                 var cars = CopyCars(unit.Cars);
                 snapshot = TrainUnitRenderSnapshot.Create(
-                    renderTick,
+                    snapshotTick,
                     unit.RailPosition.DeepCopy(),
                     cars,
                     unit.CurrentSpeed,
@@ -60,26 +73,56 @@ namespace Client.Game.InGame.Train.View
                 return true;
             }
             
-            TrainUnitRenderSnapshot PushAndResolve(TrainUnitRenderSnapshot next)
+            bool TryPushAndResolve(TrainUnitRenderSnapshot next, double targetRenderTick, out TrainUnitRenderSnapshot renderSnapshot)
             {
-                if (_hasCurrent)
+                renderSnapshot = default;
+                if (!_hasCurrent)
+                {
+                    _current = next;
+                    _hasCurrent = true;
+                    renderSnapshot = _current;
+                    return true;
+                }
+
+                if (next.Tick > _current.Tick)
                 {
                     _previous = _current;
                     _hasPrevious = true;
+                    _current = next;
+                }
+                else
+                {
+                    _current = next;
                 }
                 
                 // 最新 snapshot を current に進め、補間できない場合は current をそのまま使う
                 // Advance the latest snapshot to current and use current directly when interpolation is not possible
-                _current = next;
-                _hasCurrent = true;
                 if (!_hasPrevious || !CanUsePreviousSnapshot(_previous, _current))
                 {
-                    return _current;
+                    renderSnapshot = _current;
+                    return true;
                 }
                 
-                // TODO: renderTick と旧新 snapshot tick から補間 RailPosition を作る
-                // TODO: Build an interpolated RailPosition from renderTick and previous/current snapshot ticks
-                return _previous;
+                // 1 tick 遅延させた render tick で、旧新 RailPosition の間を距離補間する
+                // Distance-interpolate between previous/current RailPositions at a one-tick delayed render tick
+                var interpolationTick = Clamp(
+                    targetRenderTick - RenderInterpolationDelayTicks,
+                    _previous.Tick,
+                    _current.Tick);
+                if (!RailPositionTickInterpolator.TryInterpolateByTick(
+                        _previous.RailPosition,
+                        _current.RailPosition,
+                        _railGraphProvider,
+                        _railGraphTraversalProvider,
+                        _previous.Tick,
+                        _current.Tick,
+                        interpolationTick,
+                        out var interpolatedRailPosition))
+                {
+                    return false;
+                }
+                renderSnapshot = _current.WithRailPosition(interpolatedRailPosition);
+                return true;
             }
             
             void ClearHistory()
@@ -187,6 +230,15 @@ namespace Client.Game.InGame.Train.View
             return true;
         }
 
+        private static double Clamp(double value, double min, double max)
+        {
+            if (value < min)
+            {
+                return min;
+            }
+            return value > max ? max : value;
+        }
+
         private readonly struct TrainUnitRenderSnapshot
         {
             public readonly double Tick;
@@ -207,6 +259,11 @@ namespace Client.Game.InGame.Train.View
             public static TrainUnitRenderSnapshot Create(double tick, RailPosition railPosition, IReadOnlyList<TrainCarSnapshot> cars, double currentSpeed, int masconLevel)
             {
                 return new TrainUnitRenderSnapshot(tick, railPosition, cars, currentSpeed, masconLevel);
+            }
+
+            public TrainUnitRenderSnapshot WithRailPosition(RailPosition railPosition)
+            {
+                return new TrainUnitRenderSnapshot(Tick, railPosition, Cars, CurrentSpeed, MasconLevel);
             }
         }
     }
