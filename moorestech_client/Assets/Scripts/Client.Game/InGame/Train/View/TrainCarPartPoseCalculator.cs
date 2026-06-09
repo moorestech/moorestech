@@ -36,7 +36,7 @@ namespace Client.Game.InGame.Train.View
             // Initialize output values first and validate the ratio range
             span = default;
             var carLength = carRearOffset - carFrontOffset;
-            if (carLength <= 0 || partFrontRatio < 0f || partRearRatio > 1f || partFrontRatio >= partRearRatio)
+            if (carLength < 0 || partFrontRatio < 0f || partRearRatio > 1f || partFrontRatio >= partRearRatio)
             {
                 return false;
             }
