@@ -9,36 +9,36 @@ namespace Client.Game.InGame.Entity.Object
     {
         public TrainCarEntityObject TrainCarEntityObject { get; private set; }
 
-        private ITrainCarVisualTarget _visualTarget;
+        private TrainCarMaterialController _materialController;
 
-        public void Initialize(TrainCarEntityObject trainCarEntityObject, ITrainCarVisualTarget visualTarget)
+        public void Initialize(TrainCarEntityObject trainCarEntityObject, TrainCarMaterialController materialController)
         {
-            // 子rendererから列車entityと表示入口をたどれるようにする
-            // Let renderer children resolve the train entity and visual entry
+            // 子 renderer から車両 entity と material 制御へたどれるようにする
+            // Let renderer children resolve the train entity and material controller
             TrainCarEntityObject = trainCarEntityObject;
-            _visualTarget = visualTarget;
+            _materialController = materialController;
         }
 
         public void SetRemovePreviewing()
         {
-            // 削除previewはentityを経由せずvisual targetへ直接反映する
-            // Apply remove preview directly to the visual target without routing through the entity
-            _visualTarget.SetMaterialMode(TrainCarVisualMaterialMode.RemovePreview);
+            // 削除 preview は entity を経由せず material controller へ直接反映する
+            // Apply remove preview directly to the material controller without routing through the entity
+            _materialController.SetMaterialMode(TrainCarVisualMaterialMode.RemovePreview);
         }
 
         public void ResetMaterial()
         {
-            // 削除preview終了時は通常materialへ戻す
+            // 削除 preview 終了時は通常 material へ戻す
             // Restore normal materials when remove preview ends
-            _visualTarget.SetMaterialMode(TrainCarVisualMaterialMode.Normal);
+            _materialController.SetMaterialMode(TrainCarVisualMaterialMode.Normal);
         }
-        
+
         public bool IsRemovable(out string reason)
         {
             reason = null;
             return true;
         }
-        
+
         public void Delete()
         {
             // サーバーへ列車削除を依頼する

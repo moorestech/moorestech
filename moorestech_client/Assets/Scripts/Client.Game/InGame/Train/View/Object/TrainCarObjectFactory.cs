@@ -7,12 +7,13 @@ using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
 using Core.Master;
 using Game.Train.Unit;
+using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View.Object
 {
     /// <summary>
-    ///     列車entityをPrefabから生成し、通常描画に必要なruntime部品を接続する。
+    ///     列車 entity を Prefab から生成し、通常描画に必要な runtime 部品を接続する。
     ///     Creates train entities from Prefabs and wires runtime-only rendering parts.
     /// </summary>
     public class TrainCarObjectFactory
@@ -23,7 +24,7 @@ namespace Client.Game.InGame.Train.View.Object
 
         public TrainCarObjectFactory(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
         {
-            // 姿勢更新とsnapshot参照に必要な依存だけを保持する
+            // 姿勢更新と snapshot 参照に必要な依存だけを保持する
             // Keep only dependencies required for pose updates and snapshot lookup
             _trainCache = trainCache;
             _tickState = tickState;
@@ -31,14 +32,14 @@ namespace Client.Game.InGame.Train.View.Object
 
         public TrainCarEntityObject CreateTrainCarObject(Transform parent, TrainCarSnapshot carSnapshot)
         {
-            // snapshotから列車のマスタを解決する
+            // snapshot から車両のマスタを解決する
             // Resolve train master data from the snapshot
             if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(carSnapshot.TrainCarMasterId, out var trainCarMasterElement))
             {
                 throw new InvalidOperationException($"TrainCar master not found. TrainCarMasterId:{carSnapshot.TrainCarMasterId}");
             }
 
-            // PrefabはTrainCarMasterId単位で初回だけ同期ロードする
+            // Prefab は TrainCarMasterId 単位で初回だけ同期ロードする
             // Load the Prefab synchronously only once per TrainCarMasterId
             var loadedPrefab = ResolvePrefab();
             if (loadedPrefab == null)
@@ -69,28 +70,41 @@ namespace Client.Game.InGame.Train.View.Object
             {
                 var trainObject = GameObject.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
 
-                // entity本体には通常描画用のIDとRigidbodyだけを初期化する
+                // entity 本体には通常描画用の ID と Rigidbody だけを初期化する
                 // Initialize the entity itself with runtime id and Rigidbody setup only
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
                 trainEntityObject.Initialize(carSnapshot.TrainCarInstanceId, trainCarMasterElement);
 
-                // animation processorと座席resolverはPrefab構造から補完する
+                // animation processor と座席 resolver は Prefab 構造から補完する
                 // Add animation processors and seat resolver from the Prefab structure
                 AttachAnimationProcessorIfNeeded(trainObject);
                 AttachSeatPositionResolverIfNeeded(trainObject);
 
-                // visual targetは非Mono controllerとして作り、通常描画とpreview系表示の入口を共有する
-                // Create the visual target as a non-Mono controller shared by runtime and preview-style visuals
-                var visualTarget = new TrainCarRailPositionVisualController(trainObject);
-                trainEntityObject.SetVisualTarget(visualTarget);
+                // pose updater は Prefab 上の railposition 入力口として必須にする
+                // Require the pose updater as the railposition entry point on the Prefab
+                var poseUpdater = ResolvePoseUpdater(trainObject, trainCarMasterElement);
+                var materialController = new TrainCarMaterialController(trainObject);
+                trainEntityObject.SetMaterialController(materialController);
 
-                var renderInterpolator = new TrainCarEntityRenderInterpolator(trainEntityObject, visualTarget, _trainCache, _tickState);
+                // interpolator は姿勢更新だけを担当し、material は entity 側で管理する
+                // Let the interpolator update pose only while the entity owns material state
+                var renderInterpolator = new TrainCarEntityRenderInterpolator(trainEntityObject, poseUpdater, _trainCache, _tickState);
                 trainEntityObject.SetRenderInterpolator(renderInterpolator);
 
-                // renderer子オブジェクトには削除targetとraycast用colliderだけを配る
+                // renderer 子オブジェクトには削除 target と raycast 用 collider だけを配る
                 // Give renderer children only delete targets and raycast colliders
-                AttachDeleteTargets(trainObject, trainEntityObject, visualTarget);
+                AttachDeleteTargets(trainObject, trainEntityObject, materialController);
                 return trainEntityObject;
+            }
+
+            TrainCarRailPositionVisualPoseUpdater ResolvePoseUpdater(GameObject trainObject, TrainCarMasterElement masterElement)
+            {
+                var poseUpdater = trainObject.GetComponent<TrainCarRailPositionVisualPoseUpdater>();
+                if (poseUpdater == null)
+                {
+                    throw new InvalidOperationException($"TrainCar prefab has no TrainCarRailPositionVisualPoseUpdater on root. AddressablePath:{masterElement.AddressablePath}");
+                }
+                return poseUpdater;
             }
 
             void AttachAnimationProcessorIfNeeded(GameObject targetTrainObject)
@@ -117,7 +131,7 @@ namespace Client.Game.InGame.Train.View.Object
                 targetTrainObject.AddComponent<SeatPositionResolver>();
             }
 
-            void AttachDeleteTargets(GameObject targetTrainObject, TrainCarEntityObject trainEntityObject, ITrainCarVisualTarget visualTarget)
+            void AttachDeleteTargets(GameObject targetTrainObject, TrainCarEntityObject trainEntityObject, TrainCarMaterialController materialController)
             {
                 var meshRenderers = targetTrainObject.GetComponentsInChildren<MeshRenderer>(true);
                 for (var i = 0; i < meshRenderers.Length; i++)
@@ -134,7 +148,7 @@ namespace Client.Game.InGame.Train.View.Object
                         target.AddComponent<MeshCollider>();
                     }
 
-                    childObject.Initialize(trainEntityObject, visualTarget);
+                    childObject.Initialize(trainEntityObject, materialController);
                 }
             }
 

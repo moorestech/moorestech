@@ -157,7 +157,7 @@ namespace Client.Tests
         }
 
         [Test]
-        public void LocomotiveVisualApplier_KeepsEngineAndTenderConnected_OnStraightRail()
+        public void LocomotiveVisualPoseUpdater_KeepsEngineAndTenderConnected_OnStraightRail()
         {
             // 実Prefabを直線レール上に配置し、Engine/Tender接続部の見た目gapを測る
             // Place the real Prefab on straight rail and measure the visual gap at the Engine/Tender joint.
@@ -172,8 +172,8 @@ namespace Client.Tests
             var rear = TestRailNode.Create(101, Vector3.zero);
             rear.ConnectTo(head, TrainLengthConverter.ToRailUnits(20));
             var railPosition = new RailPosition(new List<IRailNode> { head, rear }, TrainLengthConverter.ToRailUnits(20), 0);
-            var controller = new TrainCarRailPositionVisualController(instance);
-            updated = controller.UpdateVisual(TrainCarRailPositionVisualState.Create(railPosition, 0, TrainLengthConverter.ToRailUnits(20), true));
+            var poseUpdater = instance.GetComponent<TrainCarRailPositionVisualPoseUpdater>();
+            updated = poseUpdater.UpdatePose(TrainCarRailPositionVisualState.Create(railPosition, 0, TrainLengthConverter.ToRailUnits(20), true));
 
             // 進行方向へrenderer boundsを射影し、Engine後端とTender前端の距離を比較する
             // Project renderer bounds along the travel direction and compare the Engine rear with the Tender front.
