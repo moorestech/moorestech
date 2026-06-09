@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.View.Object
 {
     [DisallowMultipleComponent]
-    public sealed class TrainCarRailPositionVisualPoseUpdater : MonoBehaviour
+    public sealed class TrainCarRailPositionVisualPoseUpdater : MonoBehaviour, ITrainCarPoseUpdater
     {
         [SerializeField] private float frontOffsetRatio;
         [SerializeField] private float rearOffsetRatio = 1f;
@@ -17,7 +17,7 @@ namespace Client.Game.InGame.Train.View.Object
 
         public bool UpdatePose(TrainCarRailPositionVisualState visualState)
         {
-            // Prefab階層からこの updater tree を初回だけ build する
+            // Prefab 階層からこの updater tree を初回だけ build する
             // Build this updater tree from the Prefab hierarchy only once
             Build();
             return UpdatePoseRecursive(visualState);

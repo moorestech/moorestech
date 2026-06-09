@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Train.View
         private readonly TrainUnitTickState _tickState;
         private readonly TrainCarInstanceId _trainCarInstanceId;
         private readonly ClientTrainUnit _trainUnit;
-        private readonly ITrainCarVisualTarget _visualTarget;
+        private readonly ITrainCarPoseUpdater _poseUpdater;
         private readonly ITrainCarObjectProcessor[] _processors;
         private IReadOnlyList<TrainCarSnapshot> _cachedCars;
         private TrainCarSnapshot _cachedSnapshot;
@@ -20,18 +20,18 @@ namespace Client.Game.InGame.Train.View
 
         public TrainCarEntityRenderInterpolator(
             TrainCarEntityObject trainCarEntity,
-            ITrainCarVisualTarget visualTarget,
+            ITrainCarPoseUpdater poseUpdater,
             TrainUnitClientCache trainCache,
             TrainUnitTickState tickState)
         {
-            // 通常描画modeに必要な固定依存だけを保持する
-            // Keep only fixed dependencies required by runtime render mode
+            // 通常描画に必要な固定依存だけを保持する
+            // Keep only fixed dependencies required by runtime rendering
             _tickState = tickState;
             _trainCarInstanceId = trainCarEntity.TrainCarInstanceId;
-            _visualTarget = visualTarget;
+            _poseUpdater = poseUpdater;
             trainCache.TryGetCarSnapshot(_trainCarInstanceId, out _trainUnit, out _, out _, out _);
 
-            // animationなど通常描画専用processorはentity生成時に初期化する
+            // アニメーションなど通常描画専用 processor は entity 生成時に初期化する
             // Initialize runtime-only processors such as animation at entity creation
             _processors = trainCarEntity.GetComponentsInChildren<ITrainCarObjectProcessor>();
             for (var i = 0; i < _processors.Length; i++)
@@ -42,7 +42,7 @@ namespace Client.Game.InGame.Train.View
 
         public void Update()
         {
-            // cached unitから最新の描画snapshotを作る
+            // cached unit から最新の描画 snapshot を作る
             // Build the latest render snapshot from the cached unit
             if (!TryResolveLatestRenderSnapshot(_tickState.GetTick(), out var renderSnapshot))
             {
@@ -50,10 +50,10 @@ namespace Client.Game.InGame.Train.View
                 return;
             }
 
-            // railposition描画入口へ渡し、失敗時はprocessorにも利用不可を伝える
-            // Apply through the railposition visual entry and mark processors unavailable on failure
+            // railposition pose updater へ渡し、失敗時は processor にも利用不可を伝える
+            // Apply through the railposition pose updater and mark processors unavailable on failure
             var visualState = TrainCarRailPositionVisualState.CreateFromRenderSnapshot(renderSnapshot);
-            if (!_visualTarget.UpdateVisual(visualState))
+            if (!_poseUpdater.UpdatePose(visualState))
             {
                 DispatchProcessors(TrainCarContext.CreateUnavailable());
                 return;
@@ -62,23 +62,16 @@ namespace Client.Game.InGame.Train.View
             DispatchProcessors(CreateContext(renderSnapshot));
         }
 
-        public void DestroyRuntimeResources()
-        {
-            // visual targetが持つruntime materialを解放する
-            // Release runtime materials owned by the visual target
-            _visualTarget.DestroyRuntimeMaterials();
-        }
-
         private static TrainCarContext CreateContext(TrainCarRenderSnapshot renderSnapshot)
         {
-            // processor用contextは描画に使ったsnapshotから作る
+            // processor 用 context は描画に使った snapshot から作る
             // Build processor context from the snapshot used for rendering
             return TrainCarContext.CreateAvailable(renderSnapshot.CurrentSpeed, renderSnapshot.MasconLevel);
         }
 
         private void DispatchProcessors(TrainCarContext context)
         {
-            // 通常描画専用processorへ同じcontextを配る
+            // 通常描画専用 processor へ同じ context を配る
             // Dispatch the same context to all runtime-only processors
             for (var i = 0; i < _processors.Length; i++)
             {
@@ -100,14 +93,14 @@ namespace Client.Game.InGame.Train.View
                 return false;
             }
 
-            // car listが更新された時だけ対象carのsnapshotとoffsetを再解決する
+            // car list が更新された時だけ対象 car の snapshot と offset を再解決する
             // Re-resolve the target car snapshot and offsets only when the car list changes
             if (!TryRefreshCachedCarState())
             {
                 return false;
             }
 
-            // 現段階では補間履歴を持たず、cached unit上の最新RailPositionを使う
+            // 現段階では補間履歴を持たず、cached unit 上の最新 RailPosition を使う
             // This pass has no interpolation history and uses the latest RailPosition on the cached unit
             renderSnapshot = TrainCarRenderSnapshot.Create(
                 tick,
@@ -128,6 +121,8 @@ namespace Client.Game.InGame.Train.View
                 return true;
             }
 
+            // 編成内を先頭から走査し、対象 car の前後 offset を求める
+            // Walk cars from the head and resolve front/rear offsets for the target car
             _cachedCars = cars;
             var offsetFromHead = 0;
             for (var i = 0; i < cars.Count; i++)
@@ -147,7 +142,7 @@ namespace Client.Game.InGame.Train.View
                     continue;
                 }
 
-                // 対象carを見つけた時だけcacheを確定する
+                // 対象 car を見つけた時だけ cache を確定する
                 // Commit the cache only after the target car is found
                 _cachedCars = cars;
                 _cachedSnapshot = snapshot;
@@ -155,6 +150,7 @@ namespace Client.Game.InGame.Train.View
                 _cachedRearOffset = rearOffset;
                 return true;
             }
+
             _cachedCars = null;
             _cachedSnapshot = default;
             _cachedFrontOffset = 0;
@@ -164,7 +160,7 @@ namespace Client.Game.InGame.Train.View
 
         private static int ResolveCarLength(TrainCarSnapshot snapshot)
         {
-            // マスタ情報から車両長をrail unitへ変換する
+            // マスタ情報から車両長を rail unit へ変換する
             // Convert the master car length into rail units
             if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0)
             {

@@ -1,33 +1,22 @@
-using System;
 using Client.Common;
 using Client.Game.InGame.Block;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View.Object
 {
-    public sealed class TrainCarRailPositionVisualController : ITrainCarVisualTarget
+    public sealed class TrainCarMaterialController
     {
         private readonly RendererMaterialReplacerController _materialController;
-        private readonly TrainCarRailPositionVisualPoseUpdater _visualPoseUpdater;
         private TrainCarVisualMaterialMode _baseMaterialMode = TrainCarVisualMaterialMode.Normal;
         private TrainCarVisualMaterialMode _overlayMaterialMode = TrainCarVisualMaterialMode.Normal;
         private TrainCarVisualMaterialMode _appliedMaterialMode = TrainCarVisualMaterialMode.Normal;
         private int _overlayFrame = -1;
 
-        public TrainCarRailPositionVisualController(GameObject targetObject)
+        public TrainCarMaterialController(GameObject targetObject)
         {
-            // 対象オブジェクト構造から material 管理と railposition pose 更新入口を組み立てる
-            // Build material handling and the railposition pose update entry point from the target object structure
+            // 対象オブジェクト配下の renderer material 管理を組み立てる
+            // Build renderer material handling from the target object structure
             _materialController = new RendererMaterialReplacerController(targetObject);
-            _visualPoseUpdater = ResolveVisualPoseUpdater(targetObject);
-        }
-
-        public bool UpdateVisual(TrainCarRailPositionVisualState visualState)
-        {
-            // 現在フレーム要求の overlay 期限を確認してから railposition pose を更新する
-            // Expire current-frame overlays before updating the railposition pose
-            RefreshCurrentFrameOverlay();
-            return _visualPoseUpdater.UpdatePose(visualState);
         }
 
         public void SetMaterialMode(TrainCarVisualMaterialMode materialMode)
@@ -47,25 +36,7 @@ namespace Client.Game.InGame.Train.View.Object
             ApplyMaterialMode(ResolveEffectiveMaterialMode());
         }
 
-        public void DestroyRuntimeMaterials()
-        {
-            _materialController.DestroyMaterial();
-        }
-
-        private static TrainCarRailPositionVisualPoseUpdater ResolveVisualPoseUpdater(GameObject targetObject)
-        {
-            var visualPoseUpdater = targetObject.GetComponent<TrainCarRailPositionVisualPoseUpdater>();
-            if (visualPoseUpdater == null)
-            {
-                throw new InvalidOperationException($"TrainCarRailPositionVisualPoseUpdater is missing on train root. Object:{targetObject.name}");
-            }
-
-            // Prefab root の pose updater を railposition 入力の描画入口にする
-            // Use the pose updater on the Prefab root as the railposition drawing entry point
-            return visualPoseUpdater;
-        }
-
-        private void RefreshCurrentFrameOverlay()
+        public void RefreshCurrentFrameOverlay()
         {
             if (_overlayFrame == Time.frameCount)
             {
@@ -80,6 +51,11 @@ namespace Client.Game.InGame.Train.View.Object
             // Return temporary highlights to the persistent material state when no frame request remains
             _overlayMaterialMode = TrainCarVisualMaterialMode.Normal;
             ApplyMaterialMode(ResolveEffectiveMaterialMode());
+        }
+
+        public void DestroyRuntimeMaterials()
+        {
+            _materialController.DestroyMaterial();
         }
 
         private TrainCarVisualMaterialMode ResolveEffectiveMaterialMode()

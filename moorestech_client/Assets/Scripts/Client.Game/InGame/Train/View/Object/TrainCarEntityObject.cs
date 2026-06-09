@@ -16,18 +16,18 @@ namespace Client.Game.InGame.Train.View.Object
         private bool _debugAutoRun;
         private TrainCarMasterElement _trainCarMasterElement;
         private TrainCarEntityRenderInterpolator _renderInterpolator;
-        private ITrainCarVisualTarget _visualTarget;
+        private TrainCarMaterialController _materialController;
 
         public void Initialize(TrainCarInstanceId trainCarInstanceId, TrainCarMasterElement trainCarMasterElement)
         {
-            // 通常描画entityに必要なID、マスタ、描画駆動だけを保持する
-            // Keep only the id, master data, and runtime render driver required by the entity
+            // 通常描画 entity に必要な ID と master 情報だけを保持する
+            // Keep only the id and master data required by the runtime entity
             TrainCarInstanceId = trainCarInstanceId;
             _trainCarMasterElement = trainCarMasterElement;
             _debugAutoRun = DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey);
 
-            // 乗車と接触判定用のRigidbodyだけを初期化する
-            // Initialize Rigidbody for contact/riding
+            // 乗車と接触判定用の Rigidbody だけを初期化する
+            // Initialize Rigidbody for contact and riding detection
             var rigidbody = GetComponent<Rigidbody>();
             ConfigureRigidbodyForContact(rigidbody);
 
@@ -35,8 +35,8 @@ namespace Client.Game.InGame.Train.View.Object
 
             void ConfigureRigidbodyForContact(Rigidbody targetRigidbody)
             {
-                // Rigidbodyは接触判定に限定し、列車姿勢はTransform更新で決める
-                // Restrict Rigidbody to riding/contact detection while train pose stays Transform-driven
+                // Rigidbody は接触判定に限定し、車両姿勢は Transform 更新で決める
+                // Restrict Rigidbody to contact detection while train pose stays Transform-driven
                 targetRigidbody.isKinematic = true;
                 targetRigidbody.useGravity = false;
                 targetRigidbody.interpolation = RigidbodyInterpolation.None;
@@ -51,43 +51,44 @@ namespace Client.Game.InGame.Train.View.Object
             return _trainCarMasterElement;
         }
 
-        public void SetVisualTarget(ITrainCarVisualTarget visualTarget)
+        public void SetMaterialController(TrainCarMaterialController materialController)
         {
-            // entity外からの一時ハイライト要求をvisual controllerへ中継できるよう保持する
-            // Store the visual controller so entity-level callers can request temporary highlights
-            _visualTarget = visualTarget;
+            // entity 外からの一時ハイライト要求を material controller へ集約する
+            // Store the material controller for entity-level temporary highlight requests
+            _materialController = materialController;
         }
 
         public void SetRenderInterpolator(TrainCarEntityRenderInterpolator renderInterpolator)
         {
-            // 通常描画driverはentityのID確定後に差し込む
+            // 通常描画 driver は entity の ID 確定後に差し込む
             // Attach the runtime render driver after the entity id is fixed
             _renderInterpolator = renderInterpolator;
         }
 
         public void RequestOverlayForCurrentFrame(TrainCarVisualMaterialMode materialMode)
         {
-            // 設置スナップなどentity外の要求を現在フレームの overlay として渡す
+            // 設置 snap など entity 外の要求を現在フレームの overlay として渡す
             // Forward external placement-snap requests as current-frame overlays
-            _visualTarget.RequestOverlayForCurrentFrame(materialMode);
+            _materialController.RequestOverlayForCurrentFrame(materialMode);
         }
 
         public void Destroy()
         {
-            // entity破棄時に通常描画driverへruntime resourceの解放を委譲する
-            // Delegate runtime resource release to the runtime render driver
-            _renderInterpolator.DestroyRuntimeResources();
+            // entity 破棄前に runtime material を解放する
+            // Release runtime materials before destroying the entity object
+            _materialController.DestroyRuntimeMaterials();
             Destroy(gameObject);
         }
 
         private void Update()
         {
-            // 通常描画mode専用の補間、表示更新、processor dispatchを進める
-            // Advance runtime-only interpolation, visual updates, and processor dispatch
+            // material overlay の期限を整理してから pose と processor を更新する
+            // Expire material overlays before updating pose and processors
+            _materialController.RefreshCurrentFrameOverlay();
             _renderInterpolator.Update();
 
             // デバッグ用の自動運転切り替えが変わった時だけサーバーへ通知する
-            // Notify the server when the debug train AutoRun state changes
+            // Notify the server only when the debug train AutoRun state changes
             if (_debugAutoRun == DebugParameters.GetValueOrDefaultBool(DebugConst.TrainAutoRunKey))
             {
                 return;

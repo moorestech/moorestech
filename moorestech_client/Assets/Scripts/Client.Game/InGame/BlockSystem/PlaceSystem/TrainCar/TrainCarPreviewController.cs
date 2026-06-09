@@ -11,7 +11,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
     public class TrainCarPreviewController : MonoBehaviour
     {
         private GameObject _previewObject;
-        private ITrainCarVisualTarget _visualTarget;
+        private TrainCarRailPositionVisualPoseUpdater _poseUpdater;
+        private TrainCarMaterialController _materialController;
         private ItemId _currentItemId;
 
         public void SetActive(bool isActive)
@@ -21,7 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         public bool ShowPreview(ItemId itemId, RailPosition railPosition, bool isPlaceable)
         {
-            // 必要な時だけpreview Prefabを生成し、同じitem中は再利用する
+            // 必要な時だけ preview Prefab を生成し、同じ item 中は再利用する
             // Instantiate the preview Prefab only when needed and reuse it for the same item
             if (!TryPreparePreviewObject(itemId, out _))
             {
@@ -32,18 +33,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return false;
             }
 
-            // railposition描画入口は通常描画と同じvisual targetへ寄せる
-            // Route railposition rendering through the same visual target used by runtime views
+            // railposition から preview の姿勢を通常描画と同じ updater で決める
+            // Resolve the preview pose from railposition through the same updater as runtime views
             var visualState = TrainCarRailPositionVisualState.Create(railPosition, 0, railPosition.TrainLength, true);
-            if (!_visualTarget.UpdateVisual(visualState))
+            if (!_poseUpdater.UpdatePose(visualState))
             {
                 return false;
             }
 
+            // 設置可否は material controller だけへ渡す
+            // Send placement validity only to the material controller
             var materialMode = isPlaceable
                 ? TrainCarVisualMaterialMode.PlacementPreviewPlaceable
                 : TrainCarVisualMaterialMode.PlacementPreviewNotPlaceable;
-            _visualTarget.SetMaterialMode(materialMode);
+            _materialController.SetMaterialMode(materialMode);
             return true;
 
             #region Internal
@@ -56,7 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return false;
                 }
 
-                // itemが変わっていなければobjectとmaterial cacheをそのまま使う
+                // item が変わっていなければ object と material cache をそのまま使う
                 // Reuse the object and material cache while the item is unchanged
                 if (_previewObject != null && targetItemId.Equals(_currentItemId))
                 {
@@ -69,14 +72,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     return false;
                 }
 
+                // preview でも Prefab 上の pose updater と非 Mono material controller を組み合わせる
+                // Combine the Prefab pose updater with the non-Mono material controller for previews
                 _previewObject = Instantiate(prefab, transform);
                 _previewObject.transform.localPosition = Vector3.zero;
                 _previewObject.transform.localRotation = Quaternion.identity;
                 _currentItemId = targetItemId;
-
-                // previewにも同じ非Mono visual targetを持たせ、Prefab変更なしで入口を揃える
-                // Use the same non-Mono visual target for previews without requiring Prefab changes
-                _visualTarget = new TrainCarRailPositionVisualController(_previewObject);
+                _poseUpdater = ResolvePoseUpdater(_previewObject, trainCarMasterElement);
+                _materialController = new TrainCarMaterialController(_previewObject);
                 DisableColliders(_previewObject);
                 return true;
             }
@@ -91,9 +94,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return true;
             }
 
+            TrainCarRailPositionVisualPoseUpdater ResolvePoseUpdater(GameObject previewObject, TrainCarMasterElement masterElement)
+            {
+                var poseUpdater = previewObject.GetComponent<TrainCarRailPositionVisualPoseUpdater>();
+                if (poseUpdater == null)
+                {
+                    throw new InvalidOperationException($"Train preview prefab has no TrainCarRailPositionVisualPoseUpdater on root. AddressablePath:{masterElement.AddressablePath}");
+                }
+                return poseUpdater;
+            }
+
             void DisableColliders(GameObject targetObject)
             {
-                // previewが設置raycastを阻害しないようcolliderを無効化する
+                // preview が設置 raycast を阻害しないよう collider を無効化する
                 // Disable colliders so the preview does not interfere with placement raycasts
                 var colliders = targetObject.GetComponentsInChildren<Collider>(true);
                 for (var i = 0; i < colliders.Length; i++)
@@ -117,12 +130,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return;
             }
 
-            // preview破棄前にruntime materialを解放する
+            // preview 破棄前に runtime material を解放する
             // Release runtime materials before discarding the preview object
-            _visualTarget.DestroyRuntimeMaterials();
+            _materialController.DestroyRuntimeMaterials();
             Destroy(_previewObject);
             _previewObject = null;
-            _visualTarget = null;
+            _poseUpdater = null;
+            _materialController = null;
         }
     }
 }
