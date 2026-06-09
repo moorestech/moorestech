@@ -9,7 +9,6 @@ namespace Client.Game.InGame.Train.View.Object
         private readonly RendererMaterialReplacerController _materialController;
         private TrainCarVisualMaterialMode _baseMaterialMode = TrainCarVisualMaterialMode.Normal;
         private TrainCarVisualMaterialMode _overlayMaterialMode = TrainCarVisualMaterialMode.Normal;
-        private TrainCarVisualMaterialMode _appliedMaterialMode = TrainCarVisualMaterialMode.Normal;
         private int _overlayFrame = -1;
 
         public TrainCarMaterialController(GameObject targetObject)
@@ -69,12 +68,6 @@ namespace Client.Game.InGame.Train.View.Object
 
         private void ApplyMaterialMode(TrainCarVisualMaterialMode materialMode)
         {
-            if (_appliedMaterialMode == materialMode)
-            {
-                return;
-            }
-            _appliedMaterialMode = materialMode;
-
             // 通常表示では shared material へ戻し、runtime material を破棄する
             // Normal rendering restores shared materials and destroys runtime materials
             if (materialMode == TrainCarVisualMaterialMode.Normal)
