@@ -9,22 +9,23 @@ namespace Client.Game.InGame.Train.Unit
 {
     public sealed class TrainUnitClientSimulator : ITickable
     {
-        // クライアントの基本tick間隔は共通のゲームtick定義に合わせる。
-        // Keep the base client tick interval aligned with the shared game tick definition.
+        // クライアントの基本 tick 間隔は共通のゲーム tick 定義に合わせる
+        // Keep the base client tick interval aligned with the shared game tick definition
         private const double TickSeconds = 1d / GameUpdater.TicksPerSecond;
 
-        // この遅延秒数を超えたぶんだけを均等早送り対象にする。
-        // Only the lag that exceeds this threshold is distributed as fast-forward.
+        // 閾値を超えた遅延だけを catch-up 対象にする
+        // Only the lag that exceeds this threshold is distributed as catch-up
         private const double FastForwardStartLagSeconds = 0.4d;
         private static readonly double FastForwardStartLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
-        // 1フレームで追いつく最大Tick数
-        // Maximum ticks to catch up in a single frame.
+
+        // 1 フレームで追いつく最大 tick 数を固定する
+        // Fix the maximum ticks to catch up in a single frame
         private const int MaxCatchUpTicksPerFrame = 4;
 
         private readonly TrainUnitTickState _tickState;
         private readonly ITrainUnitHashTickGate _hashTickGate;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
-        private readonly TrainUnitVisualUpdater _visualUpdater;
+        private readonly TrainUnitVisualUpdateSystem _visualUpdateSystem;
 
         private double _estimatedClientTick;
 
@@ -32,43 +33,50 @@ namespace Client.Game.InGame.Train.Unit
             TrainUnitTickState tickState,
             ITrainUnitHashTickGate hashTickGate,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
-            TrainUnitVisualUpdater visualUpdater)
+            TrainUnitVisualUpdateSystem visualUpdateSystem)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
             _futureMessageBuffer = futureMessageBuffer;
-            _visualUpdater = visualUpdater;
+            _visualUpdateSystem = visualUpdateSystem;
         }
 
         public void Tick()
         {
-            // 現在フレーム分の通常進行tickを加算する。
-            // Add normal tick progress based on the current frame delta.
+            // 現在フレーム分の通常進行 tick を加算する
+            // Add normal tick progress based on the current frame delta
             _estimatedClientTick += Time.deltaTime / TickSeconds;
-            double pendingTicks = _estimatedClientTick - _tickState.GetMaxBufferedTicks();
+            var pendingTicks = _estimatedClientTick - _tickState.GetMaxBufferedTicks();
             if (pendingTicks < -FastForwardStartLagTicks)
             {
                 _estimatedClientTick += 0.1 * (_tickState.GetMaxBufferedTicks() - _estimatedClientTick) + 0.1;
             }
+
+            // hash gate が許す範囲で、server event を順番に適用して tick を進める
+            // Advance ticks while the hash gate allows it and apply server events in order
             var nextCount = Math.Max(0, _estimatedClientTick - _tickState.GetTick());
-            int loopTicks = (int)nextCount;
+            var loopTicks = (int)nextCount;
             if (nextCount >= MaxCatchUpTicksPerFrame)
             {
-                _estimatedClientTick = _tickState.GetTick() + 4.0;
+                _estimatedClientTick = _tickState.GetTick() + MaxCatchUpTicksPerFrame;
                 loopTicks = MaxCatchUpTicksPerFrame;
             }
-            
+
             for (var i = 0; i < loopTicks; i++)
             {
                 ulong id = 0;
-                // キューされたeventを連番で処理
                 while (true)
                 {
                     id = _tickState.GetAppliedTickUnifiedId();
-                    var iscomplete = _futureMessageBuffer.TryFlushEvent(id + 1);
-                    if (!iscomplete) break;
+                    var isComplete = _futureMessageBuffer.TryFlushEvent(id + 1);
+                    if (!isComplete)
+                    {
+                        break;
+                    }
                 }
-                
+
+                // hash 不一致なら描画 tick を巻き戻しすぎず、次回の同期を待つ
+                // If the hash mismatches, keep the render tick near the applied tick and wait for the next sync
                 var canAdvance = _hashTickGate.CanAdvanceTick(id + 1);
                 if (canAdvance)
                 {
@@ -81,9 +89,9 @@ namespace Client.Game.InGame.Train.Unit
                 }
             }
 
-            // 推定描画 tick を表示側が simulator に依存せず読めるように記録する
-            // Record render tick so view code can avoid depending on the simulator
-            _visualUpdater.UpdateAll(_estimatedClientTick);
+            // simulator が推定した render tick を、TrainUnit 全体の描画更新 system に渡す
+            // Pass the simulator-estimated render tick to the visual update system for all TrainUnits
+            _visualUpdateSystem.UpdateAll(_estimatedClientTick);
         }
     }
 }
