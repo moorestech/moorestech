@@ -82,6 +82,11 @@ namespace Client.Game.InGame.Train.View.Object
 
         private void Update()
         {
+            // TODO: 将来は TrainUnit 単位の visual updater を作り、unit の RailPosition と Cars から各 car の visualState を一括生成する。
+            // TODO: Create a TrainUnit-level visual updater that builds each car visualState from the unit RailPosition and Cars together.
+            // TODO: その時はこの MonoBehaviour.Update を消し、entity は material/pose/processor 適用 API だけを持つ受け身にする。
+            // TODO: Then remove this MonoBehaviour.Update and keep the entity as a passive API for material, pose, and processor application.
+
             // material overlay の期限を整理してから pose と processor を更新する
             // Expire material overlays before updating pose and processors
             _materialController.RefreshCurrentFrameOverlay();
