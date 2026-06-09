@@ -38,107 +38,109 @@ namespace Client.Game.InGame.Train.View
             // Select the snapshot to render from the previous/current snapshots owned by this unit updater
             var renderSnapshot = PushAndResolve(currentSnapshot);
             ApplySnapshot(renderSnapshot);
-        }
-
-        private bool TryCreateCurrentSnapshot(ClientTrainUnit unit, double renderTick, out TrainUnitRenderSnapshot snapshot)
-        {
-            snapshot = default;
-            if (unit.RailPosition == null)
+            
+            #region internal
+            bool TryCreateCurrentSnapshot(ClientTrainUnit unit, double renderTick, out TrainUnitRenderSnapshot snapshot)
             {
-                return false;
-            }
-
-            // RailPosition は mutable なので、描画履歴用に必ず DeepCopy で固定する
-            // RailPosition is mutable, so always freeze it with DeepCopy for render history
-            var cars = CopyCars(unit.Cars);
-            snapshot = TrainUnitRenderSnapshot.Create(
-                renderTick,
-                unit.RailPosition.DeepCopy(),
-                cars,
-                unit.CurrentSpeed,
-                unit.MasconLevel);
-            return true;
-        }
-
-        private TrainUnitRenderSnapshot PushAndResolve(TrainUnitRenderSnapshot next)
-        {
-            if (_hasCurrent)
-            {
-                _previous = _current;
-                _hasPrevious = true;
-            }
-
-            // 最新 snapshot を current に進め、補間できない場合は current をそのまま使う
-            // Advance the latest snapshot to current and use current directly when interpolation is not possible
-            _current = next;
-            _hasCurrent = true;
-            if (!_hasPrevious || !CanUsePreviousSnapshot(_previous, _current))
-            {
-                return _current;
-            }
-
-            // TODO: renderTick と旧新 snapshot tick から補間 RailPosition を作る
-            // TODO: Build an interpolated RailPosition from renderTick and previous/current snapshot ticks
-            return _previous;
-        }
-
-        private void ClearHistory()
-        {
-            // 無効状態から復帰した時に古い snapshot を補間元へ混ぜない
-            // Do not mix stale snapshots into interpolation after recovering from unavailable state
-            _hasPrevious = false;
-            _hasCurrent = false;
-            _previous = default;
-            _current = default;
-        }
-
-        private void ApplySnapshot(TrainUnitRenderSnapshot snapshot)
-        {
-            var context = TrainCarContext.CreateAvailable(snapshot.CurrentSpeed, snapshot.MasconLevel);
-            var offsetFromHead = 0;
-            for (var i = 0; i < snapshot.Cars.Count; i++)
-            {
-                var car = snapshot.Cars[i];
-                var carLength = ResolveCarLength(car);
-                if (carLength <= 0)
+                snapshot = default;
+                if (unit.RailPosition == null)
                 {
-                    continue;
+                    return false;
                 }
-
-                // unit の RailPosition と car offset から、対象 car の pose を更新する
-                // Update the target car pose from the unit RailPosition and car offsets
-                var frontOffset = offsetFromHead;
-                var rearOffset = offsetFromHead + carLength;
-                offsetFromHead = rearOffset;
-                if (!_trainCarDatastore.TryGetEntity(car.TrainCarInstanceId, out var entity))
-                {
-                    continue;
-                }
-
-                // car object 側の再帰 pose updater へ、表示に必要な span を渡す
-                // Pass the render span to the recursive pose updater on the car object side
-                var visualState = TrainCarRailPositionVisualState.Create(
-                    snapshot.RailPosition,
-                    frontOffset,
-                    rearOffset,
-                    car.IsFacingForward);
-                entity.ApplyVisualState(visualState, context);
+                
+                // RailPosition は mutable なので、描画履歴用に必ず DeepCopy で固定する
+                // RailPosition is mutable, so always freeze it with DeepCopy for render history
+                var cars = CopyCars(unit.Cars);
+                snapshot = TrainUnitRenderSnapshot.Create(
+                    renderTick,
+                    unit.RailPosition.DeepCopy(),
+                    cars,
+                    unit.CurrentSpeed,
+                    unit.MasconLevel);
+                return true;
             }
-        }
-
-        private void ApplyUnavailableToUnit(ClientTrainUnit unit)
-        {
-            var cars = unit.Cars;
-            for (var i = 0; i < cars.Count; i++)
+            
+            TrainUnitRenderSnapshot PushAndResolve(TrainUnitRenderSnapshot next)
             {
-                // car entity が未生成なら、次の snapshot 更新時に生成されるためここでは飛ばす
-                // Skip missing car entities because snapshot updates create them later
-                if (!_trainCarDatastore.TryGetEntity(cars[i].TrainCarInstanceId, out var entity))
+                if (_hasCurrent)
                 {
-                    continue;
+                    _previous = _current;
+                    _hasPrevious = true;
                 }
-                entity.ApplyUnavailableVisualState();
+                
+                // 最新 snapshot を current に進め、補間できない場合は current をそのまま使う
+                // Advance the latest snapshot to current and use current directly when interpolation is not possible
+                _current = next;
+                _hasCurrent = true;
+                if (!_hasPrevious || !CanUsePreviousSnapshot(_previous, _current))
+                {
+                    return _current;
+                }
+                
+                // TODO: renderTick と旧新 snapshot tick から補間 RailPosition を作る
+                // TODO: Build an interpolated RailPosition from renderTick and previous/current snapshot ticks
+                return _previous;
             }
+            
+            void ClearHistory()
+            {
+                // 無効状態から復帰した時に古い snapshot を補間元へ混ぜない
+                // Do not mix stale snapshots into interpolation after recovering from unavailable state
+                _hasPrevious = false;
+                _hasCurrent = false;
+                _previous = default;
+                _current = default;
+            }
+            
+            void ApplySnapshot(TrainUnitRenderSnapshot snapshot)
+            {
+                var context = TrainCarContext.CreateAvailable(snapshot.CurrentSpeed, snapshot.MasconLevel);
+                var offsetFromHead = 0;
+                for (var i = 0; i < snapshot.Cars.Count; i++)
+                {
+                    var car = snapshot.Cars[i];
+                    var carLength = ResolveCarLength(car);
+                    if (carLength <= 0)
+                    {
+                        continue;
+                    }
+                    
+                    // unit の RailPosition と car offset から、対象 car の pose を更新する
+                    // Update the target car pose from the unit RailPosition and car offsets
+                    var frontOffset = offsetFromHead;
+                    var rearOffset = offsetFromHead + carLength;
+                    offsetFromHead = rearOffset;
+                    if (!_trainCarDatastore.TryGetEntity(car.TrainCarInstanceId, out var entity))
+                    {
+                        continue;
+                    }
+                    
+                    // car object 側の再帰 pose updater へ、表示に必要な span を渡す
+                    // Pass the render span to the recursive pose updater on the car object side
+                    var visualState = TrainCarRailPositionVisualState.Create(
+                        snapshot.RailPosition,
+                        frontOffset,
+                        rearOffset,
+                        car.IsFacingForward);
+                    entity.ApplyVisualState(visualState, context);
+                }
+            }
+            
+            void ApplyUnavailableToUnit(ClientTrainUnit unit)
+            {
+                var cars = unit.Cars;
+                for (var i = 0; i < cars.Count; i++)
+                {
+                    // car entity が未生成なら、次の snapshot 更新時に生成されるためここでは飛ばす
+                    // Skip missing car entities because snapshot updates create them later
+                    if (!_trainCarDatastore.TryGetEntity(cars[i].TrainCarInstanceId, out var entity))
+                    {
+                        continue;
+                    }
+                    entity.ApplyUnavailableVisualState();
+                }
+            }
+            #endregion
         }
 
         private static TrainCarSnapshot[] CopyCars(IReadOnlyList<TrainCarSnapshot> cars)
