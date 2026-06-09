@@ -9,47 +9,34 @@ namespace Client.Game.InGame.Train.View
 {
     public sealed class TrainUnitVisualUpdater
     {
-        private readonly TrainUnitClientCache _trainCache;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
-        private readonly Dictionary<TrainUnitInstanceId, TrainUnitRenderHistory> _historiesByUnit = new();
-        private readonly HashSet<TrainUnitInstanceId> _activeUnitIds = new();
-        private readonly List<TrainUnitInstanceId> _removeUnitIds = new();
 
-        public TrainUnitVisualUpdater(TrainUnitClientCache trainCache, TrainCarObjectDatastore trainCarDatastore)
+        private bool _hasPrevious;
+        private bool _hasCurrent;
+        private TrainUnitRenderSnapshot _previous;
+        private TrainUnitRenderSnapshot _current;
+
+        public TrainUnitVisualUpdater(TrainCarObjectDatastore trainCarDatastore)
         {
-            // TrainUnit を構成境界として、描画更新に必要な cache と entity 索引を保持する
-            // Keep the train cache and entity index needed to update visuals at the TrainUnit boundary
-            _trainCache = trainCache;
+            // car object の実体解決だけを受け取り、unit 管理は上位 system に任せる
+            // Receive only car object resolution and leave unit management to the upper system
             _trainCarDatastore = trainCarDatastore;
         }
 
-        public void UpdateAll(double renderTick)
-        {
-            // 現在存在する TrainUnit だけを一括更新し、消えた unit の履歴を後で掃除する
-            // Update only active TrainUnits and clean histories for removed units afterward
-            _activeUnitIds.Clear();
-            foreach (var pair in _trainCache.Units)
-            {
-                var unit = pair.Value;
-                _activeUnitIds.Add(unit.TrainUnitInstanceId);
-                UpdateUnitVisual(unit, renderTick);
-            }
-            RemoveInactiveHistories();
-        }
-
-        private void UpdateUnitVisual(ClientTrainUnit unit, double renderTick)
+        public void Update(ClientTrainUnit unit, double renderTick)
         {
             if (!TryCreateCurrentSnapshot(unit, renderTick, out var currentSnapshot))
             {
+                // RailPosition が無効な unit は描画不可として扱い、補間履歴も破棄する
+                // Treat units with invalid RailPosition as unavailable and discard interpolation history
                 ApplyUnavailableToUnit(unit);
-                _historiesByUnit.Remove(unit.TrainUnitInstanceId);
+                ClearHistory();
                 return;
             }
 
-            // unit 単位で旧新 snapshot を保持し、補間用 snapshot を選ぶ
-            // Keep previous/current snapshots per unit and select the snapshot used for interpolation
-            var history = ResolveHistory(unit.TrainUnitInstanceId);
-            var renderSnapshot = history.PushAndResolve(currentSnapshot);
+            // unit 単位で保持した旧新 snapshot から、今回描画に使う snapshot を選ぶ
+            // Select the snapshot to render from the previous/current snapshots owned by this unit updater
+            var renderSnapshot = PushAndResolve(currentSnapshot);
             ApplySnapshot(renderSnapshot);
         }
 
@@ -61,8 +48,8 @@ namespace Client.Game.InGame.Train.View
                 return false;
             }
 
-            // RailPosition は mutable なので描画履歴用に必ず snapshot 化する
-            // RailPosition is mutable, so always snapshot it for render history
+            // RailPosition は mutable なので、描画履歴用に必ず DeepCopy で固定する
+            // RailPosition is mutable, so always freeze it with DeepCopy for render history
             var cars = CopyCars(unit.Cars);
             snapshot = TrainUnitRenderSnapshot.Create(
                 renderTick,
@@ -73,18 +60,36 @@ namespace Client.Game.InGame.Train.View
             return true;
         }
 
-        private TrainUnitRenderHistory ResolveHistory(TrainUnitInstanceId trainUnitInstanceId)
+        private TrainUnitRenderSnapshot PushAndResolve(TrainUnitRenderSnapshot next)
         {
-            if (_historiesByUnit.TryGetValue(trainUnitInstanceId, out var history))
+            if (_hasCurrent)
             {
-                return history;
+                _previous = _current;
+                _hasPrevious = true;
             }
 
-            // 新規 unit には履歴 container を作り、初回は current snapshot だけで描画する
-            // Create a history container for new units; the first render uses only the current snapshot
-            history = new TrainUnitRenderHistory();
-            _historiesByUnit[trainUnitInstanceId] = history;
-            return history;
+            // 最新 snapshot を current に進め、補間できない場合は current をそのまま使う
+            // Advance the latest snapshot to current and use current directly when interpolation is not possible
+            _current = next;
+            _hasCurrent = true;
+            if (!_hasPrevious || !CanUsePreviousSnapshot(_previous, _current))
+            {
+                return _current;
+            }
+
+            // TODO: renderTick と旧新 snapshot tick から補間 RailPosition を作る
+            // TODO: Build an interpolated RailPosition from renderTick and previous/current snapshot ticks
+            return _previous;
+        }
+
+        private void ClearHistory()
+        {
+            // 無効状態から復帰した時に古い snapshot を補間元へ混ぜない
+            // Do not mix stale snapshots into interpolation after recovering from unavailable state
+            _hasPrevious = false;
+            _hasCurrent = false;
+            _previous = default;
+            _current = default;
         }
 
         private void ApplySnapshot(TrainUnitRenderSnapshot snapshot)
@@ -100,8 +105,8 @@ namespace Client.Game.InGame.Train.View
                     continue;
                 }
 
-                // 選択された unit snapshot の RailPosition と car offset から各 car の pose を更新する
-                // Update each car pose from the selected unit snapshot RailPosition and car offsets
+                // unit の RailPosition と car offset から、対象 car の pose を更新する
+                // Update the target car pose from the unit RailPosition and car offsets
                 var frontOffset = offsetFromHead;
                 var rearOffset = offsetFromHead + carLength;
                 offsetFromHead = rearOffset;
@@ -110,6 +115,8 @@ namespace Client.Game.InGame.Train.View
                     continue;
                 }
 
+                // car object 側の再帰 pose updater へ、表示に必要な span を渡す
+                // Pass the render span to the recursive pose updater on the car object side
                 var visualState = TrainCarRailPositionVisualState.Create(
                     snapshot.RailPosition,
                     frontOffset,
@@ -121,35 +128,16 @@ namespace Client.Game.InGame.Train.View
 
         private void ApplyUnavailableToUnit(ClientTrainUnit unit)
         {
-            // unit snapshot が無効な時は対象 car processor へ unavailable を配る
-            // Dispatch unavailable state to car processors when the unit snapshot is invalid
             var cars = unit.Cars;
             for (var i = 0; i < cars.Count; i++)
             {
+                // car entity が未生成なら、次の snapshot 更新時に生成されるためここでは飛ばす
+                // Skip missing car entities because snapshot updates create them later
                 if (!_trainCarDatastore.TryGetEntity(cars[i].TrainCarInstanceId, out var entity))
                 {
                     continue;
                 }
                 entity.ApplyUnavailableVisualState();
-            }
-        }
-
-        private void RemoveInactiveHistories()
-        {
-            _removeUnitIds.Clear();
-            foreach (var unitId in _historiesByUnit.Keys)
-            {
-                if (!_activeUnitIds.Contains(unitId))
-                {
-                    _removeUnitIds.Add(unitId);
-                }
-            }
-
-            // cache から消えた TrainUnit の補間履歴を破棄する
-            // Remove interpolation histories for TrainUnits no longer present in the cache
-            for (var i = 0; i < _removeUnitIds.Count; i++)
-            {
-                _historiesByUnit.Remove(_removeUnitIds[i]);
             }
         }
 
@@ -165,8 +153,8 @@ namespace Client.Game.InGame.Train.View
 
         private static int ResolveCarLength(TrainCarSnapshot snapshot)
         {
-            // マスタ情報から車両長を rail unit へ変換する
-            // Convert the master car length into rail units
+            // マスタの車両長を rail unit に変換し、無効な定義は描画対象外にする
+            // Convert master car length to rail units and exclude invalid definitions from rendering
             if (MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(snapshot.TrainCarMasterId, out var master) && master.Length > 0)
             {
                 return TrainLengthConverter.ToRailUnits(master.Length);
@@ -174,63 +162,36 @@ namespace Client.Game.InGame.Train.View
             return 0;
         }
 
-        private sealed class TrainUnitRenderHistory
+        private static bool CanUsePreviousSnapshot(TrainUnitRenderSnapshot previous, TrainUnitRenderSnapshot current)
         {
-            private bool _hasPrevious;
-            private bool _hasCurrent;
-            private TrainUnitRenderSnapshot _previous;
-            private TrainUnitRenderSnapshot _current;
-
-            public TrainUnitRenderSnapshot PushAndResolve(TrainUnitRenderSnapshot next)
+            if (current.Tick <= previous.Tick)
             {
-                if (_hasCurrent)
-                {
-                    _previous = _current;
-                    _hasPrevious = true;
-                }
-                _current = next;
-                _hasCurrent = true;
-
-                // TODO: ここで renderTick と旧新 snapshot tick から補間 RailPosition を作る
-                // TODO: Build an interpolated RailPosition here from renderTick and previous/current snapshot ticks
-                if (!_hasPrevious || !CanUsePreviousSnapshot(_previous, _current))
-                {
-                    return _current;
-                }
-                return _previous;
+                return false;
+            }
+            if (current.Cars.Count != previous.Cars.Count)
+            {
+                return false;
             }
 
-            private static bool CanUsePreviousSnapshot(TrainUnitRenderSnapshot previous, TrainUnitRenderSnapshot current)
+            // car 構成が変わった時は、古い snapshot を補間元として使わない
+            // Do not use the previous snapshot as an interpolation source when car composition changed
+            for (var i = 0; i < current.Cars.Count; i++)
             {
-                if (current.Tick <= previous.Tick)
+                if (current.Cars[i].TrainCarInstanceId != previous.Cars[i].TrainCarInstanceId)
                 {
                     return false;
                 }
-                if (current.Cars.Count != previous.Cars.Count)
-                {
-                    return false;
-                }
-
-                // car 構成が変わった時は旧 snapshot を補間元として使わない
-                // Do not use the previous snapshot as an interpolation source when car composition changed
-                for (var i = 0; i < current.Cars.Count; i++)
-                {
-                    if (current.Cars[i].TrainCarInstanceId != previous.Cars[i].TrainCarInstanceId)
-                    {
-                        return false;
-                    }
-                }
-                return true;
             }
+            return true;
         }
 
         private readonly struct TrainUnitRenderSnapshot
         {
-            public double Tick { get; }
-            public RailPosition RailPosition { get; }
-            public IReadOnlyList<TrainCarSnapshot> Cars { get; }
-            public double CurrentSpeed { get; }
-            public int MasconLevel { get; }
+            public readonly double Tick;
+            public readonly RailPosition RailPosition;
+            public readonly IReadOnlyList<TrainCarSnapshot> Cars;
+            public readonly double CurrentSpeed;
+            public readonly int MasconLevel;
 
             private TrainUnitRenderSnapshot(double tick, RailPosition railPosition, IReadOnlyList<TrainCarSnapshot> cars, double currentSpeed, int masconLevel)
             {

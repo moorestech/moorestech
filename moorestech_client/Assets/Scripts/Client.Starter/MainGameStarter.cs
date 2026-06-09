@@ -221,7 +221,7 @@ namespace Client.Starter
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
-            builder.Register<TrainUnitVisualUpdater>(Lifetime.Singleton);
+            builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
             builder.Register<TrainUnitDebugOverlayPresenter>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();
