@@ -65,11 +65,11 @@ namespace Client.Game.InGame.Train.View.Object
             _renderInterpolator = renderInterpolator;
         }
 
-        public void RequestOneFrameOverlay(TrainCarVisualMaterialMode materialMode)
+        public void RequestOverlayForCurrentFrame(TrainCarVisualMaterialMode materialMode)
         {
-            // 設置スナップなどentity外の要求をこのフレームだけvisual targetへ渡す
-            // Forward external placement-snap requests to the visual target for this frame
-            _visualTarget.RequestOneFrameOverlay(materialMode);
+            // 設置スナップなどentity外の要求を現在フレームの overlay として渡す
+            // Forward external placement-snap requests as current-frame overlays
+            _visualTarget.RequestOverlayForCurrentFrame(materialMode);
         }
 
         public void Destroy()

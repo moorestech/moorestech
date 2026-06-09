@@ -24,9 +24,9 @@ namespace Client.Game.InGame.Train.View.Object
 
         public bool UpdateVisual(TrainCarRailPositionVisualState visualState)
         {
-            // 1フレーム overlay の期限を確認してから railposition pose を更新する
-            // Expire one-frame overlays before updating the railposition pose
-            RefreshOneFrameOverlay();
+            // 現在フレーム要求の overlay 期限を確認してから railposition pose を更新する
+            // Expire current-frame overlays before updating the railposition pose
+            RefreshCurrentFrameOverlay();
             return _visualPoseUpdater.UpdatePose(visualState);
         }
 
@@ -38,10 +38,10 @@ namespace Client.Game.InGame.Train.View.Object
             ApplyMaterialMode(ResolveEffectiveMaterialMode());
         }
 
-        public void RequestOneFrameOverlay(TrainCarVisualMaterialMode materialMode)
+        public void RequestOverlayForCurrentFrame(TrainCarVisualMaterialMode materialMode)
         {
-            // 既存車両の一時ハイライトを要求されたフレームだけ有効にする
-            // Keep existing-car temporary highlights active only for the requested frame
+            // 既存車両の一時ハイライト要求を現在フレームに記録する
+            // Record an existing-car temporary highlight request for the current frame
             _overlayMaterialMode = materialMode;
             _overlayFrame = Time.frameCount;
             ApplyMaterialMode(ResolveEffectiveMaterialMode());
@@ -65,7 +65,7 @@ namespace Client.Game.InGame.Train.View.Object
             return visualPoseUpdater;
         }
 
-        private void RefreshOneFrameOverlay()
+        private void RefreshCurrentFrameOverlay()
         {
             if (_overlayFrame == Time.frameCount)
             {
