@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Train.Network;
+using Client.Game.InGame.Train.View;
 using Core.Update;
 using UnityEngine;
 using VContainer.Unity;
@@ -23,7 +24,7 @@ namespace Client.Game.InGame.Train.Unit
         private readonly TrainUnitTickState _tickState;
         private readonly ITrainUnitHashTickGate _hashTickGate;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
-        private readonly TrainUnitRenderTickState _renderTickState;
+        private readonly TrainUnitVisualUpdater _visualUpdater;
 
         private double _estimatedClientTick;
 
@@ -31,12 +32,12 @@ namespace Client.Game.InGame.Train.Unit
             TrainUnitTickState tickState,
             ITrainUnitHashTickGate hashTickGate,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
-            TrainUnitRenderTickState renderTickState)
+            TrainUnitVisualUpdater visualUpdater)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
             _futureMessageBuffer = futureMessageBuffer;
-            _renderTickState = renderTickState;
+            _visualUpdater = visualUpdater;
         }
 
         public void Tick()
@@ -82,16 +83,7 @@ namespace Client.Game.InGame.Train.Unit
 
             // 推定描画 tick を表示側が simulator に依存せず読めるように記録する
             // Record render tick so view code can avoid depending on the simulator
-            RecordRenderTick();
-
-            #region Internal
-
-            void RecordRenderTick()
-            {
-                _renderTickState.SetRenderTick(_estimatedClientTick);
-            }
-
-            #endregion
+            _visualUpdater.UpdateAll(_estimatedClientTick);
         }
     }
 }

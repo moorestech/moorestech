@@ -1,4 +1,3 @@
-using Client.Game.InGame.Train.View;
 using Game.Train.RailPositions;
 
 namespace Client.Game.InGame.Train.View.Object
@@ -23,13 +22,5 @@ namespace Client.Game.InGame.Train.View.Object
             return new TrainCarRailPositionVisualState(railPosition, frontOffset, rearOffset, isFacingForward);
         }
 
-        public static TrainCarRailPositionVisualState CreateFromRenderSnapshot(TrainCarRenderSnapshot renderSnapshot)
-        {
-            return new TrainCarRailPositionVisualState(
-                renderSnapshot.RailPosition,
-                renderSnapshot.FrontOffset,
-                renderSnapshot.RearOffset,
-                renderSnapshot.IsFacingForward);
-        }
     }
 }

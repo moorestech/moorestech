@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Train.Unit;
 using Game.Train.Unit;
 using UnityEngine;
 using VContainer;
@@ -19,11 +18,11 @@ namespace Client.Game.InGame.Train.View.Object
         public event Action<TrainCarInstanceId> TrainCarEntityRemoving;
 
         [Inject]
-        public void Construct(TrainUnitClientCache trainUnitClientCache, TrainUnitTickState tickState)
+        public void Construct()
         {
             // datastoreはfactoryを保持し、表示状態そのものは管理しない
             // The datastore holds the factory and does not manage visual state
-            _carObjectFactory = new TrainCarObjectFactory(trainUnitClientCache, tickState);
+            _carObjectFactory = new TrainCarObjectFactory();
         }
 
         public void OnTrainObjectUpdate(IReadOnlyList<TrainCarSnapshot> carSnapshots)
