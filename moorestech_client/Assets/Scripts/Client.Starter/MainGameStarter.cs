@@ -24,6 +24,7 @@ using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.Riding;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
@@ -200,6 +201,7 @@ namespace Client.Starter
             // プレイヤーステート（UIState → PlayerStateController の単方向依存）
             // Player state framework (one-way dependency: UIState → PlayerStateController)
             builder.Register<NormalPlayerState>(Lifetime.Singleton);
+            builder.Register<TrainCarRideFollowTargetResolver>(Lifetime.Singleton).As<IRideFollowTargetResolver>();
             builder.Register<RidingPlayerState>(Lifetime.Singleton);
             builder.Register<PlayerStateDictionary>(Lifetime.Singleton);
             builder.Register<PlayerStateController>(Lifetime.Singleton).AsSelf().As<ITickable>();

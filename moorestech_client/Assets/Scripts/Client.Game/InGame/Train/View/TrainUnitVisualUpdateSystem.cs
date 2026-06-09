@@ -10,7 +10,6 @@ namespace Client.Game.InGame.Train.View
         private readonly TrainUnitClientCache _trainCache;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private readonly Dictionary<TrainUnitInstanceId, TrainUnitVisualUpdater> _updatersByUnit = new();
-        private readonly List<TrainUnitInstanceId> _staleUnitIds = new();
 
         public TrainUnitVisualUpdateSystem(TrainUnitClientCache trainCache, TrainCarObjectDatastore trainCarDatastore)
         {
@@ -52,20 +51,20 @@ namespace Client.Game.InGame.Train.View
 
         private void RemoveStaleUpdaters()
         {
-            _staleUnitIds.Clear();
+            var staleUnitIds = new List<TrainUnitInstanceId>();
             foreach (var pair in _updatersByUnit)
             {
                 if (!_trainCache.Units.ContainsKey(pair.Key))
                 {
-                    _staleUnitIds.Add(pair.Key);
+                    staleUnitIds.Add(pair.Key);
                 }
             }
 
             // dictionary を列挙した後で削除し、更新中の collection 変更を避ける
             // Remove after dictionary enumeration to avoid mutating the collection while iterating
-            for (var i = 0; i < _staleUnitIds.Count; i++)
+            for (var i = 0; i < staleUnitIds.Count; i++)
             {
-                _updatersByUnit.Remove(_staleUnitIds[i]);
+                _updatersByUnit.Remove(staleUnitIds[i]);
             }
         }
     }
