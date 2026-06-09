@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Game.Train.Unit;
 using UnityEngine;
@@ -8,14 +7,9 @@ namespace Client.Game.InGame.Train.View.Object
 {
     public class TrainCarObjectDatastore : MonoBehaviour
     {
-        public IObservable<UniRx.Unit> OnInitializeComplete => _initializeCompleteSubject;
-
-        private readonly UniRx.Subject<UniRx.Unit> _initializeCompleteSubject = new();
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
 
         private TrainCarObjectFactory _carObjectFactory;
-
-        public event Action<TrainCarInstanceId> TrainCarEntityRemoving;
 
         [Inject]
         public void Construct()
@@ -34,7 +28,6 @@ namespace Client.Game.InGame.Train.View.Object
                 var carSnapshot = carSnapshots[i];
                 CreateTrainEntityIfMissing(carSnapshot);
             }
-            _initializeCompleteSubject.OnNext(UniRx.Unit.Default);
         }
 
         public void RecreateAllTrainEntities(IReadOnlyList<TrainUnitSnapshotBundle> snapshots)
@@ -59,7 +52,6 @@ namespace Client.Game.InGame.Train.View.Object
                     CreateTrainEntityIfMissing(carSnapshot);
                 }
             }
-            _initializeCompleteSubject.OnNext(UniRx.Unit.Default);
         }
 
         public bool RemoveTrainEntity(TrainCarInstanceId trainCarInstanceId)
@@ -127,9 +119,8 @@ namespace Client.Game.InGame.Train.View.Object
 
         private void RemoveEntity(TrainCarInstanceId trainCarInstanceId, TrainCarEntityObject entity)
         {
-            // 削除通知後にview objectと管理情報を破棄する
-            // Notify listeners before destroying the view object and bookkeeping
-            TrainCarEntityRemoving?.Invoke(trainCarInstanceId);
+            // view object と管理情報を同時に破棄する
+            // Destroy the view object and bookkeeping together
             if (entity != null)
             {
                 entity.Destroy();
