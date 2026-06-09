@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Riding;
-using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View;
 using Core.Master;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
@@ -18,17 +16,7 @@ namespace Client.Game.InGame.Train.View.Object
     /// </summary>
     public class TrainCarObjectFactory
     {
-        private readonly TrainUnitClientCache _trainCache;
-        private readonly TrainUnitTickState _tickState;
         private readonly Dictionary<Guid, GameObject> _prefabCacheByTrainCarMasterId = new();
-
-        public TrainCarObjectFactory(TrainUnitClientCache trainCache, TrainUnitTickState tickState)
-        {
-            // 姿勢更新と snapshot 参照に必要な依存だけを保持する
-            // Keep only dependencies required for pose updates and snapshot lookup
-            _trainCache = trainCache;
-            _tickState = tickState;
-        }
 
         public TrainCarEntityObject CreateTrainCarObject(Transform parent, TrainCarSnapshot carSnapshot)
         {
@@ -84,12 +72,8 @@ namespace Client.Game.InGame.Train.View.Object
                 // Require the pose updater as the railposition entry point on the Prefab
                 var poseUpdater = ResolvePoseUpdater(trainObject, trainCarMasterElement);
                 var materialController = new TrainCarMaterialController(trainObject);
+                trainEntityObject.SetPoseUpdater(poseUpdater);
                 trainEntityObject.SetMaterialController(materialController);
-
-                // interpolator は姿勢更新だけを担当し、material は entity 側で管理する
-                // Let the interpolator update pose only while the entity owns material state
-                var renderInterpolator = new TrainCarEntityRenderInterpolator(trainEntityObject, poseUpdater, _trainCache, _tickState);
-                trainEntityObject.SetRenderInterpolator(renderInterpolator);
 
                 // renderer 子オブジェクトには削除 target と raycast 用 collider だけを配る
                 // Give renderer children only delete targets and raycast colliders
