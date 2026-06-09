@@ -60,7 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
 
             // 既存列車へのスナップ対象はこのフレームだけハイライトを要求する
-            // Request one-frame highlight for existing trains that are snap targets
+            // Request current-frame highlight for existing trains that are snap targets
             RequestPlacementOverlapHighlight(hit.OverlapTrainUnitInstanceIds);
 
             // railpositionからpreviewを描画する
@@ -150,7 +150,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                         continue;
                     }
 
-                    entity.RequestOneFrameOverlay(TrainCarVisualMaterialMode.PlacementOverlapHighlight);
+                    entity.RequestOverlayForCurrentFrame(TrainCarVisualMaterialMode.PlacementOverlapHighlight);
                 }
             }
         }

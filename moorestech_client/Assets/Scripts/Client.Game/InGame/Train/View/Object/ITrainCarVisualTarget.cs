@@ -6,7 +6,7 @@ namespace Client.Game.InGame.Train.View.Object
 
         void SetMaterialMode(TrainCarVisualMaterialMode materialMode);
 
-        void RequestOneFrameOverlay(TrainCarVisualMaterialMode materialMode);
+        void RequestOverlayForCurrentFrame(TrainCarVisualMaterialMode materialMode);
 
         void DestroyRuntimeMaterials();
     }
