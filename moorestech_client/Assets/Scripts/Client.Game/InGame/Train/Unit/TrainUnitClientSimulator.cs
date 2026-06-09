@@ -91,7 +91,7 @@ namespace Client.Game.InGame.Train.Unit
 
             // simulator が推定した render tick を、TrainUnit 全体の描画更新 system に渡す
             // Pass the simulator-estimated render tick to the visual update system for all TrainUnits
-            _visualUpdateSystem.UpdateAll(_estimatedClientTick);
+            _visualUpdateSystem.UpdateAll(_estimatedClientTick, _tickState.GetTick());
         }
     }
 }
