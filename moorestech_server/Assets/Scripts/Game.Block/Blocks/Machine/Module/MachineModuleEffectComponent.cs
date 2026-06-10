@@ -30,9 +30,9 @@ namespace Game.Block.Blocks.Machine.Module
         {
             BlockException.CheckDestroy(this);
 
-            // モジュールスロットのアイテムをモジュール定義へ解決して集計する（非モジュールや空スロットは無視）
-            // Resolve module slot items into module definitions and aggregate (skip empty or non-module stacks)
-            var modules = new List<ModuleMasterElement>();
+            // モジュールスロットのアイテムをモジュール定義へ解決し、スタック数で加重して集計する（非モジュールや空スロットは無視）
+            // Resolve module slot items into module definitions and aggregate weighted by stack count (skip empty or non-module stacks)
+            var modules = new List<MachineModuleEffect.EquippedModule>();
             foreach (var stack in _moduleInventory.ModuleSlot)
             {
                 if (stack.Id == ItemMaster.EmptyItemId) continue;
@@ -41,7 +41,7 @@ namespace Game.Block.Blocks.Machine.Module
                 var module = MasterHolder.ModuleMaster.GetModuleElementByItemGuidOrNull(itemGuid);
                 if (module == null) continue;
 
-                modules.Add(module);
+                modules.Add(new MachineModuleEffect.EquippedModule(module, stack.Count));
             }
 
             return MachineModuleEffect.Aggregate(modules);

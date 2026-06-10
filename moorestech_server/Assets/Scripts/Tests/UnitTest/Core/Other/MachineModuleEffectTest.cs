@@ -18,7 +18,7 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void EmptyNeutralTest()
         {
-            var effect = MachineModuleEffect.Aggregate(Array.Empty<ModuleMasterElement>());
+            var effect = MachineModuleEffect.Aggregate(Array.Empty<MachineModuleEffect.EquippedModule>());
             Assert.AreEqual(1f, effect.ProcessingTimeMultiplier, Delta);
             Assert.AreEqual(1f, effect.PowerMultiplier, Delta);
             Assert.AreEqual(0f, effect.ExtraOutputChance, Delta);
@@ -143,7 +143,7 @@ namespace Tests.UnitTest.Core.Other
         [Test]
         public void QualityNeutralTest()
         {
-            var effect = MachineModuleEffect.Aggregate(Array.Empty<ModuleMasterElement>());
+            var effect = MachineModuleEffect.Aggregate(Array.Empty<MachineModuleEffect.EquippedModule>());
             Assert.AreEqual(0f, effect.QualityShift, Delta);
             Assert.AreEqual(0f, MachineModuleEffect.Neutral.QualityShift, Delta);
         }
@@ -165,6 +165,25 @@ namespace Tests.UnitTest.Core.Other
             Assert.AreEqual(1f, effect.QualityShift, Delta);
         }
 
+        // 1スロットにスタックしたモジュールが個数分の効果を持つ（2スロット分載と等価）ことを検証
+        // Verify a stacked module slot contributes per item count (equivalent to spreading across two slots)
+        [Test]
+        public void StackedCountMultipliesEffectTest()
+        {
+            var stacked = MachineModuleEffect.Aggregate(new[]
+            {
+                CreateStackedModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f, 2),
+            });
+            var spread = MachineModuleEffect.Aggregate(new[]
+            {
+                CreateModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f),
+                CreateModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f),
+            });
+
+            Assert.AreEqual(spread.ProcessingTimeMultiplier, stacked.ProcessingTimeMultiplier, Delta);
+            Assert.AreEqual(spread.PowerMultiplier, stacked.PowerMultiplier, Delta);
+        }
+
         // セーブ値からの復元では時間倍率1のまま電力・追加出力・品質シフトのみ復元されることを検証
         // Verify FromSaved restores power, extra output, and quality shift while keeping the time multiplier at 1
         [Test]
@@ -177,11 +196,19 @@ namespace Tests.UnitTest.Core.Other
             Assert.AreEqual(1.4f, effect.QualityShift, Delta);
         }
 
-        // テスト用のモジュール定義を直接生成する
-        // Construct a module definition directly for tests
-        private static ModuleMasterElement CreateModule(string effectAxis, float effectValue, float tradeoffValue)
+        // テスト用のモジュール定義（スタック数1）を直接生成する
+        // Construct a module definition (stack count 1) directly for tests
+        private static MachineModuleEffect.EquippedModule CreateModule(string effectAxis, float effectValue, float tradeoffValue)
         {
-            return new ModuleMasterElement(0, Guid.NewGuid(), "TestModule", Guid.NewGuid(), effectAxis, 1, effectValue, tradeoffValue);
+            return CreateStackedModule(effectAxis, effectValue, tradeoffValue, 1);
+        }
+
+        // テスト用のモジュール定義を指定スタック数で生成する
+        // Construct a module definition with the given stack count for tests
+        private static MachineModuleEffect.EquippedModule CreateStackedModule(string effectAxis, float effectValue, float tradeoffValue, int count)
+        {
+            var element = new ModuleMasterElement(0, Guid.NewGuid(), "TestModule", Guid.NewGuid(), effectAxis, 1, effectValue, tradeoffValue);
+            return new MachineModuleEffect.EquippedModule(element, count);
         }
     }
 }
