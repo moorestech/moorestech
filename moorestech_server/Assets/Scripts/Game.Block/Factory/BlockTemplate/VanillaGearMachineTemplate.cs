@@ -52,6 +52,10 @@ namespace Game.Block.Factory.BlockTemplate
             // Create the module effect component before the processor and pass it in
             var effectComponent = new MachineModuleEffectComponent(module);
 
+            // 省エネモジュール倍率を要求トルクへ配線する（照会時に遅延参照。加工中はスナップショット倍率、Idleは中立1.0）
+            // Wire the efficiency multiplier into required torque (read lazily per query; snapshot while processing, neutral when idle)
+            gearEnergyTransformer.SetConsumptionMultiplier(() => effectComponent.CurrentPowerMultiplier);
+
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
             var processor = componentStates == null
