@@ -31,10 +31,10 @@ namespace Game.Block.Blocks.Machine.Module
             QualityShift = qualityShift;
         }
 
-        public static MachineModuleEffect Aggregate(IReadOnlyList<ModuleMasterElement> modules)
+        public static MachineModuleEffect Aggregate(IReadOnlyList<EquippedModule> modules)
         {
-            // 軸ごとに効果値・トレードオフ値を加算で集計する
-            // Sum effect and tradeoff values per axis additively
+            // 軸ごとに効果値・トレードオフ値をスタック数で加重して加算で集計する（UI上の個数と効果を一致させる）
+            // Sum effect and tradeoff values per axis additively, weighted by stack count (UI quantity matches the effect)
             var speedSum = 0f;
             var speedTradeoff = 0f;
             var productivitySum = 0f;
@@ -42,24 +42,26 @@ namespace Game.Block.Blocks.Machine.Module
             var efficiencySum = 0f;
             var qualitySum = 0f;
             var qualityTradeoff = 0f;
-            foreach (var module in modules)
+            foreach (var equipped in modules)
             {
+                var module = equipped.Module;
+                var count = equipped.Count;
                 switch (module.EffectAxis)
                 {
                     case ModuleMasterElement.EffectAxisConst.Speed:
-                        speedSum += module.EffectValue;
-                        speedTradeoff += module.TradeoffValue;
+                        speedSum += module.EffectValue * count;
+                        speedTradeoff += module.TradeoffValue * count;
                         break;
                     case ModuleMasterElement.EffectAxisConst.Productivity:
-                        productivitySum += module.EffectValue;
-                        productivityTradeoff += module.TradeoffValue;
+                        productivitySum += module.EffectValue * count;
+                        productivityTradeoff += module.TradeoffValue * count;
                         break;
                     case ModuleMasterElement.EffectAxisConst.Efficiency:
-                        efficiencySum += module.EffectValue;
+                        efficiencySum += module.EffectValue * count;
                         break;
                     case ModuleMasterElement.EffectAxisConst.Quality:
-                        qualitySum += module.EffectValue;
-                        qualityTradeoff += module.TradeoffValue;
+                        qualitySum += module.EffectValue * count;
+                        qualityTradeoff += module.TradeoffValue * count;
                         break;
                     default:
                         break;
@@ -89,6 +91,22 @@ namespace Game.Block.Blocks.Machine.Module
             // 加工時間はロード側でtick数として直接復元するため、ここでは1倍とする
             // Processing time is restored directly as ticks on load, so keep its multiplier at 1
             return new MachineModuleEffect(1f, powerMultiplier, extraOutputChance, Math.Max(qualityShift, 0f));
+        }
+
+        /// <summary>
+        ///     装着中モジュール1スロット分（モジュール定義とスタック数）
+        ///     One equipped module slot (module definition and stack count)
+        /// </summary>
+        public readonly struct EquippedModule
+        {
+            public readonly ModuleMasterElement Module;
+            public readonly int Count;
+
+            public EquippedModule(ModuleMasterElement module, int count)
+            {
+                Module = module;
+                Count = count;
+            }
         }
     }
 }
