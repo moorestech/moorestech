@@ -19,6 +19,7 @@ namespace Core.Master
         public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
         public static ModuleMaster ModuleMaster { get; private set; }
+        public static LevelFamilyMaster LevelFamilyMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -60,6 +61,12 @@ namespace Core.Master
             var modulesJson = TryGetJsonOrNull(masterJsonFileContainer, new JsonFileName("modules")) ?? JToken.Parse("{\"data\":[]}");
             ModuleMaster = new ModuleMaster(modulesJson);
             InitializeMaster(ModuleMaster);
+
+            // レベルファミリーマスタをロード（ItemMaster に依存。levelFamilies不在modでは空扱い）
+            // Load the level family master (depends on ItemMaster; treat absent levelFamilies as empty)
+            var levelFamiliesJson = TryGetJsonOrNull(masterJsonFileContainer, new JsonFileName("levelFamilies")) ?? JToken.Parse("{\"data\":[]}");
+            LevelFamilyMaster = new LevelFamilyMaster(levelFamiliesJson);
+            InitializeMaster(LevelFamilyMaster);
 
             // BlockMaster, ItemMaster, FluidMaster依存
             // Depends on BlockMaster, ItemMaster, FluidMaster
