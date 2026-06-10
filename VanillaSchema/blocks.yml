@@ -22,6 +22,9 @@ defineInterface:
   - key: innerTankCapacity
     type: number
     default: 0
+  - key: moduleSlotCount
+    type: integer
+    default: 0
 - interfaceName: IChestParam
   properties:
   - key: itemSlotCount
@@ -186,6 +189,9 @@ properties:
           default: 0
         - key: innerTankCapacity
           type: number
+          default: 0
+        - key: moduleSlotCount
+          type: integer
           default: 0
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
@@ -372,6 +378,9 @@ properties:
           default: 0
         - key: innerTankCapacity
           type: number
+          default: 0
+        - key: moduleSlotCount
+          type: integer
           default: 0
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
