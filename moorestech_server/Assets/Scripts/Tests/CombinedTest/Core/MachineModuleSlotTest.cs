@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine;
@@ -47,6 +48,33 @@ namespace Tests.CombinedTest.Core
             inventory.SetItem(ModuleRangeStart, moduleItem);
             Assert.AreEqual(moduleItem, inventory.GetItem(ModuleRangeStart));
             Assert.AreEqual(moduleItem, inventory.InventoryItems[ModuleRangeStart]);
+
+            // 末尾のモジュールスロット（統合スロットの最終番号）にもアクセスできることを確認
+            // Verify the last module slot (final unified slot index) is also accessible
+            var lastModuleSlot = ModuleRangeStart + ModuleSlotCount - 1;
+            var lastModuleItem = CreateModuleItem(3);
+            inventory.SetItem(lastModuleSlot, lastModuleItem);
+            Assert.AreEqual(lastModuleItem, inventory.GetItem(lastModuleSlot));
+            Assert.AreEqual(lastModuleItem, inventory.InventoryItems[lastModuleSlot]);
+
+            // 最終アウトプットスロットへのセットがモジュールレンジへ流れないことを確認
+            // Verify a set to the last output slot does not route into the module range
+            var lastOutputSlot = InputSlotCount + OutputSlotCount - 1;
+            var outputItem = ServerContext.ItemStackFactory.Create(new ItemId(3), 7);
+            inventory.SetItem(lastOutputSlot, outputItem);
+            Assert.AreEqual(outputItem, inventory.GetItem(lastOutputSlot));
+
+            // リフレクションでアウトプットサブインベントリの実体に入っていることを確認
+            // Verify via reflection that the item landed in the actual output sub-inventory
+            var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(inventory);
+            Assert.AreEqual(outputItem, outputInventory.OutputSlot[OutputSlotCount - 1]);
+
+            // 設定した2つのモジュールスロット以外のモジュールレンジは空のまま
+            // The module range except the two configured slots stays empty
+            Assert.AreEqual(ItemMaster.EmptyItemId, inventory.GetItem(ModuleRangeStart + 1).Id);
+            Assert.AreEqual(ItemMaster.EmptyItemId, inventory.GetItem(ModuleRangeStart + 2).Id);
         }
 
         [Test]

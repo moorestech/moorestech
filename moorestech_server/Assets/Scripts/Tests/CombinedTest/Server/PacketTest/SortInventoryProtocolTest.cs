@@ -1,6 +1,7 @@
 using System;
 using Core.Master;
 using Game.Block.Blocks.Chest;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -114,6 +115,48 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 5), chestComponent.GetItem(1));
             Assert.AreEqual(ItemMaster.EmptyItemId, chestComponent.GetItem(2).Id);
             Assert.AreEqual(ItemMaster.EmptyItemId, chestComponent.GetItem(4).Id);
+        }
+
+        [Test]
+        public void MachineInventorySortExcludesModuleSlotsTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var worldDataStore = ServerContext.WorldBlockDatastore;
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            // 機械（input=2, output=3, module=4）を設置してインプットへ降順にアイテムを配置する
+            // Place the machine (input=2, output=3, module=4) and put items into inputs in descending order.
+            var machinePosition = new Vector3Int(5, 10);
+            worldDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+            var machineComponent = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
+            machineComponent.SetItem(0, new ItemId(5), 3);
+            machineComponent.SetItem(1, new ItemId(2), 4);
+
+            // モジュールレンジの先頭と末尾（slot5・slot8）にモジュールアイテムを装着する
+            // Equip module items into the first and last module slots (slot 5 and slot 8).
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ModuleMaster.Modules.Data[0].ItemGuid);
+            var firstModuleItem = itemStackFactory.Create(moduleItemId, 1);
+            var lastModuleItem = itemStackFactory.Create(moduleItemId, 2);
+            machineComponent.SetItem(5, firstModuleItem);
+            machineComponent.SetItem(8, lastModuleItem);
+
+            // 実プロトコル経由で機械インベントリを整理する
+            // Sort the machine inventory via the actual protocol packet.
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), new PacketResponseContext());
+
+            // インプット・アウトプットレンジはItemId昇順に整理されている
+            // The input/output ranges are re-packed in ItemId ascending order.
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 4), machineComponent.GetItem(0));
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(5), 3), machineComponent.GetItem(1));
+            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(2).Id);
+
+            // モジュールスロットは整理対象外なので位置も中身も不動
+            // Module slots are excluded from sorting and stay in place untouched.
+            Assert.AreEqual(firstModuleItem, machineComponent.GetItem(5));
+            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(6).Id);
+            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(7).Id);
+            Assert.AreEqual(lastModuleItem, machineComponent.GetItem(8));
         }
 
         private byte[] GetPacket(InventoryIdentifierMessagePack target)
