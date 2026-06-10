@@ -1,0 +1,31 @@
+{
+  "data": [
+    {
+      "moduleGuid": "00000000-0000-0000-5678-000000000001",
+      "name": "TestSpeedModule",
+      "itemGuid": "00000000-0000-0000-1234-000000000001",
+      "effectAxis": "Speed",
+      "tier": 1,
+      "effectValue": 0.5,
+      "tradeoffValue": 0.5
+    },
+    {
+      "moduleGuid": "00000000-0000-0000-5678-000000000002",
+      "name": "TestProductivityModule",
+      "itemGuid": "00000000-0000-0000-1234-000000000002",
+      "effectAxis": "Productivity",
+      "tier": 1,
+      "effectValue": 1.0,
+      "tradeoffValue": 0.5
+    },
+    {
+      "moduleGuid": "00000000-0000-0000-5678-000000000003",
+      "name": "TestEfficiencyModule",
+      "itemGuid": "00000000-0000-0000-1234-000000000003",
+      "effectAxis": "Efficiency",
+      "tier": 1,
+      "effectValue": 0.3,
+      "tradeoffValue": 0.0
+    }
+  ]
+}
