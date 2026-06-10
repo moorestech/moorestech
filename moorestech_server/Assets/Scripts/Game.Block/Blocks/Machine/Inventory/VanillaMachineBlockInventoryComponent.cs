@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -169,54 +170,36 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             BlockException.CheckDestroy(this);
             
-            ItemProcessResult result;
+            // スロット番号をレンジごとのローカル番号へ変換し、共通の置き換え処理へ委譲する
+            // Convert the slot number to a per-range local index and delegate to the shared replace logic
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)
-            {
-                //アイテムIDが同じの時はスタックして余ったものを返す
-                var item = _vanillaMachineInputInventory.InputSlot[slot];
-                if (item.Id == itemStack.Id)
-                {
-                    result = item.AddItem(itemStack);
-                    _vanillaMachineInputInventory.SetItem(slot, result.ProcessResultItemStack);
-                    return result.RemainderItemStack;
-                }
+                return Replace(_vanillaMachineInputInventory.InputSlot[slot], item => _vanillaMachineInputInventory.SetItem(slot, item));
 
-                //違う場合はそのまま入れ替える
-                _vanillaMachineInputInventory.SetItem(slot, itemStack);
-                return item;
-            }
-
-            //アウトプットスロットのインデックスに変換する
             slot -= _vanillaMachineInputInventory.InputSlot.Count;
             if (slot < _vanillaMachineOutputInventory.OutputSlot.Count)
-            {
-                var item = _vanillaMachineOutputInventory.OutputSlot[slot];
+                return Replace(_vanillaMachineOutputInventory.OutputSlot[slot], item => _vanillaMachineOutputInventory.SetItem(slot, item));
 
-                if (item.Id == itemStack.Id)
+            slot -= _vanillaMachineOutputInventory.OutputSlot.Count;
+            return Replace(_vanillaMachineModuleInventory.GetItem(slot), item => _vanillaMachineModuleInventory.SetItem(slot, item));
+
+            #region Internal
+
+            IItemStack Replace(IItemStack current, Action<IItemStack> setItem)
+            {
+                // アイテムIDが同じ時はスタックして余りを返し、違う場合はそのまま入れ替える
+                // Stack and return the remainder when IDs match; otherwise swap the items as-is
+                if (current.Id == itemStack.Id)
                 {
-                    result = item.AddItem(itemStack);
-                    _vanillaMachineOutputInventory.SetItem(slot, result.ProcessResultItemStack);
+                    var result = current.AddItem(itemStack);
+                    setItem(result.ProcessResultItemStack);
                     return result.RemainderItemStack;
                 }
 
-                _vanillaMachineOutputInventory.SetItem(slot, itemStack);
-                return item;
+                setItem(itemStack);
+                return current;
             }
 
-            // モジュールスロットのインデックスに変換して同様の置き換えを行う
-            // Convert to module slot index and perform the same replacement
-            slot -= _vanillaMachineOutputInventory.OutputSlot.Count;
-            var moduleItem = _vanillaMachineModuleInventory.GetItem(slot);
-
-            if (moduleItem.Id == itemStack.Id)
-            {
-                result = moduleItem.AddItem(itemStack);
-                _vanillaMachineModuleInventory.SetItem(slot, result.ProcessResultItemStack);
-                return result.RemainderItemStack;
-            }
-
-            _vanillaMachineModuleInventory.SetItem(slot, itemStack);
-            return moduleItem;
+            #endregion
         }
         
         public bool IsDestroy { get; private set; }
