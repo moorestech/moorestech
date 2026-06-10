@@ -18,6 +18,7 @@ namespace Core.Master
         public static ResearchMaster ResearchMaster { get; private set; }
         public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
+        public static ModuleMaster ModuleMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -53,6 +54,12 @@ namespace Core.Master
 
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")));
             InitializeMaster(TrainUnitMaster);
+
+            // モジュールマスタをロード（ItemMaster に依存。modules不在modでは空扱い）
+            // Load module master (depends on ItemMaster; treat absent modules as empty)
+            var modulesJson = TryGetJsonOrNull(masterJsonFileContainer, new JsonFileName("modules")) ?? JToken.Parse("{\"data\":[]}");
+            ModuleMaster = new ModuleMaster(modulesJson);
+            InitializeMaster(ModuleMaster);
 
             // BlockMaster, ItemMaster, FluidMaster依存
             // Depends on BlockMaster, ItemMaster, FluidMaster
@@ -91,6 +98,17 @@ namespace Core.Master
             var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
             var jsonContent = masterJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
             
+            return (JToken)JsonConvert.DeserializeObject(jsonContent);
+        }
+
+        // 指定ファイルが無ければ null を返す（新規・任意マスタ用）
+        // Return null when the file is absent (for new/optional masters)
+        private static JToken TryGetJsonOrNull(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)
+        {
+            var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
+            var jsonContents = masterJsonFileContainer.ConfigJsons[index].JsonContents;
+            if (!jsonContents.TryGetValue(jsonFileName, out var jsonContent)) return null;
+
             return (JToken)JsonConvert.DeserializeObject(jsonContent);
         }
     }
