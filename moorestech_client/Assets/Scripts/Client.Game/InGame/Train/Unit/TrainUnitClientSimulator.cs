@@ -56,7 +56,6 @@ namespace Client.Game.InGame.Train.Unit
                 _modifyTick += _tickState.GetMaxBufferedTicks() - _lastGetMaxBufferedTicks;
                 if (_modifyTime < 1e-5) _modifyTime = 1e-5;
                 _estimatedClientTick += Time.deltaTime * (_modifyTick / _modifyTime);
-                if (_localcnt % 64 == 10) Debug.Log(_modifyTick / _modifyTime);
             }
             else
             {
@@ -111,7 +110,6 @@ namespace Client.Game.InGame.Train.Unit
                 else
                 {
                     _estimatedClientTick = _tickState.GetTick() + 1;
-                    Debug.Log("TickGate");
                     break;
                 }
             }

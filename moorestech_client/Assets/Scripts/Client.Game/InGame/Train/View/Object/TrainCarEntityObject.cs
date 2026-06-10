@@ -96,6 +96,30 @@ namespace Client.Game.InGame.Train.View.Object
             return true;
         }
 
+        public bool CollectVisualPoseRequests(TrainCarRailPositionVisualState visualState, TrainCarRailPositionPoseBatch poseBatch)
+        {
+            // unit単位batchへ、このentity配下の全visual spanを登録する
+            // Register every visual span under this entity into the unit-level batch
+            return _poseUpdater.CollectPoseRequests(visualState, poseBatch);
+        }
+
+        public bool ApplyBatchedVisualState(TrainCarRailPositionVisualState visualState, TrainCarContext context, TrainCarRailPositionPoseBatch poseBatch)
+        {
+            // material overlayの期限処理はTransform適用直前に従来通り行う
+            // Keep material overlay expiry immediately before applying the Transform state
+            _materialController.RefreshCurrentFrameOverlay();
+            if (!_poseUpdater.ApplyBatchedPose(visualState, poseBatch))
+            {
+                DispatchProcessors(TrainCarContext.CreateUnavailable());
+                return false;
+            }
+
+            // batch pose適用に成功したentityだけ通常描画contextを流す
+            // Dispatch render context only for entities whose batched pose application succeeded
+            DispatchProcessors(context);
+            return true;
+        }
+
         public void ApplyUnavailableVisualState()
         {
             // 描画 snapshot が使えない場合も overlay 期限と processor 状態を更新する

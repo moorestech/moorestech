@@ -23,6 +23,22 @@ namespace Client.Game.InGame.Train.View.Object
             return UpdatePoseRecursive(visualState);
         }
 
+        public bool CollectPoseRequests(TrainCarRailPositionVisualState visualState, TrainCarRailPositionPoseBatch poseBatch)
+        {
+            // 通常描画では先に全visual spanの端点だけをbatchへ登録する
+            // In runtime rendering, register all visual-span endpoints into the batch first
+            Build();
+            return CollectPoseRequestsRecursive(visualState, poseBatch);
+        }
+
+        public bool ApplyBatchedPose(TrainCarRailPositionVisualState visualState, TrainCarRailPositionPoseBatch poseBatch)
+        {
+            // batch解決済みの端点からTransformだけを更新する
+            // Apply Transforms only after the batch has resolved all requested endpoints
+            Build();
+            return ApplyBatchedPoseRecursive(visualState, poseBatch);
+        }
+
         private void Build()
         {
             if (_isBuilt)
@@ -59,6 +75,54 @@ namespace Client.Game.InGame.Train.View.Object
             for (var i = 0; i < _childPoseUpdaters.Length; i++)
             {
                 if (!_childPoseUpdaters[i].UpdatePoseRecursive(localVisualState))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool CollectPoseRequestsRecursive(TrainCarRailPositionVisualState parentVisualState, TrainCarRailPositionPoseBatch poseBatch)
+        {
+            if (!TryBuildLocalVisualState(parentVisualState, out var localVisualState))
+            {
+                return false;
+            }
+
+            // このupdater自身のspanを登録してから子spanを再帰的に登録する
+            // Register this updater span first, then recursively register child spans
+            if (!poseBatch.RequestPose(localVisualState))
+            {
+                return false;
+            }
+            for (var i = 0; i < _childPoseUpdaters.Length; i++)
+            {
+                if (!_childPoseUpdaters[i].CollectPoseRequestsRecursive(localVisualState, poseBatch))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private bool ApplyBatchedPoseRecursive(TrainCarRailPositionVisualState parentVisualState, TrainCarRailPositionPoseBatch poseBatch)
+        {
+            if (!TryBuildLocalVisualState(parentVisualState, out var localVisualState))
+            {
+                return false;
+            }
+
+            // batchが解決した前後端点を使い、既存と同じTransform更新を行う
+            // Use batch-resolved front/rear points and update Transform in the same way as before
+            if (!poseBatch.TryGetPose(localVisualState, _modelForwardCenterOffset, out var pose))
+            {
+                return false;
+            }
+            transform.SetPositionAndRotation(pose.Position, pose.Rotation);
+
+            for (var i = 0; i < _childPoseUpdaters.Length; i++)
+            {
+                if (!_childPoseUpdaters[i].ApplyBatchedPoseRecursive(localVisualState, poseBatch))
                 {
                     return false;
                 }
