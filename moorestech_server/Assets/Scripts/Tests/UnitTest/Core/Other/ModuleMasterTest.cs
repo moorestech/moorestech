@@ -12,8 +12,8 @@ namespace Tests.UnitTest.Core.Other
         private static readonly Guid SpeedModuleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         private static readonly Guid NonModuleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
 
-        // モジュールマスタが modules.json をロードし、GUIDから定義を引けることを検証
-        // Verify ModuleMaster loads modules.json and resolves a definition by GUID
+        // モジュールマスタが modules.json をロードし、アイテムGUIDから定義を引けることを検証
+        // Verify ModuleMaster loads modules.json and resolves a definition by item GUID
         [Test]
         public void LoadAndGetModuleTest()
         {
@@ -24,7 +24,8 @@ namespace Tests.UnitTest.Core.Other
 
             // TestSpeedModule の具体的なフィクスチャ内容を検証
             // Verify the concrete fixture content of TestSpeedModule
-            var speedModule = MasterHolder.ModuleMaster.GetModuleElement(SpeedModuleGuid);
+            var speedModule = MasterHolder.ModuleMaster.GetModuleElementByItemGuidOrNull(SpeedModuleItemGuid);
+            Assert.NotNull(speedModule);
             Assert.AreEqual(SpeedModuleGuid, speedModule.ModuleGuid);
             Assert.AreEqual("TestSpeedModule", speedModule.Name);
             Assert.AreEqual(SpeedModuleItemGuid, speedModule.ItemGuid);

@@ -88,7 +88,7 @@ namespace Game.Block.Blocks.Machine
 
             // 効果適用済みの加工時間を秒から復元する。旧セーブ（0秒）はレシピ定義から再計算する
             // Restore the effect-scaled processing time from seconds. Old saves (0 seconds) recompute from the recipe definition
-            _processingRecipeTicks = processingTotalSeconds > 0
+            _processingRecipeTicks = 0 < processingTotalSeconds
                 ? GameUpdater.SecondsToTicks(processingTotalSeconds)
                 : processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
 
@@ -159,125 +159,129 @@ namespace Game.Block.Blocks.Machine
                 _changeState.OnNext(Unit.Default);
                 _lastState = CurrentState;
             }
-        }
-        
-        private void Idle()
-        {
-            var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
-            if (!isGetRecipe || !_vanillaMachineInputInventory.IsAllowedToStartProcess()) return;
 
-            // 現在のモジュール効果を集計する
-            // Aggregate the current module effects
-            var effect = _effectComponent.AggregateCurrent();
+            #region Internal
 
-            // 今サイクルの抽選（生産性・品質）は開始前に全て確定するため、実際に産出されるスタック列そのもので正確に容量を予約する
-            // All rolls for this cycle (productivity and quality) are fixed before start, so reserve capacity with the exact realized output stacks
-            var realizedOutputs = CreateQualityAppliedOutputs(recipe, effect.QualityShift, 1);
-            if (IsExtraSetRealized(effect)) realizedOutputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift, 1 + recipe.OutputItems.Length));
-            if (!_vanillaMachineOutputInventory.CanStoreOutputs(recipe, realizedOutputs)) return;
-
-            // プロセス開始時に効果をスナップショットし、速度倍率を適用した加工時間を確定する
-            // Snapshot the effects at process start and fix the speed-scaled processing time
-            CurrentState = ProcessState.Processing;
-            _processingRecipe = recipe;
-            _effectComponent.SetProcessSnapshot(effect);
-
-            var baseTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
-            _processingRecipeTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
-            _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
-            RemainingTicks = _processingRecipeTicks;
-        }
-
-        private void Processing()
-        {
-            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, EffectiveRequestPower);
-            if (subTicks >= RemainingTicks)
+            void Idle()
             {
-                RemainingTicks = 0;
-                CurrentState = ProcessState.Idle;
+                var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
+                if (!isGetRecipe || !_vanillaMachineInputInventory.IsAllowedToStartProcess()) return;
 
-                // 1サイクル内の抽選順序は固定: ソルト0=生産性、ソルト1..=品質（ベースセットの出力順→追加セットの出力順）（§7.2）
-                // 開始時の予約と同一入力（ブロックID・サイクル数・ソルト・シフト）で再計算するため、実産出は予約済みスタック列と一致する
-                // Fixed roll order per cycle: salt 0 = productivity, salts 1.. = quality per output (base set order, then extra set order) (§7.2)
-                // Recomputed with the same inputs as the reservation at start (block id, cycle count, salts, shift), so the realized stacks match the reserved ones
-                var effect = _effectComponent.CurrentEffect;
-                var baseOutputs = CreateQualityAppliedOutputs(_processingRecipe, effect.QualityShift, 1);
-                _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe, baseOutputs);
+                // 現在のモジュール効果を集計する
+                // Aggregate the current module effects
+                var effect = _effectComponent.AggregateCurrent();
 
-                if (IsExtraSetRealized(effect))
+                // 今サイクルの抽選（生産性・品質）は開始前に全て確定するため、実際に産出されるスタック列そのもので正確に容量を予約する
+                // All rolls for this cycle (productivity and quality) are fixed before start, so reserve capacity with the exact realized output stacks
+                var realizedOutputs = CreateQualityAppliedOutputs(recipe, effect.QualityShift, 1);
+                if (IsExtraSetRealized(effect)) realizedOutputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift, 1 + recipe.OutputItems.Length));
+                if (!_vanillaMachineOutputInventory.CanStoreOutputs(recipe, realizedOutputs)) return;
+
+                // プロセス開始時に効果をスナップショットし、速度倍率を適用した加工時間を確定する
+                // Snapshot the effects at process start and fix the speed-scaled processing time
+                CurrentState = ProcessState.Processing;
+                _processingRecipe = recipe;
+                _effectComponent.SetProcessSnapshot(effect);
+
+                var baseTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
+                _processingRecipeTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
+                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
+                RemainingTicks = _processingRecipeTicks;
+            }
+
+            void Processing()
+            {
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, EffectiveRequestPower);
+                if (subTicks >= RemainingTicks)
                 {
-                    var extraOutputs = CreateQualityAppliedOutputs(_processingRecipe, effect.QualityShift, 1 + _processingRecipe.OutputItems.Length);
-                    _vanillaMachineOutputInventory.InsertItemOutputsOnly(extraOutputs);
+                    RemainingTicks = 0;
+                    CurrentState = ProcessState.Idle;
+
+                    // 1サイクル内の抽選順序は固定: ソルト0=生産性、ソルト1..=品質（ベースセットの出力順→追加セットの出力順）（§7.2）
+                    // 開始時の予約と同一入力（ブロックID・サイクル数・ソルト・シフト）で再計算するため、実産出は予約済みスタック列と一致する
+                    // Fixed roll order per cycle: salt 0 = productivity, salts 1.. = quality per output (base set order, then extra set order) (§7.2)
+                    // Recomputed with the same inputs as the reservation at start (block id, cycle count, salts, shift), so the realized stacks match the reserved ones
+                    var effect = _effectComponent.CurrentEffect;
+                    var baseOutputs = CreateQualityAppliedOutputs(_processingRecipe, effect.QualityShift, 1);
+                    _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe, baseOutputs);
+
+                    if (IsExtraSetRealized(effect))
+                    {
+                        var extraOutputs = CreateQualityAppliedOutputs(_processingRecipe, effect.QualityShift, 1 + _processingRecipe.OutputItems.Length);
+                        _vanillaMachineOutputInventory.InsertItemOutputsOnly(extraOutputs);
+                    }
+                    _processedCycleCount++;
+                    _effectComponent.ClearProcessSnapshot();
                 }
-                _processedCycleCount++;
-                _effectComponent.ClearProcessSnapshot();
+                else
+                {
+                    RemainingTicks -= subTicks;
+                }
+
+                // 電力を消費する
+                // Consume power
+                _usedPower = true;
             }
-            else
+
+            static double DeterministicRoll(BlockInstanceId blockInstanceId, int cycleCount, int salt)
             {
-                RemainingTicks -= subTicks;
+                // splitmix64系のハッシュでブロックID・サイクル数・ソルトから[0,1)の乱数を決定論的に生成する
+                // Deterministically derive a [0,1) random value from block id, cycle count, and salt via a splitmix64-style hash
+                var x = (ulong)(uint)blockInstanceId.AsPrimitive() * 0x9E3779B97F4A7C15UL + (ulong)(uint)cycleCount;
+
+                // ソルトを別定数で混ぜ、同一サイクル内の複数抽選を脱相関させる（ソルト0は従来の生産性抽選と同一の値になる）
+                // Mix the salt with a distinct constant to decorrelate multiple rolls within one cycle (salt 0 matches the legacy productivity roll)
+                x ^= (ulong)(uint)salt * 0xD1B54A32D192ED03UL;
+                x ^= x >> 30;
+                x *= 0xBF58476D1CE4E5B9UL;
+                x ^= x >> 27;
+                x *= 0x94D049BB133111EBUL;
+                x ^= x >> 31;
+                return (x >> 11) * (1.0 / (1UL << 53));
             }
 
-            // 電力を消費する
-            // Consume power
-            _usedPower = true;
-        }
-
-        private static double DeterministicRoll(BlockInstanceId blockInstanceId, int cycleCount, int salt)
-        {
-            // splitmix64系のハッシュでブロックID・サイクル数・ソルトから[0,1)の乱数を決定論的に生成する
-            // Deterministically derive a [0,1) random value from block id, cycle count, and salt via a splitmix64-style hash
-            var x = (ulong)(uint)blockInstanceId.AsPrimitive() * 0x9E3779B97F4A7C15UL + (ulong)(uint)cycleCount;
-
-            // ソルトを別定数で混ぜ、同一サイクル内の複数抽選を脱相関させる（ソルト0は従来の生産性抽選と同一の値になる）
-            // Mix the salt with a distinct constant to decorrelate multiple rolls within one cycle (salt 0 matches the legacy productivity roll)
-            x ^= (ulong)(uint)salt * 0xD1B54A32D192ED03UL;
-            x ^= x >> 30;
-            x *= 0xBF58476D1CE4E5B9UL;
-            x ^= x >> 27;
-            x *= 0x94D049BB133111EBUL;
-            x ^= x >> 31;
-            return (x >> 11) * (1.0 / (1UL << 53));
-        }
-
-        // 生産性の追加出力セットが今サイクルで実現するか（ソルト0の決定的抽選。開始時の予約と完了時で同一結果になる）
-        // Whether the productivity extra set is realized this cycle (deterministic salt-0 roll; identical at reservation and completion)
-        private bool IsExtraSetRealized(MachineModuleEffect effect)
-        {
-            return effect.ExtraOutputChance > 0f && DeterministicRoll(_blockInstanceId, _processedCycleCount, 0) < effect.ExtraOutputChance;
-        }
-
-        // レシピのアイテム出力1セットを生成し、各出力へ品質レベル抽選を適用する（saltOffsetから出力順にソルトを割り当てる）
-        // Build one set of the recipe's item outputs, applying the quality level roll to each (salts assigned in output order from saltOffset)
-        private List<IItemStack> CreateQualityAppliedOutputs(MachineRecipeMasterElement recipe, float qualityShift, int saltOffset)
-        {
-            var outputs = new List<IItemStack>(recipe.OutputItems.Length);
-            for (var i = 0; i < recipe.OutputItems.Length; i++)
+            // 生産性の追加出力セットが今サイクルで実現するか（ソルト0の決定的抽選。開始時の予約と完了時で同一結果になる）
+            // Whether the productivity extra set is realized this cycle (deterministic salt-0 roll; identical at reservation and completion)
+            bool IsExtraSetRealized(MachineModuleEffect effect)
             {
-                var outputItem = recipe.OutputItems[i];
-                var stack = ServerContext.ItemStackFactory.Create(outputItem.ItemGuid, outputItem.Count);
-                outputs.Add(ApplyQualityLevel(stack, qualityShift, saltOffset + i));
+                return 0f < effect.ExtraOutputChance && DeterministicRoll(_blockInstanceId, _processedCycleCount, 0) < effect.ExtraOutputChance;
             }
-            return outputs;
+
+            // レシピのアイテム出力1セットを生成し、各出力へ品質レベル抽選を適用する（saltOffsetから出力順にソルトを割り当てる）
+            // Build one set of the recipe's item outputs, applying the quality level roll to each (salts assigned in output order from saltOffset)
+            List<IItemStack> CreateQualityAppliedOutputs(MachineRecipeMasterElement recipe, float qualityShift, int saltOffset)
+            {
+                var outputs = new List<IItemStack>(recipe.OutputItems.Length);
+                for (var i = 0; i < recipe.OutputItems.Length; i++)
+                {
+                    var outputItem = recipe.OutputItems[i];
+                    var stack = ServerContext.ItemStackFactory.Create(outputItem.ItemGuid, outputItem.Count);
+                    outputs.Add(ApplyQualityLevel(stack, qualityShift, saltOffset + i));
+                }
+                return outputs;
+            }
+
+            // 出力アイテムを品質分布で上位レベル変種へ差し替える（シフトなし・ファミリー無しは素通し）
+            // Replace an output item with an upgraded variant per the quality distribution (pass-through without shift or family)
+            IItemStack ApplyQualityLevel(IItemStack output, float qualityShift, int salt)
+            {
+                if (qualityShift <= 0f || !MasterHolder.LevelFamilyMaster.HasFamily(output.Id)) return output;
+
+                // 整数部=確定レベルアップ、小数部=決定的抽選でさらに+1（レベル上限はマスタ側でクランプ）
+                // Integer part = guaranteed level-ups; fractional part = one more via deterministic roll (max level clamped by the master)
+                var guaranteed = (int)Math.Floor(qualityShift);
+                var fraction = qualityShift - guaranteed;
+                var extra = 0f < fraction && DeterministicRoll(_blockInstanceId, _processedCycleCount, salt) < fraction ? 1 : 0;
+                var level = 1 + guaranteed + extra;
+
+                var variantId = MasterHolder.LevelFamilyMaster.GetVariantItemId(output.Id, level);
+                if (variantId == output.Id) return output;
+                return ServerContext.ItemStackFactory.Create(variantId, output.Count);
+            }
+
+            #endregion
         }
 
-        // 出力アイテムを品質分布で上位レベル変種へ差し替える（シフトなし・ファミリー無しは素通し）
-        // Replace an output item with an upgraded variant per the quality distribution (pass-through without shift or family)
-        private IItemStack ApplyQualityLevel(IItemStack output, float qualityShift, int salt)
-        {
-            if (qualityShift <= 0f || !MasterHolder.LevelFamilyMaster.HasFamily(output.Id)) return output;
-
-            // 整数部=確定レベルアップ、小数部=決定的抽選でさらに+1（レベル上限はマスタ側でクランプ）
-            // Integer part = guaranteed level-ups; fractional part = one more via deterministic roll (max level clamped by the master)
-            var guaranteed = (int)Math.Floor(qualityShift);
-            var fraction = qualityShift - guaranteed;
-            var extra = fraction > 0f && DeterministicRoll(_blockInstanceId, _processedCycleCount, salt) < fraction ? 1 : 0;
-            var level = 1 + guaranteed + extra;
-
-            var variantId = MasterHolder.LevelFamilyMaster.GetVariantItemId(output.Id, level);
-            if (variantId == output.Id) return output;
-            return ServerContext.ItemStackFactory.Create(variantId, output.Count);
-        }
-        
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {

@@ -5,8 +5,8 @@ using System.Text;
 namespace Core.Master
 {
     /// <summary>
-    ///     seed文字列から決定的にGUIDを生成するユーティリティ（UUIDv5系。MD5の16バイトをそのまま使用）
-    ///     Utility generating a deterministic GUID from a seed string (UUIDv5-style; uses the 16 MD5 bytes directly)
+    ///     seed文字列からMD5ベースで決定的にGUIDを生成するユーティリティ（RFC 4122 UUIDv5ではない。MD5の16バイトをそのまま使用）
+    ///     Utility generating an MD5-based deterministic GUID from a seed string (not RFC 4122 UUIDv5; uses the 16 MD5 bytes directly)
     /// </summary>
     public static class DeterministicGuidUtil
     {

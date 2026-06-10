@@ -36,12 +36,6 @@ namespace Core.Master
             return variants[index];
         }
 
-        public ItemId GetMaxLevelItemId(ItemId baseItemId)
-        {
-            var variants = _variantTable[baseItemId];
-            return variants[variants.Length - 1];
-        }
-
         public bool Validate(out string errorLogs)
         {
             return LevelFamilyMasterUtil.Validate(Families, out errorLogs);

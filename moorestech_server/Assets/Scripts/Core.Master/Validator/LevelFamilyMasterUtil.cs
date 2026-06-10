@@ -55,6 +55,24 @@ namespace Core.Master.Validator
                     {
                         logs += $"[LevelFamilyMaster] Name:{family.Name} has duplicate BaseItemGuid:{family.BaseItemGuid}\n";
                     }
+
+                    // レベル1（先頭）は基準アイテム自身であることを検証
+                    // Validate that level 1 (the first entry) is the base item itself
+                    if (0 < family.LevelItemGuids.Length && family.LevelItemGuids[0] != family.BaseItemGuid)
+                    {
+                        logs += $"[LevelFamilyMaster] Name:{family.Name} levelItemGuids[0]:{family.LevelItemGuids[0]} must equal BaseItemGuid:{family.BaseItemGuid}\n";
+                    }
+
+                    // levelItemGuids 内で GUID が重複していないことを検証
+                    // Validate that no GUID is duplicated within levelItemGuids
+                    var levelGuids = new HashSet<Guid>();
+                    foreach (var levelItemGuid in family.LevelItemGuids)
+                    {
+                        if (!levelGuids.Add(levelItemGuid))
+                        {
+                            logs += $"[LevelFamilyMaster] Name:{family.Name} has duplicate level ItemGuid:{levelItemGuid}\n";
+                        }
+                    }
                 }
 
                 return logs;

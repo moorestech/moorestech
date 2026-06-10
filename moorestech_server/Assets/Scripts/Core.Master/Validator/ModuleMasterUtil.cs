@@ -12,6 +12,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += ItemGuidValidation();
             errorLogs += DuplicateValidation();
+            errorLogs += RangeValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -55,17 +56,39 @@ namespace Core.Master.Validator
                 return logs;
             }
 
+            string RangeValidation()
+            {
+                // tier は1以上、effectValue / tradeoffValue は0以上であることを検証
+                // Validate that tier is at least 1 and effectValue / tradeoffValue are non-negative
+                var logs = "";
+                foreach (var module in modules.Data)
+                {
+                    if (module.Tier < 1)
+                    {
+                        logs += $"[ModuleMaster] Name:{module.Name} has invalid Tier:{module.Tier} (must be >= 1)\n";
+                    }
+                    if (module.EffectValue < 0)
+                    {
+                        logs += $"[ModuleMaster] Name:{module.Name} has invalid EffectValue:{module.EffectValue} (must be >= 0)\n";
+                    }
+                    if (module.TradeoffValue < 0)
+                    {
+                        logs += $"[ModuleMaster] Name:{module.Name} has invalid TradeoffValue:{module.TradeoffValue} (must be >= 0)\n";
+                    }
+                }
+
+                return logs;
+            }
+
             #endregion
         }
 
         public static void Initialize(
             Modules modules,
-            out Dictionary<Guid, ModuleMasterElement> moduleGuidTable,
             out Dictionary<Guid, ModuleMasterElement> itemGuidTable)
         {
             // Dictionary構築（Validate成功後に実行）
-            // Build dictionaries (executed after Validate succeeds)
-            moduleGuidTable = modules.Data.ToDictionary(x => x.ModuleGuid, x => x);
+            // Build the dictionary (executed after Validate succeeds)
             itemGuidTable = modules.Data.ToDictionary(x => x.ItemGuid, x => x);
         }
     }
