@@ -1,12 +1,16 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Mooresmaster.Model.MachineRecipesModule;
+using Mooresmaster.Model.ModulesModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
@@ -178,6 +182,263 @@ namespace Tests.CombinedTest.Core
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, new Vector3Int(5, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBlock);
             var gearInventory = gearBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, gearInventory.GetSlotSize());
+        }
+
+        [Test]
+        // 速度モジュール装着機が未装着機より短いtick数で加工を終えることを確認する
+        // Verify a machine with a speed module finishes processing in fewer ticks than one without
+        public void SpeedModuleShortensProcessingTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var recipe = GetMachineRecipe();
+            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
+
+            // 速度モジュール装着機と未装着機を並べて設置する
+            // Place a speed-boosted machine and a plain machine side by side
+            var (boostedBlock, boostedInventory, boostedProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            var (plainBlock, plainInventory, plainProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
+            boostedInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
+            InsertRecipeInputs(boostedInventory, recipe);
+            InsertRecipeInputs(plainInventory, recipe);
+
+            // ベース時間の約3/4だけ進める（装着機の短縮時間は超え、ベース時間には届かない）
+            // Advance about 3/4 of the base time (past the boosted duration, short of the base duration)
+            AdvanceTicksWithFullPower(24, boostedProcessor, plainProcessor);
+
+            // 装着機は完了してIdle、未装着機はまだProcessingであることを確認
+            // The boosted machine has finished (Idle) while the plain machine is still Processing
+            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            var expectedBoostedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
+            Assert.AreEqual(ProcessState.Idle, boostedProcessor.CurrentState);
+            Assert.AreEqual(expectedBoostedTicks, boostedProcessor.ProcessingRecipeTicks);
+            Assert.AreEqual(ProcessState.Processing, plainProcessor.CurrentState);
+            Assert.AreEqual(baseTicks, plainProcessor.ProcessingRecipeTicks);
+
+            // 装着機のアウトプットにレシピ通りの成果物が入っていることを確認
+            // The boosted machine's output contains the recipe result
+            var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            Assert.AreEqual(recipe.OutputItems[0].Count, CountOutputItem(boostedInventory, outputItemId));
+        }
+
+        [Test]
+        // 省エネモジュール装着機がプロセス中のみ要求電力を下げることを確認する
+        // Verify an efficiency module lowers the requested power only while processing
+        public void EfficiencyModuleLowersRequestPowerTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var recipe = GetMachineRecipe();
+            var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Efficiency, 1));
+
+            // Idle中はモジュールがあっても要求電力は変わらない
+            // While idle, the requested power is unchanged even with the module equipped
+            var electric = block.GetComponent<VanillaElectricMachineComponent>();
+            Assert.AreEqual(processor.RequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
+
+            // プロセス開始後は省エネ倍率分だけ要求電力が下がる
+            // After processing starts, the requested power drops by the efficiency multiplier
+            InsertRecipeInputs(inventory, recipe);
+            AdvanceTicksWithFullPower(1, processor);
+            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+
+            var efficiencyModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Efficiency);
+            var expectedPower = processor.RequestPower / (1f + efficiencyModule.EffectValue);
+            Assert.Less(electric.RequestEnergy.AsPrimitive(), processor.RequestPower);
+            Assert.AreEqual(expectedPower, electric.RequestEnergy.AsPrimitive(), 0.01f);
+        }
+
+        [Test]
+        // 生産性モジュール（確率1.0）で完了時に追加出力が1セット入ることを確認する
+        // Verify a productivity module (chance 1.0) yields one extra output set on completion
+        public void ProductivityExtraOutputTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var recipe = GetMachineRecipe();
+            var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
+            InsertRecipeInputs(inventory, recipe);
+
+            // 生産性トレードオフで時間が1.5倍に延びるため、余裕を持って完了まで進める
+            // The productivity tradeoff stretches time by 1.5x, so advance well past completion
+            var productivityModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Productivity);
+            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
+            var scaledTicks = (int)Math.Round(baseTicks * (1f + productivityModule.TradeoffValue));
+            AdvanceTicksWithFullPower(1 + scaledTicks + 3, processor);
+
+            // 完了済みで、アウトプット合計がレシピ出力数の2倍になっていることを確認
+            // Processing has finished and the total output equals double the recipe output count
+            Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
+            var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            Assert.AreEqual(recipe.OutputItems[0].Count * 2, CountOutputItem(inventory, outputItemId));
+        }
+
+        [Test]
+        // 生産性モジュール装着機は追加出力分の空きが無いとプロセスを開始しないことを確認する
+        // Verify a productivity-equipped machine does not start unless the extra output set also fits
+        public void ProductivityReservesOutputCapacityTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            var recipe = GetMachineRecipe();
+            var (modBlock, modInventory, modProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            var (ctrlBlock, ctrlInventory, ctrlProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
+            modInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
+
+            // アウトプットを「ベース1セットは入るが追加セットは入らない」量まで埋める
+            // Fill outputs so one base set fits but the extra set does not
+            var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            var maxStack = MasterHolder.ItemMaster.GetItemMaster(outputItemId).MaxStack;
+            foreach (var inventory in new[] { modInventory, ctrlInventory })
+            {
+                inventory.SetItem(InputSlotCount, itemStackFactory.Create(outputItemId, maxStack));
+                inventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(outputItemId, maxStack));
+                inventory.SetItem(InputSlotCount + 2, itemStackFactory.Create(outputItemId, maxStack - recipe.OutputItems[0].Count));
+            }
+            InsertRecipeInputs(modInventory, recipe);
+            InsertRecipeInputs(ctrlInventory, recipe);
+
+            AdvanceTicksWithFullPower(2, modProcessor, ctrlProcessor);
+
+            // 装着機は開始せずインプットが残り、未装着機はベース分の空きがあるため開始する
+            // The equipped machine stays idle with inputs intact while the plain machine starts
+            Assert.AreEqual(ProcessState.Idle, modProcessor.CurrentState);
+            Assert.AreNotEqual(ItemMaster.EmptyItemId, modInventory.GetItem(0).Id);
+            Assert.AreEqual(ProcessState.Processing, ctrlProcessor.CurrentState);
+        }
+
+        [Test]
+        // プロセス途中でセーブ・ロードしても短縮済みの加工時間が維持されることを確認する
+        // Verify the speed-scaled processing time survives a mid-process save and load
+        public void EffectSurvivesMidProcessSaveLoadTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var recipe = GetMachineRecipe();
+            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
+            var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
+            InsertRecipeInputs(inventory, recipe);
+
+            // 開始＋数tick進めたプロセス途中の状態を作ってセーブする
+            // Start the process, advance a few ticks mid-process, then save
+            AdvanceTicksWithFullPower(6, processor);
+            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            var ticksBeforeSave = processor.ProcessingRecipeTicks;
+            var remainingBeforeSave = processor.RemainingTicks;
+            Assert.Less(ticksBeforeSave, baseTicks);
+            var saveState = block.GetSaveState();
+
+            // ロード後も短縮済みtick数・残りtick・電力倍率が復元されることを確認
+            // After loading, the scaled ticks, remaining ticks, and power multiplier are restored
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
+            var loadedBlock = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(200), saveState, block.BlockPositionInfo);
+            var loadedProcessor = loadedBlock.GetComponent<VanillaMachineProcessorComponent>();
+
+            Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
+            Assert.AreEqual(ticksBeforeSave, loadedProcessor.ProcessingRecipeTicks);
+            Assert.Less(loadedProcessor.ProcessingRecipeTicks, baseTicks);
+            Assert.AreEqual(remainingBeforeSave, loadedProcessor.RemainingTicks);
+
+            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            Assert.AreEqual(1f + speedModule.TradeoffValue, loadedProcessor.CurrentPowerMultiplier, 0.0001f);
+        }
+
+        [Test]
+        // プロセス中にモジュールを外しても開始時のスナップショット効果が維持されることを確認する
+        // Verify the snapshot taken at process start persists even if the module is removed mid-process
+        public void EffectSnapshotPersistsAfterModuleRemovalTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var recipe = GetMachineRecipe();
+            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
+            var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
+            InsertRecipeInputs(inventory, recipe);
+
+            // プロセス開始後にモジュールを取り外す
+            // Remove the module after the process has started
+            AdvanceTicksWithFullPower(1, processor);
+            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            var ticksAtStart = processor.ProcessingRecipeTicks;
+            Assert.Less(ticksAtStart, baseTicks);
+            inventory.SetItem(ModuleRangeStart, ServerContext.ItemStackFactory.CreatEmpty());
+
+            AdvanceTicksWithFullPower(3, processor);
+
+            // 加工時間・電力倍率ともスナップショットのまま進行していることを確認
+            // Both the processing time and the power multiplier still follow the snapshot
+            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            Assert.AreEqual(ticksAtStart, processor.ProcessingRecipeTicks);
+            Assert.AreEqual(ticksAtStart - 3, processor.RemainingTicks);
+
+            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            Assert.AreEqual(processor.RequestPower * (1f + speedModule.TradeoffValue), processor.EffectiveRequestPower, 0.0001f);
+        }
+
+        // テスト用電動機械（MachineId）を設置して主要コンポーネントを返す
+        // Place the test electric machine (MachineId) and return its key components
+        private static (IBlock block, VanillaMachineBlockInventoryComponent inventory, VanillaMachineProcessorComponent processor) PlaceMachine(Vector3Int position)
+        {
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var processor = block.GetComponent<VanillaMachineProcessorComponent>();
+            return (block, inventory, processor);
+        }
+
+        // テスト用電動機械のレシピ（blocks.jsonのTestElectricMachineに対応）を取得する
+        // Get the recipe for the test electric machine (matches TestElectricMachine in blocks.json)
+        private static MachineRecipeMasterElement GetMachineRecipe()
+        {
+            var machineBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
+            return MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == machineBlockGuid);
+        }
+
+        // レシピの入力アイテム1セットをインプットへ投入する
+        // Insert one set of the recipe's input items into the input range
+        private static void InsertRecipeInputs(VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
+        {
+            foreach (var inputItem in recipe.InputItems)
+            {
+                inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+            }
+        }
+
+        // 毎tick有効要求電力ちょうどを供給して進める（電力比1.0で確率的丸めを排除し決定論化する）
+        // Advance ticks supplying exactly the effective request power (ratio 1.0 removes probabilistic rounding)
+        private static void AdvanceTicksWithFullPower(int ticks, params VanillaMachineProcessorComponent[] processors)
+        {
+            for (var i = 0; i < ticks; i++)
+            {
+                foreach (var processor in processors) processor.SupplyPower(processor.EffectiveRequestPower);
+                GameUpdater.UpdateOneTick();
+            }
+        }
+
+        // 指定効果軸のモジュールアイテムを生成する
+        // Create a module item of the specified effect axis
+        private static IItemStack CreateModuleItemOfAxis(string effectAxis, int count)
+        {
+            var moduleElement = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == effectAxis);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleElement.ItemGuid);
+            return ServerContext.ItemStackFactory.Create(moduleItemId, count);
+        }
+
+        // アウトプットレンジ内の指定アイテムの合計数を数える
+        // Count the total amount of the specified item in the output range
+        private static int CountOutputItem(VanillaMachineBlockInventoryComponent inventory, ItemId itemId)
+        {
+            var total = 0;
+            for (var i = InputSlotCount; i < InputSlotCount + OutputSlotCount; i++)
+            {
+                var stack = inventory.GetItem(i);
+                if (stack.Id == itemId) total += stack.Count;
+            }
+            return total;
         }
 
         // テスト用モジュールアイテム（modules.jsonの定義に対応するアイテム）を生成する
