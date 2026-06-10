@@ -1,6 +1,7 @@
 using System;
 using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -33,34 +34,72 @@ namespace Game.Block.Blocks.Machine
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
         private uint _processingRecipeTicks;
-        
-        
+
+        // プロセス開始時にスナップショットしたモジュール効果と、追加出力抽選用の累計サイクル数
+        // Module effect snapshotted at process start, plus the cumulative cycle count for extra output rolls
+        private readonly MachineModuleEffectComponent _effectComponent;
+        private readonly BlockInstanceId _blockInstanceId;
+        private MachineModuleEffect _currentEffect;
+        private int _processedCycleCount;
+
+        // セーブ用の読み取り専用アクセサ群（効果適用済みの加工時間・倍率・サイクル数）
+        // Read-only accessors for saving (effect-scaled processing ticks, multipliers, cycle count)
+        public uint ProcessingRecipeTicks => _processingRecipeTicks;
+        public float CurrentPowerMultiplier => _currentEffect?.PowerMultiplier ?? 1f;
+        public float CurrentExtraOutputChance => _currentEffect?.ExtraOutputChance ?? 0f;
+        public int ProcessedCycleCount => _processedCycleCount;
+        public float EffectiveRequestPower => CurrentState == ProcessState.Processing ? RequestPower * (_currentEffect?.PowerMultiplier ?? 1f) : RequestPower;
+
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            MachineRecipeMasterElement machineRecipe, float requestPower)
+            MachineRecipeMasterElement machineRecipe, float requestPower,
+            MachineModuleEffectComponent effectComponent, BlockInstanceId blockInstanceId)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _processingRecipe = machineRecipe;
             RequestPower = requestPower;
+            _effectComponent = effectComponent;
+            _blockInstanceId = blockInstanceId;
         }
-        
+
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
-            float requestPower)
+            float requestPower,
+            MachineModuleEffectComponent effectComponent, BlockInstanceId blockInstanceId,
+            double processingTotalSeconds, float powerMultiplier, float extraOutputChance, int processedCycleCount)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
 
             _processingRecipe = processingRecipe;
-            _processingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
             RequestPower = requestPower;
             RemainingTicks = remainingTicks;
+            _effectComponent = effectComponent;
+            _blockInstanceId = blockInstanceId;
+            _processedCycleCount = processedCycleCount;
+
+            // 効果適用済みの加工時間を秒から復元する。旧セーブ（0秒）はレシピ定義から再計算する
+            // Restore the effect-scaled processing time from seconds. Old saves (0 seconds) recompute from the recipe definition
+            _processingRecipeTicks = processingTotalSeconds > 0
+                ? GameUpdater.SecondsToTicks(processingTotalSeconds)
+                : processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
+
+            // 旧セーブで電力倍率が未保存（0以下）の場合は中立扱いにする
+            // Treat power multipliers missing from old saves (zero or less) as neutral
+            _currentEffect = MachineModuleEffect.FromSaved(powerMultiplier <= 0 ? 1f : powerMultiplier, extraOutputChance);
 
             CurrentState = currentState;
+
+            // プロセス途中のロードでは効果スナップショットも復元する
+            // When loading mid-process, restore the effect snapshot as well
+            if (CurrentState == ProcessState.Processing)
+            {
+                _effectComponent.SetProcessSnapshot(_currentEffect);
+            }
         }
         
         
@@ -124,28 +163,45 @@ namespace Game.Block.Blocks.Machine
         private void Idle()
         {
             var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
-            var isStartProcess = CurrentState == ProcessState.Idle && isGetRecipe &&
-                   _vanillaMachineInputInventory.IsAllowedToStartProcess() &&
-                   _vanillaMachineOutputInventory.IsAllowedToOutputItem(recipe);
+            if (!isGetRecipe || !_vanillaMachineInputInventory.IsAllowedToStartProcess()) return;
 
-            if (isStartProcess)
-            {
-                CurrentState = ProcessState.Processing;
-                _processingRecipe = recipe;
-                _processingRecipeTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
-                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
-                RemainingTicks = _processingRecipeTicks;
-            }
+            // 現在のモジュール効果を集計し、追加出力分の空きも含めて出力可否を判定する
+            // Aggregate the current module effects and check output capacity including potential extra output
+            var effect = _effectComponent.AggregateCurrent();
+            var maxExtraSets = effect.ExtraOutputChance > 0f ? 1 : 0;
+            if (!_vanillaMachineOutputInventory.CanStoreOutputs(recipe, maxExtraSets)) return;
+
+            // プロセス開始時に効果をスナップショットし、速度倍率を適用した加工時間を確定する
+            // Snapshot the effects at process start and fix the speed-scaled processing time
+            CurrentState = ProcessState.Processing;
+            _processingRecipe = recipe;
+            _currentEffect = effect;
+            _effectComponent.SetProcessSnapshot(effect);
+
+            var baseTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
+            _processingRecipeTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
+            _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
+            RemainingTicks = _processingRecipeTicks;
         }
 
         private void Processing()
         {
-            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, RequestPower);
+            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, EffectiveRequestPower);
             if (subTicks >= RemainingTicks)
             {
                 RemainingTicks = 0;
                 CurrentState = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
+
+                // 生産性モジュールの追加出力を、永続化された入力のみから成る決定論的な抽選で判定する
+                // Roll the productivity extra output deterministically using only persisted inputs
+                if (_currentEffect != null && _currentEffect.ExtraOutputChance > 0f &&
+                    DeterministicRoll(_blockInstanceId, _processedCycleCount) < _currentEffect.ExtraOutputChance)
+                {
+                    _vanillaMachineOutputInventory.InsertItemOutputsOnly(_processingRecipe);
+                }
+                _processedCycleCount++;
+                _effectComponent.ClearProcessSnapshot();
             }
             else
             {
@@ -155,6 +211,19 @@ namespace Game.Block.Blocks.Machine
             // 電力を消費する
             // Consume power
             _usedPower = true;
+        }
+
+        private static double DeterministicRoll(BlockInstanceId blockInstanceId, int cycleCount)
+        {
+            // splitmix64系のハッシュでブロックIDとサイクル数から[0,1)の乱数を決定論的に生成する
+            // Deterministically derive a [0,1) random value from block id and cycle count via a splitmix64-style hash
+            var x = (ulong)(uint)blockInstanceId.AsPrimitive() * 0x9E3779B97F4A7C15UL + (ulong)(uint)cycleCount;
+            x ^= x >> 30;
+            x *= 0xBF58476D1CE4E5B9UL;
+            x ^= x >> 27;
+            x *= 0x94D049BB133111EBUL;
+            x ^= x >> 31;
+            return (x >> 11) * (1.0 / (1UL << 53));
         }
         
         public bool IsDestroy { get; private set; }

@@ -56,6 +56,12 @@ namespace Game.Block.Blocks.Machine
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
                 RemainingSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.RemainingTicks),
                 RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
+                // モジュール効果適用済みの加工時間と倍率もセーブし、ロード時にレシピ定義へ巻き戻らないようにする
+                // Also save the effect-scaled processing time and multipliers so loads do not revert to the recipe definition
+                ProcessingTotalSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.ProcessingRecipeTicks),
+                EffectPowerMultiplier = _vanillaMachineProcessorComponent.CurrentPowerMultiplier,
+                EffectExtraOutputChance = _vanillaMachineProcessorComponent.CurrentExtraOutputChance,
+                ProcessedCycleCount = _vanillaMachineProcessorComponent.ProcessedCycleCount,
             };
             
             return JsonConvert.SerializeObject(jsonObject);
@@ -88,6 +94,20 @@ namespace Game.Block.Blocks.Machine
 
         [JsonProperty("state")]
         public int State;
+
+        // モジュール効果適用済みの加工時間（秒）と効果倍率。旧セーブにはキーが無く0となり、ロード側で中立として扱う
+        // Effect-scaled processing time in seconds plus effect multipliers. Old saves lack these keys (0) and load as neutral
+        [JsonProperty("processingTotalSeconds")]
+        public double ProcessingTotalSeconds;
+
+        [JsonProperty("effectPowerMultiplier")]
+        public float EffectPowerMultiplier;
+
+        [JsonProperty("effectExtraOutputChance")]
+        public float EffectExtraOutputChance;
+
+        [JsonProperty("processedCycleCount")]
+        public int ProcessedCycleCount;
     }
     
     public class FluidContainerSaveJsonObject

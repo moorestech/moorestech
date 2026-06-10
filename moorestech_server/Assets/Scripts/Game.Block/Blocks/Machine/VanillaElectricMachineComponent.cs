@@ -26,7 +26,9 @@ namespace Game.Block.Blocks.Machine
         
         #region IBlockElectric implementation
         
-        public ElectricPower RequestEnergy => new ElectricPower(_vanillaMachineProcessorComponent.RequestPower);
+        // プロセス中はモジュール効果（省エネ・速度トレードオフ）を反映した要求電力を返す
+        // While processing, return the request power adjusted by module effects (efficiency / speed tradeoff)
+        public ElectricPower RequestEnergy => new ElectricPower(_vanillaMachineProcessorComponent.EffectiveRequestPower);
 
         public void SupplyEnergy(ElectricPower power)
         {

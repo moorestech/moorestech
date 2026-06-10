@@ -5,6 +5,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -74,7 +75,8 @@ namespace Game.Block.Factory.BlockTemplate
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             VanillaMachineModuleInventory vanillaMachineModuleInventory,
-            float requestPower, BlockMasterElement blockMasterElement)
+            MachineModuleEffectComponent machineModuleEffectComponent,
+            float requestPower, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId)
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
@@ -152,7 +154,13 @@ namespace Game.Block.Factory.BlockTemplate
                 (ProcessState)jsonObject.State,
                 remainingTicks,
                 recipe,
-                requestPower);
+                requestPower,
+                machineModuleEffectComponent,
+                blockInstanceId,
+                jsonObject.ProcessingTotalSeconds,
+                jsonObject.EffectPowerMultiplier,
+                jsonObject.EffectExtraOutputChance,
+                jsonObject.ProcessedCycleCount);
 
             return processor;
         }
