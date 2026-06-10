@@ -18,6 +18,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
     {
         [SerializeField] private RectTransform machineInputItemParent;
         [SerializeField] private RectTransform machineOutputItemParent;
+        [SerializeField] private RectTransform machineModuleItemParent;
         [SerializeField] private TMP_Text machineBlockNameText;
         
         [SerializeField] private RectTransform machineInputFluidParent;
@@ -63,7 +64,16 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     SubInventorySlotObjectsInternal.Add(slotObject);
                     itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
                 }
-                
+
+                // モジュールスロットは統合インベントリの第3レンジ（入力→出力→モジュールの順序を維持）
+                // Module slots form the third range of the unified inventory (keep input -> output -> module order)
+                for (var i = 0; i < param.ModuleSlotCount; i++)
+                {
+                    var slotObject = Instantiate(ItemSlotView.Prefab, machineModuleItemParent);
+                    SubInventorySlotObjectsInternal.Add(slotObject);
+                    itemList.Add(ServerContext.ItemStackFactory.CreatEmpty());
+                }
+
                 UpdateItemList(itemList);
             }
             
