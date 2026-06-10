@@ -26,7 +26,7 @@ namespace Game.Block.Factory.BlockTemplate
         }
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
-        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetMachineIOInventory(
+        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory, VanillaMachineModuleInventory) GetMachineIOInventory(
             BlockId blockId, BlockInstanceId blockInstanceId,
             IMachineParam machineParam,
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
@@ -60,13 +60,20 @@ namespace Game.Block.Factory.BlockTemplate
             var output = new VanillaMachineOutputInventory(
                 outputSlotCount, outputTankCount, innerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, blockConnectorComponent);
-            
-            return (input, output);
+
+            // モジュールスロットは統合スロット番号の第3レンジとして生成する
+            // Create module slots as the third range in unified slot numbering
+            var module = new VanillaMachineModuleInventory(
+                machineParam.ModuleSlotCount, blockInventoryUpdateEvent, blockInstanceId,
+                inputSlotCount, outputSlotCount);
+
+            return (input, output, module);
         }
         
         public static VanillaMachineProcessorComponent MachineLoadState(Dictionary<string, string> componentStates,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            VanillaMachineModuleInventory vanillaMachineModuleInventory,
             float requestPower, BlockMasterElement blockMasterElement)
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
@@ -95,7 +102,23 @@ namespace Game.Block.Factory.BlockTemplate
                 }
                 vanillaMachineOutputInventory.SetItemWithoutEvent(i, outputItems[i]);
             }
-            
+
+            // モジュールスロットを復元する。過去セーブにはmoduleSlotキーが無いためnull許容で扱う
+            // Restore module slots. Older saves lack the moduleSlot key, so treat it as nullable
+            if (jsonObject.ModuleSlot != null)
+            {
+                var moduleItems = jsonObject.ModuleSlot.Select(item => item.ToItemStack()).ToList();
+                for (var i = 0; i < moduleItems.Count; i++)
+                {
+                    if (vanillaMachineModuleInventory.ModuleSlot.Count <= i)
+                    {
+                        Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                        break;
+                    }
+                    vanillaMachineModuleInventory.SetItemWithoutEvent(i, moduleItems[i]);
+                }
+            }
+
             // Load fluid data if present
             if (jsonObject.InputFluidSlot != null)
             {

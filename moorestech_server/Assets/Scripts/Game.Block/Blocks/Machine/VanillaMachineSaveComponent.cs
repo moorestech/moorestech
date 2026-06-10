@@ -16,15 +16,18 @@ namespace Game.Block.Blocks.Machine
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
+        private readonly VanillaMachineModuleInventory _vanillaMachineModuleInventory;
         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
-        
+
         public VanillaMachineSaveComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            VanillaMachineModuleInventory vanillaMachineModuleInventory,
             VanillaMachineProcessorComponent vanillaMachineProcessorComponent)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
+            _vanillaMachineModuleInventory = vanillaMachineModuleInventory;
             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
         }
         public bool IsDestroy { get; private set; }
@@ -47,6 +50,7 @@ namespace Game.Block.Blocks.Machine
             {
                 InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                ModuleSlot = _vanillaMachineModuleInventory.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 InputFluidSlot = _vanillaMachineInputInventory.FluidInputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 OutputFluidSlot = _vanillaMachineOutputInventory.FluidOutputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
@@ -64,6 +68,10 @@ namespace Game.Block.Blocks.Machine
         public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")]
         public List<ItemStackSaveJsonObject> OutputSlot;
+        // 過去セーブにはキーが無いことがあるためnull許容で扱う
+        // Older saves may lack this key, so it is treated as nullable
+        [JsonProperty("moduleSlot")]
+        public List<ItemStackSaveJsonObject> ModuleSlot;
         [JsonProperty("inputFluidSlot")]
         public List<FluidContainerSaveJsonObject> InputFluidSlot;
         [JsonProperty("outputFluidSlot")]

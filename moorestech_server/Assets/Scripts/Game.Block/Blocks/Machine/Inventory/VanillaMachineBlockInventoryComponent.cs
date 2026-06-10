@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
@@ -8,17 +9,19 @@ using Game.Context;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent
+    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-        
-        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory)
+        private readonly VanillaMachineModuleInventory _vanillaMachineModuleInventory;
+
+        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
+            _vanillaMachineModuleInventory = vanillaMachineModuleInventory;
         }
-        
+
         public IReadOnlyList<IItemStack> InventoryItems
         {
             get
@@ -27,8 +30,21 @@ namespace Game.Block.Blocks.Machine.Inventory
                 var items = new List<IItemStack>();
                 items.AddRange(_vanillaMachineInputInventory.InputSlot);
                 items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
+                items.AddRange(_vanillaMachineModuleInventory.ModuleSlot);
                 return items;
             }
+        }
+
+        /// <summary>
+        ///     モジュールスロット（第3レンジ）はインベントリ整理の対象から除外する
+        ///     Module slots (the third range) are excluded from inventory sorting
+        /// </summary>
+        public IReadOnlyCollection<int> GetSortExcludedSlots()
+        {
+            BlockException.CheckDestroy(this);
+
+            var moduleRangeStart = _vanillaMachineInputInventory.InputSlot.Count + _vanillaMachineOutputInventory.OutputSlot.Count;
+            return Enumerable.Range(moduleRangeStart, _vanillaMachineModuleInventory.ModuleSlot.Count).ToList();
         }
         
         public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
@@ -68,9 +84,15 @@ namespace Game.Block.Blocks.Machine.Inventory
             
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)
                 return _vanillaMachineInputInventory.InputSlot[slot];
-            
+
             slot -= _vanillaMachineInputInventory.InputSlot.Count;
-            return _vanillaMachineOutputInventory.OutputSlot[slot];
+            if (slot < _vanillaMachineOutputInventory.OutputSlot.Count)
+                return _vanillaMachineOutputInventory.OutputSlot[slot];
+
+            // アウトプットレンジを超えたスロットはモジュールレンジとして扱う
+            // Slots beyond the output range are treated as the module range
+            slot -= _vanillaMachineOutputInventory.OutputSlot.Count;
+            return _vanillaMachineModuleInventory.GetItem(slot);
         }
         
         public void SetItem(int slot, IItemStack itemStack)
@@ -80,12 +102,20 @@ namespace Game.Block.Blocks.Machine.Inventory
             if (slot < _vanillaMachineInputInventory.InputSlot.Count)
             {
                 _vanillaMachineInputInventory.SetItem(slot, itemStack);
+                return;
             }
-            else
+
+            slot -= _vanillaMachineInputInventory.InputSlot.Count;
+            if (slot < _vanillaMachineOutputInventory.OutputSlot.Count)
             {
-                slot -= _vanillaMachineInputInventory.InputSlot.Count;
                 _vanillaMachineOutputInventory.SetItem(slot, itemStack);
+                return;
             }
+
+            // アウトプットレンジを超えたスロットはモジュールレンジとして扱う
+            // Slots beyond the output range are treated as the module range
+            slot -= _vanillaMachineOutputInventory.OutputSlot.Count;
+            _vanillaMachineModuleInventory.SetItem(slot, itemStack);
         }
         
         public void SetItem(int slot, ItemId itemId, int count)
@@ -100,7 +130,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             BlockException.CheckDestroy(this);
             
-            return _vanillaMachineInputInventory.InputSlot.Count + _vanillaMachineOutputInventory.OutputSlot.Count;
+            return _vanillaMachineInputInventory.InputSlot.Count + _vanillaMachineOutputInventory.OutputSlot.Count + _vanillaMachineModuleInventory.ModuleSlot.Count;
         }
         
         public ReadOnlyCollection<IItemStack> CreateCopiedItems()
@@ -110,6 +140,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             var items = new List<IItemStack>();
             items.AddRange(_vanillaMachineInputInventory.InputSlot);
             items.AddRange(_vanillaMachineOutputInventory.OutputSlot);
+            items.AddRange(_vanillaMachineModuleInventory.ModuleSlot);
             return new ReadOnlyCollection<IItemStack>(items);
         }
         
@@ -149,28 +180,43 @@ namespace Game.Block.Blocks.Machine.Inventory
                     _vanillaMachineInputInventory.SetItem(slot, result.ProcessResultItemStack);
                     return result.RemainderItemStack;
                 }
-                
+
                 //違う場合はそのまま入れ替える
                 _vanillaMachineInputInventory.SetItem(slot, itemStack);
                 return item;
             }
-            else
+
+            //アウトプットスロットのインデックスに変換する
+            slot -= _vanillaMachineInputInventory.InputSlot.Count;
+            if (slot < _vanillaMachineOutputInventory.OutputSlot.Count)
             {
-                //アウトプットスロットのインデックスに変換する
-                slot -= _vanillaMachineInputInventory.InputSlot.Count;
-                
                 var item = _vanillaMachineOutputInventory.OutputSlot[slot];
-                
+
                 if (item.Id == itemStack.Id)
                 {
                     result = item.AddItem(itemStack);
                     _vanillaMachineOutputInventory.SetItem(slot, result.ProcessResultItemStack);
                     return result.RemainderItemStack;
                 }
-                
+
                 _vanillaMachineOutputInventory.SetItem(slot, itemStack);
                 return item;
             }
+
+            // モジュールスロットのインデックスに変換して同様の置き換えを行う
+            // Convert to module slot index and perform the same replacement
+            slot -= _vanillaMachineOutputInventory.OutputSlot.Count;
+            var moduleItem = _vanillaMachineModuleInventory.GetItem(slot);
+
+            if (moduleItem.Id == itemStack.Id)
+            {
+                result = moduleItem.AddItem(itemStack);
+                _vanillaMachineModuleInventory.SetItem(slot, result.ProcessResultItemStack);
+                return result.RemainderItemStack;
+            }
+
+            _vanillaMachineModuleInventory.SetItem(slot, itemStack);
+            return moduleItem;
         }
         
         public bool IsDestroy { get; private set; }
