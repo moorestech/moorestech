@@ -145,6 +145,83 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
+        // 小数シフト＋生産性で混在レベル（lv2+lv3）が実現し得る状況でも、開始しないか全量格納のどちらかになり消失しないことを確認する
+        // Verify mixed-level realizations (lv2+lv3) with fractional shift + productivity either prevent the start or store everything (no silent loss)
+        public void MixedLevelRealizationReservesExactlyTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            var recipe = GetMachineRecipe();
+            var baseItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            var lv2ItemId = MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 2);
+            var lv3ItemId = MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 3);
+            Assert.AreNotEqual(lv2ItemId, lv3ItemId);
+            var maxStack = MasterHolder.ItemMaster.GetItemMaster(baseItemId).MaxStack;
+
+            // 前提: 品質1.0+0.4でシフト1.4（確定1段＋40%でもう1段）、生産性1.0で追加セット確定
+            // Precondition: quality 1.0 + 0.4 gives shift 1.4 (one guaranteed + 40% one more); productivity 1.0 guarantees the extra set
+            var qualityModules = MasterHolder.ModuleMaster.Modules.Data.Where(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Quality).ToArray();
+            var quality10 = qualityModules.First(m => Math.Abs(m.EffectValue - 1.0f) < 0.0001f);
+            var quality04 = qualityModules.First(m => Math.Abs(m.EffectValue - 0.4f) < 0.0001f);
+            var productivity = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Productivity);
+
+            // 出力空きスロットを1つだけ残した機械を多数並べ、ベース/追加スタックのレベル混在が高確率で発生する状況を作る
+            // Place many machines with only one free output slot so mixed base/extra stack levels occur with high probability
+            const int machineCount = 20;
+            var machines = new (VanillaMachineBlockInventoryComponent inventory, VanillaMachineProcessorComponent processor)[machineCount];
+            for (var i = 0; i < machineCount; i++)
+            {
+                var (block, inventory, processor) = PlaceMachine(new Vector3Int(1 + i * 3, 1, 1));
+                inventory.SetItem(ModuleRangeStart, CreateModuleItem(quality10));
+                inventory.SetItem(ModuleRangeStart + 1, CreateModuleItem(quality04));
+                inventory.SetItem(ModuleRangeStart + 2, CreateModuleItem(productivity));
+
+                // 基準アイテム満杯スロット2つ＋空きスロット1つ（同レベル2個は1スロットに収まるが、混在は2スロット必要）
+                // Two full base-item slots plus one free slot (two same-level items fit one slot; a mixed pair needs two)
+                inventory.SetItem(InputSlotCount, itemStackFactory.Create(baseItemId, maxStack));
+                inventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(baseItemId, maxStack));
+                InsertRecipeInputs(inventory, recipe);
+                machines[i] = (inventory, processor);
+            }
+
+            // 時間はトレードオフ合算（1+0.5+0+0.5=2.0倍）で延びるため、余裕を持って完了まで進める
+            // Time stretches by the combined tradeoffs (1+0.5+0+0.5 = 2.0x), so advance well past completion
+            var allProcessors = machines.Select(m => m.processor).ToArray();
+            AdvanceTicksWithFullPower(1 + ScaledTicks(recipe, 2.0f) + 3, allProcessors);
+
+            // 各機械で「開始しなかった（出力増加なし）」か「完了して2個全量格納」のどちらかであることを確認（消失ゼロ）
+            // Each machine either never started (no new outputs) or completed storing both items (zero loss)
+            var startedCount = 0;
+            var blockedCount = 0;
+            foreach (var (inventory, processor) in machines)
+            {
+                var newItemCount = CountOutputItem(inventory, lv2ItemId) + CountOutputItem(inventory, lv3ItemId);
+                var inputConsumed = inventory.GetItem(0).Id == ItemMaster.EmptyItemId;
+                if (inputConsumed)
+                {
+                    // 開始できたなら実現レベルは同一のはずで、2個とも消失なく格納される（旧ロジックでは混在時1個消失していた）
+                    // If it started, the realized levels must match and both items are stored (the old logic lost one on a mixed pair)
+                    Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
+                    Assert.AreEqual(2, newItemCount);
+                    startedCount++;
+                }
+                else
+                {
+                    // 混在実現で空きが足りない機械は開始せず、出力も増えない
+                    // Machines with a mixed realization that does not fit never start and gain no outputs
+                    Assert.AreEqual(0, newItemCount);
+                    blockedCount++;
+                }
+            }
+
+            // 20台中に同レベル実現と混在実現の両方が現れること（混在が現れない確率は約0.52^20で無視できる）
+            // Both same-level and mixed realizations appear among 20 machines (no-mixed probability ~0.52^20 is negligible)
+            Assert.GreaterOrEqual(startedCount, 1);
+            Assert.GreaterOrEqual(blockedCount, 1);
+        }
+
+        [Test]
         // プロセス途中でセーブ・ロードしても品質シフトのスナップショットが維持され、変種が出力されることを確認する
         // Verify the quality shift snapshot survives a mid-process save/load and the variant is still produced
         public void QualityShiftSurvivesMidProcessSaveLoadTest()
@@ -278,9 +355,15 @@ namespace Tests.CombinedTest.Core
         // Create a module item of the specified effect axis
         private static IItemStack CreateModuleItemOfAxis(string effectAxis, int count)
         {
-            var moduleElement = GetModuleOfAxis(effectAxis);
+            return CreateModuleItem(GetModuleOfAxis(effectAxis));
+        }
+
+        // 指定モジュール定義のアイテムを1個生成する
+        // Create one item of the specified module definition
+        private static IItemStack CreateModuleItem(ModuleMasterElement moduleElement)
+        {
             var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleElement.ItemGuid);
-            return ServerContext.ItemStackFactory.Create(moduleItemId, count);
+            return ServerContext.ItemStackFactory.Create(moduleItemId, 1);
         }
 
         // アウトプットレンジ内の指定アイテムの合計数を数える
