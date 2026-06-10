@@ -69,14 +69,24 @@ namespace Game.Block.Blocks.Gear
         // Output scaling rate for the current RPM/torque. Referenced by output-side components.
         public virtual float GetCurrentOperatingRate()
         {
-            return _consumption == null ? 0f : GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque);
+            if (_consumption == null) return 0f;
+
+            // 倍率適用後の要求トルク（GetRequiredTorqueと同値）に対して稼働率を計算し、要求側と供給側を整合させる（中立1.0は従来計算と同値）
+            // Compute the rate against the multiplier-adjusted required torque (same as GetRequiredTorque) so supply stays consistent with demand (neutral 1.0 matches the legacy calc)
+            var adjustedRequiredTorque = GetRequiredTorque(CurrentRpm, IsCurrentClockwise);
+            return GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque, adjustedRequiredTorque);
         }
 
-        // 基準電力（baseTorque × baseRpm）に稼働率を乗じた現在の供給電力。Machine/Miner系へ渡す共通計算
-        // Current supplied power = basePower × operatingRate. Shared calc for Machine/Miner components.
+        // 基準電力（baseTorque × baseRpm）に消費倍率と稼働率を乗じた現在の供給電力。Machine/Miner系へ渡す共通計算
+        // Current supplied power = basePower × consumption multiplier × operatingRate. Shared calc for Machine/Miner components.
         public virtual ElectricPower GetCurrentSuppliedPower()
         {
-            return _consumption == null ? new ElectricPower(0) : GearConsumptionCalculator.CalcCurrentPower(_consumption, GetCurrentOperatingRate());
+            if (_consumption == null) return new ElectricPower(0);
+
+            // 倍率分のトルクが供給されていれば有効要求電力（基準×倍率）に一致し、速度モジュールの時間短縮が自己相殺しない
+            // With the scaled torque supplied this equals the effective request power (base × multiplier), so speed module time reduction does not self-cancel
+            var basePower = GearConsumptionCalculator.CalcCurrentPower(_consumption, GetCurrentOperatingRate());
+            return new ElectricPower(basePower.AsPrimitive() * _consumptionMultiplier());
         }
 
         public virtual void StopNetwork()
