@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Game.Block.Interface.Component;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,11 +36,18 @@ namespace Server.Protocol.PacketResponse
 
             // メインインベントリのときはホットバーを整理対象から除外する
             // Exclude the hotbar from sorting when the target is the main inventory.
-            var excludeSlots = data.Target.InventoryType == InventoryType.Main
+            IEnumerable<int> excludeSlots = data.Target.InventoryType == InventoryType.Main
                 ? PlayerInventoryConst.HotBarSlots
                 : Array.Empty<int>();
 
-            InventorySortService.Sort(inventory, excludeSlots);
+            // インベントリ自身が除外スロットを宣言している場合（機械のモジュールスロット等）は結合する
+            // Union slots declared by the inventory itself (e.g. machine module slots).
+            if (inventory is ISortExcludedSlots sortExcluded)
+            {
+                excludeSlots = excludeSlots.Union(sortExcluded.GetSortExcludedSlots());
+            }
+
+            InventorySortService.Sort(inventory, excludeSlots.ToList());
 
             return null;
         }
