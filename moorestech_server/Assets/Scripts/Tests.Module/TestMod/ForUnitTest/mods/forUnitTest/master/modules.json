@@ -35,6 +35,15 @@
       "tier": 1,
       "effectValue": 1.0,
       "tradeoffValue": 0.5
+    },
+    {
+      "moduleGuid": "00000000-0000-0000-5678-000000000005",
+      "name": "TestQualityFractionalModule",
+      "itemGuid": "00000000-0000-0000-1234-000000000006",
+      "effectAxis": "Quality",
+      "tier": 2,
+      "effectValue": 0.4,
+      "tradeoffValue": 0.0
     }
   ]
 }

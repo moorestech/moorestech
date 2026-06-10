@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Core.Other
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             Assert.NotNull(MasterHolder.ModuleMaster);
-            Assert.AreEqual(4, MasterHolder.ModuleMaster.Modules.Data.Length);
+            Assert.AreEqual(5, MasterHolder.ModuleMaster.Modules.Data.Length);
 
             // TestSpeedModule の具体的なフィクスチャ内容を検証
             // Verify the concrete fixture content of TestSpeedModule

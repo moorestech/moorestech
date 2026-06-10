@@ -365,8 +365,8 @@ namespace Tests.CombinedTest.Core
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
             InsertRecipeInputs(inventory, recipe);
 
-            // 短縮済みプロセス途中のセーブから効果系4キーを取り除き、旧セーブを再現する
-            // Strip the four effect keys from a mid-process save to emulate an old save
+            // 短縮済みプロセス途中のセーブから効果系5キーを取り除き、旧セーブを再現する
+            // Strip the five effect keys from a mid-process save to emulate an old save
             AdvanceTicksWithFullPower(6, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
             var saveState = block.GetSaveState();
@@ -375,6 +375,7 @@ namespace Tests.CombinedTest.Core
             machineJson.Remove("processingTotalSeconds");
             machineJson.Remove("effectPowerMultiplier");
             machineJson.Remove("effectExtraOutputChance");
+            machineJson.Remove("effectQualityShift");
             machineJson.Remove("processedCycleCount");
             saveState[saveKey] = machineJson.ToString();
 
