@@ -35,20 +35,19 @@ namespace Game.Block.Blocks.Machine
         private MachineRecipeMasterElement _processingRecipe;
         private uint _processingRecipeTicks;
 
-        // プロセス開始時にスナップショットしたモジュール効果と、追加出力抽選用の累計サイクル数
-        // Module effect snapshotted at process start, plus the cumulative cycle count for extra output rolls
+        // モジュール効果の単一供給源コンポーネント。倍率はすべてここのスナップショットから読む
+        // The single-source module effect component. Every multiplier is read from its snapshot
         private readonly MachineModuleEffectComponent _effectComponent;
         private readonly BlockInstanceId _blockInstanceId;
-        private MachineModuleEffect _currentEffect;
         private int _processedCycleCount;
 
-        // セーブ用の読み取り専用アクセサ群（効果適用済みの加工時間・倍率・サイクル数）
-        // Read-only accessors for saving (effect-scaled processing ticks, multipliers, cycle count)
+        // セーブ用の読み取り専用アクセサ群（効果コンポーネントへ委譲。Idle時はスナップショットが無く中立値になる）
+        // Read-only accessors for saving (delegated to the effect component; neutral while idle without a snapshot)
         public uint ProcessingRecipeTicks => _processingRecipeTicks;
-        public float CurrentPowerMultiplier => _currentEffect?.PowerMultiplier ?? 1f;
-        public float CurrentExtraOutputChance => _currentEffect?.ExtraOutputChance ?? 0f;
+        public float CurrentPowerMultiplier => _effectComponent.CurrentEffect.PowerMultiplier;
+        public float CurrentExtraOutputChance => _effectComponent.CurrentEffect.ExtraOutputChance;
         public int ProcessedCycleCount => _processedCycleCount;
-        public float EffectiveRequestPower => CurrentState == ProcessState.Processing ? RequestPower * (_currentEffect?.PowerMultiplier ?? 1f) : RequestPower;
+        public float EffectiveRequestPower => CurrentState == ProcessState.Processing ? RequestPower * _effectComponent.CurrentEffect.PowerMultiplier : RequestPower;
 
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
@@ -88,17 +87,14 @@ namespace Game.Block.Blocks.Machine
                 ? GameUpdater.SecondsToTicks(processingTotalSeconds)
                 : processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
 
-            // 旧セーブで電力倍率が未保存（0以下）の場合は中立扱いにする
-            // Treat power multipliers missing from old saves (zero or less) as neutral
-            _currentEffect = MachineModuleEffect.FromSaved(powerMultiplier <= 0 ? 1f : powerMultiplier, extraOutputChance);
-
             CurrentState = currentState;
 
-            // プロセス途中のロードでは効果スナップショットも復元する
-            // When loading mid-process, restore the effect snapshot as well
+            // プロセス途中のロードでは効果スナップショットを復元する。旧セーブの未保存倍率（0以下）は中立扱い
+            // When loading mid-process, restore the effect snapshot. Multipliers missing from old saves (zero or less) are neutral
             if (CurrentState == ProcessState.Processing)
             {
-                _effectComponent.SetProcessSnapshot(_currentEffect);
+                var savedEffect = MachineModuleEffect.FromSaved(powerMultiplier <= 0 ? 1f : powerMultiplier, extraOutputChance);
+                _effectComponent.SetProcessSnapshot(savedEffect);
             }
         }
         
@@ -175,7 +171,6 @@ namespace Game.Block.Blocks.Machine
             // Snapshot the effects at process start and fix the speed-scaled processing time
             CurrentState = ProcessState.Processing;
             _processingRecipe = recipe;
-            _currentEffect = effect;
             _effectComponent.SetProcessSnapshot(effect);
 
             var baseTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
@@ -193,10 +188,11 @@ namespace Game.Block.Blocks.Machine
                 CurrentState = ProcessState.Idle;
                 _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe);
 
-                // 生産性モジュールの追加出力を、永続化された入力のみから成る決定論的な抽選で判定する
-                // Roll the productivity extra output deterministically using only persisted inputs
-                if (_currentEffect != null && _currentEffect.ExtraOutputChance > 0f &&
-                    DeterministicRoll(_blockInstanceId, _processedCycleCount) < _currentEffect.ExtraOutputChance)
+                // 生産性モジュールの追加出力を、スナップショットをクリアする前に決定論的な抽選で判定する
+                // Roll the productivity extra output deterministically, reading the snapshot before clearing it
+                var effect = _effectComponent.CurrentEffect;
+                if (effect.ExtraOutputChance > 0f &&
+                    DeterministicRoll(_blockInstanceId, _processedCycleCount) < effect.ExtraOutputChance)
                 {
                     _vanillaMachineOutputInventory.InsertItemOutputsOnly(_processingRecipe);
                 }

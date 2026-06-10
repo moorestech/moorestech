@@ -53,9 +53,11 @@ namespace Game.Block.Blocks.Machine.Module
                     case ModuleMasterElement.EffectAxisConst.Efficiency:
                         efficiencySum += module.EffectValue;
                         break;
+                    case ModuleMasterElement.EffectAxisConst.Quality:
+                        // Quality軸はPhase Bの品質抽選で扱うため、Phase Aの係数集計では無視する
+                        // The Quality axis is handled by the Phase B quality roll and is ignored in Phase A aggregation
+                        break;
                     default:
-                        // Quality軸はPhase Bの品質抽選で扱うため、ここでは明示的に無視する
-                        // The Quality axis is handled by the Phase B quality roll, so it is explicitly ignored here
                         break;
                 }
             }

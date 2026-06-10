@@ -202,14 +202,15 @@ namespace Tests.CombinedTest.Core
             InsertRecipeInputs(boostedInventory, recipe);
             InsertRecipeInputs(plainInventory, recipe);
 
-            // ベース時間の約3/4だけ進める（装着機の短縮時間は超え、ベース時間には届かない）
-            // Advance about 3/4 of the base time (past the boosted duration, short of the base duration)
-            AdvanceTicksWithFullPower(24, boostedProcessor, plainProcessor);
+            // 短縮時間とベース時間の中間点まで進める（装着機の短縮時間は超え、ベース時間には届かない）
+            // Advance to the midpoint of the boosted and base durations (past boosted, short of base)
+            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            var expectedBoostedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
+            var advanceTicks = (int)(1 + (expectedBoostedTicks + baseTicks) / 2);
+            AdvanceTicksWithFullPower(advanceTicks, boostedProcessor, plainProcessor);
 
             // 装着機は完了してIdle、未装着機はまだProcessingであることを確認
             // The boosted machine has finished (Idle) while the plain machine is still Processing
-            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
-            var expectedBoostedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
             Assert.AreEqual(ProcessState.Idle, boostedProcessor.CurrentState);
             Assert.AreEqual(expectedBoostedTicks, boostedProcessor.ProcessingRecipeTicks);
             Assert.AreEqual(ProcessState.Processing, plainProcessor.CurrentState);
@@ -261,9 +262,13 @@ namespace Tests.CombinedTest.Core
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
             InsertRecipeInputs(inventory, recipe);
 
-            // 生産性トレードオフで時間が1.5倍に延びるため、余裕を持って完了まで進める
-            // The productivity tradeoff stretches time by 1.5x, so advance well past completion
+            // 前提: 追加出力が確定（確率1.0）になるeffectValueであること。データ変更時はここで失敗させる
+            // Precondition: effectValue must guarantee the extra output (chance 1.0); fail loudly on data drift
             var productivityModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Productivity);
+            Assert.GreaterOrEqual(productivityModule.EffectValue, 1f);
+
+            // 生産性トレードオフで時間が延びるため、余裕を持って完了まで進める
+            // The productivity tradeoff stretches the time, so advance well past completion
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var scaledTicks = (int)Math.Round(baseTicks * (1f + productivityModule.TradeoffValue));
             AdvanceTicksWithFullPower(1 + scaledTicks + 3, processor);
@@ -345,6 +350,43 @@ namespace Tests.CombinedTest.Core
 
             var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
             Assert.AreEqual(1f + speedModule.TradeoffValue, loadedProcessor.CurrentPowerMultiplier, 0.0001f);
+        }
+
+        [Test]
+        // 効果系キーの無い旧セーブはレシピ時間の再計算と中立効果でロードされることを確認する
+        // Verify an old save lacking the effect keys loads with recipe-time recomputation and neutral effects
+        public void OldSaveWithoutEffectKeysLoadsNeutralTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var recipe = GetMachineRecipe();
+            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
+            var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
+            InsertRecipeInputs(inventory, recipe);
+
+            // 短縮済みプロセス途中のセーブから効果系4キーを取り除き、旧セーブを再現する
+            // Strip the four effect keys from a mid-process save to emulate an old save
+            AdvanceTicksWithFullPower(6, processor);
+            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            var saveState = block.GetSaveState();
+            var saveKey = typeof(VanillaMachineSaveComponent).FullName;
+            var machineJson = JObject.Parse(saveState[saveKey]);
+            machineJson.Remove("processingTotalSeconds");
+            machineJson.Remove("effectPowerMultiplier");
+            machineJson.Remove("effectExtraOutputChance");
+            machineJson.Remove("processedCycleCount");
+            saveState[saveKey] = machineJson.ToString();
+
+            // 加工時間はレシピ定義から再計算され、要求電力は中立（等倍）でロードされることを確認
+            // Ticks are recomputed from the recipe definition and the request power loads as neutral
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
+            var loadedBlock = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(201), saveState, block.BlockPositionInfo);
+            var loadedProcessor = loadedBlock.GetComponent<VanillaMachineProcessorComponent>();
+
+            Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
+            Assert.AreEqual(baseTicks, loadedProcessor.ProcessingRecipeTicks);
+            Assert.AreEqual(loadedProcessor.RequestPower, loadedProcessor.EffectiveRequestPower, 0.0001f);
         }
 
         [Test]
