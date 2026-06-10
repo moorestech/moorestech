@@ -9,6 +9,7 @@
 /additionalfile:Assets/../../VanillaSchema/research.yml
 /additionalfile:Assets/../../VanillaSchema/train.yml
 /additionalfile:Assets/../../VanillaSchema/placeSystem.yml
+/additionalfile:Assets/../../VanillaSchema/modules.yml
 /additionalfile:Assets/../../VanillaSchema/ref/blockConnectInfo.yml
 /additionalfile:Assets/../../VanillaSchema/ref/inventoryConnects.yml
 /additionalfile:Assets/../../VanillaSchema/ref/gearConnects.yml
