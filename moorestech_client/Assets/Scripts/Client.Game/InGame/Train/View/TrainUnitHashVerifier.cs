@@ -72,7 +72,11 @@ namespace Client.Game.InGame.Train.View
             // このtickにメッセージがなく将来tickにメッセージがある場合このtickのメッセージは送られてこない可能性が非常に高い。なのでTickを強制的に進めることにする
             // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
-                return _futureMessageBuffer.TryGetFirstHashTickUnifiedId(out _);
+            {
+                Debug.LogWarning("tick force slip!");
+                return _futureMessageBuffer.TryGetFirstHashTickUnifiedId(out _);                
+            }
+            
             var isVerified = ValidateCurrentTickHash();
             return isVerified && Interlocked.CompareExchange(ref _resyncInProgress, 0, 0) == 0;
 

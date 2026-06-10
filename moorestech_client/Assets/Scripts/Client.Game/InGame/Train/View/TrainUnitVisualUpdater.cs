@@ -15,6 +15,8 @@ namespace Client.Game.InGame.Train.View
         private readonly TrainCarObjectDatastore _trainCarDatastore;
         private readonly IRailGraphProvider _railGraphProvider;
         private readonly IRailGraphTraversalProvider _railGraphTraversalProvider;
+        private readonly TrainCarRailPositionPoseBatch _poseBatch = new();
+        private readonly List<VisualApplyTarget> _visualApplyTargets = new();
 
         private bool _hasPrevious;
         private bool _hasCurrent;
@@ -138,6 +140,11 @@ namespace Client.Game.InGame.Train.View
             void ApplySnapshot(TrainUnitRenderSnapshot snapshot)
             {
                 var context = TrainCarContext.CreateAvailable(snapshot.CurrentSpeed, snapshot.MasconLevel);
+                _poseBatch.Begin(snapshot.RailPosition);
+                _visualApplyTargets.Clear();
+
+                // 先にunit内の全car/part pose要求を集め、RailPosition走査を1回にまとめる
+                // Collect all car/part pose requests first so RailPosition is scanned once per unit
                 var offsetFromHead = 0;
                 for (var i = 0; i < snapshot.Cars.Count; i++)
                 {
@@ -165,7 +172,25 @@ namespace Client.Game.InGame.Train.View
                         frontOffset,
                         rearOffset,
                         car.IsFacingForward);
-                    entity.ApplyVisualState(visualState, context);
+                    if (!entity.CollectVisualPoseRequests(visualState, _poseBatch))
+                    {
+                        entity.ApplyUnavailableVisualState();
+                        continue;
+                    }
+                    _visualApplyTargets.Add(new VisualApplyTarget(entity, visualState, context));
+                }
+
+                // batch解決に成功してから各entityのTransformとprocessorを更新する
+                // Apply entity Transforms and processors only after the shared batch resolves
+                if (!_poseBatch.TryResolve())
+                {
+                    ApplyUnavailableToTargets(_visualApplyTargets);
+                    return;
+                }
+                for (var i = 0; i < _visualApplyTargets.Count; i++)
+                {
+                    var target = _visualApplyTargets[i];
+                    target.Entity.ApplyBatchedVisualState(target.VisualState, target.Context, _poseBatch);
                 }
             }
             
@@ -230,6 +255,16 @@ namespace Client.Game.InGame.Train.View
             return true;
         }
 
+        private static void ApplyUnavailableToTargets(IReadOnlyList<VisualApplyTarget> targets)
+        {
+            // batch全体が失敗した場合は、収集済みentityだけを描画不能として更新する
+            // When the whole batch fails, mark only collected entities as unavailable
+            for (var i = 0; i < targets.Count; i++)
+            {
+                targets[i].Entity.ApplyUnavailableVisualState();
+            }
+        }
+
         private static double Clamp(double value, double min, double max)
         {
             if (value < min)
@@ -264,6 +299,20 @@ namespace Client.Game.InGame.Train.View
             public TrainUnitRenderSnapshot WithRailPosition(RailPosition railPosition)
             {
                 return new TrainUnitRenderSnapshot(Tick, railPosition, Cars, CurrentSpeed, MasconLevel);
+            }
+        }
+
+        private readonly struct VisualApplyTarget
+        {
+            public readonly TrainCarEntityObject Entity;
+            public readonly TrainCarRailPositionVisualState VisualState;
+            public readonly TrainCarContext Context;
+
+            public VisualApplyTarget(TrainCarEntityObject entity, TrainCarRailPositionVisualState visualState, TrainCarContext context)
+            {
+                Entity = entity;
+                VisualState = visualState;
+                Context = context;
             }
         }
     }
