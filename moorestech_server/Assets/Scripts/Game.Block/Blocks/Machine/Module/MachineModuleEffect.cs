@@ -66,10 +66,15 @@ namespace Game.Block.Blocks.Machine.Module
                 }
             }
 
+            // 分母はマスタ検証で非負が保証されるが、純関数として全域で安全なように下限を設ける
+            // Master validation enforces non-negative sums, but floor the denominators so this pure function stays total
+            var speedDenominator = Math.Max(0.01f, 1f + speedSum);
+            var efficiencyDenominator = Math.Max(0.01f, 1f + efficiencySum);
+
             // 各係数を計算してクランプする（時間は速度で短縮・生産性/品質トレードオフで延長、電力は省エネで減少、追加出力は0〜1）
             // Compute and clamp each multiplier (speed shortens time, productivity/quality tradeoffs stretch it, efficiency lowers power, extra output is 0-1)
-            var processingTimeMultiplier = (1f + productivityTradeoff + qualityTradeoff) / (1f + speedSum);
-            var powerMultiplier = Math.Max((1f + speedTradeoff) / (1f + efficiencySum), MinPowerMultiplier);
+            var processingTimeMultiplier = (1f + productivityTradeoff + qualityTradeoff) / speedDenominator;
+            var powerMultiplier = Math.Max((1f + speedTradeoff) / efficiencyDenominator, MinPowerMultiplier);
             var extraOutputChance = Math.Clamp(productivitySum, 0f, 1f);
 
             // 品質シフトは下限0のみクランプする。上限はレベル数が分かる産出側でクランプされる

@@ -47,7 +47,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             SetItemList();
             SetFluidList();
             
-            #region Intenral
+            #region Internal
             
             void SetItemList()
             {
@@ -91,8 +91,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
                     _fluidSlotViews.Add(slotObject);
                 }
             }
-            
-  #endregion
+
+            #endregion
         }
         
         protected void Update()

@@ -73,10 +73,23 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 既存のInventoryRequestProtocolのレスポンスにもモジュールスロットの内容が含まれることを確認
             // Verify the existing InventoryRequestProtocol response also contains the module slot content
-            var response = RequestBlockInventory(packet, machinePos);
+            var response = RequestBlockInventory();
             Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, response.Items.Length);
             Assert.AreEqual(moduleItemId, response.Items[ModuleRangeStart].Id);
             Assert.AreEqual(1, response.Items[ModuleRangeStart].Count);
+
+            #region Internal
+
+            // ブロックインベントリの取得プロトコルを実行してレスポンスを返す
+            // Execute the block inventory request protocol and return the response
+            InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack RequestBlockInventory()
+            {
+                var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(machinePos);
+                var request = MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
+                return MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(request, new PacketResponseContext())[0]);
+            }
+
+            #endregion
         }
 
         [Test]
@@ -121,15 +134,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             return MessagePackSerializer.Serialize(
                 new InventoryItemMoveProtocolMessagePack(count, ItemMoveType.SwapSlot, from, fromSlot, to, toSlot));
-        }
-
-        // ブロックインベントリの取得プロトコルを実行してレスポンスを返す
-        // Execute the block inventory request protocol and return the response
-        private static InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack RequestBlockInventory(PacketResponseCreator packet, Vector3Int pos)
-        {
-            var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
-            var request = MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
-            return MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(request, new PacketResponseContext())[0]);
         }
     }
 }

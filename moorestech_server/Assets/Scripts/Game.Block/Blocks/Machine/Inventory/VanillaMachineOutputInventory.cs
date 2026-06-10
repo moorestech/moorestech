@@ -61,7 +61,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             // 液体出力のスペースを先に確認する
             // Check fluid output space first
-            if (!IsFluidOutputAllowed(machineRecipe)) return false;
+            if (!IsFluidOutputAllowed()) return false;
 
             // 現在のスロットを複製し、実産出スタックを順番に仮想挿入して空きを判定する（実挿入と同じ順序・同じスタック分離）
             // Copy the current slots and virtually insert each realized stack sequentially (same order and stack separation as the real insertion)
@@ -82,33 +82,37 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
 
             return true;
-        }
 
-        private bool IsFluidOutputAllowed(MachineRecipeMasterElement machineRecipe)
-        {
-            // 液体の出力スペースをチェック
-            // Check output space for fluids
-            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+            #region Internal
+
+            bool IsFluidOutputAllowed()
             {
-                if (i >= _fluidContainers.Length) return false;
-
-                var outputFluid = machineRecipe.OutputFluids[i];
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
-
-                // 既に異なる液体が入っている場合、または容量が不足している場合
-                // If a different fluid is already present, or the remaining capacity is insufficient
-                if (_fluidContainers[i].FluidId != FluidMaster.EmptyFluidId && _fluidContainers[i].FluidId != fluidId)
+                // 液体の出力スペースをチェック
+                // Check output space for fluids
+                for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
                 {
-                    return false;
+                    if (i >= _fluidContainers.Length) return false;
+
+                    var outputFluid = machineRecipe.OutputFluids[i];
+                    var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+
+                    // 既に異なる液体が入っている場合、または容量が不足している場合
+                    // If a different fluid is already present, or the remaining capacity is insufficient
+                    if (_fluidContainers[i].FluidId != FluidMaster.EmptyFluidId && _fluidContainers[i].FluidId != fluidId)
+                    {
+                        return false;
+                    }
+
+                    if (_fluidContainers[i].Capacity - _fluidContainers[i].Amount < outputFluid.Amount)
+                    {
+                        return false;
+                    }
                 }
 
-                if (_fluidContainers[i].Capacity - _fluidContainers[i].Amount < outputFluid.Amount)
-                {
-                    return false;
-                }
+                return true;
             }
 
-            return true;
+            #endregion
         }
 
         /// <summary>

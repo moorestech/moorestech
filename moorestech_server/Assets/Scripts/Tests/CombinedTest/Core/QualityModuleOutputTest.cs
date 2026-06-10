@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
             InsertRecipeInputs(inventory, recipe);
 
             // 前提: 整数部1段が確定（effectValue=1.0）であること。データ変更時はここで失敗させる
@@ -70,8 +70,8 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality, 1));
-            inventory.SetItem(ModuleRangeStart + 1, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
+            inventory.SetItem(ModuleRangeStart + 1, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity));
             InsertRecipeInputs(inventory, recipe);
 
             // 前提: 追加出力が確定（確率1.0）であること
@@ -109,8 +109,8 @@ namespace Tests.CombinedTest.Core
             var (qualityBlock, qualityInventory, qualityProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (plainBlock, plainInventory, plainProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
             var (variantFitBlock, variantFitInventory, variantFitProcessor) = PlaceMachine(new Vector3Int(9, 1, 1));
-            qualityInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality, 1));
-            variantFitInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality, 1));
+            qualityInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
+            variantFitInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
 
             // 出力を「基準アイテム1セット分の空きはあるが、別スタックの変種は入らない」状態まで埋める
             // Fill outputs so one base set fits but the separately-stacking variant cannot
@@ -231,7 +231,7 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var position = new Vector3Int(1, 1, 1);
             var (block, inventory, processor) = PlaceMachine(position);
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
             InsertRecipeInputs(inventory, recipe);
 
             // 数tick進めたプロセス途中の状態を作り、ワールド全体をセーブする
@@ -353,7 +353,7 @@ namespace Tests.CombinedTest.Core
 
         // 指定効果軸のモジュールアイテムを生成する
         // Create a module item of the specified effect axis
-        private static IItemStack CreateModuleItemOfAxis(string effectAxis, int count)
+        private static IItemStack CreateModuleItemOfAxis(string effectAxis)
         {
             return CreateModuleItem(GetModuleOfAxis(effectAxis));
         }

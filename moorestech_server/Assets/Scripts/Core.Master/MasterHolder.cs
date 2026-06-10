@@ -58,13 +58,13 @@ namespace Core.Master
 
             // モジュールマスタをロード（ItemMaster に依存。modules不在modでは空扱い）
             // Load module master (depends on ItemMaster; treat absent modules as empty)
-            var modulesJson = TryGetJsonOrNull(masterJsonFileContainer, new JsonFileName("modules")) ?? JToken.Parse("{\"data\":[]}");
+            var modulesJson = TryGetJsonOrNull(new JsonFileName("modules")) ?? JToken.Parse("{\"data\":[]}");
             ModuleMaster = new ModuleMaster(modulesJson);
             InitializeMaster(ModuleMaster);
 
             // レベルファミリーマスタをロード（ItemMaster に依存。levelFamilies不在modでは空扱い）
             // Load the level family master (depends on ItemMaster; treat absent levelFamilies as empty)
-            var levelFamiliesJson = TryGetJsonOrNull(masterJsonFileContainer, new JsonFileName("levelFamilies")) ?? JToken.Parse("{\"data\":[]}");
+            var levelFamiliesJson = TryGetJsonOrNull(new JsonFileName("levelFamilies")) ?? JToken.Parse("{\"data\":[]}");
             LevelFamilyMaster = new LevelFamilyMaster(levelFamiliesJson);
             InitializeMaster(LevelFamilyMaster);
 
@@ -97,24 +97,24 @@ namespace Core.Master
                 validator.Initialize();
             }
 
+            // 指定ファイルが無ければ null を返す（新規・任意マスタ用）
+            // Return null when the file is absent (for new/optional masters)
+            JToken TryGetJsonOrNull(JsonFileName jsonFileName)
+            {
+                var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
+                var jsonContents = masterJsonFileContainer.ConfigJsons[index].JsonContents;
+                if (!jsonContents.TryGetValue(jsonFileName, out var jsonContent)) return null;
+
+                return (JToken)JsonConvert.DeserializeObject(jsonContent);
+            }
+
             #endregion
         }
-        
+
         private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)
         {
             var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
             var jsonContent = masterJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
-            
-            return (JToken)JsonConvert.DeserializeObject(jsonContent);
-        }
-
-        // 指定ファイルが無ければ null を返す（新規・任意マスタ用）
-        // Return null when the file is absent (for new/optional masters)
-        private static JToken TryGetJsonOrNull(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)
-        {
-            var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
-            var jsonContents = masterJsonFileContainer.ConfigJsons[index].JsonContents;
-            if (!jsonContents.TryGetValue(jsonFileName, out var jsonContent)) return null;
 
             return (JToken)JsonConvert.DeserializeObject(jsonContent);
         }

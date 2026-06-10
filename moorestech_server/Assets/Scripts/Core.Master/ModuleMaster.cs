@@ -12,21 +12,11 @@ namespace Core.Master
     public class ModuleMaster : IMasterValidator
     {
         public readonly Modules Modules;
-        private Dictionary<Guid, ModuleMasterElement> _moduleGuidTable;
         private Dictionary<Guid, ModuleMasterElement> _itemGuidTable;
 
         public ModuleMaster(JToken jToken)
         {
             Modules = ModulesLoader.Load(jToken);
-        }
-
-        public ModuleMasterElement GetModuleElement(Guid moduleGuid)
-        {
-            if (!_moduleGuidTable.TryGetValue(moduleGuid, out var element))
-            {
-                throw new InvalidOperationException($"ModuleElement not found. ModuleGuid:{moduleGuid}");
-            }
-            return element;
         }
 
         public ModuleMasterElement GetModuleElementByItemGuidOrNull(Guid itemGuid)
@@ -41,7 +31,7 @@ namespace Core.Master
 
         public void Initialize()
         {
-            ModuleMasterUtil.Initialize(Modules, out _moduleGuidTable, out _itemGuidTable);
+            ModuleMasterUtil.Initialize(Modules, out _itemGuidTable);
         }
     }
 }

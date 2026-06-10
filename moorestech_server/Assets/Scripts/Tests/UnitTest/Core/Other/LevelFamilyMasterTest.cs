@@ -40,9 +40,9 @@ namespace Tests.UnitTest.Core.Other
             var lv3ItemId = MasterHolder.ItemMaster.GetItemId(Lv3ItemGuid);
             Assert.AreEqual(lv3ItemId, MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 3));
 
-            // 範囲外レベルは[1, 最大レベル]へクランプされ、最大レベルIDとも一致すること
-            // Out-of-range levels clamp into [1, max level] and match the max level ItemId
-            Assert.AreEqual(MasterHolder.LevelFamilyMaster.GetMaxLevelItemId(baseItemId), MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 999));
+            // 範囲外レベルは[1, 最大レベル]へクランプされ、最大レベル（3）の解決結果と一致すること
+            // Out-of-range levels clamp into [1, max level] and match the resolution at the actual max level (3)
+            Assert.AreEqual(MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 3), MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 999));
             Assert.AreEqual(lv3ItemId, MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 999));
             Assert.AreEqual(baseItemId, MasterHolder.LevelFamilyMaster.GetVariantItemId(baseItemId, 0));
 
