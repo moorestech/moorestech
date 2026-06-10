@@ -12,7 +12,7 @@
       ],
       "blockType": "ElectricMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "requiredPower": 0,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
@@ -206,7 +206,7 @@
       "name": "ふるい",
       "blockType": "GearMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 4,
         "inputSlotCount": 1,
@@ -362,7 +362,7 @@
       "name": "遠心分離機",
       "blockType": "GearMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 4,
         "inputSlotCount": 1,
@@ -518,7 +518,7 @@
       "name": "釜",
       "blockType": "ElectricMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "requiredPower": 0,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
@@ -681,7 +681,7 @@
       "itemGuid": "4abdae31-6e3b-42c5-a097-4cf6021751ca",
       "blockType": "GearMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
@@ -803,7 +803,7 @@
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
       "blockType": "GearMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 4,
         "inputSlotCount": 1,
@@ -1596,7 +1596,7 @@
       "time": 1,
       "blockType": "GearMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
@@ -1719,7 +1719,7 @@
       "blockGuid": "4b1808f2-0a5b-41bf-aced-645e4a76b870",
       "blockType": "GearMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 5,
         "inputSlotCount": 5,
@@ -1842,7 +1842,7 @@
       "name": "ふいご付き精錬炉",
       "blockType": "GearMachine",
       "blockParam": {
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 1,
         "inputSlotCount": 1,

@@ -1,0 +1,31 @@
+{
+  "data": [
+    {
+      "moduleGuid": "895ec458-ba0a-4132-b8ba-a0dc9a6db2fc",
+      "name": "歯車スピードモジュール",
+      "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
+      "effectAxis": "Speed",
+      "tier": 1,
+      "effectValue": 0.5,
+      "tradeoffValue": 0.5
+    },
+    {
+      "moduleGuid": "ea921528-08cf-40fb-8079-3f205d5fed23",
+      "name": "ふいご省エネモジュール",
+      "itemGuid": "49573e16-be8a-46aa-859c-67fae3f928f9",
+      "effectAxis": "Efficiency",
+      "tier": 1,
+      "effectValue": 0.3,
+      "tradeoffValue": 0.0
+    },
+    {
+      "moduleGuid": "47287e6a-b02c-4349-b15f-e47b26a18969",
+      "name": "鉄リベット生産性モジュール",
+      "itemGuid": "3b6689d2-2206-48c7-b16e-1c33f913b538",
+      "effectAxis": "Productivity",
+      "tier": 1,
+      "effectValue": 1.0,
+      "tradeoffValue": 0.5
+    }
+  ]
+}
