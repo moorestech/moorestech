@@ -54,16 +54,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
         
         /// <summary>
-        ///     アウトプットスロットにアイテムを入れれるかチェック
-        /// </summary>
-        /// <param name="machineRecipe"></param>
-        /// <returns>スロットに空きがあったらtrue</returns>
-        public bool IsAllowedToOutputItem(MachineRecipeMasterElement machineRecipe)
-        {
-            return CanStoreOutputs(machineRecipe, 0);
-        }
-
-        /// <summary>
         ///     ベース1セット＋追加extraSetsセットのアイテム出力を格納できるか仮想挿入で判定する。液体はベース1セット分のみチェック
         ///     Check via virtual insertion whether one base set plus extraSets item output sets fit. Fluids are checked for the base set only
         /// </summary>
