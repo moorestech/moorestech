@@ -29,12 +29,12 @@ namespace Game.Block.Factory.BlockTemplate
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
-            
+            var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+
             var processor = new VanillaMachineProcessorComponent(input, output, null, machineParam.RequiredPower);
-            
-            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
-            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
+
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+            var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             
             var components = new List<IBlockComponent>
@@ -69,12 +69,12 @@ namespace Game.Block.Factory.BlockTemplate
             
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
-            
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, machineParam.RequiredPower, blockMasterElement);
-            
-            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
-            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
+            var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+
+            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, machineParam.RequiredPower, blockMasterElement);
+
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+            var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             
             var components = new List<IBlockComponent>
