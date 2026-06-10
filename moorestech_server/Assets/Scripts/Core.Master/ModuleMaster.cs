@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Core.Master.Validator;
 using Mooresmaster.Loader.ModulesModule;
 using Mooresmaster.Model.ModulesModule;
 using Newtonsoft.Json.Linq;
@@ -13,6 +13,7 @@ namespace Core.Master
     {
         public readonly Modules Modules;
         private Dictionary<Guid, ModuleMasterElement> _moduleGuidTable;
+        private Dictionary<Guid, ModuleMasterElement> _itemGuidTable;
 
         public ModuleMaster(JToken jToken)
         {
@@ -21,30 +22,26 @@ namespace Core.Master
 
         public ModuleMasterElement GetModuleElement(Guid moduleGuid)
         {
-            return _moduleGuidTable[moduleGuid];
+            if (!_moduleGuidTable.TryGetValue(moduleGuid, out var element))
+            {
+                throw new InvalidOperationException($"ModuleElement not found. ModuleGuid:{moduleGuid}");
+            }
+            return element;
         }
 
         public ModuleMasterElement GetModuleElementByItemGuidOrNull(Guid itemGuid)
         {
-            return Modules.Data.FirstOrDefault(x => x.ItemGuid == itemGuid);
+            return _itemGuidTable.GetValueOrDefault(itemGuid);
         }
 
         public bool Validate(out string errorLogs)
         {
-            // itemGuid が ItemMaster に存在することを検証
-            // Validate that each module's itemGuid exists in ItemMaster
-            errorLogs = "";
-            foreach (var module in Modules.Data)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(module.ItemGuid);
-                if (itemId == null) errorLogs += $"[ModuleMaster] Name:{module.Name} has invalid ItemGuid:{module.ItemGuid}\n";
-            }
-            return errorLogs.Length == 0;
+            return ModuleMasterUtil.Validate(Modules, out errorLogs);
         }
 
         public void Initialize()
         {
-            _moduleGuidTable = Modules.Data.ToDictionary(x => x.ModuleGuid, x => x);
+            ModuleMasterUtil.Initialize(Modules, out _moduleGuidTable, out _itemGuidTable);
         }
     }
 }
