@@ -60,66 +60,121 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// <returns>スロットに空きがあったらtrue</returns>
         public bool IsAllowedToOutputItem(MachineRecipeMasterElement machineRecipe)
         {
-            foreach (var itemOutput in machineRecipe.OutputItems)
+            return CanStoreOutputs(machineRecipe, 0);
+        }
+
+        /// <summary>
+        ///     ベース1セット＋追加extraSetsセットのアイテム出力を格納できるか仮想挿入で判定する。液体はベース1セット分のみチェック
+        ///     Check via virtual insertion whether one base set plus extraSets item output sets fit. Fluids are checked for the base set only
+        /// </summary>
+        public bool CanStoreOutputs(MachineRecipeMasterElement machineRecipe, int extraSets)
+        {
+            // 液体出力のスペースを先に確認する
+            // Check fluid output space first
+            if (!IsFluidOutputAllowed(machineRecipe)) return false;
+
+            // 現在のスロットを複製し、全セットを順番に仮想挿入して空きを判定する
+            // Copy the current slots and virtually insert every set sequentially to test capacity
+            var simulatedSlots = OutputSlot.ToList();
+            var totalSets = 1 + extraSets;
+            for (var set = 0; set < totalSets; set++)
             {
-                var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
-                var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
-                
-                var isAllowed = OutputSlot.Aggregate(false, (current, slot) => slot.IsAllowedToAdd(outputItemStack) || current);
-                
-                if (!isAllowed) return false;
+                if (!TryVirtualInsert()) return false;
             }
-            
+
+            return true;
+
+            #region Internal
+
+            bool TryVirtualInsert()
+            {
+                foreach (var itemOutput in machineRecipe.OutputItems)
+                {
+                    var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
+                    var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
+
+                    var inserted = false;
+                    for (var i = 0; i < simulatedSlots.Count; i++)
+                    {
+                        if (!simulatedSlots[i].IsAllowedToAdd(outputItemStack)) continue;
+
+                        simulatedSlots[i] = simulatedSlots[i].AddItem(outputItemStack).ProcessResultItemStack;
+                        inserted = true;
+                        break;
+                    }
+
+                    if (!inserted) return false;
+                }
+
+                return true;
+            }
+
+            #endregion
+        }
+
+        private bool IsFluidOutputAllowed(MachineRecipeMasterElement machineRecipe)
+        {
             // 液体の出力スペースをチェック
+            // Check output space for fluids
             for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
             {
                 if (i >= _fluidContainers.Length) return false;
-                
+
                 var outputFluid = machineRecipe.OutputFluids[i];
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
-                
+
                 // 既に異なる液体が入っている場合、または容量が不足している場合
+                // If a different fluid is already present, or the remaining capacity is insufficient
                 if (_fluidContainers[i].FluidId != FluidMaster.EmptyFluidId && _fluidContainers[i].FluidId != fluidId)
                 {
                     return false;
                 }
-                
+
                 if (_fluidContainers[i].Capacity - _fluidContainers[i].Amount < outputFluid.Amount)
                 {
                     return false;
                 }
             }
-            
+
             return true;
         }
-        
+
         public void InsertOutputSlot(MachineRecipeMasterElement machineRecipe)
         {
             //アウトプットスロットにアイテムを格納する
+            InsertItemOutputsOnly(machineRecipe);
+
+            //アウトプットスロットに液体を格納する
+            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+            {
+                if (i >= _fluidContainers.Length) break;
+
+                var outputFluid = machineRecipe.OutputFluids[i];
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                var fluidStack = new FluidStack(outputFluid.Amount, fluidId);
+
+                _fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+            }
+        }
+
+        /// <summary>
+        ///     アイテム出力1セット分のみを格納する（液体は格納しない）。生産性モジュールの追加出力用
+        ///     Insert exactly one set of item outputs (no fluids). Used for productivity module extra output
+        /// </summary>
+        public void InsertItemOutputsOnly(MachineRecipeMasterElement machineRecipe)
+        {
             foreach (var itemOutput in machineRecipe.OutputItems)
                 for (var i = 0; i < OutputSlot.Count; i++)
                 {
                     var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
                     var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
-                    
+
                     if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;
-                    
+
                     var item = OutputSlot[i].AddItem(outputItemStack).ProcessResultItemStack;
                     _itemDataStoreService.SetItem(i, item);
                     break;
                 }
-            
-            //アウトプットスロットに液体を格納する
-            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
-            {
-                if (i >= _fluidContainers.Length) break;
-                
-                var outputFluid = machineRecipe.OutputFluids[i];
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
-                var fluidStack = new FluidStack(outputFluid.Amount, fluidId);
-                
-                _fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
-            }
         }
         
         private void InsertConnectInventory()

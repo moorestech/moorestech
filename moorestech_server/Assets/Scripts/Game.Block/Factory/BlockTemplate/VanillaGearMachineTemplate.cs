@@ -4,6 +4,7 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -47,19 +48,26 @@ namespace Game.Block.Factory.BlockTemplate
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
             
+            // モジュール効果コンポーネントをプロセッサより先に生成して渡す
+            // Create the module effect component before the processor and pass it in
+            var effectComponent = new MachineModuleEffectComponent(module);
+
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
-            var processor = componentStates == null ? new VanillaMachineProcessorComponent(input, output, null, requirePower) : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, requirePower, blockMasterElement);
+            var processor = componentStates == null
+                ? new VanillaMachineProcessorComponent(input, output, null, requirePower, effectComponent, blockInstanceId)
+                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement, blockInstanceId);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
-            
+
             var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer);
-            
+
             var components = new List<IBlockComponent>
             {
                 blockInventory,
                 machineSave,
+                effectComponent,
                 processor,
                 machineComponent,
                 inventoryConnectorComponent,
