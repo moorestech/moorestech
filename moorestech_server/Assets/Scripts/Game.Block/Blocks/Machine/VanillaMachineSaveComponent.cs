@@ -61,6 +61,7 @@ namespace Game.Block.Blocks.Machine
                 ProcessingTotalSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.ProcessingRecipeTicks),
                 EffectPowerMultiplier = _vanillaMachineProcessorComponent.CurrentPowerMultiplier,
                 EffectExtraOutputChance = _vanillaMachineProcessorComponent.CurrentExtraOutputChance,
+                EffectQualityShift = _vanillaMachineProcessorComponent.CurrentQualityShift,
                 ProcessedCycleCount = _vanillaMachineProcessorComponent.ProcessedCycleCount,
             };
             
@@ -105,6 +106,9 @@ namespace Game.Block.Blocks.Machine
 
         [JsonProperty("effectExtraOutputChance")]
         public float EffectExtraOutputChance;
+
+        [JsonProperty("effectQualityShift")]
+        public float EffectQualityShift;
 
         [JsonProperty("processedCycleCount")]
         public int ProcessedCycleCount;

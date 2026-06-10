@@ -160,6 +160,7 @@ namespace Game.Block.Factory.BlockTemplate
                 jsonObject.ProcessingTotalSeconds,
                 jsonObject.EffectPowerMultiplier,
                 jsonObject.EffectExtraOutputChance,
+                jsonObject.EffectQualityShift,
                 jsonObject.ProcessedCycleCount);
 
             return processor;

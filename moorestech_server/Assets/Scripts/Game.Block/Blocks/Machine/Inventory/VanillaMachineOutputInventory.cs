@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
@@ -57,7 +58,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         ///     ベース1セット＋追加extraSetsセットのアイテム出力を格納できるか仮想挿入で判定する。液体はベース1セット分のみチェック
         ///     Check via virtual insertion whether one base set plus extraSets item output sets fit. Fluids are checked for the base set only
         /// </summary>
-        public bool CanStoreOutputs(MachineRecipeMasterElement machineRecipe, int extraSets)
+        public bool CanStoreOutputs(MachineRecipeMasterElement machineRecipe, int extraSets, Func<IItemStack, IItemStack> transformOutputItem)
         {
             // 液体出力のスペースを先に確認する
             // Check fluid output space first
@@ -81,7 +82,10 @@ namespace Game.Block.Blocks.Machine.Inventory
                 foreach (var itemOutput in machineRecipe.OutputItems)
                 {
                     var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
-                    var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
+
+                    // 品質変種など実出力と同じ変換を仮想挿入にも適用し、予約と実挿入のスタック分離を一致させる
+                    // Apply the same transform as the real output (e.g. quality variants) so reservation matches actual stack separation
+                    var outputItemStack = transformOutputItem(ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count));
 
                     var inserted = false;
                     for (var i = 0; i < simulatedSlots.Count; i++)
@@ -129,10 +133,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             return true;
         }
 
-        public void InsertOutputSlot(MachineRecipeMasterElement machineRecipe)
+        /// <summary>
+        ///     変換済みアイテム出力1セットと、レシピ定義の液体出力を格納する
+        ///     Insert one pre-transformed set of item outputs plus the recipe-defined fluid outputs
+        /// </summary>
+        public void InsertOutputSlot(MachineRecipeMasterElement machineRecipe, IReadOnlyList<IItemStack> itemOutputs)
         {
             //アウトプットスロットにアイテムを格納する
-            InsertItemOutputsOnly(machineRecipe);
+            InsertItemOutputsOnly(itemOutputs);
 
             //アウトプットスロットに液体を格納する
             for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
@@ -148,17 +156,14 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
 
         /// <summary>
-        ///     アイテム出力1セット分のみを格納する（液体は格納しない）。生産性モジュールの追加出力用
-        ///     Insert exactly one set of item outputs (no fluids). Used for productivity module extra output
+        ///     変換済みアイテム出力1セット分のみを格納する（液体は格納しない）。生産性モジュールの追加出力用
+        ///     Insert exactly one pre-transformed set of item outputs (no fluids). Used for productivity module extra output
         /// </summary>
-        public void InsertItemOutputsOnly(MachineRecipeMasterElement machineRecipe)
+        public void InsertItemOutputsOnly(IReadOnlyList<IItemStack> itemOutputs)
         {
-            foreach (var itemOutput in machineRecipe.OutputItems)
+            foreach (var outputItemStack in itemOutputs)
                 for (var i = 0; i < OutputSlot.Count; i++)
                 {
-                    var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
-                    var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
-
                     if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;
 
                     var item = OutputSlot[i].AddItem(outputItemStack).ProcessResultItemStack;
