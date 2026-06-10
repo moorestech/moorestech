@@ -15,8 +15,8 @@ namespace Client.Game.InGame.Train.Unit
 
         // 閾値を超えた遅延だけを catch-up 対象にする
         // Only the lag that exceeds this threshold is distributed as catch-up
-        private const double FastForwardStartLagSeconds = 0.4d;
-        private static readonly double FastForwardStartLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardStartLagSeconds / TickSeconds));
+        private const double FastForwardLagSeconds = 0.2d;
+        private static readonly double FastForwardLagTicks = Math.Max(1.0, Math.Ceiling(FastForwardLagSeconds / TickSeconds));
 
         // 1 フレームで追いつく最大 tick 数を固定する
         // Fix the maximum ticks to catch up in a single frame
@@ -28,6 +28,10 @@ namespace Client.Game.InGame.Train.Unit
         private readonly TrainUnitVisualUpdateSystem _visualUpdateSystem;
 
         private double _estimatedClientTick;
+        private double _modifyTick = 0.1;
+        private double _modifyTime = 0.1;
+        private uint _lastGetMaxBufferedTicks = 0;
+        private int _localcnt = 0; 
 
         public TrainUnitClientSimulator(
             TrainUnitTickState tickState,
@@ -43,13 +47,35 @@ namespace Client.Game.InGame.Train.Unit
 
         public void Tick()
         {
+            _localcnt++;
+            _modifyTime *= 0.9991;
+            _modifyTick *= 0.9991;
+            if ( _localcnt >=20 && Time.deltaTime < 0.5f)
+            {
+                _modifyTime += Time.deltaTime;
+                _modifyTick += _tickState.GetMaxBufferedTicks() - _lastGetMaxBufferedTicks;
+                if (_modifyTime < 1e-5) _modifyTime = 1e-5;
+                _estimatedClientTick += Time.deltaTime * (_modifyTick / _modifyTime);
+                if (_localcnt % 64 == 10) Debug.Log(_modifyTick / _modifyTime);
+            }
+            else
+            {
+                _modifyTime += TickSeconds;
+                _modifyTick += 1.0;
+                _estimatedClientTick += Time.deltaTime / TickSeconds;
+            }
             // 現在フレーム分の通常進行 tick を加算する
             // Add normal tick progress based on the current frame delta
-            _estimatedClientTick += Time.deltaTime / TickSeconds;
-            var pendingTicks = _estimatedClientTick - _tickState.GetMaxBufferedTicks();
-            if (pendingTicks < -FastForwardStartLagTicks)
+            //_estimatedClientTick += Time.deltaTime / TickSeconds;
+            _lastGetMaxBufferedTicks = _tickState.GetMaxBufferedTicks();
+            var pendingTicks = _estimatedClientTick - _lastGetMaxBufferedTicks;
+            if (pendingTicks < -FastForwardLagTicks)
             {
-                _estimatedClientTick += 0.1 * (_tickState.GetMaxBufferedTicks() - _estimatedClientTick) + 0.1;
+                _estimatedClientTick += 1e-4 * pendingTicks * pendingTicks;
+            }
+            if (pendingTicks > 0.0)
+            {
+                _estimatedClientTick -= 1e-3 * pendingTicks;
             }
 
             // hash gate が許す範囲で、server event を順番に適用して tick を進める
@@ -85,6 +111,7 @@ namespace Client.Game.InGame.Train.Unit
                 else
                 {
                     _estimatedClientTick = _tickState.GetTick() + 1;
+                    Debug.Log("TickGate");
                     break;
                 }
             }
