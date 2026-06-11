@@ -33,6 +33,7 @@ namespace Game.Action
                     case GameActionElement.GameActionTypeConst.unlockCraftRecipe:
                     case GameActionElement.GameActionTypeConst.unlockItemRecipeView:
                     case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
+                    case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
                         ExecuteAction(action, context);
                         break;
                 }
@@ -64,6 +65,10 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
                     UnlockChallengeCategory();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
+                    UnlockMachineRecipe();
                     break;
 
                 case GameActionElement.GameActionTypeConst.giveItem:
@@ -98,6 +103,15 @@ namespace Game.Action
                 foreach (var guid in challenges)
                 {
                     _gameUnlockStateDataController.UnlockChallenge(guid);
+                }
+            }
+
+            void UnlockMachineRecipe()
+            {
+                var machineRecipeGuids = ((UnlockMachineRecipeGameActionParam)action.GameActionParam).UnlockMachineRecipeGuids;
+                foreach (var guid in machineRecipeGuids)
+                {
+                    _gameUnlockStateDataController.UnlockMachineRecipe(guid);
                 }
             }
 

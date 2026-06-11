@@ -40,6 +40,11 @@ jobs:
           #   isDedicatedServer: true
 
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.longpaths true
+
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -135,6 +140,11 @@ jobs:
             runner: macos-latest
 
     steps:
+      - name: Enable long paths (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.longpaths true
+
       # Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -145,6 +155,25 @@ jobs:
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive
+
+      # Windows Docker コンテナ内では UPM の git clone + LFS が失敗するため、
+      # ホスト上でパッケージを事前取得し、ローカルパスに差し替える
+      - name: Pre-fetch CefUnity package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          git clone --depth 1 --branch main https://github.com/KurisuJuha/cef-unity-moorestech.git _cef_pkg
+          cd _cef_pkg && git lfs pull && cd ..
+          cp -r _cef_pkg/Assets/CefUnity moorestech_client/CefUnityLocal
+          cd moorestech_client/Packages
+          python3 -c "
+          import json
+          with open('manifest.json', 'r') as f:
+              data = json.load(f)
+          data['dependencies']['jp.juha.cefunitysample'] = 'file:../CefUnityLocal'
+          with open('manifest.json', 'w') as f:
+              json.dump(data, f, indent=2)
+          "
 
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable

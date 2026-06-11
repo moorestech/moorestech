@@ -10,6 +10,7 @@ using Game.Fluid;
 using Game.PlayerInventory;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -31,6 +32,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             //機械の追加
             var (blockFactory, worldBlockDatastore, _, assembleSaveJsonText, _) = CreateBlockTestModule();
             var itemStackFactory = ServerContext.ItemStackFactory;
+
+            // ロック済みテストレシピを使うため明示的にアンロックする
+            // Unlock the locked test recipe before starting machine processing
+            var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
+            unlockState.UnlockMachineRecipe(ForUnitTestMachineRecipeId.LockedMachineRecipe);
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();

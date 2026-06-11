@@ -7,6 +7,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.Fluid;
+using Game.UnlockState;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.Inventory
@@ -25,13 +26,22 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly FluidContainer[] _fluidContainers;
+        private readonly IGameUnlockStateData _gameUnlockStateData;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         
-        public VanillaMachineInputInventory(BlockId blockId, int inputSlot, int innerTankCount, float innerTankCapacity, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId)
+        public VanillaMachineInputInventory(
+            BlockId blockId,
+            int inputSlot,
+            int innerTankCount,
+            float innerTankCapacity,
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate,
+            BlockInstanceId blockInstanceId,
+            IGameUnlockStateData gameUnlockStateData)
         {
             _blockId = blockId;
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
+            _gameUnlockStateData = gameUnlockStateData;
             
             var option = new OpenableInventoryItemDataStoreServiceOption()
             {
@@ -69,7 +79,19 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public bool TryGetRecipeElement(out MachineRecipeMasterElement recipe)
         {
-            return MachineRecipeMasterUtil.TryGetRecipeElement(_blockId, InputSlot, FluidInputSlot, out recipe);
+            if (!MachineRecipeMasterUtil.TryGetRecipeElement(_blockId, InputSlot, FluidInputSlot, out recipe)) return false;
+
+            // アンロックされていないレシピは機械で使用不可にする
+            // Locked recipes cannot be used by machines
+            if (!_gameUnlockStateData.MachineRecipeUnlockStateInfos.TryGetValue(recipe.MachineRecipeGuid, out var unlockInfo))
+            {
+                recipe = null;
+                return false;
+            }
+            if (unlockInfo.IsUnlocked) return true;
+
+            recipe = null;
+            return false;
         }
         
         public void ReduceInputSlot(MachineRecipeMasterElement recipe)
