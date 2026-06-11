@@ -57,8 +57,8 @@ function buildStatusLine(data) {
 
         const parts = [`[🤖${formatModel(model)} ${colorPct(pct)}]`];
         if (gitInfo) parts.push(gitInfo);
-        parts.push(`📁 ${cwd}`);
-        return parts.join(' | ');
+        parts.push(`📁${formatCwdReversed(cwd)}`);
+        return parts.join('');
     }
 
     // コンテキストバー行
@@ -140,6 +140,14 @@ function formatModel(model) {
     const m = model.match(/claude-(\w+)-(\d+)-(\d+)/i);
     if (m) return `${m[1][0].toUpperCase() + m[1].slice(1)} ${m[2]}.${m[3]}`;
     return model.replace(/^claude-/i, '');
+}
+
+// /a/b/c -> "c\b\a\"（現在ディレクトリから最上位へ逆順）
+// /a/b/c -> "c\b\a\" (current dir first, up to root)
+function formatCwdReversed(cwd) {
+    const segs = String(cwd || '').split('/').filter(Boolean);
+    if (!segs.length) return '/';
+    return segs.reverse().join('\\') + '\\';
 }
 
 // 91800 -> "91.8K", 14000000 -> "14.0M"
