@@ -11,6 +11,7 @@ namespace Game.Train.RailPositions
     {
         // RailNodeのリスト。インデックスが小さいほうに向かって進む。
         private List<IRailNode> _railNodes;
+        private IReadOnlyList<IRailNode> _readOnlyRailNodes;
 
         // 先頭の前輪が次のノードまでどれだけ離れているか
         private int _distanceToNextNode;
@@ -34,6 +35,9 @@ namespace Game.Train.RailPositions
             }
 
             _railNodes = railNodes;
+            // GetRailNodes用のread-only wrapperを1回だけ作る
+            // Create the read-only wrapper once for GetRailNodes
+            _readOnlyRailNodes = _railNodes.AsReadOnly();
             _trainLength = trainLength;
             _distanceToNextNode = initialDistanceToNextNode;
             RemoveUnnecessaryNodes();
@@ -43,6 +47,7 @@ namespace Game.Train.RailPositions
         {
             _railNodes.Clear();
             _railNodes = null;
+            _readOnlyRailNodes = null;
         }
 
 
@@ -305,7 +310,7 @@ namespace Game.Train.RailPositions
 
         public IReadOnlyList<IRailNode> GetRailNodes()
         {
-            return _railNodes.AsReadOnly();
+            return _readOnlyRailNodes;
         }
 
         //_railNodesのindex 0にrailnodeを追加する

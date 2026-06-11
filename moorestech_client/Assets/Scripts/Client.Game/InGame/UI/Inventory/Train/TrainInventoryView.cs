@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.PlayerInventory.Interface.Subscription;
@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.Inventory.Train
         {
             containerMissingMessageText.gameObject.SetActive(false);
             ISubInventoryIdentifier = new TrainInventorySubInventoryIdentifier(trainCarEntity.TrainCarInstanceId.AsPrimitive());
-            for (int i = 0; i < trainCarEntity.TrainCarMasterElement.InventorySlots; i++)
+            for (int i = 0; i < trainCarEntity.GetTrainCarMasterElement().InventorySlots; i++)
             {
                 var slotObject = Instantiate(ItemSlotView.Prefab, slotParentTransform);
                 _subInventorySlotObjects.Add(slotObject);
@@ -69,8 +69,8 @@ namespace Client.Game.InGame.UI.Inventory.Train
         {
             if (SubInventory.Count <= slot)
             {
-                //TODO ログ基盤にいれる
-                Debug.LogError($"インベントリのサイズを超えています。item:{item} slot:{slot}");
+                // TODO ログ基盤に入れる
+                Debug.LogError($"インベントリのサイズを超えています。Item:{item} slot:{slot}");
                 return;
             }
 

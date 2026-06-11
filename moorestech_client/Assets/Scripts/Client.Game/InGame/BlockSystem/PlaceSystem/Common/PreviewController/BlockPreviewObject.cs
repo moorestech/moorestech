@@ -35,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         {
             BlockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             
-            var placeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            var placeMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             _rendererMaterialReplacerController.CopyAndSetMaterial(placeMaterial);
             
