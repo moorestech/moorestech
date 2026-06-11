@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Game.Train.Unit;
 
 namespace Client.Game.InGame.Train.View

@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Riding;
+using Client.Game.InGame.Train.View.Object.Material;
+using Client.Game.InGame.Train.View.Object.Pose;
+using Client.Game.InGame.Train.View.Object.Processors;
 using Core.Master;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Core
 {
     /// <summary>
     ///     列車 entity を Prefab から生成し、通常描画に必要な runtime 部品を接続する。

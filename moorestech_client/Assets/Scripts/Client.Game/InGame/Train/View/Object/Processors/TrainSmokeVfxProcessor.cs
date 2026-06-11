@@ -1,7 +1,8 @@
+using Client.Game.InGame.Train.View.Object.Core;
 using UnityEngine;
 using UnityEngine.VFX;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Processors
 {
     public sealed class TrainSmokeVfxProcessor : MonoBehaviour, ITrainCarObjectProcessor
     {

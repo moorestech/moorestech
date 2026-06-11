@@ -2,7 +2,7 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using UnityEngine;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Material
 {
     public sealed class TrainCarMaterialController
     {

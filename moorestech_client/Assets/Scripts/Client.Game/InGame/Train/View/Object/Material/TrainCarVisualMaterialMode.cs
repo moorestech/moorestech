@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Material
 {
     public enum TrainCarVisualMaterialMode
     {

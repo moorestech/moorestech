@@ -1,6 +1,7 @@
 using System;
 using Client.Common.Asset;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Material;
+using Client.Game.InGame.Train.View.Object.Pose;
 using Core.Master;
 using Game.Train.RailPositions;
 using Mooresmaster.Model.TrainModule;

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.PlayerInventory.Interface.Subscription;

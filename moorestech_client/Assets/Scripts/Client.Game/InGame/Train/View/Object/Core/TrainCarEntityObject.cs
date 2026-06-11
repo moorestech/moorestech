@@ -1,13 +1,16 @@
 using System;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.View;
+using Client.Game.InGame.Train.View.Object.Material;
+using Client.Game.InGame.Train.View.Object.Pose;
+using Client.Game.InGame.Train.View.Object.Processors;
 using Common.Debug;
 using Game.Train.Unit;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Core
 {
     [RequireComponent(typeof(Rigidbody))]
     public class TrainCarEntityObject : MonoBehaviour
