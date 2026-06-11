@@ -24,6 +24,7 @@ using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.Riding;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.UIHighlight;
@@ -41,7 +42,7 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.DebugView;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
@@ -200,6 +201,7 @@ namespace Client.Starter
             // プレイヤーステート（UIState → PlayerStateController の単方向依存）
             // Player state framework (one-way dependency: UIState → PlayerStateController)
             builder.Register<NormalPlayerState>(Lifetime.Singleton);
+            builder.Register<TrainCarRideFollowTargetResolver>(Lifetime.Singleton).As<IRideFollowTargetResolver>();
             builder.Register<RidingPlayerState>(Lifetime.Singleton);
             builder.Register<PlayerStateDictionary>(Lifetime.Singleton);
             builder.Register<PlayerStateController>(Lifetime.Singleton).AsSelf().As<ITickable>();
@@ -219,9 +221,9 @@ namespace Client.Starter
             builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
-            builder.Register<TrainUnitRenderInterpolationState>(Lifetime.Singleton).AsSelf().As<ITrainUnitRenderInterpolationProvider>();
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
             builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
             builder.Register<TrainUnitDebugOverlayPresenter>(Lifetime.Singleton).As<ITickable>().As<IDisposable>();

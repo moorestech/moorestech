@@ -1,6 +1,7 @@
 using Client.Game.InGame.Train.View;
+using Client.Game.InGame.Train.View.Object.Core;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Processors
 {
     public interface ITrainCarObjectProcessor
     {

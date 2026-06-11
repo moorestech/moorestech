@@ -1,7 +1,8 @@
 using System;
+using Client.Game.InGame.Train.View.Object.Core;
 using UnityEngine;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Processors
 {
     public sealed class TrainAnimationProcessor : MonoBehaviour, ITrainCarObjectProcessor
     {

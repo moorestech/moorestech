@@ -1,7 +1,7 @@
 using Client.Common;
 using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.UIState;
 using UnityEngine;
 

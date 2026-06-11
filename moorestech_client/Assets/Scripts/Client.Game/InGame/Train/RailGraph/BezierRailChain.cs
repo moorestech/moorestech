@@ -43,7 +43,7 @@ namespace Client.Game.InGame.Train.RailGraph
         
         private void Awake()
         {
-            _removeMaterial = Resources.Load<Material>(MaterialConst.PreviewPlaceBlockMaterial);
+            _removeMaterial = MaterialConst.GetPreviewPlaceBlockMaterial();
         }
         
         public void SetRailGraphCache(RailGraphClientCache cache)

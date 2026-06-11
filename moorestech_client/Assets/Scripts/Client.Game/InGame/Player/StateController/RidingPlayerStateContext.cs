@@ -1,16 +1,29 @@
-using Game.Train.Unit;
+using Game.PlayerRiding.Interface;
 
 namespace Client.Game.InGame.Player.StateController
 {
-    public class RidingPlayerStateContext : IPlayerStateContext
+    public sealed class RidingPlayerStateContext : IPlayerStateContext
     {
-        public TrainCarInstanceId CurrentCarId { get; private set; }
-        public int CurrentSeatIndex { get; private set; } = -1;
-        
-        public RidingPlayerStateContext(TrainCarInstanceId rideRequestTargetCarId, int seatIndex)
+        private readonly RidableIdentifierMessagePack _target;
+        private readonly int _seatIndex;
+
+        public RidingPlayerStateContext(RidableIdentifierMessagePack target, int seatIndex)
         {
-            CurrentCarId = rideRequestTargetCarId;
-            CurrentSeatIndex = seatIndex;
+            // 乗車対象は train/car などの具象種別ではなく ridable 識別子として保持する
+            // Keep the riding target as a ridable identifier instead of a concrete train/car type
+            _target = target;
+            _seatIndex = seatIndex;
+        }
+
+        public bool TryGetTarget(out RidableIdentifierMessagePack target)
+        {
+            target = _target;
+            return target != null;
+        }
+
+        public int GetSeatIndex()
+        {
+            return _seatIndex;
         }
     }
 }
