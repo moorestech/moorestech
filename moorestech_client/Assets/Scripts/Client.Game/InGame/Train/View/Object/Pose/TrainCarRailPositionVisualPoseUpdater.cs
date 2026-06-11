@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Train.View;
 using UnityEngine;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Pose
 {
     [DisallowMultipleComponent]
     public sealed class TrainCarRailPositionVisualPoseUpdater : MonoBehaviour, ITrainCarPoseUpdater

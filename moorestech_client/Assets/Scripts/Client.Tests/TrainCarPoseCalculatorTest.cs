@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Train.View;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Pose;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.SaveLoad;

@@ -1,4 +1,4 @@
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 
 namespace Client.Game.InGame.UI.Inventory.Train
 {

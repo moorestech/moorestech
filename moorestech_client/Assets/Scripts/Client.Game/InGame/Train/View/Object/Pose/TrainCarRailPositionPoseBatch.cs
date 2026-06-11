@@ -5,7 +5,7 @@ using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using UnityEngine;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Pose
 {
     public sealed class TrainCarRailPositionPoseBatch
     {

@@ -1,5 +1,5 @@
 using Client.Game.InGame.Player.StateController;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using UnityEngine;

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Network.API;
 using Game.Train.Unit;
 using UnityEngine;

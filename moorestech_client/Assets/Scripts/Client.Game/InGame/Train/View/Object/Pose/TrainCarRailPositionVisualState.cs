@@ -1,6 +1,6 @@
 using Game.Train.RailPositions;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Pose
 {
     public readonly struct TrainCarRailPositionVisualState
     {

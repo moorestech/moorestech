@@ -3,7 +3,7 @@ using Game.Train.Unit;
 using UnityEngine;
 using VContainer;
 
-namespace Client.Game.InGame.Train.View.Object
+namespace Client.Game.InGame.Train.View.Object.Core
 {
     public class TrainCarObjectDatastore : MonoBehaviour
     {

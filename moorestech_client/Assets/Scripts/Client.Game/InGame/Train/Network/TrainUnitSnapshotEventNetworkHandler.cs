@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.Train.View.Object;
+using Client.Game.InGame.Train.View.Object.Core;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Event.EventReceive;
