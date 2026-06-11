@@ -21,7 +21,8 @@
         "Core.Master",
         "Game.Fluid",
         "Server.Util",
-        "ClassLibrary"
+        "ClassLibrary",
+        "Game.UnlockState"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

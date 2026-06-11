@@ -1,0 +1,113 @@
+name: Check invalid characters (zero-width / mojibake)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  invalid-char-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check text files for zero-width / mojibake characters
+        run: |
+          python3 - <<'PY'
+          import re
+          import subprocess
+          import sys
+          import pathlib
+
+          # 対象とする不可視文字（ゼロ幅系 + BOM/Word Joiner）
+          # Invisible characters to detect (zero-width family + BOM/Word Joiner)
+          ZW_CHARS = {
+              '\u200b': 'ZERO WIDTH SPACE (U+200B)',
+              '\u200c': 'ZERO WIDTH NON-JOINER (U+200C)',
+              '\u200d': 'ZERO WIDTH JOINER (U+200D)',
+              '\ufeff': 'ZERO WIDTH NO-BREAK SPACE / BOM (U+FEFF)',
+              '\u2060': 'WORD JOINER (U+2060)',
+          }
+
+          # UTF-8をShift-JISとして誤読した際に高頻度で現れる文字化けマーカー（AGENTS.md記載の6文字）
+          # Mojibake marker characters that appear when UTF-8 is misread as Shift-JIS (the 6 chars listed in AGENTS.md)
+          MOJIBAKE_MARKERS = '\u7e3a\u7e67\u7e5d\u9b27\u86fb\u8708'
+
+          # マーカーが最大2文字間隔で3回以上連続したら文字化けとみなす（説明文での単発使用は許容）
+          # Treat as mojibake when 3+ markers appear with at most 2 chars between them (single documented uses are allowed)
+          MOJIBAKE_RUN = re.compile('[' + MOJIBAKE_MARKERS + '](?:.{0,2}[' + MOJIBAKE_MARKERS + ']){2,}')
+
+          # 置換文字U+FFFDはエンコーディング破損の痕跡として検出する
+          # The replacement character U+FFFD is detected as evidence of encoding corruption
+          REPLACEMENT_CHAR = '\ufffd'
+
+          TEXT_EXTS = {'.cs', '.json', '.md', '.yml', '.yaml', '.txt', '.asmdef'}
+
+          def list_tracked_files():
+              # git管理下のファイルのみを対象にする（Library等の生成物を除外）
+              # Only scan git-tracked files (excludes generated dirs like Library)
+              out = subprocess.run(['git', 'ls-files', '-z'], capture_output=True, check=True)
+              return [pathlib.Path(p) for p in out.stdout.decode('utf-8').split('\0') if p]
+
+          def read_text(path: pathlib.Path):
+              # BOMからエンコーディングを判定して読み込む（UTF-16混在リポジトリ対策）
+              # Detect encoding from BOM before reading (repo mixes UTF-16 and UTF-8 files)
+              data = path.read_bytes()
+              # JSONはBOM自体を不正として検出したいので素のutf-8で読む（従来のゼロ幅チェックと同じ挙動）
+              # JSON keeps plain utf-8 decoding so a BOM itself is flagged (same behavior as the old zero-width check)
+              if path.suffix.lower() == '.json':
+                  return data.decode('utf-8', errors='ignore')
+              if data[:2] in (b'\xff\xfe', b'\xfe\xff'):
+                  return data.decode('utf-16', errors='ignore')
+              if data[:3] == b'\xef\xbb\xbf':
+                  return data.decode('utf-8-sig', errors='ignore')
+              return data.decode('utf-8', errors='ignore')
+
+          def mark_invisible(line: str) -> str:
+              marked = line
+              for ch, label in ZW_CHARS.items():
+                  short = label.split('(')[0].strip()
+                  marked = marked.replace(ch, f'[{short}]')
+              marked = marked.replace(REPLACEMENT_CHAR, '[U+FFFD]')
+              # 長すぎる行は適度に省略 / Truncate overly long lines
+              return (marked[:200] + '...') if len(marked) > 200 else marked
+
+          had_issues = False
+          findings = []
+
+          for path in list_tracked_files():
+              if path.suffix.lower() not in TEXT_EXTS:
+                  continue
+              if not path.is_file():
+                  continue
+              text = read_text(path)
+
+              for lineno, line in enumerate(text.splitlines(), start=1):
+                  problems = []
+
+                  # ゼロ幅・不可視文字の検出 / Detect zero-width and invisible characters
+                  problems += [label for ch, label in ZW_CHARS.items() if ch in line]
+
+                  # 文字化けマーカーの連続出現を検出 / Detect dense runs of mojibake markers
+                  if MOJIBAKE_RUN.search(line):
+                      problems.append('MOJIBAKE RUN (garbled Japanese text)')
+
+                  # 置換文字の検出 / Detect replacement characters
+                  if REPLACEMENT_CHAR in line:
+                      problems.append('REPLACEMENT CHARACTER (U+FFFD)')
+
+                  if problems:
+                      had_issues = True
+                      visual = mark_invisible(line)
+                      labels_str = ', '.join(problems)
+                      # PR のアノテーションとして表示 / Shown as PR annotations
+                      print(f'::error file={path},line={lineno}::{labels_str} detected. Context: {visual}')
+                      findings.append((str(path), lineno, labels_str, visual))
+
+          if had_issues:
+              print('\nDetected invalid characters (zero-width / mojibake / replacement):\n')
+              for f, l, t, v in findings:
+                  print(f'{f}:{l}: {t}\n  {v}')
+              sys.exit(1)
+          else:
+              print('No invalid characters found.')
+          PY

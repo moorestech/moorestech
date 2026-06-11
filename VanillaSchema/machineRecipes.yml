@@ -87,3 +87,6 @@ properties:
             displayElementPath: /data/[*]/name
         - key: amount
           type: number
+    - key: initialUnlocked
+      type: boolean
+      default: true

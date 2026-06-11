@@ -223,7 +223,8 @@ namespace Client.Network.API
             return new UnlockStateResponse(
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
-                response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids);
+                response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
+                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
@@ -287,6 +288,15 @@ namespace Client.Network.API
         {
             var request = new SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeRequest(position, mode);
             return await _packetExchangeManager.GetPacketResponse<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse>(request, ct);
+        }
+
+        // ElectricToGear の出力モードを切り替える
+        // Switch the output mode of an ElectricToGear block
+        public async UniTask<SetElectricToGearOutputModeResponse> SetElectricToGearOutputMode(
+            Vector3Int position, int index, CancellationToken ct)
+        {
+            var request = new SetElectricToGearOutputModeRequest(position, index);
+            return await _packetExchangeManager.GetPacketResponse<SetElectricToGearOutputModeResponse>(request, ct);
         }
 
         // フィルター分岐器の状態取得・設定 (Get/SetMode/SetFilterItem を 1 メソッドで扱う)
