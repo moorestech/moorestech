@@ -55,5 +55,15 @@ namespace Client.Tests.WebUi
             var ok = InventoryAreaMapper.TryParseSlotRef(JToken.Parse(json), out _, out _);
             Assert.IsFalse(ok);
         }
+
+        [Test]
+        public void TryParseSlotRefRejectsOutOfRangeIntegers()
+        {
+            var overLong = JObject.Parse("{\"area\":\"main\",\"slot\":99999999999}");
+            Assert.IsFalse(InventoryAreaMapper.TryParseSlotRef(overLong, out _, out _));
+
+            var bigInteger = JObject.Parse("{\"area\":\"main\",\"slot\":99999999999999999999999999999}");
+            Assert.IsFalse(InventoryAreaMapper.TryParseSlotRef(bigInteger, out _, out _));
+        }
     }
 }
