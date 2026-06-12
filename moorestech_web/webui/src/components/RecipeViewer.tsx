@@ -6,6 +6,7 @@ import type { CraftRecipe, CraftRecipesData, MachineRecipe, MachineRecipesData }
 import type { PlayerInventoryData } from "../types/inventory";
 import type { ItemMasterEntry } from "../types/itemMaster";
 import ItemSlot from "./ItemSlot";
+import ItemIcon from "./ItemIcon";
 
 type Props = {
   itemId: number | null;
@@ -120,9 +121,7 @@ function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster,
                 t.key === activeTab.key ? "bg-gray-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
               }`}
             >
-              {t.blockItemId !== null ? (
-                <img src={`/api/icons/${t.blockItemId}.png`} alt="" className="w-5 h-5 object-contain" draggable={false} />
-              ) : null}
+              {t.blockItemId !== null ? <ItemIcon itemId={t.blockItemId} className="w-5 h-5 object-contain" /> : null}
               {t.label}
             </button>
           ))}
