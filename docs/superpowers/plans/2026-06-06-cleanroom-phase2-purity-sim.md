@@ -16,7 +16,7 @@
 
 **Goal:** フェーズ1で新設した `CleanRoomDatastore`（検出部）に「純度の継続状態」を統合する。各 `CleanRoom` が N（不純物総数）を持ち、`dN/dt = A_total − n·q·C` を tick 積分して平衡濃度 `C_eq = A_total/(n·q)` に収束させる。二条件（濃度 `C ≤ maxConcentration` ＋ 換気 `ACH = n·q/V ≥ requiredAirChangeRate`）＋ヒステリシスで **閾値行インデックス（ThresholdIndex）** を決定し、Valid/Degraded/Invalid＋猶予（5.0秒）を運用する。再検出（リーク・結合・分割）をまたいで **N＋ThresholdIndex＋Status＋猶予残** をセル重なりで引き継ぎ、セーブ/ロードで永続化する。あわせて **再検出の dirty 分割処理（8192セル/tick）** と **触れた壁AABB+1 のリーク判定局所化** を実装する（バランス確定書§5で本フェーズ担当と確定）。汚染源 `A_total` の実係数とエアフィルター実体はフェーズ3（本フェーズは既定0＋テスト用定数注入）。
 
-**Architecture:** codemap v2 のデータストア方式。`CleanRoomDatastore`（DI singleton・initializer側登録→main側へインスタンス橋渡し・eager）が、ブロック設置/削除の購読→dirty積み→tick分割再検出、`GameUpdater.UpdateObservable`（UniRx、20/秒・50ms）購読→毎tick純度積分、セーブ/ロード（`GetSaveData`/`Restore`）のすべてを担う。`CleanRoom` 自身が幾何（Cells/Volume/SurfaceArea）＋純度（ImpurityCount/Status/ThresholdIndex/猶予残）を持つ（状態クラスの分離はしない）。判定は純関数 `CleanRoomPurityRules`（二条件＋ヒステリシス・tick積分・按分）。閾値はマスタ `cleanRoomThresholds.yml`→`CleanRoomThresholdMaster`（`MasterHolder` 経由）。`A_total` はデータストアが直接算出（フェーズ2の既定は0。テストは `SetPollutionPerSecondProvider` で定数注入＝バランス確定書§7の「係数を定数で注入」）。`n·q` は `ICleanRoomAirFilter`（Game.Block.Interface）の登録レジストリ（`AddAirFilter`/`RemoveAirFilter`、フェーズ3のブロックが設置時に登録）。永続化は鉄道 `RailGraphSaveLoadService` を前例に `WorldSaveAllInfoV1`/`AssembleSaveJsonText`/`WorldLoaderFromJson` の3点改修、ロード復元は **`LoadBlockDataList` → `RebuildAll()`（dirtyクリア込み） → `Restore()`** の順。
+**Architecture:** codemap v2 のデータストア方式。`CleanRoomDatastore`（DI singleton・initializer側登録→main側へインスタンス橋渡し・eager）が、ブロック設置/削除の購読→dirty積み→tick分割再検出、`GameUpdater.UpdateObservable`（UniRx、20/秒・50ms）購読→毎tick純度積分、セーブ/ロード（`GetSaveData`/`Restore`）のすべてを担う。`CleanRoom` 自身が幾何（Cells/Volume/SurfaceArea）＋純度（ImpurityCount/Status/ThresholdIndex/猶予残）を持つ（状態クラスの分離はしない）。判定は純関数 `CleanRoomPurityRules`（二条件＋ヒステリシス・tick積分・按分）。閾値はマスタ `cleanRoomThresholds.yml`→`CleanRoomThresholdMaster`（`MasterHolder` 経由）。`A_total` はデータストアが直接算出（フェーズ2の既定は0。テストは `SetPollutionPerSecondProvider` で定数注入＝バランス確定書§7の「係数を定数で注入」）。`n·q` は `ICleanRoomAirFilter`（Game.Block.Interface）の登録レジストリ（`AddAirFilter`/`RemoveAirFilter`。実ブロックの登録/解除はフェーズ3でデータストア自身が設置/削除購読から `TryGetComponent<ICleanRoomAirFilter>` により行う）。永続化は鉄道 `RailGraphSaveLoadService` を前例に `WorldSaveAllInfoV1`/`AssembleSaveJsonText`/`WorldLoaderFromJson` の3点改修、ロード復元は **`LoadBlockDataList` → `RebuildAll()`（dirtyクリア込み） → `Restore()`** の順。
 
 **Tech Stack:** C# (Unity, moorestech_server), UniRx `IObservable<Unit>`（`GameUpdater.UpdateObservable` / テストは `GameUpdater.RunFrames(uint)`）, NUnit (Server.Tests), Newtonsoft.Json（セーブ）, Mooresmaster SourceGenerator（`cleanRoomThresholds.yml` → `Mooresmaster.Model.CleanRoomThresholdsModule`）。
 
@@ -1742,6 +1742,3 @@ git commit -m "feat(cleanroom): 純度永続化(CleanRoomSaveData+3点改修)を
 ### プレースホルダ走査
 
 全タスクが実 C# コード（テスト＋実装）＋実 `uloop` コマンド＋実 `git` コミットを含む。"TODO"/"後で"/"similar to above" によるコード省略は無い。実装者が実ファイルで確認すべき箇所（生成型のプロパティ名・フェーズ1の実コンストラクタ・`IBlockComponent` メンバ・asmdef 参照名）はすべて「確認」指示付きで、コンパイル/テストのチェックポイントが安全網になっている。Task 6 の `DetectAroundSeed` は方針記述（局所fill→置換/消滅/不変の3分岐＋Task 5 規則の共通化）でコード全文を載せていないが、受け入れ条件は `CleanRoomDirtyRebuildTest` の3テストで具体的に固定されている。
-
-
-

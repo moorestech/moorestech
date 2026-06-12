@@ -126,7 +126,7 @@ public readonly struct CleanRoomEffect
 ```
 
 - **依存方向**: `Game.CleanRoom → Game.Block.Interface`（データストアが受信IFへプッシュ）。`Game.Block` は `Game.CleanRoom` を参照しない。C/ACH→`MaxGrade`/`DownBinRate` の解決はデータストア側（`Game.CleanRoom`）でマスタ閾値に照らして行い、結果だけブロックへ渡す。
-- 内部ブロック（専用機械・エアフィルター）は設置時にデータストアの「ブロック→部屋」マップへ登録（`GearNetworkDatastore.AddGear` 相当）。
+- 内部ブロック（専用機械・エアフィルター）は設置時にデータストアの「ブロック→部屋」マップ／フィルターレジストリ（`AddAirFilter`/`RemoveAirFilter`）へ登録（`GearNetworkDatastore.AddGear` 相当）。**登録処理はデータストア自身が設置/削除購読内で `TryGetComponent`（`ICleanRoomAirFilter`/`ICleanRoomStateReceiver`）により行う**（ブロック側はデータストアを知らない＝依存方向維持）。
 
 ---
 
@@ -258,12 +258,13 @@ InsertOutputSlot ─ 受信 MaxGrade/DownBinRate で ceiling→分布抽選→do
 - Create: `Game.Block/Blocks/CleanRoom/CleanRoomItemHatchComponent.cs` — `IBlockInventory`。壁貫通でアイテム中継＋`RecentThroughputPerSecond`（A_hatch）
 - Create: `Game.Block/Blocks/CleanRoom/CleanRoomPipeHatchComponent.cs` — `IFluidInventory, IUpdatableBlockComponent`（流体push型）。壁貫通で流体中継
 - Create: `Game.Block/Blocks/CleanRoom/CleanRoomDoorHatchComponent.cs` — `NotifyPlayerPassage()` で `A_door` バースト計上（気密境界のまま）
+- Create: `Game.Block.Interface/Component/ICleanRoomItemHatch.cs` / `ICleanRoomDoorHatch.cs` — 計量用IF（`RecentThroughputPerSecond` / `PeekPendingBurst()`）。`CleanRoomPollutionCalculator` は実装コンポーネントではなくこのIF経由で集計（依存方向 `Game.CleanRoom → Game.Block.Interface` を維持）
 - Modify: 境界テンプレート（`CleanRoomBoundaryKind` switch でハッチ種にコンポーネント合成）＋ blocks.yml にハッチのコネクタparam
 - Modify: `Game.CleanRoom/Pollution/CleanRoomPollutionCalculator.cs` — A_hatch（レート）取り込み。**A_door バーストは A_total（個/秒）へ合算せず、`CleanRoom.AddImpurity(burst)` で N へ直接加算**（バランス確定書§2 の単位注意）。バースト読み出しは peek/advance 分離（部屋の評価順に依存させない）
 
 ### 統合点
 ```csharp
-public class CleanRoomItemHatchComponent : IBlockInventory, IUpdatableBlockComponent, IBlockSaveState
+public class CleanRoomItemHatchComponent : IBlockInventory, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomItemHatch
 {
     public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context);
     public double RecentThroughputPerSecond { get; }  // A_hatch 用レート窓

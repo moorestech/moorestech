@@ -43,7 +43,7 @@
 | **フェーズ3完了** | エアフィルター・汚染源で実際に閾値行が動く | 実部屋で A/C 行相当を作る統合テスト（Task 6）の前提 |
 | **アップグレード フェーズA/B** | **依存しない。** 乱数規約（決定的シード・順序固定 §7.2）に準拠するのみで、`DeterministicRoll`/`MachineModuleEffect` 等のフェーズA成果物は参照しない。フェーズB（`2026-06-06-upgrade-system-phase-b-quality.md`）は Vanilla 機械対象の**別worktree系統**（決着メモ再決着版参照） | フェーズA/B 未マージでも本プランは完結する |
 
-> ⚠ **ワークツリー注意:** 実装着手前に `git log`/ファイル存在で土台（`Game.CleanRoom`）の有無を確認すること。フェーズ1〜2 未マージの場合、Task 5/6 は `Assert.Ignore` 枠で置き、Task 1〜4 のみ完了させる。
+> ⚠ **ワークツリー注意:** 実装着手前に `git log`/ファイル存在で土台（`Game.CleanRoom`）の有無を確認すること。フェーズ1〜2 未マージの場合のみ、Task 5/6 は `Assert.Ignore` 枠で置き、Task 1〜4 のみ完了させる。**フェーズ1〜3を順に実装する通常ルートでは `Assert.Ignore` は禁止**。本フェーズの完了条件は「`Assert.Ignore` ゼロ＝Task 5/6 の統合テストが実環境で PASS」。
 
 ---
 
@@ -985,9 +985,13 @@ namespace Game.CleanRoom.Machine
             // Invalid -> cannot operate; Valid/Degraded (grace) -> can operate (spec §8)
             var inValidRoom = room.Status != CleanRoomRoomStatus.Invalid;
 
-            // 閾値行（cleanRoomThresholds マスタ）から MaxGrade / DownBinRate を引く。
-            // Out 行（C > 1000）は MaxGrade=0（=出力なし。バランス確定書§1）
-            // Resolve MaxGrade / DownBinRate from the thresholds master; the Out row maps to MaxGrade=0
+            // Out は行として持たない（フェーズ2契約: ThresholdIndex=行数）。GetRow 前に分岐し範囲外アクセスを防ぐ
+            // Out is not a master row (phase-2 contract: ThresholdIndex == row count); branch before GetRow
+            if (room.ThresholdIndex >= MasterHolder.CleanRoomThresholdMaster.RowCount)
+                return new CleanRoomEffect(inValidRoom, 0, 0.0);
+
+            // 閾値行（cleanRoomThresholds マスタ）から MaxGrade / DownBinRate を引く
+            // Resolve MaxGrade / DownBinRate from the thresholds master row
             var row = MasterHolder.CleanRoomThresholdMaster.GetRow(room.ThresholdIndex);
             return new CleanRoomEffect(inValidRoom, row.MaxGrade, row.DownBinRate);
         }
@@ -1108,6 +1112,7 @@ git commit -m "test(cleanroom): 実部屋の出力天井・猶予つき Invalid 
 - [ ] (c) down-bin → Task 1 `TryDrawLevel`（受信 `DownBinRate`・1段格下げ・Lv1 据え置き）。
 - [ ] プッシュ受信（ゲート全廃）→ Task 3 `ICleanRoomStateReceiver`/`CleanRoomEffect`＋Task 5 Datastore プッシュ。`Game.Block` は `Game.CleanRoom` を参照しない（受信IFは `Game.Block.Interface`・プリミティブのみ）。
 - [ ] **Vanilla 機械ファイル非改変** → Task 4 Step 7 で `git diff --stat` により `Game.Block/Blocks/Machine/` 無変更を機械的に確認。
+- [ ] **`Assert.Ignore` が残っていない**（フェーズ1〜3 マージ済み環境での完了条件。未マージ時の一時 ignore は解除してから完了）。
 - [ ] multi-block 占有＝全占有セルが同一部屋の `Cells`（V ではない）に含まれるか、を**データストア側**で判定（機械側に部屋探索ループ無し） → Task 5 Step 2。
 - [ ] EUV catastrophic 失敗（`outputItems.percent`）の実装担当はフェーズ4＝本プラン Task 1/4（宙吊りにしない）。
 

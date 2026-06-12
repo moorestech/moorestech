@@ -38,7 +38,7 @@
 > 1. **`ICleanRoomAirFilter` のメンバ**: 本プランは `double RemovalVolumePerSecond { get; }` ＋ `void ApplyRemovedImpurity(double removed)` の2メンバ前提（codemap §3）。フェーズ2版が `RemovalVolumePerSecond` のみなら本プラン Task 2 で `ApplyRemovedImpurity` を追加する。`IBlockComponent` 継承（`TryGetComponent<T>` の型制約に必要）も確認。
 > 2. **`CleanRoom` の API 名**: `AddImpurity`/`RemoveImpurity`/`ImpurityCount`/`Concentration`（引数なしプロパティ）/`ThresholdIndex`/`Volume`/`SurfaceArea`/`Cells` は codemap §1.2 の契約名。実装と違えば実装に合わせる。
 > 3. **`ThresholdIndex` の行順**: 本プランのテストは「index 0 = A行（最上位）」前提。`cleanRoomThresholds.yml` の行順がそうなっているか確認し、違えばテスト期待値を読み替える。
-> 4. **部屋内ブロックの収集方法**: 本プランは「毎tick `room.Cells` 走査＋`TryGetComponent<ICleanRoomAirFilter>`＋`BlockInstanceId` 重複排除」で動的収集する。フェーズ2のデータストアが既に「ブロック→部屋」登録マップ（codemap §1.4 の `AddGear` 相当）を持つならそれを使い、走査を省いてよい（結果は同じであること）。
+> 4. **部屋内ブロックの収集方法（確定）**: フェーズ2のレジストリ（`AddAirFilter`/`RemoveAirFilter`）が正。**登録はデータストア自身**が既存の設置/削除購読内で `block.TryGetComponent<ICleanRoomAirFilter>` を見て行う（依存方向 `Game.CleanRoom → Game.Block.Interface` のまま。ブロック側はデータストアを知らないため自己登録はできない）。毎tick の `room.Cells` 走査は行わない（レジストリのセル ∈ `room.Cells` で部屋内判定）。
 > 5. **テストmod のクリーンルーム境界ブロック**: フェーズ1がテストmodへ追加済みの壁/ハッチの `ForUnitTestModBlockId` アクセサ名（例: `CleanRoomWallId`/`CleanRoomItemHatchId`/`CleanRoomPipeHatchId`）を確認して keystone テストで使う。
 
 ---
@@ -1054,7 +1054,7 @@ git commit -m "feat(cleanroom): A_totalを算出するCleanRoomPollutionCalculat
 
 ## Task 7: `CleanRoomDatastore` へ配線し、基準部屋で平衡＋摩耗＋n=2加算を統合テスト
 
-`CleanRoomDatastore.Update` の各部屋ループ（フェーズ2実装済み）に、(a) `CleanRoomPollutionCalculator` で A_total、(b) 部屋内エアフィルターの動的収集で `Σ RemovalVolumePerSecond = n·q`、(c) 各台への除去寄与配分 `ApplyRemovedImpurity`（フィルター摩耗）を差し込む。統合テストはポール＋無限発電機で自動給電（`IElectricConsumer` 自動配線の検証）し、**平衡濃度・閾値行A・摩耗累計・n=2加算**の4点を固定する。
+`CleanRoomDatastore.Update` の各部屋ループ（フェーズ2実装済み）に、(a) `CleanRoomPollutionCalculator` で A_total、(b) レジストリから部屋内エアフィルターを取得し `Σ RemovalVolumePerSecond = n·q`、(c) 各台への除去寄与配分 `ApplyRemovedImpurity`（フィルター摩耗）を差し込む。統合テストはポール＋無限発電機で自動給電（`IElectricConsumer` 自動配線の検証）し、**平衡濃度・閾値行A・摩耗累計・n=2加算**の4点を固定する。
 
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs`
@@ -1075,19 +1075,20 @@ git commit -m "feat(cleanroom): A_totalを算出するCleanRoomPollutionCalculat
 ```csharp
         // 部屋内のエアフィルターを集めて n·q を得る。重複は BlockInstanceId で排除。
         // Collect in-room air filters for n·q; dedupe by BlockInstanceId.
+        // フェーズ2レジストリから部屋内のエアフィルターを引く（毎tickのCells走査はしない。確認事項#4）
+        // Pull in-room air filters from the phase-2 registry (no per-tick cell scan; see reconcile #4)
         private List<ICleanRoomAirFilter> CollectAirFilters(CleanRoom room)
         {
-            var world = ServerContext.WorldBlockDatastore;
-            var seen = new HashSet<BlockInstanceId>();
             var result = new List<ICleanRoomAirFilter>();
-            foreach (var cell in room.Cells)
-            {
-                if (!world.TryGetBlock(cell, out var block)) continue;
-                if (!seen.Add(block.BlockInstanceId)) continue;
-                if (block.TryGetComponent<ICleanRoomAirFilter>(out var filter)) result.Add(filter);
-            }
+            foreach (var (cell, filter) in _airFilterRegistry)
+                if (room.Cells.Contains(cell)) result.Add(filter);
             return result;
         }
+
+        // 実ブロックの登録/解除はデータストア自身の設置/削除購読が行う（フェーズ2の AddAirFilter/RemoveAirFilter を呼ぶ）
+        // Real blocks are (un)registered by the datastore's own place/remove subscription via AddAirFilter/RemoveAirFilter
+        // OnBlockPlace: block.TryGetComponent<ICleanRoomAirFilter>(out var f) → AddAirFilter(pos, f)
+        // OnBlockRemove: RemoveAirFilter(pos)
 ```
 
 ```csharp
