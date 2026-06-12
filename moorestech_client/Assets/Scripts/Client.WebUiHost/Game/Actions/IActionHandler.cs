@@ -40,7 +40,7 @@ namespace Client.WebUiHost.Game.Actions
 
         public static ActionResult Fail(string error)
         {
-            return new ActionResult(false, error);
+            return new ActionResult(false, error ?? "unknown_error");
         }
     }
 }
