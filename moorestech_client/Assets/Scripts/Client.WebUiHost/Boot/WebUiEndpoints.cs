@@ -82,6 +82,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(Game.ItemIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.ItemIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // アイテムアイコンの PNG 配信
+                    // Serve item icon PNGs
+                    await Game.ItemIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
                 // 上記以外は 404 を返す
                 // Return 404 for all other paths
                 context.Response.StatusCode = 404;
