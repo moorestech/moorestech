@@ -10,6 +10,8 @@
         "Core.Master",
         "Game.Context",
         "Game.PlayerInventory.Interface",
+        "Game.UnlockState",
+        "Server.Event",
         "Nuget",
         "UniRx",
         "UniTask",

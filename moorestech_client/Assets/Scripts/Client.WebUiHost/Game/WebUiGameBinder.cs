@@ -2,6 +2,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
+using Game.UnlockState;
 using VContainer;
 
 namespace Client.WebUiHost.Game
@@ -36,6 +37,14 @@ namespace Client.WebUiHost.Game
             var inventoryTopic = new InventoryTopic(hub, controller);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
 
+            // クラフトレシピトピックを登録（アンロック状態は DI から取得）
+            // Register the craft-recipes topic (unlock state comes from DI)
+            var unlockStateData = ClientDIContext.DIContainer
+                .DIContainerResolver
+                .Resolve<IGameUnlockStateData>();
+            var craftingRecipesTopic = new CraftingRecipesTopic(hub, unlockStateData);
+            hub.RegisterTopic(CraftingRecipesTopic.TopicName, craftingRecipesTopic);
+
             // action ハンドラ登録
             // Register action handlers
             hub.RegisterAction(new EchoActionHandler());
@@ -43,6 +52,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new SplitGrabActionHandler(controller));
             hub.RegisterAction(new CollectActionHandler(controller));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
+            hub.RegisterAction(new CraftExecuteActionHandler());
         }
     }
 }
