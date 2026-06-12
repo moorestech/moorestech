@@ -7,11 +7,9 @@ import ItemSlot from "./ItemSlot";
 
 const GRAB: SlotRef = { area: "grab", slot: 0 };
 
-// プレイヤーインベントリ（メイン4行+ホットバー1行+grab）の表示と操作
-// Player inventory view & interactions: 4 main rows, 1 hotbar row, and the grab stack
-export default function InventoryPanel() {
-  const inventory = useTopic<PlayerInventoryData>("local_player.inventory");
-  const itemMaster = useItemMaster();
+// マウス追従の grab オーバーレイ。mousemove の再レンダリングをこのコンポーネント内に閉じ込める
+// Cursor-following grab overlay; keeps mousemove re-renders contained to this component
+function GrabOverlay({ grab }: { grab: SlotData }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -19,6 +17,21 @@ export default function InventoryPanel() {
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
   }, []);
+
+  if (grab.count === 0) return null;
+
+  return (
+    <div className="pointer-events-none fixed z-40 w-12 h-12" style={{ left: mousePos.x - 24, top: mousePos.y - 24 }}>
+      <ItemSlot itemId={grab.itemId} count={grab.count} />
+    </div>
+  );
+}
+
+// プレイヤーインベントリ（メイン4行+ホットバー1行+grab）の表示と操作
+// Player inventory view & interactions: 4 main rows, 1 hotbar row, and the grab stack
+export default function InventoryPanel() {
+  const inventory = useTopic<PlayerInventoryData>("local_player.inventory");
+  const itemMaster = useItemMaster();
 
   if (!inventory) {
     return <div className="text-sm text-gray-400">connecting...</div>;
@@ -52,6 +65,10 @@ export default function InventoryPanel() {
 
   // 収集はメイン+ホットバー+開いているサブインベントリ全域が対象（uGUI のダブルクリックと同じ）
   // Collect sweeps main, hotbar, and any open sub inventory, matching uGUI double-click
+  // dblclick の前に mousedown 2回分の action が先行する。grab/slot どちらを target にするかは
+  // クリック間に topic event が届いている前提で成立する（ローカル接続では実用上満たされる）
+  // Two mousedown actions precede dblclick; the grab/slot target choice assumes the topic event
+  // lands between clicks, which holds in practice over a local connection
   const onDoubleClick = (ref: SlotRef, slot: SlotData) => {
     if (!grabHeld && slot.count === 0) return;
     void dispatchAction("inventory.collect", { target: grabHeld ? GRAB : ref });
@@ -62,9 +79,10 @@ export default function InventoryPanel() {
   const directMove = (from: SlotRef, slot: SlotData) => {
     const targetArea: InventoryArea = from.area === "hotbar" ? "main" : "hotbar";
     const targetSlots = targetArea === "main" ? inventory.mainSlots : inventory.hotbarSlots;
-    const maxStack = itemMaster?.get(slot.itemId)?.maxStack ?? Infinity;
-
-    const stackable = targetSlots.findIndex((s) => s.itemId === slot.itemId && s.count < maxStack);
+    // マスタ未ロード時は maxStack 不明のため同種スタック探索をスキップし、空スロットのみ探す
+    // Skip the same-item stack search while the item master is unloaded; fall back to empty slots
+    const maxStack = itemMaster?.get(slot.itemId)?.maxStack;
+    const stackable = maxStack === undefined ? -1 : targetSlots.findIndex((s) => s.itemId === slot.itemId && s.count < maxStack);
     const empty = targetSlots.findIndex((s) => s.count === 0);
     const target = stackable >= 0 ? stackable : empty;
     if (target < 0) return;
@@ -103,14 +121,7 @@ export default function InventoryPanel() {
       <div className="grid grid-cols-9 gap-1 w-fit pt-1 border-t border-gray-600">
         {inventory.hotbarSlots.map((s, i) => renderSlot("hotbar", i, s))}
       </div>
-      {grabHeld ? (
-        <div
-          className="pointer-events-none fixed z-40 w-12 h-12"
-          style={{ left: mousePos.x - 24, top: mousePos.y - 24 }}
-        >
-          <ItemSlot itemId={inventory.grab.itemId} count={inventory.grab.count} />
-        </div>
-      ) : null}
+      <GrabOverlay grab={inventory.grab} />
     </div>
   );
 }
