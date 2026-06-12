@@ -8,8 +8,8 @@ import DebugActionButton from "./components/DebugActionButton";
 // uGUI のインベントリ画面準拠の3カラム+下段ホットバーレイアウト
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
-  // 選択中アイテム。右のアイテムリストで選び、中央のレシピビューアに表示する
-  // Currently selected item; picked in the right item list and shown in the center recipe viewer
+  // 右リストで選択、中央に表示
+  // Picked in the right list, shown in the center
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
 
   return (

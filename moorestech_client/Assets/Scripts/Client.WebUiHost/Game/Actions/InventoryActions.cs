@@ -1,4 +1,3 @@
-using System.Linq;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -26,7 +25,7 @@ namespace Client.WebUiHost.Game.Actions
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
             var countToken = payload["count"];
-            if (countToken is not JValue { Value: long countLong } || countLong <= 0 || countLong > int.MaxValue) return UniTask.FromResult(ActionResult.Fail("invalid_count"));
+            if (countToken is not JValue { Value: long countLong } || countLong <= 0 || int.MaxValue < countLong) return UniTask.FromResult(ActionResult.Fail("invalid_count"));
             var count = (int)countLong;
 
             if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
@@ -76,7 +75,7 @@ namespace Client.WebUiHost.Game.Actions
             // 1個以下なら半分は0なので何もしない（成功扱い）
             // A stack of 1 has no half; treat as a successful no-op
             var half = item.Count / 2;
-            if (half > 0) _controller.MoveItem(LocalMoveInventoryType.MainOrSub, fromSlot, LocalMoveInventoryType.Grab, 0, half);
+            if (0 < half) _controller.MoveItem(LocalMoveInventoryType.MainOrSub, fromSlot, LocalMoveInventoryType.Grab, 0, half);
             return UniTask.FromResult(ActionResult.Success());
         }
     }
@@ -102,36 +101,13 @@ namespace Client.WebUiHost.Game.Actions
 
             if (!InventoryAreaMapper.TryParseSlotRef(payload["target"], out var targetType, out var targetSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
-            var inventory = _controller.LocalPlayerInventory;
+            // 空ターゲットはエラーで返し、収集本体はコントローラに委譲する
+            // Reject empty targets with an error; the collection itself is delegated to the controller
             var isGrabTarget = targetType == LocalMoveInventoryType.Grab;
-            var collectTarget = isGrabTarget ? _controller.GrabInventory : inventory[targetSlot];
+            var collectTarget = isGrabTarget ? _controller.GrabInventory : _controller.LocalPlayerInventory[targetSlot];
             if (collectTarget.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
 
-            // 同種アイテムを所持数の少ない順に集める（uGUI のダブルクリックと同じ並び）
-            // Gather same-type stacks smallest-first, matching the uGUI double-click order
-            var sourceSlots = inventory
-                .Select((item, index) => (item, index))
-                .Where(x => x.item.Id == collectTarget.Id)
-                .Where(x => isGrabTarget || x.index != targetSlot)
-                .OrderBy(x => x.item.Count)
-                .Select(x => x.index)
-                .ToList();
-
-            foreach (var index in sourceSlots)
-            {
-                var added = collectTarget.AddItem(inventory[index]);
-                var moveCount = inventory[index].Count - added.RemainderItemStack.Count;
-
-                // 1個も移せないのは集積先が満杯なので終了
-                // Zero movable items means the target stack is full; stop here
-                if (moveCount <= 0) break;
-                _controller.MoveItem(LocalMoveInventoryType.MainOrSub, index, targetType, targetSlot, moveCount);
-                collectTarget = added.ProcessResultItemStack;
-
-                // 余りが出たら集積先が満杯なので終了
-                // A remainder means the target stack is full; stop here
-                if (added.RemainderItemStack.Count != 0) break;
-            }
+            _controller.CollectItems(targetType, targetSlot);
             return UniTask.FromResult(ActionResult.Success());
         }
     }

@@ -55,8 +55,8 @@ namespace Client.WebUiHost.Boot
             }
         }
 
-        // 登録済みトピック・actionを全て解除。IDisposable なものは dispose する
-        // Clear all registered topics and actions; dispose IDisposable handlers
+        // 全バインド解除。IDisposable は dispose
+        // Clear all bindings; dispose IDisposable handlers
         public void ClearBindings()
         {
             foreach (var kv in _handlers)
@@ -79,7 +79,7 @@ namespace Client.WebUiHost.Boot
             var envelope = BuildEnvelopeJson("event", topic, dataJson);
             foreach (var conn in _connections.Values)
             {
-                if (conn.Topics.Contains(topic))
+                if (conn.Topics.ContainsKey(topic))
                 {
                     conn.EnqueueSend(envelope);
                 }
@@ -134,8 +134,8 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
-                // フレーム断片を EndOfMessage まで蓄積してから1メッセージとして処理する
-                // Accumulate frame fragments until EndOfMessage, then process as one message
+                // EndOfMessage まで断片を蓄積
+                // Accumulate fragments until EndOfMessage
                 for (var i = 0; i < result.Count; i++) messageBytes.Add(buffer[i]);
                 if (!result.EndOfMessage) continue;
 
@@ -156,13 +156,13 @@ namespace Client.WebUiHost.Boot
                     if (msg.Topics == null) return;
                     foreach (var t in msg.Topics)
                     {
-                        conn.Topics.Add(t);
+                        conn.Topics.TryAdd(t, 0);
                         await SendSnapshot(conn, t);
                     }
                     break;
                 case "unsubscribe":
                     if (msg.Topics == null) return;
-                    foreach (var t in msg.Topics) conn.Topics.Remove(t);
+                    foreach (var t in msg.Topics) conn.Topics.TryRemove(t, out _);
                     break;
                 case "snapshot":
                     if (msg.Topic == null) return;
@@ -262,7 +262,10 @@ namespace Client.WebUiHost.Boot
         private sealed class Connection
         {
             public WebSocket WebSocket { get; }
-            public HashSet<string> Topics { get; } = new();
+
+            // 受信スレッドの subscribe と メインスレッドの Publish が同時に触るため並行辞書にする
+            // Subscribed concurrently from the receive thread and read by main-thread Publish
+            public ConcurrentDictionary<string, byte> Topics { get; } = new();
             private readonly System.Threading.Channels.Channel<string> _sendChannel = System.Threading.Channels.Channel.CreateUnbounded<string>();
 
             public Connection(WebSocket webSocket)

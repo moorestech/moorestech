@@ -38,8 +38,8 @@ namespace Client.WebUiHost.Game
             var inventoryTopic = new InventoryTopic(hub, controller);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
 
-            // クラフトレシピトピックを登録（アンロック状態は DI から取得）
-            // Register the craft-recipes topic (unlock state comes from DI)
+            // クラフトレシピトピックを登録
+            // Register the craft-recipes topic
             var unlockStateData = ClientDIContext.DIContainer
                 .DIContainerResolver
                 .Resolve<IGameUnlockStateData>();
@@ -51,8 +51,8 @@ namespace Client.WebUiHost.Game
             var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData);
             hub.RegisterTopic(MachineRecipesTopic.TopicName, machineRecipesTopic);
 
-            // レシピビューア用アイテムリストトピックを登録（レシピコンテナは DI から取得）
-            // Register the recipe-viewer item-list topic (recipe container comes from DI)
+            // アイテムリストトピックを登録
+            // Register the item-list topic
             var recipeContainer = ClientDIContext.DIContainer
                 .DIContainerResolver
                 .Resolve<ItemRecipeViewerDataContainer>();
