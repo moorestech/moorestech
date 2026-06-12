@@ -1,5 +1,6 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using VContainer;
 
@@ -13,7 +14,7 @@ namespace Client.WebUiHost.Game
     /// </summary>
     public static class WebUiGameBinder
     {
-        public static void BindTopics()
+        public static void Bind()
         {
             var hub = Boot.WebUiHost.Hub;
             if (hub == null) return;
@@ -28,6 +29,10 @@ namespace Client.WebUiHost.Game
             // Create inventory topic and register it with the Hub
             var inventoryTopic = new InventoryTopic(hub, controller);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
+
+            // action ハンドラ登録
+            // Register action handlers
+            hub.RegisterAction(new EchoActionHandler());
         }
     }
 }
