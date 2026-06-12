@@ -66,7 +66,8 @@ class WebSocketClient {
         reject(new Error("timeout"));
       }, 5000);
       this.pendingActions.set(requestId, { resolve, reject, timer });
-      this.ws.send(JSON.stringify({ op: "action", type, requestId, payload }));
+      const msg: ClientMsg = { op: "action", type, requestId, payload };
+      this.ws.send(JSON.stringify(msg));
     });
   }
 
@@ -152,6 +153,8 @@ export function subscribeTopic<T>(topic: string, listener: (data: T) => void) {
   return client.subscribe(topic, (d) => listener(d as T));
 }
 
+// UI コードは原則 actions.ts の dispatchAction を使うこと（reject の処理が必要なため）
+// UI code should normally use dispatchAction in actions.ts, which handles rejections
 export function sendAction(type: string, payload: unknown): Promise<ActionResult> {
   return client.sendAction(type, payload);
 }
