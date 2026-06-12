@@ -1,5 +1,6 @@
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Game.UnlockState;
@@ -44,6 +45,19 @@ namespace Client.WebUiHost.Game
                 .Resolve<IGameUnlockStateData>();
             var craftingRecipesTopic = new CraftingRecipesTopic(hub, unlockStateData);
             hub.RegisterTopic(CraftingRecipesTopic.TopicName, craftingRecipesTopic);
+
+            // 機械レシピトピックを登録
+            // Register the machine-recipes topic
+            var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData);
+            hub.RegisterTopic(MachineRecipesTopic.TopicName, machineRecipesTopic);
+
+            // レシピビューア用アイテムリストトピックを登録（レシピコンテナは DI から取得）
+            // Register the recipe-viewer item-list topic (recipe container comes from DI)
+            var recipeContainer = ClientDIContext.DIContainer
+                .DIContainerResolver
+                .Resolve<ItemRecipeViewerDataContainer>();
+            var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer, unlockStateData);
+            hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
 
             // action ハンドラ登録
             // Register action handlers
