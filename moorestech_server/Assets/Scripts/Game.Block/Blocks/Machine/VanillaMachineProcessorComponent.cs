@@ -43,12 +43,13 @@ namespace Game.Block.Blocks.Machine
         // Source of module effects; multipliers are aggregated live on every read (applied immediately)
         private readonly MachineModuleEffectComponent _effectComponent;
 
-        // 開始時に抽選を確定した産出予定スタック列。ロード復帰後はnullとなり完了時に再抽選する
-        // Realized output stacks fixed at start; null after a mid-process load, re-rolled on completion
+        // 開始時に抽選を確定した産出予定スタック列。セーブ・ロードで引き継ぎ、欠落時のみ完了時に再抽選する
+        // Realized output stacks fixed at start; carried through save/load, re-rolled on completion only when missing
         private List<IItemStack> _pendingOutputs;
         private readonly Random _random = new();
 
         public uint ProcessingRecipeTicks => _processingRecipeTicks;
+        public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
 
         // 加工中のみモジュール倍率を反映した電力倍率と要求電力（Idleは中立1.0）
         // Power multiplier and request power with module effects applied only while processing (neutral 1.0 when idle)
@@ -73,7 +74,7 @@ namespace Game.Block.Blocks.Machine
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
             float requestPower,
-            MachineModuleEffectComponent effectComponent)
+            MachineModuleEffectComponent effectComponent, List<IItemStack> pendingOutputs)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -82,6 +83,7 @@ namespace Game.Block.Blocks.Machine
             RequestPower = requestPower;
             RemainingTicks = remainingTicks;
             _effectComponent = effectComponent;
+            _pendingOutputs = pendingOutputs;
 
             // 効果適用済みの加工時間は保存しない割り切りのため、レシピ定義から復元する（進捗率表示にのみ影響）
             // Effect-scaled processing time is deliberately not saved; restore from the recipe definition (only affects the progress rate display)
@@ -180,8 +182,8 @@ namespace Game.Block.Blocks.Machine
                     RemainingTicks = 0;
                     CurrentState = ProcessState.Idle;
 
-                    // ロード復帰で産出予定が失われている場合のみ、現在の効果でその場で再抽選する
-                    // Only when the pending outputs were lost to a load, re-roll on the spot with the current effects
+                    // 産出予定が無い場合（pendingOutputs未保存の旧セーブ復帰）のみ、現在の効果でその場で再抽選する
+                    // Only when the pending outputs are missing (a load from an old save without the key), re-roll with the current effects
                     var outputs = _pendingOutputs ?? CreateRealizedOutputs(_processingRecipe, _effectComponent.AggregateCurrent());
                     _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe, outputs);
                     _pendingOutputs = null;

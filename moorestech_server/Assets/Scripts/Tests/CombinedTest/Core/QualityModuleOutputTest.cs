@@ -222,8 +222,8 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // プロセス途中でセーブ・ロードしても、装着中の品質モジュールにより変種が出力されることを確認する
-        // Verify a variant is still produced after a mid-process save/load thanks to the equipped quality module
+        // プロセス途中でセーブ・ロードしても開始時に確定した産出予定が引き継がれ、ロード後にモジュールを外しても変種が出力されることを確認する
+        // Verify the pending outputs fixed at start survive a mid-process save/load and the variant is produced even if the module is removed after loading
         public void QualityShiftSurvivesMidProcessSaveLoadTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -250,8 +250,12 @@ namespace Tests.CombinedTest.Core
             var loadedInventory = loadedBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
 
-            // ロード後のワールドで完了まで進め、出力がレベル2変種のみであることを確認（モジュールスロット復元により効果が再計算される）
-            // Advance the loaded world to completion; the output is only the level-2 variant (the effect is recomputed from the restored module slots)
+            // ロード直後にモジュールを取り外し、保存済みの産出予定が使われることを確実に検証する
+            // Remove the module right after loading to prove the saved pending outputs are used
+            loadedInventory.SetItem(ModuleRangeStart, ServerContext.ItemStackFactory.CreatEmpty());
+
+            // ロード後のワールドで完了まで進め、出力がレベル2変種のみであることを確認（セーブされた産出予定スタックの実効確認）
+            // Advance the loaded world to completion; the output is only the level-2 variant (proves the saved pending output stacks take effect)
             AdvanceTicksWithFullPower((int)loadedProcessor.RemainingTicks + 3, loadedProcessor);
             Assert.AreEqual(ProcessState.Idle, loadedProcessor.CurrentState);
             var (baseItemId, lv2ItemId) = GetBaseAndLv2ItemIds(recipe);
