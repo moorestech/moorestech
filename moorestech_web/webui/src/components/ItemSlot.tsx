@@ -1,5 +1,5 @@
-import { useState } from "react";
 import type { MouseEvent } from "react";
+import ItemIcon from "./ItemIcon";
 
 type Props = {
   itemId: number;
@@ -22,11 +22,6 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
     if (e.button === 2) onRightDown?.();
   };
 
-  // アイコン読み込み失敗を itemId 単位で記録し、ID ラベル表示に切り替える
-  // Track icon load failures per itemId and fall back to the id label
-  const [erroredItemId, setErroredItemId] = useState<number | null>(null);
-  const iconFailed = erroredItemId === itemId;
-
   const hasItem = itemId > 0 && (count === undefined || count > 0);
 
   return (
@@ -40,19 +35,7 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
     >
       {hasItem ? (
         <>
-          {!iconFailed ? (
-            <img
-              src={`/api/icons/${itemId}.png`}
-              alt={name ?? `item ${itemId}`}
-              className="w-full h-full object-contain p-0.5"
-              draggable={false}
-              onError={() => setErroredItemId(itemId)}
-            />
-          ) : (
-            <span className="absolute inset-0 flex items-center justify-center text-[10px] text-gray-400">
-              #{itemId}
-            </span>
-          )}
+          <ItemIcon itemId={itemId} alt={name ?? `item ${itemId}`} className="w-full h-full object-contain p-0.5" />
           {count !== undefined ? (
             <span className="absolute bottom-0 right-0.5 text-xs text-green-300 font-bold drop-shadow">{count}</span>
           ) : null}
