@@ -26,5 +26,18 @@ namespace Client.Tests.WebUi
             Assert.AreEqual(7, dto.ItemId);
             Assert.AreEqual("gear", dto.DisplayName);
         }
+
+        [Test]
+        public void DeserializeWsClientMessage()
+        {
+            var msg = WebUiJson.Deserialize<Client.WebUiHost.Boot.WsClientMessage>(
+                "{\"op\":\"action\",\"type\":\"debug.echo\",\"requestId\":\"a1\",\"topics\":[\"t1\"],\"payload\":{\"x\":1}}");
+            Assert.AreEqual("action", msg.Op);
+            Assert.AreEqual("debug.echo", msg.Type);
+            Assert.AreEqual("a1", msg.RequestId);
+            Assert.AreEqual(1, msg.Topics.Count);
+            Assert.AreEqual("t1", msg.Topics[0]);
+            Assert.AreEqual(1, (int)msg.Payload["x"]);
+        }
     }
 }
