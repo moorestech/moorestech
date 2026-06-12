@@ -171,7 +171,13 @@ namespace Client.WebUiHost.Boot
         private async Task SendSnapshot(Connection conn, string topic)
         {
             if (!_handlers.TryGetValue(topic, out var handler)) return;
+
+            // ゲーム状態を読むためメインスレッドでスナップショットを生成する
+            // Build snapshots on the main thread because they read game state
+            await UniTask.SwitchToMainThread();
             var snap = await handler.GetSnapshotJsonAsync();
+            await UniTask.SwitchToTaskPool();
+
             conn.EnqueueSend(BuildEnvelopeJson("snapshot", topic, snap));
         }
 
