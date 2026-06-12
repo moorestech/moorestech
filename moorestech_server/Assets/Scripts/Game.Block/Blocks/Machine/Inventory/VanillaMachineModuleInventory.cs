@@ -41,11 +41,6 @@ namespace Game.Block.Blocks.Machine.Inventory
             #endregion
         }
 
-        public IItemStack GetItem(int slot)
-        {
-            return _itemDataStoreService.GetItem(slot);
-        }
-
         public void SetItem(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItem(slot, itemStack);
