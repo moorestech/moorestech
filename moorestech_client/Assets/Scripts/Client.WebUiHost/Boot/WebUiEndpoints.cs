@@ -99,6 +99,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path == Game.ItemMasterEndpoint.Path)
+                {
+                    // アイテムマスタの JSON 配信
+                    // Serve item master JSON
+                    await Game.ItemMasterEndpoint.HandleAsync(context);
+                    return;
+                }
+
                 // 上記以外は 404 を返す
                 // Return 404 for all other paths
                 context.Response.StatusCode = 404;
