@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -32,6 +33,7 @@ namespace Client.WebUiHost.Boot
     {
         private readonly ConcurrentDictionary<Guid, Connection> _connections = new();
         private readonly ConcurrentDictionary<string, ITopicHandler> _handlers = new();
+        private readonly ConcurrentDictionary<string, IActionHandler> _actionHandlers = new();
 
         // トピックハンドラ登録（InventoryTopic などが呼ぶ）
         // Register a topic handler (called by InventoryTopic etc.)
@@ -40,15 +42,23 @@ namespace Client.WebUiHost.Boot
             _handlers[topic] = handler;
         }
 
-        // 登録済みトピックを全て解除。IDisposable なものは dispose する
-        // Clear all registered topics; dispose IDisposable handlers
-        public void ClearTopics()
+        // action ハンドラ登録（WebUiGameBinder が呼ぶ）
+        // Register an action handler (called by WebUiGameBinder)
+        public void RegisterAction(IActionHandler handler)
+        {
+            _actionHandlers[handler.ActionType] = handler;
+        }
+
+        // 登録済みトピック・actionを全て解除。IDisposable なものは dispose する
+        // Clear all registered topics and actions; dispose IDisposable handlers
+        public void ClearBindings()
         {
             foreach (var kv in _handlers)
             {
                 (kv.Value as IDisposable)?.Dispose();
             }
             _handlers.Clear();
+            _actionHandlers.Clear();
         }
 
         // 全接続のうち指定トピックを購読している接続に event を配信
@@ -82,6 +92,10 @@ namespace Client.WebUiHost.Boot
             // 受信ループの fault を観測してログに残す（無痕跡の切断を防ぐ）
             // Observe receive-loop faults so disconnects never happen silently
             if (receiveTask.IsFaulted) UnityEngine.Debug.LogWarning($"[WebSocketHub] receive loop faulted: {receiveTask.Exception?.GetBaseException()}");
+
+            // 送信ループの fault も観測する（受信側と対）
+            // Observe send-loop faults as well, mirroring the receive side
+            if (sendTask.IsFaulted) UnityEngine.Debug.LogWarning($"[WebSocketHub] send loop faulted: {sendTask.Exception?.GetBaseException()}");
 
             _connections.TryRemove(id, out _);
         }
@@ -149,6 +163,9 @@ namespace Client.WebUiHost.Boot
                     if (msg.Topic == null) return;
                     await SendSnapshot(conn, msg.Topic);
                     break;
+                case "action":
+                    await HandleActionAsync(conn, msg);
+                    break;
             }
         }
 
@@ -157,6 +174,39 @@ namespace Client.WebUiHost.Boot
             if (!_handlers.TryGetValue(topic, out var handler)) return;
             var snap = await handler.GetSnapshotJsonAsync();
             conn.EnqueueSend(BuildEnvelopeJson("snapshot", topic, snap));
+        }
+
+        private async Task HandleActionAsync(Connection conn, WsClientMessage msg)
+        {
+            // requestId が無い action は応答相関できないため黙って捨てる
+            // Drop actions without a requestId; the response cannot be correlated
+            if (string.IsNullOrEmpty(msg.RequestId)) return;
+
+            if (msg.Type == null || !_actionHandlers.TryGetValue(msg.Type, out var handler))
+            {
+                conn.EnqueueSend(BuildResultJson(msg.RequestId, false, "unknown_action"));
+                return;
+            }
+
+            // ハンドラはゲーム状態に触るため必ずメインスレッドで実行する
+            // Handlers touch game state, so always run them on the main thread
+            await UniTask.SwitchToMainThread();
+            var result = await handler.ExecuteAsync(msg.Payload);
+            await UniTask.SwitchToTaskPool();
+
+            conn.EnqueueSend(BuildResultJson(msg.RequestId, result.Ok, result.Error));
+        }
+
+        private static string BuildResultJson(string requestId, bool ok, string error)
+        {
+            var env = new JObject
+            {
+                ["op"] = "result",
+                ["requestId"] = requestId,
+                ["ok"] = ok,
+            };
+            if (error != null) env["error"] = error;
+            return env.ToString(Formatting.None);
         }
 
         private static string BuildEnvelopeJson(string op, string topic, string dataJson)
