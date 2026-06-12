@@ -43,6 +43,7 @@ namespace Game.Train.Unit
         public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
         public int masconLevel = 0;
         private int _previousMasconLevel = 0;// キー入力と差分通知関連
+        private bool _isUndockLastFrame = false;
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
         private bool _isReversedThisTick;
@@ -143,7 +144,12 @@ namespace Game.Train.Unit
                     {
                         // 次の目的地へ進める。
                         // Advance to the next destination entry.
-                        DepartFromCurrentEntry();
+                        if (trainUnitStationDocking.IsDocked)//普通はIsDockedのはず
+                        {
+                            trainUnitStationDocking.UndockFromStation();
+                        }
+                        trainDiagram.NextEntryAndDepartureReset();
+                        _isUndockLastFrame = true;
                     }
                     return 0;
                 }
@@ -253,15 +259,6 @@ namespace Game.Train.Unit
             }
         }
 
-        private void DepartFromCurrentEntry()
-        {
-            if (trainUnitStationDocking.IsDocked)
-            {
-                trainUnitStationDocking.UndockFromStation();
-            }
-            trainDiagram.NextEntryAndDepartureReset();
-        }
-        
 
         // Update の距離 int 版。
         // Integer-distance variant of Update.
@@ -329,13 +326,21 @@ namespace Game.Train.Unit
 
                 if (IsAutoRun)
                 {
-                    var (found, newPath) = CheckAllDiagramPath(approaching);
-                    if (!found)//全部の経路がなくなった
+                    var (found, newPath) = CheckNextPath();
+                    if (!found)// 順方向に経路がない
                     {
-                        Debug.Log("diagramの登録nodeに対する経路が全てなくなった。自動運転off");
-                        TurnOffAutoRun();
-                        break;
+                        if (_isUndockLastFrame == false)
+                        {
+                            TurnOffAutoRun();
+                            Debug.Log("次に向かうnodeへの経路なし。自動運転off");
+                            break;
+                        }
+                        // 例外的に逆方向をさがす
+                        Reverse();
+                        _isUndockLastFrame = false;
+                        continue;
                     }
+                    
                     // 経路が見つかったので最適なルートを自動選択する。
                     // Select the best available route automatically once a path is found.
                     _railPosition.AddNodeToHead(newPath[1]);//newPath[0]はapproachingがはいってる
@@ -373,6 +378,8 @@ namespace Game.Train.Unit
                     throw new InvalidOperationException("列車速度が無限に近いか、レール経路の無限ループを検知しました。");
                 }
             }
+            
+            _isUndockLastFrame = false;
             return totalMoved;
         }
 
@@ -395,7 +402,7 @@ namespace Game.Train.Unit
             // バリデーションで auto-run を止める条件を洗い出す。
             // Validate whether auto-run can stay enabled.
             _isAutoRun = true;
-            DiagramValidation();
+            DiagramValidation(true);
         }
         
         // masconLevel などの差分を抽出する。
@@ -415,11 +422,11 @@ namespace Game.Train.Unit
             return (ret1, ret2, ret3, ret4, ret5);
         }
 
-        public void DiagramValidation() 
+        public void DiagramValidation(bool arrowBack) 
         {
             var destinationNode = trainDiagram.GetCurrentNode();
             var approaching = _railPosition.GetNodeApproaching();
-            if ((destinationNode == null) || (approaching == null))
+            if (destinationNode == null || approaching == null)
             {
                 TurnOffAutoRun();
                 return;
@@ -431,12 +438,29 @@ namespace Game.Train.Unit
                 _remainingDistance = _railPosition.GetDistanceToNextNode();
                 return;
             }
-            var (found, newPath) = CheckAllDiagramPath(approaching);
-            if (!found)//全部の経路がなくなった
+            var (found, newPath) = CheckNextPath();
+            if (!found && arrowBack)//順方向に経路がない
             {
-                Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
-                TurnOffAutoRun();
-                return;
+                Reverse();
+                approaching = _railPosition.GetNodeApproaching();
+                if (approaching == null)
+                {
+                    TurnOffAutoRun();
+                    return;
+                }
+                if (approaching == destinationNode)
+                {
+                    _remainingDistance = 0;
+                    return;
+                }
+                
+                (found, newPath) = CheckNextPath();
+                if (!found)//逆方向にも経路がない
+                {
+                    Reverse();
+                    Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
+                    TurnOffAutoRun();
+                }
             }
             // _remainingDistance を更新する。
             // Update the remaining distance cache.
@@ -457,33 +481,24 @@ namespace Game.Train.Unit
             }
         }
 
-        // 現在の diagram current から順に見て、approaching から到達可能な entry node があれば true を返す。
-        // Return true when any later diagram entry is reachable from the approaching node.
-        public (bool, List<IRailNode>) CheckAllDiagramPath(IRailNode approaching) 
+        // 順方向に現在の diagram current を見て、なければ反転して見て、なければ反転もどす
+        // 
+        public (bool, List<IRailNode>) CheckNextPath() 
         {
-            IRailNode destinationNode = null;
+            IRailNode approaching = _railPosition.GetNodeApproaching();//ここがnullの場合は個別処理になるので呼ぶときに例外処理すましておく
             List<IRailNode> newPath = null;
             // ダイアグラム上で次の目的地へ順送りし、全部の経路がなくなった場合は auto-run を解除する。
             // Advance through diagram entries and turn off auto-run when none remain reachable.
-            bool found = false;
-            for (int i = 0; i < trainDiagram.Entries.Count; i++)
-            {
-                destinationNode = trainDiagram.GetCurrentNode();
-                if (destinationNode == null)
-                    break;//なにかの例外
-                var path = _railGraphProvider.FindShortestPath(approaching, destinationNode);
-                newPath = path?.ToList();
-                if (newPath == null || newPath.Count < 2)
-                {
-                    trainDiagram.MoveToNextEntry();
-                    continue;
-                }
-                // 経路が見つかったのでループを抜ける。
-                // Exit once a reachable path is found.
-                found = true;
-                break;
-            }
-            return (found, newPath);
+            IRailNode destinationNode = trainDiagram.GetCurrentNode();
+            if (destinationNode == null)
+                return (false, null);//なにかの例外
+            var path = _railGraphProvider.FindShortestPath(approaching, destinationNode);
+            newPath = path?.ToList();
+            if (newPath == null || newPath.Count < 2)
+                return (false, null);//なにかの例外
+            // 経路が見つかったので
+            // Exit once a reachable path is found.
+            return (true, newPath);
         }
 
         // 列車編成を保存する。ブロック保存とは別物である点に注意する。
@@ -564,7 +579,7 @@ namespace Game.Train.Unit
 
             if (trainUnit._isAutoRun)
             {
-                trainUnit.DiagramValidation();
+                trainUnit.DiagramValidation(false);
             }
             return trainUnit;
         }
