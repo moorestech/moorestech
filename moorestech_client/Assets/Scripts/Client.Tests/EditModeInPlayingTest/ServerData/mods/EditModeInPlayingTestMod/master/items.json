@@ -174,7 +174,13 @@
       "maxStack": 100,
       "name": "歯車",
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "IsUnlocked",
+      "moduleParam": {
+        "effectAxis": "Speed",
+        "tier": 1,
+        "effectValue": 0.5,
+        "tradeoffValue": 0.5
+      }
     },
     {
       "initialUnlocked": false,
@@ -429,7 +435,13 @@
       "maxStack": 100,
       "name": "鉄のリベット",
       "itemGuid": "3b6689d2-2206-48c7-b16e-1c33f913b538",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "IsUnlocked",
+      "moduleParam": {
+        "effectAxis": "Productivity",
+        "tier": 1,
+        "effectValue": 1.0,
+        "tradeoffValue": 0.5
+      }
     },
     {
       "initialUnlocked": false,
@@ -445,7 +457,13 @@
       "maxStack": 100,
       "name": "ふいご",
       "itemGuid": "49573e16-be8a-46aa-859c-67fae3f928f9",
-      "recipeViewType": "IsUnlocked"
+      "recipeViewType": "IsUnlocked",
+      "moduleParam": {
+        "effectAxis": "Efficiency",
+        "tier": 1,
+        "effectValue": 0.3,
+        "tradeoffValue": 0.0
+      }
     },
     {
       "initialUnlocked": false,

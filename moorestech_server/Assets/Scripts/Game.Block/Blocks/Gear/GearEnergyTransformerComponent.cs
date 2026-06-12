@@ -27,9 +27,10 @@ namespace Game.Block.Blocks.Gear
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
 
-        // 消費倍率プロバイダ。機械の省エネモジュール等が要求トルクを変えるために差し込む（既定は中立1.0）
-        // Consumption multiplier provider; machines inject this (e.g. efficiency modules). Defaults to neutral 1.0
-        private Func<float> _consumptionMultiplier = () => 1f;
+        // 消費倍率の供給源。機械の省エネモジュール等が要求トルクを変えるために設定する（未設定は中立1.0）
+        // Source of the consumption multiplier; machines set this (e.g. efficiency modules). Neutral 1.0 when unset
+        private IConsumptionMultiplierSource _consumptionMultiplierSource;
+        private float ConsumptionMultiplier => _consumptionMultiplierSource?.ConsumptionMultiplier ?? 1f;
 
         public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
@@ -55,14 +56,14 @@ namespace Game.Block.Blocks.Gear
             // 基準の要求トルクに消費倍率を乗じる（省エネモジュール未装着・非機械は中立1.0で従来と同値）
             // Multiply the base required torque by the consumption multiplier (neutral 1.0 keeps non-machine gears unchanged)
             var baseTorque = GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
-            return new Torque(baseTorque.AsPrimitive() * _consumptionMultiplier());
+            return new Torque(baseTorque.AsPrimitive() * ConsumptionMultiplier);
         }
 
-        // 消費倍率プロバイダを差し込む。倍率はトルク照会時に都度読むため、加工スナップショットの変化が即時反映される
-        // Inject the consumption multiplier provider; it is read lazily on each torque query, so snapshot changes apply immediately
-        public void SetConsumptionMultiplier(Func<float> consumptionMultiplier)
+        // 消費倍率の供給源を設定する。倍率はトルク照会時に都度読むため、モジュールの付け外しが即時反映される
+        // Set the consumption multiplier source; it is read on each torque query, so module changes apply immediately
+        public void SetConsumptionMultiplierSource(IConsumptionMultiplierSource consumptionMultiplierSource)
         {
-            _consumptionMultiplier = consumptionMultiplier;
+            _consumptionMultiplierSource = consumptionMultiplierSource;
         }
 
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
@@ -86,7 +87,7 @@ namespace Game.Block.Blocks.Gear
             // 倍率分のトルクが供給されていれば有効要求電力（基準×倍率）に一致し、速度モジュールの時間短縮が自己相殺しない
             // With the scaled torque supplied this equals the effective request power (base × multiplier), so speed module time reduction does not self-cancel
             var basePower = GearConsumptionCalculator.CalcCurrentPower(_consumption, GetCurrentOperatingRate());
-            return new ElectricPower(basePower.AsPrimitive() * _consumptionMultiplier());
+            return new ElectricPower(basePower.AsPrimitive() * ConsumptionMultiplier);
         }
 
         public virtual void StopNetwork()

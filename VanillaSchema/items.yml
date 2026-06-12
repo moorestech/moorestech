@@ -54,3 +54,32 @@ properties:
       - key: entityModel
         type: string
         optional: true
+    - key: moduleParam
+      type: object
+      optional: true
+      properties:
+      - key: effectAxis
+        type: enum
+        options:
+        - Speed
+        - Productivity
+        - Efficiency
+        - Quality
+      - key: tier
+        type: integer
+        default: 1
+      - key: effectValue
+        type: number
+        default: 0
+      - key: tradeoffValue
+        type: number
+        default: 0
+    - key: levelItemGuids
+      type: array
+      optional: true
+      items:
+        type: uuid
+        foreignKey:
+          schemaId: items
+          foreignKeyIdPath: /data/[*]/itemGuid
+          displayElementPath: /data/[*]/name
