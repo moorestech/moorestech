@@ -29,12 +29,14 @@ function GrabOverlay({ grab }: { grab: SlotData }) {
 
 // プレイヤーインベントリ（メイン4行+ホットバー1行+grab）の表示と操作
 // Player inventory view & interactions: 4 main rows, 1 hotbar row, and the grab stack
+// uGUI 準拠で inv 領域（メイン+Sort）と hotbar 領域（下段中央）の2要素を Fragment で返す
+// Returns two grid children via Fragment, matching uGUI: inv area (main+Sort) and bottom-center hotbar area
 export default function InventoryPanel() {
   const inventory = useTopic<PlayerInventoryData>("local_player.inventory");
   const itemMaster = useItemMaster();
 
   if (!inventory) {
-    return <div className="text-sm text-gray-400">connecting...</div>;
+    return <div className="text-sm text-gray-400 [grid-area:inv]">connecting...</div>;
   }
 
   const grabHeld = inventory.grab.count > 0;
@@ -105,23 +107,29 @@ export default function InventoryPanel() {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold">Inventory</h2>
-        <button
-          onClick={() => void dispatchAction("inventory.sort", {})}
-          className="bg-gray-700 hover:bg-gray-600 text-sm rounded px-3 py-1"
-        >
-          Sort
-        </button>
+    <>
+      <div className="space-y-3 [grid-area:inv]">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold">Inventory</h2>
+          <button
+            onClick={() => void dispatchAction("inventory.sort", {})}
+            className="bg-gray-700 hover:bg-gray-600 text-sm rounded px-3 py-1"
+          >
+            Sort
+          </button>
+        </div>
+        <div className="grid grid-cols-9 gap-1 w-fit">
+          {inventory.mainSlots.map((s, i) => renderSlot("main", i, s))}
+        </div>
       </div>
-      <div className="grid grid-cols-9 gap-1 w-fit">
-        {inventory.mainSlots.map((s, i) => renderSlot("main", i, s))}
-      </div>
-      <div className="grid grid-cols-9 gap-1 w-fit pt-1 border-t border-gray-600">
-        {inventory.hotbarSlots.map((s, i) => renderSlot("hotbar", i, s))}
+      {/* ホットバーは uGUI と同様に画面下段の中央へ独立配置 */}
+      {/* The hotbar sits independently at the bottom center, matching uGUI */}
+      <div className="[grid-area:hotbar] flex justify-center">
+        <div className="grid grid-cols-9 gap-1 w-fit rounded border border-gray-500 bg-gray-800/60 p-1">
+          {inventory.hotbarSlots.map((s, i) => renderSlot("hotbar", i, s))}
+        </div>
       </div>
       <GrabOverlay grab={inventory.grab} />
-    </div>
+    </>
   );
 }
