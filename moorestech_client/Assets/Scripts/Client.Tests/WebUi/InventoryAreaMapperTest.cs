@@ -1,5 +1,6 @@
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.WebUiHost.Game.Actions;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace Client.Tests.WebUi
@@ -28,6 +29,30 @@ namespace Client.Tests.WebUi
         public void InvalidAreaSlotReturnsFalse(string area, int slot)
         {
             var ok = InventoryAreaMapper.TryGetLocalSlot(area, slot, out _, out _);
+            Assert.IsFalse(ok);
+        }
+
+        [TestCase(@"{""area"":""main"",""slot"":3}", LocalMoveInventoryType.MainOrSub, 3)]
+        [TestCase(@"{""area"":""hotbar"",""slot"":2}", LocalMoveInventoryType.MainOrSub, 38)]
+        [TestCase(@"{""area"":""grab""}", LocalMoveInventoryType.Grab, 0)]
+        public void ValidSlotRefTokenParses(string json, LocalMoveInventoryType expectedType, int expectedSlot)
+        {
+            var ok = InventoryAreaMapper.TryParseSlotRef(JToken.Parse(json), out var type, out var localSlot);
+            Assert.IsTrue(ok);
+            Assert.AreEqual(expectedType, type);
+            Assert.AreEqual(expectedSlot, localSlot);
+        }
+
+        [TestCase(@"""main""")]
+        [TestCase(@"{""slot"":3}")]
+        [TestCase(@"{""area"":1,""slot"":3}")]
+        [TestCase(@"{""area"":{},""slot"":3}")]
+        [TestCase(@"{""area"":""main"",""slot"":""abc""}")]
+        [TestCase(@"{""area"":""main"",""slot"":1.5}")]
+        [TestCase(@"{""area"":""main"",""slot"":36}")]
+        public void InvalidSlotRefTokenReturnsFalse(string json)
+        {
+            var ok = InventoryAreaMapper.TryParseSlotRef(JToken.Parse(json), out _, out _);
             Assert.IsFalse(ok);
         }
     }
