@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -77,6 +78,10 @@ namespace Client.WebUiHost.Boot
             var sendTask = SendLoop(conn, ct);
             var receiveTask = ReceiveLoop(conn, ct);
             await Task.WhenAny(sendTask, receiveTask);
+
+            // 受信ループの fault を観測してログに残す（無痕跡の切断を防ぐ）
+            // Observe receive-loop faults so disconnects never happen silently
+            if (receiveTask.IsFaulted) UnityEngine.Debug.LogWarning($"[WebSocketHub] receive loop faulted: {receiveTask.Exception?.GetBaseException()}");
 
             _connections.TryRemove(id, out _);
         }
@@ -156,11 +161,15 @@ namespace Client.WebUiHost.Boot
 
         private static string BuildEnvelopeJson(string op, string topic, string dataJson)
         {
+            // 日付風文字列の暗黙DateTime変換を無効化し、データを素通しする
+            // Disable implicit DateTime parsing so date-like strings pass through untouched
+            var reader = new JsonTextReader(new StringReader(dataJson)) { DateParseHandling = DateParseHandling.None };
+            var data = JToken.ReadFrom(reader);
             var env = new JObject
             {
                 ["op"] = op,
                 ["topic"] = topic,
-                ["data"] = JToken.Parse(dataJson),
+                ["data"] = data,
             };
             return env.ToString(Formatting.None);
         }
