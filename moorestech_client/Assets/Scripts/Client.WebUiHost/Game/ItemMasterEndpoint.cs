@@ -39,22 +39,26 @@ namespace Client.WebUiHost.Game
             context.Response.Headers["Cache-Control"] = "no-store";
             context.Response.ContentType = "application/json; charset=utf-8";
             await context.Response.WriteAsync(_cachedJson, CancellationToken.None);
-        }
 
-        private static string BuildJson()
-        {
-            var dto = new ItemMasterListDto { Items = new List<ItemMasterDto>() };
-            foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
+            #region Internal
+
+            string BuildJson()
             {
-                var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                dto.Items.Add(new ItemMasterDto
+                var dto = new ItemMasterListDto { Items = new List<ItemMasterDto>() };
+                foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
                 {
-                    ItemId = itemId.AsPrimitive(),
-                    Name = master.Name,
-                    MaxStack = master.MaxStack,
-                });
+                    var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                    dto.Items.Add(new ItemMasterDto
+                    {
+                        ItemId = itemId.AsPrimitive(),
+                        Name = master.Name,
+                        MaxStack = master.MaxStack,
+                    });
+                }
+                return WebUiJson.Serialize(dto);
             }
-            return WebUiJson.Serialize(dto);
+
+            #endregion
         }
     }
 
