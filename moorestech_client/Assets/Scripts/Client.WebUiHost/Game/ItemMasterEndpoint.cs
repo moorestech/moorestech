@@ -33,6 +33,10 @@ namespace Client.WebUiHost.Game
             }
 
             _cachedJson ??= BuildJson();
+
+            // ItemId は非永続のためブラウザにキャッシュさせない
+            // ItemIds are not persistent, so tell the browser not to cache this
+            context.Response.Headers["Cache-Control"] = "no-store";
             context.Response.ContentType = "application/json; charset=utf-8";
             await context.Response.WriteAsync(_cachedJson, CancellationToken.None);
         }
