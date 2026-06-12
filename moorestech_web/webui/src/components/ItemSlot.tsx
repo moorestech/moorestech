@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { MouseEvent } from "react";
 
 type Props = {
@@ -19,6 +20,11 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
     if (e.button === 2) onRightDown?.();
   };
 
+  // アイコン読み込み失敗を itemId 単位で記録し、ID ラベル表示に切り替える
+  // Track icon load failures per itemId and fall back to the id label
+  const [erroredItemId, setErroredItemId] = useState<number | null>(null);
+  const iconFailed = erroredItemId === itemId;
+
   const hasItem = itemId > 0 && count > 0;
 
   return (
@@ -32,21 +38,19 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
     >
       {hasItem ? (
         <>
-          <img
-            src={`/api/icons/${itemId}.png`}
-            alt={name ?? `item ${itemId}`}
-            className="w-full h-full object-contain p-0.5"
-            draggable={false}
-            onError={(e) => {
-              // アイコン未配信（503等）は壊れ画像を隠してID表示に切り替える
-              // Hide broken icons (e.g. 503 before ready) and fall back to the id label
-              e.currentTarget.style.display = "none";
-              e.currentTarget.nextElementSibling?.classList.remove("hidden");
-            }}
-          />
-          <span className="hidden absolute inset-0 flex items-center justify-center text-[10px] text-gray-400">
-            #{itemId}
-          </span>
+          {!iconFailed ? (
+            <img
+              src={`/api/icons/${itemId}.png`}
+              alt={name ?? `item ${itemId}`}
+              className="w-full h-full object-contain p-0.5"
+              draggable={false}
+              onError={() => setErroredItemId(itemId)}
+            />
+          ) : (
+            <span className="absolute inset-0 flex items-center justify-center text-[10px] text-gray-400">
+              #{itemId}
+            </span>
+          )}
           <span className="absolute bottom-0 right-0.5 text-xs text-green-300 font-bold drop-shadow">{count}</span>
           {name ? (
             <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block whitespace-nowrap bg-black/90 text-white text-xs rounded px-2 py-1 z-20">
