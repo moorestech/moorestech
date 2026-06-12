@@ -44,9 +44,22 @@ namespace Client.WebUiHost.Game.Actions
             type = LocalMoveInventoryType.MainOrSub;
             localSlot = -1;
             if (token is not JObject obj) return false;
-            var area = obj.Value<string>("area");
-            var slot = obj.Value<int?>("slot") ?? 0;
-            return TryGetLocalSlot(area, slot, out type, out localSlot);
+
+            // 外部入力のため型を検証し例外を出さず false を返す
+            // Validate external input types and return false instead of throwing
+            if (obj["area"] is not JValue { Type: JTokenType.String } areaValue) return false;
+
+            // slot 欠落は 0 扱い、整数以外は不正
+            // Missing slot defaults to 0; non-integer slot is invalid
+            var slotToken = obj["slot"];
+            var slot = 0;
+            if (slotToken != null)
+            {
+                if (slotToken.Type != JTokenType.Integer) return false;
+                slot = slotToken.Value<int>();
+            }
+
+            return TryGetLocalSlot((string)areaValue, slot, out type, out localSlot);
         }
     }
 }
