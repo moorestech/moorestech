@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClassLibrary;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
@@ -111,42 +110,13 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private void DoubleClick(int slotIndex)
         {
             if (_isItemSplitDragging || _isItemOneDragging) return;
-            
-            
-            IItemStack collectTargetItem;
-            LocalMoveInventoryType fromType;
-            int fromSlot;
+
+            // 収集本体はコントローラに集約（Web の inventory.collect と共通実装）
+            // Collection itself is centralized in the controller, shared with the web's inventory.collect
             if (IsGrabItem)
-            {
-                collectTargetItem = _playerInventory.GrabInventory;
-                fromType = LocalMoveInventoryType.Grab;
-                fromSlot = 0;
-            }
+                _playerInventory.CollectItems(LocalMoveInventoryType.Grab, 0);
             else
-            {
-                collectTargetItem = _playerInventory.LocalPlayerInventory[slotIndex];
-                fromType = LocalMoveInventoryType.MainOrSub;
-                fromSlot = slotIndex;
-            }
-            
-            var collectTargetSotIndex = _playerInventory.LocalPlayerInventory.Select((item, index) => new { item, index }).Where(i => i.item.Id == collectTargetItem.Id).OrderBy(i => i.item.Count).Select(i => i.index).ToList();
-            
-            //一つのスロットに集める場合は集める先のスロットのインデックスをターゲットから除外する
-            if (!IsGrabItem) collectTargetSotIndex.Remove(slotIndex);
-            
-            foreach (var index in collectTargetSotIndex)
-            {
-                var added = collectTargetItem.AddItem(_playerInventory.LocalPlayerInventory[index]);
-                
-                //アイテムを何個移したのかを計算
-                var collectItemCount = _playerInventory.LocalPlayerInventory[index].Count - added.RemainderItemStack.Count;
-                _playerInventory.MoveItem(LocalMoveInventoryType.MainOrSub, index, fromType, fromSlot, collectItemCount);
-                
-                collectTargetItem = added.ProcessResultItemStack;
-                
-                //足したあまりがあるということはスロットにそれ以上入らないということなので、ここで処理を終了する
-                if (added.RemainderItemStack.Count != 0) break;
-            }
+                _playerInventory.CollectItems(LocalMoveInventoryType.MainOrSub, slotIndex);
         }
         
         private void CursorEnter(int slotIndex)

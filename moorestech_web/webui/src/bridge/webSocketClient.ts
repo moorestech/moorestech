@@ -1,5 +1,5 @@
-// Unity 側 Web UI ホストと通信する WebSocket クライアント（subscribe/unsubscribe/snapshot/action 送信、snapshot/event/result 受信）。
-// WebSocket client for the Unity-side Web UI host; sends subscribe/unsubscribe/snapshot/action, receives snapshot/event/result.
+// Unity 側 Web UI ホストと通信する WebSocket クライアント
+// WebSocket client for the Unity-side Web UI host
 
 export type ActionResult = { ok: boolean; error?: string };
 
@@ -52,8 +52,8 @@ class WebSocketClient {
     };
   }
 
-  // action を発行し result を Promise で返す。タイムアウト・切断時は reject
-  // Send an action and resolve with its result; reject on timeout or disconnect
+  // タイムアウト・切断時は reject
+  // Rejects on timeout or disconnect
   sendAction(type: string, payload: unknown): Promise<ActionResult> {
     return new Promise((resolve, reject) => {
       if (this.ws?.readyState !== WebSocket.OPEN) {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Context;
 using Core.Item.Interface;
 using Core.Master;
@@ -125,6 +126,41 @@ namespace Client.Game.InGame.UI.Inventory.Main
             #endregion
         }
         
+        public void CollectItems(LocalMoveInventoryType targetType, int targetSlot)
+        {
+            // 同種アイテムを所持数の少ない順に集積先へ移す（uGUI ダブルクリックと Web collect の共通実装）
+            // Gather same-type stacks smallest-first into the target; shared by uGUI double-click and web collect
+            var isGrabTarget = targetType == LocalMoveInventoryType.Grab;
+            var collectTarget = isGrabTarget ? GrabInventory : LocalPlayerInventory[targetSlot];
+            if (collectTarget.Id == ItemMaster.EmptyItemId) return;
+
+            // 集積先自身は移動元から除外する
+            // Exclude the target slot itself from the sources
+            var sourceSlots = LocalPlayerInventory
+                .Select((item, index) => (item, index))
+                .Where(x => x.item.Id == collectTarget.Id)
+                .Where(x => isGrabTarget || x.index != targetSlot)
+                .OrderBy(x => x.item.Count)
+                .Select(x => x.index)
+                .ToList();
+
+            foreach (var index in sourceSlots)
+            {
+                var added = collectTarget.AddItem(LocalPlayerInventory[index]);
+                var moveCount = LocalPlayerInventory[index].Count - added.RemainderItemStack.Count;
+
+                // 1個も移せない＝集積先が満杯なので終了
+                // Zero movable items means the target is full; stop here
+                if (moveCount <= 0) break;
+                MoveItem(LocalMoveInventoryType.MainOrSub, index, targetType, targetSlot, moveCount);
+                collectTarget = added.ProcessResultItemStack;
+
+                // 余りが出たら集積先が満杯なので終了
+                // A remainder means the target stack is full; stop here
+                if (added.RemainderItemStack.Count != 0) break;
+            }
+        }
+
         public void SortInventory()
         {
             // メインインベントリを整理（ホットバー除外はサーバー側で実施）

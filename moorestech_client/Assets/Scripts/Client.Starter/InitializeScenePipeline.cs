@@ -183,8 +183,8 @@ namespace Client.Starter
                 var resolver = starter.StartGame(handshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
 
-                // Web UI ゲーム系トピックと action を Hub にバインド
-                // Bind game-side Web UI topics and actions to the hub
+                // Web UI を Hub にバインド
+                // Bind the Web UI to the hub
                 WebUiHost.Game.WebUiGameBinder.Bind();
 
                 // ゲーム初期化完了イベントを発火

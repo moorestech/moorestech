@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useTopic } from "../bridge/useTopic";
 import { useItemMaster } from "../bridge/useItemMaster";
-import { dispatchAction } from "../bridge/actions";
-import type { CraftRecipe, CraftRecipesData, MachineRecipe, MachineRecipesData } from "../types/crafting";
+import type { CraftRecipesData, MachineRecipe, MachineRecipesData } from "../types/crafting";
 import type { PlayerInventoryData } from "../types/inventory";
 import type { ItemMasterEntry } from "../types/itemMaster";
-import ItemSlot from "./ItemSlot";
+import ItemHeader from "./ItemHeader";
 import ItemIcon from "./ItemIcon";
+import CraftRecipeView from "./CraftRecipeView";
+import MachineRecipeView from "./MachineRecipeView";
 
 type Props = {
   itemId: number | null;
@@ -61,8 +62,8 @@ type Tab = { key: string; label: string; blockItemId: number | null };
 // 選択アイテムのレシピ本体。key={itemId} で再マウントされタブ・ページ状態がリセットされる
 // Recipe body for the selected item; remounted via key={itemId} so tab/page state resets
 function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster, onSelect }: ContentProps) {
-  // 対象アイテムを生産するクラフトレシピと、機械（blockItemId）ごとにまとめた機械レシピ
-  // Craft recipes producing this item, plus machine recipes grouped by machine (blockItemId)
+  // 生産レシピを抽出し機械別に集約
+  // Collect producing recipes, grouped per machine
   const craftRecipes = recipes.recipes.filter((r) => r.resultItemId === itemId);
   const machineGroups = new Map<number, MachineRecipe[]>();
   machineRecipes.recipes
@@ -145,127 +146,6 @@ function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster,
           onSelect={onSelect}
         />
       )}
-    </div>
-  );
-}
-
-// 選択アイテムのアイコン+名前ヘッダ
-// Icon + name header for the selected item
-function ItemHeader({ itemId, name }: { itemId: number; name: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <ItemSlot itemId={itemId} name={name} />
-      <span className="text-base text-gray-200">{name}</span>
-    </div>
-  );
-}
-
-// 複数レシピの前後送りページャ（< i/n >）
-// Pager for stepping through multiple recipes (< i/n >)
-function RecipePager({
-  index,
-  count,
-  setIndex,
-}: {
-  index: number;
-  count: number;
-  setIndex: (i: number) => void;
-}) {
-  if (count <= 1) return null;
-  return (
-    <div className="flex items-center gap-2 text-sm text-gray-300">
-      <button onClick={() => setIndex((index + count - 1) % count)} className="bg-gray-700 hover:bg-gray-600 rounded px-2 py-0.5">
-        &lt;
-      </button>
-      <span>
-        {index + 1}/{count}
-      </span>
-      <button onClick={() => setIndex((index + 1) % count)} className="bg-gray-700 hover:bg-gray-600 rounded px-2 py-0.5">
-        &gt;
-      </button>
-    </div>
-  );
-}
-
-type CraftViewProps = {
-  recipes: CraftRecipe[];
-  recipeIndex: number;
-  setRecipeIndex: (i: number) => void;
-  counts: Map<number, number>;
-  itemMaster: Map<number, ItemMasterEntry> | null;
-  onSelect: (itemId: number) => void;
-};
-
-// クラフトタブ: 素材列 → 結果と Craft ボタン。素材クリックでそのアイテムへジャンプ
-// Craft tab: material row → result with a Craft button; clicking a material jumps to that item
-function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, itemMaster, onSelect }: CraftViewProps) {
-  // topic 更新でレシピ数が減った場合に備えて index をクランプ
-  // Clamp the index in case a topic update shrank the recipe list
-  const index = Math.min(recipeIndex, recipes.length - 1);
-  const recipe = recipes[index];
-  const craftable = recipe.requiredItems.every((r) => (counts.get(r.itemId) ?? 0) >= r.count);
-
-  const onCraft = () => {
-    if (!craftable) return;
-    void dispatchAction("craft.execute", { recipeGuid: recipe.recipeGuid });
-  };
-
-  return (
-    <div className="space-y-2">
-      <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
-      <div className="flex flex-wrap items-center gap-1">
-        {recipe.requiredItems.map((r, i) => (
-          <div key={i} className={(counts.get(r.itemId) ?? 0) >= r.count ? "" : "opacity-40"}>
-            <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
-          </div>
-        ))}
-        <span className="mx-2 text-gray-400">→</span>
-        <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
-        <button
-          onClick={onCraft}
-          disabled={!craftable}
-          className="ml-3 bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-sm rounded px-4 py-2"
-        >
-          Craft
-        </button>
-      </div>
-    </div>
-  );
-}
-
-type MachineViewProps = {
-  recipes: MachineRecipe[];
-  recipeIndex: number;
-  setRecipeIndex: (i: number) => void;
-  itemMaster: Map<number, ItemMasterEntry> | null;
-  onSelect: (itemId: number) => void;
-};
-
-// 機械タブ: 入力列 → 機械 → 出力列の閲覧表示（uGUI の MachineRecipeView 準拠、Craft ボタン無し）
-// Machine tab: input row → machine → output row, view-only like uGUI's MachineRecipeView (no Craft button)
-function MachineRecipeView({ recipes, recipeIndex, setRecipeIndex, itemMaster, onSelect }: MachineViewProps) {
-  // topic 更新でレシピ数が減った場合に備えて index をクランプ
-  // Clamp the index in case a topic update shrank the recipe list
-  const index = Math.min(recipeIndex, recipes.length - 1);
-  const recipe = recipes[index];
-
-  return (
-    <div className="space-y-2">
-      <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
-      <div className="flex flex-wrap items-center gap-1">
-        {recipe.inputItems.map((r, i) => (
-          <ItemSlot key={i} itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
-        ))}
-        <span className="mx-2 text-gray-400">→</span>
-        <div className="flex flex-col items-center">
-          <ItemSlot itemId={recipe.blockItemId} name={recipe.blockName} onLeftDown={() => onSelect(recipe.blockItemId)} />
-          <span className="text-[10px] text-gray-400 max-w-16 truncate">{recipe.blockName}</span>
-        </div>
-        <span className="mx-2 text-gray-400">→</span>
-        {recipe.outputItems.map((r, i) => (
-          <ItemSlot key={i} itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
-        ))}
-      </div>
     </div>
   );
 }

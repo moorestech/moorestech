@@ -37,8 +37,8 @@ namespace Client.WebUiHost.Game.Actions
             }
         }
 
-        // payload 中の {"area":"main","slot":3} 形式の JToken を変換する
-        // Parse a {"area":"main","slot":3}-shaped JToken from a payload
+        // area/slot 形式の JToken を変換
+        // Parse an area/slot-shaped JToken
         public static bool TryParseSlotRef(JToken token, out LocalMoveInventoryType type, out int localSlot)
         {
             type = LocalMoveInventoryType.MainOrSub;
@@ -49,8 +49,8 @@ namespace Client.WebUiHost.Game.Actions
             // Validate external input types and return false instead of throwing
             if (obj["area"] is not JValue { Type: JTokenType.String } areaValue) return false;
 
-            // slot 欠落は grab のみ許可、それ以外の area ではスロット指定必須
-            // Missing slot is allowed only for grab; other areas require an explicit slot
+            // slot 欠落は grab のみ許可
+            // Missing slot is allowed only for grab
             var area = (string)areaValue;
             var slotToken = obj["slot"];
             var slot = 0;
@@ -63,7 +63,7 @@ namespace Client.WebUiHost.Game.Actions
                 // int 範囲の整数のみ許可（範囲外 long / BigInteger は拒否）
                 // Only int-range integers allowed, out-of-range long / BigInteger rejected
                 if (slotToken is not JValue { Value: long slotLong }) return false;
-                if (slotLong < int.MinValue || slotLong > int.MaxValue) return false;
+                if (slotLong < int.MinValue || int.MaxValue < slotLong) return false;
                 slot = (int)slotLong;
             }
 

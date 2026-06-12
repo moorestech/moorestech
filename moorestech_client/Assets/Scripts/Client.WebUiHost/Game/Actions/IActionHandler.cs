@@ -9,8 +9,8 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public interface IActionHandler
     {
-        // ドット区切りの action 種別名（例: inventory.move_item）
-        // Dot-separated action type name (e.g. inventory.move_item)
+        // ドット区切りの種別名
+        // Dot-separated action type name
         string ActionType { get; }
 
         // メインスレッドで呼ばれる。payload は null の可能性あり

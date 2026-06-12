@@ -55,17 +55,21 @@ namespace Client.WebUiHost.Game.Topics
             if (_publishScheduled) return;
             _publishScheduled = true;
             PublishAtEndOfFrame().Forget();
-        }
 
-        private async UniTaskVoid PublishAtEndOfFrame()
-        {
-            await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
-            _publishScheduled = false;
+            #region Internal
 
-            // Dispose 後に遅延 publish が走らないようガードする
-            // Guard so a deferred publish never fires after Dispose
-            if (_disposed) return;
-            _hub.Publish(TopicName, BuildJson());
+            async UniTaskVoid PublishAtEndOfFrame()
+            {
+                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+                _publishScheduled = false;
+
+                // Dispose 後に遅延 publish が走らないようガードする
+                // Guard so a deferred publish never fires after Dispose
+                if (_disposed) return;
+                _hub.Publish(TopicName, BuildJson());
+            }
+
+            #endregion
         }
 
         private string BuildJson()

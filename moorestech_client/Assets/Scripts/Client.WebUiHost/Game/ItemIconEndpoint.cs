@@ -61,7 +61,7 @@ namespace Client.WebUiHost.Game
 
             if (!_pngCache.TryGetValue(itemIdValue, out var cached))
             {
-                var png = await EncodePngOnMainThread(itemIdValue);
+                var png = await EncodePngOnMainThread();
                 if (png == null)
                 {
                     context.Response.StatusCode = 404;
@@ -85,17 +85,21 @@ namespace Client.WebUiHost.Game
 
             context.Response.ContentType = "image/png";
             await context.Response.Body.WriteAsync(cached.Png, 0, cached.Png.Length);
-        }
 
-        private static async UniTask<byte[]> EncodePngOnMainThread(int itemIdValue)
-        {
-            // EncodeToPNG は Unity API のためメインスレッドで実行する
-            // EncodeToPNG is a Unity API and must run on the main thread
-            await UniTask.SwitchToMainThread();
-            var view = ClientContext.ItemImageContainer.GetItemView(new ItemId(itemIdValue));
-            var png = view?.ItemTexture is Texture2D texture ? texture.EncodeToPNG() : null;
-            await UniTask.SwitchToTaskPool();
-            return png;
+            #region Internal
+
+            async UniTask<byte[]> EncodePngOnMainThread()
+            {
+                // EncodeToPNG は Unity API のためメインスレッドで実行する
+                // EncodeToPNG is a Unity API and must run on the main thread
+                await UniTask.SwitchToMainThread();
+                var view = ClientContext.ItemImageContainer.GetItemView(new ItemId(itemIdValue));
+                var png = view?.ItemTexture is Texture2D texture ? texture.EncodeToPNG() : null;
+                await UniTask.SwitchToTaskPool();
+                return png;
+            }
+
+            #endregion
         }
     }
 }
