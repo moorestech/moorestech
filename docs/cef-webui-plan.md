@@ -56,6 +56,22 @@
 ### D. 段階的移行
 - [ ] **置き換え UI の洗い出し** — 現行 uGUI のどれから置き換えるかの棚卸し。インベントリ系が試作済みなので第一候補。ギア/エネルギー系 UI、デバッグ系は後段の可能性。
 
+## 4.5 スモークテスト結果（2026-06-12, feature/web-ui）
+
+**結果: 表示成功。** MainGame シーン上の無効化済み `GameSystem/MainGameUI/CefUnity` インスタンスを uloop execute-dynamic-code で操作（`_url` を `http://localhost:5173/` に書き換え → コンポーネント enable → `SetActive(true)`）し、ゲーム内 RawImage 上に moorestech Web UI（ヘッダ・Ping Action・インベントリグリッド・Craft パネル約80レシピ、すべてアイコン付き）が描画されることを GameView スクリーンショットで確認した（`/tmp/cef-smoke.png`）。accelerated paint（macOS IOSurface/Metal 経路）が有効（`acceleratedPaint=True`、1224x650 外部テクスチャ）で、色味の異常（sRGB washout）は見られなかった。CEF 関連の Error/Warning ログはゼロ。
+
+**最大の発見（要恒久対応）: UPM git パッケージは Git LFS を解決しない。** `jp.juha.cefunitysample`（`KurisuJuha/cef-unity-moorestech.git?path=/Assets/CefUnity`）の macOS バイナリ（`libcef_unity_rust.dylib`・`cef-unity-server.app` 一式、実体296MB）は LFS 管理のため、PackageCache には**131バイトの LFS ポインタテキスト**しか入っておらず、素の状態では `DllNotFoundException: cef_unity_rust` で必ず初期化失敗する（.meta も LFS ポインタでプラグインインポート自体が無効）。今回の回避手順: ロック済みリビジョン 3ddfc60 を `git clone` + `git lfs pull --include "Assets/CefUnity/Interop/Plugins/osx-arm64/**"` → PackageCache に実バイナリと .meta を上書き → `AssetDatabase.ImportAsset(ForceUpdate)` でプラグイン再インポート（`isNative=True / editorCompatible=True` 確認）→ **Play mode 再突入（ドメインリロード）**。Mono は DllImport 解決失敗を同一ドメイン内でキャッシュするため、バイナリ修復後も再リトライ・絶対パス dlopen 先読みでは復活せず、ドメインリロードが必須だった。恒久対応の選択肢: パッケージ側で LFS をやめる / バイナリを別配布してローカルコピーする / embedded package 化。
+
+**その他の観察事項:**
+- prefab 上は GameObject の `m_IsActive: 0` に加えて `CefUnityBrowserSample` コンポーネント自体も `enabled: false`。有効化は両方必要。
+- C# 側 diag の `paint=0` は software paint 専用カウンタで、accelerated 経路では増えない（正常）。フレーム受信は `_accelProfCount` で確認できる（実測 recv≈0.12ms/frame、UpdateExternalTexture≈0.04ms/frame と軽量）。
+- Editor 上の体感 FPS は約23（ベースライン未計測のため CEF 起因かは不明。既知の「Mac の 7ms 同期待ち」検証は別途）。
+- CefServer ログの `mach_send=0` は実害なし（IOSurface フレームは Unity 側に届いている）。
+- Web ページの黒背景部分は不透明描画され、RawImage がスクリーン全面を覆うため既存 uGUI（ホットバー等）と重なる。レイアウト統合（透過・部分表示・入力フォーカス制御）は次フェーズの課題。
+- 入力（マウス/キーボードの CEF パススルー）は今回未検証（表示のみのスモーク）。
+
+**次のアクション:** (1) LFS 問題の恒久対応（最優先・これが直らない限り新規環境では常に初期化失敗）、(2) prefab の URL を localhost ベースに切り替えて有効化する初期化パイプライン統合、(3) 入力パススルーと uGUI との重なり制御の検証。
+
 ## 5. 未解決・リスク
 
 - **Mac の 7ms 同期待ち**: 原因未特定。GPU 同期境界の疑い。Windows では再現しない可能性があるが要検証。
