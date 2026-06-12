@@ -74,7 +74,7 @@ namespace Client.WebUiHost.Boot
 
             if (_hub != null)
             {
-                _hub.ClearTopics();
+                _hub.ClearBindings();
                 await _hub.CloseAllAsync();
                 _hub = null;
             }
