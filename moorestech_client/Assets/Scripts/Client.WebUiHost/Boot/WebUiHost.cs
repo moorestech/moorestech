@@ -74,6 +74,9 @@ namespace Client.WebUiHost.Boot
 
             if (_hub != null)
             {
+                // セーブデータ/Mod 切り替えに備えてアイコンキャッシュを破棄する
+                // Drop the icon cache in case the save data / mod set changes
+                Game.ItemIconEndpoint.ClearCache();
                 _hub.ClearBindings();
                 await _hub.CloseAllAsync();
                 _hub = null;

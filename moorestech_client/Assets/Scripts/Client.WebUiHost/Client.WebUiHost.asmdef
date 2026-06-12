@@ -4,6 +4,7 @@
     "references": [
         "Client.Common",
         "Client.Game",
+        "Client.Mod",
         "Client.Network",
         "Core.Item.Interface",
         "Core.Master",
