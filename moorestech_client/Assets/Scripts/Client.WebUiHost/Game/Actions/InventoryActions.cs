@@ -32,6 +32,10 @@ namespace Client.WebUiHost.Game.Actions
             if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (!InventoryAreaMapper.TryParseSlotRef(payload["to"], out var toType, out var toSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
+            // 同一スロットへの移動はMoveItem内部でアイテムが消失するため no-op にする
+            // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
+            if (fromType == toType && fromSlot == toSlot) return UniTask.FromResult(ActionResult.Success());
+
             _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
             return UniTask.FromResult(ActionResult.Success());
         }
