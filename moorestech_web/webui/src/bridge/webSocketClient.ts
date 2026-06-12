@@ -11,7 +11,7 @@ type ServerMsg =
 type ClientMsg =
   | { op: "subscribe"; topics: string[] }
   | { op: "unsubscribe"; topics: string[] }
-  | { op: "snapshot"; topics: string[] }
+  | { op: "snapshot"; topic: string }
   | { op: "action"; type: string; requestId: string; payload: unknown };
 
 type Listener = (data: unknown) => void;
