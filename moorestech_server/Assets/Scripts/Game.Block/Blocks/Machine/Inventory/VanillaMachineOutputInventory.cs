@@ -12,14 +12,14 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.Fluid;
-using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineOutputInventory
+    public class VanillaMachineOutputInventory : IVanillaMachineSubInventory
     {
         public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.InventoryItems;
+        IReadOnlyList<IItemStack> IVanillaMachineSubInventory.Items => OutputSlot;
         public IReadOnlyList<FluidContainer> FluidOutputSlot => _fluidContainers;
         
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
@@ -54,10 +54,10 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
         
         /// <summary>
-        ///     実際に産出されるアイテムスタック列と、レシピ定義の液体出力（1セット分）を格納できるか仮想挿入で判定する
-        ///     Check via virtual insertion whether the exact realized output stacks plus one set of recipe-defined fluids fit
+        ///     実際に産出されるアイテムスタック列と液体出力スタック列を格納できるか仮想挿入で判定する
+        ///     Check via virtual insertion whether the exact realized item stacks and fluid stacks fit
         /// </summary>
-        public bool CanStoreOutputs(MachineRecipeMasterElement machineRecipe, IReadOnlyList<IItemStack> itemOutputs)
+        public bool CanStoreOutputs(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
         {
             // 液体出力のスペースを先に確認する
             // Check fluid output space first
@@ -89,16 +89,15 @@ namespace Game.Block.Blocks.Machine.Inventory
             {
                 // 液体の出力スペースをチェック
                 // Check output space for fluids
-                for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+                for (var i = 0; i < fluidOutputs.Count; i++)
                 {
                     if (i >= _fluidContainers.Length) return false;
 
-                    var outputFluid = machineRecipe.OutputFluids[i];
-                    var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                    var outputFluid = fluidOutputs[i];
 
                     // 既に異なる液体が入っている場合、または容量が不足している場合
                     // If a different fluid is already present, or the remaining capacity is insufficient
-                    if (_fluidContainers[i].FluidId != FluidMaster.EmptyFluidId && _fluidContainers[i].FluidId != fluidId)
+                    if (_fluidContainers[i].FluidId != FluidMaster.EmptyFluidId && _fluidContainers[i].FluidId != outputFluid.FluidId)
                     {
                         return false;
                     }
@@ -116,42 +115,38 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
 
         /// <summary>
-        ///     変換済みアイテム出力1セットと、レシピ定義の液体出力を格納する
-        ///     Insert one pre-transformed set of item outputs plus the recipe-defined fluid outputs
+        ///     変換済みアイテム出力スタック列と液体出力スタック列を格納する
+        ///     Insert the pre-transformed item output stacks and the fluid output stacks
         /// </summary>
-        public void InsertOutputSlot(MachineRecipeMasterElement machineRecipe, IReadOnlyList<IItemStack> itemOutputs)
+        public void InsertOutputSlot(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
         {
             //アウトプットスロットにアイテムを格納する
-            InsertItemOutputsOnly(itemOutputs);
+            InsertItemOutputs();
 
             //アウトプットスロットに液体を格納する
-            for (var i = 0; i < machineRecipe.OutputFluids.Length; i++)
+            for (var i = 0; i < fluidOutputs.Count; i++)
             {
                 if (i >= _fluidContainers.Length) break;
 
-                var outputFluid = machineRecipe.OutputFluids[i];
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
-                var fluidStack = new FluidStack(outputFluid.Amount, fluidId);
-
-                _fluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+                _fluidContainers[i].AddLiquid(fluidOutputs[i], FluidContainer.Empty);
             }
-        }
 
-        /// <summary>
-        ///     変換済みアイテム出力スタック列のみを格納する（液体は格納しない）
-        ///     Insert the pre-transformed item output stacks only (no fluids)
-        /// </summary>
-        private void InsertItemOutputsOnly(IReadOnlyList<IItemStack> itemOutputs)
-        {
-            foreach (var outputItemStack in itemOutputs)
-                for (var i = 0; i < OutputSlot.Count; i++)
-                {
-                    if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;
+            #region Internal
 
-                    var item = OutputSlot[i].AddItem(outputItemStack).ProcessResultItemStack;
-                    _itemDataStoreService.SetItem(i, item);
-                    break;
-                }
+            void InsertItemOutputs()
+            {
+                foreach (var outputItemStack in itemOutputs)
+                    for (var i = 0; i < OutputSlot.Count; i++)
+                    {
+                        if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;
+
+                        var item = OutputSlot[i].AddItem(outputItemStack).ProcessResultItemStack;
+                        _itemDataStoreService.SetItem(i, item);
+                        break;
+                    }
+            }
+
+            #endregion
         }
         
         private void InsertConnectInventory()

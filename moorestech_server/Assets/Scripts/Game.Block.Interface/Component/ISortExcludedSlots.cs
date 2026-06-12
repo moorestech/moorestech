@@ -8,6 +8,6 @@ namespace Game.Block.Interface.Component
     /// </summary>
     public interface ISortExcludedSlots
     {
-        IReadOnlyCollection<int> GetSortExcludedSlots();
+        IReadOnlyCollection<int> SortExcludedSlots { get; }
     }
 }

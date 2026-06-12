@@ -44,7 +44,7 @@ namespace Server.Protocol.PacketResponse
             // Union slots declared by the inventory itself (e.g. machine module slots).
             if (inventory is ISortExcludedSlots sortExcluded)
             {
-                excludeSlots = excludeSlots.Union(sortExcluded.GetSortExcludedSlots());
+                excludeSlots = excludeSlots.Union(sortExcluded.SortExcludedSlots);
             }
 
             InventorySortService.Sort(inventory, excludeSlots.ToList());

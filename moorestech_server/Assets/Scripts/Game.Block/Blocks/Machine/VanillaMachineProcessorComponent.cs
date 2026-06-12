@@ -10,13 +10,14 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.Fluid;
 using MessagePack;
 using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
+    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IConsumptionMultiplierSource
     {
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
 
@@ -46,14 +47,17 @@ namespace Game.Block.Blocks.Machine
         // 開始時に抽選を確定した産出予定スタック列。セーブ・ロードで引き継ぎ、欠落時のみ完了時に再抽選する
         // Realized output stacks fixed at start; carried through save/load, re-rolled on completion only when missing
         private List<IItemStack> _pendingOutputs;
-        private readonly Random _random = new();
+
+        // 同一tickに生成された機械同士が同じ乱数列を引かないよう、乱数は全機械で共有する
+        // Share one random source across all machines so instances created in the same tick do not draw identical sequences
+        private static readonly Random Random = new();
 
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
 
-        // 加工中のみモジュール倍率を反映した電力倍率と要求電力（Idleは中立1.0）
-        // Power multiplier and request power with module effects applied only while processing (neutral 1.0 when idle)
-        public float CurrentPowerMultiplier => CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f;
-        public float EffectiveRequestPower => RequestPower * CurrentPowerMultiplier;
+        // 加工中のみモジュール倍率を反映した消費倍率と要求電力（Idleは中立1.0）
+        // Consumption multiplier and request power with module effects applied only while processing (neutral 1.0 when idle)
+        public float ConsumptionMultiplier => CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f;
+        public float EffectiveRequestPower => RequestPower * ConsumptionMultiplier;
 
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
@@ -159,7 +163,7 @@ namespace Game.Block.Blocks.Machine
                 // Fix this cycle's rolls (extra output and quality) at start and check capacity with the exact realized stacks
                 var effect = _effectComponent.AggregateCurrent();
                 var realizedOutputs = CreateRealizedOutputs(recipe, effect);
-                if (!_vanillaMachineOutputInventory.CanStoreOutputs(recipe, realizedOutputs)) return;
+                if (!_vanillaMachineOutputInventory.CanStoreOutputs(realizedOutputs, CreateFluidOutputs(recipe))) return;
 
                 // 確定した産出物を保持し、速度倍率を適用した加工時間で開始する
                 // Hold the realized outputs and start with the speed-scaled processing time
@@ -184,7 +188,7 @@ namespace Game.Block.Blocks.Machine
                     // 産出予定が無い場合（pendingOutputs未保存の旧セーブ復帰）のみ、現在の効果でその場で再抽選する
                     // Only when the pending outputs are missing (a load from an old save without the key), re-roll with the current effects
                     var outputs = _pendingOutputs ?? CreateRealizedOutputs(_processingRecipe, _effectComponent.AggregateCurrent());
-                    _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe, outputs);
+                    _vanillaMachineOutputInventory.InsertOutputSlot(outputs, CreateFluidOutputs(_processingRecipe));
                     _pendingOutputs = null;
                 }
                 else
@@ -197,12 +201,25 @@ namespace Game.Block.Blocks.Machine
                 _usedPower = true;
             }
 
-            // ベース1セット＋生産性抽選に当選すればもう1セットの産出スタック列を生成する
-            // Build the realized stacks: one base set plus one extra set if the productivity roll succeeds
+            // ベース1セットと当選時の追加1セットを生成
+            // Build one base set plus one extra set when the roll succeeds
             List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect)
             {
                 var outputs = CreateQualityAppliedOutputs(recipe, effect.QualityShift);
-                if (_random.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift));
+                if (Random.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift));
+                return outputs;
+            }
+
+            // レシピの液体出力1セットを生成
+            // Build one set of the recipe's fluid outputs
+            List<FluidStack> CreateFluidOutputs(MachineRecipeMasterElement recipe)
+            {
+                var outputs = new List<FluidStack>(recipe.OutputFluids.Length);
+                foreach (var outputFluid in recipe.OutputFluids)
+                {
+                    var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                    outputs.Add(new FluidStack(outputFluid.Amount, fluidId));
+                }
                 return outputs;
             }
 
@@ -223,16 +240,16 @@ namespace Game.Block.Blocks.Machine
             // Replace an output item with an upgraded variant per the quality distribution (pass-through without shift or family)
             IItemStack ApplyQualityLevel(IItemStack output, float qualityShift)
             {
-                if (qualityShift <= 0f || !MasterHolder.LevelFamilyMaster.HasFamily(output.Id)) return output;
+                if (qualityShift <= 0f || !MasterHolder.ItemMaster.HasLevelFamily(output.Id)) return output;
 
                 // 整数部=確定レベルアップ、小数部=抽選でさらに+1（レベル上限はマスタ側でクランプ）
                 // Integer part = guaranteed level-ups; fractional part = one more by roll (max level clamped by the master)
                 var guaranteed = (int)Math.Floor(qualityShift);
                 var fraction = qualityShift - guaranteed;
-                var extra = _random.NextDouble() < fraction ? 1 : 0;
+                var extra = Random.NextDouble() < fraction ? 1 : 0;
                 var level = 1 + guaranteed + extra;
 
-                var variantId = MasterHolder.LevelFamilyMaster.GetVariantItemId(output.Id, level);
+                var variantId = MasterHolder.ItemMaster.GetLevelVariantItemId(output.Id, level);
                 if (variantId == output.Id) return output;
                 return ServerContext.ItemStackFactory.Create(variantId, output.Count);
             }

@@ -18,8 +18,6 @@ namespace Core.Master
         public static ResearchMaster ResearchMaster { get; private set; }
         public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
-        public static ModuleMaster ModuleMaster { get; private set; }
-        public static LevelFamilyMaster LevelFamilyMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -56,18 +54,6 @@ namespace Core.Master
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")));
             InitializeMaster(TrainUnitMaster);
 
-            // モジュールマスタをロード（ItemMaster に依存。modules不在modでは空扱い）
-            // Load module master (depends on ItemMaster; treat absent modules as empty)
-            var modulesJson = TryGetJsonOrNull(new JsonFileName("modules")) ?? JToken.Parse("{\"data\":[]}");
-            ModuleMaster = new ModuleMaster(modulesJson);
-            InitializeMaster(ModuleMaster);
-
-            // レベルファミリーマスタをロード（ItemMaster に依存。levelFamilies不在modでは空扱い）
-            // Load the level family master (depends on ItemMaster; treat absent levelFamilies as empty)
-            var levelFamiliesJson = TryGetJsonOrNull(new JsonFileName("levelFamilies")) ?? JToken.Parse("{\"data\":[]}");
-            LevelFamilyMaster = new LevelFamilyMaster(levelFamiliesJson);
-            InitializeMaster(LevelFamilyMaster);
-
             // BlockMaster, ItemMaster, FluidMaster依存
             // Depends on BlockMaster, ItemMaster, FluidMaster
             MachineRecipesMaster = new MachineRecipesMaster(GetJson(masterJsonFileContainer, new JsonFileName("machineRecipes")));
@@ -95,17 +81,6 @@ namespace Core.Master
                 // 初期化処理実行
                 // Execute initialization
                 validator.Initialize();
-            }
-
-            // 指定ファイルが無ければ null を返す（新規・任意マスタ用）
-            // Return null when the file is absent (for new/optional masters)
-            JToken TryGetJsonOrNull(JsonFileName jsonFileName)
-            {
-                var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
-                var jsonContents = masterJsonFileContainer.ConfigJsons[index].JsonContents;
-                if (!jsonContents.TryGetValue(jsonFileName, out var jsonContent)) return null;
-
-                return (JToken)JsonConvert.DeserializeObject(jsonContent);
             }
 
             #endregion

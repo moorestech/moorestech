@@ -9,7 +9,7 @@ using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Mooresmaster.Model.ModulesModule;
+using Mooresmaster.Model.ItemsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
@@ -49,8 +49,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Place the machine and put a speed module into main inventory slot 0
             var machinePos = new Vector3Int(1, 1, 1);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
-            var moduleItemId = MasterHolder.ItemMaster.GetItemId(speedModule.ItemGuid);
+            var speedModuleItem = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == ModuleParam.EffectAxisConst.Speed);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(speedModuleItem.ItemGuid);
             mainInventory.SetItem(0, moduleItemId, 1);
 
             // 既存の移動プロトコル（InventoryType.Block＋スロット番号）でモジュールレンジ先頭スロットへ移動する

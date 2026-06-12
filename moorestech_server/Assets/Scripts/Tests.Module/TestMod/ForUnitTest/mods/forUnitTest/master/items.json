@@ -7,7 +7,13 @@
       "imagePath": "Test1",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "moduleParam": {
+        "effectAxis": "Speed",
+        "tier": 1,
+        "effectValue": 0.5,
+        "tradeoffValue": 0.5
+      }
     },
     {
       "maxStack": 50,
@@ -16,7 +22,13 @@
       "imagePath": "Test2",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "moduleParam": {
+        "effectAxis": "Productivity",
+        "tier": 1,
+        "effectValue": 1.0,
+        "tradeoffValue": 0.5
+      }
     },
     {
       "maxStack": 300,
@@ -25,7 +37,17 @@
       "imagePath": "Test1",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
-      "initialUnlocked": false
+      "initialUnlocked": false,
+      "moduleParam": {
+        "effectAxis": "Efficiency",
+        "tier": 1,
+        "effectValue": 0.3,
+        "tradeoffValue": 0.0
+      },
+      "levelItemGuids": [
+        "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
+        "adf11728-e5e7-b180-b6e1-7396d29e787d"
+      ]
     },
     {
       "maxStack": 100,
@@ -43,7 +65,13 @@
       "imagePath": "Test1",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
-      "initialUnlocked": false
+      "initialUnlocked": false,
+      "moduleParam": {
+        "effectAxis": "Quality",
+        "tier": 1,
+        "effectValue": 1.0,
+        "tradeoffValue": 0.5
+      }
     },
     {
       "maxStack": 100,
@@ -52,7 +80,13 @@
       "imagePath": "Test1",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
-      "initialUnlocked": false
+      "initialUnlocked": false,
+      "moduleParam": {
+        "effectAxis": "Quality",
+        "tier": 2,
+        "effectValue": 0.4,
+        "tradeoffValue": 0.0
+      }
     },
     {
       "maxStack": 100,

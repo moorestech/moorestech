@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Mooresmaster.Model.ModulesModule;
+using Mooresmaster.Model.ItemsModule;
 
 namespace Game.Block.Blocks.Machine.Module
 {
@@ -44,18 +44,18 @@ namespace Game.Block.Blocks.Machine.Module
                 var count = equipped.Count;
                 switch (module.EffectAxis)
                 {
-                    case ModuleMasterElement.EffectAxisConst.Speed:
+                    case ModuleParam.EffectAxisConst.Speed:
                         speedSum += module.EffectValue * count;
                         speedTradeoff += module.TradeoffValue * count;
                         break;
-                    case ModuleMasterElement.EffectAxisConst.Productivity:
+                    case ModuleParam.EffectAxisConst.Productivity:
                         productivitySum += module.EffectValue * count;
                         productivityTradeoff += module.TradeoffValue * count;
                         break;
-                    case ModuleMasterElement.EffectAxisConst.Efficiency:
+                    case ModuleParam.EffectAxisConst.Efficiency:
                         efficiencySum += module.EffectValue * count;
                         break;
-                    case ModuleMasterElement.EffectAxisConst.Quality:
+                    case ModuleParam.EffectAxisConst.Quality:
                         qualitySum += module.EffectValue * count;
                         qualityTradeoff += module.TradeoffValue * count;
                         break;
@@ -83,15 +83,15 @@ namespace Game.Block.Blocks.Machine.Module
         }
 
         /// <summary>
-        ///     装着中モジュール1スロット分（モジュール定義とスタック数）
-        ///     One equipped module slot (module definition and stack count)
+        ///     装着中モジュール1スロット分（モジュール設定とスタック数）
+        ///     One equipped module slot (module param and stack count)
         /// </summary>
         public readonly struct EquippedModule
         {
-            public readonly ModuleMasterElement Module;
+            public readonly ModuleParam Module;
             public readonly int Count;
 
-            public EquippedModule(ModuleMasterElement module, int count)
+            public EquippedModule(ModuleParam module, int count)
             {
                 Module = module;
                 Count = count;

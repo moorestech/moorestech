@@ -1,6 +1,6 @@
 using System;
 using Game.Block.Blocks.Machine.Module;
-using Mooresmaster.Model.ModulesModule;
+using Mooresmaster.Model.ItemsModule;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Core.Other
@@ -31,8 +31,8 @@ namespace Tests.UnitTest.Core.Other
         {
             var modules = new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f),
-                CreateModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Speed, 0.5f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Speed, 0.5f, 0.5f),
             };
             var effect = MachineModuleEffect.Aggregate(modules);
 
@@ -50,8 +50,8 @@ namespace Tests.UnitTest.Core.Other
         {
             var modules = new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Productivity, 1f, 0.5f),
-                CreateModule(ModuleMasterElement.EffectAxisConst.Productivity, 1f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Productivity, 1f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Productivity, 1f, 0.5f),
             };
             var effect = MachineModuleEffect.Aggregate(modules);
 
@@ -69,14 +69,14 @@ namespace Tests.UnitTest.Core.Other
         {
             var single = MachineModuleEffect.Aggregate(new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Efficiency, 0.3f, 0f),
+                CreateModule(ModuleParam.EffectAxisConst.Efficiency, 0.3f, 0f),
             });
             Assert.AreEqual(1f / 1.3f, single.PowerMultiplier, Delta);
             Assert.AreEqual(1f, single.ProcessingTimeMultiplier, Delta);
 
             var extreme = MachineModuleEffect.Aggregate(new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Efficiency, 100f, 0f),
+                CreateModule(ModuleParam.EffectAxisConst.Efficiency, 100f, 0f),
             });
             Assert.AreEqual(0.1f, extreme.PowerMultiplier, Delta);
         }
@@ -88,8 +88,8 @@ namespace Tests.UnitTest.Core.Other
         {
             var modules = new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f),
-                CreateModule(ModuleMasterElement.EffectAxisConst.Productivity, 1f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Speed, 0.5f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Productivity, 1f, 0.5f),
             };
             var effect = MachineModuleEffect.Aggregate(modules);
 
@@ -107,7 +107,7 @@ namespace Tests.UnitTest.Core.Other
         {
             var modules = new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Quality, 0.8f, 0.4f),
+                CreateModule(ModuleParam.EffectAxisConst.Quality, 0.8f, 0.4f),
             };
             var effect = MachineModuleEffect.Aggregate(modules);
 
@@ -124,8 +124,8 @@ namespace Tests.UnitTest.Core.Other
         {
             var modules = new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Quality, 0.7f, 0f),
-                CreateModule(ModuleMasterElement.EffectAxisConst.Quality, 0.7f, 0f),
+                CreateModule(ModuleParam.EffectAxisConst.Quality, 0.7f, 0f),
+                CreateModule(ModuleParam.EffectAxisConst.Quality, 0.7f, 0f),
             };
             var effect = MachineModuleEffect.Aggregate(modules);
 
@@ -150,7 +150,7 @@ namespace Tests.UnitTest.Core.Other
         {
             var modules = new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Quality, 1f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Quality, 1f, 0.5f),
             };
             var effect = MachineModuleEffect.Aggregate(modules);
 
@@ -167,12 +167,12 @@ namespace Tests.UnitTest.Core.Other
         {
             var stacked = MachineModuleEffect.Aggregate(new[]
             {
-                CreateStackedModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f, 2),
+                CreateStackedModule(ModuleParam.EffectAxisConst.Speed, 0.5f, 0.5f, 2),
             });
             var spread = MachineModuleEffect.Aggregate(new[]
             {
-                CreateModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f),
-                CreateModule(ModuleMasterElement.EffectAxisConst.Speed, 0.5f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Speed, 0.5f, 0.5f),
+                CreateModule(ModuleParam.EffectAxisConst.Speed, 0.5f, 0.5f),
             });
 
             Assert.AreEqual(spread.ProcessingTimeMultiplier, stacked.ProcessingTimeMultiplier, Delta);
@@ -190,7 +190,7 @@ namespace Tests.UnitTest.Core.Other
         // Construct a module definition with the given stack count for tests
         private static MachineModuleEffect.EquippedModule CreateStackedModule(string effectAxis, float effectValue, float tradeoffValue, int count)
         {
-            var element = new ModuleMasterElement(0, Guid.NewGuid(), "TestModule", Guid.NewGuid(), effectAxis, 1, effectValue, tradeoffValue);
+            var element = new ModuleParam(effectAxis, 1, effectValue, tradeoffValue);
             return new MachineModuleEffect.EquippedModule(element, count);
         }
     }

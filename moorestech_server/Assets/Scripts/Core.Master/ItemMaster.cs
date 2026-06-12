@@ -22,6 +22,10 @@ namespace Core.Master
         private Dictionary<ItemId, ItemMasterElement> _itemElementTableById;
         private Dictionary<Guid, ItemId> _itemGuidToItemId;
 
+        // 基準ItemId → レベル順の変種ItemId配列（index 0 = レベル1の基準アイテム自身）
+        // baseItemId → level-ordered variant ItemId array (index 0 = level 1, the base item itself)
+        private Dictionary<ItemId, ItemId[]> _levelVariantTable;
+
         public ItemMaster(JToken itemJToken)
         {
             Items = ItemsLoader.Load(itemJToken);
@@ -34,7 +38,7 @@ namespace Core.Master
 
         public void Initialize()
         {
-            ItemMasterUtil.Initialize(Items, out _itemElementTableById, out _itemGuidToItemId);
+            ItemMasterUtil.Initialize(Items, out _itemElementTableById, out _itemGuidToItemId, out _levelVariantTable);
         }
         
         public ItemMasterElement GetItemMaster(ItemId itemId)
@@ -90,6 +94,20 @@ namespace Core.Master
         public IEnumerable<ItemId> GetItemAllIds()
         {
             return _itemElementTableById.Keys;
+        }
+
+        public bool HasLevelFamily(ItemId baseItemId)
+        {
+            return _levelVariantTable.ContainsKey(baseItemId);
+        }
+
+        public ItemId GetLevelVariantItemId(ItemId baseItemId, int level)
+        {
+            // レベルは1始まり。範囲外は[1, 最大レベル]へクランプする
+            // Levels are 1-based; out-of-range values are clamped into [1, max level]
+            var variants = _levelVariantTable[baseItemId];
+            var index = Math.Clamp(level - 1, 0, variants.Length - 1);
+            return variants[index];
         }
     }
 }

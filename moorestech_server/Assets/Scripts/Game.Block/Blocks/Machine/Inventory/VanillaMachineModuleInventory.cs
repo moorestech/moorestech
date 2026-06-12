@@ -12,9 +12,10 @@ namespace Game.Block.Blocks.Machine.Inventory
     ///     機械のモジュールスロットを保持するインベントリ。統合スロット番号ではインプット・アウトプットの後ろの第3レンジとして扱う
     ///     Inventory holding the machine's module slots. In unified slot numbering it is the third range after input and output
     /// </summary>
-    public class VanillaMachineModuleInventory
+    public class VanillaMachineModuleInventory : IVanillaMachineSubInventory
     {
         public IReadOnlyList<IItemStack> ModuleSlot => _itemDataStoreService.InventoryItems;
+        IReadOnlyList<IItemStack> IVanillaMachineSubInventory.Items => ModuleSlot;
 
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
 

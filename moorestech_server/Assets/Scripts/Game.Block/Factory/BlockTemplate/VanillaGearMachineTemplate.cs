@@ -60,7 +60,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             // 省エネモジュール倍率を要求トルクへ配線する（照会時に都度集計。加工中のみ適用、Idleは中立1.0）
             // Wire the efficiency multiplier into required torque (aggregated per query; applied only while processing, neutral when idle)
-            gearEnergyTransformer.SetConsumptionMultiplier(() => processor.CurrentPowerMultiplier);
+            gearEnergyTransformer.SetConsumptionMultiplierSource(processor);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);

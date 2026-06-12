@@ -10,7 +10,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;
-using Mooresmaster.Model.ModulesModule;
+using Mooresmaster.Model.ItemsModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
@@ -165,7 +165,7 @@ namespace Tests.CombinedTest.Core
             var moduleItem = CreateModuleItem(1);
             inventory.SetItem(ModuleRangeStart, moduleItem);
 
-            InventorySortService.Sort(inventory, inventory.GetSortExcludedSlots());
+            InventorySortService.Sort(inventory, inventory.SortExcludedSlots);
 
             // インプット・アウトプットレンジはソートされ、モジュールスロットはそのまま残ることを確認
             // Input/output ranges are sorted while module slots stay untouched
@@ -198,13 +198,13 @@ namespace Tests.CombinedTest.Core
             // Place a speed-boosted machine and a plain machine side by side
             var (boostedBlock, boostedInventory, boostedProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (plainBlock, plainInventory, plainProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
-            boostedInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
+            boostedInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Speed, 1));
             InsertRecipeInputs(boostedInventory, recipe);
             InsertRecipeInputs(plainInventory, recipe);
 
             // 開始tickでは進行しないため、開始直後の残りtickが短縮済み加工時間と一致することを確認
             // No progress occurs on the start tick, so the remaining ticks right after start equal the scaled processing time
-            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            var speedModule = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == ModuleParam.EffectAxisConst.Speed).ModuleParam;
             var expectedBoostedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
             AdvanceTicksWithFullPower(1, boostedProcessor, plainProcessor);
             Assert.AreEqual(expectedBoostedTicks, boostedProcessor.RemainingTicks);
@@ -235,7 +235,7 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Efficiency, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Efficiency, 1));
 
             // Idle中はモジュールがあっても要求電力は変わらない
             // While idle, the requested power is unchanged even with the module equipped
@@ -248,7 +248,7 @@ namespace Tests.CombinedTest.Core
             AdvanceTicksWithFullPower(1, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
-            var efficiencyModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Efficiency);
+            var efficiencyModule = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == ModuleParam.EffectAxisConst.Efficiency).ModuleParam;
             var expectedPower = processor.RequestPower / (1f + efficiencyModule.EffectValue);
             Assert.Less(electric.RequestEnergy.AsPrimitive(), processor.RequestPower);
             Assert.AreEqual(expectedPower, electric.RequestEnergy.AsPrimitive(), 0.01f);
@@ -263,12 +263,12 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Productivity, 1));
             InsertRecipeInputs(inventory, recipe);
 
             // 前提: 追加出力が確定（確率1.0）になるeffectValueであること。データ変更時はここで失敗させる
             // Precondition: effectValue must guarantee the extra output (chance 1.0); fail loudly on data drift
-            var productivityModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Productivity);
+            var productivityModule = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == ModuleParam.EffectAxisConst.Productivity).ModuleParam;
             Assert.GreaterOrEqual(productivityModule.EffectValue, 1f);
 
             // 生産性トレードオフで時間が延びるため、余裕を持って完了まで進める
@@ -295,7 +295,7 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var (modBlock, modInventory, modProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (ctrlBlock, ctrlInventory, ctrlProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
-            modInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
+            modInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Productivity, 1));
 
             // アウトプットを「ベース1セットは入るが追加セットは入らない」量まで埋める
             // Fill outputs so one base set fits but the extra set does not
@@ -328,7 +328,7 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Speed, 1));
             InsertRecipeInputs(inventory, recipe);
 
             // 開始＋数tick進めたプロセス途中の状態を作ってセーブする
@@ -347,7 +347,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
             Assert.AreEqual(remainingBeforeSave, loadedProcessor.RemainingTicks);
 
-            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            var speedModule = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == ModuleParam.EffectAxisConst.Speed).ModuleParam;
             Assert.AreEqual(loadedProcessor.RequestPower * (1f + speedModule.TradeoffValue), loadedProcessor.EffectiveRequestPower, 0.0001f);
         }
 
@@ -361,7 +361,7 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Speed, 1));
             InsertRecipeInputs(inventory, recipe);
 
             // プロセス開始後にモジュールを取り外す（開始tickでは進行しないため残りtick＝短縮済み加工時間）
@@ -427,8 +427,8 @@ namespace Tests.CombinedTest.Core
         // Create a module item of the specified effect axis
         private static IItemStack CreateModuleItemOfAxis(string effectAxis, int count)
         {
-            var moduleElement = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == effectAxis);
-            var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleElement.ItemGuid);
+            var moduleItemElement = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == effectAxis);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleItemElement.ItemGuid);
             return ServerContext.ItemStackFactory.Create(moduleItemId, count);
         }
 
@@ -445,12 +445,12 @@ namespace Tests.CombinedTest.Core
             return total;
         }
 
-        // テスト用モジュールアイテム（modules.jsonの定義に対応するアイテム）を生成する
-        // Create a test module item (the item linked to a modules.json definition)
+        // テスト用モジュールアイテム（items.jsonのmoduleParam定義に対応）を生成する
+        // Create a test module item (linked to a moduleParam definition in items.json)
         private static IItemStack CreateModuleItem(int count)
         {
-            var moduleElement = MasterHolder.ModuleMaster.Modules.Data[0];
-            var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleElement.ItemGuid);
+            var moduleItemElement = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam != null);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleItemElement.ItemGuid);
             return ServerContext.ItemStackFactory.Create(moduleItemId, count);
         }
 
