@@ -48,7 +48,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // 描画用の制御点を生成
             // Build render control points
             BezierUtility.BuildRenderControlPoints(fromNode.FrontControlPoint, toNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement);
+            var isCurvePlaceable = TrainRailCurvePlacementRule.IsPlaceable(p0, p1, p2, p3);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable);
         }
 
         public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, float placingBlockMaxConnectableRailLength, ItemId holdingRailItemId)
@@ -84,7 +85,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
             var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, placingBlockMaxConnectableRailLength, playerInventory, holdingRailItemId);
 
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement);
+            var isCurvePlaceable = TrainRailCurvePlacementRule.IsPlaceable(p0, p1, p2, p3);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable);
         }
 
         // ConnectionDestination が指すブロックから MaxConnectableRailLength を解決する
@@ -117,6 +119,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
         public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement)
             : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable, true)
+        {
+        }
+        
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement, bool isClientCurvePlaceable)
+            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable && isClientCurvePlaceable, true)
         {
         }
 
