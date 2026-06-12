@@ -21,18 +21,11 @@ namespace Game.Block.Blocks.Gear
 
         public static float CalcOperatingRate(GearConsumption consumption, RPM currentRpm, Torque currentTorque)
         {
-            return CalcOperatingRate(consumption, currentRpm, currentTorque, CalcRequiredTorque(consumption, currentRpm));
-        }
-
-        // 要求トルクを外部から与える稼働率計算
-        // Operating rate with an externally supplied torque
-        public static float CalcOperatingRate(GearConsumption consumption, RPM currentRpm, Torque currentTorque, Torque requiredTorque)
-        {
             if (currentRpm.AsPrimitive() < consumption.MinimumRpm) return 0f;
             if (consumption.BaseRpm <= 0f) return 0f;
 
             var rpmRatio = currentRpm.AsPrimitive() / consumption.BaseRpm;
-            var required = requiredTorque.AsPrimitive();
+            var required = CalcRequiredTorque(consumption, currentRpm).AsPrimitive();
             if (required <= 0f) return 0f;
 
             var torqueRate = Mathf.Min(currentTorque.AsPrimitive() / required, 1f);

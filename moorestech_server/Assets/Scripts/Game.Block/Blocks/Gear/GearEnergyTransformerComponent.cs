@@ -27,11 +27,6 @@ namespace Game.Block.Blocks.Gear
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
 
-        // 消費倍率の供給源（未設定は中立1.0）
-        // Consumption multiplier source (neutral 1.0 when unset)
-        private IConsumptionMultiplierSource _consumptionMultiplierSource;
-        private float ConsumptionMultiplier => _consumptionMultiplierSource?.ConsumptionMultiplier ?? 1f;
-
         public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             _consumption = consumption;
@@ -52,42 +47,21 @@ namespace Game.Block.Blocks.Gear
             // 生成側（Generator）はConsumption=nullで常にトルク消費0
             // Generators pass null Consumption and always consume zero torque
             if (_consumption == null) return new Torque(0);
-
-            // 要求トルクに消費倍率を乗じる
-            // Scale the required torque by the multiplier
-            var baseTorque = GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
-            return new Torque(baseTorque.AsPrimitive() * ConsumptionMultiplier);
-        }
-
-        // 倍率は照会毎に読むため付け外しが即時反映
-        // Read per query, so module changes apply immediately
-        public void SetConsumptionMultiplierSource(IConsumptionMultiplierSource consumptionMultiplierSource)
-        {
-            _consumptionMultiplierSource = consumptionMultiplierSource;
+            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
         }
 
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
         // Output scaling rate for the current RPM/torque. Referenced by output-side components.
         public virtual float GetCurrentOperatingRate()
         {
-            if (_consumption == null) return 0f;
-
-            // 倍率適用後の要求トルクで稼働率を計算し整合させる
-            // Rate against the scaled demand keeps supply consistent
-            var adjustedRequiredTorque = GetRequiredTorque(CurrentRpm, IsCurrentClockwise);
-            return GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque, adjustedRequiredTorque);
+            return _consumption == null ? 0f : GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque);
         }
 
-        // 基準電力（baseTorque × baseRpm）に消費倍率と稼働率を乗じた現在の供給電力。Machine/Miner系へ渡す共通計算
-        // Current supplied power = basePower × consumption multiplier × operatingRate. Shared calc for Machine/Miner components.
+        // 基準電力（baseTorque × baseRpm）に稼働率を乗じた現在の供給電力。Machine/Miner系へ渡す共通計算
+        // Current supplied power = basePower × operatingRate. Shared calc for Machine/Miner components.
         public virtual ElectricPower GetCurrentSuppliedPower()
         {
-            if (_consumption == null) return new ElectricPower(0);
-
-            // 供給電力にも倍率を乗じ時間短縮の自己相殺を防ぐ
-            // Scale supplied power too so speed gains do not self-cancel
-            var basePower = GearConsumptionCalculator.CalcCurrentPower(_consumption, GetCurrentOperatingRate());
-            return new ElectricPower(basePower.AsPrimitive() * ConsumptionMultiplier);
+            return _consumption == null ? new ElectricPower(0) : GearConsumptionCalculator.CalcCurrentPower(_consumption, GetCurrentOperatingRate());
         }
 
         public virtual void StopNetwork()
