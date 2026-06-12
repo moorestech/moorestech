@@ -8,6 +8,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
+using UniRx;
 using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Client.Game.InGame.UI.Inventory.Main
@@ -16,7 +17,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         public ILocalPlayerInventory LocalPlayerInventory => _localPlayerInventory;
         public IItemStack GrabInventory { get; private set; }
-        
+
+        // grab・全置換などインデクサを経由しない更新の通知
+        // Notifies updates that bypass the indexer, such as grab or full replacement
+        public IObservable<Unit> OnInventoryRefreshed => _onInventoryRefreshed;
+        private readonly Subject<Unit> _onInventoryRefreshed = new();
+
         private readonly LocalPlayerInventory _localPlayerInventory;
         private ISubInventory _subInventory;
         
@@ -134,6 +140,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public void SetGrabItem(IItemStack itemStack)
         {
             GrabInventory = itemStack;
+            _onInventoryRefreshed.OnNext(Unit.Default);
         }
         
         public void SetMainItem(int slot, IItemStack itemStack)
@@ -150,6 +157,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public void SetMainInventory(List<IItemStack> inventoryMainInventory)
         {
             _localPlayerInventory.SetMainInventory(inventoryMainInventory);
+            _onInventoryRefreshed.OnNext(Unit.Default);
         }
     }
     

@@ -23,15 +23,18 @@ namespace Client.WebUiHost.Game.Topics
         private readonly LocalPlayerInventoryController _controller;
         private readonly IDisposable _subscription;
         private bool _publishScheduled;
+        private bool _disposed;
 
         public InventoryTopic(WebSocketHub hub, LocalPlayerInventoryController controller)
         {
             _hub = hub;
             _controller = controller;
 
-            // スロット変更通知を購読し、Dispose 時に解除できるよう保持
-            // Subscribe to slot-change notifications; retain the disposable so Dispose can unhook
-            _subscription = _controller.LocalPlayerInventory.OnItemChange.Subscribe(_ => SchedulePublish());
+            // インデクサ経由の変更と、grab/全置換の更新の両方を購読する
+            // Subscribe to both indexer-driven changes and grab/full-replacement refreshes
+            _subscription = new CompositeDisposable(
+                _controller.LocalPlayerInventory.OnItemChange.Subscribe(_ => SchedulePublish()),
+                _controller.OnInventoryRefreshed.Subscribe(_ => SchedulePublish()));
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -41,6 +44,7 @@ namespace Client.WebUiHost.Game.Topics
 
         public void Dispose()
         {
+            _disposed = true;
             _subscription.Dispose();
         }
 
@@ -57,6 +61,10 @@ namespace Client.WebUiHost.Game.Topics
         {
             await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
             _publishScheduled = false;
+
+            // Dispose 後に遅延 publish が走らないようガードする
+            // Guard so a deferred publish never fires after Dispose
+            if (_disposed) return;
             _hub.Publish(TopicName, BuildJson());
         }
 
