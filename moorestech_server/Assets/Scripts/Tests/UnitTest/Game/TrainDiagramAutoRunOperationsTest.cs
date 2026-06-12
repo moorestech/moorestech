@@ -159,10 +159,7 @@ namespace Tests.UnitTest.Game
                 "エントリのないダイヤグラムは次の目的地を報告しないはずです。");
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        [Ignore("Old skip behavior was removed. Replaced by Operation4B.")]
-        public void Operation4_RemovingCurrentEntryDoesNotSkipDisconnectedNext(bool startRunning)
+        public void LegacyRemovingCurrentEntrySkipsDisconnectedNext(bool startRunning)
         {
             using var scenario = CreateScenario(startRunning);
             var trainUnit = scenario.Train;
@@ -242,7 +239,7 @@ namespace Tests.UnitTest.Game
 
         [TestCase(false)]
         [TestCase(true)]
-        public void Operation4B_RemovingCurrentEntryStopsWithoutSkippingDisconnectedNext(bool startRunning)
+        public void Operation4_RemovingCurrentEntryDoesNotSkipDisconnectedNext(bool startRunning)
         {
             using var scenario = CreateScenario(startRunning);
             var trainUnit = scenario.Train;
