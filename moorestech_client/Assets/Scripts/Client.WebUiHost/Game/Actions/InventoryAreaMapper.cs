@@ -49,18 +49,25 @@ namespace Client.WebUiHost.Game.Actions
             // Validate external input types and return false instead of throwing
             if (obj["area"] is not JValue { Type: JTokenType.String } areaValue) return false;
 
-            // slot 欠落は 0 扱い、int 範囲の整数のみ許可（範囲外 long / BigInteger は拒否）
-            // Missing slot defaults to 0; only int-range integers allowed, out-of-range long / BigInteger rejected
+            // slot 欠落は grab のみ許可、それ以外の area ではスロット指定必須
+            // Missing slot is allowed only for grab; other areas require an explicit slot
+            var area = (string)areaValue;
             var slotToken = obj["slot"];
             var slot = 0;
-            if (slotToken != null)
+            if (slotToken == null)
             {
+                if (area != "grab") return false;
+            }
+            else
+            {
+                // int 範囲の整数のみ許可（範囲外 long / BigInteger は拒否）
+                // Only int-range integers allowed, out-of-range long / BigInteger rejected
                 if (slotToken is not JValue { Value: long slotLong }) return false;
                 if (slotLong < int.MinValue || slotLong > int.MaxValue) return false;
                 slot = (int)slotLong;
             }
 
-            return TryGetLocalSlot((string)areaValue, slot, out type, out localSlot);
+            return TryGetLocalSlot(area, slot, out type, out localSlot);
         }
     }
 }
