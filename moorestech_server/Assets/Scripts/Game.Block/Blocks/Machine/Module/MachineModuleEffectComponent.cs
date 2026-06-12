@@ -8,18 +8,12 @@ using Mooresmaster.Model.ModulesModule;
 namespace Game.Block.Blocks.Machine.Module
 {
     /// <summary>
-    ///     機械へのモジュール効果倍率の単一の供給源。プロセス中はスナップショットを保持する
-    ///     Single source of module effect multipliers for a machine. Holds a snapshot while processing
+    ///     機械へのモジュール効果倍率の供給源。装着中モジュールから毎回その場で集計する
+    ///     Source of module effect multipliers for a machine, aggregated live from the equipped modules on every call
     /// </summary>
     public class MachineModuleEffectComponent : IBlockComponent
     {
-        // プロセス中はスナップショット、未プロセス時は中立効果を返す
-        // Returns the snapshot while processing, otherwise the neutral effect
-        public MachineModuleEffect CurrentEffect => _processSnapshot ?? MachineModuleEffect.Neutral;
-        public float CurrentPowerMultiplier => CurrentEffect.PowerMultiplier;
-
         private readonly VanillaMachineModuleInventory _moduleInventory;
-        private MachineModuleEffect _processSnapshot;
 
         public MachineModuleEffectComponent(VanillaMachineModuleInventory moduleInventory)
         {
@@ -45,18 +39,6 @@ namespace Game.Block.Blocks.Machine.Module
             }
 
             return MachineModuleEffect.Aggregate(modules);
-        }
-
-        public void SetProcessSnapshot(MachineModuleEffect effect)
-        {
-            BlockException.CheckDestroy(this);
-            _processSnapshot = effect;
-        }
-
-        public void ClearProcessSnapshot()
-        {
-            BlockException.CheckDestroy(this);
-            _processSnapshot = null;
         }
 
         public bool IsDestroy { get; private set; }

@@ -39,33 +39,33 @@ namespace Game.Block.Blocks.Machine
         private MachineRecipeMasterElement _processingRecipe;
         private uint _processingRecipeTicks;
 
-        // モジュール効果の単一供給源コンポーネント。倍率はすべてここのスナップショットから読む
-        // The single-source module effect component. Every multiplier is read from its snapshot
+        // モジュール効果の供給源。倍率は毎回その場で集計する（即時反映）
+        // Source of module effects; multipliers are aggregated live on every read (applied immediately)
         private readonly MachineModuleEffectComponent _effectComponent;
-        private readonly BlockInstanceId _blockInstanceId;
-        private int _processedCycleCount;
 
-        // セーブ用の読み取り専用アクセサ群（効果コンポーネントへ委譲。Idle時はスナップショットが無く中立値になる）
-        // Read-only accessors for saving (delegated to the effect component; neutral while idle without a snapshot)
+        // 開始時に抽選を確定した産出予定スタック列。ロード復帰後はnullとなり完了時に再抽選する
+        // Realized output stacks fixed at start; null after a mid-process load, re-rolled on completion
+        private List<IItemStack> _pendingOutputs;
+        private readonly Random _random = new();
+
         public uint ProcessingRecipeTicks => _processingRecipeTicks;
-        public float CurrentPowerMultiplier => _effectComponent.CurrentEffect.PowerMultiplier;
-        public float CurrentExtraOutputChance => _effectComponent.CurrentEffect.ExtraOutputChance;
-        public float CurrentQualityShift => _effectComponent.CurrentEffect.QualityShift;
-        public int ProcessedCycleCount => _processedCycleCount;
-        public float EffectiveRequestPower => CurrentState == ProcessState.Processing ? RequestPower * _effectComponent.CurrentEffect.PowerMultiplier : RequestPower;
+
+        // 加工中のみモジュール倍率を反映した電力倍率と要求電力（Idleは中立1.0）
+        // Power multiplier and request power with module effects applied only while processing (neutral 1.0 when idle)
+        public float CurrentPowerMultiplier => CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f;
+        public float EffectiveRequestPower => RequestPower * CurrentPowerMultiplier;
 
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             MachineRecipeMasterElement machineRecipe, float requestPower,
-            MachineModuleEffectComponent effectComponent, BlockInstanceId blockInstanceId)
+            MachineModuleEffectComponent effectComponent)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _processingRecipe = machineRecipe;
             RequestPower = requestPower;
             _effectComponent = effectComponent;
-            _blockInstanceId = blockInstanceId;
         }
 
         public VanillaMachineProcessorComponent(
@@ -73,8 +73,7 @@ namespace Game.Block.Blocks.Machine
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
             float requestPower,
-            MachineModuleEffectComponent effectComponent, BlockInstanceId blockInstanceId,
-            double processingTotalSeconds, float powerMultiplier, float extraOutputChance, float qualityShift, int processedCycleCount)
+            MachineModuleEffectComponent effectComponent)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
@@ -83,27 +82,15 @@ namespace Game.Block.Blocks.Machine
             RequestPower = requestPower;
             RemainingTicks = remainingTicks;
             _effectComponent = effectComponent;
-            _blockInstanceId = blockInstanceId;
-            _processedCycleCount = processedCycleCount;
 
-            // 効果適用済みの加工時間を秒から復元する。旧セーブ（0秒）はレシピ定義から再計算する
-            // Restore the effect-scaled processing time from seconds. Old saves (0 seconds) recompute from the recipe definition
-            _processingRecipeTicks = 0 < processingTotalSeconds
-                ? GameUpdater.SecondsToTicks(processingTotalSeconds)
-                : processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
+            // 効果適用済みの加工時間は保存しない割り切りのため、レシピ定義から復元する（進捗率表示にのみ影響）
+            // Effect-scaled processing time is deliberately not saved; restore from the recipe definition (only affects the progress rate display)
+            _processingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
 
             CurrentState = currentState;
-
-            // プロセス途中のロードでは効果スナップショットを復元する。旧セーブの未保存倍率（0以下）は中立扱い
-            // When loading mid-process, restore the effect snapshot. Multipliers missing from old saves (zero or less) are neutral
-            if (CurrentState == ProcessState.Processing)
-            {
-                var savedEffect = MachineModuleEffect.FromSaved(powerMultiplier <= 0 ? 1f : powerMultiplier, extraOutputChance, qualityShift);
-                _effectComponent.SetProcessSnapshot(savedEffect);
-            }
         }
-        
-        
+
+
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
@@ -119,13 +106,13 @@ namespace Game.Block.Blocks.Machine
 
             return new[] { commonMachineBlock, machineBlock };
         }
-        
+
         public void SupplyPower(float power)
         {
             BlockException.CheckDestroy(this);
             _usedPower = false;
             _currentPower = power;
-            
+
             // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
             // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
             if (CurrentState == ProcessState.Idle)
@@ -133,7 +120,7 @@ namespace Game.Block.Blocks.Machine
                 _changeState.OnNext(Unit.Default);
             }
         }
-        
+
         public void Update()
         {
             BlockException.CheckDestroy(this);
@@ -142,7 +129,7 @@ namespace Game.Block.Blocks.Machine
                 _usedPower = false;
                 _currentPower = 0f;
             }
-            
+
             switch (CurrentState)
             {
                 case ProcessState.Idle:
@@ -152,7 +139,7 @@ namespace Game.Block.Blocks.Machine
                     Processing();
                     break;
             }
-            
+
             //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
             if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
             {
@@ -167,21 +154,17 @@ namespace Game.Block.Blocks.Machine
                 var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
                 if (!isGetRecipe || !_vanillaMachineInputInventory.IsAllowedToStartProcess()) return;
 
-                // 現在のモジュール効果を集計する
-                // Aggregate the current module effects
+                // 今サイクルの抽選（追加出力・品質）を開始時に確定し、実際に産出されるスタック列で容量を確認する
+                // Fix this cycle's rolls (extra output and quality) at start and check capacity with the exact realized stacks
                 var effect = _effectComponent.AggregateCurrent();
-
-                // 今サイクルの抽選（生産性・品質）は開始前に全て確定するため、実際に産出されるスタック列そのもので正確に容量を予約する
-                // All rolls for this cycle (productivity and quality) are fixed before start, so reserve capacity with the exact realized output stacks
-                var realizedOutputs = CreateQualityAppliedOutputs(recipe, effect.QualityShift, 1);
-                if (IsExtraSetRealized(effect)) realizedOutputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift, 1 + recipe.OutputItems.Length));
+                var realizedOutputs = CreateRealizedOutputs(recipe, effect);
                 if (!_vanillaMachineOutputInventory.CanStoreOutputs(recipe, realizedOutputs)) return;
 
-                // プロセス開始時に効果をスナップショットし、速度倍率を適用した加工時間を確定する
-                // Snapshot the effects at process start and fix the speed-scaled processing time
+                // 確定した産出物を保持し、速度倍率を適用した加工時間で開始する
+                // Hold the realized outputs and start with the speed-scaled processing time
                 CurrentState = ProcessState.Processing;
                 _processingRecipe = recipe;
-                _effectComponent.SetProcessSnapshot(effect);
+                _pendingOutputs = realizedOutputs;
 
                 var baseTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
                 _processingRecipeTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
@@ -197,21 +180,11 @@ namespace Game.Block.Blocks.Machine
                     RemainingTicks = 0;
                     CurrentState = ProcessState.Idle;
 
-                    // 1サイクル内の抽選順序は固定: ソルト0=生産性、ソルト1..=品質（ベースセットの出力順→追加セットの出力順）（§7.2）
-                    // 開始時の予約と同一入力（ブロックID・サイクル数・ソルト・シフト）で再計算するため、実産出は予約済みスタック列と一致する
-                    // Fixed roll order per cycle: salt 0 = productivity, salts 1.. = quality per output (base set order, then extra set order) (§7.2)
-                    // Recomputed with the same inputs as the reservation at start (block id, cycle count, salts, shift), so the realized stacks match the reserved ones
-                    var effect = _effectComponent.CurrentEffect;
-                    var baseOutputs = CreateQualityAppliedOutputs(_processingRecipe, effect.QualityShift, 1);
-                    _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe, baseOutputs);
-
-                    if (IsExtraSetRealized(effect))
-                    {
-                        var extraOutputs = CreateQualityAppliedOutputs(_processingRecipe, effect.QualityShift, 1 + _processingRecipe.OutputItems.Length);
-                        _vanillaMachineOutputInventory.InsertItemOutputsOnly(extraOutputs);
-                    }
-                    _processedCycleCount++;
-                    _effectComponent.ClearProcessSnapshot();
+                    // ロード復帰で産出予定が失われている場合のみ、現在の効果でその場で再抽選する
+                    // Only when the pending outputs were lost to a load, re-roll on the spot with the current effects
+                    var outputs = _pendingOutputs ?? CreateRealizedOutputs(_processingRecipe, _effectComponent.AggregateCurrent());
+                    _vanillaMachineOutputInventory.InsertOutputSlot(_processingRecipe, outputs);
+                    _pendingOutputs = null;
                 }
                 else
                 {
@@ -223,55 +196,39 @@ namespace Game.Block.Blocks.Machine
                 _usedPower = true;
             }
 
-            static double DeterministicRoll(BlockInstanceId blockInstanceId, int cycleCount, int salt)
+            // ベース1セット＋生産性抽選に当選すればもう1セットの産出スタック列を生成する
+            // Build the realized stacks: one base set plus one extra set if the productivity roll succeeds
+            List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect)
             {
-                // splitmix64系のハッシュでブロックID・サイクル数・ソルトから[0,1)の乱数を決定論的に生成する
-                // Deterministically derive a [0,1) random value from block id, cycle count, and salt via a splitmix64-style hash
-                var x = (ulong)(uint)blockInstanceId.AsPrimitive() * 0x9E3779B97F4A7C15UL + (ulong)(uint)cycleCount;
-
-                // ソルトを別定数で混ぜ、同一サイクル内の複数抽選を脱相関させる（ソルト0は従来の生産性抽選と同一の値になる）
-                // Mix the salt with a distinct constant to decorrelate multiple rolls within one cycle (salt 0 matches the legacy productivity roll)
-                x ^= (ulong)(uint)salt * 0xD1B54A32D192ED03UL;
-                x ^= x >> 30;
-                x *= 0xBF58476D1CE4E5B9UL;
-                x ^= x >> 27;
-                x *= 0x94D049BB133111EBUL;
-                x ^= x >> 31;
-                return (x >> 11) * (1.0 / (1UL << 53));
+                var outputs = CreateQualityAppliedOutputs(recipe, effect.QualityShift);
+                if (_random.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift));
+                return outputs;
             }
 
-            // 生産性の追加出力セットが今サイクルで実現するか（ソルト0の決定的抽選。開始時の予約と完了時で同一結果になる）
-            // Whether the productivity extra set is realized this cycle (deterministic salt-0 roll; identical at reservation and completion)
-            bool IsExtraSetRealized(MachineModuleEffect effect)
-            {
-                return 0f < effect.ExtraOutputChance && DeterministicRoll(_blockInstanceId, _processedCycleCount, 0) < effect.ExtraOutputChance;
-            }
-
-            // レシピのアイテム出力1セットを生成し、各出力へ品質レベル抽選を適用する（saltOffsetから出力順にソルトを割り当てる）
-            // Build one set of the recipe's item outputs, applying the quality level roll to each (salts assigned in output order from saltOffset)
-            List<IItemStack> CreateQualityAppliedOutputs(MachineRecipeMasterElement recipe, float qualityShift, int saltOffset)
+            // レシピのアイテム出力1セットを生成し、各出力へ品質レベル抽選を適用する
+            // Build one set of the recipe's item outputs, applying the quality level roll to each
+            List<IItemStack> CreateQualityAppliedOutputs(MachineRecipeMasterElement recipe, float qualityShift)
             {
                 var outputs = new List<IItemStack>(recipe.OutputItems.Length);
-                for (var i = 0; i < recipe.OutputItems.Length; i++)
+                foreach (var outputItem in recipe.OutputItems)
                 {
-                    var outputItem = recipe.OutputItems[i];
                     var stack = ServerContext.ItemStackFactory.Create(outputItem.ItemGuid, outputItem.Count);
-                    outputs.Add(ApplyQualityLevel(stack, qualityShift, saltOffset + i));
+                    outputs.Add(ApplyQualityLevel(stack, qualityShift));
                 }
                 return outputs;
             }
 
             // 出力アイテムを品質分布で上位レベル変種へ差し替える（シフトなし・ファミリー無しは素通し）
             // Replace an output item with an upgraded variant per the quality distribution (pass-through without shift or family)
-            IItemStack ApplyQualityLevel(IItemStack output, float qualityShift, int salt)
+            IItemStack ApplyQualityLevel(IItemStack output, float qualityShift)
             {
                 if (qualityShift <= 0f || !MasterHolder.LevelFamilyMaster.HasFamily(output.Id)) return output;
 
-                // 整数部=確定レベルアップ、小数部=決定的抽選でさらに+1（レベル上限はマスタ側でクランプ）
-                // Integer part = guaranteed level-ups; fractional part = one more via deterministic roll (max level clamped by the master)
+                // 整数部=確定レベルアップ、小数部=抽選でさらに+1（レベル上限はマスタ側でクランプ）
+                // Integer part = guaranteed level-ups; fractional part = one more by roll (max level clamped by the master)
                 var guaranteed = (int)Math.Floor(qualityShift);
                 var fraction = qualityShift - guaranteed;
-                var extra = 0f < fraction && DeterministicRoll(_blockInstanceId, _processedCycleCount, salt) < fraction ? 1 : 0;
+                var extra = _random.NextDouble() < fraction ? 1 : 0;
                 var level = 1 + guaranteed + extra;
 
                 var variantId = MasterHolder.LevelFamilyMaster.GetVariantItemId(output.Id, level);
@@ -288,7 +245,7 @@ namespace Game.Block.Blocks.Machine
             IsDestroy = true;
         }
     }
-    
+
     public static class ProcessStateExtension
     {
         /// <summary>
@@ -305,7 +262,7 @@ namespace Game.Block.Blocks.Machine
             };
         }
     }
-    
+
     public enum ProcessState
     {
         Idle,

@@ -316,14 +316,13 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // プロセス途中でセーブ・ロードしても短縮済みの加工時間が維持されることを確認する
-        // Verify the speed-scaled processing time survives a mid-process save and load
-        public void EffectSurvivesMidProcessSaveLoadTest()
+        // プロセス途中でセーブ・ロードしても加工状態と残りtickが維持されることを確認する
+        // Verify the processing state and remaining ticks survive a mid-process save and load
+        public void MidProcessSaveLoadKeepsRemainingTicksTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var recipe = GetMachineRecipe();
-            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
             InsertRecipeInputs(inventory, recipe);
@@ -332,68 +331,26 @@ namespace Tests.CombinedTest.Core
             // Start the process, advance a few ticks mid-process, then save
             AdvanceTicksWithFullPower(6, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            var ticksBeforeSave = processor.ProcessingRecipeTicks;
             var remainingBeforeSave = processor.RemainingTicks;
-            Assert.Less(ticksBeforeSave, baseTicks);
             var saveState = block.GetSaveState();
 
-            // ロード後も短縮済みtick数・残りtick・電力倍率が復元されることを確認
-            // After loading, the scaled ticks, remaining ticks, and power multiplier are restored
+            // ロード後も加工状態と残りtickが復元され、装着中モジュールの電力倍率が即時反映されることを確認
+            // After loading, the state and remaining ticks are restored and the equipped module's power multiplier applies live
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
             var loadedBlock = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(200), saveState, block.BlockPositionInfo);
             var loadedProcessor = loadedBlock.GetComponent<VanillaMachineProcessorComponent>();
 
             Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
-            Assert.AreEqual(ticksBeforeSave, loadedProcessor.ProcessingRecipeTicks);
-            Assert.Less(loadedProcessor.ProcessingRecipeTicks, baseTicks);
             Assert.AreEqual(remainingBeforeSave, loadedProcessor.RemainingTicks);
 
             var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
-            Assert.AreEqual(1f + speedModule.TradeoffValue, loadedProcessor.CurrentPowerMultiplier, 0.0001f);
+            Assert.AreEqual(loadedProcessor.RequestPower * (1f + speedModule.TradeoffValue), loadedProcessor.EffectiveRequestPower, 0.0001f);
         }
 
         [Test]
-        // 効果系キーの無い旧セーブはレシピ時間の再計算と中立効果でロードされることを確認する
-        // Verify an old save lacking the effect keys loads with recipe-time recomputation and neutral effects
-        public void OldSaveWithoutEffectKeysLoadsNeutralTest()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var recipe = GetMachineRecipe();
-            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
-            var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
-            InsertRecipeInputs(inventory, recipe);
-
-            // 短縮済みプロセス途中のセーブから効果系5キーを取り除き、旧セーブを再現する
-            // Strip the five effect keys from a mid-process save to emulate an old save
-            AdvanceTicksWithFullPower(6, processor);
-            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            var saveState = block.GetSaveState();
-            var saveKey = typeof(VanillaMachineSaveComponent).FullName;
-            var machineJson = JObject.Parse(saveState[saveKey]);
-            machineJson.Remove("processingTotalSeconds");
-            machineJson.Remove("effectPowerMultiplier");
-            machineJson.Remove("effectExtraOutputChance");
-            machineJson.Remove("effectQualityShift");
-            machineJson.Remove("processedCycleCount");
-            saveState[saveKey] = machineJson.ToString();
-
-            // 加工時間はレシピ定義から再計算され、要求電力は中立（等倍）でロードされることを確認
-            // Ticks are recomputed from the recipe definition and the request power loads as neutral
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
-            var loadedBlock = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(201), saveState, block.BlockPositionInfo);
-            var loadedProcessor = loadedBlock.GetComponent<VanillaMachineProcessorComponent>();
-
-            Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
-            Assert.AreEqual(baseTicks, loadedProcessor.ProcessingRecipeTicks);
-            Assert.AreEqual(loadedProcessor.RequestPower, loadedProcessor.EffectiveRequestPower, 0.0001f);
-        }
-
-        [Test]
-        // プロセス中にモジュールを外しても開始時のスナップショット効果が維持されることを確認する
-        // Verify the snapshot taken at process start persists even if the module is removed mid-process
-        public void EffectSnapshotPersistsAfterModuleRemovalTest()
+        // プロセス中にモジュールを外すと、加工時間は開始時のまま・電力倍率は即時に中立へ戻ることを確認する
+        // Verify removing the module mid-process keeps the start-time ticks while the power multiplier reverts immediately
+        public void ModuleRemovalMidProcessAppliesImmediatelyTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
@@ -413,14 +370,15 @@ namespace Tests.CombinedTest.Core
 
             AdvanceTicksWithFullPower(3, processor);
 
-            // 加工時間・電力倍率ともスナップショットのまま進行していることを確認
-            // Both the processing time and the power multiplier still follow the snapshot
+            // 加工時間は開始時に確定した値のまま進行する
+            // The processing time stays at the value fixed at start
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
             Assert.AreEqual(ticksAtStart, processor.ProcessingRecipeTicks);
             Assert.AreEqual(ticksAtStart - 3, processor.RemainingTicks);
 
-            var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
-            Assert.AreEqual(processor.RequestPower * (1f + speedModule.TradeoffValue), processor.EffectiveRequestPower, 0.0001f);
+            // 電力倍率は取り外しが即時反映され中立に戻る
+            // The power multiplier reverts to neutral immediately after removal
+            Assert.AreEqual(processor.RequestPower, processor.EffectiveRequestPower, 0.0001f);
         }
 
         // テスト用電動機械（MachineId）を設置して主要コンポーネントを返す

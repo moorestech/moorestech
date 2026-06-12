@@ -88,8 +88,8 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // 省エネモジュール装着機でもIdle中（スナップショット無し）は要求トルクが中立であることを検証する
-        // Verify an efficiency-equipped machine requests neutral torque while idle (no snapshot)
+        // 省エネモジュール装着機でもIdle中は要求トルクが中立であることを検証する
+        // Verify an efficiency-equipped machine requests neutral torque while idle
         public void IdleIsNeutralTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
