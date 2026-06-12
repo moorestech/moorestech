@@ -56,6 +56,9 @@ namespace Game.Block.Blocks.Machine
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
                 RemainingSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.RemainingTicks),
                 RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
+                // 加工中に確定済みの産出予定スタック列も保存する（Idle時はnull）
+                // Also save the realized pending output stacks fixed at start (null while idle)
+                PendingOutputs = _vanillaMachineProcessorComponent.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             
             return JsonConvert.SerializeObject(jsonObject);
@@ -88,6 +91,11 @@ namespace Game.Block.Blocks.Machine
 
         [JsonProperty("state")]
         public int State;
+
+        // 加工中に確定済みの産出予定スタック列。Idle時や過去セーブではnull
+        // Realized pending output stacks fixed at process start; null while idle or in older saves
+        [JsonProperty("pendingOutputs")]
+        public List<ItemStackSaveJsonObject> PendingOutputs;
     }
     
     public class FluidContainerSaveJsonObject

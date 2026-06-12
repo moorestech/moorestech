@@ -148,6 +148,10 @@ namespace Game.Block.Factory.BlockTemplate
             // Convert seconds back to ticks for restoration
             var remainingTicks = GameUpdater.SecondsToTicks(jsonObject.RemainingSeconds);
 
+            // 加工中に確定済みの産出予定スタック列を復元する。キーの無い過去セーブではnull（完了時に再抽選）
+            // Restore the realized pending output stacks. Null for older saves without the key (re-rolled on completion)
+            var pendingOutputs = jsonObject.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
+
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
@@ -155,7 +159,8 @@ namespace Game.Block.Factory.BlockTemplate
                 remainingTicks,
                 recipe,
                 requestPower,
-                machineModuleEffectComponent);
+                machineModuleEffectComponent,
+                pendingOutputs);
 
             return processor;
         }
