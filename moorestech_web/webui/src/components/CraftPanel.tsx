@@ -18,15 +18,14 @@ export default function CraftPanel() {
     return <div className="text-sm text-gray-400">connecting...</div>;
   }
 
-  // インベントリ全域（main+hotbar+grab）の所持数を集計する
-  // Tally item counts across main, hotbar, and grab
+  // サーバーの OneClickCraft は main+hotbar のみ参照するため、grab は所持数に含めない
+  // The server's OneClickCraft only consults main+hotbar, so grab is excluded from the tally
   const counts = new Map<number, number>();
   const addCount = (itemId: number, count: number) => {
     if (count > 0) counts.set(itemId, (counts.get(itemId) ?? 0) + count);
   };
   inventory.mainSlots.forEach((s) => addCount(s.itemId, s.count));
   inventory.hotbarSlots.forEach((s) => addCount(s.itemId, s.count));
-  addCount(inventory.grab.itemId, inventory.grab.count);
 
   const isCraftable = (recipe: CraftRecipe) =>
     recipe.requiredItems.every((r) => (counts.get(r.itemId) ?? 0) >= r.count);
