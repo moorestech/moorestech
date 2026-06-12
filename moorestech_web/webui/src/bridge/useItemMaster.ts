@@ -10,7 +10,10 @@ export function useItemMaster(): Map<number, ItemMasterEntry> | null {
   const [master, setMaster] = useState(cached);
 
   useEffect(() => {
-    if (cached) return;
+    if (cached) {
+      setMaster(cached);
+      return;
+    }
     let cancelled = false;
     // 進行中の fetch をモジュールで共有し、同時マウントの重複リクエストを防ぐ
     // Share the in-flight fetch at module level to avoid duplicate concurrent requests
