@@ -65,5 +65,42 @@ namespace Client.Tests.WebUi
             var bigInteger = JObject.Parse("{\"area\":\"main\",\"slot\":99999999999999999999999999999}");
             Assert.IsFalse(InventoryAreaMapper.TryParseSlotRef(bigInteger, out _, out _));
         }
+
+        [Test]
+        public void TryParseSlotRefRejectsNullToken()
+        {
+            Assert.IsFalse(InventoryAreaMapper.TryParseSlotRef(null, out _, out _));
+        }
+
+        [Test]
+        public void TryParseSlotRefMissingSlotKeyOnlyAllowedForGrab()
+        {
+            var mainNoSlot = JObject.Parse("{\"area\":\"main\"}");
+            Assert.IsFalse(InventoryAreaMapper.TryParseSlotRef(mainNoSlot, out _, out _));
+
+            var grabNoSlot = JObject.Parse("{\"area\":\"grab\"}");
+            Assert.IsTrue(InventoryAreaMapper.TryParseSlotRef(grabNoSlot, out var grabType, out var grabSlot));
+            Assert.AreEqual(LocalMoveInventoryType.Grab, grabType);
+            Assert.AreEqual(0, grabSlot);
+        }
+
+        [Test]
+        public void TryParseSlotRefRejectsNullAreaAndNullSlot()
+        {
+            var nullArea = JObject.Parse("{\"area\":null,\"slot\":3}");
+            Assert.IsFalse(InventoryAreaMapper.TryParseSlotRef(nullArea, out _, out _));
+
+            var nullSlot = JObject.Parse("{\"area\":\"main\",\"slot\":null}");
+            Assert.IsFalse(InventoryAreaMapper.TryParseSlotRef(nullSlot, out _, out _));
+        }
+
+        [Test]
+        public void TryParseSlotRefIgnoresSlotValueForGrab()
+        {
+            var grabBigSlot = JObject.Parse("{\"area\":\"grab\",\"slot\":999}");
+            Assert.IsTrue(InventoryAreaMapper.TryParseSlotRef(grabBigSlot, out var type, out var slot));
+            Assert.AreEqual(LocalMoveInventoryType.Grab, type);
+            Assert.AreEqual(0, slot);
+        }
     }
 }
