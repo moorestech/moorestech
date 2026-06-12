@@ -161,7 +161,7 @@ cd moorestech_web/webui
 テストスクリプト:
 
 ```js
-// /tmp/ws-verify.mjs
+// moorestech_web/webui/ws-verify.mjs（ESM解決がスクリプト位置基準のため、必ず webui/ 内に置く）
 import WebSocket from 'ws';
 const ws = new WebSocket('ws://127.0.0.1:5173/ws', {
   headers: { Origin: 'http://localhost:5173' }
@@ -175,12 +175,12 @@ setTimeout(() => process.exit(0), 10000);
 ```
 
 ```bash
-../node/mac-arm64/bin/node /tmp/ws-verify.mjs
+../node/mac-arm64/bin/node ws-verify.mjs
 ```
 
 期待出力:
 - `OPEN`
-- `MSG {"op":"snapshot","topic":"local_player.inventory","data":{"mainSlots":[{"itemId":0,"count":0},...],"hotBarSlots":[]}}`
+- `MSG {"op":"snapshot","topic":"local_player.inventory","data":{"mainSlots":[{"itemId":0,"count":0},... 36件],"hotbarSlots":[... 9件],"grab":{"itemId":0,"count":0}}}`
 
 ### 6. インベントリ変更 → イベント配信を確認
 
@@ -199,8 +199,10 @@ ctrl.SetMainItem(0, factory.Create(new Core.Master.ItemId(1), 42));
 WS watch 側で即時受信するメッセージ:
 
 ```
-op=event topic=local_player.inventory data={"mainSlots":[{"itemId":1,"count":42},...],"hotBarSlots":[]}
+op=event topic=local_player.inventory data={"mainSlots":[{"itemId":1,"count":42},...],"hotbarSlots":[...],"grab":{...}}
 ```
+
+**注意**: `SetMainItem` はクライアントローカルの表示状態のみを書き換え、サーバー側インベントリには反映されない。event 配信の確認にはこれで十分だが、**サーバー往復を含む action（move/collect/sort 等）の E2E には使えない**（後述「10. インベントリ操作のE2E」参照）。
 
 ### 7. Play mode 停止 → クリーンアップ確認
 
@@ -224,10 +226,153 @@ lsof -i :5050           # Unity が握っているが、次 Play mode で再 bin
 cd moorestech_web/webui
 ../node/mac-arm64/pnpm remove ws
 git checkout -- package.json pnpm-lock.yaml  # 念のため差分を捨てる
-rm /tmp/ws-verify.mjs
+rm ws-verify.mjs
 ```
 
+### 9. action（双方向API）の検証
+
+プロトコル詳細は `docs/superpowers/specs/2026-06-12-webui-migration-design.md` §2 を参照。最小サンプル（Phase 0 の `debug.echo`）:
+
+```js
+// action発行 → result受信の最小形
+ws.send(JSON.stringify({ op: 'action', type: 'debug.echo', requestId: 'a1', payload: { msg: 'hello' } }));
+// 受信: {"op":"result","requestId":"a1","ok":true}
+```
+
+登録済み action 一覧（Phase 1 時点）:
+
+| type | payload | 説明 |
+| --- | --- | --- |
+| `inventory.move_item` | `{from:{area,slot}, to:{area,slot}, count}` | from→to へ count 個移動 |
+| `inventory.split` | `{from:{area,slot}}` | スロットの半分を grab へ（右クリック相当） |
+| `inventory.collect` | `{target:{area,slot}}` | 同種アイテムを target に集約（ダブルクリック相当） |
+| `inventory.sort` | `{}` | メインインベントリ整理 |
+| `craft.execute` | `{recipeGuid}` | レシピ GUID 指定でクラフト |
+| `debug.echo` | 任意 | 疎通確認用 |
+
+`area` は `"main"`（0〜35）/ `"hotbar"`（0〜8）/ `"grab"`。
+
+エラーコード一覧（`result.ok:false` の `error`）:
+
+| code | 発生条件 |
+| --- | --- |
+| `invalid_payload` | payload 欠落・形式不正 |
+| `invalid_count` | count が 0 以下・整数でない |
+| `invalid_slot` | slot 範囲外・area 名不正 |
+| `empty_slot` | 移動元/対象スロットが空 |
+| `insufficient_count` | 所持数より多い count 指定 |
+| `grab_not_empty` | grab 非空時の split |
+| `invalid_recipe` | 存在しない/形式不正な recipeGuid |
+| `recipe_locked` | 未解放レシピ |
+| `unknown_action` | 未登録の action type |
+
+UI 状態の反映は result ではなく後続の `local_player.inventory` event（全スロット再送）で届く。
+
+### 10. インベントリ操作のE2E
+
+**前提**: 手順 6 の `SetMainItem` はクライアントローカルのみの書き換えで、サーバー側インベントリは空のまま。action はサーバー往復を伴うため、**テストアイテムは必ずサーバー側に投入する**こと。クライアント側だけに投入すると、split 後のサーバー echo（`GrabInventoryUpdateEvent`）が grab を空で上書きし、見かけ上アイテムが消失して以降の move/collect が `empty_slot` で失敗する。
+
+サーバー側へのテストアイテム投入（投入後、サーバー event 経由でクライアント・WebUI に自動反映される）:
+
+```bash
+uloop execute-dynamic-code --project-path <CLIENT> --code '
+var store = Game.Context.ServerContext.GetService<Game.PlayerInventory.Interface.IPlayerInventoryDataStore>();
+int playerId = Client.Game.InGame.Context.ClientContext.PlayerConnectionSetting.PlayerId;
+var inv = store.GetInventoryData(playerId);
+var factory = Game.Context.ServerContext.ItemStackFactory;
+inv.MainOpenableInventory.SetItem(0, factory.Create(new Core.Master.ItemId(1), 10));
+inv.MainOpenableInventory.SetItem(1, factory.Create(new Core.Master.ItemId(1), 3));
+return "server items set";'
+```
+
+E2E スクリプト（`moorestech_web/webui/e2e-phase1-verify.mjs`、`pnpm add -D ws` 済み前提）:
+
+```js
+import WebSocket from 'ws';
+const ws = new WebSocket('ws://127.0.0.1:5173/ws', { headers: { Origin: 'http://localhost:5173' } });
+const send = (o) => ws.send(JSON.stringify(o));
+ws.on('open', () => {
+  console.log('OPEN');
+  send({ op: 'subscribe', topics: ['local_player.inventory', 'crafting.recipes'] });
+  // 1) split: slot0(10個)の半分をgrabへ
+  setTimeout(() => send({ op: 'action', type: 'inventory.split', requestId: 's1', payload: { from: { area: 'main', slot: 0 } } }), 1500);
+  // 2) move: grabの5個をmain slot2へ
+  setTimeout(() => send({ op: 'action', type: 'inventory.move_item', requestId: 's2', payload: { from: { area: 'grab', slot: 0 }, to: { area: 'main', slot: 2 }, count: 5 } }), 3000);
+  // 3) collect: slot2を起点に同種収集
+  setTimeout(() => send({ op: 'action', type: 'inventory.collect', requestId: 's3', payload: { target: { area: 'main', slot: 2 } } }), 4500);
+  // 4) 異常系: 範囲外スロット
+  setTimeout(() => send({ op: 'action', type: 'inventory.move_item', requestId: 's4', payload: { from: { area: 'main', slot: 99 }, to: { area: 'grab', slot: 0 }, count: 1 } }), 6000);
+  // 5) 異常系: 空スロットからの移動
+  setTimeout(() => send({ op: 'action', type: 'inventory.move_item', requestId: 's5', payload: { from: { area: 'main', slot: 20 }, to: { area: 'grab', slot: 0 }, count: 1 } }), 6500);
+  // 6) 異常系: 不正レシピGUID
+  setTimeout(() => send({ op: 'action', type: 'craft.execute', requestId: 's6', payload: { recipeGuid: '00000000-0000-0000-0000-000000000000' } }), 7000);
+  // 7) sort
+  setTimeout(() => send({ op: 'action', type: 'inventory.sort', requestId: 's7', payload: {} }), 7500);
+});
+ws.on('message', (d) => {
+  const s = String(d);
+  console.log('MSG', s.length > 500 ? s.slice(0, 500) + `...(${s.length} chars)` : s);
+});
+setTimeout(() => process.exit(0), 10000);
+```
+
+```bash
+cd moorestech_web/webui && ../node/mac-arm64/bin/node e2e-phase1-verify.mjs
+```
+
+期待値の要約（2026-06-12 実測一致）:
+
+- snapshot×2: inventory（mainSlots 36件・m0=1x10・m1=1x3、hotbarSlots 9件、grab）、crafting.recipes（81件、`{recipeGuid,resultItemId,resultCount,craftTime,requiredItems}`）
+- s1 ok → event: m0=1x5, grab={itemId:1,count:5}
+- s2 ok → event: m2=1x5, grab 空
+- s3 ok → event: m0/m1 が m2 に集約され m2=1x13
+- s4 `invalid_slot` / s5 `empty_slot` / s6 `invalid_recipe`
+- s7 ok → event: m2 の 13 個が m0 へ移動（ソート反映）
+- 各操作で**同一内容の event が 2 回**届く（ローカル楽観更新＋サーバー echo。クライアント実装仕様）
+
+craft.execute 正常系（素材 itemId:1 ×3 → itemId:2 ×1 のレシピ例）:
+
+```js
+ws.send(JSON.stringify({ op: 'action', type: 'craft.execute', requestId: 'c1', payload: { recipeGuid: '9c20aa73-1877-4e0e-adcc-9f725c9377da' } }));
+// result ok:true → event: 素材3個減、成果物は hotbarSlots[0]（サーバー slot36）に入る
+```
+
+### 11. アイコン・マスタ配信の検証
+
+```bash
+curl -s http://127.0.0.1:5173/api/master/items | head -c 300; echo
+curl -s -o /dev/null -w "%{http_code} " -H "If-None-Match: \"dummy\"" http://127.0.0.1:5173/api/icons/1.png; echo
+curl -s -D - -o /dev/null http://127.0.0.1:5173/api/master/items | grep -i cache-control
+```
+
+期待:
+
+- `{"items":[{"itemId":1,"name":"小石","maxStack":100},...`
+- `200`（ETag 不一致なので本体返却。実 ETag を `If-None-Match` に渡すと `304`）
+- `cache-control: no-store`（items）。アイコンは `cache-control: no-cache` + `etag`
+- 存在しない itemId（例 `/api/icons/99999.png`）は `404`。ただし Unity Console に Error ログ（`ItemViewData not found`）が出る点に注意
+
+### 12. 既知の環境注意
+
+- **train.json スキーマ不整合（恒久対応待ち）**: `../moorestech_master` の train.json は `ridableSeats` 移行済みだが、本リポジトリの `VanillaSchema/train.yml` は旧 `ridableSeatCount` のため、ローカルゲーム起動が `MooresmasterLoaderException: trainCars[0].ridableSeatCount` で失敗する。回避は train.json（`find /Users/katsumi/moorestech_master/server_v8 -name "train.json"`）の trainCars 各エントリに `"ridableSeatCount": 0` を一時追加 → 検証後 `git -C /Users/katsumi/moorestech_master checkout -- <path>` で復元
+- **検証スクリプトは `moorestech_web/webui/` 内に置く**: ESM のモジュール解決がスクリプト位置基準のため、`/tmp` に置くと `ws` を import できない
+- **uloop が「not installed」を返す**: `moorestech_client/UserSettings/UnityMcpSettings.json` が `.bak` のみになっていないか確認し、コピー復元する
+- **uloop が「Unity is reloading」を返す**: 45 秒待ってリトライ
+
 ---
+
+## 検証済みの動作（2026-06-12 時点 / Phase 0・1）
+
+検証したブランチ: `feature/web-ui`
+
+- ✅ topic v2: `local_player.inventory` が `{mainSlots:[36], hotbarSlots:[9], grab}` 形式で snapshot/event 配信
+- ✅ topic: `crafting.recipes` snapshot（81 レシピ、`recipeGuid`/`resultItemId`/`requiredItems` 等）
+- ✅ action 正常系: `inventory.split` / `inventory.move_item` / `inventory.collect` / `inventory.sort` / `craft.execute`（result ok → event 反映、craft はサーバー往復後に素材減・成果物増）
+- ✅ action 異常系: `invalid_payload` / `invalid_count` / `invalid_slot` / `empty_slot` / `insufficient_count` / `grab_not_empty` / `invalid_recipe` / `unknown_action` を実測（`recipe_locked` のみコード確認）
+- ✅ HTTP: `/api/master/items`（`cache-control: no-store`）、`/api/icons/{id}.png`（ETag 一致で 304、不一致で 200、未知 ID で 404）
+- ✅ ブラウザ実機（headless Chrome）: インベントリグリッド・Craft パネルがアイコン付きで描画
+- ⚠️ 各インベントリ操作で同一内容の event が 2 回配信される（ローカル楽観更新＋サーバー echo）
+- ⚠️ `SetMainItem` によるクライアントローカル投入では action E2E が成立しない（手順 10 参照）
 
 ## 検証済みの動作（2026-04-22 時点）
 
