@@ -32,8 +32,6 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
-            // モジュール効果コンポーネントをプロセッサより先に生成して渡す
-            // Create the module effect component before the processor and pass it in
             var effectComponent = new MachineModuleEffectComponent(module);
             var processor = new VanillaMachineProcessorComponent(input, output, null, machineParam.RequiredPower, effectComponent);
 
@@ -76,8 +74,6 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
-            // モジュール効果コンポーネントをプロセッサより先に生成して渡す
-            // Create the module effect component before the processor and pass it in
             var effectComponent = new MachineModuleEffectComponent(module);
             var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, blockMasterElement);
 

@@ -62,8 +62,8 @@ namespace Game.Block.Factory.BlockTemplate
                 outputSlotCount, outputTankCount, innerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, blockConnectorComponent);
 
-            // モジュールスロットは統合スロット番号の第3レンジとして生成する
-            // Create module slots as the third range in unified slot numbering
+            // モジュールスロットは第3レンジとして生成
+            // Create module slots as the third range
             var module = new VanillaMachineModuleInventory(
                 machineParam.ModuleSlotCount, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, outputSlotCount);
@@ -105,8 +105,8 @@ namespace Game.Block.Factory.BlockTemplate
                 vanillaMachineOutputInventory.SetItemWithoutEvent(i, outputItems[i]);
             }
 
-            // モジュールスロットを復元する。過去セーブにはmoduleSlotキーが無いためnull許容で扱う
-            // Restore module slots. Older saves lack the moduleSlot key, so treat it as nullable
+            // モジュールスロットを復元（旧セーブはキー無し）
+            // Restore module slots (older saves lack the key)
             if (jsonObject.ModuleSlot != null)
             {
                 var moduleItems = jsonObject.ModuleSlot.Select(item => item.ToItemStack()).ToList();
@@ -148,8 +148,8 @@ namespace Game.Block.Factory.BlockTemplate
             // Convert seconds back to ticks for restoration
             var remainingTicks = GameUpdater.SecondsToTicks(jsonObject.RemainingSeconds);
 
-            // 加工中に確定済みの産出予定スタック列を復元する。キーの無い過去セーブではnull（完了時に再抽選）
-            // Restore the realized pending output stacks. Null for older saves without the key (re-rolled on completion)
+            // 産出予定を復元（旧セーブはnull→完了時再抽選）
+            // Restore pending outputs (old saves: null, re-rolled later)
             var pendingOutputs = jsonObject.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
 
             var processor = new VanillaMachineProcessorComponent(

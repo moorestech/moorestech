@@ -40,22 +40,22 @@ namespace Game.Block.Blocks.Machine
         private MachineRecipeMasterElement _processingRecipe;
         private uint _processingRecipeTicks;
 
-        // モジュール効果の供給源。倍率は毎回その場で集計する（即時反映）
-        // Source of module effects; multipliers are aggregated live on every read (applied immediately)
+        // モジュール効果は毎回その場で集計する
+        // Module effects are aggregated live on every read
         private readonly MachineModuleEffectComponent _effectComponent;
 
-        // 開始時に抽選を確定した産出予定スタック列。セーブ・ロードで引き継ぎ、欠落時のみ完了時に再抽選する
-        // Realized output stacks fixed at start; carried through save/load, re-rolled on completion only when missing
+        // 開始時に確定した産出予定。セーブで引き継ぐ
+        // Outputs fixed at start; carried through saves
         private List<IItemStack> _pendingOutputs;
 
-        // 同一tickに生成された機械同士が同じ乱数列を引かないよう、乱数は全機械で共有する
-        // Share one random source across all machines so instances created in the same tick do not draw identical sequences
+        // 同tick生成機械の同シード回避のため共有
+        // Shared to avoid same-tick identical seeds
         private static readonly Random Random = new();
 
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
 
-        // 加工中のみモジュール倍率を反映した消費倍率と要求電力（Idleは中立1.0）
-        // Consumption multiplier and request power with module effects applied only while processing (neutral 1.0 when idle)
+        // 加工中のみ倍率を適用、Idleは中立1.0
+        // Multiplier applies only while processing
         public float ConsumptionMultiplier => CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f;
         public float EffectiveRequestPower => RequestPower * ConsumptionMultiplier;
 
@@ -88,8 +88,8 @@ namespace Game.Block.Blocks.Machine
             _effectComponent = effectComponent;
             _pendingOutputs = pendingOutputs;
 
-            // 効果適用済みの加工時間は保存しない割り切りのため、レシピ定義から復元する（進捗率表示にのみ影響）
-            // Effect-scaled processing time is deliberately not saved; restore from the recipe definition (only affects the progress rate display)
+            // 加工時間はレシピ定義から復元（進捗表示のみに影響）
+            // Restore ticks from the recipe; affects only the progress display
             _processingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
 
             CurrentState = currentState;
@@ -159,14 +159,14 @@ namespace Game.Block.Blocks.Machine
                 var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
                 if (!isGetRecipe || !_vanillaMachineInputInventory.IsAllowedToStartProcess()) return;
 
-                // 今サイクルの抽選（追加出力・品質）を開始時に確定し、実際に産出されるスタック列で容量を確認する
-                // Fix this cycle's rolls (extra output and quality) at start and check capacity with the exact realized stacks
+                // 抽選を開始時に確定し実スタックで容量確認
+                // Fix rolls at start and check capacity with realized stacks
                 var effect = _effectComponent.AggregateCurrent();
                 var realizedOutputs = CreateRealizedOutputs(recipe, effect);
                 if (!_vanillaMachineOutputInventory.CanStoreOutputs(realizedOutputs, CreateFluidOutputs(recipe))) return;
 
-                // 確定した産出物を保持し、速度倍率を適用した加工時間で開始する
-                // Hold the realized outputs and start with the speed-scaled processing time
+                // 産出物を保持し短縮済み時間で開始
+                // Hold the outputs and start with the scaled time
                 CurrentState = ProcessState.Processing;
                 _processingRecipe = recipe;
                 _pendingOutputs = realizedOutputs;
@@ -185,8 +185,8 @@ namespace Game.Block.Blocks.Machine
                     RemainingTicks = 0;
                     CurrentState = ProcessState.Idle;
 
-                    // 産出予定が無い場合（pendingOutputs未保存の旧セーブ復帰）のみ、現在の効果でその場で再抽選する
-                    // Only when the pending outputs are missing (a load from an old save without the key), re-roll with the current effects
+                    // 旧セーブで産出予定が無い場合のみ再抽選
+                    // Re-roll only when an old save lacks pending outputs
                     var outputs = _pendingOutputs ?? CreateRealizedOutputs(_processingRecipe, _effectComponent.AggregateCurrent());
                     _vanillaMachineOutputInventory.InsertOutputSlot(outputs, CreateFluidOutputs(_processingRecipe));
                     _pendingOutputs = null;
@@ -223,8 +223,8 @@ namespace Game.Block.Blocks.Machine
                 return outputs;
             }
 
-            // レシピのアイテム出力1セットを生成し、各出力へ品質レベル抽選を適用する
-            // Build one set of the recipe's item outputs, applying the quality level roll to each
+            // アイテム出力1セットに品質抽選を適用して生成
+            // Build one output set with quality rolls applied
             List<IItemStack> CreateQualityAppliedOutputs(MachineRecipeMasterElement recipe, float qualityShift)
             {
                 var outputs = new List<IItemStack>(recipe.OutputItems.Length);
@@ -236,14 +236,14 @@ namespace Game.Block.Blocks.Machine
                 return outputs;
             }
 
-            // 出力アイテムを品質分布で上位レベル変種へ差し替える（シフトなし・ファミリー無しは素通し）
-            // Replace an output item with an upgraded variant per the quality distribution (pass-through without shift or family)
+            // 品質シフトで上位レベル変種へ差し替える
+            // Swap to a higher-level variant per the quality shift
             IItemStack ApplyQualityLevel(IItemStack output, float qualityShift)
             {
                 if (qualityShift <= 0f || !MasterHolder.ItemMaster.HasLevelFamily(output.Id)) return output;
 
-                // 整数部=確定レベルアップ、小数部=抽選でさらに+1（レベル上限はマスタ側でクランプ）
-                // Integer part = guaranteed level-ups; fractional part = one more by roll (max level clamped by the master)
+                // 整数部=確定、小数部=抽選で+1
+                // Integer part guaranteed; the fraction rolls one more
                 var guaranteed = (int)Math.Floor(qualityShift);
                 var fraction = qualityShift - guaranteed;
                 var extra = Random.NextDouble() < fraction ? 1 : 0;

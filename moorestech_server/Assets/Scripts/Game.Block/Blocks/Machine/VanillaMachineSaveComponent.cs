@@ -56,8 +56,8 @@ namespace Game.Block.Blocks.Machine
                 State = (int)_vanillaMachineProcessorComponent.CurrentState,
                 RemainingSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.RemainingTicks),
                 RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
-                // 加工中に確定済みの産出予定スタック列も保存する（Idle時はnull）
-                // Also save the realized pending output stacks fixed at start (null while idle)
+                // 産出予定も保存する（Idle時はnull）
+                // Also save the pending outputs (null while idle)
                 PendingOutputs = _vanillaMachineProcessorComponent.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             
@@ -71,8 +71,8 @@ namespace Game.Block.Blocks.Machine
         public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")]
         public List<ItemStackSaveJsonObject> OutputSlot;
-        // 過去セーブにはキーが無いことがあるためnull許容で扱う
-        // Older saves may lack this key, so it is treated as nullable
+        // 旧セーブはキー無しのためnull許容
+        // Nullable because older saves lack this key
         [JsonProperty("moduleSlot")]
         public List<ItemStackSaveJsonObject> ModuleSlot;
         [JsonProperty("inputFluidSlot")]
@@ -92,8 +92,8 @@ namespace Game.Block.Blocks.Machine
         [JsonProperty("state")]
         public int State;
 
-        // 加工中に確定済みの産出予定スタック列。Idle時や過去セーブではnull
-        // Realized pending output stacks fixed at process start; null while idle or in older saves
+        // 産出予定。Idle時や過去セーブではnull
+        // Pending outputs; null while idle or in old saves
         [JsonProperty("pendingOutputs")]
         public List<ItemStackSaveJsonObject> PendingOutputs;
     }
