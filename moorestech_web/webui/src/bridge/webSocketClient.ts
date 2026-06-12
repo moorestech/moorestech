@@ -1,14 +1,18 @@
-// Unity 側 Web UI ホストと通信する WebSocket クライアント（subscribe/unsubscribe/snapshot 送信、snapshot/event 受信）。
-// WebSocket client for the Unity-side Web UI host; sends subscribe/unsubscribe/snapshot, receives snapshot/event.
+// Unity 側 Web UI ホストと通信する WebSocket クライアント（subscribe/unsubscribe/snapshot/action 送信、snapshot/event/result 受信）。
+// WebSocket client for the Unity-side Web UI host; sends subscribe/unsubscribe/snapshot/action, receives snapshot/event/result.
+
+export type ActionResult = { ok: boolean; error?: string };
 
 type ServerMsg =
   | { op: "snapshot"; topic: string; data: unknown }
-  | { op: "event"; topic: string; data: unknown };
+  | { op: "event"; topic: string; data: unknown }
+  | { op: "result"; requestId: string; ok: boolean; error?: string };
 
 type ClientMsg =
   | { op: "subscribe"; topics: string[] }
   | { op: "unsubscribe"; topics: string[] }
-  | { op: "snapshot"; topics: string[] };
+  | { op: "snapshot"; topics: string[] }
+  | { op: "action"; type: string; requestId: string; payload: unknown };
 
 type Listener = (data: unknown) => void;
 
@@ -18,6 +22,11 @@ class WebSocketClient {
   private readonly listeners = new Map<string, Set<Listener>>();
   private readonly pendingSubscribes = new Set<string>();
   private reconnectDelayMs = 100;
+  private nextRequestId = 1;
+  private readonly pendingActions = new Map<
+    string,
+    { resolve: (r: ActionResult) => void; reject: (e: Error) => void; timer: number }
+  >();
 
   constructor(url: string) {
     this.url = url;
@@ -41,6 +50,24 @@ class WebSocketClient {
         this.sendRaw({ op: "unsubscribe", topics: [topic] });
       }
     };
+  }
+
+  // action を発行し result を Promise で返す。タイムアウト・切断時は reject
+  // Send an action and resolve with its result; reject on timeout or disconnect
+  sendAction(type: string, payload: unknown): Promise<ActionResult> {
+    return new Promise((resolve, reject) => {
+      if (this.ws?.readyState !== WebSocket.OPEN) {
+        reject(new Error("disconnected"));
+        return;
+      }
+      const requestId = `a${this.nextRequestId++}`;
+      const timer = window.setTimeout(() => {
+        this.pendingActions.delete(requestId);
+        reject(new Error("timeout"));
+      }, 5000);
+      this.pendingActions.set(requestId, { resolve, reject, timer });
+      this.ws.send(JSON.stringify({ op: "action", type, requestId, payload }));
+    });
   }
 
   private sendSubscribe(topic: string) {
@@ -79,6 +106,15 @@ class WebSocketClient {
       // Drop non-text frames
       if (typeof ev.data !== "string") return;
       const msg = JSON.parse(ev.data) as Partial<ServerMsg>;
+      if (msg.op === "result") {
+        if (typeof msg.requestId !== "string") return;
+        const pending = this.pendingActions.get(msg.requestId);
+        if (!pending) return;
+        this.pendingActions.delete(msg.requestId);
+        window.clearTimeout(pending.timer);
+        pending.resolve({ ok: msg.ok === true, error: msg.error });
+        return;
+      }
       if (msg.op !== "snapshot" && msg.op !== "event") return;
       if (typeof msg.topic !== "string") return;
       const set = this.listeners.get(msg.topic);
@@ -91,6 +127,13 @@ class WebSocketClient {
     };
 
     ws.onclose = () => {
+      // 切断時は保留中の action を全て reject する
+      // Reject all pending actions on disconnect
+      this.pendingActions.forEach((p) => {
+        window.clearTimeout(p.timer);
+        p.reject(new Error("disconnected"));
+      });
+      this.pendingActions.clear();
       this.ws = null;
       // 指数バックオフで再接続（上限 5 秒）
       // Exponential backoff reconnect (capped at 5s)
@@ -107,4 +150,8 @@ const client = new WebSocketClient(`ws://${location.host}/ws`);
 
 export function subscribeTopic<T>(topic: string, listener: (data: T) => void) {
   return client.subscribe(topic, (d) => listener(d as T));
+}
+
+export function sendAction(type: string, payload: unknown): Promise<ActionResult> {
+  return client.sendAction(type, payload);
 }
