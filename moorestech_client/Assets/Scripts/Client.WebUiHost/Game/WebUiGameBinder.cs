@@ -52,7 +52,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new SplitGrabActionHandler(controller));
             hub.RegisterAction(new CollectActionHandler(controller));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
-            hub.RegisterAction(new CraftExecuteActionHandler());
+            hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
         }
     }
 }
