@@ -138,10 +138,10 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
 
         /// <summary>
-        ///     変換済みアイテム出力1セット分のみを格納する（液体は格納しない）。生産性モジュールの追加出力用
-        ///     Insert exactly one pre-transformed set of item outputs (no fluids). Used for productivity module extra output
+        ///     変換済みアイテム出力スタック列のみを格納する（液体は格納しない）
+        ///     Insert the pre-transformed item output stacks only (no fluids)
         /// </summary>
-        public void InsertItemOutputsOnly(IReadOnlyList<IItemStack> itemOutputs)
+        private void InsertItemOutputsOnly(IReadOnlyList<IItemStack> itemOutputs)
         {
             foreach (var outputItemStack in itemOutputs)
                 for (var i = 0; i < OutputSlot.Count; i++)

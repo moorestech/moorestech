@@ -145,8 +145,8 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // 小数シフト＋生産性で混在レベル（lv2+lv3）が実現し得る状況でも、開始しないか全量格納のどちらかになり消失しないことを確認する
-        // Verify mixed-level realizations (lv2+lv3) with fractional shift + productivity either prevent the start or store everything (no silent loss)
+        // 小数シフト＋生産性で混在レベル（lv2+lv3）が実現し得る状況でも、混在ペアでは開始せず、完了した機械は必ず全量格納される（消失ゼロ）ことを確認する
+        // Verify that with fractional shift + productivity a mixed-level pair (lv2+lv3) never starts, and every completed machine stores everything (no silent loss)
         public void MixedLevelRealizationReservesExactlyTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -166,8 +166,8 @@ namespace Tests.CombinedTest.Core
             var quality04 = qualityModules.First(m => Math.Abs(m.EffectValue - 0.4f) < 0.0001f);
             var productivity = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Productivity);
 
-            // 出力空きスロットを1つだけ残した機械を多数並べ、ベース/追加スタックのレベル混在が高確率で発生する状況を作る
-            // Place many machines with only one free output slot so mixed base/extra stack levels occur with high probability
+            // 出力空きスロットを1つだけ残した機械を多数並べる（混在ペアは2スロット必要なため開始できず、同レベルペアを引いたtickにのみ開始する）
+            // Place many machines with only one free output slot (a mixed pair needs two slots so it cannot start; a machine starts only on a tick that rolls a same-level pair)
             const int machineCount = 20;
             var machines = new (VanillaMachineBlockInventoryComponent inventory, VanillaMachineProcessorComponent processor)[machineCount];
             for (var i = 0; i < machineCount; i++)
@@ -190,40 +190,40 @@ namespace Tests.CombinedTest.Core
             var allProcessors = machines.Select(m => m.processor).ToArray();
             AdvanceTicksWithFullPower(1 + ScaledTicks(recipe, 2.0f) + 3, allProcessors);
 
-            // 各機械で「開始しなかった（出力増加なし）」か「完了して2個全量格納」のどちらかであることを確認（消失ゼロ）
-            // Each machine either never started (no new outputs) or completed storing both items (zero loss)
-            var startedCount = 0;
-            var blockedCount = 0;
+            // 各機械で「未開始・進行中（出力増加なし）」か「完了して同レベル2個全量格納」のどちらかであることを確認（消失ゼロ・混在ペアでの開始なし）
+            // Each machine either has not produced yet (not started / in progress) or completed storing a same-level pair (zero loss, no mixed-pair start)
+            var completedCount = 0;
             foreach (var (inventory, processor) in machines)
             {
-                var newItemCount = CountOutputItem(inventory, lv2ItemId) + CountOutputItem(inventory, lv3ItemId);
+                var lv2Count = CountOutputItem(inventory, lv2ItemId);
+                var lv3Count = CountOutputItem(inventory, lv3ItemId);
+                var newItemCount = lv2Count + lv3Count;
                 var inputConsumed = inventory.GetItem(0).Id == ItemMaster.EmptyItemId;
-                if (inputConsumed)
+
+                if (inputConsumed && processor.CurrentState == ProcessState.Idle)
                 {
-                    // 開始できたなら実現レベルは同一のはずで、2個とも消失なく格納される（旧ロジックでは混在時1個消失していた）
-                    // If it started, the realized levels must match and both items are stored (the old logic lost one on a mixed pair)
-                    Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
+                    // 完了済みは同レベルペアが消失なく格納される（混在ペアは空き1スロットに入らないため開始時に弾かれる）
+                    // A completed machine stores a same-level pair with no loss (a mixed pair cannot fit the single free slot and is rejected at start)
                     Assert.AreEqual(2, newItemCount);
-                    startedCount++;
+                    Assert.IsTrue(lv2Count == 2 || lv3Count == 2);
+                    completedCount++;
                 }
                 else
                 {
-                    // 混在実現で空きが足りない機械は開始せず、出力も増えない
-                    // Machines with a mixed realization that does not fit never start and gain no outputs
+                    // 未開始または進行中の機械は出力が増えない
+                    // A machine that has not started or is still processing gains no outputs
                     Assert.AreEqual(0, newItemCount);
-                    blockedCount++;
                 }
             }
 
-            // 20台中に同レベル実現と混在実現の両方が現れること（混在が現れない確率は約0.52^20で無視できる）
-            // Both same-level and mixed realizations appear among 20 machines (no-mixed probability ~0.52^20 is negligible)
-            Assert.GreaterOrEqual(startedCount, 1);
-            Assert.GreaterOrEqual(blockedCount, 1);
+            // 同レベルペア（確率0.52）を引いて完了する機械が20台中に十分現れること
+            // Enough machines roll a same-level pair (probability 0.52) and complete among the 20
+            Assert.GreaterOrEqual(completedCount, 1);
         }
 
         [Test]
-        // プロセス途中でセーブ・ロードしても品質シフトのスナップショットが維持され、変種が出力されることを確認する
-        // Verify the quality shift snapshot survives a mid-process save/load and the variant is still produced
+        // プロセス途中でセーブ・ロードしても、装着中の品質モジュールにより変種が出力されることを確認する
+        // Verify a variant is still produced after a mid-process save/load thanks to the equipped quality module
         public void QualityShiftSurvivesMidProcessSaveLoadTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -240,8 +240,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
-            // 新しいDIコンテナでワールドをロードし、品質シフトのスナップショットが復元されていることを確認
-            // Load the world in a fresh DI container and verify the quality shift snapshot is restored
+            // 新しいDIコンテナでワールドをロードし、加工途中の状態が復元されていることを確認
+            // Load the world in a fresh DI container and verify the mid-process state is restored
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             ((WorldLoaderFromJson)loadServiceProvider.GetService<IWorldSaveDataLoader>()).Load(saveJson);
 
@@ -249,11 +249,9 @@ namespace Tests.CombinedTest.Core
             var loadedProcessor = loadedBlock.GetComponent<VanillaMachineProcessorComponent>();
             var loadedInventory = loadedBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
-            var qualityModule = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Quality);
-            Assert.AreEqual(qualityModule.EffectValue, loadedProcessor.CurrentQualityShift, 0.0001f);
 
-            // ロード後のワールドで完了まで進め、出力がレベル2変種のみであることを確認（スナップショット復元の実効確認）
-            // Advance the loaded world to completion; the output is only the level-2 variant (proves the snapshot restoration works)
+            // ロード後のワールドで完了まで進め、出力がレベル2変種のみであることを確認（モジュールスロット復元により効果が再計算される）
+            // Advance the loaded world to completion; the output is only the level-2 variant (the effect is recomputed from the restored module slots)
             AdvanceTicksWithFullPower((int)loadedProcessor.RemainingTicks + 3, loadedProcessor);
             Assert.AreEqual(ProcessState.Idle, loadedProcessor.CurrentState);
             var (baseItemId, lv2ItemId) = GetBaseAndLv2ItemIds(recipe);

@@ -52,15 +52,15 @@ namespace Game.Block.Factory.BlockTemplate
             // Create the module effect component before the processor and pass it in
             var effectComponent = new MachineModuleEffectComponent(module);
 
-            // 省エネモジュール倍率を要求トルクへ配線する（照会時に遅延参照。加工中はスナップショット倍率、Idleは中立1.0）
-            // Wire the efficiency multiplier into required torque (read lazily per query; snapshot while processing, neutral when idle)
-            gearEnergyTransformer.SetConsumptionMultiplier(() => effectComponent.CurrentPowerMultiplier);
-
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
             var processor = componentStates == null
-                ? new VanillaMachineProcessorComponent(input, output, null, requirePower, effectComponent, blockInstanceId)
-                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement, blockInstanceId);
+                ? new VanillaMachineProcessorComponent(input, output, null, requirePower, effectComponent)
+                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
+
+            // 省エネモジュール倍率を要求トルクへ配線する（照会時に都度集計。加工中のみ適用、Idleは中立1.0）
+            // Wire the efficiency multiplier into required torque (aggregated per query; applied only while processing, neutral when idle)
+            gearEnergyTransformer.SetConsumptionMultiplier(() => processor.CurrentPowerMultiplier);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);

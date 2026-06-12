@@ -13,8 +13,8 @@ namespace Tests.UnitTest.Core.Other
     {
         private const float Delta = 0.0001f;
 
-        // モジュール無しの集計とNeutralが中立効果（1/1/0）であることを検証
-        // Verify aggregation of no modules and Neutral both yield the neutral effect (1/1/0)
+        // モジュール無しの集計が中立効果（1/1/0）であることを検証
+        // Verify aggregation of no modules yields the neutral effect (1/1/0)
         [Test]
         public void EmptyNeutralTest()
         {
@@ -22,10 +22,6 @@ namespace Tests.UnitTest.Core.Other
             Assert.AreEqual(1f, effect.ProcessingTimeMultiplier, Delta);
             Assert.AreEqual(1f, effect.PowerMultiplier, Delta);
             Assert.AreEqual(0f, effect.ExtraOutputChance, Delta);
-
-            Assert.AreEqual(1f, MachineModuleEffect.Neutral.ProcessingTimeMultiplier, Delta);
-            Assert.AreEqual(1f, MachineModuleEffect.Neutral.PowerMultiplier, Delta);
-            Assert.AreEqual(0f, MachineModuleEffect.Neutral.ExtraOutputChance, Delta);
         }
 
         // 速度モジュール2枚が加算で効き、時間半減・電力2倍になることを検証
@@ -145,7 +141,6 @@ namespace Tests.UnitTest.Core.Other
         {
             var effect = MachineModuleEffect.Aggregate(Array.Empty<MachineModuleEffect.EquippedModule>());
             Assert.AreEqual(0f, effect.QualityShift, Delta);
-            Assert.AreEqual(0f, MachineModuleEffect.Neutral.QualityShift, Delta);
         }
 
         // 品質モジュールのトレードオフ値が加工時間を延長することを検証
@@ -182,18 +177,6 @@ namespace Tests.UnitTest.Core.Other
 
             Assert.AreEqual(spread.ProcessingTimeMultiplier, stacked.ProcessingTimeMultiplier, Delta);
             Assert.AreEqual(spread.PowerMultiplier, stacked.PowerMultiplier, Delta);
-        }
-
-        // セーブ値からの復元では時間倍率1のまま電力・追加出力・品質シフトのみ復元されることを検証
-        // Verify FromSaved restores power, extra output, and quality shift while keeping the time multiplier at 1
-        [Test]
-        public void FromSavedTest()
-        {
-            var effect = MachineModuleEffect.FromSaved(1.5f, 0.7f, 1.4f);
-            Assert.AreEqual(1f, effect.ProcessingTimeMultiplier, Delta);
-            Assert.AreEqual(1.5f, effect.PowerMultiplier, Delta);
-            Assert.AreEqual(0.7f, effect.ExtraOutputChance, Delta);
-            Assert.AreEqual(1.4f, effect.QualityShift, Delta);
         }
 
         // テスト用のモジュール定義（スタック数1）を直接生成する

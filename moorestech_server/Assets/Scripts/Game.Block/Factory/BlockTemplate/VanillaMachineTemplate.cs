@@ -35,7 +35,7 @@ namespace Game.Block.Factory.BlockTemplate
             // モジュール効果コンポーネントをプロセッサより先に生成して渡す
             // Create the module effect component before the processor and pass it in
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = new VanillaMachineProcessorComponent(input, output, null, machineParam.RequiredPower, effectComponent, blockInstanceId);
+            var processor = new VanillaMachineProcessorComponent(input, output, null, machineParam.RequiredPower, effectComponent);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
@@ -79,7 +79,7 @@ namespace Game.Block.Factory.BlockTemplate
             // モジュール効果コンポーネントをプロセッサより先に生成して渡す
             // Create the module effect component before the processor and pass it in
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, blockMasterElement, blockInstanceId);
+            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, blockMasterElement);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
