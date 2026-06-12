@@ -1,4 +1,12 @@
-# クリーンルーム フェーズ3（空気清浄機ブロック＋フィルター＋電力＋汚染源）実装プラン
+# クリーンルーム フェーズ3（エアフィルターブロック＋フィルター＋電力＋汚染源）実装プラン
+
+> **改訂: 2026-06-12 — codemap v2 整合+批判的レビュー反映**
+> - ブロック名を `CleanRoomAirFilter` に変更（旧 `CleanRoomAirPurifier` 廃名）。コンポーネントは codemap §3 の**単一コンポーネント初版** `CleanRoomAirFilterComponent`。
+> - 中核は `CleanRoomDatastore`（旧 `CleanRoomPurityService` 廃止）。`CleanRoomPollutionInput` 注入インターフェースは廃止し、A_total は具体ヘルパ `CleanRoomPollutionCalculator` でデータストアが直接算出。
+> - スキーマ: `requiredPower`（既存規約名）・`filterCapacity`/`filterItemGuid` の blockParam 化・実 blocks.yml 方言（`- key:` リスト）。
+> - フィルターインベントリは `IOpenableBlockInventoryComponent` 実装として components 登録（ベルト搬入/UIが成立）。消費時にフィルターアイテム種チェック。
+> - V/Cells 規則: `Cells`=占有セル含む（帰属判定）、`Volume`=空セルのみ（バランス確定書§5 確定値）。
+> - keystone テストは**機械なし基準部屋**（`CleanRoomMachine` はフェーズ4で導入のため）＋**摩耗アサーション必須**＋ n=2 加算テスト追加。`ComputeATotal` の doorBurst 引数は廃止（バーストは N 直接加算・フェーズ5）。
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
@@ -8,13 +16,14 @@
 > - 新規サーバー `.cs`／新規 blockType／新規スキーマ生成型を認識させるには Unity の **再起動**が要る場合がある（Refresh では不足）。「型が見つからない」で失敗したら uloop で Unity 再起動してから再試行。「Domain Reload in progress」なら45秒待って再試行。
 > - blockType スキーマ追加・SourceGenerator の手順は `edit-schema` スキルに従う。テスト作成は `creating-server-tests` スキルに従う。
 > - 非ASCIIファイル編集時は AGENTS.md の「文字化け防止ワークフロー」を順守。`blocks.json`/`items.json`/`blocks.yml` は UTF-8 系。
-> - **APIシグネチャ確認の原則:** 本プランのコードは既存コードベースのパターン（`VanillaMachineTemplate`/`VanillaElectricMachineComponent`/`VanillaMachineProcessorComponent`/`FuelGearGeneratorItemComponent`）から書いているが、メソッド名・名前空間・引数順は推定を含む。各 `.cs` を書く前に、本文で「確認」と指示した既存ファイルを開いて実シグネチャに合わせること。コンパイル/テストのチェックポイントが安全網。
+> - **契約（正）はコードマップ v2（`2026-06-06-cleanroom-phases2-5-codemap.md`）とバランス確定書（`2026-06-06-cleanroom-balance-parameters.md`）。** 本プランと食い違ったらそちらを正として本プランを直す。
+> - **APIシグネチャ確認の原則:** 本プランのコードは既存コードベースの実ファイル（`VanillaElectricMachineComponent`/`VanillaMachineProcessorComponent`/`FuelGearGeneratorItemComponent`/`VanillaFuelGearGeneratorTemplate`/`EnergySegment`/`ConnectElectricPoleToElectricSegment` 等）を開いて照合済み。ただしフェーズ1/2 の成果物（`CleanRoomDatastore`/`CleanRoom`/`ICleanRoomAirFilter`/境界コンポーネント）は並行改訂中のため、各 `.cs` を書く前に実ファイルでメンバ名を確認すること。コンパイル/テストのチェックポイントが安全網。
 
-**Goal:** フェーズ2で用意した注入インターフェース（`CleanRoomPollutionInput` の A_total、`ICleanRoomPurificationSource` の n·q）を実供給する。電力で動く空気清浄機ブロック（`CleanRoomAirPurifier`）を作り、満電時 q=5 m³/秒の除去能力・電力割合での減衰・フィルター仕事量消費（除去不純物の累計が filterCapacity=5000 ごとに1個消費・残0で除去停止）を実装する。同時に汚染源（`a_volume·V + a_surface·S + a_connector·接続点数 + A_machine·稼働機械数`、ハッチ/ドアは0スタブ）を `A_total` に実供給する `CleanRoomPollutionCalculator` を作る。基準部屋（V=75, S=110, 接続点2, 稼働機械1, 清浄機1台満電）で `A_total=16.0` → `C_eq=3.2` → クラスAが成立することを統合テストで固定する。
+**Goal:** フェーズ2で用意した注入口（`ICleanRoomAirFilter` の n·q、`CleanRoomDatastore` の A_total 算出箇所）を実供給する。電力で動くエアフィルターブロック（`CleanRoomAirFilter`）を作り、満電時 q=5 m³/秒の除去能力・電力割合での減衰・フィルター仕事量消費（除去不純物の累計が `filterCapacity`=5000 ごとに1個消費・残0で除去停止・**フィルターアイテム種チェック付き**）を実装する。同時に汚染源（`a_volume·V + a_surface·S + a_connector·接続点数 + A_machine·稼働機械数`、ハッチ/ドア計量はフェーズ5）を算出する `CleanRoomPollutionCalculator` を作り `CleanRoomDatastore.Update` に配線する。基準部屋（機械なし・エアフィルター1台内蔵で **V=74, S=109**, 接続点2）で `A_total=13.85` → `C_eq=2.77` → 閾値行A・**摩耗累計 ≈ A_total×t（±10%）** を統合テストで固定する。
 
-**Architecture:** 清浄機は `VanillaMachineTemplate` を雛形にした `VanillaAirPurifierTemplate`（New/Load）が組み立てる4コンポーネント構成。`AirPurifierProcessorComponent`（`IUpdatableBlockComponent, ICleanRoomPurificationSource`）が本体で、満電時 q × 電力割合 × (フィルター残>0?1:0) を `RemovalVolumePerSecond` として公開する。`AirPurifierElectricComponent`（`IElectricConsumer`）は `VanillaElectricMachineComponent` と同型で、設置時に既存 `ConnectMachineToElectricSegment` が近傍ポールの `EnergySegment` へ自動登録する（新規配線コード不要）。フィルター摩耗は「清浄機が C を知らない」ため**サービス側からのプッシュ**で行う：`CleanRoomPurityService` が毎tick各清浄機の除去寄与を計算して `ICleanRoomPurificationSource.ApplyRemovedImpurity(removed)` を呼び、清浄機は累計してフィルターを消費する（asmdef 依存方向 `Game.CleanRoom → Game.Block.Interface` を保つ）。`CleanRoomPollutionCalculator` は `CleanRoomDetectionSystem` の部屋ジオメトリ（V/S/境界種別）と部屋内の稼働機械数から A_total を純関数で算出する。`CleanRoomPurityService` は部屋内清浄機を `TryGetRoomContainingBlock` で集めて n·q を供給する。
+**Architecture:** エアフィルターは `VanillaCleanRoomAirFilterTemplate`（New/Load）が組み立てる3コンポーネント構成: (1) `CleanRoomAirFilterItemComponent`（`IOpenableBlockInventoryComponent, IBlockSaveState`、`FuelGearGeneratorItemComponent` 方式のフィルタースロット。フィルター種チェック付きカウント/消費）、(2) `CleanRoomAirFilterComponent`（**単一コンポーネント初版**: `IElectricConsumer, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter`。電力保持・実効q・摩耗累計）、(3) inventory コネクタ（ベルトからフィルター搬入可能。挿入先は (1) の `IBlockInventory`）。設置時は既存 `ConnectMachineToElectricSegment`/`ConnectElectricPoleToElectricSegment` が `EnergySegment` へ自動配線する（機械→ポールの設置順でも接続されることを実コードで確認済み）。フィルター摩耗は「エアフィルターが C を知らない」ため**データストアからのプッシュ**で行う: `CleanRoomDatastore` が毎tick各台の除去寄与を `ICleanRoomAirFilter.ApplyRemovedImpurity(removed)` で渡す（asmdef 依存方向 `Game.CleanRoom → Game.Block.Interface` を保つ。`Game.Block` 実装asmdefへの参照は**不可**）。A_total は静的ヘルパ `CleanRoomPollutionCalculator` の純関数 `ComputeATotal` ＋ `BlockInstanceId` 単位で重複排除する接続点カウントで算出する。
 
-**Tech Stack:** C# (Unity, moorestech_server), R3/UniRx `IObservable`（`GameUpdater.UpdateObservable`）, NUnit (Server.Tests), Newtonsoft.Json（ブロックstate保存）, Mooresmaster Source Generator (blocks.yml → BlocksModule), `Game.EnergySystem`（`IElectricConsumer`/`EnergySegment`）。
+**Tech Stack:** C# (Unity, moorestech_server), UniRx `IObservable<Unit>`（`GameUpdater.UpdateObservable` / テストは `GameUpdater.RunFrames(uint)`）, NUnit (Server.Tests), Newtonsoft.Json（ブロックstate保存）, Mooresmaster Source Generator (blocks.yml → BlocksModule), `Game.EnergySystem`（`IElectricConsumer`/`EnergySegment`）。
 
 ---
 
@@ -22,78 +31,97 @@
 
 | 前提 | 内容 | 影響 |
 |---|---|---|
-| **フェーズ1完了** | `CleanRoom`（Id, `Cells`, `Volume` V, `SurfaceArea` S）／`CleanRoomDetectionSystem`（`TryGetRoomAt`/`TryGetRoomContainingBlock`/再検出）／`ICleanRoomBoundaryComponent`（`CleanRoomBoundaryKind`）／asmdef `Game.CleanRoom` | 本プランの汚染計算・清浄機集計はこの土台に載る |
-| **フェーズ2完了** | `CleanRoomPurityState`（N/C/クラス/段階）／`CleanRoomPurityService`（DI singleton, eager, tick更新）／`CleanRoomClass` 列挙＋判定ヘルパ／`CleanRoomPollutionInput`（A_total 注入インターフェース）／`ICleanRoomPurificationSource`（n·q 注入インターフェース）／`CleanRoomClassMaster`（`cleanRoomClasses.yml`）／セーブ統合 | **本プランはこの2つの注入インターフェースを「埋める」段**。インターフェース自体は再定義しない。供給実装と清浄機実装を足す |
+| **フェーズ1完了（v2改訂版）** | 境界ブロック群（`CleanRoomWall`/`CleanRoomDoorHatch`/`CleanRoomItemHatch`/`CleanRoomPipeHatch`）／`ICleanRoomBoundaryComponent`＋`CleanRoomBoundaryKind { Wall, DoorHatch, ItemHatch, PipeHatch }`（`Game.Block.Interface`）／`CleanRoomDetector`（6近傍flood-fill）／asmdef `Game.CleanRoom` | 本プランの汚染計算・部屋検出はこの土台に載る |
+| **フェーズ2完了（v2改訂版）** | `CleanRoomDatastore`（DI singleton, eager, 設置/削除購読＋tick購読）／`CleanRoom`（`Cells`/`Volume`/`SurfaceArea`/`ImpurityCount`/`Concentration`/`ThresholdIndex`/`Status`/`AddImpurity`/`RemoveImpurity`）／`CleanRoomPurityRules`（二条件＋ヒステリシス純関数）／`ICleanRoomAirFilter`（`Game.Block.Interface/Component`）／`cleanRoomThresholds.yml`／セーブ統合 | **本プランは `ICleanRoomAirFilter` を「埋める」段**。データストアの tick へ n·q 集計と摩耗配分を差し込む |
 
-> **⚠ クロスフェーズの調整事項（実装着手前に人間が確認すること。Self-Review §再掲）**
-> 1. **`ICleanRoomPurificationSource` の所在と署名**: コードマップ§2は `Game.CleanRoom/Purity/ICleanRoomPurificationSource.cs` に置くと書くが、清浄機は `Game.Block` のコンポーネントであり、asmdef 依存方向は `Game.CleanRoom → Game.Block.Interface`（逆ではない）。フェーズ1が `ICleanRoomBoundaryComponent` を `Game.Block.Interface` に置いたのと同じ理由で、**`ICleanRoomPurificationSource` も `Game.Block.Interface/Component` に置く**必要がある。さらにフィルター摩耗を「除去不純物量に比例」させるには、清浄機が知らない C をサービスが押し込む必要があるので、フェーズ2の署名へ **`void ApplyRemovedImpurity(double removed)` を追加**する。
-> 2. **`CleanRoomPurityService` の清浄機注入**: コードマップ§2のコンストラクタは `IReadOnlyList<ICleanRoomPurificationSource>` を DI 注入する形だが、清浄機は実行時設置ブロックなので**静的注入では集まらない**。本プランは `TryGetRoomContainingBlock` ＋部屋セル走査で毎tick動的収集する方式に差し替える。フェーズ2のコンストラクタ署名は要見直し。
-> 3. **A_total=16 のジオメトリ前提**: バランス§5は「占有セルを V に算入しない」と書くが、フェーズ1の検出器は**境界コンポーネントを持つセルのみ**を除外し、機械占有セルは空気として V に数える。worked example §4 の `A_total=16` は**検出器の挙動とのみ整合**する（機械を部屋内に置いても V=75 のまま）。本プランは検出器に従い「占有セル除外」は実装しない。
+> **⚠ 実装着手前の確認事項（フェーズ1/2 は並行改訂中のため、着手時に実ファイルで確定する）**
+> 1. **`ICleanRoomAirFilter` のメンバ**: 本プランは `double RemovalVolumePerSecond { get; }` ＋ `void ApplyRemovedImpurity(double removed)` の2メンバ前提（codemap §3）。フェーズ2版が `RemovalVolumePerSecond` のみなら本プラン Task 2 で `ApplyRemovedImpurity` を追加する。`IBlockComponent` 継承（`TryGetComponent<T>` の型制約に必要）も確認。
+> 2. **`CleanRoom` の API 名**: `AddImpurity`/`RemoveImpurity`/`ImpurityCount`/`Concentration`（引数なしプロパティ）/`ThresholdIndex`/`Volume`/`SurfaceArea`/`Cells` は codemap §1.2 の契約名。実装と違えば実装に合わせる。
+> 3. **`ThresholdIndex` の行順**: 本プランのテストは「index 0 = A行（最上位）」前提。`cleanRoomThresholds.yml` の行順がそうなっているか確認し、違えばテスト期待値を読み替える。
+> 4. **部屋内ブロックの収集方法**: 本プランは「毎tick `room.Cells` 走査＋`TryGetComponent<ICleanRoomAirFilter>`＋`BlockInstanceId` 重複排除」で動的収集する。フェーズ2のデータストアが既に「ブロック→部屋」登録マップ（codemap §1.4 の `AddGear` 相当）を持つならそれを使い、走査を省いてよい（結果は同じであること）。
+> 5. **テストmod のクリーンルーム境界ブロック**: フェーズ1がテストmodへ追加済みの壁/ハッチの `ForUnitTestModBlockId` アクセサ名（例: `CleanRoomWallId`/`CleanRoomItemHatchId`/`CleanRoomPipeHatchId`）を確認して keystone テストで使う。
 
 ---
 
 ## File Structure（フェーズ3で作成/変更するファイル）
 
-**スキーマ／マスタ（清浄機ブロック＋フィルターアイテム）**
-- Modify: `VanillaSchema/blocks.yml` — `blockType` enum に `CleanRoomAirPurifier` 追加＋blockParam の switch case（`removalVolumePerSecond` / `requestPower` / `filterItemSlotCount`）
+**スキーマ／マスタ（エアフィルターブロック＋フィルターアイテム）**
+- Modify: `VanillaSchema/blocks.yml` — `blockType` enum に `CleanRoomAirFilter` 追加＋blockParam の case（`removalVolumePerSecond`(=q) / `requiredPower` / `filterCapacity` / `filterItemGuid` / `filterItemSlotCount` / `inventoryConnectors`）
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` — SourceGenerator トリガ
-- Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json` — 清浄機ブロック追加
-- Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/items.json` — フィルターアイテム＋清浄機ブロックアイテム追加
-- Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs` — `CleanRoomAirPurifierId` / `CleanRoomFilterItemGuid` アクセサ追加
+- Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json` — エアフィルターブロック追加
+- Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/items.json` — フィルターアイテム＋エアフィルターブロックアイテム追加
+- Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs` — `CleanRoomAirFilterId` / `CleanRoomFilterItemGuid` アクセサ追加
 
-**注入インターフェース拡張（Game.Block.Interface） — フェーズ2の `ICleanRoomPurificationSource` を移設/拡張**
-- Modify(または Create): `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ICleanRoomPurificationSource.cs` — `RemovalVolumePerSecond` ＋ `ApplyRemovedImpurity(double)`（調整事項#1）
+**注入インターフェース（Game.Block.Interface） — フェーズ2作成済みの確認/拡張**
+- Modify(or Create): `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ICleanRoomAirFilter.cs` — `RemovalVolumePerSecond` ＋ `ApplyRemovedImpurity(double)`（確認事項#1）
 
-**清浄機ブロック実装（Game.Block）**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierFilterInventory.cs` — フィルタースロット＋仕事量ベース消費
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierProcessorComponent.cs` — `IUpdatableBlockComponent, ICleanRoomPurificationSource`。実効 q・除去量計上・フィルター消費
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierElectricComponent.cs` — `IElectricConsumer`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierSaveComponent.cs` — `IBlockSaveState`（フィルター残＋進捗）
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaAirPurifierTemplate.cs` — `IBlockTemplate`（New/Load）
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs` — `CleanRoomAirPurifier` を登録
+**エアフィルターブロック実装（Game.Block）**
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterItemComponent.cs` — `IOpenableBlockInventoryComponent, IBlockSaveState`。フィルタースロット＋種チェック付きカウント/消費
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs` — 単一コンポーネント本体: `IElectricConsumer, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaCleanRoomAirFilterTemplate.cs` — `IBlockTemplate`（New/Load）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs` — `CleanRoomAirFilter` を登録
 
-**汚染計算＋部屋接続（Game.CleanRoom）**
-- Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Purity/CleanRoomPollutionCalculator.cs` — `CleanRoomPollutionInput` 実装＋純関数 `ComputeATotal`
-- Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/Purity/CleanRoomPurityService.cs` — 部屋内清浄機を動的収集して n·q 供給＋除去寄与を `ApplyRemovedImpurity` で配分
+**汚染計算＋データストア配線（Game.CleanRoom）**
+- Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Pollution/CleanRoomPollutionCalculator.cs` — 静的ヘルパ。純関数 `ComputeATotal` ＋ 接続点カウント（注入インターフェースは作らない）
+- Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs` — tick に A_total 算出・部屋内エアフィルター集計（n·q）・除去寄与の `ApplyRemovedImpurity` 配分を差し込む
 
 **テスト**
-- Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPurifierTest.cs`
+- Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomAirFilterTest.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPollutionTest.cs`
 
 > 各 `.cs` 新規ファイルは Unity が `.meta` を自動生成する。`.meta` は手動作成禁止。
 
 ---
 
-## 数値の唯一ソース（`docs/superpowers/plans/2026-06-06-cleanroom-balance-parameters.md`）
+## 数値の唯一ソース（`2026-06-06-cleanroom-balance-parameters.md`）
 
 | パラメータ | 値 | 出典 |
 |---|---|---|
-| `q`（処理体積, 満電1台） | 5.0 m³/秒 | §3 |
-| `requestPower` | 100 | §3 |
-| `filterCapacity` | 5000 個/フィルター | §3 |
+| `q`（処理体積, 満電1台。スキーマキーは `removalVolumePerSecond`） | 5.0 m³/秒 | §3 |
+| `requiredPower`（**既存規約名。`requestPower` は使わない**） | 100 | §3 |
+| `filterCapacity`（**blockParam。C#ハードコード禁止**） | 5000 個/フィルター | §3 |
+| `filterItemGuid`（**blockParam。消費時の種チェックに使用**） | テストmodではフィルターアイテムのGUID | §3 |
 | `a_volume` | 0.10 個/(m³·秒) | §2 |
 | `a_surface` | 0.05 個/(m²·秒) | §2 |
 | `a_connector` | 0.50 個/(接続点·秒) | §2 |
-| `A_machine` | 2.0 個/(稼働機械·秒) | §2 |
+| `A_machine` | 2.0 個/(稼働機械·秒)（**部屋内 `CleanRoomMachine`（フェーズ4）の稼働中フラグ。汎用 Vanilla 機械は数えない**） | §2 / codemap §3 |
 | `k_hatch` | 0.30（フェーズ3では搬送0なので寄与0） | §2 |
-| `burst_door` | 15（フェーズ3では通過0なので寄与0） | §2 |
-| tick | 50ms（secondsPerTick=0.05） | §0 |
+| `burst_door` | 15 個/通過（**A_total に合算しない。フェーズ5で `CleanRoom.AddImpurity` へ直接加算**） | §2 単位注意 |
+| tick | 50ms（`GameUpdater.SecondsPerTick` = 0.05。ローカル定数を作らない） | §0 |
 
-**基準部屋（worked example §4）**: V=75, S=110, 接続点 2（**ハッチ1＋パイプコネクタ1**、Wall は接続点に数えない）, 稼働機械 1, 清浄機 1台満電。
+### 基準部屋（worked example・フェーズ3版）
 
-> **接続点はドアを使わない理由（調整事項#5）**: フェーズ1プラン Task5 は「`ICleanRoomBoundaryComponent` を持つブロック＝密閉面」（ドアも密閉）と書くが、コードマップ§5 は `CleanRoomDoorComponent` を「flood-fill 上は貫通可能境界」と書く。両者が食い違うため、ドアを接続点に使うと検出器がドアからリークして部屋が成立しない可能性がある。本プランの統合テストは**ハッチ＋パイプコネクタ**（どちらの解釈でも確実に密閉）で接続点2を作る。接続点数・S・A_total は不変（16.0）。ドアの flood-fill 上の扱いは reconcile #5 として要確定。
+バランス確定書§4 の worked example（V=75, S=110, 機械1）は**理想形**。フェーズ3の統合テストは以下2点で具体化する:
+
+1. **機械なし**: `A_machine` の対象は `CleanRoomMachine`（専用機械、フェーズ4で導入）であり、フェーズ3には存在しない。汎用 `VanillaMachineProcessorComponent` を数えるのは契約違反（codemap §3）。よって統合テストは **A_machine 項=0** の部屋で行い、係数 2.0 自体は純関数テスト（Task 6）で固定する。これにより「機械を長時間稼働させ続ける」というテスト脆弱性も消える。
+2. **占有セルは V から除外**（バランス確定書§5）: 内寸 5×5×3=75 セルにエアフィルター1台（1×1×1）を**側壁に接しない床セル**へ置くと、`Cells`=75（帰属判定用・占有セル含む）、`Volume`=**74**（空セルのみ）、`SurfaceArea`=**109**（占有床セルの床接触1面が空セル面から消える）。
+
 ```
-A_total = A_machine·1 + a_volume·75 + a_surface·110 + a_connector·2
-        = 2.0 + 7.5 + 5.5 + 1.0 = 16.0 個/秒
-C_eq    = A_total / (n·q) = 16.0 / 5 = 3.2 個/m³  → クラスA域（≤10）
-ACH     = n·q/V = 5/75 = 0.067 /秒 ≥ A要求 0.017 → クラスA成立
+基準部屋（機械なし）: V=74, S=109, 接続点2（ItemHatch 1 + PipeHatch 1）, エアフィルター1台満電
+A_total = a_volume·74 + a_surface·109 + a_connector·2
+        = 7.4 + 5.45 + 1.0 = 13.85 個/秒
+C_eq    = A_total / (n·q) = 13.85 / 5 = 2.77 個/m³  → A行域（≤10）
+ACH     = n·q/V = 5/74 ≈ 0.0676 /秒 ≥ A行要求 0.0167 → 閾値行A 成立
+τ       = V/(n·q) = 14.8 秒（平衡への時定数）
 ```
+
+**摩耗アサーション（必須・バランス確定書§3）**: t=300秒（6000 tick ≈ 20τ）回した時点で、
+```
+A_total·t        = 13.85 × 300 = 4155
+理論摩耗累計      = A_total·t − N(t) ≈ 4155 − C_eq·V ≈ 4155 − 205 ≈ 3950
+アサート帯（契約） = A_total·t ± 10% = [3739.5, 4570.5]   ← 理論値 3950 は帯内
+```
+（除去累計は「加算累計 − 室内残存N」なので A_total·t よりわずかに小さい。±10% 帯は t ≥ 10τ で初めて成立する点に注意 — 短すぎる t でアサートしない）
+
+**n=2 加算検証用**: 同じ部屋にエアフィルター2台 → V=73, S=108, `A_total = 7.3 + 5.4 + 1.0 = 13.7`, `n·q=10`, `C_eq = 1.37`, τ=7.3秒。
+
+> 接続点は ItemHatch＋PipeHatch を使う（v2 では**全ハッチが気密境界**なので DoorHatch でも密閉は成立するが、フェーズ5の搬送実装と並びを揃える）。`a_connector` は種別一律なので内訳はどれでも 2×0.50=1.0。
 
 ---
 
-## Task 1: 清浄機 blockType ＋ フィルターアイテムをスキーマ／テストmodに追加
+## Task 1: エアフィルター blockType ＋ フィルターアイテムをスキーマ／テストmodに追加
 
-清浄機ブロックの blockType・param と、フィルターアイテムをテスト用 mod に足す。コード生成のみ。`edit-schema` スキルの手順に従うこと。
+エアフィルターブロックの blockType・param と、フィルターアイテムをテスト用 mod に足す。コード生成のみ。`edit-schema` スキルの手順に従うこと。
 
 **Files:**
 - Modify: `VanillaSchema/blocks.yml`
@@ -104,33 +132,45 @@ ACH     = n·q/V = 5/75 = 0.067 /秒 ≥ A要求 0.017 → クラスA成立
 
 - [ ] **Step 1: blocks.yml の blockType enum に追加**
 
-`VanillaSchema/blocks.yml` の `blockType` の `options:` 配列末尾へ:
+`VanillaSchema/blocks.yml` の `blockType` の `options:` 配列末尾へ（フェーズ1が `CleanRoomWall` 等を追加済みならその並びに続ける）:
 
 ```yaml
-      - CleanRoomAirPurifier
+      - CleanRoomAirFilter
 ```
 
-- [ ] **Step 2: blockParam の switch/cases に追加**
+- [ ] **Step 2: blockParam の cases に追加（実スキーマ方言で書く）**
 
-既存の param 付き blockType（例 `ElectricMachine` の `when:` case）の書き方を確認してから、`removalVolumePerSecond`・`requestPower`・フィルタースロット・インベントリコネクタを持つ case を追加する。`ElectricMachineBlockParam` の `inventoryConnectors` の schema 記法をコピーすること（フィルター搬入をベルト等から受けられるように）:
+blocks.yml の blockParam case は **`properties:` を `- key:` のリスト**で書く方言（`when: ElectricMachine` の実物を参照。JSON-Schema 風の `properties:` マップは**不可**）。`inventoryConnectors` は `ref: inventoryConnects` の1行参照、`filterItemGuid` は既存 `itemGuid` キーと同じ `type: uuid`＋`foreignKey` 記法をコピーする:
 
 ```yaml
-      - when: CleanRoomAirPurifier
+      - when: CleanRoomAirFilter
         type: object
+        implementationInterface:
+        - IInventoryConnectors
         properties:
-          removalVolumePerSecond:
-            type: number
-          requestPower:
-            type: number
-          filterItemSlotCount:
-            type: integer
-          inventoryConnectors:
-            # ElectricMachine の inventoryConnectors と同じ schema をコピー
-            # Copy the same schema as ElectricMachine's inventoryConnectors
-            ...
+        - key: removalVolumePerSecond
+          type: number
+          default: 5
+        - key: requiredPower
+          type: number
+          default: 100
+        - key: filterCapacity
+          type: number
+          default: 5000
+        - key: filterItemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: filterItemSlotCount
+          type: integer
+          default: 1
+        - key: inventoryConnectors
+          ref: inventoryConnects
 ```
 
-> 生成される型名は `CleanRoomAirPurifierBlockParam`、プロパティは `RemovalVolumePerSecond`(float)/`RequestPower`(float)/`FilterItemSlotCount`(int)/`InventoryConnectors` になる想定。Task 5/6 で参照確認する。
+> `implementationInterface: IInventoryConnectors` は `ElectricMachine` の case を確認し、`inventoryConnectors` を持つ param の慣例に合わせて付ける（不要なら外す。`IMachineParam` はスロット/タンク系メンバを要求するため**付けない**）。生成される型は `CleanRoomAirFilterBlockParam`、プロパティは `RemovalVolumePerSecond`/`RequiredPower`/`FilterCapacity`/`FilterItemGuid`(Guid)/`FilterItemSlotCount`/`InventoryConnectors` になる想定。Task 4/5 で参照確認する。
 
 - [ ] **Step 3: SourceGenerator をトリガ**
 
@@ -140,9 +180,9 @@ ACH     = n·q/V = 5/75 = 0.067 /秒 ≥ A要求 0.017 → クラスA成立
 private const string dummyText = "regenerate-cleanroom-phase3";
 ```
 
-- [ ] **Step 4: テストmod の items.json にフィルターアイテム＋清浄機ブロックアイテムを追加**
+- [ ] **Step 4: テストmod の items.json にフィルターアイテム＋エアフィルターブロックアイテムを追加**
 
-既存末尾の itemGuid 連番に続けて2件追加（既存エントリの形式に合わせる。`maxStack`/`name`/`itemGuid`/`imagePath`/`sortPriority`/`recipeViewType`/`initialUnlocked`）:
+既存エントリの形式（`maxStack`/`name`/`itemGuid`/`imagePath`/`sortPriority`/`recipeViewType`/`initialUnlocked`）に合わせて2件追加:
 
 ```json
     {
@@ -156,53 +196,53 @@ private const string dummyText = "regenerate-cleanroom-phase3";
     },
     {
       "maxStack": 100,
-      "name": "TestCleanRoomAirPurifier",
+      "name": "TestCleanRoomAirFilter",
       "itemGuid": "00000000-0000-0000-1234-0000000000f2",
-      "imagePath": "TestCleanRoomAirPurifier",
+      "imagePath": "TestCleanRoomAirFilter",
       "sortPriority": 100,
       "recipeViewType": "ForceView",
       "initialUnlocked": true
     }
 ```
 
-> ブロックは対応するブロックアイテムを要する慣習。既存 `blocks.json` のブロックがどの itemGuid と結びつくか（`itemGuid` フィールド有無）を確認し、清浄機ブロックエントリにも同様に紐づける。
+- [ ] **Step 5: テストmod の blocks.json にエアフィルターブロックを追加**
 
-- [ ] **Step 5: テストmod の blocks.json に清浄機ブロックを追加**
-
-`ElectricMachine` エントリ（`requiredPower:100`＋`inventoryConnectors`）を雛形に、清浄機ブロックを末尾へ追加。param 値は本プランの数値ソースに合わせる:
+`ElectricMachine` エントリを開いて必須キー（`blockGuid`/`itemGuid`/`modelTransform` 等）のネスト形を一致させつつ、末尾へ追加。param 値は本プランの数値ソースに合わせる:
 
 ```json
     {
       "maxStack": 100,
       "blockSize": [1, 1, 1],
-      "name": "TestCleanRoomAirPurifier",
+      "name": "TestCleanRoomAirFilter",
       "blockGuid": "00000000-0000-0000-0000-0000000000f2",
       "itemGuid": "00000000-0000-0000-1234-0000000000f2",
-      "blockType": "CleanRoomAirPurifier",
+      "blockType": "CleanRoomAirFilter",
       "blockParam": {
         "removalVolumePerSecond": 5.0,
-        "requestPower": 100,
+        "requiredPower": 100,
+        "filterCapacity": 5000,
+        "filterItemGuid": "00000000-0000-0000-1234-0000000000f1",
         "filterItemSlotCount": 1,
-        "inventoryConnectors": { "...": "ElectricMachine と同じ inventoryConnectors をコピー" }
+        "inventoryConnectors": { "...": "ElectricMachine エントリの inventoryConnectors（outputConnects/inputConnects 実構造）をコピー" }
       }
     }
 ```
 
-> `blockGuid`/`itemGuid` の実際の必須キー名・ネスト形は既存 blocks.json の `ElectricMachine` エントリを開いて一致させること。
+> `inventoryConnectors` の実構造（`outputConnects`/`inputConnects` の `offset`/`directions`/`connectorGuid` 等）は既存 `TestElectricMachine` エントリからコピーし、`connectorGuid` だけ新規GUIDに差し替える。
 
 - [ ] **Step 6: ForUnitTestModBlockId にアクセサを追加**
 
 `Tests.Module/TestMod/ForUnitTestModBlockId.cs` に追加:
 
 ```csharp
-        public static BlockId CleanRoomAirPurifierId => GetBlock("00000000-0000-0000-0000-0000000000f2");
+        public static BlockId CleanRoomAirFilterId => GetBlock("00000000-0000-0000-0000-0000000000f2");
         public static System.Guid CleanRoomFilterItemGuid => System.Guid.Parse("00000000-0000-0000-1234-0000000000f1");
 ```
 
 - [ ] **Step 7: 再生成を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: 成功。`Mooresmaster.Model.BlocksModule.BlockTypeConst.CleanRoomAirPurifier` と `CleanRoomAirPurifierBlockParam` が生成される。
+Expected: 成功。`Mooresmaster.Model.BlocksModule.BlockTypeConst.CleanRoomAirFilter` と `CleanRoomAirFilterBlockParam` が生成される。
 
 > 型未検出なら Unity 再起動（新規 blockType＋生成型のため Refresh では不足しうる）。「Domain Reload in progress」なら45秒待つ。
 
@@ -210,73 +250,70 @@ Expected: 成功。`Mooresmaster.Model.BlocksModule.BlockTypeConst.CleanRoomAirP
 
 ```bash
 git add VanillaSchema/blocks.yml moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs moorestech_server/Assets/Scripts/Tests.Module/TestMod/
-git commit -m "feat(cleanroom): 空気清浄機blockTypeとフィルターアイテムをスキーマ/テストmodに追加"
+git commit -m "feat(cleanroom): エアフィルターblockTypeとフィルターアイテムをスキーマ/テストmodに追加"
 ```
 
 ---
 
-## Task 2: `ICleanRoomPurificationSource` を Game.Block.Interface へ移設/拡張
+## Task 2: `ICleanRoomAirFilter` の確認/拡張（Game.Block.Interface）
 
-清浄機は `Game.Block` のコンポーネント。`Game.CleanRoom` が `Game.Block.Interface` を参照する一方向を保つため、このインターフェースは `Game.Block.Interface/Component` に置く（調整事項#1）。フィルター摩耗のためサービスが除去量を押し込む `ApplyRemovedImpurity` を足す。
+フェーズ2が `Game.Block.Interface/Component/ICleanRoomAirFilter.cs` を作成済み（codemap §2）。メンバが `RemovalVolumePerSecond` のみなら、フィルター摩耗プッシュ用の `ApplyRemovedImpurity` を追加する（確認事項#1）。
 
 **Files:**
-- Modify(or Create): `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ICleanRoomPurificationSource.cs`
+- Modify(or Create): `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ICleanRoomAirFilter.cs`
 
-> フェーズ2で `Game.CleanRoom/Purity/ICleanRoomPurificationSource.cs` に作られている場合は**こちらへ移設**し、`CleanRoomPurityService` の `using` を更新する（Task 8 で実施）。`Game.CleanRoom.asmdef` は既に `Game.Block.Interface` を参照しているので新規参照追加は不要。
-
-- [ ] **Step 1: インターフェースを定義**
-
-`Game.Block.Interface/Component/ICleanRoomPurificationSource.cs`:
+- [ ] **Step 1: インターフェースを確認し、最終形に揃える**
 
 ```csharp
 namespace Game.Block.Interface.Component
 {
-    // 部屋の不純物を除去する供給源（空気清浄機）。CleanRoomPurityService が集計に使う。
-    // A source that removes room impurity (air purifier); aggregated by CleanRoomPurityService.
-    public interface ICleanRoomPurificationSource : IBlockComponent
+    // 部屋の不純物を除去する供給源（エアフィルター）。CleanRoomDatastore が n·q 集計と摩耗プッシュに使う。
+    // Impurity-removal source (air filter); CleanRoomDatastore reads n·q and pushes wear through this.
+    public interface ICleanRoomAirFilter : IBlockComponent
     {
-        // 満電時 q × 電力割合 × (フィルター残>0 ? 1 : 0)。n·q の自台寄与。
-        // q × power-ratio × (filterRemaining>0 ? 1 : 0); this unit's contribution to n·q.
+        // 満電時 q × 電力割合(≤1) × (フィルター残>0 ? 1 : 0)。n·q の自台寄与。
+        // q × power-ratio(≤1) × (filter present ? 1 : 0); this unit's contribution to n·q.
         double RemovalVolumePerSecond { get; }
 
-        // サービスがこの台の今tickの除去不純物量を押し込む。フィルター摩耗に使う。
-        // Service pushes this unit's removed-impurity for this tick; used for filter wear.
+        // データストアがこの台の今tickの除去不純物量を渡す。フィルター摩耗に使う。
+        // Datastore pushes this unit's removed impurity for the tick; drives filter wear.
         void ApplyRemovedImpurity(double removed);
     }
 }
 ```
 
-> `IBlockComponent` の名前空間・必須メンバは `Game.Block.Interface/Component/IBlockComponent.cs` で確認（`bool IsDestroy`/`void Destroy()`）。
+> `IBlockComponent` 継承は `block.TryGetComponent<T>()` の型制約（`where T : IBlockComponent`）に必要。`IBlockComponent` のメンバ（`bool IsDestroy`/`void Destroy()`）は `Game.Block.Interface/Component/IBlockComponent.cs` で確認。
 
 - [ ] **Step 2: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: 成功。
+Expected: 成功（フェーズ2側に既存実装があれば追従修正）。
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ICleanRoomPurificationSource.cs
-git commit -m "feat(cleanroom): ICleanRoomPurificationSourceをGame.Block.Interfaceへ移設しApplyRemovedImpurityを追加"
+git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/ICleanRoomAirFilter.cs
+git commit -m "feat(cleanroom): ICleanRoomAirFilterにApplyRemovedImpurityを追加"
 ```
 
 ---
 
-## Task 3: フィルターインベントリ（仕事量ベース消費）
+## Task 3: フィルターインベントリコンポーネント（IOpenableBlockInventoryComponent・種チェック付き）
 
-フィルタースロットを保持し、累計除去量が `filterCapacity` に達するごとにフィルターを1個消費する。残0でフィルター無しを通知。`FuelGearGeneratorItemComponent`（`OpenableInventoryItemDataStoreService` 利用）を雛形にする。
+フィルタースロットを保持する**ブロックコンポーネント**。`FuelGearGeneratorItemComponent`（`OpenableInventoryItemDataStoreService` への委譲一式＋`IBlockSaveState`）を雛形にする。components に登録されるため、ベルト（`IBlockInventory`）からの搬入・プレイヤーUI・テストからの取得が全て成立する。**フィルターのカウント/消費は `filterItemGuid` のアイテムのみ対象**（誤投入アイテムを食わない）。
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierFilterInventory.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterItemComponent.cs`
+- Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomAirFilterTest.cs`
 
-- [ ] **Step 1: 失敗するテストを書く（除去累計でフィルターが減る／残0で HasFilter=false）**
+- [ ] **Step 1: 失敗するテストを書く（種チェック付きカウント／消費）**
 
-`Tests/CombinedTest/Core/CleanRoomPurifierTest.cs` を新規作成:
+`Tests/CombinedTest/Core/CleanRoomAirFilterTest.cs` を新規作成:
 
 ```csharp
-using System;
 using Core.Master;
 using Game.Block.Blocks.CleanRoom;
+using Game.Block.Interface;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -284,38 +321,34 @@ using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Core
 {
-    public class CleanRoomPurifierTest
+    public class CleanRoomAirFilterTest
     {
         private const double FilterCapacity = 5000;
 
         [Test]
-        public void FilterInventory_ConsumesOneFilterPerCapacityOfRemovedImpurity()
+        public void ItemComponent_CountsAndConsumesOnlyFilterItems()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
+            var filterItemId = MasterHolder.ItemMaster.GetItemId(ForUnitTestModBlockId.CleanRoomFilterItemGuid);
 
-            // フィルター2個でインベントリを作る。
-            // Build an inventory holding 2 filters.
-            var inventory = new AirPurifierFilterInventory(slotCount: 1, filterCapacity: FilterCapacity);
-            inventory.InsertItem(itemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 2));
+            // スロット2: フィルター以外のアイテムはカウントも消費もされない。
+            // 2 slots: non-filter items are neither counted nor consumed.
+            var inventory = new CleanRoomAirFilterItemComponent(slotCount: 2, filterItemId, new BlockInstanceId(1));
+            inventory.SetItem(0, itemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 2));
+            inventory.SetItem(1, itemStackFactory.Create(new System.Guid("00000000-0000-0000-1234-000000000001"), 5)); // Test1（非フィルター）
 
-            Assert.IsTrue(inventory.HasFilter, "2 filters present");
+            Assert.AreEqual(2, inventory.FilterCount, "filter items only");
+            Assert.IsTrue(inventory.HasFilter);
 
-            // capacity 未満の摩耗ではまだ消費しない。
-            // No consumption below one capacity worth of wear.
-            inventory.AddRemovedImpurity(FilterCapacity - 1);
-            Assert.AreEqual(2, inventory.FilterRemaining);
-
-            // capacity を跨いだら1個消費。
-            // Crossing one capacity consumes exactly one filter.
-            inventory.AddRemovedImpurity(2);
-            Assert.AreEqual(1, inventory.FilterRemaining);
-
-            // もう1個分摩耗させて残0、HasFilter=false。
-            // Wear another full capacity to deplete, HasFilter becomes false.
-            inventory.AddRemovedImpurity(FilterCapacity);
-            Assert.AreEqual(0, inventory.FilterRemaining);
-            Assert.IsFalse(inventory.HasFilter, "no filters remaining");
+            // 消費はフィルタースロットだけ減る。
+            // Consumption only decrements the filter slot.
+            Assert.IsTrue(inventory.TryConsumeOneFilter());
+            Assert.IsTrue(inventory.TryConsumeOneFilter());
+            Assert.IsFalse(inventory.TryConsumeOneFilter(), "no filters left");
+            Assert.AreEqual(0, inventory.FilterCount);
+            Assert.IsFalse(inventory.HasFilter);
+            Assert.AreEqual(5, inventory.GetItem(1).Count, "non-filter item untouched");
         }
     }
 }
@@ -323,86 +356,143 @@ namespace Tests.CombinedTest.Core
 
 - [ ] **Step 2: 実行して失敗を確認**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "FilterInventory_ConsumesOneFilterPerCapacity"`
-Expected: FAIL（`AirPurifierFilterInventory` 未定義）。型未検出なら Unity 再起動。
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ItemComponent_CountsAndConsumesOnlyFilterItems"`
+Expected: FAIL（`CleanRoomAirFilterItemComponent` 未定義）。型未検出なら Unity 再起動。
 
-- [ ] **Step 3: フィルターインベントリを実装**
+- [ ] **Step 3: フィルターインベントリコンポーネントを実装**
 
-`Game.Block/Blocks/CleanRoom/AirPurifierFilterInventory.cs`:
+`Game.Block/Blocks/CleanRoom/CleanRoomAirFilterItemComponent.cs`:
 
 ```csharp
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
+using Game.Block.Event;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Event;
 using Game.Context;
+using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.CleanRoom
 {
-    // フィルタースロット。除去した不純物の累計が容量に達するごとにフィルターを1個消費する。
-    // Filter slots; consumes one filter each time accumulated removed-impurity reaches capacity.
-    public class AirPurifierFilterInventory
+    // フィルタースロット。filterItemGuid のアイテムだけをフィルターとして数え・消費する。
+    // Filter slots; only items matching filterItemGuid are counted/consumed as filters.
+    public class CleanRoomAirFilterItemComponent : IOpenableBlockInventoryComponent, IBlockSaveState
     {
-        public bool HasFilter => FilterRemaining > 0;
-        public int FilterRemaining => CountFilters();
+        public string SaveKey => "cleanRoomAirFilterItem";
+        public bool IsDestroy { get; private set; }
 
-        private readonly double _filterCapacity;
-        private readonly OpenableInventoryItemDataStoreService _inventory;
-        private double _wearProgress;
+        public bool HasFilter => FilterCount > 0;
+        public IReadOnlyList<IItemStack> InventoryItems => _inventoryService.InventoryItems;
 
-        public AirPurifierFilterInventory(int slotCount, double filterCapacity)
+        private readonly OpenableInventoryItemDataStoreService _inventoryService;
+        private readonly ItemId _filterItemId;
+        private readonly BlockInstanceId _blockInstanceId;
+
+        public CleanRoomAirFilterItemComponent(int slotCount, ItemId filterItemId, BlockInstanceId blockInstanceId)
         {
-            _filterCapacity = filterCapacity;
-            _inventory = new OpenableInventoryItemDataStoreService(_ => { }, ServerContext.ItemStackFactory, Math.Max(1, slotCount));
+            _filterItemId = filterItemId;
+            _blockInstanceId = blockInstanceId;
+            _inventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, Math.Max(1, slotCount));
         }
 
-        // 除去した不純物量を累計し、容量ごとにフィルターを1個減らす。
-        // Accumulate removed impurity and drop one filter per capacity crossed.
-        public void AddRemovedImpurity(double removed)
+        public CleanRoomAirFilterItemComponent(Dictionary<string, string> componentStates, int slotCount, ItemId filterItemId, BlockInstanceId blockInstanceId)
+            : this(slotCount, filterItemId, blockInstanceId)
         {
-            if (removed <= 0 || !HasFilter) return;
-            _wearProgress += removed;
+            if (!componentStates.TryGetValue(SaveKey, out var stateRaw)) return;
+            var items = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(stateRaw);
+            RestoreItems(items);
+        }
 
-            while (_wearProgress >= _filterCapacity && HasFilter)
+        // フィルターアイテムだけを数える（誤投入アイテムは無視）。
+        // Count only filter items; foreign items are ignored.
+        public int FilterCount
+        {
+            get
             {
-                _wearProgress -= _filterCapacity;
-                ConsumeOneFilter();
+                var count = 0;
+                for (var i = 0; i < _inventoryService.GetSlotSize(); i++)
+                {
+                    var item = _inventoryService.GetItem(i);
+                    if (item.Id == _filterItemId) count += item.Count;
+                }
+                return count;
             }
         }
 
-        public IItemStack InsertItem(IItemStack itemStack)
+        // フィルターを1個消費する。フィルターアイテム以外は消費しない。
+        // Consume exactly one filter; never consumes non-filter items.
+        public bool TryConsumeOneFilter()
         {
-            return _inventory.InsertItem(itemStack);
+            BlockException.CheckDestroy(this);
+            for (var i = 0; i < _inventoryService.GetSlotSize(); i++)
+            {
+                var item = _inventoryService.GetItem(i);
+                if (item.Id != _filterItemId || item.Count <= 0) continue;
+                _inventoryService.SetItem(i, item.SubItem(1));
+                return true;
+            }
+            return false;
         }
 
-        // セーブ/ロード復元用。摩耗進捗とスロットを直接読む/書く。
-        // For save/load restore: read/write the wear progress and slots directly.
-        public double WearProgress => _wearProgress;
-        public void SetWearProgress(double progress) => _wearProgress = progress;
-        public IReadOnlyList<IItemStack> InventoryItems => _inventory.InventoryItems;
-        public void SetItem(int slot, IItemStack itemStack) => _inventory.SetItem(slot, itemStack);
-        public int SlotSize => _inventory.GetSlotSize();
-        public IItemStack GetItem(int slot) => _inventory.GetItem(slot);
+        public string GetSaveState()
+        {
+            BlockException.CheckDestroy(this);
+            var slotSize = _inventoryService.GetSlotSize();
+            var serialized = new List<ItemStackSaveJsonObject>(slotSize);
+            for (var i = 0; i < slotSize; i++) serialized.Add(new ItemStackSaveJsonObject(_inventoryService.GetItem(i)));
+            return JsonConvert.SerializeObject(serialized);
+        }
+
+        public void Destroy()
+        {
+            IsDestroy = true;
+        }
+
+        #region IOpenableBlockInventoryComponent 委譲 / delegation
+
+        public IItemStack InsertItem(IItemStack itemStack) { BlockException.CheckDestroy(this); return _inventoryService.InsertItem(itemStack); }
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context) { return InsertItem(itemStack); }
+        public IItemStack InsertItem(ItemId itemId, int count) { BlockException.CheckDestroy(this); return _inventoryService.InsertItem(itemId, count); }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { BlockException.CheckDestroy(this); return _inventoryService.InsertItem(itemStacks); }
+        public bool InsertionCheck(List<IItemStack> itemStacks) { BlockException.CheckDestroy(this); return _inventoryService.InsertionCheck(itemStacks); }
+        public IItemStack GetItem(int slot) { BlockException.CheckDestroy(this); return _inventoryService.GetItem(slot); }
+        public void SetItem(int slot, IItemStack itemStack) { BlockException.CheckDestroy(this); _inventoryService.SetItem(slot, itemStack); }
+        public void SetItem(int slot, ItemId itemId, int count) { BlockException.CheckDestroy(this); _inventoryService.SetItem(slot, itemId, count); }
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { BlockException.CheckDestroy(this); return _inventoryService.ReplaceItem(slot, itemStack); }
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count) { BlockException.CheckDestroy(this); return _inventoryService.ReplaceItem(slot, itemId, count); }
+        public int GetSlotSize() { BlockException.CheckDestroy(this); return _inventoryService.GetSlotSize(); }
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems() { BlockException.CheckDestroy(this); return _inventoryService.CreateCopiedItems(); }
+
+        #endregion
 
         #region Internal
 
-        int CountFilters()
+        // セーブデータからスロットを復元（ロード時はイベント抑止）。
+        // Restore slots from save data without firing events during load.
+        void RestoreItems(List<ItemStackSaveJsonObject> items)
         {
-            var count = 0;
-            for (var i = 0; i < _inventory.GetSlotSize(); i++) count += _inventory.GetItem(i).Count;
-            return count;
+            if (items == null) return;
+            var slotSize = _inventoryService.GetSlotSize();
+            for (var i = 0; i < Math.Min(slotSize, items.Count); i++)
+            {
+                var stack = items[i]?.ToItemStack();
+                if (stack == null) continue;
+                _inventoryService.SetItemWithoutEvent(i, stack);
+            }
         }
 
-        void ConsumeOneFilter()
+        // インベントリ更新をクライアントへ同期。
+        // Sync inventory updates to clients.
+        void InvokeEvent(int slot, IItemStack itemStack)
         {
-            for (var i = 0; i < _inventory.GetSlotSize(); i++)
-            {
-                var item = _inventory.GetItem(i);
-                if (item.Count <= 0) continue;
-                _inventory.SetItem(i, item.SubItem(1));
-                return;
-            }
+            if (IsDestroy) return;
+            var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
+            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(_blockInstanceId, slot, itemStack));
         }
 
         #endregion
@@ -410,127 +500,212 @@ namespace Game.Block.Blocks.CleanRoom
 }
 ```
 
-> `OpenableInventoryItemDataStoreService` のコンストラクタ引数順・`InsertItem`/`GetItem`/`SetItem`/`GetSlotSize`/`InventoryItems`・`IItemStack.SubItem(int)`/`Count` は `FuelGearGeneratorItemComponent.cs` と `Core.Item.Interface/IItemStack.cs` で確認。`SubItem` が無ければ `ServerContext.ItemStackFactory.Create(item.Id, item.Count-1)` で代替。
+> 委譲メンバ一式・`InvokeEvent`・`RestoreItems` は `FuelGearGeneratorItemComponent.cs` の実装と一致させる（`IOpenableBlockInventoryComponent : IBlockInventory, IOpenableInventory` のため必須メンバが多い。差分が出たら実ファイルを正とする）。`ItemStackSaveJsonObject` は `Core.Item.Interface`、`.ToItemStack()` 拡張は **`Game.Context`**（`using Game.Context;` を忘れない）。
 
 - [ ] **Step 4: テスト実行**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "FilterInventory_ConsumesOneFilterPerCapacity"`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ItemComponent_CountsAndConsumesOnlyFilterItems"`
 Expected: PASS。
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierFilterInventory.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPurifierTest.cs
-git commit -m "feat(cleanroom): フィルター仕事量ベース消費のAirPurifierFilterInventoryを追加"
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterItemComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomAirFilterTest.cs
+git commit -m "feat(cleanroom): 種チェック付きフィルターインベントリCleanRoomAirFilterItemComponentを追加"
 ```
 
 ---
 
-## Task 4: 清浄機プロセッサ（実効q・電力割合・除去寄与・フィルター消費）
+## Task 4: エアフィルター本体（単一コンポーネント: 電力・実効q・摩耗・セーブ）
 
-清浄機本体。`IUpdatableBlockComponent, ICleanRoomPurificationSource`。`SupplyPower` で電力を受け、`RemovalVolumePerSecond = q × (currentPower/RequestPower クランプ1) × (フィルター残>0?1:0)`。サービスが押し込む `ApplyRemovedImpurity` で摩耗を計上する。`VanillaMachineProcessorComponent` の `_usedPower`/`_currentPower`/`SupplyPower`/`Update` の電力保持パターンを踏襲。
+codemap §3 の単一コンポーネント初版。`IElectricConsumer, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter` を1クラスで実装する（電力/フィルター/セーブの細分は後から）。`RemovalVolumePerSecond = q × (currentPower/requiredPower クランプ1) × (フィルター残>0?1:0)`。データストアがプッシュする `ApplyRemovedImpurity` で摩耗を累計し、`filterCapacity` を跨ぐごとにフィルターを1個消費する。
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierProcessorComponent.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs`
 
-- [ ] **Step 1: 失敗するテストを書く（満電でq、半電で半分、フィルター無しで0）**
+- [ ] **Step 1: 失敗するテストを書く（電力割合・フィルター有無・摩耗消費・セーブround-trip）**
 
-`CleanRoomPurifierTest.cs` に追加:
+`CleanRoomAirFilterTest.cs` に追加:
 
 ```csharp
         [Test]
-        public void Processor_RemovalScalesWithPowerRatioAndFilterPresence()
+        public void Component_RemovalScalesWithPowerRatioAndFilterPresence()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
+            var filterItemId = MasterHolder.ItemMaster.GetItemId(ForUnitTestModBlockId.CleanRoomFilterItemGuid);
 
-            var filter = new AirPurifierFilterInventory(slotCount: 1, filterCapacity: 5000);
-            filter.InsertItem(itemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 1));
+            var inventory = new CleanRoomAirFilterItemComponent(slotCount: 1, filterItemId, new BlockInstanceId(1));
+            inventory.InsertItem(itemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 1));
 
-            // q=5, requestPower=100。
-            // q=5, requestPower=100.
-            var processor = new AirPurifierProcessorComponent(removalVolumePerSecond: 5.0, requestPower: 100f, filter);
+            // q=5, requiredPower=100, filterCapacity=5000。
+            // q=5, requiredPower=100, filterCapacity=5000.
+            var component = new CleanRoomAirFilterComponent(new BlockInstanceId(1), removalVolumePerSecond: 5.0, requiredPower: 100f, filterCapacity: FilterCapacity, inventory);
 
-            // 給電前は0（_usedPower 初期/未給電）。
-            // No power supplied yet => 0.
-            Assert.AreEqual(0.0, processor.RemovalVolumePerSecond, 1e-9);
+            // 給電前は0。
+            // No power yet => 0.
+            Assert.AreEqual(0.0, component.RemovalVolumePerSecond, 1e-9);
 
-            // 満電で q=5.0。
-            // Full power => q=5.0.
-            processor.SupplyPower(100f);
-            Assert.AreEqual(5.0, processor.RemovalVolumePerSecond, 1e-9);
+            // 満電で q=5.0、半電で 2.5、過給電は1にクランプ。
+            // Full power => 5.0, half => 2.5, over-supply clamps to 1.
+            component.SupplyEnergy(new Game.EnergySystem.ElectricPower(100f));
+            Assert.AreEqual(5.0, component.RemovalVolumePerSecond, 1e-9);
+            component.SupplyEnergy(new Game.EnergySystem.ElectricPower(50f));
+            Assert.AreEqual(2.5, component.RemovalVolumePerSecond, 1e-9);
+            component.SupplyEnergy(new Game.EnergySystem.ElectricPower(1000f));
+            Assert.AreEqual(5.0, component.RemovalVolumePerSecond, 1e-9);
 
-            // 半電で 2.5（割合 0.5）。
-            // Half power => 2.5 (ratio 0.5).
-            processor.SupplyPower(50f);
-            Assert.AreEqual(2.5, processor.RemovalVolumePerSecond, 1e-9);
-
-            // 過給電は1にクランプ（q を超えない）。
-            // Over-supply clamps ratio to 1 (never exceeds q).
-            processor.SupplyPower(1000f);
-            Assert.AreEqual(5.0, processor.RemovalVolumePerSecond, 1e-9);
-
-            // 給電が来ないtickでUpdateを回すと電力が落ち、除去も0になる（_usedPower decay経路を固定）。
-            // An Update tick with no fresh supply decays power to 0, so removal becomes 0 (pins _usedPower decay path).
-            processor.SupplyPower(100f);
-            processor.Update(); // この回は給電があったので維持
-            Assert.AreEqual(5.0, processor.RemovalVolumePerSecond, 1e-9);
-            processor.Update(); // 給電が無いまま2回目のUpdateで電力decay
-            Assert.AreEqual(0.0, processor.RemovalVolumePerSecond, 1e-9);
+            // 給電が来ないまま2回目のUpdateで電力decay→0（常時消費のため毎tick電力を使う）。
+            // Second Update without fresh supply decays power to 0 (always-on consumer).
+            component.SupplyEnergy(new Game.EnergySystem.ElectricPower(100f));
+            component.Update();
+            Assert.AreEqual(5.0, component.RemovalVolumePerSecond, 1e-9);
+            component.Update();
+            Assert.AreEqual(0.0, component.RemovalVolumePerSecond, 1e-9);
         }
 
         [Test]
-        public void Processor_NoFilter_RemovalIsZero()
+        public void Component_NoFilter_RemovalIsZero()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var filterItemId = MasterHolder.ItemMaster.GetItemId(ForUnitTestModBlockId.CleanRoomFilterItemGuid);
 
-            // フィルター無しのインベントリ。
-            // Inventory with no filters.
-            var filter = new AirPurifierFilterInventory(slotCount: 1, filterCapacity: 5000);
-            var processor = new AirPurifierProcessorComponent(removalVolumePerSecond: 5.0, requestPower: 100f, filter);
+            // フィルター無し → 満電でも除去0。
+            // No filter loaded => removal is 0 even at full power.
+            var inventory = new CleanRoomAirFilterItemComponent(slotCount: 1, filterItemId, new BlockInstanceId(1));
+            var component = new CleanRoomAirFilterComponent(new BlockInstanceId(1), 5.0, 100f, FilterCapacity, inventory);
+            component.SupplyEnergy(new Game.EnergySystem.ElectricPower(100f));
+            Assert.AreEqual(0.0, component.RemovalVolumePerSecond, 1e-9);
+        }
 
-            processor.SupplyPower(100f);
-            Assert.AreEqual(0.0, processor.RemovalVolumePerSecond, 1e-9);
+        [Test]
+        public void Component_WearCrossingCapacityConsumesFilter_AndDepletionStopsRemoval()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var filterItemId = MasterHolder.ItemMaster.GetItemId(ForUnitTestModBlockId.CleanRoomFilterItemGuid);
+
+            var inventory = new CleanRoomAirFilterItemComponent(slotCount: 1, filterItemId, new BlockInstanceId(1));
+            inventory.InsertItem(itemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 2));
+            var component = new CleanRoomAirFilterComponent(new BlockInstanceId(1), 5.0, 100f, FilterCapacity, inventory);
+            component.SupplyEnergy(new Game.EnergySystem.ElectricPower(100f));
+
+            // capacity 未満では消費しない。
+            // No consumption below one capacity of wear.
+            component.ApplyRemovedImpurity(FilterCapacity - 1);
+            Assert.AreEqual(2, inventory.FilterCount);
+
+            // capacity を跨いだら1個消費。
+            // Crossing capacity consumes exactly one filter.
+            component.ApplyRemovedImpurity(2);
+            Assert.AreEqual(1, inventory.FilterCount);
+
+            // 残り1個も使い切ると除去0（フィルター切れ）。
+            // Wearing out the last filter stops removal.
+            component.ApplyRemovedImpurity(FilterCapacity);
+            Assert.AreEqual(0, inventory.FilterCount);
+            Assert.AreEqual(0.0, component.RemovalVolumePerSecond, 1e-9);
+        }
+
+        [Test]
+        public void Component_SaveState_RoundTripsWearProgressAndSlots()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var filterItemId = MasterHolder.ItemMaster.GetItemId(ForUnitTestModBlockId.CleanRoomFilterItemGuid);
+
+            var inventory = new CleanRoomAirFilterItemComponent(slotCount: 1, filterItemId, new BlockInstanceId(1));
+            inventory.InsertItem(itemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 3));
+            var component = new CleanRoomAirFilterComponent(new BlockInstanceId(1), 5.0, 100f, FilterCapacity, inventory);
+            component.SupplyEnergy(new Game.EnergySystem.ElectricPower(100f));
+            component.ApplyRemovedImpurity(1234); // 進捗を残す（消費は跨がない）
+
+            // 2コンポーネントの保存stateを componentStates 辞書に集めてロード経路を再現。
+            // Collect both components' states into a componentStates dict to mimic the load path.
+            var componentStates = new System.Collections.Generic.Dictionary<string, string>
+            {
+                { inventory.SaveKey, inventory.GetSaveState() },
+                { component.SaveKey, component.GetSaveState() },
+            };
+
+            var restoredInventory = new CleanRoomAirFilterItemComponent(componentStates, slotCount: 1, filterItemId, new BlockInstanceId(2));
+            var restoredComponent = new CleanRoomAirFilterComponent(componentStates, new BlockInstanceId(2), 5.0, 100f, FilterCapacity, restoredInventory);
+
+            Assert.AreEqual(3, restoredInventory.FilterCount);
+            Assert.AreEqual(1234, restoredComponent.WearProgress, 1e-6);
         }
 ```
 
 - [ ] **Step 2: 実行して失敗を確認**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Processor_RemovalScalesWithPowerRatioAndFilterPresence|Processor_NoFilter_RemovalIsZero"`
-Expected: FAIL（`AirPurifierProcessorComponent` 未定義）。
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Component_RemovalScales|Component_NoFilter|Component_WearCrossing|Component_SaveState"`
+Expected: FAIL（`CleanRoomAirFilterComponent` 未定義）。
 
-- [ ] **Step 3: プロセッサを実装**
+- [ ] **Step 3: 単一コンポーネントを実装**
 
-`Game.Block/Blocks/CleanRoom/AirPurifierProcessorComponent.cs`:
+`Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs`:
 
 ```csharp
+using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.EnergySystem;
+using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.CleanRoom
 {
-    // 清浄機本体。電力割合で実効除去能力が決まり、除去量に比例してフィルターを摩耗させる。
-    // Purifier core; effective removal scales with power ratio, filter wears by removed amount.
-    public class AirPurifierProcessorComponent : IUpdatableBlockComponent, ICleanRoomPurificationSource
+    // エアフィルター本体（単一コンポーネント初版）。電力割合で実効q、除去量に比例してフィルター摩耗。
+    // Air filter core (single-component v1): effective q scales with power; filter wears by removed amount.
+    public class CleanRoomAirFilterComponent : IElectricConsumer, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter
     {
-        public readonly float RequestPower;
+        public BlockInstanceId BlockInstanceId { get; }
+        public bool IsDestroy { get; private set; }
+        public string SaveKey => "cleanRoomAirFilter";
+
+        // セーブ/テスト検証用の摩耗累計（filterCapacity 未満の端数）。
+        // Wear accumulator below one filterCapacity; exposed for save/tests.
+        public double WearProgress => _wearProgress;
 
         private readonly double _removalVolumePerSecond; // 満電1台の q
-        private readonly AirPurifierFilterInventory _filter;
+        private readonly float _requiredPower;
+        private readonly double _filterCapacity;
+        private readonly CleanRoomAirFilterItemComponent _filterInventory;
 
-        // VanillaMachineProcessorComponent と同じ電力保持パターン。
-        // Same power-retention pattern as VanillaMachineProcessorComponent.
+        // 常時消費のため毎Updateで電力を使う（Vanilla機械の「Processing中のみ消費」とは意図的に異なる）。
+        // Always-on consumer: power is spent every Update (deliberately unlike Vanilla's processing-only spend).
         private bool _usedPower;
         private float _currentPower;
+        private double _wearProgress;
 
-        public bool IsDestroy { get; private set; }
-
-        public AirPurifierProcessorComponent(double removalVolumePerSecond, float requestPower, AirPurifierFilterInventory filter)
+        public CleanRoomAirFilterComponent(BlockInstanceId blockInstanceId, double removalVolumePerSecond, float requiredPower, double filterCapacity, CleanRoomAirFilterItemComponent filterInventory)
         {
+            BlockInstanceId = blockInstanceId;
             _removalVolumePerSecond = removalVolumePerSecond;
-            RequestPower = requestPower;
-            _filter = filter;
+            _requiredPower = requiredPower;
+            _filterCapacity = filterCapacity;
+            _filterInventory = filterInventory;
         }
+
+        public CleanRoomAirFilterComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, double removalVolumePerSecond, float requiredPower, double filterCapacity, CleanRoomAirFilterItemComponent filterInventory)
+            : this(blockInstanceId, removalVolumePerSecond, requiredPower, filterCapacity, filterInventory)
+        {
+            if (!componentStates.TryGetValue(SaveKey, out var stateRaw)) return;
+            var json = JsonConvert.DeserializeObject<CleanRoomAirFilterSaveJsonObject>(stateRaw);
+            _wearProgress = json.WearProgress;
+        }
+
+        #region IElectricConsumer
+
+        public ElectricPower RequestEnergy => new ElectricPower(_requiredPower);
+
+        public void SupplyEnergy(ElectricPower power)
+        {
+            BlockException.CheckDestroy(this);
+            _usedPower = false;
+            _currentPower = power.AsPrimitive();
+        }
+
+        #endregion
 
         // q × 電力割合(≤1) × (フィルター残>0 ? 1 : 0)。
         // q × power-ratio(≤1) × (filter present ? 1 : 0).
@@ -538,30 +713,26 @@ namespace Game.Block.Blocks.CleanRoom
         {
             get
             {
-                if (!_filter.HasFilter) return 0.0;
-                if (RequestPower <= 0f) return _removalVolumePerSecond;
-                var ratio = _currentPower / RequestPower;
+                if (!_filterInventory.HasFilter) return 0.0;
+                if (_requiredPower <= 0f) return _removalVolumePerSecond;
+                var ratio = _currentPower / _requiredPower;
                 if (ratio > 1f) ratio = 1f;
                 if (ratio < 0f) ratio = 0f;
                 return _removalVolumePerSecond * ratio;
             }
         }
 
-        // サービスがこの台の今tickの除去不純物量を押し込む。フィルター摩耗。
-        // Service pushes this unit's removed-impurity for this tick; filter wear.
+        // データストアが今tickの除去量を渡す。累計が filterCapacity を跨ぐごとに1個消費。
+        // Datastore pushes this tick's removed amount; consume one filter per capacity crossed.
         public void ApplyRemovedImpurity(double removed)
         {
             BlockException.CheckDestroy(this);
-            _filter.AddRemovedImpurity(removed);
-        }
-
-        // VanillaMachineProcessorComponent.SupplyPower と同じく次tick/次給電まで保持。
-        // Hold power until next supply/update, like VanillaMachineProcessorComponent.SupplyPower.
-        public void SupplyPower(float power)
-        {
-            BlockException.CheckDestroy(this);
-            _usedPower = false;
-            _currentPower = power;
+            if (removed <= 0) return;
+            _wearProgress += removed;
+            while (_wearProgress >= _filterCapacity && _filterInventory.TryConsumeOneFilter())
+            {
+                _wearProgress -= _filterCapacity;
+            }
         }
 
         public void Update()
@@ -575,185 +746,10 @@ namespace Game.Block.Blocks.CleanRoom
             _usedPower = true;
         }
 
-        public void Destroy()
-        {
-            IsDestroy = true;
-        }
-    }
-}
-```
-
-> `BlockException.CheckDestroy(this)` の名前空間・存在は `VanillaMachineProcessorComponent.cs` で確認。`_usedPower` の意味（給電が来ない tick で電力を0へ落とす）も同ファイルで確認すること。
-
-- [ ] **Step 4: テスト実行**
-
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Processor_RemovalScalesWithPowerRatioAndFilterPresence|Processor_NoFilter_RemovalIsZero"`
-Expected: PASS。
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierProcessorComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPurifierTest.cs
-git commit -m "feat(cleanroom): 電力割合とフィルター連動のAirPurifierProcessorComponentを追加"
-```
-
----
-
-## Task 5: 電力コンポーネント（IElectricConsumer）
-
-`VanillaElectricMachineComponent` と同型。`RequestEnergy => new ElectricPower(processor.RequestPower)`、`SupplyEnergy => processor.SupplyPower(power.AsPrimitive())`。これにより設置時に既存 `ConnectMachineToElectricSegment` が自動配線する（Task 8 の統合テストで検証）。
-
-**Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierElectricComponent.cs`
-
-> このコンポーネントは Task 8 の「ポール＋発電機で自動給電される」統合テストで初めて検証する（ここでは単体テストを増やさず、コンパイルのみ）。
-
-- [ ] **Step 1: 実装**
-
-`Game.Block/Blocks/CleanRoom/AirPurifierElectricComponent.cs`:
-
-```csharp
-using Game.Block.Interface;
-using Game.EnergySystem;
-
-namespace Game.Block.Blocks.CleanRoom
-{
-    // 電力で動く清浄機の消費口。VanillaElectricMachineComponent と同じ IElectricConsumer 経路。
-    // Electric consumer for the purifier; same IElectricConsumer path as VanillaElectricMachineComponent.
-    public class AirPurifierElectricComponent : IElectricConsumer
-    {
-        private readonly AirPurifierProcessorComponent _processor;
-
-        public AirPurifierElectricComponent(BlockInstanceId blockInstanceId, AirPurifierProcessorComponent processor)
-        {
-            BlockInstanceId = blockInstanceId;
-            _processor = processor;
-        }
-
-        public BlockInstanceId BlockInstanceId { get; }
-        public bool IsDestroy { get; private set; }
-
-        public ElectricPower RequestEnergy => new ElectricPower(_processor.RequestPower);
-
-        public void SupplyEnergy(ElectricPower power)
-        {
-            BlockException.CheckDestroy(this);
-            _processor.SupplyPower(power.AsPrimitive());
-        }
-
-        public void Destroy()
-        {
-            IsDestroy = true;
-        }
-    }
-}
-```
-
-> 名前空間・`ElectricPower` のコンストラクタ・`AsPrimitive()`・`BlockException.CheckDestroy` は `VanillaElectricMachineComponent.cs` で確認。
-
-- [ ] **Step 2: コンパイル**
-
-Run: `uloop compile --project-path ./moorestech_client`
-Expected: 成功。
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierElectricComponent.cs
-git commit -m "feat(cleanroom): IElectricConsumerのAirPurifierElectricComponentを追加"
-```
-
----
-
-## Task 6: セーブコンポーネント（IBlockSaveState）round-trip
-
-フィルター残＋摩耗進捗を保存/復元する。`FuelGearGeneratorItemComponent` の `IBlockSaveState` 実装と `VanillaMachineSaveComponent` の JSON 形式を参考にする。
-
-**Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierSaveComponent.cs`
-
-- [ ] **Step 1: 失敗するテストを書く（state を書き→新インベントリへ復元→残量と進捗が一致）**
-
-`CleanRoomPurifierTest.cs` に追加:
-
-```csharp
-        [Test]
-        public void SaveComponent_RoundTripsFilterCountAndWearProgress()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var itemStackFactory = ServerContext.ItemStackFactory;
-
-            var filter = new AirPurifierFilterInventory(slotCount: 1, filterCapacity: 5000);
-            filter.InsertItem(itemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 3));
-            filter.AddRemovedImpurity(1234); // 進捗を残す（消費は跨がない）
-
-            var save = new AirPurifierSaveComponent(filter);
-            var json = save.GetSaveState();
-
-            // 別インベントリへ復元。
-            // Restore into a fresh inventory.
-            var restored = new AirPurifierFilterInventory(slotCount: 1, filterCapacity: 5000);
-            AirPurifierSaveComponent.Restore(restored, json);
-
-            Assert.AreEqual(3, restored.FilterRemaining);
-            Assert.AreEqual(1234, restored.WearProgress, 1e-6);
-        }
-```
-
-- [ ] **Step 2: 実行して失敗を確認**
-
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveComponent_RoundTripsFilterCountAndWearProgress"`
-Expected: FAIL（`AirPurifierSaveComponent` 未定義）。
-
-- [ ] **Step 3: セーブコンポーネントを実装**
-
-`Game.Block/Blocks/CleanRoom/AirPurifierSaveComponent.cs`:
-
-```csharp
-using System.Collections.Generic;
-using System.Linq;
-using Core.Item.Interface;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Newtonsoft.Json;
-
-namespace Game.Block.Blocks.CleanRoom
-{
-    // 清浄機のフィルター残量と摩耗進捗を保存/復元する。
-    // Saves/restores the purifier's filter slots and wear progress.
-    public class AirPurifierSaveComponent : IBlockSaveState
-    {
-        public string SaveKey => "cleanRoomAirPurifier";
-        public bool IsDestroy { get; private set; }
-
-        private readonly AirPurifierFilterInventory _filter;
-
-        public AirPurifierSaveComponent(AirPurifierFilterInventory filter)
-        {
-            _filter = filter;
-        }
-
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var json = new AirPurifierSaveJsonObject
-            {
-                WearProgress = _filter.WearProgress,
-                Filters = _filter.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-            };
-            return JsonConvert.SerializeObject(json);
-        }
-
-        // ロード時、保存JSONから既存インベントリへ書き戻す。
-        // On load, write the saved JSON back into the given inventory.
-        public static void Restore(AirPurifierFilterInventory filter, string stateRaw)
-        {
-            var json = JsonConvert.DeserializeObject<AirPurifierSaveJsonObject>(stateRaw);
-            filter.SetWearProgress(json.WearProgress);
-            for (var i = 0; i < json.Filters.Count && i < filter.SlotSize; i++)
-            {
-                filter.SetItem(i, json.Filters[i].ToItemStack());
-            }
+            return JsonConvert.SerializeObject(new CleanRoomAirFilterSaveJsonObject { WearProgress = _wearProgress });
         }
 
         public void Destroy()
@@ -762,73 +758,73 @@ namespace Game.Block.Blocks.CleanRoom
         }
     }
 
-    public class AirPurifierSaveJsonObject
+    public class CleanRoomAirFilterSaveJsonObject
     {
         [JsonProperty("wearProgress")] public double WearProgress;
-        [JsonProperty("filters")] public List<ItemStackSaveJsonObject> Filters;
     }
 }
 ```
 
-> `ItemStackSaveJsonObject` のコンストラクタ（`new ItemStackSaveJsonObject(IItemStack)`）と `IItemStack` への復元方法（`.ToItemStack()` か `ServerContext.ItemStackFactory.Create(...)`）は `VanillaMachineSaveComponent.cs`/`FuelGearGeneratorItemComponent.cs` で確認し一致させる。復元メソッド名が違えば置換。
+> スロット内容のセーブは `CleanRoomAirFilterItemComponent`（SaveKey `cleanRoomAirFilterItem`）が自前で持つ。1ブロックに `IBlockSaveState` が複数あってもよい（`FuelGearGenerator` がitem/fluid/本体の3つで前例）。`BlockException.CheckDestroy` の名前空間は `VanillaMachineProcessorComponent.cs` で確認。フィルター切れで `_wearProgress` に端数が残っても、新フィルター挿入後にその端数から摩耗が再開する仕様でよい（除去が止まっている間は `removed=0` しか来ない）。
 
 - [ ] **Step 4: テスト実行**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveComponent_RoundTripsFilterCountAndWearProgress"`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Component_RemovalScales|Component_NoFilter|Component_WearCrossing|Component_SaveState"`
 Expected: PASS。
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/AirPurifierSaveComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPurifierTest.cs
-git commit -m "feat(cleanroom): フィルター残/進捗をround-tripするAirPurifierSaveComponentを追加"
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomAirFilterTest.cs
+git commit -m "feat(cleanroom): 単一コンポーネントCleanRoomAirFilterComponent（電力/実効q/摩耗/セーブ）を追加"
 ```
 
 ---
 
-## Task 7: 清浄機テンプレートと登録
+## Task 5: テンプレートと登録
 
-4コンポーネントを組み立てる `VanillaAirPurifierTemplate`（New/Load）。`VanillaMachineTemplate` を雛形にする。`VanillaIBlockTemplates` に登録すると、設置→`CleanRoomAirPurifier` ブロックが生成され、`IElectricConsumer` の自動配線が効くようになる。
+3コンポーネント（item/本体/コネクタ）を組み立てる `VanillaCleanRoomAirFilterTemplate`（New/Load）。`VanillaFuelGearGeneratorTemplate` の「componentStates 有無で ctor を切り替える」方式を踏襲する。`VanillaIBlockTemplates` に登録すると、設置→`CleanRoomAirFilter` ブロックが生成され、`IElectricConsumer` の自動配線が効くようになる。
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaAirPurifierTemplate.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaCleanRoomAirFilterTemplate.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs`
 
-- [ ] **Step 1: 失敗するテストを書く（設置すると清浄機コンポーネントが揃う）**
+- [ ] **Step 1: 失敗するテストを書く（設置するとコンポーネントが揃う）**
 
-`CleanRoomPurifierTest.cs` に追加:
+`CleanRoomAirFilterTest.cs` に追加:
 
 ```csharp
         [Test]
-        public void Template_PlacesPurifierWithAllComponents()
+        public void Template_PlacesAirFilterWithAllComponents()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
 
-            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomAirPurifierId, UnityEngine.Vector3Int.one,
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, UnityEngine.Vector3Int.one,
                 BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var block);
 
-            Assert.IsTrue(block.ExistsComponent<AirPurifierProcessorComponent>());
-            Assert.IsTrue(block.ExistsComponent<AirPurifierElectricComponent>());
-            Assert.IsTrue(block.ExistsComponent<Game.Block.Interface.Component.ICleanRoomPurificationSource>());
+            Assert.IsTrue(block.ExistsComponent<CleanRoomAirFilterComponent>());
+            Assert.IsTrue(block.ExistsComponent<CleanRoomAirFilterItemComponent>());
+            Assert.IsTrue(block.ExistsComponent<Game.Block.Interface.Component.ICleanRoomAirFilter>());
+            Assert.IsTrue(block.ExistsComponent<Game.Block.Interface.Component.IOpenableBlockInventoryComponent>());
             Assert.IsTrue(block.ExistsComponent<Game.Block.Interface.Component.IBlockSaveState>());
         }
 ```
 
-> `ExistsComponent<T>`/`GetComponent<T>` の正確な API は `Game.Block.Interface/IBlock.cs` で確認。`using Game.Block.Interface;`/`Game.Block.Interface.Extension;` が要る場合がある。
+> `ExistsComponent<T>` は `Game.Block.Interface.Extension.BlockExtension` の拡張（実在確認済み）。`using Game.Block.Interface;`/`using Game.Block.Interface.Extension;` を足す。
 
 - [ ] **Step 2: 実行して失敗を確認**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Template_PlacesPurifierWithAllComponents"`
-Expected: FAIL（`CleanRoomAirPurifier` 未登録で生成不可、または `VanillaAirPurifierTemplate` 未定義）。
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Template_PlacesAirFilterWithAllComponents"`
+Expected: FAIL（`CleanRoomAirFilter` 未登録で生成不可、または `VanillaCleanRoomAirFilterTemplate` 未定義）。
 
 - [ ] **Step 3: テンプレートを実装**
 
-`Game.Block/Factory/BlockTemplate/VanillaAirPurifierTemplate.cs`:
+`Game.Block/Factory/BlockTemplate/VanillaCleanRoomAirFilterTemplate.cs`:
 
 ```csharp
 using System.Collections.Generic;
-using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.CleanRoom;
 using Game.Block.Component;
@@ -838,48 +834,45 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    // 空気清浄機ブロックを組み立てる。4コンポーネント（プロセッサ/電力/セーブ/コネクタ）。
-    // Builds the air purifier block: processor / electric / save / connector components.
-    public class VanillaAirPurifierTemplate : IBlockTemplate
+    // エアフィルターブロックを組み立てる。item / 本体 / inventoryコネクタ の3コンポーネント。
+    // Builds the air filter block: item inventory / core / inventory-connector components.
+    public class VanillaCleanRoomAirFilterTemplate : IBlockTemplate
     {
-        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId,
-            BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
-            return Build(blockMasterElement, blockInstanceId, blockPositionInfo, componentStates: null);
+            return Build(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement,
-            BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            return Build(blockMasterElement, blockInstanceId, blockPositionInfo, componentStates);
+            return Build(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private IBlock Build(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId,
-            BlockPositionInfo blockPositionInfo, Dictionary<string, string> componentStates)
+        private IBlock Build(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
-            var param = blockMasterElement.BlockParam as CleanRoomAirPurifierBlockParam;
+            var param = blockMasterElement.BlockParam as CleanRoomAirFilterBlockParam;
+            var filterItemId = MasterHolder.ItemMaster.GetItemId(param.FilterItemGuid);
 
-            // フィルタースロット＋プロセッサ。Load 時は保存stateを復元。
-            // Filter slots + processor; restore saved state on Load.
-            var filter = new AirPurifierFilterInventory(param.FilterItemSlotCount, AirPurifierProcessorComponent.FilterCapacity);
-            var processor = new AirPurifierProcessorComponent(param.RemovalVolumePerSecond, param.RequestPower, filter);
-            var save = new AirPurifierSaveComponent(filter);
-            var electric = new AirPurifierElectricComponent(blockInstanceId, processor);
+            // フィルタースロット（Load時はstateを復元）。
+            // Filter slots; restore saved state on Load.
+            var itemComponent = componentStates == null
+                ? new CleanRoomAirFilterItemComponent(param.FilterItemSlotCount, filterItemId, blockInstanceId)
+                : new CleanRoomAirFilterItemComponent(componentStates, param.FilterItemSlotCount, filterItemId, blockInstanceId);
 
-            if (componentStates != null && componentStates.TryGetValue(save.SaveKey, out var stateRaw))
-            {
-                AirPurifierSaveComponent.Restore(filter, stateRaw);
-            }
+            // 本体（電力/実効q/摩耗）。
+            // Core component (power / effective q / wear).
+            var filterComponent = componentStates == null
+                ? new CleanRoomAirFilterComponent(blockInstanceId, param.RemovalVolumePerSecond, param.RequiredPower, param.FilterCapacity, itemComponent)
+                : new CleanRoomAirFilterComponent(componentStates, blockInstanceId, param.RemovalVolumePerSecond, param.RequiredPower, param.FilterCapacity, itemComponent);
 
-            // ベルト等からフィルターを搬入できるよう inventory コネクタを付ける。
-            // Attach an inventory connector so belts can feed filters in.
+            // ベルト等からフィルターを搬入できるよう inventory コネクタを付ける（挿入先は itemComponent の IBlockInventory）。
+            // Inventory connector so belts can feed filters; insertion targets itemComponent's IBlockInventory.
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
 
             var components = new List<IBlockComponent>
             {
-                processor,
-                electric,
-                save,
+                itemComponent,
+                filterComponent,
                 connector,
             };
 
@@ -889,61 +882,74 @@ namespace Game.Block.Factory.BlockTemplate
 }
 ```
 
-> 確認: `BlockTemplateUtil.CreateInventoryConnector` の引数型（`InventoryConnectors`）と `BlockSystem` のコンストラクタ署名は `VanillaMachineTemplate.cs` と一致させる。`CleanRoomAirPurifierBlockParam` のプロパティ名は Task 1 の生成型に合わせる。`AirPurifierProcessorComponent.FilterCapacity` は Task 4 のクラスに `public const double FilterCapacity = 5000;` を足すか、テンプレートで `5000` 定数を直接渡す（数値ソース§3）。フィルターを `IOpenableBlockInventoryComponent` 経由で外部から入れたい場合は `AirPurifierFilterInventory` に `IOpenableBlockInventoryComponent` を実装して components に足す（フェーズ3では搬入テストは必須でないため最小構成でよい）。
+> 確認: `BlockTemplateUtil.CreateInventoryConnector` の引数型と `BlockSystem` のコンストラクタ署名は `VanillaMachineTemplate.cs` と一致（照合済み）。`CleanRoomAirFilterBlockParam` の生成プロパティ名（`RemovalVolumePerSecond`/`RequiredPower`/`FilterCapacity`/`FilterItemGuid`/`FilterItemSlotCount`/`InventoryConnectors`）は Task 1 の生成結果に合わせる。`param.RemovalVolumePerSecond`/`RequiredPower` の生成型（float/double）に合わせてキャストを調整。
 
 - [ ] **Step 4: VanillaIBlockTemplates に登録**
 
 `Game.Block/Factory/VanillaIBlockTemplates.cs` のコンストラクタ内 `BlockTypesDictionary.Add(...)` 群の末尾へ:
 
 ```csharp
-            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirPurifier, new VanillaAirPurifierTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
 ```
 
 - [ ] **Step 5: テスト実行**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Template_PlacesPurifierWithAllComponents"`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Template_PlacesAirFilterWithAllComponents"`
 Expected: PASS。型未検出なら Unity 再起動。
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaAirPurifierTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPurifierTest.cs
-git commit -m "feat(cleanroom): VanillaAirPurifierTemplateを追加しblockType登録"
+git add moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaCleanRoomAirFilterTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomAirFilterTest.cs
+git commit -m "feat(cleanroom): VanillaCleanRoomAirFilterTemplateを追加しblockType登録"
 ```
 
 ---
 
-## Task 8: 汚染計算（CleanRoomPollutionCalculator）と純関数 ComputeATotal
+## Task 6: 汚染計算（CleanRoomPollutionCalculator・静的ヘルパ＋純関数）
 
-`CleanRoomPollutionInput` を実装し、部屋の V/S・境界種別の接続点数・部屋内稼働機械数から A_total を算出する。ハッチ/ドアは0スタブ（フェーズ5で実装）。worked example の `A_total=16` を**純関数 `ComputeATotal` で固定**する（決定的・部屋構築不要）。
+A_total を部屋の V/S・接続点数・稼働機械数から算出する**静的ヘルパ**（注入インターフェースは作らない。codemap §7.9）。worked example の値を**純関数 `ComputeATotal` で固定**する（決定的・部屋構築不要）。
+
+- **doorBurst 引数は持たない**: `burst_door` は瞬間量（個/通過）であり 個/秒 の A_total に合算しない。フェーズ5で `CleanRoom.AddImpurity(burst)` により N へ直接加算する（バランス確定書§2 単位注意）。
+- **接続点カウントは `BlockInstanceId` 単位で重複排除**（マルチセル境界ブロックの多重カウント防止。バランス確定書§2）。
+- **A_machine の稼働機械数はフェーズ3では常に0**: 対象は `CleanRoomMachine`（フェーズ4導入の専用機械）のみで、その稼働フラグは `Game.Block.Interface` のインターフェース経由でフェーズ4が供給する。**`Game.CleanRoom` から `Game.Block`（実装asmdef）への参照は不可**。係数2.0は純関数テストで固定する。
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Purity/CleanRoomPollutionCalculator.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Pollution/CleanRoomPollutionCalculator.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPollutionTest.cs`
 
-- [ ] **Step 1: 失敗するテストを書く（純関数で基準部屋の A_total=16.0）**
+- [ ] **Step 1: 失敗するテストを書く（純関数で基準部屋の A_total）**
 
 `Tests/CombinedTest/Core/CleanRoomPollutionTest.cs` を新規作成:
 
 ```csharp
+using Game.CleanRoom.Pollution;
 using NUnit.Framework;
-using Game.CleanRoom.Purity;
 
 namespace Tests.CombinedTest.Core
 {
     public class CleanRoomPollutionTest
     {
         [Test]
-        public void ComputeATotal_ReferenceRoom_Is16()
+        public void ComputeATotal_ReferenceRoom_MachineLess()
         {
-            // 基準部屋: V=75, S=110, 接続点2(ハッチ1+ドア1), 稼働機械1, ハッチ搬送0, ドア通過0。
-            // Reference room: V=75, S=110, connectors=2, running machines=1, hatch=0, door=0.
+            // 基準部屋(機械なし): V=74, S=109, 接続点2(ItemHatch1+PipeHatch1), ハッチ搬送0。
+            // Machine-less reference room: V=74, S=109, connectors=2, hatch throughput 0.
             var aTotal = CleanRoomPollutionCalculator.ComputeATotal(
-                volume: 75, surfaceArea: 110, connectorCount: 2, runningMachineCount: 1,
-                hatchThroughputPerSecond: 0.0, doorBurst: 0.0);
+                volume: 74, surfaceArea: 109, connectorCount: 2, runningMachineCount: 0,
+                hatchThroughputPerSecond: 0.0);
 
-            // 2.0 + 0.10*75 + 0.05*110 + 0.50*2 = 16.0
-            Assert.AreEqual(16.0, aTotal, 1e-9);
+            // 0.10*74 + 0.05*109 + 0.50*2 = 13.85
+            Assert.AreEqual(13.85, aTotal, 1e-9);
+        }
+
+        [Test]
+        public void ComputeATotal_MachineTermAddsTwoPerRunningMachine()
+        {
+            // A_machine=2.0 個/(稼働機械·秒) の係数を固定（実機械の配線はフェーズ4）。
+            // Pin the A_machine=2.0 coefficient; actual machine wiring lands in phase 4.
+            var withMachine = CleanRoomPollutionCalculator.ComputeATotal(74, 109, 2, 1, 0.0);
+            Assert.AreEqual(15.85, withMachine, 1e-9);
         }
     }
 }
@@ -951,25 +957,27 @@ namespace Tests.CombinedTest.Core
 
 - [ ] **Step 2: 実行して失敗を確認**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ComputeATotal_ReferenceRoom_Is16"`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ComputeATotal_ReferenceRoom_MachineLess|ComputeATotal_MachineTermAddsTwoPerRunningMachine"`
 Expected: FAIL（`CleanRoomPollutionCalculator` 未定義）。
 
 - [ ] **Step 3: 汚染計算を実装**
 
-`Game.CleanRoom/Purity/CleanRoomPollutionCalculator.cs`:
+`Game.CleanRoom/Pollution/CleanRoomPollutionCalculator.cs`:
 
 ```csharp
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace Game.CleanRoom.Purity
+namespace Game.CleanRoom.Pollution
 {
-    // A_total を部屋ジオメトリ・接続点・稼働機械から算出する CleanRoomPollutionInput 実装。
-    // CleanRoomPollutionInput impl that computes A_total from geometry, connectors, running machines.
-    public class CleanRoomPollutionCalculator : CleanRoomPollutionInput
+    // A_total を部屋ジオメトリ・接続点・稼働機械から算出する静的ヘルパ。CleanRoomDatastore が利用。
+    // Static helper computing A_total from geometry, connectors, machines; used by CleanRoomDatastore.
+    public static class CleanRoomPollutionCalculator
     {
         // 数値ソース §2（balance-parameters）。
         // Coefficients from balance-parameters §2.
@@ -979,86 +987,41 @@ namespace Game.CleanRoom.Purity
         private const double AMachine = 2.0;
         private const double KHatch = 0.30;
 
-        private readonly CleanRoomDetectionSystem _detection;
-
-        public CleanRoomPollutionCalculator(CleanRoomDetectionSystem detection)
-        {
-            _detection = detection;
-        }
-
-        // 部屋ごとの A_total。フェーズ2の OnTick がこれを使う。
-        // A_total per room; consumed by phase-2 OnTick.
-        public double GetATotal(CleanRoom room)
-        {
-            var connectorCount = CountConnectors(room);
-            var runningMachines = CountRunningMachines(room);
-
-            // ハッチ/ドアはフェーズ5で計量。フェーズ3は0。
-            // Hatch/door metering arrives in phase 5; 0 here.
-            return ComputeATotal(room.Volume, room.SurfaceArea, connectorCount, runningMachines,
-                hatchThroughputPerSecond: 0.0, doorBurst: 0.0);
-        }
-
         // 純関数。worked example の固定アサーションはここを叩く。
-        // Pure function; the worked-example assertion targets this.
-        public static double ComputeATotal(int volume, int surfaceArea, int connectorCount, int runningMachineCount,
-            double hatchThroughputPerSecond, double doorBurst)
+        // ドアバーストは A_total に含めない（瞬間量。フェーズ5で CleanRoom.AddImpurity へ直接加算）。
+        // Pure function; door bursts are NOT part of A_total (instant amount, added straight to N in phase 5).
+        public static double ComputeATotal(int volume, int surfaceArea, int connectorCount, int runningMachineCount, double hatchThroughputPerSecond)
         {
             return AMachine * runningMachineCount
                    + KHatch * hatchThroughputPerSecond
-                   + doorBurst
                    + AVolume * volume
                    + ASurface * surfaceArea
                    + AConnector * connectorCount;
         }
 
-        #region Internal
-
-        // 部屋セルに面する境界ブロックのうち、Wall 以外（ハッチ/ドア/パイプコネクタ）を接続点として数える。
-        // Count boundary blocks adjacent to the room that are non-Wall (hatch/door/pipe) as connectors.
-        int CountConnectors(CleanRoom room)
+        // 部屋に面する境界ブロックのうち Wall 以外（各種ハッチ）を接続点として数える。
+        // BlockInstanceId 単位で重複排除（マルチセル境界ブロックの多重カウント防止）。
+        // Count non-Wall boundary blocks (hatches) facing the room; dedupe by BlockInstanceId.
+        public static int CountConnectors(CleanRoom room)
         {
-            var seen = new HashSet<Vector3Int>();
             var world = ServerContext.WorldBlockDatastore;
+            var seen = new HashSet<BlockInstanceId>();
             var count = 0;
             foreach (var cell in room.Cells)
             foreach (var n in SixNeighbors(cell))
             {
-                if (room.Contains(n) || seen.Contains(n)) continue;
+                if (room.Cells.Contains(n)) continue;
                 if (!world.TryGetBlock(n, out var block)) continue;
+                if (!seen.Add(block.BlockInstanceId)) continue;
                 if (!block.TryGetComponent<ICleanRoomBoundaryComponent>(out var boundary)) continue;
-                seen.Add(n);
                 if (boundary.BoundaryKind != CleanRoomBoundaryKind.Wall) count++;
             }
             return count;
         }
 
-        // 部屋内（占有セルが部屋に属する）の稼働中製造機の台数。
-        // Number of running machines whose occupied cells belong to the room.
-        int CountRunningMachines(CleanRoom room)
-        {
-            var world = ServerContext.WorldBlockDatastore;
-            var counted = new HashSet<BlockInstanceId>();
-            var count = 0;
-            foreach (var cell in room.Cells)
-            {
-                if (!world.TryGetBlock(cell, out var block)) continue;
-                if (counted.Contains(block.BlockInstanceId)) continue;
-                counted.Add(block.BlockInstanceId);
-                if (IsRunningMachine(block)) count++;
-            }
-            return count;
-        }
+        #region Internal
 
-        bool IsRunningMachine(IBlock block)
-        {
-            // フェーズ4で機械側に「稼働中か」を公開予定。現状は Processing 状態を見る。
-            // Phase 4 will expose a running flag on the machine; for now inspect Processing state.
-            if (!block.TryGetComponent<Game.Block.Blocks.Machine.VanillaMachineProcessorComponent>(out var proc)) return false;
-            return proc.CurrentState == Game.Block.Interface.State.ProcessState.Processing;
-        }
-
-        IEnumerable<Vector3Int> SixNeighbors(Vector3Int p)
+        static IEnumerable<Vector3Int> SixNeighbors(Vector3Int p)
         {
             yield return new Vector3Int(p.x + 1, p.y, p.z);
             yield return new Vector3Int(p.x - 1, p.y, p.z);
@@ -1073,169 +1036,195 @@ namespace Game.CleanRoom.Purity
 }
 ```
 
-> 確認: `CleanRoomPollutionInput` の実メンバ（メソッド名・引数）はフェーズ2の `Game.CleanRoom/Purity/CleanRoomPollutionInput.cs` を開いて一致させる（`GetATotal(CleanRoom)` か別名か、抽象クラスかインターフェースか）。`world.TryGetBlock`/`block.TryGetComponent<T>`/`block.BlockInstanceId`/`CleanRoom.Cells`/`Contains`/`Volume`/`SurfaceArea` は `Game.CleanRoom/CleanRoom.cs` と `IWorldBlockDatastore`/`IBlock` で確認。`Game.CleanRoom.asmdef` が `Game.Block`（実装側、`VanillaMachineProcessorComponent` 参照のため）を参照する必要がある。参照していなければ追加するか、稼働判定を `IBlockStateObservable` 等のインターフェース経由へ変える（フェーズ4で `ICleanRoomMachineGate` 的な疎結合へ寄せる前提）。
+> 確認: `ICleanRoomBoundaryComponent`/`CleanRoomBoundaryKind { Wall, DoorHatch, ItemHatch, PipeHatch }` の実名・名前空間はフェーズ1（v2改訂版）の実ファイルで確認（`Game.Block.Interface` 配下のはず）。`room.Cells` の型が `IReadOnlyCollection<Vector3Int>` で `Contains` が遅い実装なら、フェーズ1/2 が持つ高速判定（`HashSet` 直叩き等）に合わせる。フェーズ2のデータストアが境界ブロック集合を既に保持しているなら `CountConnectors` はそれを使ってよい（確認事項#4。Cells 走査は fallback）。`Game.CleanRoom.asmdef` は `Game.Block.Interface`/`Game.Context`/`Game.World.Interface` 参照（フェーズ1で設定済み）で足りる — **`Game.Block` 実装参照を追加してはならない**。
 
 - [ ] **Step 4: テスト実行**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ComputeATotal_ReferenceRoom_Is16"`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ComputeATotal_ReferenceRoom_MachineLess|ComputeATotal_MachineTermAddsTwoPerRunningMachine"`
 Expected: PASS。型未検出なら Unity 再起動。
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.CleanRoom/Purity/CleanRoomPollutionCalculator.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPollutionTest.cs
-git commit -m "feat(cleanroom): A_totalを算出するCleanRoomPollutionCalculatorと純関数ComputeATotalを追加"
+git add moorestech_server/Assets/Scripts/Game.CleanRoom/Pollution/CleanRoomPollutionCalculator.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPollutionTest.cs
+git commit -m "feat(cleanroom): A_totalを算出するCleanRoomPollutionCalculator（純関数+接続点カウント）を追加"
 ```
 
 ---
 
-## Task 9: 清浄機を CleanRoomPurityService へ配線し、基準部屋で平衡＝クラスA を統合テスト
+## Task 7: `CleanRoomDatastore` へ配線し、基準部屋で平衡＋摩耗＋n=2加算を統合テスト
 
-`CleanRoomPurityService` を改修し、毎tick各部屋について (a) `CleanRoomPollutionCalculator.GetATotal` で A_total、(b) 部屋内清浄機を `TryGetRoomContainingBlock` ＋セル走査で動的収集して `Σ RemovalVolumePerSecond = n·q`、(c) 各清浄機へ除去寄与を `ApplyRemovedImpurity` で配分（フィルター摩耗）。統合テストはポール＋無限発電機で清浄機と部屋内機械を給電し（`IElectricConsumer` 自動配線の検証）、平衡で `C_eq≈3.2`・クラスA を固定する。
+`CleanRoomDatastore.Update` の各部屋ループ（フェーズ2実装済み）に、(a) `CleanRoomPollutionCalculator` で A_total、(b) 部屋内エアフィルターの動的収集で `Σ RemovalVolumePerSecond = n·q`、(c) 各台への除去寄与配分 `ApplyRemovedImpurity`（フィルター摩耗）を差し込む。統合テストはポール＋無限発電機で自動給電（`IElectricConsumer` 自動配線の検証）し、**平衡濃度・閾値行A・摩耗累計・n=2加算**の4点を固定する。
 
 **Files:**
-- Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/Purity/CleanRoomPurityService.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPollutionTest.cs`
 
-### サービス改修の要点（フェーズ2の OnTick に差し込む）
+### データストア改修の要点（フェーズ2の tick に差し込む）
 
-各部屋 room について毎tick:
-1. `A_total = pollution.GetATotal(room)`。
-2. 清浄機収集: `room.Cells` を走査し `ICleanRoomPurificationSource` を持つブロックを集める（`TryGetRoomContainingBlock` で所属確認。重複は `BlockInstanceId` で排除）。`nq = Σ src.RemovalVolumePerSecond`。
-3. `C = state.Concentration(V)`、`removedTotal = min(nq·C, N/secondsPerTick) · secondsPerTick`（N をマイナスにしない）。
-4. `dN = (A_total·secondsPerTick) − removedTotal` を `state.AddImpurity/RemoveImpurity`。
-5. **除去寄与の配分**: 各清浄機へ `src.ApplyRemovedImpurity(removedTotal · src.RemovalVolumePerSecond / nq)`（nq>0 のとき）。これでフィルターが汚染レートに比例して摩耗。
-6. クラス/段階判定はフェーズ2の既存ロジック（`C ≤ classThreshold` かつ `ACH=nq/V ≥ requiredAirChangeRate`、ヒステリシス）。
+各 `CleanRoom` room について毎tick:
+1. `connectorCount = CleanRoomPollutionCalculator.CountConnectors(room)`、`aTotal = ComputeATotal(room.Volume, room.SurfaceArea, connectorCount, runningMachineCount: 0, hatchThroughputPerSecond: 0.0)`（機械数・ハッチ計量はフェーズ4/5で実供給）。
+2. エアフィルター収集: `room.Cells` を走査し `TryGetComponent<ICleanRoomAirFilter>` を持つブロックを集める（`BlockInstanceId` で重複排除。`Cells` は占有セルを含むため内部ブロックは必ず引っかかる）。`nq = Σ src.RemovalVolumePerSecond`。
+3. `removedTotal = min(nq · room.Concentration · GameUpdater.SecondsPerTick, room.ImpurityCount)`（N をマイナスにしない）。
+4. `room.AddImpurity(aTotal · GameUpdater.SecondsPerTick)` → `room.RemoveImpurity(removedTotal)`。
+5. **除去寄与の配分**: 各台へ `src.ApplyRemovedImpurity(removedTotal · src.RemovalVolumePerSecond / nq)`（nq>0 かつ removedTotal>0 のとき）。これでフィルターが汚染レートに比例して摩耗。
+6. 閾値行/状態判定はフェーズ2の既存ロジック（`CleanRoomPurityRules`。`ACH = nq/V` を渡す。ヒステリシスは `ThresholdIndex` 保持）。
 
-> 注入の入れ替え（調整事項#2）: フェーズ2コンストラクタが `IReadOnlyList<ICleanRoomPurificationSource>` を取る形なら、本タスクで「毎tick動的収集」へ差し替える（静的注入は捨てる）。`CleanRoomPollutionInput` はDI注入のまま（`CleanRoomPollutionCalculator` を DI 登録）。
-
-- [ ] **Step 1: DI登録を追加（必要時）**
-
-`Server.Boot/MoorestechServerDIContainerGenerator.cs` で `CleanRoomPollutionInput` の実装として `CleanRoomPollutionCalculator` を登録（フェーズ2が抽象だけ登録している場合）。`CleanRoomPurityService` が `CleanRoomPollutionInput` と `CleanRoomDetectionSystem` を受ける形を確認。
-
-- [ ] **Step 2: 失敗する統合テストを書く（基準部屋・ポール給電・平衡でクラスA）**
-
-`CleanRoomPollutionTest.cs` に追加。基準部屋は内寸 5×5×3=75 の空洞を壁で囲い、機械1台＋清浄機1台を**内部に**置く（占有セルは空気として V に算入＝V=75 維持。調整事項#3）。電柱1本＋無限発電機を部屋外（または貫通しない位置）に置き、`ConnectMachineToElectricSegment` で清浄機・機械の両方へ給電させる:
+実装中核（メンバ名はフェーズ2実装に合わせる）:
 
 ```csharp
-        [Test]
-        public void Purifier_PoweredInSealedReferenceRoom_EquilibratesToClassA()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var world = ServerContext.WorldBlockDatastore;
-            var purityService = serviceProvider.GetService<Game.CleanRoom.Purity.CleanRoomPurityService>();
-
-            // 内寸 5x5x3 の空洞を壁で囲う(外殻)。接続点はハッチ1+パイプコネクタ1(ドアは検出曖昧のため不使用)。
-            // Seal a 5x5x3 cavity with walls; connectors = 1 hatch + 1 pipe-connector (door avoided: ambiguous sealing).
-            BuildReferenceRoom(world); // V=75, S=110, 接続点2 になるよう壁/ハッチ/パイプコネクタを配置
-
-            // 部屋内に機械1台と清浄機1台を置く(占有セルは空気としてVに算入)。
-            // Place 1 machine + 1 purifier inside (occupied cells still count as air toward V).
-            world.TryAddBlock(ForUnitTestModBlockId.MachineId, InnerMachinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
-            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomAirPurifierId, InnerPurifierPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var purifier);
-
-            // 機械を Processing し続けさせる(A_machine=2.0 を成立させる)。長いレシピ+十分な入力。
-            // Keep the machine Processing so A_machine=2.0 holds: long recipe + ample inputs.
-            FeedMachineForLongRun(machine);
-
-            // 清浄機に満タンのフィルターを入れる(5000上限で枯渇しないよう多めに)。
-            // Load plenty of filters so the 5000-cap doesn't deplete mid-run.
-            var filterInv = GetFilterInventory(purifier);
-            filterInv.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 100));
-
-            // 電柱1本+無限発電機で清浄機・機械を自動給電(IElectricConsumer 自動配線の検証)。
-            // One pole + infinite generator auto-powers purifier & machine (verifies IElectricConsumer auto-wiring).
-            world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, PolePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            world.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, GeneratorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-
-            // τ=V/(nq)=75/5=15s。平衡まで十分tickを回す(1500 tick=75s ≈ 5τ)。
-            // τ=15s; tick well past equilibrium (1500 ticks = 75s ≈ 5τ).
-            for (var i = 0; i < 1500; i++) GameUpdater.UpdateOneTick();
-
-            // 部屋取得は2段: ブロック→室(TryGetRoomContainingBlock)→純度状態(TryGetState)。
-            // Room lookup is two steps: block→room→purity state. The service takes a CleanRoom, not a block.
-            var detection = serviceProvider.GetService<Game.CleanRoom.CleanRoomDetectionSystem>();
-            Assert.IsTrue(detection.TryGetRoomContainingBlock(world.GetBlock(InnerMachinePos), out var room), "room exists");
-            Assert.AreEqual(75, room.Volume, "V=75");
-            Assert.AreEqual(110, room.SurfaceArea, "S=110");
-            Assert.IsTrue(purityService.TryGetState(room, out var state), "room purity state exists");
-            var c = state.Concentration(room.Volume);
-
-            // C_eq = 16/5 = 3.2。クラスA(≤10)かつ ACH=5/75=0.067≥0.017。
-            // C_eq = 3.2; class A (≤10) with ACH satisfied.
-            Assert.AreEqual(3.2, c, 0.3, "equilibrium concentration ~3.2");
-            Assert.AreEqual(Game.CleanRoom.Purity.CleanRoomClass.A, state.CurrentClass);
-        }
-```
-
-> ヘルパ（`BuildReferenceRoom`/`InnerMachinePos`/`InnerPurifierPos`/`PolePos`/`GeneratorPos`/`FeedMachineForLongRun`/`GetFilterInventory`）は実コードに合わせて埋める。**`TryGetState` は名前だけでなく形が違う**: フェーズ2 `CleanRoomPurityService.TryGetState(CleanRoom room, out CleanRoomPurityState state)` は**部屋**を取る。テストはブロックから `detection.TryGetRoomContainingBlock(block, out room)` で室を引いてから `service.TryGetState(room, out state)` を呼ぶ2段にする（上記コード参照）。部屋形状（接続点をちょうど2にする壁/ハッチ/ドア配置・S=110 になる内寸）は `CleanRoomDetector` の S 定義（部屋セル面が境界に接する数）と整合させ、必要なら検出結果を一度アサートして V=75/S=110 を確認してからクラスを見る。ポール/発電機の接続レンジ（`MaxElectricPoleMachineConnectionRange`）内に清浄機・機械が入る座標を選ぶ（`DisconnectElectricSegmentTest` の配置レンジを参考）。
-
-- [ ] **Step 3: 実行して失敗を確認**
-
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Purifier_PoweredInSealedReferenceRoom_EquilibratesToClassA"`
-Expected: FAIL（サービス未配線で nq=0 → C 発散、またはクラスがA以外）。
-
-- [ ] **Step 4: CleanRoomPurityService を改修（清浄機収集＋除去配分）**
-
-フェーズ2の `OnTick` 内、各部屋ループに上記「要点 1〜5」を実装する。清浄機収集と配分の中核:
-
-```csharp
-        // 部屋内の清浄機を集めて n·q を得る。重複は BlockInstanceId で排除。
-        // Collect in-room purifiers to get n·q; dedupe by BlockInstanceId.
-        private List<ICleanRoomPurificationSource> CollectPurifiers(CleanRoom room)
+        // 部屋内のエアフィルターを集めて n·q を得る。重複は BlockInstanceId で排除。
+        // Collect in-room air filters for n·q; dedupe by BlockInstanceId.
+        private List<ICleanRoomAirFilter> CollectAirFilters(CleanRoom room)
         {
             var world = ServerContext.WorldBlockDatastore;
             var seen = new HashSet<BlockInstanceId>();
-            var result = new List<ICleanRoomPurificationSource>();
+            var result = new List<ICleanRoomAirFilter>();
             foreach (var cell in room.Cells)
             {
                 if (!world.TryGetBlock(cell, out var block)) continue;
                 if (!seen.Add(block.BlockInstanceId)) continue;
-                if (!block.TryGetComponent<ICleanRoomPurificationSource>(out var src)) continue;
-
-                // 所属確認: その清浄機の室がこの room であること。
-                // Confirm the purifier's room is this room.
-                if (_detection.TryGetRoomContainingBlock(block, out var owner) && owner.Id == room.Id)
-                    result.Add(src);
+                if (block.TryGetComponent<ICleanRoomAirFilter>(out var filter)) result.Add(filter);
             }
             return result;
         }
 ```
 
-そして OnTick の積分（フェーズ2の dN 計算箇所）を:
-
 ```csharp
-            const double secondsPerTick = 0.05;
-            var aTotal = _pollution.GetATotal(room);
+            // 汚染加算と除去（除去は N を負にしない範囲）。
+            // Add pollution and remove impurity; removal never drives N below zero.
+            var connectorCount = CleanRoomPollutionCalculator.CountConnectors(room);
+            var aTotal = CleanRoomPollutionCalculator.ComputeATotal(room.Volume, room.SurfaceArea, connectorCount, 0, 0.0);
 
-            var purifiers = CollectPurifiers(room);
+            var filters = CollectAirFilters(room);
             double nq = 0;
-            foreach (var p in purifiers) nq += p.RemovalVolumePerSecond;
+            foreach (var f in filters) nq += f.RemovalVolumePerSecond;
 
-            var c = state.Concentration(room.Volume);
-            // 除去はNを負にしない範囲で。
-            // Removal cannot drive N below zero.
-            var removeRate = nq * c;
-            var removedTotal = removeRate * secondsPerTick;
-            if (removedTotal > state.ImpurityCount) removedTotal = state.ImpurityCount;
+            var removedTotal = nq * room.Concentration * GameUpdater.SecondsPerTick;
+            if (removedTotal > room.ImpurityCount) removedTotal = room.ImpurityCount;
 
-            state.AddImpurity(aTotal * secondsPerTick);
-            state.RemoveImpurity(removedTotal);
+            room.AddImpurity(aTotal * GameUpdater.SecondsPerTick);
+            room.RemoveImpurity(removedTotal);
 
-            // 除去寄与をフィルターへ配分(汚染レート比例の摩耗)。
+            // 除去寄与をフィルターへ配分（汚染レート比例の摩耗）。
             // Distribute removed impurity to filters (wear proportional to pollution rate).
             if (nq > 0 && removedTotal > 0)
-                foreach (var p in purifiers)
-                    p.ApplyRemovedImpurity(removedTotal * (p.RemovalVolumePerSecond / nq));
+                foreach (var f in filters)
+                    f.ApplyRemovedImpurity(removedTotal * (f.RemovalVolumePerSecond / nq));
+
+            // 以降は フェーズ2 既存の閾値行/状態更新（ACH = nq / room.Volume を渡す）。
+            // Then phase-2's existing threshold/status update with ACH = nq / room.Volume.
 ```
 
-> 確認: フェーズ2 `CleanRoomPurityState` の `AddImpurity`/`RemoveImpurity`/`ImpurityCount`/`Concentration` と、`CleanRoomDetectionSystem.TryGetRoomContainingBlock` のシグネチャに一致させる。`_pollution`（`CleanRoomPollutionInput`）と `_detection` はフェーズ2のフィールドを再利用。`secondsPerTick=0.05` は `GameUpdater` の定数（`TicksToSeconds(1)` 等）があればそれを使う。
+> `GameUpdater.SecondsPerTick`（=0.05）は `Core.Update.GameUpdater` の実在定数。ローカルに `const double secondsPerTick = 0.05;` を作らない。フェーズ2のデータストアが既にブロック→部屋登録マップ（codemap §1.4）を持つなら `CollectAirFilters` はそれを引く形に置き換えてよい（確認事項#4）。
+
+- [ ] **Step 1: 失敗する統合テストを書く（基準部屋・ポール給電・平衡＋摩耗）**
+
+`CleanRoomPollutionTest.cs` に追加。基準部屋は内寸 5×5×3 の空洞を `CleanRoomWall` で囲い、境界の壁2枚を `CleanRoomItemHatch`/`CleanRoomPipeHatch` に差し替える（接続点2）。エアフィルター1台を**側壁に接しない床セル**に置く（V=74, S=109 になる）。電柱＋無限発電機は部屋外（接続レンジ内）:
+
+```csharp
+        [Test]
+        public void AirFilter_PoweredInSealedReferenceRoom_EquilibratesAndWearsFilter()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<Game.CleanRoom.CleanRoomDatastore>();
+
+            // 内寸 5x5x3 を壁で囲い、ItemHatch 1 + PipeHatch 1 を境界に差し込む（接続点2）。
+            // Seal a 5x5x3 cavity; swap 2 wall blocks for ItemHatch + PipeHatch (connectors=2).
+            BuildReferenceRoom(world);
+
+            // エアフィルター1台を側壁に接しない床セルへ（V=74, S=109）。
+            // One air filter on a floor cell not touching side walls (V=74, S=109).
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, AirFilterPos, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var filterBlock);
+            var filterComponent = filterBlock.GetComponent<CleanRoomAirFilterComponent>();
+            var filterInventory = filterBlock.GetComponent<CleanRoomAirFilterItemComponent>();
+
+            // フィルター2個投入（摩耗は filterCapacity=5000 未満に収まり消費は起きない想定）。
+            // Load 2 filters; expected wear stays below filterCapacity=5000 (no consumption).
+            filterInventory.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestModBlockId.CleanRoomFilterItemGuid, 2));
+
+            // 電柱1本+無限発電機で自動給電（機械→ポールの設置順でも ConnectElectricPoleToElectricSegment が接続する）。
+            // One pole + infinite generator auto-powers the filter (pole-after-machine order is handled).
+            world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, PolePos, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, GeneratorPos, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+
+            // τ=V/(nq)=74/5≈14.8s。±10%摩耗帯は t≥10τ で成立するため 300s（6000tick≈20τ）回す。
+            // τ≈14.8s; run 300s (6000 ticks ≈ 20τ) so the ±10% wear band holds (needs t ≥ 10τ).
+            GameUpdater.RunFrames(6000);
+
+            Assert.IsTrue(datastore.TryGetCleanRoomAt(InsideEmptyCellPos, out var room), "room exists");
+            Assert.AreEqual(74, room.Volume, "V=74 (占有セル除外)");
+            Assert.AreEqual(109, room.SurfaceArea, "S=109");
+
+            // C_eq = 13.85/5 = 2.77（±0.3）。閾値行はA(index 0)。ACH=5/74≈0.0676≥0.0167。
+            // C_eq=2.77 (±0.3); threshold row A (index 0); ACH satisfied.
+            Assert.AreEqual(2.77, room.Concentration, 0.3, "equilibrium concentration ~2.77");
+            Assert.AreEqual(0, room.ThresholdIndex, "threshold row A");
+
+            // 摩耗配線の検証（必須・バランス確定書§3）: A_total·t=4155 の±10%帯。理論値 ≈ 4155−N_eq ≈ 3950。
+            // Wear-wiring assertion (mandatory): within ±10% of A_total·t=4155; theory ≈ 3950.
+            Assert.That(filterComponent.WearProgress, Is.InRange(3739.5, 4570.5), "wear ≈ A_total×t (±10%)");
+            Assert.AreEqual(2, filterInventory.FilterCount, "5000未満なのでフィルター未消費");
+        }
+```
+
+- [ ] **Step 2: 失敗する n=2 加算テストを書く**
+
+`CleanRoomPollutionTest.cs` に追加（同じ部屋ヘルパでエアフィルター2台 → V=73, S=108, nq=10）:
+
+```csharp
+        [Test]
+        public void AirFilter_TwoUnits_RemovalAddsAndWearIsShared()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<Game.CleanRoom.CleanRoomDatastore>();
+
+            BuildReferenceRoom(world);
+
+            // 2台（どちらも側壁に接しない床セル）→ V=73, S=108, A_total=13.7。
+            // Two units on interior floor cells => V=73, S=108, A_total=13.7.
+            var blocks = PlaceTwoAirFiltersWithOneFilterEach(world);
+            PlacePoleAndInfinityGenerator(world);
+
+            // τ=73/10=7.3s → 75s(1500tick≈10τ) で平衡。
+            // τ=7.3s; 75s (1500 ticks ≈ 10τ) reaches equilibrium.
+            GameUpdater.RunFrames(1500);
+
+            Assert.IsTrue(datastore.TryGetCleanRoomAt(InsideEmptyCellPos, out var room));
+            Assert.AreEqual(73, room.Volume);
+            Assert.AreEqual(108, room.SurfaceArea);
+
+            // n·q が加算されていれば C_eq = 13.7/10 = 1.37。1台分(nq=5)なら 2.74 になり明確に区別できる。
+            // If additive, C_eq=1.37; a non-additive bug (nq=5) would read 2.74 — clearly distinguishable.
+            Assert.AreEqual(1.37, room.Concentration, 0.2, "n·q additive equilibrium");
+
+            // 摩耗は同能力2台で等分配される。
+            // Wear splits equally across two identical units.
+            var w1 = blocks.filter1.GetComponent<CleanRoomAirFilterComponent>().WearProgress;
+            var w2 = blocks.filter2.GetComponent<CleanRoomAirFilterComponent>().WearProgress;
+            Assert.Greater(w1, 300.0, "unit1 wears");
+            Assert.Greater(w2, 300.0, "unit2 wears");
+            Assert.AreEqual(w1, w2, 1.0, "equal share for identical units");
+        }
+```
+
+> ヘルパ（`BuildReferenceRoom`/`AirFilterPos`/`InsideEmptyCellPos`/`PolePos`/`GeneratorPos`/`PlaceTwoAirFiltersWithOneFilterEach`/`PlacePoleAndInfinityGenerator`）は実コードに合わせて埋める。壁/ハッチのブロックIDはフェーズ1がテストmodへ追加済みのアクセサ（確認事項#5）を使う。ポール/発電機はポールの machineConnectionRange 内にエアフィルターが入る座標を選ぶ（既存 `DisconnectElectricSegmentTest` 等の配置を参考。壁越しでも電力接続は幾何距離のみで成立する）。部屋検出は dirty 処理経由で数tick遅れて成立するが、t が十分長いので期待帯に収まる。`room.Concentration ≈ 2.77` が出ない場合の切り分け: (a) V/S が 74/109 か（占有セル除外の確認）、(b) 給電が届いているか（`filterComponent.RemovalVolumePerSecond > 0`）、(c) 接続点カウントが2か、(d) tick 数が足りているか。
+
+- [ ] **Step 3: 実行して失敗を確認**
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "AirFilter_PoweredInSealedReferenceRoom|AirFilter_TwoUnits"`
+Expected: FAIL（データストア未配線で nq=0 → C 発散、または摩耗0）。
+
+- [ ] **Step 4: `CleanRoomDatastore` を改修（上記「要点 1〜6」を実装）**
 
 - [ ] **Step 5: テスト実行**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Purifier_PoweredInSealedReferenceRoom_EquilibratesToClassA"`
-Expected: PASS。落ちる場合は (a) 検出 V/S が 75/110 か、(b) 給電が届いているか（清浄機 `RemovalVolumePerSecond>0`）、(c) 機械が Processing 継続か、(d) tick 数が 5τ 以上か、を切り分ける。型未検出なら Unity 再起動。
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "AirFilter_PoweredInSealedReferenceRoom|AirFilter_TwoUnits"`
+Expected: PASS。型未検出なら Unity 再起動。
 
 - [ ] **Step 6: CleanRoom 全体回帰**
 
@@ -1245,47 +1234,60 @@ Expected: フェーズ1〜3の全テストPASS。
 - [ ] **Step 7: Commit**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.CleanRoom/Purity/CleanRoomPurityService.cs moorestech_server/Assets/Scripts/Server.Boot/MoorestechServerDIContainerGenerator.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPollutionTest.cs
-git commit -m "feat(cleanroom): 清浄機をCleanRoomPurityServiceへ配線し基準部屋でクラスA平衡を検証"
+git add moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoomPollutionTest.cs
+git commit -m "feat(cleanroom): エアフィルターをCleanRoomDatastoreへ配線し平衡/摩耗/n=2加算を統合テストで固定"
 ```
 
 ---
 
 ## Self-Review
 
-### コードマップ §3 の網羅
+### コードマップ v2 §3 の網羅
 
 | §3 の項目 | 対応タスク |
 |---|---|
-| blocks.yml `CleanRoomAirPurifier`＋param、`_CompileRequester` トリガ、テストmod | Task 1 |
-| `AirPurifierProcessorComponent`（`IUpdatableBlockComponent, ICleanRoomPurificationSource`、RequestPower/SupplyPower/RemovalVolumePerSecond/Update） | Task 4 |
-| `AirPurifierElectricComponent`（`IElectricConsumer`、RequestEnergy/SupplyEnergy） | Task 5 |
-| `AirPurifierFilterInventory`（仕事量ベース消費） | Task 3 |
-| `AirPurifierSaveComponent`（`IBlockSaveState`、フィルター残＋進捗） | Task 6 |
-| `VanillaAirPurifierTemplate`（New/Load）＋ `VanillaIBlockTemplates` 登録 | Task 7 |
-| `CleanRoomPollutionCalculator`（`CleanRoomPollutionInput` 実装、V/S/接続点/機械） | Task 8 |
-| `CleanRoomPurityService` へ清浄機配線（`TryGetRoomContainingBlock` で n·q 集計） | Task 9 |
-| 電力割合換算（`MachineCurrentPowerToSubSecond` 流儀）／自動電力接続（`ConnectMachineToElectricSegment`） | Task 4（割合）/ Task 9（自動接続を統合テストで検証） |
+| blocks.yml `CleanRoomAirFilter`＋param（q/requiredPower/filterCapacity/filterItemGuid/スロット）、`_CompileRequester` トリガ、テストmod | Task 1 |
+| `ICleanRoomAirFilter`（`Game.Block.Interface/Component`、`RemovalVolumePerSecond`＋`ApplyRemovedImpurity`） | Task 2 |
+| `CleanRoomAirFilterComponent`（**単一コンポーネント初版**: `IElectricConsumer, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter`） | Task 4 |
+| フィルタースロット（`IOpenableBlockInventoryComponent`・ベルト搬入/UI成立・種チェック） | Task 3 |
+| `VanillaCleanRoomAirFilterTemplate`（New/Load）＋ `VanillaIBlockTemplates` 登録 | Task 5 |
+| `CleanRoomPollutionCalculator`（具体ヘルパ。注入インターフェース無し） | Task 6 |
+| `CleanRoomDatastore` 配線（n·q 集計＋`ApplyRemovedImpurity` プッシュ配分） | Task 7 |
+| 自動電力接続（`ConnectMachineToElectricSegment`/`ConnectElectricPoleToElectricSegment`）／電力割合換算 | Task 4（割合）/ Task 7（自動接続を統合テストで検証） |
 
 ### 設計書 §5/§6 の網羅
 
-- §5 汚染源: `a_volume·V`/`a_surface·S`/`a_connector·接続点`/`A_machine·稼働機械` を Task 8 で実供給。`A_hatch`（レート換算）/`A_door`（バースト）は `ComputeATotal` の引数に口だけ用意し0スタブ（§5「レート換算」の意図を将来差せる形に）。フェーズ5で計量フックを実装。
-- §6 空気清浄機＋フィルター: 電力消費（Task 5）、仕事量ベースのフィルター消費＝除去量比例（Task 3＋Task 9の配分）、複数台で n·q 加算（Task 9 の `Σ RemovalVolumePerSecond`）、フィルター切れで除去0（Task 4）。汚い部屋ほどフィルターを食う＝平衡時消費が A_total 比例（Task 9 の配分が removedTotal を全台へ按分するため成立）。高級フィルター種別は後追い（§6 の「後から足せる」に従い未実装）。
+- §5 汚染源: `a_volume·V`/`a_surface·S`/`a_connector·接続点`（`BlockInstanceId` 重複排除）を Task 6/7 で実供給。`A_machine` は係数と純関数の口を Task 6 で固定し、実機械（`CleanRoomMachine` の稼働フラグ）はフェーズ4が供給。`A_hatch`（レート換算）は `ComputeATotal` の引数に口だけ用意し0、`A_door` バーストは **A_total に入れず** フェーズ5で N 直接加算（単位整合）。
+- §6 エアフィルター＋フィルター: 電力消費（Task 4・常時消費）、仕事量ベースのフィルター消費＝除去量比例（Task 4＋Task 7 の配分）、**摩耗配線を統合テストで固定**（Task 7・±10%帯）、複数台で n·q 加算（Task 7 の n=2 テスト）、フィルター切れで除去0（Task 4）、誤投入アイテムを消費しない種チェック（Task 3）。汚い部屋ほどフィルターを食う＝平衡時消費が A_total 比例（摩耗アサーションが直接固定）。高級フィルター種別は後追い（§6「後から足せる」。`filterItemGuid` が拡張点）。
+
+### 批判的レビュー指摘の反映状況
+
+| 指摘 | 反映 |
+|---|---|
+| M1 フィルターインベントリへ到達不能 | Task 3 をブロックコンポーネント化＋Task 5 で components 登録。`GetComponent<CleanRoomAirFilterItemComponent>` で取得可能 |
+| M2 inventoryConnectors が死にパラメータ | `IOpenableBlockInventoryComponent`（=`IBlockInventory`）実装とセットで登録。ベルト搬入が成立 |
+| M3 摩耗配線が無検証 | Task 7 keystone に摩耗アサーション必須化（A_total·t ±10% 帯。t≥10τ の成立条件も明記） |
+| M4 スキーマ方言誤り | Task 1 Step 2 を実 blocks.yml 方言（`- key:` リスト＋`ref: inventoryConnects`＋uuid foreignKey）で記載 |
+| S1 filterCapacity ハードコード／フィルター識別なし | `filterCapacity`/`filterItemGuid` を blockParam 化（Task 1）。消費時種チェック（Task 3） |
+| S2 requestPower 命名 | `requiredPower` に統一（スキーマ/JSON。C#プロパティは `RequestEnergy` 流儀のまま） |
+| S3 接続点の多重カウント | `CountConnectors` を `BlockInstanceId` 重複排除に（Task 6） |
+| S4 メソッド名の計画間不一致 | `CleanRoomPollutionInput` 自体を廃止（codemap v2）。静的ヘルパ直呼びで契約名問題を解消 |
+| S5 占有セルとVの矛盾 | バランス確定書§5 の確定値（Cells=占有含む/V=空セルのみ）として記載。基準部屋を V=74/S=109 で再計算 |
+| S6 汎用機械を汚染源に数える | `A_machine` 対象を `CleanRoomMachine`（フェーズ4）に限定。フェーズ3は純関数で係数のみ固定。`Game.Block` 実装asmdef参照は不可と明記 |
+| S7 機械稼働持続のテスト脆弱性 | keystone を**機械なし部屋**基準に変更（A_machine 配線テストはフェーズ4へ） |
+| C1 doorBurst の次元不整合 | `ComputeATotal` から doorBurst 引数を削除。フェーズ5は `AddImpurity` 直接加算 |
+| C2 using 不足 | `.ToItemStack()`＝`Game.Context` 拡張である旨を Task 3 に明記 |
+| C3 未使用依存 | `CleanRoomPollutionCalculator` を静的クラス化（ctor依存なし） |
+| C4 コメントの接続点内訳矛盾 | 全テストコメントを ItemHatch+PipeHatch に統一 |
+| C5 n=2加算/枯渇テスト不在 | Task 7 に n=2 統合テスト追加。枯渇は Task 4 の単体テスト（`Component_WearCrossing...`）で固定 |
+| C6 「Vanillaと同じパターン」コメント不正確 | 常時消費が意図的差分である旨を実装コメントに明記（Task 4） |
 
 ### プレースホルダ・スキャン
 
-- 本文に `TODO`/未確定の擬似値は残していない。`...`（省略記法）は Task 1 の `inventoryConnectors` スキーマ／blocks.json／items.json で「既存エントリをコピー」と明記した箇所のみ＝コピー元が実在する。
-- 数値は全て balance-parameters の値（q=5.0/requestPower=100/filterCapacity=5000/a_volume=0.10/a_surface=0.05/a_connector=0.50/A_machine=2.0/k_hatch=0.30/burst_door=15/secondsPerTick=0.05）。worked example の 16.0 と 3.2 をテストで固定。
+- `...`（省略記法）は Task 1 の blocks.json `inventoryConnectors`（「既存 `TestElectricMachine` エントリをコピー」と明記。コピー元実在を確認済み）のみ。
+- 数値は全てバランス確定書の値（q=5.0/requiredPower=100/filterCapacity=5000/a_volume=0.10/a_surface=0.05/a_connector=0.50/A_machine=2.0/k_hatch=0.30/`GameUpdater.SecondsPerTick`=0.05）。worked example はフェーズ3用に V=74/S=109（占有セル除外・機械なし）で再導出し、`13.85`/`2.77`/摩耗帯 `[3739.5, 4570.5]` をテストで固定。
 
-### 型整合（コードマップ契約との一致）
+### 型整合（実コード照合済み）
 
-- 型名は契約どおり: `CleanRoomPurityService`/`CleanRoomPollutionInput`/`ICleanRoomPurificationSource`/`CleanRoomPollutionCalculator`/`AirPurifierProcessorComponent`/`AirPurifierElectricComponent`/`AirPurifierFilterInventory`/`AirPurifierSaveComponent`/`VanillaAirPurifierTemplate`。
-- `IElectricConsumer`/`ElectricPower`/`IBlockSaveState`/`IUpdatableBlockComponent`/`IBlockComponent`/`IBlockTemplate` の実シグネチャは本プラン作成時に実ファイルで確認済み（`SupplyEnergy(ElectricPower)`、`RequestEnergy`、`ApplyRemovedImpurity` は新規追加メンバ）。
-
-### ⚠ 人間が着手前に確定すべきクロスフェーズ事項（再掲）
-
-1. **`ICleanRoomPurificationSource` の所在**: コードマップは `Game.CleanRoom` 配下に置くが、本プランは asmdef 依存方向のため `Game.Block.Interface/Component` へ移設し、`ApplyRemovedImpurity(double)` を追加する（フェーズ2の署名変更）。
-2. **`CleanRoomPurityService` の清浄機注入**: コードマップのコンストラクタ `IReadOnlyList<ICleanRoomPurificationSource>` 静的注入では実行時設置ブロックが集まらない。本プランは毎tick `TryGetRoomContainingBlock`＋セル走査で動的収集に差し替える（コンストラクタ署名要見直し）。
-3. **A_total=16 の前提**: balance §5「占有セルを V に算入しない」と検出器実装（境界コンポーネントのみ除外＝機械セルは空気）が食い違う。worked example は**検出器に整合**。本プランは占有セル除外を実装しない。Task 9 の部屋構築は機械・清浄機を内部に置いても V=75 のままになることを前提とする。
-4. **`Game.CleanRoom.asmdef` の `Game.Block` 参照**: Task 8 の稼働機械判定が `VanillaMachineProcessorComponent`（`Game.Block` 実装側）を直参照する。実装側参照を避けたい場合は、機械の稼働状態をインターフェース（例 `IBlockStateObservable` 由来 or フェーズ4の `ICleanRoomMachineGate`）経由に寄せる選択肢を Task 8 着手時に確定する。
-5. **ドアの flood-fill 上の扱い**: フェーズ1プラン Task5「`ICleanRoomBoundaryComponent` 持ち＝密閉面（ドアも密閉）」とコードマップ§5「ドアは貫通可能境界」が食い違う。本プランの統合テスト（Task 9）はドアを避け**ハッチ＋パイプコネクタ**で接続点2を作るため keystone テストはこの未確定に依存しない。ただしドアが密閉/貫通どちらか（＝ドアで囲った部屋が成立するか）はフェーズ5前に確定が必要。
+- `IElectricConsumer`（`BlockInstanceId`/`RequestEnergy`/`SupplyEnergy(ElectricPower)`）、`ElectricPower(.AsPrimitive)`、`IBlockSaveState`（`SaveKey`/`GetSaveState`）、`IUpdatableBlockComponent`、`IOpenableBlockInventoryComponent : IBlockInventory, IOpenableInventory`、`OpenableInventoryItemDataStoreService` ctor、`IItemStack.SubItem(int)`、`ItemStackSaveJsonObject`＋`ToItemStack()`（Game.Context拡張）、`MasterHolder.ItemMaster.GetItemId(Guid)`、`BlockSystem` ctor、`BlockTemplateUtil.CreateInventoryConnector`、`TryAddBlock(blockId, pos, dir, createParams, out block)`、`GameUpdater.RunFrames/SecondsPerTick`、`EnergySegment`（毎tick供給・供給率≤1）、`ConnectElectricPoleToElectricSegment`（ポール後置きでも接続）は実ファイルで確認済み。
+- フェーズ1/2 並行改訂中の型（`CleanRoomDatastore`/`CleanRoom`/`ICleanRoomAirFilter`/`ICleanRoomBoundaryComponent`/`CleanRoomPurityRules`）は冒頭「確認事項」リストに従い着手時に照合。
