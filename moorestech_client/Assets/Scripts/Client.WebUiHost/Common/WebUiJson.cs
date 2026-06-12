@@ -9,7 +9,7 @@ namespace Client.WebUiHost.Common
     /// </summary>
     public static class WebUiJson
     {
-        public static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             NullValueHandling = NullValueHandling.Ignore,
