@@ -18,8 +18,8 @@ namespace Core.Master.Validator
 
             string ModuleParamValidation()
             {
-                // tier は1以上、effectValue / tradeoffValue は0以上であることを検証
-                // Validate that tier is at least 1 and effectValue / tradeoffValue are non-negative
+                // tierは1以上、効果値は0以上を検証
+                // Validate tier >= 1 and non-negative values
                 var logs = "";
                 foreach (var item in items.Data)
                 {
@@ -45,8 +45,8 @@ namespace Core.Master.Validator
 
             string LevelItemGuidsValidation()
             {
-                // 各レベル変種GUIDが実在し、自分自身や重複を含まないことを検証
-                // Validate that every level variant GUID exists and that the list contains neither the item itself nor duplicates
+                // 変種GUIDの実在・自己参照・重複を検証
+                // Validate existence, self-reference, and duplicates
                 var logs = "";
                 var allItemGuids = items.Data.Select(item => item.ItemGuid).ToHashSet();
                 foreach (var item in items.Data)
@@ -106,8 +106,8 @@ namespace Core.Master.Validator
                 itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, itemId);
             }
 
-            // レベルファミリーのテーブルを構築（レベル1は基準アイテム自身、以降はlevelItemGuidsの定義順）
-            // Build the level family table (level 1 is the base item itself, followed by levelItemGuids in order)
+            // レベルファミリーのテーブルを構築（先頭=基準自身）
+            // Build the level family table (the base item comes first)
             levelVariantTable = new Dictionary<ItemId, ItemId[]>();
             foreach (var (itemId, element) in itemElementTableById)
             {

@@ -22,8 +22,8 @@ namespace Core.Master
         private Dictionary<ItemId, ItemMasterElement> _itemElementTableById;
         private Dictionary<Guid, ItemId> _itemGuidToItemId;
 
-        // 基準ItemId → レベル順の変種ItemId配列（index 0 = レベル1の基準アイテム自身）
-        // baseItemId → level-ordered variant ItemId array (index 0 = level 1, the base item itself)
+        // 基準ItemId→レベル順変種配列（先頭=基準自身）
+        // baseItemId → level-ordered variants (index 0 = the base)
         private Dictionary<ItemId, ItemId[]> _levelVariantTable;
 
         public ItemMaster(JToken itemJToken)

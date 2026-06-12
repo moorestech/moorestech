@@ -54,8 +54,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
         
         /// <summary>
-        ///     実際に産出されるアイテムスタック列と液体出力スタック列を格納できるか仮想挿入で判定する
-        ///     Check via virtual insertion whether the exact realized item stacks and fluid stacks fit
+        ///     産出スタック列を格納できるか仮想挿入で判定する
+        ///     Check via virtual insertion whether the output stacks fit
         /// </summary>
         public bool CanStoreOutputs(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
         {
@@ -63,8 +63,8 @@ namespace Game.Block.Blocks.Machine.Inventory
             // Check fluid output space first
             if (!IsFluidOutputAllowed()) return false;
 
-            // 現在のスロットを複製し、実産出スタックを順番に仮想挿入して空きを判定する（実挿入と同じ順序・同じスタック分離）
-            // Copy the current slots and virtually insert each realized stack sequentially (same order and stack separation as the real insertion)
+            // スロット複製へ仮想挿入して空きを判定（実挿入と同順）
+            // Virtually insert into copied slots (same order as the real insert)
             var simulatedSlots = OutputSlot.ToList();
             foreach (var outputItemStack in itemOutputs)
             {
@@ -115,8 +115,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
 
         /// <summary>
-        ///     変換済みアイテム出力スタック列と液体出力スタック列を格納する
-        ///     Insert the pre-transformed item output stacks and the fluid output stacks
+        ///     アイテム出力と液体出力を格納する
+        ///     Insert the item and fluid outputs
         /// </summary>
         public void InsertOutputSlot(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
         {

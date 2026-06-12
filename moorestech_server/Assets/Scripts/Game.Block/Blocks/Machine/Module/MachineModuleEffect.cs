@@ -10,8 +10,8 @@ namespace Game.Block.Blocks.Machine.Module
     /// </summary>
     public class MachineModuleEffect
     {
-        // 消費電力倍率の下限（省エネモジュールの積みすぎでゼロ消費にならないようにする）
-        // Lower bound for the power multiplier (prevents stacking efficiency modules down to zero consumption)
+        // 電力倍率の下限（ゼロ消費の防止）
+        // Power multiplier floor to prevent zero consumption
         private const float MinPowerMultiplier = 0.1f;
 
         public readonly float ProcessingTimeMultiplier;
@@ -29,8 +29,8 @@ namespace Game.Block.Blocks.Machine.Module
 
         public static MachineModuleEffect Aggregate(IReadOnlyList<EquippedModule> modules)
         {
-            // 軸ごとに効果値・トレードオフ値をスタック数で加重して加算で集計する（UI上の個数と効果を一致させる）
-            // Sum effect and tradeoff values per axis additively, weighted by stack count (UI quantity matches the effect)
+            // 軸ごとにスタック数加重で加算集計
+            // Sum per axis weighted by stack count
             var speedSum = 0f;
             var speedTradeoff = 0f;
             var productivitySum = 0f;
@@ -64,19 +64,19 @@ namespace Game.Block.Blocks.Machine.Module
                 }
             }
 
-            // 分母はマスタ検証で非負が保証されるが、純関数として全域で安全なように下限を設ける
-            // Master validation enforces non-negative sums, but floor the denominators so this pure function stays total
+            // 分母に下限を設け全域で安全にする
+            // Floor the denominators to stay safe everywhere
             var speedDenominator = Math.Max(0.01f, 1f + speedSum);
             var efficiencyDenominator = Math.Max(0.01f, 1f + efficiencySum);
 
-            // 各係数を計算してクランプする（時間は速度で短縮・生産性/品質トレードオフで延長、電力は省エネで減少、追加出力は0〜1）
-            // Compute and clamp each multiplier (speed shortens time, productivity/quality tradeoffs stretch it, efficiency lowers power, extra output is 0-1)
+            // 各係数を計算してクランプする
+            // Compute and clamp each multiplier
             var processingTimeMultiplier = (1f + productivityTradeoff + qualityTradeoff) / speedDenominator;
             var powerMultiplier = Math.Max((1f + speedTradeoff) / efficiencyDenominator, MinPowerMultiplier);
             var extraOutputChance = Math.Clamp(productivitySum, 0f, 1f);
 
-            // 品質シフトは下限0のみクランプする。上限はレベル数が分かる産出側でクランプされる
-            // Quality shift clamps only at zero here; the upper bound is clamped by the output side where the level count is known
+            // 上限は産出側でクランプするため下限のみ
+            // Only floor here; the output side clamps the max
             var qualityShift = Math.Max(qualitySum, 0f);
 
             return new MachineModuleEffect(processingTimeMultiplier, powerMultiplier, extraOutputChance, qualityShift);

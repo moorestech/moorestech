@@ -9,8 +9,8 @@ using Game.Context;
 namespace Game.Block.Blocks.Machine.Inventory
 {
     /// <summary>
-    ///     機械のモジュールスロットを保持するインベントリ。統合スロット番号ではインプット・アウトプットの後ろの第3レンジとして扱う
-    ///     Inventory holding the machine's module slots. In unified slot numbering it is the third range after input and output
+    ///     機械のモジュールスロット（統合スロットの第3レンジ）
+    ///     The machine's module slots (third range in unified numbering)
     /// </summary>
     public class VanillaMachineModuleInventory : IVanillaMachineSubInventory
     {
@@ -32,8 +32,8 @@ namespace Game.Block.Blocks.Machine.Inventory
 
             void InvokeEvent(int slot, IItemStack itemStack)
             {
-                // モジュールスロットは第3レンジなので、インプット＋アウトプット分のオフセットを加算して通知する
-                // Module slots are the third range, so offset by input + output slot sizes when notifying
+                // 第3レンジのためオフセットを加算して通知
+                // Offset by the first two ranges when notifying
                 blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                     blockInstanceId, slot + inputSlotSize + outputSlotSize, itemStack));
             }

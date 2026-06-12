@@ -48,8 +48,6 @@ namespace Game.Block.Factory.BlockTemplate
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
             
-            // モジュール効果コンポーネントをプロセッサより先に生成して渡す
-            // Create the module effect component before the processor and pass it in
             var effectComponent = new MachineModuleEffectComponent(module);
 
             // パラメーターをロードするか、新規作成する
@@ -58,8 +56,8 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new VanillaMachineProcessorComponent(input, output, null, requirePower, effectComponent)
                 : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
 
-            // 省エネモジュール倍率を要求トルクへ配線する（照会時に都度集計。加工中のみ適用、Idleは中立1.0）
-            // Wire the efficiency multiplier into required torque (aggregated per query; applied only while processing, neutral when idle)
+            // 省エネ倍率を要求トルクへ配線する
+            // Wire the efficiency multiplier into torque demand
             gearEnergyTransformer.SetConsumptionMultiplierSource(processor);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);

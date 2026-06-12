@@ -4,8 +4,8 @@ using Core.Item.Interface;
 namespace Game.Block.Blocks.Machine.Inventory
 {
     /// <summary>
-    ///     機械の統合インベントリ（VanillaMachineBlockInventoryComponent）が各スロットレンジへ委譲するためのインターフェース
-    ///     Interface the machine's unified inventory (VanillaMachineBlockInventoryComponent) uses to delegate to each slot range
+    ///     統合インベントリが各スロットレンジへ委譲するためのインターフェース
+    ///     Interface the unified inventory uses to delegate to each slot range
     /// </summary>
     public interface IVanillaMachineSubInventory
     {

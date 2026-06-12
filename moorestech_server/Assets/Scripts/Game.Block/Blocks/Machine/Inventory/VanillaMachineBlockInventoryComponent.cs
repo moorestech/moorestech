@@ -16,8 +16,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
         private readonly VanillaMachineModuleInventory _vanillaMachineModuleInventory;
 
-        // 統合スロット番号の並び順どおりのサブインベントリ列（インプット→アウトプット→モジュール）
-        // Sub-inventories in unified slot-number order (input, then output, then module)
+        // 統合スロット順のサブインベントリ列
+        // Sub-inventories in unified slot order
         private readonly IVanillaMachineSubInventory[] _subInventories;
 
         public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
@@ -40,8 +40,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
 
         /// <summary>
-        ///     モジュールスロット（最終レンジ）はインベントリ整理の対象から除外する
-        ///     Module slots (the last range) are excluded from inventory sorting
+        ///     モジュールスロットは整理対象から除外する
+        ///     Module slots are excluded from sorting
         /// </summary>
         public IReadOnlyCollection<int> SortExcludedSlots
         {
@@ -167,8 +167,8 @@ namespace Game.Block.Blocks.Machine.Inventory
             return current;
         }
 
-        // 統合スロット番号を対象サブインベントリとレンジ内ローカル番号へ解決する
-        // Resolve a unified slot number into its target sub-inventory and the local index within that range
+        // スロット番号をサブインベントリとローカル番号へ解決
+        // Resolve a slot number to its sub-inventory and local index
         private (IVanillaMachineSubInventory subInventory, int localSlot) ResolveSlot(int slot)
         {
             foreach (var subInventory in _subInventories)

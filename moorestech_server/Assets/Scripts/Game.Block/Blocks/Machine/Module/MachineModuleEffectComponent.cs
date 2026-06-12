@@ -8,8 +8,8 @@ using Mooresmaster.Model.ItemsModule;
 namespace Game.Block.Blocks.Machine.Module
 {
     /// <summary>
-    ///     機械へのモジュール効果倍率の供給源。装着中モジュールから毎回その場で集計する
-    ///     Source of module effect multipliers for a machine, aggregated live from the equipped modules on every call
+    ///     装着中モジュールから効果倍率を都度集計する供給源
+    ///     Aggregates effect multipliers live from the equipped modules
     /// </summary>
     public class MachineModuleEffectComponent : IBlockComponent
     {
@@ -24,8 +24,8 @@ namespace Game.Block.Blocks.Machine.Module
         {
             BlockException.CheckDestroy(this);
 
-            // モジュールスロットのアイテムをアイテムマスタのモジュール設定へ解決し、スタック数で加重して集計する（非モジュールや空スロットは無視）
-            // Resolve module slot items into the item master's module params and aggregate weighted by stack count (skip empty or non-module stacks)
+            // スロットのアイテムをモジュール設定へ解決して集計
+            // Resolve slot items to module params and aggregate
             var modules = new List<MachineModuleEffect.EquippedModule>();
             foreach (var stack in _moduleInventory.ModuleSlot)
             {

@@ -27,8 +27,8 @@ namespace Game.Block.Blocks.Gear
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
 
-        // 消費倍率の供給源。機械の省エネモジュール等が要求トルクを変えるために設定する（未設定は中立1.0）
-        // Source of the consumption multiplier; machines set this (e.g. efficiency modules). Neutral 1.0 when unset
+        // 消費倍率の供給源（未設定は中立1.0）
+        // Consumption multiplier source (neutral 1.0 when unset)
         private IConsumptionMultiplierSource _consumptionMultiplierSource;
         private float ConsumptionMultiplier => _consumptionMultiplierSource?.ConsumptionMultiplier ?? 1f;
 
@@ -53,14 +53,14 @@ namespace Game.Block.Blocks.Gear
             // Generators pass null Consumption and always consume zero torque
             if (_consumption == null) return new Torque(0);
 
-            // 基準の要求トルクに消費倍率を乗じる（省エネモジュール未装着・非機械は中立1.0で従来と同値）
-            // Multiply the base required torque by the consumption multiplier (neutral 1.0 keeps non-machine gears unchanged)
+            // 要求トルクに消費倍率を乗じる
+            // Scale the required torque by the multiplier
             var baseTorque = GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
             return new Torque(baseTorque.AsPrimitive() * ConsumptionMultiplier);
         }
 
-        // 消費倍率の供給源を設定する。倍率はトルク照会時に都度読むため、モジュールの付け外しが即時反映される
-        // Set the consumption multiplier source; it is read on each torque query, so module changes apply immediately
+        // 倍率は照会毎に読むため付け外しが即時反映
+        // Read per query, so module changes apply immediately
         public void SetConsumptionMultiplierSource(IConsumptionMultiplierSource consumptionMultiplierSource)
         {
             _consumptionMultiplierSource = consumptionMultiplierSource;
@@ -72,8 +72,8 @@ namespace Game.Block.Blocks.Gear
         {
             if (_consumption == null) return 0f;
 
-            // 倍率適用後の要求トルク（GetRequiredTorqueと同値）に対して稼働率を計算し、要求側と供給側を整合させる（中立1.0は従来計算と同値）
-            // Compute the rate against the multiplier-adjusted required torque (same as GetRequiredTorque) so supply stays consistent with demand (neutral 1.0 matches the legacy calc)
+            // 倍率適用後の要求トルクで稼働率を計算し整合させる
+            // Rate against the scaled demand keeps supply consistent
             var adjustedRequiredTorque = GetRequiredTorque(CurrentRpm, IsCurrentClockwise);
             return GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque, adjustedRequiredTorque);
         }
@@ -84,8 +84,8 @@ namespace Game.Block.Blocks.Gear
         {
             if (_consumption == null) return new ElectricPower(0);
 
-            // 倍率分のトルクが供給されていれば有効要求電力（基準×倍率）に一致し、速度モジュールの時間短縮が自己相殺しない
-            // With the scaled torque supplied this equals the effective request power (base × multiplier), so speed module time reduction does not self-cancel
+            // 供給電力にも倍率を乗じ時間短縮の自己相殺を防ぐ
+            // Scale supplied power too so speed gains do not self-cancel
             var basePower = GearConsumptionCalculator.CalcCurrentPower(_consumption, GetCurrentOperatingRate());
             return new ElectricPower(basePower.AsPrimitive() * ConsumptionMultiplier);
         }
