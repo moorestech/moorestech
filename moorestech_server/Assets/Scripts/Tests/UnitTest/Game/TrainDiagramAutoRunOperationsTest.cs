@@ -161,7 +161,8 @@ namespace Tests.UnitTest.Game
 
         [TestCase(false)]
         [TestCase(true)]
-        public void Operation4_RemovingCurrentEntrySkipsDisconnectedNext(bool startRunning)
+        [Ignore("Old skip behavior was removed. Replaced by Operation4B.")]
+        public void Operation4_RemovingCurrentEntryDoesNotSkipDisconnectedNext(bool startRunning)
         {
             using var scenario = CreateScenario(startRunning);
             var trainUnit = scenario.Train;
@@ -237,6 +238,79 @@ namespace Tests.UnitTest.Game
                 "経路再探索が安定した後も自動運転は有効のはずです。");
             Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
                 "再経路設定後はドッキングではなく走行中であるべきです。");
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Operation4B_RemovingCurrentEntryStopsWithoutSkippingDisconnectedNext(bool startRunning)
+        {
+            using var scenario = CreateScenario(startRunning);
+            var trainUnit = scenario.Train;
+            var diagram = trainUnit.trainDiagram;
+
+            Assert.GreaterOrEqual(diagram.Entries.Count, 3,
+                "diagram must contain start, n1, and n2");
+
+            var startNode = RequireRailNode(diagram.Entries[0].Node);
+            var firstDestination = RequireRailNode(diagram.Entries[1].Node);
+            var secondDestination = RequireRailNode(diagram.Entries[2].Node);
+
+            Assert.AreSame(startNode, diagram.GetCurrentNode(),
+                "the initial target must be the start node");
+
+            startNode.DisconnectNode(firstDestination);
+            firstDestination.DisconnectNode(startNode);
+
+            Assert.IsFalse(startNode.ConnectedNodes.Contains(firstDestination),
+                "start and firstDestination must be disconnected");
+
+            const int rerouteDistance = 4321;
+            startNode.ConnectNode(secondDestination, rerouteDistance);
+            secondDestination.ConnectNode(startNode, rerouteDistance);
+
+            diagram.HandleNodeRemoval(startNode);
+
+            Assert.IsTrue(trainUnit.IsAutoRun,
+                "auto-run should still be enabled immediately after removing the current entry");
+            Assert.AreSame(firstDestination, diagram.GetCurrentNode(),
+                "the next entry must remain the current target");
+
+            if (!startRunning)
+            {
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "the docked scenario should undock when the current entry is removed");
+
+                trainUnit.Update();
+
+                Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                    "the train must not redock after the failed path check");
+                Assert.IsFalse(trainUnit.IsAutoRun,
+                    "auto-run must stop when the next entry is unreachable");
+            }
+            else
+            {
+                const int maxUpdates = 256;
+                var autoRunStopped = !trainUnit.IsAutoRun;
+                for (var i = 0; i < maxUpdates; i++)
+                {
+                    trainUnit.Update();
+                    if (!trainUnit.IsAutoRun)
+                    {
+                        autoRunStopped = true;
+                        break;
+                    }
+                }
+
+                Assert.IsTrue(autoRunStopped,
+                    "the running scenario must stop instead of skipping to a later entry");
+            }
+
+            Assert.AreSame(firstDestination, diagram.GetCurrentNode(),
+                "the train must not skip over the unreachable next entry");
+            Assert.AreNotSame(secondDestination, diagram.GetCurrentNode(),
+                "the later reachable entry must not become the current target");
+            Assert.IsFalse(trainUnit.IsAutoRun,
+                "auto-run must remain disabled after the stop");
         }
 
         [TestCase(false)]
