@@ -202,19 +202,23 @@ namespace Tests.CombinedTest.Core
             InsertRecipeInputs(boostedInventory, recipe);
             InsertRecipeInputs(plainInventory, recipe);
 
-            // 短縮時間とベース時間の中間点まで進める（装着機の短縮時間は超え、ベース時間には届かない）
-            // Advance to the midpoint of the boosted and base durations (past boosted, short of base)
+            // 開始tickでは進行しないため、開始直後の残りtickが短縮済み加工時間と一致することを確認
+            // No progress occurs on the start tick, so the remaining ticks right after start equal the scaled processing time
             var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
             var expectedBoostedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
-            var advanceTicks = (int)(1 + (expectedBoostedTicks + baseTicks) / 2);
+            AdvanceTicksWithFullPower(1, boostedProcessor, plainProcessor);
+            Assert.AreEqual(expectedBoostedTicks, boostedProcessor.RemainingTicks);
+            Assert.AreEqual(baseTicks, plainProcessor.RemainingTicks);
+
+            // 短縮時間とベース時間の中間点まで進める（装着機の短縮時間は超え、ベース時間には届かない）
+            // Advance to the midpoint of the boosted and base durations (past boosted, short of base)
+            var advanceTicks = (int)((expectedBoostedTicks + baseTicks) / 2);
             AdvanceTicksWithFullPower(advanceTicks, boostedProcessor, plainProcessor);
 
             // 装着機は完了してIdle、未装着機はまだProcessingであることを確認
             // The boosted machine has finished (Idle) while the plain machine is still Processing
             Assert.AreEqual(ProcessState.Idle, boostedProcessor.CurrentState);
-            Assert.AreEqual(expectedBoostedTicks, boostedProcessor.ProcessingRecipeTicks);
             Assert.AreEqual(ProcessState.Processing, plainProcessor.CurrentState);
-            Assert.AreEqual(baseTicks, plainProcessor.ProcessingRecipeTicks);
 
             // 装着機のアウトプットにレシピ通りの成果物が入っていることを確認
             // The boosted machine's output contains the recipe result
@@ -360,11 +364,11 @@ namespace Tests.CombinedTest.Core
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
             InsertRecipeInputs(inventory, recipe);
 
-            // プロセス開始後にモジュールを取り外す
-            // Remove the module after the process has started
+            // プロセス開始後にモジュールを取り外す（開始tickでは進行しないため残りtick＝短縮済み加工時間）
+            // Remove the module after the process has started (no progress on the start tick, so remaining ticks = scaled time)
             AdvanceTicksWithFullPower(1, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            var ticksAtStart = processor.ProcessingRecipeTicks;
+            var ticksAtStart = processor.RemainingTicks;
             Assert.Less(ticksAtStart, baseTicks);
             inventory.SetItem(ModuleRangeStart, ServerContext.ItemStackFactory.CreatEmpty());
 
@@ -373,7 +377,6 @@ namespace Tests.CombinedTest.Core
             // 加工時間は開始時に確定した値のまま進行する
             // The processing time stays at the value fixed at start
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            Assert.AreEqual(ticksAtStart, processor.ProcessingRecipeTicks);
             Assert.AreEqual(ticksAtStart - 3, processor.RemainingTicks);
 
             // 電力倍率は取り外しが即時反映され中立に戻る
