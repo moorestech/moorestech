@@ -107,6 +107,51 @@ namespace Tests.UnitTest.Game
             }
         }
 
+        [Test]
+        public void AutoRun_DepartsInReverseWhenNextEntryExistsOnlyBehindTrain()
+        {
+            using var scenario = TrainAutoRunTestScenario.CreateDockedScenario();
+            var trainUnit = scenario.Train;
+            var diagram = trainUnit.trainDiagram;
+            var frontCar = scenario.TrainCar;
+
+            Assert.AreEqual(4, diagram.Entries.Count, "reverse departure test expects the default 4-entry loop.");
+
+            var forwardEntry = diagram.Entries[1].Node;
+            var deadEndEntry = diagram.Entries[2].Node;
+            var reverseEntry = diagram.Entries[3].Node;
+
+            diagram.HandleNodeRemoval(forwardEntry);
+            diagram.HandleNodeRemoval(deadEndEntry);
+            diagram.Entries[0].SetDepartureWaitTicks(0);
+
+            Assert.AreSame(scenario.StationExitFront, diagram.GetCurrentNode(),
+                "the docked train should still target the current station before departure.");
+            Assert.IsTrue(frontCar.IsFacingForward, "the car should start in the forward-facing state.");
+
+            trainUnit.Update();
+
+            Assert.IsFalse(trainUnit.trainUnitStationDocking.IsDocked,
+                "the departure tick should undock the train.");
+            Assert.AreSame(reverseEntry, diagram.GetCurrentNode(),
+                "after departure preparation, the next target should be the behind entry.");
+            Assert.IsTrue(trainUnit.IsAutoRun, "auto-run should remain enabled after departure preparation.");
+            Assert.AreEqual(0d, trainUnit.CurrentSpeed, "the undock tick itself should not move the train yet.");
+
+            trainUnit.Update();
+
+            var tickDiff = trainUnit.GetTickDiff();
+
+            Assert.IsTrue(tickDiff.isReversedThisTick,
+                "the first movement tick after undocking should report an automatic reverse.");
+            Assert.IsFalse(frontCar.IsFacingForward,
+                "the car should face backward after the automatic reverse departure.");
+            Assert.Greater(trainUnit.CurrentSpeed, 0d,
+                "the reverse departure tick should begin accelerating immediately.");
+            Assert.AreSame(reverseEntry, diagram.GetCurrentNode(),
+                "the reverse departure must keep the behind entry as the active target.");
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void Operation3_RemovingAllEntriesStopsAutoRun(bool startRunning)
