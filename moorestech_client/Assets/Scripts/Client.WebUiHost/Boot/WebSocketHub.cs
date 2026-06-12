@@ -5,7 +5,10 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Boot
 {
@@ -51,7 +54,7 @@ namespace Client.WebUiHost.Boot
         // Broadcast an event payload to all connections subscribed to the topic
         public void Publish(string topic, string dataJson)
         {
-            var envelope = $"{{\"op\":\"event\",\"topic\":\"{EscapeJsonString(topic)}\",\"data\":{dataJson}}}";
+            var envelope = BuildEnvelopeJson("event", topic, dataJson);
             foreach (var conn in _connections.Values)
             {
                 if (conn.Topics.Contains(topic))
@@ -96,6 +99,7 @@ namespace Client.WebUiHost.Boot
         private async Task ReceiveLoop(Connection conn, CancellationToken ct)
         {
             var buffer = new byte[8192];
+            var messageBytes = new List<byte>();
             while (conn.WebSocket.State == WebSocketState.Open && !ct.IsCancellationRequested)
             {
                 var result = await conn.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
@@ -105,47 +109,60 @@ namespace Client.WebUiHost.Boot
                     await conn.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "bye", cts.Token);
                     return;
                 }
-                var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
+
+                // フレーム断片を EndOfMessage まで蓄積してから1メッセージとして処理する
+                // Accumulate frame fragments until EndOfMessage, then process as one message
+                for (var i = 0; i < result.Count; i++) messageBytes.Add(buffer[i]);
+                if (!result.EndOfMessage) continue;
+
+                var json = Encoding.UTF8.GetString(messageBytes.ToArray());
+                messageBytes.Clear();
                 await HandleClientMessage(conn, json);
             }
         }
 
         private async Task HandleClientMessage(Connection conn, string json)
         {
-            // 超軽量 JSON パース: op / topics / topic を小さく取り出すだけ
-            // 既知キー("op"/"topic"/"topics") の衝突を避けるため、値側には引用符付き予約語を入れない前提
-            // Minimal JSON parse: extract only op / topics / topic
-            // Assumes values do not contain the reserved quoted keywords above
-            var op = ExtractJsonString(json, "\"op\"");
-            if (op == "subscribe")
+            var msg = WebUiJson.Deserialize<WsClientMessage>(json);
+            if (msg?.Op == null) return;
+
+            switch (msg.Op)
             {
-                var topics = ExtractJsonStringArray(json, "\"topics\"");
-                foreach (var t in topics)
-                {
-                    conn.Topics.Add(t);
-                    if (_handlers.TryGetValue(t, out var handler))
+                case "subscribe":
+                    if (msg.Topics == null) return;
+                    foreach (var t in msg.Topics)
                     {
-                        var snap = await handler.GetSnapshotJsonAsync();
-                        var env = $"{{\"op\":\"snapshot\",\"topic\":\"{EscapeJsonString(t)}\",\"data\":{snap}}}";
-                        conn.EnqueueSend(env);
+                        conn.Topics.Add(t);
+                        await SendSnapshot(conn, t);
                     }
-                }
+                    break;
+                case "unsubscribe":
+                    if (msg.Topics == null) return;
+                    foreach (var t in msg.Topics) conn.Topics.Remove(t);
+                    break;
+                case "snapshot":
+                    if (msg.Topic == null) return;
+                    await SendSnapshot(conn, msg.Topic);
+                    break;
             }
-            else if (op == "unsubscribe")
+        }
+
+        private async Task SendSnapshot(Connection conn, string topic)
+        {
+            if (!_handlers.TryGetValue(topic, out var handler)) return;
+            var snap = await handler.GetSnapshotJsonAsync();
+            conn.EnqueueSend(BuildEnvelopeJson("snapshot", topic, snap));
+        }
+
+        private static string BuildEnvelopeJson(string op, string topic, string dataJson)
+        {
+            var env = new JObject
             {
-                var topics = ExtractJsonStringArray(json, "\"topics\"");
-                foreach (var t in topics) conn.Topics.Remove(t);
-            }
-            else if (op == "snapshot")
-            {
-                var topic = ExtractJsonString(json, "\"topic\"");
-                if (_handlers.TryGetValue(topic, out var handler))
-                {
-                    var snap = await handler.GetSnapshotJsonAsync();
-                    var env = $"{{\"op\":\"snapshot\",\"topic\":\"{EscapeJsonString(topic)}\",\"data\":{snap}}}";
-                    conn.EnqueueSend(env);
-                }
-            }
+                ["op"] = op,
+                ["topic"] = topic,
+                ["data"] = JToken.Parse(dataJson),
+            };
+            return env.ToString(Formatting.None);
         }
 
         private async Task SendLoop(Connection conn, CancellationToken ct)
@@ -156,48 +173,6 @@ namespace Client.WebUiHost.Boot
                 var bytes = Encoding.UTF8.GetBytes(msg);
                 await conn.WebSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, ct);
             }
-        }
-
-        private static string EscapeJsonString(string s) => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
-
-        // 最小 JSON ヘルパ: "key":"value" パターンから value を返す
-        // Minimal JSON helper: extract string value after a "key": marker
-        private static string ExtractJsonString(string json, string key)
-        {
-            var idx = json.IndexOf(key, StringComparison.Ordinal);
-            if (idx < 0) return "";
-            var colon = json.IndexOf(':', idx);
-            if (colon < 0) return "";
-            var q1 = json.IndexOf('"', colon);
-            if (q1 < 0) return "";
-            var q2 = json.IndexOf('"', q1 + 1);
-            if (q2 < 0) return "";
-            return json.Substring(q1 + 1, q2 - q1 - 1);
-        }
-
-        // 最小 JSON ヘルパ: "key":[ "a", "b" ] から文字列配列を返す
-        // Minimal JSON helper: extract string array after a "key": marker
-        private static List<string> ExtractJsonStringArray(string json, string key)
-        {
-            var result = new List<string>();
-            var idx = json.IndexOf(key, StringComparison.Ordinal);
-            if (idx < 0) return result;
-            var lb = json.IndexOf('[', idx);
-            if (lb < 0) return result;
-            var rb = json.IndexOf(']', lb);
-            if (rb < 0) return result;
-            var inside = json.Substring(lb + 1, rb - lb - 1);
-            var pos = 0;
-            while (pos < inside.Length)
-            {
-                var q1 = inside.IndexOf('"', pos);
-                if (q1 < 0) break;
-                var q2 = inside.IndexOf('"', q1 + 1);
-                if (q2 < 0) break;
-                result.Add(inside.Substring(q1 + 1, q2 - q1 - 1));
-                pos = q2 + 1;
-            }
-            return result;
         }
 
         /// <summary>

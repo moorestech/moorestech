@@ -19,5 +19,10 @@ namespace Client.WebUiHost.Common
         {
             return JsonConvert.SerializeObject(obj, Settings);
         }
+
+        public static T Deserialize<T>(string json)
+        {
+            return JsonConvert.DeserializeObject<T>(json, Settings);
+        }
     }
 }
