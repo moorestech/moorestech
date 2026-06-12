@@ -58,6 +58,11 @@ namespace Client.WebUiHost.Boot
                 (kv.Value as IDisposable)?.Dispose();
             }
             _handlers.Clear();
+
+            foreach (var kv in _actionHandlers)
+            {
+                (kv.Value as IDisposable)?.Dispose();
+            }
             _actionHandlers.Clear();
         }
 
@@ -83,19 +88,13 @@ namespace Client.WebUiHost.Boot
             var conn = new Connection(webSocket);
             _connections[id] = conn;
 
-            // 送信ループと受信ループを同時実行
-            // Run send loop and receive loop concurrently
+            // 送信ループと受信ループを同時実行し、fault は完了時に必ずログへ残す
+            // Run send/receive loops concurrently; faults are always logged on completion
             var sendTask = SendLoop(conn, ct);
             var receiveTask = ReceiveLoop(conn, ct);
+            _ = sendTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] send loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
+            _ = receiveTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] receive loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
             await Task.WhenAny(sendTask, receiveTask);
-
-            // 受信ループの fault を観測してログに残す（無痕跡の切断を防ぐ）
-            // Observe receive-loop faults so disconnects never happen silently
-            if (receiveTask.IsFaulted) UnityEngine.Debug.LogWarning($"[WebSocketHub] receive loop faulted: {receiveTask.Exception?.GetBaseException()}");
-
-            // 送信ループの fault も観測する（受信側と対）
-            // Observe send-loop faults as well, mirroring the receive side
-            if (sendTask.IsFaulted) UnityEngine.Debug.LogWarning($"[WebSocketHub] send loop faulted: {sendTask.Exception?.GetBaseException()}");
 
             _connections.TryRemove(id, out _);
         }
@@ -191,6 +190,16 @@ namespace Client.WebUiHost.Boot
             // ハンドラはゲーム状態に触るため必ずメインスレッドで実行する
             // Handlers touch game state, so always run them on the main thread
             await UniTask.SwitchToMainThread();
+
+            // 停止処理と競合した場合はハンドラを実行しない（解体済みゲーム状態の保護）
+            // Skip execution if shutdown cleared the registry while we awaited the main thread
+            if (!_actionHandlers.ContainsKey(msg.Type))
+            {
+                await UniTask.SwitchToTaskPool();
+                conn.EnqueueSend(BuildResultJson(msg.RequestId, false, "host_stopping"));
+                return;
+            }
+
             var result = await handler.ExecuteAsync(msg.Payload);
             await UniTask.SwitchToTaskPool();
 
