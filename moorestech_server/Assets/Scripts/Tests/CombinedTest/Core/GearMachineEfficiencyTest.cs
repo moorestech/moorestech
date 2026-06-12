@@ -140,13 +140,13 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(ProcessState.Processing, plainProcessor.CurrentState);
             Assert.AreEqual(ProcessState.Processing, boostedProcessor.CurrentState);
 
-            // 装着機の加工tick数が速度倍率どおりに短縮されていることを確認する
-            // The boosted machine's processing ticks are shortened exactly by the speed multiplier
+            // 開始tickでは進行しないため、残りtickが速度倍率どおりに短縮された加工時間と一致することを確認する
+            // No progress occurs on the start tick, so the remaining ticks equal the processing time scaled by the speed multiplier
             var speedModule = MasterHolder.ModuleMaster.Modules.Data.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var expectedBoostedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
-            Assert.AreEqual(baseTicks, plainProcessor.ProcessingRecipeTicks);
-            Assert.AreEqual(expectedBoostedTicks, boostedProcessor.ProcessingRecipeTicks);
+            Assert.AreEqual(baseTicks, plainProcessor.RemainingTicks);
+            Assert.AreEqual(expectedBoostedTicks, boostedProcessor.RemainingTicks);
             Assert.Less(expectedBoostedTicks, baseTicks);
 
             // 短縮時間とベース時間の中間点まで進める。装着機にはトレードオフ倍率分スケールしたトルクを毎tick供給する

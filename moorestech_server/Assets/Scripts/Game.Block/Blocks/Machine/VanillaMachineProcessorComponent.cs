@@ -48,7 +48,6 @@ namespace Game.Block.Blocks.Machine
         private List<IItemStack> _pendingOutputs;
         private readonly Random _random = new();
 
-        public uint ProcessingRecipeTicks => _processingRecipeTicks;
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
 
         // 加工中のみモジュール倍率を反映した電力倍率と要求電力（Idleは中立1.0）
