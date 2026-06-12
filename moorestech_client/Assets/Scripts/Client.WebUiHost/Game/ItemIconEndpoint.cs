@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Client.Game.InGame.Context;
 using Core.Master;
@@ -17,7 +19,21 @@ namespace Client.WebUiHost.Game
         public const string PathPrefix = "/api/icons/";
         public const string PathSuffix = ".png";
 
-        private static readonly ConcurrentDictionary<int, byte[]> _pngCache = new();
+        private static readonly ConcurrentDictionary<int, CachedIcon> _pngCache = new();
+
+        // PNG とその ETag（内容ハッシュ）をペアで保持する
+        // Holds a PNG together with its content-hash ETag
+        private readonly struct CachedIcon
+        {
+            public readonly byte[] Png;
+            public readonly string ETag;
+
+            public CachedIcon(byte[] png, string etag)
+            {
+                Png = png;
+                ETag = etag;
+            }
+        }
 
         public static void ClearCache()
         {
@@ -43,20 +59,32 @@ namespace Client.WebUiHost.Game
                 return;
             }
 
-            if (!_pngCache.TryGetValue(itemIdValue, out var png))
+            if (!_pngCache.TryGetValue(itemIdValue, out var cached))
             {
-                png = await EncodePngOnMainThread(itemIdValue);
+                var png = await EncodePngOnMainThread(itemIdValue);
                 if (png == null)
                 {
                     context.Response.StatusCode = 404;
                     return;
                 }
-                _pngCache[itemIdValue] = png;
+                var etag = "\"" + Convert.ToBase64String(MD5.Create().ComputeHash(png)) + "\"";
+                cached = new CachedIcon(png, etag);
+                _pngCache[itemIdValue] = cached;
+            }
+
+            // ItemId は非永続のため長期キャッシュせず、ETag 再検証で内容変化に追随する
+            // ItemIds are not persistent, so rely on ETag revalidation instead of long-lived caching
+            context.Response.Headers["ETag"] = cached.ETag;
+            context.Response.Headers["Cache-Control"] = "no-cache";
+
+            if (context.Request.Headers["If-None-Match"].ToString() == cached.ETag)
+            {
+                context.Response.StatusCode = 304;
+                return;
             }
 
             context.Response.ContentType = "image/png";
-            context.Response.Headers["Cache-Control"] = "public, max-age=86400";
-            await context.Response.Body.WriteAsync(png, 0, png.Length);
+            await context.Response.Body.WriteAsync(cached.Png, 0, cached.Png.Length);
         }
 
         private static async UniTask<byte[]> EncodePngOnMainThread(int itemIdValue)

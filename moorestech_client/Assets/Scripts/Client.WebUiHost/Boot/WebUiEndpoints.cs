@@ -18,6 +18,15 @@ namespace Client.WebUiHost.Boot
     {
         public static void Configure(IApplicationBuilder app, WebSocketHub hub)
         {
+            // エンドポイントの fault を Unity コンソールへ必ず残す（Kestrel の no-op logger 対策）
+            // Always surface endpoint faults to the Unity console (Kestrel's logger is a no-op here)
+            app.Use((context, next) =>
+            {
+                var task = next();
+                _ = task.ContinueWith(t => UnityEngine.Debug.LogError($"[WebUiHost] endpoint faulted: {context.Request.Path} {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
+                return task;
+            });
+
             app.Run(async context =>
             {
                 var path = context.Request.Path.Value ?? "";
