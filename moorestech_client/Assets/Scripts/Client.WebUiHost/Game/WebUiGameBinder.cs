@@ -17,7 +17,13 @@ namespace Client.WebUiHost.Game
         public static void Bind()
         {
             var hub = Boot.WebUiHost.Hub;
-            if (hub == null) return;
+            if (hub == null)
+            {
+                // WebUiHost が起動失敗していると topic/action が一切登録されないため痕跡を残す
+                // Leave a trace when WebUiHost failed to start, since no topics/actions get bound
+                UnityEngine.Debug.LogWarning("[WebUiHost] Bind skipped: hub is null (WebUiHost not started)");
+                return;
+            }
 
             // DI からインベントリコントローラを取得
             // Resolve the inventory controller from DI
@@ -33,6 +39,10 @@ namespace Client.WebUiHost.Game
             // action ハンドラ登録
             // Register action handlers
             hub.RegisterAction(new EchoActionHandler());
+            hub.RegisterAction(new MoveItemActionHandler(controller));
+            hub.RegisterAction(new SplitGrabActionHandler(controller));
+            hub.RegisterAction(new CollectActionHandler(controller));
+            hub.RegisterAction(new SortInventoryActionHandler(controller));
         }
     }
 }

@@ -46,7 +46,13 @@ namespace Client.WebUiHost.Boot
         // Register an action handler (called by WebUiGameBinder)
         public void RegisterAction(IActionHandler handler)
         {
-            _actionHandlers[handler.ActionType] = handler;
+            if (!_actionHandlers.TryAdd(handler.ActionType, handler))
+            {
+                // 同名 ActionType の二重登録は実装ミスなので警告して上書きする
+                // Duplicate ActionType registration is a programming error; warn and overwrite
+                UnityEngine.Debug.LogWarning($"[WebSocketHub] duplicate action handler: {handler.ActionType}");
+                _actionHandlers[handler.ActionType] = handler;
+            }
         }
 
         // 登録済みトピック・actionを全て解除。IDisposable なものは dispose する
