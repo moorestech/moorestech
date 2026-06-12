@@ -36,6 +36,12 @@ namespace Client.WebUiHost.Game.Actions
             // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
             if (fromType == toType && fromSlot == toSlot) return UniTask.FromResult(ActionResult.Success());
 
+            // 移動元の実在チェック。空・数量不足は安定したエラーコードで返す
+            // Validate the source stack; report empty / insufficient stacks with stable error codes
+            var fromItem = fromType == LocalMoveInventoryType.Grab ? _controller.GrabInventory : _controller.LocalPlayerInventory[fromSlot];
+            if (fromItem.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
+            if (fromItem.Count < count) return UniTask.FromResult(ActionResult.Fail("insufficient_count"));
+
             _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
             return UniTask.FromResult(ActionResult.Success());
         }
@@ -58,7 +64,9 @@ namespace Client.WebUiHost.Game.Actions
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            if (!InventoryAreaMapper.TryParseSlotRef(payload?["from"], out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+
+            if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (fromType != LocalMoveInventoryType.MainOrSub) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (_controller.GrabInventory.Id != ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("grab_not_empty"));
 
@@ -90,7 +98,9 @@ namespace Client.WebUiHost.Game.Actions
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            if (!InventoryAreaMapper.TryParseSlotRef(payload?["target"], out var targetType, out var targetSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+
+            if (!InventoryAreaMapper.TryParseSlotRef(payload["target"], out var targetType, out var targetSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
             var inventory = _controller.LocalPlayerInventory;
             var isGrabTarget = targetType == LocalMoveInventoryType.Grab;
@@ -111,7 +121,10 @@ namespace Client.WebUiHost.Game.Actions
             {
                 var added = collectTarget.AddItem(inventory[index]);
                 var moveCount = inventory[index].Count - added.RemainderItemStack.Count;
-                if (moveCount <= 0) continue;
+
+                // 1個も移せないのは集積先が満杯なので終了
+                // Zero movable items means the target stack is full; stop here
+                if (moveCount <= 0) break;
                 _controller.MoveItem(LocalMoveInventoryType.MainOrSub, index, targetType, targetSlot, moveCount);
                 collectTarget = added.ProcessResultItemStack;
 
