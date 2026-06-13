@@ -1,6 +1,7 @@
 using System;
 using Core.Update;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.CleanRoom;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -82,12 +83,19 @@ namespace Tests.CombinedTest.Core
             var world = ServerContext.WorldBlockDatastore;
             var datastore = serviceProvider.GetService<CleanRoomDatastore>();
 
-            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
-            GameUpdater.RunFrames(50); // dirty経由で検出させる
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4)); // V27
+            GameUpdater.RunFrames(50);
             Assert.AreEqual(1, datastore.Rooms.Count);
             var room = datastore.Rooms[0];
-            room.AddImpurity(150.0);
+
+            // 保持帯 C=9 の平衡を作る（A=nq·C=5×9=45, N=9×27=243）→ 行1が持続する。
+            // Stable hold-band C=9 (A=45, q=5, N=243) so threshold row 1 persists across ticks.
+            datastore.AddAirFilter(new Vector3Int(2, 2, 2), new AirFilterStub(5.0));
+            datastore.SetPollutionPerSecondProvider(_ => 45.0);
+            room.AddImpurity(243.0);
             room.SetThresholdIndex(1);
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, datastore.Rooms[0].ThresholdIndex, "sanity: row 1 holds at C=9");
 
             // 遠方に壁を1個置く → 差分更新では既存部屋に触れない。
             // Place a distant wall; incremental update must not touch the existing room.
@@ -99,8 +107,18 @@ namespace Tests.CombinedTest.Core
             // Same instance, same purity state — the essence of incremental update.
             Assert.AreEqual(1, datastore.Rooms.Count);
             Assert.AreSame(room, datastore.Rooms[0], "untouched room keeps its instance");
-            Assert.AreEqual(150.0, datastore.Rooms[0].ImpurityCount, 1e-6);
+            Assert.AreEqual(243.0, datastore.Rooms[0].ImpurityCount, 1.0);
             Assert.AreEqual(1, datastore.Rooms[0].ThresholdIndex);
+        }
+
+        // テスト用フィルタースタブ。固定 q を返す。
+        // Test stub filter returning a fixed q.
+        private sealed class AirFilterStub : ICleanRoomAirFilter
+        {
+            public double RemovalVolumePerSecond { get; }
+            public bool IsDestroy { get; private set; }
+            public AirFilterStub(double q) { RemovalVolumePerSecond = q; }
+            public void Destroy() { IsDestroy = true; }
         }
 
         // 1セルの壁を置くヘルパ。
