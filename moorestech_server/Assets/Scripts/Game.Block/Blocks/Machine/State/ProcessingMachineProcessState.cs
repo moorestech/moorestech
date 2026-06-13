@@ -26,8 +26,8 @@ namespace Game.Block.Blocks.Machine.State
 
         public ProcessState GetNextUpdate()
         {
-            // 加工中はモジュールの電力倍率を反映した要求電力で進行する
-            // Advance using the requested power that reflects the module power multiplier while processing
+            // 電力、モジュールに基づいてこのティックで引くティック数を計算
+            // Calculate the number of ticks to consume this tick based on power and modules
             var effectiveRequestPower = _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier;
             var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_context.CurrentPower, effectiveRequestPower);
 
