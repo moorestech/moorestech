@@ -8,24 +8,14 @@ import type {
 
 const empty = () => ({ itemId: 0, count: 0 });
 
-// 9列×4行のメイン + 9列ホットバー。先頭にクラフト素材を仕込む
-// 9x4 main + 9 hotbar; seed craft materials at the front
+// 9列×4行のメイン + 9列ホットバー。Wood を2スロットに分けて collect の集約を観測可能にする
+// 9x4 main + 9 hotbar; Wood is split across two slots so collect's consolidation is observable
 export const inventory = {
   mainSlots: [
     { itemId: 1, count: 10 },
     { itemId: 2, count: 10 },
-    ...Array.from({ length: 34 }, empty),
-  ],
-  hotbarSlots: Array.from({ length: 9 }, empty),
-  grab: empty(),
-} satisfies PlayerInventoryData;
-
-// collect 実行後の snapshot（同種を1スロットへ集約した想定の canned 結果）
-// Post-collect snapshot (canned: same items consolidated into one slot)
-export const inventoryAfterCollect = {
-  mainSlots: [
-    { itemId: 1, count: 20 },
-    ...Array.from({ length: 35 }, empty),
+    { itemId: 1, count: 5 },
+    ...Array.from({ length: 33 }, empty),
   ],
   hotbarSlots: Array.from({ length: 9 }, empty),
   grab: empty(),

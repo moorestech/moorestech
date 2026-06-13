@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { useTopic, dispatchAction, Topics } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { ItemSlot } from "@/shared/ui";
@@ -16,10 +15,6 @@ export default function InventoryPanel() {
   const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
 
-  // 直近2回の左mousedown時点のgrab保持状態。dblclickはこの先頭（連鎖開始時点）で対象を決める
-  // Grab-held state at the last two left mousedowns; dblclick targets based on the first of the pair
-  const clickGrabHistory = useRef<boolean[]>([]);
-
   if (!inventory) {
     return <div className="text-sm text-gray-400 [grid-area:inv]">connecting...</div>;
   }
@@ -29,7 +24,6 @@ export default function InventoryPanel() {
   // dispatchAction の true は「受理」であり topic 反映完了ではない。表示更新は event 駆動に任せる
   // dispatchAction's true means accepted, not topic-updated; rendering follows topic events
   const onLeftDown = (ref: SlotRef, slot: SlotData, shiftKey: boolean) => {
-    clickGrabHistory.current = [...clickGrabHistory.current.slice(-1), grabHeld];
     if (grabHeld) {
       void dispatchAction("inventory.move_item", { from: GRAB, to: ref, count: inventory.grab.count });
       return;
@@ -51,16 +45,12 @@ export default function InventoryPanel() {
     void dispatchAction("inventory.split", { from: ref });
   };
 
-  // 収集はメイン+ホットバー+開いているサブインベントリ全域が対象（uGUI のダブルクリックと同じ）
-  // Collect sweeps main, hotbar, and any open sub inventory, matching uGUI double-click
-  // dblclick は mousedown 2回分の action が先行し、現在の grab 表示は必ず古い。
-  // 連鎖開始時点（1回目クリック前）の grab 状態で収集先を決める（uGUI と同じ意味論）
-  // Two mousedown actions precede dblclick and the visible grab state is always stale here.
-  // Choose the collect target from the grab state before the first click, matching uGUI semantics
-  const onDoubleClick = (ref: SlotRef, slot: SlotData) => {
-    const grabHeldAtStart = clickGrabHistory.current[0] ?? grabHeld;
-    if (!grabHeldAtStart && slot.count === 0 && !grabHeld) return;
-    void dispatchAction("inventory.collect", { target: grabHeldAtStart ? GRAB : ref });
+  // 収集先（grab か クリックスロットか）は host が自身の現在 grab 状態で決める。
+  // Web はクリックされたスロットを送るだけ。dblclick 時点の grab 表示は古く信用できない
+  // The host decides the target (grab vs clicked slot) from its own current grab state.
+  // The web only sends the clicked slot; the grab view at dblclick time is stale and untrustworthy
+  const onDoubleClick = (ref: SlotRef) => {
+    void dispatchAction("inventory.collect", { slot: ref });
   };
 
   // Shift+クリック: 反対エリアの同種スタック→空スロットの順で移動先を探す
@@ -86,7 +76,7 @@ export default function InventoryPanel() {
         name={itemMaster?.get(slot.itemId)?.name}
         onLeftDown={(shiftKey) => onLeftDown(ref, slot, shiftKey)}
         onRightDown={() => onRightDown(ref, slot)}
-        onDoubleClick={() => onDoubleClick(ref, slot)}
+        onDoubleClick={() => onDoubleClick(ref)}
       />
     );
   };
