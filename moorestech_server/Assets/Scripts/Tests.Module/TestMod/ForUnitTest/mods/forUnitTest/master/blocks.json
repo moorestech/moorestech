@@ -4175,7 +4175,36 @@
       "blockType": "CleanRoomItemHatch",
       "blockGuid": "6779e079-8c31-4375-a75e-ee87bc2dd657",
       "itemGuid": "9a985aac-80d8-4a94-8069-7f1c5a28e725",
-      "blockParam": {},
+      "blockParam": {
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [
+                [-1, 0, 0]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "connectorGuid": "7d794399-9dcb-4bac-b7c8-78c28e1f635a"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [
+                [1, 0, 0]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "connectorGuid": "eefe4fc7-fb0b-410a-8032-621e16fc6410"
+            }
+          ]
+        }
+      },
       "overrideVerticalBlock": {}
     },
     {
@@ -4189,7 +4218,38 @@
       "blockType": "CleanRoomPipeHatch",
       "blockGuid": "f028e91f-ab82-4dd8-8da0-df6cd67bea1d",
       "itemGuid": "3998709b-401c-4c44-ac2e-505027849a56",
-      "blockParam": {},
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [0, 0, 0],
+              "directions": [
+                [-1, 0, 0]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "30d5cba6-d724-41d4-b71a-cdcbcc6ee350"
+            }
+          ],
+          "outflowConnects": [
+            {
+              "connectType": "Fluid",
+              "offset": [0, 0, 0],
+              "directions": [
+                [1, 0, 0]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "38a65e3b-8c00-43fd-9b68-0ab4a2857bcb"
+            }
+          ]
+        }
+      },
       "overrideVerticalBlock": {}
     },
     {
