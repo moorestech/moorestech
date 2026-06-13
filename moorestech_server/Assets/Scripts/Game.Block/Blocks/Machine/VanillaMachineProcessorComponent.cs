@@ -17,7 +17,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IConsumptionMultiplierSource
+    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
     {
         public ProcessState CurrentState { get; private set; } = ProcessState.Idle;
 
@@ -54,11 +54,9 @@ namespace Game.Block.Blocks.Machine
 
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
 
-        // 加工中のみ倍率を適用、Idleは中立1.0
-        // Multiplier applies only while processing
-        public float ConsumptionMultiplier => CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f;
-        public float EffectiveRequestPower => RequestPower * ConsumptionMultiplier;
-
+        public float EffectiveRequestPower => RequestPower * 
+                                              (CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f);
+        
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
