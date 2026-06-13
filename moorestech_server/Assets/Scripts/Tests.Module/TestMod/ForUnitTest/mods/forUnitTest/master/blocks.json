@@ -4259,9 +4259,9 @@
       "blockGuid": "3b000000-0000-0000-0000-000000000002",
       "itemGuid": "3b000000-0000-0000-0000-000000000001",
       "blockParam": {
-        "requiredPower": 100,
+        "requiredPower": 10000,
         "inputSlotCount": 2,
-        "outputSlotCount": 3,
+        "outputSlotCount": 6,
         "inputTankCount": 0,
         "outputTankCount": 0,
         "innerTankCapacity": 0,

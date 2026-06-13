@@ -61,6 +61,10 @@ namespace Game.Block.Factory
             // エアフィルターブロックを登録（IElectricConsumerとして電力システムに自動配線される）。
             // Register the air filter block; it auto-wires into the electric system as IElectricConsumer.
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
+
+            // 専用機械（露光装置）を登録。受信ゲート停止・天井/down-bin抽選を持つ。
+            // Register the dedicated clean-room machine (exposure); it has the receiver gate and ceiling/down-bin draw.
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomMachine, new VanillaCleanRoomMachineTemplate(blockInventoryEvent));
         }
     }
 }
