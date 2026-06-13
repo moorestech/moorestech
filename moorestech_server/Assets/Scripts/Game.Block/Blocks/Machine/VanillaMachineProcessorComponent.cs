@@ -29,9 +29,13 @@ namespace Game.Block.Blocks.Machine
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
 
+        // ステートごとに1インスタンスを持つ簡易ステートマシン
+        // Simple state machine holding one instance per state
+        private Dictionary<ProcessState, IProcessStateHandler> _stateHandlers;
+        private IProcessStateHandler _currentHandler;
+
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-        private readonly MachineModuleEffectComponent _effectComponent;
 
         public readonly float RequestPower;
 
@@ -41,8 +45,18 @@ namespace Game.Block.Blocks.Machine
         private float _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
+        // 開始時に確定した産出予定。セーブで引き継ぐ
+        // Outputs fixed at start; carried through saves
         private List<IItemStack> _pendingOutputs;
         private uint _processingRecipeTicks;
+
+        // モジュール効果は毎回その場で集計する
+        // Module effects are aggregated live on every read
+        private readonly MachineModuleEffectComponent _effectComponent;
+
+        // 同tick生成機械の同シード回避のため共有
+        // Shared to avoid same-tick identical seeds
+        private static readonly Random Random = new();
 
         public float EffectiveRequestPower => RequestPower *
                                               (CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f);
@@ -58,6 +72,8 @@ namespace Game.Block.Blocks.Machine
             _processingRecipe = machineRecipe;
             RequestPower = requestPower;
             _effectComponent = effectComponent;
+
+            InitializeStateHandlers();
         }
 
         public VanillaMachineProcessorComponent(
@@ -70,15 +86,40 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
 
+            _processingRecipe = processingRecipe;
             RequestPower = requestPower;
             RemainingTicks = remainingTicks;
             _effectComponent = effectComponent;
             _pendingOutputs = pendingOutputs;
 
-            _processingRecipe = processingRecipe;
+            // 加工時間はレシピ定義から復元（進捗表示のみに影響）
+            // Restore ticks from the recipe; affects only the progress display
             _processingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
 
             CurrentState = currentState;
+
+            // セーブ復元時は途中状態のためOnEnterは呼ばずハンドラのみ合わせる
+            // On save restore we are mid-state, so just align the handler without OnEnter
+            InitializeStateHandlers();
+        }
+
+        // 自身のセーブデータを単独で構築する
+        // Build this component's save data on its own
+        public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
+        {
+            BlockException.CheckDestroy(this);
+
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
+            return new VanillaMachineProcessorSaveJsonObject
+            {
+                State = (int)CurrentState,
+                RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicks),
+                RecipeGuidStr = RecipeGuid.ToString(),
+                // 産出予定も保存する（Idle時はnull）
+                // Also save the pending outputs (null while idle)
+                PendingOutputs = _pendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+            };
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -120,147 +161,86 @@ namespace Game.Block.Blocks.Machine
                 _currentPower = 0f;
             }
 
-            switch (CurrentState)
+            // 現ステートを更新し、遷移が起きた時のみOnExit→OnEnterを実行
+            // Update the current state; run OnExit→OnEnter only when a transition happens
+            var nextState = _currentHandler.GetNextUpdate();
+            if (nextState != CurrentState)
             {
-                case ProcessState.Idle:
-                    Idle();
-                    break;
-                case ProcessState.Processing:
-                    Processing();
-                    break;
+                _currentHandler.OnExit();
+                CurrentState = nextState;
+                _currentHandler = _stateHandlers[nextState];
+                _currentHandler.OnEnter();
             }
 
-            //ステートの変化を検知した時か、ステートが処理中の時はイベントを発火させる
+            // ステート変化時か処理中はイベントを発火させる
+            // Fire the event on a state change or while processing
             if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
             {
                 _changeState.OnNext(Unit.Default);
                 _lastState = CurrentState;
             }
-
-            #region Internal
-
-            void Idle()
-            {
-                var isGetRecipe = _vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
-                if (!isGetRecipe || !_vanillaMachineInputInventory.IsAllowedToStartProcess()) return;
-
-                // 抽選を開始時に確定し実スタックで容量確認
-                // Fix rolls at start and check capacity with realized stacks
-                var effect = _effectComponent.AggregateCurrent();
-                var realizedOutputs = CreateRealizedOutputs(recipe, effect);
-                if (!_vanillaMachineOutputInventory.CanStoreOutputs(realizedOutputs, CreateFluidOutputs(recipe))) return;
-
-                // 産出物を保持し短縮済み時間で開始
-                // Hold the outputs and start with the scaled time
-                CurrentState = ProcessState.Processing;
-                _processingRecipe = recipe;
-                _pendingOutputs = realizedOutputs;
-
-                var baseTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
-                _processingRecipeTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
-                _vanillaMachineInputInventory.ReduceInputSlot(_processingRecipe);
-                RemainingTicks = _processingRecipeTicks;
-            }
-
-            void Processing()
-            {
-                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, EffectiveRequestPower);
-                if (subTicks >= RemainingTicks)
-                {
-                    RemainingTicks = 0;
-                    CurrentState = ProcessState.Idle;
-
-                    // 旧セーブで産出予定が無い場合のみ再抽選
-                    // Re-roll only when an old save lacks pending outputs
-                    var outputs = _pendingOutputs ?? CreateRealizedOutputs(_processingRecipe, _effectComponent.AggregateCurrent());
-                    _vanillaMachineOutputInventory.InsertOutputSlot(outputs, CreateFluidOutputs(_processingRecipe));
-                    _pendingOutputs = null;
-                }
-                else
-                {
-                    RemainingTicks -= subTicks;
-                }
-
-                // 電力を消費する
-                // Consume power
-                _usedPower = true;
-            }
-
-            // ベース1セットと当選時の追加1セットを生成
-            // Build one base set plus one extra set when the roll succeeds
-            List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect)
-            {
-                var outputs = CreateQualityAppliedOutputs(recipe, effect.QualityShift);
-                if (Random.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift));
-                return outputs;
-            }
-
-            // レシピの液体出力1セットを生成
-            // Build one set of the recipe's fluid outputs
-            List<FluidStack> CreateFluidOutputs(MachineRecipeMasterElement recipe)
-            {
-                var outputs = new List<FluidStack>(recipe.OutputFluids.Length);
-                foreach (var outputFluid in recipe.OutputFluids)
-                {
-                    var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
-                    outputs.Add(new FluidStack(outputFluid.Amount, fluidId));
-                }
-                return outputs;
-            }
-
-            // アイテム出力1セットに品質抽選を適用して生成
-            // Build one output set with quality rolls applied
-            List<IItemStack> CreateQualityAppliedOutputs(MachineRecipeMasterElement recipe, float qualityShift)
-            {
-                var outputs = new List<IItemStack>(recipe.OutputItems.Length);
-                foreach (var outputItem in recipe.OutputItems)
-                {
-                    var stack = ServerContext.ItemStackFactory.Create(outputItem.ItemGuid, outputItem.Count);
-                    outputs.Add(ApplyQualityLevel(stack, qualityShift));
-                }
-                return outputs;
-            }
-
-            // 品質シフトで上位レベル変種へ差し替える
-            // Swap to a higher-level variant per the quality shift
-            IItemStack ApplyQualityLevel(IItemStack output, float qualityShift)
-            {
-                if (qualityShift <= 0f || !MasterHolder.ItemMaster.HasLevelFamily(output.Id)) return output;
-
-                // 整数部=確定、小数部=抽選で+1
-                // Integer part guaranteed; the fraction rolls one more
-                var guaranteed = (int)Math.Floor(qualityShift);
-                var fraction = qualityShift - guaranteed;
-                var extra = Random.NextDouble() < fraction ? 1 : 0;
-                var level = 1 + guaranteed + extra;
-
-                var variantId = MasterHolder.ItemMaster.GetLevelVariantItemId(output.Id, level);
-                if (variantId == output.Id) return output;
-                return ServerContext.ItemStackFactory.Create(variantId, output.Count);
-            }
-
-            #endregion
         }
-        
-        
-        
-        // セーブデータの構築
-        // Build save data
-        public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
+
+        // ステートごとに1インスタンスを生成して保持する
+        // Create and hold one instance per state
+        private void InitializeStateHandlers()
         {
-            BlockException.CheckDestroy(this);
-            
-            // tickを秒数に変換して保存（tick数の変動に対応）
-            // Convert ticks to seconds for storage (to handle tick rate changes)
-            return new VanillaMachineProcessorSaveJsonObject
+            var handlers = new IProcessStateHandler[] { new IdleState(this), new ProcessingState(this) };
+            _stateHandlers = handlers.ToDictionary(handler => handler.State);
+            _currentHandler = _stateHandlers[CurrentState];
+        }
+
+        // ベース1セットと当選時の追加1セットを生成
+        // Build one base set plus one extra set when the roll succeeds
+        private List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect)
+        {
+            var outputs = CreateQualityAppliedOutputs(recipe, effect.QualityShift);
+            if (Random.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateQualityAppliedOutputs(recipe, effect.QualityShift));
+            return outputs;
+        }
+
+        // レシピの液体出力1セットを生成
+        // Build one set of the recipe's fluid outputs
+        private List<FluidStack> CreateFluidOutputs(MachineRecipeMasterElement recipe)
+        {
+            var outputs = new List<FluidStack>(recipe.OutputFluids.Length);
+            foreach (var outputFluid in recipe.OutputFluids)
             {
-                State = (int)CurrentState,
-                RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicks),
-                RecipeGuidStr = RecipeGuid.ToString(),
-                // 産出予定も保存する（Idle時はnull）
-                // Also save the pending outputs (null while idle)
-                PendingOutputs = _pendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-            };
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid);
+                outputs.Add(new FluidStack(outputFluid.Amount, fluidId));
+            }
+            return outputs;
+        }
+
+        // アイテム出力1セットに品質抽選を適用して生成
+        // Build one output set with quality rolls applied
+        private List<IItemStack> CreateQualityAppliedOutputs(MachineRecipeMasterElement recipe, float qualityShift)
+        {
+            var outputs = new List<IItemStack>(recipe.OutputItems.Length);
+            foreach (var outputItem in recipe.OutputItems)
+            {
+                var stack = ServerContext.ItemStackFactory.Create(outputItem.ItemGuid, outputItem.Count);
+                outputs.Add(ApplyQualityLevel(stack, qualityShift));
+            }
+            return outputs;
+        }
+
+        // 品質シフトで上位レベル変種へ差し替える
+        // Swap to a higher-level variant per the quality shift
+        private IItemStack ApplyQualityLevel(IItemStack output, float qualityShift)
+        {
+            if (qualityShift <= 0f || !MasterHolder.ItemMaster.HasLevelFamily(output.Id)) return output;
+
+            // 整数部=確定、小数部=抽選で+1
+            // Integer part guaranteed; the fraction rolls one more
+            var guaranteed = (int)Math.Floor(qualityShift);
+            var fraction = qualityShift - guaranteed;
+            var extra = Random.NextDouble() < fraction ? 1 : 0;
+            var level = 1 + guaranteed + extra;
+
+            var variantId = MasterHolder.ItemMaster.GetLevelVariantItemId(output.Id, level);
+            if (variantId == output.Id) return output;
+            return ServerContext.ItemStackFactory.Create(variantId, output.Count);
         }
 
         public bool IsDestroy { get; private set; }
@@ -268,8 +248,97 @@ namespace Game.Block.Blocks.Machine
         {
             IsDestroy = true;
         }
-        
-        private static readonly Random Random = new();
+
+        // 各加工ステートの共通インターフェース
+        // Common interface for each processing state
+        private interface IProcessStateHandler
+        {
+            ProcessState State { get; }
+            void OnEnter();
+            ProcessState GetNextUpdate();
+            void OnExit();
+        }
+
+        // 待機ステート。レシピが揃えば開始情報を確定し加工へ遷移する
+        // Idle state: fixes the start info and transitions to processing once a recipe is ready
+        private class IdleState : IProcessStateHandler
+        {
+            private readonly VanillaMachineProcessorComponent _owner;
+            public IdleState(VanillaMachineProcessorComponent owner) { _owner = owner; }
+
+            public ProcessState State => ProcessState.Idle;
+            public void OnEnter() { }
+            public void OnExit() { }
+
+            public ProcessState GetNextUpdate()
+            {
+                // レシピの有無と開始可否を確認
+                // Check the recipe presence and whether processing may start
+                var isGetRecipe = _owner._vanillaMachineInputInventory.TryGetRecipeElement(out var recipe);
+                if (!isGetRecipe || !_owner._vanillaMachineInputInventory.IsAllowedToStartProcess()) return ProcessState.Idle;
+
+                // 抽選を開始時に確定し実スタックで容量確認
+                // Fix rolls at start and check capacity with realized stacks
+                var effect = _owner._effectComponent.AggregateCurrent();
+                var realizedOutputs = _owner.CreateRealizedOutputs(recipe, effect);
+                if (!_owner._vanillaMachineOutputInventory.CanStoreOutputs(realizedOutputs, _owner.CreateFluidOutputs(recipe))) return ProcessState.Idle;
+
+                // 産出物と短縮済み時間を確定して加工へ遷移
+                // Fix the outputs and the scaled time, then transition to processing
+                _owner._processingRecipe = recipe;
+                _owner._pendingOutputs = realizedOutputs;
+                var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
+                _owner._processingRecipeTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
+                return ProcessState.Processing;
+            }
+        }
+
+        // 加工ステート。電力に応じて進行し、完了で待機へ戻る
+        // Processing state: advances with power and returns to idle on completion
+        private class ProcessingState : IProcessStateHandler
+        {
+            private readonly VanillaMachineProcessorComponent _owner;
+            public ProcessingState(VanillaMachineProcessorComponent owner) { _owner = owner; }
+
+            public ProcessState State => ProcessState.Processing;
+
+            // 開始時に入力を消費し残りtickを設定する
+            // Consume inputs and set remaining ticks on start
+            public void OnEnter()
+            {
+                _owner._vanillaMachineInputInventory.ReduceInputSlot(_owner._processingRecipe);
+                _owner.RemainingTicks = _owner._processingRecipeTicks;
+            }
+
+            public ProcessState GetNextUpdate()
+            {
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_owner._currentPower, _owner.EffectiveRequestPower);
+
+                // 電力を消費する
+                // Consume power
+                _owner._usedPower = true;
+
+                // 残りtickを使い切ったら完了して待機へ
+                // Once remaining ticks are exhausted, finish and return to idle
+                if (subTicks >= _owner.RemainingTicks)
+                {
+                    _owner.RemainingTicks = 0;
+                    return ProcessState.Idle;
+                }
+
+                _owner.RemainingTicks -= subTicks;
+                return ProcessState.Processing;
+            }
+
+            // 完了時に産出物を払い出す（旧セーブは産出予定が無いため再抽選）
+            // Output the produced items on completion (re-roll for old saves that lack pending outputs)
+            public void OnExit()
+            {
+                var outputs = _owner._pendingOutputs ?? _owner.CreateRealizedOutputs(_owner._processingRecipe, _owner._effectComponent.AggregateCurrent());
+                _owner._vanillaMachineOutputInventory.InsertOutputSlot(outputs, _owner.CreateFluidOutputs(_owner._processingRecipe));
+                _owner._pendingOutputs = null;
+            }
+        }
     }
 
     public static class ProcessStateExtension
