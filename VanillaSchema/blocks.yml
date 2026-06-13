@@ -114,6 +114,7 @@ properties:
       - CleanRoomDoorHatch
       - CleanRoomItemHatch
       - CleanRoomPipeHatch
+      - CleanRoomAirFilter
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -817,6 +818,31 @@ properties:
       - when: CleanRoomPipeHatch
         type: object
         properties: []
+      - when: CleanRoomAirFilter
+        type: object
+        implementationInterface:
+        - IInventoryConnectors
+        properties:
+        - key: removalVolumePerSecond
+          type: number
+          default: 5
+        - key: requiredPower
+          type: number
+          default: 100
+        - key: filterCapacity
+          type: number
+          default: 5000
+        - key: filterItemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: filterItemSlotCount
+          type: integer
+          default: 1
+        - key: inventoryConnectors
+          ref: inventoryConnects
 
     - key: overrideVerticalBlock
       type: object

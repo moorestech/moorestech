@@ -4193,6 +4193,61 @@
       "overrideVerticalBlock": {}
     },
     {
+      "modelTransform": {
+        "scale": [1, 1, 1],
+        "rotation": [0, 0, 0],
+        "position": [0, 0, 0]
+      },
+      "blockSize": [1, 1, 1],
+      "maxStack": 100,
+      "name": "TestCleanRoomAirFilter",
+      "blockType": "CleanRoomAirFilter",
+      "blockGuid": "00000000-0000-0000-0000-0000000000f2",
+      "itemGuid": "00000000-0000-0000-1234-0000000000f2",
+      "blockParam": {
+        "removalVolumePerSecond": 5.0,
+        "requiredPower": 100,
+        "filterCapacity": 5000,
+        "filterItemGuid": "00000000-0000-0000-1234-0000000000f1",
+        "filterItemSlotCount": 1,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [
+                [1, 0, 0],
+                [-1, 0, 0],
+                [0, 0, 1],
+                [0, 0, -1]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "connectorGuid": "f2000000-0000-0000-0000-0000000000f2"
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [
+                [1, 0, 0],
+                [-1, 0, 0],
+                [0, 0, 1],
+                [0, 0, -1]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "connectorGuid": "f2000000-0000-0000-0000-0000000000f3"
+            }
+          ]
+        }
+      },
+      "overrideVerticalBlock": {}
+    },
+    {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
       "itemGuid": "11110009-0000-0000-0000-000000000000",
       "name": "TestElectricToGearGenerator",

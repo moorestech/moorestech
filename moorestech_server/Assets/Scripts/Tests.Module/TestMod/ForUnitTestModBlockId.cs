@@ -70,5 +70,7 @@ namespace Tests.Module.TestMod
         public static BlockId CleanRoomDoorHatchId => GetBlock("f8205aa0-daf3-44bb-926d-c1315df6bf60");
         public static BlockId CleanRoomItemHatchId => GetBlock("6779e079-8c31-4375-a75e-ee87bc2dd657");
         public static BlockId CleanRoomPipeHatchId => GetBlock("f028e91f-ab82-4dd8-8da0-df6cd67bea1d");
+        public static BlockId CleanRoomAirFilterId => GetBlock("00000000-0000-0000-0000-0000000000f2");
+        public static System.Guid CleanRoomFilterItemGuid => System.Guid.Parse("00000000-0000-0000-1234-0000000000f1");
     }
 }
