@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.Machine
     {
         public ProcessState CurrentState => _context.CurrentState;
         public uint RemainingTicks => _context.RemainingTicks;
-        public Guid RecipeGuid => _context.ProcessingRecipe?.MachineRecipeGuid ?? Guid.Empty;
+        public Guid RecipeGuid => _processingState.RecipeGuid;
         public float RequestPower => _context.RequestPower;
 
         // 加工中のみモジュールの電力倍率を適用した要求電力
@@ -32,6 +32,10 @@ namespace Game.Block.Blocks.Machine
         private readonly Subject<Unit> _changeState = new();
 
         private readonly MachineProcessContext _context;
+
+        // 加工ジョブを所有するProcessingStateへの型付き参照（RecipeGuid等の問い合わせに使う）
+        // Typed reference to the ProcessingState that owns the job (used to query RecipeGuid etc.)
+        private readonly ProcessingMachineProcessState _processingState;
 
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
         private IMachineProcessState _currentHandler;
@@ -58,17 +62,21 @@ namespace Game.Block.Blocks.Machine
             {
                 CurrentState = currentState,
                 RemainingTicks = remainingTicks,
-                ProcessingRecipe = processingRecipe,
-                ProcessingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0,
-                PendingOutputs = pendingOutputs,
             };
-            
+
+            _processingState = new ProcessingMachineProcessState(_context);
+
+            // セーブ復元時は加工ジョブをProcessingStateへ与える（新規時はrecipe=nullの空ジョブ）
+            // On restore, hand the job to ProcessingState (fresh creation passes recipe=null for an empty job)
+            var totalTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
+            _processingState.SetProcessing(processingRecipe, pendingOutputs, totalTicks);
+
             _stateHandlers = new IMachineProcessState[]
                 {
-                    new IdleMachineProcessState(_context),
-                    new ProcessingMachineProcessState(_context),
+                    new IdleMachineProcessState(_context, _processingState),
+                    _processingState,
                 }.ToDictionary(handler => handler.State);
-            
+
             _currentHandler = _stateHandlers[_context.CurrentState];
         }
 
@@ -76,7 +84,7 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
 
-            var processingRate = Mathf.Clamp01(_context.ProcessingRecipeTicks > 0 ? 1f - (float)_context.RemainingTicks / _context.ProcessingRecipeTicks : 0f);
+            var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_context.RemainingTicks / _processingState.TotalTicks : 0f);
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, _context.CurrentState.ToStr(), _lastState.ToStr());
             
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid);
@@ -145,7 +153,7 @@ namespace Game.Block.Blocks.Machine
                 State = (int)_context.CurrentState,
                 RemainingSeconds = GameUpdater.TicksToSeconds(_context.RemainingTicks),
                 RecipeGuidStr = RecipeGuid.ToString(),
-                PendingOutputs = _context.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                PendingOutputs = _processingState.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
         }
     }

@@ -4,15 +4,17 @@ using Game.Block.Blocks.Machine.State.Util;
 
 namespace Game.Block.Blocks.Machine.State
 {
-    // 待機ステート。レシピが揃えば開始情報を確定し加工へ遷移する
-    // Idle state: fixes the start info and transitions to processing once a recipe is ready
+    // 待機ステート。レシピが揃えば加工ジョブを確定し加工へ遷移する
+    // Idle state: fixes the processing job and transitions to processing once a recipe is ready
     internal class IdleMachineProcessState : IMachineProcessState
     {
         private readonly MachineProcessContext _context;
+        private readonly ProcessingMachineProcessState _processingState;
 
-        public IdleMachineProcessState(MachineProcessContext context)
+        public IdleMachineProcessState(MachineProcessContext context, ProcessingMachineProcessState processingState)
         {
             _context = context;
+            _processingState = processingState;
         }
 
         public ProcessState State => ProcessState.Idle;
@@ -38,13 +40,12 @@ namespace Game.Block.Blocks.Machine.State
                 return ProcessState.Idle;
             }
 
-            // 産出物と短縮済み時間を確定して加工へ遷移
-            // Fix the outputs and the scaled time, then transition to processing
-            _context.ProcessingRecipe = recipe;
-            _context.PendingOutputs = realizedOutputs;
+            // 産出物と短縮済み時間を確定し、加工ジョブをProcessingStateへ渡して遷移
+            // Fix the outputs and the scaled time, hand the job to ProcessingState, then transition
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
-            _context.ProcessingRecipeTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
-            
+            var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
+            _processingState.SetProcessing(recipe, realizedOutputs, totalTicks);
+
             return ProcessState.Processing;
         }
     }

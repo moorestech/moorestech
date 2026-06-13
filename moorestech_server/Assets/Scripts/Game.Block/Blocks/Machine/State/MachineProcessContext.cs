@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using Core.Item.Interface;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
-using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
 {
@@ -17,11 +14,6 @@ namespace Game.Block.Blocks.Machine.State
 
         public ProcessState CurrentState = ProcessState.Idle;
         public uint RemainingTicks;
-        public MachineRecipeMasterElement ProcessingRecipe;
-        // 開始時に確定した産出予定。セーブで引き継ぐ
-        // Outputs fixed at start; carried through saves
-        public List<IItemStack> PendingOutputs;
-        public uint ProcessingRecipeTicks;
         public float CurrentPower;
         public bool UsedPower;
 
