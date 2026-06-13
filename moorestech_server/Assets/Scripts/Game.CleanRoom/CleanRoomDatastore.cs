@@ -56,12 +56,14 @@ namespace Game.CleanRoom
         // Pollution provider seam; defaults to A_total from geometry + connectors (phase-3 wiring). Tests may override.
         private Func<CleanRoom, double> _pollutionPerSecondProvider = DefaultPollutionPerSecond;
 
-        // 既定の汚染レート: 機械数0・ハッチ搬送0で A_total を算出する（フェーズ4/5で実供給）。
-        // Default pollution rate: A_total with zero machines and zero hatch throughput (phases 4/5 supply the real values).
+        // 既定の汚染レート: 接続点・アイテムハッチ搬送・稼働機械を実走査して A_total を算出する。
+        // 接続点とハッチスループットは同一境界走査で集計（二重走査回避）。機械は内部セル走査。
+        // Default pollution rate: scan connectors + item-hatch throughput (single boundary pass) + running machines for A_total.
         private static double DefaultPollutionPerSecond(CleanRoom room)
         {
-            var connectorCount = CleanRoomPollutionCalculator.CountConnectors(room);
-            return CleanRoomPollutionCalculator.ComputeATotal(room.Volume, room.SurfaceArea, connectorCount, 0, 0.0);
+            CleanRoomPollutionCalculator.ScanBoundary(room, out var connectorCount, out var hatchThroughput);
+            var runningMachineCount = CleanRoomPollutionCalculator.CountRunningMachines(room);
+            return CleanRoomPollutionCalculator.ComputeATotal(room.Volume, room.SurfaceArea, connectorCount, runningMachineCount, hatchThroughput);
         }
 
         // エアフィルター登録（セル→フィルター）。フェーズ3のブロックが設置/破壊時に呼ぶ。
@@ -219,6 +221,24 @@ namespace Game.CleanRoom
             }
             room = found;
             return found != null;
+        }
+
+        // 境界ブロックの占有セルの6近傍を部屋セルマップに照合し、面する部屋を重複なしで返す。
+        // 境界セル自体は Cells に属さないため部屋内クエリでは引けない。共有境界では複数返り得る（0.5）。
+        // Resolve the rooms facing a boundary block via its occupied cells' 6-neighbors (deduplicated). May return multiple (§0.5).
+        public IReadOnlyList<CleanRoom> GetAdjacentCleanRooms(IBlock boundaryBlock)
+        {
+            var result = new List<CleanRoom>();
+            var info = boundaryBlock.BlockPositionInfo;
+            for (var x = info.MinPos.x; x <= info.MaxPos.x; x++)
+            for (var y = info.MinPos.y; y <= info.MaxPos.y; y++)
+            for (var z = info.MinPos.z; z <= info.MaxPos.z; z++)
+            foreach (var n in SixNeighbors(new Vector3Int(x, y, z)))
+            {
+                if (!TryGetCleanRoomAt(n, out var room)) continue;
+                if (!result.Contains(room)) result.Add(room);
+            }
+            return result;
         }
 
         public void SetPollutionPerSecondProvider(Func<CleanRoom, double> provider)
@@ -618,6 +638,10 @@ namespace Game.CleanRoom
                 // Update threshold row with ACH = n·q/V.
                 var ach = room.Volume > 0 ? nq / room.Volume : 0.0;
                 room.SetThresholdIndex(CleanRoomPurityRules.DecideThresholdIndex(room.ThresholdIndex, room.Concentration, ach, _thresholdRows));
+
+                // ドアハッチの通過バーストは A_total を経由せず N へ直接加算する（balance §2 の単位注意）。
+                // Door-passage bursts go straight into N, never through A_total (unit note in balance §2).
+                AddDoorBursts(room);
             }
 
             // 孤立状態の猶予を毎tick減らし、切れたら Invalid（破棄は次の再検出時）。
@@ -629,6 +653,25 @@ namespace Game.CleanRoom
                 if (remaining > 0.0) orphan.SetStatus(CleanRoomRoomStatus.Degraded, remaining);
                 else orphan.SetStatus(CleanRoomRoomStatus.Invalid, 0.0);
             }
+        }
+
+        // 部屋に面するドアハッチの保留バーストを合算して N へ直接加算する（peek は非破壊＝共有境界は両部屋に全額計上）。
+        // 部屋セルの6近傍の境界ブロック → ICleanRoomDoorHatch を BlockInstanceId で重複排除して集める。
+        // Sum the pending bursts of door hatches facing the room and add straight to N (peek non-destructive -> both shared-boundary rooms book the full burst).
+        private void AddDoorBursts(CleanRoom room)
+        {
+            var seen = new HashSet<BlockInstanceId>();
+            var burst = 0.0;
+            foreach (var cell in room.Cells)
+            foreach (var n in SixNeighbors(cell))
+            {
+                if (room.Contains(n)) continue;
+                if (!_worldBlockDatastore.TryGetBlock(n, out var block)) continue;
+                if (!seen.Add(block.BlockInstanceId)) continue;
+                if (block.TryGetComponent<ICleanRoomDoorHatch>(out var door))
+                    burst += door.PeekPendingBurst();
+            }
+            if (burst > 0.0) room.AddImpurity(burst);
         }
 
         // 部屋に属するフィルターを集める（登録セルが部屋の Cells に含まれるもの）。

@@ -10,7 +10,12 @@ using Game.Fluid;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Blocks.Machine;
+using Game.CleanRoom;
+using Game.CleanRoom.Machine;
 using Game.Context;
+using Game.EnergySystem;
+using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -183,5 +188,314 @@ namespace Tests.CombinedTest.Core
             GameUpdater.RunFrames(1);
             Assert.AreEqual(0.0, door.PeekPendingBurst(), 1e-9);
         }
+
+        // 境界ハッチから「面する部屋」を引ける。境界セル自体は部屋に属さない
+        // A boundary hatch resolves its facing room(s); the boundary cell itself belongs to no room
+        [Test]
+        public void AdjacentRooms_BoundaryHatchResolvesItsFacingRoom()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // 壁シェル (0,0,0)-(4,4,4)。x=0 面の壁1枚 (0,2,2) をアイテムハッチに置換（出力+Xが室内向き＝搬入用）
+            // Wall shell (0,0,0)-(4,4,4); replace one x=0 wall block with an item hatch (output +X faces inside = import)
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            ReplaceWith(world, new Vector3Int(0, 2, 2), ForUnitTestModBlockId.CleanRoomItemHatchId);
+            GameUpdater.RunFrames(2);
+
+            Assert.True(world.TryGetBlock(new Vector3Int(0, 2, 2), out IBlock hatchBlock));
+
+            // 境界セルは部屋に属さない（部屋内クエリは false）
+            // The boundary cell belongs to no room (the in-room query returns false)
+            Assert.False(datastore.TryGetCleanRoomAt(new Vector3Int(0, 2, 2), out _));
+
+            // 面する部屋はちょうど1つで、室内セルの部屋と一致する
+            // Exactly one facing room, identical to the interior cell's room
+            var adjacent = datastore.GetAdjacentCleanRooms(hatchBlock);
+            Assert.AreEqual(1, adjacent.Count);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room));
+            Assert.AreSame(room, adjacent[0]);
+        }
+
+        // 搬入ハッチの搬送が続く窓では、無搬送窓より N の増分が大きい（A_hatch がレートとして効く）
+        // While the import hatch keeps relaying, N grows faster than in the idle window (A_hatch as a rate term)
+        [Test]
+        public void Pollution_ImportHatchThroughputRaisesImpurity()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // x=0 面ハッチ＋室内チェスト (1,2,2)（ハッチ出力+X の先）
+            // Hatch on the x=0 face + interior chest at (1,2,2) (ahead of the hatch's +X output)
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            ReplaceWith(world, new Vector3Int(0, 2, 2), ForUnitTestModBlockId.CleanRoomItemHatchId);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(1, 2, 2),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryGetBlock(new Vector3Int(0, 2, 2), out IBlock hatchBlock);
+            Assert.True(hatchBlock.TryGetComponent<CleanRoomItemHatchComponent>(out var hatch));
+            GameUpdater.RunFrames(2);
+
+            // 無搬送の10tick窓の N 増分（恒常項のみ）
+            // N delta over a 10-tick idle window (continuous terms only)
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room0));
+            var n0 = room0.ImpurityCount;
+            GameUpdater.RunFrames(10);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room1));
+            var idleDelta = room1.ImpurityCount - n0;
+
+            // 毎tick1個搬入してレート窓（20tick）を飽和させてから測定窓に入る（窓ランプの過小評価を排除）
+            // Feed one item per tick to saturate the 20-tick rate window before measuring (avoids window-ramp underestimation)
+            for (var i = 0; i < CleanRoomItemHatchComponent.HatchRateWindowTicks; i++)
+            {
+                hatch.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
+                GameUpdater.RunFrames(1);
+            }
+            Assert.Greater(hatch.RecentThroughputPerSecond, 0.0, "throughput saturated before the measurement window");
+
+            // 飽和後の10tick窓の N 増分（毎tick搬入継続）
+            // N delta over a 10-tick window after saturation (keep feeding each tick)
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room2));
+            var n1 = room2.ImpurityCount;
+            for (var i = 0; i < 10; i++)
+            {
+                hatch.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1), InsertItemContext.Empty);
+                GameUpdater.RunFrames(1);
+            }
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room3));
+            var activeDelta = room3.ImpurityCount - n1;
+
+            // A_hatch ≈ k_hatch(0.30) × スループット の分だけ増分が上回る
+            // The delta exceeds idle by ~k_hatch × throughput
+            Assert.Greater(activeDelta, idleDelta + 1.0, "A_hatch raises N while throughput is positive");
+        }
+
+        // 搬出ハッチ（max-X 面・入力が室内向き）でもスループットが N に計上される（0.8 の向き仕様）
+        // An export hatch (max-X face, input facing inside) also books its throughput into N (§0.8)
+        [Test]
+        public void Pollution_ExportHatchThroughputAlsoRaisesImpurity()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // x=4 面の壁1枚 (4,2,2) をハッチに置換（入力−X が室内向き＝搬出用）。室内チェストが自動 push する
+            // Replace one x=4 wall block with a hatch (input −X faces inside = export); the interior chest auto-pushes
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            ReplaceWith(world, new Vector3Int(4, 2, 2), ForUnitTestModBlockId.CleanRoomItemHatchId);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(3, 2, 2),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var innerChest);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(5, 2, 2),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            GameUpdater.RunFrames(2);
+
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room0));
+            var n0 = room0.ImpurityCount;
+            GameUpdater.RunFrames(10);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room1));
+            var idleDelta = room1.ImpurityCount - n0;
+
+            // 室内チェストへアイテムを補充 → チェストがハッチへ自動 push → ハッチが外チェストへ中継
+            // Stock the interior chest → it auto-pushes into the hatch → the hatch relays outward
+            Assert.True(innerChest.TryGetComponent<IBlockInventory>(out var chestInv));
+            var n1 = room1.ImpurityCount;
+            chestInv.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 10));
+            GameUpdater.RunFrames(10);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room2));
+            var activeDelta = room2.ImpurityCount - n1;
+
+            Assert.Greater(activeDelta, idleDelta + 0.5, "Export throughput also counts toward A_hatch");
+        }
+
+        // 通過1回でちょうど burst_door(15) が N へ加算され、以降のtickで再加算されない
+        // One passage adds exactly burst_door (15) to N, with no re-addition on later ticks
+        [Test]
+        public void Pollution_DoorPassageAddsBurstToImpurityExactlyOnce()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            ReplaceWith(world, new Vector3Int(0, 2, 2), ForUnitTestModBlockId.CleanRoomDoorHatchId);
+            world.TryGetBlock(new Vector3Int(0, 2, 2), out IBlock doorBlock);
+            Assert.True(doorBlock.TryGetComponent<CleanRoomDoorHatchComponent>(out var door));
+            GameUpdater.RunFrames(2);
+
+            // 無通過の2tick窓の増分（恒常項のみ。除去0なので毎tick一定）
+            // Delta over an idle 2-tick window (continuous terms only; constant per tick with zero removal)
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room0));
+            var n0 = room0.ImpurityCount;
+            GameUpdater.RunFrames(2);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room1));
+            var idleDelta = room1.ImpurityCount - n0;
+
+            // 通過1回 → 2tick以内に latch→計上が完了し、増分 = idleDelta + 15
+            // One passage → latch + booking complete within 2 ticks; delta = idleDelta + 15
+            var n1 = room1.ImpurityCount;
+            door.NotifyPlayerPassage();
+            GameUpdater.RunFrames(2);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room2));
+            var burstDelta = room2.ImpurityCount - n1;
+            Assert.AreEqual(15.0, burstDelta - idleDelta, 1e-6, "Exactly burst_door lands in N");
+
+            // さらに2tick → 増分は恒常項のみ（バーストの二重計上なし）
+            // Two more ticks → only the continuous terms (no double-booking of the burst)
+            var n2 = room2.ImpurityCount;
+            GameUpdater.RunFrames(2);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var room3));
+            Assert.AreEqual(idleDelta, room3.ImpurityCount - n2, 1e-6, "No re-addition on later ticks");
+        }
+
+        // 2部屋の共有境界にあるドアハッチは、面する両部屋へ全額バーストを加算する（0.5 の確定規則）
+        // A door hatch on a shared boundary books the full burst into every facing room (§0.5)
+        [Test]
+        public void Pollution_SharedBoundaryDoorBurstsAllFacingRooms()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // x=4 平面を共有する2つの壁シェル。共有壁の1枚 (4,2,2) をドアハッチに置換
+            // Two shells sharing the x=4 plane; replace one shared-wall block (4,2,2) with a door hatch
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            BuildWallShell(world, new Vector3Int(4, 0, 0), new Vector3Int(8, 4, 4));
+            ReplaceWith(world, new Vector3Int(4, 2, 2), ForUnitTestModBlockId.CleanRoomDoorHatchId);
+            world.TryGetBlock(new Vector3Int(4, 2, 2), out IBlock doorBlock);
+            Assert.True(doorBlock.TryGetComponent<CleanRoomDoorHatchComponent>(out var door));
+            GameUpdater.RunFrames(2);
+
+            // 面する部屋は2つ
+            // The door faces two rooms
+            Assert.AreEqual(2, datastore.GetAdjacentCleanRooms(doorBlock).Count);
+
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var roomA0));
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(6, 2, 2), out var roomB0));
+            var a0 = roomA0.ImpurityCount;
+            var b0 = roomB0.ImpurityCount;
+            GameUpdater.RunFrames(2);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var roomA1));
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(6, 2, 2), out var roomB1));
+            var idleDeltaA = roomA1.ImpurityCount - a0;
+            var idleDeltaB = roomB1.ImpurityCount - b0;
+
+            // 通過1回 → 両部屋とも +15（全額。按分しない）
+            // One passage → both rooms gain the full +15 (no splitting)
+            var a1 = roomA1.ImpurityCount;
+            var b1 = roomB1.ImpurityCount;
+            door.NotifyPlayerPassage();
+            GameUpdater.RunFrames(2);
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out var roomA2));
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(6, 2, 2), out var roomB2));
+            Assert.AreEqual(15.0, (roomA2.ImpurityCount - a1) - idleDeltaA, 1e-6, "Room A books the full burst");
+            Assert.AreEqual(15.0, (roomB2.ImpurityCount - b1) - idleDeltaB, 1e-6, "Room B books the full burst");
+        }
+
+        // I-1: 密閉室内で稼働中の専用機械は A_machine(2.0/s) 分だけ N 増分を増やす（同一ジオメトリの稼働/非稼働窓を比較）
+        // I-1: a running dedicated machine raises the N delta by ~A_machine (2.0/s) vs an idle window on the SAME geometry
+        [Test]
+        public void Pollution_RunningMachineRaisesImpurityByAMachine()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // 密閉室 (0,0,0)-(6,4,6)。機械を内部 (2,2,2) に設置（占有1セル）。フィルター無し＝除去0で N は単調増加
+            // Sealed room; place the machine at an interior cell. No filter -> zero removal so N grows monotonically
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(6, 4, 6));
+            var recipe = FindExposureRecipe();
+            var machineBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            world.TryAddBlock(machineBlockId, new Vector3Int(2, 2, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
+            GameUpdater.RunFrames(2);
+
+            var proc = machineBlock.GetComponent<CleanRoomMachineProcessorComponent>();
+            var electric = machineBlock.GetComponent<CleanRoomMachineElectricComponent>();
+            var inventory = machineBlock.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+
+            Assert.True(datastore.TryGetCleanRoom(machineBlock, out var room), "machine belongs to one room");
+
+            // 機械が止まっている（入力なし＝Idle）窓の N 増分 — 同一ジオメトリの基準
+            // Idle window N delta (no inputs -> Idle) on the SAME geometry as the running window
+            const int window = 20;
+            var nIdle0 = room.ImpurityCount;
+            for (var i = 0; i < window; i++)
+            {
+                electric.SupplyEnergy(new ElectricPower(10000f));
+                GameUpdater.UpdateOneTick();
+            }
+            var idleDelta = room.ImpurityCount - nIdle0;
+            Assert.AreEqual(ProcessState.Idle, proc.CurrentState, "machine idle without inputs");
+
+            // 入力＋給電を与えて稼働させ、同じ長さの窓で N 増分を測る
+            // Load inputs + power so the machine runs; measure the N delta over an identical window
+            foreach (var inputItem in recipe.InputItems)
+                inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count * 50));
+            // 稼働開始させてから測定窓に入る（Processing 中の汚染を測る）
+            // Get it into Processing before the measurement window (measure pollution while Processing)
+            for (var i = 0; i < 5; i++)
+            {
+                electric.SupplyEnergy(new ElectricPower(10000f));
+                GameUpdater.UpdateOneTick();
+            }
+            Assert.AreEqual(ProcessState.Processing, proc.CurrentState, "machine running with inputs+power");
+
+            var nRun0 = room.ImpurityCount;
+            for (var i = 0; i < window; i++)
+            {
+                electric.SupplyEnergy(new ElectricPower(10000f));
+                GameUpdater.UpdateOneTick();
+                Assert.AreEqual(ProcessState.Processing, proc.CurrentState, "stays running across the window");
+            }
+            var runDelta = room.ImpurityCount - nRun0;
+
+            // 稼働窓は A_machine·dt·window = 2.0 × (1/20) × 20 = 2.0 ぶん増分が大きい（除去0なので一定）
+            // The running window adds A_machine·dt·window = 2.0 × (1/20) × 20 = 2.0 more than idle (constant, zero removal)
+            var expectedExtra = 2.0 * GameUpdater.SecondsPerTick * window;
+            Assert.AreEqual(expectedExtra, runDelta - idleDelta, 1e-6, "Running machine adds A_machine to the room's N rate");
+        }
+
+        #region Internal
+
+        // 露光レシピ（CleanRoomMachine）のレシピ要素を見つける。
+        // Find the exposure-recipe element (the CleanRoom machine).
+        private static Mooresmaster.Model.MachineRecipesModule.MachineRecipeMasterElement FindExposureRecipe()
+        {
+            foreach (var r in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
+            foreach (var o in r.OutputItems)
+                if (MasterHolder.SemiconductorChipMaster.TryGetDistribution(r.MachineRecipeGuid, o.ItemGuid, out _)) return r;
+            throw new Exception("exposure recipe not found");
+        }
+
+        // min..max の外殻だけ壁を置き、内部を空洞にするヘルパ（フェーズ1テストからコピー）。
+        // Helper: place walls only on the shell of [min,max], leaving the interior hollow (copied from the phase-1 test).
+        private static void BuildWallShell(IWorldBlockDatastore world, Vector3Int min, Vector3Int max)
+        {
+            for (var x = min.x; x <= max.x; x++)
+            for (var y = min.y; y <= max.y; y++)
+            for (var z = min.z; z <= max.z; z++)
+            {
+                var onShell = x == min.x || x == max.x || y == min.y || y == max.y || z == min.z || z == max.z;
+                if (!onShell) continue;
+                world.TryAddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(x, y, z),
+                    BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            }
+        }
+
+        // 既存ブロックを撤去して別ブロックを同セルに設置する（壁→ハッチ置換）。
+        // Remove the existing block and place another at the same cell (wall -> hatch swap).
+        private static void ReplaceWith(IWorldBlockDatastore world, Vector3Int pos, BlockId blockId)
+        {
+            world.RemoveBlock(pos, BlockRemoveReason.ManualRemove);
+            world.TryAddBlock(blockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+        }
+
+        #endregion
     }
 }

@@ -16,12 +16,16 @@ namespace Game.Block.Blocks.CleanRoom
 {
     // VanillaMachineProcessorComponent をコピーして専用化。受信ゲートで開始/凍結を制御し、完了時に決定的 seed で抽選出力する。
     // Copied from VanillaMachineProcessorComponent; gates start/freeze on the receiver and emits via a deterministic cycle seed.
-    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
+    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, ICleanRoomMachineRunningState
     {
         public Guid RecipeGuid => _processingRecipe?.MachineRecipeGuid ?? Guid.Empty;
         public float RequestPower => _requestPower;
         public ProcessState CurrentState { get; private set; }
         public uint RemainingTicks { get; private set; }
+
+        // 稼働中（汚染中）判定。Processing 中は A_machine を部屋へ計上させる（凍結中も Processing 扱いだが部屋は Invalid なので影響しない）。
+        // Running (polluting) when Processing; A_machine is booked while Processing (frozen stays Processing but the room is Invalid anyway).
+        public bool IsRunning => CurrentState == ProcessState.Processing;
 
         // テスト可視カウンタ：出力インベントリから「出力なし（EUV失敗/Out）」通知を受けて加算する
         // Test-visible counter: incremented when the output inventory reports a no-output (EUV fail / Out)

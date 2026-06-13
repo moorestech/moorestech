@@ -37,9 +37,19 @@ namespace Game.CleanRoom.Pollution
         // Count non-Wall boundary blocks (hatches) facing the room; dedupe by BlockInstanceId.
         public static int CountConnectors(CleanRoom room)
         {
+            ScanBoundary(room, out var connectorCount, out _);
+            return connectorCount;
+        }
+
+        // 接続点数とアイテムハッチの合計スループットを同一の境界走査で集計する（二重走査回避）。
+        // BlockInstanceId 単位で重複排除。caching は将来の最適化（毎tick走査のホットスポット）。
+        // Compute connector count and item-hatch throughput in one boundary scan (avoid double-scanning); dedupe by BlockInstanceId.
+        public static void ScanBoundary(CleanRoom room, out int connectorCount, out double hatchThroughputPerSecond)
+        {
             var world = ServerContext.WorldBlockDatastore;
             var seen = new HashSet<BlockInstanceId>();
-            var count = 0;
+            connectorCount = 0;
+            hatchThroughputPerSecond = 0.0;
             foreach (var cell in room.Cells)
             foreach (var n in SixNeighbors(cell))
             {
@@ -47,7 +57,28 @@ namespace Game.CleanRoom.Pollution
                 if (!world.TryGetBlock(n, out var block)) continue;
                 if (!seen.Add(block.BlockInstanceId)) continue;
                 if (!block.TryGetComponent<ICleanRoomBoundaryComponent>(out var boundary)) continue;
-                if (boundary.BoundaryKind != CleanRoomBoundaryKind.Wall) count++;
+                if (boundary.BoundaryKind != CleanRoomBoundaryKind.Wall) connectorCount++;
+
+                // アイテムハッチの直近スループットを A_hatch の素として加算（共有境界は面する各部屋で計上＝0.5）。
+                // Add the item hatch's recent throughput as the basis of A_hatch (shared boundary counts in each facing room, §0.5).
+                if (block.TryGetComponent<ICleanRoomItemHatch>(out var hatch))
+                    hatchThroughputPerSecond += hatch.RecentThroughputPerSecond;
+            }
+        }
+
+        // 部屋の内部セルに在る稼働中の専用機械の台数を数える（BlockInstanceId 単位で重複排除＝マルチセル機械は1）。
+        // Count running dedicated machines occupying the room's interior cells; dedupe by BlockInstanceId (multi-cell = 1).
+        public static int CountRunningMachines(CleanRoom room)
+        {
+            var world = ServerContext.WorldBlockDatastore;
+            var seen = new HashSet<BlockInstanceId>();
+            var count = 0;
+            foreach (var cell in room.Cells)
+            {
+                if (!world.TryGetBlock(cell, out var block)) continue;
+                if (!seen.Add(block.BlockInstanceId)) continue;
+                if (!block.TryGetComponent<ICleanRoomMachineRunningState>(out var machine)) continue;
+                if (machine.IsRunning) count++;
             }
             return count;
         }
