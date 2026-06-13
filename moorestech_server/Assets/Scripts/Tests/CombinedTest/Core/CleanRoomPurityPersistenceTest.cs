@@ -108,6 +108,7 @@ namespace Tests.CombinedTest.Core
             public bool IsDestroy { get; private set; }
             public AirFilterStub(double q) { RemovalVolumePerSecond = q; }
             public void Destroy() { IsDestroy = true; }
+            public void ApplyRemovedImpurity(double removed) { }
         }
 
         // 1セルの壁を置くヘルパ。
