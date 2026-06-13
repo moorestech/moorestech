@@ -43,8 +43,11 @@ namespace Game.CleanRoom
 
         // 全走査で部屋を再構築する。テスト/ロードから明示的にも呼べる。
         // Rebuild all rooms by full scan; callable from tests/load too.
+        // ロード直後に直接呼ばれた場合も dirty が残らないよう、ここでクリアする。
+        // Clear dirty here so a direct call from load sequence does not trigger a redundant full re-scan on the next tick.
         public void RebuildAll()
         {
+            _geometryDirty = false;
             _rooms = CleanRoomDetector.DetectAllRooms(_worldBlockDatastore);
             RebuildCount++;
         }
@@ -85,7 +88,6 @@ namespace Game.CleanRoom
         private void Update()
         {
             if (!_geometryDirty) return;
-            _geometryDirty = false;
             // フェーズ1は全走査。dirty分割・差分更新はフェーズ2が実装する。
             // Phase 1 does a full scan; dirty slicing and diffing land in phase 2.
             RebuildAll();
