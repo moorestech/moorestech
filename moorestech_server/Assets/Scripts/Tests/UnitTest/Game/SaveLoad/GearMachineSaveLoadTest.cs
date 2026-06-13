@@ -53,12 +53,11 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 残りtick数を設定（0.3秒 = 6tick）
             // Set remaining ticks (0.3 seconds = 6 ticks)
-            typeof(VanillaMachineProcessorComponent)
-                .GetProperty("RemainingTicks")
-                .SetValue(vanillaMachineProcessor, 6u);
-            typeof(VanillaMachineProcessorComponent)
-                .GetProperty("CurrentState")
-                .SetValue(vanillaMachineProcessor, ProcessState.Processing);
+            var processContext = typeof(VanillaMachineProcessorComponent)
+                .GetField("_context", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(vanillaMachineProcessor);
+            processContext.GetType().GetField("RemainingTicks").SetValue(processContext, 6u);
+            processContext.GetType().GetField("CurrentState").SetValue(processContext, ProcessState.Processing);
             
             //機械のアウトプットスロットの設定
             var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
