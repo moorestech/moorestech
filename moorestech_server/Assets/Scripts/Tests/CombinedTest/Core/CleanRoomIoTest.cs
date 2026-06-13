@@ -148,5 +148,40 @@ namespace Tests.CombinedTest.Core
             var outflowAmount = outflowInv.GetFluidInventory().Sum(f => f.Amount);
             Assert.Greater(outflowAmount, 0.0, "Relayed fluid reaches the outflow-side pipe");
         }
+
+        // ドアハッチは通過を合算して次tickで latch し、peek は非破壊、さらに次の latch で 0 に戻る
+        // The door hatch latches accumulated passages on the next tick; peek is non-destructive; the next latch clears it
+        [Test]
+        public void DoorHatch_PassageBurstLatchesForExactlyOneTick()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomDoorHatchId, new Vector3Int(0, 0, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var doorBlock);
+
+            // ドアハッチは密閉境界マーカーを持つ（0.3 のドア整合）
+            // The door hatch carries the sealing-boundary marker (door reconciliation §0.3)
+            Assert.True(doorBlock.TryGetComponent<ICleanRoomBoundaryComponent>(out var marker));
+            Assert.AreEqual(CleanRoomBoundaryKind.DoorHatch, marker.BoundaryKind);
+
+            Assert.True(doorBlock.TryGetComponent<CleanRoomDoorHatchComponent>(out var door));
+
+            // 2回通過 → latch 前は 0、latch 後は 2 * burst_door(15) = 30
+            // Two passages → 0 before the latch, 30 (= 2 * 15) after
+            door.NotifyPlayerPassage();
+            door.NotifyPlayerPassage();
+            Assert.AreEqual(0.0, door.PeekPendingBurst(), 1e-9, "Not visible until latched");
+
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(30.0, door.PeekPendingBurst(), 1e-9, "Latched for this tick");
+            Assert.AreEqual(30.0, door.PeekPendingBurst(), 1e-9, "Peek is non-destructive");
+
+            // 次の latch で 0（公開はちょうど1tick分）
+            // Cleared by the next latch (visible for exactly one tick)
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(0.0, door.PeekPendingBurst(), 1e-9);
+        }
     }
 }
