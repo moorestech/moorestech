@@ -84,6 +84,8 @@ namespace Game.CleanRoom
 
             // 非境界ブロックも既存部屋の Cells に重なるなら V/S が変わる。
             // Non-boundary blocks overlapping room Cells change V/S.
+            // 非境界ブロックを部屋外に置いた場合は次tick以降の壁設置で dirty になる。
+            // A non-boundary block outside any room defers dirtying to the next boundary change.
             if (OverlapsAnyRoomCells(blockData.BlockPositionInfo)) _geometryDirty = true;
         }
 

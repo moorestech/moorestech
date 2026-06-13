@@ -251,6 +251,7 @@ namespace Server.Boot
             serviceProvider.GetService<CompletedChallengeEventPacket>();
 
             serviceProvider.GetService<GearNetworkDatastore>();
+            serviceProvider.GetService<CleanRoomDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<TrainDiagramManager>();
             serviceProvider.GetService<TrainRailPositionManager>();
