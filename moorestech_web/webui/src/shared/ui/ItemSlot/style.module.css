@@ -1,0 +1,11 @@
+/* ホバー時に表示するアイテム名ツールチップの位置決め（複雑な絶対配置のため module 化） */
+/* Positions the hover item-name tooltip (module-ized for its complex absolute placement) */
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  z-index: 20;
+}

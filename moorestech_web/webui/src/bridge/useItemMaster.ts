@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ItemMasterData, ItemMasterEntry } from "../types/itemMaster";
+import type { ItemMasterData, ItemMasterEntry } from "./payloadTypes";
 
 let cached: Map<number, ItemMasterEntry> | null = null;
 let inflight: Promise<void> | null = null;

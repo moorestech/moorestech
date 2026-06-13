@@ -1,4 +1,4 @@
-import { useToastStore } from "../features/toast/toastStore";
+import { useToastStore } from "./toastStore";
 
 // 画面右下にトーストを表示するホスト。自動消滅は store 側（addToast）で管理
 // Toast host pinned to the bottom-right; auto-dismiss is handled in the store (addToast)
