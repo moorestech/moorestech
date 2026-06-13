@@ -66,6 +66,45 @@
       "craftRecipeGuid": "00000010-0000-0000-0000-000000000003",
       "craftTime": 3,
       "initialUnlocked": false
+    },
+    {
+      "craftResultCount": 1,
+      "craftResultItemGuid": "3a000000-0000-0000-0000-000000000002",
+      "requiredItems": [
+        {
+          "count": 4,
+          "itemGuid": "3a000000-0000-0000-0000-000000000001"
+        }
+      ],
+      "craftRecipeGuid": "3a000010-0000-0000-0000-000000000001",
+      "craftTime": 5,
+      "initialUnlocked": true
+    },
+    {
+      "craftResultCount": 1,
+      "craftResultItemGuid": "3a000000-0000-0000-0000-000000000003",
+      "requiredItems": [
+        {
+          "count": 4,
+          "itemGuid": "3a000000-0000-0000-0000-000000000002"
+        }
+      ],
+      "craftRecipeGuid": "3a000010-0000-0000-0000-000000000002",
+      "craftTime": 5,
+      "initialUnlocked": false
+    },
+    {
+      "craftResultCount": 1,
+      "craftResultItemGuid": "3a000000-0000-0000-0000-000000000004",
+      "requiredItems": [
+        {
+          "count": 4,
+          "itemGuid": "3a000000-0000-0000-0000-000000000003"
+        }
+      ],
+      "craftRecipeGuid": "3a000010-0000-0000-0000-000000000003",
+      "craftTime": 5,
+      "initialUnlocked": false
     }
   ]
 }

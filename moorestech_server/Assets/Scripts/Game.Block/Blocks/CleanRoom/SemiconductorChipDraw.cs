@@ -1,7 +1,26 @@
+using System;
 using System.Collections.Generic;
+using Core.Master;
 
 namespace Game.Block.Blocks.CleanRoom
 {
+    // 出力要素の抽選結果を示す3値列挙。呼び出し側が副産物と失敗を区別できるようにする。
+    // Three-state result of TryResolveOutputItemId, so callers can distinguish byproducts from EUV failures.
+    public enum DrawResult
+    {
+        // 分布が存在しない出力要素（副産物）。呼び出し側はベース ItemId をそのまま使う。
+        // No distribution for this output element (byproduct); caller keeps the base ItemId.
+        NotLeveled,
+
+        // 分布はあるが EUV 失敗 or MaxGrade=0 で出力なし。呼び出し側はこの出力要素をスキップする。
+        // Distribution exists but EUV fail / MaxGrade=0 -> no output; caller skips this output element.
+        NoOutput,
+
+        // 抽選成功。itemId に確定チップ ItemId が入っている。
+        // Draw succeeded; itemId contains the confirmed chip ItemId.
+        Drawn,
+    }
+
     // 半導体チップのレベル抽選コア。EUV失敗→天井→基礎分布→down-bin→[品質シフト挿入点]→確定。
     // 設計書§4 の処理順（down-bin が品質シフトより先）を固定する。純粋・決定的・マスタ非依存。
     // Semiconductor level-draw core: EUV fail -> ceiling -> base draw -> down-bin -> [quality-shift slot] -> confirm.
@@ -47,6 +66,31 @@ namespace Game.Block.Blocks.CleanRoom
 
             level = finalLv;
             return true;
+        }
+
+        // マスタ依存ラッパ：出力要素の分布を引き、抽選結果を ItemId で返す。分布が無い出力要素は対象外（NotLeveled）。
+        // Master-backed wrapper: resolve the per-output distribution and return the drawn ItemId.
+        public static DrawResult TryResolveOutputItemId(
+            Guid machineRecipeGuid, Guid outputItemGuid,
+            int maxGrade, double downBinRate, double euvSuccessPercent,
+            long deterministicSeed, int outputIndex, out ItemId itemId)
+        {
+            itemId = default;
+
+            // 分布が存在しない出力要素（副産物）はそのまま通す。
+            // If no distribution exists for this output element, treat it as a byproduct (not leveled).
+            if (!MasterHolder.SemiconductorChipMaster.TryGetDistribution(machineRecipeGuid, outputItemGuid, out var dist))
+                return DrawResult.NotLeveled;
+
+            // EUV 失敗 or 天井=0 → 出力なし。
+            // EUV fail / MaxGrade=0 -> no output for this element.
+            if (!TryDrawLevel(dist, maxGrade, downBinRate, euvSuccessPercent, deterministicSeed, outputIndex, out var level))
+                return DrawResult.NoOutput;
+
+            // 抽選成功：確定レベルの ItemId を解決して返す。
+            // Draw succeeded: resolve the confirmed level's ItemId.
+            itemId = MasterHolder.SemiconductorChipMaster.GetChipItemId(level);
+            return DrawResult.Drawn;
         }
 
         #region Test helpers

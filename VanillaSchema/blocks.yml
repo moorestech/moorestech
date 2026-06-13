@@ -115,6 +115,7 @@ properties:
       - CleanRoomItemHatch
       - CleanRoomPipeHatch
       - CleanRoomAirFilter
+      - CleanRoomMachine
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -843,6 +844,35 @@ properties:
           default: 1
         - key: inventoryConnectors
           ref: inventoryConnects
+      - when: CleanRoomMachine
+        type: object
+        implementationInterface:
+        - IInventoryConnectors
+        - IMachineParam
+        properties:
+        - key: requiredPower
+          type: number
+          default: 5
+        - key: inputSlotCount
+          type: integer
+          default: 1
+        - key: outputSlotCount
+          type: integer
+          default: 1
+        - key: inventoryConnectors
+          ref: inventoryConnects
+        - key: inputTankCount
+          type: integer
+          default: 0
+        - key: outputTankCount
+          type: integer
+          default: 0
+        - key: innerTankCapacity
+          type: number
+          default: 0
+        - key: moduleSlotCount
+          type: integer
+          default: 0
 
     - key: overrideVerticalBlock
       type: object

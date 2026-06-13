@@ -4248,6 +4248,62 @@
       "overrideVerticalBlock": {}
     },
     {
+      "modelTransform": {
+        "scale": [1, 1, 1],
+        "rotation": [0, 0, 0],
+        "position": [0, 0, 0]
+      },
+      "blockSize": [1, 1, 1],
+      "name": "TestCleanRoomMachine",
+      "blockType": "CleanRoomMachine",
+      "blockGuid": "3b000000-0000-0000-0000-000000000002",
+      "itemGuid": "3b000000-0000-0000-0000-000000000001",
+      "blockParam": {
+        "requiredPower": 100,
+        "inputSlotCount": 2,
+        "outputSlotCount": 3,
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "moduleSlotCount": 0,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [
+                [1, 0, 0],
+                [-1, 0, 0],
+                [0, 0, 1],
+                [0, 0, -1]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "connectorGuid": "3b000000-0000-0000-0000-000000000010"
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Inventory",
+              "directions": [
+                [1, 0, 0],
+                [-1, 0, 0],
+                [0, 0, 1],
+                [0, 0, -1]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
+              "connectorGuid": "3b000000-0000-0000-0000-000000000011"
+            }
+          ]
+        }
+      },
+      "overrideVerticalBlock": {}
+    },
+    {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
       "itemGuid": "11110009-0000-0000-0000-000000000000",
       "name": "TestElectricToGearGenerator",

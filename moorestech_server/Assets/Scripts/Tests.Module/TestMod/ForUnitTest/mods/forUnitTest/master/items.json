@@ -579,6 +579,51 @@
       "sortPriority": 100,
       "recipeViewType": "ForceView",
       "initialUnlocked": true
+    },
+    {
+      "maxStack": 100,
+      "name": "ICチップ_Lv1",
+      "itemGuid": "3a000000-0000-0000-0000-000000000001",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": true
+    },
+    {
+      "maxStack": 100,
+      "name": "ICチップ_Lv2",
+      "itemGuid": "3a000000-0000-0000-0000-000000000002",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
+      "name": "ICチップ_Lv3",
+      "itemGuid": "3a000000-0000-0000-0000-000000000003",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
+      "name": "ICチップ_Lv4",
+      "itemGuid": "3a000000-0000-0000-0000-000000000004",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
+      "name": "TestCleanRoomMachine",
+      "itemGuid": "3b000000-0000-0000-0000-000000000001",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": true
     }
   ],
   "modules": [

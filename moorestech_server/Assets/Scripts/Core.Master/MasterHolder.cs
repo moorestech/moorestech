@@ -19,6 +19,7 @@ namespace Core.Master
         public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
         public static CleanRoomThresholdMaster CleanRoomThresholdMaster { get; private set; }
+        public static SemiconductorChipMaster SemiconductorChipMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -59,6 +60,11 @@ namespace Core.Master
             // Clean room thresholds (no dependencies)
             CleanRoomThresholdMaster = new CleanRoomThresholdMaster(GetJson(masterJsonFileContainer, new JsonFileName("cleanRoomThresholds")));
             InitializeMaster(CleanRoomThresholdMaster);
+
+            // 半導体チップ分布マスタ（ItemMaster 依存）。
+            // Semiconductor chip distribution master (depends on ItemMaster).
+            SemiconductorChipMaster = new SemiconductorChipMaster(GetJson(masterJsonFileContainer, new JsonFileName("semiconductorChips")));
+            InitializeMaster(SemiconductorChipMaster);
 
             // BlockMaster, ItemMaster, FluidMaster依存
             // Depends on BlockMaster, ItemMaster, FluidMaster
