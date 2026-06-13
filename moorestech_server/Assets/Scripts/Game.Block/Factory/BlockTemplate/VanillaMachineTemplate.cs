@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = new VanillaMachineProcessorComponent(input, output, null, machineParam.RequiredPower, effectComponent);
+            var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, effectComponent);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);

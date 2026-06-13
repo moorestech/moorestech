@@ -7,14 +7,10 @@ using Game.Context;
 using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
 
-namespace Game.Block.Blocks.Machine.State
+namespace Game.Block.Blocks.Machine.State.Util
 {
-    // レシピとモジュール効果から産出物を生成するファクトリ
-    // Factory that builds outputs from a recipe and module effects
-    internal static class MachineOutputFactory
+    internal static class MachineOutputFactoryUtil
     {
-        // 同tick生成機械の同シード回避のため共有
-        // Shared to avoid same-tick identical seeds
         private static readonly Random Random = new();
 
         // ベース1セットと当選時の追加1セットを生成
@@ -49,6 +45,7 @@ namespace Game.Block.Blocks.Machine.State
                 var stack = ServerContext.ItemStackFactory.Create(outputItem.ItemGuid, outputItem.Count);
                 outputs.Add(ApplyQualityLevel(stack, qualityShift));
             }
+            
             return outputs;
         }
 
