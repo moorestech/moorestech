@@ -142,20 +142,23 @@ namespace Game.Block.Factory.BlockTemplate
                 }
             }
             
-            var recipe = jsonObject.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
+            // 加工状態はProcessorのサブオブジェクトから復元する
+            // Restore processing state from the Processor sub-object
+            var processorJson = jsonObject.Processor;
+            var recipe = processorJson.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(processorJson.RecipeGuid);
 
             // 秒数からtickに変換して復元
             // Convert seconds back to ticks for restoration
-            var remainingTicks = GameUpdater.SecondsToTicks(jsonObject.RemainingSeconds);
+            var remainingTicks = GameUpdater.SecondsToTicks(processorJson.RemainingSeconds);
 
             // 産出予定を復元（旧セーブはnull→完了時再抽選）
             // Restore pending outputs (old saves: null, re-rolled later)
-            var pendingOutputs = jsonObject.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
+            var pendingOutputs = processorJson.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
 
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
-                (ProcessState)jsonObject.State,
+                (ProcessState)processorJson.State,
                 remainingTicks,
                 recipe,
                 requestPower,
