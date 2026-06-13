@@ -50,3 +50,12 @@ tuned 3件＋**修正方針チューニングに使っていない held-out 1件
 - 結果(独立評価, Opus採点): **Sonnet+v7 で4ケース全て 検知=PASS / 修正方針=PASS**＝Opus と同等。
 - 教訓: 弱いモデルでは「疑え」級の受動観点が実行されない。**能動的な手順（探す→Readで照合→最有力に出す）に落とすとモデル差が消える**。
 登録reviewer `core-cs-ai-recurring-mistakes.md`(prompt-tuning v3 source + 3ミラー) も v7 相当へ更新済み。
+
+## 追補2: 設計観点reviewer 2本を追加（2026-06-13）
+ユーザー提案の汎用設計観点を、過検知ガード付きの能動reviewerとして新規追加（実ケース検証済み）。
+- **core-cs-single-source-of-truth.md**: 同じドメイン状態/判断の「出所」を2つ以上作っていないか（static cacheが権威ソースと別の第2出所でdesyncする等）。直し方=単一ソースへ統合。
+- **core-cs-member-placement.md**: その変数/メソッドはこのクラスの責務に属するか（Util/Masterが責務外の状態判定を抱える、ServerContext直取得の隠れ依存等）。直し方=責務を持つクラスへ移しDIで受ける。
+- 検証ケース: `5d4f00f0a`(AI, static _cachedUnlockState を MachineRecipeMaster に追加) → `e211e8759`(人間, DI注入のIGameUnlockStateDataへ移動)。距離1・来歴確定。
+- 結果(Sonnet): 両reviewerとも該当ケースで検知＋修正方針一致。**無関係2ケース(Dismount/TestPremise)で誤検知ゼロ**（配置reviewerは「ItemMaster.ExistItemIdは正当な配置」と正しく弁別）。
+- 教訓: 抽象的な設計観点こそ「能動チェック手順＋『Criticalにしないもの』ガード」が必須。これがないと過検知でレビュー信頼を壊す。
+all-code-review 3ミラー(.claude/.agents/.codex)へ登録済み（計26本）。canonical source も追加済み。
