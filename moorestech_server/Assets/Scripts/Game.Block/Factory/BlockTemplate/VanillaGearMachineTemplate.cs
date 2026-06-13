@@ -56,10 +56,6 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new VanillaMachineProcessorComponent(input, output, null, requirePower, effectComponent)
                 : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
 
-            // 省エネ倍率を要求トルクへ配線する
-            // Wire the efficiency multiplier into torque demand
-            gearEnergyTransformer.SetConsumptionMultiplierSource(processor);
-
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
 
