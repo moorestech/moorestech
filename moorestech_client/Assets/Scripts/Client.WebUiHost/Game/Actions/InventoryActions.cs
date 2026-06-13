@@ -81,8 +81,8 @@ namespace Client.WebUiHost.Game.Actions
     }
 
     /// <summary>
-    /// inventory.collect: 同種アイテムを target に集める（uGUI のダブルクリック相当）
-    /// inventory.collect: gather same-type items into target (uGUI double-click equivalent)
+    /// inventory.collect: クリックされたスロットを起点に同種アイテムを集める（uGUI のダブルクリック相当）
+    /// inventory.collect: gather same-type items from a clicked slot (uGUI double-click equivalent)
     /// </summary>
     public class CollectActionHandler : IActionHandler
     {
@@ -95,18 +95,25 @@ namespace Client.WebUiHost.Game.Actions
             _controller = controller;
         }
 
+        // 収集先は host 自身の現在 grab 状態で決める。Web 側の grab 表示は dblclick 時点で必ず古いため
+        // The host picks the target from its own current grab; the web's grab view is always stale at dblclick
+        public static (LocalMoveInventoryType type, int slot) ResolveCollectTarget(bool grabHeld, int clickedSlot)
+        {
+            return grabHeld ? (LocalMoveInventoryType.Grab, 0) : (LocalMoveInventoryType.MainOrSub, clickedSlot);
+        }
+
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
-            if (!InventoryAreaMapper.TryParseSlotRef(payload["target"], out var targetType, out var targetSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            // 入力はクリック可能スロット（main/hotbar）のみ。grab はクライアントから来ない
+            // Input is a clickable slot only (main/hotbar); grab never arrives from the client
+            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["slot"], out var clickedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
-            // 空ターゲットはエラーで返し、収集本体はコントローラに委譲する
-            // Reject empty targets with an error; the collection itself is delegated to the controller
-            var isGrabTarget = targetType == LocalMoveInventoryType.Grab;
-            var collectTarget = isGrabTarget ? _controller.GrabInventory : _controller.LocalPlayerInventory[targetSlot];
-            if (collectTarget.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
-
+            // 収集先決定は uGUI の DoubleClick と同一。空手×空スロットは CollectItems が no-op（成功扱い）
+            // Target choice mirrors uGUI DoubleClick; empty-handed on an empty slot is a CollectItems no-op (success)
+            var grabHeld = _controller.GrabInventory.Id != ItemMaster.EmptyItemId;
+            var (targetType, targetSlot) = ResolveCollectTarget(grabHeld, clickedSlot);
             _controller.CollectItems(targetType, targetSlot);
             return UniTask.FromResult(ActionResult.Success());
         }
