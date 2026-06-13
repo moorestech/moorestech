@@ -75,12 +75,13 @@ wss.on("connection", (ws) => {
     return list[ref.slot];
   };
 
-  // from の count 個を to へ移す最小モデル。空・数量不足は host 同様 no-op（false を返す）
-  // Minimal model: move count items from→to; empty/insufficient sources no-op like the host (returns false)
-  const applyMove = (p: ActionPayloads["inventory.move_item"]): boolean => {
+  // from の count 個を to へ移す最小モデル。空・数量不足は host と同じエラーコードを返す（成功は null）
+  // Minimal model: move count items from→to; empty/insufficient return the host's error codes (null on success)
+  const applyMove = (p: ActionPayloads["inventory.move_item"]): string | null => {
     const from = slotOf(p.from);
     const to = slotOf(p.to);
-    if (from.count === 0 || from.count < p.count) return false;
+    if (from.count === 0) return "empty_slot";
+    if (from.count < p.count) return "insufficient_count";
     if (to.count === 0) to.itemId = from.itemId;
     to.count += p.count;
     from.count -= p.count;
@@ -88,7 +89,7 @@ wss.on("connection", (ws) => {
       from.count = 0;
       from.itemId = 0;
     }
-    return true;
+    return null;
   };
 
   // host と同じく mock 自身の現在 grab 状態で集積先を決め、同種スタックを集約する
@@ -124,20 +125,22 @@ wss.on("connection", (ws) => {
     }
     if (msg.op === "action") {
       received.push({ type: msg.type, payload: msg.payload });
-      // result(ack) は即時、topic event は数十ms 後に別経路で push（stale grab 再現）
-      // ack is immediate; the topic event is pushed later on a separate channel (reproduces stale grab)
-      const ok = msg.type !== "fail.always";
-      send(ws, { op: "result", requestId: msg.requestId, ok, error: ok ? undefined : "mock_error" });
-      if (msg.type === "inventory.move_item") {
-        // 状態が変化したときだけ topic event を流す（host の no-op は packet を出さない）
-        // Emit a topic event only when state changed (the host's no-op sends no packet)
-        if (applyMove(msg.payload as ActionPayloads["inventory.move_item"]))
-          setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
-      }
-      if (msg.type === "inventory.collect") {
+      // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
+      // ack is decided after apply like the real host; the topic event is pushed later on a separate channel
+      let error: string | undefined;
+      if (msg.type === "fail.always") {
+        error = "mock_error";
+      } else if (msg.type === "inventory.move_item") {
+        // 状態が変化したときだけ topic event を流す（host の失敗は packet を出さない）
+        // Emit a topic event only when state changed (the host's failed move sends no packet)
+        const moveError = applyMove(msg.payload as ActionPayloads["inventory.move_item"]);
+        if (moveError) error = moveError;
+        else setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+      } else if (msg.type === "inventory.collect") {
         applyCollect(msg.payload as ActionPayloads["inventory.collect"]);
         setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
       }
+      send(ws, { op: "result", requestId: msg.requestId, ok: error === undefined, error });
       return;
     }
   });
