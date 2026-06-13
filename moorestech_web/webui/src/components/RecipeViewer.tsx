@@ -17,9 +17,9 @@ type Props = {
 // 中央カラム: 選択アイテムのクラフトレシピと機械レシピを表示する（uGUI の RecipeViewer 相当）
 // Center column: shows craft and machine recipes for the selected item, like uGUI's RecipeViewer
 export default function RecipeViewer({ itemId, onSelect }: Props) {
-  const recipes = useTopic<CraftRecipesData>("crafting.recipes");
-  const machineRecipes = useTopic<MachineRecipesData>("crafting.machine_recipes");
-  const inventory = useTopic<PlayerInventoryData>("local_player.inventory");
+  const recipes = useTopic("crafting.recipes");
+  const machineRecipes = useTopic("crafting.machine_recipes");
+  const inventory = useTopic("local_player.inventory");
   const itemMaster = useItemMaster();
 
   const loaded = recipes !== null && machineRecipes !== null && inventory !== null;
