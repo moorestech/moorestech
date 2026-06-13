@@ -16,6 +16,7 @@ using Mooresmaster.Model.ItemsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -256,7 +257,7 @@ namespace Tests.CombinedTest.Core
 
             // ロード後のワールドで完了まで進め、出力がレベル2変種のみであることを確認（セーブされた産出予定スタックの実効確認）
             // Advance the loaded world to completion; the output is only the level-2 variant (proves the saved pending output stacks take effect)
-            AdvanceTicksWithFullPower((int)loadedProcessor.RemainingTicks + 3, loadedProcessor);
+            AdvanceTicksWithFullPower((int)loadedProcessor.GetRemainingTicks() + 3, loadedProcessor);
             Assert.AreEqual(ProcessState.Idle, loadedProcessor.CurrentState);
             var (baseItemId, lv2ItemId) = GetBaseAndLv2ItemIds(recipe);
             Assert.AreEqual(recipe.OutputItems[0].Count, CountOutputItem(loadedInventory, lv2ItemId));
