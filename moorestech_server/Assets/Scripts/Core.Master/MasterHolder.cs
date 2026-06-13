@@ -18,6 +18,7 @@ namespace Core.Master
         public static ResearchMaster ResearchMaster { get; private set; }
         public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
+        public static CleanRoomThresholdMaster CleanRoomThresholdMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -53,6 +54,11 @@ namespace Core.Master
 
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")));
             InitializeMaster(TrainUnitMaster);
+
+            // クリーンルーム閾値（依存なし）
+            // Clean room thresholds (no dependencies)
+            CleanRoomThresholdMaster = new CleanRoomThresholdMaster(GetJson(masterJsonFileContainer, new JsonFileName("cleanRoomThresholds")));
+            InitializeMaster(CleanRoomThresholdMaster);
 
             // BlockMaster, ItemMaster, FluidMaster依存
             // Depends on BlockMaster, ItemMaster, FluidMaster
