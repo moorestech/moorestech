@@ -83,6 +83,10 @@ namespace Tests.CombinedTest.Core
             var world = ServerContext.WorldBlockDatastore;
             var datastore = serviceProvider.GetService<CleanRoomDatastore>();
 
+            // 検出/差分挙動を分離するため既定汚染を切る（フェーズ3で既定provider非ゼロ化）。後段で意図値45へ上書き。
+            // Isolate detection/incremental behavior from the now-non-zero default pollution; overridden to 45 below.
+            datastore.SetPollutionPerSecondProvider(_ => 0.0);
+
             BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4)); // V27
             GameUpdater.RunFrames(50);
             Assert.AreEqual(1, datastore.Rooms.Count);
@@ -120,6 +124,10 @@ namespace Tests.CombinedTest.Core
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
             var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // この回帰は孤立破棄（N蘇生なし）を検証する。既定汚染が混ざらないようゼロに固定。
+            // This regression checks orphan-discard (no N resurrection); pin pollution to zero so it does not mix in.
+            datastore.SetPollutionPerSecondProvider(_ => 0.0);
 
             // 初期部屋の確立だけ RebuildAll を許容（破壊→失効→再封のサイクルは tick 経由＝差分経路で検証）。
             // RebuildAll only to establish the initial room; the break/expire/reseal cycle goes through ticks (incremental path).

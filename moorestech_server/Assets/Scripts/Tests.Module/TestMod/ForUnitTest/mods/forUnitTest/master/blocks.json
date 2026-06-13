@@ -4206,7 +4206,7 @@
       "itemGuid": "00000000-0000-0000-1234-0000000000f2",
       "blockParam": {
         "removalVolumePerSecond": 5.0,
-        "requiredPower": 100,
+        "requiredPower": 5,
         "filterCapacity": 5000,
         "filterItemGuid": "00000000-0000-0000-1234-0000000000f1",
         "filterItemSlotCount": 1,

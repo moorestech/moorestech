@@ -5,6 +5,7 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.CleanRoom.Pollution;
 using Game.CleanRoom.SaveLoad;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -50,9 +51,17 @@ namespace Game.CleanRoom
         private readonly List<CleanRoom> _orphanRooms = new();
         private readonly List<IDisposable> _subscriptions = new();
 
-        // 汚染レート供給シーム。既定はゼロ。フェーズ3が CleanRoomPollutionCalculator の算出に差し替える。
-        // Pollution provider seam; defaults to zero. Phase 3 wires the real calculator here.
-        private Func<CleanRoom, double> _pollutionPerSecondProvider = _ => 0.0;
+        // 汚染レート供給シーム。既定はジオメトリ＋接続点から A_total を算出（フェーズ3配線）。テストは override 可能。
+        // Pollution provider seam; defaults to A_total from geometry + connectors (phase-3 wiring). Tests may override.
+        private Func<CleanRoom, double> _pollutionPerSecondProvider = DefaultPollutionPerSecond;
+
+        // 既定の汚染レート: 機械数0・ハッチ搬送0で A_total を算出する（フェーズ4/5で実供給）。
+        // Default pollution rate: A_total with zero machines and zero hatch throughput (phases 4/5 supply the real values).
+        private static double DefaultPollutionPerSecond(CleanRoom room)
+        {
+            var connectorCount = CleanRoomPollutionCalculator.CountConnectors(room);
+            return CleanRoomPollutionCalculator.ComputeATotal(room.Volume, room.SurfaceArea, connectorCount, 0, 0.0);
+        }
 
         // エアフィルター登録（セル→フィルター）。フェーズ3のブロックが設置/破壊時に呼ぶ。
         // Air filter registry (cell -> filter); phase-3 blocks register on place/remove.
@@ -70,8 +79,8 @@ namespace Game.CleanRoom
 
             // 設置/破壊イベント。remove は block.Destroy() より先に発火するため TryGetComponent は安全。
             // Place/remove events. Remove fires before block.Destroy(), so TryGetComponent is safe.
-            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(e => OnChanged(e.BlockData)));
-            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(e => OnChanged(e.BlockData)));
+            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(e => { RegisterAirFilterOnPlace(e.BlockData); OnChanged(e.BlockData); }));
+            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(e => { UnregisterAirFilterOnRemove(e.BlockData); OnChanged(e.BlockData); }));
         }
 
         public void SetDirtyCellBudgetPerTickForTest(int budget)
@@ -218,6 +227,22 @@ namespace Game.CleanRoom
         public void RemoveAirFilter(Vector3Int cell)
         {
             _airFilters.Remove(cell);
+        }
+
+        // 設置イベントで実エアフィルターをレジストリへ登録する（1×1×1 なので MinPos がセルキー）。
+        // Register a real air filter from the place event (1x1x1, so MinPos is the cell key).
+        private void RegisterAirFilterOnPlace(WorldBlockData blockData)
+        {
+            if (blockData.Block.TryGetComponent<ICleanRoomAirFilter>(out var filter))
+                AddAirFilter(blockData.BlockPositionInfo.MinPos, filter);
+        }
+
+        // 破壊イベントでレジストリから解除する。
+        // Unregister from the registry on the remove event.
+        private void UnregisterAirFilterOnRemove(WorldBlockData blockData)
+        {
+            if (blockData.Block.TryGetComponent<ICleanRoomAirFilter>(out _))
+                RemoveAirFilter(blockData.BlockPositionInfo.MinPos);
         }
 
         // 検出中の全部屋＋Degraded孤立を保存する（Invalid孤立は保存しない）。
@@ -522,7 +547,17 @@ namespace Game.CleanRoom
             foreach (var room in _rooms)
             {
                 var aTotal = _pollutionPerSecondProvider(room);
-                var nq = SumRemovalVolume(room);
+
+                // 部屋内フィルターを一度だけ集める（n·q と摩耗配分で共有）。
+                // Collect in-room filters once (shared between n·q and wear distribution).
+                var filters = CollectAirFilters(room);
+                var nq = 0.0;
+                foreach (var f in filters) nq += f.RemovalVolumePerSecond;
+
+                // 今tickの除去総量を旧濃度から算出（N をマイナスにしない）。IntegrateTick の除去項と一致。
+                // Removed amount this tick from the OLD concentration (never below N); matches IntegrateTick's removal term.
+                var removedTotal = nq * room.Concentration * GameUpdater.SecondsPerTick;
+                if (removedTotal > room.ImpurityCount) removedTotal = room.ImpurityCount;
 
                 // dN 積分（0クランプは純関数内）。
                 // Integrate dN (zero clamp inside the pure function).
@@ -530,6 +565,12 @@ namespace Game.CleanRoom
                 var delta = newN - room.ImpurityCount;
                 if (delta >= 0.0) room.AddImpurity(delta);
                 else room.RemoveImpurity(-delta);
+
+                // 除去寄与をフィルターへ配分（汚染レート比例の摩耗）。
+                // Distribute removed impurity to filters (wear proportional to removal rate).
+                if (nq > 0.0 && removedTotal > 0.0)
+                    foreach (var f in filters)
+                        f.ApplyRemovedImpurity(removedTotal * (f.RemovalVolumePerSecond / nq));
 
                 // 閾値行の更新（ACH = n·q/V）。
                 // Update threshold row with ACH = n·q/V.
@@ -548,14 +589,14 @@ namespace Game.CleanRoom
             }
         }
 
-        // 部屋に属するフィルターの q 合算（登録セルが部屋の Cells に含まれるもの）。
-        // Sum q of filters whose registered cell lies in the room's Cells.
-        private double SumRemovalVolume(CleanRoom room)
+        // 部屋に属するフィルターを集める（登録セルが部屋の Cells に含まれるもの）。
+        // Collect filters whose registered cell lies in the room's Cells.
+        private List<ICleanRoomAirFilter> CollectAirFilters(CleanRoom room)
         {
-            var sum = 0.0;
+            var result = new List<ICleanRoomAirFilter>();
             foreach (var kvp in _airFilters)
-                if (room.Contains(kvp.Key)) sum += kvp.Value.RemovalVolumePerSecond;
-            return sum;
+                if (room.Contains(kvp.Key)) result.Add(kvp.Value);
+            return result;
         }
 
         private void EnsureThresholdRows()
