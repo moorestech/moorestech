@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTopic } from "../bridge/useTopic";
 import { useItemMaster } from "../bridge/useItemMaster";
+import { useUiStore } from "../app/uiStore";
 import type { CraftRecipesData, MachineRecipe, MachineRecipesData } from "../types/crafting";
 import type { PlayerInventoryData } from "../types/inventory";
 import type { ItemMasterEntry } from "../types/itemMaster";
@@ -10,14 +11,11 @@ import ItemIcon from "./ItemIcon";
 import CraftRecipeView from "./CraftRecipeView";
 import MachineRecipeView from "./MachineRecipeView";
 
-type Props = {
-  itemId: number | null;
-  onSelect: (itemId: number) => void;
-};
-
 // 中央カラム: 選択アイテムのクラフトレシピと機械レシピを表示する（uGUI の RecipeViewer 相当）
 // Center column: shows craft and machine recipes for the selected item, like uGUI's RecipeViewer
-export default function RecipeViewer({ itemId, onSelect }: Props) {
+export default function RecipeViewer() {
+  const selectedItemId = useUiStore((s) => s.selectedItemId);
+  const onSelect = useUiStore((s) => s.setSelectedItem);
   const recipes = useTopic("crafting.recipes");
   const machineRecipes = useTopic("crafting.machine_recipes");
   const inventory = useTopic("local_player.inventory");
@@ -30,12 +28,14 @@ export default function RecipeViewer({ itemId, onSelect }: Props) {
       <h2 className="text-lg font-semibold">Recipe</h2>
       {!loaded ? (
         <div className="text-sm text-gray-400">connecting...</div>
-      ) : itemId === null ? (
+      ) : selectedItemId === null ? (
         <div className="text-sm text-gray-400">右のアイテムリストからアイテムを選択してください</div>
       ) : (
+        // key={selectedItemId} の再マウントで tabKey/recipeIndex をリセットする契約は維持
+        // Keep the contract: remount via key={selectedItemId} resets tabKey/recipeIndex
         <RecipeContent
-          key={itemId}
-          itemId={itemId}
+          key={selectedItemId}
+          itemId={selectedItemId}
           recipes={recipes}
           machineRecipes={machineRecipes}
           inventory={inventory}
