@@ -1,0 +1,12 @@
+{
+    "name": "Game.CleanRoom",
+    "references": [
+        "Game.Block.Interface",
+        "Game.World.Interface",
+        "Game.Context",
+        "Core.Update",
+        "Core.Master",
+        "UniRx"
+    ],
+    "autoReferenced": true
+}
