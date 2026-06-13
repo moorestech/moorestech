@@ -22,6 +22,39 @@ namespace Game.CleanRoom
         public int Volume { get; }
         public int SurfaceArea { get; }
 
+        // ---- 純度状態（データストアが毎tick更新。再検出/ロードで引き継ぐ） ----
+        // ---- Purity state, updated by the datastore each tick; carried across re-detection/load ----
+        public double ImpurityCount { get; private set; }                  // N（個）
+        public CleanRoomRoomStatus Status { get; private set; } = CleanRoomRoomStatus.Valid;
+        public int ThresholdIndex { get; private set; } = int.MaxValue;    // 生成直後は未判定（最悪側）。データストアが Out 値で初期化する
+        public double GraceRemainingSeconds { get; private set; }
+        public double Concentration => Volume > 0 ? ImpurityCount / Volume : 0.0;
+
+        public void AddImpurity(double delta)
+        {
+            ImpurityCount += delta;
+            if (ImpurityCount < 0.0) ImpurityCount = 0.0;
+        }
+
+        public void RemoveImpurity(double removed)
+        {
+            ImpurityCount -= removed;
+            if (ImpurityCount < 0.0) ImpurityCount = 0.0;
+        }
+
+        // ステータスと猶予を同時に設定。猶予は負にしない。
+        // Set status and grace together; grace clamped to zero.
+        public void SetStatus(CleanRoomRoomStatus status, double graceSeconds)
+        {
+            Status = status;
+            GraceRemainingSeconds = graceSeconds < 0.0 ? 0.0 : graceSeconds;
+        }
+
+        public void SetThresholdIndex(int index)
+        {
+            ThresholdIndex = index;
+        }
+
         private readonly HashSet<Vector3Int> _cells;
 
         public CleanRoom(int id, HashSet<Vector3Int> cells, int volume, int surfaceArea)

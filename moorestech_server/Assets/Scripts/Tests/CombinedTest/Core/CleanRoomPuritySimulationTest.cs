@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using Core.Master;
 using Game.CleanRoom;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
@@ -109,6 +111,36 @@ namespace Tests.CombinedTest.Core
             // Over-removal never drives N negative.
             var n = CleanRoomPurityRules.IntegrateTick(1.0, 1.0, 0.0, 100.0, 0.05);
             Assert.AreEqual(0.0, n, 1e-9);
+        }
+
+        [Test]
+        public void Room_AddRemoveImpurity_ClampsAtZero_AndConcentrationUsesVolume()
+        {
+            // 純度状態の最小単位テスト。N加減・0クランプ・濃度・ステータス設定を確認する。
+            // Minimal purity-state test: add/remove, zero-clamp, concentration, and status setter.
+            var cells = new HashSet<Vector3Int> { new Vector3Int(0, 0, 0), new Vector3Int(1, 0, 0) };
+            var room = new CleanRoom(0, cells, 2, 10);
+
+            room.AddImpurity(100.0);
+            Assert.AreEqual(100.0, room.ImpurityCount, 1e-9);
+            Assert.AreEqual(50.0, room.Concentration, 1e-9, "C = N/V = 100/2");
+
+            room.RemoveImpurity(30.0);
+            Assert.AreEqual(70.0, room.ImpurityCount, 1e-9);
+
+            // 過剰除去は 0 でクランプ。
+            // Over-removal clamps at zero.
+            room.RemoveImpurity(1000.0);
+            Assert.AreEqual(0.0, room.ImpurityCount, 1e-9);
+
+            // 段階と猶予のセッター。
+            // Status and grace setter.
+            room.SetStatus(CleanRoomRoomStatus.Degraded, 5.0);
+            Assert.AreEqual(CleanRoomRoomStatus.Degraded, room.Status);
+            Assert.AreEqual(5.0, room.GraceRemainingSeconds, 1e-9);
+
+            room.SetThresholdIndex(2);
+            Assert.AreEqual(2, room.ThresholdIndex);
         }
 
         [Test]
