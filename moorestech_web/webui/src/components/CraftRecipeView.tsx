@@ -1,4 +1,5 @@
 import { dispatchAction } from "../bridge/actions";
+import { clampIndex, craftable } from "../features/recipe/craftLogic";
 import type { CraftRecipe } from "../types/crafting";
 import type { ItemMasterEntry } from "../types/itemMaster";
 import ItemSlot from "./ItemSlot";
@@ -18,12 +19,12 @@ type Props = {
 export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, itemMaster, onSelect }: Props) {
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
-  const index = Math.min(recipeIndex, recipes.length - 1);
+  const index = clampIndex(recipeIndex, recipes.length);
   const recipe = recipes[index];
-  const craftable = recipe.requiredItems.every((r) => (counts.get(r.itemId) ?? 0) >= r.count);
+  const isCraftable = craftable(recipe, counts);
 
   const onCraft = () => {
-    if (!craftable) return;
+    if (!isCraftable) return;
     void dispatchAction("craft.execute", { recipeGuid: recipe.recipeGuid });
   };
 
@@ -40,7 +41,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
         <button
           onClick={onCraft}
-          disabled={!craftable}
+          disabled={!isCraftable}
           className="ml-3 bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-sm rounded px-4 py-2"
         >
           Craft
