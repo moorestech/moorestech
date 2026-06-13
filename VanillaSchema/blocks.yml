@@ -110,6 +110,10 @@ properties:
       - GearToElectricGenerator
       - ElectricToGearGenerator
       - FilterSplitter
+      - CleanRoomWall
+      - CleanRoomDoorHatch
+      - CleanRoomItemHatch
+      - CleanRoomPipeHatch
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -801,6 +805,18 @@ properties:
           default: 10
         - key: inventoryConnectors
           ref: inventoryConnects
+      - when: CleanRoomWall
+        type: object
+        properties: []
+      - when: CleanRoomDoorHatch
+        type: object
+        properties: []
+      - when: CleanRoomItemHatch
+        type: object
+        properties: []
+      - when: CleanRoomPipeHatch
+        type: object
+        properties: []
 
     - key: overrideVerticalBlock
       type: object
