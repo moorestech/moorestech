@@ -15,6 +15,7 @@ using Game.CleanRoom;
 using Game.CleanRoom.Machine;
 using Game.Context;
 using Game.EnergySystem;
+using Game.SaveLoad.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -459,6 +460,123 @@ namespace Tests.CombinedTest.Core
             // The running window adds A_machine·dt·window = 2.0 × (1/20) × 20 = 2.0 more than idle (constant, zero removal)
             var expectedExtra = 2.0 * GameUpdater.SecondsPerTick * window;
             Assert.AreEqual(expectedExtra, runDelta - idleDelta, 1e-6, "Running machine adds A_machine to the room's N rate");
+        }
+
+        // ハッチが中継待ちアイテムを保持した状態でsave→loadし、アイテムが復元される
+        // Save while the hatch holds in-transit items, then load and confirm they are restored
+        [Test]
+        public void ItemHatch_InTransitItemsSurviveSaveLoad()
+        {
+            // --- セーブ側ワールド ---
+            var (_, providerA) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldA = ServerContext.WorldBlockDatastore;
+
+            // ターゲットを置かず、ハッチに中継待ちを溜めたまま保存する（中継が完了しないように）
+            // Save with no target so items stay in-transit (relay cannot complete)
+            worldA.TryAddBlock(ForUnitTestModBlockId.CleanRoomItemHatchId, new Vector3Int(0, 0, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var hatchA);
+            Assert.True(hatchA.TryGetComponent<CleanRoomItemHatchComponent>(out var hatchCompA));
+            hatchCompA.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3), InsertItemContext.Empty);
+            GameUpdater.RunFrames(2); // ターゲット無し → バッファに残る
+
+            var json = providerA.GetService<global::Game.SaveLoad.Json.AssembleSaveJsonText>().AssembleSaveJson();
+
+            // --- ロード側ワールド ---
+            var (_, providerB) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (providerB.GetService<IWorldSaveDataLoader>() as global::Game.SaveLoad.Json.WorldLoaderFromJson).Load(json); // 具象型はDI未登録（IWorldSaveDataLoaderで解決。フェーズ2 C-2と同じ罠）
+
+            var worldB = ServerContext.WorldBlockDatastore;
+            Assert.True(worldB.TryGetBlock(new Vector3Int(0, 0, 0), out IBlock hatchB));
+            Assert.True(hatchB.TryGetComponent<CleanRoomItemHatchComponent>(out var hatchCompB));
+
+            // 復元後、中継待ちの3個が残っている
+            // After load, the 3 in-transit items are restored
+            var restored = 0;
+            for (var i = 0; i < hatchCompB.GetSlotSize(); i++) restored += hatchCompB.GetItem(i).Count;
+            Assert.AreEqual(3, restored);
+        }
+
+        // パイプハッチが内部流体を保持した状態でsave→loadし、量が復元される
+        // Save while the pipe hatch holds fluid, then load and confirm the amount is restored
+        [Test]
+        public void PipeHatch_BufferedFluidSurvivesSaveLoad()
+        {
+            var (_, providerA) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldA = ServerContext.WorldBlockDatastore;
+            worldA.TryAddBlock(ForUnitTestModBlockId.CleanRoomPipeHatchId, new Vector3Int(0, 0, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipeA);
+            Assert.True(pipeA.TryGetComponent<CleanRoomPipeHatchComponent>(out var compA));
+
+            var fluidId = global::Core.Master.MasterHolder.FluidMaster.GetFluidId(new Guid("00000000-0000-0000-1234-000000000001"));
+            compA.AddLiquid(new global::Game.Fluid.FluidStack(40.0, fluidId), global::Game.Fluid.FluidContainer.Empty);
+            // 接続先なし・tickも進めない → 内部コンテナに 40 が残ったまま
+            // No target, no ticks → 40 stays in the inner container
+
+            var json = providerA.GetService<global::Game.SaveLoad.Json.AssembleSaveJsonText>().AssembleSaveJson();
+
+            var (_, providerB) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (providerB.GetService<IWorldSaveDataLoader>() as global::Game.SaveLoad.Json.WorldLoaderFromJson).Load(json); // 具象型はDI未登録（IWorldSaveDataLoaderで解決。フェーズ2 C-2と同じ罠）
+
+            Assert.True(ServerContext.WorldBlockDatastore.TryGetBlock(new Vector3Int(0, 0, 0), out IBlock pipeB));
+            Assert.True(pipeB.TryGetComponent<CleanRoomPipeHatchComponent>(out var compB));
+            Assert.AreEqual(40.0, compB.GetFluidInventory().Sum(f => f.Amount), 1e-6);
+        }
+
+        // I/Oブロックが境界に在っても純度セーブ(CleanRoomSaveData)はそのまま round-trip する（スキーマ改変不要）
+        // Purity save (CleanRoomSaveData) round-trips even with I/O blocks on the boundary (no schema change)
+        [Test]
+        public void CleanRoomSave_RoundTripsWithIoBlocksPresent()
+        {
+            // --- セーブ側: 壁シェルの1面をハッチに置換した密閉部屋を作り、N をシードする ---
+            // Save side: a sealed room with one wall face replaced by a hatch; seed N
+            var (_, providerA) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldA = ServerContext.WorldBlockDatastore;
+            var datastoreA = providerA.GetService<global::Game.CleanRoom.CleanRoomDatastore>();
+
+            BuildWallShell(worldA, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            ReplaceWith(worldA, new Vector3Int(0, 2, 2), ForUnitTestModBlockId.CleanRoomItemHatchId);
+            GameUpdater.RunFrames(2);
+
+            var insideCell = new Vector3Int(2, 2, 2);
+            Assert.True(datastoreA.TryGetCleanRoomAt(insideCell, out var roomA));
+
+            // 既知の N をシードし、1tick回して閾値行/状態を最新化してから期待値を採取する
+            // Seed a known N, run one tick so threshold/status settle, then capture expectations
+            roomA.AddImpurity(123.0);
+            GameUpdater.RunFrames(1);
+            Assert.True(datastoreA.TryGetCleanRoomAt(insideCell, out var roomA2));
+            var expectedN = roomA2.ImpurityCount;
+            var expectedThresholdIndex = roomA2.ThresholdIndex;
+            var expectedStatus = roomA2.Status;
+
+            var json = providerA.GetService<global::Game.SaveLoad.Json.AssembleSaveJsonText>().AssembleSaveJson();
+
+            // --- ロード側: RunFrames を挟まずロード直後に厳密一致を検証する ---
+            // Load side: assert exact equality right after Load, before any RunFrames
+            var (_, providerB) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (providerB.GetService<IWorldSaveDataLoader>() as global::Game.SaveLoad.Json.WorldLoaderFromJson).Load(json); // 具象型はDI未登録（IWorldSaveDataLoaderで解決。フェーズ2 C-2と同じ罠）
+            var datastoreB = providerB.GetService<global::Game.CleanRoom.CleanRoomDatastore>();
+
+            Assert.True(datastoreB.TryGetCleanRoomAt(insideCell, out var roomB));
+            Assert.AreEqual(expectedN, roomB.ImpurityCount, 1e-6, "N restored exactly (no ticks yet)");
+            Assert.AreEqual(expectedThresholdIndex, roomB.ThresholdIndex, "Threshold row restored");
+            Assert.AreEqual(expectedStatus, roomB.Status, "Status restored");
+
+            // --- 1tick 進めてもリセットされない（dirty 再々検出事故の非回帰。balance §6）---
+            // One tick later, nothing resets (non-regression for the dirty re-detection accident; balance §6)
+            GameUpdater.RunFrames(1);
+            Assert.True(datastoreB.TryGetCleanRoomAt(insideCell, out var roomB2));
+            // 恒常汚染で僅かに増えるのは正常。リセット(→~0)や二重復元(→~2倍)を弾く許容窓で判定する
+            // A slight increase from continuous pollution is normal; the window rejects resets (~0) and double-restores (~2x)
+            Assert.GreaterOrEqual(roomB2.ImpurityCount, expectedN - 1e-6, "N not reset by the first tick");
+            Assert.Less(roomB2.ImpurityCount, expectedN + 2.0, "No reset/double-restore sized jump");
+            Assert.AreEqual(expectedThresholdIndex, roomB2.ThresholdIndex, "Threshold row survives the first tick");
         }
 
         #region Internal
