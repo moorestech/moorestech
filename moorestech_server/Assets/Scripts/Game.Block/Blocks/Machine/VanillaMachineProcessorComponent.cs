@@ -12,7 +12,6 @@ using Game.Block.Interface.State;
 using Mooresmaster.Model.MachineRecipesModule;
 using Newtonsoft.Json;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.Machine
 {
@@ -20,9 +19,13 @@ namespace Game.Block.Blocks.Machine
     {
         public ProcessState CurrentState => _context.CurrentState;
         public uint RemainingTicks => _context.RemainingTicks;
-        public Guid RecipeGuid => _context.RecipeGuid;
+        public Guid RecipeGuid => _context.ProcessingRecipe?.MachineRecipeGuid ?? Guid.Empty;
         public float RequestPower => _context.RequestPower;
-        public float EffectiveRequestPower => _context.EffectiveRequestPower;
+
+        // 加工中のみモジュールの電力倍率を適用した要求電力
+        // Requested power applying the module power multiplier only while processing
+        public float EffectiveRequestPower => _context.RequestPower *
+                                              (_context.CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : 1f);
 
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
@@ -77,36 +80,18 @@ namespace Game.Block.Blocks.Machine
             _currentHandler = _stateHandlers[_context.CurrentState];
         }
 
-        // 自身のセーブデータを単独で構築する
-        // Build this component's save data on its own
-        public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
-        {
-            BlockException.CheckDestroy(this);
-
-            // tickを秒数に変換して保存（tick数の変動に対応）
-            // Convert ticks to seconds for storage (to handle tick rate changes)
-            return new VanillaMachineProcessorSaveJsonObject
-            {
-                State = (int)_context.CurrentState,
-                RemainingSeconds = GameUpdater.TicksToSeconds(_context.RemainingTicks),
-                RecipeGuidStr = _context.RecipeGuid.ToString(),
-                // 産出予定も保存する（Idle時はnull）
-                // Also save the pending outputs (null while idle)
-                PendingOutputs = _context.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-            };
-        }
-
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
 
             // 処理率を計算し、0〜1の範囲にクランプ
             // Calculate processing rate and clamp to 0-1 range
-            var rawRate = _context.ProcessingRecipeTicks > 0 ? 1f - (float)_context.RemainingTicks / _context.ProcessingRecipeTicks : 0f;
-            var processingRate = Mathf.Clamp01(rawRate);
+            var processingRate = _context.ProcessingRecipeTicks > 0 ? 1f - (float)_context.RemainingTicks / _context.ProcessingRecipeTicks : 0f;
+            if (processingRate < 0f) processingRate = 0f;
+            else if (processingRate > 1f) processingRate = 1f;
 
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, _context.CurrentState.ToStr(), _lastState.ToStr());
-            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, _context.RecipeGuid);
+            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid);
 
             return new[] { commonMachineBlock, machineBlock };
         }
@@ -170,6 +155,23 @@ namespace Game.Block.Blocks.Machine
         public void Destroy()
         {
             IsDestroy = true;
+        }
+        
+        // セーブデータ構築
+        // Build save data object
+        public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
+        {
+            BlockException.CheckDestroy(this);
+            
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
+            return new VanillaMachineProcessorSaveJsonObject
+            {
+                State = (int)_context.CurrentState,
+                RemainingSeconds = GameUpdater.TicksToSeconds(_context.RemainingTicks),
+                RecipeGuidStr = RecipeGuid.ToString(),
+                PendingOutputs = _context.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+            };
         }
     }
 

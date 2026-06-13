@@ -28,8 +28,8 @@ namespace Game.Block.Blocks.Machine.State
             // 抽選を開始時に確定し実スタックで容量確認
             // Fix rolls at start and check capacity with realized stacks
             var effect = _context.EffectComponent.AggregateCurrent();
-            var realizedOutputs = _context.CreateRealizedOutputs(recipe, effect);
-            if (!_context.OutputInventory.CanStoreOutputs(realizedOutputs, _context.CreateFluidOutputs(recipe))) return ProcessState.Idle;
+            var realizedOutputs = MachineOutputFactory.CreateRealizedOutputs(recipe, effect);
+            if (!_context.OutputInventory.CanStoreOutputs(realizedOutputs, MachineOutputFactory.CreateFluidOutputs(recipe))) return ProcessState.Idle;
 
             // 産出物と短縮済み時間を確定して加工へ遷移
             // Fix the outputs and the scaled time, then transition to processing
