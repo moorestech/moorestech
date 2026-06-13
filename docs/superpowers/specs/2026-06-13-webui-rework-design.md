@@ -75,13 +75,20 @@
 - `CollectActionHandler` を改修し、uGUI の `DoubleClick` 分岐（`IsGrabItem` 現在値で Grab か slot か決定）を **host 側で実行**。
 - これにより web の `clickGrabHistory`・2-action-stale 補正は**完全に不要化**し、uGUI と完全一致する。
 - 影響範囲: `Client.WebUiHost`（`CollectActionHandler` の C#）、protocol（collect payload 契約）、web（`InventoryPanel` の onDoubleClick 簡素化）、e2e mock（新 payload 契約）。
-- 実装前に WebUiHost 実機で期待値表を作り、vitest/e2e で固定してから改修（下記テスト）。
+- 実装前に WebUiHost 実機で期待値表を作り、C#単体テスト/e2e で固定してから改修（下記テスト）。
+
+**empty handling は host の resolved target 基準で定義する（重要）**:
+slot-only 契約後、web が送るのは「クリックした slot」のみで、最終 target は host が現在の `GrabInventory` で決める。空判定を web 側で行うと stale race を host に逃がした意味が失われる。
+- `CollectActionHandler` は `{ slot }` を **`TryParseClickableSlotRef`（grab area を拒否する新 parser）** で parse。`grab` を target に取らせない。
+- resolved target（grab保持なら Grab / 素手なら slot）は host が決める。
+- resolved target が空（素手で空スロット dblclick）の場合は uGUI に合わせ **`Success` の no-op**（トースト対象の失敗にしない）。
+- web 側の「空 target を送らない」は**フェーズAの現行契約としてのみ残す**。フェーズB（slot-only）では空判定を host へ一元化（web 側は明らかな空クリック抑制程度に弱めるか削除）。
 
 期待値（最低限のケース）:
 - 素手で非空スロットを dblclick → host が slot を collect 先に
-- grab 保持で dblclick → host が Grab を collect 先に
+- grab 保持で dblclick → host が Grab を collect 先に（クリック slot の空非空は無関係）
+- 素手で空スロットを dblclick → host が `Success` no-op（uGUI 準拠、トースト出さない）
 - 右クリックを含む dblclick 系列 → 誤判定しない（履歴に依存しないので構造的に解決）
-- target が空 → web は送らない（または `empty_slot` を許容するか方針を固定）
 
 ### directMove（shift+click）の非対称について（明記）
 web の `directMove`（`InventoryPanel.tsx:87-98`）は反対エリア1つだけを探す簡略版で、uGUI の `DirectMove`（sub インベントリ有無で探索範囲が変わる）とは乖離している。**これはフェーズB の照合対象外**とし、現状の web 挙動を保存する（web に sub インベントリ概念が無いため）。dblclick だけ照合し directMove は照合しないのは**意図的**。
@@ -167,7 +174,7 @@ e2e/
 
 ### vitest（単体・繊細ロジック）
 純粋関数に抽出。**副作用（`clickGrabHistory` 更新・`dispatchAction`）はコンポーネントに残す**。
-- `inventory/inventoryLogic.ts`: `pickCollectTarget(...)`（フェーズB後の期待値で固定）、`resolveDirectMoveTarget(targetSlots, itemId, maxStack, fromArea): number`（同種スタック優先→空fallback、maxStack undefinedスキップ）
+- `inventory/inventoryLogic.ts`: `resolveDirectMoveTarget(targetSlots, itemId, maxStack, fromArea): number`（同種スタック優先→空fallback、maxStack undefinedスキップ）。※`pickCollectTarget` は**フェーズB**で host 側へ移すため web 純関数化はしない（フェーズAでは dblclick は診断テストのみ）
 - `recipe/craftLogic.ts`: `buildOwnedCounts(inventory)`（main+hotbarのみ・**grab除外**）、`craftable(recipe, counts)`、index クランプ（**呼び出し側が `recipes.length>0` を保証する契約**を明記。length0時 `recipes[-1]` クラッシュ回避）
 
 ### Playwright e2e（ハッピーパス・UIフロー）
@@ -178,7 +185,14 @@ e2e/
 4. recipe pager + アイテム切替で index/tab リセット
 5. action失敗時のトースト
 6. **split**（host依存・canned snapshot）
-7. **dblclick collect**（フェーズB後の期待値・**必須ゲート**）
+7. **dblclick collect**（フェーズB後・**ゲート**）。※canned snapshot の e2e が守れるのは **web の payload 契約（`{slot}` のみ送る）と result 後の UI 再描画**のみ。**host の Grab/slot 判定ロジックの正しさは e2e では検証できない**ため、下記 C#単体テストで担保する（e2e ゲートの守備範囲を過大評価しない）。
+
+### C#単体テスト（フェーズB・判定ロジックの本丸）
+`CollectActionHandler.ExecuteAsync({slot})` を mock controller で直接叩き、`_controller` への委譲が期待通りになることを検証:
+- grab 保持 → `CollectItems(Grab, 0)`
+- 素手・非空 slot → `CollectItems(MainOrSub, slot)`
+- 素手・空 slot → no-op（`Success`、CollectItems 未呼び出し or 内部 return）
+これが dblclick 判定ロジックの真の回帰ネット。canned e2e はこれを代替しない。
 
 ### モックWSホストの要件
 - `bridge/protocol.ts` の型を import。fixtureは `satisfies`。
@@ -203,8 +217,9 @@ e2e/
 
 **フェーズB（dblclick collect 修正・挙動変更）**: A完了後。
 6. WebUiHost 実機で dblclick 期待値表を確定。
-7. `CollectActionHandler`（C#）を host側判定に改修＋`inventory.collect` payload を `{slot}` に変更。web `InventoryPanel.onDoubleClick` を簡素化（`clickGrabHistory` 廃止）。mock の collect 契約を更新。
-8. dblclick e2e が緑になるまで完了としない（**ゲート条件**）。
+7. `CollectActionHandler`（C#）を host側判定に改修: `{slot}` を `TryParseClickableSlotRef`（grab拒否）で parse、現在の `GrabInventory` で Grab/slot を decide、resolved-empty は `Success` no-op。`inventory.collect` payload を `{slot}` に変更。web `InventoryPanel.onDoubleClick` を簡素化（`clickGrabHistory` 廃止 = Aで温存した履歴を削除）。mock の collect 契約を更新。
+8. **C#単体テスト**（grab保持/素手非空/素手空の3ケース）で判定ロジックを固定。
+9. dblclick e2e（payload契約+UI再描画）が緑になるまで完了としない（**ゲート条件**）。
 
 ## 実装ゲート（writing-plans で明文化）
 
