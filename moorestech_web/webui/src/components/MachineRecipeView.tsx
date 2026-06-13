@@ -1,3 +1,4 @@
+import { clampIndex } from "../features/recipe/craftLogic";
 import type { MachineRecipe } from "../types/crafting";
 import type { ItemMasterEntry } from "../types/itemMaster";
 import ItemSlot from "./ItemSlot";
@@ -16,7 +17,7 @@ type Props = {
 export default function MachineRecipeView({ recipes, recipeIndex, setRecipeIndex, itemMaster, onSelect }: Props) {
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
-  const index = Math.min(recipeIndex, recipes.length - 1);
+  const index = clampIndex(recipeIndex, recipes.length);
   const recipe = recipes[index];
 
   return (
