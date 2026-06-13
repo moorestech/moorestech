@@ -57,6 +57,10 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomDoorHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.DoorHatch));
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomItemHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.ItemHatch));
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomPipeHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.PipeHatch));
+
+            // エアフィルターブロックを登録（IElectricConsumerとして電力システムに自動配線される）。
+            // Register the air filter block; it auto-wires into the electric system as IElectricConsumer.
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
         }
     }
 }

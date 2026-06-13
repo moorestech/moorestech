@@ -1,6 +1,8 @@
 using Core.Master;
 using Game.Block.Blocks.CleanRoom;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using NUnit.Framework;
@@ -116,6 +118,24 @@ namespace Tests.CombinedTest.Core
             component.ApplyRemovedImpurity(FilterCapacity);
             Assert.AreEqual(0, inventory.FilterCount);
             Assert.AreEqual(0.0, component.RemovalVolumePerSecond, 1e-9);
+        }
+
+        [Test]
+        public void Template_PlacesAirFilterWithAllComponents()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+
+            // エアフィルターを設置し、全コンポーネントが揃っているか確認。
+            // Place an air filter block and verify all required components are present.
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, UnityEngine.Vector3Int.one,
+                BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var block);
+
+            Assert.IsTrue(block.ExistsComponent<CleanRoomAirFilterComponent>());
+            Assert.IsTrue(block.ExistsComponent<CleanRoomAirFilterItemComponent>());
+            Assert.IsTrue(block.ExistsComponent<ICleanRoomAirFilter>());
+            Assert.IsTrue(block.ExistsComponent<IOpenableBlockInventoryComponent>());
+            Assert.IsTrue(block.ExistsComponent<IBlockSaveState>());
         }
 
         [Test]
