@@ -1,5 +1,6 @@
 import type { MouseEvent } from "react";
-import ItemIcon from "./ItemIcon";
+import ItemIcon from "../ItemIcon";
+import styles from "./style.module.css";
 
 type Props = {
   itemId: number;
@@ -40,7 +41,7 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
             <span className="absolute bottom-0 right-0.5 text-xs text-green-300 font-bold drop-shadow">{count}</span>
           ) : null}
           {name ? (
-            <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block whitespace-nowrap bg-black/90 text-white text-xs rounded px-2 py-1 z-20">
+            <span className={`pointer-events-none hidden group-hover:block bg-black/90 text-white text-xs rounded px-2 py-1 ${styles.tooltip}`}>
               {name}
             </span>
           ) : null}

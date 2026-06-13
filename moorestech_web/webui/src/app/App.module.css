@@ -1,0 +1,12 @@
+/* uGUI 準拠の3カラム+下段ホットバー。grid-template-areas が複雑なため module 化 */
+/* uGUI-style 3 columns + bottom hotbar; module-ized for the complex grid-template-areas */
+.layout {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-areas:
+    "header header header"
+    "inv viewer items"
+    "hotbar hotbar hotbar";
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto 1fr auto;
+}

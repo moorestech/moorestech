@@ -1,8 +1,7 @@
-import { dispatchAction } from "../bridge/actions";
-import { clampIndex, craftable } from "../features/recipe/craftLogic";
-import type { CraftRecipe } from "../types/crafting";
-import type { ItemMasterEntry } from "../types/itemMaster";
-import ItemSlot from "./ItemSlot";
+import { dispatchAction } from "@/bridge";
+import { ItemSlot } from "@/shared/ui";
+import type { CraftRecipe, ItemMasterEntry } from "@/bridge/payloadTypes";
+import { clampIndex, craftable } from "./craftLogic";
 import RecipePager from "./RecipePager";
 
 type Props = {

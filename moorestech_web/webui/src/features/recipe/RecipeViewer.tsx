@@ -1,13 +1,17 @@
 import { useState } from "react";
-import { useTopic } from "../bridge/useTopic";
-import { useItemMaster } from "../bridge/useItemMaster";
-import { useUiStore } from "../app/uiStore";
-import type { CraftRecipesData, MachineRecipe, MachineRecipesData } from "../types/crafting";
-import type { PlayerInventoryData } from "../types/inventory";
-import type { ItemMasterEntry } from "../types/itemMaster";
-import { buildOwnedCounts } from "../features/recipe/craftLogic";
+import { useTopic, Topics } from "@/bridge";
+import { useItemMaster } from "@/bridge/useItemMaster";
+import { useUiStore } from "@/app/uiStore";
+import { ItemIcon } from "@/shared/ui";
+import type {
+  CraftRecipesData,
+  MachineRecipe,
+  MachineRecipesData,
+  PlayerInventoryData,
+  ItemMasterEntry,
+} from "@/bridge/payloadTypes";
+import { buildOwnedCounts } from "./craftLogic";
 import ItemHeader from "./ItemHeader";
-import ItemIcon from "./ItemIcon";
 import CraftRecipeView from "./CraftRecipeView";
 import MachineRecipeView from "./MachineRecipeView";
 
@@ -16,9 +20,9 @@ import MachineRecipeView from "./MachineRecipeView";
 export default function RecipeViewer() {
   const selectedItemId = useUiStore((s) => s.selectedItemId);
   const onSelect = useUiStore((s) => s.setSelectedItem);
-  const recipes = useTopic("crafting.recipes");
-  const machineRecipes = useTopic("crafting.machine_recipes");
-  const inventory = useTopic("local_player.inventory");
+  const recipes = useTopic(Topics.craftRecipes);
+  const machineRecipes = useTopic(Topics.machineRecipes);
+  const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
 
   const loaded = recipes !== null && machineRecipes !== null && inventory !== null;
