@@ -56,6 +56,7 @@ namespace Game.Block.Blocks.Machine
 
             // 加工状態を復元
             // Restore processing state
+            CurrentState = currentState;
             _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs);
 
             _stateHandlers = new IMachineProcessState[]

@@ -16,6 +16,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -207,8 +208,8 @@ namespace Tests.CombinedTest.Core
             var speedModule = MasterHolder.ItemMaster.Items.Modules.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
             var expectedBoostedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
             AdvanceTicksWithFullPower(1, boostedProcessor, plainProcessor);
-            Assert.AreEqual(expectedBoostedTicks, boostedProcessor.RemainingTicks);
-            Assert.AreEqual(baseTicks, plainProcessor.RemainingTicks);
+            Assert.AreEqual(expectedBoostedTicks, boostedProcessor.GetRemainingTicks());
+            Assert.AreEqual(baseTicks, plainProcessor.GetRemainingTicks());
 
             // 短縮時間とベース時間の中間点まで進める（装着機の短縮時間は超え、ベース時間には届かない）
             // Advance to the midpoint of the boosted and base durations (past boosted, short of base)
@@ -335,7 +336,7 @@ namespace Tests.CombinedTest.Core
             // Start the process, advance a few ticks mid-process, then save
             AdvanceTicksWithFullPower(6, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            var remainingBeforeSave = processor.RemainingTicks;
+            var remainingBeforeSave = processor.GetRemainingTicks();
             var saveState = block.GetSaveState();
 
             // ロード後も加工状態と残りtickが復元され、装着中モジュールの電力倍率が即時反映されることを確認
@@ -345,7 +346,7 @@ namespace Tests.CombinedTest.Core
             var loadedProcessor = loadedBlock.GetComponent<VanillaMachineProcessorComponent>();
 
             Assert.AreEqual(ProcessState.Processing, loadedProcessor.CurrentState);
-            Assert.AreEqual(remainingBeforeSave, loadedProcessor.RemainingTicks);
+            Assert.AreEqual(remainingBeforeSave, loadedProcessor.GetRemainingTicks());
 
             var speedModule = MasterHolder.ItemMaster.Items.Modules.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
             Assert.AreEqual(loadedProcessor.RequestPower * (1f + speedModule.TradeoffValue), loadedProcessor.EffectiveRequestPower, 0.0001f);
@@ -368,7 +369,7 @@ namespace Tests.CombinedTest.Core
             // Remove the module after the process has started (no progress on the start tick, so remaining ticks = scaled time)
             AdvanceTicksWithFullPower(1, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            var ticksAtStart = processor.RemainingTicks;
+            var ticksAtStart = processor.GetRemainingTicks();
             Assert.Less(ticksAtStart, baseTicks);
             inventory.SetItem(ModuleRangeStart, ServerContext.ItemStackFactory.CreatEmpty());
 
@@ -377,7 +378,7 @@ namespace Tests.CombinedTest.Core
             // 加工時間は開始時に確定した値のまま進行する
             // The processing time stays at the value fixed at start
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            Assert.AreEqual(ticksAtStart - 3, processor.RemainingTicks);
+            Assert.AreEqual(ticksAtStart - 3, processor.GetRemainingTicks());
 
             // 電力倍率は取り外しが即時反映され中立に戻る
             // The power multiplier reverts to neutral immediately after removal
