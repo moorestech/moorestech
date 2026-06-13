@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Train.RailGraph;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
@@ -49,6 +50,13 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.GearPump, new VanillaGearPumpTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.ElectricPump, new VanillaElectricPumpTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.FilterSplitter, new VanillaFilterSplitterTemplate());
+
+            // クリーンルーム境界ブロック4種を共通テンプレートで登録。
+            // Register all 4 clean-room boundary block types with the shared template.
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomWall, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.Wall));
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomDoorHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.DoorHatch));
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomItemHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.ItemHatch));
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomPipeHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.PipeHatch));
         }
     }
 }
