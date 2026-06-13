@@ -12,6 +12,7 @@ using Game.Block.Interface.State;
 using Mooresmaster.Model.MachineRecipesModule;
 using Newtonsoft.Json;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Machine
 {
@@ -86,9 +87,8 @@ namespace Game.Block.Blocks.Machine
 
             // 処理率を計算し、0〜1の範囲にクランプ
             // Calculate processing rate and clamp to 0-1 range
-            var processingRate = _context.ProcessingRecipeTicks > 0 ? 1f - (float)_context.RemainingTicks / _context.ProcessingRecipeTicks : 0f;
-            if (processingRate < 0f) processingRate = 0f;
-            else if (processingRate > 1f) processingRate = 1f;
+            var rawRate = _context.ProcessingRecipeTicks > 0 ? 1f - (float)_context.RemainingTicks / _context.ProcessingRecipeTicks : 0f;
+            var processingRate = Mathf.Clamp01(rawRate);
 
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, _context.CurrentState.ToStr(), _lastState.ToStr());
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid);
