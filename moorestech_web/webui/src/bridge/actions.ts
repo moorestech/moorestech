@@ -1,5 +1,5 @@
 import { sendAction } from "./webSocketClient";
-import { showToast } from "./toastBus";
+import { notify } from "./notify";
 import type { ActionPayloads } from "./protocol";
 
 // action を発行し、失敗時はトースト表示して false を返す UI 向けラッパ
@@ -13,12 +13,12 @@ export async function dispatchAction<K extends keyof ActionPayloads>(
   try {
     const result = await sendAction(type, payload);
     if (!result.ok) {
-      showToast(`${type} failed: ${result.error ?? "unknown"}`);
+      notify(`${type} failed: ${result.error ?? "unknown"}`);
       return false;
     }
     return true;
   } catch (e) {
-    showToast(`${type} error: ${e instanceof Error ? e.message : String(e)}`);
+    notify(`${type} error: ${e instanceof Error ? e.message : String(e)}`);
     return false;
   }
 }
