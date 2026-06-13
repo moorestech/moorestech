@@ -5,6 +5,7 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.CleanRoom.Machine;
 using Game.CleanRoom.Pollution;
 using Game.CleanRoom.SaveLoad;
 using Game.Context;
@@ -67,6 +68,12 @@ namespace Game.CleanRoom
         // Air filter registry (cell -> filter); phase-3 blocks register on place/remove.
         private readonly Dictionary<Vector3Int, ICleanRoomAirFilter> _airFilters = new();
 
+        // 状態受信ブロック登録（BlockInstanceId→ブロック）。設置/破壊で自動登録し、毎tick効果をプッシュする。
+        // ブロック参照を持つことで TryGetCleanRoom(block, ..) を再利用し占有セルの帰属判定を委譲できる。
+        // State-receiver registry (instance id -> block); auto-registered on place/remove, pushed each tick.
+        // Holding the block lets us reuse TryGetCleanRoom(block, ..) for the multi-block membership check.
+        private readonly Dictionary<BlockInstanceId, (IBlock block, ICleanRoomStateReceiver receiver)> _stateReceivers = new();
+
         // 閾値行（マスタから1回変換してキャッシュ）。
         // Threshold rows converted once from the master.
         private IReadOnlyList<CleanRoomThresholdRow> _thresholdRows;
@@ -79,8 +86,8 @@ namespace Game.CleanRoom
 
             // 設置/破壊イベント。remove は block.Destroy() より先に発火するため TryGetComponent は安全。
             // Place/remove events. Remove fires before block.Destroy(), so TryGetComponent is safe.
-            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(e => { RegisterAirFilterOnPlace(e.BlockData); OnChanged(e.BlockData); }));
-            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(e => { UnregisterAirFilterOnRemove(e.BlockData); OnChanged(e.BlockData); }));
+            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(e => { RegisterAirFilterOnPlace(e.BlockData); RegisterStateReceiverOnPlace(e.BlockData); OnChanged(e.BlockData); }));
+            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(e => { UnregisterAirFilterOnRemove(e.BlockData); UnregisterStateReceiverOnRemove(e.BlockData); OnChanged(e.BlockData); }));
         }
 
         public void SetDirtyCellBudgetPerTickForTest(int budget)
@@ -245,6 +252,22 @@ namespace Game.CleanRoom
                 RemoveAirFilter(blockData.BlockPositionInfo.MinPos);
         }
 
+        // 設置イベントで状態受信ブロックを登録する（multi-block 占有判定用にブロック参照ごと保持）。
+        // Register a state-receiver block from the place event (hold the block ref for the membership check).
+        private void RegisterStateReceiverOnPlace(WorldBlockData blockData)
+        {
+            if (blockData.Block.TryGetComponent<ICleanRoomStateReceiver>(out var receiver))
+                _stateReceivers[blockData.Block.BlockInstanceId] = (blockData.Block, receiver);
+        }
+
+        // 破壊イベントで状態受信ブロックを解除する。
+        // Unregister a state-receiver block on the remove event.
+        private void UnregisterStateReceiverOnRemove(WorldBlockData blockData)
+        {
+            if (blockData.Block.TryGetComponent<ICleanRoomStateReceiver>(out _))
+                _stateReceivers.Remove(blockData.Block.BlockInstanceId);
+        }
+
         // 検出中の全部屋＋Degraded孤立を保存する（Invalid孤立は保存しない）。
         // Save all detected rooms plus Degraded orphans (Invalid orphans are not saved).
         public List<CleanRoomSaveData> GetSaveData()
@@ -356,6 +379,25 @@ namespace Game.CleanRoom
             // Drain dirty seeds within budget to finalize the room set, then integrate purity.
             ProcessDirtySeeds();
             UpdatePurity();
+
+            // 純度確定後に、登録済み受信ブロックへ部屋効果をプッシュする（機械側に部屋探索を持たせない）。
+            // After purity settles, push room effects to registered receivers (machines never search for rooms).
+            PushCleanRoomEffects();
+        }
+
+        // 登録済み受信ブロックへ、属する部屋の効果（無ければ最悪側）を毎tickプッシュする。
+        // Push each registered receiver the effect of its owning room, or the worst case if it has none.
+        private void PushCleanRoomEffects()
+        {
+            // 同一部屋に全占有セルが含まれる時だけ部屋効果を、またがり/部屋外/無効化時は最悪側をプッシュ。
+            // Push the room effect only when all occupied cells lie in one room; straddling/outside/vanished -> worst case.
+            foreach (var entry in _stateReceivers.Values)
+            {
+                if (TryGetCleanRoom(entry.block, out var room))
+                    entry.receiver.SetCleanRoomEffect(CleanRoomEffectResolver.Resolve(room));
+                else
+                    entry.receiver.SetCleanRoomEffect(new CleanRoomEffect(false, 0, 0.0));
+            }
         }
 
         // dirtyシードを予算内で消化する。最低1シードは必ず処理（前進保証）。

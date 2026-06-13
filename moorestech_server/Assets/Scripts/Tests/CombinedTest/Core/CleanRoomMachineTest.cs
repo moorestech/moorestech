@@ -8,8 +8,10 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.CleanRoom;
 using Game.Context;
 using Game.EnergySystem;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -139,8 +141,13 @@ namespace Tests.CombinedTest.Core
         (IBlock block, CleanRoomMachineProcessorComponent proc, CleanRoomStateReceiverComponent receiver)
             PlaceExposureMachineWithInputs(int cycles = 1)
         {
-            new MoorestechServerDIContainerGenerator()
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 機械単体の挙動検証なので、データストアの毎tickプッシュ（部屋外＝最悪側で上書き）を止めて手動注入を活かす。
+            // These are machine-component tests; stop the datastore's per-tick push (which would clobber the
+            // manually injected effect with the worst case for a room-less machine) so injection stays in effect.
+            serviceProvider.GetService<CleanRoomDatastore>().Destroy();
 
             var recipe = FindExposureRecipe();
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
