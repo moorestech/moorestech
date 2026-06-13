@@ -18,28 +18,22 @@ namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
     {
-        public ProcessState CurrentState => _context.CurrentState;
-        public uint RemainingTicks => _context.RemainingTicks;
         public Guid RecipeGuid => _processingState.RecipeGuid;
         public float RequestPower => _context.RequestPower;
+        public ProcessState CurrentState { get; private set; }
 
         // 加工中のみモジュールの電力倍率を適用した要求電力
         // Requested power applying the module power multiplier only while processing
         public float EffectiveRequestPower => _context.RequestPower *
-                                              (_context.CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : 1f);
+                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : 1f);
 
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
 
         private readonly MachineProcessContext _context;
-
-        // 加工ジョブを所有するProcessingStateへの型付き参照（RecipeGuid等の問い合わせに使う）
-        // Typed reference to the ProcessingState that owns the job (used to query RecipeGuid etc.)
-        private readonly ProcessingMachineProcessState _processingState;
-
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
-        private IMachineProcessState _currentHandler;
-
+        private readonly ProcessingMachineProcessState _processingState;
+        
         private ProcessState _lastState = ProcessState.Idle;
 
         // 新規作成
@@ -58,34 +52,25 @@ namespace Game.Block.Blocks.Machine
 
         private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
         {
-            _context = new MachineProcessContext(input, output, effect, requestPower)
-            {
-                CurrentState = currentState,
-                RemainingTicks = remainingTicks,
-            };
+            _context = new MachineProcessContext(input, output, effect, requestPower);
 
-            _processingState = new ProcessingMachineProcessState(_context);
-
-            // セーブ復元時は加工ジョブをProcessingStateへ与える（新規時はrecipe=nullの空ジョブ）
-            // On restore, hand the job to ProcessingState (fresh creation passes recipe=null for an empty job)
-            var totalTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
-            _processingState.SetProcessing(processingRecipe, pendingOutputs, totalTicks);
+            // 加工状態を復元
+            // Restore processing state
+            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs);
 
             _stateHandlers = new IMachineProcessState[]
                 {
                     new IdleMachineProcessState(_context, _processingState),
                     _processingState,
                 }.ToDictionary(handler => handler.State);
-
-            _currentHandler = _stateHandlers[_context.CurrentState];
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
 
-            var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_context.RemainingTicks / _processingState.TotalTicks : 0f);
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, _context.CurrentState.ToStr(), _lastState.ToStr());
+            var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
+            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
             
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid);
             return new[] { commonMachineBlock, machineBlock };
@@ -99,7 +84,7 @@ namespace Game.Block.Blocks.Machine
 
             // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
             // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
-            if (_context.CurrentState == ProcessState.Idle)
+            if (CurrentState == ProcessState.Idle)
             {
                 _changeState.OnNext(Unit.Default);
             }
@@ -116,21 +101,21 @@ namespace Game.Block.Blocks.Machine
             
             // ステートのアップデートと変更処理
             // State update and transition handling
-            var nextState = _currentHandler.GetNextUpdate();
-            if (nextState != _context.CurrentState)
+            var current = CurrentState;
+            var nextState = _stateHandlers[current].GetNextUpdate();
+            if (nextState != current)
             {
-                _currentHandler.OnExit();
-                _context.CurrentState = nextState;
-                _currentHandler = _stateHandlers[nextState];
-                _currentHandler.OnEnter();
+                _stateHandlers[current].OnExit();
+                CurrentState = nextState;
+                _stateHandlers[nextState].OnEnter();
             }
 
             // ステート変化時か処理中はイベントを発火させる
             // Fire the event on a state change or while processing
-            if (_lastState != _context.CurrentState || _context.CurrentState == ProcessState.Processing)
+            if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
             {
                 _changeState.OnNext(Unit.Default);
-                _lastState = _context.CurrentState;
+                _lastState = CurrentState;
             }
         }
 
@@ -150,8 +135,8 @@ namespace Game.Block.Blocks.Machine
             // Convert ticks to seconds for storage (to handle tick rate changes)
             return new VanillaMachineProcessorSaveJsonObject
             {
-                State = (int)_context.CurrentState,
-                RemainingSeconds = GameUpdater.TicksToSeconds(_context.RemainingTicks),
+                State = (int)CurrentState,
+                RemainingSeconds = GameUpdater.TicksToSeconds(_processingState.RemainingTicks),
                 RecipeGuidStr = RecipeGuid.ToString(),
                 PendingOutputs = _processingState.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };

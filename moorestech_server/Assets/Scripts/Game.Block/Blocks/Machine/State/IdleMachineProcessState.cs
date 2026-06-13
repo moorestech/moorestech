@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.Machine.State
             // Fix the outputs and the scaled time, hand the job to ProcessingState, then transition
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
-            _processingState.SetProcessing(recipe, realizedOutputs, totalTicks);
+            _processingState.SetProcessing(recipe, realizedOutputs);
 
             return ProcessState.Processing;
         }
