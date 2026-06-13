@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTopic } from "../bridge/useTopic";
 import { useItemMaster } from "../bridge/useItemMaster";
 import { dispatchAction } from "../bridge/actions";
+import { resolveDirectMoveTarget } from "../features/inventory/inventoryLogic";
 import type { InventoryArea, SlotData, SlotRef } from "../types/inventory";
 import ItemSlot from "./ItemSlot";
 
@@ -90,9 +91,7 @@ export default function InventoryPanel() {
     // マスタ未ロード時は maxStack 不明のため同種スタック探索をスキップし、空スロットのみ探す
     // Skip the same-item stack search while the item master is unloaded; fall back to empty slots
     const maxStack = itemMaster?.get(slot.itemId)?.maxStack;
-    const stackable = maxStack === undefined ? -1 : targetSlots.findIndex((s) => s.itemId === slot.itemId && s.count < maxStack);
-    const empty = targetSlots.findIndex((s) => s.count === 0);
-    const target = stackable >= 0 ? stackable : empty;
+    const target = resolveDirectMoveTarget(targetSlots, slot.itemId, maxStack);
     if (target < 0) return;
     void dispatchAction("inventory.move_item", { from, to: { area: targetArea, slot: target }, count: slot.count });
   };

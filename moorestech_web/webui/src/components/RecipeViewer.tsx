@@ -4,6 +4,7 @@ import { useItemMaster } from "../bridge/useItemMaster";
 import type { CraftRecipesData, MachineRecipe, MachineRecipesData } from "../types/crafting";
 import type { PlayerInventoryData } from "../types/inventory";
 import type { ItemMasterEntry } from "../types/itemMaster";
+import { buildOwnedCounts } from "../features/recipe/craftLogic";
 import ItemHeader from "./ItemHeader";
 import ItemIcon from "./ItemIcon";
 import CraftRecipeView from "./CraftRecipeView";
@@ -99,12 +100,7 @@ function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster,
 
   // サーバーの OneClickCraft は main+hotbar のみ参照するため、grab は所持数に含めない
   // The server's OneClickCraft only consults main+hotbar, so grab is excluded from the tally
-  const counts = new Map<number, number>();
-  const addCount = (id: number, count: number) => {
-    if (count > 0) counts.set(id, (counts.get(id) ?? 0) + count);
-  };
-  inventory.mainSlots.forEach((s) => addCount(s.itemId, s.count));
-  inventory.hotbarSlots.forEach((s) => addCount(s.itemId, s.count));
+  const counts = buildOwnedCounts(inventory);
 
   return (
     <div className="space-y-3">
