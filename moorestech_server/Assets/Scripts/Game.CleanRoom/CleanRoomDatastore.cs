@@ -24,8 +24,25 @@ namespace Game.CleanRoom
         public int RebuildCount { get; private set; }
 
         private List<CleanRoom> _rooms = new();
-        private bool _geometryDirty;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+
+        // 再検出待ちのシードセル。設置/削除の購読で積み、tickで予算内消化する。
+        // Seed cells awaiting re-detection; enqueued on place/remove, drained per tick within budget.
+        private readonly Queue<Vector3Int> _dirtySeeds = new();
+        private readonly HashSet<Vector3Int> _dirtySeedSet = new(); // 重複防止 / dedup
+
+        // 1tickのfill visited予算（バランス確定書§5: 8192）。テストは縮小注入。
+        // Per-tick visited budget (balance §5: 8192); tests inject a smaller value.
+        public const int DirtyCellBudgetPerTick = 8192;
+        private int _dirtyCellBudgetPerTick = DirtyCellBudgetPerTick;
+
+        // 直近 tick（または RebuildAll）の fill 訪問セル総数。コスト計測・テスト用。
+        // Total fill-visited cells in the last tick (or RebuildAll); for cost measurement/tests.
+        public int LastRebuildVisitedCellCount { get; private set; }
+
+        // 次に生成する部屋の Id。差分更新でも重複しないよう単調増加。
+        // Monotonic next room id so incremental detection never reuses an id.
+        private int _nextRoomId;
 
         // どの検出部屋にも紐付かない継続状態（消滅→Degraded/Invalid 中）。猶予で復活待ち。
         // Orphan rooms (vanished -> Degraded/Invalid) awaiting reseal within grace.
@@ -54,8 +71,11 @@ namespace Game.CleanRoom
             // Place/remove events. Remove fires before block.Destroy(), so TryGetComponent is safe.
             _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(e => OnChanged(e.BlockData)));
             _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(e => OnChanged(e.BlockData)));
+        }
 
-            _geometryDirty = true; // 起動/ロード直後に一度フル検出
+        public void SetDirtyCellBudgetPerTickForTest(int budget)
+        {
+            _dirtyCellBudgetPerTick = budget;
         }
 
         // 全走査で部屋を再構築する。テスト/ロードから明示的にも呼べる。
@@ -64,10 +84,23 @@ namespace Game.CleanRoom
         // Clear dirty here so a direct call from load sequence does not trigger a redundant full re-scan on the next tick.
         public void RebuildAll()
         {
-            _geometryDirty = false;
-            var newRooms = CleanRoomDetector.DetectAllRooms(_worldBlockDatastore);
-            ApplyDetectionResult(newRooms); // 引き継ぎ + _rooms 差し替えを一本化
+            // 全走査の前に未処理シードを捨てる（次tickでの重複フル走査を防ぐ）。
+            // Drop pending seeds before a full scan to avoid a redundant full re-scan next tick.
+            _dirtySeeds.Clear();
+            _dirtySeedSet.Clear();
+
+            var newRooms = CleanRoomDetector.DetectAllRooms(_worldBlockDatastore, out var visited);
+            ReassignRoomIds(newRooms);
+            LastRebuildVisitedCellCount = visited;
+            ApplyDetectionResult(newRooms); // 引き継ぎ + _rooms 全差し替えを一本化
             RebuildCount++;
+        }
+
+        // 検出結果に単調増加 Id を振り直す（Detector は 0 起点のため）。
+        // Reassign monotonic ids to detected rooms (the detector starts from 0).
+        private void ReassignRoomIds(List<CleanRoom> rooms)
+        {
+            foreach (var room in rooms) room.SetId(_nextRoomId++);
         }
 
         public bool TryGetDegradedOrphan(out CleanRoom orphan)
@@ -78,17 +111,25 @@ namespace Game.CleanRoom
             return orphan != null;
         }
 
-        // 新検出結果へ旧状態（検出中＋Degraded孤立）を引き継ぐ。Invalid孤立はここで破棄。
-        // Carry old states (tracked + Degraded orphans) onto new rooms; Invalid orphans are discarded here.
+        // 全走査の結果反映。旧状態プール＝全 _rooms ＋ Degraded 孤立を引き継ぎ、_rooms を全差し替え。
+        // Apply a full-scan result: pool = all _rooms + Degraded orphans; replace _rooms entirely.
         private void ApplyDetectionResult(List<CleanRoom> newRooms)
         {
-            // 旧状態プール: 直前まで検出されていた部屋 ＋ Degraded 孤立。Invalid 孤立は破棄。
-            // Old-state pool: previously detected rooms + Degraded orphans; Invalid orphans dropped.
             var pool = new List<CleanRoom>(_rooms);
             foreach (var orphan in _orphanRooms)
                 if (orphan.Status == CleanRoomRoomStatus.Degraded) pool.Add(orphan);
             _orphanRooms.Clear();
 
+            ApplyCarryOver(newRooms, pool);
+            _rooms = newRooms;
+        }
+
+        // 新検出部屋へ旧状態プールを引き継ぎ、対応しなかった旧状態は孤立化する（RebuildAll/差分更新の共通核）。
+        // Carry old-state pool onto new rooms; unmatched old states become orphans. Shared by full and incremental paths.
+        // 呼び出し側が _rooms と _orphanRooms の組み替え（全差し替え or 部分置換）を行う。
+        // The caller is responsible for swapping _rooms / pulling orphans (full vs partial).
+        private void ApplyCarryOver(List<CleanRoom> newRooms, List<CleanRoom> pool)
+        {
             var outIndex = MasterHolder.CleanRoomThresholdMaster.OutThresholdIndex;
             var matched = new HashSet<CleanRoom>();
 
@@ -124,8 +165,6 @@ namespace Game.CleanRoom
                     old.SetStatus(CleanRoomRoomStatus.Degraded, CleanRoomPurityRules.GraceSeconds);
                 _orphanRooms.Add(old);
             }
-
-            _rooms = newRooms;
         }
 
         // 旧状態のセル集合と新部屋の重なりセル数。
@@ -188,10 +227,165 @@ namespace Game.CleanRoom
 
         private void Update()
         {
-            // dirty なら再検出し、その後に純度tickを実行（同一tick内で部屋集合を確定してから積分）。
-            // Rebuild geometry if dirty, then always integrate purity on every tick.
-            if (_geometryDirty) RebuildAll();
+            // dirty シードを予算内で消化し、部屋集合を確定してから純度tickを積分する。
+            // Drain dirty seeds within budget to finalize the room set, then integrate purity.
+            ProcessDirtySeeds();
             UpdatePurity();
+        }
+
+        // dirtyシードを予算内で消化する。最低1シードは必ず処理（前進保証）。
+        // Drain dirty seeds within budget; always finish at least one seed per tick.
+        private void ProcessDirtySeeds()
+        {
+            if (_dirtySeeds.Count == 0)
+            {
+                LastRebuildVisitedCellCount = 0;
+                return;
+            }
+
+            // 壁/占有セル集合はこの tick の消化で共有（fill 予算とは別。シード単位で作り直さない）。
+            // Build cell sets once for this tick's drain (shared across seeds; not the fill budget).
+            CleanRoomDetector.BuildCellSets(_worldBlockDatastore, out var boundaryCells, out var occupiedCells);
+
+            var visitedTotal = 0;
+            var processedAny = false;
+
+            while (_dirtySeeds.Count > 0 && (!processedAny || visitedTotal < _dirtyCellBudgetPerTick))
+            {
+                var seed = _dirtySeeds.Dequeue();
+                _dirtySeedSet.Remove(seed);
+
+                // シード周辺を局所fillし、影響部屋の置換/消滅を引き継ぎ規則込みで適用する。
+                // Locally fill around the seed and apply room replace/vanish with carry-over rules.
+                visitedTotal += DetectAroundSeed(seed, boundaryCells, occupiedCells);
+                processedAny = true;
+            }
+
+            LastRebuildVisitedCellCount = visitedTotal;
+        }
+
+        // シード周辺を局所 fill し、影響を受ける既存部屋だけを差分更新する。fill 訪問セル数を返す。
+        // Locally fill around the seed and differentially update only the affected rooms. Returns visited cells.
+        private int DetectAroundSeed(Vector3Int seed, HashSet<Vector3Int> boundaryCells, HashSet<Vector3Int> occupiedCells)
+        {
+            // 局所 fill で新たな密閉部屋を検出（触れた壁AABB+1・MaxRoomVolume で縛る）。
+            // Detect new sealed rooms by local fill (bounded by touched-wall AABB+1 / MaxRoomVolume).
+            var seeds = new List<Vector3Int> { seed };
+            var newRooms = CleanRoomDetector.DetectFromSeeds(seeds, boundaryCells, occupiedCells, 0, out var visited);
+
+            // 影響対象＝シード近傍に重なる既存部屋 ＋ 新部屋セルに重なる既存部屋。
+            // Affected rooms = existing rooms overlapping the seed neighborhood or any new-room cell.
+            var probe = ProbeRegion(seed);
+            var affected = CollectAffectedRooms(probe, newRooms);
+
+            // 新部屋が既存部屋の Cells と完全一致なら何もしない（インスタンス維持）。
+            // If a new room exactly matches an existing room's Cells, keep the instance (do nothing).
+            RemoveExactMatches(newRooms, affected);
+            if (newRooms.Count == 0 && affected.Count == 0) return visited;
+
+            ReassignRoomIds(newRooms);
+
+            // 影響部屋＋それに重なる Degraded 孤立だけをプールにし、引き継ぎ後に _rooms を部分置換する。
+            // Pool = affected rooms + overlapping Degraded orphans only; partially replace _rooms after carry-over.
+            var pool = new List<CleanRoom>(affected);
+            PullOverlappingDegradedOrphans(probe, newRooms, pool);
+
+            ApplyCarryOver(newRooms, pool);
+
+            // 影響部屋を取り除き、新部屋を加える（触れていない部屋はインスタンスごと維持）。
+            // Drop affected rooms and add the new ones; untouched rooms keep their instances.
+            var next = new List<CleanRoom>(_rooms.Count);
+            foreach (var room in _rooms)
+                if (!affected.Contains(room)) next.Add(room);
+            next.AddRange(newRooms);
+            _rooms = next;
+
+            return visited;
+
+            #region Internal
+
+            // シードと6近傍を既存部屋の Cells 重なり判定に使う探索域。
+            // Probe region: the seed plus its 6 neighbors, used to find overlapping existing rooms.
+            HashSet<Vector3Int> ProbeRegion(Vector3Int s)
+            {
+                var set = new HashSet<Vector3Int> { s };
+                set.Add(new Vector3Int(s.x + 1, s.y, s.z));
+                set.Add(new Vector3Int(s.x - 1, s.y, s.z));
+                set.Add(new Vector3Int(s.x, s.y + 1, s.z));
+                set.Add(new Vector3Int(s.x, s.y - 1, s.z));
+                set.Add(new Vector3Int(s.x, s.y, s.z + 1));
+                set.Add(new Vector3Int(s.x, s.y, s.z - 1));
+                return set;
+            }
+
+            #endregion
+        }
+
+        // probe セルを含む、または新部屋セルに重なる既存部屋を集める。
+        // Collect existing rooms that contain a probe cell or overlap any new-room cell.
+        private HashSet<CleanRoom> CollectAffectedRooms(HashSet<Vector3Int> probe, List<CleanRoom> newRooms)
+        {
+            var affected = new HashSet<CleanRoom>();
+            foreach (var room in _rooms)
+            {
+                if (ContainsAny(room, probe)) { affected.Add(room); continue; }
+                foreach (var newRoom in newRooms)
+                    if (CountOverlap(room.Cells, newRoom) > 0) { affected.Add(room); break; }
+            }
+            return affected;
+        }
+
+        // probe または新部屋に重なる Degraded 孤立をプールへ移す（猶予中の再密閉対応）。
+        // Move Degraded orphans overlapping the probe or a new room into the pool (reseal within grace).
+        private void PullOverlappingDegradedOrphans(HashSet<Vector3Int> probe, List<CleanRoom> newRooms, List<CleanRoom> pool)
+        {
+            for (var i = _orphanRooms.Count - 1; i >= 0; i--)
+            {
+                var orphan = _orphanRooms[i];
+                if (orphan.Status != CleanRoomRoomStatus.Degraded) continue;
+
+                var overlaps = ContainsAny(orphan, probe);
+                if (!overlaps)
+                    foreach (var newRoom in newRooms)
+                        if (CountOverlap(orphan.Cells, newRoom) > 0) { overlaps = true; break; }
+
+                if (!overlaps) continue;
+                pool.Add(orphan);
+                _orphanRooms.RemoveAt(i);
+            }
+        }
+
+        // 新部屋の Cells が影響部屋の Cells と完全一致するなら、両方を処理対象から外す（インスタンス維持）。
+        // Drop exact-match pairs from processing so the existing instance is preserved.
+        private static void RemoveExactMatches(List<CleanRoom> newRooms, HashSet<CleanRoom> affected)
+        {
+            for (var i = newRooms.Count - 1; i >= 0; i--)
+            {
+                CleanRoom exact = null;
+                foreach (var room in affected)
+                    if (RoomEquivalent(room, newRooms[i])) { exact = room; break; }
+                if (exact == null) continue;
+                affected.Remove(exact);
+                newRooms.RemoveAt(i);
+            }
+        }
+
+        // Cells・Volume・SurfaceArea が全一致なら同一部屋とみなしインスタンスを維持する。
+        // Treat as the same room (preserve instance) only if Cells, Volume, and SurfaceArea all match.
+        private static bool RoomEquivalent(CleanRoom a, CleanRoom b)
+        {
+            if (a.Cells.Count != b.Cells.Count) return false;
+            if (a.Volume != b.Volume || a.SurfaceArea != b.SurfaceArea) return false;
+            foreach (var cell in b.Cells)
+                if (!a.Contains(cell)) return false;
+            return true;
+        }
+
+        private static bool ContainsAny(CleanRoom room, HashSet<Vector3Int> cells)
+        {
+            foreach (var cell in cells)
+                if (room.Contains(cell)) return true;
+            return false;
         }
 
         // 毎tick: 全部屋の N を積分し、閾値行を二条件＋ヒステリシスで更新する。
@@ -253,19 +447,52 @@ namespace Game.CleanRoom
 
         private void OnChanged(WorldBlockData blockData)
         {
-            // 境界ブロックは常に部屋形状に影響する。
-            // Boundary blocks always affect room geometry.
+            // 境界ブロックは常に部屋形状に影響する。占有セル＋6近傍をシード化。
+            // Boundary blocks always affect geometry; enqueue occupied cells + 6-neighbors as seeds.
             if (blockData.Block.TryGetComponent<ICleanRoomBoundaryComponent>(out _))
             {
-                _geometryDirty = true;
+                EnqueueSeeds(blockData.BlockPositionInfo);
                 return;
             }
 
-            // 非境界ブロックも既存部屋の Cells に重なるなら V/S が変わる。
-            // Non-boundary blocks overlapping room Cells change V/S.
-            // 非境界ブロックを部屋外に置いた場合は次tick以降の壁設置で dirty になる。
-            // A non-boundary block outside any room defers dirtying to the next boundary change.
-            if (OverlapsAnyRoomCells(blockData.BlockPositionInfo)) _geometryDirty = true;
+            // 非境界ブロックも既存部屋の Cells に重なるなら V/S が変わるためシード化。
+            // Non-boundary blocks overlapping room Cells change V/S, so enqueue them too.
+            // 部屋外の非境界ブロックは無視（フェーズ1のゲーティングを踏襲）。
+            // Non-boundary blocks outside any room are ignored (matching phase-1 gating).
+            if (OverlapsAnyRoomCells(blockData.BlockPositionInfo)) EnqueueSeeds(blockData.BlockPositionInfo);
+        }
+
+        // 変更ブロックの占有セルとその6近傍をシードキューへ積む（重複は HashSet で排除）。
+        // Enqueue the changed block's occupied cells and their 6-neighbors (deduped via HashSet).
+        private void EnqueueSeeds(BlockPositionInfo info)
+        {
+            for (var x = info.MinPos.x; x <= info.MaxPos.x; x++)
+            for (var y = info.MinPos.y; y <= info.MaxPos.y; y++)
+            for (var z = info.MinPos.z; z <= info.MaxPos.z; z++)
+            {
+                var cell = new Vector3Int(x, y, z);
+                Enqueue(cell);
+                foreach (var n in SixNeighbors(cell)) Enqueue(n);
+            }
+
+            #region Internal
+
+            void Enqueue(Vector3Int cell)
+            {
+                if (_dirtySeedSet.Add(cell)) _dirtySeeds.Enqueue(cell);
+            }
+
+            #endregion
+        }
+
+        private static IEnumerable<Vector3Int> SixNeighbors(Vector3Int p)
+        {
+            yield return new Vector3Int(p.x + 1, p.y, p.z);
+            yield return new Vector3Int(p.x - 1, p.y, p.z);
+            yield return new Vector3Int(p.x, p.y + 1, p.z);
+            yield return new Vector3Int(p.x, p.y - 1, p.z);
+            yield return new Vector3Int(p.x, p.y, p.z + 1);
+            yield return new Vector3Int(p.x, p.y, p.z - 1);
         }
 
         private bool OverlapsAnyRoomCells(BlockPositionInfo info)

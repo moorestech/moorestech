@@ -11,7 +11,12 @@ namespace Game.CleanRoom
     {
         // Id は一時参照用。永続キーにしてはいけない。
         // Id is an ephemeral handle, NOT a persistence key.
-        public int Id { get; }
+        public int Id { get; private set; }
+
+        public void SetId(int id)
+        {
+            Id = id;
+        }
 
         // Cells は機械等の占有セルを含む全内部セル。
         // Cells contains all interior cells incl. machine-occupied ones.
