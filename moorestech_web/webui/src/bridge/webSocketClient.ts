@@ -1,18 +1,20 @@
 // Unity 側 Web UI ホストと通信する WebSocket クライアント
 // WebSocket client for the Unity-side Web UI host
+import type { ServerMsg, ClientMsg, ActionResult, TopicPayloads } from "./protocol";
 
-export type ActionResult = { ok: boolean; error?: string };
+export type { ActionResult };
 
-type ServerMsg =
-  | { op: "snapshot"; topic: string; data: unknown }
-  | { op: "event"; topic: string; data: unknown }
-  | { op: "result"; requestId: string; ok: boolean; error?: string };
-
-type ClientMsg =
-  | { op: "subscribe"; topics: string[] }
-  | { op: "unsubscribe"; topics: string[] }
-  | { op: "snapshot"; topic: string }
-  | { op: "action"; type: string; requestId: string; payload: unknown };
+// 壊れたフレームで handler が落ちるのを防ぐ JSON.parse ラッパ。
+// AGENTS規約「try-catch原則禁止」の正当な例外として、try-catch をここに隔離し呼び出し側は null 分岐
+// Guarded JSON.parse so a broken frame can't crash the handler.
+// Justified exception to the no-try-catch rule: try-catch is isolated here; callers branch on null
+function safeParse(raw: string): Partial<ServerMsg> | null {
+  try {
+    return JSON.parse(raw) as Partial<ServerMsg>;
+  } catch {
+    return null;
+  }
+}
 
 type Listener = (data: unknown) => void;
 
@@ -106,7 +108,8 @@ class WebSocketClient {
       // バイナリ等の文字列以外のフレームは捨てる
       // Drop non-text frames
       if (typeof ev.data !== "string") return;
-      const msg = JSON.parse(ev.data) as Partial<ServerMsg>;
+      const msg = safeParse(ev.data);
+      if (!msg) return;
       if (msg.op === "result") {
         if (typeof msg.requestId !== "string") return;
         const pending = this.pendingActions.get(msg.requestId);
@@ -149,8 +152,13 @@ class WebSocketClient {
 // Keep the connection as a module-level singleton
 const client = new WebSocketClient(`ws://${location.host}/ws`);
 
-export function subscribeTopic<T>(topic: string, listener: (data: T) => void) {
-  return client.subscribe(topic, (d) => listener(d as T));
+export function subscribeTopic<K extends keyof TopicPayloads>(
+  topic: K,
+  listener: (data: TopicPayloads[K]) => void,
+) {
+  // as TopicPayloads[K] はランタイム非保証のキャスト境界。未知 topic は購読されないため到達しない
+  // This cast is a runtime-unchecked boundary; unknown topics are never subscribed so they don't reach here
+  return client.subscribe(topic, (d) => listener(d as TopicPayloads[K]));
 }
 
 // UI コードは原則 actions.ts の dispatchAction を使うこと（reject の処理が必要なため）
