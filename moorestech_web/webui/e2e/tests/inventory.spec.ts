@@ -20,6 +20,27 @@ test("左クリックで grab オーバーレイが追従する", async ({ page 
   await expect(page.locator(".fixed.z-40")).toBeVisible();
 });
 
+test("ダブルクリックで同種を集約し、collect はクリックされたスロットを送る", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+  // Wood は main[0]=10 と main[2]=5 に分かれている。先頭をダブルクリックすると 15 へ集約される
+  // Wood is split across main[0]=10 and main[2]=5; double-clicking the first slot consolidates to 15
+  const firstSlot = page.locator(".grid.grid-cols-9 > div").first();
+  await firstSlot.dblclick();
+  // クリック連鎖と event の競合に関わらず、host が現在の grab で集積先を決め Wood は 15 にまとまる
+  // Regardless of the click/event race, the host decides the target from its grab and Wood ends as 15
+  await expect(page.getByText("15").first()).toBeVisible();
+  // Web は target ではなくクリックされた slot を送る（grab/slot の判断は host 側）
+  // The web sends the clicked slot, not a target; the grab/slot decision lives on the host
+  await expect
+    .poll(async () => {
+      const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
+      const collect = actions.find((a) => a.type === "inventory.collect");
+      return collect?.payload as { slot?: { area?: string; slot?: number } } | undefined;
+    })
+    .toEqual({ slot: { area: "main", slot: 0 } });
+});
+
 test("右クリックで inventory.split を送る", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();

@@ -44,7 +44,7 @@ export type TopicPayloads = {
 export type ActionPayloads = {
   "inventory.move_item": { from: SlotRef; to: SlotRef; count: number };
   "inventory.split": { from: SlotRef };
-  "inventory.collect": { target: SlotRef };
+  "inventory.collect": { slot: SlotRef };
   "inventory.sort": Record<string, never>;
   "craft.execute": { recipeGuid: string };
   "debug.echo": { hello: string };

@@ -75,17 +75,33 @@ wss.on("connection", (ws) => {
     return list[ref.slot];
   };
 
-  // from の count 個を to へ移す最小モデル（空なら itemId コピー、同種なら加算）
-  // Minimal model: move count items from→to (copy itemId when empty, add when same item)
-  const applyMove = (p: ActionPayloads["inventory.move_item"]) => {
+  // from の count 個を to へ移す最小モデル。空・数量不足は host 同様 no-op（false を返す）
+  // Minimal model: move count items from→to; empty/insufficient sources no-op like the host (returns false)
+  const applyMove = (p: ActionPayloads["inventory.move_item"]): boolean => {
     const from = slotOf(p.from);
     const to = slotOf(p.to);
+    if (from.count === 0 || from.count < p.count) return false;
     if (to.count === 0) to.itemId = from.itemId;
     to.count += p.count;
     from.count -= p.count;
     if (from.count <= 0) {
       from.count = 0;
       from.itemId = 0;
+    }
+    return true;
+  };
+
+  // host と同じく mock 自身の現在 grab 状態で集積先を決め、同種スタックを集約する
+  // Like the host, decide the target from the mock's own current grab and consolidate same-type stacks
+  const applyCollect = (p: ActionPayloads["inventory.collect"]) => {
+    const grabHeld = inv.grab.count > 0;
+    const target = grabHeld ? inv.grab : slotOf(p.slot);
+    if (target.count === 0) return;
+    for (const s of [...inv.mainSlots, ...inv.hotbarSlots]) {
+      if (s === target || s.itemId !== target.itemId || s.count === 0) continue;
+      target.count += s.count;
+      s.count = 0;
+      s.itemId = 0;
     }
   };
 
@@ -113,11 +129,13 @@ wss.on("connection", (ws) => {
       const ok = msg.type !== "fail.always";
       send(ws, { op: "result", requestId: msg.requestId, ok, error: ok ? undefined : "mock_error" });
       if (msg.type === "inventory.move_item") {
-        applyMove(msg.payload as ActionPayloads["inventory.move_item"]);
-        setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+        // 状態が変化したときだけ topic event を流す（host の no-op は packet を出さない）
+        // Emit a topic event only when state changed (the host's no-op sends no packet)
+        if (applyMove(msg.payload as ActionPayloads["inventory.move_item"]))
+          setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
       }
       if (msg.type === "inventory.collect") {
-        inv = clone(fx.inventoryAfterCollect);
+        applyCollect(msg.payload as ActionPayloads["inventory.collect"]);
         setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
       }
       return;

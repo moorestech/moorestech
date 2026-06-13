@@ -37,6 +37,17 @@ namespace Client.WebUiHost.Game.Actions
             }
         }
 
+        // クリック可能スロット（main/hotbar）のみ許可。grab は collect 入力として不正
+        // Accept only clickable slots (main/hotbar); grab is invalid as a collect input
+        public static bool TryParseClickableSlotRef(JToken token, out int localSlot)
+        {
+            localSlot = -1;
+            if (!TryParseSlotRef(token, out var type, out var slot)) return false;
+            if (type != LocalMoveInventoryType.MainOrSub) return false;
+            localSlot = slot;
+            return true;
+        }
+
         // area/slot 形式の JToken を変換
         // Parse an area/slot-shaped JToken
         public static bool TryParseSlotRef(JToken token, out LocalMoveInventoryType type, out int localSlot)
