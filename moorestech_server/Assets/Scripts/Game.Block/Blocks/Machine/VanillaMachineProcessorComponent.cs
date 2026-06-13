@@ -42,27 +42,42 @@ namespace Game.Block.Blocks.Machine
 
         private ProcessState _lastState = ProcessState.Idle;
 
+        // 新規生成。待機状態から開始する
+        // Fresh creation; starts from the idle state
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             MachineRecipeMasterElement machineRecipe, float requestPower,
             MachineModuleEffectComponent effectComponent)
+            : this(vanillaMachineInputInventory, vanillaMachineOutputInventory, effectComponent, requestPower,
+                ProcessState.Idle, 0, machineRecipe, null, 0)
         {
-            _context = new MachineProcessContext(vanillaMachineInputInventory, vanillaMachineOutputInventory, effectComponent, requestPower)
-            {
-                ProcessingRecipe = machineRecipe,
-            };
-
-            _stateHandlers = CreateStateHandlers();
-            _currentHandler = _stateHandlers[_context.CurrentState];
         }
 
+        // セーブからの復元。保存された途中状態をそのまま受け取る
+        // Restoration from save; receives the persisted mid-state as is
         public VanillaMachineProcessorComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
             float requestPower,
             MachineModuleEffectComponent effectComponent, List<IItemStack> pendingOutputs)
+            : this(vanillaMachineInputInventory, vanillaMachineOutputInventory, effectComponent, requestPower,
+                currentState, remainingTicks, processingRecipe, pendingOutputs,
+                // 加工時間はレシピ定義から復元（進捗表示のみに影響）
+                // Restore ticks from the recipe; affects only the progress display
+                processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0)
+        {
+        }
+
+        // 全状態を受け取る共通コンストラクタ。途中状態でもOnEnterは呼ばずハンドラのみ合わせる
+        // Common constructor receiving the full state; aligns the handler without OnEnter even mid-state
+        private VanillaMachineProcessorComponent(
+            VanillaMachineInputInventory vanillaMachineInputInventory,
+            VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            MachineModuleEffectComponent effectComponent, float requestPower,
+            ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
+            List<IItemStack> pendingOutputs, uint processingRecipeTicks)
         {
             _context = new MachineProcessContext(vanillaMachineInputInventory, vanillaMachineOutputInventory, effectComponent, requestPower)
             {
@@ -70,13 +85,9 @@ namespace Game.Block.Blocks.Machine
                 RemainingTicks = remainingTicks,
                 ProcessingRecipe = processingRecipe,
                 PendingOutputs = pendingOutputs,
-                // 加工時間はレシピ定義から復元（進捗表示のみに影響）
-                // Restore ticks from the recipe; affects only the progress display
-                ProcessingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0,
+                ProcessingRecipeTicks = processingRecipeTicks,
             };
 
-            // セーブ復元時は途中状態のためOnEnterは呼ばずハンドラのみ合わせる
-            // On save restore we are mid-state, so just align the handler without OnEnter
             _stateHandlers = CreateStateHandlers();
             _currentHandler = _stateHandlers[_context.CurrentState];
         }
@@ -85,14 +96,10 @@ namespace Game.Block.Blocks.Machine
         {
             BlockException.CheckDestroy(this);
 
-            // 処理率を計算し、0〜1の範囲にクランプ
-            // Calculate processing rate and clamp to 0-1 range
-            var rawRate = _context.ProcessingRecipeTicks > 0 ? 1f - (float)_context.RemainingTicks / _context.ProcessingRecipeTicks : 0f;
-            var processingRate = Mathf.Clamp01(rawRate);
-
+            var processingRate = Mathf.Clamp01(_context.ProcessingRecipeTicks > 0 ? 1f - (float)_context.RemainingTicks / _context.ProcessingRecipeTicks : 0f);
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, _context.CurrentState.ToStr(), _lastState.ToStr());
+            
             var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid);
-
             return new[] { commonMachineBlock, machineBlock };
         }
 
