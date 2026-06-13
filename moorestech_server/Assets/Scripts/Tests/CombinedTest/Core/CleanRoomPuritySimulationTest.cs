@@ -1,6 +1,13 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
+using Core.Update;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.CleanRoom;
+using Game.Context;
+using Game.World.Interface.DataStore;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -166,6 +173,111 @@ namespace Tests.CombinedTest.Core
             // 縮小: overlap=10/27 → N按分（残り17セル分のNは消滅）。
             // Shrink keeps concentration; N outside the overlap vanishes.
             Assert.AreEqual(100.0 * 10 / 27, CleanRoomPurityRules.RedistributeImpurity(100.0, 27, 10), 1e-9);
+        }
+
+        // テスト用フィルタースタブ。固定 q を返す。
+        // Test stub filter returning a fixed q.
+        private sealed class AirFilterStub : ICleanRoomAirFilter
+        {
+            public double RemovalVolumePerSecond { get; }
+            public bool IsDestroy { get; private set; }
+            public AirFilterStub(double q) { RemovalVolumePerSecond = q; }
+            public void Destroy() { IsDestroy = true; }
+        }
+
+        [Test]
+        public void Datastore_ReferenceRoom_ConvergesToCeq3p2_Row0()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // 外殻 7x7x5 → 内部 5x5x3 = V75。
+            // Shell 7x7x5 -> interior 5x5x3 = V75.
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(6, 6, 4));
+            datastore.RebuildAll();
+            Assert.AreEqual(1, datastore.Rooms.Count);
+            Assert.AreEqual(75, datastore.Rooms[0].Volume, "Reference room must be V=75");
+
+            // 室内セルに q=5 のフィルター1台＋A_total=16 を定数注入（バランス確定書§7の流儀）。
+            // One filter q=5 at an interior cell; inject constant A_total=16 (balance §7).
+            var insideCell = new Vector3Int(3, 2, 3);
+            Assert.True(datastore.Rooms[0].Contains(insideCell));
+            datastore.AddAirFilter(insideCell, new AirFilterStub(5.0));
+            datastore.SetPollutionPerSecondProvider(_ => 16.0);
+
+            GameUpdater.RunFrames(2000);
+
+            // 再検出で部屋オブジェクトが入れ替わっている可能性があるため再取得。
+            // Re-fetch: re-detection may have replaced the room instance.
+            var room = datastore.Rooms[0];
+            Assert.AreEqual(3.2, room.Concentration, 0.05, "C_eq = 16/5 = 3.2");
+            Assert.AreEqual(0, room.ThresholdIndex, "best row (A) at equilibrium");
+        }
+
+        [Test]
+        public void Datastore_NoFilter_FallsToOut_EvenFromBestRow()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4)); // V27
+            datastore.RebuildAll();
+            var room = datastore.Rooms[0];
+
+            // 非トートロジー化: いったん最良行0にセットし、「tickで Out へ落ちる」ことを検証する。
+            // Anti-tautology: seed row 0 first, then assert one tick drops it to Out (ACH=0).
+            room.SetThresholdIndex(0);
+            datastore.SetPollutionPerSecondProvider(_ => 16.0);
+            GameUpdater.RunFrames(1);
+
+            var outIndex = MasterHolder.CleanRoomThresholdMaster.OutThresholdIndex;
+            Assert.AreEqual(outIndex, datastore.Rooms[0].ThresholdIndex, "ACH=0 fails every row -> Out");
+            // 積分も走っている（N = 16×0.05 = 0.8）。
+            // Integration also ran (N accumulated one tick of A_total).
+            Assert.AreEqual(0.8, datastore.Rooms[0].ImpurityCount, 1e-6);
+        }
+
+        [Test]
+        public void Datastore_FreshRoom_StartsAtOut()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            datastore.RebuildAll();
+
+            // 新規部屋の初期行は Out（最良で生まれて保持帯の恩恵を受けてはならない）。
+            // A fresh room must start at Out, not at the best row.
+            var outIndex = MasterHolder.CleanRoomThresholdMaster.OutThresholdIndex;
+            Assert.AreEqual(outIndex, datastore.Rooms[0].ThresholdIndex);
+        }
+
+        // 1セルの壁を置くヘルパ。
+        // Helper: place a single wall cell.
+        private static void PlaceWall(IWorldBlockDatastore world, Vector3Int pos)
+        {
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomWallId, pos,
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+        }
+
+        // min..max の外殻だけ壁を置き、内部を空洞にするヘルパ。
+        // Helper: place walls only on the shell of [min,max], leaving the interior hollow.
+        private static void BuildWallShell(IWorldBlockDatastore world, Vector3Int min, Vector3Int max)
+        {
+            for (var x = min.x; x <= max.x; x++)
+            for (var y = min.y; y <= max.y; y++)
+            for (var z = min.z; z <= max.z; z++)
+            {
+                var onShell = x == min.x || x == max.x || y == min.y || y == max.y || z == min.z || z == max.z;
+                if (!onShell) continue;
+                PlaceWall(world, new Vector3Int(x, y, z));
+            }
         }
     }
 }

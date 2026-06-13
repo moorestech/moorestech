@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -27,6 +28,18 @@ namespace Game.CleanRoom
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly List<IDisposable> _subscriptions = new();
 
+        // 汚染レート供給シーム。既定はゼロ。フェーズ3が CleanRoomPollutionCalculator の算出に差し替える。
+        // Pollution provider seam; defaults to zero. Phase 3 wires the real calculator here.
+        private Func<CleanRoom, double> _pollutionPerSecondProvider = _ => 0.0;
+
+        // エアフィルター登録（セル→フィルター）。フェーズ3のブロックが設置/破壊時に呼ぶ。
+        // Air filter registry (cell -> filter); phase-3 blocks register on place/remove.
+        private readonly Dictionary<Vector3Int, ICleanRoomAirFilter> _airFilters = new();
+
+        // 閾値行（マスタから1回変換してキャッシュ）。
+        // Threshold rows converted once from the master.
+        private IReadOnlyList<CleanRoomThresholdRow> _thresholdRows;
+
         public CleanRoomDatastore(IWorldBlockDatastore worldBlockDatastore)
         {
             _worldBlockDatastore = worldBlockDatastore;
@@ -50,6 +63,11 @@ namespace Game.CleanRoom
             _geometryDirty = false;
             _rooms = CleanRoomDetector.DetectAllRooms(_worldBlockDatastore);
             RebuildCount++;
+
+            // 新規部屋は Out で開始（保持帯の恩恵を受けない）。引き継ぎがあれば Task 5 で上書き。
+            // Fresh rooms start at Out; carry-over (Task 5) overwrites when applicable.
+            var outIndex = MasterHolder.CleanRoomThresholdMaster.OutThresholdIndex;
+            foreach (var room in _rooms) room.SetThresholdIndex(outIndex);
         }
 
         public bool TryGetCleanRoomAt(Vector3Int cell, out CleanRoom room)
@@ -79,6 +97,21 @@ namespace Game.CleanRoom
             return found != null;
         }
 
+        public void SetPollutionPerSecondProvider(Func<CleanRoom, double> provider)
+        {
+            _pollutionPerSecondProvider = provider;
+        }
+
+        public void AddAirFilter(Vector3Int cell, ICleanRoomAirFilter filter)
+        {
+            _airFilters[cell] = filter;
+        }
+
+        public void RemoveAirFilter(Vector3Int cell)
+        {
+            _airFilters.Remove(cell);
+        }
+
         public void Destroy()
         {
             foreach (var s in _subscriptions) s.Dispose();
@@ -87,10 +120,60 @@ namespace Game.CleanRoom
 
         private void Update()
         {
-            if (!_geometryDirty) return;
-            // フェーズ1は全走査。dirty分割・差分更新はフェーズ2が実装する。
-            // Phase 1 does a full scan; dirty slicing and diffing land in phase 2.
-            RebuildAll();
+            // dirty なら再検出し、その後に純度tickを実行（同一tick内で部屋集合を確定してから積分）。
+            // Rebuild geometry if dirty, then always integrate purity on every tick.
+            if (_geometryDirty) RebuildAll();
+            UpdatePurity();
+        }
+
+        // 毎tick: 全部屋の N を積分し、閾値行を二条件＋ヒステリシスで更新する。
+        // Each tick: integrate N for every room and update the threshold row.
+        private void UpdatePurity()
+        {
+            EnsureThresholdRows();
+
+            foreach (var room in _rooms)
+            {
+                var aTotal = _pollutionPerSecondProvider(room);
+                var nq = SumRemovalVolume(room);
+
+                // dN 積分（0クランプは純関数内）。
+                // Integrate dN (zero clamp inside the pure function).
+                var newN = CleanRoomPurityRules.IntegrateTick(room.ImpurityCount, room.Volume, aTotal, nq, GameUpdater.SecondsPerTick);
+                var delta = newN - room.ImpurityCount;
+                if (delta >= 0.0) room.AddImpurity(delta);
+                else room.RemoveImpurity(-delta);
+
+                // 閾値行の更新（ACH = n·q/V）。
+                // Update threshold row with ACH = n·q/V.
+                var ach = room.Volume > 0 ? nq / room.Volume : 0.0;
+                room.SetThresholdIndex(CleanRoomPurityRules.DecideThresholdIndex(room.ThresholdIndex, room.Concentration, ach, _thresholdRows));
+            }
+
+            // 孤立部屋の猶予減算は Task 5 でここに追加する。
+            // Orphan grace ticking is added here in Task 5.
+        }
+
+        // 部屋に属するフィルターの q 合算（登録セルが部屋の Cells に含まれるもの）。
+        // Sum q of filters whose registered cell lies in the room's Cells.
+        private double SumRemovalVolume(CleanRoom room)
+        {
+            var sum = 0.0;
+            foreach (var kvp in _airFilters)
+                if (room.Contains(kvp.Key)) sum += kvp.Value.RemovalVolumePerSecond;
+            return sum;
+        }
+
+        private void EnsureThresholdRows()
+        {
+            if (_thresholdRows != null) return;
+
+            // マスタ要素 → 判定行へ1回だけ変換（生成型のプロパティ名は実生成結果に合わせる）。
+            // Convert master elements to decision rows once.
+            var rows = new List<CleanRoomThresholdRow>();
+            foreach (var element in MasterHolder.CleanRoomThresholdMaster.Rows)
+                rows.Add(new CleanRoomThresholdRow(element.MaxConcentration, element.RequiredAirChangeRate));
+            _thresholdRows = rows;
         }
 
         private void OnChanged(WorldBlockData blockData)
