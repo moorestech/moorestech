@@ -25,7 +25,10 @@ namespace Game.Block.Blocks.Machine.State
 
         public ProcessState GetNextUpdate()
         {
-            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_context.CurrentPower, _context.EffectiveRequestPower);
+            // 加工中はモジュールの電力倍率を反映した要求電力で進行する
+            // Advance using the requested power that reflects the module power multiplier while processing
+            var effectiveRequestPower = _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier;
+            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_context.CurrentPower, effectiveRequestPower);
 
             // 電力を消費する
             // Consume power
@@ -47,8 +50,8 @@ namespace Game.Block.Blocks.Machine.State
         // Output the produced items on completion (re-roll for old saves that lack pending outputs)
         public void OnExit()
         {
-            var outputs = _context.PendingOutputs ?? _context.CreateRealizedOutputs(_context.ProcessingRecipe, _context.EffectComponent.AggregateCurrent());
-            _context.OutputInventory.InsertOutputSlot(outputs, _context.CreateFluidOutputs(_context.ProcessingRecipe));
+            var outputs = _context.PendingOutputs ?? MachineOutputFactory.CreateRealizedOutputs(_context.ProcessingRecipe, _context.EffectComponent.AggregateCurrent());
+            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactory.CreateFluidOutputs(_context.ProcessingRecipe));
             _context.PendingOutputs = null;
         }
     }
