@@ -815,10 +815,16 @@ properties:
         properties: []
       - when: CleanRoomItemHatch
         type: object
-        properties: []
+        implementationInterface:
+        - IInventoryConnectors
+        properties:
+        - key: inventoryConnectors
+          ref: inventoryConnects
       - when: CleanRoomPipeHatch
         type: object
-        properties: []
+        properties:
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
       - when: CleanRoomAirFilter
         type: object
         implementationInterface:
