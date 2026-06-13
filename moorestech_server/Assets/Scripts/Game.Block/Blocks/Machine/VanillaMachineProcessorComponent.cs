@@ -31,6 +31,7 @@ namespace Game.Block.Blocks.Machine
 
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
+        private readonly MachineModuleEffectComponent _effectComponent;
 
         public readonly float RequestPower;
 
@@ -40,18 +41,8 @@ namespace Game.Block.Blocks.Machine
         private float _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
-        // 開始時に確定した産出予定。セーブで引き継ぐ
-        // Outputs fixed at start; carried through saves
         private List<IItemStack> _pendingOutputs;
         private uint _processingRecipeTicks;
-
-        // モジュール効果は毎回その場で集計する
-        // Module effects are aggregated live on every read
-        private readonly MachineModuleEffectComponent _effectComponent;
-
-        // 同tick生成機械の同シード回避のため共有
-        // Shared to avoid same-tick identical seeds
-        private static readonly Random Random = new();
 
         public float EffectiveRequestPower => RequestPower *
                                               (CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f);
@@ -79,36 +70,15 @@ namespace Game.Block.Blocks.Machine
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
 
-            _processingRecipe = processingRecipe;
             RequestPower = requestPower;
             RemainingTicks = remainingTicks;
             _effectComponent = effectComponent;
             _pendingOutputs = pendingOutputs;
 
-            // 加工時間はレシピ定義から復元（進捗表示のみに影響）
-            // Restore ticks from the recipe; affects only the progress display
+            _processingRecipe = processingRecipe;
             _processingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0;
 
             CurrentState = currentState;
-        }
-
-        // 自身のセーブデータを単独で構築する
-        // Build this component's save data on its own
-        public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
-        {
-            BlockException.CheckDestroy(this);
-
-            // tickを秒数に変換して保存（tick数の変動に対応）
-            // Convert ticks to seconds for storage (to handle tick rate changes)
-            return new VanillaMachineProcessorSaveJsonObject
-            {
-                State = (int)CurrentState,
-                RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicks),
-                RecipeGuidStr = RecipeGuid.ToString(),
-                // 産出予定も保存する（Idle時はnull）
-                // Also save the pending outputs (null while idle)
-                PendingOutputs = _pendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-            };
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -271,12 +241,35 @@ namespace Game.Block.Blocks.Machine
 
             #endregion
         }
+        
+        
+        
+        // セーブデータの構築
+        // Build save data
+        public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
+        {
+            BlockException.CheckDestroy(this);
+            
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
+            return new VanillaMachineProcessorSaveJsonObject
+            {
+                State = (int)CurrentState,
+                RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicks),
+                RecipeGuidStr = RecipeGuid.ToString(),
+                // 産出予定も保存する（Idle時はnull）
+                // Also save the pending outputs (null while idle)
+                PendingOutputs = _pendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+            };
+        }
 
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
             IsDestroy = true;
         }
+        
+        private static readonly Random Random = new();
     }
 
     public static class ProcessStateExtension
