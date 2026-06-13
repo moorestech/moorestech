@@ -1,10 +1,16 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { fileURLToPath, URL } from "node:url";
 
 // Vite dev server の設定
 // Vite dev server configuration
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    // tsconfig の @/ paths を vite 側にも対応させる
+    // Mirror the tsconfig @/ paths on the vite side
+    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+  },
   server: {
     host: "127.0.0.1",
     port: 5173,
