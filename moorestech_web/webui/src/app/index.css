@@ -2,9 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CEF でゲーム画面に重ねるため背景は半透明にする（ゲームが透けて見える） */
+/* Semi-transparent background so the game shows through behind the CEF overlay */
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.6);
   color: #eee;
 }
