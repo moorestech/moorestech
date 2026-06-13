@@ -4,6 +4,7 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -38,7 +39,7 @@ namespace Game.Block.Factory.BlockTemplate
             BlockConnectorComponent<IBlockInventory> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
+            var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
@@ -47,19 +48,24 @@ namespace Game.Block.Factory.BlockTemplate
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
             
+            var effectComponent = new MachineModuleEffectComponent(module);
+
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
-            var processor = componentStates == null ? new VanillaMachineProcessorComponent(input, output, null, requirePower) : BlockTemplateUtil.MachineLoadState(componentStates, input, output, requirePower, blockMasterElement);
-            
-            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
-            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
-            
+            var processor = componentStates == null
+                ? new VanillaMachineProcessorComponent(input, output, requirePower, effectComponent)
+                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
+
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+            var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
+
             var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer);
-            
+
             var components = new List<IBlockComponent>
             {
                 blockInventory,
                 machineSave,
+                effectComponent,
                 processor,
                 machineComponent,
                 inventoryConnectorComponent,

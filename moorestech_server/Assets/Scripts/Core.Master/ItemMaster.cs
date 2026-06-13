@@ -22,6 +22,14 @@ namespace Core.Master
         private Dictionary<ItemId, ItemMasterElement> _itemElementTableById;
         private Dictionary<Guid, ItemId> _itemGuidToItemId;
 
+        // 装着アイテムId→モジュール定義（root modules由来）
+        // equipped itemId → module definition (from root modules)
+        private Dictionary<ItemId, ModuleMasterElement> _moduleByItemId;
+
+        // 基準ItemId→レベル順変種配列（先頭=基準自身）
+        // baseItemId → level-ordered variants (index 0 = the base)
+        private Dictionary<ItemId, ItemId[]> _levelVariantTable;
+
         public ItemMaster(JToken itemJToken)
         {
             Items = ItemsLoader.Load(itemJToken);
@@ -34,7 +42,7 @@ namespace Core.Master
 
         public void Initialize()
         {
-            ItemMasterUtil.Initialize(Items, out _itemElementTableById, out _itemGuidToItemId);
+            ItemMasterUtil.Initialize(Items, out _itemElementTableById, out _itemGuidToItemId, out _moduleByItemId, out _levelVariantTable);
         }
         
         public ItemMasterElement GetItemMaster(ItemId itemId)
@@ -90,6 +98,27 @@ namespace Core.Master
         public IEnumerable<ItemId> GetItemAllIds()
         {
             return _itemElementTableById.Keys;
+        }
+
+        // 装着アイテムに対応するモジュール定義を返す（モジュールでなければnull）
+        // Return the module definition for an equipped item (null when the item is not a module)
+        public ModuleMasterElement GetModuleByItemIdOrNull(ItemId itemId)
+        {
+            return _moduleByItemId.GetValueOrDefault(itemId);
+        }
+
+        public bool HasLevelFamily(ItemId baseItemId)
+        {
+            return _levelVariantTable.ContainsKey(baseItemId);
+        }
+
+        public ItemId GetLevelVariantItemId(ItemId baseItemId, int level)
+        {
+            // レベルは1始まり。範囲外は[1, 最大レベル]へクランプする
+            // Levels are 1-based; out-of-range values are clamped into [1, max level]
+            var variants = _levelVariantTable[baseItemId];
+            var index = Math.Clamp(level - 1, 0, variants.Length - 1);
+            return variants[index];
         }
     }
 }

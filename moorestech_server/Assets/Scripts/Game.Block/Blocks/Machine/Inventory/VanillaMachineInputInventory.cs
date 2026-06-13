@@ -16,9 +16,10 @@ namespace Game.Block.Blocks.Machine.Inventory
     ///     インプットのインベントリとアウトプットのインベントリを同じように扱う
     ///     Insertなどの処理は基本的にInputのインベントリにのみ行う
     /// </summary>
-    public class VanillaMachineInputInventory
+    public class VanillaMachineInputInventory : IVanillaMachineSubInventory
     {
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
+        IReadOnlyList<IItemStack> IVanillaMachineSubInventory.Items => InputSlot;
         public IReadOnlyList<FluidContainer> FluidInputSlot => _fluidContainers;
         
         private readonly BlockId _blockId;

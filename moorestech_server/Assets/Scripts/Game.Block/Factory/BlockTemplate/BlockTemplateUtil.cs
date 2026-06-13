@@ -5,6 +5,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -26,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
         }
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
-        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory) GetMachineIOInventory(
+        public static (VanillaMachineInputInventory, VanillaMachineOutputInventory, VanillaMachineModuleInventory) GetMachineIOInventory(
             BlockId blockId, BlockInstanceId blockInstanceId,
             IMachineParam machineParam,
             BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
@@ -60,13 +61,21 @@ namespace Game.Block.Factory.BlockTemplate
             var output = new VanillaMachineOutputInventory(
                 outputSlotCount, outputTankCount, innerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, blockConnectorComponent);
-            
-            return (input, output);
+
+            // モジュールスロットは第3レンジとして生成
+            // Create module slots as the third range
+            var module = new VanillaMachineModuleInventory(
+                machineParam.ModuleSlotCount, blockInventoryUpdateEvent, blockInstanceId,
+                inputSlotCount, outputSlotCount);
+
+            return (input, output, module);
         }
         
         public static VanillaMachineProcessorComponent MachineLoadState(Dictionary<string, string> componentStates,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            VanillaMachineModuleInventory vanillaMachineModuleInventory,
+            MachineModuleEffectComponent machineModuleEffectComponent,
             float requestPower, BlockMasterElement blockMasterElement)
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
@@ -95,7 +104,23 @@ namespace Game.Block.Factory.BlockTemplate
                 }
                 vanillaMachineOutputInventory.SetItemWithoutEvent(i, outputItems[i]);
             }
-            
+
+            // モジュールスロットを復元（旧セーブはキー無し）
+            // Restore module slots (older saves lack the key)
+            if (jsonObject.ModuleSlot != null)
+            {
+                var moduleItems = jsonObject.ModuleSlot.Select(item => item.ToItemStack()).ToList();
+                for (var i = 0; i < moduleItems.Count; i++)
+                {
+                    if (vanillaMachineModuleInventory.ModuleSlot.Count <= i)
+                    {
+                        Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                        break;
+                    }
+                    vanillaMachineModuleInventory.SetItemWithoutEvent(i, moduleItems[i]);
+                }
+            }
+
             // Load fluid data if present
             if (jsonObject.InputFluidSlot != null)
             {
@@ -117,19 +142,28 @@ namespace Game.Block.Factory.BlockTemplate
                 }
             }
             
-            var recipe = jsonObject.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(jsonObject.RecipeGuid);
+            // 加工状態はProcessorのサブオブジェクトから復元する
+            // Restore processing state from the Processor sub-object
+            var processorJson = jsonObject.Processor;
+            var recipe = processorJson.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(processorJson.RecipeGuid);
 
             // 秒数からtickに変換して復元
             // Convert seconds back to ticks for restoration
-            var remainingTicks = GameUpdater.SecondsToTicks(jsonObject.RemainingSeconds);
+            var remainingTicks = GameUpdater.SecondsToTicks(processorJson.RemainingSeconds);
+
+            // 産出予定を復元（旧セーブはnull→完了時再抽選）
+            // Restore pending outputs (old saves: null, re-rolled later)
+            var pendingOutputs = processorJson.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
 
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
-                (ProcessState)jsonObject.State,
+                (ProcessState)processorJson.State,
                 remainingTicks,
                 recipe,
-                requestPower);
+                requestPower,
+                machineModuleEffectComponent,
+                pendingOutputs);
 
             return processor;
         }

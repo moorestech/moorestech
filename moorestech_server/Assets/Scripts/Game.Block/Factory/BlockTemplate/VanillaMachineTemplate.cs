@@ -5,6 +5,7 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -29,18 +30,20 @@ namespace Game.Block.Factory.BlockTemplate
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
-            
-            var processor = new VanillaMachineProcessorComponent(input, output, null, machineParam.RequiredPower);
-            
-            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
-            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
+            var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+
+            var effectComponent = new MachineModuleEffectComponent(module);
+            var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, effectComponent);
+
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+            var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
-            
+
             var components = new List<IBlockComponent>
             {
                 blockInventory,
                 machineSave,
+                effectComponent,
                 processor,
                 machineComponent,
                 inputConnectorComponent,
@@ -69,18 +72,20 @@ namespace Game.Block.Factory.BlockTemplate
             
             BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
-            var (input, output) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
-            
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, machineParam.RequiredPower, blockMasterElement);
-            
-            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output);
-            var machineSave = new VanillaMachineSaveComponent(input, output, processor);
+            var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+
+            var effectComponent = new MachineModuleEffectComponent(module);
+            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, blockMasterElement);
+
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+            var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
-            
+
             var components = new List<IBlockComponent>
             {
                 blockInventory,
                 machineSave,
+                effectComponent,
                 processor,
                 machineComponent,
                 inputConnectorComponent,

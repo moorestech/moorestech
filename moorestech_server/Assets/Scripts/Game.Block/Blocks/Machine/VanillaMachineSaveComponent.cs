@@ -16,15 +16,18 @@ namespace Game.Block.Blocks.Machine
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
+        private readonly VanillaMachineModuleInventory _vanillaMachineModuleInventory;
         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
-        
+
         public VanillaMachineSaveComponent(
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
+            VanillaMachineModuleInventory vanillaMachineModuleInventory,
             VanillaMachineProcessorComponent vanillaMachineProcessorComponent)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
+            _vanillaMachineModuleInventory = vanillaMachineModuleInventory;
             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
         }
         public bool IsDestroy { get; private set; }
@@ -40,20 +43,19 @@ namespace Game.Block.Blocks.Machine
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            
-            // tickを秒数に変換して保存（tick数の変動に対応）
-            // Convert ticks to seconds for storage (to handle tick rate changes)
+
+            // 加工状態はProcessor自身が構築する。Saveはインベントリ分のみ担う
+            // Processor builds its own state; Save handles only the inventory parts
             var jsonObject = new VanillaMachineJsonObject
             {
                 InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 OutputSlot = _vanillaMachineOutputInventory.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                ModuleSlot = _vanillaMachineModuleInventory.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 InputFluidSlot = _vanillaMachineInputInventory.FluidInputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 OutputFluidSlot = _vanillaMachineOutputInventory.FluidOutputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
-                State = (int)_vanillaMachineProcessorComponent.CurrentState,
-                RemainingSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.RemainingTicks),
-                RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
+                Processor = _vanillaMachineProcessorComponent.GetSaveJsonObject(),
             };
-            
+
             return JsonConvert.SerializeObject(jsonObject);
         }
     }
@@ -64,22 +66,19 @@ namespace Game.Block.Blocks.Machine
         public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")]
         public List<ItemStackSaveJsonObject> OutputSlot;
+        // 旧セーブはキー無しのためnull許容
+        // Nullable because older saves lack this key
+        [JsonProperty("moduleSlot")]
+        public List<ItemStackSaveJsonObject> ModuleSlot;
         [JsonProperty("inputFluidSlot")]
         public List<FluidContainerSaveJsonObject> InputFluidSlot;
         [JsonProperty("outputFluidSlot")]
         public List<FluidContainerSaveJsonObject> OutputFluidSlot;
-        [JsonProperty("recipeGuid")]
-        public string RecipeGuidStr;
-        [JsonIgnore]
-        public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
 
-        // 秒数として保存（tick数の変動に対応）
-        // Save as seconds (to handle tick rate changes)
-        [JsonProperty("remainingSeconds")]
-        public double RemainingSeconds;
-
-        [JsonProperty("state")]
-        public int State;
+        // 加工状態はProcessorが構築・所有するサブオブジェクト
+        // Processing state is a sub-object built and owned by the Processor
+        [JsonProperty("processor")]
+        public VanillaMachineProcessorSaveJsonObject Processor;
     }
     
     public class FluidContainerSaveJsonObject
