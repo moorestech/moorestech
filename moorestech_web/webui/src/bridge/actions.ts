@@ -2,12 +2,14 @@ import { sendAction } from "./webSocketClient";
 import { notify } from "./notify";
 import type { ActionPayloads } from "./protocol";
 
-// インベントリ操作は楽観的に dispatch し topic event で再同期するため、
-// クリック連鎖で生じる良性の失敗（stale な空スロット等）はトースト表示しない
-// Inventory ops are optimistic and reconciled by topic events,
-// so benign failures from click chains (e.g. a stale empty slot) are not toasted
-export function shouldToastFailure(type: string): boolean {
-  return !type.startsWith("inventory.");
+// インベントリ操作のクリック連鎖は stale state で良性の失敗を生む（topic event が再同期する）。
+// これらの error code だけ抑止し、invalid_* 等の実バグ由来の失敗は従来どおりトーストする
+// Click chains on inventory ops yield benign failures from stale state (topic events reconcile them).
+// Suppress only those error codes; genuine failures (invalid_*, etc.) still toast as before
+const BENIGN_INVENTORY_ERRORS = new Set(["empty_slot", "insufficient_count", "grab_not_empty"]);
+
+export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {
+  return !(type.startsWith("inventory.") && error !== undefined && BENIGN_INVENTORY_ERRORS.has(error));
 }
 
 // action を発行し、失敗時はトースト表示して false を返す UI 向けラッパ
@@ -21,7 +23,7 @@ export async function dispatchAction<K extends keyof ActionPayloads>(
   try {
     const result = await sendAction(type, payload);
     if (!result.ok) {
-      if (shouldToastFailure(type)) notify(`${type} failed: ${result.error ?? "unknown"}`);
+      if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${result.error ?? "unknown"}`);
       return false;
     }
     return true;

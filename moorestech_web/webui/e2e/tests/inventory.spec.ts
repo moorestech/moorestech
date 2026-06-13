@@ -39,11 +39,11 @@ test("ダブルクリックで同種を集約し、collect はクリックされ
       return collect?.payload as { slot?: { area?: string; slot?: number } } | undefined;
     })
     .toEqual({ slot: { area: "main", slot: 0 } });
-  // クリック連鎖の stale な2回目 pickup は host で empty_slot 失敗するが、楽観操作なのでトーストを出さない。
+  // クリック連鎖の stale な2回目 pickup は host で empty_slot 失敗するが、良性なのでトーストを出さない。
   // collect 反映(15)後に確認するので、失敗トースト(3s生存)が出ていれば下の bounded 0件アサートは失敗する
-  // The stale second pickup fails with empty_slot on the host, but as an optimistic op it must not toast.
+  // The stale second pickup fails with empty_slot on the host, but as a benign op it must not toast.
   // Checked after collect settles (15); a failure toast (lives 3s) would still be present and fail this bounded assert
-  await expect(page.getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
+  await expect(page.locator(".fixed.bottom-4.right-4").getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
 });
 
 test("右クリックで inventory.split を送る", async ({ page }) => {
