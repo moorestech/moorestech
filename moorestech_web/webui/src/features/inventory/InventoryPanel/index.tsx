@@ -1,39 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { useTopic } from "../bridge/useTopic";
-import { useItemMaster } from "../bridge/useItemMaster";
-import { dispatchAction } from "../bridge/actions";
-import { resolveDirectMoveTarget } from "../features/inventory/inventoryLogic";
-import type { InventoryArea, SlotData, SlotRef } from "../types/inventory";
-import ItemSlot from "./ItemSlot";
+import { useRef } from "react";
+import { useTopic, dispatchAction, Topics } from "@/bridge";
+import { useItemMaster } from "@/bridge/useItemMaster";
+import { ItemSlot } from "@/shared/ui";
+import type { InventoryArea, SlotData, SlotRef } from "@/bridge/payloadTypes";
+import { resolveDirectMoveTarget } from "../inventoryLogic";
+import GrabOverlay from "./GrabOverlay";
 
 const GRAB: SlotRef = { area: "grab", slot: 0 };
-
-// マウス追従の grab オーバーレイ。mousemove の再レンダリングをこのコンポーネント内に閉じ込める
-// Cursor-following grab overlay; keeps mousemove re-renders contained to this component
-function GrabOverlay({ grab }: { grab: SlotData }) {
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const onMove = (e: globalThis.MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, []);
-
-  if (grab.count === 0) return null;
-
-  return (
-    <div className="pointer-events-none fixed z-40 w-12 h-12" style={{ left: mousePos.x - 24, top: mousePos.y - 24 }}>
-      <ItemSlot itemId={grab.itemId} count={grab.count} />
-    </div>
-  );
-}
 
 // プレイヤーインベントリ（メイン4行+ホットバー1行+grab）の表示と操作
 // Player inventory view & interactions: 4 main rows, 1 hotbar row, and the grab stack
 // uGUI 準拠で inv 領域（メイン+Sort）と hotbar 領域（下段中央）の2要素を Fragment で返す
 // Returns two grid children via Fragment, matching uGUI: inv area (main+Sort) and bottom-center hotbar area
 export default function InventoryPanel() {
-  const inventory = useTopic("local_player.inventory");
+  const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
 
   // 直近2回の左mousedown時点のgrab保持状態。dblclickはこの先頭（連鎖開始時点）で対象を決める

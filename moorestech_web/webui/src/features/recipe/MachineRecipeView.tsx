@@ -1,7 +1,6 @@
-import { clampIndex } from "../features/recipe/craftLogic";
-import type { MachineRecipe } from "../types/crafting";
-import type { ItemMasterEntry } from "../types/itemMaster";
-import ItemSlot from "./ItemSlot";
+import { ItemSlot } from "@/shared/ui";
+import type { MachineRecipe, ItemMasterEntry } from "@/bridge/payloadTypes";
+import { clampIndex } from "./craftLogic";
 import RecipePager from "./RecipePager";
 
 type Props = {

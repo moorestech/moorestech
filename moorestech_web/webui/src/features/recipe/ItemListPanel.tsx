@@ -1,14 +1,14 @@
-import { useTopic } from "../bridge/useTopic";
-import { useItemMaster } from "../bridge/useItemMaster";
-import { useUiStore } from "../app/uiStore";
-import ItemSlot from "./ItemSlot";
+import { useTopic, Topics } from "@/bridge";
+import { useItemMaster } from "@/bridge/useItemMaster";
+import { useUiStore } from "@/app/uiStore";
+import { ItemSlot } from "@/shared/ui";
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
 export default function ItemListPanel() {
   const selectedItemId = useUiStore((s) => s.selectedItemId);
   const onSelect = useUiStore((s) => s.setSelectedItem);
-  const itemList = useTopic("recipe_viewer.item_list");
+  const itemList = useTopic(Topics.itemList);
   const itemMaster = useItemMaster();
 
   return (

@@ -1,4 +1,4 @@
-import ItemSlot from "./ItemSlot";
+import { ItemSlot } from "@/shared/ui";
 
 // 選択アイテムのアイコン+名前ヘッダ
 // Icon + name header for the selected item

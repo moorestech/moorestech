@@ -1,5 +1,5 @@
-import { dispatchAction } from "../bridge/actions";
-import { emitToast } from "../features/toast/toastStore";
+import { dispatchAction } from "@/bridge/actions";
+import { emitToast } from "@/features/toast/toastStore";
 
 // debug.echo を発行して双方向APIの疎通を確認する開発用ボタン
 // Dev button that sends debug.echo to verify the bidirectional API
