@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.CleanRoom;
+using Game.Block.Blocks.Fluid;
+using Game.Fluid;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -109,6 +112,41 @@ namespace Tests.CombinedTest.Core
             // Run one full idle window → decays to zero
             GameUpdater.RunFrames(CleanRoomItemHatchComponent.HatchRateWindowTicks + 1);
             Assert.AreEqual(0.0, hatch.RecentThroughputPerSecond, 1e-9);
+        }
+
+        // パイプハッチが inflow 面から受けた流体を outflow 面のパイプへ中継する
+        // Pipe hatch relays fluid received on the inflow face to the outflow-side pipe
+        [Test]
+        public void PipeHatch_RelaysFluidToOutflowSide()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+
+            // ハッチを (0,0,0)、outflow(+X) 側パイプを (1,0,0) に置く
+            // Hatch at (0,0,0), outflow-side pipe at (1,0,0)
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomPipeHatchId, new Vector3Int(0, 0, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var hatchBlock);
+            world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outflowPipe);
+
+            Assert.True(hatchBlock.TryGetComponent<CleanRoomPipeHatchComponent>(out var hatch));
+
+            // 外パイプの代役として、ハッチへ直接 AddLiquid する（流体IDは既存 FluidTest と同じGUID流儀）
+            // Add fluid directly to the hatch; resolve the fluid id the same way as the existing FluidTest
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(new Guid("00000000-0000-0000-1234-000000000001"));
+            var stack = new FluidStack(50.0, fluidId);
+            hatch.AddLiquid(stack, FluidContainer.Empty);
+
+            // 中継が進むまで tick を回す（テストmodパイプの flowCapacity=10 → 0.5/tick）
+            // Tick until the relay propagates (test-mod pipe flowCapacity=10 → 0.5/tick)
+            GameUpdater.RunFrames(10);
+
+            // outflow 側パイプに流体が届いている
+            // Fluid has arrived in the outflow-side pipe
+            Assert.True(outflowPipe.TryGetComponent<IFluidInventory>(out var outflowInv));
+            var outflowAmount = outflowInv.GetFluidInventory().Sum(f => f.Amount);
+            Assert.Greater(outflowAmount, 0.0, "Relayed fluid reaches the outflow-side pipe");
         }
     }
 }
