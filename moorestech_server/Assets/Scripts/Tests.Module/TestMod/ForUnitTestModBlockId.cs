@@ -65,5 +65,10 @@ namespace Tests.Module.TestMod
         public static BlockId GearChainPole => GetBlock("00000000-0000-0000-0000-00000000002c");
         public static BlockId TestTrainFluidPlatform => GetBlock("00000000-0000-0000-0000-000000000029");
         public static BlockId FilterSplitter => GetBlock("00000000-0000-0000-0000-000000000031");
+
+        public static BlockId CleanRoomWallId => GetBlock("1c588678-2201-401e-80e0-b3ddd574da8f");
+        public static BlockId CleanRoomDoorHatchId => GetBlock("f8205aa0-daf3-44bb-926d-c1315df6bf60");
+        public static BlockId CleanRoomItemHatchId => GetBlock("6779e079-8c31-4375-a75e-ee87bc2dd657");
+        public static BlockId CleanRoomPipeHatchId => GetBlock("f028e91f-ab82-4dd8-8da0-df6cd67bea1d");
     }
 }

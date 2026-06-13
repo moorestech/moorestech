@@ -525,6 +525,42 @@
       "sortPriority": 100,
       "recipeViewType": "ForceView",
       "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
+      "name": "TestCleanRoomWall",
+      "itemGuid": "9a3834ab-fa83-4b58-90b0-f3c6d218cc35",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
+      "name": "TestCleanRoomDoorHatch",
+      "itemGuid": "bc96364a-d53f-4b14-adb4-b96592f3225a",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
+      "name": "TestCleanRoomItemHatch",
+      "itemGuid": "9a985aac-80d8-4a94-8069-7f1c5a28e725",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
+    },
+    {
+      "maxStack": 100,
+      "name": "TestCleanRoomPipeHatch",
+      "itemGuid": "3998709b-401c-4c44-ac2e-505027849a56",
+      "imagePath": "Test1",
+      "sortPriority": 100,
+      "recipeViewType": "ForceView",
+      "initialUnlocked": false
     }
   ],
   "modules": [

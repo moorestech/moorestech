@@ -4137,6 +4137,62 @@
       "overrideVerticalBlock": {}
     },
     {
+      "modelTransform": {
+        "scale": [1, 1, 1],
+        "rotation": [0, 0, 0],
+        "position": [0, 0, 0]
+      },
+      "blockSize": [1, 1, 1],
+      "name": "TestCleanRoomWall",
+      "blockType": "CleanRoomWall",
+      "blockGuid": "1c588678-2201-401e-80e0-b3ddd574da8f",
+      "itemGuid": "9a3834ab-fa83-4b58-90b0-f3c6d218cc35",
+      "blockParam": {},
+      "overrideVerticalBlock": {}
+    },
+    {
+      "modelTransform": {
+        "scale": [1, 1, 1],
+        "rotation": [0, 0, 0],
+        "position": [0, 0, 0]
+      },
+      "blockSize": [1, 1, 1],
+      "name": "TestCleanRoomDoorHatch",
+      "blockType": "CleanRoomDoorHatch",
+      "blockGuid": "f8205aa0-daf3-44bb-926d-c1315df6bf60",
+      "itemGuid": "bc96364a-d53f-4b14-adb4-b96592f3225a",
+      "blockParam": {},
+      "overrideVerticalBlock": {}
+    },
+    {
+      "modelTransform": {
+        "scale": [1, 1, 1],
+        "rotation": [0, 0, 0],
+        "position": [0, 0, 0]
+      },
+      "blockSize": [1, 1, 1],
+      "name": "TestCleanRoomItemHatch",
+      "blockType": "CleanRoomItemHatch",
+      "blockGuid": "6779e079-8c31-4375-a75e-ee87bc2dd657",
+      "itemGuid": "9a985aac-80d8-4a94-8069-7f1c5a28e725",
+      "blockParam": {},
+      "overrideVerticalBlock": {}
+    },
+    {
+      "modelTransform": {
+        "scale": [1, 1, 1],
+        "rotation": [0, 0, 0],
+        "position": [0, 0, 0]
+      },
+      "blockSize": [1, 1, 1],
+      "name": "TestCleanRoomPipeHatch",
+      "blockType": "CleanRoomPipeHatch",
+      "blockGuid": "f028e91f-ab82-4dd8-8da0-df6cd67bea1d",
+      "itemGuid": "3998709b-401c-4c44-ac2e-505027849a56",
+      "blockParam": {},
+      "overrideVerticalBlock": {}
+    },
+    {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
       "itemGuid": "11110009-0000-0000-0000-000000000000",
       "name": "TestElectricToGearGenerator",
