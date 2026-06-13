@@ -4,8 +4,9 @@ using UnityEngine;
 namespace Game.CleanRoom
 {
     // 検出された1つのクリーンルーム。ブロックから導出される派生状態。
-    // フェーズ2が純度状態を本クラスに追加する。
+    // フェーズ2が純度状態（N/Status/ThresholdIndex）を本クラスに追加する（codemap §1.2）。
     // A single detected clean room; derived state computed from blocks.
+    // Phase 2 adds purity state (N/Status/ThresholdIndex) to this class (codemap §1.2).
     public class CleanRoom
     {
         // Id は一時参照用。永続キーにしてはいけない。

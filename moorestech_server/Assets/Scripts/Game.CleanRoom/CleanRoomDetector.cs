@@ -8,8 +8,9 @@ namespace Game.CleanRoom
 {
     public static class CleanRoomDetector
     {
-        // 安全網。Cells 数（占有セル含む）に適用。
-        // Safety net; applies to Cells count (incl. occupied cells).
+        // 安全網。根拠: 大部屋例 V=500（10×10×5）の8倍超を許容しつつ、未密閉構造のリーク探索コストを抑える。
+        // 大部屋戦略を殺さないかはプレイテストで再評価（バランス確定書§5）。Cells 数（占有セル含む）に適用。
+        // Safety net (balance doc §5): allows >8x the large-room example V=500 while bounding leak-scan cost.
         public const int MaxRoomVolume = 4096;
 
         // ワールド全体を走査し、密閉されたクリーンルームをすべて返す。
