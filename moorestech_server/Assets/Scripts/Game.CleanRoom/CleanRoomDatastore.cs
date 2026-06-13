@@ -57,6 +57,25 @@ namespace Game.CleanRoom
             return false;
         }
 
+        // ブロックの全占有セルが同一部屋の Cells に含まれるとき true。内部ブロック（機械等）の帰属判定用。
+        // 境界ブロックのセルは Cells に含まれないため常に false（境界用は後続フェーズの GetAdjacentCleanRooms）。
+        // True iff every occupied cell lies in the SAME room's Cells. Boundary blocks always return false.
+        public bool TryGetCleanRoom(IBlock block, out CleanRoom room)
+        {
+            var info = block.BlockPositionInfo;
+            CleanRoom found = null;
+            for (var x = info.MinPos.x; x <= info.MaxPos.x; x++)
+            for (var y = info.MinPos.y; y <= info.MaxPos.y; y++)
+            for (var z = info.MinPos.z; z <= info.MaxPos.z; z++)
+            {
+                if (!TryGetCleanRoomAt(new Vector3Int(x, y, z), out var r)) { room = null; return false; }
+                if (found == null) found = r;
+                else if (!ReferenceEquals(found, r)) { room = null; return false; } // 別部屋にまたがる / spans two rooms
+            }
+            room = found;
+            return found != null;
+        }
+
         public void Destroy()
         {
             foreach (var s in _subscriptions) s.Dispose();

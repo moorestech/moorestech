@@ -347,5 +347,51 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(1, datastore.Rooms.Count);
             Assert.AreEqual(26, datastore.Rooms[0].Volume, "Interior occupied cell is removed from V");
         }
+
+        // Step 15: TryGetCleanRoomAt は Cells 内セルを含む部屋を返し、境界セルは false。
+        // Step 15: TryGetCleanRoomAt returns the room containing the cell; boundary cells return false.
+        [Test]
+        public void Datastore_TryGetCleanRoomAt_ReturnsContainingRoom()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            GameUpdater.RunFrames(1);
+
+            Assert.True(datastore.TryGetCleanRoomAt(new Vector3Int(2, 2, 2), out _));
+            Assert.False(datastore.TryGetCleanRoomAt(new Vector3Int(50, 50, 50), out _));
+            Assert.False(datastore.TryGetCleanRoomAt(new Vector3Int(0, 0, 0), out _), "Boundary cells belong to no room");
+        }
+
+        // Step 16: 室内ブロックは部屋に帰属し、境界ブロック（壁）は帰属しない。
+        // Step 16: Interior blocks belong to a room; boundary blocks (walls) do not.
+        // NOTE: マルチセルブロック（2x2x2等）の「全セル同一部屋」「2部屋またがり=false」は
+        // テスト用の多セル非境界ブロックが存在する後続フェーズに繰り越す。
+        // NOTE: Multi-block "all cells same room" / "spanning two rooms = false" coverage is deferred
+        // to a later phase when a multi-cell non-boundary test block exists.
+        [Test]
+        public void Datastore_TryGetCleanRoom_InteriorBlockBelongs_BoundaryDoesNot()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            world.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, new Vector3Int(2, 2, 2),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inside);
+            GameUpdater.RunFrames(1);
+
+            // 占有セルは V から除外されるが Cells には含まれるため、室内ブロックは部屋に帰属する。
+            // Occupied cells are excluded from V but kept in Cells, so interior blocks belong to the room.
+            Assert.True(datastore.TryGetCleanRoom(inside, out _), "A block fully inside the room is contained");
+
+            // 境界ブロック（壁）は Cells 外＝帰属しない。境界用クエリは後続フェーズの GetAdjacentCleanRooms。
+            var wall = world.GetBlock(new Vector3Int(0, 0, 0));
+            Assert.False(datastore.TryGetCleanRoom(wall, out _), "Boundary blocks never belong to a room's Cells");
+        }
     }
 }
