@@ -41,17 +41,17 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Quality));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
             InsertRecipeInputs(inventory, recipe);
 
             // 前提: 整数部1段が確定（effectValue=1.0）であること。データ変更時はここで失敗させる
             // Precondition: one guaranteed level-up (effectValue = 1.0); fail loudly on data drift
-            var qualityModule = GetModuleOfAxis(ModuleParam.EffectAxisConst.Quality);
-            Assert.AreEqual(1f, qualityModule.ModuleParam.EffectValue, 0.0001f);
+            var qualityModule = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Quality);
+            Assert.AreEqual(1f, qualityModule.EffectValue, 0.0001f);
 
             // 品質トレードオフで時間が延びるため、余裕を持って完了まで進める
             // The quality tradeoff stretches the time, so advance well past completion
-            AdvanceTicksWithFullPower(1 + ScaledTicks(recipe, 1f + qualityModule.ModuleParam.TradeoffValue) + 3, processor);
+            AdvanceTicksWithFullPower(1 + ScaledTicks(recipe, 1f + qualityModule.TradeoffValue) + 3, processor);
 
             // 完了済みで、出力がすべてレベル2変種であり基準アイテムが存在しないことを確認
             // Processing finished; the output is entirely the level-2 variant with no base items
@@ -70,19 +70,19 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Quality));
-            inventory.SetItem(ModuleRangeStart + 1, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Productivity));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
+            inventory.SetItem(ModuleRangeStart + 1, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity));
             InsertRecipeInputs(inventory, recipe);
 
             // 前提: 追加出力が確定（確率1.0）であること
             // Precondition: the extra output is guaranteed (chance 1.0)
-            var qualityModule = GetModuleOfAxis(ModuleParam.EffectAxisConst.Quality);
-            var productivityModule = GetModuleOfAxis(ModuleParam.EffectAxisConst.Productivity);
-            Assert.GreaterOrEqual(productivityModule.ModuleParam.EffectValue, 1f);
+            var qualityModule = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Quality);
+            var productivityModule = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Productivity);
+            Assert.GreaterOrEqual(productivityModule.EffectValue, 1f);
 
             // 時間は両トレードオフの合算で延びる（(1+0.5+0.5)倍）ため、余裕を持って進める
             // Time stretches by both tradeoffs combined ((1+0.5+0.5)x), so advance well past completion
-            AdvanceTicksWithFullPower(1 + ScaledTicks(recipe, 1f + qualityModule.ModuleParam.TradeoffValue + productivityModule.ModuleParam.TradeoffValue) + 3, processor);
+            AdvanceTicksWithFullPower(1 + ScaledTicks(recipe, 1f + qualityModule.TradeoffValue + productivityModule.TradeoffValue) + 3, processor);
 
             // 完了済みで、レシピ出力数の2倍がすべてレベル2変種になっていることを確認
             // Processing finished; double the recipe output count is present, all as the level-2 variant
@@ -109,8 +109,8 @@ namespace Tests.CombinedTest.Core
             var (qualityBlock, qualityInventory, qualityProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (plainBlock, plainInventory, plainProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
             var (variantFitBlock, variantFitInventory, variantFitProcessor) = PlaceMachine(new Vector3Int(9, 1, 1));
-            qualityInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Quality));
-            variantFitInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Quality));
+            qualityInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
+            variantFitInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
 
             // 出力を「基準アイテム1セット分の空きはあるが、別スタックの変種は入らない」状態まで埋める
             // Fill outputs so one base set fits but the separately-stacking variant cannot
@@ -161,10 +161,10 @@ namespace Tests.CombinedTest.Core
 
             // 前提: 品質1.0+0.4でシフト1.4（確定1段＋40%でもう1段）、生産性1.0で追加セット確定
             // Precondition: quality 1.0 + 0.4 gives shift 1.4 (one guaranteed + 40% one more); productivity 1.0 guarantees the extra set
-            var qualityModules = MasterHolder.ItemMaster.Items.Data.Where(i => i.ModuleParam?.EffectAxis == ModuleParam.EffectAxisConst.Quality).ToArray();
-            var quality10 = qualityModules.First(i => Math.Abs(i.ModuleParam.EffectValue - 1.0f) < 0.0001f);
-            var quality04 = qualityModules.First(i => Math.Abs(i.ModuleParam.EffectValue - 0.4f) < 0.0001f);
-            var productivity = GetModuleOfAxis(ModuleParam.EffectAxisConst.Productivity);
+            var qualityModules = MasterHolder.ItemMaster.Items.Modules.Where(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Quality).ToArray();
+            var quality10 = qualityModules.First(m => Math.Abs(m.EffectValue - 1.0f) < 0.0001f);
+            var quality04 = qualityModules.First(m => Math.Abs(m.EffectValue - 0.4f) < 0.0001f);
+            var productivity = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Productivity);
 
             // 出力空きスロットを1つだけ残した機械を多数並べる（混在ペアは2スロット必要なため開始できず、同レベルペアを引いたtickにのみ開始する）
             // Place many machines with only one free output slot (a mixed pair needs two slots so it cannot start; a machine starts only on a tick that rolls a same-level pair)
@@ -231,7 +231,7 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var position = new Vector3Int(1, 1, 1);
             var (block, inventory, processor) = PlaceMachine(position);
-            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleParam.EffectAxisConst.Quality));
+            inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
             InsertRecipeInputs(inventory, recipe);
 
             // 数tick進めたプロセス途中の状態を作り、ワールド全体をセーブする
@@ -348,9 +348,9 @@ namespace Tests.CombinedTest.Core
 
         // 指定効果軸のモジュールアイテム定義を取得する
         // Get the module item definition of the specified effect axis
-        private static ItemMasterElement GetModuleOfAxis(string effectAxis)
+        private static ModuleMasterElement GetModuleOfAxis(string effectAxis)
         {
-            return MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == effectAxis);
+            return MasterHolder.ItemMaster.Items.Modules.First(m => m.EffectAxis == effectAxis);
         }
 
         // 指定効果軸のモジュールアイテムを生成する
@@ -360,11 +360,11 @@ namespace Tests.CombinedTest.Core
             return CreateModuleItem(GetModuleOfAxis(effectAxis));
         }
 
-        // 指定モジュールアイテム定義のアイテムを1個生成する
-        // Create one item of the specified module item definition
-        private static IItemStack CreateModuleItem(ItemMasterElement moduleItemElement)
+        // 指定モジュール定義のアイテムを1個生成する
+        // Create one item of the specified module definition
+        private static IItemStack CreateModuleItem(ModuleMasterElement moduleElement)
         {
-            var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleItemElement.ItemGuid);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(moduleElement.ItemGuid);
             return ServerContext.ItemStackFactory.Create(moduleItemId, 1);
         }
 

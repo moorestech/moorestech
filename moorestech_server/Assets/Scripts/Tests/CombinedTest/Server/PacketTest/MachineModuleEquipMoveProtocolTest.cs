@@ -49,8 +49,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Place the machine and put a speed module into main inventory slot 0
             var machinePos = new Vector3Int(1, 1, 1);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            var speedModuleItem = MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam?.EffectAxis == ModuleParam.EffectAxisConst.Speed);
-            var moduleItemId = MasterHolder.ItemMaster.GetItemId(speedModuleItem.ItemGuid);
+            var speedModule = MasterHolder.ItemMaster.Items.Modules.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(speedModule.ItemGuid);
             mainInventory.SetItem(0, moduleItemId, 1);
 
             // 既存の移動プロトコル（InventoryType.Block＋スロット番号）でモジュールレンジ先頭スロットへ移動する
