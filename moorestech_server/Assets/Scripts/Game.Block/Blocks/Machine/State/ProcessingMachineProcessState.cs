@@ -1,5 +1,9 @@
+using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Blocks.Util;
+using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
 {
@@ -9,6 +13,12 @@ namespace Game.Block.Blocks.Machine.State
     {
         private readonly MachineProcessContext _context;
 
+        // 加工ジョブはこのステートが所有する（Idleが確定→Processingが消費）
+        // This state owns the processing job (Idle fixes it, Processing consumes it)
+        private MachineRecipeMasterElement _recipe;
+        private List<IItemStack> _pendingOutputs;
+        private uint _totalTicks;
+
         public ProcessingMachineProcessState(MachineProcessContext context)
         {
             _context = context;
@@ -16,12 +26,25 @@ namespace Game.Block.Blocks.Machine.State
 
         public ProcessState State => ProcessState.Processing;
 
+        public Guid RecipeGuid => _recipe?.MachineRecipeGuid ?? Guid.Empty;
+        public uint TotalTicks => _totalTicks;
+        public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
+
+        // 加工ジョブを確定する。Idleの開始判定とセーブ復元の双方から呼ばれる
+        // Fix the processing job; called both from Idle's start decision and save restoration
+        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, uint totalTicks)
+        {
+            _recipe = recipe;
+            _pendingOutputs = pendingOutputs;
+            _totalTicks = totalTicks;
+        }
+
         // 開始時に入力を消費し残りtickを設定する
         // Consume inputs and set remaining ticks on start
         public void OnEnter()
         {
-            _context.InputInventory.ReduceInputSlot(_context.ProcessingRecipe);
-            _context.RemainingTicks = _context.ProcessingRecipeTicks;
+            _context.InputInventory.ReduceInputSlot(_recipe);
+            _context.RemainingTicks = _totalTicks;
         }
 
         public ProcessState GetNextUpdate()
@@ -51,9 +74,9 @@ namespace Game.Block.Blocks.Machine.State
         // Output the produced items on completion (re-roll for old saves that lack pending outputs)
         public void OnExit()
         {
-            var outputs = _context.PendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(_context.ProcessingRecipe, _context.EffectComponent.AggregateCurrent());
-            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(_context.ProcessingRecipe));
-            _context.PendingOutputs = null;
+            var outputs = _pendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(_recipe, _context.EffectComponent.AggregateCurrent());
+            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(_recipe));
+            _pendingOutputs = null;
         }
     }
 }
