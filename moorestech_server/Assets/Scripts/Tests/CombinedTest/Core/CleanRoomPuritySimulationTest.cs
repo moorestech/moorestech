@@ -258,6 +258,132 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(outIndex, datastore.Rooms[0].ThresholdIndex);
         }
 
+        [Test]
+        public void Datastore_SealBreak_KeepsImpurity_AndGoesDegraded()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4)); // V27
+            datastore.RebuildAll();
+
+            datastore.Rooms[0].AddImpurity(150.0);
+
+            // 壁を1枚壊して密閉を崩す → 再検出で部屋が消える。
+            // Break one wall -> the room vanishes on re-detection.
+            world.RemoveBlock(new Vector3Int(2, 2, 0), BlockRemoveReason.ManualRemove);
+            datastore.RebuildAll();
+            Assert.AreEqual(0, datastore.Rooms.Count, "room must vanish");
+
+            // 旧状態は破棄されず Degraded・N=150・猶予作動。
+            // Old state survives as a Degraded orphan with N preserved and grace running.
+            Assert.True(datastore.TryGetDegradedOrphan(out var orphan));
+            Assert.AreEqual(CleanRoomRoomStatus.Degraded, orphan.Status);
+            Assert.AreEqual(150.0, orphan.ImpurityCount, 1e-6);
+            Assert.Greater(orphan.GraceRemainingSeconds, 0.0);
+        }
+
+        [Test]
+        public void Datastore_ResealWithinGrace_RecoversValid_CarriesImpurityAndThresholdIndex()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            datastore.RebuildAll();
+
+            datastore.Rooms[0].AddImpurity(150.0);
+            datastore.Rooms[0].SetThresholdIndex(2); // 引き継ぎ検証用に行2を仕込む
+
+            world.RemoveBlock(new Vector3Int(2, 2, 0), BlockRemoveReason.ManualRemove);
+            datastore.RebuildAll();
+            GameUpdater.RunFrames(50); // 猶予100tick未満
+
+            // 同じ位置に壁を戻す → 再検出で部屋復活。
+            // Restore the wall -> room reappears on re-detection.
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(2, 2, 0),
+                BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+            datastore.RebuildAll();
+
+            Assert.AreEqual(1, datastore.Rooms.Count);
+            var recovered = datastore.Rooms[0];
+            Assert.AreEqual(CleanRoomRoomStatus.Valid, recovered.Status);
+            Assert.AreEqual(150.0, recovered.ImpurityCount, 1e-6, "N carried across reseal");
+            Assert.AreEqual(2, recovered.ThresholdIndex, "threshold row carried across reseal");
+            Assert.False(datastore.TryGetDegradedOrphan(out _), "orphan consumed by reseal");
+        }
+
+        [Test]
+        public void Datastore_GraceExpires_GoesInvalid_ThenDiscardedOnNextRebuild()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            datastore.RebuildAll();
+
+            datastore.Rooms[0].AddImpurity(150.0);
+            world.RemoveBlock(new Vector3Int(2, 2, 0), BlockRemoveReason.ManualRemove);
+            datastore.RebuildAll();
+            GameUpdater.RunFrames(120); // 猶予100tick超
+
+            // 猶予切れ → Invalid（N保持）。
+            // Grace expired -> Invalid, N retained.
+            Assert.True(datastore.TryGetDegradedOrphan(out var expired));
+            Assert.AreEqual(CleanRoomRoomStatus.Invalid, expired.Status);
+            Assert.AreEqual(150.0, expired.ImpurityCount, 1e-6);
+
+            // 猶予切れ後に再封 → Invalid 孤立は破棄され、新部屋は N=0 から（汚染の「転生」禁止）。
+            // Reseal after expiry: the Invalid orphan is discarded; the new room starts clean.
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(2, 2, 0),
+                BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+            datastore.RebuildAll();
+            Assert.AreEqual(1, datastore.Rooms.Count);
+            Assert.AreEqual(0.0, datastore.Rooms[0].ImpurityCount, 1e-9, "no impurity resurrection");
+            Assert.False(datastore.TryGetDegradedOrphan(out _), "Invalid orphan discarded");
+        }
+
+        [Test]
+        public void Datastore_UnrelatedRebuild_KeepsHoldBandThresholdIndexAndImpurity()
+        {
+            // must-fix A-1 の非回帰: 無関係な再検出で保持帯（C=9, 行0）の部屋が降格しないこと。
+            // Regression for review A-1: an unrelated rebuild must not demote a hold-band room.
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4)); // V27
+            datastore.RebuildAll();
+
+            // 平衡 C=9 を作る: A_total = nq·C = 5×9 = 45、N = 9×27 = 243。
+            // Steady C=9: A_total = nq·C = 45, N = 9·27 = 243.
+            var room = datastore.Rooms[0];
+            datastore.AddAirFilter(new Vector3Int(2, 2, 2), new AirFilterStub(5.0));
+            datastore.SetPollutionPerSecondProvider(_ => 45.0);
+            room.AddImpurity(243.0);
+            room.SetThresholdIndex(0); // 保持帯（8〜10）に居る行0の部屋
+
+            // 平衡なので tick しても行0のまま（サニティ）。
+            // Sanity: stays at row 0 under ticking (hold band).
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(0, datastore.Rooms[0].ThresholdIndex);
+
+            // 無関係な場所に壁を1個置いて全再検出を強制。
+            // Place an unrelated wall far away and force a full rebuild.
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(50, 0, 0),
+                BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out _);
+            datastore.RebuildAll();
+            GameUpdater.RunFrames(1);
+
+            // 引き継ぎが無いと行が Out リセット→ Decide(Out, 9, …) は行1 へ恒久降格してしまう。
+            // Without carry-over the row resets to Out and re-promotes only to row 1.
+            Assert.AreEqual(0, datastore.Rooms[0].ThresholdIndex, "hold-band row survives unrelated rebuild");
+            Assert.AreEqual(243.0, datastore.Rooms[0].ImpurityCount, 1.0, "N survives unrelated rebuild");
+        }
+
         // 1セルの壁を置くヘルパ。
         // Helper: place a single wall cell.
         private static void PlaceWall(IWorldBlockDatastore world, Vector3Int pos)

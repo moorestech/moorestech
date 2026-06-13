@@ -26,6 +26,10 @@ namespace Game.CleanRoom
         private List<CleanRoom> _rooms = new();
         private bool _geometryDirty;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+
+        // どの検出部屋にも紐付かない継続状態（消滅→Degraded/Invalid 中）。猶予で復活待ち。
+        // Orphan rooms (vanished -> Degraded/Invalid) awaiting reseal within grace.
+        private readonly List<CleanRoom> _orphanRooms = new();
         private readonly List<IDisposable> _subscriptions = new();
 
         // 汚染レート供給シーム。既定はゼロ。フェーズ3が CleanRoomPollutionCalculator の算出に差し替える。
@@ -61,13 +65,77 @@ namespace Game.CleanRoom
         public void RebuildAll()
         {
             _geometryDirty = false;
-            _rooms = CleanRoomDetector.DetectAllRooms(_worldBlockDatastore);
+            var newRooms = CleanRoomDetector.DetectAllRooms(_worldBlockDatastore);
+            ApplyDetectionResult(newRooms); // 引き継ぎ + _rooms 差し替えを一本化
             RebuildCount++;
+        }
 
-            // 新規部屋は Out で開始（保持帯の恩恵を受けない）。引き継ぎがあれば Task 5 で上書き。
-            // Fresh rooms start at Out; carry-over (Task 5) overwrites when applicable.
+        public bool TryGetDegradedOrphan(out CleanRoom orphan)
+        {
+            // テスト/フェーズ4用: 最初の孤立状態を返す。
+            // For tests/phase 4: return the first orphan.
+            orphan = _orphanRooms.Count > 0 ? _orphanRooms[0] : null;
+            return orphan != null;
+        }
+
+        // 新検出結果へ旧状態（検出中＋Degraded孤立）を引き継ぐ。Invalid孤立はここで破棄。
+        // Carry old states (tracked + Degraded orphans) onto new rooms; Invalid orphans are discarded here.
+        private void ApplyDetectionResult(List<CleanRoom> newRooms)
+        {
+            // 旧状態プール: 直前まで検出されていた部屋 ＋ Degraded 孤立。Invalid 孤立は破棄。
+            // Old-state pool: previously detected rooms + Degraded orphans; Invalid orphans dropped.
+            var pool = new List<CleanRoom>(_rooms);
+            foreach (var orphan in _orphanRooms)
+                if (orphan.Status == CleanRoomRoomStatus.Degraded) pool.Add(orphan);
+            _orphanRooms.Clear();
+
             var outIndex = MasterHolder.CleanRoomThresholdMaster.OutThresholdIndex;
-            foreach (var room in _rooms) room.SetThresholdIndex(outIndex);
+            var matched = new HashSet<CleanRoom>();
+
+            foreach (var room in newRooms)
+            {
+                // 重なる旧状態の寄与を合算し、最大重なりの旧状態から行を引き継ぐ。
+                // Sum N contributions; carry the threshold row from the max-overlap old room.
+                var carriedN = 0.0;
+                CleanRoom best = null;
+                var bestOverlap = 0;
+                foreach (var old in pool)
+                {
+                    var overlap = CountOverlap(old.Cells, room);
+                    if (overlap <= 0) continue;
+                    matched.Add(old);
+                    carriedN += CleanRoomPurityRules.RedistributeImpurity(old.ImpurityCount, old.Cells.Count, overlap);
+                    if (overlap > bestOverlap) { bestOverlap = overlap; best = old; }
+                }
+
+                // 新規部屋は Out で開始。重なりがあれば最大重なり旧部屋の行を引き継ぐ。
+                // Fresh rooms get Out; rooms with overlap inherit the best old room's row.
+                room.SetThresholdIndex(best != null ? best.ThresholdIndex : outIndex);
+                if (carriedN > 0.0) room.AddImpurity(carriedN);
+                room.SetStatus(CleanRoomRoomStatus.Valid, 0.0);
+            }
+
+            // どの新部屋にも対応しなかった旧状態は孤立へ: Valid→Degraded＋猶予開始、Degraded→猶予継続。
+            // Unmatched old states become orphans: Valid -> Degraded with fresh grace; Degraded keeps its grace.
+            foreach (var old in pool)
+            {
+                if (matched.Contains(old)) continue;
+                if (old.Status == CleanRoomRoomStatus.Valid)
+                    old.SetStatus(CleanRoomRoomStatus.Degraded, CleanRoomPurityRules.GraceSeconds);
+                _orphanRooms.Add(old);
+            }
+
+            _rooms = newRooms;
+        }
+
+        // 旧状態のセル集合と新部屋の重なりセル数。
+        // Overlapping cell count between an old room and a new room.
+        private static int CountOverlap(IReadOnlyCollection<Vector3Int> oldCells, CleanRoom room)
+        {
+            var count = 0;
+            foreach (var cell in oldCells)
+                if (room.Contains(cell)) count++;
+            return count;
         }
 
         public bool TryGetCleanRoomAt(Vector3Int cell, out CleanRoom room)
@@ -150,8 +218,15 @@ namespace Game.CleanRoom
                 room.SetThresholdIndex(CleanRoomPurityRules.DecideThresholdIndex(room.ThresholdIndex, room.Concentration, ach, _thresholdRows));
             }
 
-            // 孤立部屋の猶予減算は Task 5 でここに追加する。
-            // Orphan grace ticking is added here in Task 5.
+            // 孤立状態の猶予を毎tick減らし、切れたら Invalid（破棄は次の再検出時）。
+            // Tick down orphan grace; on expiry mark Invalid (discarded at the next re-detection).
+            foreach (var orphan in _orphanRooms)
+            {
+                if (orphan.Status != CleanRoomRoomStatus.Degraded) continue;
+                var remaining = orphan.GraceRemainingSeconds - GameUpdater.SecondsPerTick;
+                if (remaining > 0.0) orphan.SetStatus(CleanRoomRoomStatus.Degraded, remaining);
+                else orphan.SetStatus(CleanRoomRoomStatus.Invalid, 0.0);
+            }
         }
 
         // 部屋に属するフィルターの q 合算（登録セルが部屋の Cells に含まれるもの）。
