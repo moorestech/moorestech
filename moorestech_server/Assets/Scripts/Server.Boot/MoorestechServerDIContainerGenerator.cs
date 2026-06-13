@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Action;
+using Game.CleanRoom;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
@@ -105,6 +106,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
+            initializerCollection.AddSingleton<CleanRoomDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());
             initializerCollection.AddSingleton<TrainUnitDatastore>();
@@ -144,6 +146,9 @@ namespace Server.Boot
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
+            // initializer 側で生成して橋渡し。GetService が ServerContext 構築後の生成タイミングなので購読も安全。生成済みのため eager 不要。
+            // Created via the initializer provider after ServerContext exists; no extra eager call needed.
+            services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
             services.AddSingleton(railGraphDatastore);
             services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);
             services.AddSingleton<IRailGraphProvider>(railGraphDatastore);

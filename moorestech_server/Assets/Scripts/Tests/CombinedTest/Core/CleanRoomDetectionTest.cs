@@ -285,5 +285,67 @@ namespace Tests.CombinedTest.Core
             var rooms = CleanRoomDetector.DetectAllRooms(world);
             Assert.AreEqual(0, rooms.Count, "Rooms exceeding MaxRoomVolume cells must not form");
         }
+
+        // Step 12: 境界ブロックの設置/除去が CleanRoomDatastore に反映される。
+        // Step 12: Placing/removing a boundary block is reflected in CleanRoomDatastore.
+        [Test]
+        public void Datastore_PlaceThenBreakBoundary_UpdatesRooms()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(2, 2, 2));
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, datastore.Rooms.Count);
+
+            world.RemoveBlock(new Vector3Int(1, 1, 0), BlockRemoveReason.ManualRemove);
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(0, datastore.Rooms.Count);
+        }
+
+        // Step 13: 部屋外の非境界ブロックの設置は再検出をトリガしない。
+        // Step 13: Placing a non-boundary block far outside rooms must not trigger re-detection.
+        [Test]
+        public void Datastore_FarNonBoundaryPlacement_DoesNotRebuild()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            GameUpdater.RunFrames(1);
+            var before = datastore.RebuildCount;
+
+            world.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, new Vector3Int(50, 0, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            GameUpdater.RunFrames(1);
+
+            Assert.AreEqual(before, datastore.RebuildCount, "Non-boundary placement outside rooms must not trigger re-detection");
+        }
+
+        // Step 14: 部屋内の非境界ブロック設置は再検出され Volume が減少する。
+        // Step 14: Placing a non-boundary block inside the room triggers rebuild and reduces Volume.
+        [Test]
+        public void Datastore_InteriorBlockPlacement_RebuildsAndUpdatesVolume()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(27, datastore.Rooms[0].Volume);
+
+            world.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, new Vector3Int(2, 2, 2),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            GameUpdater.RunFrames(1);
+
+            Assert.AreEqual(1, datastore.Rooms.Count);
+            Assert.AreEqual(26, datastore.Rooms[0].Volume, "Interior occupied cell is removed from V");
+        }
     }
 }
