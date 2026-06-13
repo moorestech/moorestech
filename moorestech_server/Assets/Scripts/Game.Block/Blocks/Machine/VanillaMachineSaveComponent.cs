@@ -43,9 +43,9 @@ namespace Game.Block.Blocks.Machine
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            
-            // tickを秒数に変換して保存（tick数の変動に対応）
-            // Convert ticks to seconds for storage (to handle tick rate changes)
+
+            // 加工状態はProcessor自身が構築する。Saveはインベントリ分のみ担う
+            // Processor builds its own state; Save handles only the inventory parts
             var jsonObject = new VanillaMachineJsonObject
             {
                 InputSlot = _vanillaMachineInputInventory.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
@@ -53,14 +53,9 @@ namespace Game.Block.Blocks.Machine
                 ModuleSlot = _vanillaMachineModuleInventory.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 InputFluidSlot = _vanillaMachineInputInventory.FluidInputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
                 OutputFluidSlot = _vanillaMachineOutputInventory.FluidOutputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
-                State = (int)_vanillaMachineProcessorComponent.CurrentState,
-                RemainingSeconds = GameUpdater.TicksToSeconds(_vanillaMachineProcessorComponent.RemainingTicks),
-                RecipeGuidStr = _vanillaMachineProcessorComponent.RecipeGuid.ToString(),
-                // 産出予定も保存する（Idle時はnull）
-                // Also save the pending outputs (null while idle)
-                PendingOutputs = _vanillaMachineProcessorComponent.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                Processor = _vanillaMachineProcessorComponent.GetSaveJsonObject(),
             };
-            
+
             return JsonConvert.SerializeObject(jsonObject);
         }
     }
@@ -79,23 +74,11 @@ namespace Game.Block.Blocks.Machine
         public List<FluidContainerSaveJsonObject> InputFluidSlot;
         [JsonProperty("outputFluidSlot")]
         public List<FluidContainerSaveJsonObject> OutputFluidSlot;
-        [JsonProperty("recipeGuid")]
-        public string RecipeGuidStr;
-        [JsonIgnore]
-        public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
 
-        // 秒数として保存（tick数の変動に対応）
-        // Save as seconds (to handle tick rate changes)
-        [JsonProperty("remainingSeconds")]
-        public double RemainingSeconds;
-
-        [JsonProperty("state")]
-        public int State;
-
-        // 産出予定。Idle時や過去セーブではnull
-        // Pending outputs; null while idle or in old saves
-        [JsonProperty("pendingOutputs")]
-        public List<ItemStackSaveJsonObject> PendingOutputs;
+        // 加工状態はProcessorが構築・所有するサブオブジェクト
+        // Processing state is a sub-object built and owned by the Processor
+        [JsonProperty("processor")]
+        public VanillaMachineProcessorSaveJsonObject Processor;
     }
     
     public class FluidContainerSaveJsonObject

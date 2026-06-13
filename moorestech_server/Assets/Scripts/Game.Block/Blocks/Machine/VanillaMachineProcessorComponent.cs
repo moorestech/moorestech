@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -13,6 +14,7 @@ using Game.Context;
 using Game.Fluid;
 using MessagePack;
 using Mooresmaster.Model.MachineRecipesModule;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine
@@ -38,23 +40,20 @@ namespace Game.Block.Blocks.Machine
         private float _currentPower;
         private ProcessState _lastState = ProcessState.Idle;
         private MachineRecipeMasterElement _processingRecipe;
+        // 開始時に確定した産出予定。セーブで引き継ぐ
+        // Outputs fixed at start; carried through saves
+        private List<IItemStack> _pendingOutputs;
         private uint _processingRecipeTicks;
 
         // モジュール効果は毎回その場で集計する
         // Module effects are aggregated live on every read
         private readonly MachineModuleEffectComponent _effectComponent;
 
-        // 開始時に確定した産出予定。セーブで引き継ぐ
-        // Outputs fixed at start; carried through saves
-        private List<IItemStack> _pendingOutputs;
-
         // 同tick生成機械の同シード回避のため共有
         // Shared to avoid same-tick identical seeds
         private static readonly Random Random = new();
 
-        public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
-
-        public float EffectiveRequestPower => RequestPower * 
+        public float EffectiveRequestPower => RequestPower *
                                               (CurrentState == ProcessState.Processing ? _effectComponent.AggregateCurrent().PowerMultiplier : 1f);
         
         public VanillaMachineProcessorComponent(
@@ -93,6 +92,24 @@ namespace Game.Block.Blocks.Machine
             CurrentState = currentState;
         }
 
+        // 自身のセーブデータを単独で構築する
+        // Build this component's save data on its own
+        public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
+        {
+            BlockException.CheckDestroy(this);
+
+            // tickを秒数に変換して保存（tick数の変動に対応）
+            // Convert ticks to seconds for storage (to handle tick rate changes)
+            return new VanillaMachineProcessorSaveJsonObject
+            {
+                State = (int)CurrentState,
+                RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicks),
+                RecipeGuidStr = RecipeGuid.ToString(),
+                // 産出予定も保存する（Idle時はnull）
+                // Also save the pending outputs (null while idle)
+                PendingOutputs = _pendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+            };
+        }
 
         public BlockStateDetail[] GetBlockStateDetails()
         {
@@ -283,5 +300,27 @@ namespace Game.Block.Blocks.Machine
     {
         Idle,
         Processing,
+    }
+
+    public class VanillaMachineProcessorSaveJsonObject
+    {
+        [JsonProperty("state")]
+        public int State;
+
+        // 秒数として保存（tick数の変動に対応）
+        // Save as seconds (to handle tick rate changes)
+        [JsonProperty("remainingSeconds")]
+        public double RemainingSeconds;
+
+        [JsonProperty("recipeGuid")]
+        public string RecipeGuidStr;
+
+        [JsonIgnore]
+        public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
+
+        // 産出予定。Idle時や過去セーブではnull
+        // Pending outputs; null while idle or in old saves
+        [JsonProperty("pendingOutputs")]
+        public List<ItemStackSaveJsonObject> PendingOutputs;
     }
 }
