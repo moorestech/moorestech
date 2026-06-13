@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Update;
 using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Blocks.Util;
 using Mooresmaster.Model.MachineRecipesModule;
@@ -11,32 +12,44 @@ namespace Game.Block.Blocks.Machine.State
     // Processing state: advances with power and returns to idle on completion
     internal class ProcessingMachineProcessState : IMachineProcessState
     {
+        
+        public ProcessState State => ProcessState.Processing;
         private readonly MachineProcessContext _context;
-
-        // 加工ジョブはこのステートが所有する（Idleが確定→Processingが消費）
-        // This state owns the processing job (Idle fixes it, Processing consumes it)
-        private MachineRecipeMasterElement _recipe;
+        public Guid RecipeGuid => _recipe?.MachineRecipeGuid ?? Guid.Empty;
+        
+        public uint TotalTicks { get; private set; }
+        public uint RemainingTicks  { get; private set; }
+        
+        public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
         private List<IItemStack> _pendingOutputs;
-        private uint _totalTicks;
-
-        public ProcessingMachineProcessState(MachineProcessContext context)
+        
+        
+        private MachineRecipeMasterElement _recipe;
+        
+        public ProcessingMachineProcessState(MachineProcessContext context, uint remainingTicks, MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
         {
             _context = context;
+            RemainingTicks = remainingTicks;
+            
+            if (recipe != null && pendingOutputs != null)
+            {
+                SetProcessing(recipe, pendingOutputs);
+            }
         }
 
-        public ProcessState State => ProcessState.Processing;
 
-        public Guid RecipeGuid => _recipe?.MachineRecipeGuid ?? Guid.Empty;
-        public uint TotalTicks => _totalTicks;
-        public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
-
-        // 加工ジョブを確定する。Idleの開始判定とセーブ復元の双方から呼ばれる
-        // Fix the processing job; called both from Idle's start decision and save restoration
-        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, uint totalTicks)
+        // 加工するジョブをIdle、ロードから設定
+        // Set the processing job from Idle or on load
+        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
         {
             _recipe = recipe;
             _pendingOutputs = pendingOutputs;
-            _totalTicks = totalTicks;
+            
+            var effect = _context.EffectComponent.AggregateCurrent();
+            
+            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
+            var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
+            TotalTicks = totalTicks;
         }
 
         // 開始時に入力を消費し残りtickを設定する
@@ -44,7 +57,7 @@ namespace Game.Block.Blocks.Machine.State
         public void OnEnter()
         {
             _context.InputInventory.ReduceInputSlot(_recipe);
-            _context.RemainingTicks = _totalTicks;
+            RemainingTicks = TotalTicks;
         }
 
         public ProcessState GetNextUpdate()
@@ -60,13 +73,13 @@ namespace Game.Block.Blocks.Machine.State
 
             // 残りtickを使い切ったら完了して待機へ
             // Once remaining ticks are exhausted, finish and return to idle
-            if (subTicks >= _context.RemainingTicks)
+            if (subTicks >= RemainingTicks)
             {
-                _context.RemainingTicks = 0;
+                RemainingTicks = 0;
                 return ProcessState.Idle;
             }
 
-            _context.RemainingTicks -= subTicks;
+            RemainingTicks -= subTicks;
             return ProcessState.Processing;
         }
 

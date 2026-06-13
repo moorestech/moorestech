@@ -12,8 +12,6 @@ namespace Game.Block.Blocks.Machine.State
         public readonly MachineModuleEffectComponent EffectComponent;
         public readonly float RequestPower;
 
-        public ProcessState CurrentState = ProcessState.Idle;
-        public uint RemainingTicks;
         public float CurrentPower;
         public bool UsedPower;
 
