@@ -1,6 +1,5 @@
 import { useTopic } from "../bridge/useTopic";
 import { useItemMaster } from "../bridge/useItemMaster";
-import type { RecipeViewerItemListData } from "../types/recipeViewer";
 import ItemSlot from "./ItemSlot";
 
 type Props = {
@@ -11,7 +10,7 @@ type Props = {
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
 export default function ItemListPanel({ selectedItemId, onSelect }: Props) {
-  const itemList = useTopic<RecipeViewerItemListData>("recipe_viewer.item_list");
+  const itemList = useTopic("recipe_viewer.item_list");
   const itemMaster = useItemMaster();
 
   return (

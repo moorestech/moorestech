@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTopic } from "../bridge/useTopic";
 import { useItemMaster } from "../bridge/useItemMaster";
 import { dispatchAction } from "../bridge/actions";
-import type { InventoryArea, PlayerInventoryData, SlotData, SlotRef } from "../types/inventory";
+import type { InventoryArea, SlotData, SlotRef } from "../types/inventory";
 import ItemSlot from "./ItemSlot";
 
 const GRAB: SlotRef = { area: "grab", slot: 0 };
@@ -32,7 +32,7 @@ function GrabOverlay({ grab }: { grab: SlotData }) {
 // uGUI 準拠で inv 領域（メイン+Sort）と hotbar 領域（下段中央）の2要素を Fragment で返す
 // Returns two grid children via Fragment, matching uGUI: inv area (main+Sort) and bottom-center hotbar area
 export default function InventoryPanel() {
-  const inventory = useTopic<PlayerInventoryData>("local_player.inventory");
+  const inventory = useTopic("local_player.inventory");
   const itemMaster = useItemMaster();
 
   // 直近2回の左mousedown時点のgrab保持状態。dblclickはこの先頭（連鎖開始時点）で対象を決める
