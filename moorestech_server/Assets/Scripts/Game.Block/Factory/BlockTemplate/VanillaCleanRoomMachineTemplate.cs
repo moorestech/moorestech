@@ -71,7 +71,7 @@ namespace Game.Block.Factory.BlockTemplate
                 machineParam.ModuleSlotCount, _blockInventoryUpdateEvent, blockInstanceId,
                 machineParam.InputSlotCount, machineParam.OutputSlotCount);
 
-            var requestPower = (float)machineParam.RequiredPower;
+            var requestPower = machineParam.RequiredPower;
 
             // 新規作成またはセーブから復元
             // Create new or restore from save

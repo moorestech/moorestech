@@ -579,7 +579,6 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(expectedThresholdIndex, roomB2.ThresholdIndex, "Threshold row survives the first tick");
         }
 
-        #region Internal
 
         // 露光レシピ（CleanRoomMachine）のレシピ要素を見つける。
         // Find the exposure-recipe element (the CleanRoom machine).
@@ -614,6 +613,5 @@ namespace Tests.CombinedTest.Core
             world.TryAddBlock(blockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
         }
 
-        #endregion
     }
 }

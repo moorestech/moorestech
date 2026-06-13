@@ -130,7 +130,6 @@ namespace Tests.CombinedTest.Core
             AssertByProductPresent(block);
         }
 
-        #region Internal
 
         // 上限tick数。1サイクル分の安全余裕を取りつつ無限ループを防ぐ。
         // Upper tick bound; prevents infinite loops while leaving cycle headroom.
@@ -267,6 +266,5 @@ namespace Tests.CombinedTest.Core
             throw new Exception("exposure recipe not found");
         }
 
-        #endregion
     }
 }

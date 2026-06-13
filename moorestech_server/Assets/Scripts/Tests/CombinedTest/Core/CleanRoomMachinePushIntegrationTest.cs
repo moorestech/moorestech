@@ -234,7 +234,6 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(ProcessState.Idle, proc.CurrentState, "halts (stays Idle)");
         }
 
-        #region Internal
 
         private sealed class Ctx
         {
@@ -398,6 +397,5 @@ namespace Tests.CombinedTest.Core
             throw new Exception("exposure recipe not found");
         }
 
-        #endregion
     }
 }

@@ -32,15 +32,6 @@ namespace Game.CleanRoom.Pollution
                    + AConnector * connectorCount;
         }
 
-        // 部屋に面する境界ブロックのうち Wall 以外（各種ハッチ）を接続点として数える。
-        // BlockInstanceId 単位で重複排除（マルチセル境界ブロックの多重カウント防止）。
-        // Count non-Wall boundary blocks (hatches) facing the room; dedupe by BlockInstanceId.
-        public static int CountConnectors(CleanRoom room)
-        {
-            ScanBoundary(room, out var connectorCount, out _);
-            return connectorCount;
-        }
-
         // 接続点数とアイテムハッチの合計スループットを同一の境界走査で集計する（二重走査回避）。
         // BlockInstanceId 単位で重複排除。caching は将来の最適化（毎tick走査のホットスポット）。
         // Compute connector count and item-hatch throughput in one boundary scan (avoid double-scanning); dedupe by BlockInstanceId.
