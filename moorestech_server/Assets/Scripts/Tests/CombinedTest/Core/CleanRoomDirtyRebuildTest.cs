@@ -111,6 +111,49 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(1, datastore.Rooms[0].ThresholdIndex);
         }
 
+        // バグI-1の非回帰: ランタイム経路（tick）でも Invalid 孤立が再検出時に破棄され、Nが蘇生しないこと。
+        // Regression for I-1: the runtime (tick) path also discards Invalid orphans on re-detection; no N resurrection.
+        [Test]
+        public void DirtyIncremental_InvalidOrphanDiscardedOnReseal_NoResurrection()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var datastore = serviceProvider.GetService<CleanRoomDatastore>();
+
+            // 初期部屋の確立だけ RebuildAll を許容（破壊→失効→再封のサイクルは tick 経由＝差分経路で検証）。
+            // RebuildAll only to establish the initial room; the break/expire/reseal cycle goes through ticks (incremental path).
+            BuildWallShell(world, new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4)); // V27
+            datastore.RebuildAll();
+            Assert.AreEqual(1, datastore.Rooms.Count);
+            datastore.Rooms[0].AddImpurity(150.0);
+
+            // 壁を1枚壊す → tick で部屋消滅・Degraded 孤立化（差分経路）。
+            // Break one wall; a tick makes the room vanish and become a Degraded orphan (incremental path).
+            world.RemoveBlock(new Vector3Int(2, 2, 0), BlockRemoveReason.ManualRemove);
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(0, datastore.Rooms.Count, "room vanishes on incremental re-detection");
+            Assert.True(datastore.TryGetDegradedOrphan(out var orphan));
+            Assert.AreEqual(CleanRoomRoomStatus.Degraded, orphan.Status);
+
+            // 猶予切れ → Invalid（破棄は次の再検出時、UpdatePurity では消さない）。
+            // Grace expires -> Invalid (discarded only at the next re-detection, not in UpdatePurity).
+            GameUpdater.RunFrames(120); // 猶予100tick超
+            Assert.True(datastore.TryGetDegradedOrphan(out var expired));
+            Assert.AreEqual(CleanRoomRoomStatus.Invalid, expired.Status);
+            Assert.AreEqual(150.0, expired.ImpurityCount, 1e-6);
+
+            // 同じ位置に壁を戻す → tick の差分再検出で部屋復活、Invalid 孤立は破棄、Nは0から。
+            // Restore the wall; the tick incremental re-detection revives the room, discards the Invalid orphan, N starts at 0.
+            world.TryAddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(2, 2, 0),
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            GameUpdater.RunFrames(2);
+
+            Assert.AreEqual(1, datastore.Rooms.Count);
+            Assert.AreEqual(0.0, datastore.Rooms[0].ImpurityCount, 1e-9, "no impurity resurrection on incremental reseal");
+            Assert.False(datastore.TryGetDegradedOrphan(out _), "Invalid orphan discarded on incremental re-detection");
+        }
+
         // テスト用フィルタースタブ。固定 q を返す。
         // Test stub filter returning a fixed q.
         private sealed class AirFilterStub : ICleanRoomAirFilter

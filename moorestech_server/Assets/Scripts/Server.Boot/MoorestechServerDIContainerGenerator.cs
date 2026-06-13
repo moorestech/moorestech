@@ -146,8 +146,8 @@ namespace Server.Boot
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
-            // initializer 側で生成して橋渡し。GetService が ServerContext 構築後の生成タイミングなので購読も安全。生成済みのため eager 不要。
-            // Created via the initializer provider after ServerContext exists; no extra eager call needed.
+            // initializer 側で生成して橋渡し。GetService が ServerContext 構築後の生成タイミングなので購読も安全。eager 実体化は下の GetService で行う。
+            // Created via the initializer provider after ServerContext exists; eager instantiation is done by the GetService call below.
             services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
             services.AddSingleton(railGraphDatastore);
             services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);

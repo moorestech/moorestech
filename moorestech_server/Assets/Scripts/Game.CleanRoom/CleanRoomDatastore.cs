@@ -378,6 +378,12 @@ namespace Game.CleanRoom
             var probe = ProbeRegion(seed);
             var affected = CollectAffectedRooms(probe, newRooms);
 
+            // この領域の再検出で、重なる Invalid 孤立を破棄する（全走査 ApplyDetectionResult と同じ「再検出で破棄」を実現）。
+            // Discard Invalid orphans overlapping this re-detected region (mirrors the full-path "discard on re-detection").
+            // Invalid はプールに入れない＝引き継がない（新部屋は N=0 開始。汚染の蘇生を防ぐ）。
+            // Invalid orphans are NOT pooled, so no carry-over: the new room starts at N=0 (no impurity resurrection).
+            DiscardOverlappingInvalidOrphans(probe, newRooms);
+
             // 新部屋が既存部屋の Cells と完全一致なら何もしない（インスタンス維持）。
             // If a new room exactly matches an existing room's Cells, keep the instance (do nothing).
             RemoveExactMatches(newRooms, affected);
@@ -451,6 +457,25 @@ namespace Game.CleanRoom
 
                 if (!overlaps) continue;
                 pool.Add(orphan);
+                _orphanRooms.RemoveAt(i);
+            }
+        }
+
+        // probe または新部屋に重なる Invalid 孤立を破棄する（引き継がず削除のみ＝N蘇生なし）。
+        // Discard Invalid orphans overlapping the probe or a new room (removed only, never pooled -> no N resurrection).
+        private void DiscardOverlappingInvalidOrphans(HashSet<Vector3Int> probe, List<CleanRoom> newRooms)
+        {
+            for (var i = _orphanRooms.Count - 1; i >= 0; i--)
+            {
+                var orphan = _orphanRooms[i];
+                if (orphan.Status != CleanRoomRoomStatus.Invalid) continue;
+
+                var overlaps = ContainsAny(orphan, probe);
+                if (!overlaps)
+                    foreach (var newRoom in newRooms)
+                        if (CountOverlap(orphan.Cells, newRoom) > 0) { overlaps = true; break; }
+
+                if (!overlaps) continue;
                 _orphanRooms.RemoveAt(i);
             }
         }
