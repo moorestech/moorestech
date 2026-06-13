@@ -85,12 +85,12 @@ namespace Core.Master
 
             #endregion
         }
-        
+
         private static JToken GetJson(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName)
         {
             var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
             var jsonContent = masterJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
-            
+
             return (JToken)JsonConvert.DeserializeObject(jsonContent);
         }
     }

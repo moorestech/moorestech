@@ -27,6 +27,7 @@
       "name": "TestElectricMachine",
       "blockType": "ElectricMachine",
       "blockParam": {
+        "moduleSlotCount": 4,
         "requiredPower": 100,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
@@ -1423,6 +1424,7 @@
       "name": "TestGearMachine",
       "blockType": "GearMachine",
       "blockParam": {
+        "moduleSlotCount": 4,
         "teethCount": 10,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
@@ -2296,6 +2298,7 @@
       "name": "MachineRecipeTest1",
       "blockType": "ElectricMachine",
       "blockParam": {
+        "moduleSlotCount": 0,
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
@@ -2417,6 +2420,7 @@
       "name": "MachineRecipeTest2",
       "blockType": "ElectricMachine",
       "blockParam": {
+        "moduleSlotCount": 0,
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
@@ -2538,6 +2542,7 @@
       "name": "MachineRecipeTest3",
       "blockType": "ElectricMachine",
       "blockParam": {
+        "moduleSlotCount": 0,
         "requiredPower": 101,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
@@ -3176,6 +3181,7 @@
       "name": "FluidMachine",
       "blockType": "ElectricMachine",
       "blockParam": {
+        "moduleSlotCount": 0,
         "machineConnectionRange": 5,
         "poleConnectionRange": 5,
         "innerTankCapacity": 100,

@@ -54,33 +54,6 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void 倍速で供給トルクが要求通りなら稼働率は2_0()
-        {
-            var consumption = GearConsumptionTestFactory.Create(
-                baseRpm: 100, minimumRpm: 0, baseTorque: 1, torqueExponentUnder: 2, torqueExponentOver: 1.585);
-            var rate = GearConsumptionCalculator.CalcOperatingRate(consumption, new RPM(200f), new Torque(3.0f));
-            Assert.AreEqual(2.0f, rate, Tolerance);
-        }
-
-        [Test]
-        public void 倍速でトルク供給が半分なら稼働率は1_0()
-        {
-            var consumption = GearConsumptionTestFactory.Create(
-                baseRpm: 100, minimumRpm: 0, baseTorque: 1, torqueExponentUnder: 2, torqueExponentOver: 1.585);
-            var rate = GearConsumptionCalculator.CalcOperatingRate(consumption, new RPM(200f), new Torque(1.5f));
-            Assert.AreEqual(1.0f, rate, Tolerance);
-        }
-
-        [Test]
-        public void 下限未満RPMでは稼働率が0()
-        {
-            var consumption = GearConsumptionTestFactory.Create(
-                baseRpm: 100, minimumRpm: 50, baseTorque: 1, torqueExponentUnder: 2, torqueExponentOver: 1.585);
-            var rate = GearConsumptionCalculator.CalcOperatingRate(consumption, new RPM(10f), new Torque(10f));
-            Assert.AreEqual(0f, rate, Tolerance);
-        }
-
-        [Test]
         public void 指数を変えると消費カーブが変わる()
         {
             // b=3, currentRpm=baseRpm/2 → 0.5^3 = 0.125

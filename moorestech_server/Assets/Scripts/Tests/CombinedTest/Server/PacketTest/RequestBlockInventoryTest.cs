@@ -26,6 +26,9 @@ namespace Tests.CombinedTest.Server.PacketTest
     {
         private const int InputSlotNum = 2;
         private const int OutPutSlotNum = 3;
+        // モジュールスロットは第3レンジとして統合スロット数に含まれる
+        // Module slots are included in the unified slot count as the third range
+        private const int ModuleSlotNum = 4;
 
         //通常の機械のテスト
         [Test]
@@ -43,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), new PacketResponseContext())[0]);
 
-            Assert.AreEqual(InputSlotNum + OutPutSlotNum, data.Items.Length); // slot num
+            Assert.AreEqual(InputSlotNum + OutPutSlotNum + ModuleSlotNum, data.Items.Length); // slot num
 
 
             Assert.AreEqual(1, data.Items[0].Id.AsPrimitive()); // item id
