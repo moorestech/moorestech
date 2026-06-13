@@ -5,6 +5,7 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.CleanRoom.SaveLoad;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using UniRx;
@@ -217,6 +218,105 @@ namespace Game.CleanRoom
         public void RemoveAirFilter(Vector3Int cell)
         {
             _airFilters.Remove(cell);
+        }
+
+        // 検出中の全部屋＋Degraded孤立を保存する（Invalid孤立は保存しない）。
+        // Save all detected rooms plus Degraded orphans (Invalid orphans are not saved).
+        public List<CleanRoomSaveData> GetSaveData()
+        {
+            var result = new List<CleanRoomSaveData>();
+            foreach (var room in _rooms) result.Add(ToSaveData(room));
+            foreach (var orphan in _orphanRooms)
+                if (orphan.Status == CleanRoomRoomStatus.Degraded) result.Add(ToSaveData(orphan));
+            return result;
+        }
+
+        // 再検出済みの部屋へ最大セル重なりで照合して復元する。複数レコード同部屋は N 合算。
+        // Restore by max cell overlap; multiple records on one room sum their N.
+        public void Restore(IReadOnlyList<CleanRoomSaveData> saveData)
+        {
+            if (saveData == null) return;
+
+            // 部屋ごとの最大重なりレコードを記録しつつ N を合算する。
+            // Track the max-overlap record per room while summing N.
+            var bestByRoom = new Dictionary<CleanRoom, (int overlap, CleanRoomSaveData record)>();
+
+            foreach (var record in saveData)
+            {
+                if (record?.Cells == null) continue;
+                var recordCells = ParseCells(record.Cells);
+
+                CleanRoom best = null;
+                var bestOverlap = 0;
+                foreach (var room in _rooms)
+                {
+                    var overlap = 0;
+                    foreach (var cell in recordCells)
+                        if (room.Contains(cell)) overlap++;
+                    if (overlap > bestOverlap) { bestOverlap = overlap; best = room; }
+                }
+
+                if (best == null)
+                {
+                    // 未マッチ: Degraded レコードだけ孤立状態として復元（猶予継続）。他は破棄。
+                    // Unmatched: only Degraded records become orphans (grace keeps running).
+                    if ((CleanRoomRoomStatus)record.Status == CleanRoomRoomStatus.Degraded)
+                        _orphanRooms.Add(CreateOrphanFromRecord(record, recordCells));
+                    continue;
+                }
+
+                best.AddImpurity(record.ImpurityCount); // 合算（後勝ち上書き禁止）
+                if (!bestByRoom.TryGetValue(best, out var current) || bestOverlap > current.overlap)
+                    bestByRoom[best] = (bestOverlap, record);
+            }
+
+            // 行・状態・猶予は最大重なりレコードを採用。
+            // Threshold row / status / grace come from the max-overlap record.
+            foreach (var kvp in bestByRoom)
+            {
+                kvp.Key.SetThresholdIndex(kvp.Value.record.ThresholdIndex);
+                kvp.Key.SetStatus((CleanRoomRoomStatus)kvp.Value.record.Status, kvp.Value.record.GraceRemainingSeconds);
+            }
+        }
+
+        // CleanRoom → CleanRoomSaveData へ変換する。
+        // Convert a CleanRoom to its save record.
+        private static CleanRoomSaveData ToSaveData(CleanRoom room)
+        {
+            var cells = new List<int[]>();
+            foreach (var c in room.Cells)
+                cells.Add(new[] { c.x, c.y, c.z });
+            return new CleanRoomSaveData
+            {
+                ImpurityCount = room.ImpurityCount,
+                ThresholdIndex = room.ThresholdIndex,
+                Status = (int)room.Status,
+                GraceRemainingSeconds = (float)room.GraceRemainingSeconds,
+                Cells = cells,
+            };
+        }
+
+        // セルリスト（int[]）を HashSet<Vector3Int> へ変換する。
+        // Convert the cell list (int[]) back to a HashSet<Vector3Int>.
+        private static HashSet<Vector3Int> ParseCells(List<int[]> cells)
+        {
+            var set = new HashSet<Vector3Int>(cells.Count);
+            foreach (var c in cells)
+                if (c != null && c.Length >= 3) set.Add(new Vector3Int(c[0], c[1], c[2]));
+            return set;
+        }
+
+        // 未マッチ Degraded レコードから孤立 CleanRoom を生成する（猶予継続用）。
+        // Create an orphan CleanRoom from an unmatched Degraded record (grace keeps running).
+        private CleanRoom CreateOrphanFromRecord(CleanRoomSaveData record, HashSet<Vector3Int> recordCells)
+        {
+            // 孤立中は純度tick対象外なので V/S=0 で良い。再封時に検出が正値で作り直す。
+            // Volume=cells.Count / SurfaceArea=0 is fine since orphans are not purity-ticked.
+            var orphan = new CleanRoom(_nextRoomId++, recordCells, recordCells.Count, 0);
+            orphan.AddImpurity(record.ImpurityCount);
+            orphan.SetThresholdIndex(record.ThresholdIndex);
+            orphan.SetStatus(CleanRoomRoomStatus.Degraded, record.GraceRemainingSeconds);
+            return orphan;
         }
 
         public void Destroy()

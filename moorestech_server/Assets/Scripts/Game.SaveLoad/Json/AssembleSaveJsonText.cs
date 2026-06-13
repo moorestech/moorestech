@@ -1,4 +1,5 @@
 using Game.Challenge;
+using Game.CleanRoom;
 using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
@@ -25,6 +26,7 @@ namespace Game.SaveLoad.Json
         private readonly TrainSaveLoadService _trainSaveLoadService;
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly CleanRoomDatastore _cleanRoomDatastore;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -36,7 +38,8 @@ namespace Game.SaveLoad.Json
             IResearchDataStore researchDataStore,
             TrainSaveLoadService trainSaveLoadService,
             RailGraphSaveLoadService railGraphSaveLoadService,
-            IPlayerRidingDatastore playerRidingDatastore)
+            IPlayerRidingDatastore playerRidingDatastore,
+            CleanRoomDatastore cleanRoomDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -48,6 +51,7 @@ namespace Game.SaveLoad.Json
             _trainSaveLoadService = trainSaveLoadService;
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _playerRidingDatastore = playerRidingDatastore;
+            _cleanRoomDatastore = cleanRoomDatastore;
         }
 
         public string AssembleSaveJson()
@@ -67,7 +71,8 @@ namespace Game.SaveLoad.Json
                 _researchDataStore.GetSaveJsonObject(),
                 _trainSaveLoadService.GetSaveJsonObject(),
                 _railGraphSaveLoadService.GetSaveData(),
-                _playerRidingDatastore.GetSaveData()
+                _playerRidingDatastore.GetSaveData(),
+                _cleanRoomDatastore.GetSaveData()
             );
 
             return JsonConvert.SerializeObject(saveData);

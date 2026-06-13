@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Challenge;
+using Game.CleanRoom.SaveLoad;
 using Game.CraftTree;
 using Game.CraftTree.Json;
 using Game.Entity.Interface;
@@ -20,9 +21,9 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("worldVersion")] public int WorldVersion = 1;
         
         public WorldSaveAllInfoV1(
-            List<BlockJsonObject> world, 
+            List<BlockJsonObject> world,
             List<PlayerInventorySaveJsonObject> inventory,
-            List<EntityJsonObject> entities, 
+            List<EntityJsonObject> entities,
             WorldSettingJsonObject setting,
             List<MapObjectJsonObject> mapObjects,
             ChallengeJsonObject challenge,
@@ -31,7 +32,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             ResearchSaveJsonObject research,
             List<TrainUnitSaveData> trainUnits,
             List<RailSegmentSaveData> railSegments,
-            List<PlayerRidingSaveData> playerRidingStates)
+            List<PlayerRidingSaveData> playerRidingStates,
+            List<CleanRoomSaveData> cleanRoom)
         {
             World = world;
             Inventory = inventory;
@@ -45,6 +47,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             TrainUnits = trainUnits ?? new List<TrainUnitSaveData>();
             RailSegments = railSegments ?? new List<RailSegmentSaveData>();
             PlayerRidingStates = playerRidingStates ?? new List<PlayerRidingSaveData>();
+            CleanRoom = cleanRoom ?? new List<CleanRoomSaveData>();
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -60,5 +63,9 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("trainUnits")] public List<TrainUnitSaveData> TrainUnits { get; }
         [JsonProperty("railSegments")] public List<RailSegmentSaveData> RailSegments { get; }
         [JsonProperty("playerRidingStates")] public List<PlayerRidingSaveData> PlayerRidingStates { get; }
+
+        // クリーンルーム純度状態。旧セーブには存在しないため null → 空リストで後方互換。
+        // Clean-room purity state; old saves lack this key, so null becomes an empty list.
+        [JsonProperty("cleanRoom")] public List<CleanRoomSaveData> CleanRoom { get; }
     }
 }

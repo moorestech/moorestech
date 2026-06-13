@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Game.Challenge;
+using Game.CleanRoom;
 using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
@@ -40,12 +41,13 @@ namespace Game.SaveLoad.Json
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly TrainDockingStateRestorer _trainDockingStateRestorer;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly CleanRoomDatastore _cleanRoomDatastore;
 
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
-            IPlayerRidingDatastore playerRidingDatastore)
+            IPlayerRidingDatastore playerRidingDatastore, CleanRoomDatastore cleanRoomDatastore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -63,6 +65,7 @@ namespace Game.SaveLoad.Json
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _trainDockingStateRestorer = trainDockingStateRestorer;
             _playerRidingDatastore = playerRidingDatastore;
+            _cleanRoomDatastore = cleanRoomDatastore;
         }
         
         public void LoadOrInitialize()
@@ -96,6 +99,12 @@ namespace Game.SaveLoad.Json
             
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
             _worldBlockDatastore.LoadBlockDataList(load.World);
+
+            // ブロック生成後に全再検出（dirtyクリア込み）し、その後で純度をセル重なり復元する。
+            // After blocks exist: full rebuild (clears dirty), then restore purity by cell overlap.
+            _cleanRoomDatastore.RebuildAll();
+            _cleanRoomDatastore.Restore(load.CleanRoom);
+
             // レールセグメントを復元する
             // Restore rail segments
             var segments = load.RailSegments ?? new List<RailSegmentSaveData>();
