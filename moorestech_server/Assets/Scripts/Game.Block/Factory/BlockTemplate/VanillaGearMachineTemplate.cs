@@ -53,7 +53,7 @@ namespace Game.Block.Factory.BlockTemplate
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
             var processor = componentStates == null
-                ? new VanillaMachineProcessorComponent(input, output, null, requirePower, effectComponent)
+                ? new VanillaMachineProcessorComponent(input, output, requirePower, effectComponent)
                 : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);

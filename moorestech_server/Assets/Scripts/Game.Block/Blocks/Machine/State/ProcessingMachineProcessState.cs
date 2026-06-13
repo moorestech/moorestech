@@ -1,3 +1,4 @@
+using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Blocks.Util;
 
 namespace Game.Block.Blocks.Machine.State
@@ -50,8 +51,8 @@ namespace Game.Block.Blocks.Machine.State
         // Output the produced items on completion (re-roll for old saves that lack pending outputs)
         public void OnExit()
         {
-            var outputs = _context.PendingOutputs ?? MachineOutputFactory.CreateRealizedOutputs(_context.ProcessingRecipe, _context.EffectComponent.AggregateCurrent());
-            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactory.CreateFluidOutputs(_context.ProcessingRecipe));
+            var outputs = _context.PendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(_context.ProcessingRecipe, _context.EffectComponent.AggregateCurrent());
+            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(_context.ProcessingRecipe));
             _context.PendingOutputs = null;
         }
     }

@@ -31,64 +31,44 @@ namespace Game.Block.Blocks.Machine
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
 
-        // 加工状態の共有ブラックボード。各ステートはこれを操作する
-        // Shared blackboard for processing state; each state operates on it
         private readonly MachineProcessContext _context;
 
-        // ステートごとに1インスタンスを持つ簡易ステートマシン
-        // Simple state machine holding one instance per state
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
         private IMachineProcessState _currentHandler;
 
         private ProcessState _lastState = ProcessState.Idle;
 
-        // 新規生成。待機状態から開始する
-        // Fresh creation; starts from the idle state
-        public VanillaMachineProcessorComponent(
-            VanillaMachineInputInventory vanillaMachineInputInventory,
-            VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            MachineRecipeMasterElement machineRecipe, float requestPower,
-            MachineModuleEffectComponent effectComponent)
-            : this(vanillaMachineInputInventory, vanillaMachineOutputInventory, effectComponent, requestPower,
-                ProcessState.Idle, 0, machineRecipe, null, 0)
+        // 新規作成
+        // For new creation
+        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, MachineModuleEffectComponent effect)
+            : this(input, output, effect, requestPower, ProcessState.Idle, 0, null, null)
         {
         }
 
-        // セーブからの復元。保存された途中状態をそのまま受け取る
-        // Restoration from save; receives the persisted mid-state as is
-        public VanillaMachineProcessorComponent(
-            VanillaMachineInputInventory vanillaMachineInputInventory,
-            VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
-            float requestPower,
-            MachineModuleEffectComponent effectComponent, List<IItemStack> pendingOutputs)
-            : this(vanillaMachineInputInventory, vanillaMachineOutputInventory, effectComponent, requestPower,
-                currentState, remainingTicks, processingRecipe, pendingOutputs,
-                // 加工時間はレシピ定義から復元（進捗表示のみに影響）
-                // Restore ticks from the recipe; affects only the progress display
-                processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0)
+        // セーブからの復元
+        // For restoration from save
+        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs)
+            : this(input, output, effect, requestPower, currentState, remainingTicks, processingRecipe, pendingOutputs)
         {
         }
 
-        // 全状態を受け取る共通コンストラクタ。途中状態でもOnEnterは呼ばずハンドラのみ合わせる
-        // Common constructor receiving the full state; aligns the handler without OnEnter even mid-state
-        private VanillaMachineProcessorComponent(
-            VanillaMachineInputInventory vanillaMachineInputInventory,
-            VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            MachineModuleEffectComponent effectComponent, float requestPower,
-            ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe,
-            List<IItemStack> pendingOutputs, uint processingRecipeTicks)
+        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
         {
-            _context = new MachineProcessContext(vanillaMachineInputInventory, vanillaMachineOutputInventory, effectComponent, requestPower)
+            _context = new MachineProcessContext(input, output, effect, requestPower)
             {
                 CurrentState = currentState,
                 RemainingTicks = remainingTicks,
                 ProcessingRecipe = processingRecipe,
+                ProcessingRecipeTicks = processingRecipe != null ? GameUpdater.SecondsToTicks(processingRecipe.Time) : 0,
                 PendingOutputs = pendingOutputs,
-                ProcessingRecipeTicks = processingRecipeTicks,
             };
-
-            _stateHandlers = CreateStateHandlers();
+            
+            _stateHandlers = new IMachineProcessState[]
+                {
+                    new IdleMachineProcessState(_context),
+                    new ProcessingMachineProcessState(_context),
+                }.ToDictionary(handler => handler.State);
+            
             _currentHandler = _stateHandlers[_context.CurrentState];
         }
 
@@ -125,9 +105,9 @@ namespace Game.Block.Blocks.Machine
                 _context.UsedPower = false;
                 _context.CurrentPower = 0f;
             }
-
-            // 現ステートを更新し、遷移が起きた時のみOnExit→OnEnterを実行
-            // Update the current state; run OnExit→OnEnter only when a transition happens
+            
+            // ステートのアップデートと変更処理
+            // State update and transition handling
             var nextState = _currentHandler.GetNextUpdate();
             if (nextState != _context.CurrentState)
             {
@@ -144,18 +124,6 @@ namespace Game.Block.Blocks.Machine
                 _changeState.OnNext(Unit.Default);
                 _lastState = _context.CurrentState;
             }
-        }
-
-        // ステートごとに1インスタンスを生成して保持する
-        // Create and hold one instance per state
-        private Dictionary<ProcessState, IMachineProcessState> CreateStateHandlers()
-        {
-            var handlers = new IMachineProcessState[]
-            {
-                new IdleMachineProcessState(_context),
-                new ProcessingMachineProcessState(_context),
-            };
-            return handlers.ToDictionary(handler => handler.State);
         }
 
         public bool IsDestroy { get; private set; }
