@@ -1,4 +1,3 @@
-import { useState } from "react";
 import InventoryPanel from "./components/InventoryPanel";
 import RecipeViewer from "./components/RecipeViewer";
 import ItemListPanel from "./components/ItemListPanel";
@@ -8,10 +7,6 @@ import DebugActionButton from "./components/DebugActionButton";
 // uGUI のインベントリ画面準拠の3カラム+下段ホットバーレイアウト
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
-  // 右リストで選択、中央に表示
-  // Picked in the right list, shown in the center
-  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
-
   return (
     <div
       className="p-4 min-h-screen grid gap-6"
@@ -26,8 +21,8 @@ export default function App() {
         <DebugActionButton />
       </div>
       <InventoryPanel />
-      <RecipeViewer itemId={selectedItemId} onSelect={setSelectedItemId} />
-      <ItemListPanel selectedItemId={selectedItemId} onSelect={setSelectedItemId} />
+      <RecipeViewer />
+      <ItemListPanel />
       <ToastHost />
     </div>
   );
