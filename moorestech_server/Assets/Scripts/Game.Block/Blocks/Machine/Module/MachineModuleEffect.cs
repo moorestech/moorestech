@@ -44,18 +44,18 @@ namespace Game.Block.Blocks.Machine.Module
                 var count = equipped.Count;
                 switch (module.EffectAxis)
                 {
-                    case ModuleParam.EffectAxisConst.Speed:
+                    case ModuleMasterElement.EffectAxisConst.Speed:
                         speedSum += module.EffectValue * count;
                         speedTradeoff += module.TradeoffValue * count;
                         break;
-                    case ModuleParam.EffectAxisConst.Productivity:
+                    case ModuleMasterElement.EffectAxisConst.Productivity:
                         productivitySum += module.EffectValue * count;
                         productivityTradeoff += module.TradeoffValue * count;
                         break;
-                    case ModuleParam.EffectAxisConst.Efficiency:
+                    case ModuleMasterElement.EffectAxisConst.Efficiency:
                         efficiencySum += module.EffectValue * count;
                         break;
-                    case ModuleParam.EffectAxisConst.Quality:
+                    case ModuleMasterElement.EffectAxisConst.Quality:
                         qualitySum += module.EffectValue * count;
                         qualityTradeoff += module.TradeoffValue * count;
                         break;
@@ -83,15 +83,15 @@ namespace Game.Block.Blocks.Machine.Module
         }
 
         /// <summary>
-        ///     装着中モジュール1スロット分（モジュール設定とスタック数）
-        ///     One equipped module slot (module param and stack count)
+        ///     装着中モジュール1スロット分（モジュール定義とスタック数）
+        ///     One equipped module slot (module definition and stack count)
         /// </summary>
         public readonly struct EquippedModule
         {
-            public readonly ModuleParam Module;
+            public readonly ModuleMasterElement Module;
             public readonly int Count;
 
-            public EquippedModule(ModuleParam module, int count)
+            public EquippedModule(ModuleMasterElement module, int count)
             {
                 Module = module;
                 Count = count;

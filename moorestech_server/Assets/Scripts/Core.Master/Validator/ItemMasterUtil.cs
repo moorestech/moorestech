@@ -9,69 +9,97 @@ namespace Core.Master.Validator
     {
         public static bool Validate(Items items, out string errorLogs)
         {
+            // アイテムGUID集合は両バリデーションで参照するため先に構築する
+            // Build the item GUID set once; both validations reference it
+            var allItemGuids = items.Data.Select(item => item.ItemGuid).ToHashSet();
+
             errorLogs = "";
-            errorLogs += ModuleParamValidation();
-            errorLogs += LevelItemGuidsValidation();
+            errorLogs += ModulesValidation();
+            errorLogs += LevelFamiliesValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
 
-            string ModuleParamValidation()
+            string ModulesValidation()
             {
-                // tierは1以上、効果値は0以上を検証
-                // Validate tier >= 1 and non-negative values
+                // itemGuidの実在、moduleGuid/itemGuidの重複、tier・効果値の範囲を検証
+                // Validate itemGuid existence, moduleGuid/itemGuid duplicates, and tier/value ranges
                 var logs = "";
-                foreach (var item in items.Data)
-                {
-                    var moduleParam = item.ModuleParam;
-                    if (moduleParam == null) continue;
+                if (items.Modules == null) return logs;
 
-                    if (moduleParam.Tier < 1)
+                var moduleGuids = new HashSet<Guid>();
+                var moduleItemGuids = new HashSet<Guid>();
+                foreach (var module in items.Modules)
+                {
+                    if (!allItemGuids.Contains(module.ItemGuid))
                     {
-                        logs += $"[ItemMaster] Name:{item.Name} has invalid module Tier:{moduleParam.Tier} (must be >= 1)\n";
+                        logs += $"[ItemMaster.modules] Name:{module.Name} has invalid ItemGuid:{module.ItemGuid}\n";
                     }
-                    if (moduleParam.EffectValue < 0)
+                    if (!moduleGuids.Add(module.ModuleGuid))
                     {
-                        logs += $"[ItemMaster] Name:{item.Name} has invalid module EffectValue:{moduleParam.EffectValue} (must be >= 0)\n";
+                        logs += $"[ItemMaster.modules] Name:{module.Name} has duplicate ModuleGuid:{module.ModuleGuid}\n";
                     }
-                    if (moduleParam.TradeoffValue < 0)
+                    if (!moduleItemGuids.Add(module.ItemGuid))
                     {
-                        logs += $"[ItemMaster] Name:{item.Name} has invalid module TradeoffValue:{moduleParam.TradeoffValue} (must be >= 0)\n";
+                        logs += $"[ItemMaster.modules] Name:{module.Name} has duplicate ItemGuid:{module.ItemGuid}\n";
+                    }
+                    if (module.Tier < 1)
+                    {
+                        logs += $"[ItemMaster.modules] Name:{module.Name} has invalid Tier:{module.Tier} (must be >= 1)\n";
+                    }
+                    if (module.EffectValue < 0)
+                    {
+                        logs += $"[ItemMaster.modules] Name:{module.Name} has invalid EffectValue:{module.EffectValue} (must be >= 0)\n";
+                    }
+                    if (module.TradeoffValue < 0)
+                    {
+                        logs += $"[ItemMaster.modules] Name:{module.Name} has invalid TradeoffValue:{module.TradeoffValue} (must be >= 0)\n";
                     }
                 }
 
                 return logs;
             }
 
-            string LevelItemGuidsValidation()
+            string LevelFamiliesValidation()
             {
-                // 変種GUIDの実在・自己参照・重複を検証
-                // Validate existence, self-reference, and duplicates
+                // baseItemGuid/各変種の実在、空配列・baseItemGuid重複・先頭=base・変種重複を検証
+                // Validate existence, empty arrays, baseItemGuid duplicates, level-1=base, and variant duplicates
                 var logs = "";
-                var allItemGuids = items.Data.Select(item => item.ItemGuid).ToHashSet();
-                foreach (var item in items.Data)
-                {
-                    if (item.LevelItemGuids == null) continue;
+                if (items.LevelFamilies == null) return logs;
 
-                    if (item.LevelItemGuids.Length == 0)
+                var baseGuids = new HashSet<Guid>();
+                foreach (var family in items.LevelFamilies)
+                {
+                    if (!allItemGuids.Contains(family.BaseItemGuid))
                     {
-                        logs += $"[ItemMaster] Name:{item.Name} has empty levelItemGuids\n";
+                        logs += $"[ItemMaster.levelFamilies] Name:{family.Name} has invalid BaseItemGuid:{family.BaseItemGuid}\n";
+                    }
+                    if (!baseGuids.Add(family.BaseItemGuid))
+                    {
+                        logs += $"[ItemMaster.levelFamilies] Name:{family.Name} has duplicate BaseItemGuid:{family.BaseItemGuid}\n";
+                    }
+                    if (family.LevelItemGuids.Length == 0)
+                    {
+                        logs += $"[ItemMaster.levelFamilies] Name:{family.Name} has empty levelItemGuids\n";
+                    }
+
+                    // レベル1（先頭）は基準アイテム自身であることを検証
+                    // Validate that level 1 (the first entry) is the base item itself
+                    if (0 < family.LevelItemGuids.Length && family.LevelItemGuids[0] != family.BaseItemGuid)
+                    {
+                        logs += $"[ItemMaster.levelFamilies] Name:{family.Name} levelItemGuids[0]:{family.LevelItemGuids[0]} must equal BaseItemGuid:{family.BaseItemGuid}\n";
                     }
 
                     var levelGuids = new HashSet<Guid>();
-                    foreach (var levelItemGuid in item.LevelItemGuids)
+                    foreach (var levelItemGuid in family.LevelItemGuids)
                     {
                         if (!allItemGuids.Contains(levelItemGuid))
                         {
-                            logs += $"[ItemMaster] Name:{item.Name} has invalid level ItemGuid:{levelItemGuid}\n";
-                        }
-                        if (levelItemGuid == item.ItemGuid)
-                        {
-                            logs += $"[ItemMaster] Name:{item.Name} levelItemGuids must not contain the item itself\n";
+                            logs += $"[ItemMaster.levelFamilies] Name:{family.Name} has invalid level ItemGuid:{levelItemGuid}\n";
                         }
                         if (!levelGuids.Add(levelItemGuid))
                         {
-                            logs += $"[ItemMaster] Name:{item.Name} has duplicate level ItemGuid:{levelItemGuid}\n";
+                            logs += $"[ItemMaster.levelFamilies] Name:{family.Name} has duplicate level ItemGuid:{levelItemGuid}\n";
                         }
                     }
                 }
@@ -86,6 +114,7 @@ namespace Core.Master.Validator
             Items items,
             out Dictionary<ItemId, ItemMasterElement> itemElementTableById,
             out Dictionary<Guid, ItemId> itemGuidToItemId,
+            out Dictionary<ItemId, ModuleMasterElement> moduleByItemId,
             out Dictionary<ItemId, ItemId[]> levelVariantTable)
         {
             // ソート優先度、GUIDの順番でソート
@@ -106,20 +135,35 @@ namespace Core.Master.Validator
                 itemGuidToItemId.Add(sortedItemElements[i].ItemGuid, itemId);
             }
 
-            // レベルファミリーのテーブルを構築（先頭=基準自身）
-            // Build the level family table (the base item comes first)
-            levelVariantTable = new Dictionary<ItemId, ItemId[]>();
-            foreach (var (itemId, element) in itemElementTableById)
+            // 装着アイテムId→モジュール定義のテーブルを構築（root modules由来）
+            // Build the equipped itemId → module definition table (from root modules)
+            moduleByItemId = new Dictionary<ItemId, ModuleMasterElement>();
+            if (items.Modules != null)
             {
-                if (element.LevelItemGuids == null || element.LevelItemGuids.Length == 0) continue;
-
-                var variants = new ItemId[element.LevelItemGuids.Length + 1];
-                variants[0] = itemId;
-                for (var i = 0; i < element.LevelItemGuids.Length; i++)
+                foreach (var module in items.Modules)
                 {
-                    variants[i + 1] = itemGuidToItemId[element.LevelItemGuids[i]];
+                    moduleByItemId.Add(itemGuidToItemId[module.ItemGuid], module);
                 }
-                levelVariantTable.Add(itemId, variants);
+            }
+
+            // 基準ItemId→レベル順変種配列のテーブルを構築（先頭=基準自身）
+            // Build the baseItemId → level-ordered variant table (index 0 = the base)
+            levelVariantTable = new Dictionary<ItemId, ItemId[]>();
+            if (items.LevelFamilies != null)
+            {
+                foreach (var family in items.LevelFamilies)
+                {
+                    var baseItemId = itemGuidToItemId[family.BaseItemGuid];
+
+                    // outパラメータはlambdaで捕捉できないため明示ループで変換する
+                    // Convert with an explicit loop since out params cannot be captured in a lambda
+                    var variants = new ItemId[family.LevelItemGuids.Length];
+                    for (var i = 0; i < family.LevelItemGuids.Length; i++)
+                    {
+                        variants[i] = itemGuidToItemId[family.LevelItemGuids[i]];
+                    }
+                    levelVariantTable.Add(baseItemId, variants);
+                }
             }
         }
     }

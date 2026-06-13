@@ -24,17 +24,17 @@ namespace Game.Block.Blocks.Machine.Module
         {
             BlockException.CheckDestroy(this);
 
-            // スロットのアイテムをモジュール設定へ解決して集計
-            // Resolve slot items to module params and aggregate
+            // スロットのアイテムをモジュール定義へ解決して集計
+            // Resolve slot items to module definitions and aggregate
             var modules = new List<MachineModuleEffect.EquippedModule>();
             foreach (var stack in _moduleInventory.ModuleSlot)
             {
                 if (stack.Id == ItemMaster.EmptyItemId) continue;
 
-                var moduleParam = MasterHolder.ItemMaster.GetItemMaster(stack.Id).ModuleParam;
-                if (moduleParam == null) continue;
+                var module = MasterHolder.ItemMaster.GetModuleByItemIdOrNull(stack.Id);
+                if (module == null) continue;
 
-                modules.Add(new MachineModuleEffect.EquippedModule(moduleParam, stack.Count));
+                modules.Add(new MachineModuleEffect.EquippedModule(module, stack.Count));
             }
 
             return MachineModuleEffect.Aggregate(modules);

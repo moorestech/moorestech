@@ -136,7 +136,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // モジュールレンジの先頭と末尾（slot5・slot8）にモジュールアイテムを装着する
             // Equip module items into the first and last module slots (slot 5 and slot 8).
-            var moduleItemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ItemMaster.Items.Data.First(i => i.ModuleParam != null).ItemGuid);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(MasterHolder.ItemMaster.Items.Modules.First().ItemGuid);
             var firstModuleItem = itemStackFactory.Create(moduleItemId, 1);
             var lastModuleItem = itemStackFactory.Create(moduleItemId, 2);
             machineComponent.SetItem(5, firstModuleItem);
