@@ -25,8 +25,11 @@ describe("placePayload", () => {
 });
 
 describe("resolveBlockComponent", () => {
-  it("chest は ChestInventory を返す", () => {
-    expect(resolveBlockComponent("chest")).toBe(ChestInventory);
+  it("Chest(実マスタ値) は ChestInventory を返す", () => {
+    expect(resolveBlockComponent("Chest")).toBe(ChestInventory);
+  });
+  it("小文字 chest は実マスタ値でないため fallback になる", () => {
+    expect(resolveBlockComponent("chest")).toBe(GenericBlockInventory);
   });
   it("tank は TankInventory を返す（INV-6 で登録）", () => {
     expect(resolveBlockComponent("tank")).toBe(TankInventory);

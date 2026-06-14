@@ -21,9 +21,13 @@ export function placePayload(blockSlotIndex: number, grabCount: number): MoveIte
 
 // blockType → React コンポーネントの静的レジストリ。後続 feature が再代入なしで拡張できるよう可変オブジェクト
 // Static blockType → React component registry; a mutable object so later features extend it without rewrites
+// キーは C# BlockMasterElement.BlockType の実値に厳密一致させる(実マスタは "Chest" 等の PascalCase)
+// Keys must exactly match C# BlockMasterElement.BlockType (the real master uses PascalCase like "Chest")
 export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryData }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
-  chest: ChestInventory,
+  Chest: ChestInventory,
+  // "tank" は実マスタに無い INV-6 部品デモ用キー(実流体ブロック配線は後続)
+  // "tank" is a demo key for the INV-6 parts; no real master blockType yet (real fluid-block wiring is later)
   tank: TankInventory,
 };
 
