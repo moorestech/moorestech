@@ -16,6 +16,8 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly ProgressBarView _view;
+        private bool _publishScheduled;
+        private bool _disposed;
 
         public ProgressTopic(WebSocketHub hub, ProgressBarView view)
         {
@@ -24,7 +26,7 @@ namespace Client.WebUiHost.Game.Topics
 
             // Show/Hide/SetProgress の変化を購読して push する
             // Subscribe to Show/Hide/SetProgress changes and push them
-            _view.OnProgressChanged += OnProgressChanged;
+            _view.OnProgressChanged += SchedulePublish;
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -34,11 +36,24 @@ namespace Client.WebUiHost.Game.Topics
 
         public void Dispose()
         {
-            _view.OnProgressChanged -= OnProgressChanged;
+            _disposed = true;
+            _view.OnProgressChanged -= SchedulePublish;
         }
 
-        private void OnProgressChanged()
+        // INFRA-7 デバウンス規約: 採掘中の毎フレーム SetProgress をフレーム末の1回に畳む
+        // INFRA-7 debounce rule: fold per-frame SetProgress during mining into one publish per frame
+        private void SchedulePublish()
         {
+            if (_publishScheduled) return;
+            _publishScheduled = true;
+            PublishAtEndOfFrame().Forget();
+        }
+
+        private async UniTaskVoid PublishAtEndOfFrame()
+        {
+            await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+            _publishScheduled = false;
+            if (_disposed) return;
             _hub.Publish(TopicName, BuildJson());
         }
 
