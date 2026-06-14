@@ -4,6 +4,12 @@ type ActionRecord = { type: string; payload: unknown };
 
 // 各テスト冒頭で chest を配信状態へリセットしてから接続する（決定的に panel を出すため）
 // Reset the served block to chest before connecting so the panel deterministically shows
+// 終了後は閉に戻し、後続テストファイルへ open 状態を漏らさない
+// Reset to closed afterwards so the open state never leaks into later test files
+test.afterEach(async ({ page }) => {
+  await page.request.get("/__block?type=closed");
+});
+
 test("chest の block inventory パネルが描画される", async ({ page }) => {
   await page.request.get("/__block?type=chest");
   await page.goto("/");

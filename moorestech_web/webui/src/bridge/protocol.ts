@@ -4,6 +4,10 @@ import type {
   MachineRecipesData,
   RecipeViewerItemListData,
   SlotRef,
+  BlockSlotRef,
+  ModalData,
+  ProgressData,
+  BlockInventoryData,
 } from "./payloadTypes";
 
 // 通信の op レベルのメッセージ型（webSocketClient が使用）
@@ -28,6 +32,9 @@ export const Topics = {
   craftRecipes: "crafting.recipes",
   machineRecipes: "crafting.machine_recipes",
   itemList: "recipe_viewer.item_list",
+  blockInventory: "block_inventory.current",
+  modal: "ui.modal",
+  progress: "ui.progress",
 } as const;
 
 // topic → payload 型の対応表。useTopic/subscribeTopic がこれで型付けされる
@@ -37,6 +44,9 @@ export type TopicPayloads = {
   [Topics.craftRecipes]: CraftRecipesData;
   [Topics.machineRecipes]: MachineRecipesData;
   [Topics.itemList]: RecipeViewerItemListData;
+  [Topics.blockInventory]: BlockInventoryData;
+  [Topics.modal]: ModalData;
+  [Topics.progress]: ProgressData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
@@ -46,6 +56,9 @@ export type ActionPayloads = {
   "inventory.split": { from: SlotRef };
   "inventory.collect": { slot: SlotRef };
   "inventory.sort": Record<string, never>;
+  "inventory.select_hotbar": { index: number };
   "craft.execute": { recipeGuid: string };
+  "ui.modal.respond": { id: string; result: "confirm" | "cancel" };
+  "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
   "debug.echo": { hello: string };
 };

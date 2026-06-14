@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useTopic, dispatchAction, Topics } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { ItemSlot } from "@/shared/ui";
 import type { InventoryArea, SlotData, SlotRef } from "@/bridge/payloadTypes";
 import { resolveDirectMoveTarget } from "../inventoryLogic";
+import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
 import GrabOverlay from "./GrabOverlay";
 
 const GRAB: SlotRef = { area: "grab", slot: 0 };
@@ -14,6 +16,36 @@ const GRAB: SlotRef = { area: "grab", slot: 0 };
 export default function InventoryPanel() {
   const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
+
+  // 1-9 キーでホットバー選択。Hooks は早期 return より前で無条件に実行する
+  // Keys 1-9 select a hotbar slot; the hook must run unconditionally, before any early return
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      // 入力欄フォーカス中はゲーム操作を奪わない
+      // Don't hijack typing while an input/textarea is focused
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (!inventory) return;
+      const index = keyToHotbarIndex(e.key);
+      if (index === null || index >= inventory.hotbarSlots.length) return;
+      // 実際に選択が変わるときだけ送信する（uGUI 同様）
+      // Dispatch only when the selection actually changes, matching uGUI
+      if (index === inventory.selectedHotbar) return;
+      void dispatchAction("inventory.select_hotbar", { index });
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [inventory]);
+
+  // ホイールでホットバー選択を循環。変化時のみ送信する
+  // Cycle the hotbar selection on wheel; dispatch only when it changes
+  const onHotbarWheel = (e: { deltaY: number }) => {
+    if (!inventory || inventory.hotbarSlots.length === 0) return;
+    const delta = e.deltaY > 0 ? 1 : -1;
+    const index = cycleHotbar(inventory.selectedHotbar, delta, inventory.hotbarSlots.length);
+    if (index === inventory.selectedHotbar) return;
+    void dispatchAction("inventory.select_hotbar", { index });
+  };
 
   if (!inventory) {
     return <div className="text-sm text-gray-400 [grid-area:inv]">connecting...</div>;
@@ -68,12 +100,16 @@ export default function InventoryPanel() {
 
   const renderSlot = (area: InventoryArea, index: number, slot: SlotData) => {
     const ref: SlotRef = { area, slot: index };
+    // ホットバーのみ選択ハイライトを付与する
+    // Highlight selection only for hotbar slots
+    const selected = area === "hotbar" && index === inventory.selectedHotbar;
     return (
       <ItemSlot
         key={`${area}-${index}`}
         itemId={slot.itemId}
         count={slot.count}
         name={itemMaster?.get(slot.itemId)?.name}
+        selected={selected}
         onLeftDown={(shiftKey) => onLeftDown(ref, slot, shiftKey)}
         onRightDown={() => onRightDown(ref, slot)}
         onDoubleClick={() => onDoubleClick(ref)}
@@ -100,7 +136,10 @@ export default function InventoryPanel() {
       {/* ホットバーは uGUI と同様に画面下段の中央へ独立配置 */}
       {/* The hotbar sits independently at the bottom center, matching uGUI */}
       <div className="[grid-area:hotbar] flex justify-center">
-        <div className="grid grid-cols-9 gap-1 w-fit rounded border border-gray-500 bg-gray-800/60 p-1">
+        <div
+          className="grid grid-cols-9 gap-1 w-fit rounded border border-gray-500 bg-gray-800/60 p-1"
+          onWheel={onHotbarWheel}
+        >
           {inventory.hotbarSlots.map((s, i) => renderSlot("hotbar", i, s))}
         </div>
       </div>

@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { ActionPayloads } from "@/bridge";
 import type { BlockInventoryData } from "@/bridge/payloadTypes";
 import ChestInventory from "./ChestInventory";
+import TankInventory from "./TankInventory";
 import GenericBlockInventory from "./GenericBlockInventory";
 
 type MoveItemPayload = ActionPayloads["block_inventory.move_item"];
@@ -23,6 +24,7 @@ export function placePayload(blockSlotIndex: number, grabCount: number): MoveIte
 export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryData }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
   chest: ChestInventory,
+  tank: TankInventory,
 };
 
 // 未登録 blockType はフォールバックで汎用描画（tank 等が実装前でもクラッシュしない）

@@ -1,0 +1,11 @@
+/* ホバー時に表示する液体名ツールチップの位置決め（ItemSlot と同じ絶対配置） */
+/* Positions the hover fluid-name tooltip (same absolute placement as ItemSlot) */
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  z-index: 20;
+}

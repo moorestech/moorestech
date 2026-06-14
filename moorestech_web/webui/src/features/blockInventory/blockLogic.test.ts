@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { pickUpPayload, placePayload, resolveBlockComponent } from "./blockLogic";
 import ChestInventory from "./ChestInventory";
+import TankInventory from "./TankInventory";
 import GenericBlockInventory from "./GenericBlockInventory";
 
 describe("pickUpPayload", () => {
@@ -27,8 +28,10 @@ describe("resolveBlockComponent", () => {
   it("chest は ChestInventory を返す", () => {
     expect(resolveBlockComponent("chest")).toBe(ChestInventory);
   });
+  it("tank は TankInventory を返す（INV-6 で登録）", () => {
+    expect(resolveBlockComponent("tank")).toBe(TankInventory);
+  });
   it("未登録 blockType はフォールバックを返す", () => {
-    expect(resolveBlockComponent("tank")).toBe(GenericBlockInventory);
     expect(resolveBlockComponent("unknown")).toBe(GenericBlockInventory);
   });
 });

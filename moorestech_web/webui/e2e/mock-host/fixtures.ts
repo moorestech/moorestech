@@ -4,6 +4,9 @@ import type {
   MachineRecipesData,
   RecipeViewerItemListData,
   ItemMasterData,
+  BlockInventoryData,
+  ModalRequest,
+  ProgressData,
 } from "../../src/bridge/payloadTypes";
 
 const empty = () => ({ itemId: 0, count: 0 });
@@ -17,9 +20,65 @@ export const inventory = {
     { itemId: 1, count: 5 },
     ...Array.from({ length: 33 }, empty),
   ],
-  hotbarSlots: Array.from({ length: 9 }, empty),
+  hotbarSlots: [{ itemId: 2, count: 3 }, ...Array.from({ length: 8 }, empty)],
   grab: empty(),
+  selectedHotbar: 0,
 } satisfies PlayerInventoryData;
+
+// BLK-1 チェスト: 9 スロット(uGUI IChestParam.ItemSlotCount 相当)、一部にアイテム
+// BLK-1 chest: 9 slots (mirrors uGUI IChestParam.ItemSlotCount), some filled
+export const blockChest = {
+  open: true,
+  blockType: "chest",
+  identifier: "block:1",
+  blockName: "Chest",
+  itemSlots: [{ itemId: 1, count: 7 }, { itemId: 2, count: 4 }, ...Array.from({ length: 7 }, empty)],
+  fluidSlots: [],
+  progress: null,
+} satisfies BlockInventoryData;
+
+// INV-6 タンク機械: 液体スロット + 製作進捗(ProgressArrow 用)
+// INV-6 tank machine: fluid slots + processing progress (for ProgressArrow)
+export const blockTank = {
+  open: true,
+  blockType: "tank",
+  identifier: "block:2",
+  blockName: "Fluid Tank",
+  itemSlots: [],
+  fluidSlots: [
+    { fluidId: 10, amount: 500, capacity: 1000, name: "Water" },
+    { fluidId: 0, amount: 0, capacity: 1000, name: "" },
+  ],
+  progress: 0.5,
+} satisfies BlockInventoryData;
+
+export const blockClosed = {
+  open: false,
+  blockType: "",
+  identifier: "",
+  blockName: "",
+  itemSlots: [],
+  fluidSlots: [],
+  progress: null,
+} satisfies BlockInventoryData;
+
+// COM-2 モーダル: 確認ダイアログのサンプル
+// COM-2 modal: sample confirm dialog
+export const modalSample = {
+  id: "m1",
+  title: "確認",
+  message: "これは確認ダイアログです",
+  buttonText: "OK",
+  variant: "confirm",
+} satisfies ModalRequest;
+
+// COM-3 進捗: クラフト中を表す可視バー
+// COM-3 progress: a visible bar representing an in-progress craft
+export const progressSample = {
+  visible: true,
+  progress: 0.4,
+  label: "Crafting",
+} satisfies ProgressData;
 
 export const craftRecipes = {
   recipes: [

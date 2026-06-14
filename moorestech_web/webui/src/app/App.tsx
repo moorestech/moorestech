@@ -2,6 +2,9 @@ import { lazy, Suspense } from "react";
 import { InventoryPanel } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
+import { ModalHost } from "@/features/modal";
+import { ProgressBar } from "@/features/progress";
+import { BlockInventoryPanel } from "@/features/blockInventory";
 import styles from "./App.module.css";
 
 // dev 専用。static import すると本番バンドルに残るため import.meta.env.DEV 内で lazy 化
@@ -24,6 +27,11 @@ export default function App() {
       <InventoryPanel />
       <RecipeViewer />
       <ItemListPanel />
+      {/* オーバーレイ系（grid セルでなく fixed/center 配置） */}
+      {/* Overlays (fixed/centered, not grid cells) */}
+      <BlockInventoryPanel />
+      <ModalHost />
+      <ProgressBar />
       <ToastHost />
     </div>
   );
