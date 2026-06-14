@@ -17,7 +17,7 @@ export function ProgressBar() {
       data-testid="progress-bar"
       className="pointer-events-none fixed bottom-8 left-1/2 -translate-x-1/2 w-64 z-20"
     >
-      {data.label !== null && (
+      {data.label != null && (
         <div className="text-sm text-gray-300 mb-1">{data.label}</div>
       )}
       <div className="bg-gray-700 rounded h-3 overflow-hidden">
