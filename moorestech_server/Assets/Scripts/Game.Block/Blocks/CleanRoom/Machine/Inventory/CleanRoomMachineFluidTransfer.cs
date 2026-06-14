@@ -7,62 +7,34 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.State;
 using Game.Fluid;
-using MessagePack;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using UniRx;
 
 namespace Game.Block.Blocks.CleanRoom
 {
-    // VanillaMachineFluidInventoryComponent をコピーし、出力側を CleanRoomMachineOutputInventory に差し替えた専用版。
-    // Copied from VanillaMachineFluidInventoryComponent; output side swapped to CleanRoomMachineOutputInventory.
-    public class CleanRoomMachineFluidInventoryComponent : IFluidInventory, IUpdatableBlockComponent, IBlockStateObservable
+    // 機械タンクとパイプ間の流体転送ロジック（入力受け取り/出力送出）。FluidInventoryComponent から分離した協調オブジェクト。
+    // Fluid transfer logic between machine tanks and pipes (input intake / output emit); a collaborator split out of the fluid inventory component.
+    public class CleanRoomMachineFluidTransfer
     {
         private readonly VanillaMachineInputInventory _inputInventory;
         private readonly CleanRoomMachineOutputInventory _outputInventory;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
-        private readonly Subject<Unit> _onChangeBlockState = new();
+        private readonly Subject<Unit> _onChangeBlockState;
 
-        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
-
-        public CleanRoomMachineFluidInventoryComponent(
+        public CleanRoomMachineFluidTransfer(
             VanillaMachineInputInventory inputInventory,
             CleanRoomMachineOutputInventory outputInventory,
-            BlockConnectorComponent<IFluidInventory> fluidConnector)
+            BlockConnectorComponent<IFluidInventory> fluidConnector,
+            Subject<Unit> onChangeBlockState)
         {
             _inputInventory = inputInventory;
             _outputInventory = outputInventory;
             _fluidConnector = fluidConnector;
+            _onChangeBlockState = onChangeBlockState;
         }
 
-        public void Update()
-        {
-            // 入力: パイプからの転送は AddLiquid で受動的に処理される
-            // Input: pipe transfers are handled passively via AddLiquid
-
-            // 出力: 機械からパイプへ流体を転送
-            // Output: transfer fluid from the machine to pipes
-            TransferFromMachineToPipes();
-
-            // 入力タンクの送信元記録をクリア
-            // Clear input-tank source records
-            foreach (var container in _inputInventory.FluidInputSlot)
-            {
-                container.ClearPreviousSources();
-                if (container.Amount <= 0) container.FluidId = FluidMaster.EmptyFluidId;
-            }
-
-            // 出力タンクの送信元記録をクリア
-            // Clear output-tank source records
-            foreach (var container in _outputInventory.FluidOutputSlot)
-            {
-                container.ClearPreviousSources();
-                if (container.Amount <= 0) container.FluidId = FluidMaster.EmptyFluidId;
-            }
-        }
-
-        private void TransferFromMachineToPipes()
+        public void TransferFromMachineToPipes()
         {
             // 接続されたパイプに流体を送る
             // Send fluid to connected pipes
@@ -174,51 +146,6 @@ namespace Game.Block.Blocks.CleanRoom
             var field = typeof(FluidPipeComponent).GetField("_fluidContainer",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             return field?.GetValue(pipe) as FluidContainer;
-        }
-
-        public List<FluidStack> GetFluidInventory()
-        {
-            var fluidStacks = new List<FluidStack>();
-
-            foreach (var container in _inputInventory.FluidInputSlot)
-            {
-                if (container.Amount > 0) fluidStacks.Add(new FluidStack(container.Amount, container.FluidId));
-            }
-
-            foreach (var container in _outputInventory.FluidOutputSlot)
-            {
-                if (container.Amount > 0) fluidStacks.Add(new FluidStack(container.Amount, container.FluidId));
-            }
-
-            return fluidStacks;
-        }
-
-        public bool IsDestroy { get; private set; }
-
-        public void Destroy()
-        {
-            IsDestroy = true;
-            _onChangeBlockState?.Dispose();
-        }
-
-        public BlockStateDetail[] GetBlockStateDetails()
-        {
-            var inputTanks = new List<FluidMessagePack>();
-            foreach (var container in _inputInventory.FluidInputSlot)
-            {
-                inputTanks.Add(new FluidMessagePack(container.FluidId, container.Amount, container.Capacity));
-            }
-
-            var outputTanks = new List<FluidMessagePack>();
-            foreach (var container in _outputInventory.FluidOutputSlot)
-            {
-                outputTanks.Add(new FluidMessagePack(container.FluidId, container.Amount, container.Capacity));
-            }
-
-            var stateDetail = new FluidMachineInventoryStateDetail(inputTanks, outputTanks);
-            var serialized = MessagePackSerializer.Serialize(stateDetail);
-
-            return new[] { new BlockStateDetail(FluidMachineInventoryStateDetail.BlockStateDetailKey, serialized) };
         }
     }
 }

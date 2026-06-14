@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.State;
 using Mooresmaster.Model.MachineRecipesModule;
-using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
 
@@ -183,9 +180,15 @@ namespace Game.Block.Blocks.CleanRoom
             BlockException.CheckDestroy(this);
 
             var processingRate = Mathf.Clamp01(_processingRecipeTicks > 0 ? 1f - (float)RemainingTicks / _processingRecipeTicks : 0f);
-            var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_currentPower, RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
-            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid);
-            return new[] { commonMachineBlock, machineBlock };
+            return CleanRoomMachineProcessorStateDetail.Create(_currentPower, RequestPower, processingRate, CurrentState, _lastState, RecipeGuid);
+        }
+
+        // セーブデータ構築は DTO のファクトリへ委譲（_processedCycleCount を含め永続化）。
+        // Save-data construction is delegated to the DTO factory (persists _processedCycleCount too).
+        public CleanRoomMachineProcessorSaveJsonObject GetSaveJsonObject()
+        {
+            BlockException.CheckDestroy(this);
+            return CleanRoomMachineProcessorSaveJsonObject.Create((int)CurrentState, GameUpdater.TicksToSeconds(RemainingTicks), RecipeGuid.ToString(), _processedCycleCount);
         }
 
         public bool IsDestroy { get; private set; }
@@ -193,39 +196,5 @@ namespace Game.Block.Blocks.CleanRoom
         {
             IsDestroy = true;
         }
-
-        // セーブデータ構築（_processedCycleCount を追加で永続化）
-        // Build save data (also persists _processedCycleCount)
-        public CleanRoomMachineProcessorSaveJsonObject GetSaveJsonObject()
-        {
-            BlockException.CheckDestroy(this);
-            return new CleanRoomMachineProcessorSaveJsonObject
-            {
-                State = (int)CurrentState,
-                RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicks),
-                RecipeGuidStr = RecipeGuid.ToString(),
-                ProcessedCycleCount = _processedCycleCount,
-            };
-        }
-    }
-
-    public class CleanRoomMachineProcessorSaveJsonObject
-    {
-        [JsonProperty("state")]
-        public int State;
-
-        [JsonProperty("remainingSeconds")]
-        public double RemainingSeconds;
-
-        [JsonProperty("recipeGuid")]
-        public string RecipeGuidStr;
-
-        [JsonIgnore]
-        public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
-
-        // 抽選の決定性を保つサイクルカウンタ
-        // Cycle counter that keeps the lottery deterministic
-        [JsonProperty("processedCycleCount")]
-        public uint ProcessedCycleCount;
     }
 }

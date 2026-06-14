@@ -4,66 +4,33 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
-using Core.Update;
-using Game.Block.Blocks.Service;
-using Game.Block.Component;
-using Game.Block.Event;
-using Game.Block.Interface;
-using Game.Block.Interface.Component;
-using Game.Block.Interface.Event;
-using Game.Block.Blocks.Machine.Inventory;
 using Game.Context;
 using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
-using UniRx;
 
 namespace Game.Block.Blocks.CleanRoom
 {
-    // VanillaMachineOutputInventory をコピーして専用化。レベル付き出力は EUV→天井→down-bin 抽選で差し替え、空スロット予約で消失を防ぐ。
-    // Copied from VanillaMachineOutputInventory; leveled outputs are drawn (EUV/ceiling/down-bin) and reserved by empty-slot count.
-    public class CleanRoomMachineOutputInventory : IVanillaMachineSubInventory
+    // レベル付き出力の抽選・格納ロジック（EUV→天井→down-bin、空スロット予約）。OutputInventory から分離した協調オブジェクト。
+    // Leveled-output draw/insert logic (EUV/ceiling/down-bin, empty-slot reservation); a collaborator split out of the output inventory.
+    public class CleanRoomMachineOutputEmitter
     {
-        public IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.InventoryItems;
-        IReadOnlyList<IItemStack> IVanillaMachineSubInventory.Items => OutputSlot;
-        public IReadOnlyList<FluidContainer> FluidOutputSlot => _fluidContainers;
-
-        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
-        private readonly ConnectingInventoryListPriorityInsertItemService _connectInventoryService;
-        private readonly BlockInstanceId _blockInstanceId;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly FluidContainer[] _fluidContainers;
         private readonly CleanRoomStateReceiverComponent _receiver;
 
         // EUV失敗/Out で出力なしになったときに呼ぶテスト可視コールバック（サイレント消失アサート用）
         // Invoked when an EUV fail / Out yields no output (feeds the no-silent-loss assertion)
         private readonly Action _onNoOutputForTest;
 
-        private readonly int _inputSlotSize;
-        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly FluidContainer[] _fluidContainers;
+        private IReadOnlyList<IItemStack> OutputSlot => _itemDataStoreService.InventoryItems;
 
-        public CleanRoomMachineOutputInventory(int outputSlot, int outputTankCount, float innerTankCapacity, IItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
-            CleanRoomStateReceiverComponent receiver, Action onNoOutputForTest)
+        public CleanRoomMachineOutputEmitter(OpenableInventoryItemDataStoreService itemDataStoreService,
+            FluidContainer[] fluidContainers, CleanRoomStateReceiverComponent receiver, Action onNoOutputForTest)
         {
-            _blockInventoryUpdate = blockInventoryUpdate;
-            _blockInstanceId = blockInstanceId;
-            _inputSlotSize = inputSlotSize;
+            _itemDataStoreService = itemDataStoreService;
+            _fluidContainers = fluidContainers;
             _receiver = receiver;
             _onNoOutputForTest = onNoOutputForTest;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
-            _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, blockConnectorComponent);
-
-            _fluidContainers = new FluidContainer[outputTankCount];
-            for (var i = 0; i < outputTankCount; i++)
-            {
-                _fluidContainers[i] = new FluidContainer(innerTankCapacity);
-            }
-
-            GameUpdater.UpdateObservable.Subscribe(_ => Update());
-        }
-
-        private void Update()
-        {
-            InsertConnectInventory();
         }
 
         // レベル付き出力は完了時 ItemId が down-bin/効果で変わり得るため空スロット方式で予約する
@@ -175,28 +142,6 @@ namespace Game.Block.Blocks.CleanRoom
                 _itemDataStoreService.SetItem(i, item);
                 break;
             }
-        }
-
-        private void InsertConnectInventory()
-        {
-            for (var i = 0; i < OutputSlot.Count; i++)
-                _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));
-        }
-
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            _itemDataStoreService.SetItem(slot, itemStack);
-        }
-
-        public void SetItemWithoutEvent(int slot, IItemStack itemStack)
-        {
-            _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);
-        }
-
-        private void InvokeEvent(int slot, IItemStack itemStack)
-        {
-            _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
-                _blockInstanceId, slot + _inputSlotSize, itemStack));
         }
     }
 }
