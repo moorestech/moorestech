@@ -15,6 +15,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using System;
+using Core.Update;
 
 namespace Tests.CombinedTest.Game
 {
@@ -479,7 +480,7 @@ namespace Tests.CombinedTest.Game
 
             // 分割後にネットワーク更新を回してもKeyNotFoundExceptionが発生しないことを確認する
             // Confirm that running the network update after the split does not throw KeyNotFoundException
-            Core.Update.GameUpdater.Update();
+            GameUpdater.Update();
         }
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
