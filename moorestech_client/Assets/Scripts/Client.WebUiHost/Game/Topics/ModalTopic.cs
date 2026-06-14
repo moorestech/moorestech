@@ -15,6 +15,8 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly WebUiModalService _service;
+        private bool _publishScheduled;
+        private bool _disposed;
 
         public ModalTopic(WebSocketHub hub, WebUiModalService service)
         {
@@ -23,7 +25,7 @@ namespace Client.WebUiHost.Game.Topics
 
             // 保留要求の増減を購読して push する
             // Subscribe to pending-request changes and push them
-            _service.OnPendingChanged += OnPendingChanged;
+            _service.OnPendingChanged += SchedulePublish;
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -33,11 +35,24 @@ namespace Client.WebUiHost.Game.Topics
 
         public void Dispose()
         {
-            _service.OnPendingChanged -= OnPendingChanged;
+            _disposed = true;
+            _service.OnPendingChanged -= SchedulePublish;
         }
 
-        private void OnPendingChanged()
+        // INFRA-7 デバウンス規約: 同フレームで要求が置換されてもフレーム末の最終状態だけ配信する
+        // INFRA-7 debounce rule: if requests are replaced within a frame, publish only the final state at frame end
+        private void SchedulePublish()
         {
+            if (_publishScheduled) return;
+            _publishScheduled = true;
+            PublishAtEndOfFrame().Forget();
+        }
+
+        private async UniTaskVoid PublishAtEndOfFrame()
+        {
+            await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+            _publishScheduled = false;
+            if (_disposed) return;
             _hub.Publish(TopicName, BuildJson());
         }
 
