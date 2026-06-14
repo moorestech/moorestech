@@ -142,8 +142,6 @@ namespace Game.Gear.Common
                 return;
             }
 
-            // 次数による高速パスは使わない。RemoveGear到達時点で隣接ギアは既に削除ギアを参照から外しており（削除イベントがBlock.Destroyより先に発火する）、削除ギア自身のGetGearConnectsはコネクタ破棄順に依存して信頼できないため、必ずBFSで連結性を判定する
-            // No degree-based fast path: by the time RemoveGear runs the neighbors have already dropped this gear (the remove event fires before Block.Destroy), and the dying gear's own GetGearConnects is unreliable due to component-teardown order, so always run the BFS connectivity check
             // 残存ギアの配列と id→index マップを1パスで構築する。後続BFSは配列への null 書き込みを visited マーク代わりに使う
             // Build the remaining gear array and the id→index map in a single pass; BFS below uses null-assignment into this array as its visited marker
             var remaining = new IGearEnergyTransformer[totalCount];
