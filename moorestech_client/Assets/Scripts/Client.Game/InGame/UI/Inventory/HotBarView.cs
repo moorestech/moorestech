@@ -180,8 +180,10 @@ namespace Client.Game.InGame.UI.Inventory
             hotBarItems[nextIndex].SetSelect(true);
         }
 
-        // Web UI など外部から選択スロットを設定する。Update のキー入力経路と同じ更新を行う
-        // Set the selected slot from outside (e.g. Web UI), mirroring the Update key-input path
+        // Web UI など外部から選択スロットを設定する。ハイライト+event+SelectIndex を更新する
+        // Set the selected slot from outside (e.g. Web UI); updates the highlight, event, and SelectIndex
+        // 手持ち3Dモデル(Update 経路の UpdateHoldItemAsync)は更新しない＝3Dワールド連動UIは対象外
+        // Does NOT update the held 3D model (Update path's UpdateHoldItemAsync); 3D world UI is out of scope
         public void SetSelectIndex(int index)
         {
             // 範囲外入力は丸める。選択が変わらない場合は何もしない
