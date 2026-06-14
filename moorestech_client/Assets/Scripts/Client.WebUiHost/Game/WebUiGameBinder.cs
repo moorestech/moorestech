@@ -94,7 +94,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
-            hub.RegisterAction(new BlockMoveItemActionHandler(controller));
+            hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
         }
     }
 }
