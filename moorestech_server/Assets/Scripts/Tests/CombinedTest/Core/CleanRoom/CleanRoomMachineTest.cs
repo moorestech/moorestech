@@ -122,6 +122,33 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(cycles, emitted + proc.EuvFailCountForTest);
         }
 
+        // 出力スロットが残り1つの状態でレベル付きチップと副産物の両方が入らないなら開始を拒否する（副産物のサイレント消失を防ぐ）
+        // With only one empty output slot, a leveled chip + by-product cannot both be stored -> must refuse to start (prevents silent by-product loss)
+        [Test]
+        public void OutputReservationRejectsWhenLeveledAndByProductCannotBothFitTest()
+        {
+            var (block, _, receiver) = PlaceExposureMachineWithInputs();
+            receiver.SetCleanRoomEffect(new CleanRoomEffect(true, 4, 0.0));
+
+            var recipe = FindExposureRecipe();
+            var output = GetOutputInventory(block);
+
+            // 露光レシピは「レベル付きチップ＋副産物」の2出力要素。確認しておく。
+            // The exposure recipe must have two output elements (a leveled chip and a non-leveled by-product).
+            Assert.AreEqual(2, recipe.OutputItems.Length, "test premise: exposure recipe has a leveled chip + a by-product");
+
+            // 空きスロットを1つだけ残し、残りはチップで埋める（副産物が追記できる空きスタックを作らない）。
+            // Leave exactly one empty slot, filling the rest with chips so the by-product cannot append anywhere.
+            var chipId = MasterHolder.SemiconductorChipMaster.GetChipItemId(4);
+            for (var i = 0; i < output.OutputSlot.Count - 1; i++)
+                output.SetItem(i, ServerContext.ItemStackFactory.Create(chipId, 1));
+
+            // 空き1つにはチップと副産物の両方は入らない。開始拒否でなければ副産物がサイレント消失する。
+            // One empty slot cannot hold both; if it does not refuse, the by-product is silently dropped.
+            Assert.IsFalse(output.IsAllowedToOutputItem(recipe),
+                "must refuse to start when the leveled chip and the by-product cannot both be stored");
+        }
+
         // 副産物（分布を持たない出力要素）はベース ItemId のまま（チップに化けない）
         // By-products (outputs without a distribution) keep their base ItemId
         [Test]
@@ -414,10 +441,21 @@ namespace Tests.CombinedTest.Core
 
         IReadOnlyList<FluidContainer> GetOutputFluidContainers(CleanRoomMachineBlockInventoryComponent inventory)
         {
-            var output = (CleanRoomMachineOutputInventory)typeof(CleanRoomMachineBlockInventoryComponent)
+            return GetOutputInventoryFrom(inventory).FluidOutputSlot;
+        }
+
+        // 専用ブロックインベントリから出力インベントリ本体をリフレクションで取得する
+        // Read the dedicated output inventory from the block inventory via reflection
+        CleanRoomMachineOutputInventory GetOutputInventory(IBlock block)
+        {
+            return GetOutputInventoryFrom(block.GetComponent<CleanRoomMachineBlockInventoryComponent>());
+        }
+
+        CleanRoomMachineOutputInventory GetOutputInventoryFrom(CleanRoomMachineBlockInventoryComponent inventory)
+        {
+            return (CleanRoomMachineOutputInventory)typeof(CleanRoomMachineBlockInventoryComponent)
                 .GetField("_outputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(inventory);
-            return output.FluidOutputSlot;
         }
 
     }

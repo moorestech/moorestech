@@ -21,6 +21,30 @@ namespace Tests.CombinedTest.Core
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
+        // 半導体content を持たない mod 用に、空マスタ（chipLevels/outputDistributions 共に空）はロード失敗ではなく valid
+        // For mods without semiconductor content, an empty master (both arrays empty) validates instead of crashing load
+        [Test]
+        public void EmptyMaster_IsValid_ForModsWithoutSemiconductorContent()
+        {
+            var json = JToken.Parse("{\"chipLevels\":[],\"outputDistributions\":[]}");
+            var master = new SemiconductorChipMaster(json);
+            Assert.IsTrue(master.Validate(out var errorLogs), errorLogs);
+        }
+
+        // chipLevels が空なのに分布が参照を持つ不整合は依然として reject される
+        // An empty chipLevels with non-empty distributions is still rejected (inconsistent)
+        [Test]
+        public void EmptyChipLevels_WithDistributions_IsRejected()
+        {
+            var json = JToken.Parse(
+                "{\"chipLevels\":[],\"outputDistributions\":[{" +
+                "\"machineRecipeGuid\":\"3c000000-0000-0000-0000-000000000001\"," +
+                "\"outputItemGuid\":\"3a000000-0000-0000-0000-000000000001\"," +
+                "\"levelWeights\":[{\"level\":1,\"weight\":1.0}]}]}");
+            var master = new SemiconductorChipMaster(json);
+            Assert.IsFalse(master.Validate(out _));
+        }
+
         // GetChipItemId(1) は ForUnitTestItemId.IcChipLv1 と一致する
         // GetChipItemId(1) matches ForUnitTestItemId.IcChipLv1
         [Test]

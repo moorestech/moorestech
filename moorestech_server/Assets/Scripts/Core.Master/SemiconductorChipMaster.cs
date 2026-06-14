@@ -52,11 +52,16 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // chipLevels が空でなく、level/itemGuid が重複しないことを確認。
-            // Ensure chipLevels is non-empty and has distinct level/itemGuid.
+            // チップ定義も分布も空 = この mod は半導体機能を使わない。空マスタを valid として扱い、ロード時クラッシュを避ける。
+            // Both empty = this mod opts out of semiconductors; treat an empty master as valid instead of crashing load.
             if (_data.ChipLevels.Length == 0)
             {
-                errorLogs = "semiconductorChips: chipLevels must not be empty";
+                if (_data.OutputDistributions.Length == 0)
+                {
+                    errorLogs = null;
+                    return true;
+                }
+                errorLogs = "semiconductorChips: chipLevels is empty but outputDistributions references chip levels";
                 return false;
             }
 

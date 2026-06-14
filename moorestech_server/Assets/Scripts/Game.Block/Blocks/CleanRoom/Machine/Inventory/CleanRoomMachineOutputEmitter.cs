@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
@@ -37,29 +36,34 @@ namespace Game.Block.Blocks.CleanRoom
         // Leveled outputs reserve EMPTY slots because the final ItemId can change via down-bin / effect
         public bool IsAllowedToOutputItem(MachineRecipeMasterElement machineRecipe)
         {
-            var leveledCount = 0;
+            // 全出力要素を emission 順にシミュレートし、各要素が実際に格納できることを確認する。
+            // 旧実装はレベル付き出力と副産物を独立判定したため、両者が同じ最後の空スロットを取り合い、副産物がサイレント消失した。
+            // Simulate every output element in emission order so each one is actually placeable.
+            // The old split check let a leveled chip and a by-product both claim the same last empty slot, silently dropping the by-product.
+            var work = new IItemStack[OutputSlot.Count];
+            for (var i = 0; i < work.Length; i++) work[i] = OutputSlot[i];
+            var reserved = new bool[work.Length];
+
             foreach (var itemOutput in machineRecipe.OutputItems)
             {
-                if (MasterHolder.SemiconductorChipMaster.TryGetDistribution(machineRecipe.MachineRecipeGuid, itemOutput.ItemGuid, out _))
+                var isLeveled = MasterHolder.SemiconductorChipMaster.TryGetDistribution(machineRecipe.MachineRecipeGuid, itemOutput.ItemGuid, out _);
+                if (isLeveled)
                 {
-                    leveledCount++;
+                    // レベル付き出力は完了時 ItemId が未確定なので空スロットを1つ専有予約する（既存スタックへ統合不可）
+                    // Leveled output reserves a dedicated empty slot (final ItemId is unknown; cannot merge into an existing stack)
+                    var emptyIndex = FindUnreservedEmptySlot();
+                    if (emptyIndex < 0) return false;
+                    reserved[emptyIndex] = true;
                     continue;
                 }
 
-                // 非レベル出力は Vanilla と同じ判定（既存スタックへの追記も可）
-                // Non-leveled outputs use the vanilla check (may append to an existing stack)
+                // 非レベル出力（副産物）は InsertToSlot と同じ判定でシミュレート格納する（予約済みスロットは使わない）
+                // Non-leveled by-products simulate insertion like InsertToSlot (matching-Id first, then empty), never using a reserved slot
                 var outputItemId = MasterHolder.ItemMaster.GetItemId(itemOutput.ItemGuid);
                 var outputItemStack = ServerContext.ItemStackFactory.Create(outputItemId, itemOutput.Count);
-                var isAllowed = OutputSlot.Aggregate(false, (current, slot) => slot.IsAllowedToAdd(outputItemStack) || current);
-                if (!isAllowed) return false;
-            }
-
-            // 空スロット数 ≥ レベル付き出力要素数 を要求（MaxGrade 非依存）
-            // Require empty slots >= leveled output count (independent of the current MaxGrade)
-            if (leveledCount > 0)
-            {
-                var emptySlots = OutputSlot.Count(slot => slot.Id == ItemMaster.EmptyItemId);
-                if (emptySlots < leveledCount) return false;
+                var slotIndex = FindInsertableSlot(outputItemStack);
+                if (slotIndex < 0) return false;
+                work[slotIndex] = work[slotIndex].AddItem(outputItemStack).ProcessResultItemStack;
             }
 
             // 液体出力のスペースを確認する（Vanilla のコピー）
@@ -76,6 +80,24 @@ namespace Game.Block.Blocks.CleanRoom
             }
 
             return true;
+
+            #region Internal
+
+            int FindUnreservedEmptySlot()
+            {
+                for (var i = 0; i < work.Length; i++)
+                    if (!reserved[i] && work[i].Id == ItemMaster.EmptyItemId) return i;
+                return -1;
+            }
+
+            int FindInsertableSlot(IItemStack stack)
+            {
+                for (var i = 0; i < work.Length; i++)
+                    if (!reserved[i] && work[i].IsAllowedToAdd(stack)) return i;
+                return -1;
+            }
+
+            #endregion
         }
 
         // 出力要素単位で抽選して格納する（cycleSeed で決定的）
