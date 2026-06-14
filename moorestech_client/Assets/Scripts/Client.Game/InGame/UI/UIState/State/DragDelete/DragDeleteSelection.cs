@@ -8,7 +8,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     /// </summary>
     public class DragDeleteSelection
     {
-        private readonly HashSet<IDeleteTarget> _selectedTargets = new();
+        // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
+        // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
+        private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
         private bool _canceled;
 
         // 新しいドラッグ開始時に選択とキャンセル状態をリセットする
@@ -26,8 +28,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (_canceled) return;
             if (target == null) return;
             if (!target.IsRemovable(out _)) return;
-            if (!_selectedTargets.Add(target)) return;
 
+            // 既に同じ論理対象が選択済みなら何もしない（重複Delete防止）
+            // Skip when the same logical target is already selected (prevents duplicate Delete)
+            var key = target.GetDeleteTargetKey();
+            if (_selectedTargets.ContainsKey(key)) return;
+
+            _selectedTargets.Add(key, target);
             target.SetRemovePreviewing();
         }
 
@@ -35,7 +42,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Reset all selections and mark as canceled (ESC behavior)
         public void CancelSelection()
         {
-            foreach (var target in _selectedTargets) target.ResetMaterial();
+            foreach (var target in _selectedTargets.Values) target.ResetMaterial();
 
             _selectedTargets.Clear();
             _canceled = true;
@@ -47,7 +54,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             if (_canceled) return;
 
-            foreach (var target in _selectedTargets)
+            foreach (var target in _selectedTargets.Values)
             {
                 // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す
                 // Delete is async over the server, so we just clear the red preview immediately
@@ -63,13 +70,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         public bool CanCommit()
         {
             return !_canceled;
-        }
-
-        // 現在選択中の対象数を返す
-        // Return the number of currently selected targets
-        public int SelectedCount()
-        {
-            return _selectedTargets.Count;
         }
     }
 }

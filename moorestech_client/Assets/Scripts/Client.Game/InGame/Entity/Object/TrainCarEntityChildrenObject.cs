@@ -46,5 +46,12 @@ namespace Client.Game.InGame.Entity.Object
             // Request train removal from the server
             ClientContext.VanillaApi.SendOnly.RemoveTrain(TrainCarEntityObject.TrainCarInstanceId);
         }
+
+        // 同一車両の全renderer子は同じTrainCarEntityObjectを指す＝論理削除単位
+        // All renderer children of a car share the same TrainCarEntityObject = the logical delete unit
+        public object GetDeleteTargetKey()
+        {
+            return TrainCarEntityObject;
+        }
     }
 }
