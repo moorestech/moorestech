@@ -29,7 +29,9 @@ export const inventory = {
 // BLK-1 chest: 9 slots (mirrors uGUI IChestParam.ItemSlotCount), some filled
 export const blockChest = {
   open: true,
-  blockType: "chest",
+  // blockType は実マスタ値(PascalCase)に合わせる。web レジストリも "Chest" で解決する
+  // blockType matches the real master value (PascalCase); the web registry resolves "Chest"
+  blockType: "Chest",
   identifier: "block:1",
   blockName: "Chest",
   itemSlots: [{ itemId: 1, count: 7 }, { itemId: 2, count: 4 }, ...Array.from({ length: 7 }, empty)],
