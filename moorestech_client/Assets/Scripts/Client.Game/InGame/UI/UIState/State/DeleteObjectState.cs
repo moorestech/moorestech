@@ -86,10 +86,11 @@ namespace Client.Game.InGame.UI.UIState.State
 
             UITransitContext HandleTransition()
             {
+                // ESCはOpenMenuとCloseUI両方にbindされ、OpenMenuを先に拾うと選択キャンセルが死ぬため破壊モードでは扱わない
+                // ESC is bound to both OpenMenu and CloseUI; handling OpenMenu here would shadow the cancel path, so skip it in destroy mode
                 if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
                 if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
                 if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
-                if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
                 return null;
             }
 
