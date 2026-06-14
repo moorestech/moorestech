@@ -94,8 +94,8 @@ namespace Client.WebUiHost.Game.Topics
                 Progress = null,
             };
 
-            // 真データ（SubInventory）からスロットを写す。InventoryTopic と同じ id/count アクセスに揃える
-            // Copy slots from the true data (SubInventory), mirroring InventoryTopic's id/count access
+            // SubInventory からスロットを写す（id/count は InventoryTopic 同型）
+            // Copy slots from SubInventory; id/count mirrors InventoryTopic
             foreach (var stack in sub.SubInventory)
             {
                 dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });

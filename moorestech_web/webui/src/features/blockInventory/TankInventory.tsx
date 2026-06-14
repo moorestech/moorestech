@@ -1,8 +1,8 @@
 import type { BlockInventoryData } from "@/bridge/payloadTypes";
 import { FluidSlot, ProgressArrow } from "@/shared/ui";
 
-// Tank UI: uGUI の流体タンクビュー同様、fluidSlots を流体スロット列へ展開し進捗矢印を併置
-// Tank UI: mirrors the uGUI fluid tank view, laying fluidSlots out as a row with a progress arrow
+// Tank UI: uGUI 流体タンク同様 fluidSlots を列展開＋進捗矢印
+// Tank UI: mirrors uGUI fluid tank; fluidSlots row plus a progress arrow
 export default function TankInventory({ data }: { data: BlockInventoryData }) {
   return (
     <div data-testid="tank-body" className="flex items-center gap-2">

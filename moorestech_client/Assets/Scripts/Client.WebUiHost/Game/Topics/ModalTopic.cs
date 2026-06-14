@@ -69,7 +69,9 @@ namespace Client.WebUiHost.Game.Topics
                         Title = pending.Title,
                         Message = pending.Message,
                         ButtonText = pending.ButtonText,
-                        Variant = pending.Variant,
+                        // enum を web の文字列契約（"confirm" | "error"）へ境界で変換する
+                        // Convert the enum to the web string contract ("confirm" | "error") at the boundary
+                        Variant = pending.Variant == ModalVariant.Error ? "error" : "confirm",
                     },
             };
             return WebUiJson.Serialize(dto);

@@ -52,13 +52,9 @@ namespace Client.Game.InGame.UI.Inventory
             var nextSelectIndex = SelectedHotBar();
             if (nextSelectIndex != -1 && nextSelectIndex != SelectIndex)
             {
-                UpdateSelectedView(SelectIndex, nextSelectIndex);
-                UpdateHoldItemAsync(nextSelectIndex).Forget(); //アイテムの再生成があるので変化を検知して変更する
-
-                // 選択が実際に変わった時だけイベントを発火する
-                // Only fire the event when the selection actually changes
-                OnSelectHotBar?.Invoke(nextSelectIndex);
-                SelectIndex = nextSelectIndex;
+                // キーボード/スクロール経路。外部経路と同じ選択変更処理へ集約する
+                // Keyboard/scroll path; routed through the same selection-change handling as the external path
+                ApplySelection(nextSelectIndex);
             }
             
             #region Internal
@@ -117,73 +113,29 @@ namespace Client.Game.InGame.UI.Inventory
                     return selected;
                 }
             }
-            
-            
-            async UniTaskVoid UpdateHoldItemAsync(int selectIndex)
-            {
-                // 既存のロード処理をキャンセル
-                _loadCancellationTokenSource?.Cancel();
-                _loadCancellationTokenSource?.Dispose();
-                _loadCancellationTokenSource = new CancellationTokenSource();
-                
-                // 既存のアイテムをクリーンアップ
-                if (_currentGrabItem != null) 
-                {
-                    Destroy(_currentGrabItem.gameObject);
-                    _currentGrabItem = null;
-                }
-                
-                // Addressableリソースを解放
-                _currentLoadedAsset?.Dispose();
-                _currentLoadedAsset = null;
-                
-                var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
-                
-                if (itemId == ItemMaster.EmptyItemId) return;
-                
-                try
-                {
-                    var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                    var token = _loadCancellationTokenSource.Token;
-                    
-                    // handGrabModelが設定されているかチェック
-                    // Check if handGrabModel is set
-                    if (!string.IsNullOrEmpty(itemMaster.AddressablePaths?.HandGrabModel))
-                    {
-                        // Addressableからロード
-                        // Load from Addressable
-                        _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.AddressablePaths.HandGrabModel);
-                        
-                        if (token.IsCancellationRequested) return;
-                        
-                        if (_currentLoadedAsset?.Asset != null)
-                        {
-                            _currentGrabItem = Instantiate(_currentLoadedAsset.Asset);
-                            PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false);
-                            return;
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Failed to load hand grab model for item {itemId}: {e.Message}");
-                }
-            }
-            
+
             #endregion
         }
-        
-        
+
+
         private void UpdateSelectedView(int prevIndex, int nextIndex)
         {
             hotBarItems[prevIndex].SetSelect(false);
             hotBarItems[nextIndex].SetSelect(true);
         }
 
-        // Web UI など外部から選択スロットを設定する。ハイライト+event+SelectIndex を更新する
-        // Set the selected slot from outside (e.g. Web UI); updates the highlight, event, and SelectIndex
-        // 手持ち3Dモデル(Update 経路の UpdateHoldItemAsync)は更新しない＝3Dワールド連動UIは対象外
-        // Does NOT update the held 3D model (Update path's UpdateHoldItemAsync); 3D world UI is out of scope
+        // 選択変更の共通処理。ハイライト/手持ち3Dモデル/event/SelectIndex を同時更新する
+        // Shared selection-change handling; updates highlight, held 3D model, event, and SelectIndex together
+        private void ApplySelection(int nextIndex)
+        {
+            UpdateSelectedView(SelectIndex, nextIndex);
+            UpdateHoldItemAsync(nextIndex).Forget(); //アイテムの再生成があるので変化を検知して変更する
+            OnSelectHotBar?.Invoke(nextIndex);
+            SelectIndex = nextIndex;
+        }
+
+        // Web UI など外部から選択スロットを設定する
+        // Set the selected slot from outside (e.g. Web UI)
         public void SetSelectIndex(int index)
         {
             // 範囲外入力は丸める。選択が変わらない場合は何もしない
@@ -191,9 +143,58 @@ namespace Client.Game.InGame.UI.Inventory
             var clamped = (index % hotBarItems.Count + hotBarItems.Count) % hotBarItems.Count;
             if (clamped == SelectIndex) return;
 
-            UpdateSelectedView(SelectIndex, clamped);
-            OnSelectHotBar?.Invoke(clamped);
-            SelectIndex = clamped;
+            ApplySelection(clamped);
+        }
+
+        private async UniTaskVoid UpdateHoldItemAsync(int selectIndex)
+        {
+            // 既存のロード処理をキャンセル
+            _loadCancellationTokenSource?.Cancel();
+            _loadCancellationTokenSource?.Dispose();
+            _loadCancellationTokenSource = new CancellationTokenSource();
+
+            // 既存のアイテムをクリーンアップ
+            if (_currentGrabItem != null)
+            {
+                Destroy(_currentGrabItem.gameObject);
+                _currentGrabItem = null;
+            }
+
+            // Addressableリソースを解放
+            _currentLoadedAsset?.Dispose();
+            _currentLoadedAsset = null;
+
+            var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
+
+            if (itemId == ItemMaster.EmptyItemId) return;
+
+            try
+            {
+                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                var token = _loadCancellationTokenSource.Token;
+
+                // handGrabModelが設定されているかチェック
+                // Check if handGrabModel is set
+                if (!string.IsNullOrEmpty(itemMaster.AddressablePaths?.HandGrabModel))
+                {
+                    // Addressableからロード
+                    // Load from Addressable
+                    _currentLoadedAsset = await AddressableLoader.LoadAsync<GameObject>(itemMaster.AddressablePaths.HandGrabModel);
+
+                    if (token.IsCancellationRequested) return;
+
+                    if (_currentLoadedAsset?.Asset != null)
+                    {
+                        _currentGrabItem = Instantiate(_currentLoadedAsset.Asset);
+                        PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false);
+                        return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to load hand grab model for item {itemId}: {e.Message}");
+            }
         }
         
         public void SetActive(bool active)

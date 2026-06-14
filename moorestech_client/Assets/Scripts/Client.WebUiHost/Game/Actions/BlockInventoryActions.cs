@@ -46,14 +46,14 @@ namespace Client.WebUiHost.Game.Actions
             if (fromItem.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
             if (fromItem.Count < count) return UniTask.FromResult(ActionResult.Fail("insufficient_count"));
 
-            // ブロック(=サブ)スロットへの移動も MainOrSub の結合インデックスで MoveItem が処理する
-            // Moves to a block (sub) slot are handled by MoveItem via the MainOrSub combined index
+            // block 移動も MainOrSub 結合 index で MoveItem が処理する
+            // Block moves are handled by MoveItem via the MainOrSub combined index
             _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
             return UniTask.FromResult(ActionResult.Success());
         }
 
-        // main/hotbar/grab は既存マッパ、block はサブインベントリ結合インデックスへ変換する
-        // main/hotbar/grab via the existing mapper; block maps to the sub-inventory combined index
+        // main/hotbar/grab は既存マッパ、block は結合 index へ変換する
+        // main/hotbar/grab via the existing mapper; block maps to the combined index
         private bool TryParseAreaSlot(JToken token, out LocalMoveInventoryType type, out int localSlot)
         {
             type = LocalMoveInventoryType.MainOrSub;

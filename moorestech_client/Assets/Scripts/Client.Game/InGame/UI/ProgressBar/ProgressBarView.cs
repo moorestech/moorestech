@@ -11,8 +11,8 @@ namespace Client.Game.InGame.UI.ProgressBar
 
         public static ProgressBarView Instance;
 
-        // 現在の表示状態と進捗。Web UI など外部からの読み取り用
-        // Current visibility and progress, for external readers such as the Web UI
+        // 表示状態と進捗の外部読み取り用
+        // Visibility and progress, for external readers
         public bool IsShown => viewRoot.activeSelf;
         public float CurrentProgress => scrollbar.size;
 

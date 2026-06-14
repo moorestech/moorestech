@@ -39,7 +39,7 @@ namespace Client.WebUiHost.Game
 
         // モーダルを Web に出して結果文字列（"confirm" | "cancel"）を待つ
         // Show a modal on the web and await the result string ("confirm" | "cancel")
-        public UniTask<string> RequestModal(string title, string message, string buttonText, string variant)
+        public UniTask<string> RequestModal(string title, string message, string buttonText, ModalVariant variant)
         {
             // 既存の保留要求があれば cancel 扱いで解決し、最新要求のみを保持する
             // Resolve any existing pending request as cancel so only the latest request is kept
@@ -89,6 +89,16 @@ namespace Client.WebUiHost.Game
         public string Title;
         public string Message;
         public string ButtonText;
-        public string Variant;
+        public ModalVariant Variant;
+    }
+
+    /// <summary>
+    /// モーダルの表示種別。web の "confirm" | "error" に対応
+    /// Modal display kind; maps to the web's "confirm" | "error"
+    /// </summary>
+    public enum ModalVariant
+    {
+        Confirm,
+        Error,
     }
 }

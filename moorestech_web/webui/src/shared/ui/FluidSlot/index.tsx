@@ -9,8 +9,8 @@ function fluidColor(fluidId: number): string {
   return `hsl(${hue}, 70%, 45%)`;
 }
 
-// 液体アイコン（色ボックス）・量・ホバー名ツールチップを持つ汎用流体スロット。uGUI FluidSlotView 相当
-// Generic fluid slot with a color-box icon, amount, and hover name tooltip; mirrors uGUI FluidSlotView
+// 色ボックス/量/ホバー名を持つ汎用流体スロット。uGUI FluidSlotView 相当
+// Generic fluid slot (color box, amount, hover name); mirrors uGUI FluidSlotView
 export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
   const hasFluid = fluid.fluidId > 0 && fluid.amount > 0;
 

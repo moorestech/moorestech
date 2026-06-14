@@ -31,8 +31,8 @@ namespace Client.Game.InGame.UI.UIState.State
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
 
-        // Web UI など外部が現在開いているサブインベントリと発生元を読むための公開口
-        // Public accessors so external readers (e.g. Web UI) can see the open sub-inventory and its source
+        // 外部から開いているサブと発生元を読む公開口
+        // External read access to the open sub-inventory and its source
         public ISubInventory CurrentSubInventory => _currentView;
         public ISubInventorySource CurrentSubInventorySource => _subInventorySource;
 
