@@ -1,5 +1,6 @@
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
@@ -69,6 +70,10 @@ namespace Client.WebUiHost.Game.Actions
             // block の slot は必須。サブインベントリは結合インベントリの MainInventorySize 以降に並ぶ
             // block requires a slot; the sub-inventory lives after MainInventorySize in the combined inventory
             if (obj["slot"] is not JValue { Value: long slotLong }) return false;
+
+            // 発生元がブロックのときだけ許可する。列車等の非ブロックサブは block action で操作させない
+            // Allow only when the source is a block; non-block subs (e.g. trains) must not be moved via a block action
+            if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource) return false;
 
             // 閉状態や範囲外 slot を弾く。サブ未オープンだと結合 identifier が null で MoveItem が例外になる
             // Reject closed/out-of-range slots; with no open sub-inventory the combined identifier is null and MoveItem throws
