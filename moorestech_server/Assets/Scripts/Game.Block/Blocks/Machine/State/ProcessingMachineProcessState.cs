@@ -30,8 +30,10 @@ namespace Game.Block.Blocks.Machine.State
         {
             _context = context;
             RemainingTicks = remainingTicks;
-            
-            if (recipe != null && pendingOutputs != null)
+
+            // レシピがあれば加工を復元する。産出予定nullの旧セーブは完了時に再抽選する
+            // Restore processing whenever a recipe exists; old saves with null pending outputs re-roll on completion
+            if (recipe != null)
             {
                 SetProcessing(recipe, pendingOutputs);
             }
