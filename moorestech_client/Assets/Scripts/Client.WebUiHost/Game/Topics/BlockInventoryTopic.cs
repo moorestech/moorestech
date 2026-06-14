@@ -21,6 +21,8 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly SubInventoryState _subInventoryState;
+        private bool _publishScheduled;
+        private bool _disposed;
 
         public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
         {
@@ -31,7 +33,7 @@ namespace Client.WebUiHost.Game.Topics
             // 開閉（UIステート遷移）とスロット更新の両方を購読して push する
             // Subscribe to open/close (UI-state transitions) and slot updates, then push
             _uiStateControl.OnStateChanged += OnStateChanged;
-            _subInventoryState.OnSubInventoryUpdated += OnSubInventoryUpdated;
+            _subInventoryState.OnSubInventoryUpdated += SchedulePublish;
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -41,29 +43,42 @@ namespace Client.WebUiHost.Game.Topics
 
         public void Dispose()
         {
+            _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
-            _subInventoryState.OnSubInventoryUpdated -= OnSubInventoryUpdated;
+            _subInventoryState.OnSubInventoryUpdated -= SchedulePublish;
         }
 
         private void OnStateChanged(UIStateEnum state)
         {
-            _hub.Publish(TopicName, BuildJson());
+            SchedulePublish();
         }
 
-        private void OnSubInventoryUpdated()
+        // INFRA-7 デバウンス規約: 中間状態を畳んでフレーム末に一度だけ全量配信する
+        // INFRA-7 debounce rule: fold intermediate states and publish once at end of frame
+        private void SchedulePublish()
         {
+            if (_publishScheduled) return;
+            _publishScheduled = true;
+            PublishAtEndOfFrame().Forget();
+        }
+
+        private async UniTaskVoid PublishAtEndOfFrame()
+        {
+            await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+            _publishScheduled = false;
+            if (_disposed) return;
             _hub.Publish(TopicName, BuildJson());
         }
 
         private string BuildJson()
         {
-            // SubInventory 状態でなければ閉じている扱い
-            // Anything other than the SubInventory state means it is closed
+            // SubInventory 状態かつ発生元がブロックのときだけ開いている扱い（列車等の非ブロックは閉）
+            // Open only in the SubInventory state with a block source (non-block sources like trains are closed)
             var open = _uiStateControl.CurrentState == UIStateEnum.SubInventory;
             var sub = _subInventoryState.CurrentSubInventory;
-            var source = _subInventoryState.CurrentSubInventorySource;
+            var blockSource = _subInventoryState.CurrentSubInventorySource as BlockSubInventorySource;
 
-            if (!open || sub == null)
+            if (!open || sub == null || blockSource == null)
             {
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
@@ -71,19 +86,13 @@ namespace Client.WebUiHost.Game.Topics
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                BlockType = blockSource.BlockTypeName,
+                BlockName = blockSource.BlockName,
+                Identifier = blockSource.BlockPosition.ToString(),
                 ItemSlots = new List<BlockItemSlotDto>(sub.Count),
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 Progress = null,
             };
-
-            // ブロック発生元なら種別・表示名・座標識別子を埋める
-            // Fill block type, display name, and position identifier when the source is a block
-            if (source is BlockSubInventorySource blockSource)
-            {
-                dto.BlockType = blockSource.BlockTypeName;
-                dto.BlockName = blockSource.BlockName;
-                dto.Identifier = blockSource.BlockPosition.ToString();
-            }
 
             // 真データ（SubInventory）からスロットを写す。InventoryTopic と同じ id/count アクセスに揃える
             // Copy slots from the true data (SubInventory), mirroring InventoryTopic's id/count access

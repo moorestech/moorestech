@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState.State;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
@@ -15,10 +16,12 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "block_inventory.move_item";
 
         private readonly LocalPlayerInventoryController _controller;
+        private readonly SubInventoryState _subInventoryState;
 
-        public BlockMoveItemActionHandler(LocalPlayerInventoryController controller)
+        public BlockMoveItemActionHandler(LocalPlayerInventoryController controller, SubInventoryState subInventoryState)
         {
             _controller = controller;
+            _subInventoryState = subInventoryState;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -50,7 +53,7 @@ namespace Client.WebUiHost.Game.Actions
 
         // main/hotbar/grab は既存マッパ、block はサブインベントリ結合インデックスへ変換する
         // main/hotbar/grab via the existing mapper; block maps to the sub-inventory combined index
-        private static bool TryParseAreaSlot(JToken token, out LocalMoveInventoryType type, out int localSlot)
+        private bool TryParseAreaSlot(JToken token, out LocalMoveInventoryType type, out int localSlot)
         {
             type = LocalMoveInventoryType.MainOrSub;
             localSlot = -1;
@@ -66,7 +69,12 @@ namespace Client.WebUiHost.Game.Actions
             // block の slot は必須。サブインベントリは結合インベントリの MainInventorySize 以降に並ぶ
             // block requires a slot; the sub-inventory lives after MainInventorySize in the combined inventory
             if (obj["slot"] is not JValue { Value: long slotLong }) return false;
-            if (slotLong < 0 || int.MaxValue < slotLong) return false;
+
+            // 閉状態や範囲外 slot を弾く。サブ未オープンだと結合 identifier が null で MoveItem が例外になる
+            // Reject closed/out-of-range slots; with no open sub-inventory the combined identifier is null and MoveItem throws
+            var sub = _subInventoryState.CurrentSubInventory;
+            if (sub == null) return false;
+            if (slotLong < 0 || sub.Count <= slotLong) return false;
 
             type = LocalMoveInventoryType.MainOrSub;
             localSlot = PlayerInventoryConst.MainInventorySize + (int)slotLong;
