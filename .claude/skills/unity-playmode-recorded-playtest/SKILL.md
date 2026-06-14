@@ -391,11 +391,16 @@ uloop control-play-mode --action Stop
 - 本番アセットの `IMasterValidator.Validate` で失敗すると ブートが止まり scene 遷移しない。**この skill が初めてプロジェクトに「本番アセットを通す」契機になる**ため、ロジックテストでは出ていなかった master data の不整合 (例: 存在しないアイテム key を参照するレシピ) を検出することが多い。
 - これは bug 検出機会なので、「Recorder を使って end-to-end 確認すること自体が静的バリデーションだけでは捕まらないクラスのバグを発見する手段」と考える。
 
-### カメラframing (Cinemachine プロジェクト)
-- Cinemachine `FramingTransposer` 等は follow target を追従するため、`StartTweenCamera`+プレイヤー移動では狙った構図にならず、対象が画面外(`WorldToScreenPoint` の sy が負/範囲外)になりがち。
-- 解決: **`CinemachineBrain` だけを無効化して `Camera.main.transform` を直接固定配置**する。
-- 罠: プロジェクトのカメラcontrollerの `SetEnabled(false)` 系を呼ぶと **Camera コンポーネントごと無効化されて `Camera.main` が null 化**することがある（raycast も WorldToScreenPoint も全滅）。Brain だけ無効化し `Camera.enabled` は true を維持する。null 化したら全カメラ列挙で原因を切り分ける。
-- framing後は `screenshot --capture-mode rendering` で対象が中央に収まっているか目視 → そのフレームの collider 中心 `WorldToScreenPoint` で screen 座標を確定 → de-risk probe へ。
+### カメラframing は「実プレイ視点」を壊すな（最重要 — 録画の価値そのもの）
+このスキルで実ゲームを録る目的は **「プレイヤーが実際に見る画面」を撮ること**。ここを外すと、実システム(実ブロック/raycast/サーバー)を通していても、絵としては合成キューブを孤立空間に並べて撮るのと**本質的に変わらなくなる**。
+- **不合格になる典型**: framing が面倒だからと `CinemachineBrain` を無効化して `Camera.main` を任意の俯瞰に直接配置する。→ アバター・地面・HUD が消え、空/雲を背景に対象が浮く「実プレイ感ゼロ」の絵になる（実際にこれで不合格動画が生まれ、担当が「面倒で打ち切った手抜き」と認めた。技術的障害ではなく、プレイヤー位置×tween角度の反復を惜しんだだけ）。
+- **正しいやり方**: **実プレイヤーカメラ(Cinemachine 等)を生かしたまま** framing する。
+  1. プレイヤーを対象が視界に入る位置・向きに立たせる（`PlayerObjectController.transform` 等）。
+  2. `StartTweenCamera` 等の角度/距離を**プレイヤー基準で**詰める。FramingTransposer は follow 追従するので、カメラ単体でなく「プレイヤー位置 × カメラ角度/距離」をセットで反復する。
+  3. `screenshot --capture-mode rendering` で **アバターと地面(必要なら HUD)が映り、かつ対象もフレームに入る**ことを確認するまで反復。
+  4. その確定フレームで対象 collider 中心の `WorldToScreenPoint` を取り、de-risk probe → 録画へ。
+- 罠（切り離しを試みた場合の二次被害）: カメラcontrollerの `SetEnabled(false)` 系は Camera コンポーネントごと殺し `Camera.main` を null 化する（raycast/WorldToScreenPoint 全滅）。**そもそも切り離さないのが正解。**
+- framing の試行回数を惜しまない。2〜3回失敗しても俯瞰へ逃げず、プレイヤー位置を変えて追い込む。
 
 ### uloop の cwd（複数 Unity プロジェクト同居時）
 - リポジトリ root 直下に複数の Unity プロジェクト(例: `moorestech_client` と `moorestech_server`)があると、`--project-path` を付けても "Multiple Unity projects found" 警告が stdout に混ざり、`grep`/JSON パースを汚す。
@@ -431,10 +436,11 @@ uloop control-play-mode --action Stop
 
 ## Step 7: 検証と完了判定
 
-**成功条件 (3 つ全部満たすこと)**:
+**成功条件 (4 つ全部満たすこと)**:
 1. 動画ファイルが想定サイズで生成された (`ls -lh /tmp/<name>.mp4` + `ffprobe Duration` で確認、0 byte は失敗)
 2. 期待する内部 state (出力 chest の item count 等) が達成された (`execute-dynamic-code` で読み取り)
 3. 検証スクショに期待する UI 要素 (item アイコン等) が映っている
+4. **絵が実プレイ視点であること** — 動画/スクショに **プレイヤーアバター・地面・通常の HUD** が映り、実際にプレイヤーが見る画面になっている（カメラを孤立俯瞰に切り離した「対象だけが空に浮く」絵は、内部 state が正しくても**不合格**。「カメラframing は実プレイ視点を壊すな」節参照）。スクショを Read して目視確認し、前任/既存の正式動画があれば構図を照合する。
 
 **失敗パターン → 切り分け**:
 | 症状 | 原因候補 | 確認方法 |
