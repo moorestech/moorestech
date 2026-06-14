@@ -262,6 +262,18 @@ return $"recording started: /tmp/playtest.mp4 isRec={ctrl.IsRecording()}";
 ```
 各ビート後に状態を**別スニペットで read**して期待値（選択数・state 等）を確認してから次へ進む。
 
+#### ⚠️ ドラッグ中に別デバイス(キー)を注入するときは held マウスstateを毎フレーム re-assert する（実測30分溶かした罠）
+マウス左ボタンを HELD=true のまま「キーボードの `QueueStateEvent`(例: ESC down/up)」を注入すると、**キーイベントを跨いだ瞬間に held 中の左ボタンに spurious な press edge が乗り、`WasPressedThisFrame`(GetKeyDown)が再発火する**。ドラッグ系stateだと `BeginDrag()` 等が再走し、選択がリセット→カーソル下を再選択→意図せぬ確定(誤削除)になる。
+対策: **ドラッグ中にキー入力を注入する各フレームで、同じスニペット内 or 直前直後に「左ボタン HELD=true・同座標」のマウスstateも一緒に re-queue し、押下を連続的に維持する**。これで press edge が再発火せず、ESC等のキーがクリーンに一発で効く。
+```csharp
+// 例: ESC を押す瞬間も左ドラッグを維持する（マウスstateを先に re-assert してからキーを送る）
+var ms = new MouseState { position = new UnityEngine.Vector2(SX, SY) };
+ms = ms.WithButton(MouseButton.Left, true);   // ← held を再アサート
+InputSystem.QueueStateEvent(Mouse.current, ms);
+var ks = new KeyboardState(); ks.Set(Key.Escape, true);
+InputSystem.QueueStateEvent(Keyboard.current, ks);
+```
+
 ### legacy Input 遷移をリフレクションで代替する典型コード
 
 UI ステートマシン型のプロジェクトで `Input.GetKeyDown` が遷移トリガになっているとき:
@@ -378,6 +390,16 @@ uloop control-play-mode --action Stop
 - PlayMode 起動後 30 秒経っても ready が True にならないとき、まず `uloop get-logs --log-type Error` を見る。
 - 本番アセットの `IMasterValidator.Validate` で失敗すると ブートが止まり scene 遷移しない。**この skill が初めてプロジェクトに「本番アセットを通す」契機になる**ため、ロジックテストでは出ていなかった master data の不整合 (例: 存在しないアイテム key を参照するレシピ) を検出することが多い。
 - これは bug 検出機会なので、「Recorder を使って end-to-end 確認すること自体が静的バリデーションだけでは捕まらないクラスのバグを発見する手段」と考える。
+
+### カメラframing (Cinemachine プロジェクト)
+- Cinemachine `FramingTransposer` 等は follow target を追従するため、`StartTweenCamera`+プレイヤー移動では狙った構図にならず、対象が画面外(`WorldToScreenPoint` の sy が負/範囲外)になりがち。
+- 解決: **`CinemachineBrain` だけを無効化して `Camera.main.transform` を直接固定配置**する。
+- 罠: プロジェクトのカメラcontrollerの `SetEnabled(false)` 系を呼ぶと **Camera コンポーネントごと無効化されて `Camera.main` が null 化**することがある（raycast も WorldToScreenPoint も全滅）。Brain だけ無効化し `Camera.enabled` は true を維持する。null 化したら全カメラ列挙で原因を切り分ける。
+- framing後は `screenshot --capture-mode rendering` で対象が中央に収まっているか目視 → そのフレームの collider 中心 `WorldToScreenPoint` で screen 座標を確定 → de-risk probe へ。
+
+### uloop の cwd（複数 Unity プロジェクト同居時）
+- リポジトリ root 直下に複数の Unity プロジェクト(例: `moorestech_client` と `moorestech_server`)があると、`--project-path` を付けても "Multiple Unity projects found" 警告が stdout に混ざり、`grep`/JSON パースを汚す。
+- 対象プロジェクト dir に `cd` してから `uloop` を呼ぶと出力が綺麗になる（until ループの偽陽性も減る）。
 
 ### 座標とエンティティの対応
 - ブロックの「論理座標」(Vector3Int) と View 層の `BlockGameObject.OriginalPos` は同じこともあれば違うこともある (回転や footprint origin 規約で変わる)。
