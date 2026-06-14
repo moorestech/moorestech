@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -21,20 +22,31 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly LocalPlayerInventoryController _controller;
+        private readonly HotBarView _hotBarView;
         private readonly IDisposable _subscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public InventoryTopic(WebSocketHub hub, LocalPlayerInventoryController controller)
+        public InventoryTopic(WebSocketHub hub, LocalPlayerInventoryController controller, HotBarView hotBarView)
         {
             _hub = hub;
             _controller = controller;
+            _hotBarView = hotBarView;
 
             // インデクサ経由の変更と、grab/全置換の更新の両方を購読する
             // Subscribe to both indexer-driven changes and grab/full-replacement refreshes
             _subscription = new CompositeDisposable(
                 _controller.LocalPlayerInventory.OnItemChange.Subscribe(_ => SchedulePublish()),
                 _controller.OnInventoryRefreshed.Subscribe(_ => SchedulePublish()));
+
+            // ホットバー選択が変わったら snapshot に含めて再配信する
+            // Republish when the hotbar selection changes so the snapshot reflects it
+            _hotBarView.OnSelectHotBar += OnSelectHotBar;
+        }
+
+        private void OnSelectHotBar(int index)
+        {
+            SchedulePublish();
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -46,6 +58,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _subscription.Dispose();
+            _hotBarView.OnSelectHotBar -= OnSelectHotBar;
         }
 
         // MoveItem 途中の中間状態（grab 未更新等）を配信しないようフレーム末尾でまとめて publish する
@@ -80,6 +93,7 @@ namespace Client.WebUiHost.Game.Topics
                 MainSlots = new List<SlotDto>(InventoryAreaMapper.MainAreaSize),
                 HotbarSlots = new List<SlotDto>(PlayerInventoryConst.MainInventoryColumns),
                 Grab = ToDto(_controller.GrabInventory),
+                SelectedHotbar = _hotBarView.SelectIndex,
             };
             for (var i = 0; i < InventoryAreaMapper.MainAreaSize; i++) dto.MainSlots.Add(ToDto(inv[i]));
             for (var i = InventoryAreaMapper.MainAreaSize; i < PlayerInventoryConst.MainInventorySize; i++) dto.HotbarSlots.Add(ToDto(inv[i]));
@@ -101,6 +115,7 @@ namespace Client.WebUiHost.Game.Topics
         public List<SlotDto> MainSlots;
         public List<SlotDto> HotbarSlots;
         public SlotDto Grab;
+        public int SelectedHotbar;
     }
 
     public class SlotDto
