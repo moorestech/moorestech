@@ -398,6 +398,15 @@ uloop control-play-mode --action Stop
 
 `grep` の前で `Success.*false` や `CompilationErrors` をマッチさせて即 `break` する形でも良いが、`timeout` で外周ガードする方が確実。
 
+### 文字列補間とエスケープで Result が空になる
+`execute-dynamic-code` の C# で `$"..."` 補間を使い、それを shell のシングルクォート＋エスケープで囲むと、エスケープが噛み合わず**コンパイル失敗→`Result` 空**になりやすい（until に乗せれば無限ループ、単発でも「動いたのに結果が出ない」と誤認する）。検証系スニペットは**補間を避けて `"remaining=" + count` のように文字列連結**で組むと安定する。Result が空のときは、まず生成した C# の構文（クォート・補間）を疑う。
+
+### control-play-mode の action
+`--action` の有効値は **`Play` / `Stop`**（`Status` 等は無い）。再生中かどうかの確認は別途 `execute-dynamic-code` で `UnityEngine.Application.isPlaying` / `UnityEditor.EditorApplication.isPlaying` を読むのが確実。
+
+### moorestech: ブロックのサーバー設置 API
+`WorldBlockDatastore.TryAddBlock` は拡張メソッド版より **5引数版 `TryAddBlock(blockId, pos, BlockDirection.North, System.Array.Empty<Game.Block.Interface.BlockCreateParam>(), out var b)` が確実**（拡張版は解決順で CS7036 になることがある）。`blockId` は `MasterHolder.BlockMaster.GetBlockId(new System.Guid("…"))`。設置後 `sleep 2` で client `BlockGameObject`+collider(Addressable) 生成を待つ。
+
 ### Recorder の落とし穴
 - `RecordMode.Manual` を忘れるとデフォルトの `FrameInterval` で勝手に停止し、想定より早く録画が切れる。手動 Stop 前提のスクリプトでは必ず Manual に設定する。
 
