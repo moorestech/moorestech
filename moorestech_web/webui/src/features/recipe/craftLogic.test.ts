@@ -10,6 +10,7 @@ const inv = (
   mainSlots: main.map(([itemId, count]) => ({ itemId, count })),
   hotbarSlots: hot.map(([itemId, count]) => ({ itemId, count })),
   grab: { itemId: grab[0], count: grab[1] },
+  selectedHotbar: 0,
 });
 
 describe("buildOwnedCounts", () => {
