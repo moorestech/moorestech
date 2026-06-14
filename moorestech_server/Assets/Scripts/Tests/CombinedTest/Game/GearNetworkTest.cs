@@ -15,6 +15,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using System;
+using Core.Update;
 
 namespace Tests.CombinedTest.Game
 {
@@ -447,6 +448,39 @@ namespace Tests.CombinedTest.Game
             // ネットワークの分離のテスト
             ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition2, BlockRemoveReason.ManualRemove);
             AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+        }
+
+        [Test]
+        // ギア機械（コネクタがギア本体より先に破棄される）を橋渡し点として破壊しても、残存ネットワークが正しく分割されることのテスト
+        // Verify that destroying a gear machine (whose connector is destroyed before the gear body) as a bridge still splits the surviving network correctly
+        public void RemoveBridgeGearMachineSplitsNetworkTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            // ジェネレーター - ギア機械（橋渡し点）- 歯車 をZ軸に一直線に並べて1つのネットワークにする（ギア機械のコネクタはZ方向のみ）
+            // Place generator - gear machine (bridge) - gear in a line along Z so they form a single network (the gear machine connects only along Z)
+            var generatorPosition = new Vector3Int(0, 0, 0);
+            var machinePosition = new Vector3Int(0, 0, 1);
+            var gearPosition = new Vector3Int(0, 0, 2);
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, machinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
+
+            // 橋渡し点のギア機械を破壊する。コネクタが先に破棄されるため、削除ギア自身のGetGearConnectsは信頼できない
+            // Destroy the bridging gear machine. Its connector is destroyed first, so the removed gear's own GetGearConnects is unreliable
+            worldBlockDatastore.RemoveBlock(machinePosition, BlockRemoveReason.ManualRemove);
+
+            // 残存網は {ジェネレーター} と {歯車} の2つに分割されていなければならない
+            // The surviving network must split into {generator} and {gear}
+            AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+
+            // 分割後にネットワーク更新を回してもKeyNotFoundExceptionが発生しないことを確認する
+            // Confirm that running the network update after the split does not throw KeyNotFoundException
+            GameUpdater.Update();
         }
         
         private static void ForceConnectGear(IBlock gear1, IBlock gear2)
