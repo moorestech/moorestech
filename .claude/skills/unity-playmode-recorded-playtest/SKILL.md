@@ -402,6 +402,13 @@ uloop control-play-mode --action Stop
 - 罠（切り離しを試みた場合の二次被害）: カメラcontrollerの `SetEnabled(false)` 系は Camera コンポーネントごと殺し `Camera.main` を null 化する（raycast/WorldToScreenPoint 全滅）。**そもそも切り離さないのが正解。**
 - framing の試行回数を惜しまない。2〜3回失敗しても俯瞰へ逃げず、プレイヤー位置を変えて追い込む。
 
+#### 推奨パターン: 実ワールド内に「クリーン足場ステージ」を作る（検証済み・一番楽に実プレイ視点を保てる）
+雑多な地形と follow カメラで構図が決まらないとき、**カメラを切り離す代わりに、実ワールド内に平らな足場を作ってそこにプレイヤーを立たせる**。実プレイヤーカメラ(Cinemachine)・アバター・HUD はそのままなので実プレイ視点を100%保てる上、背景がクリーンで被写体が見やすい。今回これで一発成功した。
+1. **足場を置く**: `GameObject.CreatePrimitive(PrimitiveType.Cube)` で広い板(例 localScale=(50,3,50))を空中(例 position=(0,30,0))に。CreatePrimitive の BoxCollider をそのまま使う。無地マテリアル、layer は Default で可（Block レイヤの raycast と干渉しない）。
+2. **プレイヤーを足場に乗せる**: 生 `transform.position` 代入は ThirdPersonController の重力で弾かれる。**`SetControllable(false)` で入力を止めてから `SetPlayerPosition(...)`(内部 `CharacterController.Warp`)で足場直上へワープ** → 数フレームで天面に着地・安定する（screenshot で立脚を確認）。ThirdPersonController の GroundLayers が Default を含むので接地判定も通る。
+3. **対象を足場の上に設置**し、プレイヤーの前方に並べる。足場という安定した立脚点があると follow カメラの構図が決まりやすく、`StartTweenCamera(pitch 浅め, distance 中庸)` を寄せるだけでアバター・足場・対象が綺麗にフレームインする。
+4. screenshot で **アバターと足場が映る**ことを確認 → de-risk probe → 録画。
+
 ### uloop の cwd（複数 Unity プロジェクト同居時）
 - リポジトリ root 直下に複数の Unity プロジェクト(例: `moorestech_client` と `moorestech_server`)があると、`--project-path` を付けても "Multiple Unity projects found" 警告が stdout に混ざり、`grep`/JSON パースを汚す。
 - 対象プロジェクト dir に `cd` してから `uloop` を呼ぶと出力が綺麗になる（until ループの偽陽性も減る）。
