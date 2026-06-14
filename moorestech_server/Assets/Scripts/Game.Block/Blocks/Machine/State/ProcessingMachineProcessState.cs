@@ -89,7 +89,13 @@ namespace Game.Block.Blocks.Machine.State
         {
             var outputs = _pendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(_recipe, _context.EffectComponent.AggregateCurrent());
             _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(_recipe));
+
+            // 加工情報をクリアしてIdleが古いレシピ/進捗を報告・保存しないようにする
+            // Clear the processing snapshot so idle does not report or serialize stale recipe/progress
             _pendingOutputs = null;
+            _recipe = null;
+            TotalTicks = 0;
+            RemainingTicks = 0;
         }
     }
 }
