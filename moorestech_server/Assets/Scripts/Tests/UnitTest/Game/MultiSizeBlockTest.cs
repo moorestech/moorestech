@@ -70,10 +70,39 @@ namespace Tests.UnitTest.Game
             worldDatastore = ServerContext.WorldBlockDatastore;
             
             worldDatastore.TryAddBlock(Block_1x4_Id, new Vector3Int(10, 0, 10), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldDatastore.TryAddBlock(Block_3x2_Id, new Vector3Int(10, 0, 12), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
-            
+            var placed = worldDatastore.TryAddBlock(Block_3x2_Id, new Vector3Int(10, 0, 12), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
+
+            //重なる設置は拒否される
+            //Overlapping placement must be rejected
+            Assert.IsFalse(placed);
             //3x2が設置されてないことをチェックする
-            RetrieveBlock(Block_3x2_Id, new Vector3Int(11, 0, 12));
+            RetrieveNonExistentBlock(new Vector3Int(11, 0, 12));
+            //元の1x4はそのまま残っていることをチェックする
+            RetrieveBlock(Block_1x4_Id, new Vector3Int(10, 0, 12));
+        }
+
+        [Test]
+        public void OverlappingFootprintWithFreeOriginTest()
+        {
+            var (packet, serviceProvider) =
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            worldDatastore = ServerContext.WorldBlockDatastore;
+
+            //1x4をZ方向に設置（占有範囲 (0,0,0)〜(0,0,3)）
+            //Place a 1x4 block occupying (0,0,0)..(0,0,3)
+            worldDatastore.TryAddBlock(Block_1x4_Id, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            //原点(-2,0,3)は空きだが占有範囲が(0,0,3)で1x4と重なる3x2を設置する
+            //Place a 3x2 whose origin cell is free but whose footprint overlaps the 1x4 at (0,0,3)
+            var placed = worldDatastore.TryAddBlock(Block_3x2_Id, new Vector3Int(-2, 0, 3), BlockDirection.South, Array.Empty<BlockCreateParam>(), out _);
+
+            //占有範囲が重なるため設置は拒否される
+            //Placement must be rejected because the footprint overlaps
+            Assert.IsFalse(placed);
+            RetrieveNonExistentBlock(new Vector3Int(-2, 0, 3));
+            //元の1x4はそのまま残っていることをチェックする
+            RetrieveBlock(Block_1x4_Id, new Vector3Int(0, 0, 3));
         }
         
         [Test]
