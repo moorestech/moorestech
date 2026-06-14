@@ -120,6 +120,21 @@ queue 後に自前で `InputSystem.Update()` を呼ぶと、それは editor-upd
 12. 動画ファイル確認 (`/tmp/<name>.mp4`) + 必要なら ffmpeg -ss -t -c copy で切り出し
 ```
 
+## 確立された録画ワークフロー（実プレイ視点・決定版 / 検証済み）
+
+UIインタラクション機能を実プレイ視点で録る決定版手順。各 Step の詳細・スニペットは後続節を参照。**この順序を守れば、文脈ゼロの担当でも一発で撮れることを別subagentで実証済み。**
+
+1. **Step 0 探索**（実コードを Read して確定）: 対象が読む入力経路（`Mouse.current`/InputAction か legacy `Input` か）・readiness 条件・設置API・状態遷移の仕方・**実際に叩く API/フィールド名の実在**。
+2. **NoSave→Play→ready待ち**: SessionState フラグ→`control-play-mode Play`→単発検証してから timeout 付き until で ready をポーリング。
+3. **クリーン足場ステージを作る**（「カメラframing」節の推奨パターン）: `CreatePrimitive(Cube)` の広い板を空中配置 → `SetControllable(false)`+`SetPlayerPosition`(Warp) でプレイヤーを足場に着地 → 対象を足場上・プレイヤー前方に設置（`sleep 2` で View 生成待ち）。
+4. **実プレイヤーカメラのまま framing**: Cinemachine を切り離さず `StartTweenCamera`（pitch 浅め・distance 中庸）で寄せ、`screenshot --capture-mode rendering` で**アバター＋足場＋対象が映る**まで反復。
+5. **de-risk probe**（録画前の必須ゲート）: `collider.bounds.center` を1点 queue→sleep→内部状態 read で「単体選択=1」を確認。通らなければ座標/入力汚染/layer を切り分け。
+6. **Recorder ON**（アクション直前。boot/準備/de-risk は録らない）。
+7. **シナリオ実行**: 入力は全て `QueueStateEvent`（マウス/キー）。ドラッグは held 維持、**キー注入時は held マウスstateも再アサート**、`InputSystem.Update()` は呼ばない。各ビートで `screenshot` ＋内部状態 read。
+8. **Recorder OFF**（アクション直後）→ `control-play-mode Stop`。
+9. **受け入れ4条件を全部確認**（Step 7 参照）: 動画非0 / 内部 state / UI要素 / **実プレイ視点（アバター・地面・HUD が映る）**。
+10. **詰まったら**: 入力が一切効かない/汚染は **PlayMode 再起動で回復**。OS `simulate-*` は最後まで使わない。
+
 ## Step 0: サブエージェントによる探索と実行計画作成 (必須)
 
 PlayMode 起動より前に行う。**メインは Plan または general-purpose サブエージェントを起動**し、検証対象シナリオについて以下を調査・出力させる:
