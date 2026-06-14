@@ -62,7 +62,8 @@
         "Game.Train",
         "Game.PlayerRiding.Interface",
         "Unity.Mathematics",
-        "Unity.Splines"
+        "Unity.Splines",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

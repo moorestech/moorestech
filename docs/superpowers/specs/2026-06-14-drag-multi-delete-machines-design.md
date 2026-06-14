@@ -41,8 +41,12 @@ mouse-release, and press ESC to cancel only the deletion selection while staying
 5. **ESC（選択キャンセル）**: `CloseUI.GetKeyDown` で、選択集合の全要素を `ResetMaterial()` で戻して集合をクリアし、
    `_dragCanceled = true` にする（押下中の指を離しても手順4で削除しない）。**破壊モードは継続**（ステート遷移しない）。
    選択が無いときに押しても無害（何もしない）。
-6. **モード終了/遷移**: 破壊モードの終了は破壊トグル（`BlockDelete` / G）で行う。B で設置モード、Tab でインベントリ、
-   メニューキーでポーズ（既存）。**ESC ではモードを抜けない**（要件: 破壊ステートはそのまま）。
+6. **モード終了/遷移**: 破壊モードの終了は破壊トグル（`BlockDelete` / G）で行う。B で設置モード、Tab でインベントリ。
+   **ESC ではモードを抜けない**（要件: 破壊ステートはそのまま）。
+
+> **入力bindの注意（実機playtestで判明）**: `<Keyboard>/escape` は `OpenMenu` と `CloseUI` の両アクションに bind されている。
+> そのため破壊モードでは `HandleTransition` で `OpenMenu`→`PauseMenu` を拾ってはならない（拾うと ESC が常にポーズへ遷移し、
+> `CloseUI` による選択キャンセルが到達不能＝デッドコードになる）。破壊モード中の ESC は選択キャンセル専用とし、ポーズは開かない。
 
 単体クリック削除は「1 要素のドラッグ（押下で1個選択→離して削除）」として自然に成立するため、専用経路は設けない。
 
