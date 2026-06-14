@@ -149,7 +149,7 @@ namespace Game.CleanRoom
             {
                 var cell = new Vector3Int(x, y, z);
                 Enqueue(cell);
-                foreach (var n in CleanRoomWorld.SixNeighbors(cell)) Enqueue(n);
+                foreach (var n in CleanRoomCellSets.SixNeighbors(cell)) Enqueue(n);
             }
 
             #region Internal

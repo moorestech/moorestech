@@ -74,22 +74,12 @@ namespace Game.CleanRoom
             for (var x = info.MinPos.x; x <= info.MaxPos.x; x++)
             for (var y = info.MinPos.y; y <= info.MaxPos.y; y++)
             for (var z = info.MinPos.z; z <= info.MaxPos.z; z++)
-            foreach (var n in SixNeighbors(new Vector3Int(x, y, z)))
+            foreach (var n in CleanRoomCellSets.SixNeighbors(new Vector3Int(x, y, z)))
             {
                 if (!TryGetCleanRoomAt(n, out var room)) continue;
                 if (!result.Contains(room)) result.Add(room);
             }
             return result;
-        }
-
-        public static IEnumerable<Vector3Int> SixNeighbors(Vector3Int p)
-        {
-            yield return new Vector3Int(p.x + 1, p.y, p.z);
-            yield return new Vector3Int(p.x - 1, p.y, p.z);
-            yield return new Vector3Int(p.x, p.y + 1, p.z);
-            yield return new Vector3Int(p.x, p.y - 1, p.z);
-            yield return new Vector3Int(p.x, p.y, p.z + 1);
-            yield return new Vector3Int(p.x, p.y, p.z - 1);
         }
     }
 }

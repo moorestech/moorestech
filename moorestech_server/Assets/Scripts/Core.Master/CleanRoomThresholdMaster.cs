@@ -31,8 +31,8 @@ namespace Core.Master
                 return false;
             }
 
-            // 各行の値域を確認（DownBinRate は確率、MaxGrade は非負グレード）。
-            // Validate per-row ranges (DownBinRate is a probability, MaxGrade is a non-negative grade).
+            // 各行の値域を確認（DownBinRate は確率、MaxGrade は非負、濃度/必要換気は有限非負）。
+            // Validate per-row ranges (DownBinRate probability, MaxGrade non-negative, concentration/ACH finite & non-negative).
             for (var i = 0; i < Rows.Count; i++)
             {
                 if (Rows[i].DownBinRate < 0 || Rows[i].DownBinRate > 1)
@@ -45,10 +45,15 @@ namespace Core.Master
                     errorLogs = $"cleanRoomThresholds maxGrade must be >= 0 but was {Rows[i].MaxGrade}. row={i}";
                     return false;
                 }
+                if (!IsFiniteNonNegative(Rows[i].MaxConcentration) || !IsFiniteNonNegative(Rows[i].RequiredAirChangeRate))
+                {
+                    errorLogs = $"cleanRoomThresholds maxConcentration/requiredAirChangeRate must be finite & >= 0. row={i}";
+                    return false;
+                }
             }
 
-            // 行の単調性（濃度昇順・必要換気降順）を強制。ヒステリシス判定の前提。
-            // Enforce monotonic rows (concentration asc, required ACH desc); hysteresis relies on this.
+            // 行の単調性。濃度昇順・必要換気降順に加え、汚い行ほどグレード非増加・down-bin非減少を強制。
+            // Monotonic rows: concentration asc, ACH desc, plus MaxGrade non-increasing and DownBinRate non-decreasing as rows get dirtier.
             for (var i = 1; i < Rows.Count; i++)
             {
                 if (Rows[i].MaxConcentration <= Rows[i - 1].MaxConcentration ||
@@ -57,10 +62,21 @@ namespace Core.Master
                     errorLogs = $"cleanRoomThresholds rows must be sorted (cleanest first). row={i}";
                     return false;
                 }
+                if (Rows[i].MaxGrade > Rows[i - 1].MaxGrade || Rows[i].DownBinRate < Rows[i - 1].DownBinRate)
+                {
+                    errorLogs = $"cleanRoomThresholds dirtier rows must not raise maxGrade nor lower downBinRate. row={i}";
+                    return false;
+                }
             }
 
             errorLogs = null;
             return true;
+
+            #region Internal
+
+            bool IsFiniteNonNegative(float v) => !float.IsNaN(v) && !float.IsInfinity(v) && v >= 0;
+
+            #endregion
         }
 
         public void Initialize() { }

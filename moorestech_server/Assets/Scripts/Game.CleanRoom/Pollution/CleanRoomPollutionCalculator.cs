@@ -42,7 +42,7 @@ namespace Game.CleanRoom.Pollution
             connectorCount = 0;
             hatchThroughputPerSecond = 0.0;
             foreach (var cell in room.Cells)
-            foreach (var n in SixNeighbors(cell))
+            foreach (var n in CleanRoomCellSets.SixNeighbors(cell))
             {
                 if (room.Contains(n)) continue;
                 if (!world.TryGetBlock(n, out var block)) continue;
@@ -72,18 +72,6 @@ namespace Game.CleanRoom.Pollution
                 if (machine.IsRunning) count++;
             }
             return count;
-        }
-
-        // 6方向の隣接セル座標を返す。
-        // Yield the six face-adjacent neighbors.
-        private static IEnumerable<Vector3Int> SixNeighbors(Vector3Int p)
-        {
-            yield return new Vector3Int(p.x + 1, p.y, p.z);
-            yield return new Vector3Int(p.x - 1, p.y, p.z);
-            yield return new Vector3Int(p.x, p.y + 1, p.z);
-            yield return new Vector3Int(p.x, p.y - 1, p.z);
-            yield return new Vector3Int(p.x, p.y, p.z + 1);
-            yield return new Vector3Int(p.x, p.y, p.z - 1);
         }
     }
 }

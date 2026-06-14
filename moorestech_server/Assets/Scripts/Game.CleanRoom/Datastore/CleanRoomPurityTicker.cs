@@ -99,7 +99,7 @@ namespace Game.CleanRoom
             var seen = new HashSet<BlockInstanceId>();
             var burst = 0.0;
             foreach (var cell in room.Cells)
-            foreach (var n in CleanRoomWorld.SixNeighbors(cell))
+            foreach (var n in CleanRoomCellSets.SixNeighbors(cell))
             {
                 if (room.Contains(n)) continue;
                 if (!_worldBlockDatastore.TryGetBlock(n, out var block)) continue;
