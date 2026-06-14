@@ -10,6 +10,7 @@ using Client.Input;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
+using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -198,9 +199,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             void MarkInsufficientItemPreviewsAsNotPlaceable()
             {
-                // インベントリ内の所持数を取得
-                // Get the total count of the holding item in inventory
-                var availableCount = _localPlayerInventory.GetMainInventoryItemCount(context.HoldingItemId);
+                // 設置は選択中ホットバースロット1枠からのみ消費されるため、その枠の所持数で判定する
+                // Placement consumes only from the selected hotbar slot, so judge by that slot's count
+                var holdingSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(context.CurrentSelectHotbarSlotIndex);
+                var availableCount = _localPlayerInventory[holdingSlotIndex].Count;
 
                 // 設置可能なブロック数をカウントし、所持数を超えたら設置不可にする
                 // Count placeable blocks and mark as not placeable when exceeding available count
