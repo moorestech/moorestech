@@ -45,7 +45,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // 拒否理由のツールチップを毎フレーム先にリセットする
+            // 拒否理由ツールチップを毎フレーム先に消す
             // Reset the denial-reason tooltip at the start of each frame
             if (_isRemoveDeniedReasonShown)
             {
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Treat ESC as a selection cancel while staying in this mode
             if (InputManager.UI.CloseUI.GetKeyDown) CancelOnEscape();
 
-            // カーソル下の削除対象を取得する（無ければnull）
+            // カーソル下の削除対象を取得（無ければnull）
             // Resolve the target hovered this frame (null when nothing hit)
             BlockClickDetectUtil.TryGetCursorOnComponent(out IDeleteTarget hovered);
 
@@ -70,7 +70,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Begin a drag selection on left-click down
             HandleDragStart();
 
-            // ドラッグ中は選択へ追加、非ドラッグ中は単体ホバープレビュー
+            // ドラッグ中は選択へ追加、非ドラッグは単体表示
             // While dragging accumulate the selection, otherwise show single hover preview
             if (_isDragging) UpdateDragSelection();
             else UpdateSingleHoverPreview();
@@ -144,7 +144,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             void UpdateSingleHoverPreview()
             {
-                // ホバー対象が変わったら旧プレビューを戻し新プレビューを表示する
+                // ホバー対象が変われば旧を戻し新を表示する
                 // Swap preview when the hovered target changes
                 if (hovered != null)
                 {

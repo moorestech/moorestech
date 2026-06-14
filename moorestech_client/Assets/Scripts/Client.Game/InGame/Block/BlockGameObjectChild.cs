@@ -49,6 +49,13 @@ namespace Client.Game.InGame.Block
             DeleteAsync().Forget();
         }
 
+        // 同一ブロックの全メッシュ子は同じBlockGameObjectを指す＝論理削除単位
+        // All mesh children of a block share the same BlockGameObject = the logical delete unit
+        public object GetDeleteTargetKey()
+        {
+            return BlockGameObject;
+        }
+
         private async UniTask DeleteAsync()
         {
             _isDeleteRequesting = true;

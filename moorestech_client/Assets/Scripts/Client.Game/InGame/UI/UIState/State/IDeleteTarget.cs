@@ -31,5 +31,11 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Delete the target object
         /// </summary>
         void Delete();
+
+        /// <summary>
+        ///     論理削除対象を一意に表すキー（同一機械・車両・レールedgeの重複選択を排除するため）
+        ///     Key identifying the logical delete target, used to dedupe duplicate selection of the same machine/train/rail edge
+        /// </summary>
+        object GetDeleteTargetKey();
     }
 }
