@@ -5,6 +5,10 @@
 **作成日**: 2026-06-14 / multi-lens-review-loop（網羅性・事実正確性・アーキ実現性・順序依存・リスク見積 + codex 外部監査）で収束まで洗練。
 **網羅性 再監査(2026-06-14)**: `docs/ui-completeness-reaudit-plan.md` の手順で全ソースルートの **407 `.cs` + 32 UI 資産を全件 triage**（並列8エージェント、件数突合済み）。発覚した追加項目: INFRA-6 の第2状態機械 `GameStateType`、FEAT-COM-6(UIRoot 全UIトグル)、FEAT-COM-7(カーソル追従)、FEAT-CUT-1(カットシーン)、MODE-3 dev群拡充、BLK-5/6/7・WORLD-1 の責務是正、ChallengeList 死コード精査。詳細は §5 末尾。
 
+**実装セッション(2026-06-14, `docs/cef-webui-session-plan-2026-06-14.md`)**: subagent-driven + 並列wave方式で 5 機能を実装。**Web 側**(React/uGUI準拠レイアウト)は vitest 単体 46 + Playwright e2e 20 全 green、各機能の動作動画を `docs/webui-feature-videos-2026-06-14/` に収録。**C# ホスト側**(Topic/Action)は `uloop compile` ErrorCount 0 で通過、uGUI へは additive な getter/setter/event のみ追加(凍結方針維持)。**実機 web↔host 連携検証は INFRA-1(CEF 破損)解消待ち** — 現状の動作保証は mock host 相手の e2e + 録画 + コンパイルまで。
+- FEAT-INV-2(ホットバー選択)・FEAT-COM-2(モーダル)・FEAT-COM-3(プログレスバー)・FEAT-INV-6(液体スロット/ProgressArrow)・FEAT-INV-4+BLK-1(SubInventory 土台+チェスト) = Web 実装 + host Topic/Action 実装済(上記の検証範囲)。
+- 追加 host: `inventory.select_hotbar`/`ui.modal`(+`WebUiModalService`)/`ui.modal.respond`/`ui.progress`/`block_inventory.current`/`block_inventory.move_item`、`InventoryTopic.selectedHotbar`。
+
 ---
 
 ## 0. 現状サマリ（2026-06-14 時点）
