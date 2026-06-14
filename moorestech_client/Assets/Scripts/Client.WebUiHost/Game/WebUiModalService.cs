@@ -6,13 +6,25 @@ namespace Client.WebUiHost.Game
     /// <summary>
     /// Web UI へモーダル要求を push し、Web からの応答を待つブリッジサービス。
     /// 既存の uGUI ModalManager は pull 型のため、push 型の要求口として新設する。
-    /// 現時点で RequestModal を呼ぶプロデューサは未配線で、将来のゲームコードから利用される想定。
+    /// 合成ルート(WebUiGameBinder)で1度生成され Instance に公開される。将来のプロデューサは
+    /// WebUiModalService.Instance.RequestModal を呼ぶ(VContainer 登録はアセンブリ依存方向の
+    /// 制約=Client.Game→Client.WebUiHost を張れないため不可。ProgressBarView.Instance と同じ静的所有)。
     /// Bridge service that pushes modal requests to the Web UI and awaits the web reply.
-    /// Added because the existing uGUI ModalManager is pull-based; this provides a push-style request channel.
-    /// No producer calls RequestModal yet; future game code is expected to use it.
+    /// Constructed once at the composition root (WebUiGameBinder) and exposed via Instance; future
+    /// producers call WebUiModalService.Instance.RequestModal. VContainer registration is impossible
+    /// (Client.Game cannot reference Client.WebUiHost), so it uses static ownership like ProgressBarView.Instance.
     /// </summary>
     public class WebUiModalService
     {
+        // 合成ルートで生成された唯一のインスタンス。プロデューサ配線の解決口
+        // The single instance built at the composition root; the resolution point for producer wiring
+        public static WebUiModalService Instance { get; private set; }
+
+        public WebUiModalService()
+        {
+            Instance = this;
+        }
+
         // 現在保留中のモーダル要求。なければ null
         // The currently pending modal request, or null when none
         public ModalRequest Pending { get; private set; }
