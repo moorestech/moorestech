@@ -274,6 +274,37 @@
       ],
       "inputFluids": [],
       "outputFluids": []
+    },
+    {
+      "machineRecipeGuid": "3c000000-0000-0000-0000-000000000002",
+      "initialUnlocked": true,
+      "time": 3,
+      "blockGuid": "3b000000-0000-0000-0000-000000000002",
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000004"
+        }
+      ],
+      "inputFluids": [
+        {
+          "amount": 5,
+          "fluidGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "outputFluids": [
+        {
+          "amount": 7,
+          "fluidGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ]
     }
   ]
 }

@@ -879,6 +879,8 @@ properties:
         - key: moduleSlotCount
           type: integer
           default: 0
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
 
     - key: overrideVerticalBlock
       type: object

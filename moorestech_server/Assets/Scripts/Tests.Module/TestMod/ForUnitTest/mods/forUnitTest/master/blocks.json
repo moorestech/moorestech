@@ -4322,9 +4322,9 @@
         "requiredPower": 10000,
         "inputSlotCount": 2,
         "outputSlotCount": 6,
-        "inputTankCount": 0,
-        "outputTankCount": 0,
-        "innerTankCapacity": 0,
+        "inputTankCount": 1,
+        "outputTankCount": 1,
+        "innerTankCapacity": 1000,
         "moduleSlotCount": 0,
         "inventoryConnectors": {
           "outputConnects": [
@@ -4357,6 +4357,38 @@
                 "inventoryOptions": []
               },
               "connectorGuid": "3b000000-0000-0000-0000-000000000011"
+            }
+          ]
+        },
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Fluid",
+              "directions": [
+                [0, 0, 1],
+                [0, 0, -1]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "3b000000-0000-0000-0000-0000000000f1"
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [0, 0, 0],
+              "connectType": "Fluid",
+              "directions": [
+                [1, 0, 0],
+                [-1, 0, 0]
+              ],
+              "connectOption": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "3b000000-0000-0000-0000-0000000000f2"
             }
           ]
         }

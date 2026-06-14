@@ -5,6 +5,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks;
 using Game.Block.Blocks.CleanRoom;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Component;
@@ -51,10 +52,16 @@ namespace Game.Block.Factory.BlockTemplate
             // Build the receiver first because the output inventory references its effect values
             var receiver = new CleanRoomStateReceiverComponent();
 
+            // 流体タンク容量はマスタ値を使う（Vanillaと同じ）
+            // Use master values for fluid tank counts/capacity (same as Vanilla)
+            var inputTankCount = machineParam.InputTankCount;
+            var outputTankCount = machineParam.OutputTankCount;
+            var innerTankCapacity = machineParam.InnerTankCapacity;
+
             // 入力とモジュールは Vanilla を再利用、出力は専用型を組む
             // Reuse Vanilla input/module; build the dedicated output inventory
             var input = new VanillaMachineInputInventory(
-                blockId, machineParam.InputSlotCount, 0, 0f,
+                blockId, machineParam.InputSlotCount, inputTankCount, innerTankCapacity,
                 _blockInventoryUpdateEvent, blockInstanceId,
                 ServerContext.GetService<IGameUnlockStateDataController>());
 
@@ -63,7 +70,7 @@ namespace Game.Block.Factory.BlockTemplate
             CleanRoomMachineProcessorComponent processorRef = null;
 
             var output = new CleanRoomMachineOutputInventory(
-                machineParam.OutputSlotCount, 0, 0f, ServerContext.ItemStackFactory,
+                machineParam.OutputSlotCount, outputTankCount, innerTankCapacity, ServerContext.ItemStackFactory,
                 _blockInventoryUpdateEvent, blockInstanceId, machineParam.InputSlotCount,
                 inventoryConnectorComponent, receiver, () => processorRef?.NotifyNoOutput());
 
@@ -94,6 +101,17 @@ namespace Game.Block.Factory.BlockTemplate
                 inventoryConnectorComponent,
             };
 
+            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合・Vanillaのコピー）
+            // Add fluid connection support when fluid connectors are defined (mirrors Vanilla)
+            if (machineParam.FluidInventoryConnectors != null && (inputTankCount > 0 || outputTankCount > 0))
+            {
+                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
+                var fluidInventory = new CleanRoomMachineFluidInventoryComponent(input, output, fluidConnector);
+
+                components.Add(fluidConnector);
+                components.Add(fluidInventory);
+            }
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
@@ -117,6 +135,28 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 var moduleItems = jsonObject.ModuleSlot.Select(item => item.ToItemStack()).ToList();
                 for (var i = 0; i < moduleItems.Count && i < module.ModuleSlot.Count; i++) module.SetItemWithoutEvent(i, moduleItems[i]);
+            }
+
+            // 流体タンクを復元（Vanilla の MachineLoadState と同じ）
+            // Restore fluid tanks (same as Vanilla MachineLoadState)
+            if (jsonObject.InputFluidSlot != null)
+            {
+                for (var i = 0; i < jsonObject.InputFluidSlot.Count && i < input.FluidInputSlot.Count; i++)
+                {
+                    var fluidData = jsonObject.InputFluidSlot[i];
+                    input.FluidInputSlot[i].FluidId = fluidData.FluidId;
+                    input.FluidInputSlot[i].Amount = fluidData.Amount;
+                }
+            }
+
+            if (jsonObject.OutputFluidSlot != null)
+            {
+                for (var i = 0; i < jsonObject.OutputFluidSlot.Count && i < output.FluidOutputSlot.Count; i++)
+                {
+                    var fluidData = jsonObject.OutputFluidSlot[i];
+                    output.FluidOutputSlot[i].FluidId = fluidData.FluidId;
+                    output.FluidOutputSlot[i].Amount = fluidData.Amount;
+                }
             }
 
             var processorJson = jsonObject.Processor;

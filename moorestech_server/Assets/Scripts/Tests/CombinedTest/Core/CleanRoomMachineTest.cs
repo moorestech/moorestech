@@ -1,17 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.CleanRoom;
 using Game.Context;
 using Game.EnergySystem;
+using Game.Fluid;
+using Game.PlayerInventory;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.MachineRecipesModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -128,6 +135,116 @@ namespace Tests.CombinedTest.Core
             // 露光レシピの副産物出力（テスト mod で定義）がそのままの ItemId で存在する
             // The recipe's by-product output remains with its own ItemId
             AssertByProductPresent(block);
+        }
+
+
+        // 流体レシピを完走させ、入力流体が消費され出力流体が生成されることを確認する
+        // Run the fluid recipe to completion; input fluid is consumed and output fluid is produced
+        [Test]
+        public void FluidRecipeConsumesAndProducesFluidTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 部屋外プッシュで上書きされないよう毎tickプッシュを止める（他テストと同じ）
+            // Stop the per-tick push so the manually injected effect survives (same as other tests)
+            serviceProvider.GetService<CleanRoomDatastore>().Destroy();
+
+            var recipe = FindFluidRecipe();
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+
+            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var receiver = (CleanRoomStateReceiverComponent)block.GetComponent<ICleanRoomStateReceiver>();
+            var proc = block.GetComponent<CleanRoomMachineProcessorComponent>();
+
+            // 室内有効＋出力レベル不問のエフェクトを与える
+            // Inject a Valid-room effect so processing can start
+            receiver.SetCleanRoomEffect(new CleanRoomEffect(true, 4, 0.0));
+
+            // レシピのアイテム入力を投入
+            // Insert the recipe's item inputs
+            foreach (var inputItem in recipe.InputItems)
+                inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+
+            // レシピの入力流体を入力タンクへ直接注入
+            // Inject the recipe's input fluids directly into the input tank
+            var inputTanks = GetInputFluidContainers(inventory);
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
+            {
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid);
+                inputTanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, fluidId), FluidContainer.Empty);
+            }
+
+            RunUntilIdle(block, proc);
+
+            // 入力流体が消費されている（空にリセット）
+            // Input fluid has been consumed (reset to empty)
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
+            {
+                Assert.AreEqual(0, inputTanks[i].Amount, 0.01, $"input fluid {i} not consumed");
+                Assert.AreEqual(FluidMaster.EmptyFluidId, inputTanks[i].FluidId, $"input fluid {i} id not reset");
+            }
+
+            // 出力流体が生成されている
+            // Output fluid has been produced
+            var outputTanks = GetOutputFluidContainers(inventory);
+            for (var i = 0; i < recipe.OutputFluids.Length; i++)
+            {
+                var expectedId = MasterHolder.FluidMaster.GetFluidId(recipe.OutputFluids[i].FluidGuid);
+                Assert.AreEqual(expectedId, outputTanks[i].FluidId, $"output fluid {i} id mismatch");
+                Assert.AreEqual(recipe.OutputFluids[i].Amount, outputTanks[i].Amount, 0.01, $"output fluid {i} amount mismatch");
+            }
+        }
+
+        // タンクに流体をバッファした状態でセーブ→ロードし、流体が復元されることを確認する（Codexのsave-restore欠落の回帰固定）
+        // Save with buffered fluid in the tanks, reload, and verify fluid is restored (pins the Codex save-restore gap)
+        [Test]
+        public void FluidSaveLoadRoundTripTest()
+        {
+            var fluidId1 = MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000001"));
+            var fluidId2 = MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000002"));
+            var blockGuid = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
+                .First(r => r.BlockGuid != Guid.Empty && IsCleanRoomMachineBlock(r.BlockGuid)).BlockGuid;
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockGuid);
+
+            // セーブ側のワールドを構築し、タンクに流体をバッファする
+            // Build the save-side world and buffer fluid into the tanks
+            var (_, saveProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var assembleSaveJsonText = saveProvider.GetService<AssembleSaveJsonText>();
+
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+
+            var inputTanks = GetInputFluidContainers(inventory);
+            inputTanks[0].FluidId = fluidId1;
+            inputTanks[0].Amount = 33.5;
+
+            var outputTanks = GetOutputFluidContainers(inventory);
+            outputTanks[0].FluidId = fluidId2;
+            outputTanks[0].Amount = 17.25;
+
+            var json = assembleSaveJsonText.AssembleSaveJson();
+            ServerContext.WorldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
+
+            // ロード側のワールドへ読み込んで流体が復元されることを確認する
+            // Load into a fresh world and verify the fluid is restored
+            var (_, loadProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var loader = loadProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            loader.Load(json);
+
+            var loadBlock = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
+            var loadInventory = loadBlock.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+
+            var loadInput = GetInputFluidContainers(loadInventory);
+            Assert.AreEqual(fluidId1, loadInput[0].FluidId, "input fluid id not restored");
+            Assert.AreEqual(33.5, loadInput[0].Amount, 0.01, "input fluid amount not restored");
+
+            var loadOutput = GetOutputFluidContainers(loadInventory);
+            Assert.AreEqual(fluidId2, loadOutput[0].FluidId, "output fluid id not restored");
+            Assert.AreEqual(17.25, loadOutput[0].Amount, 0.01, "output fluid amount not restored");
         }
 
 
@@ -264,6 +381,43 @@ namespace Tests.CombinedTest.Core
             foreach (var o in r.OutputItems)
                 if (MasterHolder.SemiconductorChipMaster.TryGetDistribution(r.MachineRecipeGuid, o.ItemGuid, out _)) return r;
             throw new Exception("exposure recipe not found");
+        }
+
+        // CleanRoomMachine 用かつ入出力流体を持つレシピを引く
+        // Find the CleanRoomMachine recipe that uses input/output fluids
+        MachineRecipeMasterElement FindFluidRecipe()
+        {
+            foreach (var r in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
+            {
+                if (!IsCleanRoomMachineBlock(r.BlockGuid)) continue;
+                if (r.InputFluids.Length > 0 && r.OutputFluids.Length > 0) return r;
+            }
+            throw new Exception("CleanRoom fluid recipe not found");
+        }
+
+        bool IsCleanRoomMachineBlock(Guid blockGuid)
+        {
+            if (blockGuid == Guid.Empty) return false;
+            var master = MasterHolder.BlockMaster.GetBlockMaster(blockGuid);
+            return master.BlockType == "CleanRoomMachine";
+        }
+
+        // 専用ブロックインベントリから入出力流体タンクをリフレクションで取得する
+        // Read the input/output fluid tanks from the dedicated block inventory via reflection
+        IReadOnlyList<FluidContainer> GetInputFluidContainers(CleanRoomMachineBlockInventoryComponent inventory)
+        {
+            var input = (VanillaMachineInputInventory)typeof(CleanRoomMachineBlockInventoryComponent)
+                .GetField("_inputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(inventory);
+            return input.FluidInputSlot;
+        }
+
+        IReadOnlyList<FluidContainer> GetOutputFluidContainers(CleanRoomMachineBlockInventoryComponent inventory)
+        {
+            var output = (CleanRoomMachineOutputInventory)typeof(CleanRoomMachineBlockInventoryComponent)
+                .GetField("_outputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(inventory);
+            return output.FluidOutputSlot;
         }
 
     }
