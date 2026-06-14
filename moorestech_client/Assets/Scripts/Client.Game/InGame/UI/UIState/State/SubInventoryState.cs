@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Client.Common.Asset;
 using Client.Game.InGame.Context;
@@ -30,6 +31,15 @@ namespace Client.Game.InGame.UI.UIState.State
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
 
+        // Web UI など外部が現在開いているサブインベントリと発生元を読むための公開口
+        // Public accessors so external readers (e.g. Web UI) can see the open sub-inventory and its source
+        public ISubInventory CurrentSubInventory => _currentView;
+        public ISubInventorySource CurrentSubInventorySource => _subInventorySource;
+
+        // スロット単位の更新通知。中身が変わるたびに発火する
+        // Per-slot update notification, fired whenever the contents change
+        public event Action OnSubInventoryUpdated;
+
 
         public SubInventoryState(PlayerInventoryViewController playerInventoryViewController)
         {
@@ -51,6 +61,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 // アイテムを更新
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
                 _currentView.UpdateInventorySlot(packet.Slot, item);
+
+                // 外部購読者（Web UI など）へ更新を通知する
+                // Notify external subscribers (e.g. Web UI) of the update
+                OnSubInventoryUpdated?.Invoke();
             }
             else if (packet.EventType == InventoryEventType.Remove)
             {
@@ -126,6 +140,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 // インベントリの更新を購読
                 // Subscribe to inventory updates
                 ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
+
+                // ロード完了を外部購読者（Web UI など）へ通知する
+                // Notify external subscribers (e.g. Web UI) that loading has finished
+                OnSubInventoryUpdated?.Invoke();
             }
 
             #endregion
