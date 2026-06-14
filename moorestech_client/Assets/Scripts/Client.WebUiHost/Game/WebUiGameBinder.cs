@@ -1,6 +1,10 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.ProgressBar;
+using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Game.UnlockState;
@@ -27,16 +31,37 @@ namespace Client.WebUiHost.Game
                 return;
             }
 
-            // DI からインベントリコントローラを取得
-            // Resolve the inventory controller from DI
-            var controller = ClientDIContext.DIContainer
-                .DIContainerResolver
-                .Resolve<LocalPlayerInventoryController>();
+            // DI からインベントリコントローラと UI 系コンポーネントを取得
+            // Resolve the inventory controller and UI components from DI
+            var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+            var controller = resolver.Resolve<LocalPlayerInventoryController>();
+            var hotBarView = resolver.Resolve<HotBarView>();
+            var uiStateControl = resolver.Resolve<UIStateControl>();
+            var subInventoryState = resolver.Resolve<SubInventoryState>();
 
-            // インベントリトピックを生成して Hub に登録
-            // Create inventory topic and register it with the Hub
-            var inventoryTopic = new InventoryTopic(hub, controller);
+            // インベントリトピックを生成して Hub に登録（selectedHotbar 用に HotBarView を渡す）
+            // Create inventory topic and register it (HotBarView is passed for selectedHotbar)
+            var inventoryTopic = new InventoryTopic(hub, controller, hotBarView);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
+
+            // モーダルブリッジサービスを生成（topic と action で共有）
+            // Create the modal bridge service (shared by topic and action)
+            var modalService = new WebUiModalService();
+
+            // モーダルトピックを登録
+            // Register the modal topic
+            var modalTopic = new ModalTopic(hub, modalService);
+            hub.RegisterTopic(ModalTopic.TopicName, modalTopic);
+
+            // 進捗バートピックを登録（ProgressBarView は静的シングルトン）
+            // Register the progress-bar topic (ProgressBarView is a static singleton)
+            var progressTopic = new ProgressTopic(hub, ProgressBarView.Instance);
+            hub.RegisterTopic(ProgressTopic.TopicName, progressTopic);
+
+            // ブロックインベントリトピックを登録
+            // Register the block-inventory topic
+            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState);
+            hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
 
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic
@@ -67,6 +92,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new CollectActionHandler(controller));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
+            hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
+            hub.RegisterAction(new ModalRespondActionHandler(modalService));
+            hub.RegisterAction(new BlockMoveItemActionHandler(controller));
         }
     }
 }

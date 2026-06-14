@@ -179,6 +179,20 @@ namespace Client.Game.InGame.UI.Inventory
             hotBarItems[prevIndex].SetSelect(false);
             hotBarItems[nextIndex].SetSelect(true);
         }
+
+        // Web UI など外部から選択スロットを設定する。Update のキー入力経路と同じ更新を行う
+        // Set the selected slot from outside (e.g. Web UI), mirroring the Update key-input path
+        public void SetSelectIndex(int index)
+        {
+            // 範囲外入力は丸める。選択が変わらない場合は何もしない
+            // Clamp out-of-range input; do nothing when the selection does not change
+            var clamped = (index % hotBarItems.Count + hotBarItems.Count) % hotBarItems.Count;
+            if (clamped == SelectIndex) return;
+
+            UpdateSelectedView(SelectIndex, clamped);
+            OnSelectHotBar?.Invoke(clamped);
+            SelectIndex = clamped;
+        }
         
         public void SetActive(bool active)
         {
