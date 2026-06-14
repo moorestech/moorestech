@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
+using Newtonsoft.Json.Linq;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.CleanRoom;
@@ -35,6 +36,75 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0.0167, master.Rows[0].RequiredAirChangeRate, 1e-9);
             Assert.AreEqual(1000.0, master.Rows[3].MaxConcentration, 1e-9);
             Assert.AreEqual(0.0014, master.Rows[3].RequiredAirChangeRate, 1e-9);
+        }
+
+        // 有効なテストMODのマスタは Validate を通る（非回帰ガード）。
+        // The valid test-mod master passes Validate (regression guard).
+        [Test]
+        public void ThresholdMaster_Validate_ValidMaster_Passes()
+        {
+            var master = new CleanRoomThresholdMaster(ValidThresholdJToken());
+            var ok = master.Validate(out var msg);
+            Assert.IsTrue(ok, msg);
+            Assert.IsNull(msg);
+        }
+
+        // 行が空だと Validate が失敗する。
+        // Validate fails when there are no rows.
+        [Test]
+        public void ThresholdMaster_Validate_EmptyRows_Fails()
+        {
+            var token = ValidThresholdJToken();
+            ((JArray)token["data"]).Clear();
+
+            AssertThresholdValidateFails(token);
+        }
+
+        // downBinRate が [0,1] を外れると Validate が失敗する。
+        // Validate fails when downBinRate is outside [0,1].
+        [Test]
+        public void ThresholdMaster_Validate_DownBinRateOutOfRange_Fails()
+        {
+            var token = ValidThresholdJToken();
+            token["data"][0]["downBinRate"] = 1.5;
+
+            AssertThresholdValidateFails(token);
+        }
+
+        // maxGrade が負だと Validate が失敗する。
+        // Validate fails when maxGrade is negative.
+        [Test]
+        public void ThresholdMaster_Validate_NegativeMaxGrade_Fails()
+        {
+            var token = ValidThresholdJToken();
+            token["data"][0]["maxGrade"] = -1;
+
+            AssertThresholdValidateFails(token);
+        }
+
+        // Validate が false かつメッセージ非空であることを確認する共通アサート。
+        // Shared assert: Validate returns false with a non-empty message.
+        private static void AssertThresholdValidateFails(JToken token)
+        {
+            var master = new CleanRoomThresholdMaster(token);
+            var ok = master.Validate(out var msg);
+            Assert.IsFalse(ok);
+            Assert.IsNotEmpty(msg);
+        }
+
+        // テストMOD相当の有効な JToken を生成する（テスト毎に独立コピー）。
+        // Builds a valid test-mod-equivalent JToken (independent copy per test).
+        private static JToken ValidThresholdJToken()
+        {
+            return JObject.Parse(@"
+            {
+              ""data"": [
+                { ""label"": ""A"", ""maxConcentration"": 10.0,   ""maxGrade"": 4, ""downBinRate"": 0.0,  ""requiredAirChangeRate"": 0.0167 },
+                { ""label"": ""B"", ""maxConcentration"": 50.0,   ""maxGrade"": 3, ""downBinRate"": 0.05, ""requiredAirChangeRate"": 0.0083 },
+                { ""label"": ""C"", ""maxConcentration"": 200.0,  ""maxGrade"": 2, ""downBinRate"": 0.15, ""requiredAirChangeRate"": 0.0042 },
+                { ""label"": ""D"", ""maxConcentration"": 1000.0, ""maxGrade"": 1, ""downBinRate"": 0.35, ""requiredAirChangeRate"": 0.0014 }
+              ]
+            }");
         }
 
         // バランス確定書§1 の4行（A/B/C/D相当）。判定純関数テスト用。

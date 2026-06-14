@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -89,6 +90,116 @@ namespace Tests.CombinedTest.Core
             var found = master.TryGetDistribution(recipeGuid, byproductGuid, out _);
 
             Assert.IsFalse(found);
+        }
+
+        // 有効なテストMODのマスタは Validate を通る（非回帰ガード）。
+        // The valid test-mod master passes Validate (regression guard).
+        [Test]
+        public void Validate_ValidMaster_Passes()
+        {
+            var master = new SemiconductorChipMaster(ValidJToken());
+            var ok = master.Validate(out var msg);
+            Assert.IsTrue(ok, msg);
+            Assert.IsNull(msg);
+        }
+
+        // levelWeights が chipLevels に無い level を参照すると Validate が失敗する。
+        // Validate fails when levelWeights references a level absent from chipLevels.
+        [Test]
+        public void Validate_LevelWeightUnknownLevel_Fails()
+        {
+            var token = ValidJToken();
+            // 存在しない level=99 を分布に混入させる。
+            // Inject a level=99 that does not exist in chipLevels.
+            ((JArray)token["outputDistributions"][0]["levelWeights"]).Add(
+                new JObject { ["level"] = 99, ["weight"] = 0.5 });
+
+            AssertValidateFails(token);
+        }
+
+        // weight が 0 以下だと Validate が失敗する。
+        // Validate fails when a weight is non-positive.
+        [Test]
+        public void Validate_NonPositiveWeight_Fails()
+        {
+            var token = ValidJToken();
+            token["outputDistributions"][0]["levelWeights"][0]["weight"] = 0.0;
+
+            AssertValidateFails(token);
+        }
+
+        // (machineRecipeGuid, outputItemGuid) が重複すると Validate が失敗する。
+        // Validate fails on duplicate (machineRecipeGuid, outputItemGuid) keys.
+        [Test]
+        public void Validate_DuplicateDistributionKey_Fails()
+        {
+            var token = ValidJToken();
+            // 同一キーの分布をもう1つ追加する。
+            // Append a second distribution with the same key.
+            var dup = (JObject)token["outputDistributions"][0].DeepClone();
+            ((JArray)token["outputDistributions"]).Add(dup);
+
+            AssertValidateFails(token);
+        }
+
+        // chipLevels が空だと Validate が失敗する。
+        // Validate fails when chipLevels is empty.
+        [Test]
+        public void Validate_EmptyChipLevels_Fails()
+        {
+            var token = ValidJToken();
+            ((JArray)token["chipLevels"]).Clear();
+
+            AssertValidateFails(token);
+        }
+
+        // chipLevels の level が重複すると Validate が失敗する。
+        // Validate fails on duplicate chipLevels level.
+        [Test]
+        public void Validate_DuplicateChipLevel_Fails()
+        {
+            var token = ValidJToken();
+            var dup = (JObject)token["chipLevels"][0].DeepClone();
+            ((JArray)token["chipLevels"]).Add(dup);
+
+            AssertValidateFails(token);
+        }
+
+        // Validate が false かつメッセージ非空であることを確認する共通アサート。
+        // Shared assert: Validate returns false with a non-empty message.
+        private static void AssertValidateFails(JToken token)
+        {
+            var master = new SemiconductorChipMaster(token);
+            var ok = master.Validate(out var msg);
+            Assert.IsFalse(ok);
+            Assert.IsNotEmpty(msg);
+        }
+
+        // テストMOD相当の有効な JToken を生成する（テスト毎に独立コピー）。
+        // Builds a valid test-mod-equivalent JToken (independent copy per test).
+        private static JToken ValidJToken()
+        {
+            return JObject.Parse(@"
+            {
+              ""chipLevels"": [
+                { ""level"": 1, ""itemGuid"": ""3a000000-0000-0000-0000-000000000001"" },
+                { ""level"": 2, ""itemGuid"": ""3a000000-0000-0000-0000-000000000002"" },
+                { ""level"": 3, ""itemGuid"": ""3a000000-0000-0000-0000-000000000003"" },
+                { ""level"": 4, ""itemGuid"": ""3a000000-0000-0000-0000-000000000004"" }
+              ],
+              ""outputDistributions"": [
+                {
+                  ""machineRecipeGuid"": ""3c000000-0000-0000-0000-000000000001"",
+                  ""outputItemGuid"": ""3a000000-0000-0000-0000-000000000001"",
+                  ""levelWeights"": [
+                    { ""level"": 1, ""weight"": 0.70 },
+                    { ""level"": 2, ""weight"": 0.20 },
+                    { ""level"": 3, ""weight"": 0.08 },
+                    { ""level"": 4, ""weight"": 0.02 }
+                  ]
+                }
+              ]
+            }");
         }
     }
 }

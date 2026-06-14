@@ -52,8 +52,14 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // chipLevels の重複チェック。
-            // Validate chipLevels for duplicates.
+            // chipLevels が空でなく、level/itemGuid が重複しないことを確認。
+            // Ensure chipLevels is non-empty and has distinct level/itemGuid.
+            if (_data.ChipLevels.Length == 0)
+            {
+                errorLogs = "semiconductorChips: chipLevels must not be empty";
+                return false;
+            }
+
             var seenLevels = new HashSet<int>();
             var seenGuids = new HashSet<Guid>();
             foreach (var chip in _data.ChipLevels)
@@ -70,14 +76,41 @@ namespace Core.Master
                 }
             }
 
-            // outputDistributions の levelWeights が空でないことを確認。
-            // Ensure every outputDistributions entry has at least one levelWeight.
+            // 分布キー (machineRecipeGuid, outputItemGuid) の重複検出用。
+            // Tracks distribution keys (machineRecipeGuid, outputItemGuid) to detect duplicates.
+            var seenDistKeys = new HashSet<(Guid, Guid)>();
             foreach (var dist in _data.OutputDistributions)
             {
+                // levelWeights が空だと分布として成立しない。
+                // An empty levelWeights cannot form a distribution.
                 if (dist.LevelWeights.Length == 0)
                 {
                     errorLogs = $"semiconductorChips: outputDistributions entry has empty levelWeights (recipe={dist.MachineRecipeGuid})";
                     return false;
+                }
+
+                // 分布キー重複はルックアップが曖昧になるため禁止。
+                // Duplicate distribution keys make lookups ambiguous; reject them.
+                if (!seenDistKeys.Add((dist.MachineRecipeGuid, dist.OutputItemGuid)))
+                {
+                    errorLogs = $"semiconductorChips: duplicate distribution key (recipe={dist.MachineRecipeGuid}, output={dist.OutputItemGuid})";
+                    return false;
+                }
+
+                // 各 levelWeight の level は chipLevels に存在し、weight は正でなければならない。
+                // Each levelWeight's level must exist in chipLevels and weight must be positive.
+                foreach (var lw in dist.LevelWeights)
+                {
+                    if (!seenLevels.Contains(lw.Level))
+                    {
+                        errorLogs = $"semiconductorChips: levelWeights references unknown level {lw.Level} (recipe={dist.MachineRecipeGuid}, output={dist.OutputItemGuid})";
+                        return false;
+                    }
+                    if (lw.Weight <= 0)
+                    {
+                        errorLogs = $"semiconductorChips: levelWeights weight must be > 0 but was {lw.Weight} (level={lw.Level}, recipe={dist.MachineRecipeGuid})";
+                        return false;
+                    }
                 }
             }
 
