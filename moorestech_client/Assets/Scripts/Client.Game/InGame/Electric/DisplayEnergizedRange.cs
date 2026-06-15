@@ -90,13 +90,24 @@ namespace Client.Game.InGame.Electric
                     ? electricPoleParam.MachineConnectionHeightRange
                     : electricPoleParam.PoleConnectionHeightRange;
                 
-                var rangeObject = Instantiate(rangePrefab, electricalPole.transform.position, Quaternion.identity, transform);
+                // サーバの接続範囲ボックス(floor(range/2)起点)に合わせて中心をずらす。偶数は対称、奇数は+0.5セル
+                // Offset the center to match the server's connection box (anchored at floor(range/2)): even = symmetric, odd = +0.5 cell
+                var centerOffset = new Vector3(CellCenterOffset(horizontalRange), CellCenterOffset(heightRange), CellCenterOffset(horizontalRange));
+                var rangeObject = Instantiate(rangePrefab, electricalPole.transform.position + centerOffset, Quaternion.identity, transform);
                 rangeObject.SetRange(horizontalRange, heightRange);
                 rangeObjects.Add(rangeObject);
             }
             
             #region Internal
-            
+
+            // サーバの EnumerateRange は floor(range/2) を起点にするため、奇数レンジで中心が+0.5セルずれる
+            // Server's EnumerateRange anchors at floor(range/2), so the center shifts +0.5 cell for odd ranges
+            float CellCenterOffset(int range)
+            {
+                var clamped = Mathf.Max(range, 1);
+                return clamped / 2f - clamped / 2;
+            }
+
             (bool isElectricalBlock, bool isPole) IsDisplay()
             {
                 var hotBarSlot = _hotBarView.SelectIndex;

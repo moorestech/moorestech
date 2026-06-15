@@ -69,10 +69,6 @@ namespace Game.Block.Blocks.Machine.State
             var effectiveRequestPower = _context.RequestPower * _context.EffectComponent.AggregateCurrent().PowerMultiplier;
             var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_context.CurrentPower, effectiveRequestPower);
 
-            // 電力を消費する
-            // Consume power
-            _context.UsedPower = true;
-
             // 残りtickを使い切ったら完了して待機へ
             // Once remaining ticks are exhausted, finish and return to idle
             if (subTicks >= RemainingTicks)

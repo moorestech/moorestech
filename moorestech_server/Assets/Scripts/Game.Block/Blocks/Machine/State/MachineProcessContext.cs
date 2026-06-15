@@ -12,8 +12,10 @@ namespace Game.Block.Blocks.Machine.State
         public readonly MachineModuleEffectComponent EffectComponent;
         public readonly float RequestPower;
 
+        // このtickで各電力セグメントから供給された電力の加算器（次のUpdateでCurrentPowerへ確定）
+        // Accumulator of power supplied by each energy segment this tick (latched into CurrentPower on the next Update)
+        public float SuppliedPower;
         public float CurrentPower;
-        public bool UsedPower;
 
         public MachineProcessContext(
             VanillaMachineInputInventory inputInventory,
