@@ -1,21 +1,30 @@
 using System;
 using Core.Master;
 using Game.Fluid;
-using MessagePack;
+using Mooresmaster.Model.TrainModule;
+using Newtonsoft.Json;
+using FluidContainer = Game.Fluid.FluidContainer;
 
 namespace Game.Train.Unit.Containers
 {
-    [MessagePackObject]
     public class FluidTrainCarContainer : ITrainCarContainer
     {
-        [Key(0)] public readonly FluidContainer Container;
-        
-        [Obsolete]
-        public FluidTrainCarContainer() { }
+        public readonly FluidContainer Container;
 
         public FluidTrainCarContainer(FluidContainer container)
         {
             Container = container;
+        }
+        
+        public static FluidTrainCarContainer Load(string saveState, TrainCarMasterElement master)
+        {
+            var saveData = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(saveState);
+            return new FluidTrainCarContainer(saveData.ToFluidContainer(master.FluidCapacity));
+        }
+
+        public (string containerType, string saveState) GetSaveState()
+        {
+            return (TrainCarMasterElement.DefaultContainerTypeConst.Fluid, JsonConvert.SerializeObject(new FluidContainerSaveJsonObject(Container)));
         }
 
         public int GetWeight()

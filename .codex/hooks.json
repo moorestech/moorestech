@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "^(Edit|Write|MultiEdit|NotebookEdit|apply_patch|str_replace_editor|str_replace_based_edit_tool)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \".dev-hooks/check-diff.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Checking diff against project review rules"
+          }
+        ]
+      }
+    ]
+  }
+}

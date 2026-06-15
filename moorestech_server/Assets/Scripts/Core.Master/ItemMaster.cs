@@ -85,6 +85,17 @@ namespace Core.Master
             return itemId;
         }
         
+        // 揮発ItemIdをセーブ用の安定GUIDへ変換する（空アイテムはGuid.Empty）
+        // Convert the volatile ItemId to a stable GUID for saving (empty item maps to Guid.Empty)
+        public Guid GetItemGuid(ItemId itemId)
+        {
+            if (itemId == EmptyItemId)
+            {
+                return Guid.Empty;
+            }
+            return GetItemMaster(itemId).ItemGuid;
+        }
+
         public bool ExistItemId(Guid guid)
         {
             return _itemGuidToItemId.ContainsKey(guid);

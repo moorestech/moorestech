@@ -36,11 +36,11 @@ namespace Game.Block.Blocks.Pump
                 return;
             }
 
-            var json = JsonConvert.DeserializeObject<PumpFluidOutputSaveJson>(state);
+            var json = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(state);
             var restoredAmount = Math.Min(json.Amount, _tank.Capacity);
-            
+
             _tank.Amount = restoredAmount;
-            _tank.FluidId = new FluidId(json.FluidIdValue);
+            _tank.FluidId = json.FluidId;
         }
 
         public void Update()
@@ -101,12 +101,7 @@ namespace Game.Block.Blocks.Pump
         {
             BlockException.CheckDestroy(this);
 
-            var state = new PumpFluidOutputSaveJson
-            {
-                FluidIdValue = _tank.FluidId.AsPrimitive(),
-                Amount = _tank.Amount,
-                Capacity = _tank.Capacity,
-            };
+            var state = new FluidContainerSaveJsonObject(_tank);
 
             return JsonConvert.SerializeObject(state);
         }
@@ -128,15 +123,4 @@ namespace Game.Block.Blocks.Pump
         }
     }
     
-    public class PumpFluidOutputSaveJson
-    {
-        [JsonProperty("fluidId")]
-        public int FluidIdValue;
-        
-        [JsonProperty("amount")]
-        public double Amount;
-        
-        [JsonProperty("capacity")]
-        public double Capacity;
-    }
 }
