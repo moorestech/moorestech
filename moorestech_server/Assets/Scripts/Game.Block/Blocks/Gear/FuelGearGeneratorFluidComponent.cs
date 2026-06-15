@@ -37,8 +37,8 @@ namespace Game.Block.Blocks.Gear
             
             var saveData = JsonConvert.DeserializeObject<FuelGearGeneratorFluidSaveData>(saveState);
             
-            _fuelTank.FluidId = new FluidId(saveData.FluidId);
-            _fuelTank.Amount = saveData.Amount;
+            _fuelTank.FluidId = saveData.Fluid.FluidId;
+            _fuelTank.Amount = saveData.Fluid.Amount;
             _wasRefilledThisUpdate = saveData.WasRefilledThisUpdate;
             _consecutiveUpdatesWithoutRefill = saveData.ConsecutiveUpdatesWithoutRefill;
             _wasEverDisconnected = saveData.WasEverDisconnected;
@@ -109,8 +109,7 @@ namespace Game.Block.Blocks.Gear
         {
             var saveData = new FuelGearGeneratorFluidSaveData
             {
-                FluidId = _fuelTank.FluidId.AsPrimitive(),
-                Amount = _fuelTank.Amount,
+                Fluid = new FluidContainerSaveJsonObject(_fuelTank),
                 WasRefilledThisUpdate = _wasRefilledThisUpdate,
                 ConsecutiveUpdatesWithoutRefill = _consecutiveUpdatesWithoutRefill,
                 WasEverDisconnected = _wasEverDisconnected
@@ -122,8 +121,7 @@ namespace Game.Block.Blocks.Gear
         // Save data structure
         private class FuelGearGeneratorFluidSaveData
         {
-            public int FluidId { get; set; }
-            public double Amount { get; set; }
+            public FluidContainerSaveJsonObject Fluid { get; set; }
             public bool WasRefilledThisUpdate { get; set; }
             public int ConsecutiveUpdatesWithoutRefill { get; set; }
             public bool WasEverDisconnected { get; set; }

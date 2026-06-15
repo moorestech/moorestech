@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.Fluid
             // セーブデータがある場合はロード
             if (componentStates != null && componentStates.TryGetValue(FluidPipeSaveComponent.SaveKeyStatic, out var savedState))
             {
-                var jsonObject = JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(savedState);
+                var jsonObject = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(savedState);
                 _fluidContainer.FluidId = jsonObject.FluidId;
                 _fluidContainer.Amount = jsonObject.Amount;
 

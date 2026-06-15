@@ -10,7 +10,7 @@ using Game.Train.Event;
 using Game.Train.SaveLoad;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
-using MessagePack;
+using Newtonsoft.Json;
 using Mooresmaster.Model.TrainModule;
 using UnityEngine;
 using FluidContainer = Game.Fluid.FluidContainer;
@@ -175,7 +175,7 @@ namespace Game.Train.Unit
                 TrainCarMasterId = this.TrainCarMasterElement.TrainCarGuid,
                 IsFacingForward = this.IsFacingForward,
                 DockingBlockPosition = dockingPosition,
-                ContainerSaveData = MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(Container)),
+                ContainerSaveData = JsonConvert.SerializeObject(TrainCarContainerSaveJsonObject.FromContainer(Container)),
                 RemainFuelTime = this.RemainFuelTime
             };
         }
@@ -201,7 +201,7 @@ namespace Game.Train.Unit
             
             // ロード時もSetContainer経由で通知バインドを行う
             // Restore via SetContainer so the notification binding is established on load.
-            var restoredContainer = MessagePackSerializer.Deserialize<ITrainCarContainer>(MessagePackSerializer.ConvertFromJson(data.ContainerSaveData));
+            var restoredContainer = JsonConvert.DeserializeObject<TrainCarContainerSaveJsonObject>(data.ContainerSaveData)?.ToContainer();
             car.SetContainer(restoredContainer);
 
             car.SetRemainFuelTime(data.RemainFuelTime);

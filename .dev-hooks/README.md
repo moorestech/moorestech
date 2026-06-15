@@ -22,6 +22,15 @@
 - 出力: 一致時のみ `hookSpecificOutput.additionalContext` で観点を注入（非ブロッキング）。一致しなければ無言で終了。
 - 安全側: 入力parse失敗・rules.json欠損など何かあれば必ず exit 0（エージェントを止めない）。
 
+## クロスプラットフォーム（mac / windows / claude / codex）
+
+前提: どのOSでも `node` が PATH に通っていること。
+
+- 本体スクリプトは純Nodeで、`import.meta.url` から自分の隣の `rules.json` を解決する **CWD非依存**設計。どのカレントから起動されても動く。
+- Claude Code: `${CLAUDE_PROJECT_DIR}` をClaude自身が展開するため全OSで動作。
+- Codex: コマンドは相対パス `node ".dev-hooks/check-diff.mjs"`。cmd.exe / PowerShell / bash いずれでも展開不要で動く。
+  - 注意: Codexを **リポジトリのサブディレクトリから起動**した場合、相対パスが解決できないことがある。その場合は POSIX 環境なら `node "$(git rev-parse --show-toplevel)/.dev-hooks/check-diff.mjs"`、Windows なら絶対パスに変更する。
+
 ## ルールの足し方（拡張）
 
 `rules.json` の `rules` 配列に1要素足すだけ。スクリプトは触らない。

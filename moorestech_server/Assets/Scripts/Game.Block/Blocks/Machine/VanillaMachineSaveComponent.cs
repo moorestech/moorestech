@@ -80,26 +80,4 @@ namespace Game.Block.Blocks.Machine
         [JsonProperty("processor")]
         public VanillaMachineProcessorSaveJsonObject Processor;
     }
-    
-    public class FluidContainerSaveJsonObject
-    {
-        [JsonProperty("fluidId")]
-        public int FluidIdValue;
-        
-        [JsonIgnore]
-        public FluidId FluidId => new FluidId(FluidIdValue);
-        
-        [JsonProperty("amount")]
-        public double Amount;
-        
-        public FluidContainerSaveJsonObject()
-        {
-        }
-        
-        public FluidContainerSaveJsonObject(FluidContainer container)
-        {
-            FluidIdValue = container.FluidId.AsPrimitive();
-            Amount = container.Amount;
-        }
-    }
 }

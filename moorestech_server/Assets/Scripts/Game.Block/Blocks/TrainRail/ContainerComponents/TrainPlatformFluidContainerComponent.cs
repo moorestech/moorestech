@@ -12,7 +12,7 @@ using Mooresmaster.Model.BlockConnectInfoModule;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
-using MessagePack;
+using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
@@ -52,9 +52,11 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             if (componentStates.TryGetValue(SaveKey, out var serialized))
             {
-                var serializedBytes = MessagePackSerializer.ConvertFromJson(serialized);
-                var saveData = MessagePackSerializer.Deserialize<TrainPlatformFluidContainerSaveData>(serializedBytes);
-                Container = saveData.Container;
+                var saveData = JsonConvert.DeserializeObject<TrainPlatformFluidContainerSaveJsonObject>(serialized);
+                if (saveData?.Fluid != null)
+                {
+                    Container = new FluidTrainCarContainer(saveData.Fluid.ToFluidContainer());
+                }
             }
         }
 
@@ -109,8 +111,10 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public string GetSaveState()
         {
-            var saveData = new TrainPlatformFluidContainerSaveData(Container);
-            return MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(saveData));
+            // コンテナ未生成時はnull、ある時は内部FluidContainerをGUIDで保存する
+            // Persist null when no container exists; otherwise persist the inner FluidContainer by GUID
+            var fluid = Container != null ? new FluidContainerSaveJsonObject(Container.Container) : null;
+            return JsonConvert.SerializeObject(new TrainPlatformFluidContainerSaveJsonObject { Fluid = fluid });
         }
 
         private void LoadFluidToTrain(TrainCar dockedCar, FluidTrainCarContainer trainContainer)
@@ -255,18 +259,10 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             throw new ArgumentException("FluidConnectOption is not set on connector");
         }
 
-        [MessagePackObject]
-        public class TrainPlatformFluidContainerSaveData
+        public class TrainPlatformFluidContainerSaveJsonObject
         {
-            [Key(0)] public FluidTrainCarContainer Container;
-
-            [Obsolete]
-            public TrainPlatformFluidContainerSaveData() { }
-            
-            public TrainPlatformFluidContainerSaveData(FluidTrainCarContainer container)
-            {
-                Container = container;
-            }
+            [JsonProperty("fluid")]
+            public FluidContainerSaveJsonObject Fluid;
         }
     }
 }

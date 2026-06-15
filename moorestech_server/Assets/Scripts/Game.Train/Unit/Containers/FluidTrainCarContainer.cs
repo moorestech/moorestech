@@ -1,17 +1,12 @@
 using System;
 using Core.Master;
 using Game.Fluid;
-using MessagePack;
 
 namespace Game.Train.Unit.Containers
 {
-    [MessagePackObject]
     public class FluidTrainCarContainer : ITrainCarContainer
     {
-        [Key(0)] public readonly FluidContainer Container;
-        
-        [Obsolete]
-        public FluidTrainCarContainer() { }
+        public readonly FluidContainer Container;
 
         public FluidTrainCarContainer(FluidContainer container)
         {
