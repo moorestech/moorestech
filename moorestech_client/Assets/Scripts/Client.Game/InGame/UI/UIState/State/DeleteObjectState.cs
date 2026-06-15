@@ -14,16 +14,12 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly DeleteBarObject _deleteBarObject;
 
         private readonly ScreenClickableCameraController _screenClickableCameraController;
-
         private readonly DeleteObjectService _deleteObjectService = new();
-
-        private readonly RailGraphClientCache _railGraphClientCache;
 
         public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController, RailGraphClientCache cache)
         {
             _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
             _deleteBarObject = deleteBarObject;
-            _railGraphClientCache = cache;
             deleteBarObject.gameObject.SetActive(false);
         }
 
