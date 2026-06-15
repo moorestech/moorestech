@@ -1,6 +1,7 @@
 using System;
 using Core.Master;
-using Game.Fluid;
+using Mooresmaster.Model.TrainModule;
+using FluidContainer = Game.Fluid.FluidContainer;
 
 namespace Game.Train.Unit.Containers
 {
@@ -11,6 +12,11 @@ namespace Game.Train.Unit.Containers
         public FluidTrainCarContainer(FluidContainer container)
         {
             Container = container;
+        }
+        
+        public static FluidTrainCarContainer Load(string saveState, TrainCarMasterElement master)
+        {
+            // TODO 
         }
 
         public int GetWeight()

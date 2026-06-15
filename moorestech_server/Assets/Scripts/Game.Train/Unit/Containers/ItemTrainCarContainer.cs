@@ -41,6 +41,29 @@ namespace Game.Train.Unit.Containers
                 _itemDataStoreService.SetItemWithoutEvent(i, inventoryItems[i]);
             }
         }
+        
+        public static ItemTrainCarContainer Load(string saveState, TrainCarMasterElement master)
+        {
+            // TODO 
+            
+            
+            #region Internal
+            
+            // マスタ定義に合わせて配列を切り詰め、拡張する
+            // Trims or extends the array to match the master definition.
+            IItemStack[] BuildItemStacks(int slotCount)
+            {
+                var stacks = new IItemStack[slotCount];
+                for (var i = 0; i < slotCount; i++)
+                {
+                    stacks[i] = i < Items.Count ? Items[i].ToItemStack() : ServerContext.ItemStackFactory.CreatEmpty();
+                }
+                return stacks;
+            }
+
+            #endregion
+        }
+
 
         public void OnAttachedToCar(TrainCar trainCar)
         {
