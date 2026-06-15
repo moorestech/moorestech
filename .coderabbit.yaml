@@ -3,3 +3,8 @@ reviews:
     # ここに"含めたい"パターンを書く
     - "**/*.cs"
     - "**/*.csproj"
+  path_instructions:
+    - path: "**/*.cs"
+      instructions: |
+        - セーブ/ロード処理(GetSaveState / IMessagePackFormatter 等)で ItemId / BlockId / FluidId などの int 系IDを永続化していたら指摘してください。これらは採番がマスタ順に依存する揮発IDで、mod更新で別アイテムにズレます。永続化は必ず GUID で行ってください(参照: ItemStackSaveJsonObject)。
+        - 永続化に MessagePack 形式(IMessagePackFormatter / MessagePackSerializer)を使っていたら指摘してください。セーブデータは将来のマイグレーションや周辺ツール開発を容易にするため、必ずキーが明示された一般的な JSON 形式(itemGuid 等の名前付きフィールド)で保存してください。位置依存の数値配列([id,count] 等)は不可です。

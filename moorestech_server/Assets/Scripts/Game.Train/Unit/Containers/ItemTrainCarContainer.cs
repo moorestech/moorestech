@@ -7,6 +7,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Mooresmaster.Model.TrainModule;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Train.Unit.Containers
@@ -41,6 +42,35 @@ namespace Game.Train.Unit.Containers
                 _itemDataStoreService.SetItemWithoutEvent(i, inventoryItems[i]);
             }
         }
+        
+        public (string containerType, string saveState) GetSaveState()
+        {
+            var items = InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList();
+            return (TrainCarMasterElement.DefaultContainerTypeConst.Item, JsonConvert.SerializeObject(items));
+        }
+
+        public static ItemTrainCarContainer Load(string saveState, TrainCarMasterElement master)
+        {
+            var items = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(saveState) ?? new List<ItemStackSaveJsonObject>();
+            return new ItemTrainCarContainer(BuildItemStacks(master.InventorySlots));
+
+            #region Internal
+
+            // マスタ定義に合わせて配列を切り詰め、もしくは拡張する
+            // Truncate or extend the array to match the master definition.
+            IItemStack[] BuildItemStacks(int slotCount)
+            {
+                var stacks = new IItemStack[slotCount];
+                for (var i = 0; i < slotCount; i++)
+                {
+                    stacks[i] = i < items.Count ? items[i].ToItemStack() : ServerContext.ItemStackFactory.CreatEmpty();
+                }
+                return stacks;
+            }
+
+            #endregion
+        }
+
 
         public void OnAttachedToCar(TrainCar trainCar)
         {

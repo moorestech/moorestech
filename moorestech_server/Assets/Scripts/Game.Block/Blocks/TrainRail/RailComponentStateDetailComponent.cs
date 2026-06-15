@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Game.Block.Interface.Component;
 using MessagePack;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Game.Block.Blocks.TrainRail
@@ -30,10 +30,10 @@ namespace Game.Block.Blocks.TrainRail
 
         public string GetSaveState()
         {
-            // レール向きを既存StateDetail形式のまま保存する
-            // Persist rail direction using the same StateDetail payload format
-            var bytes = SerializeStateDetail();
-            return Convert.ToBase64String(bytes);
+            // レール向きを意味の分かるkey-value(JSON)で保存する
+            // Persist rail direction as a human-readable key-value (JSON) payload
+            var direction = _railComponent.RailDirection;
+            return JsonConvert.SerializeObject(new RailComponentSaveJsonObject { X = direction.x, Y = direction.y, Z = direction.z });
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -44,11 +44,10 @@ namespace Game.Block.Blocks.TrainRail
 
         public static Vector3 LoadRailDirection(Dictionary<string, string> componentStates)
         {
-            // セーブ済みStateDetailを復元して向きを取り出す
-            // Restore saved StateDetail and extract rail direction
-            var bytes = Convert.FromBase64String(componentStates[SaveKeyStatic]);
-            var detail = MessagePackSerializer.Deserialize<RailBridgePierComponentStateDetail>(bytes);
-            return detail.RailBlockDirection;
+            // セーブ済みJSONを復元して向きを取り出す
+            // Restore saved JSON and extract rail direction
+            var saveData = JsonConvert.DeserializeObject<RailComponentSaveJsonObject>(componentStates[SaveKeyStatic]);
+            return new Vector3(saveData.X, saveData.Y, saveData.Z);
         }
 
         #region Internal
@@ -59,5 +58,12 @@ namespace Game.Block.Blocks.TrainRail
         }
 
         #endregion
+    }
+
+    public class RailComponentSaveJsonObject
+    {
+        [JsonProperty("x")] public float X;
+        [JsonProperty("y")] public float Y;
+        [JsonProperty("z")] public float Z;
     }
 }

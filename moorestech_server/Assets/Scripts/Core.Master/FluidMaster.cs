@@ -90,6 +90,17 @@ namespace Core.Master
             return id;
         }
         
+        // 揮発FluidIdをセーブ用の安定GUIDへ変換する（空液体はGuid.Empty）
+        // Convert the volatile FluidId to a stable GUID for saving (empty fluid maps to Guid.Empty)
+        public Guid GetFluidGuid(FluidId fluidId)
+        {
+            if (fluidId == EmptyFluidId)
+            {
+                return Guid.Empty;
+            }
+            return GetFluidMaster(fluidId).FluidGuid;
+        }
+
         public IEnumerable<FluidId> GetAllFluidIds()
         {
             return _fluidElementTableById.Keys;

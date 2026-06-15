@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
@@ -12,7 +13,7 @@ using Game.Context;
 using Game.Train.Event;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
-using MessagePack;
+using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
@@ -63,11 +64,17 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             {
                 if (!componentStates.TryGetValue(SaveKey, out var serialized)) return;
 
-                var serializedBytes = MessagePackSerializer.ConvertFromJson(serialized);
-                var saveData = MessagePackSerializer.Deserialize<TrainPlatformItemContainerComponentSaveData>(serializedBytes);
-                if (saveData?.Container is not ItemTrainCarContainer loadedContainer) return;
+                var saveData = JsonConvert.DeserializeObject<TrainPlatformItemContainerSaveJsonObject>(serialized);
+                if (saveData?.Items == null) return;
 
-                Container = loadedContainer;
+                // マスタ定義のスロット数で配列を確保し、保存済みスタックを詰めて再構築する（不足は空、超過は切り捨て）
+                // Allocate by the master slot count and fill with saved stacks, then rebuild (pad empty, drop overflow)
+                var stacks = new IItemStack[_slotsCount];
+                for (var i = 0; i < _slotsCount; i++)
+                {
+                    stacks[i] = i < saveData.Items.Count ? saveData.Items[i].ToItemStack() : ServerContext.ItemStackFactory.CreatEmpty();
+                }
+                Container = ItemTrainCarContainer.CreateWithInventoryItems(stacks);
             }
 
             #endregion
@@ -226,18 +233,16 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public string GetSaveState()
         {
-            return MessagePackSerializer.ConvertToJson(MessagePackSerializer.Serialize(new TrainPlatformItemContainerComponentSaveData(Container)));
+            // 各スロットをGUIDベースのItemStackSaveJsonObjectで保存する
+            // Persist each slot as a GUID-based ItemStackSaveJsonObject
+            var items = Container.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList();
+            return JsonConvert.SerializeObject(new TrainPlatformItemContainerSaveJsonObject { Items = items });
         }
 
-        [MessagePackObject]
-        public class TrainPlatformItemContainerComponentSaveData
+        public class TrainPlatformItemContainerSaveJsonObject
         {
-            [Key(0)] public ItemTrainCarContainer Container;
-
-            public TrainPlatformItemContainerComponentSaveData(ItemTrainCarContainer container)
-            {
-                Container = container;
-            }
+            [JsonProperty("items")]
+            public List<ItemStackSaveJsonObject> Items;
         }
     }
 }

@@ -10,5 +10,7 @@ namespace Game.Train.Unit
         // Notification of being attached to/detached from a train.
         void OnAttachedToCar(TrainCar trainCar);
         void OnDetachedFromCar();
+        
+        (string containerType, string saveState) GetSaveState();
     }
 }
