@@ -7,7 +7,7 @@
       "pattern": "Save",
       "flags": "",
       "tools": ["Edit", "Write", "MultiEdit", "NotebookEdit", "apply_patch", "str_replace_editor", "str_replace_based_edit_tool"],
-      "message": "🔁 Save/永続化に関わる変更を検出しました。次の観点で **再チェック** してください:\n1. アイテム/液体/ブロックを永続化する際、揮発int(ItemId/FluidId/BlockId)ではなく GUID(ItemGuid/FluidGuid/BlockGuid)で保存しているか。揮発intはマスタのロード順で毎回採番されるため永続化禁止。\n2. ロード時に GUID→ID へ解決しているか(例: MasterHolder.ItemMaster.GetItemId(guid) / FluidMaster.GetFluidId(guid))。\n3. 参照すべき正実装: ItemStackSaveJsonObject(GUID文字列で保存)、FilterSplitter の FilterItemGuids。アンチパターン: ItemTrainCarContainerFormatter / FluidContainerFormatter(int直書き)。\n4. マスタの並び順(SortPriority)変更やアイテム増減でセーブが化けないことを確認したか。\n5. セーブ形式を変更した場合、旧セーブとの互換・マイグレーションの要否を検討したか。"
+      "message": "🔁 Save/永続化に関わる変更を検出しました。次の観点で **再チェック** してください:\n1. アイテム/液体/ブロックを永続化する際、揮発int(ItemId/FluidId/BlockId)ではなく GUID(ItemGuid/FluidGuid/BlockGuid)で保存しているか。揮発intはマスタのロード順で毎回採番されるため永続化禁止。\n2. ロード時に GUID→ID へ解決しているか(例: MasterHolder.ItemMaster.GetItemId(guid) / FluidMaster.GetFluidId(guid))。\n3. マスタから参照すべき値を永続化していないか。Capacity/MaxStack/Weight/スロット数などマスタ定義の値はセーブせず、ロード時にマスタから取得する(例: master.FluidCapacity / master.InventorySlots)。永続化するのはランタイムで変動する状態(Amount/FluidId/アイテム内容など)のみ。\n4. 永続化フォーマットは MessagePack ではなく、意味の分かる JSON(key→value / JsonObject)で保存しているか。MessagePack は通信(容量削減)専用。永続化では配列化により可読性・マイグレーション容易性・外部ツールからの編集性が落ちるため使わない。\n5. 参照すべき正実装: ItemStackSaveJsonObject / FluidContainerSaveJsonObject(GUID保存)、FilterSplitter の FilterItemGuids。\n6. マスタの並び順(SortPriority)変更やアイテム増減でセーブが化けないことを確認したか。\n7. 現在は開発フェーズのため、セーブ形式を変更しても旧セーブとの互換・マイグレーションの検討は不要。"
     }
   ]
 }
