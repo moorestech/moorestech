@@ -1,6 +1,7 @@
 using Client.Common;
 using Client.Game.InGame.Block;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Client.Game.InGame.Control
 {
@@ -41,8 +42,11 @@ namespace Client.Game.InGame.Control
             var camera = Camera.main;
             if (camera == null) return false;
             
-            //TODO InputSystemのリファクタ対象
-            var ray = camera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            // TODO InputSystemのリファクタ対象
+            // InputSystemのマウス座標を使う（実機と入力注入の双方を同一経路で扱う）
+            // Use the Input System mouse position so real and injected input share one path
+            var mousePosition = Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : UnityEngine.Input.mousePosition;
+            var ray = camera.ScreenPointToRay(mousePosition);
             
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
             component = hit.collider.gameObject.GetComponentInChildren<T>();
