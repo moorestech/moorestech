@@ -16,8 +16,12 @@ namespace Game.Train.Unit.Containers
 
         public static TrainCarContainerSaveJsonObject FromContainer(ITrainCarContainer container)
         {
-            var (type,state) = container.GetSaveState();
-            
+            // コンテナ無し(None型車両)はnullを返し、セーブ上もnullとして表現する
+            // A car without a container (None type) returns null and is persisted as null
+            if (container == null) return null;
+
+            var (type, state) = container.GetSaveState();
+
             return new TrainCarContainerSaveJsonObject
             {
                 ContainerType = type,
