@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$(git rev-parse --show-toplevel)/.dev-hooks/check-diff.mjs\"",
+            "command": "node \".dev-hooks/check-diff.mjs\"",
             "timeout": 15,
             "statusMessage": "Checking diff against project review rules"
           }

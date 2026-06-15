@@ -31,29 +31,14 @@ namespace Game.Block.Blocks.Fluid
             BlockException.CheckDestroy(this);
             
             var stateDetail = _fluidPipeComponent.GetFluidPipeStateDetail();
-            var jsonObject = new FluidPipeSaveJsonObject
+            var jsonObject = new FluidContainerSaveJsonObject
             {
-                FluidIdValue = stateDetail.FluidId.AsPrimitive(),
+                FluidGuidStr = MasterHolder.FluidMaster.GetFluidGuid(stateDetail.FluidId).ToString(),
                 Amount = stateDetail.Amount,
                 Capacity = stateDetail.Capacity
             };
-            
+
             return JsonConvert.SerializeObject(jsonObject);
         }
-    }
-    
-    public class FluidPipeSaveJsonObject
-    {
-        [JsonProperty("fluidId")]
-        public int FluidIdValue;
-        
-        [JsonIgnore]
-        public FluidId FluidId => new FluidId(FluidIdValue);
-        
-        [JsonProperty("amount")]
-        public float Amount;
-        
-        [JsonProperty("capacity")]
-        public float Capacity;
     }
 }

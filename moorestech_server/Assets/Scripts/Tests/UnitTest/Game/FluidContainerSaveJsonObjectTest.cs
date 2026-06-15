@@ -1,12 +1,13 @@
 using Core.Master;
 using Game.Fluid;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game
 {
-    public class FluidContainerFormatterTest
+    public class FluidContainerSaveJsonObjectTest
     {
         [SetUp]
         public void Setup()
@@ -16,79 +17,40 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void SerializeAndDeserializeFluidContainerTest()
+        public void JsonRoundTripWithFluidTest()
         {
-            // 液体入りコンテナのラウンドトリップ検証
-            // Round-trip verification of a container with fluid
+            // 液体入りコンテナのJSONラウンドトリップ検証（セーブデータと同じ経路）
+            // Round-trip a container with fluid via JSON (same path as save data)
             var fluidId = MasterHolder.FluidMaster.GetFluidId(Tests.CombinedTest.Core.FluidTest.FluidGuid);
             const double capacity = 100.0;
             const double amount = 42.5;
-
-            // 送信元記録が入った状態を作る（AddLiquid経由で内部HashSetに追加される）
-            // Set up state with a source recording (added to internal HashSet via AddLiquid)
-            var original = new FluidContainer(capacity);
-            original.FluidId = fluidId;
-            var sourceContainer = new FluidContainer(10.0);
-            sourceContainer.FluidId = fluidId;
-            original.AddLiquid(new FluidStack(amount, fluidId), sourceContainer);
-            Assert.Greater(original.PreviousSourceCount, 0);
-
-            var bytes = MessagePack.MessagePackSerializer.Serialize(original);
-            var deserialized = MessagePack.MessagePackSerializer.Deserialize<FluidContainer>(bytes);
-
-            Assert.AreEqual(capacity, deserialized.Capacity);
-            Assert.AreEqual(amount, deserialized.Amount);
-            Assert.AreEqual(fluidId, deserialized.FluidId);
-            Assert.AreEqual(0, deserialized.PreviousSourceCount);
-        }
-
-        [Test]
-        public void SerializeAndDeserializeEmptyFluidContainerTest()
-        {
-            // 空コンテナのラウンドトリップ検証
-            // Round-trip verification of an empty container
-            const double capacity = 200.0;
-
-            var original = new FluidContainer(capacity);
-
-            var bytes = MessagePack.MessagePackSerializer.Serialize(original);
-            var deserialized = MessagePack.MessagePackSerializer.Deserialize<FluidContainer>(bytes);
-
-            Assert.AreEqual(capacity, deserialized.Capacity);
-            Assert.AreEqual(0, deserialized.Amount);
-            Assert.AreEqual(FluidMaster.EmptyFluidId, deserialized.FluidId);
-        }
-
-        [Test]
-        public void SerializeAndDeserializeNullFluidContainerTest()
-        {
-            // nullのラウンドトリップ検証
-            // Round-trip verification of null
-            var bytes = MessagePack.MessagePackSerializer.Serialize<FluidContainer>(null);
-            var deserialized = MessagePack.MessagePackSerializer.Deserialize<FluidContainer>(bytes);
-
-            Assert.IsNull(deserialized);
-        }
-
-        [Test]
-        public void JsonRoundTripTest()
-        {
-            // JSON経由のラウンドトリップ検証（セーブデータと同じ経路）
-            // Round-trip via JSON (same path as save data)
-            var fluidId = MasterHolder.FluidMaster.GetFluidId(Tests.CombinedTest.Core.FluidTest.FluidGuid);
-            const double capacity = 50.0;
-            const double amount = 33.3;
 
             var original = new FluidContainer(capacity);
             original.FluidId = fluidId;
             original.Amount = amount;
 
-            var json = MessagePack.MessagePackSerializer.ConvertToJson(MessagePack.MessagePackSerializer.Serialize(original));
-            var restored = MessagePack.MessagePackSerializer.Deserialize<FluidContainer>(MessagePack.MessagePackSerializer.ConvertFromJson(json));
+            var json = JsonConvert.SerializeObject(new FluidContainerSaveJsonObject(original));
+            var restored = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(json).ToFluidContainer();
 
             Assert.AreEqual(capacity, restored.Capacity);
             Assert.AreEqual(amount, restored.Amount, 0.001);
             Assert.AreEqual(fluidId, restored.FluidId);
+        }
+
+        [Test]
+        public void JsonRoundTripEmptyFluidTest()
+        {
+            // 空コンテナのJSONラウンドトリップ検証（FluidGuidはGuid.Emptyで保存される）
+            // Round-trip an empty container via JSON (FluidGuid is persisted as Guid.Empty)
+            const double capacity = 200.0;
+            var original = new FluidContainer(capacity);
+
+            var json = JsonConvert.SerializeObject(new FluidContainerSaveJsonObject(original));
+            var restored = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(json).ToFluidContainer();
+
+            Assert.AreEqual(capacity, restored.Capacity);
+            Assert.AreEqual(0, restored.Amount);
+            Assert.AreEqual(FluidMaster.EmptyFluidId, restored.FluidId);
         }
     }
 }

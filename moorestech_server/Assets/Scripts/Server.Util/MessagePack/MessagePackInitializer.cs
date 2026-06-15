@@ -1,8 +1,4 @@
-using Game.Fluid;
-using Game.Train.Unit;
-using Game.Train.Unit.Containers;
 using MessagePack;
-using MessagePack.Formatters;
 using MessagePack.Resolvers;
 
 namespace Server.Util.MessagePack
@@ -11,18 +7,9 @@ namespace Server.Util.MessagePack
     {
         public static void Initialize()
         {
-            MessagePackSerializer.DefaultOptions = MessagePackSerializerOptions.Standard.WithResolver(CompositeResolver.Create(
-                new IMessagePackFormatter[]
-                {
-                    new ItemTrainCarContainerFormatter()
-                },
-                new IFormatterResolver[]
-                {
-                    new FluidContainerResolver(),
-                    new TrainCarContainerResolver(),
-                    StandardResolver.Instance
-                }
-            ));
+            // MessagePackは通信専用。永続化はJsonObject形式で行うため、通信向けの標準リゾルバのみを使う
+            // MessagePack is communication-only; persistence uses JsonObject form, so only the standard (network) resolver is registered
+            MessagePackSerializer.DefaultOptions = MessagePackSerializerOptions.Standard.WithResolver(StandardResolver.Instance);
         }
     }
 }

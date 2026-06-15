@@ -161,7 +161,7 @@ namespace Game.Block.Blocks.GearChainPole
                 if (_chainTargets.ContainsKey(targetId)) continue;
                 var transformer = ResolveChainTarget(targetId);
                 if (transformer == null) continue;
-                var cost = new GearChainConnectionCost(new ItemId(connection.ItemId), connection.Count);
+                var cost = new GearChainConnectionCost(MasterHolder.ItemMaster.GetItemId(connection.ItemGuid), connection.Count);
                 _chainTargets.Add(targetId, (transformer, cost));
             }
             
