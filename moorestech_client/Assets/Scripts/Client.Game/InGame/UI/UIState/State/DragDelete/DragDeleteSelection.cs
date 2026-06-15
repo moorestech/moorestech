@@ -71,5 +71,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         {
             return !_canceled;
         }
+
+        // ドラッグでなぞった対象が1件以上あるか（ESCで取り消せる選択が存在するか）
+        // Whether at least one target is selected (an active selection that ESC can cancel)
+        public bool HasSelection()
+        {
+            return _selectedTargets.Count > 0;
+        }
     }
 }

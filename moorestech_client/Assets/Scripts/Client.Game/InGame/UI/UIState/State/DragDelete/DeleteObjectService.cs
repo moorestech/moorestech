@@ -24,10 +24,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 _isRemoveDeniedReasonShown = false;
             }
 
-            // ESCは選択キャンセルとして扱いモードに留まる
-            // Treat ESC as a selection cancel while staying in this mode
-            if (InputManager.UI.CloseUI.GetKeyDown) CancelOnEscape();
-
             // カーソル下の削除対象を取得（無ければnull）
             // Resolve the target hovered this frame (null when nothing hit)
             BlockClickDetectUtil.TryGetCursorOnComponent(out IDeleteTarget hovered);
@@ -36,29 +32,16 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             // Begin a drag selection on left-click down
             HandleDragStart();
 
-            // ドラッグ中は選択へ追加、非ドラッグは単体表示
-            // While dragging accumulate the selection, otherwise show single hover preview
+            // ドラッグ中は選択へ追加、ボタン非押下時のみ単体ホバー表示（ESCキャンセル後の押下中は何も出さない）
+            // Dragging accumulates the selection; single hover shows only while the button is up (nothing during a dead post-ESC hold)
             if (_isDragging) UpdateDragSelection();
-            else UpdateSingleHoverPreview();
+            else if (!InputManager.Playable.ScreenLeftClick.GetKey) UpdateSingleHoverPreview();
 
             // 左クリック離しで選択を確定して削除する
             // Commit and delete the selection on left-click release
             HandleRelease();
 
             #region Internal
-
-            void CancelOnEscape()
-            {
-                _selection.CancelSelection();
-
-                // 単体ホバー中の赤プレビューも確実に戻す
-                // Also clear any single-hover red preview to be safe
-                if (!_isDragging && _deleteTargetObject != null)
-                {
-                    _deleteTargetObject.ResetMaterial();
-                    _deleteTargetObject = null;
-                }
-            }
 
             void HandleDragStart()
             {
@@ -135,10 +118,24 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             #endregion
         }
 
-        // モード離脱時に進行中のプレビューと選択状態を片付ける
-        // Clean up in-progress previews and selection state when leaving the mode
-        public void Cleanup()
+        // 選択があればキャンセルしtrueを返す。選択が無ければfalseを返し、呼び出し側がモード終了を判断する
+        // Cancel the selection and return true if one exists; return false (nothing to cancel) so the caller can decide to exit the mode
+        public bool TryCancelSelection()
         {
+            if (!_selection.HasSelection()) return false;
+
+            CancelSelection();
+            return true;
+        }
+
+        // 選択とプレビュー・ツールチップ・ドラッグ状態を全て片付ける（ESCの選択キャンセルとモード離脱の両方で使う）
+        // Clear the selection, previews, tooltip, and drag state (used by both ESC cancel and mode exit)
+        public void CancelSelection()
+        {
+            _selection.CancelSelection();
+
+            // ホバー中の赤プレビューを戻す
+            // Reset any single-hover red preview
             if (_deleteTargetObject != null)
             {
                 _deleteTargetObject.ResetMaterial();
@@ -147,7 +144,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             MouseCursorTooltip.Instance.Hide();
             _isRemoveDeniedReasonShown = false;
-            _selection.CancelSelection();
             _isDragging = false;
         }
     }
