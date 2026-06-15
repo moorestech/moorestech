@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "save-serialization-guid-check",
+      "description": "Save/永続化コードの変更時に、揮発IDではなくGUID保存かを再確認させる",
+      "pattern": "Save",
+      "flags": "",
+      "tools": ["Edit", "Write", "MultiEdit", "NotebookEdit", "apply_patch", "str_replace_editor", "str_replace_based_edit_tool"],
+      "message": "🔁 Save/永続化に関わる変更を検出しました。次の観点で **再チェック** してください:\n1. アイテム/液体/ブロックを永続化する際、揮発int(ItemId/FluidId/BlockId)ではなく GUID(ItemGuid/FluidGuid/BlockGuid)で保存しているか。揮発intはマスタのロード順で毎回採番されるため永続化禁止。\n2. ロード時に GUID→ID へ解決しているか(例: MasterHolder.ItemMaster.GetItemId(guid) / FluidMaster.GetFluidId(guid))。\n3. 参照すべき正実装: ItemStackSaveJsonObject(GUID文字列で保存)、FilterSplitter の FilterItemGuids。アンチパターン: ItemTrainCarContainerFormatter / FluidContainerFormatter(int直書き)。\n4. マスタの並び順(SortPriority)変更やアイテム増減でセーブが化けないことを確認したか。\n5. セーブ形式を変更した場合、旧セーブとの互換・マイグレーションの要否を検討したか。"
+    }
+  ]
+}
