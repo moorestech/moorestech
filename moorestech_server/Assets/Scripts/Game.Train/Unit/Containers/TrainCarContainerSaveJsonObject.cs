@@ -12,8 +12,8 @@ namespace Game.Train.Unit.Containers
     // Key-value representation for persisting a train car container (item/fluid); ids are volatile so GUIDs are stored
     public class TrainCarContainerSaveJsonObject
     {
-        public const string ItemType = "Item";
-        public const string FluidType = "Fluid";
+        private const string ItemType = TrainCarMasterElement.DefaultContainerTypeConst.Item;
+        private const string FluidType = TrainCarMasterElement.DefaultContainerTypeConst.Fluid;
 
         [JsonProperty("containerType")]
         public string ContainerType;
@@ -23,9 +23,7 @@ namespace Game.Train.Unit.Containers
 
         [JsonProperty("fluid")]
         public FluidContainerSaveJsonObject Fluid;
-
-        public TrainCarContainerSaveJsonObject() { }
-
+        
         public static TrainCarContainerSaveJsonObject FromContainer(ITrainCarContainer container)
         {
             switch (container)
@@ -49,18 +47,16 @@ namespace Game.Train.Unit.Containers
 
         public ITrainCarContainer ToContainer(TrainCarMasterElement master)
         {
-            switch (ContainerType)
+            return ContainerType switch
             {
-                case ItemType:
+                ItemType =>
                     // マスタ定義に合わせて配列を切り詰め、拡張する
                     // Trims or extends the array to match the master definition.
-                    return ItemTrainCarContainer.CreateWithInventoryItems(BuildItemStacks(master.InventorySlots));
-                case FluidType:
-                    return new FluidTrainCarContainer(Fluid.ToFluidContainer(master.FluidCapacity));
-                default:
-                    return null;
-            }
-
+                    ItemTrainCarContainer.CreateWithInventoryItems(BuildItemStacks(master.InventorySlots)),
+                FluidType => new FluidTrainCarContainer(Fluid.ToFluidContainer(master.FluidCapacity)),
+                _ => null
+            };
+            
             #region Internal
 
             IItemStack[] BuildItemStacks(int slotCount)
