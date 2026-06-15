@@ -20,6 +20,7 @@ namespace Game.Block.Blocks.Machine
     {
         public Guid RecipeGuid => _processingState.RecipeGuid;
         public float RequestPower => _context.RequestPower;
+        public float CurrentPower => _context.CurrentPower;
         public ProcessState CurrentState { get; private set; }
 
         // 加工中のみモジュールの電力倍率を適用した要求電力
@@ -87,8 +88,10 @@ namespace Game.Block.Blocks.Machine
         public void SupplyPower(float power)
         {
             BlockException.CheckDestroy(this);
-            _context.UsedPower = false;
-            _context.CurrentPower = power;
+
+            // 複数の電力セグメントから供給され得るため加算する（発電機なしセグメントの0供給で打ち消されない）
+            // Accumulate since multiple energy segments may supply power (a generator-less segment's zero must not cancel it)
+            _context.SuppliedPower += power;
 
             // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
             // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
@@ -101,12 +104,12 @@ namespace Game.Block.Blocks.Machine
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            if (_context.UsedPower)
-            {
-                _context.UsedPower = false;
-                _context.CurrentPower = 0f;
-            }
-            
+
+            // 直前tickで蓄積された供給電力を確定し、加算器をリセットする（未供給なら0になり電力を失う）
+            // Latch the power accumulated during the previous tick and reset the accumulator (no supply -> 0, power is lost)
+            _context.CurrentPower = _context.SuppliedPower;
+            _context.SuppliedPower = 0f;
+
             // ステートのアップデートと変更処理
             // State update and transition handling
             var current = CurrentState;
