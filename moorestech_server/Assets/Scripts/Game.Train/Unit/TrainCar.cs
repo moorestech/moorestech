@@ -163,20 +163,20 @@ namespace Game.Train.Unit
         public TrainCarSaveData CreateTrainCarSaveData()
         {
             SerializableVector3Int? dockingPosition = null;
-            if (this.dockingblock != null)
+            if (dockingblock != null)
             {
-                var blockPosition = this.dockingblock.BlockPositionInfo.OriginalPos;
+                var blockPosition = dockingblock.BlockPositionInfo.OriginalPos;
                 dockingPosition = new SerializableVector3Int(blockPosition.x, blockPosition.y, blockPosition.z);
             }
 
             return new TrainCarSaveData
             {
-                TrainCarInstanceId = this._trainCarInstanceId.AsPrimitive(),
-                TrainCarMasterId = this.TrainCarMasterElement.TrainCarGuid,
-                IsFacingForward = this.IsFacingForward,
+                TrainCarInstanceId = _trainCarInstanceId.AsPrimitive(),
+                TrainCarMasterId = TrainCarMasterElement.TrainCarGuid,
+                IsFacingForward = IsFacingForward,
                 DockingBlockPosition = dockingPosition,
                 ContainerSaveData = JsonConvert.SerializeObject(TrainCarContainerSaveJsonObject.FromContainer(Container)),
-                RemainFuelTime = this.RemainFuelTime
+                RemainFuelTime = RemainFuelTime
             };
         }
 
@@ -192,7 +192,7 @@ namespace Game.Train.Unit
 
             if (data.DockingBlockPosition.HasValue)
             {
-                var block = ServerContext.WorldBlockDatastore.GetBlock((Vector3Int)data.DockingBlockPosition.Value);
+                var block = ServerContext.WorldBlockDatastore.GetBlock(data.DockingBlockPosition.Value);
                 if (block != null)
                 {
                     car.dockingblock = block;
@@ -201,7 +201,7 @@ namespace Game.Train.Unit
             
             // ロード時もSetContainer経由で通知バインドを行う
             // Restore via SetContainer so the notification binding is established on load.
-            var restoredContainer = JsonConvert.DeserializeObject<TrainCarContainerSaveJsonObject>(data.ContainerSaveData)?.ToContainer();
+            var restoredContainer = JsonConvert.DeserializeObject<TrainCarContainerSaveJsonObject>(data.ContainerSaveData)?.ToContainer(trainCarMaster);
             car.SetContainer(restoredContainer);
 
             car.SetRemainFuelTime(data.RemainFuelTime);

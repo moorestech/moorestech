@@ -67,9 +67,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 var saveData = JsonConvert.DeserializeObject<TrainPlatformItemContainerSaveJsonObject>(serialized);
                 if (saveData?.Items == null) return;
 
-                // 保存済みスロットをItemStackへ戻してコンテナを再構築する
-                // Rebuild the container by restoring each saved slot back into an ItemStack
-                var stacks = saveData.Items.Select(item => item.ToItemStack()).ToArray();
+                // マスタ定義のスロット数で配列を確保し、保存済みスタックを詰めて再構築する（不足は空、超過は切り捨て）
+                // Allocate by the master slot count and fill with saved stacks, then rebuild (pad empty, drop overflow)
+                var stacks = new IItemStack[_slotsCount];
+                for (var i = 0; i < _slotsCount; i++)
+                {
+                    stacks[i] = i < saveData.Items.Count ? saveData.Items[i].ToItemStack() : ServerContext.ItemStackFactory.CreatEmpty();
+                }
                 Container = ItemTrainCarContainer.CreateWithInventoryItems(stacks);
             }
 

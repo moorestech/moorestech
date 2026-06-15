@@ -34,8 +34,7 @@ namespace Game.Block.Blocks.Fluid
             var jsonObject = new FluidContainerSaveJsonObject
             {
                 FluidGuidStr = MasterHolder.FluidMaster.GetFluidGuid(stateDetail.FluidId).ToString(),
-                Amount = stateDetail.Amount,
-                Capacity = stateDetail.Capacity
+                Amount = stateDetail.Amount
             };
 
             return JsonConvert.SerializeObject(jsonObject);

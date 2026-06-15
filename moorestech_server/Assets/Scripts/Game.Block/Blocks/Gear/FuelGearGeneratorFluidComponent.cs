@@ -36,9 +36,8 @@ namespace Game.Block.Blocks.Gear
             if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
             
             var saveData = JsonConvert.DeserializeObject<FuelGearGeneratorFluidSaveData>(saveState);
+            _fuelTank = saveData.Fluid.ToFluidContainer(tankCapacity);
             
-            _fuelTank.FluidId = saveData.Fluid.FluidId;
-            _fuelTank.Amount = saveData.Fluid.Amount;
             _wasRefilledThisUpdate = saveData.WasRefilledThisUpdate;
             _consecutiveUpdatesWithoutRefill = saveData.ConsecutiveUpdatesWithoutRefill;
             _wasEverDisconnected = saveData.WasEverDisconnected;

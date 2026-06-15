@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Item.Interface;
 using Game.Context;
 using Game.Fluid;
+using Mooresmaster.Model.TrainModule;
 using Newtonsoft.Json;
 
 namespace Game.Train.Unit.Containers
@@ -46,18 +47,33 @@ namespace Game.Train.Unit.Containers
             }
         }
 
-        public ITrainCarContainer ToContainer()
+        public ITrainCarContainer ToContainer(TrainCarMasterElement master)
         {
             switch (ContainerType)
             {
                 case ItemType:
-                    var stacks = Items.Select(item => item.ToItemStack()).ToArray();
-                    return ItemTrainCarContainer.CreateWithInventoryItems(stacks);
+                    // マスタ定義に合わせて配列を切り詰め、拡張する
+                    // Trims or extends the array to match the master definition.
+                    return ItemTrainCarContainer.CreateWithInventoryItems(BuildItemStacks(master.InventorySlots));
                 case FluidType:
-                    return new FluidTrainCarContainer(Fluid.ToFluidContainer());
+                    return new FluidTrainCarContainer(Fluid.ToFluidContainer(master.FluidCapacity));
                 default:
                     return null;
             }
+
+            #region Internal
+
+            IItemStack[] BuildItemStacks(int slotCount)
+            {
+                var stacks = new IItemStack[slotCount];
+                for (var i = 0; i < slotCount; i++)
+                {
+                    stacks[i] = i < Items.Count ? Items[i].ToItemStack() : ServerContext.ItemStackFactory.CreatEmpty();
+                }
+                return stacks;
+            }
+
+            #endregion
         }
     }
 }

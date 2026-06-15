@@ -55,7 +55,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 var saveData = JsonConvert.DeserializeObject<TrainPlatformFluidContainerSaveJsonObject>(serialized);
                 if (saveData?.Fluid != null)
                 {
-                    Container = new FluidTrainCarContainer(saveData.Fluid.ToFluidContainer());
+                    Container = new FluidTrainCarContainer(saveData.Fluid.ToFluidContainer(_capacity));
                 }
             }
         }
