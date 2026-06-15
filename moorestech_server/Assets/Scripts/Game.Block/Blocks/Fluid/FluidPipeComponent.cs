@@ -41,8 +41,7 @@ namespace Game.Block.Blocks.Fluid
             if (componentStates != null && componentStates.TryGetValue(FluidPipeSaveComponent.SaveKeyStatic, out var savedState))
             {
                 var jsonObject = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(savedState);
-                _fluidContainer.FluidId = jsonObject.FluidId;
-                _fluidContainer.Amount = jsonObject.Amount;
+                _fluidContainer = jsonObject.ToFluidContainer(capacity);
 
                 // ロード時はソース情報を失っているため全量を Empty バケットへ復元
                 // On load, source identities cannot be recovered, so the entire amount is restored into the sourceless bucket

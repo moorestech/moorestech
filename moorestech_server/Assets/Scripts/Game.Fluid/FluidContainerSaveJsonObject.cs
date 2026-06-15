@@ -14,9 +14,6 @@ namespace Game.Fluid
         [JsonProperty("amount")]
         public double Amount;
 
-        [JsonProperty("capacity")]
-        public double Capacity;
-
         [JsonIgnore]
         public Guid FluidGuid => string.IsNullOrEmpty(FluidGuidStr) ? Guid.Empty : Guid.Parse(FluidGuidStr);
 
@@ -31,14 +28,15 @@ namespace Game.Fluid
         {
             FluidGuidStr = MasterHolder.FluidMaster.GetFluidGuid(container.FluidId).ToString();
             Amount = container.Amount;
-            Capacity = container.Capacity;
         }
 
-        public FluidContainer ToFluidContainer()
+        public FluidContainer ToFluidContainer(double capacity)
         {
-            var container = new FluidContainer(Capacity);
-            container.FluidId = FluidId;
-            container.Amount = Amount;
+            var container = new FluidContainer(capacity)
+                {
+                    FluidId = FluidId,
+                    Amount = capacity < Amount ? capacity : Amount,
+                };
             return container;
         }
     }

@@ -30,7 +30,9 @@ namespace Tests.UnitTest.Game
             original.Amount = amount;
 
             var json = JsonConvert.SerializeObject(new FluidContainerSaveJsonObject(original));
-            var restored = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(json).ToFluidContainer();
+            // 容量はマスタ由来なので復元時に渡す
+            // Capacity is master-derived, so it is supplied at restore time
+            var restored = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(json).ToFluidContainer(capacity);
 
             Assert.AreEqual(capacity, restored.Capacity);
             Assert.AreEqual(amount, restored.Amount, 0.001);
@@ -46,7 +48,7 @@ namespace Tests.UnitTest.Game
             var original = new FluidContainer(capacity);
 
             var json = JsonConvert.SerializeObject(new FluidContainerSaveJsonObject(original));
-            var restored = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(json).ToFluidContainer();
+            var restored = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(json).ToFluidContainer(capacity);
 
             Assert.AreEqual(capacity, restored.Capacity);
             Assert.AreEqual(0, restored.Amount);
