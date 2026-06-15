@@ -48,11 +48,18 @@ namespace Client.Game.InGame.UI.UIState.State
 
             UITransitContext HandleTransition()
             {
-                // ESCはOpenMenuとCloseUI両方にbindされ、OpenMenuを先に拾うと選択キャンセルが死ぬため破壊モードでは扱わない
-                // ESC is bound to both OpenMenu and CloseUI; handling OpenMenu here would shadow the cancel path, so skip it in destroy mode
+                // OpenMenu(ポーズ)もESCにbindされ、ここで拾うとESCの選択キャンセル/モード終了が死ぬため破壊モードでは扱わない
+                // OpenMenu(pause) is also bound to ESC; handling it here would shadow ESC's cancel/exit, so skip it in destroy mode
                 if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
                 if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
                 if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
+
+                // ESCはまず削除選択のキャンセルに使い、キャンセルする選択が無ければ破壊モードを抜ける
+                // ESC is used first to cancel the delete selection; with nothing to cancel it leaves destroy mode
+                if (InputManager.UI.CloseUI.GetKeyDown && !_deleteObjectService.TryCancelSelection())
+                {
+                    return new UITransitContext(UIStateEnum.GameScreen);
+                }
                 return null;
             }
 
@@ -61,7 +68,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
-            _deleteObjectService.Cleanup();
+            _deleteObjectService.CancelSelection();
             _deleteBarObject.gameObject.SetActive(false);
 
             _screenClickableCameraController.OnExit();
