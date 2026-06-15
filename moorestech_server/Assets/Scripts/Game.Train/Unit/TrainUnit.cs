@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Update;
 using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.RailCalc;
@@ -439,8 +438,13 @@ namespace Game.Train.Unit
                 return;
             }
             var (found, newPath) = CheckNextPath();
-            if (!found && arrowBack)//順方向に経路がない
+            if (!found)//順方向に経路がない
             {
+                if (!arrowBack)
+                {
+                    TurnOffAutoRun();
+                    return;
+                }
                 Reverse();
                 approaching = _railPosition.GetNodeApproaching();
                 if (approaching == null)
