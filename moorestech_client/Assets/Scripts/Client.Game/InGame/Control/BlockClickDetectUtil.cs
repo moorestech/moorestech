@@ -41,7 +41,8 @@ namespace Client.Game.InGame.Control
             // 25/11/4 そもそもCamera.mainを使ってていいのか？これも検討したい
             var camera = Camera.main;
             if (camera == null) return false;
-
+            
+            // TODO InputSystemのリファクタ対象
             // InputSystemのマウス座標を使う（実機と入力注入の双方を同一経路で扱う）
             // Use the Input System mouse position so real and injected input share one path
             var mousePosition = Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : UnityEngine.Input.mousePosition;
