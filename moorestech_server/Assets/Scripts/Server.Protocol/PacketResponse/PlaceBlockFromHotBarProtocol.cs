@@ -57,9 +57,10 @@ namespace Server.Protocol.PacketResponse
             // paramsの作成
             var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
             
-            //ブロックの設置
-            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, createParams, out var block);
-            
+            //ブロックの設置。占有範囲が重なる等で失敗した場合はアイテムを消費しない
+            //Place the block. Do not consume the item if placement fails (e.g. overlapping footprint)
+            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
+
             //アイテムを減らし、セットする
             item = item.SubItem(1);
             inventoryData.MainOpenableInventory.SetItem(data.InventorySlot, item);

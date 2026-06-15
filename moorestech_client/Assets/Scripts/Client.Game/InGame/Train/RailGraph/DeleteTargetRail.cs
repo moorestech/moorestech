@@ -67,6 +67,13 @@ namespace Client.Game.InGame.Train.RailGraph
             
             ClientContext.VanillaApi.SendOnly.DisconnectRail(fromNode.NodeId, fromNode.NodeGuid, toNode.NodeId, toNode.NodeGuid);
         }
+
+        // 削除はedge単位なのでrailObjectId（edge）を論理キーにする。同一edgeの重複だけ排除
+        // Delete is per-edge, so the railObjectId is the logical key; only same-edge duplicates are deduped
+        public object GetDeleteTargetKey()
+        {
+            return RailObjectIdCarrier.GetRailObjectId();
+        }
         
         private DeleteDeniedReason CanDelete()
         {
