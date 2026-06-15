@@ -9,7 +9,7 @@ namespace Game.CraftTree.Json
     public class CraftTreeNodeJsonObject
     {
         [JsonProperty("nodeId")] public Guid NodeId { get; set; }
-        [JsonProperty("targetItemId")] public int TargetItemId { get; set; }
+        [JsonProperty("targetItemGuid")] public string TargetItemGuidStr { get; set; }
         [JsonProperty("requiredCount")] public int RequiredCount { get; set; }
         [JsonProperty("currentCount")] public int CurrentCount { get; set; }
         [JsonProperty("children")] public List<CraftTreeNodeJsonObject> Children { get; set; } = new();
@@ -21,7 +21,7 @@ namespace Game.CraftTree.Json
         public CraftTreeNodeJsonObject(CraftTreeNode node)
         {
             NodeId = node.NodeId;
-            TargetItemId = (int)node.TargetItemId;
+            TargetItemGuidStr = MasterHolder.ItemMaster.GetItemGuid(node.TargetItemId).ToString();
             RequiredCount = node.RequiredCount;
             CurrentCount = node.CurrentCount;
             
@@ -35,7 +35,7 @@ namespace Game.CraftTree.Json
         // CraftTreeNodeに変換するメソッド
         public CraftTreeNode ToCraftTreeNode(CraftTreeNode parent = null)
         {
-            var node = new CraftTreeNode(new ItemId(TargetItemId), RequiredCount, parent);
+            var node = new CraftTreeNode(MasterHolder.ItemMaster.GetItemId(Guid.Parse(TargetItemGuidStr)), RequiredCount, parent);
             
             // 現在のカウントを設定
             node.SetCurrentItemCount(CurrentCount);

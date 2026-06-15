@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -20,7 +21,7 @@ namespace Game.Block.Blocks.GearChainPole
             foreach (var target in chainTargets)
             {
                 var cost = target.Value.Cost;
-                Connections.Add(new GearChainPoleConnectionJsonObject(target.Key.AsPrimitive(), cost.ItemId.AsPrimitive(), cost.Count));
+                Connections.Add(new GearChainPoleConnectionJsonObject(target.Key.AsPrimitive(), MasterHolder.ItemMaster.GetItemGuid(cost.ItemId), cost.Count));
             }
         }
         
@@ -31,15 +32,17 @@ namespace Game.Block.Blocks.GearChainPole
     public class GearChainPoleConnectionJsonObject
     {
         [JsonProperty("targetBlockInstanceId")] public int TargetBlockInstanceId { get; set; }
-        [JsonProperty("itemId")] public int ItemId { get; set; }
+        [JsonProperty("itemGuid")] public string ItemGuidStr { get; set; }
         [JsonProperty("count")] public int Count { get; set; }
-        
+
+        [JsonIgnore] public Guid ItemGuid => Guid.Parse(ItemGuidStr);
+
         public GearChainPoleConnectionJsonObject() { }
-        
-        public GearChainPoleConnectionJsonObject(int targetBlockInstanceId, int itemId, int count)
+
+        public GearChainPoleConnectionJsonObject(int targetBlockInstanceId, Guid itemGuid, int count)
         {
             TargetBlockInstanceId = targetBlockInstanceId;
-            ItemId = itemId;
+            ItemGuidStr = itemGuid.ToString();
             Count = count;
         }
     }
