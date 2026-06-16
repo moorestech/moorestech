@@ -3,6 +3,8 @@ using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
+using Game.World;
+using Game.World.Interface.DataStore;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -29,6 +31,26 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
         
+        [Test]
+        public void InitialBlockPlaceEventIsNotBroadcast()
+        {
+            var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockUpdateEvent = (WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent;
+
+            var blockId = (BlockId)1;
+            var pos = Vector3Int.zero;
+            var direction = BlockDirection.North;
+            var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var positionInfo = new BlockPositionInfo(pos, direction, size);
+            var block = ServerContext.BlockFactory.Create(blockId, BlockInstanceId.Create(), positionInfo, Array.Empty<BlockCreateParam>());
+            var blockData = new WorldBlockData(block, pos, direction);
+            worldBlockUpdateEvent.OnInitialBlockLoadPlaceEventInvoke(pos, blockData);
+
+            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
+            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
+            Assert.AreEqual(0, eventMessagePack.Events.Count);
+        }
+
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
         [Test]
         public void BlockPlaceEvent()

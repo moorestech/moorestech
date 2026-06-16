@@ -14,45 +14,47 @@ namespace Server.Event.EventReceive
     {
         public const string EventTag = "va:event:blockPlace";
         private readonly EventProtocolProvider _eventProtocolProvider;
-        
+
         public PlaceBlockEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnPlaceBlock);
         }
-        
+
         private void OnPlaceBlock(BlockPlaceProperties updateProperties)
         {
+            if (updateProperties.IsInitialLoad) return;
+
             var pos = updateProperties.Pos;
             var direction = updateProperties.BlockData.BlockPositionInfo.BlockDirection;
             var blockId = updateProperties.BlockData.Block.BlockId;
             var blockInstanceId = updateProperties.BlockData.Block.BlockInstanceId;
-            
+
             var messagePack = new PlaceBlockEventMessagePack(pos, blockId, direction, blockInstanceId);
             var payload = MessagePackSerializer.Serialize(messagePack);
-            
+
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
     }
-    
-    
+
+
     [MessagePackObject]
     public class PlaceBlockEventMessagePack
     {
         [Key(0)] public BlockDataMessagePack BlockData { get; set; }
-        
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlaceBlockEventMessagePack()
         {
         }
-        
+
         public PlaceBlockEventMessagePack(Vector3Int blockPos, BlockId blockId, BlockDirection direction, BlockInstanceId blockInstanceId)
         {
             BlockData = new BlockDataMessagePack(blockId, blockPos, direction, blockInstanceId);
         }
     }
-    
-    
+
+
     [MessagePackObject]
     public class BlockDataMessagePack
     {
@@ -60,14 +62,14 @@ namespace Server.Event.EventReceive
         [Key(1)] public Vector3IntMessagePack BlockPos { get; set; }
         [Key(2)] public int Direction { get; set; }
         [Key(3)] public int BlockInstanceIdInt { get; set; }
-        
+
         [IgnoreMember] public BlockDirection BlockDirection => (BlockDirection)Direction;
         [IgnoreMember] public BlockId BlockId => (BlockId)BlockIdInt;
         [IgnoreMember] public BlockInstanceId BlockInstanceId => new(BlockInstanceIdInt);
-        
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlockDataMessagePack() { }
-        
+
         public BlockDataMessagePack(BlockId blockId, Vector3Int blockPos, BlockDirection blockDirection, BlockInstanceId blockInstanceId)
         {
             BlockIdInt = (int)blockId;

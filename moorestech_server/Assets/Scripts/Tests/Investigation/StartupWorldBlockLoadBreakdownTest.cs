@@ -78,7 +78,7 @@ namespace Tests.Investigation
             // Invoke the same private registration method by reflection.
             foreach (var block in blocks)
             {
-                if ((bool)method.Invoke(datastore, new object[] { block })) added++;
+                if ((bool)method.Invoke(datastore, new object[] { block, true })) added++;
             }
 
             stopwatch.Stop();
