@@ -171,5 +171,12 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(
                 _blockInstanceId, slot + _inputSlotSize, itemStack));
         }
+
+#if UNITY_EDITOR
+        public void DebugUpdateForPerformanceProbe()
+        {
+            Update();
+        }
+#endif
     }
 }

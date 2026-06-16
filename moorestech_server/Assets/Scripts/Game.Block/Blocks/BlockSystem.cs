@@ -131,7 +131,28 @@ namespace Game.Block.Blocks
             if (other is null) return false;
             return BlockInstanceId == other.BlockInstanceId;
         }
-        
+
         private ProfilerMarker OneBlockUpdateMarker;
+
+#if UNITY_EDITOR
+        public void DebugUpdateForPerformanceProbe()
+        {
+            Update();
+        }
+
+        public void DebugUpdateWithoutComponentBodyForPerformanceProbe()
+        {
+            BlockUpdateMarker.Begin();
+            OneBlockUpdateMarker.Begin();
+            foreach (var component in _updatableComponents)
+            {
+                var componentUpdateMarker = CreateComponentUpdateMarker(BlockMasterElement, component);
+                componentUpdateMarker.Begin();
+                componentUpdateMarker.End();
+            }
+            OneBlockUpdateMarker.End();
+            BlockUpdateMarker.End();
+        }
+#endif
     }
 }
