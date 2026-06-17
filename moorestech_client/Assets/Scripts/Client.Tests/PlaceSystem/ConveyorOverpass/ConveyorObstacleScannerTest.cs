@@ -3,7 +3,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests
+namespace Client.Tests.PlaceSystem.ConveyorOverpass
 {
     public class ConveyorObstacleScannerTest
     {

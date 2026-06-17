@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Tests
+namespace Client.Tests.PlaceSystem.ConveyorOverpass
 {
     public class ConveyorOverpassRaiserTest
     {
