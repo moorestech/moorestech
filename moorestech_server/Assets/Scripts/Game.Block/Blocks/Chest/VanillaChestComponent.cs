@@ -70,9 +70,16 @@ namespace Game.Block.Blocks.Chest
         public void Update()
         {
             CheckDestroy(this);
+
+            // 搬出先が完全に詰まっている場合は搬出元スロットを走査しない
+            // Skip source slot scanning when the selected destination is fully locked
+            if (_blockInventoryInserter is IBlockInventoryInsertTargetState targetState && !targetState.CanInsertToNextTarget()) return;
             
             for (var i = 0; i < _itemDataStoreService.InventoryItems.Count; i++)
             {
+                var itemStack = _itemDataStoreService.InventoryItems[i];
+                if (itemStack.Id == ItemMaster.EmptyItemId || itemStack.Count == 0) continue;
+
                 var setItem = _blockInventoryInserter.InsertItem(_itemDataStoreService.InventoryItems[i]);
                 _itemDataStoreService.SetItem(i, setItem);
             }

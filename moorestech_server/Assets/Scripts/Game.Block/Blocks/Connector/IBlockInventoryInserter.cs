@@ -6,4 +6,9 @@ namespace Game.Block.Blocks.Connector
     {
         public IItemStack InsertItem(IItemStack itemStack);
     }
+
+    public interface IBlockInventoryInsertTargetState
+    {
+        public bool CanInsertToNextTarget();
+    }
 }
