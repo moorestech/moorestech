@@ -63,7 +63,18 @@
    `needY[i] = 障害物スタック上端 + 1`。障害物が無ければ `needY[i] = 基準Y`。
    - 基準が空で上空に浮遊ブロックがある場合は連続スタックが無いので `needY[i] = 基準Y`
      （上昇せず下を通る。衝突しないので正常）。
-4. **床**: 障害物の無い内部セルの床 = `min(startPoint.y, endPoint.y)`。
+4. **下限値の合成**: 各セルの最終下限 = `max(既存ベースライン beltY[i], needY[i])`。
+   ここで「ベースライン」は既存パイプライン（`CalcPositionsForConveyor` の
+   端点高さランプ処理を含む、変更しない）が出力した Y プロファイル。
+
+### 重要: 冪等な後段レイヤーとして重ねる
+
+包絡線は既存パイプラインを**作り直さず、後段に重ねる**。
+既存ベースラインは既に slope≤1 を満たす有効なプロファイルなので、
+障害物が無い場合の包絡線出力はベースラインと完全に一致する（恒等変換）。
+これにより**既存の挙動・既存テストは値を一切変えずに全て通る**。
+障害物が intrude する straight 区間でのみ Y が上昇する。
+端点高さ違いとの合成も、下限値を `max(ベースライン, needY)` にするだけで自然に吸収される。
 
 ### 4.2 2 パス包絡線
 
@@ -106,15 +117,20 @@
 
 ## 6. ファイル分割と変更点
 
-現状 `CommonBlockPlacePointCalculator.cs` は 376 行で 200 行制限を超過。
-責務ごとに分割し、新規ディレクトリ `Common/ConveyorPath/` を作成（1 ディレクトリ 10 ファイル以下）。
+既存の `CalcPositionsForConveyor` / `CalcPlaceDirection`（端点高さランプの特殊処理を含む）は
+**一切変更しない**。障害物回避は後段の冪等レイヤーとして新規追加する。
+新規ディレクトリ `Common/ConveyorOverpass/` を作成（1 ディレクトリ 10 ファイル以下）。
 
 | ファイル | 責務 | 概算行数 |
 |---|---|---|
-| `ConveyorPath/ConveyorHorizontalPath.cs` | XZ 平面の L 字経路生成 + コーナー index 算出（既存 `CalcPositionsForConveyor` の XZ 部分を抽出） | ~80 |
-| `ConveyorPath/ConveyorVerticalProfile.cs` | **新核心**: 障害物スキャン + 2 パス包絡線 + コーナー踊り場化。`beltY[]` を返す | ~150 |
-| `ConveyorPath/ConveyorPlaceDirectionAssigner.cs` | `beltY[]` の隣接差分から各セルの `Direction` / `VerticalDirection` を決定（コーナーは強制 Horizontal） | ~120 |
-| `CommonBlockPlacePointCalculator.cs` | オーケストレーション + `CalcPlaceable` + occupancy probe 注入。上記を呼ぶだけに縮小 | ~120 |
+| `ConveyorOverpass/ConveyorVerticalEnvelope.cs` | **純粋関数**: `Solve(int[] lowerBounds, int fixedStart, int fixedEnd, int cornerIndex)` → `(int[] beltY, bool[] feasible)`。2 パス包絡線 + コーナー踊り場化。int 演算のみで単体テスト容易 | ~120 |
+| `ConveyorOverpass/ConveyorObstacleScanner.cs` | `ComputeLowerBounds(cells, baselineBeltY, isOccupied)` → `int[]`。各列を上方探索し `max(baseline, needY)` を返す | ~80 |
+| `ConveyorOverpass/ConveyorOverpassRaiser.cs` | オーケストレーション: scan → solve → 各 `PlaceInfo` の `Position.Y` 更新・raise したセルの `VerticalDirection` 再計算・infeasible セルの `Placeable=false` | ~140 |
+| `CommonBlockPlacePointCalculator.cs` | 既存 + 後段に `ConveyorOverpassRaiser` 呼び出しを 1 行追加。`isOccupied` probe を注入 | 既存 +~15 |
+
+`CommonBlockPlacePointCalculator.cs` は現状 376 行で 200 行制限を超過しているが、
+今回の追加は最小限（後段呼び出し 1 段）にとどめ、本格的な分割は別タスクとする
+（無関係なリファクタを避ける writing-plans 方針に従う）。
 
 ### 6.1 シグネチャ変更（デフォルト値なしで全呼び出し側を更新）
 
@@ -123,6 +139,8 @@
 - インスタンス側は `_blockGameObjectDataStore` から `isOccupied`
   （`IsOverlapPositionInfo` を 1×1×1 セルで呼ぶ）と既存 `IsNotExistBlock` の両方を供給する。
 - 呼び出し元（`CommonBlockPlaceSystem`、既存テスト）を更新する。
+  既存テストは `isOccupied: _ => false`（障害物なし）を渡すだけで、**期待値は変更不要**
+  （包絡線が恒等変換になるため）。
 
 ### 6.2 サーバー側
 
@@ -130,11 +148,11 @@
 
 ## 7. テスト
 
-- `ConveyorVerticalProfileTest`（新規・EditMode 純粋ロジック）:
+- `ConveyorVerticalEnvelopeTest`（新規・EditMode 純粋ロジック）:
   単一障害物（高さ 1）、複数連続障害物、高さ 2 の機械、端点至近で跨げない → 不可フラグ、
-  コーナー上の障害物 → 踊り場、浮遊ブロック、高さ違い端点 + 障害物の複合。
+  コーナー上の障害物 → 踊り場、浮遊ブロック、障害物なし → 恒等変換。int 配列で厳密に検証。
 - 既存 `CommonBlockPlacePointCalculatorTest`:
-  統一包絡線で高さ違いケースの期待値が変わるため、ランタイム正当性を確認の上で期待値を更新。
+  `isOccupied: _ => false` 引数を追加するのみ。**期待値は変更しない**（恒等変換のため全て通る）。
 - **ランタイム PlayMode テスト**（EditModeInPlayingTest）:
   機械を跨ぐ立体交差を実際に設置 → サーバー tick → アイテムが始点から終点まで通過することを確認。
   形状が正しくても接続が繋がらなければ無意味なため、これが QA の本丸。
