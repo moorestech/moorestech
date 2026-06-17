@@ -12,10 +12,8 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Game.World.Interface.DataStore;
-using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -71,7 +69,7 @@ namespace Client.Tests
 
             // 設置→先頭にアイテム挿入→毎tick全歯車ベルトへ動力供給して回す
             // Place -> insert an item on the first belt -> tick while powering every gear belt.
-            var belts = PlaceComputedBelts(world, holding, placeInfos);
+            var belts = PlaceComputedBelts();
             var itemId = MasterHolder.ItemMaster.GetItemAllIds().First();
             belts[0].belt.InsertItem(ServerContext.ItemStackFactory.Create(itemId, 1), InsertItemContext.Empty);
             for (var i = 0; i < 600; i++)
@@ -85,27 +83,30 @@ namespace Client.Tests
             var diag = string.Join(" ", belts.Select((b, idx) => $"#{idx}={Count(b.belt)}"));
             Debug.Log($"items per belt: {diag}");
             Assert.Greater(Count(belts[^1].belt), 0, $"アイテムが立体交差を渡れなかった / item did not cross the overpass. {diag}");
-        }
 
-        private static List<(VanillaBeltConveyorComponent belt, GearBeltConveyorComponent gear)> PlaceComputedBelts(
-            IWorldBlockDatastore world, BlockMasterElement holding, List<PlaceInfo> placeInfos)
-        {
-            // 計算結果を本番(PlaceBlockFromHotBarProtocol)と同じ手順でサーバーに設置する
-            // Place the computed result with the same procedure as production (PlaceBlockFromHotBarProtocol).
-            var result = new List<(VanillaBeltConveyorComponent, GearBeltConveyorComponent)>();
-            foreach (var info in placeInfos)
+            #region Internal
+
+            List<(VanillaBeltConveyorComponent belt, GearBeltConveyorComponent gear)> PlaceComputedBelts()
             {
-                if (!info.Placeable) continue;
-                var blockId = holding.BlockGuid.GetVerticalOverrideBlockId(info.VerticalDirection);
-                Assert.IsTrue(world.TryAddBlock(blockId, info.Position, info.Direction, Array.Empty<BlockCreateParam>(), out var block), $"設置失敗 / placement failed at {info.Position}");
-                result.Add((block.GetComponent<VanillaBeltConveyorComponent>(), block.GetComponent<GearBeltConveyorComponent>()));
+                // 本番(PlaceBlockFromHotBarProtocol)のうち縦方向override→TryAddBlock部分を再現する（inventory/hotbar経由ではない）
+                // Reproduce production's (PlaceBlockFromHotBarProtocol) vertical-override -> TryAddBlock step (not the full inventory/hotbar protocol).
+                var result = new List<(VanillaBeltConveyorComponent, GearBeltConveyorComponent)>();
+                foreach (var info in placeInfos)
+                {
+                    if (!info.Placeable) continue;
+                    var blockId = holding.BlockGuid.GetVerticalOverrideBlockId(info.VerticalDirection);
+                    Assert.IsTrue(world.TryAddBlock(blockId, info.Position, info.Direction, Array.Empty<BlockCreateParam>(), out var block), $"設置失敗 / placement failed at {info.Position}");
+                    result.Add((block.GetComponent<VanillaBeltConveyorComponent>(), block.GetComponent<GearBeltConveyorComponent>()));
+                }
+                return result;
             }
-            return result;
-        }
 
-        private static int Count(VanillaBeltConveyorComponent belt)
-        {
-            return belt.BeltConveyorItems.Count(x => x != null);
+            int Count(VanillaBeltConveyorComponent belt)
+            {
+                return belt.BeltConveyorItems.Count(x => x != null);
+            }
+
+            #endregion
         }
     }
 }
