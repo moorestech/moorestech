@@ -17,7 +17,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Client.Tests
+namespace Client.Tests.PlaceSystem.ConveyorOverpass
 {
     // 実際の自動立体交差配置(CommonBlockPlacePointCalculator)で障害物を跨ぐベルト列を生成し、アイテムが流れることを検証する
     // Verify the real auto-overpass placement generates a belt run stepping over obstacles and items flow across it.
