@@ -120,7 +120,8 @@ namespace Client.Tests
                 isStartDirectionZ,
                 BlockDirection.North,
                 blockMasterElement,
-                (_, _) => true
+                (_, _) => true,
+                _ => false
             );
             
             Assert.AreEqual(testCase.ExpectedPoints.Length, actual.Count);
