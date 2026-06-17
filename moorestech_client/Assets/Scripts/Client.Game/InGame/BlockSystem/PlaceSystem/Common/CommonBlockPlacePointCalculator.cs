@@ -22,10 +22,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
-            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, holdingBlockMasterElement, IsNotExistBlock);
+            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, holdingBlockMasterElement, IsNotExistBlock, IsOccupied);
         }
         
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock)
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var startToCornerDistance = 0;
@@ -36,6 +36,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             List<Vector3Int> positions = enableConveyorPlacement ? CalcPositionsForConveyor() : CalcPositions(blockSize);
             
             List<PlaceInfo> placeInfos = CalcPlaceDirection(positions);
+
+            // 障害物を自動で跨ぐ立体交差プロファイルを後段で重ねる（コンベア配置時のみ）
+            // Layer the auto-overpass profile that steps over obstacles (conveyor placement only).
+            if (enableConveyorPlacement)
+            {
+                new ConveyorOverpass.ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied);
+            }
+
             placeInfos = CalcPlaceable(placeInfos);
 
             return placeInfos;
@@ -366,11 +374,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             // 設置の縦方向のguidを取得
             var blockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-            
+
             var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
-            
+
             return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
+        }
+
+        // 1×1×1セルに既存ブロックが存在するか（障害物スキャン用）
+        // Whether a 1x1x1 cell is occupied by an existing block (used by obstacle scanning).
+        private bool IsOccupied(Vector3Int cell)
+        {
+            var positionInfo = new BlockPositionInfo(cell, BlockDirection.North, Vector3Int.one);
+            return _blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
         }
     }
 }
