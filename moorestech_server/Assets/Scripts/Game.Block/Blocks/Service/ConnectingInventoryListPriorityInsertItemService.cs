@@ -10,8 +10,8 @@ using Game.Block.Interface.Component;
 namespace Game.Block.Blocks.Service
 {
     /// <summary>
-    /// 順番にアイテムに入れ続けるシステム
-    /// A system that keeps putting items in order.
+    /// 順番にアイテムを接続先へ搬出するサービス
+    /// A service that outputs items to connected targets in order.
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService : IBlockInventoryInserter, IBlockInventoryInsertTargetState
     {
@@ -28,21 +28,15 @@ namespace Game.Block.Blocks.Service
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            // 接続先のリストとConnectedInfoを取得
-            // Get list of connected targets and ConnectedInfo
-            var connectedTargets = _blockConnectorComponent.ConnectedTargets;
-            var targetsList = connectedTargets.ToArray();
+            var targetsList = _blockConnectorComponent.ConnectedTargets.ToArray();
 
+            // 既存のround-robin順で搬出し、indexed targetなら高速挿入を使う
+            // Keep the existing round-robin order and use fast insertion for indexed targets
             for (var i = 0; i < targetsList.Length && itemStack.Id != ItemMaster.EmptyItemId; i++)
                 lock (targetsList)
                 {
                     AddIndex(targetsList.Length);
-                    var target = targetsList[_index];
-
-                    // ConnectedInfoからコネクタ情報を取得してInsertItemContextを作成
-                    // Create InsertItemContext from ConnectedInfo
-                    var context = new InsertItemContext(_sourceBlockInstanceId, target.Value.SelfConnector, target.Value.TargetConnector);
-                    itemStack = target.Key.InsertItem(itemStack, context);
+                    itemStack = InsertToTarget(itemStack, targetsList[_index]);
                 }
 
             return itemStack;
@@ -50,13 +44,36 @@ namespace Game.Block.Blocks.Service
 
         public bool CanInsertToNextTarget()
         {
-            // 次に見る搬出先だけを判定し、搬出元スロット走査の前に詰まりを落とす
-            // Check only the next output target before scanning source slots
             var targetsList = _blockConnectorComponent.ConnectedTargets.ToArray();
             if (targetsList.Length == 0) return false;
 
-            var target = PeekNextTarget(targetsList);
-            return IsTargetMaybeInsertable(target.Key);
+            // indexed targetなら満杯判定をcacheからO(1)で返す
+            // Indexed targets answer fullness from cache in constant time
+            var target = PeekNextTarget(targetsList).Key;
+            if (target is IBlockInventoryFastInsertTarget fastTarget) return fastTarget.HasInsertableSlot;
+            return IsTargetMaybeInsertable(target);
+        }
+
+        public bool CanInsertItemToNextTarget(IItemStack itemStack)
+        {
+            var targetsList = _blockConnectorComponent.ConnectedTargets.ToArray();
+            if (targetsList.Length == 0) return false;
+
+            // item別cacheを持つtargetだけ事前判定し、非対応targetは既存挿入に任せる
+            // Precheck only targets with item caches and leave other targets to existing insertion
+            var target = PeekNextTarget(targetsList).Key;
+            if (target is IBlockInventoryFastInsertTarget fastTarget) return fastTarget.CanInsertItem(itemStack);
+            return true;
+        }
+
+        private IItemStack InsertToTarget(IItemStack itemStack, KeyValuePair<IBlockInventory, ConnectedInfo> target)
+        {
+            if (target.Key is IBlockInventoryFastInsertTarget fastTarget) return fastTarget.InsertItemFast(itemStack);
+
+            // connector情報が必要なtargetには従来通りcontextを渡す
+            // Keep passing connector context to targets that need it
+            var context = new InsertItemContext(_sourceBlockInstanceId, target.Value.SelfConnector, target.Value.TargetConnector);
+            return target.Key.InsertItem(itemStack, context);
         }
 
         private void AddIndex(int count)
@@ -74,8 +91,8 @@ namespace Game.Block.Blocks.Service
 
         private static bool IsTargetMaybeInsertable(IBlockInventory target)
         {
-            // 空きスロットか未満杯スタックがあれば、搬出元次第で入る可能性を残す
-            // Keep the target open when any empty or non-full stack can accept a source item
+            // 非indexed targetは従来通りslotを見て満杯だけを検出する
+            // For non-indexed targets, scan slots only to detect total fullness
             for (var i = 0; i < target.GetSlotSize(); i++)
             {
                 var itemStack = target.GetItem(i);

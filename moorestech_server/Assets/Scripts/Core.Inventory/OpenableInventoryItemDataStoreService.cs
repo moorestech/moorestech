@@ -11,7 +11,12 @@ namespace Core.Inventory
     public class OpenableInventoryItemDataStoreService : IOpenableInventory
     {
         public IReadOnlyList<IItemStack> InventoryItems => _inventory;
+        public IReadOnlyList<int> NonEmptySlotIndexes => _slotIndex.NonEmptySlotIndexes;
+        public bool HasInsertableSlot => _slotIndex.HasInsertableSlot;
+        public int InventoryVersion => _slotIndex.Version;
+
         private readonly List<IItemStack> _inventory;
+        private readonly OpenableInventorySlotIndex _slotIndex;
 
         public delegate void InventoryUpdate(int slot, IItemStack itemStack);
 
@@ -27,6 +32,7 @@ namespace Core.Inventory
 
             _inventory = new List<IItemStack>();
             for (var i = 0; i < slotNumber; i++) _inventory.Add(_itemStackFactory.CreatEmpty());
+            _slotIndex = new OpenableInventorySlotIndex(slotNumber);
         }
         
         public bool InsertionCheck(List<IItemStack> itemStacks)
@@ -53,26 +59,35 @@ namespace Core.Inventory
         {
             return _inventory[slot];
         }
+
+        public bool CanInsertItem(IItemStack itemStack)
+        {
+            return _slotIndex.CanInsertItem(itemStack, _option);
+        }
         
         private void InvokeEvent(int slot)
         {
             _onInventoryUpdate(slot, _inventory[slot]);
         }
-        
+
         #region Set
         
         public void SetItem(int slot, IItemStack itemStack)
         {
             if (!_inventory[slot].Equals(itemStack))
             {
+                var oldItemStack = _inventory[slot];
                 _inventory[slot] = itemStack;
+                _slotIndex.SetSlot(slot, oldItemStack, itemStack);
                 InvokeEvent(slot);
             }
         }
         
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
+            var oldItemStack = _inventory[slot];
             _inventory[slot] = itemStack;
+            _slotIndex.SetSlot(slot, oldItemStack, itemStack);
         }
         
         public void SetItem(int slot, ItemId itemId, int count)
@@ -93,12 +108,14 @@ namespace Core.Inventory
             {
                 var result = item.AddItem(itemStack);
                 _inventory[slot] = result.ProcessResultItemStack;
+                _slotIndex.SetSlot(slot, item, result.ProcessResultItemStack);
                 InvokeEvent(slot);
                 return result.RemainderItemStack;
             }
             
             //違う場合はそのまま入れ替える
             _inventory[slot] = itemStack;
+            _slotIndex.SetSlot(slot, item, itemStack);
             InvokeEvent(slot);
             return item;
         }
@@ -115,7 +132,14 @@ namespace Core.Inventory
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, _option, InvokeEvent);
+            var remainingItem = InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, _option, InvokeEvent);
+            _slotIndex.Rebuild(_inventory);
+            return remainingItem;
+        }
+
+        public IItemStack InsertItemByIndex(IItemStack itemStack)
+        {
+            return _slotIndex.InsertItem(itemStack, _inventory, _itemStackFactory, _option, InvokeEvent);
         }
         
         public IItemStack InsertItem(ItemId itemId, int count)
@@ -125,7 +149,14 @@ namespace Core.Inventory
         
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            return InventoryInsertItem.InsertItem(itemStacks, _inventory, _itemStackFactory, _option, InvokeEvent);
+            var remainingItems = new List<IItemStack>();
+            foreach (var itemStack in itemStacks)
+            {
+                var remaining = InsertItem(itemStack);
+                if (remaining.Count == 0) continue;
+                remainingItems.Add(remaining);
+            }
+            return remainingItems;
         }
         
         /// <summary>
@@ -133,7 +164,9 @@ namespace Core.Inventory
         /// </summary>
         public IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, int[] prioritySlots)
         {
-            return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, _option, prioritySlots, InvokeEvent);
+            var remainingItem = InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, _option, prioritySlots, InvokeEvent);
+            _slotIndex.Rebuild(_inventory);
+            return remainingItem;
         }
         
         public IItemStack InsertItemWithPrioritySlot(ItemId itemId, int count, int[] prioritySlots)

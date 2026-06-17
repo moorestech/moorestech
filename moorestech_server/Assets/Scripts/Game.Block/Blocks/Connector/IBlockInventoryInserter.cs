@@ -10,5 +10,14 @@ namespace Game.Block.Blocks.Connector
     public interface IBlockInventoryInsertTargetState
     {
         public bool CanInsertToNextTarget();
+        public bool CanInsertItemToNextTarget(IItemStack itemStack);
+    }
+
+    public interface IBlockInventoryFastInsertTarget
+    {
+        public bool HasInsertableSlot { get; }
+        public int InventoryVersion { get; }
+        public bool CanInsertItem(IItemStack itemStack);
+        public IItemStack InsertItemFast(IItemStack itemStack);
     }
 }

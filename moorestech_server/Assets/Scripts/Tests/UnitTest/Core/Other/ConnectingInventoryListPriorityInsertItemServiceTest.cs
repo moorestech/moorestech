@@ -141,6 +141,11 @@ namespace Tests.UnitTest.Core.Other
                 return false;
             }
 
+            public bool CanInsertItemToNextTarget(IItemStack itemStack)
+            {
+                return false;
+            }
+
             public int GetInsertCallCount()
             {
                 return _insertCallCount;
