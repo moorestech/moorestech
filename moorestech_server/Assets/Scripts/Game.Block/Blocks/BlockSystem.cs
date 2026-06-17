@@ -153,6 +153,32 @@ namespace Game.Block.Blocks
             OneBlockUpdateMarker.End();
             BlockUpdateMarker.End();
         }
+
+        public void DebugUpdateWithoutProfilerForPerformanceProbe()
+        {
+            foreach (var component in _updatableComponents)
+            {
+                component.Update();
+            }
+        }
+
+        public int DebugCountComponentsForPerformanceProbe()
+        {
+            var count = 0;
+            foreach (var component in _updatableComponents)
+            {
+                if (component != null) count++;
+            }
+            return count;
+        }
+
+        public void DebugUpdateBlockProfilerOnlyForPerformanceProbe()
+        {
+            BlockUpdateMarker.Begin();
+            OneBlockUpdateMarker.Begin();
+            OneBlockUpdateMarker.End();
+            BlockUpdateMarker.End();
+        }
 #endif
     }
 }

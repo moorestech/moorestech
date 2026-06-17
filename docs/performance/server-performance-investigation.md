@@ -191,3 +191,7 @@ Current conclusion:
 - Inside `BlockSystem`, there is both a large wrapper/profiler-marker cost and real component body cost.
 - The highest-confidence component hotspots are belt conveyor, chest, fluid pipe, and machine processor.
 - No game-update optimization has been applied in this pass; only investigation probes and repeatable benchmarks were added.
+
+Deep dive:
+
+- `docs/performance/game-update-deep-dive-2026-06-17.md`
