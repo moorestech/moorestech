@@ -63,6 +63,41 @@ namespace Client.Tests
             Assert.AreEqual(BlockVerticalDirection.Horizontal, infos[4].VerticalDirection);
         }
 
+        // 不具合1: 1セル間隔の平行2ベルトを跨ぐ。間のセルが谷(Up)にならず水平の橋になる
+        // Bug 1: crossing two parallel belts one cell apart; the middle cell becomes a flat bridge, not a valley (Up).
+        [Test]
+        public void TwoObstaclesGap1_MiddleCellStaysHorizontalBridge()
+        {
+            var infos = FlatHorizontalPath(5);
+            var occupied = new HashSet<Vector3Int> { new(1, 0, 0), new(3, 0, 0) };
+            new ConveyorOverpassRaiser().Raise(infos, 4, occupied.Contains);
+
+            // Y: 0,1,1,1,0 の連続した橋（間のセルも上昇したまま水平）
+            // Y profile 0,1,1,1,0: a continuous bridge (the gap cell stays raised and horizontal).
+            Assert.AreEqual(new[] { 0, 1, 1, 1, 0 }, new[] { infos[0].Position.y, infos[1].Position.y, infos[2].Position.y, infos[3].Position.y, infos[4].Position.y });
+            Assert.AreEqual(BlockVerticalDirection.Up, infos[0].VerticalDirection);
+            Assert.AreEqual(BlockVerticalDirection.Horizontal, infos[1].VerticalDirection);
+            Assert.AreEqual(BlockVerticalDirection.Horizontal, infos[2].VerticalDirection);
+            Assert.AreEqual(BlockVerticalDirection.Horizontal, infos[3].VerticalDirection);
+            Assert.AreEqual(BlockVerticalDirection.Down, infos[4].VerticalDirection);
+        }
+
+        // 不具合2: 2セル間隔の平行2ベルトを跨ぐ。間の2セルがV字にならず水平の橋になる
+        // Bug 2: crossing two parallel belts two cells apart; the two middle cells become a flat bridge, not a V.
+        [Test]
+        public void TwoObstaclesGap2_MiddleCellsStayHorizontalBridge()
+        {
+            var infos = FlatHorizontalPath(6);
+            var occupied = new HashSet<Vector3Int> { new(1, 0, 0), new(4, 0, 0) };
+            new ConveyorOverpassRaiser().Raise(infos, 5, occupied.Contains);
+
+            Assert.AreEqual(new[] { 0, 1, 1, 1, 1, 0 }, new[] { infos[0].Position.y, infos[1].Position.y, infos[2].Position.y, infos[3].Position.y, infos[4].Position.y, infos[5].Position.y });
+            Assert.AreEqual(BlockVerticalDirection.Up, infos[0].VerticalDirection);
+            Assert.AreEqual(BlockVerticalDirection.Horizontal, infos[2].VerticalDirection);
+            Assert.AreEqual(BlockVerticalDirection.Horizontal, infos[3].VerticalDirection);
+            Assert.AreEqual(BlockVerticalDirection.Down, infos[5].VerticalDirection);
+        }
+
         [Test]
         public void TallObstacleWithNoRampRoom_MarksEndpointsUnplaceable()
         {

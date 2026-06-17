@@ -2,33 +2,32 @@ using System;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
 {
-    // 障害物クリア下限・隣接差≤1・端点固定を満たす最小のベルト高さプロファイルを求める純粋ロジック
-    // Pure logic computing the minimal belt-height profile satisfying clearance lower bounds, adjacency<=1, and fixed endpoints.
+    // 障害物クリア下限・隣接差≤1・端点固定を満たし、障害物間の狭すぎる谷は橋渡しに引き上げる高さプロファイルを求める純粋ロジック
+    // Pure logic for a belt-height profile satisfying clearance bounds, adjacency<=1, fixed endpoints, while bridging gaps too narrow to descend into.
     public static class ConveyorVerticalEnvelope
     {
+        // 地面まで降りて平坦区間を作ったと見なす最小セル数。これ未満のギャップは橋渡しする
+        // Minimum flat-floor cells that count as a real descent; gaps narrower than this are bridged.
+        private const int MinFlatFloor = 1;
+
         public static (int[] beltY, bool[] feasible) Solve(int[] lowerBounds, int fixedStart, int fixedEnd, int cornerIndex)
         {
             var n = lowerBounds.Length;
             if (n == 0) return (Array.Empty<int>(), Array.Empty<bool>());
 
-            // 2パスで下限と隣接差≤1を満たす最小プロファイルを求める
-            // Two passes give the minimal profile satisfying lower bounds and adjacency<=1.
-            var y = TwoPass(lowerBounds);
+            var working = (int[])lowerBounds.Clone();
 
-            // コーナーは勾配を通せないため前後3セルを平坦な踊り場に引き上げて再計算する
-            // The corner cannot carry a slope, so raise its 3-cell neighborhood into a flat plateau and re-solve.
-            if (cornerIndex >= 1 && cornerIndex <= n - 2 && !(y[cornerIndex - 1] == y[cornerIndex] && y[cornerIndex] == y[cornerIndex + 1]))
-            {
-                var plateau = Math.Max(y[cornerIndex - 1], Math.Max(y[cornerIndex], y[cornerIndex + 1]));
-                var raised = (int[])lowerBounds.Clone();
-                raised[cornerIndex - 1] = Math.Max(raised[cornerIndex - 1], plateau);
-                raised[cornerIndex] = Math.Max(raised[cornerIndex], plateau);
-                raised[cornerIndex + 1] = Math.Max(raised[cornerIndex + 1], plateau);
-                y = TwoPass(raised);
-            }
+            // コーナーは勾配を通せないため前後3セルを踊り場として下限に反映する
+            // The corner cannot carry a slope, so pin its 3-cell neighborhood into a plateau lower bound.
+            ApplyCornerPlateau();
 
-            // 端点は固定値。包絡線がそれを超えて上がったらランプを戻しきれない＝設置不可
-            // Endpoints are fixed. If the envelope rose above them, the ramp cannot return -> not placeable.
+            // 障害物間の狭すぎる谷を橋渡し高さへ引き上げてから最小高さを確定する
+            // Bridge gaps too narrow to descend into, then settle on the minimal height.
+            var y = TwoPass(working);
+            while (BridgeNarrowBasins(y)) y = TwoPass(working);
+
+            // 端点は固定値。包絡線がそれを超えたらランプを戻しきれない＝設置不可
+            // Endpoints are fixed; if the envelope exceeds them the ramp cannot return -> infeasible.
             var feasible = new bool[n];
             for (var i = 0; i < n; i++) feasible[i] = true;
             feasible[0] = y[0] == fixedStart;
@@ -44,6 +43,63 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
                 for (var i = 1; i < n; i++) r[i] = Math.Max(r[i], r[i - 1] - 1);
                 for (var i = n - 2; i >= 0; i--) r[i] = Math.Max(r[i], r[i + 1] - 1);
                 return r;
+            }
+
+            void ApplyCornerPlateau()
+            {
+                if (cornerIndex < 1 || cornerIndex > n - 2) return;
+                var y0 = TwoPass(working);
+                if (y0[cornerIndex - 1] == y0[cornerIndex] && y0[cornerIndex] == y0[cornerIndex + 1]) return;
+                var plateau = Math.Max(y0[cornerIndex - 1], Math.Max(y0[cornerIndex], y0[cornerIndex + 1]));
+                working[cornerIndex - 1] = Math.Max(working[cornerIndex - 1], plateau);
+                working[cornerIndex] = Math.Max(working[cornerIndex], plateau);
+                working[cornerIndex + 1] = Math.Max(working[cornerIndex + 1], plateau);
+            }
+
+            bool BridgeNarrowBasins(int[] profile)
+            {
+                // 各セルの左右最大値から「水が溜まる窪み(谷)」を検出する（雨水トラップと同型）
+                // Detect trapped basins from per-cell left/right maxima (same shape as the trapping-rain-water problem).
+                var prefMax = new int[n];
+                var sufMax = new int[n];
+                prefMax[0] = profile[0];
+                for (var i = 1; i < n; i++) prefMax[i] = Math.Max(prefMax[i - 1], profile[i]);
+                sufMax[n - 1] = profile[n - 1];
+                for (var i = n - 2; i >= 0; i--) sufMax[i] = Math.Max(sufMax[i + 1], profile[i]);
+
+                var changed = false;
+                var idx = 0;
+                while (idx < n)
+                {
+                    // 窪みでないセルは読み飛ばす（窪み=水位より低いセル）
+                    // Skip non-basin cells (a basin cell is below its trapped water level).
+                    if (profile[idx] >= Math.Min(prefMax[idx], sufMax[idx])) { idx++; continue; }
+
+                    // 窪みの連続区間[l..r]と、両肩(rim)・床(floor)・幅(gap)を求める
+                    // Find the contiguous basin [l..r] with its rims, floor, and gap width.
+                    var l = idx;
+                    var r = idx;
+                    while (r + 1 < n && profile[r + 1] < Math.Min(prefMax[r + 1], sufMax[r + 1])) r++;
+
+                    var leftRim = prefMax[l - 1];
+                    var rightRim = sufMax[r + 1];
+                    var baseFloor = profile[l];
+                    for (var k = l; k <= r; k++) baseFloor = Math.Min(baseFloor, profile[k]);
+
+                    // 地面まで降りて平坦区間を作るのに要する幅。足りなければ低い側の肩高さで橋渡しする
+                    // Width needed to descend to the floor with a flat run; if short, bridge at the lower rim height.
+                    var requiredGap = (leftRim - baseFloor) + (rightRim - baseFloor) + MinFlatFloor;
+                    if (r - l + 1 < requiredGap)
+                    {
+                        var bridge = Math.Min(leftRim, rightRim);
+                        for (var k = l; k <= r; k++) working[k] = Math.Max(working[k], bridge);
+                        changed = true;
+                    }
+
+                    idx = r + 1;
+                }
+
+                return changed;
             }
 
             #endregion
