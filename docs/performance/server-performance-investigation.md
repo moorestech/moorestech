@@ -1,5 +1,9 @@
 # Server Performance Investigation
 
+Latest optimization summary:
+
+- `docs/performance/performance-optimization-summary-2026-06-18.md`
+
 ## 2026-06-17 Startup Load
 
 Target save:
