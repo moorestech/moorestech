@@ -1,6 +1,5 @@
 using System;
 using UniRx;
-using Unity.Profiling;
 
 namespace Core.Update
 {
@@ -21,31 +20,11 @@ namespace Core.Update
         {
             // Updateの実行
             // Execute Update
-            ExecuteUpdate();
+            _updateSubject.OnNext(Unit.Default);
 
             // LateUpdateの実行
             // Execute LateUpdate
-            ExecuteLateUpdate();
-
-            #region Internal
-
-            void ExecuteUpdate()
-            {
-                var updateProfilerMask = new ProfilerMarker("Update");
-                updateProfilerMask.Begin();
-                _updateSubject.OnNext(Unit.Default);
-                updateProfilerMask.End();
-            }
-
-            void ExecuteLateUpdate()
-            {
-                var lateUpdateProfilerMask = new ProfilerMarker("LateUpdate");
-                lateUpdateProfilerMask.Begin();
-                _lateUpdateSubject.OnNext(Unit.Default);
-                lateUpdateProfilerMask.End();
-            }
-
-            #endregion
+            _lateUpdateSubject.OnNext(Unit.Default);
         }
 
         public static void ResetUpdate()

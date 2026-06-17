@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Core.Update;
-using Unity.Profiling;
 
 namespace Server.Boot.Loop
 {
@@ -13,14 +12,10 @@ namespace Server.Boot.Loop
         
         public static void StartUpdate(CancellationToken token)
         {
-            var profilerMarker = new ProfilerMarker("GameUpdate");
-            
             var stopwatch = new Stopwatch();
             
             while (true)
             {
-                profilerMarker.Begin();
-                
                 stopwatch.Restart();
                 
                 try
@@ -40,8 +35,6 @@ namespace Server.Boot.Loop
                 {
                     Thread.Sleep(remaining);
                 }
-                
-                profilerMarker.End();
             }
         }
     }

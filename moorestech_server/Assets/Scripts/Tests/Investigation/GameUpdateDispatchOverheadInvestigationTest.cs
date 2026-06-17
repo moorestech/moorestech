@@ -33,7 +33,7 @@ namespace Tests.Investigation
         }
 
         [Test]
-        public void ProfileCurrentSaveBlockSystemWrapperOnly()
+        public void ProfileCurrentSaveBlockSystemIterationOnly()
         {
             using var environment = GameUpdatePerformanceTestEnvironment.CreateCurrentSave();
             RunTicks(WarmupTicks);
@@ -44,9 +44,9 @@ namespace Tests.Investigation
             var samples = MeasureSamples(MeasureTicks, () =>
             {
                 for (var i = 0; i < blockSystems.Length; i++)
-                    blockSystems[i].DebugUpdateWithoutComponentBodyForPerformanceProbe();
+                    blockSystems[i].DebugCountComponentsForPerformanceProbe();
             });
-            LogStatistics("BlockSystemWrapperOnlyTick", samples);
+            LogStatistics("BlockSystemIterationOnlyTick", samples);
         }
 
         [Test]

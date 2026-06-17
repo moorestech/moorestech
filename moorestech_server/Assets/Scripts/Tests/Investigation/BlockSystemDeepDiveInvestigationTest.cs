@@ -26,10 +26,7 @@ namespace Tests.Investigation
 
             // BlockSystem 全体から profiler と component 本体を順に外して固定費を分離する
             // Split BlockSystem cost by removing profiler and component bodies in stages.
-            MeasureAndLog("BlockSystemFullWithProfiler", () => UpdateFull(blockSystems));
-            MeasureAndLog("BlockSystemNoProfilerComponentBody", () => UpdateWithoutProfiler(blockSystems));
-            MeasureAndLog("BlockSystemWrapperProfilerNoBody", () => UpdateWrapperOnly(blockSystems));
-            MeasureAndLog("BlockSystemBlockProfilerOnly", () => UpdateBlockProfilerOnly(blockSystems));
+            MeasureAndLog("BlockSystemUpdate", () => UpdateFull(blockSystems));
             MeasureAndLog("BlockSystemComponentIterationOnly", () => CountComponents(blockSystems));
         }
 
@@ -42,20 +39,19 @@ namespace Tests.Investigation
 
             // block type ごとの合計コストを増幅計測し、大きい順にログへ残す
             // Amplify each block type group and log the largest costs first.
-            var rows = new List<(string BlockType, int Blocks, int Components, double FullMs, double NoProfilerMs, double WrapperMs)>();
+            var rows = new List<(string BlockType, int Blocks, int Components, double UpdateMs, double IterationMs)>();
             foreach (var group in blockSystems.GroupBy(block => block.BlockMasterElement.BlockType))
             {
                 var blocks = group.ToArray();
                 var components = blocks.Sum(block => block.DebugCountComponentsForPerformanceProbe());
-                var fullMs = MeasureMilliseconds(() => RepeatBlocks(blocks, BlockTypeRepeats, block => block.DebugUpdateForPerformanceProbe()));
-                var noProfilerMs = MeasureMilliseconds(() => RepeatBlocks(blocks, BlockTypeRepeats, block => block.DebugUpdateWithoutProfilerForPerformanceProbe()));
-                var wrapperMs = MeasureMilliseconds(() => RepeatBlocks(blocks, BlockTypeRepeats, block => block.DebugUpdateWithoutComponentBodyForPerformanceProbe()));
-                rows.Add((group.Key, blocks.Length, components, fullMs, noProfilerMs, wrapperMs));
+                var updateMs = MeasureMilliseconds(() => RepeatBlocks(blocks, BlockTypeRepeats, block => block.DebugUpdateForPerformanceProbe()));
+                var iterationMs = MeasureMilliseconds(() => RepeatBlocks(blocks, BlockTypeRepeats, block => _componentCounterSink += block.DebugCountComponentsForPerformanceProbe()));
+                rows.Add((group.Key, blocks.Length, components, updateMs, iterationMs));
             }
 
-            foreach (var row in rows.OrderByDescending(row => row.NoProfilerMs).Take(30))
+            foreach (var row in rows.OrderByDescending(row => row.UpdateMs).Take(30))
             {
-                UnityEngine.Debug.Log($"[GameUpdateProfile] BlockTypeCost blockType={row.BlockType} blocks={row.Blocks} components={row.Components} repeats={BlockTypeRepeats} fullMsPerTick={row.FullMs / BlockTypeRepeats:F3} noProfilerMsPerTick={row.NoProfilerMs / BlockTypeRepeats:F3} wrapperMsPerTick={row.WrapperMs / BlockTypeRepeats:F3}");
+                UnityEngine.Debug.Log($"[GameUpdateProfile] BlockTypeCost blockType={row.BlockType} blocks={row.Blocks} components={row.Components} repeats={BlockTypeRepeats} updateMsPerTick={row.UpdateMs / BlockTypeRepeats:F3} iterationMsPerTick={row.IterationMs / BlockTypeRepeats:F3}");
             }
         }
 
@@ -78,21 +74,6 @@ namespace Tests.Investigation
         private static void UpdateFull(BlockSystem[] blockSystems)
         {
             for (var i = 0; i < blockSystems.Length; i++) blockSystems[i].DebugUpdateForPerformanceProbe();
-        }
-
-        private static void UpdateWithoutProfiler(BlockSystem[] blockSystems)
-        {
-            for (var i = 0; i < blockSystems.Length; i++) blockSystems[i].DebugUpdateWithoutProfilerForPerformanceProbe();
-        }
-
-        private static void UpdateWrapperOnly(BlockSystem[] blockSystems)
-        {
-            for (var i = 0; i < blockSystems.Length; i++) blockSystems[i].DebugUpdateWithoutComponentBodyForPerformanceProbe();
-        }
-
-        private static void UpdateBlockProfilerOnly(BlockSystem[] blockSystems)
-        {
-            for (var i = 0; i < blockSystems.Length; i++) blockSystems[i].DebugUpdateBlockProfilerOnlyForPerformanceProbe();
         }
 
         private static void CountComponents(BlockSystem[] blockSystems)
