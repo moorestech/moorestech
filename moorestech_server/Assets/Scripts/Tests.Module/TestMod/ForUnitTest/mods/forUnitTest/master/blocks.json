@@ -2269,7 +2269,12 @@
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
-      "overrideVerticalBlock": {}
+      "overrideVerticalBlock": {
+        "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
+        "horizontalBlockGuid": "00000000-0000-0000-0000-000000000015",
+        "downBlockGuid": "00000000-0000-0000-0000-0000000000a2"
+      },
+      "enableConveyorPlacement": true
     },
     {
       "maxStack": 100,
@@ -4035,7 +4040,11 @@
       "overrideVerticalBlock": {}
     },
     {
-      "blockSize": [1, 1, 1],
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
       "name": "TestFilterSplitter",
       "blockType": "FilterSplitter",
       "blockParam": {
@@ -4043,33 +4052,81 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "offset": [0, 0, 0],
+              "offset": [
+                0,
+                0,
+                0
+              ],
               "connectType": "Inventory",
-              "directions": [[0, 0, -1]],
-              "connectOption": { "inventoryOptions": [] },
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000010"
             }
           ],
           "outputConnects": [
             {
-              "offset": [0, 0, 0],
+              "offset": [
+                0,
+                0,
+                0
+              ],
               "connectType": "Inventory",
-              "directions": [[1, 0, 0]],
-              "connectOption": { "inventoryOptions": [] },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000001"
             },
             {
-              "offset": [0, 0, 0],
+              "offset": [
+                0,
+                0,
+                0
+              ],
               "connectType": "Inventory",
-              "directions": [[-1, 0, 0]],
-              "connectOption": { "inventoryOptions": [] },
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000002"
             },
             {
-              "offset": [0, 0, 0],
+              "offset": [
+                0,
+                0,
+                0
+              ],
               "connectType": "Inventory",
-              "directions": [[0, 0, 1]],
-              "connectOption": { "inventoryOptions": [] },
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000003"
             }
           ]
@@ -4094,10 +4151,26 @@
       "blockParam": {
         "teethCount": 10,
         "outputModes": [
-          { "rpm": 60, "torque": 50, "requiredPower": 30 },
-          { "rpm": 120, "torque": 100, "requiredPower": 100 },
-          { "rpm": 240, "torque": 150, "requiredPower": 300 },
-          { "rpm": 60, "torque": 0, "requiredPower": 10 }
+          {
+            "rpm": 60,
+            "torque": 50,
+            "requiredPower": 30
+          },
+          {
+            "rpm": 120,
+            "torque": 100,
+            "requiredPower": 100
+          },
+          {
+            "rpm": 240,
+            "torque": 150,
+            "requiredPower": 300
+          },
+          {
+            "rpm": 60,
+            "torque": 0,
+            "requiredPower": 10
+          }
         ],
         "gear": {
           "gearConnects": [
@@ -4139,6 +4212,233 @@
         }
       },
       "overrideVerticalBlock": {}
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestGearBeltConveyorUp",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltConveyorItemCount": 4,
+        "beltConveyorSpeed": 2.5,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "slopeType": "Up",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000001",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000002",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000003",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.02,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
+      },
+      "itemGuid": "11800000-0000-0000-0000-0000000000a1",
+      "blockGuid": "00000000-0000-0000-0000-0000000000a1",
+      "overrideVerticalBlock": {},
+      "enableConveyorPlacement": true
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestGearBeltConveyorDown",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltConveyorItemCount": 4,
+        "beltConveyorSpeed": 2.5,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "slopeType": "Down",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000001",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  1,
+                  -1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectType": "Inventory",
+              "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000002",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "inventoryOptions": []
+              }
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "connectType": "Gear",
+              "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000003",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ],
+              "connectOption": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.02,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
+      },
+      "itemGuid": "11800000-0000-0000-0000-0000000000a2",
+      "blockGuid": "00000000-0000-0000-0000-0000000000a2",
+      "overrideVerticalBlock": {},
+      "enableConveyorPlacement": true
     }
   ],
   "gearChainItems": [
