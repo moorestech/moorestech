@@ -134,6 +134,24 @@ namespace Client.Tests
             }
         }
         
+        // 立体交差不能(高さ2を3セルで跨げない)の端点設置不可フラグが占有判定で上書きされず残ることを検証する
+        // Verify the infeasible-overpass unplaceable flag (height-2 obstacle uncrossable in 3 cells) survives the occupancy check.
+        [Test]
+        public void InfeasibleOverpass_KeepsEndpointsUnplaceable()
+        {
+            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", Guid.Empty, Vector3Int.one, null, null, null, null, true);
+            var obstacle = new HashSet<Vector3Int> { new(1, 0, 0), new(1, 1, 0) };
+
+            // isNotExistBlock は常に true（占有なし扱い）。それでも端点は不可のまま残るべき
+            // isNotExistBlock always returns true (no occupancy); the endpoints must still stay unplaceable.
+            var actual = CommonBlockPlacePointCalculator.CalculatePoint(
+                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
+                blockMasterElement, (_, _) => true, obstacle.Contains);
+
+            Assert.IsFalse(actual[0].Placeable);
+            Assert.IsFalse(actual[2].Placeable);
+        }
+
         private struct TestCase
         {
             public Vector3Int BlockSize;

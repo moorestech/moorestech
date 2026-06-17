@@ -221,6 +221,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                             Position = placePosition,
                             Direction = blockDirection,
                             VerticalDirection = BlockVerticalDirection.Horizontal,
+                            Placeable = true,
                         });
                     }
                     
@@ -236,6 +237,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                             Position = placePositions[0],
                             Direction = blockDirection,
                             VerticalDirection = BlockVerticalDirection.Horizontal,
+                            Placeable = true,
                         },
                     };
                 }
@@ -324,6 +326,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                         Position = currentPoint,
                         Direction = direction,
                         VerticalDirection = verticalDirection,
+                        Placeable = true,
                     });
                 }
                 
@@ -360,7 +363,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 foreach (var info in infos)
                 {
                     //TODO ブロックの数が足りているかどうか
-                    info.Placeable = isNotExistBlock(info, holdingBlockMasterElement);
+                    // Raiserが立体交差不能で立てた設置不可フラグを残したまま、占有判定を重ねる
+                    // Keep the infeasibility flag the Raiser set for an impossible overpass, then AND in occupancy.
+                    info.Placeable = info.Placeable && isNotExistBlock(info, holdingBlockMasterElement);
                 }
 
                 return infos;
