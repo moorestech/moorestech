@@ -16,6 +16,8 @@ namespace Game.Gear.Common
         private bool _hasDirectionConflict;
         private float _maxRpmRatioConflictFromRoot;
 
+        public bool IsDirty => _isDirty;
+
         public void MarkDirty()
         {
             _isDirty = true;

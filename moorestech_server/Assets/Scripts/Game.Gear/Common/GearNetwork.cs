@@ -14,6 +14,7 @@ namespace Game.Gear.Common
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
         private readonly List<GearNetworkSupplyInfo> _transformerSupplyInfos = new();
         private readonly GearNetworkTopologyCache _topologyCache = new();
+        private readonly GearNetworkStableStateCache _stableStateCache = new();
         public readonly GearNetworkId NetworkId;
 
         public GearNetwork(GearNetworkId networkId)
@@ -34,6 +35,7 @@ namespace Game.Gear.Common
             }
 
             _topologyCache.MarkDirty();
+            _stableStateCache.Invalidate();
         }
 
         public void RemoveGear(IGearEnergyTransformer gear)
@@ -49,16 +51,22 @@ namespace Game.Gear.Common
             }
 
             _topologyCache.MarkDirty();
+            _stableStateCache.Invalidate();
         }
 
         public void ManualUpdate()
         {
+            var topologyDirty = _topologyCache.IsDirty;
+
             // 最大RPMのgeneratorを起点にする既存仕様を維持する。
             // Keep the existing rule that the highest-RPM generator is the origin.
             var fastestOriginGenerator = FindFastestGenerator(out var totalGeneratePower);
+            if (_stableStateCache.CanSkipUpdate(_gearGenerators, fastestOriginGenerator, totalGeneratePower, topologyDirty)) return;
+
             if (fastestOriginGenerator == null)
             {
                 StopAsEmptyNetwork();
+                _stableStateCache.Store(_gearGenerators, null, totalGeneratePower);
                 return;
             }
 
@@ -73,6 +81,7 @@ namespace Game.Gear.Common
             {
                 CurrentGearNetworkInfo = new GearNetworkInfo(0, 0, 0, GearNetworkStopReason.Rocked);
                 StopNetworkComponents();
+                _stableStateCache.Store(_gearGenerators, fastestOriginGenerator, totalGeneratePower);
                 return;
             }
 
@@ -81,10 +90,12 @@ namespace Game.Gear.Common
             {
                 CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, 0f, GearNetworkStopReason.OverRequirePower);
                 StopNetworkComponents();
+                _stableStateCache.Store(_gearGenerators, fastestOriginGenerator, totalGeneratePower);
                 return;
             }
 
             SupplyPowerToNetwork(rootRpm, rootClockwise, totalRequiredGearPower, totalGeneratePower);
+            _stableStateCache.Store(_gearGenerators, fastestOriginGenerator, totalGeneratePower);
         }
 
         private IGearGenerator FindFastestGenerator(out float totalGeneratePower)

@@ -50,11 +50,11 @@ namespace Game.Block.Factory.BlockTemplate
             
             var components = new List<IBlockComponent>
             {
+                gearMinerComponent,
                 minerProcessorComponent,
                 inventoryConnectorComponent,
                 gearConnector,
                 gearEnergyTransformer,
-                gearMinerComponent,
                 
             };
             

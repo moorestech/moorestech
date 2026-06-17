@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.Machine
     /// 歯車機械を表すクラス。RPM比で加工速度と消費トルクがスケールする
     /// Gear machine. Processing speed and torque consumption scale by RPM ratio
     /// </summary>
-    public class VanillaGearMachineComponent : IBlockComponent
+    public class VanillaGearMachineComponent : IUpdatableBlockComponent
     {
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
@@ -23,6 +23,20 @@ namespace Game.Block.Blocks.Machine
         }
 
         private void OnGearUpdate(GearUpdateType gearUpdateType)
+        {
+            SupplyCurrentGearPower();
+        }
+
+        public void Update()
+        {
+            BlockException.CheckDestroy(this);
+
+            // 安定ネットワークではgear通知が来ないため、processorへ継続供給だけ再投入する
+            // Stable gear networks skip update events, so keep feeding the processor from cached gear state
+            SupplyCurrentGearPower();
+        }
+
+        private void SupplyCurrentGearPower()
         {
             _vanillaMachineProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }

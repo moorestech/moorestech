@@ -1,10 +1,11 @@
 using Game.Block.Blocks.Gear;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaGearMinerComponent : IBlockComponent
+    public class VanillaGearMinerComponent : IUpdatableBlockComponent
     {
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly VanillaMinerProcessorComponent _vanillaMinerProcessorComponent;
@@ -17,6 +18,20 @@ namespace Game.Block.Blocks.Miner
         }
 
         private void OnGearUpdate(GearUpdateType gearUpdateType)
+        {
+            SupplyCurrentGearPower();
+        }
+
+        public void Update()
+        {
+            BlockException.CheckDestroy(this);
+
+            // 安定ネットワークではgear通知が来ないため、processorへ継続供給だけ再投入する
+            // Stable gear networks skip update events, so keep feeding the processor from cached gear state
+            SupplyCurrentGearPower();
+        }
+
+        private void SupplyCurrentGearPower()
         {
             _vanillaMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
