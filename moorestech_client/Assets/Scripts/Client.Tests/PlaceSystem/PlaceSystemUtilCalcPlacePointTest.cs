@@ -6,7 +6,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests
+namespace Client.Tests.PlaceSystem
 {
     // 既存ブロックの各面にカーソルを合わせて隣接設置する際のプレビュー座標計算テスト
     // Tests for preview coordinate calculation when placing adjacent to an existing block
