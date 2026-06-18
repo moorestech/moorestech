@@ -19,6 +19,7 @@
 | --- | ---: | ---: | ---: | --- |
 | Startup `LoadOrInitialize` | `100.7s` | `1.396s` | about `72x` faster | Current save load path. |
 | Gear update, initial baseline | `15.510ms/tick` | `0.043-0.045ms/tick` | about `345-360x` faster | Stable network case. |
+| Gear update, balanced RPM experiment | `15.510ms/tick` | `0.012ms/tick` | about `1290x` faster | Stable network case after binary-search RPM and no-generator skip fix. |
 | Largest gear network | `6.068ms/tick` | `0.005-0.006ms/tick` | about `1000x` faster | Stable network index `2`. |
 | BlockSystem direct update | `37.989ms/tick` | `31.750ms/tick` | `6.239ms` faster, about `16%` | Runtime profiler marker removed. |
 | Full `GameUpdater.Update` baseline | `59.463ms/tick` | `35.098ms/tick` | `24.365ms` faster, about `41%` | Cross-run current-save comparison. |
@@ -116,7 +117,146 @@ Condition:
 - These numbers are for the network-unchanged case.
 - If topology changes, the network is rebuilt and the update can be heavier for that tick.
 
-## 3. Runtime Profiler Marker Removal
+## 3. Gear Network Balanced RPM Experiment
+
+This is a destructive-branch experiment, not a finalized gameplay spec.
+
+Commit:
+
+- `52e0623aa Apply gear power balanced rpm search`
+
+### Goal
+
+Replace the old "max RPM generator decides network RPM" rule with a power-balance rule:
+
+- Generator available power: `sum(GenerateRpm * GenerateTorque)`
+- Consumer required power: `sum(GetRequiredTorque(rpm) * rpm)`
+- Root RPM is binary-searched in `[0, 1,000,000]`
+- The selected RPM is the highest root RPM whose required power is less than or equal to available generator power.
+
+This means:
+
+- A generator's `GenerateRpm` is treated as a rated RPM used to calculate available power, not a hard network RPM cap.
+- If supply power is large and consumption is small, network RPM can rise above the generator rated RPM up to `1,000,000`.
+- If supply power is insufficient, the network does not immediately stop. It lowers RPM until demand fits supply.
+- `OverRequirePower` is mostly replaced by lower-RPM operation in this model.
+
+### Changes
+
+- Removed the previous "max RPM unchanged generator add" fast path because adding generator power can change the balanced RPM even when max generator RPM is unchanged.
+- Added binary-search root RPM selection in `GearNetworkPowerApplicator.FindBalancedRootRpm`.
+- Supplying transformers now gives each transformer its required torque at the selected RPM.
+- Generator current torque is reported as `generatorPower / currentRpm`.
+- Rebuild topology now treats gear connections as undirected for traversal, while still using the original connector orientation to calculate RPM ratio and direction. This avoids root-dependent rebuild failures when a newly added gear only has an outgoing reference to an existing gear.
+- Networks with no generator are marked clean after stopping, so no-generator networks do not call `StopNetwork()` every tick forever.
+- Networks with generators but zero generated power still build topology once, then stop cleanly. This fixed the `FuelGearGenerator` KeyNotFound case when the generator later starts producing power.
+
+### Current-Save Stable Result
+
+Command:
+
+```powershell
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.Investigation\.(GameUpdateSubscriberBreakdownInvestigationTest\.ProfileCurrentSaveTopLevelSubscribers|GearNetworkTopologyMutationInvestigationTest\.ProfileCurrentSaveLargestNetworkGeneratorAddMutation)"
+```
+
+Stable `GearNetworkDatastore` after `100` warmup ticks, `200` samples:
+
+| Metric | Value |
+| --- | ---: |
+| Average | `0.012ms/tick` |
+| Min | `0.005ms` |
+| P50 | `0.005ms` |
+| P90 | `0.028ms` |
+| P95 | `0.033ms` |
+| P99 | `0.054ms` |
+| Max | `0.571ms` |
+
+Comparison:
+
+| Baseline | Average |
+| --- | ---: |
+| Original `GearNetworkDatastore` baseline | `15.510ms/tick` |
+| Stable topology cache / skip previous result | `0.043-0.045ms/tick` |
+| Balanced RPM experiment final result | `0.012ms/tick` |
+
+Interpretation:
+
+- Stable unchanged networks remain effectively skipped.
+- The latest drop from about `0.043ms` to `0.012ms` came mostly from avoiding repeated work on no-generator networks, not from the binary search path itself.
+- The binary search path is paid when topology or generator output changes.
+
+### Topology-Mutation Result
+
+Measurement:
+
+- Load current save.
+- Warm up `100` ticks.
+- Pick the largest network: `5,255` transformers and `45` generators.
+- Add one synthetic generator into that network `200` times.
+- Measure `GearNetworkDatastore.AddGear(generator)` and the immediately following `largestNetwork.ManualUpdate()`.
+
+Result:
+
+| Metric | Average | P50 | P95 | P99 | Max |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `AddGeneratorToLargestNetwork` | `0.023ms` | `0.018ms` | `0.026ms` | `0.252ms` | `0.489ms` |
+| `ManualUpdateAfterGeneratorAdd` | `53.631ms` | `51.761ms` | `63.622ms` | `101.091ms` | `121.600ms` |
+| `CombinedAddAndManualUpdate` | `53.653ms` | `51.781ms` | `63.639ms` | `101.108ms` | `121.619ms` |
+
+Final measured network state:
+
+| Field | Value |
+| --- | ---: |
+| Initial transformers | `5,255` |
+| Initial generators | `45` |
+| Added generators | `200` |
+| Final transformers | `5,255` |
+| Final generators | `245` |
+| Final stop reason | `None` |
+| Final required power | `245,498.700` |
+| Final generated power | `245,975.200` |
+
+Interpretation:
+
+- Topology mutation is intentionally much heavier than stable ticks.
+- In this experiment, the full rebuild plus binary search for the largest network costs about `54ms` on average.
+- The expensive part is not `AddGear`; it is the immediate recalculation of topology, required power over the network, and supply application.
+- This is acceptable only if large topology changes are rare. If players frequently edit huge gear networks during normal play, this path still needs incremental topology or deferred rebuild work.
+
+### Verification
+
+Commands run:
+
+```powershell
+uloop compile --project-path ./moorestech_client
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.Investigation\.(GameUpdateSubscriberBreakdownInvestigationTest\.ProfileCurrentSaveTopLevelSubscribers|GearNetworkTopologyMutationInvestigationTest\.ProfileCurrentSaveLargestNetworkGeneratorAddMutation)"
+uloop get-logs --project-path ./moorestech_client --log-type Error --max-count 20 --include-stack-trace false
+```
+
+Results:
+
+- Compile: success.
+- Final measurement tests: `2/2` passed.
+- Unity Console Error: `0`.
+
+Existing gear regression tests:
+
+- `59` gear-related tests were run.
+- `45` passed.
+- `14` failed.
+
+The remaining failures are mostly expected incompatibilities with the old spec:
+
+- Old tests expect generator max RPM to be the network RPM.
+- Old tests expect power shortage to stop the network with `OverRequirePower`.
+- The balanced RPM experiment instead raises RPM up to `1,000,000` when power is abundant and lowers RPM when power is scarce.
+
+Important note:
+
+- The `FuelGearGenerator` KeyNotFound failures found during QA were implementation bugs and were fixed.
+- The remaining failures should be treated as test/spec migration work if this balanced RPM model is kept.
+
+## 4. Runtime Profiler Marker Removal
 
 ### Bottleneck
 
@@ -163,7 +303,7 @@ Interpretation:
 - The removed cost was the profiler marker/wrapper path, not game logic.
 - Exact delta varies between runs because component bodies mutate state and produce spikes, but the profiler marker path itself is no longer in runtime code.
 
-## 4. Full Game Update After Current Optimizations
+## 5. Full Game Update After Current Optimizations
 
 Measured after gear stable-skip and profiler marker removal:
 
@@ -212,7 +352,7 @@ Conclusion:
 - P95 and P99 still show spikes, so the game update is not finished.
 - The next useful target is still inside `BlockSystem` component body work and state event emission.
 
-## 5. Remaining Suspects
+## 6. Remaining Suspects
 
 These are not yet optimized in this pass:
 
@@ -227,7 +367,7 @@ Current recommendation:
 - Do not spend more time on runtime profiler marker overhead; it has been removed.
 - Continue with real `BlockSystem` component body work: chest output, belt output/inserter path, fluid pipe update, and state event batching.
 
-## 6. Chest Transfer Optimization Investigation
+## 7. Chest Transfer Optimization Investigation
 
 Measured on the same current save:
 
