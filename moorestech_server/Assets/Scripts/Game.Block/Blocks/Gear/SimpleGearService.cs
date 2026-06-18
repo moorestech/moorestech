@@ -23,10 +23,14 @@ namespace Game.Block.Blocks.Gear
         
         public void StopNetwork()
         {
+            var isChanged = _currentState != IGearEnergyTransformer.RockedStateName ||
+                            CurrentRpm.AsPrimitive() != 0f ||
+                            CurrentTorque.AsPrimitive() != 0f;
             _currentState = IGearEnergyTransformer.RockedStateName;
             CurrentRpm = new RPM(0);
             CurrentTorque = new Torque(0);
 
+            if (!isChanged) return;
             _onBlockStateChange.OnNext(Unit.Default);
             _onGearUpdate.OnNext(GearUpdateType.Rocked);
         }
@@ -42,24 +46,25 @@ namespace Game.Block.Blocks.Gear
             var isChanged =
                 Math.Abs((CurrentRpm - rpm).AsPrimitive()) > 0.05f ||
                 Math.Abs((CurrentTorque - torque).AsPrimitive()) > 0.05f ||
-                IsCurrentClockwise != isClockwise;
+                IsCurrentClockwise != isClockwise ||
+                _currentState != IGearEnergyTransformer.WorkingStateName;
             
             CurrentRpm = rpm;
             CurrentTorque = torque;
             IsCurrentClockwise = isClockwise;
+            _currentState = IGearEnergyTransformer.WorkingStateName;
             
             if (isChanged)
             {
                 _onBlockStateChange.OnNext(Unit.Default);
+                _onGearUpdate.OnNext(GearUpdateType.SupplyPower);
             }
-            
-            _currentState = IGearEnergyTransformer.WorkingStateName;
-            _onGearUpdate.OnNext(GearUpdateType.SupplyPower);
         }
         
         public void Destroy()
         {
             _onBlockStateChange.Dispose();
+            _onGearUpdate.Dispose();
         }
     }
     

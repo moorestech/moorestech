@@ -10,7 +10,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable
+    public class GearEnergyTransformer : IGearEnergyTransformer, IBlockStateObservable, IGearPowerConsumptionProfileProvider, IGearConnectCacheProvider
     {
         public IObservable<Unit> OnChangeBlockState => _simpleGearService.BlockStateChange;
         public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
@@ -50,6 +50,23 @@ namespace Game.Block.Blocks.Gear
             return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
         }
 
+        public bool TryGetGearPowerConsumptionProfile(out GearPowerConsumptionProfile profile)
+        {
+            if (_consumption == null)
+            {
+                profile = default;
+                return false;
+            }
+
+            profile = new GearPowerConsumptionProfile(
+                _consumption.MinimumRpm,
+                _consumption.BaseRpm,
+                _consumption.BaseTorque,
+                _consumption.TorqueExponentUnder,
+                _consumption.TorqueExponentOver);
+            return true;
+        }
+
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
         // Output scaling rate for the current RPM/torque. Referenced by output-side components.
         public virtual float GetCurrentOperatingRate()
@@ -77,11 +94,16 @@ namespace Game.Block.Blocks.Gear
         public List<GearConnect> GetGearConnects()
         {
             var result = new List<GearConnect>();
+            AddGearConnectsTo(result);
+            return result;
+        }
+
+        public void AddGearConnectsTo(List<GearConnect> result)
+        {
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
                 result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
             }
-            return result;
         }
 
         public void Destroy()

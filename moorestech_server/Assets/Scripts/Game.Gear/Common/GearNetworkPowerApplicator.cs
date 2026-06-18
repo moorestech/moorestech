@@ -39,7 +39,7 @@ namespace Game.Gear.Common
             return false;
         }
 
-        public static float FindBalancedRootRpm(IReadOnlyList<IGearEnergyTransformer> transformers, GearNetworkTopologyCache topologyCache, float availablePower, bool rootClockwise)
+        public static float FindBalancedRootRpm(GearNetworkDemandCache demandCache, float availablePower, bool rootClockwise)
         {
             var low = 0f;
             var high = MaxRootRpm;
@@ -49,7 +49,7 @@ namespace Game.Gear.Common
             for (var i = 0; i < RpmSearchIterations; i++)
             {
                 var mid = (low + high) * 0.5f;
-                var requiredPower = CalculateRequiredPower(transformers, topologyCache, mid, rootClockwise);
+                var requiredPower = demandCache.CalculateRequiredPower(mid, rootClockwise);
                 if (requiredPower <= availablePower) low = mid;
                 else high = mid;
             }
@@ -57,31 +57,8 @@ namespace Game.Gear.Common
             return low;
         }
 
-        public static float BuildTransformerSupplyInfos(IReadOnlyList<IGearEnergyTransformer> transformers, GearNetworkTopologyCache topologyCache, List<GearNetworkSupplyInfo> supplyInfos, float rootRpm, bool rootClockwise)
+        public static GearNetworkInfo SupplyPowerToGeneratorsAndCreateInfo(IReadOnlyList<IGearGenerator> generators, GearNetworkTopologyCache topologyCache, float rootRpm, bool rootClockwise, float totalRequiredGearPower, float totalGeneratePower)
         {
-            supplyInfos.Clear();
-            var totalRequiredGearPower = 0f;
-
-            foreach (var transformer in transformers)
-            {
-                var node = topologyCache.GetNode(transformer);
-                var rpm = new RPM(rootRpm * node.RpmRatioFromRoot);
-                var isClockwise = node.GetClockwise(rootClockwise);
-                var requiredTorque = transformer.GetRequiredTorque(rpm, isClockwise);
-                totalRequiredGearPower += requiredTorque.AsPrimitive() * rpm.AsPrimitive();
-                supplyInfos.Add(new GearNetworkSupplyInfo(transformer, rpm, isClockwise, requiredTorque));
-            }
-
-            return totalRequiredGearPower;
-        }
-
-        public static GearNetworkInfo SupplyPowerToNetwork(IReadOnlyList<IGearGenerator> generators, IReadOnlyList<GearNetworkSupplyInfo> supplyInfos, GearNetworkTopologyCache topologyCache, float rootRpm, bool rootClockwise, float totalRequiredGearPower, float totalGeneratePower)
-        {
-            foreach (var info in supplyInfos)
-            {
-                info.Transformer.SupplyPower(info.Rpm, info.RequiredTorque, info.IsClockwise);
-            }
-
             SupplyPowerToGenerators(generators, topologyCache, rootRpm, rootClockwise);
             var operationRate = totalGeneratePower == 0f ? 0f : Mathf.Min(1f, totalRequiredGearPower / totalGeneratePower);
             return new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, operationRate, GearNetworkStopReason.None);
@@ -91,20 +68,6 @@ namespace Game.Gear.Common
         {
             foreach (var transformer in transformers) transformer.StopNetwork();
             foreach (var generator in generators) generator.StopNetwork();
-        }
-
-        private static float CalculateRequiredPower(IReadOnlyList<IGearEnergyTransformer> transformers, GearNetworkTopologyCache topologyCache, float rootRpm, bool rootClockwise)
-        {
-            var totalRequiredPower = 0f;
-            foreach (var transformer in transformers)
-            {
-                var node = topologyCache.GetNode(transformer);
-                var rpm = new RPM(rootRpm * node.RpmRatioFromRoot);
-                var torque = transformer.GetRequiredTorque(rpm, node.GetClockwise(rootClockwise));
-                totalRequiredPower += torque.AsPrimitive() * rpm.AsPrimitive();
-            }
-
-            return totalRequiredPower;
         }
 
         private static void SupplyPowerToGenerators(IReadOnlyList<IGearGenerator> generators, GearNetworkTopologyCache topologyCache, float rootRpm, bool rootClockwise)

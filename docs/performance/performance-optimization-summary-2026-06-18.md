@@ -20,6 +20,7 @@
 | Startup `LoadOrInitialize` | `100.7s` | `1.396s` | about `72x` faster | Current save load path. |
 | Gear update, initial baseline | `15.510ms/tick` | `0.043-0.045ms/tick` | about `345-360x` faster | Stable network case. |
 | Gear update, balanced RPM experiment | `15.510ms/tick` | `0.012ms/tick` | about `1290x` faster | Stable network case after binary-search RPM and no-generator skip fix. |
+| Gear update, follow-up cache | `15.510ms/tick` | `0.003ms/tick` | about `5160x` faster | Stable network case after dirty flags and demand/supply cache. |
 | Largest gear network | `6.068ms/tick` | `0.005-0.006ms/tick` | about `1000x` faster | Stable network index `2`. |
 | BlockSystem direct update | `37.989ms/tick` | `31.750ms/tick` | `6.239ms` faster, about `16%` | Runtime profiler marker removed. |
 | Full `GameUpdater.Update` baseline | `59.463ms/tick` | `35.098ms/tick` | `24.365ms` faster, about `41%` | Cross-run current-save comparison. |
@@ -255,6 +256,67 @@ Important note:
 
 - The `FuelGearGenerator` KeyNotFound failures found during QA were implementation bugs and were fixed.
 - The remaining failures should be treated as test/spec migration work if this balanced RPM model is kept.
+
+### Follow-up Gear Cache Optimization 2026-06-19
+
+Goal:
+
+- Keep the balanced RPM experiment behavior.
+- Make stable ticks cheaper.
+- Make the "large network + generator added" spike much smaller without requiring a full topology rebuild when the new gear attaches to an existing network.
+
+Changes:
+
+- Replaced generator snapshot comparison with explicit dirty flags.
+- Generator components now mark their network dirty only when generated RPM/torque/fulfillment actually changes.
+- Added incremental topology add for a new gear connected to an already-built network.
+- Added demand cache grouping by `(consumption profile, RPM ratio)`.
+- Reused that demand cache to supply transformers, so identical demand groups calculate required torque once and then distribute it to members.
+- Removed the now-unused `GearNetworkSupplyInfo` intermediate list path.
+- Suppressed repeated `SupplyPower` / `StopNetwork` update events when the state did not change.
+
+Current-save stable result, same command and `200` samples:
+
+| Metric | Average | P50 | P95 | P99 | Max |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `GearNetworkDatastore` | `0.003ms/tick` | `0.001ms` | `0.001ms` | `0.004ms` | `0.492ms` |
+
+Topology mutation result after the follow-up cache work:
+
+| Metric | Previous | Current | Improvement |
+| --- | ---: | ---: | ---: |
+| `AddGeneratorToLargestNetwork` average | `0.023ms` | `0.013ms` | about `1.8x` faster |
+| `ManualUpdateAfterGeneratorAdd` average | `53.631ms` | `1.758ms` | about `30.5x` faster |
+| `CombinedAddAndManualUpdate` average | `53.653ms` | `1.771ms` | about `30.3x` faster |
+
+Latest topology mutation distribution:
+
+| Metric | Average | P50 | P95 | P99 | Max |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `AddGeneratorToLargestNetwork` | `0.013ms` | `0.007ms` | `0.023ms` | `0.035ms` | `0.493ms` |
+| `ManualUpdateAfterGeneratorAdd` | `1.758ms` | `1.462ms` | `2.434ms` | `4.686ms` | `33.705ms` |
+| `CombinedAddAndManualUpdate` | `1.771ms` | `1.471ms` | `2.456ms` | `4.722ms` | `33.711ms` |
+
+Interpretation:
+
+- Stable unchanged gear networks are effectively skipped.
+- Adding a generator into the largest current-save network no longer rebuilds the whole topology.
+- The remaining generator-add cost is mostly the necessary O(N) distribution step when balanced RPM changes and all affected transformers/generators need updated runtime RPM/torque.
+- The max spike still exists, so if topology edits must be completely hitch-free, the next design step is deferred/asynchronous state distribution or partial dirty ranges.
+
+Verification:
+
+```powershell
+uloop compile --project-path ./moorestech_client
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.(CombinedTest\.(Core|Game)|UnitTest\.Game)\..*Gear.*Test"
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.Investigation\.(GameUpdateSubscriberBreakdownInvestigationTest\.ProfileCurrentSaveTopLevelSubscribers|GearNetworkTopologyMutationInvestigationTest\.ProfileCurrentSaveLargestNetworkGeneratorAddMutation)"
+```
+
+Results:
+
+- Compile: success.
+- Gear-related tests: `59` run, `45` passed, `14` failed with the same old-spec expectations around fixed generator RPM / hard stop on power shortage.
+- Measurement tests: `2/2` passed.
 
 ## 4. Runtime Profiler Marker Removal
 

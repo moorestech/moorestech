@@ -112,7 +112,9 @@ namespace Game.Block.Blocks.ElectricToGear
             // Notify the client of a state change when the fulfillment rate changes
             var changed = Math.Abs(newRate - _electricFulfillmentRate) > 0.0001f;
             _electricFulfillmentRate = newRate;
-            if (changed) _onChangeBlockState.OnNext(Unit.Default);
+            if (!changed) return;
+            GearNetworkDatastore.GetGearNetwork(BlockInstanceId).MarkGeneratorOutputDirty();
+            _onChangeBlockState.OnNext(Unit.Default);
         }
 
         #endregion
@@ -135,6 +137,7 @@ namespace Game.Block.Blocks.ElectricToGear
             if (index < 0 || index >= _param.OutputModes.Length) return false;
             var changed = _selectedIndex != index;
             _selectedIndex = index;
+            if (changed) GearNetworkDatastore.GetGearNetwork(BlockInstanceId).MarkGeneratorOutputDirty();
 
             // 新モードの requiredPower で再評価して充足率を更新
             // Re-evaluate and update fulfillment against the new mode's requiredPower

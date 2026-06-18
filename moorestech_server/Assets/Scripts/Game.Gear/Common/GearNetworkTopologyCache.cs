@@ -22,6 +22,8 @@ namespace Game.Gear.Common
 
         public void MarkDirty() => _isDirty = true;
         public void MarkCleanWithoutRebuild() => _isDirty = false;
+        public GearNetworkTopologyNode GetNode(IGearEnergyTransformer transformer) => _nodes[transformer.BlockInstanceId];
+        public bool IsRocked(float rootRpm) => _hasDirectionConflict || RpmMismatchTolerance < _maxRpmRatioConflictFromRoot * Math.Abs(rootRpm);
 
         public void EnsureBuilt(IReadOnlyList<IGearEnergyTransformer> transformers, IReadOnlyList<IGearGenerator> generators)
         {
@@ -30,9 +32,21 @@ namespace Game.Gear.Common
             _isDirty = false;
         }
 
-        public GearNetworkTopologyNode GetNode(IGearEnergyTransformer transformer) => _nodes[transformer.BlockInstanceId];
+        public bool TryAddConnectedGear(IGearEnergyTransformer gear)
+        {
+            if (_isDirty || _nodes.ContainsKey(gear.BlockInstanceId)) return false;
+            var connections = CollectConnections(gear);
+            if (!TryCalculateNewNode(gear, connections, out var newNode)) return false;
 
-        public bool IsRocked(float rootRpm) => _hasDirectionConflict || RpmMismatchTolerance < _maxRpmRatioConflictFromRoot * Math.Abs(rootRpm);
+            // 追加gearの接続だけを検証し、既存node集合はそのまま維持する
+            // Validate only the added gear edges while preserving the existing node set.
+            _networkMemberIds.Add(gear.BlockInstanceId);
+            _nodes.Add(gear.BlockInstanceId, newNode);
+            _connectionsBySource.Add(gear.BlockInstanceId, connections);
+            RegisterReverseConnections(gear, connections);
+            ValidateOutgoingConnections(newNode, connections);
+            return true;
+        }
 
         private void Rebuild(IReadOnlyList<IGearEnergyTransformer> transformers, IReadOnlyList<IGearGenerator> generators)
         {
@@ -51,34 +65,56 @@ namespace Game.Gear.Common
             {
                 var current = _queue.Dequeue();
                 var currentNode = _nodes[current.BlockInstanceId];
-                foreach (var connect in _connectionsBySource[current.BlockInstanceId])
-                {
-                    AddOrValidateOutgoingConnection(currentNode, connect);
-                }
-
+                ValidateOutgoingConnections(currentNode, _connectionsBySource[current.BlockInstanceId]);
                 if (!_reverseConnectionsByTarget.TryGetValue(current.BlockInstanceId, out var reverseConnections)) continue;
-                foreach (var reverseConnection in reverseConnections)
-                {
-                    AddOrValidateIncomingConnection(currentNode, reverseConnection);
-                }
+                foreach (var reverseConnection in reverseConnections) AddOrValidateIncomingConnection(currentNode, reverseConnection);
             }
 
             if (_nodes.Count != _networkMemberIds.Count) _hasDirectionConflict = true;
         }
 
-        private void AddOrValidateOutgoingConnection(GearNetworkTopologyNode currentNode, GearConnect connect)
+        private bool TryCalculateNewNode(IGearEnergyTransformer gear, List<GearConnect> connections, out GearNetworkTopologyNode newNode)
         {
-            var target = connect.Transformer;
-            if (!_networkMemberIds.Contains(target.BlockInstanceId)) return;
+            newNode = default;
+            var found = false;
+            foreach (var connect in connections)
+            {
+                if (!_nodes.TryGetValue(connect.Transformer.BlockInstanceId, out var targetNode)) continue;
+                var candidate = GearNetworkTopologyCalculator.CalculateSourceNode(targetNode, gear, connect);
+                if (!found)
+                {
+                    newNode = candidate;
+                    found = true;
+                    continue;
+                }
 
-            // 接続先のroot基準値を既存DFSと同じ式で求める
-            // Calculate the target root-relative values with the same rule as the old DFS.
-            var isReverseRotation = connect.Self.IsReverse && connect.Target.IsReverse;
-            var targetRatio = CalculateTargetRatio(currentNode, connect, isReverseRotation);
-            var targetClockwiseSameAsRoot = isReverseRotation
-                ? !currentNode.IsClockwiseSameAsRoot
-                : currentNode.IsClockwiseSameAsRoot;
+                ValidateExistingNode(newNode, candidate.RpmRatioFromRoot, candidate.IsClockwiseSameAsRoot);
+            }
 
+            return found;
+        }
+
+        private void ValidateOutgoingConnections(GearNetworkTopologyNode currentNode, List<GearConnect> connections)
+        {
+            foreach (var connect in connections)
+            {
+                var target = connect.Transformer;
+                if (!_networkMemberIds.Contains(target.BlockInstanceId)) continue;
+                var isReverseRotation = connect.Self.IsReverse && connect.Target.IsReverse;
+                var targetRatio = GearNetworkTopologyCalculator.CalculateTargetRatio(currentNode, connect, isReverseRotation);
+                var targetClockwiseSameAsRoot = isReverseRotation ? !currentNode.IsClockwiseSameAsRoot : currentNode.IsClockwiseSameAsRoot;
+                AddOrValidateNode(target, targetRatio, targetClockwiseSameAsRoot);
+            }
+        }
+
+        private void AddOrValidateIncomingConnection(GearNetworkTopologyNode targetNode, (IGearEnergyTransformer Source, GearConnect Connect) reverseConnection)
+        {
+            var candidate = GearNetworkTopologyCalculator.CalculateSourceNode(targetNode, reverseConnection.Source, reverseConnection.Connect);
+            AddOrValidateNode(reverseConnection.Source, candidate.RpmRatioFromRoot, candidate.IsClockwiseSameAsRoot);
+        }
+
+        private void AddOrValidateNode(IGearEnergyTransformer target, float targetRatio, bool targetClockwiseSameAsRoot)
+        {
             if (_nodes.TryGetValue(target.BlockInstanceId, out var existingNode))
             {
                 ValidateExistingNode(existingNode, targetRatio, targetClockwiseSameAsRoot);
@@ -89,65 +125,11 @@ namespace Game.Gear.Common
             _queue.Enqueue(target);
         }
 
-        private void AddOrValidateIncomingConnection(GearNetworkTopologyNode targetNode, (IGearEnergyTransformer Source, GearConnect Connect) reverseConnection)
-        {
-            var source = reverseConnection.Source;
-            var connect = reverseConnection.Connect;
-
-            // rootがどこでも同じ連結成分を復元できるよう逆向きにも値を解く
-            // Solve the inverse edge so any root can recover the same connected component.
-            var isReverseRotation = connect.Self.IsReverse && connect.Target.IsReverse;
-            var sourceRatio = CalculateSourceRatio(targetNode, source, connect, isReverseRotation);
-            var sourceClockwiseSameAsRoot = isReverseRotation
-                ? !targetNode.IsClockwiseSameAsRoot
-                : targetNode.IsClockwiseSameAsRoot;
-
-            if (_nodes.TryGetValue(source.BlockInstanceId, out var existingNode))
-            {
-                ValidateExistingNode(existingNode, sourceRatio, sourceClockwiseSameAsRoot);
-                return;
-            }
-
-            _nodes.Add(source.BlockInstanceId, new GearNetworkTopologyNode(source, sourceRatio, sourceClockwiseSameAsRoot));
-            _queue.Enqueue(source);
-        }
-
-        private static float CalculateTargetRatio(GearNetworkTopologyNode currentNode, GearConnect connect, bool isReverseRotation)
-        {
-            if (connect.Transformer is IGear targetGear &&
-                currentNode.Transformer is IGear currentGear &&
-                isReverseRotation)
-            {
-                return currentNode.RpmRatioFromRoot * currentGear.TeethCount / targetGear.TeethCount;
-            }
-
-            return currentNode.RpmRatioFromRoot;
-        }
-
-        private static float CalculateSourceRatio(GearNetworkTopologyNode targetNode, IGearEnergyTransformer source, GearConnect connect, bool isReverseRotation)
-        {
-            if (connect.Transformer is IGear targetGear &&
-                source is IGear sourceGear &&
-                isReverseRotation)
-            {
-                return targetNode.RpmRatioFromRoot * targetGear.TeethCount / sourceGear.TeethCount;
-            }
-
-            return targetNode.RpmRatioFromRoot;
-        }
-
         private void ValidateExistingNode(GearNetworkTopologyNode existingNode, float targetRatio, bool targetClockwiseSameAsRoot)
         {
-            if (existingNode.IsClockwiseSameAsRoot != targetClockwiseSameAsRoot)
-            {
-                _hasDirectionConflict = true;
-            }
-
+            if (existingNode.IsClockwiseSameAsRoot != targetClockwiseSameAsRoot) _hasDirectionConflict = true;
             var ratioDiff = Math.Abs(existingNode.RpmRatioFromRoot - targetRatio);
-            if (_maxRpmRatioConflictFromRoot < ratioDiff)
-            {
-                _maxRpmRatioConflictFromRoot = ratioDiff;
-            }
+            if (_maxRpmRatioConflictFromRoot < ratioDiff) _maxRpmRatioConflictFromRoot = ratioDiff;
         }
 
         private void RegisterMemberIds(IReadOnlyList<IGearEnergyTransformer> transformers, IReadOnlyList<IGearGenerator> generators)
@@ -158,14 +140,18 @@ namespace Game.Gear.Common
 
         private void BuildConnectionCache(IReadOnlyList<IGearEnergyTransformer> transformers, IReadOnlyList<IGearGenerator> generators)
         {
-            foreach (var transformer in transformers) RegisterConnections(transformer);
-            foreach (var generator in generators) RegisterConnections(generator);
+            foreach (var transformer in transformers) RegisterConnections(transformer, CollectConnections(transformer));
+            foreach (var generator in generators) RegisterConnections(generator, CollectConnections(generator));
         }
 
-        private void RegisterConnections(IGearEnergyTransformer source)
+        private void RegisterConnections(IGearEnergyTransformer source, List<GearConnect> connections)
         {
-            var connections = source.GetGearConnects();
             _connectionsBySource.Add(source.BlockInstanceId, connections);
+            RegisterReverseConnections(source, connections);
+        }
+
+        private void RegisterReverseConnections(IGearEnergyTransformer source, List<GearConnect> connections)
+        {
             foreach (var connect in connections)
             {
                 var targetId = connect.Transformer.BlockInstanceId;
@@ -178,6 +164,14 @@ namespace Game.Gear.Common
 
                 reverseConnections.Add((source, connect));
             }
+        }
+
+        private static List<GearConnect> CollectConnections(IGearEnergyTransformer source)
+        {
+            var connections = new List<GearConnect>();
+            if (source is IGearConnectCacheProvider provider) provider.AddGearConnectsTo(connections);
+            else connections.AddRange(source.GetGearConnects());
+            return connections;
         }
 
         private void Reset()

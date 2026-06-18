@@ -78,8 +78,12 @@ namespace Game.Block.Blocks.Gear
             var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
             
             var changed = _stateService.TryUpdate(operatingRate, out var newRpm, out var newTorque);
+            var outputChanged = changed ||
+                                Math.Abs(GenerateRpm.AsPrimitive() - newRpm.AsPrimitive()) > 0.0001f ||
+                                Math.Abs(GenerateTorque.AsPrimitive() - newTorque.AsPrimitive()) > 0.0001f;
             GenerateRpm = newRpm;
             GenerateTorque = newTorque;
+            if (outputChanged) network.MarkGeneratorOutputDirty();
 
             if (changed || newRpm.AsPrimitive() > 0f)
             {
