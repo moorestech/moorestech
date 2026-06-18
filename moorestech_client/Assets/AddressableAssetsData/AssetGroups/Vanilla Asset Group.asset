@@ -1065,6 +1065,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f413000aabe3145018aaa6bd56f5e492
+    m_Address: Vanilla/Block/Filter_splitter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f479ff7c99835452c9af9473d5fd2043
     m_Address: Vanilla/Character/SkitChr001
     m_ReadOnly: 0
