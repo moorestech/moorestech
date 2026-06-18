@@ -106,7 +106,7 @@ namespace Tests.UnitTest.Core.Inventory
             Debug.Log($"[ChestOptimizationBenchmark] slots={slotCount} lastSlotEmpty=true iterations={iterations} chestToChestInsert {legacyInsertUs:F3}us -> {indexedInsertUs:F3}us speedup={legacyInsertUs / indexedInsertUs:F1}x");
         }
 
-        private OpenableInventoryItemDataStoreService CreateInventory(int slotCount) => new((slot, item) => { }, _itemStackFactory, slotCount);
+        private OpenableInventoryItemDataStoreService CreateInventory(int slotCount) => new((slot, item) => { }, _itemStackFactory, slotCount, new OpenableInventoryItemDataStoreServiceOption { EnableSlotIndex = true });
 
         private OpenableInventoryItemDataStoreService CreateSparseSourceInventory(int slotCount, int nonEmptyCount, ItemId itemId)
         {

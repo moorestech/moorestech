@@ -14,11 +14,17 @@ namespace Core.Inventory
         private readonly InventorySlotList _emptySlots = new();
         private readonly Dictionary<ItemId, InventorySlotList> _partialSlotsByItemId = new();
         private readonly Dictionary<ItemId, int> _slotCountByItemId = new();
+        private readonly IItemStack[] _slotStates;
         private int _partialSlotCount;
 
-        public OpenableInventorySlotIndex(int slotCount)
+        public OpenableInventorySlotIndex(int slotCount, IItemStack emptyItemStack)
         {
-            for (var i = 0; i < slotCount; i++) _emptySlots.Add(i);
+            _slotStates = new IItemStack[slotCount];
+            for (var i = 0; i < slotCount; i++)
+            {
+                _slotStates[i] = emptyItemStack;
+                _emptySlots.Add(i);
+            }
         }
 
         public void Rebuild(IReadOnlyList<IItemStack> inventoryItems)
@@ -33,16 +39,18 @@ namespace Core.Inventory
             // Rebuild slot state after low-frequency legacy mutation paths
             for (var i = 0; i < inventoryItems.Count; i++)
             {
+                _slotStates[i] = inventoryItems[i];
                 AddSlotState(i, inventoryItems[i]);
             }
 
             Version++;
         }
 
-        public void SetSlot(int slot, IItemStack oldItemStack, IItemStack newItemStack)
+        public void SetSlot(int slot, IItemStack newItemStack)
         {
-            RemoveSlotState(slot, oldItemStack);
+            RemoveSlotState(slot, _slotStates[slot]);
             AddSlotState(slot, newItemStack);
+            _slotStates[slot] = newItemStack;
             Version++;
         }
 
@@ -78,22 +86,17 @@ namespace Core.Inventory
             // indexの末尾を使い、満杯になったslotを即座に候補から外す
             // Use the tail candidate and remove filled slots immediately
             var currentItemStack = itemStack;
-            var skippedSlots = new List<int>();
             while (!IsEmpty(currentItemStack) && 0 < slots.Count)
             {
                 var slot = slots.GetLast();
                 var remainingItemStack = InsertToSlot(slot, currentItemStack, inventoryItems, onSlotUpdate);
                 if (remainingItemStack.Count == currentItemStack.Count && remainingItemStack.Id == currentItemStack.Id)
                 {
-                    slots.Remove(slot);
-                    skippedSlots.Add(slot);
-                    continue;
+                    return currentItemStack;
                 }
 
                 currentItemStack = remainingItemStack;
             }
-
-            foreach (var skippedSlot in skippedSlots) slots.Add(skippedSlot);
 
             return currentItemStack;
         }
@@ -115,7 +118,7 @@ namespace Core.Inventory
             if (!oldItemStack.Equals(result.ProcessResultItemStack))
             {
                 inventoryItems[slot] = result.ProcessResultItemStack;
-                SetSlot(slot, oldItemStack, result.ProcessResultItemStack);
+                SetSlot(slot, result.ProcessResultItemStack);
                 onSlotUpdate(slot);
             }
 

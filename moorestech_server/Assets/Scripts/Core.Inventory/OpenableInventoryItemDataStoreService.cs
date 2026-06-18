@@ -11,12 +11,13 @@ namespace Core.Inventory
     public class OpenableInventoryItemDataStoreService : IOpenableInventory
     {
         public IReadOnlyList<IItemStack> InventoryItems => _inventory;
-        public IReadOnlyList<int> NonEmptySlotIndexes => _slotIndex.NonEmptySlotIndexes;
-        public bool HasInsertableSlot => _slotIndex.HasInsertableSlot;
-        public int InventoryVersion => _slotIndex.Version;
+        public IReadOnlyList<int> NonEmptySlotIndexes => _usesSlotIndex ? _slotIndex.NonEmptySlotIndexes : OpenableInventoryScanQuery.CollectNonEmptySlotIndexes(_inventory);
+        public bool HasInsertableSlot => _usesSlotIndex ? _slotIndex.HasInsertableSlot : OpenableInventoryScanQuery.HasInsertableSlot(_inventory);
+        public int InventoryVersion => _usesSlotIndex ? _slotIndex.Version : 0;
 
         private readonly List<IItemStack> _inventory;
         private readonly OpenableInventorySlotIndex _slotIndex;
+        private readonly bool _usesSlotIndex;
 
         public delegate void InventoryUpdate(int slot, IItemStack itemStack);
 
@@ -29,10 +30,11 @@ namespace Core.Inventory
             _itemStackFactory = itemStackFactory;
             _onInventoryUpdate = onInventoryUpdate;
             _option = option ?? new OpenableInventoryItemDataStoreServiceOption();
+            _usesSlotIndex = _option.EnableSlotIndex;
 
             _inventory = new List<IItemStack>();
             for (var i = 0; i < slotNumber; i++) _inventory.Add(_itemStackFactory.CreatEmpty());
-            _slotIndex = new OpenableInventorySlotIndex(slotNumber);
+            _slotIndex = _usesSlotIndex ? new OpenableInventorySlotIndex(slotNumber, _itemStackFactory.CreatEmpty()) : null;
         }
         
         public bool InsertionCheck(List<IItemStack> itemStacks)
@@ -62,7 +64,8 @@ namespace Core.Inventory
 
         public bool CanInsertItem(IItemStack itemStack)
         {
-            return _slotIndex.CanInsertItem(itemStack, _option);
+            if (_usesSlotIndex) return _slotIndex.CanInsertItem(itemStack, _option);
+            return InsertionCheck(new List<IItemStack> { itemStack });
         }
         
         private void InvokeEvent(int slot)
@@ -76,18 +79,16 @@ namespace Core.Inventory
         {
             if (!_inventory[slot].Equals(itemStack))
             {
-                var oldItemStack = _inventory[slot];
                 _inventory[slot] = itemStack;
-                _slotIndex.SetSlot(slot, oldItemStack, itemStack);
+                if (_usesSlotIndex) _slotIndex.SetSlot(slot, itemStack);
                 InvokeEvent(slot);
             }
         }
         
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
-            var oldItemStack = _inventory[slot];
             _inventory[slot] = itemStack;
-            _slotIndex.SetSlot(slot, oldItemStack, itemStack);
+            if (_usesSlotIndex) _slotIndex.SetSlot(slot, itemStack);
         }
         
         public void SetItem(int slot, ItemId itemId, int count)
@@ -108,14 +109,14 @@ namespace Core.Inventory
             {
                 var result = item.AddItem(itemStack);
                 _inventory[slot] = result.ProcessResultItemStack;
-                _slotIndex.SetSlot(slot, item, result.ProcessResultItemStack);
+                if (_usesSlotIndex) _slotIndex.SetSlot(slot, result.ProcessResultItemStack);
                 InvokeEvent(slot);
                 return result.RemainderItemStack;
             }
             
             //違う場合はそのまま入れ替える
             _inventory[slot] = itemStack;
-            _slotIndex.SetSlot(slot, item, itemStack);
+            if (_usesSlotIndex) _slotIndex.SetSlot(slot, itemStack);
             InvokeEvent(slot);
             return item;
         }
@@ -132,13 +133,12 @@ namespace Core.Inventory
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var remainingItem = InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, _option, InvokeEvent);
-            _slotIndex.Rebuild(_inventory);
-            return remainingItem;
+            return InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, _option, OnInsertedSlotUpdate);
         }
 
         public IItemStack InsertItemByIndex(IItemStack itemStack)
         {
+            if (!_usesSlotIndex) return InsertItem(itemStack);
             return _slotIndex.InsertItem(itemStack, _inventory, _itemStackFactory, _option, InvokeEvent);
         }
         
@@ -164,9 +164,7 @@ namespace Core.Inventory
         /// </summary>
         public IItemStack InsertItemWithPrioritySlot(IItemStack itemStack, int[] prioritySlots)
         {
-            var remainingItem = InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, _option, prioritySlots, InvokeEvent);
-            _slotIndex.Rebuild(_inventory);
-            return remainingItem;
+            return InventoryInsertItem.InsertItemWithPrioritySlot(itemStack, _inventory, _itemStackFactory, _option, prioritySlots, OnInsertedSlotUpdate);
         }
         
         public IItemStack InsertItemWithPrioritySlot(ItemId itemId, int count, int[] prioritySlots)
@@ -175,6 +173,13 @@ namespace Core.Inventory
         }
         
         #endregion
+
+        private void OnInsertedSlotUpdate(int slot)
+        {
+            if (_usesSlotIndex) _slotIndex.SetSlot(slot, _inventory[slot]);
+            InvokeEvent(slot);
+        }
+
     }
     
     public class OpenableInventoryItemDataStoreServiceOption
@@ -184,5 +189,6 @@ namespace Core.Inventory
         /// If true, inserting an item may create a new stack  even if another stack of the same item already exists.
         /// </summary>
         public bool AllowMultipleStacksPerItemOnInsert { get; set; } = true;
+        public bool EnableSlotIndex { get; set; }
     }
 }

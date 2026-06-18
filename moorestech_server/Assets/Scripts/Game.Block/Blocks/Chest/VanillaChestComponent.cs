@@ -17,6 +17,8 @@ namespace Game.Block.Blocks.Chest
 {
     public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent, IBlockInventoryFastInsertTarget
     {
+        private const int IndexedTransferSlotThreshold = 64;
+
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public IReadOnlyList<int> NonEmptySlotIndexes => _itemDataStoreService.NonEmptySlotIndexes;
         public bool HasInsertableSlot => _itemDataStoreService.HasInsertableSlot;
@@ -30,7 +32,8 @@ namespace Game.Block.Blocks.Chest
         {
             BlockInstanceId = blockInstanceId;
             _blockInventoryInserter = blockInventoryInserter;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
+            var option = new OpenableInventoryItemDataStoreServiceOption { EnableSlotIndex = true };
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum, option);
         }
 
         public VanillaChestComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, int slotNum, IBlockInventoryInserter blockInventoryInserter) :
@@ -76,6 +79,12 @@ namespace Game.Block.Blocks.Chest
             var targetState = _blockInventoryInserter as IBlockInventoryInsertTargetState;
             if (targetState != null && !targetState.CanInsertToNextTarget()) return;
 
+            if (_itemDataStoreService.GetSlotSize() < IndexedTransferSlotThreshold)
+            {
+                UpdateBySequentialScan();
+                return;
+            }
+
             var nonEmptySlotIndexes = _itemDataStoreService.NonEmptySlotIndexes;
             for (var i = nonEmptySlotIndexes.Count - 1; 0 <= i; i--)
             {
@@ -86,7 +95,20 @@ namespace Game.Block.Blocks.Chest
                 var slot = nonEmptySlotIndexes[i];
                 var itemStack = _itemDataStoreService.InventoryItems[slot];
                 if (itemStack.Id == ItemMaster.EmptyItemId || itemStack.Count == 0) continue;
-                if (targetState != null && !targetState.CanInsertItemToNextTarget(itemStack)) continue;
+
+                var setItem = _blockInventoryInserter.InsertItem(itemStack);
+                _itemDataStoreService.SetItem(slot, setItem);
+            }
+        }
+
+        private void UpdateBySequentialScan()
+        {
+            // 小容量チェストは単純scanでindex列挙の固定費を避ける
+            // Small chests avoid the fixed cost of indexed enumeration
+            for (var slot = 0; slot < _itemDataStoreService.InventoryItems.Count; slot++)
+            {
+                var itemStack = _itemDataStoreService.InventoryItems[slot];
+                if (itemStack.Id == ItemMaster.EmptyItemId || itemStack.Count == 0) continue;
 
                 var setItem = _blockInventoryInserter.InsertItem(itemStack);
                 _itemDataStoreService.SetItem(slot, setItem);

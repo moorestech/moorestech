@@ -226,3 +226,45 @@ Current recommendation:
 - Treat gear network as solved for stable networks.
 - Do not spend more time on runtime profiler marker overhead; it has been removed.
 - Continue with real `BlockSystem` component body work: chest output, belt output/inserter path, fluid pipe update, and state event batching.
+
+## 6. Chest Transfer Optimization Investigation
+
+Measured on the same current save:
+
+| Metric | Value |
+| --- | ---: |
+| Chests | `41` |
+| Total chest slots | `750` |
+| Non-empty chest slots | `398` |
+
+Changes:
+
+- Added source-side non-empty slot index for indexed inventories.
+- Added destination-side insertability cache through `HasInsertableSlot` / `CanInsertItem`.
+- Added chest-to-chest fast insertion through `IBlockInventoryFastInsertTarget.InsertItemFast`.
+- Scoped the slot index to chest inventories only; non-chest `OpenableInventoryItemDataStoreService` no longer builds the index.
+- Added an adaptive chest update path: small chests below `64` slots use sequential scan, large chests use non-empty slot index.
+- Removed per-item destination precheck from `VanillaChestComponent.Update()` because it added extra target-array scans and did not help the current save.
+
+Current-save result:
+
+| Measurement | Before / baseline | After | Interpretation |
+| --- | ---: | ---: | --- |
+| `ChestTransferFullSlotScan` vs `ChestTransferCurrentUpdate` | `5.734ms` | `5.548ms` | about `3.2%` faster in same-process current-code comparison |
+| `VanillaChestComponent` actual-order component breakdown | `58.214ms / 410 calls` | `55.325ms / 410 calls` | about `5.0%` faster than the old worktree run |
+| `VanillaChestComponent` per call | `141.986us` | `134.940us` | small but measurable in actual-order measurement |
+
+Large-slot synthetic result:
+
+| Scenario | Before | After | Improvement |
+| --- | ---: | ---: | ---: |
+| Source scan, `65,536` slots and `16` non-empty | `1604.010us` | `0.047us` | about `34,128x` |
+| Full destination lock check, `65,536` slots | `7887.029us` | `0.052us` | about `151,674x` |
+| Chest-to-chest insert, last slot empty in `65,536` slots | `95393.941us` | `3.386us` | about `28,177x` |
+
+Conclusion:
+
+- For the current save, chest optimization is not a major win because the save only has `750` total chest slots.
+- The adaptive path prevents the large-slot index optimization from making small current-save chests slower.
+- The large-slot benchmark confirms the algorithmic improvement is real, but it matters only when inventories become very large or when many chest outputs are blocked by full destinations.
+- Full `GameUpdater.Update` was not used as the chest-specific proof because unrelated component timings varied heavily between runs.
