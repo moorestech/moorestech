@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
@@ -15,7 +14,7 @@ namespace Game.Block.Blocks.Service
     /// </summary>
     public class ConnectingInventoryListPriorityInsertItemService : IBlockInventoryInserter, IBlockInventoryInsertTargetState
     {
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly InventoryConnectorTargetCache _targetCache;
         private readonly BlockInstanceId _sourceBlockInstanceId;
 
         private int _index = -1;
@@ -23,46 +22,45 @@ namespace Game.Block.Blocks.Service
         public ConnectingInventoryListPriorityInsertItemService(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _sourceBlockInstanceId = sourceBlockInstanceId;
-            _blockConnectorComponent = blockConnectorComponent;
+            _targetCache = new InventoryConnectorTargetCache(blockConnectorComponent);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var targetsList = _blockConnectorComponent.ConnectedTargets.ToArray();
+            var targetsList = _targetCache.GetTargets();
 
             // 既存のround-robin順で搬出し、indexed targetなら高速挿入を使う
             // Keep the existing round-robin order and use fast insertion for indexed targets
             for (var i = 0; i < targetsList.Length && itemStack.Id != ItemMaster.EmptyItemId; i++)
-                lock (targetsList)
-                {
-                    AddIndex(targetsList.Length);
-                    itemStack = InsertToTarget(itemStack, targetsList[_index]);
-                }
+            {
+                AddIndex(targetsList.Length);
+                itemStack = InsertToTarget(itemStack, targetsList[_index]);
+            }
 
             return itemStack;
         }
 
         public bool CanInsertToNextTarget()
         {
-            var targetsList = _blockConnectorComponent.ConnectedTargets.ToArray();
+            var targetsList = _targetCache.GetTargets();
             if (targetsList.Length == 0) return false;
 
-            // indexed targetなら満杯判定をcacheからO(1)で返す
-            // Indexed targets answer fullness from cache in constant time
+            // 状態cacheを持つtargetは満杯判定をO(1)で返す
+            // Targets with state caches answer fullness in constant time.
             var target = PeekNextTarget(targetsList).Key;
-            if (target is IBlockInventoryFastInsertTarget fastTarget) return fastTarget.HasInsertableSlot;
+            if (target is IBlockInventoryInsertableTargetState stateTarget) return stateTarget.HasInsertableSlot;
             return IsTargetMaybeInsertable(target);
         }
 
         public bool CanInsertItemToNextTarget(IItemStack itemStack)
         {
-            var targetsList = _blockConnectorComponent.ConnectedTargets.ToArray();
+            var targetsList = _targetCache.GetTargets();
             if (targetsList.Length == 0) return false;
 
             // item別cacheを持つtargetだけ事前判定し、非対応targetは既存挿入に任せる
-            // Precheck only targets with item caches and leave other targets to existing insertion
+            // Precheck only targets with item caches and leave other targets to existing insertion.
             var target = PeekNextTarget(targetsList).Key;
-            if (target is IBlockInventoryFastInsertTarget fastTarget) return fastTarget.CanInsertItem(itemStack);
+            if (target is IBlockInventoryInsertableTargetState stateTarget) return stateTarget.CanInsertItem(itemStack);
             return true;
         }
 

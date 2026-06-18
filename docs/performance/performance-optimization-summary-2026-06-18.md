@@ -470,3 +470,56 @@ Conclusion:
 - The adaptive path prevents the large-slot index optimization from making small current-save chests slower.
 - The large-slot benchmark confirms the algorithmic improvement is real, but it matters only when inventories become very large or when many chest outputs are blocked by full destinations.
 - Full `GameUpdater.Update` was not used as the chest-specific proof because unrelated component timings varied heavily between runs.
+
+## 8. Non-Gear Follow-Up: Connector Cache, FluidPipe, Belt Insertability
+
+Measured on `2026-06-19` with the same current save:
+
+```powershell
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.Investigation\.(GameUpdatePerformanceInvestigationTest\.ProfileCurrentSaveSteadyStateTickDistribution|GameUpdatePerformanceInvestigationTest\.ProfileCurrentSaveBlockComponentBreakdown|BlockSystemDeepDiveInvestigationTest\.ProfileCurrentSaveBlockSystemCostByBlockType|BlockSystemStateAndHotComponentInvestigationTest\.ProfileCurrentSaveHotComponentShapeAndActualCost)"
+```
+
+Changes:
+
+- Cached inventory connector target arrays for belt/chest output services instead of rebuilding `ConnectedTargets.ToArray()` during tick work.
+- Split `FluidPipeComponent` update logic into a transfer service and cached fluid connector targets plus per-connection flow amount.
+- Removed `FluidPipeComponent.Update()` allocations from `Keys.ToList()` and per-bucket eligible-target `List` creation.
+- Added `IBlockInventoryInsertableTargetState` so belts can answer destination insertability without exposing context-less fast insertion.
+- Split `VanillaBeltConveyorComponent` save/update helpers so the touched file remains below 200 lines.
+
+Current-save measurements are noisy, so the most reliable comparison is the 100x amplified component body measurement:
+
+| Measurement | Before this follow-up | After | Improvement |
+| --- | ---: | ---: | ---: |
+| `VanillaBeltConveyorComponent` amplified | `681.036ms / 430,700 calls`, `1.581us/call` | `552.840ms / 430,700 calls`, `1.284us/call` | about `18.8%` |
+| `FluidPipeComponent` amplified | `460.836ms / 14,300 calls`, `32.226us/call` | `336.244ms / 14,300 calls`, `23.514us/call` | about `27.0%` |
+| `VanillaChestComponent` amplified | `444.641ms / 4,100 calls`, `108.449us/call` | `414.392ms / 4,100 calls`, `101.071us/call` | about `6.8%` |
+
+Block-type and full-tick measurements from the latest run:
+
+| Measurement | Current value |
+| --- | ---: |
+| Full tick average, 300 ticks | `28.065ms` |
+| Full tick P50 | `26.329ms` |
+| Full tick P95 | `38.349ms` |
+| `GearBeltConveyor` block type | `9.027ms/tick` |
+| `Chest` block type | `4.731ms/tick` |
+| `FluidPipe` block type | `2.451ms/tick` |
+
+Important caveat:
+
+- `BlockTypeCost` and actual-order component measurements still vary heavily because component updates mutate state and the save has tick spikes.
+- The 100x amplified measurements are the preferred proof for these micro-optimizations.
+- Gear-related tests still have known failures from the gear RPM/power behavior changes, but the non-gear target suite passed: `39/39`.
+
+Verification:
+
+```powershell
+uloop compile --project-path ./moorestech_client
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.(CombinedTest\.Core\.(FluidTest|ElectricPumpTest|MachineFluidIOTest|BeltConveyorTest|ChestLogicTest|InsertItemContextTest)|UnitTest\.Core\.Other\.(ConnectingInventoryListPriorityInsertItemServiceTest|VanillaBeltConveyorBlockInventoryInserterRoundRobinTest)|UnitTest\.Game\.SaveLoad\.FluidPipeSaveLoadTest)"
+```
+
+Result:
+
+- Compile: success, `0` errors, existing warnings only.
+- Target tests: `39/39` passed.

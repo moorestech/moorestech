@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
+using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -23,29 +23,23 @@ namespace Game.Block.Blocks.BeltConveyor
     
     public class VanillaBeltConveyorBlockInventoryInserter : IBeltConveyorBlockInventoryInserter
     {
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly InventoryConnectorTargetCache _targetCache;
         private readonly BlockInstanceId _sourceBlockInstanceId;
         private int _roundRobinIndex = -1;
 
         public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
         {
             _sourceBlockInstanceId = sourceBlockInstanceId;
-            _blockConnectorComponent = blockConnectorComponent;
+            _targetCache = new InventoryConnectorTargetCache(blockConnectorComponent);
         }
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            var targets = _blockConnectorComponent.ConnectedTargets;
-            if (targets.Count == 0) return itemStack;
+            var targets = _targetCache.GetTargets();
+            if (targets.Length == 0) return itemStack;
 
-            // ラウンドロビンで出力先を選択する
-            // Select output target with round robin
             var connector = GetNextTarget(targets);
-
-            // ConnectedInfoからBlockConnectInfoElementを取得
-            // Get BlockConnectInfoElement from ConnectedInfo
             var context = new InsertItemContext(_sourceBlockInstanceId, connector.Value.SelfConnector, connector.Value.TargetConnector);
-
             return connector.Key.InsertItem(itemStack, context);
         }
 
@@ -55,8 +49,8 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         public IItemStack InsertItem(IItemStack itemStack, BlockConnectInfoElement goalConnector)
         {
-            var targets = _blockConnectorComponent.ConnectedTargets;
-            if (targets.Count == 0) return itemStack;
+            var targets = _targetCache.GetTargets();
+            if (targets.Length == 0) return itemStack;
 
             // まず指定先に挿入し、失敗時は他の接続先を順に試す
             // Try the goal connector first, then attempt other targets on failure
@@ -64,14 +58,14 @@ namespace Game.Block.Blocks.BeltConveyor
 
             #region Internal
 
-            IItemStack TryInsertWithReselect(IItemStack targetItem, BlockConnectInfoElement targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets)
+            IItemStack TryInsertWithReselect(IItemStack targetItem, BlockConnectInfoElement targetConnector, KeyValuePair<IBlockInventory, ConnectedInfo>[] connectedTargets)
             {
                 var result = TryInsertToGoal(targetItem, targetConnector, connectedTargets, out var attemptedGoal);
                 if (result.Id == ItemMaster.EmptyItemId) return result;
 
                 // ゴール指定済みなら他の接続先だけを順に試す
                 // When goal is set, try other targets in sequence
-                for (var i = 0; i < connectedTargets.Count && result.Id != ItemMaster.EmptyItemId; i++)
+                for (var i = 0; i < connectedTargets.Length && result.Id != ItemMaster.EmptyItemId; i++)
                 {
                     var nextTarget = GetNextTarget(connectedTargets);
                     if (attemptedGoal && targetConnector != null && nextTarget.Value.SelfConnector.ConnectorGuid == targetConnector.ConnectorGuid) continue;
@@ -80,7 +74,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 return result;
             }
 
-            IItemStack TryInsertToGoal(IItemStack targetItem, BlockConnectInfoElement targetConnector, IReadOnlyDictionary<IBlockInventory, ConnectedInfo> connectedTargets, out bool attemptedGoal)
+            IItemStack TryInsertToGoal(IItemStack targetItem, BlockConnectInfoElement targetConnector, KeyValuePair<IBlockInventory, ConnectedInfo>[] connectedTargets, out bool attemptedGoal)
             {
                 attemptedGoal = false;
                 if (targetConnector == null) return targetItem;
@@ -110,13 +104,12 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         public BlockConnectInfoElement PeekNextGoalConnector(List<IItemStack> itemStacks)
         {
-            var targets = _blockConnectorComponent.ConnectedTargets;
-            if (targets.Count == 0) return null;
+            var targets = _targetCache.GetTargets();
+            if (targets.Length == 0) return null;
 
             // 挿入可能な接続先を探す（インデックスを進めない）
             // Find insertable connector (without advancing index)
-            var targetsList = targets.ToArray();
-            for (var i = 0; i < targetsList.Length; i++)
+            for (var i = 0; i < targets.Length; i++)
             {
                 var target = PeekNextTarget(targets, i);
                 if (!target.Key.InsertionCheck(itemStacks)) continue;
@@ -132,13 +125,12 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         public BlockConnectInfoElement GetNextGoalConnector(List<IItemStack> itemStacks)
         {
-            var targets = _blockConnectorComponent.ConnectedTargets;
-            if (targets.Count == 0) return null;
+            var targets = _targetCache.GetTargets();
+            if (targets.Length == 0) return null;
 
             // 挿入可能な接続先をラウンドロビンで選択する（インデックスを進める）
             // Select insertable connector with round robin (advances index)
-            var targetsList = targets.ToArray();
-            for (var i = 0; i < targetsList.Length; i++)
+            for (var i = 0; i < targets.Length; i++)
             {
                 var target = GetNextTarget(targets);
                 if (!target.Key.InsertionCheck(itemStacks)) continue;
@@ -156,18 +148,14 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             if (goalConnector == null) return false;
             
-            foreach (var target in _blockConnectorComponent.ConnectedTargets)
+            foreach (var target in _targetCache.GetTargets())
             {
                 if (target.Value.SelfConnector.ConnectorGuid == goalConnector.ConnectorGuid) return true;
             }
             return false;
         }
 
-        /// <summary>
-        /// 接続されているコネクターの数を取得
-        /// Get the number of connected connectors
-        /// </summary>
-        public int ConnectedCount => _blockConnectorComponent.ConnectedTargets.Count;
+        public int ConnectedCount => _targetCache.Count;
 
         /// <summary>
         /// SelfConnectorが設定されている接続先があるか
@@ -177,37 +165,33 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             get
             {
-                foreach (var target in _blockConnectorComponent.ConnectedTargets)
+                foreach (var target in _targetCache.GetTargets())
                 {
                     if (target.Value.SelfConnector != null) return true;
                 }
                 return false;
             }
         }
-
-
-        private KeyValuePair<IBlockInventory, ConnectedInfo> GetNextTarget(IReadOnlyDictionary<IBlockInventory, ConnectedInfo> targets)
+        private KeyValuePair<IBlockInventory, ConnectedInfo> GetNextTarget(KeyValuePair<IBlockInventory, ConnectedInfo>[] targets)
         {
-            var targetsList = targets.ToArray();
-            if (targetsList.Length == 0) return default;
+            if (targets.Length == 0) return default;
 
             // 次の接続先インデックスを計算する
             // Calculate next target index
             _roundRobinIndex++;
-            if (_roundRobinIndex >= targetsList.Length) _roundRobinIndex = 0;
-            return targetsList[_roundRobinIndex];
+            if (_roundRobinIndex >= targets.Length) _roundRobinIndex = 0;
+            return targets[_roundRobinIndex];
         }
 
-        private KeyValuePair<IBlockInventory, ConnectedInfo> PeekNextTarget(IReadOnlyDictionary<IBlockInventory, ConnectedInfo> targets, int offset)
+        private KeyValuePair<IBlockInventory, ConnectedInfo> PeekNextTarget(KeyValuePair<IBlockInventory, ConnectedInfo>[] targets, int offset)
         {
-            var targetsList = targets.ToArray();
-            if (targetsList.Length == 0) return default;
+            if (targets.Length == 0) return default;
 
             // 現在のインデックス + オフセットのターゲットを取得する（インデックスは進めない）
             // Get target at current index + offset (without advancing index)
-            var index = (_roundRobinIndex + 1 + offset) % targetsList.Length;
-            if (index < 0) index += targetsList.Length;
-            return targetsList[index];
+            var index = (_roundRobinIndex + 1 + offset) % targets.Length;
+            if (index < 0) index += targets.Length;
+            return targets[index];
         }
     }
 }
