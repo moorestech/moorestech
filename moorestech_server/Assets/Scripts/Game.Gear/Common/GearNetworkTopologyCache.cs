@@ -35,6 +35,42 @@ namespace Game.Gear.Common
             return _nodes[transformer.BlockInstanceId];
         }
 
+        public bool TryAddConnectedGear(IGearEnergyTransformer gear)
+        {
+            if (_isDirty || _nodes.ContainsKey(gear.BlockInstanceId)) return false;
+
+            // 既存nodeへの接続から新nodeのroot相対値を逆算する
+            // Infer the new root-relative node from already known neighbors.
+            var connects = gear.GetGearConnects();
+            GearNetworkTopologyNode newNode = default;
+            var foundConnectedNode = false;
+            foreach (var connect in connects)
+            {
+                if (!_nodes.TryGetValue(connect.Transformer.BlockInstanceId, out var targetNode)) continue;
+                var candidateNode = CalculateCurrentNodeFromTarget(gear, connect, targetNode);
+                if (!foundConnectedNode)
+                {
+                    newNode = candidateNode;
+                    foundConnectedNode = true;
+                    continue;
+                }
+
+                ValidateExistingNode(newNode, candidateNode.RpmRatioFromRoot, candidateNode.IsClockwiseSameAsRoot);
+            }
+
+            if (!foundConnectedNode) return false;
+
+            foreach (var connect in connects)
+            {
+                if (!_nodes.TryGetValue(connect.Transformer.BlockInstanceId, out var targetNode)) continue;
+                ValidateConnectionFromIncrementalNode(newNode, connect, targetNode);
+            }
+
+            _nodes.Add(gear.BlockInstanceId, newNode);
+            _networkMemberIds.Add(gear.BlockInstanceId);
+            return true;
+        }
+
         public bool IsRocked(float rootRpm)
         {
             return _hasDirectionConflict || RpmMismatchTolerance < _maxRpmRatioConflictFromRoot * Math.Abs(rootRpm);
@@ -98,6 +134,33 @@ namespace Game.Gear.Common
             }
 
             return currentNode.RpmRatioFromRoot;
+        }
+
+        private static GearNetworkTopologyNode CalculateCurrentNodeFromTarget(IGearEnergyTransformer current, GearConnect connect, GearNetworkTopologyNode targetNode)
+        {
+            var isReverseRotation = connect.Self.IsReverse && connect.Target.IsReverse;
+            var currentRatio = targetNode.RpmRatioFromRoot;
+            if (connect.Transformer is IGear targetGear &&
+                current is IGear currentGear &&
+                isReverseRotation)
+            {
+                currentRatio = targetNode.RpmRatioFromRoot * targetGear.TeethCount / currentGear.TeethCount;
+            }
+
+            var currentClockwiseSameAsRoot = isReverseRotation
+                ? !targetNode.IsClockwiseSameAsRoot
+                : targetNode.IsClockwiseSameAsRoot;
+            return new GearNetworkTopologyNode(current, currentRatio, currentClockwiseSameAsRoot);
+        }
+
+        private void ValidateConnectionFromIncrementalNode(GearNetworkTopologyNode newNode, GearConnect connect, GearNetworkTopologyNode targetNode)
+        {
+            var isReverseRotation = connect.Self.IsReverse && connect.Target.IsReverse;
+            var targetRatio = CalculateTargetRatio(newNode, connect, isReverseRotation);
+            var targetClockwiseSameAsRoot = isReverseRotation
+                ? !newNode.IsClockwiseSameAsRoot
+                : newNode.IsClockwiseSameAsRoot;
+            ValidateExistingNode(targetNode, targetRatio, targetClockwiseSameAsRoot);
         }
 
         private void ValidateExistingNode(GearNetworkTopologyNode existingNode, float targetRatio, bool targetClockwiseSameAsRoot)

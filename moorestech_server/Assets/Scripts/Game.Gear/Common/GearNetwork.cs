@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game.Block.Interface;
 using UnityEngine;
 
 namespace Game.Gear.Common
@@ -13,8 +12,12 @@ namespace Game.Gear.Common
         private readonly List<IGearGenerator> _gearGenerators = new();
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
         private readonly List<GearNetworkSupplyInfo> _transformerSupplyInfos = new();
+        private readonly List<IGearGenerator> _pendingIncrementalGenerators = new();
         private readonly GearNetworkTopologyCache _topologyCache = new();
         private readonly GearNetworkStableStateCache _stableStateCache = new();
+        private IGearGenerator _cachedFastestGenerator;
+        private float _cachedTotalGeneratePower;
+        private bool _canUseIncrementalGeneratorAdd;
         public readonly GearNetworkId NetworkId;
 
         public GearNetwork(GearNetworkId networkId)
@@ -34,6 +37,28 @@ namespace Game.Gear.Common
                     break;
             }
 
+            if (TryTrackIncrementalGeneratorAdd(gear)) return;
+            MarkFullRebuildRequired();
+        }
+
+        private bool TryTrackIncrementalGeneratorAdd(IGearEnergyTransformer gear)
+        {
+            if (gear is not IGearGenerator generator) return false;
+            if (!_canUseIncrementalGeneratorAdd || _cachedFastestGenerator == null) return false;
+            if (generator.GenerateRpm > _cachedFastestGenerator.GenerateRpm) return false;
+            if (!_topologyCache.TryAddConnectedGear(generator)) return false;
+
+            // 最大RPMが不変なら既存消費は変わらないため、追加generatorだけを保留する
+            // If max RPM is unchanged, existing demand is stable, so defer only the added generator.
+            _cachedTotalGeneratePower += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
+            _pendingIncrementalGenerators.Add(generator);
+            return true;
+        }
+
+        private void MarkFullRebuildRequired()
+        {
+            _pendingIncrementalGenerators.Clear();
+            _canUseIncrementalGeneratorAdd = false;
             _topologyCache.MarkDirty();
             _stableStateCache.Invalidate();
         }
@@ -50,139 +75,124 @@ namespace Game.Gear.Common
                     break;
             }
 
-            _topologyCache.MarkDirty();
-            _stableStateCache.Invalidate();
+            MarkFullRebuildRequired();
         }
 
         public void ManualUpdate()
         {
+            if (TryApplyIncrementalGeneratorAdds()) return;
             var topologyDirty = _topologyCache.IsDirty;
 
-            // 最大RPMのgeneratorを起点にする既存仕様を維持する。
+            // 既存仕様どおり最大RPMのgeneratorを起点にする
             // Keep the existing rule that the highest-RPM generator is the origin.
-            var fastestOriginGenerator = FindFastestGenerator(out var totalGeneratePower);
-            if (_stableStateCache.CanSkipUpdate(_gearGenerators, fastestOriginGenerator, totalGeneratePower, topologyDirty)) return;
+            var fastestGenerator = GearNetworkPowerApplicator.FindFastestGenerator(_gearGenerators, out var totalGeneratePower);
+            if (_stableStateCache.CanSkipUpdate(_gearGenerators, fastestGenerator, totalGeneratePower, topologyDirty)) return;
 
-            if (fastestOriginGenerator == null)
+            if (fastestGenerator == null)
             {
                 StopAsEmptyNetwork();
-                _stableStateCache.Store(_gearGenerators, null, totalGeneratePower);
+                StoreStableState(null, totalGeneratePower);
                 return;
             }
 
             _topologyCache.EnsureBuilt(_gearTransformers, _gearGenerators);
-            var originNode = _topologyCache.GetNode(fastestOriginGenerator);
-            var rootRpm = CalculateRootRpm(fastestOriginGenerator, originNode);
-            var rootClockwise = originNode.GetRootClockwise(fastestOriginGenerator.GenerateIsClockwise);
+            var originNode = _topologyCache.GetNode(fastestGenerator);
+            var rootRpm = GearNetworkPowerApplicator.CalculateRootRpm(fastestGenerator, originNode);
+            var rootClockwise = originNode.GetRootClockwise(fastestGenerator.GenerateIsClockwise);
 
-            // 構造矛盾とgenerator回転方向矛盾は既存と同じRocked扱いにする。
+            // 構造矛盾とgenerator方向矛盾は従来どおりRockedにする
             // Preserve Rocked behavior for topology conflicts and generator direction mismatches.
-            if (_topologyCache.IsRocked(rootRpm) || HasGeneratorDirectionMismatch(fastestOriginGenerator, rootClockwise))
+            if (_topologyCache.IsRocked(rootRpm) || GearNetworkPowerApplicator.HasGeneratorDirectionMismatch(_gearGenerators, fastestGenerator, rootClockwise, _topologyCache))
             {
                 CurrentGearNetworkInfo = new GearNetworkInfo(0, 0, 0, GearNetworkStopReason.Rocked);
                 StopNetworkComponents();
-                _stableStateCache.Store(_gearGenerators, fastestOriginGenerator, totalGeneratePower);
+                StoreStableState(fastestGenerator, totalGeneratePower);
                 return;
             }
 
-            var totalRequiredGearPower = BuildTransformerSupplyInfos(rootRpm, rootClockwise);
-            if (totalRequiredGearPower > totalGeneratePower)
+            var requiredPower = GearNetworkPowerApplicator.BuildTransformerSupplyInfos(_gearTransformers, _topologyCache, _transformerSupplyInfos, rootRpm, rootClockwise);
+            if (requiredPower > totalGeneratePower)
             {
-                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, 0f, GearNetworkStopReason.OverRequirePower);
+                CurrentGearNetworkInfo = new GearNetworkInfo(requiredPower, totalGeneratePower, 0f, GearNetworkStopReason.OverRequirePower);
                 StopNetworkComponents();
-                _stableStateCache.Store(_gearGenerators, fastestOriginGenerator, totalGeneratePower);
+                StoreStableState(fastestGenerator, totalGeneratePower);
                 return;
             }
 
-            SupplyPowerToNetwork(rootRpm, rootClockwise, totalRequiredGearPower, totalGeneratePower);
-            _stableStateCache.Store(_gearGenerators, fastestOriginGenerator, totalGeneratePower);
+            CurrentGearNetworkInfo = GearNetworkPowerApplicator.SupplyPowerToNetwork(_gearGenerators, _transformerSupplyInfos, _topologyCache, rootRpm, rootClockwise, requiredPower, totalGeneratePower);
+            StoreStableState(fastestGenerator, totalGeneratePower);
         }
 
-        private IGearGenerator FindFastestGenerator(out float totalGeneratePower)
+        private bool TryApplyIncrementalGeneratorAdds()
         {
-            IGearGenerator fastestOriginGenerator = null;
-            totalGeneratePower = 0f;
+            if (_pendingIncrementalGenerators.Count == 0) return false;
+            if (!ValidateGeneratorStateForIncrementalAdd()) return false;
+            var originNode = _topologyCache.GetNode(_cachedFastestGenerator);
+            var rootRpm = GearNetworkPowerApplicator.CalculateRootRpm(_cachedFastestGenerator, originNode);
+            var rootClockwise = originNode.GetRootClockwise(_cachedFastestGenerator.GenerateIsClockwise);
 
-            foreach (var generator in _gearGenerators)
+            if (_topologyCache.IsRocked(rootRpm) || GearNetworkPowerApplicator.HasGeneratorDirectionMismatch(_pendingIncrementalGenerators, rootClockwise, _topologyCache))
             {
-                totalGeneratePower += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
-                if (fastestOriginGenerator == null || generator.GenerateRpm > fastestOriginGenerator.GenerateRpm)
-                {
-                    fastestOriginGenerator = generator;
-                }
+                CurrentGearNetworkInfo = new GearNetworkInfo(0, 0, 0, GearNetworkStopReason.Rocked);
+                StopNetworkComponents();
+                StoreIncrementalStableState();
+                return true;
             }
 
-            return fastestOriginGenerator;
+            var requiredPower = CurrentGearNetworkInfo.TotalRequiredGearPower;
+            if (requiredPower > _cachedTotalGeneratePower)
+            {
+                CurrentGearNetworkInfo = new GearNetworkInfo(requiredPower, _cachedTotalGeneratePower, 0f, GearNetworkStopReason.OverRequirePower);
+                StopNetworkComponents();
+                StoreIncrementalStableState();
+                return true;
+            }
+
+            var operationRate = _cachedTotalGeneratePower == 0 ? 0 : Mathf.Min(1, requiredPower / _cachedTotalGeneratePower);
+            CurrentGearNetworkInfo = new GearNetworkInfo(requiredPower, _cachedTotalGeneratePower, operationRate, GearNetworkStopReason.None);
+            GearNetworkPowerApplicator.SupplyPowerToGenerators(_pendingIncrementalGenerators, _topologyCache, rootRpm, rootClockwise);
+            StoreIncrementalStableState();
+            return true;
         }
 
-        private bool HasGeneratorDirectionMismatch(IGearGenerator fastestOriginGenerator, bool rootClockwise)
+        private bool ValidateGeneratorStateForIncrementalAdd()
         {
-            foreach (var generator in _gearGenerators)
-            {
-                if (generator.BlockInstanceId == fastestOriginGenerator.BlockInstanceId) continue;
-                var node = _topologyCache.GetNode(generator);
-                if (generator.GenerateIsClockwise != node.GetClockwise(rootClockwise)) return true;
-            }
+            var fastestGenerator = GearNetworkPowerApplicator.FindFastestGenerator(_gearGenerators, out var totalGeneratePower);
+            if (fastestGenerator != null &&
+                fastestGenerator.BlockInstanceId == _cachedFastestGenerator.BlockInstanceId &&
+                Mathf.Abs(totalGeneratePower - _cachedTotalGeneratePower) <= 0.0001f) return true;
 
+            // 既存generator出力が変わった場合は安全側で全体再計算へ戻す
+            // If existing generator output changed, fall back to the full recalculation path.
+            MarkFullRebuildRequired();
             return false;
         }
 
-        private float BuildTransformerSupplyInfos(float rootRpm, bool rootClockwise)
+        private void StoreIncrementalStableState()
         {
-            _transformerSupplyInfos.Clear();
-            var totalRequiredGearPower = 0f;
-
-            foreach (var transformer in _gearTransformers)
-            {
-                var node = _topologyCache.GetNode(transformer);
-                var rpm = new RPM(rootRpm * node.RpmRatioFromRoot);
-                var isClockwise = node.GetClockwise(rootClockwise);
-                var requiredTorque = transformer.GetRequiredTorque(rpm, isClockwise);
-                totalRequiredGearPower += requiredTorque.AsPrimitive() * rpm.AsPrimitive();
-                _transformerSupplyInfos.Add(new GearNetworkSupplyInfo(transformer, rpm, isClockwise, requiredTorque));
-            }
-
-            return totalRequiredGearPower;
+            _stableStateCache.StoreIncrementalGeneratorAdds(_pendingIncrementalGenerators, _cachedFastestGenerator, _cachedTotalGeneratePower);
+            _pendingIncrementalGenerators.Clear();
+            _canUseIncrementalGeneratorAdd = CurrentGearNetworkInfo.StopReason == GearNetworkStopReason.None && !_topologyCache.IsDirty;
         }
 
-        private void SupplyPowerToNetwork(float rootRpm, bool rootClockwise, float totalRequiredGearPower, float totalGeneratePower)
+        private void StoreStableState(IGearGenerator fastestGenerator, float totalGeneratePower)
         {
-            var operationRate = totalGeneratePower == 0 ? 0 : Mathf.Min(1, totalRequiredGearPower / totalGeneratePower);
-            CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, operationRate, GearNetworkStopReason.None);
-
-            // transformerへのtorque配分式は既存のpower配分仕様をそのまま使う。
-            // Keep the existing power-based torque distribution formula for transformers.
-            foreach (var info in _transformerSupplyInfos)
-            {
-                var supplyTorque = info.RequiredTorque / totalRequiredGearPower * totalGeneratePower;
-                if (float.IsNaN(supplyTorque.AsPrimitive())) supplyTorque = new Torque(0);
-                supplyTorque = new Torque(Mathf.Min(supplyTorque.AsPrimitive(), info.RequiredTorque.AsPrimitive()));
-                info.Transformer.SupplyPower(info.Rpm, supplyTorque, info.IsClockwise);
-            }
-
-            foreach (var generator in _gearGenerators)
-            {
-                var node = _topologyCache.GetNode(generator);
-                var rpm = new RPM(rootRpm * node.RpmRatioFromRoot);
-                generator.SupplyPower(rpm, generator.GenerateTorque, node.GetClockwise(rootClockwise));
-            }
+            _cachedFastestGenerator = fastestGenerator;
+            _cachedTotalGeneratePower = totalGeneratePower;
+            _pendingIncrementalGenerators.Clear();
+            _canUseIncrementalGeneratorAdd = fastestGenerator != null && CurrentGearNetworkInfo.StopReason == GearNetworkStopReason.None && !_topologyCache.IsDirty;
+            _stableStateCache.Store(_gearGenerators, fastestGenerator, totalGeneratePower);
         }
 
         private void StopAsEmptyNetwork()
         {
             CurrentGearNetworkInfo = GearNetworkInfo.CreateEmpty();
-            foreach (var transformer in _gearTransformers) transformer.SupplyPower(new RPM(0), new Torque(0), true);
+            GearNetworkPowerApplicator.StopAsEmptyNetwork(_gearTransformers);
         }
 
         private void StopNetworkComponents()
         {
-            foreach (var transformer in _gearTransformers) transformer.StopNetwork();
-            foreach (var generator in _gearGenerators) generator.StopNetwork();
-        }
-
-        private static float CalculateRootRpm(IGearGenerator originGenerator, GearNetworkTopologyNode originNode)
-        {
-            return originNode.RpmRatioFromRoot == 0f ? 0f : originGenerator.GenerateRpm.AsPrimitive() / originNode.RpmRatioFromRoot;
+            GearNetworkPowerApplicator.StopNetworkComponents(_gearTransformers, _gearGenerators);
         }
     }
 }

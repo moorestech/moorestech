@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -45,8 +44,6 @@ namespace Tests.Investigation
                 // Add synthetic generators as a one-way chain and promote them as rebuild roots.
                 var generator = CreateSyntheticGenerator(i, random, baseGenerator, attachTarget);
                 var addMs = MeasureMilliseconds(() => GearNetworkDatastore.AddGear(generator));
-                PromoteGeneratorToTopologyRoot(largestNetwork, generator);
-
                 var updateMs = MeasureMilliseconds(largestNetwork.ManualUpdate);
                 addSamples.Add(addMs);
                 updateSamples.Add(updateMs);
@@ -76,16 +73,6 @@ namespace Tests.Investigation
             var torque = 1f + (float)random.NextDouble();
             var blockInstanceId = new BlockInstanceId(SyntheticGeneratorBaseId + index);
             return new SyntheticGearGenerator(blockInstanceId, rpm, torque, baseGenerator.GenerateIsClockwise, attachTarget);
-        }
-
-        private static void PromoteGeneratorToTopologyRoot(GearNetwork network, IGearGenerator generator)
-        {
-            var field = typeof(GearNetwork).GetField("_gearGenerators", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.That(field, Is.Not.Null);
-
-            var generators = (List<IGearGenerator>)field.GetValue(network);
-            Assert.That(generators.Remove(generator), Is.True);
-            generators.Insert(0, generator);
         }
 
         private static void LogStatistics(string name, IReadOnlyList<double> samples)

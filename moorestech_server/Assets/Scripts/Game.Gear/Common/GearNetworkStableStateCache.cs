@@ -50,6 +50,19 @@ namespace Game.Gear.Common
             _totalGeneratePower = totalGeneratePower;
         }
 
+        public void StoreIncrementalGeneratorAdds(IReadOnlyList<IGearGenerator> addedGenerators, IGearGenerator fastestGenerator, float totalGeneratePower)
+        {
+            foreach (var generator in addedGenerators)
+            {
+                _generatorSnapshots[generator.BlockInstanceId] = new GearGeneratorStateSnapshot(generator);
+            }
+
+            _hasSnapshot = true;
+            _hasFastestGenerator = fastestGenerator != null;
+            _fastestGeneratorId = _hasFastestGenerator ? fastestGenerator.BlockInstanceId : new BlockInstanceId(0);
+            _totalGeneratePower = totalGeneratePower;
+        }
+
         public void Invalidate()
         {
             _hasSnapshot = false;
