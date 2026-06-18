@@ -172,23 +172,46 @@ return $"scene={SceneManager.GetActiveScene().name}";
 ' 2>&1 | head -10
 ```
 
-### Step 1b: 単発で動いた snippet を timeout 付き until に乗せる
+### Step 1b: 単発で動いた snippet を「毎回エラー判定する」 until に乗せる
 
-`timeout` で外周ガードを掛け、Domain Reload を煽らないよう sleep は 5 秒以上にする。`grep` は `Result.*ready=True` のような**Result 行の中**にマッチさせる (CompilationErrors 等の他出力で偽陽性しないように)。
+ポーリングの各反復で**必ず出力を一度キャプチャし、(1) コンパイルエラー / `Success: false` / `Result` 空 を検知したら待たずに即 abort、(2) ready=True なら成功で抜ける、(3) クリーンに走ったが未 ready のときだけ sleep して再試行**する。`grep -q "Result.*ready=True"` "だけ" で待つのは禁止 — スニペットがコンパイル失敗して `Result` が空でも grep が永遠に空振りし、`待つべきでない状況をひたすら待ち続ける`（今回の事故そのもの）。`timeout` は最後の保険であって、エラー検知の代わりにはならない。
+
+**スニペットは shell エスケープで壊れやすい**（今回 `&&` が `\&\&` に化けてコンパイル失敗 → `Result` 空 → 待ち続けた）。`--code` に長い C# を直書きせず、**一時ファイルに書いて `$(cat file)` で渡す**とエスケープ事故を防げる。
 
 ```bash
-# 60 秒上限・5 秒間隔で polling
-timeout 60 bash -c '
-until uloop execute-dynamic-code --project-path ./<unity-project> --code "
+# readiness スニペットを temp ファイルへ（エスケープ事故回避）。&& 等もそのまま書ける
+cat > /tmp/ready_probe.cs <<'EOF'
 using UnityEngine.SceneManagement;
-return \$\"scene={SceneManager.GetActiveScene().name} ready={YourContext.IsInitialized}\";
-" 2>&1 | grep -q "Result.*ready=True"; do
+return "scene=" + SceneManager.GetActiveScene().name
+     + " ready=" + (YourContext.IsInitialized ? "True" : "False");
+EOF
+
+# 120 秒上限・各反復でエラー判定してから待つ
+CODE=$(cat /tmp/ready_probe.cs)
+timeout 120 bash -c '
+CODE="$1"
+while true; do
+  OUT=$(uloop execute-dynamic-code --project-path ./<unity-project> --code "$CODE" 2>&1)
+  # (1) スニペットが壊れている/失敗している → 待たずに即停止
+  if echo "$OUT" | grep -qiE "CompilationErrors.*[^][]|\"Success\": false|Domain Reload|error CS[0-9]"; then
+    # Domain Reload だけは一過性なので短く待って再試行、それ以外は abort
+    if echo "$OUT" | grep -qi "Domain Reload"; then sleep 8; continue; fi
+    echo "SNIPPET_ERROR — 待機中止"; echo "$OUT" | head -30; exit 2
+  fi
+  # (2) ready 到達 → 成功
+  if echo "$OUT" | grep -q "Result.*ready=True"; then echo "READY"; exit 0; fi
+  # (3) クリーンに走ったが未 ready → ここでだけ待つ
   sleep 5
 done
-' || { echo "boot timeout"; uloop get-logs --log-type Error --max-count 20; exit 1; }
+' _ "$CODE"
+RC=$?
+if [ $RC -eq 2 ]; then echo "スニpeットが壊れている。コードを直して再実行"; fi
+if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then echo "boot timeout"; uloop get-logs --project-path ./<unity-project> --log-type Error --max-count 20; fi
 ```
 
-`timeout` 60 秒で抜けた場合は `uloop get-logs --log-type Error` を確認 (本番マスタの validation 等でブートが止まっていることがある)。
+判定の優先順位は **エラー検知 > ready 検知 > 待機**。`Result` が空＝「まだ未 ready」ではなく「スニペットが走っていない」可能性が高いので、空 Result は待機ではなく abort 側に倒す。
+
+`timeout` で抜けた場合・SNIPPET_ERROR の場合は必ず `uloop get-logs --log-type Error` を確認 (本番マスタの validation 失敗・サーバーポート競合 `SocketException: Address already in use`・スニペット compile error 等でブートが止まっていることがある)。
 
 ## Step 1.5: de-risk probe（録画前の必須ゲート）
 
@@ -387,16 +410,17 @@ uloop control-play-mode --action Stop
 - 待機は **shell sleep + 別 snippet 呼び出し** で行う。snippet 間は PlayMode が動き続ける。
 
 ### `until` / `while` ループの無限ループ事故
-ポーリングを `until <cmd> | grep -q <pattern>; do sleep N; done` で書くと、`<cmd>` 側のスニペットがコンパイルエラーで失敗した瞬間に `Result` が空になり、grep が永遠に成功しないため**無限ループに突入する** (実例: `MasterHolder.BlockMaster?.GetBlockMasters().Count` のような存在しないメソッドを polling snippet に書いてしまった結果、3 秒間隔で Domain Reload を煽り続けてユーザーが手動停止する羽目になった)。
+ポーリングを `until <cmd> | grep -q <pattern>; do sleep N; done` で書くと、`<cmd>` 側のスニペットがコンパイルエラーで失敗した瞬間に `Result` が空になり、grep が永遠に成功しないため**無限ループに突入する** (実例 1: `MasterHolder.BlockMaster?.GetBlockMasters().Count` のような存在しないメソッドを polling snippet に書いてしまった。実例 2: readiness snippet の `&&` が shell エスケープで `\&\&` に化けてコンパイル失敗 → `Result` 空のまま timeout いっぱい待ち続け、ユーザーが「コンパイルエラーが起きていたのにずっと待っていた」と指摘)。
 
-これを避けるため、ポーリング系コマンドには以下 4 つのガードを必ず付ける:
+これを避けるため、ポーリング系コマンドには以下 5 つのガードを**全て**付ける:
 
 1. **事前単発検証**: ループ化する前に snippet を単発で 1 回叩き、`Success: true` かつ `Result` 行が期待形式で返ることを目視確認する (Step 1a 参照)。
-2. **timeout 必須**: `timeout 60 bash -c '...'` のように外周で時間制限する。タイムアウトしたら必ず `uloop get-logs --log-type Error` を吐かせて原因を可視化する。
-3. **grep は Result 行に限定**: `grep -q "Result.*ready=True"` のように Result 行内のパターンに当てる。`grep -q "True"` のように緩いと CompilationErrors の中身などで偽陽性を起こす。
-4. **sleep は 5 秒以上**: 短すぎる間隔 (例: `sleep 1`) で再試行すると Domain Reload と uloop の compilation を煽って Unity 側まで巻き込んで遅くなる。
+2. **ループ内でエラーを毎回判定して即 abort（最重要・省略禁止）**: 各反復で出力を一度キャプチャし、`error CS` / `CompilationErrors` に中身がある / `"Success": false` / `Result` 空 を検知したら**待たずに即停止**する。`grep -q "<成功パターン>"` "だけ" で待つのは禁止 — 失敗時に永遠に空振りする。判定の優先順位は **エラー検知 > 成功検知 > 待機**。一過性の `Domain Reload` だけは短く待って再試行してよいが、それ以外のエラーは abort。実装例は Step 1b の while ループを参照。
+3. **timeout 必須**: `timeout 120 bash -c '...'` のように外周で時間制限する（ガード 2 をすり抜けた場合の最後の保険であって、エラー検知の代わりにはならない）。timeout で抜けたら必ず `uloop get-logs --log-type Error` を吐かせて原因を可視化する。
+4. **grep は Result 行に限定**: `grep -q "Result.*ready=True"` のように Result 行内のパターンに当てる。`grep -q "True"` のように緩いと CompilationErrors の中身などで偽陽性を起こす。
+5. **sleep は 5 秒以上**: 短すぎる間隔 (例: `sleep 1`) で再試行すると Domain Reload と uloop の compilation を煽って Unity 側まで巻き込んで遅くなる。
 
-`grep` の前で `Success.*false` や `CompilationErrors` をマッチさせて即 `break` する形でも良いが、`timeout` で外周ガードする方が確実。
+つまり「待つ前にまずエラーを疑う」。`Result` が空＝「まだ未 ready」ではなく「スニペットが走っていない／壊れている」可能性が高いので、空 Result は待機ではなく abort 側に倒す。
 
 ### 文字列補間とエスケープで Result が空になる
 `execute-dynamic-code` の C# で `$"..."` 補間を使い、それを shell のシングルクォート＋エスケープで囲むと、エスケープが噛み合わず**コンパイル失敗→`Result` 空**になりやすい（until に乗せれば無限ループ、単発でも「動いたのに結果が出ない」と誤認する）。検証系スニペットは**補間を避けて `"remaining=" + count` のように文字列連結**で組むと安定する。Result が空のときは、まず生成した C# の構文（クォート・補間）を疑う。
