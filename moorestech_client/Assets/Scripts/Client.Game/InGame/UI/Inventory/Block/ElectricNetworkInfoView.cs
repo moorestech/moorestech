@@ -27,7 +27,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
         public void Initialize(BlockInstanceId blockInstanceId)
         {
             _blockInstanceId = blockInstanceId;
-            // UIオープン中は定期的にネットワーク情報を取得し続ける
+            // UIオープン中は定期的に再取得し続ける
             // Keep fetching network info periodically while the UI is open
             FetchLoop().Forget();
         }
@@ -63,10 +63,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 return $"発電量: {generate:F2} 要求量: {required:F2} 需要なし";
             }
 
-            var rate = snapshot.PowerRate;
-            var colorTag = rate < 1f ? "<color=red>" : string.Empty;
-            var resetTag = rate < 1f ? "</color>" : string.Empty;
-            return $"発電量: {generate:F2} 要求量: {required:F2} 供給率: {colorTag}{rate * 100f:F0}%{resetTag}";
+            // 表示する整数%で色判定し、丸めで100%表示なのに赤になる矛盾を防ぐ
+            // Decide the color from the displayed integer %, avoiding red on a value that rounds to 100%
+            var percent = Mathf.RoundToInt(snapshot.PowerRate * 100f);
+            var colorTag = percent < 100 ? "<color=red>" : string.Empty;
+            var resetTag = percent < 100 ? "</color>" : string.Empty;
+            return $"発電量: {generate:F2} 要求量: {required:F2} 供給率: {colorTag}{percent}%{resetTag}";
         }
     }
 }

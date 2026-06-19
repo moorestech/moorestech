@@ -43,7 +43,7 @@ namespace Game.EnergySystem
         {
             CheckDestroy();
 
-            // 集約統計を算出し、供給率に応じて各消費者へエネルギーを配分
+            // 供給率に応じて各消費者へ配分
             // Calculate aggregated statistics and distribute energy to each consumer by the supply rate
             var statistics = CalculateStatistics();
             var powerRate = new ElectricPower(statistics.PowerRate);
@@ -67,9 +67,9 @@ namespace Game.EnergySystem
             // Compute supply rate; when demand is 0, avoid division (NaN/Infinity) and treat as no demand with rate 1.0
             var requiredPrimitive = totalRequired.AsPrimitive();
             var powerRate = requiredPrimitive <= 0f ? 1f : totalGenerate.AsPrimitive() / requiredPrimitive;
-            if (powerRate > 1f) powerRate = 1f;
+            if (1f < powerRate) powerRate = 1f;
 
-            return new ElectricNetworkStatistics(totalGenerate.AsPrimitive(), requiredPrimitive, powerRate, _generators.Count, _consumers.Count);
+            return new ElectricNetworkStatistics(totalGenerate.AsPrimitive(), requiredPrimitive, powerRate, _consumers.Count);
         }
         
         public void AddEnergyConsumer(IElectricConsumer electricConsumer)
