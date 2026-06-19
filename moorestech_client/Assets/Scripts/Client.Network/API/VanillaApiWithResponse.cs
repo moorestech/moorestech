@@ -281,6 +281,14 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack>(request, ct);
         }
 
+        // 指定ブロックが属する電力ネットワークの現時点の集約値を取得する
+        // Fetch current aggregate info of the electric network that the given block belongs to
+        public async UniTask<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack> GetElectricNetworkInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetElectricNetworkInfoProtocol.RequestGetElectricNetworkInfoMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack>(request, ct);
+        }
+
         // 貨物プラットフォームのロード/アンロードモードを切り替える
         // Switch the load/unload transfer mode of a train platform block
         public async UniTask<SetTrainPlatformTransferModeProtocol.SetTrainPlatformTransferModeResponse> SetTrainPlatformTransferMode(
