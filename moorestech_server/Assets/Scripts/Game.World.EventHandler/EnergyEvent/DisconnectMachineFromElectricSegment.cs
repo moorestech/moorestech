@@ -47,7 +47,9 @@ namespace Game.World.EventHandler.EnergyEvent
         /// </summary>
         private void DisconnectGeneratorFromElectricPole(TGenerator generator)
         {
-            if (_worldEnergySegmentDatastore.TryGetEnergySegment(generator, out var segment))
+            // 1台が複数セグメントに所属し得るため全セグメントから削除。残すと破壊後のtickでOutputEnergyが落ちる
+            // A block can belong to multiple segments; remove from all, else a post-destroy tick crashes in OutputEnergy
+            while (_worldEnergySegmentDatastore.TryGetEnergySegment(generator, out var segment))
             {
                 segment.RemoveGenerator(generator);
             }
@@ -58,7 +60,9 @@ namespace Game.World.EventHandler.EnergyEvent
         /// </summary>
         private void DisconnectConsumerFromElectricPole(TConsumer consumer)
         {
-            if (_worldEnergySegmentDatastore.TryGetEnergySegment(consumer, out var segment))
+            // 消費機械も複数セグメントに所属し得るため全セグメントから削除する
+            // A consumer can also belong to multiple segments, so remove it from all of them
+            while (_worldEnergySegmentDatastore.TryGetEnergySegment(consumer, out var segment))
             {
                 segment.RemoveEnergyConsumer(consumer);
             }
