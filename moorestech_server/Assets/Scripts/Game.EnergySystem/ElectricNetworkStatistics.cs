@@ -9,15 +9,13 @@ namespace Game.EnergySystem
         public readonly float TotalGeneratePower;
         public readonly float TotalRequiredPower;
         public readonly float PowerRate;
-        public readonly int GeneratorCount;
         public readonly int ConsumerCount;
 
-        public ElectricNetworkStatistics(float totalGeneratePower, float totalRequiredPower, float powerRate, int generatorCount, int consumerCount)
+        public ElectricNetworkStatistics(float totalGeneratePower, float totalRequiredPower, float powerRate, int consumerCount)
         {
             TotalGeneratePower = totalGeneratePower;
             TotalRequiredPower = totalRequiredPower;
             PowerRate = powerRate;
-            GeneratorCount = generatorCount;
             ConsumerCount = consumerCount;
         }
     }
