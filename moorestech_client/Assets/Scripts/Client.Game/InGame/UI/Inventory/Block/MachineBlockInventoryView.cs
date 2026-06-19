@@ -27,7 +27,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
         [SerializeField] private TMP_Text powerRateText;
         [SerializeField] private ProgressArrowView machineProgressArrow;
         [SerializeField] private TMP_Text machineRecipeCount;
-        
+
+        // 電力機械プレハブでのみ配線する。歯車機械(継承先プレハブ)では未配線なのでnull許容
+        // Wired only on electric-machine prefabs; left unwired (null) on gear-machine prefabs that inherit this view
+        [SerializeField] private ElectricNetworkInfoView electricNetworkInfoView;
+
         protected BlockGameObject BlockGameObject;
         
         private readonly List<FluidSlotView> _fluidSlotViews = new();
@@ -46,7 +50,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
             
             SetItemList();
             SetFluidList();
-            
+
+            // 電力機械プレハブでのみ電力ネットワーク情報を表示(歯車機械では未配線)
+            // Show electric network info only on electric-machine prefabs (unwired on gear machines)
+            if (electricNetworkInfoView != null) electricNetworkInfoView.Initialize(BlockGameObject.BlockInstanceId);
+
             #region Internal
             
             void SetItemList()

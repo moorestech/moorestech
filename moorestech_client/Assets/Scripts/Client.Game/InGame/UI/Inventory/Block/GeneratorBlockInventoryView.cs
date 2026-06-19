@@ -18,7 +18,9 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         [SerializeField] private TMP_Text operatingRateText;
         [SerializeField] private Slider fuelProgressSlider;
-        
+
+        [SerializeField] private ElectricNetworkInfoView electricNetworkInfoView;
+
         private BlockGameObject _blockGameObject;
         
         public override void Initialize(BlockGameObject blockGameObject)
@@ -39,8 +41,12 @@ namespace Client.Game.InGame.UI.Inventory.Block
             }
             
             UpdateItemList(itemList);
+
+            // 燃料スロットは維持したまま、ネットワーク情報部分を電柱UIと共通化
+            // Keep the fuel slots while sharing the network-info portion with the electric pole UI
+            electricNetworkInfoView.Initialize(blockGameObject.BlockInstanceId);
         }
-        
+
         private void Update()
         {
             var state = _blockGameObject.GetStateDetail<PowerGeneratorStateDetail>(PowerGeneratorStateDetail.StateDetailKey);
