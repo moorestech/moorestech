@@ -489,9 +489,9 @@ properties:
         - key: beltConveyorItemCount
           type: integer
           default: 4
-        - key: beltConveyorSpeed
+        - key: timeOfItemEnterToExit
           type: number
-          default: 2
+          default: 0.5
         - key: gearConsumption
           ref: gearConsumption
         - key: slopeType
