@@ -9,13 +9,15 @@ namespace Game.World.Interface.DataStore
         public IObservable<BlockRemoveProperties> OnBlockRemoveEvent { get; }
         
         /// <summary>
-        ///     特定の座標にブロックが置かれた時のイベントを購読する
+        ///     特定の座標にブロックが置かれた時のイベントを取得する
+        ///     Gets the event stream for block placement at a specific coordinate.
         /// </summary>
-        public IDisposable SubscribePlace(Vector3Int subscribePos, Action<BlockPlaceProperties> blockPlaceEvent);
+        public IObservable<BlockPlaceProperties> GetBlockPlaceEvent(Vector3Int subscribePos);
         
         /// <summary>
-        ///     特定の座標にブロックが削除された時のイベントを購読する
+        ///     特定の座標にブロックが削除された時のイベントを取得する
+        ///     Gets the event stream for block removal at a specific coordinate.
         /// </summary>
-        public IDisposable SubscribeRemove(Vector3Int subscribePos, Action<BlockRemoveProperties> blockRemoveEvent);
+        public IObservable<BlockRemoveProperties> GetBlockRemoveEvent(Vector3Int subscribePos);
     }
 }

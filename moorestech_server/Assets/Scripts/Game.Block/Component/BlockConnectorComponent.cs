@@ -7,6 +7,7 @@ using Game.Block.Interface.ComponentAttribute;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlockConnectInfoModule;
+using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Component
@@ -36,8 +37,8 @@ namespace Game.Block.Component
 
             foreach (var outputPos in _outputTargetToOutputConnector.Keys)
             {
-                _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribePlace(outputPos, b => OnPlaceBlock(b.Pos)));
-                _blockUpdateEvents.Add(worldBlockUpdateEvent.SubscribeRemove(outputPos, OnRemoveBlock));
+                _blockUpdateEvents.Add(worldBlockUpdateEvent.GetBlockPlaceEvent(outputPos).Subscribe(b => OnPlaceBlock(b.Pos)));
+                _blockUpdateEvents.Add(worldBlockUpdateEvent.GetBlockRemoveEvent(outputPos).Subscribe(OnRemoveBlock));
 
                 // アウトプット先にブロックがあったら接続を試みる
                 // If there is a block at the output destination, try to connect
