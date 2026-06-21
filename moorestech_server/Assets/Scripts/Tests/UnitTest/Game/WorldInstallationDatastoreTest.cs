@@ -69,5 +69,45 @@ namespace Tests.UnitTest.Game
             var result = worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             Assert.False(result);
         }
+
+        [Test]
+        public void CoordinatePlaceSubscriberReceivesMatchingOccupiedPositionTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldData = ServerContext.WorldBlockDatastore;
+            var subscribedPos = new Vector3Int(0, 0, 3);
+            var receivedCount = 0;
+            var receivedPos = Vector3Int.zero;
+
+            // 占有セルに対応する座標購読者だけに通知されることを確認する
+            // Verify that only the subscriber for the occupied coordinate receives the event
+            using var subscription = ServerContext.WorldBlockUpdateEvent.SubscribePlace(subscribedPos, properties =>
+            {
+                receivedCount++;
+                receivedPos = properties.Pos;
+            });
+            var placed = worldData.TryAddBlock(ForUnitTestModBlockId.MultiBlock1, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            Assert.IsTrue(placed);
+            Assert.AreEqual(1, receivedCount);
+            Assert.AreEqual(subscribedPos, receivedPos);
+        }
+
+        [Test]
+        public void DisposedCoordinatePlaceSubscriberDoesNotReceiveEventTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldData = ServerContext.WorldBlockDatastore;
+            var receivedCount = 0;
+
+            // Dispose済み購読者を座標イベントから外す
+            // Remove disposed subscribers from the coordinate event
+            var subscription = ServerContext.WorldBlockUpdateEvent.SubscribePlace(Vector3Int.zero, _ => receivedCount++);
+            subscription.Dispose();
+            var placed = worldData.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            Assert.IsTrue(placed);
+            Assert.AreEqual(0, receivedCount);
+        }
     }
 }
