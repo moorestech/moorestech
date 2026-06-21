@@ -11,13 +11,13 @@ namespace Game.Block.Blocks.BeltConveyor
     public class GearBeltConveyorComponent : GearEnergyTransformer, IUpdatableBlockComponent
     {
         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
-        private readonly double _beltConveyorSpeed;
+        private readonly double _timeOfItemEnterToExit;
 
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double beltConveyorSpeed, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double timeOfItemEnterToExit, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
             : base(gearConsumption, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;
-            _beltConveyorSpeed = beltConveyorSpeed;
+            _timeOfItemEnterToExit = timeOfItemEnterToExit;
         }
 
         public void Update()
@@ -37,8 +37,8 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             base.SupplyPower(rpm, torque, isClockwise);
 
-            // 稼働率（RPM比 × torqueRate、下限未満で0）を速度に乗じる
-            // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to base speed
+            // 稼働率（RPM比 × torqueRate、下限未満で0）で搬送時間を割って実搬送時間を求める
+            // Divide the base transit time by the operating rate (rpmRatio × torqueRate, zero below minimum)
             var operatingRate = GetCurrentOperatingRate();
             if (operatingRate <= 0f)
             {
@@ -46,14 +46,13 @@ namespace Game.Block.Blocks.BeltConveyor
                 return;
             }
 
-            var speed = _beltConveyorSpeed * operatingRate;
-            if (speed <= 0)
+            var transitSeconds = _timeOfItemEnterToExit / operatingRate;
+            if (transitSeconds <= 0)
             {
                 _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
                 return;
             }
 
-            var transitSeconds = 1 / speed;
             var ticks = GameUpdater.SecondsToTicks(transitSeconds);
             _beltConveyorComponent.SetTicksOfItemEnterToExit(ticks);
         }
