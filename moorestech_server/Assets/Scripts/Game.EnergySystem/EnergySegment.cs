@@ -31,25 +31,45 @@ namespace Game.EnergySystem
         public IReadOnlyDictionary<BlockInstanceId, IElectricTransformer> EnergyTransformers => _energyTransformers;
         
         
+        // 現時点のネットワーク集約統計を返す。SupplyEnergyを呼ばないので副作用はない
+        // Return the current aggregated network statistics; this never calls SupplyEnergy so it has no side effects
+        public ElectricNetworkStatistics GetCurrentStatistics()
+        {
+            CheckDestroy();
+            return CalculateStatistics();
+        }
+
         private void Update()
         {
             CheckDestroy();
 
+            // 供給率に応じて各消費者へ配分
+            // Calculate aggregated statistics and distribute energy to each consumer by the supply rate
+            var statistics = CalculateStatistics();
+            var powerRate = new ElectricPower(statistics.PowerRate);
+            foreach (var consumer in _consumers.Values)
+                consumer.SupplyEnergy(consumer.RequestEnergy * powerRate);
+        }
+
+        // 発電合計・要求合計・供給率を算出する純粋な計算。UpdateとGetCurrentStatisticsで共有
+        // Pure computation of total generation, total demand, and supply rate; shared by Update and GetCurrentStatistics
+        private ElectricNetworkStatistics CalculateStatistics()
+        {
             //供給されてる合計エネルギー量の算出
-            var powers = new ElectricPower(0);
-            foreach (var key in _generators.Keys) powers += _generators[key].OutputEnergy();
+            var totalGenerate = new ElectricPower(0);
+            foreach (var generator in _generators.Values) totalGenerate += generator.OutputEnergy();
 
             //エネルギーの需要量の算出
-            var requester = new ElectricPower(0);
-            foreach (var key in _consumers.Keys) requester += _consumers[key].RequestEnergy;
+            var totalRequired = new ElectricPower(0);
+            foreach (var consumer in _consumers.Values) totalRequired += consumer.RequestEnergy;
 
-            //エネルギー供給の割合の算出
-            var powerRate = powers / requester;
-            if (1 < powerRate.AsPrimitive()) powerRate = new ElectricPower(1);
+            // 供給率を算出。要求が0なら除算(NaN/Infinity)を避け、需要なしとして供給率1.0扱い
+            // Compute supply rate; when demand is 0, avoid division (NaN/Infinity) and treat as no demand with rate 1.0
+            var requiredPrimitive = totalRequired.AsPrimitive();
+            var powerRate = requiredPrimitive <= 0f ? 1f : totalGenerate.AsPrimitive() / requiredPrimitive;
+            if (1f < powerRate) powerRate = 1f;
 
-            //エネルギーを供給
-            foreach (var key in _consumers.Keys)
-                _consumers[key].SupplyEnergy(_consumers[key].RequestEnergy * powerRate);
+            return new ElectricNetworkStatistics(totalGenerate.AsPrimitive(), requiredPrimitive, powerRate, _consumers.Count);
         }
         
         public void AddEnergyConsumer(IElectricConsumer electricConsumer)
