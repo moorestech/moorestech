@@ -1662,7 +1662,7 @@
       "blockType": "SimpleGearGenerator",
       "blockParam": {
         "requireTorque": 0,
-        "beltConveyorSpeed": 2,
+        "timeOfItemEnterToExit": 0.5,
         "beltConveyorItemCount": 4,
         "generateTorque": 1,
         "generateRpm": 20,
@@ -2011,7 +2011,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
-        "beltConveyorSpeed": 2.5,
+        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 10,
         "overloadMaxTorque": 10,
         "destructionCheckInterval": 0.01,
@@ -2121,7 +2121,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
-        "beltConveyorSpeed": 2.5,
+        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -3819,7 +3819,7 @@
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0,
-        "beltConveyorSpeed": 20,
+        "timeOfItemEnterToExit": 0.05,
         "beltConveyorItemCount": 4,
         "gear": {
           "gearConnects": [
@@ -4223,7 +4223,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
-        "beltConveyorSpeed": 2.5,
+        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -4334,7 +4334,7 @@
       "blockType": "GearBeltConveyor",
       "blockParam": {
         "beltConveyorItemCount": 4,
-        "beltConveyorSpeed": 2.5,
+        "timeOfItemEnterToExit": 0.4,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,

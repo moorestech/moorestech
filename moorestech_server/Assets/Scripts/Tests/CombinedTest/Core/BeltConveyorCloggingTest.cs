@@ -358,13 +358,13 @@ namespace Tests.CombinedTest.Core
             {
                 if (isGear)
                 {
-                    // 歯車ベルトコンベア: duration = 1 / (rpmRatio * torqueRate * beltConveyorSpeed)
-                    // Gear belt conveyor: duration = 1 / (rpmRatio * torqueRate * beltConveyorSpeed)
+                    // 歯車ベルトコンベア: duration = timeOfItemEnterToExit / (rpmRatio * torqueRate)
+                    // Gear belt conveyor: duration = timeOfItemEnterToExit / (rpmRatio * torqueRate)
                     var gearBeltParam = master.BlockParam as GearBeltConveyorBlockParam;
                     const int generatorRpm = 10; // InfinityTorqueSimpleGearGeneratorのRPM
                     const float torqueRate = 1f;
                     var rpmRatio = generatorRpm / (float)gearBeltParam.GearConsumption.BaseRpm;
-                    return 1f / (rpmRatio * torqueRate * (float)gearBeltParam.BeltConveyorSpeed);
+                    return (float)gearBeltParam.TimeOfItemEnterToExit / (rpmRatio * torqueRate);
                 }
                 else
                 {
