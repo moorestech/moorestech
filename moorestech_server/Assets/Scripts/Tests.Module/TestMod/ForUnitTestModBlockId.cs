@@ -20,7 +20,6 @@ namespace Tests.Module.TestMod
         public static BlockId ElectricMinerId => GetBlock("00000000-0000-0000-0000-000000000006");
         public static BlockId ChestId => GetBlock("00000000-0000-0000-0000-000000000007");
         public static BlockId InfinityGeneratorId => GetBlock("00000000-0000-0000-0000-000000000008");
-        public static BlockId MultiBlock1 => GetBlock("00000000-0000-0000-0000-000000000009");
         
         // ★ Multi-block 系は現状 MultiBlock2 を採用（guid …000a）
         public static BlockId MultiBlockGeneratorId => GetBlock("00000000-0000-0000-0000-00000000000a");
