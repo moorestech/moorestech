@@ -71,12 +71,12 @@ namespace Tests.CombinedTest.Core
             // Run update cycle to establish gear network
             GameUpdater.RunFrames(1);
 
-            // 新formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
-            // New formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            // 新formula: duration = timeOfItemEnterToExit / (rpm/baseRpm * torqueRate)
+            // New formula: duration = timeOfItemEnterToExit / (rpm/baseRpm * torqueRate)
             const float torqueRate = 1f;
             var rpmRatio = generatorRpm / (float)gearConsumption.BaseRpm; // = 1 (baseRpmで動作)
             var operatingRate = rpmRatio * torqueRate;
-            var duration = 1f / (operatingRate * (float)gearBeltConveyorBlockParam.BeltConveyorSpeed);
+            var duration = (float)gearBeltConveyorBlockParam.TimeOfItemEnterToExit / operatingRate;
 
             // 期待されるtick数を計算
             // Calculate expected tick count
@@ -151,11 +151,11 @@ namespace Tests.CombinedTest.Core
             // ベルトの速度に相当する時間を超えても搬送されないことを確認する
             // Ensure the item is not transported even after exceeding the belt travel time
             var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
-            // 新formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
-            // New formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            // 新formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
+            // New formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
             var rpmRatioForCheck = 10f / (float)gearBeltParam.GearConsumption.BaseRpm;
-            var previousSpeed = rpmRatioForCheck * 1f * (float)gearBeltParam.BeltConveyorSpeed;
-            var timeOfItemEnterToExit = 1f / previousSpeed;
+            var operatingRateForCheck = rpmRatioForCheck * 1f;
+            var timeOfItemEnterToExit = (float)gearBeltParam.TimeOfItemEnterToExit / operatingRateForCheck;
             var updateCount = (int)Math.Ceiling(timeOfItemEnterToExit / 0.1f) + beltConveyorComponent.BeltConveyorItems.Count + 2;
             for (var i = 0; i < updateCount; i++) GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
             
@@ -223,12 +223,12 @@ namespace Tests.CombinedTest.Core
 
             // アイテムが搬送されるまで十分な時間待機する（1tickずつ進める）
             // Wait enough time for the item to be transported (advance 1 tick at a time)
-            // 新formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
-            // New formula: speed = (rpm/baseRpm) * torqueRate * beltConveyorSpeed
+            // 新formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
+            // New formula: timeOfItemEnterToExit = param / (rpm/baseRpm * torqueRate)
             var gearBeltParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockParam as GearBeltConveyorBlockParam;
             var rpmRatio = baseRpm / (float)gearBeltParam.GearConsumption.BaseRpm; // = 1 (baseRpmで動作)
-            var speed = rpmRatio * 1f * (float)gearBeltParam.BeltConveyorSpeed;
-            var timeOfItemEnterToExit = 1f / speed;
+            var operatingRate = rpmRatio * 1f;
+            var timeOfItemEnterToExit = (float)gearBeltParam.TimeOfItemEnterToExit / operatingRate;
             var waitTicks = GameUpdater.SecondsToTicks(timeOfItemEnterToExit * 2); // 2倍の時間待つ
             for (uint i = 0; i < waitTicks; i++)
             {
