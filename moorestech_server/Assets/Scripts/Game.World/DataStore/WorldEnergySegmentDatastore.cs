@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Block.Interface;
 using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 
@@ -37,6 +38,21 @@ namespace Game.World.DataStore
             foreach (var seg in _segmentDictionary)
             {
                 if (!seg.Generators.ContainsKey(generator.BlockInstanceId)) continue;
+                segment = seg;
+                return true;
+            }
+            segment = null;
+            return false;
+        }
+        public bool TryGetEnergySegment(BlockInstanceId blockInstanceId, out TSegment segment)
+        {
+            foreach (var seg in _segmentDictionary)
+            {
+                // 消費者・発電機・電柱のいずれかに含まれていればそのセグメントを返す
+                // Return the segment if it contains the block as a consumer, generator, or transformer
+                if (!seg.Consumers.ContainsKey(blockInstanceId) &&
+                    !seg.Generators.ContainsKey(blockInstanceId) &&
+                    !seg.EnergyTransformers.ContainsKey(blockInstanceId)) continue;
                 segment = seg;
                 return true;
             }
