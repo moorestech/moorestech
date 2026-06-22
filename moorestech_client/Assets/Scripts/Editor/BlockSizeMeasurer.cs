@@ -122,49 +122,44 @@ public class BlockSizeMeasurer : EditorWindow
         }
     }
 
-    // ルート配下のメッシュから正方向のローカル最大値を計測（0以下は無視）
-    // Measure positive local max from child meshes (ignore non-positive region)
+    // ルート配下のメッシュ実頂点から正方向のローカル最大値を計測（0以下は無視）
+    // Measure positive local max from child mesh vertices (ignore non-positive region)
     private static Vector3 MeasureLocalMax(GameObject root)
     {
         var worldToRoot = root.transform.worldToLocalMatrix;
         var maxLocal = Vector3.zero;
         var found = false;
 
-        // MeshRenderer：MeshFilterのタイトなメッシュ境界を対象
-        // MeshRenderer: use the tight mesh bounds from MeshFilter
+        // MeshRenderer：MeshFilterの実頂点を対象
+        // MeshRenderer: use actual vertices from MeshFilter
         foreach (var meshFilter in root.GetComponentsInChildren<MeshFilter>(false))
         {
             var renderer = meshFilter.GetComponent<MeshRenderer>();
             if (meshFilter.sharedMesh == null || renderer == null || !renderer.enabled) continue;
-            Accumulate(meshFilter.sharedMesh.bounds, meshFilter.transform.localToWorldMatrix);
+            Accumulate(meshFilter.sharedMesh, meshFilter.transform.localToWorldMatrix);
         }
 
-        // SkinnedMeshRenderer：共有メッシュ境界を対象（ParticleSystem等は除外）
-        // SkinnedMeshRenderer: use shared mesh bounds (particle/line/trail excluded)
+        // SkinnedMeshRenderer：共有メッシュの実頂点を対象（ParticleSystem等は除外）
+        // SkinnedMeshRenderer: use shared mesh vertices (particle/line/trail excluded)
         foreach (var skinned in root.GetComponentsInChildren<SkinnedMeshRenderer>(false))
         {
             if (skinned.sharedMesh == null || !skinned.enabled) continue;
-            Accumulate(skinned.sharedMesh.bounds, skinned.transform.localToWorldMatrix);
+            Accumulate(skinned.sharedMesh, skinned.transform.localToWorldMatrix);
         }
 
         return found ? maxLocal : Vector3.one;
 
         #region Internal
 
-        // メッシュローカル境界の8頂点を正確な行列でルートローカルへ変換し集計
-        // Transform 8 mesh-local-bounds corners into root-local space and accumulate
-        void Accumulate(Bounds meshBounds, Matrix4x4 meshToWorld)
+        // 実頂点を正確な行列でルートローカルへ変換し軸ごと最大値を集計（回転膨張を回避）
+        // Transform actual vertices into root-local space and accumulate per-axis max (no rotation inflation)
+        void Accumulate(Mesh mesh, Matrix4x4 meshToWorld)
         {
+            if (!mesh.isReadable) return;
             var matrix = worldToRoot * meshToWorld;
-            var min = meshBounds.min;
-            var max = meshBounds.max;
-            for (var i = 0; i < 8; i++)
+            foreach (var vertex in mesh.vertices)
             {
-                var corner = new Vector3(
-                    (i & 1) == 0 ? min.x : max.x,
-                    (i & 2) == 0 ? min.y : max.y,
-                    (i & 4) == 0 ? min.z : max.z);
-                maxLocal = Vector3.Max(maxLocal, matrix.MultiplyPoint3x4(corner));
+                maxLocal = Vector3.Max(maxLocal, matrix.MultiplyPoint3x4(vertex));
             }
             found = true;
         }
