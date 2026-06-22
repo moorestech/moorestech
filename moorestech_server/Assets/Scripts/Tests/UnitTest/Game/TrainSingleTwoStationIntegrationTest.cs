@@ -50,8 +50,8 @@ namespace Tests.UnitTest.Game
             var unloadingEntryComponent = unloadingComponents[0];
             var unloadingExitComponent = unloadingComponents[1];
 
-            var transitRailA = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 3), BlockDirection.North);
-            var transitRailB = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 6), BlockDirection.North);
+            var transitRailA = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 8), BlockDirection.North);
+            var transitRailB = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 9), BlockDirection.North);
 
             const int transitSegmentLength = 2000;
             ConnectFront(loadingExitComponent, transitRailA, transitSegmentLength);

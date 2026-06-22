@@ -71,7 +71,7 @@ namespace Tests.Util
             var (_, r2Component) = TrainTestHelper.PlaceBlockWithComponent<RailComponent>(
                 environment,
                 ForUnitTestModBlockId.TestTrainRail,
-                new Vector3Int(-65, 32, -10),
+                new Vector3Int(-64, 32, -10),
                 BlockDirection.South);
             var n2 = r2Component.FrontNode;
 
