@@ -23,12 +23,10 @@ namespace Game.World.DataStore
         private readonly Dictionary<Vector3Int, BlockInstanceId> _coordinateDictionary = new();
         private readonly Dictionary<Vector3Int, BlockInstanceId> _originCoordinateDictionary = new();
         private readonly IBlockFactory _blockFactory;
-        
         public WorldBlockDatastore(IBlockFactory blockFactory)
         {
             _blockFactory = blockFactory;
         }
-        
         public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
         {
             if (!this.Exists(pos)) return false;
@@ -50,7 +48,6 @@ namespace Game.World.DataStore
             _originCoordinateDictionary.Remove(data.BlockPositionInfo.OriginalPos);
             return true;
         }
-        
         public IBlock GetBlock(Vector3Int pos)
         {
             return GetBlockData(pos)?.Block;
@@ -67,7 +64,6 @@ namespace Game.World.DataStore
                 ? _blockMasterDictionary.TryGetValue(entityId, out var data) ? data : null
                 : null;
         }
-        
         public BlockDirection GetBlockDirection(Vector3Int pos)
         {
             var block = GetBlockData(pos);
@@ -91,6 +87,11 @@ namespace Game.World.DataStore
         {
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
+            if (IsOverlapExistingBlock(blockPositionInfo))
+            {
+                block = null;
+                return false;
+            }
             block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo, createParams);
             return TryAddBlock(block);
         }
@@ -102,26 +103,25 @@ namespace Game.World.DataStore
 
             //IDが未登録で、かつ占有範囲が既存ブロックと重ならない場合のみ設置する
             //Place only when the id is unregistered and the footprint does not overlap any existing block
-            if (!_blockMasterDictionary.ContainsKey(block.BlockInstanceId) &&
-                !IsOverlapExistingBlock(block.BlockPositionInfo))
+            if (_blockMasterDictionary.ContainsKey(block.BlockInstanceId) ||
+                IsOverlapExistingBlock(block.BlockPositionInfo))
             {
-                var data = new WorldBlockData(block, pos, blockDirection);
-                _blockMasterDictionary.Add(block.BlockInstanceId, data);
-                foreach (var position in block.BlockPositionInfo.EnumeratePositions())
-                    _coordinateDictionary.Add(position, block.BlockInstanceId);
-                _originCoordinateDictionary.Add(pos, block.BlockInstanceId);
-                ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
-                
-                block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
-                foreach (var component in block.ComponentManager.GetComponents<IBlockComponent>())
-                {
-                    _blockComponentDictionary.Add(component, block);
-                }
-                
-                return true;
+                block.Destroy();
+                return false;
             }
+
+            var data = new WorldBlockData(block, pos, blockDirection);
+            _blockMasterDictionary.Add(block.BlockInstanceId, data);
+            foreach (var position in block.BlockPositionInfo.EnumeratePositions())
+                _coordinateDictionary.Add(position, block.BlockInstanceId);
+            _originCoordinateDictionary.Add(pos, block.BlockInstanceId);
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
             
-            return false;
+            block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
+            foreach (var component in block.ComponentManager.GetComponents<IBlockComponent>())
+                _blockComponentDictionary.Add(component, block);
+
+            return true;
         }
         
         //設置しようとするブロックの占有範囲が既存ブロックと重なるかを判定する
