@@ -12,20 +12,24 @@ namespace Game.World
     {
         private readonly Subject<BlockPlaceProperties> _onBlockPlaceEvent = new();
         private readonly Subject<BlockRemoveProperties> _onBlockRemoveEvent = new();
-        private readonly Dictionary<Vector3Int, CoordinateEventSubject<BlockPlaceProperties>> _placeSubjectsByPos = new();
-        private readonly Dictionary<Vector3Int, CoordinateEventSubject<BlockRemoveProperties>> _removeSubjectsByPos = new();
+        private readonly Dictionary<Vector3Int, Subject<BlockPlaceProperties>> _placeSubjectsByPos = new();
+        private readonly Dictionary<Vector3Int, Subject<BlockRemoveProperties>> _removeSubjectsByPos = new();
         public IObservable<BlockPlaceProperties> OnBlockPlaceEvent => _onBlockPlaceEvent;
         
         public IObservable<BlockRemoveProperties> OnBlockRemoveEvent => _onBlockRemoveEvent;
         
         public IObservable<BlockPlaceProperties> GetBlockPlaceEvent(Vector3Int subscribePos)
         {
-            return Observable.Create<BlockPlaceProperties>(observer => SubscribeCoordinateEvent(_placeSubjectsByPos, subscribePos, observer));
+            return Observable.Create<BlockPlaceProperties>(
+                observer => SubscribeCoordinateEvent(_placeSubjectsByPos, subscribePos, observer),
+                false);
         }
         
         public IObservable<BlockRemoveProperties> GetBlockRemoveEvent(Vector3Int subscribePos)
         {
-            return Observable.Create<BlockRemoveProperties>(observer => SubscribeCoordinateEvent(_removeSubjectsByPos, subscribePos, observer));
+            return Observable.Create<BlockRemoveProperties>(
+                observer => SubscribeCoordinateEvent(_removeSubjectsByPos, subscribePos, observer),
+                false);
         }
         
         public void OnBlockPlaceEventInvoke(Vector3Int pos, WorldBlockData worldBlockData)
@@ -37,7 +41,7 @@ namespace Game.World
             // 占有セルごとのSubjectへ座標指定イベントを配送する
             // Dispatch coordinate events to subjects keyed by occupied cell
             foreach (var occupiedPos in worldBlockData.BlockPositionInfo.EnumeratePositions())
-                PublishCoordinateEvent(_placeSubjectsByPos, occupiedPos, new BlockPlaceProperties(occupiedPos, worldBlockData));
+                PublishPlaceCoordinateEvent(occupiedPos, worldBlockData);
         }
         
         public void OnBlockRemoveEventInvoke(Vector3Int pos, WorldBlockData worldBlockData, BlockRemoveReason removeReason)
@@ -49,73 +53,43 @@ namespace Game.World
             // 占有セルごとのSubjectへ座標指定イベントを配送する
             // Dispatch coordinate events to subjects keyed by occupied cell
             foreach (var occupiedPos in worldBlockData.BlockPositionInfo.EnumeratePositions())
-                PublishCoordinateEvent(_removeSubjectsByPos, occupiedPos, new BlockRemoveProperties(occupiedPos, worldBlockData, removeReason));
+                PublishRemoveCoordinateEvent(occupiedPos, worldBlockData, removeReason);
         }
 
         private IDisposable SubscribeCoordinateEvent<TProperties>(
-            Dictionary<Vector3Int, CoordinateEventSubject<TProperties>> subjectsByPos,
+            Dictionary<Vector3Int, Subject<TProperties>> subjectsByPos,
             Vector3Int subscribePos,
             IObserver<TProperties> observer)
         {
             if (!subjectsByPos.TryGetValue(subscribePos, out var subject))
             {
-                subject = new CoordinateEventSubject<TProperties>();
+                subject = new Subject<TProperties>();
                 subjectsByPos.Add(subscribePos, subject);
             }
 
             // 最後の購読が破棄された座標は辞書から削除する
             // Remove the coordinate entry after its last subscription is disposed
             var subscription = subject.Subscribe(observer);
-            var disposed = false;
             return Disposable.Create(() =>
             {
-                if (disposed) return;
-                disposed = true;
                 subscription.Dispose();
-                if (!subject.HasSubscriber() &&
+                if (!subject.HasObservers &&
                     subjectsByPos.TryGetValue(subscribePos, out var currentSubject) &&
                     ReferenceEquals(currentSubject, subject))
                     subjectsByPos.Remove(subscribePos);
             });
         }
 
-        private void PublishCoordinateEvent<TProperties>(
-            Dictionary<Vector3Int, CoordinateEventSubject<TProperties>> subjectsByPos,
-            Vector3Int position,
-            TProperties properties)
+        private void PublishPlaceCoordinateEvent(Vector3Int position, WorldBlockData worldBlockData)
         {
-            if (!subjectsByPos.TryGetValue(position, out var subject)) return;
-            subject.OnNext(properties);
+            if (!_placeSubjectsByPos.TryGetValue(position, out var subject)) return;
+            subject.OnNext(new BlockPlaceProperties(position, worldBlockData));
         }
 
-        private sealed class CoordinateEventSubject<TProperties>
+        private void PublishRemoveCoordinateEvent(Vector3Int position, WorldBlockData worldBlockData, BlockRemoveReason removeReason)
         {
-            private readonly Subject<TProperties> _subject = new();
-            private int _subscriberCount;
-
-            public bool HasSubscriber()
-            {
-                return _subscriberCount > 0;
-            }
-
-            public IDisposable Subscribe(IObserver<TProperties> observer)
-            {
-                _subscriberCount++;
-                var subscription = _subject.Subscribe(observer);
-                var disposed = false;
-                return Disposable.Create(() =>
-                {
-                    if (disposed) return;
-                    disposed = true;
-                    subscription.Dispose();
-                    _subscriberCount--;
-                });
-            }
-
-            public void OnNext(TProperties properties)
-            {
-                _subject.OnNext(properties);
-            }
+            if (!_removeSubjectsByPos.TryGetValue(position, out var subject)) return;
+            subject.OnNext(new BlockRemoveProperties(position, worldBlockData, removeReason));
         }
     }
 }
