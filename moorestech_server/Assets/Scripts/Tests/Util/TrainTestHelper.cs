@@ -74,7 +74,8 @@ namespace Tests.Util
             // テスト設置での生成パラメータを整える
             // Prepare creation parameters for test placement
             var createParams = BuildCreateParams(blockId, direction);
-            environment.WorldBlockDatastore.TryAddBlock(blockId, position, direction, createParams, out var block);
+            var created = environment.WorldBlockDatastore.TryAddBlock(blockId, position, direction, createParams, out var block);
+            Assert.IsTrue(created, $"Test block placement failed. BlockId:{blockId} Position:{position} Direction:{direction}");
             return block;
 
             #region Internal
@@ -116,7 +117,9 @@ namespace Tests.Util
             where TComponent : class, IBlockComponent
         {
             var block = PlaceBlock(environment, blockId, position, direction);
-            return (block, block?.ComponentManager.GetComponent<TComponent>());
+            var component = block.ComponentManager.GetComponent<TComponent>();
+            Assert.IsNotNull(component, $"Test block component is missing. BlockId:{blockId} Position:{position} Component:{typeof(TComponent).Name}");
+            return (block, component);
         }
 
         // RailComponent一覧をまとめて取得する
@@ -128,7 +131,8 @@ namespace Tests.Util
             BlockDirection direction)
         {
             var block = PlaceBlock(environment, blockId, position, direction);
-            var components = block?.ComponentManager.GetComponents<RailComponent>() ?? new List<RailComponent>();
+            var components = block.ComponentManager.GetComponents<RailComponent>();
+            Assert.IsTrue(components.Count > 0, $"Rail components are missing. BlockId:{blockId} Position:{position}");
             return (block, components);
         }
 

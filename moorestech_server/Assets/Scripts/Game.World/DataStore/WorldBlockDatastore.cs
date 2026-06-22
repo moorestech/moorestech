@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -13,29 +12,21 @@ using UnityEngine;
 
 namespace Game.World.DataStore
 {
-    /// <summary>
-    ///     ワールドに存在するブロックとその座標の対応づけを行います。
-    /// </summary>
     public class WorldBlockDatastore : IWorldBlockDatastore
     {
-        //メインのデータストア
         public IReadOnlyDictionary<BlockInstanceId, WorldBlockData> BlockMasterDictionary => _blockMasterDictionary;
         private readonly Dictionary<BlockInstanceId, WorldBlockData> _blockMasterDictionary = new(); //ブロックのEntityIdとブロックの紐づけ
-        //イベント
         public IObservable<(BlockState state, WorldBlockData blockData)> OnBlockStateChange => _onBlockStateChange;
         private readonly Subject<(BlockState state, WorldBlockData blockData)> _onBlockStateChange = new();
         
         private readonly Dictionary<IBlockComponent, IBlock> _blockComponentDictionary = new(); //コンポーネントとブロックの紐づけ
-        
-        //座標とキーの紐づけ
         private readonly Dictionary<Vector3Int, BlockInstanceId> _coordinateDictionary = new();
+        private readonly Dictionary<Vector3Int, BlockInstanceId> _originCoordinateDictionary = new();
         private readonly IBlockFactory _blockFactory;
-        
         public WorldBlockDatastore(IBlockFactory blockFactory)
         {
             _blockFactory = blockFactory;
         }
-        
         public bool RemoveBlock(Vector3Int pos, BlockRemoveReason reason)
         {
             if (!this.Exists(pos)) return false;
@@ -45,14 +36,18 @@ namespace Game.World.DataStore
             
             var data = _blockMasterDictionary[entityId];
             ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockRemoveEventInvoke(pos, data, reason);
-            
+
+            foreach (var component in data.Block.ComponentManager.GetComponents<IBlockComponent>())
+                _blockComponentDictionary.Remove(component);
+
             data.Block.Destroy();
             _blockMasterDictionary.Remove(entityId);
-            _coordinateDictionary.Remove(pos);
+            foreach (var position in data.BlockPositionInfo.EnumeratePositions())
+                _coordinateDictionary.Remove(position);
+
+            _originCoordinateDictionary.Remove(data.BlockPositionInfo.OriginalPos);
             return true;
         }
-        
-        
         public IBlock GetBlock(Vector3Int pos)
         {
             return GetBlockData(pos)?.Block;
@@ -65,11 +60,10 @@ namespace Game.World.DataStore
         
         public WorldBlockData GetOriginPosBlock(Vector3Int pos)
         {
-            return _coordinateDictionary.TryGetValue(pos, out var entityId)
+            return _originCoordinateDictionary.TryGetValue(pos, out var entityId)
                 ? _blockMasterDictionary.TryGetValue(entityId, out var data) ? data : null
                 : null;
         }
-        
         public BlockDirection GetBlockDirection(Vector3Int pos)
         {
             var block = GetBlockData(pos);
@@ -93,6 +87,11 @@ namespace Game.World.DataStore
         {
             var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
             var blockPositionInfo = new BlockPositionInfo(position, direction, blockSize);
+            if (IsOverlapExistingBlock(blockPositionInfo))
+            {
+                block = null;
+                return false;
+            }
             block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo, createParams);
             return TryAddBlock(block);
         }
@@ -104,33 +103,33 @@ namespace Game.World.DataStore
 
             //IDが未登録で、かつ占有範囲が既存ブロックと重ならない場合のみ設置する
             //Place only when the id is unregistered and the footprint does not overlap any existing block
-            if (!_blockMasterDictionary.ContainsKey(block.BlockInstanceId) &&
-                !IsOverlapExistingBlock(block.BlockPositionInfo))
+            if (_blockMasterDictionary.ContainsKey(block.BlockInstanceId) ||
+                IsOverlapExistingBlock(block.BlockPositionInfo))
             {
-                var data = new WorldBlockData(block, pos, blockDirection);
-                _blockMasterDictionary.Add(block.BlockInstanceId, data);
-                _coordinateDictionary.Add(pos, block.BlockInstanceId);
-                ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
-                
-                block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
-                
-                foreach (var component in block.ComponentManager.GetComponents<IBlockComponent>())
-                {
-                    _blockComponentDictionary.Add(component, block);
-                }
-                
-                return true;
+                block.Destroy();
+                return false;
             }
+
+            var data = new WorldBlockData(block, pos, blockDirection);
+            _blockMasterDictionary.Add(block.BlockInstanceId, data);
+            foreach (var position in block.BlockPositionInfo.EnumeratePositions())
+                _coordinateDictionary.Add(position, block.BlockInstanceId);
+            _originCoordinateDictionary.Add(pos, block.BlockInstanceId);
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
             
-            return false;
+            block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
+            foreach (var component in block.ComponentManager.GetComponents<IBlockComponent>())
+                _blockComponentDictionary.Add(component, block);
+
+            return true;
         }
         
         //設置しようとするブロックの占有範囲が既存ブロックと重なるかを判定する
         //Check whether the footprint of the block to place overlaps any existing block
         private bool IsOverlapExistingBlock(BlockPositionInfo positionInfo)
         {
-            foreach (var existing in _blockMasterDictionary.Values)
-                if (existing.BlockPositionInfo.IsOverlap(positionInfo))
+            foreach (var position in positionInfo.EnumeratePositions())
+                if (_coordinateDictionary.ContainsKey(position))
                     return true;
 
             return false;
@@ -138,19 +137,16 @@ namespace Game.World.DataStore
 
         private BlockInstanceId GetEntityId(Vector3Int pos)
         {
-            return GetBlockData(pos).Block.BlockInstanceId;
+            _coordinateDictionary.TryGetValue(pos, out var blockInstanceId);
+            return blockInstanceId;
         }
         
-        /// <summary>
-        ///     TODO GetBlockは頻繁に呼ばれる訳では無いが、この方式は効率が悪いのでなにか改善したい
-        /// </summary>
         private WorldBlockData GetBlockData(Vector3Int pos)
         {
-            foreach (KeyValuePair<BlockInstanceId, WorldBlockData> block in
-                     _blockMasterDictionary.Where(block => block.Value.BlockPositionInfo.IsContainPos(pos)))
-                return block.Value;
-            
-            return null;
+            return _coordinateDictionary.TryGetValue(pos, out var entityId) &&
+                   _blockMasterDictionary.TryGetValue(entityId, out var data)
+                ? data
+                : null;
         }
         
         #region Save&Load
@@ -172,7 +168,6 @@ namespace Game.World.DataStore
         //TODO ここに書くべきではないのでは？セーブも含めてこの処理は別で書くべきだと思う
         public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList)
         {
-            var blockFactory = ServerContext.BlockFactory;
             foreach (var blockSave in saveBlockDataList)
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockSave.BlockGuid);
@@ -182,7 +177,7 @@ namespace Game.World.DataStore
                 var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
                 
                 var blockData = new BlockPositionInfo(pos, direction, size);
-                var block = blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.InstanceId), blockSave.ComponentStates, blockData);
+                var block = _blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.InstanceId), blockSave.ComponentStates, blockData);
                 
                 TryAddBlock(block);
             }
