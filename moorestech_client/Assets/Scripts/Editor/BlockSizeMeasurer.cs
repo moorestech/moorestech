@@ -155,7 +155,8 @@ public class BlockSizeMeasurer : EditorWindow
         // Transform actual vertices into root-local space and accumulate per-axis max (no rotation inflation)
         void Accumulate(Mesh mesh, Matrix4x4 meshToWorld)
         {
-            if (!mesh.isReadable) return;
+            // エディタ上ではisReadable=falseでもsharedMesh.verticesは取得可能
+            // In the editor, sharedMesh.vertices is accessible even when isReadable is false
             var matrix = worldToRoot * meshToWorld;
             foreach (var vertex in mesh.vertices)
             {
