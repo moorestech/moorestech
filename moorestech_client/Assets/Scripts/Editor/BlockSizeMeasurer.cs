@@ -9,7 +9,14 @@ public class BlockSizeMeasurer : EditorWindow
     [SerializeField] private GameObject _targetRoot;
 
     private Vector3Int _measuredSize = Vector3Int.one;
+    private Vector3 _measuredBounds = Vector3.one;
     private bool _hasResult;
+    private bool _showGizmo = true;
+
+    // ギズモ色：計測セル枠（緑）と実測境界（黄）
+    // Gizmo colors: cell box (green) and actual bounds (yellow)
+    private static readonly Color CellBoxColor = new(0.2f, 1f, 0.3f, 1f);
+    private static readonly Color BoundsBoxColor = new(1f, 0.8f, 0.1f, 1f);
 
     [MenuItem("moorestech/Util/Block Size Measurer")]
     private static void ShowWindow()
@@ -17,6 +24,16 @@ public class BlockSizeMeasurer : EditorWindow
         var window = GetWindow<BlockSizeMeasurer>();
         window.titleContent = new GUIContent("Block Size Measurer");
         window.Show();
+    }
+
+    private void OnEnable()
+    {
+        SceneView.duringSceneGui += OnSceneGUI;
+    }
+
+    private void OnDisable()
+    {
+        SceneView.duringSceneGui -= OnSceneGUI;
     }
 
     private void OnGUI()
@@ -33,8 +50,11 @@ public class BlockSizeMeasurer : EditorWindow
         {
             if (GUILayout.Button("Measure Size"))
             {
-                _measuredSize = MeasureBlockSize(_targetRoot);
+                _measuredBounds = MeasureLocalMax(_targetRoot);
+                _measuredSize = ToCellSize(_measuredBounds);
                 _hasResult = true;
+                _showGizmo = true;
+                SceneView.RepaintAll();
             }
         }
 
@@ -42,6 +62,13 @@ public class BlockSizeMeasurer : EditorWindow
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Block Size", _measuredSize.ToString());
+        EditorGUILayout.LabelField("Actual Bounds", _measuredBounds.ToString("F3"));
+
+        // ギズモ表示トグル（変更時はSceneビューを再描画）
+        // Gizmo toggle (repaint Scene view on change)
+        EditorGUI.BeginChangeCheck();
+        _showGizmo = EditorGUILayout.Toggle("Show Gizmo", _showGizmo);
+        if (EditorGUI.EndChangeCheck()) SceneView.RepaintAll();
 
         // 計測結果を貼り付け用JSONとしてクリップボードへコピー
         // Copy measured result to clipboard as paste-ready JSON
@@ -52,15 +79,36 @@ public class BlockSizeMeasurer : EditorWindow
         }
     }
 
-    // ルート配下のRendererからローカル空間のサイズをセル数で計測
-    // Measure cell size from child renderers in root-local space
-    private static Vector3Int MeasureBlockSize(GameObject root)
+    // ルートのローカル空間で原点から正方向へ枠を描画し適正サイズを確認
+    // Draw boxes from local origin toward positive axes to verify the size
+    private void OnSceneGUI(SceneView sceneView)
+    {
+        if (!_showGizmo || !_hasResult || _targetRoot == null) return;
+
+        using (new Handles.DrawingScope(_targetRoot.transform.localToWorldMatrix))
+        {
+            // 計測セルサイズの外枠
+            // Outer box of the measured cell size
+            DrawLocalBox(new Vector3(_measuredSize.x, _measuredSize.y, _measuredSize.z), CellBoxColor);
+
+            // Rendererの実測境界
+            // Actual renderer bounds
+            DrawLocalBox(_measuredBounds, BoundsBoxColor);
+        }
+    }
+
+    private static void DrawLocalBox(Vector3 size, Color color)
+    {
+        Handles.color = color;
+        Handles.DrawWireCube(size * 0.5f, size);
+    }
+
+    // ルート配下のRendererから正方向のローカル最大値を計測（0以下は無視）
+    // Measure positive local max from child renderers (ignore non-positive region)
+    private static Vector3 MeasureLocalMax(GameObject root)
     {
         var renderers = root.GetComponentsInChildren<Renderer>(false);
-
-        // レンダラーが無ければ最小サイズへフォールバック
-        // Fall back to minimum size when no renderer exists
-        if (renderers.Length == 0) return Vector3Int.one;
+        if (renderers.Length == 0) return Vector3.one;
 
         var rootTransform = root.transform;
         var maxLocal = Vector3.zero;
@@ -83,12 +131,14 @@ public class BlockSizeMeasurer : EditorWindow
             }
         }
 
-        // 0以下の領域は無視（maxLocal初期値0）し、Ceil・最小1でセル数化
-        // Ignore non-positive region (maxLocal starts at 0), convert with Ceil and min 1
-        return new Vector3Int(
-            ToCellCount(maxLocal.x),
-            ToCellCount(maxLocal.y),
-            ToCellCount(maxLocal.z));
+        return maxLocal;
+    }
+
+    // ローカル最大値をCeil・最小1でセル数化
+    // Convert local max to cell count with Ceil and min 1
+    private static Vector3Int ToCellSize(Vector3 localMax)
+    {
+        return new Vector3Int(ToCellCount(localMax.x), ToCellCount(localMax.y), ToCellCount(localMax.z));
     }
 
     private static int ToCellCount(float size)
