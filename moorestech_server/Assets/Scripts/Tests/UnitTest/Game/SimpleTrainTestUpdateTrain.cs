@@ -618,7 +618,7 @@ namespace Tests.UnitTest.Game
 
             var railComponentA = TrainTestHelper.PlaceRail(env, new Vector3Int(0, 0, 0), BlockDirection.North);
             var railComponentB = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
-            var railComponentC = TrainTestHelper.PlaceRail(env, new Vector3Int(1, 0, 0), BlockDirection.North);
+            var railComponentC = TrainTestHelper.PlaceRail(env, new Vector3Int(2, 0, 0), BlockDirection.North);
 
             // Connect the two RailComponents
             railComponentC.FrontNode.ConnectNode(railComponentB.FrontNode, 40);
