@@ -97,10 +97,34 @@ public class BlockSizeMeasurer : EditorWindow
         }
     }
 
+    // 原点から正方向へ広がるボックスを半透明の面＋枠線で描画
+    // Draw a box spanning origin toward positive axes with translucent faces and outline
     private static void DrawLocalBox(Vector3 size, Color color)
     {
-        Handles.color = color;
-        Handles.DrawWireCube(size * 0.5f, size);
+        var p000 = Vector3.zero;
+        var p100 = new Vector3(size.x, 0, 0);
+        var p010 = new Vector3(0, size.y, 0);
+        var p001 = new Vector3(0, 0, size.z);
+        var p110 = new Vector3(size.x, size.y, 0);
+        var p101 = new Vector3(size.x, 0, size.z);
+        var p011 = new Vector3(0, size.y, size.z);
+        var p111 = new Vector3(size.x, size.y, size.z);
+
+        var faceColor = new Color(color.r, color.g, color.b, 0.1f);
+
+        // 6面を半透明で塗り、枠線を本来の色で描画
+        // Fill all 6 faces translucently and outline them in the base color
+        Quad(p000, p100, p101, p001); // bottom (y=0)
+        Quad(p010, p110, p111, p011); // top (y=max)
+        Quad(p000, p100, p110, p010); // front (z=0)
+        Quad(p001, p101, p111, p011); // back (z=max)
+        Quad(p000, p010, p011, p001); // left (x=0)
+        Quad(p100, p110, p111, p101); // right (x=max)
+
+        void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        {
+            Handles.DrawSolidRectangleWithOutline(new[] { a, b, c, d }, faceColor, color);
+        }
     }
 
     // ルート配下のRendererから正方向のローカル最大値を計測（0以下は無視）
