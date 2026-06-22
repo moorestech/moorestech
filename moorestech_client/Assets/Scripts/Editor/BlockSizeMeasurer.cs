@@ -122,35 +122,54 @@ public class BlockSizeMeasurer : EditorWindow
         }
     }
 
-    // ルート配下のRendererから正方向のローカル最大値を計測（0以下は無視）
-    // Measure positive local max from child renderers (ignore non-positive region)
+    // ルート配下のメッシュから正方向のローカル最大値を計測（0以下は無視）
+    // Measure positive local max from child meshes (ignore non-positive region)
     private static Vector3 MeasureLocalMax(GameObject root)
     {
-        var renderers = root.GetComponentsInChildren<Renderer>(false);
-        if (renderers.Length == 0) return Vector3.one;
-
-        var rootTransform = root.transform;
+        var worldToRoot = root.transform.worldToLocalMatrix;
         var maxLocal = Vector3.zero;
+        var found = false;
 
-        foreach (var meshRenderer in renderers)
+        // MeshRenderer：MeshFilterのタイトなメッシュ境界を対象
+        // MeshRenderer: use the tight mesh bounds from MeshFilter
+        foreach (var meshFilter in root.GetComponentsInChildren<MeshFilter>(false))
         {
-            // ワールド境界の8頂点をルートローカルへ変換し軸ごと最大値を集計
-            // Convert 8 world-bounds corners into root-local space and accumulate per-axis max
-            var bounds = meshRenderer.bounds;
-            var min = bounds.min;
-            var max = bounds.max;
+            var renderer = meshFilter.GetComponent<MeshRenderer>();
+            if (meshFilter.sharedMesh == null || renderer == null || !renderer.enabled) continue;
+            Accumulate(meshFilter.sharedMesh.bounds, meshFilter.transform.localToWorldMatrix);
+        }
+
+        // SkinnedMeshRenderer：共有メッシュ境界を対象（ParticleSystem等は除外）
+        // SkinnedMeshRenderer: use shared mesh bounds (particle/line/trail excluded)
+        foreach (var skinned in root.GetComponentsInChildren<SkinnedMeshRenderer>(false))
+        {
+            if (skinned.sharedMesh == null || !skinned.enabled) continue;
+            Accumulate(skinned.sharedMesh.bounds, skinned.transform.localToWorldMatrix);
+        }
+
+        return found ? maxLocal : Vector3.one;
+
+        #region Internal
+
+        // メッシュローカル境界の8頂点を正確な行列でルートローカルへ変換し集計
+        // Transform 8 mesh-local-bounds corners into root-local space and accumulate
+        void Accumulate(Bounds meshBounds, Matrix4x4 meshToWorld)
+        {
+            var matrix = worldToRoot * meshToWorld;
+            var min = meshBounds.min;
+            var max = meshBounds.max;
             for (var i = 0; i < 8; i++)
             {
                 var corner = new Vector3(
                     (i & 1) == 0 ? min.x : max.x,
                     (i & 2) == 0 ? min.y : max.y,
                     (i & 4) == 0 ? min.z : max.z);
-                var local = rootTransform.InverseTransformPoint(corner);
-                maxLocal = Vector3.Max(maxLocal, local);
+                maxLocal = Vector3.Max(maxLocal, matrix.MultiplyPoint3x4(corner));
             }
+            found = true;
         }
 
-        return maxLocal;
+        #endregion
     }
 
     // ローカル最大値をCeil・最小1でセル数化
