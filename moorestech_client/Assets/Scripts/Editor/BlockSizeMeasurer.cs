@@ -13,10 +13,9 @@ public class BlockSizeMeasurer : EditorWindow
     private bool _hasResult;
     private bool _showGizmo = true;
 
-    // ギズモ色：計測セル枠（緑）と実測境界（黄）
-    // Gizmo colors: cell box (green) and actual bounds (yellow)
+    // ギズモ色：計測セル枠（緑）
+    // Gizmo color: cell box (green)
     private static readonly Color CellBoxColor = new(0.2f, 1f, 0.3f, 1f);
-    private static readonly Color BoundsBoxColor = new(1f, 0.8f, 0.1f, 1f);
 
     [MenuItem("moorestech/Util/Block Size Measurer")]
     private static void ShowWindow()
@@ -90,10 +89,6 @@ public class BlockSizeMeasurer : EditorWindow
             // 計測セルサイズの外枠
             // Outer box of the measured cell size
             DrawLocalBox(new Vector3(_measuredSize.x, _measuredSize.y, _measuredSize.z), CellBoxColor);
-
-            // Rendererの実測境界
-            // Actual renderer bounds
-            DrawLocalBox(_measuredBounds, BoundsBoxColor);
         }
     }
 
