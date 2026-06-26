@@ -1,9 +1,6 @@
-using Core.Update;
-using UnityEngine;
-
 namespace Game.Gear.Common
 {
-    public class GearTickUpdater : IMasterTickUpdater
+    public class GearTickUpdater
     {
         public void Update()
         {

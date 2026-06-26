@@ -178,7 +178,6 @@ namespace Server.Boot
             // gearのtick更新をDIから登録する
             // Register gear tick updates through DI.
             services.AddSingleton<GearTickUpdater>();
-            services.AddSingleton<IMasterTickUpdater>(provider => provider.GetRequiredService<GearTickUpdater>());
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
@@ -233,10 +232,7 @@ namespace Server.Boot
 
             // tick更新処理を登録する
             // Register tick update handlers.
-            foreach (var tickUpdater in serviceProvider.GetServices<IMasterTickUpdater>())
-            {
-                GameUpdater.AdditionalUpdates.Add(tickUpdater.Update);
-            }
+            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
 
             //イベントレシーバーをインスタンス化する
             // Materialize event receivers eagerly.
