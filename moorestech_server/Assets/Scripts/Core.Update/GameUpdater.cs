@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UniRx;
 using Unity.Profiling;
 
@@ -16,9 +17,14 @@ namespace Core.Update
 
         public static IObservable<Unit> LateUpdateObservable => _lateUpdateSubject;
         private static Subject<Unit> _lateUpdateSubject = new();
+        public static List<Action> AdditionalUpdates = new();
 
         public static void Update()
         {
+            // AdditionalUpdatesのやつ。テストでも呼ぶので関数化
+            // Run additional tick updates first.
+            ExecuteAdditionalUpdates();
+
             // Updateの実行
             // Execute Update
             ExecuteUpdate();
@@ -52,6 +58,10 @@ namespace Core.Update
         {
             _updateSubject = new Subject<Unit>();
             _lateUpdateSubject = new Subject<Unit>();
+
+            // 追加tick更新も初期化する
+            // Reset additional tick updates as well.
+            AdditionalUpdates.Clear();
         }
 
         public static void Dispose()
@@ -90,6 +100,14 @@ namespace Core.Update
         // Utility to convert ticks to seconds (for display purposes)
         public static double TicksToSeconds(uint ticks) => ticks * SecondsPerTick;
 
+        private static void ExecuteAdditionalUpdates()
+        {
+            foreach (var additionalUpdate in AdditionalUpdates)
+            {
+                additionalUpdate();
+            }
+        }
+
 #if UNITY_EDITOR
         public static void UpdateOneTick()
         {
@@ -104,6 +122,7 @@ namespace Core.Update
         {
             for (var i = 0u; i < frameCount; i++)
             {
+                ExecuteAdditionalUpdates();
                 _updateSubject.OnNext(Unit.Default);
                 _lateUpdateSubject.OnNext(Unit.Default);
             }
