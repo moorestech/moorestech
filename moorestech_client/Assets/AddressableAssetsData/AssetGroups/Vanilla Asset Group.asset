@@ -30,6 +30,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 05d8a4beb85b14fca96af2136a5ad0e4
+    m_Address: Vanilla/Block/high_voltage_utility_pole
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 0657a7291d58e284d925aa2be3fdc553
     m_Address: Vanilla/Block/Tree_conveyor_chest
     m_ReadOnly: 0
@@ -192,6 +197,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 23c9427641be06a49b66517f3f5bfd6c
     m_Address: Vanilla/Block/BeltConveyor_Cross
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 244f7a47d84684c078293da23c469b6f
+    m_Address: Vanilla/Block/Asphalt_Foundation
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -800,6 +810,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b196f22358045489fb5384c03be29c46
+    m_Address: Vanilla/Block/Electric_pole_wide_range
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: b1ac0ba19863a4bc8b08c6d9b2b8c56f
     m_Address: Vanilla/Item/StoneHammer
     m_ReadOnly: 0
@@ -1017,6 +1032,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e23c1ad2c3e6e49d6aa1009315a9c33d
     m_Address: Vanilla/Block/OilTank
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e74768bc4d07b46568fcf121544bb2d0
+    m_Address: Vanilla/Block/Fast_BeltConveyor_Splitter
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
