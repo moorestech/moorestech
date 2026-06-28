@@ -35,7 +35,7 @@ namespace Client.Editor.RepositorySync
             // 人がレビューしやすい形式でrootの記録ファイルを更新する
             // Write the root revision file in a readable format for review
             var json = EditorJsonUtility.ToJson(file, true);
-            File.WriteAllText(path, json);
+            File.WriteAllText(path, json + "\n");
         }
     }
 }
