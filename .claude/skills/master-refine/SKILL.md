@@ -1,28 +1,35 @@
 ---
 name: master-refine
 description: |
-  moorestech mod のマスターデータを nodeGraph.v1.json のビジュアル配置に基づいて整える統合スキル。2つの操作を持つ。
+  moorestech mod のマスターデータを整える統合スキル。3つの操作を持つ。
   (A) items.json/blocks.json の sortPriority を research.json の解放順序 + nodeGraph 配置から再計算し、配列も並べ替える。
   (B) research.json の各ノードの UIPosition を依存関係と nodeGraph 配置から再計算して更新する。
-  デフォルトでは操作 A と B を両方実行し、対象 mod は v8 (server_v8/moorestechAlphaMod_8) とする。ユーザーが片方のみ・別バージョンを明示した場合のみそれに従う。
+  (C) moorestech_master 内の PNG アセット画像を長辺500pxの JPEG に変換しフォーマットを統一する。
+  操作 A/B は nodeGraph.v1.json のビジュアル配置を基準に計算する。「マスターデータを整えて」のような包括的な指示では操作 A と B を両方実行し、対象 mod は v8 (server_v8/moorestechAlphaMod_8) とする。操作 C は画像変換専用で、明示された時のみ実行する。ユーザーが特定操作・別バージョンを明示した場合のみそれに従う。
   Use When —
   - 「sortPriority を再計算して」「アイテム並び順を整えて」「研究解放順でアイテム並べて」「v7/v8 mod のソート優先度を更新」
   - 「research.json の UIPosition を整理・再配置して」「nodeGraph の配置に合わせて研究ノードの座標を更新して」「新しい研究ノードの位置を自動配置して」
   - 「マスターデータを nodeGraph に合わせて整えて」
+  - 「PNG を JPEG に変換して」「画像フォーマットを統一して」「アセット画像を揃えて」「新しいアセット画像を追加したのでフォーマットを統一」
 ---
 
 # Master Refine
 
 ## 目的
 
-moorestech mod のマスターデータを `nodeGraph.v1.json` 上のビジュアル配置に基づいて整える。独立した2操作を提供する:
+moorestech mod のマスターデータを整える。独立した3操作を提供する:
 
 - **操作 A — sortPriority 再計算**: `items.json` / `blocks.json` の `sortPriority` を、`research.json` の解放チェーン (`prevResearchNodeGuids`) と `nodeGraph` 配置から再計算し、両ファイルの配列順も並べ替えて書き戻す。
 - **操作 B — research ノード座標の再配置**: `research.json` の各ノードの `graphViewSettings.UIPosition` を、依存関係グラフと `nodeGraph` 配置から再計算して更新する。
+- **操作 C — アセット画像フォーマット統一**: `moorestech_master` 内の PNG 画像を長辺500pxの JPEG に変換し、元ファイルを削除してフォーマットを統一する。
+
+操作 A / B は `nodeGraph.v1.json` 上のビジュアル配置に基づいて計算する。操作 C は画像変換専用で、A/B とはデータ系統が独立している。
 
 ### デフォルト実行 (重要)
 
-**特別な指示がない限り、操作 A と B を両方実行する。** 2操作は独立しており (A は research.json の UIPosition を読まず nodeGraph 座標を直接参照する)、順不同で構わない。ユーザーが「A だけ」「B だけ」と明示した場合のみ片方に絞る。
+**「マスターデータを整えて」のような包括的な指示では、操作 A と B を両方実行する。** 2操作は独立しており (A は research.json の UIPosition を読まず nodeGraph 座標を直接参照する)、順不同で構わない。ユーザーが「A だけ」「B だけ」と明示した場合のみ片方に絞る。
+
+**操作 C (画像変換) はデフォルト実行に含めない。** 「PNG を JPEG に」「画像フォーマットを統一」等、画像変換が明示された時のみ実行する。
 
 対象 mod も同様に、**特別な指示がない限り常に v8** (`server_v8/mods/moorestechAlphaMod_8`) を対象とする。ユーザーが `v7` 等を明示した場合のみそれに従う。
 
@@ -190,6 +197,55 @@ for guid, pos in positions.items():
 
 ---
 
+## 操作 C — アセット画像フォーマット統一
+
+`moorestech_master` リポジトリ内のアセット画像はすべて JPEG (`.jpeg`) で統一する。PNG ファイルが混在していた場合、`sips` コマンド (macOS 専用) で変換し元ファイルを削除する。操作 A / B とはデータ系統が独立しており、nodeGraph には依存しない。
+
+### フォーマット仕様
+
+「他の jpeg と同じフォーマットで圧縮」とは、既存アセットの規格に合わせることを指す。
+
+- **フォーマット**: JPEG (`.jpeg`)。`sips -s format jpeg` で変換する
+- **解像度**: 長辺 **500px**。`sips -Z 500` でアスペクト比を保ったまま縮小する (正方形素材なら 500×500)。アイテム画像の既存アセットはほぼ全て 500×500
+- **品質**: `sips` のデフォルト品質をそのまま使う (既存アセットは概ね 26〜80KB に収まる)。品質オプションは指定しない
+- 変換元 PNG は概ね 1000px超・1〜2MB あるため、必ず縮小工程を通して肥大化を防ぐ
+
+変換前に既存 JPEG の標準寸法を確認しておくとよい:
+
+```bash
+# 既存jpegの寸法分布（500 が標準のはず）
+cd "$TARGET_DIR/assets/item"
+for f in *.jpeg; do sips -g pixelWidth "$f" 2>/dev/null | awk '/pixelWidth/{print $2}'; done | sort -n | uniq -c
+```
+
+### Step C-1. 変換スクリプトを実行
+
+`moorestech` リポジトリのルートから:
+
+```bash
+bash .claude/skills/master-refine/scripts/convert_png_to_jpeg.sh [target_directory]
+```
+
+引数省略時は `../moorestech_master` を対象とする。スクリプトは PNG を再帰検索し、長辺500pxへ縮小しつつ JPEG 化して元 PNG を削除する。
+
+個別ファイルを手動変換する場合:
+
+```bash
+sips -s format jpeg -Z 500 "input.png" --out "output.jpeg"   # -Z はアスペクト比保持
+rm "input.png"
+```
+
+### Step C-2. 変換後の確認
+
+- JSON 等で `.png` 拡張子の参照が残っていないか `grep` で確認し、残っていれば `.jpeg` に更新する
+- 変換後ファイルが長辺500px (正方形なら 500×500) になっているか確認する
+
+```bash
+sips -g pixelWidth -g pixelHeight "output.jpeg"
+```
+
+---
+
 ## 共通 Gotchas
 
 - **mod バージョンを混同しない**: `server_v8/mods/moorestechAlphaMod_8` のように `vN` と `_N` が両方バージョン依存。ユーザーが `v7 mod` と言ったら両方とも `7` に揃える。
@@ -207,3 +263,4 @@ for guid, pos in positions.items():
 
 - `scripts/recalc_sort_priority.py` (操作 A) — sortPriority の再計算と items/blocks の並べ替え。実行: `python3 scripts/recalc_sort_priority.py --mod-dir <mod-root> [--quiet]`
 - `scripts/recalc_research_positions.py` (操作 B) — research.json の UIPosition 再計算と書き戻し。実行: `python3 scripts/recalc_research_positions.py --mod-dir <mod-root> [--quiet]`
+- `scripts/convert_png_to_jpeg.sh` (操作 C) — moorestech_master 内の PNG を長辺500pxの JPEG へ変換し元 PNG を削除。実行: `bash scripts/convert_png_to_jpeg.sh [target_directory]` (省略時 `../moorestech_master`)
