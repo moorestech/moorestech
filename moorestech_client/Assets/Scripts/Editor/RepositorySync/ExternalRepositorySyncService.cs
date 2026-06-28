@@ -41,6 +41,26 @@ namespace Client.Editor.RepositorySync
             Debug.Log("External repository revisions recorded.");
         }
 
+        public static bool RecordCurrentCommitsIfChanged()
+        {
+            var revisionFile = ExternalRepositoryRevisionStore.Load();
+            var repositoryRoot = ExternalRepositoryRevisionStore.GetRepositoryRootPath();
+            var changed = false;
+
+            foreach (var repository in revisionFile.repositories)
+            {
+                changed |= RecordRepositoryHeadIfChanged(repositoryRoot, repository);
+            }
+
+            if (!changed) return false;
+
+            // 外部repoのcommit変更をroot JSONへ反映してgit差分にする
+            // Persist external repository commit changes into the root JSON so Git shows a diff
+            ExternalRepositoryRevisionStore.Save(revisionFile);
+            Debug.Log("External repository revisions updated from detected HEAD changes.");
+            return true;
+        }
+
         private static bool SyncRepository(string repositoryRoot, ExternalRepositoryRevisionEntry repository)
         {
             var repositoryPath = ResolveRepositoryPath(repositoryRoot, repository.relativePath);
@@ -107,6 +127,22 @@ namespace Client.Editor.RepositorySync
 
             repository.commitHash = headCommit;
             Debug.Log($"External repository recorded: {repository.key} {headCommit}");
+        }
+
+        private static bool RecordRepositoryHeadIfChanged(string repositoryRoot, ExternalRepositoryRevisionEntry repository)
+        {
+            var repositoryPath = ResolveRepositoryPath(repositoryRoot, repository.relativePath);
+            if (!ExternalRepositoryGitClient.IsGitRepository(repositoryPath)) return false;
+
+            var headCommit = ExternalRepositoryGitClient.ReadHeadCommit(repositoryPath);
+            if (string.IsNullOrWhiteSpace(headCommit)) return false;
+            if (repository.commitHash == headCommit) return false;
+
+            // HEAD差分だけを検知対象にし、未commit変更はcommit hashへ含めない
+            // Track only HEAD differences; uncommitted changes are not represented by commit hashes
+            repository.commitHash = headCommit;
+            Debug.Log($"External repository HEAD change detected: {repository.key} {headCommit}");
+            return true;
         }
 
         private static string ResolveRepositoryPath(string repositoryRoot, string relativePath)
