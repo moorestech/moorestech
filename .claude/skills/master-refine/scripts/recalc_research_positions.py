@@ -66,9 +66,17 @@ def main():
     orphan_set = set(orphans)
 
     def group(g):
-        # nodeGraph に無いノードは孤立扱い (呼び出し側で除外済み)
+        # nodeGraph 未配置のチェーンノードは main 段に既定配置
+        # chain node not yet placed in nodeGraph defaults to the main row
+        if g not in gpos:
+            return "main"
         x, y = gpos[g]
         return "upper" if y < -100 else ("lower" if y > 150 else "main")
+
+    def gx(g):
+        # nodeGraph 未配置ノードは深さ内で末尾に寄せる
+        # un-placed nodes sort last within their depth
+        return gpos[g][0] if g in gpos else float("inf")
 
     # depth ごとにレイアウト対象 (孤立以外) を集約
     layout_nodes = [g for g in nodes if g not in orphan_set]
@@ -85,7 +93,7 @@ def main():
         for g in by_depth[d]:
             by_group[group(g)].append(g)
         for grp, gs in by_group.items():
-            gs.sort(key=lambda g: gpos[g][0])  # nodeGraph x 昇順 = 左→右
+            gs.sort(key=gx)  # nodeGraph x 昇順 = 左→右 (未配置は末尾)
             y = GROUP_Y[grp]
             for n, g in enumerate(gs):
                 x = base_x + n * X_SPACING
