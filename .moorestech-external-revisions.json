@@ -1,0 +1,14 @@
+{
+    "repositories": [
+        {
+            "key": "moorestech_master",
+            "relativePath": "../moorestech_master",
+            "commitHash": "16326f08e5a69de57e0875aa160929b3abd63e1b"
+        },
+        {
+            "key": "moorestech_client_private",
+            "relativePath": "moorestech_client/Assets/PersonalAssets/moorestech-client-private",
+            "commitHash": "d753705a435dfa86e1d5daafc17d7019ae446e49"
+        }
+    ]
+}
