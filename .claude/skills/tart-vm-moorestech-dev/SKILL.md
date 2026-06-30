@@ -1,14 +1,6 @@
 ---
 name: tart-vm-moorestech-dev
-description: >
-  Tart macOS VM 内 (`Manageds-Virtual-Machine.local` / `VMAPPLE` / `VirtualMac2,1` / Apple M4 Virtual) の
-  `/Users/admin/dev-agent` 配下にある moorestech worktree で、開発者が目の前にいない無人前提で Unity/C# 開発を進めるための運用スキル。
-  Use When:
-  (1) カレント作業ディレクトリが `/Users/admin/dev-agent/worktrees/moorestech*` 配下で、moorestech (moorestech_client / moorestech_server / VanillaSchema 等) を編集・テスト・実装する時。
-  (2) hostname が `Manageds-Virtual-Machine.local`、`uname -a` に `VMAPPLE`/`arm64`、Unity `6000.3.8f1` という Tart VM 環境で moorestech 作業を始める時。
-  (3) 「moorestech を実装して」「クライアント/UI を直して」「サーバーにテストを追加して」等の moorestech 開発依頼を、ユーザー不在で完遂し evidence を残し all-code-review まで回す必要がある時。
-  Do NOT use:
-  この Tart VM 外（開発者の通常ローカル Mac、CI、別ホスト）、`/Users/admin/dev-agent` 配下でない場所、moorestech 以外の一般 Unity/C# プロジェクトでは発動しない。環境マーカーが一致しなければ使わない。
+description: Tart macOS VM 内の moorestech worktree で、開発者不在の無人前提で Unity/C# 開発を進めるための運用スキル。Use When — ユーザーが「tart vmモードで起動して」と発言した時に発動する。
 ---
 
 # Tart VM 専用 moorestech 無人開発スキル
