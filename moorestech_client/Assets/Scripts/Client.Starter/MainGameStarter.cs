@@ -4,6 +4,7 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.ColliderStreaming;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -160,6 +161,9 @@ namespace Client.Starter
             // register presenter assembly
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
+            // ブロックコライダーのチャンク単位ストリーミング
+            // Chunk-based streaming of block colliders
+            builder.RegisterEntryPoint<BlockColliderChunkStreamer>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
