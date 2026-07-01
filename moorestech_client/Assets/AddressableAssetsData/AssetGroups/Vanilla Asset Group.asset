@@ -270,6 +270,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3a780be7e9c6046839cf1efccb22a9db
+    m_Address: Vanilla/Block/Station_Fluid_Cargo
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3bad25b0c048c4dbf847950e9479f0bc
     m_Address: Vanilla/Skit/test
     m_ReadOnly: 0
@@ -742,6 +747,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a5fac3bd7059c48d2a3f6b825bd426e0
     m_Address: Vanilla/Skit/Animations/anim_surprise01_st
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a625ad9a01485496ca6760ce89228733
+    m_Address: Vanilla/Block/PipeStraightWindow_Steel
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
