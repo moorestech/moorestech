@@ -118,12 +118,14 @@ namespace Client.Game.InGame.Context
                     blockObj = block.AddComponent<BlockGameObject>();
                 }
 
-                // 子要素のコンポーネントの設定
-                // Set up child element components
-                foreach (var mesh in blockObj.GetComponentsInChildren<MeshRenderer>())
+                // 実行時のMeshCollider追加をやめ、既にColliderがある子にのみBlockGameObjectChildを付ける
+                // Stop adding MeshColliders at runtime; add BlockGameObjectChild only to children that already have a Collider
+                foreach (var childCollider in blockObj.GetComponentsInChildren<Collider>())
                 {
-                    mesh.gameObject.AddComponent<BlockGameObjectChild>();
-                    mesh.gameObject.AddComponent<MeshCollider>();
+                    // 同一オブジェクトに複数Colliderがあっても二重付与しない
+                    // Avoid double-attaching when one object has multiple Colliders
+                    if (childCollider.TryGetComponent<BlockGameObjectChild>(out _)) continue;
+                    childCollider.gameObject.AddComponent<BlockGameObjectChild>();
                 }
 
                 blockObj.gameObject.SetActive(true);
