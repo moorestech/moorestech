@@ -1,7 +1,6 @@
-using Client.Game.InGame.ColliderStreaming;
 using UnityEngine;
 
-namespace Client.Game.InGame.Block.ColliderStreaming
+namespace Client.Game.InGame.ColliderStreaming.Block
 {
     /// <summary>
     /// ブロック配下のコライダーをまとめてオンオフする距離カリング対象
