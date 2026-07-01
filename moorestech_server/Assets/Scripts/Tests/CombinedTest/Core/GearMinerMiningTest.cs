@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Core
             // 歯車エネルギーを受け取るために歯車ネットワークを更新
             // Ensure the gear network is updated so that the miner receives power.
             var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
             
             // アイテムがアウトプットされていることを確認するためのチェストを採掘機の隣に設置する
             // Place a chest adjacent to the gear miner to verify that items are output.

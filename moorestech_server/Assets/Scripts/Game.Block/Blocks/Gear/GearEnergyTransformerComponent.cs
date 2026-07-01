@@ -16,9 +16,9 @@ namespace Game.Block.Blocks.Gear
         public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
 
         public BlockInstanceId BlockInstanceId { get; }
-        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
-        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
-        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
+        public RPM CurrentRpm => GearRuntimeStateStore.TryGetGearStateStatic(BlockInstanceId, out var state) ? state.Rpm : _simpleGearService.CurrentRpm;
+        public Torque CurrentTorque => GearRuntimeStateStore.TryGetGearStateStatic(BlockInstanceId, out var state) ? state.Torque : _simpleGearService.CurrentTorque;
+        public bool IsCurrentClockwise => GearRuntimeStateStore.TryGetGearStateStatic(BlockInstanceId, out var state) ? state.IsClockwise : _simpleGearService.IsCurrentClockwise;
 
         public bool IsDestroy { get; private set; }
 

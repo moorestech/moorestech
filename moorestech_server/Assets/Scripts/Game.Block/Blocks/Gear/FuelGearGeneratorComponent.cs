@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
+    public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IGearTickFuelConsumer, IBlockSaveState, IBlockStateObservable
     {
         public string SaveKey => "fuelGearGenerator";
         
@@ -68,16 +68,15 @@ namespace Game.Block.Blocks.Gear
             GenerateTorque = _stateService.CurrentGeneratedTorque;
         }
 
-        // フレーム更新で燃料と状態を処理し、出力がある限り観測者へ通知する
-        // Process fuel and state each frame, notifying observers while power is produced
-        public void Update()
+        // gear tickで燃料と状態を処理し、出力がある限り観測者へ通知する
+        // Process fuel and state from the gear tick, notifying observers while power is produced
+        public void UpdateFromGearTick(float networkLoadRate)
         {
             BlockException.CheckDestroy(this);
 
-            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
-            
-            var changed = _stateService.TryUpdate(operatingRate, out var newRpm, out var newTorque);
+            // GearTickUpdaterで確定したnetwork負荷率を使って燃料と出力状態を進める。
+            // Advance fuel and output state from the load rate fixed by GearTickUpdater.
+            var changed = _stateService.TryUpdate(networkLoadRate, out var newRpm, out var newTorque);
             GenerateRpm = newRpm;
             GenerateTorque = newTorque;
 
@@ -98,7 +97,6 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
             
-            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
             var fuelGearGeneratorDetail = CreateFuelGearGeneratorStateDetail();
             var powerGeneratorDetail = CreatePowerGeneratorStateDetail();
             
@@ -121,7 +119,9 @@ namespace Game.Block.Blocks.Gear
             
             BlockStateDetail CreatePowerGeneratorStateDetail()
             {
-                var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
+                var operatingRate = GearNetworkDatastore.TryGetGearNetwork(BlockInstanceId, out var network)
+                    ? network.CurrentGearNetworkInfo.OperatingRate
+                    : 0f;
                 var powerGeneratorStateDetail = new PowerGeneratorStateDetail(_fuelService, operatingRate);
                 return new BlockStateDetail(PowerGeneratorStateDetail.StateDetailKey, MessagePackSerializer.Serialize(powerGeneratorStateDetail));
             }

@@ -1,262 +1,195 @@
 using System.Collections.Generic;
-using System.Linq;
-using Core.Update;
 using Game.Block.Interface;
-using UniRx;
-using Random = System.Random;
 
 namespace Game.Gear.Common
 {
     public class GearNetworkDatastore
     {
-        // TODO これってなんでstaticにしたんだっけ？こういうのは全般的にサービスロケーターにしたほうが良いような気がしてきた
         private static GearNetworkDatastore _instance;
-        
-        private readonly Dictionary<BlockInstanceId, GearNetwork> _blockEntityToGearNetwork; // key ブロックのEntityId value そのブロックが所属するNW
+
+        private readonly Dictionary<BlockInstanceId, GearNetwork> _blockEntityToGearNetwork = new();
         private readonly Dictionary<GearNetworkId, GearNetwork> _gearNetworks = new();
-        private readonly Random _random = new(215180);
-        
+        private readonly List<GearTopologyMutation> _pendingMutations = new();
+
+        public IReadOnlyDictionary<GearNetworkId, GearNetwork> GearNetworks => _gearNetworks;
+
         public GearNetworkDatastore()
         {
             _instance = this;
-            _blockEntityToGearNetwork = new Dictionary<BlockInstanceId, GearNetwork>();
-            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
-        
-        public IReadOnlyDictionary<GearNetworkId, GearNetwork> GearNetworks => _gearNetworks;
-        
+
         public static void AddGear(IGearEnergyTransformer gear)
         {
-            _instance.AddGearInternal(gear);
+            _instance._pendingMutations.Add(new GearTopologyMutation(gear, true));
         }
-        
-        private void AddGearInternal(IGearEnergyTransformer gear)
-        {
-            // 接続先ギアの所属NWを重複なく集める。TryGetValueで1回引きに統一してルックアップを半減
-            // Collect owning networks of neighbors without duplicates; use a single TryGetValue lookup instead of ContainsKey + indexer
-            var connectedNetworks = new HashSet<GearNetwork>();
-            foreach (var connectedGear in gear.GetGearConnects())
-                if (_blockEntityToGearNetwork.TryGetValue(connectedGear.Transformer.BlockInstanceId, out var n))
-                    connectedNetworks.Add(n);
 
-            switch (connectedNetworks.Count)
-            {
-                // 接続しているNWが1つもない場合は新規NWを作成
-                // No connected network means we need to create a new one
-                case 0:
-                    CreateNetwork();
-                    break;
-                // 1つだけの場合はそこに所属させる
-                // A single connected network means we can just join it
-                case 1:
-                    ConnectNetwork();
-                    break;
-                // 2つ以上なのでマージする
-                // Multiple connected networks means we need to merge them
-                default:
-                    MergeNetworks();
-                    break;
-            }
-
-            #region Internal
-
-            void CreateNetwork()
-            {
-                var networkId = GearNetworkId.CreateNetworkId();
-                var network = new GearNetwork(networkId);
-                network.AddGear(gear);
-                _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
-                _gearNetworks.Add(networkId, network);
-            }
-
-            void ConnectNetwork()
-            {
-                var network = connectedNetworks.First();
-                network.AddGear(gear);
-                _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
-            }
-
-            void MergeNetworks()
-            {
-                // Union-by-size: 最大NWを吸収側として選び、残りの全ギアを流し込む。マッピング更新コストを O(N_total - N_largest) に抑える
-                // Union-by-size: pick the largest network as the sink and fold the rest into it; mapping updates cost only O(N_total - N_largest)
-                GearNetwork largest = null;
-                var largestSize = 0;
-                foreach (var n in connectedNetworks)
-                {
-                    var size = n.GearTransformers.Count + n.GearGenerators.Count;
-                    if (largest == null || size > largestSize)
-                    {
-                        largestSize = size;
-                        largest = n;
-                    }
-                }
-
-                // 非最大NWの全ギアを最大NWへ移し、参照マップも張り替える。最大NW側の既存ギアは触らないので無駄な書き換えが発生しない
-                // Move every gear from the non-largest networks into the largest one and repoint the owner map; gears already in the largest network are untouched
-                foreach (var n in connectedNetworks)
-                {
-                    if (n == largest) continue;
-                    foreach (var t in n.GearTransformers)
-                    {
-                        largest.AddGear(t);
-                        _blockEntityToGearNetwork[t.BlockInstanceId] = largest;
-                    }
-                    foreach (var g in n.GearGenerators)
-                    {
-                        largest.AddGear(g);
-                        _blockEntityToGearNetwork[g.BlockInstanceId] = largest;
-                    }
-                    _gearNetworks.Remove(n.NetworkId);
-                }
-
-                // 新規ギア自体も最大NWに追加
-                // Finally add the newly placed gear into the surviving network
-                largest.AddGear(gear);
-                _blockEntityToGearNetwork[gear.BlockInstanceId] = largest;
-            }
-
-            #endregion
-        }
-        
         public static void RemoveGear(IGearEnergyTransformer gear)
         {
-            _instance.RemoveGearInternal(gear);
+            _instance._pendingMutations.Add(new GearTopologyMutation(gear, false));
         }
 
-        private void RemoveGearInternal(IGearEnergyTransformer gear)
+        internal void ApplyTopologyMutations(GearDemandSnapshotStore demandStore, GearRuntimeStateStore runtimeStore)
         {
-            // 所属ネットワークを引き、自身を除去
-            // Look up owning network and remove the gear itself
-            if (!_blockEntityToGearNetwork.TryGetValue(gear.BlockInstanceId, out var network)) return;
-            _blockEntityToGearNetwork.Remove(gear.BlockInstanceId);
-            network.RemoveGear(gear);
+            if (_pendingMutations.Count == 0) return;
 
-            // 残存ギア集合の総数。削除対象は既に除外済み
-            // Total count of remaining gears; the removed one is already excluded
-            var totalCount = network.GearTransformers.Count + network.GearGenerators.Count;
-
-            if (totalCount == 0)
+            // tick開始時点のmutationだけを確定し、追加分は次tickへ送る。
+            // Fix mutations at tick start and leave newly queued ones for the next tick.
+            var applyingMutations = new List<GearTopologyMutation>(_pendingMutations);
+            _pendingMutations.Clear();
+            foreach (var mutation in applyingMutations)
             {
-                _gearNetworks.Remove(network.NetworkId);
-                return;
+                if (mutation.IsAdd) AddGearInternal(mutation.Gear, runtimeStore);
+                else RemoveGearInternal(mutation.Gear, demandStore, runtimeStore);
             }
-
-            // 残存ギアの配列と id→index マップを1パスで構築する。後続BFSは配列への null 書き込みを visited マーク代わりに使う
-            // Build the remaining gear array and the id→index map in a single pass; BFS below uses null-assignment into this array as its visited marker
-            var remaining = new IGearEnergyTransformer[totalCount];
-            var idToIdx = new Dictionary<BlockInstanceId, int>(totalCount);
-            var fillIndex = 0;
-            foreach (var g in network.GearTransformers)
-            {
-                remaining[fillIndex] = g;
-                idToIdx[g.BlockInstanceId] = fillIndex;
-                fillIndex++;
-            }
-            foreach (var g in network.GearGenerators)
-            {
-                remaining[fillIndex] = g;
-                idToIdx[g.BlockInstanceId] = fillIndex;
-                fillIndex++;
-            }
-
-            var components = FindComponents(remaining, idToIdx);
-
-            // 分断なし → 既存ネットワークをそのまま維持（mapping 更新も不要）
-            // No split: keep the existing network as-is; no mapping updates needed
-            if (components.Count == 1) return;
-
-            // 複数成分へ分断 → 既存ネットを破棄し、成分ごとに新ネットワークを生成
-            // Split into multiple components: discard the old network and create a new network per component
-            _gearNetworks.Remove(network.NetworkId);
-            foreach (var component in components)
-            {
-                var newNetworkId = GearNetworkId.CreateNetworkId();
-                var newNetwork = new GearNetwork(newNetworkId);
-                foreach (var g in component)
-                {
-                    newNetwork.AddGear(g);
-                    _blockEntityToGearNetwork[g.BlockInstanceId] = newNetwork;
-                }
-                _gearNetworks.Add(newNetworkId, newNetwork);
-            }
-
-            #region Internal
-
-            static List<List<IGearEnergyTransformer>> FindComponents(IGearEnergyTransformer[] remaining, Dictionary<BlockInstanceId, int> idToIdx)
-            {
-                // 発見した連結成分を格納するリストと、BFSで使い回すキューを用意する。visited は remaining[idx] の null 化で表現するため別集合は持たない
-                // Prepare the result list of components and a reusable queue; visited state is encoded by null-ing out remaining[idx], so no separate set is needed
-                var components = new List<List<IGearEnergyTransformer>>();
-                var queue = new Queue<IGearEnergyTransformer>();
-
-                // 全スロットを昇順に走査し、まだ null 化されていないギアを新しい連結成分の起点として採用する
-                // Walk every slot in ascending order; any gear not yet nulled out becomes the seed of a new connected component
-                for (var i = 0; i < remaining.Length; i++)
-                {
-                    // null 化済み = 既に前の成分に回収済みなのでスキップ。配列の連続読み込みなのでキャッシュヒット率が高い
-                    // A null slot means the gear was already consumed by an earlier component; array reads are contiguous and cache-friendly
-                    var start = remaining[i];
-                    if (start == null) continue;
-
-                    // 起点を成分に加える前に先に null 化し、queue 経由で重複登録されるのを防ぐ
-                    // Null out the seed before enqueueing so it cannot be queued twice via some cycle
-                    remaining[i] = null;
-                    var component = new List<IGearEnergyTransformer>();
-                    queue.Clear();
-                    queue.Enqueue(start);
-
-                    // キューが空になるまでBFSを続け、起点から到達可能なギアを全てこの成分に集める
-                    // Keep BFS running until the queue drains, collecting every gear reachable from the seed into this component
-                    while (queue.Count > 0)
-                    {
-                        // 現在処理中のギアをキューから取り出し、成分メンバーとして確定する
-                        // Pop the current gear from the queue and commit it as a member of the component
-                        var current = queue.Dequeue();
-                        component.Add(current);
-
-                        // 現在ギアの全接続先を辿り、同じ成分に属するかを1件ずつ判定する
-                        // Walk every connection of the current gear and classify each neighbor individually
-                        foreach (var connect in current.GetGearConnects())
-                        {
-                            // idToIdx に無い = この残存ネットワークの外（削除ギア・別ネット・破棄済み）なので辺ごと遮断する
-                            // Missing from idToIdx means the neighbor lies outside the surviving set (removed gear, another network, or stale); cut such edges entirely
-                            if (!idToIdx.TryGetValue(connect.Transformer.BlockInstanceId, out var idx)) continue;
-                            // remaining[idx] が null なら既に他経路から訪問済み。null で無ければここで null 化と同時にキューへ積む
-                            // A null slot means already visited via another path; otherwise null it out and enqueue atomically
-                            if (remaining[idx] == null) continue;
-                            remaining[idx] = null;
-                            queue.Enqueue(connect.Transformer);
-                        }
-                    }
-
-                    // 起点から到達できた全ギアで1つの連結成分が確定したので結果に追加する
-                    // All gears reachable from this seed form one finalized connected component, so record it
-                    components.Add(component);
-                }
-
-                return components;
-            }
-
-            #endregion
         }
-        
-        private void Update()
+
+        internal void UpdateNetworks(GearDemandSnapshotStore demandStore, GearRuntimeStateStore runtimeStore)
         {
-            foreach (var gearNetwork in _gearNetworks.Values) // TODO パフォーマンスがやばくなったらやめる
-                gearNetwork.ManualUpdate();
+            foreach (var network in _gearNetworks.Values)
+            {
+                network.UpdateNetwork(demandStore, runtimeStore);
+            }
         }
-        
+
         public static GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
         {
             return _instance._blockEntityToGearNetwork[blockInstanceId];
         }
 
-        // 未登録IDに対して例外を投げずに失敗を返す。プロトコル呼び出し側は存在しないブロックIDを送ってくる可能性があるため
-        // Return a failure instead of throwing when the id is not registered; callers such as protocol handlers may receive ids for blocks that no longer exist
         public static bool TryGetGearNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)
         {
             return _instance._blockEntityToGearNetwork.TryGetValue(blockInstanceId, out network);
+        }
+
+        private void AddGearInternal(IGearEnergyTransformer gear, GearRuntimeStateStore runtimeStore)
+        {
+            if (_blockEntityToGearNetwork.ContainsKey(gear.BlockInstanceId)) return;
+            var connectedNetworks = CollectConnectedNetworks(gear);
+            if (connectedNetworks.Count == 0) CreateNetwork(gear);
+            else if (connectedNetworks.Count == 1) ConnectNetwork(gear, connectedNetworks);
+            else MergeNetworks(gear, connectedNetworks, runtimeStore);
+        }
+
+        private HashSet<GearNetwork> CollectConnectedNetworks(IGearEnergyTransformer gear)
+        {
+            var connectedNetworks = new HashSet<GearNetwork>();
+            foreach (var connectedGear in gear.GetGearConnects())
+            {
+                if (_blockEntityToGearNetwork.TryGetValue(connectedGear.Transformer.BlockInstanceId, out var network))
+                {
+                    connectedNetworks.Add(network);
+                }
+            }
+            return connectedNetworks;
+        }
+
+        private void CreateNetwork(IGearEnergyTransformer gear)
+        {
+            var networkId = GearNetworkId.CreateNetworkId();
+            var network = new GearNetwork(networkId);
+            network.AddGear(gear);
+            _gearNetworks.Add(networkId, network);
+            _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
+        }
+
+        private void ConnectNetwork(IGearEnergyTransformer gear, HashSet<GearNetwork> connectedNetworks)
+        {
+            GearNetwork network = null;
+            foreach (var candidate in connectedNetworks) network = candidate;
+            network.AddGear(gear);
+            _blockEntityToGearNetwork.Add(gear.BlockInstanceId, network);
+        }
+
+        private void MergeNetworks(IGearEnergyTransformer gear, HashSet<GearNetwork> connectedNetworks, GearRuntimeStateStore runtimeStore)
+        {
+            var largest = SelectLargestNetwork(connectedNetworks);
+            foreach (var network in connectedNetworks)
+            {
+                if (network == largest) continue;
+                MoveNetworkMembers(network, largest);
+                _gearNetworks.Remove(network.NetworkId);
+                runtimeStore.RemoveNetwork(network.NetworkId);
+            }
+            largest.AddGear(gear);
+            _blockEntityToGearNetwork[gear.BlockInstanceId] = largest;
+        }
+
+        private GearNetwork SelectLargestNetwork(HashSet<GearNetwork> networks)
+        {
+            GearNetwork largest = null;
+            var largestSize = 0;
+            foreach (var network in networks)
+            {
+                var size = network.GearTransformers.Count + network.GearGenerators.Count;
+                if (largest != null && size <= largestSize) continue;
+                largest = network;
+                largestSize = size;
+            }
+            return largest;
+        }
+
+        private void MoveNetworkMembers(GearNetwork from, GearNetwork to)
+        {
+            foreach (var transformer in from.GearTransformers)
+            {
+                to.AddGear(transformer);
+                _blockEntityToGearNetwork[transformer.BlockInstanceId] = to;
+            }
+            foreach (var generator in from.GearGenerators)
+            {
+                to.AddGear(generator);
+                _blockEntityToGearNetwork[generator.BlockInstanceId] = to;
+            }
+        }
+
+        private void RemoveGearInternal(IGearEnergyTransformer gear, GearDemandSnapshotStore demandStore, GearRuntimeStateStore runtimeStore)
+        {
+            if (!_blockEntityToGearNetwork.TryGetValue(gear.BlockInstanceId, out var network)) return;
+            _blockEntityToGearNetwork.Remove(gear.BlockInstanceId);
+            demandStore.Remove(gear.BlockInstanceId);
+            runtimeStore.RemoveGear(gear.BlockInstanceId);
+            network.RemoveGear(gear);
+
+            var totalCount = network.GearTransformers.Count + network.GearGenerators.Count;
+            if (totalCount == 0)
+            {
+                _gearNetworks.Remove(network.NetworkId);
+                runtimeStore.RemoveNetwork(network.NetworkId);
+                return;
+            }
+
+            var components = GearNetworkComponentFinder.FindComponents(network);
+            if (components.Count == 1) return;
+            SplitNetwork(network, components, runtimeStore);
+        }
+
+        private void SplitNetwork(GearNetwork oldNetwork, List<List<IGearEnergyTransformer>> components, GearRuntimeStateStore runtimeStore)
+        {
+            _gearNetworks.Remove(oldNetwork.NetworkId);
+            runtimeStore.RemoveNetwork(oldNetwork.NetworkId);
+            foreach (var component in components)
+            {
+                var newNetworkId = GearNetworkId.CreateNetworkId();
+                var newNetwork = new GearNetwork(newNetworkId);
+                foreach (var gear in component)
+                {
+                    newNetwork.AddGear(gear);
+                    _blockEntityToGearNetwork[gear.BlockInstanceId] = newNetwork;
+                }
+                _gearNetworks.Add(newNetworkId, newNetwork);
+            }
+        }
+    }
+
+    public readonly struct GearTopologyMutation
+    {
+        public readonly IGearEnergyTransformer Gear;
+        public readonly bool IsAdd;
+
+        public GearTopologyMutation(IGearEnergyTransformer gear, bool isAdd)
+        {
+            Gear = gear;
+            IsAdd = isAdd;
         }
     }
 }

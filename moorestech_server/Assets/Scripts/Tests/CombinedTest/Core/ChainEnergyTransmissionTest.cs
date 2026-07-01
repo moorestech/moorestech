@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core
             // ギアネットワークを更新する
             // Update gear networks
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            foreach (var network in gearNetworkDatastore.GearNetworks.Values) network.ManualUpdate();
+            foreach (var network in gearNetworkDatastore.GearNetworks.Values) global::Core.Update.GameUpdater.UpdateOneTick();
 
             // 発電機とターゲットギアの回転が一致することを確認する
             // Ensure generator and target gear share rpm and direction
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Core
             // Updating the surviving networks must not throw either
             Assert.DoesNotThrow(() =>
             {
-                foreach (var network in serviceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) network.ManualUpdate();
+                foreach (var network in serviceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) global::Core.Update.GameUpdater.UpdateOneTick();
             });
         }
 
@@ -143,7 +143,7 @@ namespace Tests.CombinedTest.Core
             // Updating networks after removal must not throw either
             Assert.DoesNotThrow(() =>
             {
-                foreach (var network in serviceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) network.ManualUpdate();
+                foreach (var network in serviceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) global::Core.Update.GameUpdater.UpdateOneTick();
             });
         }
 
@@ -199,7 +199,7 @@ namespace Tests.CombinedTest.Core
 
             // ロード後の更新で発電機の回転がチェーン先へ届くことを確認する
             // Verify generator rotation reaches the far side after load update
-            foreach (var network in loadServiceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) network.ManualUpdate();
+            foreach (var network in loadServiceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) global::Core.Update.GameUpdater.UpdateOneTick();
             var generator = worldBlockDatastore.GetBlock(generatorId).GetComponent<IGearGenerator>();
             var gear = worldBlockDatastore.GetBlock(targetGearId).GetComponent<IGear>();
             Assert.AreEqual(generator.CurrentRpm.AsPrimitive(), gear.CurrentRpm.AsPrimitive(), 0.001f);

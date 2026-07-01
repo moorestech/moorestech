@@ -23,22 +23,25 @@ namespace Game.Block.Blocks.BeltConveyor
         public void Update()
         {
             BlockException.CheckDestroy(this);
+            RefreshTransitTicks();
         }
 
         public override void StopNetwork()
         {
             base.StopNetwork();
-            // ネットワーク停止時はアイテムを搬送しない
-            // Prevent item transport when network is stopped
             _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
         }
 
         public override void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
             base.SupplyPower(rpm, torque, isClockwise);
+            RefreshTransitTicks();
+        }
 
-            // 稼働率（RPM比 × torqueRate、下限未満で0）で搬送時間を割って実搬送時間を求める
-            // Divide the base transit time by the operating rate (rpmRatio × torqueRate, zero below minimum)
+        private void RefreshTransitTicks()
+        {
+            // GearRuntimeStateStore由来の稼働率から、このtickの搬送速度を決める。
+            // Decide this tick's belt speed from the runtime-state operating rate.
             var operatingRate = GetCurrentOperatingRate();
             if (operatingRate <= 0f)
             {
@@ -46,6 +49,8 @@ namespace Game.Block.Blocks.BeltConveyor
                 return;
             }
 
+            // 稼働率で基準搬送時間を割り、vanilla belt側のtick数へ反映する。
+            // Divide base transit time by operating rate and write it to vanilla belt ticks.
             var transitSeconds = _timeOfItemEnterToExit / operatingRate;
             if (transitSeconds <= 0)
             {

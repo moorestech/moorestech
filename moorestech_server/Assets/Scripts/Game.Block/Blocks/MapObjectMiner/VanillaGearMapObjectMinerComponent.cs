@@ -1,10 +1,10 @@
 using Game.Block.Blocks.Gear;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using UniRx;
 
 namespace Game.Block.Blocks.MapObjectMiner
 {
-    public class VanillaGearMapObjectMinerComponent : IBlockComponent
+    public class VanillaGearMapObjectMinerComponent : IUpdatableBlockComponent
     {
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly VanillaGearMapObjectMinerProcessorComponent _vanillaGearMapObjectMinerProcessorComponent;
@@ -13,11 +13,11 @@ namespace Game.Block.Blocks.MapObjectMiner
         {
             _vanillaGearMapObjectMinerProcessorComponent = vanillaGearMapObjectMinerProcessorComponent;
             _gearEnergyTransformer = gearEnergyTransformer;
-            _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
         }
 
-        private void OnGearUpdate(GearUpdateType gearUpdateType)
+        public void Update()
         {
+            BlockException.CheckDestroy(this);
             _vanillaGearMapObjectMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
 

@@ -177,6 +177,9 @@ namespace Server.Boot
 
             // gearのtick更新をDIから登録する
             // Register gear tick updates through DI.
+            services.AddSingleton<GearRuntimeStateStore>();
+            services.AddSingleton<GearDemandSnapshotStore>();
+            services.AddSingleton<GearDemandSnapshotUpdater>();
             services.AddSingleton<GearTickUpdater>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。

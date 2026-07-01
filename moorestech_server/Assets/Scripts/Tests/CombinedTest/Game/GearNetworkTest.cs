@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Game
             //Update the network
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
             
             //ジェネレーターの供給が正しいか
             //Is the generator supply correct?
@@ -103,7 +103,7 @@ namespace Tests.CombinedTest.Game
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
             
             // Generatorの回転方向とRPMのテスト
             AreEqual(rpm, generator.CurrentRpm);
@@ -159,7 +159,7 @@ namespace Tests.CombinedTest.Game
             
             //ネットワークをアップデート
             //Update the network
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // ネットワークがロックされているかどうかを確認する
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
@@ -188,7 +188,7 @@ namespace Tests.CombinedTest.Game
             
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // ネットワークがロックされているかどうかを確認する
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
@@ -226,7 +226,7 @@ namespace Tests.CombinedTest.Game
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
             
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
             
             Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
             Assert.AreEqual(smallGearA.CurrentRpm, 20f);
@@ -262,7 +262,7 @@ namespace Tests.CombinedTest.Game
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
 
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
         }
@@ -299,7 +299,7 @@ namespace Tests.CombinedTest.Game
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
 
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // 新formula: rpm=10 > baseRpm=5 なのでexpOverを使用
             // New formula: rpm=10 > baseRpm=5, so use expOver=1.585
@@ -350,7 +350,7 @@ namespace Tests.CombinedTest.Game
 
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // エネルギー不足により、すべてのコンポーネントのRPMが0になる
             AreEqual(0f, gear1.CurrentRpm);
@@ -395,7 +395,7 @@ namespace Tests.CombinedTest.Game
 
             var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // ジェネレーターのトルクが1、gear1とgear2の要求トルクの合計が1を超えるため、エネルギー不足で停止
             // Generator torque is 1, total required torque exceeds 1, so the network halts due to energy deficit
@@ -555,7 +555,7 @@ namespace Tests.CombinedTest.Game
             // 実行: ネットワーク更新
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // 検証: すべてのコンポーネントのRPMが0であること
             AreEqual(0f, gear1.CurrentRpm);
@@ -610,7 +610,7 @@ namespace Tests.CombinedTest.Game
 
             // 最初の更新でエネルギー不足状態になることを確認（Teeth10が合計80GP消費 > 30GP生成）
             // First update should result in energy deficit (Teeth10 total 80GP > generator 30GP)
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
             AreEqual(0f, gear1.CurrentRpm);
 
             // 実行: deficitトリガーのTeeth10ギアを削除してエネルギー充足状態にする
@@ -621,7 +621,7 @@ namespace Tests.CombinedTest.Game
             // ネットワークが再構築されるので、最新のネットワークを取得
             // Network is rebuilt, get the latest network instance
             gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // 検証: GearTransformerのCurrentRpmが0より大きいこと（SmallGearはrpm=10を受け取る）
             // Verify: GearTransformer CurrentRpm > 0 (SmallGear receives rpm=10 from generator)
@@ -662,7 +662,7 @@ namespace Tests.CombinedTest.Game
             var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
 
             // 実行: ネットワーク更新
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // 検証: すべてのコンポーネントがロック状態であること
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
@@ -693,7 +693,7 @@ namespace Tests.CombinedTest.Game
             var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
 
             // 実行: ネットワーク更新
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // 検証: すべてのGearTransformerのCurrentRpmが0であること（既存動作）
             AreEqual(0f, gear1.CurrentRpm);
@@ -744,7 +744,7 @@ namespace Tests.CombinedTest.Game
 
             // 実行: ネットワーク更新
             // Execute: network update
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             // 検証: GearTransformerのCurrentRpmが0より大きいこと（生成GP >> 必要GP のため充足）
             // Verify: CurrentRpm > 0 (sufficient energy: generated GP >> required GP)

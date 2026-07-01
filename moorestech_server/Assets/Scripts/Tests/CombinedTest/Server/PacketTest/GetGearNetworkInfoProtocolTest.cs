@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            global::Core.Update.GameUpdater.UpdateOneTick();
 
             var expected = gearNetwork.CurrentGearNetworkInfo;
 

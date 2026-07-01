@@ -54,10 +54,10 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 chestComponent,
                 inputConnectorComponent,
+                gearMinerComponent,
                 gearMapObjectMinerProcessorComponent,
                 gearConnector,
                 gearEnergyTransformer,
-                gearMinerComponent,
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
