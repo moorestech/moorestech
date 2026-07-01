@@ -28,7 +28,9 @@ while IFS= read -r png_file; do
     jpeg_file="${png_file%.png}.jpeg"
 
     echo "Converting: $(basename "$png_file") -> $(basename "$jpeg_file")"
-    sips -s format jpeg "$png_file" --out "$jpeg_file" > /dev/null 2>&1
+    # JPEG変換と同時に長辺500pxへ縮小 (既存アセットの標準サイズに統一)
+    # convert to JPEG and resize so the longest side fits 500px (standard asset size)
+    sips -s format jpeg -Z 500 "$png_file" --out "$jpeg_file" > /dev/null 2>&1
     rm "$png_file"
     COUNT=$((COUNT + 1))
 done <<< "$PNG_FILES"
