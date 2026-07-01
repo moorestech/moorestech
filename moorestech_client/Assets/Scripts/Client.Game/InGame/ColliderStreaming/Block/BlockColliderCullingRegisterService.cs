@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.ColliderStreaming;
+using Client.Game.InGame.Block;
 using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.Block.ColliderStreaming
+namespace Client.Game.InGame.ColliderStreaming.Block
 {
     /// <summary>
     /// ブロックの設置/削除に合わせて距離カリング対象を登録・解除するサービス
@@ -53,11 +53,36 @@ namespace Client.Game.InGame.Block.ColliderStreaming
                 _registrations.Remove(pos);
             }
 
-            // ブロック配下のコライダーを対象化してマネージャへ登録する
-            // Wrap the block's colliders as a target and register it with the manager
+            // ブロック配下のコライダーを対象化し、AABBでチャンクをまたぐ大きなブロックも網羅して登録する
+            // Wrap the block's colliders as a target and register with an AABB so multi-chunk blocks are covered
             var colliders = block.GetComponentsInChildren<Collider>(true);
             var target = new BlockColliderCullingTarget(colliders);
-            _registrations[pos] = _manager.Register(block.transform.position, target);
+            var bounds = CalcWorldBounds(colliders, block.transform.position);
+            _registrations[pos] = _manager.Register(bounds, target);
+
+            #region Internal
+
+            Bounds CalcWorldBounds(Collider[] targetColliders, Vector3 fallbackCenter)
+            {
+                var encapsulated = false;
+                var result = new Bounds(fallbackCenter, Vector3.zero);
+                foreach (var collider in targetColliders)
+                {
+                    if (collider == null) continue;
+                    if (!encapsulated)
+                    {
+                        result = collider.bounds;
+                        encapsulated = true;
+                    }
+                    else
+                    {
+                        result.Encapsulate(collider.bounds);
+                    }
+                }
+                return result;
+            }
+
+            #endregion
         }
 
         private void Unregister(Vector3Int pos)
