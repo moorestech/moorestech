@@ -64,11 +64,13 @@ namespace Client.Game.InGame.ColliderStreaming.Block
 
             Bounds CalcWorldBounds(Collider[] targetColliders, Vector3 fallbackCenter)
             {
+                // 有効かつアクティブなコライダーのみで足場を算出する。無効/非アクティブは原点の縮退boundsを返し足場を壊すため除外
+                // Build the footprint from enabled+active colliders only; disabled/inactive ones return origin-degenerate bounds that corrupt it
                 var encapsulated = false;
                 var result = new Bounds(fallbackCenter, Vector3.zero);
                 foreach (var collider in targetColliders)
                 {
-                    if (collider == null) continue;
+                    if (!collider.enabled || !collider.gameObject.activeInHierarchy) continue;
                     if (!encapsulated)
                     {
                         result = collider.bounds;
@@ -79,6 +81,9 @@ namespace Client.Game.InGame.ColliderStreaming.Block
                         result.Encapsulate(collider.bounds);
                     }
                 }
+
+                // 有効なコライダーが無ければブロック原点の1チャンクだけを占有する（旧来の点登録と同等）
+                // With no valid collider, occupy just the block's own chunk (equivalent to the legacy point registration)
                 return result;
             }
 
