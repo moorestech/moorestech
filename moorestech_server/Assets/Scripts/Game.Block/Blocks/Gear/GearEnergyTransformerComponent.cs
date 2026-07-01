@@ -16,9 +16,9 @@ namespace Game.Block.Blocks.Gear
         public IObservable<GearUpdateType> OnGearUpdate => _simpleGearService.OnGearUpdate;
 
         public BlockInstanceId BlockInstanceId { get; }
-        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
-        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
-        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
+        public RPM CurrentRpm => GearRuntimeStateStore.TryGetGearState(BlockInstanceId, out var state) ? state.Rpm : _simpleGearService.CurrentRpm;
+        public Torque CurrentTorque => GearRuntimeStateStore.TryGetGearState(BlockInstanceId, out var state) ? state.DmyTorque : _simpleGearService.CurrentTorque;
+        public bool IsCurrentClockwise => GearRuntimeStateStore.TryGetGearState(BlockInstanceId, out var state) ? state.IsClockwise : _simpleGearService.IsCurrentClockwise;
 
         public bool IsDestroy { get; private set; }
 
@@ -54,7 +54,9 @@ namespace Game.Block.Blocks.Gear
         // Output scaling rate for the current RPM/torque. Referenced by output-side components.
         public virtual float GetCurrentOperatingRate()
         {
-            return _consumption == null ? 0f : GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque);
+            if (_consumption == null) return 0f;
+            if (GearRuntimeStateStore.TryGetGearState(BlockInstanceId, out var state) && state.IsStopped) return 0f;
+            return GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque);
         }
 
         // 基準電力（baseTorque × baseRpm）に稼働率を乗じた現在の供給電力。Machine/Miner系へ渡す共通計算
@@ -66,11 +68,13 @@ namespace Game.Block.Blocks.Gear
 
         public virtual void StopNetwork()
         {
+            GearRuntimeStateStore.SetGearStateFromTransformer(BlockInstanceId, new RPM(0), new Torque(0), IsCurrentClockwise, true, GearNetworkStopReason.Rocked);
             _simpleGearService.StopNetwork();
         }
 
         public virtual void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
         {
+            GearRuntimeStateStore.SetGearStateFromTransformer(BlockInstanceId, rpm, torque, isClockwise, false, GearNetworkStopReason.None);
             _simpleGearService.SupplyPower(rpm, torque, isClockwise);
         }
 

@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
+    public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IGearNetworkLoadReceiver, IBlockSaveState, IBlockStateObservable
     {
         public string SaveKey => "fuelGearGenerator";
         
@@ -70,14 +70,11 @@ namespace Game.Block.Blocks.Gear
 
         // フレーム更新で燃料と状態を処理し、出力がある限り観測者へ通知する
         // Process fuel and state each frame, notifying observers while power is produced
-        public void Update()
+        public void UpdateByGearNetworkLoadRate(float networkLoadRate)
         {
             BlockException.CheckDestroy(this);
 
-            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
-            
-            var changed = _stateService.TryUpdate(operatingRate, out var newRpm, out var newTorque);
+            var changed = _stateService.TryUpdate(networkLoadRate, out var newRpm, out var newTorque);
             GenerateRpm = newRpm;
             GenerateTorque = newTorque;
 
