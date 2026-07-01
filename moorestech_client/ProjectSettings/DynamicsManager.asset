@@ -24,7 +24,7 @@ PhysicsManager:
   m_ClothInterCollisionSettingsToggle: 0
   m_ClothGravity: {x: 0, y: -9.81, z: 0}
   m_ContactPairsMode: 0
-  m_BroadphaseType: 0
+  m_BroadphaseType: 2
   m_WorldBounds:
     m_Center: {x: 0, y: 0, z: 0}
     m_Extent: {x: 250, y: 250, z: 250}
