@@ -78,6 +78,12 @@ jobs:
               },
             );
 
+            // Unity Test はログ本文を見ないと flaky test と実装バグを区別できない。
+            // そのため初回だけ rerun 対象にする（2回目以降は run_attempt guard で止める）。
+            // Unity Test cannot distinguish flaky tests from real test bugs from job metadata alone,
+            // so rerun it once on the first attempt.
+            const RERUN_ON_FIRST_FAILURE_WORKFLOWS = ['Run Unity Test'];
+
             // 失敗した各ジョブの原因を infra / code / unknown に分類する。
             // Classify the cause of each failed job into infra / code / unknown.
             const reasons = [];
@@ -86,6 +92,11 @@ jobs:
             // A run-level timed_out is treated as an infra cause.
             if (run.conclusion === 'timed_out') {
               reasons.push('infra');
+            }
+
+            if (run.run_attempt === 1 && RERUN_ON_FIRST_FAILURE_WORKFLOWS.includes(run.name)) {
+              reasons.push('workflow-first-attempt');
+              core.info(`workflow "${run.name}" は初回失敗を再実行対象にします / first failure is rerunnable.`);
             }
 
             for (const job of jobs) {
@@ -129,13 +140,16 @@ jobs:
 
             // 判定:
             //  - infra が 1 つでもあれば再実行
+            //  - Run Unity Test はログ本文なしでは flaky 判定不能なので初回だけ再実行
             //  - unknown は初回試行(run_attempt==1)のみ再実行
             //  - それ以外（明確な code 失敗など）はスキップ
             // Decision:
             //  - rerun if any infra reason exists
+            //  - rerun Run Unity Test once because job metadata cannot expose flaky test names
             //  - rerun unknown only on the first attempt
             //  - otherwise skip (clear code failures, etc.)
             const hasInfra = reasons.includes('infra');
+            const hasWorkflowFirstAttempt = reasons.includes('workflow-first-attempt');
             const hasUnknown = reasons.includes('unknown');
 
             let shouldRerun = false;
@@ -143,6 +157,9 @@ jobs:
             if (hasInfra) {
               shouldRerun = true;
               decisionNote = 'infra/flaky 起因を検出 / detected infra-like failure';
+            } else if (hasWorkflowFirstAttempt) {
+              shouldRerun = true;
+              decisionNote = 'Unity Test の初回失敗 / first Run Unity Test failure';
             } else if (hasUnknown && run.run_attempt === 1) {
               shouldRerun = true;
               decisionNote = '初回試行の原因不明失敗 / unknown failure on first attempt';
