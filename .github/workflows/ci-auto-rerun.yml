@@ -1,0 +1,166 @@
+# CI の失敗が「flaky / インフラ起因 / 原因不明」に見えるときだけ、失敗ジョブを自動で再実行するウォッチドッグ。
+# Auto-rerun watchdog that reruns failed jobs only when the failure looks flaky/infra-related/unknown.
+name: CI Auto Rerun
+
+on:
+  # 既存 CI ワークフローの完了イベントを監視する（対象名は下の if で厳密一致チェック）。
+  # Watch completion events of the existing CI workflows (names are strictly checked in the job-level if).
+  workflow_run:
+    workflows:
+      - "Run Unity Test"
+      - "Build"
+      - "Mooresmaster Test"
+    types:
+      - completed
+
+# 失敗ジョブの再実行には actions: write が必要。
+# actions: write is required to trigger the rerun-failed-jobs endpoint.
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  auto-rerun:
+    runs-on: ubuntu-latest
+    # pull_request 起因の run で、かつ結論が failure / timed_out のときだけ動かす。
+    # Only act on pull_request runs that concluded as failure or timed_out.
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      (github.event.workflow_run.conclusion == 'failure' ||
+       github.event.workflow_run.conclusion == 'timed_out')
+    steps:
+      - name: Evaluate failure and rerun if flaky/infra/unknown
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // 無限リトライ防止: 3 回目以降の試行では何もしない。
+            // Prevent infinite retries: give up once we have already attempted 3 times.
+            if (run.run_attempt >= 3) {
+              core.info(`run_attempt=${run.run_attempt} (>=3) のため再実行しません / skipping rerun.`);
+              return;
+            }
+
+            // インフラ/flaky を示唆するステップ名のキーワード（再実行寄りに倒す）。
+            // Keywords in step names that hint at infra/flaky trouble (bias toward rerun).
+            const INFRA_KEYWORDS = [
+              'checkout', 'setup', 'set up', 'install', 'restore', 'cache',
+              'download', 'upload', 'artifact', 'license', 'activation', 'activate',
+              'token', 'authenticate', 'auth', 'docker', 'pull image', 'network',
+              'fetch', 'clone', 'runner', 'provision',
+            ];
+
+            // 明確なコード起因（コンパイル/型/lint/テスト/アサーション）を示すステップ名キーワード。
+            // Keywords that indicate a clear code failure (compile/type/lint/test/assertion).
+            const CODE_KEYWORDS = [
+              'test', 'build', 'compile', 'lint', 'typecheck', 'type check',
+              'assert', 'analyze', 'analysis', 'format', 'validate',
+            ];
+
+            const matches = (name, keywords) => {
+              const lower = (name || '').toLowerCase();
+              return keywords.some((k) => lower.includes(k));
+            };
+
+            // run に紐づく全ジョブを取得（ページング対応）。
+            // Fetch every job of the run (with pagination).
+            const jobs = await github.paginate(
+              github.rest.actions.listJobsForWorkflowRunAttempt,
+              {
+                owner,
+                repo,
+                run_id: run.id,
+                attempt_number: run.run_attempt,
+                per_page: 100,
+              },
+            );
+
+            // 失敗した各ジョブの原因を infra / code / unknown に分類する。
+            // Classify the cause of each failed job into infra / code / unknown.
+            const reasons = [];
+
+            // run 全体が timed_out ならインフラ起因とみなす。
+            // A run-level timed_out is treated as an infra cause.
+            if (run.conclusion === 'timed_out') {
+              reasons.push('infra');
+            }
+
+            for (const job of jobs) {
+              const jobConclusion = job.conclusion;
+              if (jobConclusion !== 'failure' && jobConclusion !== 'timed_out' && jobConclusion !== 'cancelled') {
+                continue;
+              }
+
+              // ジョブ自体が timed_out / cancelled ならインフラ起因。
+              // A timed_out/cancelled job is an infra cause.
+              if (jobConclusion === 'timed_out' || jobConclusion === 'cancelled') {
+                reasons.push('infra');
+                core.info(`job "${job.name}" は ${jobConclusion} → infra`);
+                continue;
+              }
+
+              // 失敗したステップを抽出してステップ名から原因を推定する。
+              // Look at the failed steps and infer the cause from their names.
+              const failedSteps = (job.steps || []).filter(
+                (s) => s.conclusion === 'failure' || s.conclusion === 'timed_out' || s.conclusion === 'cancelled',
+              );
+
+              const hasTimedOutStep = failedSteps.some(
+                (s) => s.conclusion === 'timed_out' || s.conclusion === 'cancelled',
+              );
+              const hasInfraStep = failedSteps.some((s) => matches(s.name, INFRA_KEYWORDS));
+              const hasCodeStep = failedSteps.some((s) => matches(s.name, CODE_KEYWORDS));
+
+              let reason;
+              if (hasTimedOutStep || hasInfraStep) {
+                reason = 'infra';
+              } else if (hasCodeStep) {
+                reason = 'code';
+              } else {
+                reason = 'unknown';
+              }
+              reasons.push(reason);
+              const stepNames = failedSteps.map((s) => s.name).join(', ') || '(no failed step metadata)';
+              core.info(`job "${job.name}" failed steps=[${stepNames}] → ${reason}`);
+            }
+
+            // 判定:
+            //  - infra が 1 つでもあれば再実行
+            //  - unknown は初回試行(run_attempt==1)のみ再実行
+            //  - それ以外（明確な code 失敗など）はスキップ
+            // Decision:
+            //  - rerun if any infra reason exists
+            //  - rerun unknown only on the first attempt
+            //  - otherwise skip (clear code failures, etc.)
+            const hasInfra = reasons.includes('infra');
+            const hasUnknown = reasons.includes('unknown');
+
+            let shouldRerun = false;
+            let decisionNote = '';
+            if (hasInfra) {
+              shouldRerun = true;
+              decisionNote = 'infra/flaky 起因を検出 / detected infra-like failure';
+            } else if (hasUnknown && run.run_attempt === 1) {
+              shouldRerun = true;
+              decisionNote = '初回試行の原因不明失敗 / unknown failure on first attempt';
+            } else {
+              decisionNote = '明確なコード失敗のためスキップ / clear code failure, skipping';
+            }
+
+            core.info(`reasons=[${reasons.join(', ')}] attempt=${run.run_attempt} → ${decisionNote}`);
+
+            if (!shouldRerun) {
+              return;
+            }
+
+            // 失敗したジョブのみ再実行する。
+            // Rerun only the failed jobs of this run.
+            await github.rest.actions.reRunWorkflowFailedJobs({
+              owner,
+              repo,
+              run_id: run.id,
+            });
+            core.info(`run ${run.id} の失敗ジョブを再実行しました / re-ran failed jobs.`);
