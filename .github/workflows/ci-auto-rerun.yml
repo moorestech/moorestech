@@ -78,11 +78,11 @@ jobs:
               },
             );
 
-            // Unity Test はログ本文を見ないと flaky test と実装バグを区別できない。
+            // Unity/Test/Build はログ本文を見ないと flaky/ライセンス/runner 由来と実装バグを区別できない。
             // そのため初回だけ rerun 対象にする（2回目以降は run_attempt guard で止める）。
-            // Unity Test cannot distinguish flaky tests from real test bugs from job metadata alone,
-            // so rerun it once on the first attempt.
-            const RERUN_ON_FIRST_FAILURE_WORKFLOWS = ['Run Unity Test'];
+            // Unity Test/Build cannot distinguish flaky/license/runner failures from real code bugs
+            // from job metadata alone, so rerun them once on the first attempt.
+            const RERUN_ON_FIRST_FAILURE_WORKFLOWS = ['Run Unity Test', 'Build'];
 
             // 失敗した各ジョブの原因を infra / code / unknown に分類する。
             // Classify the cause of each failed job into infra / code / unknown.
@@ -159,7 +159,7 @@ jobs:
               decisionNote = 'infra/flaky 起因を検出 / detected infra-like failure';
             } else if (hasWorkflowFirstAttempt) {
               shouldRerun = true;
-              decisionNote = 'Unity Test の初回失敗 / first Run Unity Test failure';
+              decisionNote = `${run.name} の初回失敗 / first ${run.name} failure`;
             } else if (hasUnknown && run.run_attempt === 1) {
               shouldRerun = true;
               decisionNote = '初回試行の原因不明失敗 / unknown failure on first attempt';
