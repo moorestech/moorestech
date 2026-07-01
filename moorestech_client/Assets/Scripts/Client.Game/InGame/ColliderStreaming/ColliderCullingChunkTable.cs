@@ -10,8 +10,6 @@ namespace Client.Game.InGame.ColliderStreaming
     /// </summary>
     public sealed class ColliderCullingChunkTable
     {
-        private static readonly long[] EmptyChunks = Array.Empty<long>();
-
         private readonly float _chunkSize;
 
         // チャンク→登録エントリ群。大きなコライダーは重なる全チャンクに重複登録される
@@ -40,7 +38,7 @@ namespace Client.Game.InGame.ColliderStreaming
         public IDisposable Add(Bounds worldBounds, IColliderDistanceCullingTarget target)
         {
             ColliderCullingChunkUtil.CollectOverlappingChunks(worldBounds, _chunkSize, _chunkBuffer);
-            var chunkKeys = _chunkBuffer.Count == 0 ? EmptyChunks : _chunkBuffer.ToArray();
+            var chunkKeys = _chunkBuffer.ToArray();
 
             var entry = new Entry(chunkKeys, target);
             foreach (var key in chunkKeys)
