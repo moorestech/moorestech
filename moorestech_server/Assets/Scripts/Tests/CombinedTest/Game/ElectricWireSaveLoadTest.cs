@@ -135,16 +135,17 @@ namespace Tests.CombinedTest.Game
             var connectorB = blockB.GetComponent<IElectricWireConnector>();
             var connectorC = blockC.GetComponent<IElectricWireConnector>();
 
-            // 撤去前のコストを控えておき、GetRefundItemsの内容と突き合わせる
-            // Capture pre-removal costs to cross-check against GetRefundItems
+            // 配置座標(0,0)-(3,0)-(6,0)より各接続の距離は3。consumptionPerLength=1なので電線コストは3本ずつ
+            // Blocks at (0,0)-(3,0)-(6,0) put each connection at distance 3; with consumptionPerLength=1 each wire costs 3
             var costToA = connectorB.WireConnections[connectorA.BlockInstanceId].Cost;
             var costToC = connectorB.WireConnections[connectorC.BlockInstanceId].Cost;
-            var expectedRefundTotal = costToA.Count + costToC.Count;
+            Assert.AreEqual(3, costToA.Count);
+            Assert.AreEqual(3, costToC.Count);
 
             var refundItems = blockB.GetComponent<IGetRefundItemsInfo>().GetRefundItems();
             Assert.AreEqual(2, refundItems.Count);
             Assert.IsTrue(refundItems.All(item => item.Id == wireItemId));
-            Assert.AreEqual(expectedRefundTotal, refundItems.Sum(item => item.Count));
+            Assert.AreEqual(6, refundItems.Sum(item => item.Count));
 
             ServerContext.WorldBlockDatastore.RemoveBlock(posB, BlockRemoveReason.ManualRemove);
 
