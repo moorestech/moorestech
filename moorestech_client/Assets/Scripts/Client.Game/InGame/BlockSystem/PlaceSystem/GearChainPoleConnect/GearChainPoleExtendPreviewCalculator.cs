@@ -5,7 +5,6 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Blocks.GearChainPole;
 using Game.Block.Interface;
-using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.GearChain;
 using UnityEngine;
@@ -21,8 +20,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
     public static class GearChainPoleExtendPreviewCalculator
     {
         /// <summary>
-        /// 既存ポール同士の接続プレビューを計算する（状態③）
-        /// Calculate preview for connecting two existing poles (state 3)
+        /// 既存ポール同士の接続プレビューを計算する（チェーンアイテムモード）
+        /// Calculate preview for connecting two existing poles (chain item mode)
         /// </summary>
         public static GearChainPoleExtendPreviewData CalculatePoleToPole(Vector3Int fromPos, Vector3Int toPos, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, ItemId chainItemId)
         {
@@ -39,8 +38,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         }
 
         /// <summary>
-        /// 起点ポールから新規設置位置への延長プレビューを計算する（状態④）
-        /// Calculate preview for extending from a pole to a new placement position (state 4)
+        /// 起点ポールから新規設置位置への延長プレビューを計算する（ポールアイテムモード）
+        /// Calculate preview for extending from a pole to a new placement position (pole item mode)
         /// </summary>
         public static GearChainPoleExtendPreviewData CalculateExtend(Vector3Int fromPos, Vector3Int placePos, GearChainPoleBlockParam placingPoleParam, ItemId poleItemId, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, ItemId chainItemId)
         {
@@ -55,34 +54,51 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         }
 
         /// <summary>
-        /// インベントリから設置に使うポールアイテムを自動選択する（レールの橋脚選択と同方式）
-        /// Auto-select a pole item from inventory (same approach as rail pier selection)
+        /// アイテムが歯車チェーンポールのブロックアイテムならブロックマスタを返す
+        /// Resolve the block master when the item is a gear chain pole block item
         /// </summary>
-        public static bool TryFindPoleItemSlot(ILocalPlayerInventory playerInventory, out int slot, out ItemId poleItemId, out BlockMasterElement poleBlockMaster)
+        public static bool TryGetPoleBlockMaster(ItemId itemId, out BlockMasterElement poleBlockMaster)
         {
-            slot = -1;
-            poleItemId = ItemMaster.EmptyItemId;
             poleBlockMaster = null;
+            if (itemId == ItemMaster.EmptyItemId || !MasterHolder.BlockMaster.IsBlock(itemId)) return false;
 
-            // サブインベントリを含まないメインインベントリのみ走査する（スロット番号のずれ防止）
-            // Scan only the main inventory excluding sub inventories (prevents slot index mismatch)
-            var mainSlotCount = Mathf.Min(playerInventory.Count, PlayerInventoryConst.MainInventorySize);
-            for (var i = 0; i < mainSlotCount; i++)
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(MasterHolder.BlockMaster.GetBlockId(itemId));
+            if (blockMaster.BlockType != BlockMasterElement.BlockTypeConst.GearChainPole) return false;
+
+            poleBlockMaster = blockMaster;
+            return true;
+        }
+
+        /// <summary>
+        /// 延長接続で消費するチェーンアイテムをインベントリから自動選択する（未所持なら EmptyItemId）
+        /// Auto-select the chain item consumed by extension from inventory (EmptyItemId when none is owned)
+        /// </summary>
+        public static ItemId FindOwnedChainItemId(ILocalPlayerInventory playerInventory)
+        {
+            // 所持スロット順で最初に見つかったチェーンアイテムを採用する
+            // Adopt the first chain item found in inventory slot order
+            for (var i = 0; i < playerInventory.Count; i++)
             {
-                var stack = playerInventory[i];
-                if (!MasterHolder.BlockMaster.IsBlock(stack.Id)) continue;
-
-                var blockId = MasterHolder.BlockMaster.GetBlockId(stack.Id);
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                if (blockMaster.BlockType != BlockMasterElement.BlockTypeConst.GearChainPole) continue;
-
-                slot = i;
-                poleItemId = stack.Id;
-                poleBlockMaster = blockMaster;
-                return true;
+                var stackId = playerInventory[i].Id;
+                if (stackId == ItemMaster.EmptyItemId) continue;
+                if (IsChainItem(stackId)) return stackId;
             }
 
-            return false;
+            return ItemMaster.EmptyItemId;
+
+            #region Internal
+
+            bool IsChainItem(ItemId itemId)
+            {
+                foreach (var gearChainItem in MasterHolder.BlockMaster.Blocks.GearChainItems)
+                {
+                    if (MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid) == itemId) return true;
+                }
+
+                return false;
+            }
+
+            #endregion
         }
 
         /// <summary>
