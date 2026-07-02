@@ -24,13 +24,14 @@ test("水の流体スロットが量 500 を表示する", async ({ page }) => {
   await expect(page.getByTestId("fluid-slot").filter({ hasText: "500" })).toBeVisible();
 });
 
-test("Water 名のツールチップ要素が存在する", async ({ page }) => {
+test("Water 名のツールチップが hover で表示される", async ({ page }) => {
   await page.request.get("/__block?type=tank");
   await page.goto("/");
   await expect(page.getByTestId("tank-body")).toBeVisible();
-  // group-hover で表示されるツールチップは DOM 上に存在する
-  // The group-hover tooltip element is present in the DOM
-  await expect(page.getByText("Water")).toBeAttached();
+  // Mantine Tooltip は hover 時のみマウントされるため、開いてから可視検証する
+  // The Mantine Tooltip mounts only on hover, so open it before asserting visibility
+  await page.getByTestId("fluid-slot").first().hover();
+  await expect(page.getByText("Water")).toBeVisible();
 });
 
 test("progress-arrow のフィル幅が 50% になる", async ({ page }) => {

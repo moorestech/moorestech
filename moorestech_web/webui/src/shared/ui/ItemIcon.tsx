@@ -1,4 +1,5 @@
 import { useState } from "react";
+import styles from "./ItemIcon.module.css";
 
 type Props = {
   itemId: number;
@@ -14,11 +15,7 @@ export default function ItemIcon({ itemId, alt, className }: Props) {
   const [erroredItemId, setErroredItemId] = useState<number | null>(null);
 
   if (erroredItemId === itemId) {
-    return (
-      <span className={`flex items-center justify-center text-[10px] text-gray-400 ${className ?? ""}`}>
-        #{itemId}
-      </span>
-    );
+    return <span className={`${styles.fallback} ${className ?? ""}`}>#{itemId}</span>;
   }
 
   return (
