@@ -85,6 +85,19 @@ namespace Tests.UnitTest.Game.Chain
         }
 
         [Test]
+        public void EvaluateFailsWhenPoleItemEqualsChainItemAndCountIsOnlyChainCost()
+        {
+            // チェーンとポールが同一アイテムの場合は消費分+1が必要（3個では不足、4個で成功）
+            // When chain and pole are the same item, chain cost + 1 is required (3 fails, 4 succeeds)
+            var shortage = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _chainItemId, Items((_chainItemId, 3)), _chainItemId);
+            Assert.False(shortage.IsPlaceable);
+            Assert.AreEqual(GearChainPlacementEvaluator.NoPoleItemError, shortage.FailureReason);
+
+            var enough = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _chainItemId, Items((_chainItemId, 4)), _chainItemId);
+            Assert.True(enough.IsPlaceable);
+        }
+
+        [Test]
         public void EvaluateSucceedsWithChainCost()
         {
             // すべての条件を満たすケースで消費コストを検証する

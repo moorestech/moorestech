@@ -46,8 +46,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         {
             if (!TryGetPoleInfo(fromPos, blockGameObjectDataStore, out var fromInfo)) return GearChainPoleExtendPreviewData.Invalid;
 
+            // 新規ポール側は接続容量0の場合のみ上限超過として扱う
+            // Treat the new pole as full only when its connection capacity is zero
+            var anyConnectionFull = fromInfo.IsConnectionFull || placingPoleParam.MaxConnectionCount < 1;
             var distance = Vector3Int.Distance(fromPos, placePos);
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, fromInfo.IsConnectionFull, chainItemId, playerInventory, poleItemId);
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, chainItemId, playerInventory, poleItemId);
             return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement.IsPlaceable);
         }
 

@@ -69,17 +69,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 if (_connectFromPole == null)
                 {
                     _previewObject.HideLine();
-                    if (IsScreenClicked()) SelectSourcePole();
+                    if (IsScreenClicked()) { _connectFromPole = hitPole; _requestSender.Invalidate(); }
                     return;
                 }
 
                 var fromPos = _connectFromPole.GetBlockPosition();
                 var toPos = hitPole.GetBlockPosition();
-                if (fromPos == toPos)
-                {
-                    _previewObject.HideLine();
-                    return;
-                }
+                if (fromPos == toPos) { _previewObject.HideLine(); return; }
 
                 // 状態③: 起点↔対象ポールの接続プレビューを表示する
                 // State 3: preview the connection between the source and target poles
@@ -89,7 +85,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                     // 起点情報が解決できない場合はクリックで起点を選び直せるようにする（消失ポール対策）
                     // Allow re-selecting the source by click when it cannot be resolved (handles removed poles)
                     _previewObject.HideLine();
-                    if (IsScreenClicked()) SelectSourcePole();
+                    if (IsScreenClicked()) { _connectFromPole = hitPole; _requestSender.Invalidate(); }
                     return;
                 }
                 _previewObject.ShowLine(previewData.StartPoint, previewData.EndPoint, previewData.IsPlaceable);
@@ -110,7 +106,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 // Auto-select a pole item from inventory
                 if (!GearChainPoleExtendPreviewCalculator.TryFindPoleItemSlot(_playerInventory, out var poleSlot, out var poleItemId, out var poleBlockMaster))
                 {
-                    _previewObject.Hide();
+                    ShowNoPoleItemPreview();
                     return;
                 }
 
@@ -155,10 +151,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 _requestSender.Send(fromPos, poleSlot, placeInfo, context.HoldingItemId, placedPole => _connectFromPole = placedPole);
             }
 
-            void SelectSourcePole()
+            void ShowNoPoleItemPreview()
             {
-                _connectFromPole = hitPole;
-                _requestSender.Invalidate();
+                // ポール未所持時は起点からの赤い線のみ表示する（状態④のNoPoleItem可視化）
+                // Show only a red line from the source when no pole item is owned (state 4)
+                _previewObject.HideGhost();
+                if (_connectFromPole == null || !PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var hitPosition, out _)) { _previewObject.Hide(); return; }
+                _previewObject.ShowLine(GearChainPoleExtendPreviewCalculator.GetPoleCenter(_connectFromPole.GetBlockPosition()), hitPosition, false);
             }
 
             bool CanSendPlace(bool placeable)

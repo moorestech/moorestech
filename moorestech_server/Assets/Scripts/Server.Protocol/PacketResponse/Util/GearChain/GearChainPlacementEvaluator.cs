@@ -50,9 +50,10 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             if (!TryCalculateChainCost(chainItemId, connectionDistance, out var chainCost)) return GearChainPlacementJudgement.Failure(NoItemError);
             if (CountItem(chainItemId) < chainCost.Count) return GearChainPlacementJudgement.Failure(NoItemError);
 
-            // 延長設置時はポールアイテムの所持を確認する
-            // Ensure a pole item is owned when extending
-            if (poleItemId != ItemMaster.EmptyItemId && CountItem(poleItemId) < 1) return GearChainPlacementJudgement.Failure(NoPoleItemError);
+            // 延長設置時はポールアイテムの所持を確認する（チェーンと同一アイテムなら消費分を上乗せして判定）
+            // Ensure a pole item is owned when extending (require chain cost on top when it is the same item)
+            var requiredPoleCount = poleItemId == chainItemId ? chainCost.Count + 1 : 1;
+            if (poleItemId != ItemMaster.EmptyItemId && CountItem(poleItemId) < requiredPoleCount) return GearChainPlacementJudgement.Failure(NoPoleItemError);
 
             return GearChainPlacementJudgement.Success(chainCost);
 
