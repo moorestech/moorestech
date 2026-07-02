@@ -53,6 +53,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 };
             }
             
+            // 歯車チェーンポールのブロックアイテムは専用の接続システムで設置する
+            // Gear chain pole block items are placed via the dedicated connection system
+            if (GearChainPoleExtendPreviewCalculator.TryGetPoleBlockMaster(context.HoldingItemId, out _))
+            {
+                return _gearChainPoleConnectSystem;
+            }
+
             // ブロックアイテムの場合は共通ブロック設置システムを返す
             // For block items, return common block place system
             if (MasterHolder.BlockMaster.IsBlock(context.HoldingItemId))
