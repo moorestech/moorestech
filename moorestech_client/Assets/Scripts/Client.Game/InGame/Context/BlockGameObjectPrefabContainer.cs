@@ -118,15 +118,9 @@ namespace Client.Game.InGame.Context
                     blockObj = block.AddComponent<BlockGameObject>();
                 }
 
-                // 実行時のMeshCollider追加をやめ、既にColliderがある子にのみBlockGameObjectChildを付ける
-                // Stop adding MeshColliders at runtime; add BlockGameObjectChild only to children that already have a Collider
-                foreach (var childCollider in blockObj.GetComponentsInChildren<Collider>())
-                {
-                    // 同一オブジェクトに複数Colliderがあっても二重付与しない
-                    // Avoid double-attaching when one object has multiple Colliders
-                    if (childCollider.TryGetComponent<BlockGameObjectChild>(out _)) continue;
-                    childCollider.gameObject.AddComponent<BlockGameObjectChild>();
-                }
+                // 既存Colliderへの付与と、実行時Collider皆無ブロックへの旧来フォールバックを行う
+                // Attach to existing colliders, with legacy fallback for blocks that have no runtime colliders
+                BlockGameObjectColliderSetup.SetupColliders(blockObj);
 
                 blockObj.gameObject.SetActive(true);
                 var blockType = blockMasterElement.BlockType;
