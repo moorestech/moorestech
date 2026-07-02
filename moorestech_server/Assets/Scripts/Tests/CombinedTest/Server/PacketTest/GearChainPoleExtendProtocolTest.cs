@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var placePos = new Vector3Int(5, 0, 5);
             var response = SendIsolated(placePos);
 
-            // 接続なしで設置され、チェーンは消費されないことを検証する
+            // 接続なしで設置されチェーン非消費を検証
             // Verify pole placed without connection and no chain consumed
             Assert.True(response.IsSuccess);
             Assert.True(ServerContext.WorldBlockDatastore.Exists(placePos));
@@ -133,7 +133,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var response = SendExtend(placePos);
             Assert.False(response.IsSuccess);
-            Assert.AreEqual("PositionOccupied", response.Error);
+            Assert.AreEqual(GearChainPlacementEvaluator.PositionOccupiedError, response.Error);
             Assert.AreEqual(5, CountItem(_chainItemId));
             Assert.AreEqual(1, CountItem(_poleItemId));
         }

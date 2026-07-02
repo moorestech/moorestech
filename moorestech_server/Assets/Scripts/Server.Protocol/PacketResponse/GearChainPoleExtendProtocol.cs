@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
 
             // 設置先が空いているか確認する
             // Ensure the placement position is free
-            if (ServerContext.WorldBlockDatastore.Exists(placePosition)) return GearChainPoleExtendResponse.CreateFailed("PositionOccupied");
+            if (ServerContext.WorldBlockDatastore.Exists(placePosition)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.PositionOccupiedError);
 
             // スロット番号の妥当性を確認する（不正クライアント対策）
             // Validate the slot index (guards against malformed clients)
@@ -56,24 +56,23 @@ namespace Server.Protocol.PacketResponse
 
             // 起点ありの場合は接続可否を設置前にすべて検証する
             // With a from pole, validate connection viability before placing
-            var chainItemId = new ItemId(request.ChainItemId);
             if (request.HasFromPole)
             {
-                if (!GearChainSystemUtil.TryGetGearChainPole(request.FromPolePosVector, out var fromPole, out _)) return GearChainPoleExtendResponse.CreateFailed("InvalidTarget");
+                if (!GearChainSystemUtil.TryGetGearChainPole(request.FromPolePosVector, out var fromPole, out _)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InvalidTargetError);
 
                 var distance = Vector3Int.Distance(request.FromPolePosVector, placePosition);
-                var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromPole.MaxConnectionDistance, poleParam.MaxConnectionDistance, false, fromPole.IsConnectionFull, chainItemId, inventory.InventoryItems, poleItemStack.Id);
+                var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromPole.MaxConnectionDistance, poleParam.MaxConnectionDistance, false, fromPole.IsConnectionFull, request.ChainItemId, inventory.InventoryItems, poleItemStack.Id);
                 if (!judgement.IsPlaceable) return GearChainPoleExtendResponse.CreateFailed(judgement.FailureReason);
             }
 
             // ブロックを設置する
             // Place the block
             var createParams = request.PolePlaceInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placePosition, request.PolePlaceInfo.Direction, createParams, out var block)) return GearChainPoleExtendResponse.CreateFailed("PositionOccupied");
+            if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placePosition, request.PolePlaceInfo.Direction, createParams, out var block)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.PositionOccupiedError);
 
-            // 起点ありの場合はチェーン接続とチェーンアイテム消費を実行する
+            // 起点ありならチェーン接続とアイテム消費
             // With a from pole, connect the chain and consume chain items
-            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, request.PlayerId, chainItemId, out var connectError))
+            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, request.PlayerId, request.ChainItemId, out var connectError))
             {
                 // 事前検証済みのため通常到達しないが、孤立ポールを残さないよう設置を取り消す
                 // Unreachable after pre-validation; remove the block to avoid leaving an orphan pole
@@ -97,7 +96,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack PolePlaceInfo { get; set; }
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public int PoleInventorySlot { get; set; }
-            [Key(7)] public int ChainItemId { get; set; }
+            [Key(7)] public ItemId ChainItemId { get; set; }
 
             [IgnoreMember] public Vector3Int FromPolePosVector => FromPolePos;
 
@@ -116,7 +115,7 @@ namespace Server.Protocol.PacketResponse
                     PolePlaceInfo = new PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleInventorySlot = poleInventorySlot,
-                    ChainItemId = chainItemId.AsPrimitive(),
+                    ChainItemId = chainItemId,
                 };
             }
 
@@ -129,7 +128,7 @@ namespace Server.Protocol.PacketResponse
                     PolePlaceInfo = new PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleInventorySlot = poleInventorySlot,
-                    ChainItemId = 0,
+                    ChainItemId = ItemMaster.EmptyItemId,
                 };
             }
         }

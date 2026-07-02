@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.Chain
         [SetUp]
         public void SetUp()
         {
-            // マスタデータをロードするためにDIコンテナを初期化する
+            // マスタロードのためDIコンテナを初期化
             // Initialize DI container to load master data
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Game.Chain
         [Test]
         public void EvaluateFailsWhenChainItemIsNotEnough()
         {
-            // 距離3に対して2個しかチェーンを持たないケースを判定する
+            // 距離3にチェーン2個のみのケースを判定
             // Judge a case owning only 2 chains for distance 3
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _chainItemId, Items((_chainItemId, 2)), ItemMaster.EmptyItemId);
             Assert.False(judgement.IsPlaceable);
@@ -67,7 +67,7 @@ namespace Tests.UnitTest.Game.Chain
         [Test]
         public void EvaluateFailsWhenItemIsNotChainItem()
         {
-            // チェーン設定に無いアイテムを指定したケースを判定する
+            // チェーン設定外アイテム指定のケースを判定
             // Judge a case specifying an item not in the chain master
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _poleItemId, Items((_poleItemId, 20)), ItemMaster.EmptyItemId);
             Assert.False(judgement.IsPlaceable);
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game.Chain
         [Test]
         public void EvaluateFailsWhenPoleItemIsMissing()
         {
-            // チェーンは足りるがポールアイテムを持たないケースを判定する
+            // チェーン十分だがポール不足のケースを判定
             // Judge a case with enough chains but no pole item
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _chainItemId, Items((_chainItemId, 5)), _poleItemId);
             Assert.False(judgement.IsPlaceable);

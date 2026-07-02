@@ -23,13 +23,13 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             if (!foundA || !foundB)
             {
-                error = $"InvalidTarget (foundA={foundA}, foundB={foundB})";
+                error = $"{GearChainPlacementEvaluator.InvalidTargetError} (foundA={foundA}, foundB={foundB})";
                 return false;
             }
-            
+
             if (poleA.BlockInstanceId == poleB.BlockInstanceId)
             {
-                error = "InvalidTarget";
+                error = GearChainPlacementEvaluator.InvalidTargetError;
                 return false;
             }
             
@@ -95,7 +95,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             error = string.Empty;
             if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
             {
-                error = "InvalidTarget";
+                error = GearChainPlacementEvaluator.InvalidTargetError;
                 return false;
             }
 
