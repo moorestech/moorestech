@@ -43,7 +43,7 @@ test("ダブルクリックで同種を集約し、collect はクリックされ
   // collect 反映(15)後に確認するので、失敗トースト(3s生存)が出ていれば下の bounded 0件アサートは失敗する
   // The stale second pickup fails with empty_slot on the host, but as a benign op it must not toast.
   // Checked after collect settles (15); a failure toast (lives 3s) would still be present and fail this bounded assert
-  await expect(page.locator(".fixed.bottom-4.right-4").getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
+  await expect(page.getByTestId("toast-host").getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
 });
 
 test("右クリックで inventory.split を送る", async ({ page }) => {

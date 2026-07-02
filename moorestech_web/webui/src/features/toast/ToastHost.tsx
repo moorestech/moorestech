@@ -1,4 +1,6 @@
+import { Notification, Stack } from "@mantine/core";
 import { useToastStore } from "./toastStore";
+import styles from "./style.module.css";
 
 // 画面右下にトーストを表示するホスト。自動消滅は store 側（addToast）で管理
 // Toast host pinned to the bottom-right; auto-dismiss is handled in the store (addToast)
@@ -6,12 +8,12 @@ export default function ToastHost() {
   const toasts = useToastStore((s) => s.toasts);
 
   return (
-    <div className="fixed bottom-4 right-4 space-y-2 z-50">
+    <Stack gap="xs" className={styles.host} data-testid="toast-host">
       {toasts.map((t) => (
-        <div key={t.id} className="bg-red-800 text-white text-sm rounded px-3 py-2 shadow">
+        <Notification key={t.id} color="red" withCloseButton={false} withBorder>
           {t.message}
-        </div>
+        </Notification>
       ))}
-    </div>
+    </Stack>
   );
 }
