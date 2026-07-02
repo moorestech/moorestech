@@ -107,13 +107,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // クライアント側のBlockGameObjectがスポーンするまで待機
                 // Wait until the client-side BlockGameObject spawns.
-                BlockGameObject blockGameObject = null;
-                for (var i = 0; i < 60 && blockGameObject == null; i++)
-                {
-                    ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(pos, out blockGameObject);
-                    await UniTask.Yield();
-                }
-                Assert.IsNotNull(blockGameObject, "client BlockGameObject not spawned");
+                var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
                 // UIをDI経由で生成しInitializeする
                 // Instantiate the UI via DI and initialize it.

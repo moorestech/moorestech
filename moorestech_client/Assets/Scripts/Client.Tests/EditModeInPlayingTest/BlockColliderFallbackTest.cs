@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
@@ -14,16 +15,16 @@ namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
-    /// Collider皆無プレハブへのフォールバック付与と、既存Colliderプレハブの非フォールバックを実機で検証する
+    /// Collider皆無プレハブへのフォールバック付与と、既存Colliderプレハブの非フォールバックをRaycastで実機検証する
     /// This test runs in EditMode but switches to PlayMode during execution.
-    /// Verifies the fallback attaches colliders to collider-less prefabs and doesn't fire for authored ones.
+    /// Verifies via raycast that the fallback attaches colliders to collider-less prefabs and doesn't fire for authored ones.
     /// </summary>
     public class BlockColliderFallbackTest
     {
-        // Fast_BeltConveyor_Straightは自前Collider無し、gear belt conveyorはBoxCollider1つ持ち
-        // Fast_BeltConveyor_Straight has no authored collider; gear belt conveyor has one BoxCollider
+        // Fast_BeltConveyor_Straightは自前Collider無し、stone crasherはBlockレイヤーのCapsuleCollider持ち
+        // Fast_BeltConveyor_Straight has no authored collider; stone crasher has a Block-layer CapsuleCollider
         private const string NoColliderBlockName = "直進高速ベルトコンベア";
-        private const string AuthoredColliderBlockName = "直線歯車ベルトコンベア";
+        private const string AuthoredColliderBlockName = "石の粉砕機";
 
         [UnityTest]
         public IEnumerator ColliderlessBlock_GetsFallbackCollider_AuthoredBlock_DoesNot()
@@ -52,47 +53,48 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 await LoadMainGame();
 
-                // Collider皆無ブロックを設置し、フォールバックでMeshColliderとChildが付くことを確認
-                // Place the collider-less block and verify the fallback attaches a MeshCollider and child component
-                var noColliderBlock = await PlaceAndWaitBlock(NoColliderBlockName, new Vector3Int(0, 0, 0));
-                var fallbackColliders = GetEffectiveColliders(noColliderBlock);
-                Assert.IsNotEmpty(fallbackColliders, "collider-less block has no runtime collider (fallback did not fire)");
+                // Collider皆無ブロックはフォールバックでMeshColliderが付き、クリックRaycastが通ることを確認
+                // The collider-less block gains fallback MeshColliders and becomes hittable by the click raycast
+                PlaceBlock(NoColliderBlockName, new Vector3Int(0, 0, 0), BlockDirection.North);
+                var noColliderBlock = await WaitBlockGameObjectSpawn(new Vector3Int(0, 0, 0));
+                var fallbackColliders = GetClickableColliders(noColliderBlock);
+                Assert.IsNotEmpty(fallbackColliders, "collider-less block has no clickable collider (fallback did not fire)");
                 Assert.IsTrue(fallbackColliders.All(c => c is MeshCollider), "fallback colliders should be MeshColliders");
-                Assert.IsTrue(fallbackColliders.All(c => c.TryGetComponent<BlockGameObjectChild>(out _)),
-                    "fallback collider object lacks BlockGameObjectChild (click resolution would fail)");
+                AssertClickRaycastResolvesBlock(noColliderBlock, fallbackColliders);
 
-                // 既存Collider持ちブロックはフォールバックせず、MeshColliderが増えないことを確認
-                // Verify the authored-collider block doesn't trigger the fallback and gains no MeshCollider
-                var authoredBlock = await PlaceAndWaitBlock(AuthoredColliderBlockName, new Vector3Int(5, 0, 0));
-                var authoredColliders = GetEffectiveColliders(authoredBlock);
-                Assert.IsNotEmpty(authoredColliders, "authored-collider block has no runtime collider");
-                Assert.IsTrue(authoredColliders.All(c => c is BoxCollider), "authored block should only have its BoxCollider (no fallback MeshCollider)");
-                Assert.IsTrue(authoredColliders.All(c => c.TryGetComponent<BlockGameObjectChild>(out _)),
-                    "authored collider object lacks BlockGameObjectChild");
+                // 既存Collider持ちブロックはフォールバックせず（MeshCollider無し）、Raycastが通ることを確認
+                // The authored-collider block doesn't fall back (no MeshCollider) and is hittable by the raycast
+                PlaceBlock(AuthoredColliderBlockName, new Vector3Int(10, 0, 10), BlockDirection.North);
+                var authoredBlock = await WaitBlockGameObjectSpawn(new Vector3Int(10, 0, 10));
+                var authoredColliders = GetClickableColliders(authoredBlock);
+                Assert.IsNotEmpty(authoredColliders, "authored-collider block has no clickable collider");
+                Assert.IsTrue(authoredColliders.All(c => c is not MeshCollider), "authored block should not gain fallback MeshColliders");
+                AssertClickRaycastResolvesBlock(authoredBlock, authoredColliders);
             }
 
-            async UniTask<BlockGameObject> PlaceAndWaitBlock(string blockName, Vector3Int pos)
+            Collider[] GetClickableColliders(BlockGameObject blockGameObject)
             {
-                // サーバー側に設置し、クライアント側のBlockGameObjectがスポーンするまで待機
-                // Place on the server and wait until the client-side BlockGameObject spawns
-                PlaceBlock(blockName, pos, BlockDirection.North);
-                BlockGameObject blockGameObject = null;
-                for (var i = 0; i < 180 && blockGameObject == null; i++)
-                {
-                    ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(pos, out blockGameObject);
-                    await UniTask.Yield();
-                }
-                Assert.IsNotNull(blockGameObject, $"client BlockGameObject not spawned: {blockName}");
-                return blockGameObject;
-            }
-
-            Collider[] GetEffectiveColliders(BlockGameObject blockGameObject)
-            {
-                // アクティブかつ有効なColliderのみを実行時有効として数える（PreviewOnly配下は非アクティブ化済み）
-                // Count only active+enabled colliders as runtime-effective (preview-only subtrees are already deactivated)
+                // 本番と同じ判定（BlockGameObjectColliderSetup.IsClickableCollider）でクリック可能Colliderを抽出
+                // Extract clickable colliders using the same production predicate
                 return blockGameObject.GetComponentsInChildren<Collider>()
-                    .Where(c => c.enabled)
+                    .Where(c => BlockGameObjectColliderSetup.IsClickableCollider(blockGameObject.transform, c))
                     .ToArray();
+            }
+
+            void AssertClickRaycastResolvesBlock(BlockGameObject blockGameObject, Collider[] clickableColliders)
+            {
+                // クリック処理と同じレイヤーマスクで真上からRaycastし、対象ブロックへ解決できることを確認
+                // Raycast downward with the click layer mask and verify it resolves to the target block
+                var bounds = clickableColliders[0].bounds;
+                foreach (var clickableCollider in clickableColliders) bounds.Encapsulate(clickableCollider.bounds);
+
+                var origin = bounds.center + Vector3.up * 10f;
+                var isHit = Physics.Raycast(origin, Vector3.down, out var hit, 50f, LayerConst.BlockOnlyLayerMask);
+                Assert.IsTrue(isHit, $"click raycast did not hit any Block-layer collider: {blockGameObject.name}");
+
+                var child = hit.collider.gameObject.GetComponentInChildren<BlockGameObjectChild>();
+                Assert.IsNotNull(child, $"hit collider has no BlockGameObjectChild: {hit.collider.name}");
+                Assert.AreEqual(blockGameObject, child.BlockGameObject, "raycast hit resolved to a different block");
             }
 
             #endregion
