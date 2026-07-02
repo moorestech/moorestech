@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { Group, Title } from "@mantine/core";
 import { InventoryPanel } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
@@ -15,15 +16,15 @@ const DebugActionButton = import.meta.env.DEV ? lazy(() => import("./DebugAction
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
   return (
-    <div className={`p-4 min-h-screen ${styles.layout}`}>
-      <div className="flex items-center gap-4 [grid-area:header]">
-        <h1 className="text-2xl font-bold">moorestech Web UI</h1>
+    <div className={styles.layout}>
+      <Group gap="md" style={{ gridArea: "header" }}>
+        <Title order={1} size="h3">moorestech Web UI</Title>
         {DebugActionButton ? (
           <Suspense fallback={null}>
             <DebugActionButton />
           </Suspense>
         ) : null}
-      </div>
+      </Group>
       <InventoryPanel />
       <RecipeViewer />
       <ItemListPanel />
