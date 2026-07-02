@@ -1,0 +1,14 @@
+/* ホットバーを下段グリッド領域の中央へ配置する外枠と、枠線付きの内枠 */
+/* Outer wrapper centering the hotbar in the bottom grid area, plus its bordered frame */
+.hotbarArea {
+  grid-area: hotbar;
+  display: flex;
+  justify-content: center;
+}
+
+.hotbarFrame {
+  border: 1px solid var(--mantine-color-dark-3);
+  border-radius: var(--mantine-radius-sm);
+  background-color: rgba(31, 31, 31, 0.6);
+  padding: 0.25rem;
+}

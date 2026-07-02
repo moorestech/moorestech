@@ -1,11 +1,13 @@
 import { useEffect } from "react";
+import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { useTopic, dispatchAction, Topics } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
-import { ItemSlot } from "@/shared/ui";
+import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { InventoryArea, SlotData, SlotRef } from "@/bridge/payloadTypes";
 import { resolveDirectMoveTarget } from "../inventoryLogic";
 import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
 import GrabOverlay from "./GrabOverlay";
+import styles from "./style.module.css";
 
 const GRAB: SlotRef = { area: "grab", slot: 0 };
 
@@ -48,7 +50,7 @@ export default function InventoryPanel() {
   };
 
   if (!inventory) {
-    return <div className="text-sm text-gray-400 [grid-area:inv]">connecting...</div>;
+    return <Text size="sm" c="dimmed" style={{ gridArea: "inv" }}>connecting...</Text>;
   }
 
   const grabHeld = inventory.grab.count > 0;
@@ -119,29 +121,23 @@ export default function InventoryPanel() {
 
   return (
     <>
-      <div className="space-y-3 [grid-area:inv]">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold">Inventory</h2>
-          <button
-            onClick={() => void dispatchAction("inventory.sort", {})}
-            className="bg-gray-700 hover:bg-gray-600 text-sm rounded px-3 py-1"
-          >
+      <Stack gap="sm" style={{ gridArea: "inv" }}>
+        <Group gap="sm">
+          <Title order={2} size="h4">Inventory</Title>
+          <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
             Sort
-          </button>
-        </div>
-        <div className="grid grid-cols-9 gap-1 w-fit">
+          </Button>
+        </Group>
+        <SlotGrid testId="main-grid">
           {inventory.mainSlots.map((s, i) => renderSlot("main", i, s))}
-        </div>
-      </div>
+        </SlotGrid>
+      </Stack>
       {/* ホットバーは uGUI と同様に画面下段の中央へ独立配置 */}
       {/* The hotbar sits independently at the bottom center, matching uGUI */}
-      <div className="[grid-area:hotbar] flex justify-center">
-        <div
-          className="grid grid-cols-9 gap-1 w-fit rounded border border-gray-500 bg-gray-800/60 p-1"
-          onWheel={onHotbarWheel}
-        >
+      <div className={styles.hotbarArea}>
+        <SlotGrid testId="hotbar-grid" className={styles.hotbarFrame} onWheel={onHotbarWheel}>
           {inventory.hotbarSlots.map((s, i) => renderSlot("hotbar", i, s))}
-        </div>
+        </SlotGrid>
       </div>
       <GrabOverlay grab={inventory.grab} />
     </>
