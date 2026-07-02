@@ -1,5 +1,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { MantineProvider } from "@mantine/core";
+// Mantine のグローバル CSS より index.css を後に読み、CEF 透過の body 背景を勝たせる
+// Load index.css after Mantine globals so the CEF-transparent body background wins
+import "@mantine/core/styles.css";
 import App from "@/app/App";
 import "@/app/index.css";
 import { setToastSink } from "@/bridge/notify";
@@ -11,6 +15,8 @@ setToastSink(emitToast);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <MantineProvider defaultColorScheme="dark">
+      <App />
+    </MantineProvider>
   </StrictMode>
 );
