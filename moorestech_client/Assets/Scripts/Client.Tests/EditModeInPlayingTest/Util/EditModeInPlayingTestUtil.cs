@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Starter;
 using Core.Item.Interface;
@@ -138,6 +139,20 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             return block;
         }
         
+        public static async UniTask<BlockGameObject> WaitBlockGameObjectSpawn(Vector3Int position)
+        {
+            // クライアント側のBlockGameObjectがスポーンするまで待機する
+            // Wait until the client-side BlockGameObject spawns
+            BlockGameObject blockGameObject = null;
+            for (var i = 0; i < 180 && blockGameObject == null; i++)
+            {
+                ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(position, out blockGameObject);
+                await UniTask.Yield();
+            }
+            Assert.IsNotNull(blockGameObject, $"client BlockGameObject not spawned at {position}");
+            return blockGameObject;
+        }
+
         public static bool RemoveBlock(Vector3Int position)
         {
             return ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);

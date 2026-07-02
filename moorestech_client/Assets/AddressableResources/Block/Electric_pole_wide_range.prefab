@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &478785683252813120
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4656008714130997157}
+  - component: {fileID: 7317019667047120626}
+  m_Layer: 7
+  m_Name: ClickCollider
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4656008714130997157
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 478785683252813120}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.5, y: 2.2140913, z: 0.49064693}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1727092837983728231}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7317019667047120626
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 478785683252813120}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.4893608, y: 4.4461823, z: 0.99555504}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6487741483728375589
 GameObject:
   m_ObjectHideFlags: 0
@@ -160,9 +213,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2111956852526239060, guid: aa6c93f707827450ba679d52727164eb, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8921408973457575416, guid: aa6c93f707827450ba679d52727164eb, type: 3}
       propertyPath: m_Name
-      value: Electric_pole_wide_range Variant
+      value: Electric_pole_wide_range
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -170,6 +227,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 91238223757325636, guid: aa6c93f707827450ba679d52727164eb, type: 3}
       insertIndex: 0
       addedObject: {fileID: 1447634117163948912}
+    - targetCorrespondingSourceObject: {fileID: 91238223757325636, guid: aa6c93f707827450ba679d52727164eb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4656008714130997157}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: aa6c93f707827450ba679d52727164eb, type: 3}
 --- !u!4 &1727092837983728231 stripped

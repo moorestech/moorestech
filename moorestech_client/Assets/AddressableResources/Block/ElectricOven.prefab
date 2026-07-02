@@ -221,6 +221,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6187300460818443046}
     m_Modifications:
+    - target: {fileID: 1758001168717133791, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3768646863689960170, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
       propertyPath: m_Name
       value: itemshooter straight_2
@@ -283,6 +287,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6187300460818443046}
     m_Modifications:
+    - target: {fileID: 1758001168717133791, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3768646863689960170, guid: 5d884e7556f41f74f85a834f48830b6e, type: 3}
       propertyPath: m_Name
       value: itemshooter straight_1
