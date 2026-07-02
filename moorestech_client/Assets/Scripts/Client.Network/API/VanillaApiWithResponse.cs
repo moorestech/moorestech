@@ -339,6 +339,30 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
         }
 
+        // 起点ポールから新規ポールを自動設置しつつチェーン接続する
+        // Place a new pole from the source pole and connect the chain
+        public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> ExtendGearChainPole(
+            Vector3Int fromPolePos,
+            int poleInventorySlot,
+            PlaceInfo polePlaceInfo,
+            ItemId chainItemId,
+            CancellationToken ct)
+        {
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleInventorySlot, polePlaceInfo, chainItemId);
+            return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
+        }
+
+        // 接続なしの孤立ポールを設置する
+        // Place an isolated pole without any connection
+        public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> PlaceIsolatedGearChainPole(
+            int poleInventorySlot,
+            PlaceInfo polePlaceInfo,
+            CancellationToken ct)
+        {
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleInventorySlot, polePlaceInfo);
+            return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
+        }
+
         private List<IItemStack> CreateStacks(ItemMessagePack[] items)
         {
             // メッセージパックからアイテムスタックを生成

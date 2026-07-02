@@ -1,0 +1,111 @@
+using Core.Item.Interface;
+using Core.Master;
+using Game.Context;
+using NUnit.Framework;
+using Server.Boot;
+using Server.Protocol.PacketResponse.Util.GearChain;
+using Tests.Module;
+using Tests.Module.TestMod;
+
+namespace Tests.UnitTest.Game.Chain
+{
+    public class GearChainPlacementEvaluatorTest
+    {
+        private ItemId _chainItemId;
+        private ItemId _poleItemId;
+
+        [SetUp]
+        public void SetUp()
+        {
+            // マスタデータをロードするためにDIコンテナを初期化する
+            // Initialize DI container to load master data
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            _chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            _poleItemId = MasterHolder.BlockMaster.GetItemId(ForUnitTestModBlockId.GearChainPole);
+        }
+
+        [Test]
+        public void EvaluateFailsWhenDistanceTooFar()
+        {
+            // 距離が両端上限のminを超えるケースを判定する
+            // Judge a case where distance exceeds the min of both limits
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(11f, 10f, 20f, false, false, _chainItemId, Items((_chainItemId, 20)), ItemMaster.EmptyItemId);
+            Assert.False(judgement.IsPlaceable);
+            Assert.AreEqual(GearChainPlacementEvaluator.TooFarError, judgement.FailureReason);
+        }
+
+        [Test]
+        public void EvaluateFailsWhenAlreadyConnected()
+        {
+            // 既に接続済みのペアを判定する
+            // Judge a pair that is already connected
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, true, false, _chainItemId, Items((_chainItemId, 20)), ItemMaster.EmptyItemId);
+            Assert.False(judgement.IsPlaceable);
+            Assert.AreEqual(GearChainPlacementEvaluator.AlreadyConnectedError, judgement.FailureReason);
+        }
+
+        [Test]
+        public void EvaluateFailsWhenConnectionFull()
+        {
+            // 接続数上限に達しているケースを判定する
+            // Judge a case where the connection count is full
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, true, _chainItemId, Items((_chainItemId, 20)), ItemMaster.EmptyItemId);
+            Assert.False(judgement.IsPlaceable);
+            Assert.AreEqual(GearChainPlacementEvaluator.ConnectionLimitError, judgement.FailureReason);
+        }
+
+        [Test]
+        public void EvaluateFailsWhenChainItemIsNotEnough()
+        {
+            // 距離3に対して2個しかチェーンを持たないケースを判定する
+            // Judge a case owning only 2 chains for distance 3
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _chainItemId, Items((_chainItemId, 2)), ItemMaster.EmptyItemId);
+            Assert.False(judgement.IsPlaceable);
+            Assert.AreEqual(GearChainPlacementEvaluator.NoItemError, judgement.FailureReason);
+        }
+
+        [Test]
+        public void EvaluateFailsWhenItemIsNotChainItem()
+        {
+            // チェーン設定に無いアイテムを指定したケースを判定する
+            // Judge a case specifying an item not in the chain master
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _poleItemId, Items((_poleItemId, 20)), ItemMaster.EmptyItemId);
+            Assert.False(judgement.IsPlaceable);
+            Assert.AreEqual(GearChainPlacementEvaluator.NoItemError, judgement.FailureReason);
+        }
+
+        [Test]
+        public void EvaluateFailsWhenPoleItemIsMissing()
+        {
+            // チェーンは足りるがポールアイテムを持たないケースを判定する
+            // Judge a case with enough chains but no pole item
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _chainItemId, Items((_chainItemId, 5)), _poleItemId);
+            Assert.False(judgement.IsPlaceable);
+            Assert.AreEqual(GearChainPlacementEvaluator.NoPoleItemError, judgement.FailureReason);
+        }
+
+        [Test]
+        public void EvaluateSucceedsWithChainCost()
+        {
+            // すべての条件を満たすケースで消費コストを検証する
+            // Verify chain cost in a fully valid case
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(3f, 10f, 10f, false, false, _chainItemId, Items((_chainItemId, 5), (_poleItemId, 1)), _poleItemId);
+            Assert.True(judgement.IsPlaceable);
+            Assert.AreEqual(_chainItemId, judgement.ChainCost.ItemId);
+            Assert.AreEqual(3, judgement.ChainCost.Count);
+        }
+
+        private static IItemStack[] Items(params (ItemId id, int count)[] items)
+        {
+            // 指定内容のインベントリ相当スタック配列を生成する
+            // Build stack array equivalent to an inventory
+            var stacks = new IItemStack[items.Length];
+            for (var i = 0; i < items.Length; i++)
+            {
+                stacks[i] = ServerContext.ItemStackFactory.Create(items[i].id, items[i].count);
+            }
+
+            return stacks;
+        }
+    }
+}
