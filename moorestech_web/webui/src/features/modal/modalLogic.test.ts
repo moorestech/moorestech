@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { respondPayload, buttonClass } from "./modalLogic";
+import { respondPayload, buttonColor } from "./modalLogic";
 
 describe("respondPayload", () => {
   it("id と confirm 結果をそのまま返す", () => {
@@ -10,11 +10,13 @@ describe("respondPayload", () => {
   });
 });
 
-describe("buttonClass", () => {
-  it("confirm は青系を含む", () => {
-    expect(buttonClass("confirm")).toContain("bg-blue-700");
+// variant→Mantine color の対応。confirm は青、error は赤（uGUI の色分け準拠）
+// variant→Mantine color mapping; confirm is blue, error is red, mirroring uGUI
+describe("buttonColor", () => {
+  it("confirm variant は blue", () => {
+    expect(buttonColor("confirm")).toBe("blue");
   });
-  it("error は赤系を含む", () => {
-    expect(buttonClass("error")).toContain("bg-red-700");
+  it("error variant は red", () => {
+    expect(buttonColor("error")).toBe("red");
   });
 });
