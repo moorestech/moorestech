@@ -107,6 +107,34 @@ namespace Tests.UnitTest.Server
         }
 
         [Test]
+        public void ポールと電線が同一アイテムなら1個上乗せで不足判定される()
+        {
+            // 距離5でコスト5＋ポール分1＝6必要だが、所持数は5しかない
+            // Distance 5 costs 5 wires plus 1 for the pole = 6, but only 5 are held
+            var inventory = CreateInventory(_wireItemId, 5);
+
+            var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
+                5f, 10f, 12f, false, false, _wireItemId, inventory, _wireItemId);
+
+            Assert.False(judgement.IsPlaceable);
+            Assert.AreEqual(ElectricWirePlacementEvaluator.NoWireItemError, judgement.FailureReason);
+        }
+
+        [Test]
+        public void ポールと電線が同一アイテムで合算所持していれば接続可能になる()
+        {
+            // コスト5＋ポール分1＝6を所持していれば通過する
+            // Passes when holding cost 5 plus 1 for the pole = 6
+            var inventory = CreateInventory(_wireItemId, 6);
+
+            var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
+                5f, 10f, 12f, false, false, _wireItemId, inventory, _wireItemId);
+
+            Assert.True(judgement.IsPlaceable);
+            Assert.AreEqual(5, judgement.WireCost.Count);
+        }
+
+        [Test]
         public void TryCalculateWireCostは距離を切り上げてコストを算出する()
         {
             var succeeded = ElectricWirePlacementEvaluator.TryCalculateWireCost(_wireItemId, 3.2f, out var cost);

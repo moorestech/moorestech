@@ -48,9 +48,13 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (poleItemId != ItemMaster.EmptyItemId && !HasEnoughItem(items, poleItemId, 1))
                 return ElectricWirePlacementJudgement.Failure(NoPoleItemError);
 
-            // ワイヤーコストを算出し、所持数が足りているか確認する
-            // Calculate the wire cost and verify inventory covers it
-            if (!TryCalculateWireCost(wireItemId, distance, out var cost) || !HasEnoughItem(items, cost.ItemId, cost.Count))
+            // ワイヤーコストを算出し、所持数が足りているか確認する。ポールと電線が同一アイテムなら1個上乗せで判定する
+            // Calculate the wire cost and verify inventory covers it; require one extra when the pole shares the wire item
+            if (!TryCalculateWireCost(wireItemId, distance, out var cost))
+                return ElectricWirePlacementJudgement.Failure(NoWireItemError);
+
+            var requiredWireCount = cost.Count + (poleItemId != ItemMaster.EmptyItemId && poleItemId == cost.ItemId ? 1 : 0);
+            if (!HasEnoughItem(items, cost.ItemId, requiredWireCount))
                 return ElectricWirePlacementJudgement.Failure(NoWireItemError);
 
             return ElectricWirePlacementJudgement.Success(cost);
