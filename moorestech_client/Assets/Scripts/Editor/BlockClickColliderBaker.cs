@@ -1,15 +1,17 @@
 using System.Collections.Generic;
+using System.Linq;
 using Client.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
 using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-///     クリック可能Colliderを持たないブロックプレハブへ、描画境界サイズのBoxCollider子を焼き込むツール。
+///     手付けのクリック可能Colliderを持たないブロックプレハブへ、描画境界サイズのBoxCollider子「ClickCollider」を焼き込むツール。
+///     判定はベイク産ClickColliderを除いた手付けColliderのみで行い、ネストプレハブから伝播したClickColliderは親側で無効化する。
 ///     実行時の自動Collider付与(9e1751462で廃止)を復活させず、アセット側で当たり判定を完結させるために使う。
-///     Bakes a renderer-bounds-sized BoxCollider child into block prefabs that have no clickable collider,
-///     so hit detection lives in assets without resurrecting the runtime auto-attachment removed in 9e1751462.
+///     Bakes a renderer-bounds-sized "ClickCollider" BoxCollider child into block prefabs that lack hand-authored
+///     clickable colliders. Baked ClickColliders are excluded from the skip judgement, and ClickColliders propagated
+///     from nested prefabs are disabled in the outer prefab, keeping hit detection asset-side without runtime attachment.
 /// </summary>
 public static class BlockClickColliderBaker
 {
@@ -20,82 +22,114 @@ public static class BlockClickColliderBaker
     [MenuItem("moorestech/Bake Block Click Colliders")]
     public static void Bake()
     {
+        var paths = AssetDatabase.FindAssets("t:Prefab", new[] { BlockPrefabRootPath })
+            .Select(AssetDatabase.GUIDToAssetPath)
+            .Where(p => !p.StartsWith(ExcludedUtilPath))
+            .ToList();
+
+        // パス1: 各プレハブ自身の焼き込み（自前ClickColliderは作り直し、手付けCollider持ちはスキップ）
+        // Pass 1: bake each prefab's own box (recreate own ClickCollider; skip prefabs with authored colliders)
         var baked = new List<string>();
-        var skippedNoRenderer = new List<string>();
-        var alreadyClickable = 0;
-
-        foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { BlockPrefabRootPath }))
+        var authoredSkipped = 0;
+        var noRenderer = new List<string>();
+        foreach (var path in paths)
         {
-            var path = AssetDatabase.GUIDToAssetPath(guid);
-
-            // Util配下はブロックとして設置されないプレビュー/コネクタ用のため対象外
-            // Skip Util: preview/connector prefabs that are never placed as blocks
-            if (path.StartsWith(ExcludedUtilPath)) continue;
-
-            var root = PrefabUtility.LoadPrefabContents(path);
-            if (BakeClickCollider(root, out var reason))
-            {
-                PrefabUtility.SaveAsPrefabAsset(root, path);
-                baked.Add(System.IO.Path.GetFileNameWithoutExtension(path));
-            }
-            else if (reason == SkipReason.NoRenderer)
-            {
-                skippedNoRenderer.Add(System.IO.Path.GetFileNameWithoutExtension(path));
-            }
-            else
-            {
-                alreadyClickable++;
-            }
-            PrefabUtility.UnloadPrefabContents(root);
+            var result = BakeOwnClickCollider(path);
+            if (result == BakeResult.Baked) baked.Add(FileName(path));
+            else if (result == BakeResult.NoRenderer) noRenderer.Add(FileName(path));
+            else authoredSkipped++;
         }
 
-        Debug.Log($"[ClickColliderBake] baked={baked.Count} alreadyClickable={alreadyClickable} noRenderer={skippedNoRenderer.Count}");
+        // パス2: 全プレハブ保存後に、ネスト由来のClickColliderを親側で無効化（順序非依存にするため分離）
+        // Pass 2: after all saves, disable nested ClickColliders in outer prefabs (separated to be order-independent)
+        var nestedDisabled = new List<string>();
+        foreach (var path in paths)
+        {
+            if (DisableNestedClickColliders(path)) nestedDisabled.Add(FileName(path));
+        }
+
+        Debug.Log($"[ClickColliderBake] baked={baked.Count} authoredSkipped={authoredSkipped} noRenderer={noRenderer.Count} nestedDisabled={nestedDisabled.Count}");
         Debug.Log("[ClickColliderBake] baked:\n" + string.Join("\n", baked));
-        Debug.Log("[ClickColliderBake] noRenderer(unbakeable):\n" + string.Join("\n", skippedNoRenderer));
+        Debug.Log("[ClickColliderBake] nestedDisabled:\n" + string.Join("\n", nestedDisabled));
+        Debug.Log("[ClickColliderBake] noRenderer(unbakeable):\n" + string.Join("\n", noRenderer));
     }
 
-    private enum SkipReason
+    private enum BakeResult
     {
-        None,
-        AlreadyClickable,
+        Baked,
+        AuthoredColliderExists,
         NoRenderer,
     }
 
-    private static bool BakeClickCollider(GameObject root, out SkipReason reason)
+    private static BakeResult BakeOwnClickCollider(string path)
     {
-        // 既にクリック可能Colliderがある、または既に焼き込み済みなら何もしない
-        // Do nothing when a clickable collider already exists or the collider is already baked
-        var blockRoot = root.transform;
+        var root = PrefabUtility.LoadPrefabContents(path);
+        var result = ExecuteBake();
+        if (result == BakeResult.Baked) PrefabUtility.SaveAsPrefabAsset(root, path);
+        PrefabUtility.UnloadPrefabContents(root);
+        return result;
+
+        #region Internal
+
+        BakeResult ExecuteBake()
+        {
+            // 自前（非ネスト）の旧ClickColliderを削除し、再生成できるようにする
+            // Remove own (non-nested) previously-baked ClickColliders so they can be regenerated
+            var ownOldColliders = root.GetComponentsInChildren<Transform>(true)
+                .Where(t => t.name == ClickColliderObjectName && !PrefabUtility.IsPartOfPrefabInstance(t.gameObject))
+                .ToList();
+            foreach (var old in ownOldColliders) Object.DestroyImmediate(old.gameObject);
+
+            // 手付けのクリック可能Colliderがあれば焼き込まない（ベイク産ClickColliderは判定から除外）
+            // Skip when a hand-authored clickable collider exists (baked ClickColliders are excluded from judgement)
+            var blockRoot = root.transform;
+            var hasAuthoredClickable = root.GetComponentsInChildren<Collider>(true)
+                .Any(c => c.gameObject.name != ClickColliderObjectName && BlockGameObjectColliderSetup.IsClickableCollider(blockRoot, c));
+            if (hasAuthoredClickable)
+            {
+                // 旧ClickColliderを消しただけの場合も保存して反映する
+                // Save even when the only change is removing old ClickColliders
+                if (ownOldColliders.Count > 0) PrefabUtility.SaveAsPrefabAsset(root, path);
+                return BakeResult.AuthoredColliderExists;
+            }
+
+            if (!TryCalcVisualBounds(blockRoot, out var visualBounds)) return BakeResult.NoRenderer;
+
+            // 描画境界サイズのBoxColliderをBlockレイヤーの子として追加する
+            // Add a renderer-bounds-sized BoxCollider as a Block-layer child
+            var clickColliderObject = new GameObject(ClickColliderObjectName)
+            {
+                layer = LayerConst.BlockLayer,
+            };
+            clickColliderObject.transform.SetParent(blockRoot);
+            clickColliderObject.transform.SetPositionAndRotation(visualBounds.center, Quaternion.identity);
+
+            var lossyScale = clickColliderObject.transform.lossyScale;
+            var boxCollider = clickColliderObject.AddComponent<BoxCollider>();
+            boxCollider.size = new Vector3(visualBounds.size.x / lossyScale.x, visualBounds.size.y / lossyScale.y, visualBounds.size.z / lossyScale.z);
+            return BakeResult.Baked;
+        }
+
+        #endregion
+    }
+
+    private static bool DisableNestedClickColliders(string path)
+    {
+        // ネストプレハブから伝播したClickColliderは外側プレハブの描画状態と一致しないため無効化する
+        // Disable ClickColliders propagated from nested prefabs since they don't match the outer prefab's visuals
+        var root = PrefabUtility.LoadPrefabContents(path);
+        var changed = false;
         foreach (var collider in root.GetComponentsInChildren<Collider>(true))
         {
-            if (BlockGameObjectColliderSetup.IsClickableCollider(blockRoot, collider))
-            {
-                reason = SkipReason.AlreadyClickable;
-                return false;
-            }
+            if (collider.gameObject.name != ClickColliderObjectName) continue;
+            if (!PrefabUtility.IsPartOfPrefabInstance(collider.gameObject)) continue;
+            if (!collider.enabled) continue;
+            collider.enabled = false;
+            changed = true;
         }
-
-        if (!TryCalcVisualBounds(blockRoot, out var visualBounds))
-        {
-            reason = SkipReason.NoRenderer;
-            return false;
-        }
-
-        // 描画境界サイズのBoxColliderをBlockレイヤーの子として追加する
-        // Add a renderer-bounds-sized BoxCollider as a Block-layer child
-        var clickColliderObject = new GameObject(ClickColliderObjectName)
-        {
-            layer = LayerConst.BlockLayer,
-        };
-        clickColliderObject.transform.SetParent(blockRoot);
-        clickColliderObject.transform.SetPositionAndRotation(visualBounds.center, Quaternion.identity);
-
-        var lossyScale = clickColliderObject.transform.lossyScale;
-        var boxCollider = clickColliderObject.AddComponent<BoxCollider>();
-        boxCollider.size = new Vector3(visualBounds.size.x / lossyScale.x, visualBounds.size.y / lossyScale.y, visualBounds.size.z / lossyScale.z);
-
-        reason = SkipReason.None;
-        return true;
+        if (changed) PrefabUtility.SaveAsPrefabAsset(root, path);
+        PrefabUtility.UnloadPrefabContents(root);
+        return changed;
     }
 
     private static bool TryCalcVisualBounds(Transform blockRoot, out Bounds bounds)
@@ -120,5 +154,10 @@ public static class BlockClickColliderBaker
             }
         }
         return found;
+    }
+
+    private static string FileName(string path)
+    {
+        return System.IO.Path.GetFileNameWithoutExtension(path);
     }
 }
