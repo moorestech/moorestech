@@ -1,0 +1,180 @@
+using System;
+using System.Collections.Generic;
+using Core.Inventory;
+using Core.Master;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Context;
+using Game.EnergySystem;
+using Game.PlayerInventory.Interface;
+using Game.World.Interface.DataStore;
+using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using Server.Boot;
+using Server.Protocol;
+using Server.Protocol.PacketResponse;
+using Tests.Module.TestMod;
+using UnityEngine;
+using static Server.Protocol.PacketResponse.PlaceBlockFromHotBarProtocol;
+
+namespace Tests.CombinedTest.Server.PacketTest
+{
+    public class ElectricWireAutoConnectPlaceTest
+    {
+        private const int PlayerId = 5;
+        private const int HotBarSlot = 2;
+
+        private static readonly Guid PoleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
+        private static readonly Guid MachineItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
+
+        [Test]
+        public void 機械設置時に最寄り電柱1本へ自動接続される()
+        {
+            // 近い電柱(距離1)と遠い電柱(距離2)を先に設置し、機械をプロトコル経由で置く
+            // Place a near pole (distance 1) and a far pole (distance 2), then place a machine via the protocol
+            var (packet, serviceProvider) = CreateServer();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var nearPole);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var farPole);
+
+            var inventory = SetupInventory(serviceProvider, MachineItemGuid, 1, 5);
+            PlaceBlock(packet, new Vector3Int(0, 0, 0));
+
+            var machine = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, 0));
+            var nearConnector = nearPole.GetComponent<IElectricWireConnector>();
+            var farConnector = farPole.GetComponent<IElectricWireConnector>();
+            var machineConnector = machine.GetComponent<IElectricWireConnector>();
+
+            Assert.IsTrue(nearConnector.ContainsWireConnection(machineConnector.BlockInstanceId));
+            Assert.IsFalse(farConnector.ContainsWireConnection(machineConnector.BlockInstanceId));
+            Assert.AreEqual(1, machineConnector.WireConnections.Count);
+
+            // 距離1のワイヤーコストは1(consumptionPerLength=1)
+            // Wire cost for distance 1 is 1 (consumptionPerLength=1)
+            Assert.AreEqual(4, GetWireCount(inventory));
+        }
+
+        [Test]
+        public void 電柱設置時に未接続機械が全部接続される()
+        {
+            // 未接続機械2台と接続済み機械1台を用意し、電柱をプロトコル経由で置く
+            // Prepare two unconnected machines and one already-connected machine, then place a pole via the protocol
+            var (packet, serviceProvider) = CreateServer();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var unconnectedA);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var unconnectedB);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var alreadyConnected);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, new Vector3Int(100, 0, 100), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ElectricWireTestUtil.Connect(new Vector3Int(-1, 0, 0), new Vector3Int(100, 0, 100));
+
+            SetupInventory(serviceProvider, PoleItemGuid, 1, 5);
+            PlaceBlock(packet, new Vector3Int(0, 0, 0));
+
+            var pole = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, 0));
+            var poleConnector = pole.GetComponent<IElectricWireConnector>();
+
+            Assert.IsTrue(poleConnector.ContainsWireConnection(unconnectedA.GetComponent<IElectricWireConnector>().BlockInstanceId));
+            Assert.IsTrue(poleConnector.ContainsWireConnection(unconnectedB.GetComponent<IElectricWireConnector>().BlockInstanceId));
+            Assert.IsFalse(poleConnector.ContainsWireConnection(alreadyConnected.GetComponent<IElectricWireConnector>().BlockInstanceId));
+            Assert.AreEqual(2, poleConnector.WireConnections.Count);
+        }
+
+        [Test]
+        public void 電線不足時は設置自体が失敗し状態が変化しない()
+        {
+            // 電柱の近くに機械を置こうとするが、電線を1つも持っていない
+            // Attempt to place a machine near a pole while holding zero wire items
+            var (packet, serviceProvider) = CreateServer();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole);
+
+            var inventory = SetupInventory(serviceProvider, MachineItemGuid, 1, 0);
+            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var segmentCountBefore = segmentDatastore.SegmentCount;
+
+            PlaceBlock(packet, new Vector3Int(0, 0, 0));
+
+            Assert.IsFalse(worldBlockDatastore.Exists(new Vector3Int(0, 0, 0)));
+            Assert.AreEqual(1, GetItemCount(inventory, MachineItemGuid));
+            Assert.AreEqual(0, pole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+            Assert.AreEqual(segmentCountBefore, segmentDatastore.SegmentCount);
+        }
+
+        [Test]
+        public void 範囲内に接続先が無ければ電線消費なしで孤立設置される()
+        {
+            // 周囲に電気系ブロックが無い状態で機械を置く。電線ゼロでも成功する
+            // Place a machine with no electric blocks nearby; succeeds even with zero wire items
+            var (packet, serviceProvider) = CreateServer();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            var inventory = SetupInventory(serviceProvider, MachineItemGuid, 1, 0);
+            PlaceBlock(packet, new Vector3Int(50, 0, 50));
+
+            Assert.IsTrue(worldBlockDatastore.Exists(new Vector3Int(50, 0, 50)));
+            Assert.AreEqual(0, GetItemCount(inventory, MachineItemGuid));
+
+            var machine = worldBlockDatastore.GetBlock(new Vector3Int(50, 0, 50));
+            Assert.AreEqual(0, machine.GetComponent<IElectricWireConnector>().WireConnections.Count);
+        }
+
+        #region TestUtil
+
+        private static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
+        {
+            return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
+
+        private static IOpenableInventory SetupInventory(ServiceProvider serviceProvider, Guid hotBarItemGuid, int hotBarItemCount, int wireCount)
+        {
+            // ホットバーに設置対象ブロックを、別スロットに電線をセットする
+            // Put the block item on the hot bar and wire items into another slot
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+
+            inventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot), itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(hotBarItemGuid), hotBarItemCount));
+            if (wireCount > 0) inventory.SetItem(10, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(WireItemGuid), wireCount));
+
+            return inventory;
+        }
+
+        private static void PlaceBlock(PacketResponseCreator packet, Vector3Int position)
+        {
+            var placeInfo = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = position,
+                    Direction = BlockDirection.North,
+                    VerticalDirection = BlockVerticalDirection.Horizontal,
+                },
+            };
+
+            var payload = MessagePackSerializer.Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, HotBarSlot, placeInfo));
+            packet.GetPacketResponse(payload, new PacketResponseContext());
+        }
+
+        private static int GetWireCount(IOpenableInventory inventory)
+        {
+            return GetItemCount(inventory, WireItemGuid);
+        }
+
+        private static int GetItemCount(IOpenableInventory inventory, Guid itemGuid)
+        {
+            var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
+            var total = 0;
+            foreach (var itemStack in inventory.InventoryItems)
+                if (itemStack.Id == itemId)
+                    total += itemStack.Count;
+
+            return total;
+        }
+
+        #endregion
+    }
+}
