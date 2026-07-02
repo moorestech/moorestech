@@ -1,0 +1,9 @@
+/* アイコン読み込み失敗時の #id フォールバックラベル */
+/* Fallback #id label shown when the icon image fails to load */
+.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--mantine-color-dark-2);
+}

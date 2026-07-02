@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { Tooltip } from "@mantine/core";
 import ItemIcon from "../ItemIcon";
 import styles from "./style.module.css";
 
@@ -26,27 +27,23 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
   const hasItem = itemId > 0 && (count === undefined || count > 0);
 
   return (
-    <div
-      className={`group relative w-12 h-12 border rounded bg-gray-900 select-none ${
-        selected ? "border-yellow-400" : "border-gray-700"
-      }`}
-      onMouseDown={onMouseDown}
-      onDoubleClick={onDoubleClick}
-      onContextMenu={(e) => e.preventDefault()}
-    >
-      {hasItem ? (
-        <>
-          <ItemIcon itemId={itemId} alt={name ?? `item ${itemId}`} className="w-full h-full object-contain p-0.5" />
-          {count !== undefined ? (
-            <span className="absolute bottom-0 right-0.5 text-xs text-green-300 font-bold drop-shadow">{count}</span>
-          ) : null}
-          {name ? (
-            <span className={`pointer-events-none hidden group-hover:block bg-black/90 text-white text-xs rounded px-2 py-1 ${styles.tooltip}`}>
-              {name}
-            </span>
-          ) : null}
-        </>
-      ) : null}
-    </div>
+    // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
+    // Tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
+    <Tooltip label={name} disabled={!hasItem || !name}>
+      <div
+        className={styles.slot}
+        data-selected={selected ? "true" : undefined}
+        onMouseDown={onMouseDown}
+        onDoubleClick={onDoubleClick}
+        onContextMenu={(e) => e.preventDefault()}
+      >
+        {hasItem ? (
+          <>
+            <ItemIcon itemId={itemId} alt={name ?? `item ${itemId}`} className={styles.icon} />
+            {count !== undefined ? <span className={styles.count}>{count}</span> : null}
+          </>
+        ) : null}
+      </div>
+    </Tooltip>
   );
 }

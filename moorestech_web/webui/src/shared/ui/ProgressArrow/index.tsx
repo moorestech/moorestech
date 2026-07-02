@@ -1,3 +1,5 @@
+import styles from "./style.module.css";
+
 // 進捗値を 0..1 に丸める（uGUI slider.value と同じ範囲）。NaN は 0 扱い
 // Clamp the progress value to 0..1 (same range as uGUI slider.value); NaN treated as 0
 function clamp01(n: number): number {
@@ -12,8 +14,8 @@ function clamp01(n: number): number {
 export default function ProgressArrow({ value }: { value: number }) {
   const percent = `${clamp01(value) * 100}%`;
   return (
-    <div data-testid="progress-arrow" className="relative w-16 h-3 bg-gray-800 border border-gray-700 rounded overflow-hidden">
-      <div className="absolute inset-y-0 left-0 bg-green-500" style={{ width: percent }} />
+    <div data-testid="progress-arrow" className={styles.track}>
+      <div className={styles.fill} style={{ width: percent }} />
     </div>
   );
 }
