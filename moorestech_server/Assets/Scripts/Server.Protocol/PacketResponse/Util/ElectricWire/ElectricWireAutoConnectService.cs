@@ -76,8 +76,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
         }
 
-        #region Internal
-
         // 全ターゲット距離を満たす電線アイテムをマスタ設定順に探す
         // Search wire item configs in master order for one covering all target distances
         private static bool TrySelectWireItem(
@@ -155,7 +153,5 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 remaining -= consumeAmount;
             }
         }
-
-        #endregion
     }
 }
