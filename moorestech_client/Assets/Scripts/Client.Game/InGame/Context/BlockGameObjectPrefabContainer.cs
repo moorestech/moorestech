@@ -118,8 +118,8 @@ namespace Client.Game.InGame.Context
                     blockObj = block.AddComponent<BlockGameObject>();
                 }
 
-                // 既存Colliderへの付与と、実行時Collider皆無ブロックへの旧来フォールバックを行う
-                // Attach to existing colliders, with legacy fallback for blocks that have no runtime colliders
+                // 既存ColliderへのBlockGameObjectChild付与と、クリック可能Collider欠落の検出を行う
+                // Attach BlockGameObjectChild to existing colliders and detect missing clickable colliders
                 BlockGameObjectColliderSetup.SetupColliders(blockObj);
 
                 blockObj.gameObject.SetActive(true);
