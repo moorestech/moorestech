@@ -18,6 +18,10 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
+    /// <summary>
+    /// レール式延長プロトコルの正常系テスト。異常系はElectricWireExtendProtocolFailureTest参照
+    /// Success-path tests for the rail-style extend protocol; see ElectricWireExtendProtocolFailureTest for failures
+    /// </summary>
     public class ElectricWireExtendProtocolTest
     {
         private const int PlayerId = 9;
@@ -79,54 +83,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 電線不足の延長は失敗し状態が一切変化しない()
-        {
-            // 必要数6に対して電線を3本しか持たない
-            // Hold only three wires against the required six
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var fromPos = Vector3Int.zero;
-            var newPolePos = new Vector3Int(4, 0, 0);
-            var machinePos = new Vector3Int(6, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
-
-            var inventory = SetupInventory(poleCount: 1, wireCount: 3);
-            var fromConnector = fromPole.GetComponent<IElectricWireConnector>();
-            var machineConnector = machine.GetComponent<IElectricWireConnector>();
-
-            var response = SendExtend(fromPos, newPolePos);
-
-            Assert.IsFalse(response.IsSuccess);
-            Assert.IsFalse(worldBlockDatastore.Exists(newPolePos));
-            Assert.AreEqual(1, CountItem(inventory, _poleItemId));
-            Assert.AreEqual(3, CountItem(inventory, _wireItemId));
-            Assert.AreEqual(0, fromConnector.WireConnections.Count);
-            Assert.AreEqual(0, machineConnector.WireConnections.Count);
-        }
-
-        [Test]
-        public void 設置先が占有済みなら失敗し状態が変化しない()
-        {
-            // 設置先に別ブロックを先に置く
-            // Occupy the target position with another block beforehand
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var fromPos = Vector3Int.zero;
-            var newPolePos = new Vector3Int(4, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BlockId, newPolePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-
-            var inventory = SetupInventory(poleCount: 1, wireCount: 10);
-            var fromConnector = fromPole.GetComponent<IElectricWireConnector>();
-
-            var response = SendExtend(fromPos, newPolePos);
-
-            Assert.IsFalse(response.IsSuccess);
-            Assert.AreEqual(1, CountItem(inventory, _poleItemId));
-            Assert.AreEqual(10, CountItem(inventory, _wireItemId));
-            Assert.AreEqual(0, fromConnector.WireConnections.Count);
-        }
-
-        [Test]
         public void 起点なし孤立設置は電線消費なしで電柱のみ設置する()
         {
             // 周囲に何も無い空きスペースへ起点なしで電柱を設置する
@@ -145,6 +101,31 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, newPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
         }
 
+        [Test]
+        public void 起点なし設置でも近傍電柱へ通常設置と同様に自動接続される()
+        {
+            // 既存電柱の探索範囲内（poleConnectionRange=7は±3）へ起点なしで電柱を設置する
+            // Place a pole without origin inside the existing pole's search range (poleConnectionRange=7 means +-3)
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var existingPolePos = Vector3Int.zero;
+            var newPolePos = new Vector3Int(3, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, existingPolePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var existingPole);
+
+            var inventory = SetupInventory(poleCount: 1, wireCount: 10);
+            var response = SendIsolatedPlace(newPolePos);
+
+            Assert.IsTrue(response.IsSuccess, response.Error);
+
+            // 最寄り電柱1本へ自動接続され、距離3の電線が消費される
+            // Auto-connects to the nearest pole and consumes 3 wires for distance 3
+            var newConnector = worldBlockDatastore.GetBlock(newPolePos).GetComponent<IElectricWireConnector>();
+            var existingConnector = existingPole.GetComponent<IElectricWireConnector>();
+            Assert.IsTrue(newConnector.ContainsWireConnection(existingConnector.BlockInstanceId));
+            Assert.IsTrue(existingConnector.ContainsWireConnection(newConnector.BlockInstanceId));
+            Assert.AreEqual(7, CountItem(inventory, _wireItemId));
+            Assert.AreEqual(0, CountItem(inventory, _poleItemId));
+        }
+
         #region TestUtil
 
         private IOpenableInventory SetupInventory(int poleCount, int wireCount)
@@ -157,7 +138,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendExtend(Vector3Int fromPos, Vector3Int newPolePos)
         {
-            var placeInfo = CreatePlaceInfo(newPolePos);
+            var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
             var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, PoleSlot, placeInfo, _wireItemId));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
@@ -165,20 +146,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendIsolatedPlace(Vector3Int newPolePos)
         {
-            var placeInfo = CreatePlaceInfo(newPolePos);
+            var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
             var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(PlayerId, PoleSlot, placeInfo, _wireItemId));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
-        }
-
-        private static PlaceInfo CreatePlaceInfo(Vector3Int position)
-        {
-            return new PlaceInfo
-            {
-                Position = position,
-                Direction = BlockDirection.North,
-                VerticalDirection = BlockVerticalDirection.Horizontal,
-            };
         }
 
         private static int CountItem(IOpenableInventory inventory, ItemId itemId)
