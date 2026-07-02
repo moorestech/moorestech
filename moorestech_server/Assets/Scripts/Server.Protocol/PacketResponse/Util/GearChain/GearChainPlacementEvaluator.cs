@@ -20,6 +20,8 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
         public const string ConnectionLimitError = "ConnectionLimit";
         public const string NoItemError = "NoItem";
         public const string NoPoleItemError = "NoPoleItem";
+        public const string InvalidTargetError = "InvalidTarget";
+        public const string PositionOccupiedError = "PositionOccupied";
 
         /// <summary>
         /// 距離・既接続・接続数上限・チェーンアイテム・ポールアイテムを一括判定する。
@@ -33,7 +35,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             // 距離が両端の上限のminを超えると不可
             // Reject when distance exceeds the min of both max distances
-            if (connectionDistance > Mathf.Min(fromMaxConnectionDistance, toMaxConnectionDistance)) return GearChainPlacementJudgement.Failure(TooFarError);
+            if (Mathf.Min(fromMaxConnectionDistance, toMaxConnectionDistance) < connectionDistance) return GearChainPlacementJudgement.Failure(TooFarError);
 
             // 既に接続済みの場合は不可
             // Reject when the pair is already connected
@@ -46,13 +48,31 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // チェーンアイテムの必要数を所持しているか確認する
             // Ensure required chain items are owned
             if (!TryCalculateChainCost(chainItemId, connectionDistance, out var chainCost)) return GearChainPlacementJudgement.Failure(NoItemError);
-            if (CountItem(stacks, chainItemId) < chainCost.Count) return GearChainPlacementJudgement.Failure(NoItemError);
+            if (CountItem(chainItemId) < chainCost.Count) return GearChainPlacementJudgement.Failure(NoItemError);
 
             // 延長設置時はポールアイテムの所持を確認する
             // Ensure a pole item is owned when extending
-            if (poleItemId != ItemMaster.EmptyItemId && CountItem(stacks, poleItemId) < 1) return GearChainPlacementJudgement.Failure(NoPoleItemError);
+            if (poleItemId != ItemMaster.EmptyItemId && CountItem(poleItemId) < 1) return GearChainPlacementJudgement.Failure(NoPoleItemError);
 
             return GearChainPlacementJudgement.Success(chainCost);
+
+            #region Internal
+
+            int CountItem(ItemId itemId)
+            {
+                // 対象アイテムの合計所持数を数える
+                // Count total owned amount of the item
+                var total = 0;
+                foreach (var stack in stacks)
+                {
+                    if (stack.Id != itemId) continue;
+                    total += stack.Count;
+                }
+
+                return total;
+            }
+
+            #endregion
         }
 
         /// <summary>
@@ -77,19 +97,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             return false;
         }
 
-        private static int CountItem(IItemStack[] stacks, ItemId itemId)
-        {
-            // 対象アイテムの合計所持数を数える
-            // Count total owned amount of the item
-            var total = 0;
-            foreach (var stack in stacks)
-            {
-                if (stack.Id != itemId) continue;
-                total += stack.Count;
-            }
-
-            return total;
-        }
     }
 
     /// <summary>

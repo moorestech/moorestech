@@ -53,20 +53,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                     ? await ClientContext.VanillaApi.Response.ExtendGearChainPole(fromPos.Value, poleSlot, placeInfo, chainItemId, CancellationToken.None)
                     : await ClientContext.VanillaApi.Response.PlaceIsolatedGearChainPole(poleSlot, placeInfo, CancellationToken.None);
 
-                // 世代が進んでいたら結果を破棄する
-                // Discard the result when the generation has advanced
+                // 世代が進んでいたら結果を破棄する（フラグは進めた側が管理済み）
+                // Discard the result when the generation has advanced (the advancer manages the flag)
                 if (generation != _generation) return;
-                IsAwaitingResponse = false;
-                if (!response.IsSuccess) return;
+                if (!response.IsSuccess)
+                {
+                    IsAwaitingResponse = false;
+                    return;
+                }
 
-                // 新規ポールの生成を待って起点引き継ぎ先を解決する
-                // Wait for the new pole to spawn and resolve the next source
+                // 新規ポールの生成を待って起点引き継ぎ先を解決する（引き継ぎ確定まで待ち状態を維持し孤立設置化を防ぐ）
+                // Wait for the new pole to spawn and resolve the next source (stay awaiting until hand-off to prevent isolated placement)
                 var placedPos = (Vector3Int)response.PlacedPolePos;
                 await UniTask.WhenAny(
                     UniTask.WaitForSeconds(1f),
                     UniTask.WaitUntil(() => _blockGameObjectDataStore.TryGetBlockGameObject(placedPos, out _)));
 
                 if (generation != _generation) return;
+                IsAwaitingResponse = false;
                 if (!_blockGameObjectDataStore.TryGetBlockGameObject(placedPos, out var placedBlock)) return;
 
                 var collider = placedBlock.GetComponentInChildren<GearChainPoleConnectAreaCollider>();

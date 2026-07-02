@@ -52,7 +52,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
-            // カーソル下のポール有無で既存ポール操作と空きスペース延長を分岐する
+            // ポール有無で既存操作と空き延長を分岐
             // Branch between existing pole operations and empty-space extension by cursor hit
             var hitPole = GetGearChainPoleCollider();
             if (hitPole != null) UpdatePoleTarget();
@@ -114,7 +114,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                     return;
                 }
 
-                // ゴーストの設置位置を計算し、設置可能距離内か確認する
+                // ゴースト位置を算出し距離内か確認
                 // Calculate ghost position and ensure it is within placeable distance
                 if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, BlockDirection.North, poleBlockMaster, out var placePos, out _) ||
                     PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePos))
@@ -135,7 +135,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 }
                 else
                 {
-                    // 状態④: 新規ポールを自動設置しつつ起点とチェーン接続する
+                    // 状態④: 新規ポールを設置し起点接続
                     // State 4: place a new pole and connect it with the source pole
                     var fromPos = _connectFromPole.GetBlockPosition();
                     var previewData = GearChainPoleExtendPreviewCalculator.CalculateExtend(fromPos, placePos, (GearChainPoleBlockParam)poleBlockMaster.BlockParam, poleItemId, _blockGameObjectDataStore, _playerInventory, context.HoldingItemId);
@@ -189,7 +189,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
 
         public void Disable()
         {
-            // 無効化時に選択状態・プレビュー・進行中応答をクリアする
+            // 無効化時に状態・プレビュー・応答をクリア
             // Clear selection state, preview and pending responses on disable
             _connectFromPole = null;
             _previewObject.Hide();

@@ -60,7 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             EnsureLines();
             _lineRoot.SetActive(true);
 
-            // 既存のチェーン表示と同様に2本のラインを水平オフセットして描画する
+            // 2本のラインを水平にオフセットして描画
             // Draw two horizontally offset lines like the existing chain view
             var direction = (end - start).normalized;
             var right = Vector3.Cross(Vector3.up, direction).normalized;
@@ -70,6 +70,42 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
             ApplyLine(_lineRenderer1, start + offset, end + offset, color);
             ApplyLine(_lineRenderer2, start - offset, end - offset, color);
+
+            #region Internal
+
+            void EnsureLines()
+            {
+                if (_lineRoot != null) return;
+
+                // プレビュー用ラインを実行時に生成する（シーン配線を不要にするため）
+                // Create preview lines at runtime (avoids scene wiring)
+                _lineRoot = new GameObject("GearChainPoleExtendPreviewLine");
+                _lineRenderer1 = CreateLineRenderer("Line1");
+                _lineRenderer2 = CreateLineRenderer("Line2");
+            }
+
+            LineRenderer CreateLineRenderer(string lineName)
+            {
+                var lineObject = new GameObject(lineName);
+                lineObject.transform.SetParent(_lineRoot.transform);
+
+                var lineRenderer = lineObject.AddComponent<LineRenderer>();
+                lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+                lineRenderer.startWidth = LineWidth;
+                lineRenderer.endWidth = LineWidth;
+                lineRenderer.positionCount = 2;
+                return lineRenderer;
+            }
+
+            void ApplyLine(LineRenderer lineRenderer, Vector3 lineStart, Vector3 lineEnd, Color color)
+            {
+                lineRenderer.SetPosition(0, lineStart);
+                lineRenderer.SetPosition(1, lineEnd);
+                lineRenderer.startColor = color;
+                lineRenderer.endColor = color;
+            }
+
+            #endregion
         }
 
         public void HideGhost()
@@ -86,38 +122,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         {
             HideGhost();
             HideLine();
-        }
-
-        private void EnsureLines()
-        {
-            if (_lineRoot != null) return;
-
-            // プレビュー用ラインを実行時に生成する（シーン配線を不要にするため）
-            // Create preview lines at runtime (avoids scene wiring)
-            _lineRoot = new GameObject("GearChainPoleExtendPreviewLine");
-            _lineRenderer1 = CreateLineRenderer("Line1");
-            _lineRenderer2 = CreateLineRenderer("Line2");
-        }
-
-        private LineRenderer CreateLineRenderer(string lineName)
-        {
-            var lineObject = new GameObject(lineName);
-            lineObject.transform.SetParent(_lineRoot.transform);
-
-            var lineRenderer = lineObject.AddComponent<LineRenderer>();
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            lineRenderer.startWidth = LineWidth;
-            lineRenderer.endWidth = LineWidth;
-            lineRenderer.positionCount = 2;
-            return lineRenderer;
-        }
-
-        private static void ApplyLine(LineRenderer lineRenderer, Vector3 start, Vector3 end, Color color)
-        {
-            lineRenderer.SetPosition(0, start);
-            lineRenderer.SetPosition(1, end);
-            lineRenderer.startColor = color;
-            lineRenderer.endColor = color;
         }
     }
 }

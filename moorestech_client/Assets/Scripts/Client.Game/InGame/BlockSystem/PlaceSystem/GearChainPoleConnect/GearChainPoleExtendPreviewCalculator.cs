@@ -29,7 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             if (!TryGetPoleInfo(fromPos, blockGameObjectDataStore, out var fromInfo)) return GearChainPoleExtendPreviewData.Invalid;
             if (!TryGetPoleInfo(toPos, blockGameObjectDataStore, out var toInfo)) return GearChainPoleExtendPreviewData.Invalid;
 
-            // 既接続かどうかをクライアント側のステートから判定する
+            // 既接続かをクライアントのステートで判定
             // Determine existing connection from client-side state
             var alreadyConnected = fromInfo.PartnerInstanceIds.Contains(toInfo.InstanceId.AsPrimitive());
 
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             var stateDetail = blockObject.GetStateDetail<GearChainPoleStateDetail>(GearChainPoleStateDetail.BlockStateDetailKey);
             var partnerIds = stateDetail?.PartnerBlockInstanceIds ?? System.Array.Empty<int>();
 
-            info = new GearChainPoleClientInfo(blockObject.BlockInstanceId, param.MaxConnectionDistance, partnerIds.Length >= param.MaxConnectionCount, partnerIds);
+            info = new GearChainPoleClientInfo(blockObject.BlockInstanceId, param.MaxConnectionDistance, param.MaxConnectionCount <= partnerIds.Length, partnerIds);
             return true;
         }
 
