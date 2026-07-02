@@ -28,25 +28,25 @@ namespace Client.Game.InGame.ColliderStreaming
         // Enumerate every chunk key an AABB overlaps (covers colliders spanning chunk borders)
         public static void CollectOverlappingChunks(Bounds bounds, float chunkSize, List<long> result)
         {
-            result.Clear();
-            var minCx = Mathf.FloorToInt(bounds.min.x / chunkSize);
-            var maxCx = Mathf.FloorToInt(bounds.max.x / chunkSize);
-            var minCz = Mathf.FloorToInt(bounds.min.z / chunkSize);
-            var maxCz = Mathf.FloorToInt(bounds.max.z / chunkSize);
-            for (var cx = minCx; cx <= maxCx; cx++)
-            for (var cz = minCz; cz <= maxCz; cz++)
-                result.Add(PackChunk(cx, cz));
+            FillChunkBox(bounds.min.x, bounds.max.x, bounds.min.z, bounds.max.z, chunkSize, result);
         }
 
         // プレイヤー中心の有効半径を包む正方内のチャンク座標を列挙（占有判定は呼び出し側）
         // Enumerate chunk coords inside the square that bounds the active radius (occupancy checked by caller)
         public static void CollectChunksInRadiusBox(Vector3 center, float radius, float chunkSize, List<long> result)
         {
+            FillChunkBox(center.x - radius, center.x + radius, center.z - radius, center.z + radius, chunkSize, result);
+        }
+
+        // XZ範囲を覆うチャンク座標をresultに詰める。両列挙が差分計算へ供給するため唯一の実装に集約
+        // Fill result with chunk coords covering an XZ range; single implementation since both feed the delta
+        private static void FillChunkBox(float minX, float maxX, float minZ, float maxZ, float chunkSize, List<long> result)
+        {
             result.Clear();
-            var minCx = Mathf.FloorToInt((center.x - radius) / chunkSize);
-            var maxCx = Mathf.FloorToInt((center.x + radius) / chunkSize);
-            var minCz = Mathf.FloorToInt((center.z - radius) / chunkSize);
-            var maxCz = Mathf.FloorToInt((center.z + radius) / chunkSize);
+            var minCx = Mathf.FloorToInt(minX / chunkSize);
+            var maxCx = Mathf.FloorToInt(maxX / chunkSize);
+            var minCz = Mathf.FloorToInt(minZ / chunkSize);
+            var maxCz = Mathf.FloorToInt(maxZ / chunkSize);
             for (var cx = minCx; cx <= maxCx; cx++)
             for (var cz = minCz; cz <= maxCz; cz++)
                 result.Add(PackChunk(cx, cz));
