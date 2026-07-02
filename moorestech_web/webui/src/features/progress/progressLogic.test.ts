@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { clampProgress, percentWidth } from "./progressLogic";
+import { clampProgress, percentValue } from "./progressLogic";
 
 describe("clampProgress", () => {
   it("負値は 0 に丸める", () => {
@@ -16,14 +16,18 @@ describe("clampProgress", () => {
   });
 });
 
-describe("percentWidth", () => {
-  it("0.4 を \"40%\" にする", () => {
-    expect(percentWidth(0.4)).toBe("40%");
+// Mantine Progress の value（0..100 の数値）への変換を検証する
+// Verifies conversion into the Mantine Progress value (a 0..100 number)
+describe("percentValue", () => {
+  it("0.4 は 40 になる", () => {
+    expect(percentValue(0.4)).toBe(40);
   });
-  it("1 を \"100%\" にする", () => {
-    expect(percentWidth(1)).toBe("100%");
+  it("1 は 100 になる", () => {
+    expect(percentValue(1)).toBe(100);
   });
-  it("負値は \"0%\" に丸める", () => {
-    expect(percentWidth(-0.5)).toBe("0%");
+  it("範囲外と NaN はクランプされる", () => {
+    expect(percentValue(-1)).toBe(0);
+    expect(percentValue(2)).toBe(100);
+    expect(percentValue(Number.NaN)).toBe(0);
   });
 });
