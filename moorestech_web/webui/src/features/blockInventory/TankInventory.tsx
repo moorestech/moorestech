@@ -1,3 +1,4 @@
+import { Group } from "@mantine/core";
 import type { BlockInventoryData } from "@/bridge/payloadTypes";
 import { FluidSlot, ProgressArrow } from "@/shared/ui";
 
@@ -5,7 +6,7 @@ import { FluidSlot, ProgressArrow } from "@/shared/ui";
 // Tank UI: mirrors uGUI fluid tank; fluidSlots row plus a progress arrow
 export default function TankInventory({ data }: { data: BlockInventoryData }) {
   return (
-    <div data-testid="tank-body" className="flex items-center gap-2">
+    <Group data-testid="tank-body" gap="xs" align="center">
       {/* 各流体スロットを横並びで描画 */}
       {/* Render each fluid slot in a row */}
       {data.fluidSlots.map((fluid, i) => (
@@ -14,6 +15,6 @@ export default function TankInventory({ data }: { data: BlockInventoryData }) {
       {/* progress が非 null のときだけ加工進捗の矢印を表示 */}
       {/* Show the processing progress arrow only when progress is non-null */}
       {data.progress != null ? <ProgressArrow value={data.progress} /> : null}
-    </div>
+    </Group>
   );
 }
