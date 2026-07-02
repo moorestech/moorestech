@@ -71,6 +71,82 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void 複数メンバーセグメント同士の橋渡しでUnionBySizeマージされる()
+        {
+            // {A,B}と{C,D}の2網を作りB-Cで橋渡し → AddConnector(C)時に2セグメントが見えMergeSegmentsが走る
+            // Build nets {A,B} and {C,D}, then bridge B-C; AddConnector(C) sees two segments and runs MergeSegments
+            var datastore = new ElectricWireNetworkDatastore();
+            var a = FakeWireConnector.CreateTransformer(1);
+            var b = FakeWireConnector.CreateTransformer(2);
+            var c = FakeWireConnector.CreateGenerator(3);
+            var d = FakeWireConnector.CreateConsumer(4);
+            datastore.AddConnector(a);
+            datastore.AddConnector(b);
+            datastore.AddConnector(c);
+            datastore.AddConnector(d);
+
+            FakeWireConnector.ConnectEachOther(a, b);
+            datastore.RebuildAround(a, b);
+            FakeWireConnector.ConnectEachOther(c, d);
+            datastore.RebuildAround(c, d);
+            Assert.AreEqual(2, datastore.SegmentCount);
+
+            // 2メンバーの{A,B}側が吸収側になることを参照同一性で検証するため、橋渡し前に控えておく
+            // Capture the 2-member {A,B} segment beforehand to verify by reference identity that it absorbs the other
+            datastore.TryGetEnergySegment(new BlockInstanceId(1), out var segmentAbBefore);
+
+            FakeWireConnector.ConnectEachOther(b, c);
+            datastore.RebuildAround(b, c);
+
+            // 全員が同一セグメントに統合され、吸収側はサイズの大きい{A,B}側
+            // Everyone is folded into one segment, and the larger {A,B} side is the absorber
+            Assert.AreEqual(1, datastore.SegmentCount);
+            datastore.TryGetEnergySegment(new BlockInstanceId(1), out var segA);
+            datastore.TryGetEnergySegment(new BlockInstanceId(2), out var segB);
+            datastore.TryGetEnergySegment(new BlockInstanceId(3), out var segC);
+            datastore.TryGetEnergySegment(new BlockInstanceId(4), out var segD);
+            Assert.AreSame(segA, segB);
+            Assert.AreSame(segA, segC);
+            Assert.AreSame(segA, segD);
+            Assert.AreSame(segmentAbBefore, segA);
+
+            // 統合先セグメントに全役割が揃っている
+            // The surviving segment holds every role from both nets
+            Assert.IsTrue(segA.EnergyTransformers.ContainsKey(new BlockInstanceId(1)));
+            Assert.IsTrue(segA.EnergyTransformers.ContainsKey(new BlockInstanceId(2)));
+            Assert.IsTrue(segA.Generators.ContainsKey(new BlockInstanceId(3)));
+            Assert.IsTrue(segA.Consumers.ContainsKey(new BlockInstanceId(4)));
+        }
+
+        [Test]
+        public void GetSegmentsは現存する全セグメントを返す()
+        {
+            var datastore = new ElectricWireNetworkDatastore();
+            var a = FakeWireConnector.CreateTransformer(1);
+            var b = FakeWireConnector.CreateGenerator(2);
+            datastore.AddConnector(a);
+            datastore.AddConnector(b);
+
+            // 孤立2コネクタ時点では2セグメントがそれぞれ返る
+            // With two isolated connectors, both segments are returned
+            var segments = datastore.GetSegments();
+            datastore.TryGetEnergySegment(new BlockInstanceId(1), out var segA);
+            datastore.TryGetEnergySegment(new BlockInstanceId(2), out var segB);
+            Assert.AreEqual(2, segments.Count);
+            CollectionAssert.Contains(segments, segA);
+            CollectionAssert.Contains(segments, segB);
+
+            // マージ後は統合された1セグメントだけが返る
+            // After the merge, only the single unified segment is returned
+            FakeWireConnector.ConnectEachOther(a, b);
+            datastore.RebuildAround(a, b);
+            var mergedSegments = datastore.GetSegments();
+            datastore.TryGetEnergySegment(new BlockInstanceId(1), out var merged);
+            Assert.AreEqual(1, mergedSegments.Count);
+            CollectionAssert.Contains(mergedSegments, merged);
+        }
+
+        [Test]
         public void コネクタ除去で残りが再構成される()
         {
             // A-B-C（Bが中央）でBをRemoveConnector → AとCが別セグメントに分かれる
