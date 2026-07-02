@@ -1,3 +1,4 @@
+import { Button } from "@mantine/core";
 import { dispatchAction } from "@/bridge/actions";
 import { emitToast } from "@/features/toast/toastStore";
 
@@ -10,8 +11,8 @@ export default function DebugActionButton() {
   };
 
   return (
-    <button onClick={onClick} className="bg-gray-700 hover:bg-gray-600 text-sm rounded px-3 py-1">
+    <Button variant="default" size="compact-sm" onClick={onClick}>
       Ping Action
-    </button>
+    </Button>
   );
 }

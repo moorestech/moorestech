@@ -3,6 +3,8 @@
 .layout {
   display: grid;
   gap: 1.5rem;
+  padding: 1rem;
+  min-height: 100vh;
   grid-template-areas:
     "header header header"
     "inv viewer items"

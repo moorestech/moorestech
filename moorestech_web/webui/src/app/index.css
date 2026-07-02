@@ -1,9 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* CEF でゲーム画面に重ねるため背景は半透明にする（ゲームが透けて見える） */
 /* Semi-transparent background so the game shows through behind the CEF overlay */
+/* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
+/* Overrides Mantine's global body background (--mantine-color-body) via import order */
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
