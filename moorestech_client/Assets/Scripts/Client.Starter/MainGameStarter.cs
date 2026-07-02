@@ -4,6 +4,8 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BackgroundSkit;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.ColliderStreaming;
+using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -160,6 +162,10 @@ namespace Client.Starter
             // register presenter assembly
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
             builder.RegisterEntryPoint<WorldDataHandler>();
+            // コライダーの距離カリング（汎用マネージャ＋ブロック登録サービス）
+            // Collider distance culling (generic manager + block register service)
+            builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
+            builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
             builder.RegisterEntryPoint<PlayerPositionSender>();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
