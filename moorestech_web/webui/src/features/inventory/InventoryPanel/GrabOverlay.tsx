@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotData } from "@/bridge/payloadTypes";
+import styles from "./GrabOverlay.module.css";
 
 // マウス追従の grab オーバーレイ。mousemove の再レンダリングをこのコンポーネント内に閉じ込める
 // Cursor-following grab overlay; keeps mousemove re-renders contained to this component
@@ -18,7 +19,7 @@ export default function GrabOverlay({ grab }: { grab: SlotData }) {
   // 追従位置はカーソル座標の動的値なので inline style（module 化対象外）
   // Follow position is a dynamic cursor value, so inline style (not module-ized)
   return (
-    <div className="pointer-events-none fixed z-40 w-12 h-12" style={{ left: mousePos.x - 24, top: mousePos.y - 24 }}>
+    <div data-testid="grab-overlay" className={styles.overlay} style={{ left: mousePos.x - 24, top: mousePos.y - 24 }}>
       <ItemSlot itemId={grab.itemId} count={grab.count} />
     </div>
   );
