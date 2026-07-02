@@ -4,6 +4,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -130,6 +131,9 @@ namespace Client.Game.InGame.Context
                 // 機械の場合はそのプロセッサを付与する
                 // If it's a machine, add the corresponding processor
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();
+                // 電気系ブロックには電力ワイヤー描画プロセッサを付与する
+                // Add the electric wire drawing processor to electric blocks
+                if (IsElectricWireConnectable(blockType)) block.gameObject.AddComponent<ElectricWireStateChangeProcessor>();
 
                 // 初期化
                 // Initialize
@@ -147,6 +151,20 @@ namespace Client.Game.InGame.Context
                     BlockTypeConst.ElectricMachine or
                     BlockTypeConst.GearMachine or
                     BlockTypeConst.GearMiner;
+            }
+
+            // 電力ワイヤーコネクターを持つブロックタイプか判定する
+            // Determine whether the block type has an electric wire connector
+            bool IsElectricWireConnectable(string type)
+            {
+                return type is
+                    BlockTypeConst.ElectricPole or
+                    BlockTypeConst.ElectricMachine or
+                    BlockTypeConst.ElectricGenerator or
+                    BlockTypeConst.ElectricMiner or
+                    BlockTypeConst.GearToElectricGenerator or
+                    BlockTypeConst.ElectricToGearGenerator or
+                    BlockTypeConst.ElectricPump;
             }
 
             #endregion
