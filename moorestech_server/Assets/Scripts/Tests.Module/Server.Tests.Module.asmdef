@@ -6,6 +6,7 @@
         "Core.Block",
         "Core.ConfigJson",
         "Core.Const",
+        "Game.Context",
         "Game.EnergySystem",
         "Core.Inventory",
         "Core.Item",

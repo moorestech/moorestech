@@ -137,7 +137,7 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
+            services.AddSingleton<IElectricWireNetworkDatastore, ElectricWireNetworkDatastore>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
@@ -210,8 +210,6 @@ namespace Server.Boot
             services.AddSingleton<CompletedChallengeEventPacket>();
             services.AddSingleton<ResearchCompleteEventPacket>();
 
-            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
-
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
@@ -249,7 +247,6 @@ namespace Server.Boot
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<TrainDiagramManager>();
             serviceProvider.GetService<TrainRailPositionManager>();
-            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
