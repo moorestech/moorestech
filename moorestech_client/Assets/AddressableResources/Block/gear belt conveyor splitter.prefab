@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &1781482222666233004
 BoxCollider:
@@ -328,6 +329,10 @@ PrefabInstance:
     - target: {fileID: 3503854007706983760, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: paths.Array.data[2].bezierPath.startControlPoint.z
       value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4099510392022455584, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4716503214216438771, guid: a22f794443335e74c82387a9f622ffcd, type: 3}
       propertyPath: m_LocalScale.x

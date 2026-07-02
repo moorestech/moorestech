@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 503926133733610020, guid: 0657a7291d58e284d925aa2be3fdc553, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2464886372572322139, guid: 0657a7291d58e284d925aa2be3fdc553, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -68,6 +72,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: 40f9bafb971116a49b928edc9b228b74, type: 2}
+    - target: {fileID: 4872342889860914535, guid: 0657a7291d58e284d925aa2be3fdc553, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5853538877829945315, guid: 0657a7291d58e284d925aa2be3fdc553, type: 3}
       propertyPath: m_Name
       value: Metal_conveyor_chest
