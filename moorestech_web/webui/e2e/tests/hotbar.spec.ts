@@ -7,19 +7,19 @@ type ActionRecord = { type: string; payload: unknown };
 const hotbarSlots = (page: import("@playwright/test").Page) =>
   page.locator(".grid.grid-cols-9").nth(1).locator("> div");
 
-test("ホットバー slot 0 が初期選択（border-yellow-400）", async ({ page }) => {
+test("ホットバー slot 0 が初期選択（data-selected）", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
-  // fixture の selectedHotbar:0 により slot 0 が黄色枠
-  // The fixture's selectedHotbar:0 highlights slot 0 with the yellow border
-  await expect(hotbarSlots(page).nth(0)).toHaveClass(/border-yellow-400/);
-  await expect(hotbarSlots(page).nth(1)).not.toHaveClass(/border-yellow-400/);
+  // fixture の selectedHotbar:0 により slot 0 が選択状態
+  // The fixture's selectedHotbar:0 marks slot 0 as selected
+  await expect(hotbarSlots(page).nth(0)).toHaveAttribute("data-selected", "true");
+  await expect(hotbarSlots(page).nth(1)).not.toHaveAttribute("data-selected", "true");
 });
 
 test('"2" キーで select_hotbar{index:1} を送り、選択が slot 1 へ移る', async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
-  await expect(hotbarSlots(page).nth(0)).toHaveClass(/border-yellow-400/);
+  await expect(hotbarSlots(page).nth(0)).toHaveAttribute("data-selected", "true");
 
   await page.keyboard.press("2");
 
@@ -35,6 +35,6 @@ test('"2" キーで select_hotbar{index:1} を送り、選択が slot 1 へ移�
 
   // mock が selectedHotbar=1 で inventory event を push → slot 1 が選択、slot 0 は非選択
   // The mock pushes an inventory event with selectedHotbar=1 → slot 1 selected, slot 0 not
-  await expect(hotbarSlots(page).nth(1)).toHaveClass(/border-yellow-400/);
-  await expect(hotbarSlots(page).nth(0)).not.toHaveClass(/border-yellow-400/);
+  await expect(hotbarSlots(page).nth(1)).toHaveAttribute("data-selected", "true");
+  await expect(hotbarSlots(page).nth(0)).not.toHaveAttribute("data-selected", "true");
 });
