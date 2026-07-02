@@ -7,7 +7,6 @@ using Game.Gear.Common;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 using Game.PlayerInventory.Interface;
-using Mooresmaster.Model.BlocksModule;
 
 namespace Server.Protocol.PacketResponse.Util.GearChain
 {
@@ -34,40 +33,18 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 return false;
             }
             
-            // 接続距離を算出する
-            // Calculate connection distance
+            // 距離・既接続・接続数上限・チェーンアイテムを共有判定で検証する
+            // Validate distance, existing connection, connection limit and chain items via shared judgement
             var connectionDistance = Vector3Int.Distance(posA, posB);
-            var maxDistance = Math.Min(poleA.MaxConnectionDistance, poleB.MaxConnectionDistance);
-            if (connectionDistance > maxDistance)
+            var alreadyConnected = poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId);
+            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(connectionDistance, poleA.MaxConnectionDistance, poleB.MaxConnectionDistance, alreadyConnected, poleA.IsConnectionFull || poleB.IsConnectionFull, itemId, inventory.InventoryItems, ItemMaster.EmptyItemId);
+            if (!judgement.IsPlaceable)
             {
-                error = "TooFar";
+                error = judgement.FailureReason;
                 return false;
             }
-
-            // 既存接続がある場合は失敗させる
-            // Fail when already connected
-            if (poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId))
-            {
-                error = "AlreadyConnected";
-                return false;
-            }
-
-            // 接続数の上限を確認する
-            // Ensure neither pole is at capacity
-            if (poleA.IsConnectionFull || poleB.IsConnectionFull)
-            {
-                error = "ConnectionLimit";
-                return false;
-            }
-
-            
-            // チェーンアイテムを消費する
-            // Consume chain item
-            if (!CheckEnoughItemInInventory(connectionDistance,itemId, out var cost))
-            {
-                error = "NoItem";
-                return false;
-            }
+            var cost = judgement.ChainCost;
 
 
             // 接続を確定させる
@@ -88,52 +65,9 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             return true;
             
             #region Internal
-            
-            bool CheckEnoughItemInInventory(float distance ,ItemId specifiedItemId, out GearChainConnectionCost consumedCost)
-            {
-                consumedCost = default;
-                
-                // 設定が無ければ接続できない
-                // Cannot connect when no configuration
-                var gearChainItems = MasterHolder.BlockMaster.Blocks.GearChainItems;
-                if (gearChainItems.Length == 0) return false;
-                
-                // 指定されたアイテムが設定に含まれているか確認する
-                // Check if specified item is in the configuration
-                GearChainItemsElement currentGearChainItem = null;
-                foreach (var gearChainItem in gearChainItems)
-                {
-                    var configItemId = MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid);
-                    
-                    if (configItemId == specifiedItemId)
-                    {
-                        currentGearChainItem = gearChainItem;
-                        break;
-                    }
-                }
-                
-                if (currentGearChainItem == null) return false;
-                
-                var required = Mathf.CeilToInt(distance / currentGearChainItem.ConsumptionPerLength);
-                consumedCost = new GearChainConnectionCost(specifiedItemId, required);
-                
-                // インベントリ内に十分なアイテムがあるか確認する
-                // Check if there are enough items in inventory
-                var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-                var totalCount = 0;
-                foreach (var itemStack in inventory.InventoryItems)
-                {
-                    if (itemStack.Id != itemId) continue;
-                    totalCount += itemStack.Count;
-                    if (totalCount >= required) return true;
-                }
 
-                return false;
-            }
-            
             void Consume(GearChainConnectionCost consumedCost)
             {
-                var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
                 var remaining = consumedCost.Count;
                 
                 // スロットを順に減算する
@@ -202,7 +136,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
         }
 
 
-        private static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
+        public static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
         {
             // 指定座標からコンポーネントを解決する
             // Resolve component from position
