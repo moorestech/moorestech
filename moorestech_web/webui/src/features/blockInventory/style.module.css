@@ -1,0 +1,9 @@
+/* 画面中央上部の固定パネル。grab(z-40)/toast(z-300) の下、progress(z-20) の上 */
+/* Fixed top-center panel; below grab (z-40) and toasts (z-300), above progress (z-20) */
+.panel {
+  position: fixed;
+  left: 50%;
+  top: 6rem;
+  transform: translateX(-50%);
+  z-index: 30;
+}

@@ -1,8 +1,10 @@
+import { Paper, Title } from "@mantine/core";
 import { useTopic, dispatchAction, Topics } from "@/bridge";
 import type { ActionPayloads } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { resolveBlockComponent } from "./blockLogic";
 import { BlockInteractionContext, type BlockInteraction } from "./blockInteractionContext";
+import styles from "./style.module.css";
 
 // ブロック UI のオーバーレイ。uGUI の SubInventoryState 相当で、blockType から中身を静的解決する
 // Block UI overlay; the SubInventoryState equivalent, statically resolving the body from blockType
@@ -28,17 +30,12 @@ export default function BlockInventoryPanel() {
   // Resolve the component for blockType (unregistered falls back to GenericBlockInventory)
   const Body = resolveBlockComponent(data.blockType);
 
-  // z-30: grab オーバーレイ(z-40)とトースト(z-50)の下に重なる固定中央パネル
-  // z-30: a fixed centered panel sitting under the grab overlay (z-40) and toasts (z-50)
   return (
     <BlockInteractionContext.Provider value={interaction}>
-      <div
-        data-testid="block-inventory"
-        className="fixed left-1/2 top-24 -translate-x-1/2 z-30 bg-gray-800 border border-gray-700 rounded p-4 text-gray-300"
-      >
-        <h2 className="text-lg font-semibold mb-3">{data.blockName}</h2>
+      <Paper data-testid="block-inventory" className={styles.panel} p="md" withBorder bg="dark.6" c="dark.1">
+        <Title order={2} size="h4" mb="sm">{data.blockName}</Title>
         <Body data={data} />
-      </div>
+      </Paper>
     </BlockInteractionContext.Provider>
   );
 }
