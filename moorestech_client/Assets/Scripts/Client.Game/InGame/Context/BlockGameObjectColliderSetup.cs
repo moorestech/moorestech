@@ -7,18 +7,16 @@ using UnityEngine;
 namespace Client.Game.InGame.Context
 {
     /// <summary>
-    ///     ブロック生成時のColliderとBlockGameObjectChildのセットアップを行うクラス。
-    ///     クリック可能なCollider（Blockレイヤー上で実行時有効、設置判定用を除く）が1つも無いブロックのみ、
-    ///     旧来相当のMeshRenderer単位のMeshCollider自動付与にフォールバックする。
-    ///     Sets up colliders and BlockGameObjectChild components when a block is created.
-    ///     Only when a block has zero clickable colliders (runtime-effective on the Block layer, excluding
-    ///     placement-check colliders), fall back to the legacy per-MeshRenderer MeshCollider attachment.
+    ///     ブロック生成時のBlockGameObjectChildセットアップと、クリック可能Collider欠落の検出を行うクラス。
+    ///     当たり判定はプレハブ側に焼き込む方針（BlockClickColliderBaker）のため、実行時のCollider自動付与は行わない。
+    ///     Sets up BlockGameObjectChild on block creation and detects missing clickable colliders.
+    ///     Colliders are baked into prefabs (BlockClickColliderBaker), so nothing attaches colliders at runtime.
     /// </summary>
     public static class BlockGameObjectColliderSetup
     {
-        // フォールバック発動をブロック名ごとに1回だけログする
-        // Log fallback activation only once per block name
-        private static readonly HashSet<string> LoggedFallbackNames = new();
+        // クリック可能Collider欠落をブロック名ごとに1回だけログする
+        // Log missing clickable colliders only once per block name
+        private static readonly HashSet<string> LoggedMissingColliderNames = new();
 
         public static void SetupColliders(BlockGameObject blockObj)
         {
@@ -36,26 +34,11 @@ namespace Client.Game.InGame.Context
                 if (IsClickableCollider(blockRoot, childCollider)) hasClickableCollider = true;
             }
 
-            // クリック可能Colliderが1つでもあればフォールバック不要
-            // No fallback needed if at least one clickable collider exists
+            // クリック可能Colliderが無いブロックはクリック/削除不能になるため、検出したらエラーログで知らせる
+            // A block without any clickable collider can't be clicked/deleted, so report it as an error
             if (hasClickableCollider) return;
-
-            LogFallbackOnce(blockObj);
-
-            // 旧来相当のフォールバック：各MeshRendererへBlockGameObjectChildとMeshColliderを付与
-            // Legacy-equivalent fallback: attach BlockGameObjectChild and MeshCollider to each MeshRenderer
-            foreach (var meshRenderer in blockObj.GetComponentsInChildren<MeshRenderer>(true))
-            {
-                // プレビュー専用オブジェクトは設置時に無効化されるため付与しない
-                // Skip preview-only objects because they are deactivated on placement
-                if (IsUnderPreviewOnly(blockRoot, meshRenderer.transform)) continue;
-
-                if (!meshRenderer.TryGetComponent<BlockGameObjectChild>(out _))
-                {
-                    meshRenderer.gameObject.AddComponent<BlockGameObjectChild>();
-                }
-                meshRenderer.gameObject.AddComponent<MeshCollider>();
-            }
+            if (!LoggedMissingColliderNames.Add(blockObj.name)) return;
+            Debug.LogError($"[BlockCollider] クリック可能なColliderがありません。BlockClickColliderBakerで焼き込んでください: {blockObj.name}");
         }
 
         /// <summary>
@@ -73,35 +56,23 @@ namespace Client.Game.InGame.Context
             // Placement-check-only colliders don't count as click targets
             if (collider.TryGetComponent<GroundCollisionDetector>(out _)) return false;
 
-            return IsActiveInBlock(blockRoot, collider.transform) && !IsUnderPreviewOnly(blockRoot, collider.transform);
+            return IsActiveAndNotPreview(blockRoot, collider.transform);
         }
 
-        private static bool IsActiveInBlock(Transform blockRoot, Transform start)
-        {
-            // ブロックルートまでの祖先が全てactiveSelfか（ルート自体のSetActiveタイミングに依存しない）
-            // Whether all ancestors up to the block root are activeSelf (independent of root SetActive timing)
-            for (var t = start; t != null && t != blockRoot; t = t.parent)
-            {
-                if (!t.gameObject.activeSelf) return false;
-            }
-            return true;
-        }
-
-        private static bool IsUnderPreviewOnly(Transform blockRoot, Transform start)
+        /// <summary>
+        ///     ブロック内で実行時に有効なオブジェクトか（祖先が全てactiveSelfかつPreviewOnly配下でない）
+        ///     Whether the object is runtime-effective within the block (all ancestors activeSelf, not under preview-only)
+        /// </summary>
+        public static bool IsActiveAndNotPreview(Transform blockRoot, Transform start)
         {
             // PreviewOnly配下は設置時にSetActive(false)されるため実体として扱わない
             // Preview-only subtrees are deactivated on placement, so they don't count as real
             for (var t = start; t != null && t != blockRoot; t = t.parent)
             {
-                if (t.TryGetComponent<IPreviewOnlyObject>(out _)) return true;
+                if (!t.gameObject.activeSelf) return false;
+                if (t.TryGetComponent<IPreviewOnlyObject>(out _)) return false;
             }
-            return false;
-        }
-
-        private static void LogFallbackOnce(BlockGameObject blockObj)
-        {
-            if (!LoggedFallbackNames.Add(blockObj.name)) return;
-            Debug.Log($"[BlockColliderFallback] クリック可能なColliderが無いためMeshColliderを自動付与します: {blockObj.name}");
+            return true;
         }
     }
 }

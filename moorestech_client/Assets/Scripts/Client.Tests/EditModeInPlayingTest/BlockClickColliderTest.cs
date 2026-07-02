@@ -15,19 +15,19 @@ namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
-    /// Collider皆無プレハブへのフォールバック付与と、既存Colliderプレハブの非フォールバックをRaycastで実機検証する
+    /// 焼き込み済みClickColliderと手付けColliderの両方でクリックRaycastが通ることを実機検証する
     /// This test runs in EditMode but switches to PlayMode during execution.
-    /// Verifies via raycast that the fallback attaches colliders to collider-less prefabs and doesn't fire for authored ones.
+    /// Verifies via raycast that both baked ClickColliders and hand-authored colliders are clickable in-game.
     /// </summary>
-    public class BlockColliderFallbackTest
+    public class BlockClickColliderTest
     {
-        // Fast_BeltConveyor_Straightは自前Collider無し、stone crasherはBlockレイヤーのCapsuleCollider持ち
-        // Fast_BeltConveyor_Straight has no authored collider; stone crasher has a Block-layer CapsuleCollider
-        private const string NoColliderBlockName = "直進高速ベルトコンベア";
+        // Fast_BeltConveyor_StraightはBaker焼き込みのClickCollider、stone crasherは手付けCapsuleCollider
+        // Fast_BeltConveyor_Straight has a baked ClickCollider; stone crasher has a hand-authored CapsuleCollider
+        private const string BakedColliderBlockName = "直進高速ベルトコンベア";
         private const string AuthoredColliderBlockName = "石の粉砕機";
 
         [UnityTest]
-        public IEnumerator ColliderlessBlock_GetsFallbackCollider_AuthoredBlock_DoesNot()
+        public IEnumerator BakedAndAuthoredColliderBlocks_AreClickable_WithoutRuntimeMeshColliders()
         {
             EnterPlayModeUtil();
 
@@ -53,22 +53,22 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 await LoadMainGame();
 
-                // Collider皆無ブロックはフォールバックでMeshColliderが付き、クリックRaycastが通ることを確認
-                // The collider-less block gains fallback MeshColliders and becomes hittable by the click raycast
-                PlaceBlock(NoColliderBlockName, new Vector3Int(0, 0, 0), BlockDirection.North);
-                var noColliderBlock = await WaitBlockGameObjectSpawn(new Vector3Int(0, 0, 0));
-                var fallbackColliders = GetClickableColliders(noColliderBlock);
-                Assert.IsNotEmpty(fallbackColliders, "collider-less block has no clickable collider (fallback did not fire)");
-                Assert.IsTrue(fallbackColliders.All(c => c is MeshCollider), "fallback colliders should be MeshColliders");
-                AssertClickRaycastResolvesBlock(noColliderBlock, fallbackColliders);
+                // 焼き込みClickColliderのブロック：実行時MeshCollider追加なしでクリックRaycastが通る
+                // Baked-ClickCollider block: clickable by raycast without runtime-added MeshColliders
+                PlaceBlock(BakedColliderBlockName, new Vector3Int(0, 0, 0), BlockDirection.North);
+                var bakedBlock = await WaitBlockGameObjectSpawn(new Vector3Int(0, 0, 0));
+                AssertNoMeshCollider(bakedBlock);
+                var bakedColliders = GetClickableColliders(bakedBlock);
+                Assert.IsNotEmpty(bakedColliders, "baked block has no clickable collider");
+                AssertClickRaycastResolvesBlock(bakedBlock, bakedColliders);
 
-                // 既存Collider持ちブロックはフォールバックせず（MeshCollider無し）、Raycastが通ることを確認
-                // The authored-collider block doesn't fall back (no MeshCollider) and is hittable by the raycast
+                // 手付けColliderのブロック：焼き込み対象外のままクリックRaycastが通る
+                // Hand-authored block: stays unbaked and clickable by raycast
                 PlaceBlock(AuthoredColliderBlockName, new Vector3Int(10, 0, 10), BlockDirection.North);
                 var authoredBlock = await WaitBlockGameObjectSpawn(new Vector3Int(10, 0, 10));
+                AssertNoMeshCollider(authoredBlock);
                 var authoredColliders = GetClickableColliders(authoredBlock);
                 Assert.IsNotEmpty(authoredColliders, "authored-collider block has no clickable collider");
-                Assert.IsTrue(authoredColliders.All(c => c is not MeshCollider), "authored block should not gain fallback MeshColliders");
                 AssertClickRaycastResolvesBlock(authoredBlock, authoredColliders);
             }
 
@@ -79,6 +79,14 @@ namespace Client.Tests.EditModeInPlayingTest
                 return blockGameObject.GetComponentsInChildren<Collider>()
                     .Where(c => BlockGameObjectColliderSetup.IsClickableCollider(blockGameObject.transform, c))
                     .ToArray();
+            }
+
+            void AssertNoMeshCollider(BlockGameObject blockGameObject)
+            {
+                // 実行時MeshCollider自動付与が復活していないことを確認（9e1751462の最適化を維持）
+                // Ensure runtime MeshCollider auto-attachment has not returned (preserves the 9e1751462 optimization)
+                Assert.IsEmpty(blockGameObject.GetComponentsInChildren<MeshCollider>(true),
+                    $"unexpected runtime MeshCollider on {blockGameObject.name}");
             }
 
             void AssertClickRaycastResolvesBlock(BlockGameObject blockGameObject, Collider[] clickableColliders)
