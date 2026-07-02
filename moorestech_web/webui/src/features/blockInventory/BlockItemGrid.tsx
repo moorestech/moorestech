@@ -1,4 +1,4 @@
-import { ItemSlot } from "@/shared/ui";
+import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { SlotData } from "@/bridge/payloadTypes";
 import { pickUpPayload, placePayload } from "./blockLogic";
 import { useBlockInteraction } from "./blockInteractionContext";
@@ -23,7 +23,7 @@ export default function BlockItemGrid({ itemSlots, testId }: { itemSlots: SlotDa
   };
 
   return (
-    <div data-testid={testId} className="grid grid-cols-9 gap-1 w-fit">
+    <SlotGrid testId={testId}>
       {itemSlots.map((slot, index) => (
         <ItemSlot
           key={index}
@@ -33,6 +33,6 @@ export default function BlockItemGrid({ itemSlots, testId }: { itemSlots: SlotDa
           onLeftDown={() => onLeftDown(index, slot)}
         />
       ))}
-    </div>
+    </SlotGrid>
   );
 }
