@@ -6245,6 +6245,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 9166569416975428400}
     m_Modifications:
+    - target: {fileID: 5870672395870559376, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7386717182988853866, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
       propertyPath: m_Name
       value: BeltConveyor_Straight_1

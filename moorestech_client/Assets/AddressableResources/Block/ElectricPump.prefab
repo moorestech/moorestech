@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &8854904307308020260
 BoxCollider:
@@ -152,6 +153,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1439303711286673157}
     m_Modifications:
+    - target: {fileID: 639078582548403848, guid: 39ce48b794ee6934cacd89b06ee3537b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6179944100298409960, guid: 39ce48b794ee6934cacd89b06ee3537b, type: 3}
       propertyPath: m_Name
       value: PipeCross
