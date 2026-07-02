@@ -1,0 +1,8 @@
+/* 画面右下固定。Mantine Modal(z-200) より上に出すため z-index 300 */
+/* Pinned to the bottom-right; z-index 300 to stay above the Mantine Modal (z-200) */
+.host {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 300;
+}
