@@ -66,12 +66,9 @@ namespace Game.EnergySystem
                 foreach (var s in connectedSegments)
                 {
                     if (s == largest) continue;
-                    foreach (var member in _segmentMembers[s])
-                    {
-                        AddRoles(largest, member);
-                        _segmentMembers[largest].Add(member);
-                        _connectorToSegment[member.BlockInstanceId] = largest;
-                    }
+                    // ToList: RegisterMemberが_segmentMembersへ触るため元集合のスナップショットを走査する
+                    // ToList: iterate a snapshot since RegisterMember touches _segmentMembers
+                    foreach (var member in _segmentMembers[s].ToList()) RegisterMember(largest, member);
                     _segmentMembers.Remove(s);
                     s.Destroy();
                 }
