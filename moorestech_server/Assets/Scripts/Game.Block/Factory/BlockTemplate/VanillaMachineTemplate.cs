@@ -54,18 +54,18 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
                 var fluidInventory = new VanillaMachineFluidInventoryComponent(
-                    input,
-                    output,
+                    input.FluidInputSlot,
+                    output.FluidOutputSlot,
                     fluidConnector
                 );
-                
+
                 components.Add(fluidConnector);
                 components.Add(fluidInventory);
             }
-            
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
-        
+
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var machineParam = blockMasterElement.BlockParam as ElectricMachineBlockParam;
@@ -96,8 +96,8 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
                 var fluidInventory = new VanillaMachineFluidInventoryComponent(
-                    input,
-                    output,
+                    input.FluidInputSlot,
+                    output.FluidOutputSlot,
                     fluidConnector
                 );
                 

@@ -24,7 +24,9 @@ namespace Game.Block.Blocks.CleanRoom
             IsDestroy = true;
         }
 
-        public ElectricPower RequestEnergy => new(_processor.RequestPower);
+        // モジュール電力効果を反映した要求電力を返す（Vanillaと同じ）
+        // Report the module-effect-adjusted requested power (same as Vanilla)
+        public ElectricPower RequestEnergy => new(_processor.EffectiveRequestPower);
 
         public void SupplyEnergy(ElectricPower power)
         {

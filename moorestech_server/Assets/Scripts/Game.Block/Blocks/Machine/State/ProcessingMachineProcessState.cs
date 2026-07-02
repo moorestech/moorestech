@@ -48,10 +48,7 @@ namespace Game.Block.Blocks.Machine.State
             _pendingOutputs = pendingOutputs;
             
             var effect = _context.EffectComponent.AggregateCurrent();
-            
-            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
-            var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
-            TotalTicks = totalTicks;
+            TotalTicks = effect.ScaleProcessingTicks(GameUpdater.SecondsToTicks(recipe.Time));
         }
 
         // 開始時に入力を消費し残りtickを設定する

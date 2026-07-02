@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
-using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -22,20 +21,22 @@ namespace Game.Block.Blocks.Machine
     /// </summary>
     public class VanillaMachineFluidInventoryComponent : IFluidInventory, IUpdatableBlockComponent, IBlockStateObservable
     {
-        private readonly VanillaMachineInputInventory _inputInventory;
-        private readonly VanillaMachineOutputInventory _outputInventory;
+        // 入出力タンク列のみを受け取る（CleanRoomMachine 等の専用インベントリからも同じタンク列で再利用できる）
+        // Take only the tank lists so dedicated inventories (e.g. CleanRoomMachine) can reuse this component
+        private readonly IReadOnlyList<FluidContainer> _fluidInputSlots;
+        private readonly IReadOnlyList<FluidContainer> _fluidOutputSlots;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
         private readonly Subject<Unit> _onChangeBlockState = new();
-        
+
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
-        
+
         public VanillaMachineFluidInventoryComponent(
-            VanillaMachineInputInventory inputInventory,
-            VanillaMachineOutputInventory outputInventory,
+            IReadOnlyList<FluidContainer> fluidInputSlots,
+            IReadOnlyList<FluidContainer> fluidOutputSlots,
             BlockConnectorComponent<IFluidInventory> fluidConnector)
         {
-            _inputInventory = inputInventory;
-            _outputInventory = outputInventory;
+            _fluidInputSlots = fluidInputSlots;
+            _fluidOutputSlots = fluidOutputSlots;
             _fluidConnector = fluidConnector;
         }
         
@@ -47,7 +48,7 @@ namespace Game.Block.Blocks.Machine
             TransferFromMachineToPipes();
             
             // 入力タンクの送信元記録をクリア
-            foreach (var container in _inputInventory.FluidInputSlot)
+            foreach (var container in _fluidInputSlots)
             {
                 container.ClearPreviousSources();
                 
@@ -59,7 +60,7 @@ namespace Game.Block.Blocks.Machine
             }
             
             // 出力タンクの送信元記録をクリア
-            foreach (var container in _outputInventory.FluidOutputSlot)
+            foreach (var container in _fluidOutputSlots)
             {
                 container.ClearPreviousSources();
                 
@@ -70,8 +71,7 @@ namespace Game.Block.Blocks.Machine
                 }
             }
         }
-        
-        
+
         private void TransferFromMachineToPipes()
         {
             // 接続されたパイプに流体を送る
@@ -87,10 +87,10 @@ namespace Game.Block.Blocks.Machine
                 }
                 
                 // 対応するタンクが存在しない場合はスキップ
-                if (tankIndex < 0 || tankIndex >= _outputInventory.FluidOutputSlot.Count)
+                if (tankIndex < 0 || tankIndex >= _fluidOutputSlots.Count)
                     continue;
                 
-                var container = _outputInventory.FluidOutputSlot[tankIndex];
+                var container = _fluidOutputSlots[tankIndex];
                 if (container.Amount <= 0) continue;
                 
                 // 流量制限を考慮
@@ -130,9 +130,9 @@ namespace Game.Block.Blocks.Machine
             var tankIndex = GetTargetTankIndexFromSource(source);
             
             // 特定のタンクが指定されている場合は、そのタンクのみに追加を試みる
-            if (tankIndex >= 0 && tankIndex < _inputInventory.FluidInputSlot.Count)
+            if (tankIndex >= 0 && tankIndex < _fluidInputSlots.Count)
             {
-                var container = _inputInventory.FluidInputSlot[tankIndex];
+                var container = _fluidInputSlots[tankIndex];
                 if (container.FluidId == FluidMaster.EmptyFluidId || container.FluidId == fluidStack.FluidId)
                 {
                     return container.AddLiquid(fluidStack, source);
@@ -141,7 +141,7 @@ namespace Game.Block.Blocks.Machine
             }
             
             // タンクが指定されていない場合は、全ての入力タンクに対して液体を追加を試みる
-            foreach (var container in _inputInventory.FluidInputSlot)
+            foreach (var container in _fluidInputSlots)
             {
                 if (container.FluidId != FluidMaster.EmptyFluidId && container.FluidId != fluidStack.FluidId) continue;
                 
@@ -193,7 +193,7 @@ namespace Game.Block.Blocks.Machine
             var fluidStacks = new List<FluidStack>();
             
             // 入力タンクの流体を追加
-            foreach (var container in _inputInventory.FluidInputSlot)
+            foreach (var container in _fluidInputSlots)
             {
                 if (container.Amount > 0)
                 {
@@ -202,7 +202,7 @@ namespace Game.Block.Blocks.Machine
             }
             
             // 出力タンクの流体を追加
-            foreach (var container in _outputInventory.FluidOutputSlot)
+            foreach (var container in _fluidOutputSlots)
             {
                 if (container.Amount > 0)
                 {
@@ -224,13 +224,13 @@ namespace Game.Block.Blocks.Machine
         public BlockStateDetail[] GetBlockStateDetails()
         {
             var inputTanks = new List<FluidMessagePack>();
-            foreach (var container in _inputInventory.FluidInputSlot)
+            foreach (var container in _fluidInputSlots)
             {
                 inputTanks.Add(new FluidMessagePack(container.FluidId, container.Amount, container.Capacity));
             }
             
             var outputTanks = new List<FluidMessagePack>();
-            foreach (var container in _outputInventory.FluidOutputSlot)
+            foreach (var container in _fluidOutputSlots)
             {
                 outputTanks.Add(new FluidMessagePack(container.FluidId, container.Amount, container.Capacity));
             }

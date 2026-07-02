@@ -5,6 +5,7 @@ using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -322,7 +323,7 @@ namespace Tests.CombinedTest.Core
         private static void LoadMachineInputs(IBlock block, int cycles)
         {
             var recipe = FindExposureRecipe();
-            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)
                 inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count * cycles));
         }
@@ -377,7 +378,7 @@ namespace Tests.CombinedTest.Core
         // Scan the unified inventory; collect chip levels (>=1), one per unit.
         private static List<int> CollectOutputChipLevels(IBlock block)
         {
-            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             var levels = new List<int>();
             foreach (var item in inventory.InventoryItems)
             {

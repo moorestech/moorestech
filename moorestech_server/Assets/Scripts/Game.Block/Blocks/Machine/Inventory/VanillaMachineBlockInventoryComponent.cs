@@ -13,14 +13,17 @@ namespace Game.Block.Blocks.Machine.Inventory
     public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
-        private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
+
+        // 出力はスロット操作しか行わないためインターフェース受け（CleanRoomMachine 等の専用出力も同居できる）
+        // Output only needs slot access, so accept the interface (dedicated outputs like CleanRoomMachine share this class)
+        private readonly IVanillaMachineSubInventory _vanillaMachineOutputInventory;
         private readonly VanillaMachineModuleInventory _vanillaMachineModuleInventory;
 
         // 統合スロット順のサブインベントリ列
         // Sub-inventories in unified slot order
         private readonly IVanillaMachineSubInventory[] _subInventories;
 
-        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
+        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, IVanillaMachineSubInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;

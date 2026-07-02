@@ -4325,7 +4325,7 @@
         "inputTankCount": 1,
         "outputTankCount": 1,
         "innerTankCapacity": 1000,
-        "moduleSlotCount": 0,
+        "moduleSlotCount": 2,
         "inventoryConnectors": {
           "outputConnects": [
             {

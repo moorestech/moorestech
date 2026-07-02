@@ -28,17 +28,17 @@ namespace Game.Block.Blocks.CleanRoom
             _connector = connector;
         }
 
-        // セーブからの復元: 内部流体のID/量を戻す（FluidPipeComponentと同方式）
-        // Restore from save: fluid id/amount of the inner container (same as FluidPipeComponent)
+        // セーブからの復元: 内部流体をGUID保存のDTOから戻す（FluidPipeComponentと同方式）
+        // Restore from save via the GUID-based DTO (same as FluidPipeComponent)
         public CleanRoomPipeHatchComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory> connector)
             : this(capacity, connector)
         {
             if (componentStates == null) return;
             if (!componentStates.TryGetValue(SaveKey, out var raw)) return;
-            var json = JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(raw);
+            var json = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(raw);
             if (json == null) return;
             _container.FluidId = json.FluidId;
-            _container.Amount = json.Amount;
+            _container.Amount = Math.Min(json.Amount, _container.Capacity);
         }
 
         // inflow面から受ける。ソース帰属は単純化しEmptyで受ける
@@ -106,12 +106,10 @@ namespace Game.Block.Blocks.CleanRoom
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var json = new FluidPipeSaveJsonObject
-            {
-                FluidIdValue = _container.FluidId.AsPrimitive(),
-                Amount = (float)_container.Amount,
-                Capacity = (float)_container.Capacity,
-            };
+
+            // 揮発FluidIdではなくGUIDで保存する（容量はマスタ由来なので保存しない）
+            // Persist the stable GUID instead of the volatile FluidId (capacity comes from the master, so it is not saved)
+            var json = new FluidContainerSaveJsonObject(_container);
             return JsonConvert.SerializeObject(json);
         }
 

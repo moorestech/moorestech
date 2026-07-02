@@ -1,5 +1,3 @@
-using System;
-using Core.Update;
 using Game.Block.Blocks.Machine.State.Util;
 
 namespace Game.Block.Blocks.Machine.State
@@ -40,10 +38,8 @@ namespace Game.Block.Blocks.Machine.State
                 return ProcessState.Idle;
             }
 
-            // 産出物と短縮済み時間を確定し、加工ジョブをProcessingStateへ渡して遷移
-            // Fix the outputs and the scaled time, hand the job to ProcessingState, then transition
-            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
-            var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
+            // 産出物を確定し、加工ジョブをProcessingStateへ渡して遷移（時間短縮はSetProcessing側で適用）
+            // Fix the outputs and hand the job to ProcessingState (time scaling happens inside SetProcessing)
             _processingState.SetProcessing(recipe, realizedOutputs);
 
             return ProcessState.Processing;

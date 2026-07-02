@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.CleanRoom;
 using Game.CleanRoom.Machine;
 using Game.Context;
@@ -418,7 +419,7 @@ namespace Tests.CombinedTest.Core
 
             var proc = machineBlock.GetComponent<CleanRoomMachineProcessorComponent>();
             var electric = machineBlock.GetComponent<CleanRoomMachineElectricComponent>();
-            var inventory = machineBlock.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
 
             Assert.True(datastore.TryGetCleanRoom(machineBlock, out var room), "machine belongs to one room");
 

@@ -23,12 +23,12 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // 行が空だと閾値判定・Out インデックスが成立しない。
-            // An empty table makes threshold decisions and the Out index meaningless.
+            // 空テーブルは機能を使わないModのopt-out（未提供ファイルのフォールバック含む）。全部屋が常時Outになるだけで安全。
+            // An empty table is a valid opt-out (incl. the missing-file fallback); rooms just stay Out and nothing crashes.
             if (Rows.Count == 0)
             {
-                errorLogs = "cleanRoomThresholds must have at least one row";
-                return false;
+                errorLogs = null;
+                return true;
             }
 
             // 各行の値域を確認（DownBinRate は確率、MaxGrade は非負、濃度/必要換気は有限非負）。

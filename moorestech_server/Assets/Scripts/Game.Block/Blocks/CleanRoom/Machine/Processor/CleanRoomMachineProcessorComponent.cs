@@ -2,6 +2,7 @@ using System;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -20,6 +21,10 @@ namespace Game.Block.Blocks.CleanRoom
         public ProcessState CurrentState { get; private set; }
         public uint RemainingTicks { get; private set; }
 
+        // 加工中のみモジュールの電力倍率を適用した要求電力（Vanillaと同義）
+        // Requested power with the module power multiplier applied only while processing (same as Vanilla)
+        public float EffectiveRequestPower => _requestPower * (CurrentState == ProcessState.Processing ? _moduleEffect.AggregateCurrent().PowerMultiplier : 1f);
+
         // 稼働中（汚染中）判定。Processing 中は A_machine を部屋へ計上させる（凍結中も Processing 扱いだが部屋は Invalid なので影響しない）。
         // Running (polluting) when Processing; A_machine is booked while Processing (frozen stays Processing but the room is Invalid anyway).
         public bool IsRunning => CurrentState == ProcessState.Processing;
@@ -34,6 +39,7 @@ namespace Game.Block.Blocks.CleanRoom
         private readonly VanillaMachineInputInventory _inputInventory;
         private readonly CleanRoomMachineOutputInventory _outputInventory;
         private readonly CleanRoomStateReceiverComponent _receiver;
+        private readonly MachineModuleEffectComponent _moduleEffect;
         private readonly BlockInstanceId _blockInstanceId;
         private readonly float _requestPower;
 
@@ -51,20 +57,21 @@ namespace Game.Block.Blocks.CleanRoom
         // 新規作成
         // For new creation
         public CleanRoomMachineProcessorComponent(VanillaMachineInputInventory input, CleanRoomMachineOutputInventory output,
-            CleanRoomStateReceiverComponent receiver, BlockInstanceId blockInstanceId, float requestPower)
-            : this(input, output, receiver, blockInstanceId, requestPower, ProcessState.Idle, 0, null, 0)
+            CleanRoomStateReceiverComponent receiver, MachineModuleEffectComponent moduleEffect, BlockInstanceId blockInstanceId, float requestPower)
+            : this(input, output, receiver, moduleEffect, blockInstanceId, requestPower, ProcessState.Idle, 0, null, 0)
         {
         }
 
         // セーブからの復元
         // For restoration from save
         public CleanRoomMachineProcessorComponent(VanillaMachineInputInventory input, CleanRoomMachineOutputInventory output,
-            CleanRoomStateReceiverComponent receiver, BlockInstanceId blockInstanceId, float requestPower,
+            CleanRoomStateReceiverComponent receiver, MachineModuleEffectComponent moduleEffect, BlockInstanceId blockInstanceId, float requestPower,
             ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, uint processedCycleCount)
         {
             _inputInventory = input;
             _outputInventory = output;
             _receiver = receiver;
+            _moduleEffect = moduleEffect;
             _blockInstanceId = blockInstanceId;
             _requestPower = requestPower;
 
@@ -72,7 +79,7 @@ namespace Game.Block.Blocks.CleanRoom
             RemainingTicks = remainingTicks;
             _processingRecipe = processingRecipe;
             _processedCycleCount = processedCycleCount;
-            if (processingRecipe != null) _processingRecipeTicks = GameUpdater.SecondsToTicks(processingRecipe.Time);
+            if (processingRecipe != null) _processingRecipeTicks = _moduleEffect.AggregateCurrent().ScaleProcessingTicks(GameUpdater.SecondsToTicks(processingRecipe.Time));
         }
 
         public void SupplyPower(float power)
@@ -125,7 +132,9 @@ namespace Game.Block.Blocks.CleanRoom
 
             CurrentState = ProcessState.Processing;
             _processingRecipe = recipe;
-            _processingRecipeTicks = GameUpdater.SecondsToTicks(_processingRecipe.Time);
+            // モジュール速度効果を開始時に確定して適用（Vanillaと同じ）
+            // Apply the module speed effect fixed at start (same as Vanilla)
+            _processingRecipeTicks = _moduleEffect.AggregateCurrent().ScaleProcessingTicks(GameUpdater.SecondsToTicks(_processingRecipe.Time));
             _inputInventory.ReduceInputSlot(_processingRecipe);
             RemainingTicks = _processingRecipeTicks;
         }
@@ -142,16 +151,16 @@ namespace Game.Block.Blocks.CleanRoom
                 return;
             }
 
-            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, RequestPower);
+            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, EffectiveRequestPower);
             if (subTicks >= RemainingTicks)
             {
                 RemainingTicks = 0;
                 CurrentState = ProcessState.Idle;
 
-                // サイクル完了：抽選 seed 用カウンタを前進させてから出力を確定する
-                // Cycle complete: advance the deterministic cycle counter, then emit outputs
+                // サイクル完了：seed 用カウンタを前進させ、決定的 seed（blockInstanceId＋カウンタ）で出力を確定する
+                // Cycle complete: advance the counter, then emit with the deterministic seed (blockInstanceId + counter)
                 _processedCycleCount++;
-                _outputInventory.InsertOutputSlot(_processingRecipe, BuildCycleSeed());
+                _outputInventory.InsertOutputSlot(_processingRecipe, ((long)_blockInstanceId.AsPrimitive() << 20) ^ _processedCycleCount);
             }
             else
             {
@@ -159,13 +168,6 @@ namespace Game.Block.Blocks.CleanRoom
             }
 
             _usedPower = true;
-        }
-
-        // 決定的サイクル seed（自前カウンタ＋blockInstanceId。フェーズA非依存）
-        // Deterministic per-cycle seed from our own counter + blockInstanceId (phase-A independent)
-        private long BuildCycleSeed()
-        {
-            return ((long)_blockInstanceId.AsPrimitive() << 20) ^ (long)_processedCycleCount;
         }
 
         // 出力インベントリが出力なし（EUV失敗/Out）を報告したときに加算する
@@ -192,9 +194,6 @@ namespace Game.Block.Blocks.CleanRoom
         }
 
         public bool IsDestroy { get; private set; }
-        public void Destroy()
-        {
-            IsDestroy = true;
-        }
+        public void Destroy() { IsDestroy = true; }
     }
 }

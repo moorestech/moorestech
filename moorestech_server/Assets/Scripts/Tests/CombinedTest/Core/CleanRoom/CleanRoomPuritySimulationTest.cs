@@ -49,15 +49,18 @@ namespace Tests.CombinedTest.Core
             Assert.IsNull(msg);
         }
 
-        // 行が空だと Validate が失敗する。
-        // Validate fails when there are no rows.
+        // 空テーブルは機能opt-out（未提供Modのフォールバック）として Validate を通る。
+        // An empty table passes Validate as a feature opt-out (fallback for mods without the file).
         [Test]
-        public void ThresholdMaster_Validate_EmptyRows_Fails()
+        public void ThresholdMaster_Validate_EmptyRows_PassesAsOptOut()
         {
             var token = ValidThresholdJToken();
             ((JArray)token["data"]).Clear();
 
-            AssertThresholdValidateFails(token);
+            var master = new CleanRoomThresholdMaster(token);
+            var ok = master.Validate(out var msg);
+            Assert.IsTrue(ok, msg);
+            Assert.AreEqual(0, master.OutThresholdIndex);
         }
 
         // downBinRate が [0,1] を外れると Validate が失敗する。

@@ -18,6 +18,7 @@ using Game.PlayerInventory;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.ItemsModule;
 using Mooresmaster.Model.MachineRecipesModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -164,6 +165,31 @@ namespace Tests.CombinedTest.Core
             AssertByProductPresent(block);
         }
 
+        // 速度モジュール装着でクリーンルーム機械の加工時間が短縮されることを確認する（モジュール効果の配線検証）
+        // Verify a speed module shortens the clean-room machine's processing time (module effect wiring)
+        [Test]
+        public void SpeedModuleShortensCleanRoomProcessingTest()
+        {
+            var (block, proc, receiver) = PlaceExposureMachineWithInputs();
+            receiver.SetCleanRoomEffect(new CleanRoomEffect(true, 4, 0.0));
+
+            // 第3レンジ（整理除外スロット＝モジュールスロット）へ速度モジュールを装着する
+            // Equip a speed module into the third range (sort-excluded slots == module slots)
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            var speedModule = MasterHolder.ItemMaster.Items.Modules.First(m => m.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            var moduleItemId = MasterHolder.ItemMaster.GetItemId(speedModule.ItemGuid);
+            inventory.SetItem(inventory.SortExcludedSlots.First(), ServerContext.ItemStackFactory.Create(moduleItemId, 1));
+
+            // 1tick 進めて加工を開始し、開始直後の残りtickが短縮済み加工時間と一致することを確認する
+            // Advance one tick to start processing; the remaining ticks right after start equal the scaled time
+            var baseTicks = GameUpdater.SecondsToTicks(FindExposureRecipe().Time);
+            var expectedTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * (1f / (1f + speedModule.EffectValue))));
+            RunTicksWithPower(block, 1);
+            Assert.AreEqual(ProcessState.Processing, proc.CurrentState);
+            Assert.AreEqual(expectedTicks, proc.RemainingTicks);
+            Assert.Less(proc.RemainingTicks, baseTicks);
+        }
+
 
         // 流体レシピを完走させ、入力流体が消費され出力流体が生成されることを確認する
         // Run the fluid recipe to completion; input fluid is consumed and output fluid is produced
@@ -181,7 +207,7 @@ namespace Tests.CombinedTest.Core
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
 
-            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             var receiver = (CleanRoomStateReceiverComponent)block.GetComponent<ICleanRoomStateReceiver>();
             var proc = block.GetComponent<CleanRoomMachineProcessorComponent>();
 
@@ -242,7 +268,7 @@ namespace Tests.CombinedTest.Core
             var assembleSaveJsonText = saveProvider.GetService<AssembleSaveJsonText>();
 
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
 
             var inputTanks = GetInputFluidContainers(inventory);
             inputTanks[0].FluidId = fluidId1;
@@ -263,7 +289,7 @@ namespace Tests.CombinedTest.Core
             loader.Load(json);
 
             var loadBlock = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
-            var loadInventory = loadBlock.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var loadInventory = loadBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
 
             var loadInput = GetInputFluidContainers(loadInventory);
             Assert.AreEqual(fluidId1, loadInput[0].FluidId, "input fluid id not restored");
@@ -296,7 +322,7 @@ namespace Tests.CombinedTest.Core
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
 
-            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)
                 inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count * cycles));
 
@@ -365,7 +391,7 @@ namespace Tests.CombinedTest.Core
         // Scan the unified inventory; collect chip levels (>=1) only (chips never collide with input/module items)
         System.Collections.Generic.List<int> CollectOutputChipLevels(IBlock block)
         {
-            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             var levels = new List<int>();
             foreach (var item in inventory.InventoryItems)
             {
@@ -386,7 +412,7 @@ namespace Tests.CombinedTest.Core
         void AssertByProductPresent(IBlock block)
         {
             var recipe = FindExposureRecipe();
-            var inventory = block.GetComponent<CleanRoomMachineBlockInventoryComponent>();
+            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
 
             // 分布を持たない出力要素＝副産物。その ItemId がそのまま出力に残っているはず
             // The non-distribution output element is the by-product; its ItemId must remain as-is
@@ -429,32 +455,32 @@ namespace Tests.CombinedTest.Core
             return master.BlockType == "CleanRoomMachine";
         }
 
-        // 専用ブロックインベントリから入出力流体タンクをリフレクションで取得する
-        // Read the input/output fluid tanks from the dedicated block inventory via reflection
-        IReadOnlyList<FluidContainer> GetInputFluidContainers(CleanRoomMachineBlockInventoryComponent inventory)
+        // 統合ブロックインベントリから入出力流体タンクをリフレクションで取得する
+        // Read the input/output fluid tanks from the unified block inventory via reflection
+        IReadOnlyList<FluidContainer> GetInputFluidContainers(VanillaMachineBlockInventoryComponent inventory)
         {
-            var input = (VanillaMachineInputInventory)typeof(CleanRoomMachineBlockInventoryComponent)
-                .GetField("_inputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+            var input = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(inventory);
             return input.FluidInputSlot;
         }
 
-        IReadOnlyList<FluidContainer> GetOutputFluidContainers(CleanRoomMachineBlockInventoryComponent inventory)
+        IReadOnlyList<FluidContainer> GetOutputFluidContainers(VanillaMachineBlockInventoryComponent inventory)
         {
             return GetOutputInventoryFrom(inventory).FluidOutputSlot;
         }
 
-        // 専用ブロックインベントリから出力インベントリ本体をリフレクションで取得する
-        // Read the dedicated output inventory from the block inventory via reflection
+        // 統合ブロックインベントリから専用出力インベントリをリフレクションで取得する
+        // Read the dedicated output inventory from the unified block inventory via reflection
         CleanRoomMachineOutputInventory GetOutputInventory(IBlock block)
         {
-            return GetOutputInventoryFrom(block.GetComponent<CleanRoomMachineBlockInventoryComponent>());
+            return GetOutputInventoryFrom(block.GetComponent<VanillaMachineBlockInventoryComponent>());
         }
 
-        CleanRoomMachineOutputInventory GetOutputInventoryFrom(CleanRoomMachineBlockInventoryComponent inventory)
+        CleanRoomMachineOutputInventory GetOutputInventoryFrom(VanillaMachineBlockInventoryComponent inventory)
         {
-            return (CleanRoomMachineOutputInventory)typeof(CleanRoomMachineBlockInventoryComponent)
-                .GetField("_outputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
+            return (CleanRoomMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
+                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(inventory);
         }
 

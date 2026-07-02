@@ -27,6 +27,13 @@ namespace Game.Block.Blocks.Machine.Module
             QualityShift = qualityShift;
         }
 
+        // 速度効果を加工tickへ適用する（下限1tick・式の唯一ソース）
+        // Apply the speed effect to processing ticks (min 1 tick; single source of this formula)
+        public uint ScaleProcessingTicks(uint baseTicks)
+        {
+            return (uint)Math.Max(1, (long)Math.Round(baseTicks * ProcessingTimeMultiplier));
+        }
+
         public static MachineModuleEffect Aggregate(IReadOnlyList<EquippedModule> modules)
         {
             // 軸ごとにスタック数加重で加算集計

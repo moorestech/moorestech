@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks;
@@ -8,6 +9,7 @@ using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -16,11 +18,14 @@ using Game.Context;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Game.Block.Factory.BlockTemplate
 {
-    // VanillaMachineTemplate をコピーし、専用コンポーネント＋CleanRoomStateReceiverComponent を合成する（blockType CleanRoomMachine 用）。
-    // Copied from VanillaMachineTemplate; composes the dedicated components + CleanRoomStateReceiverComponent for blockType CleanRoomMachine.
+    // 専用の出力/プロセッサに CleanRoomStateReceiverComponent を合成する（blockType CleanRoomMachine 用）。
+    // 統合インベントリ・流体インベントリ・モジュール効果は Vanilla の実装をそのまま再利用する。
+    // Composes the dedicated output/processor with CleanRoomStateReceiverComponent (for blockType CleanRoomMachine).
+    // The unified inventory, fluid inventory, and module effects reuse the Vanilla implementations as-is.
     public class VanillaCleanRoomMachineTemplate : IBlockTemplate
     {
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
@@ -78,16 +83,20 @@ namespace Game.Block.Factory.BlockTemplate
                 machineParam.ModuleSlotCount, _blockInventoryUpdateEvent, blockInstanceId,
                 machineParam.InputSlotCount, machineParam.OutputSlotCount);
 
+            // モジュール効果（速度/電力）を専用プロセッサへ供給する（Vanillaと同じ集計器）
+            // Feed module effects (speed/power) into the dedicated processor (same aggregator as Vanilla)
+            var moduleEffect = new MachineModuleEffectComponent(module);
+
             var requestPower = machineParam.RequiredPower;
 
             // 新規作成またはセーブから復元
             // Create new or restore from save
             var processor = componentStates == null
-                ? new CleanRoomMachineProcessorComponent(input, output, receiver, blockInstanceId, requestPower)
-                : LoadProcessor(componentStates, input, output, module, receiver, blockInstanceId, requestPower);
+                ? new CleanRoomMachineProcessorComponent(input, output, receiver, moduleEffect, blockInstanceId, requestPower)
+                : LoadProcessor(componentStates, input, output, module, receiver, moduleEffect, blockInstanceId, requestPower, blockMasterElement);
             processorRef = processor;
 
-            var blockInventory = new CleanRoomMachineBlockInventoryComponent(input, output, module);
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new CleanRoomMachineSaveComponent(input, output, module, processor);
             var electric = new CleanRoomMachineElectricComponent(blockInstanceId, processor);
 
@@ -95,18 +104,19 @@ namespace Game.Block.Factory.BlockTemplate
             {
                 blockInventory,
                 machineSave,
+                moduleEffect,
                 processor,
                 electric,
                 receiver,
                 inventoryConnectorComponent,
             };
 
-            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合・Vanillaのコピー）
-            // Add fluid connection support when fluid connectors are defined (mirrors Vanilla)
+            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合・Vanillaを再利用）
+            // Add fluid connection support when fluid connectors are defined (reuses the Vanilla component)
             if (machineParam.FluidInventoryConnectors != null && (inputTankCount > 0 || outputTankCount > 0))
             {
                 var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
-                var fluidInventory = new CleanRoomMachineFluidInventoryComponent(input, output, fluidConnector);
+                var fluidInventory = new VanillaMachineFluidInventoryComponent(input.FluidInputSlot, output.FluidOutputSlot, fluidConnector);
 
                 components.Add(fluidConnector);
                 components.Add(fluidInventory);
@@ -120,22 +130,17 @@ namespace Game.Block.Factory.BlockTemplate
         private CleanRoomMachineProcessorComponent LoadProcessor(
             Dictionary<string, string> componentStates,
             VanillaMachineInputInventory input, CleanRoomMachineOutputInventory output, VanillaMachineModuleInventory module,
-            CleanRoomStateReceiverComponent receiver, BlockInstanceId blockInstanceId, float requestPower)
+            CleanRoomStateReceiverComponent receiver, MachineModuleEffectComponent moduleEffect,
+            BlockInstanceId blockInstanceId, float requestPower, BlockMasterElement blockMasterElement)
         {
             var state = componentStates[CleanRoomMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<CleanRoomMachineJsonObject>(state);
 
-            var inputItems = jsonObject.InputSlot.Select(item => item.ToItemStack()).ToList();
-            for (var i = 0; i < inputItems.Count && i < input.InputSlot.Count; i++) input.SetItemWithoutEvent(i, inputItems[i]);
-
-            var outputItems = jsonObject.OutputSlot.Select(item => item.ToItemStack()).ToList();
-            for (var i = 0; i < outputItems.Count && i < output.OutputSlot.Count; i++) output.SetItemWithoutEvent(i, outputItems[i]);
-
-            if (jsonObject.ModuleSlot != null)
-            {
-                var moduleItems = jsonObject.ModuleSlot.Select(item => item.ToItemStack()).ToList();
-                for (var i = 0; i < moduleItems.Count && i < module.ModuleSlot.Count; i++) module.SetItemWithoutEvent(i, moduleItems[i]);
-            }
+            // スロット超過はエラーログを残して打ち切る（Vanillaと同じ・サイレント消失させない）
+            // Log and stop on slot overflow (same as Vanilla; never drop items silently)
+            RestoreSlots(jsonObject.InputSlot, input.InputSlot.Count, input.SetItemWithoutEvent);
+            RestoreSlots(jsonObject.OutputSlot, output.OutputSlot.Count, output.SetItemWithoutEvent);
+            if (jsonObject.ModuleSlot != null) RestoreSlots(jsonObject.ModuleSlot, module.ModuleSlot.Count, module.SetItemWithoutEvent);
 
             // 流体タンクを復元（Vanilla の MachineLoadState と同じ）
             // Restore fluid tanks (same as Vanilla MachineLoadState)
@@ -164,8 +169,26 @@ namespace Game.Block.Factory.BlockTemplate
             var remainingTicks = GameUpdater.SecondsToTicks(processorJson.RemainingSeconds);
 
             return new CleanRoomMachineProcessorComponent(
-                input, output, receiver, blockInstanceId, requestPower,
+                input, output, receiver, moduleEffect, blockInstanceId, requestPower,
                 (Game.Block.Blocks.Machine.ProcessState)processorJson.State, remainingTicks, recipe, processorJson.ProcessedCycleCount);
+
+            #region Internal
+
+            void RestoreSlots(List<ItemStackSaveJsonObject> savedItems, int slotCount, Action<int, IItemStack> setItemWithoutEvent)
+            {
+                var items = savedItems.Select(item => item.ToItemStack()).ToList();
+                for (var i = 0; i < items.Count; i++)
+                {
+                    if (slotCount <= i)
+                    {
+                        Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                        break;
+                    }
+                    setItemWithoutEvent(i, items[i]);
+                }
+            }
+
+            #endregion
         }
     }
 }
