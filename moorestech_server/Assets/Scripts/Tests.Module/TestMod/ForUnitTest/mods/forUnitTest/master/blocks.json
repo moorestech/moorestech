@@ -4705,5 +4705,81 @@
       "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
       "consumptionPerLength": 1
     }
-  ]
+  ],
+  "cleanRoomThresholds": {
+    "data": [
+      {
+        "label": "A",
+        "maxConcentration": 10.0,
+        "maxGrade": 4,
+        "downBinRate": 0.0,
+        "requiredAirChangeRate": 0.0167
+      },
+      {
+        "label": "B",
+        "maxConcentration": 50.0,
+        "maxGrade": 3,
+        "downBinRate": 0.05,
+        "requiredAirChangeRate": 0.0083
+      },
+      {
+        "label": "C",
+        "maxConcentration": 200.0,
+        "maxGrade": 2,
+        "downBinRate": 0.15,
+        "requiredAirChangeRate": 0.0042
+      },
+      {
+        "label": "D",
+        "maxConcentration": 1000.0,
+        "maxGrade": 1,
+        "downBinRate": 0.35,
+        "requiredAirChangeRate": 0.0014
+      }
+    ]
+  },
+  "semiconductorChips": {
+    "chipLevels": [
+      {
+        "level": 1,
+        "itemGuid": "3a000000-0000-0000-0000-000000000001"
+      },
+      {
+        "level": 2,
+        "itemGuid": "3a000000-0000-0000-0000-000000000002"
+      },
+      {
+        "level": 3,
+        "itemGuid": "3a000000-0000-0000-0000-000000000003"
+      },
+      {
+        "level": 4,
+        "itemGuid": "3a000000-0000-0000-0000-000000000004"
+      }
+    ],
+    "outputDistributions": [
+      {
+        "machineRecipeGuid": "3c000000-0000-0000-0000-000000000001",
+        "outputItemGuid": "3a000000-0000-0000-0000-000000000001",
+        "levelWeights": [
+          {
+            "level": 1,
+            "weight": 0.7
+          },
+          {
+            "level": 2,
+            "weight": 0.2
+          },
+          {
+            "level": 3,
+            "weight": 0.08
+          },
+          {
+            "level": 4,
+            "weight": 0.02
+          }
+        ]
+      }
+    ]
+  }
 }

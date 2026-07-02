@@ -1,7 +1,6 @@
+using System;
 using System.Collections.Generic;
-using Mooresmaster.Loader.CleanRoomThresholdsModule;
 using Mooresmaster.Model.CleanRoomThresholdsModule;
-using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
@@ -16,15 +15,17 @@ namespace Core.Master
         public IReadOnlyList<CleanRoomThresholdMasterElement> Rows => CleanRoomThresholds.Data;
         public int OutThresholdIndex => Rows.Count;
 
-        public CleanRoomThresholdMaster(JToken jToken)
+        public CleanRoomThresholdMaster(CleanRoomThresholds cleanRoomThresholds)
         {
-            CleanRoomThresholds = CleanRoomThresholdsLoader.Load(jToken);
+            // blocks.jsonのoptionalキー未定義（null）は空テーブルへ正規化し、以降はnull無し前提で扱う。
+            // Normalize a missing optional key in blocks.json (null) to an empty table so everything downstream stays null-free.
+            CleanRoomThresholds = cleanRoomThresholds ?? new CleanRoomThresholds(Array.Empty<CleanRoomThresholdMasterElement>());
         }
 
         public bool Validate(out string errorLogs)
         {
-            // 空テーブルは機能を使わないModのopt-out（未提供ファイルのフォールバック含む）。全部屋が常時Outになるだけで安全。
-            // An empty table is a valid opt-out (incl. the missing-file fallback); rooms just stay Out and nothing crashes.
+            // 空テーブルは機能を使わないModのopt-out（optionalキー未定義の場合を含む）。全部屋が常時Outになるだけで安全。
+            // An empty table is a valid opt-out (incl. mods omitting the optional key); rooms just stay Out and nothing crashes.
             if (Rows.Count == 0)
             {
                 errorLogs = null;

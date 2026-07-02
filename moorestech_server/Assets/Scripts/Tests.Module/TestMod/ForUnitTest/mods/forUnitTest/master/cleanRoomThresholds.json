@@ -1,8 +1,0 @@
-{
-  "data": [
-    { "label": "A", "maxConcentration": 10.0, "maxGrade": 4, "downBinRate": 0.0,  "requiredAirChangeRate": 0.0167 },
-    { "label": "B", "maxConcentration": 50.0, "maxGrade": 3, "downBinRate": 0.05, "requiredAirChangeRate": 0.0083 },
-    { "label": "C", "maxConcentration": 200.0, "maxGrade": 2, "downBinRate": 0.15, "requiredAirChangeRate": 0.0042 },
-    { "label": "D", "maxConcentration": 1000.0, "maxGrade": 1, "downBinRate": 0.35, "requiredAirChangeRate": 0.0014 }
-  ]
-}

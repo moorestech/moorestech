@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Mooresmaster.Loader.SemiconductorChipsModule;
 using Mooresmaster.Model.SemiconductorChipsModule;
-using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
@@ -24,9 +22,11 @@ namespace Core.Master
         // Distribution table keyed by (machineRecipeGuid, outputItemGuid).
         private Dictionary<(Guid, Guid), IReadOnlyList<(int level, double weight)>> _distributions;
 
-        public SemiconductorChipMaster(JToken jToken)
+        public SemiconductorChipMaster(SemiconductorChips semiconductorChips)
         {
-            _data = SemiconductorChipsLoader.Load(jToken);
+            // blocks.jsonのoptionalキー未定義（null）は空マスタへ正規化し、以降はnull無し前提で扱う。
+            // Normalize a missing optional key in blocks.json (null) to an empty master so everything downstream stays null-free.
+            _data = semiconductorChips ?? new SemiconductorChips(Array.Empty<ChipLevelsElement>(), Array.Empty<OutputDistributionsElement>());
         }
 
         // チップ Lv から ItemId を解決する。Lv が存在しない場合は KeyNotFoundException を投げる。
@@ -52,8 +52,8 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // チップ定義も分布も空 = この mod は半導体機能を使わない。空マスタを valid として扱い、ロード時クラッシュを避ける。
-            // Both empty = this mod opts out of semiconductors; treat an empty master as valid instead of crashing load.
+            // チップ定義も分布も空 = この mod は半導体機能を使わない（optionalキー未定義の正規化結果を含む）。空マスタを valid として扱う。
+            // Both arrays empty = this mod opts out of semiconductors (incl. the normalized missing-key case); an empty master is valid.
             if (_data.ChipLevels.Length == 0)
             {
                 if (_data.OutputDistributions.Length == 0)

@@ -926,3 +926,13 @@ properties:
     - key: consumptionPerLength
       type: number
       default: 1
+
+# クリーンルーム関連マスタ。未定義Modは機能オフ（opt-out）でロード可能にするためoptional。
+# Clean-room related masters; optional so mods without them still load with the feature off (opt-out).
+- key: cleanRoomThresholds
+  ref: cleanRoomThresholds
+  optional: true
+
+- key: semiconductorChips
+  ref: semiconductorChips
+  optional: true

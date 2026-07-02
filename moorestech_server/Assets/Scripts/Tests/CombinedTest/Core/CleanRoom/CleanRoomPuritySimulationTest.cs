@@ -9,6 +9,7 @@ using Game.CleanRoom;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Loader.CleanRoomThresholdsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -43,24 +44,36 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void ThresholdMaster_Validate_ValidMaster_Passes()
         {
-            var master = new CleanRoomThresholdMaster(ValidThresholdJToken());
+            var master = CreateThresholdMaster(ValidThresholdJToken());
             var ok = master.Validate(out var msg);
             Assert.IsTrue(ok, msg);
             Assert.IsNull(msg);
         }
 
-        // 空テーブルは機能opt-out（未提供Modのフォールバック）として Validate を通る。
-        // An empty table passes Validate as a feature opt-out (fallback for mods without the file).
+        // 空テーブルは機能opt-out（blocks.jsonでキー未定義のMod相当）として Validate を通る。
+        // An empty table passes Validate as a feature opt-out (equivalent to mods omitting the key in blocks.json).
         [Test]
         public void ThresholdMaster_Validate_EmptyRows_PassesAsOptOut()
         {
             var token = ValidThresholdJToken();
             ((JArray)token["data"]).Clear();
 
-            var master = new CleanRoomThresholdMaster(token);
+            var master = CreateThresholdMaster(token);
             var ok = master.Validate(out var msg);
             Assert.IsTrue(ok, msg);
             Assert.AreEqual(0, master.OutThresholdIndex);
+        }
+
+        // optionalキー未定義（null）は空テーブルへ正規化され、opt-outとして動作する。
+        // A missing optional key (null) normalizes to an empty table and acts as an opt-out.
+        [Test]
+        public void ThresholdMaster_NullModel_NormalizesToEmptyOptOut()
+        {
+            var master = new CleanRoomThresholdMaster(null);
+            var ok = master.Validate(out var msg);
+            Assert.IsTrue(ok, msg);
+            Assert.AreEqual(0, master.OutThresholdIndex);
+            Assert.IsNotNull(master.CleanRoomThresholds);
         }
 
         // downBinRate が [0,1] を外れると Validate が失敗する。
@@ -85,11 +98,18 @@ namespace Tests.CombinedTest.Core
             AssertThresholdValidateFails(token);
         }
 
+        // JTokenから閾値マスタを生成する共通ヘルパー。
+        // Shared helper to build a threshold master from a JToken.
+        private static CleanRoomThresholdMaster CreateThresholdMaster(JToken token)
+        {
+            return new CleanRoomThresholdMaster(CleanRoomThresholdsLoader.Load(token));
+        }
+
         // Validate が false かつメッセージ非空であることを確認する共通アサート。
         // Shared assert: Validate returns false with a non-empty message.
         private static void AssertThresholdValidateFails(JToken token)
         {
-            var master = new CleanRoomThresholdMaster(token);
+            var master = CreateThresholdMaster(token);
             var ok = master.Validate(out var msg);
             Assert.IsFalse(ok);
             Assert.IsNotEmpty(msg);

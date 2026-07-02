@@ -56,14 +56,14 @@ namespace Core.Master
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")));
             InitializeMaster(TrainUnitMaster);
 
-            // クリーンルーム閾値（依存なし・ファイル未提供の既存Modは空定義で機能オフ）
-            // Clean room thresholds (no dependencies; mods without the file opt out via an empty table)
-            CleanRoomThresholdMaster = new CleanRoomThresholdMaster(GetJsonOrEmpty(masterJsonFileContainer, new JsonFileName("cleanRoomThresholds"), "{\"data\":[]}"));
+            // クリーンルーム閾値（blocks.json内のoptionalキー・未定義Modは機能オフ）
+            // Clean room thresholds (optional key inside blocks.json; mods without it opt out)
+            CleanRoomThresholdMaster = new CleanRoomThresholdMaster(BlockMaster.Blocks.CleanRoomThresholds);
             InitializeMaster(CleanRoomThresholdMaster);
 
-            // 半導体チップ分布マスタ（ItemMaster 依存・未提供Modは空定義で機能オフ）。
-            // Semiconductor chip distribution master (depends on ItemMaster; mods without the file opt out via an empty master).
-            SemiconductorChipMaster = new SemiconductorChipMaster(GetJsonOrEmpty(masterJsonFileContainer, new JsonFileName("semiconductorChips"), "{\"chipLevels\":[],\"outputDistributions\":[]}"));
+            // 半導体チップ分布マスタ（ItemMaster 依存・blocks.json内のoptionalキー・未定義Modは機能オフ）。
+            // Semiconductor chip distribution master (depends on ItemMaster; optional key inside blocks.json; mods without it opt out).
+            SemiconductorChipMaster = new SemiconductorChipMaster(BlockMaster.Blocks.SemiconductorChips);
             InitializeMaster(SemiconductorChipMaster);
 
             // BlockMaster, ItemMaster, FluidMaster依存
@@ -102,17 +102,6 @@ namespace Core.Master
         {
             var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
             var jsonContent = masterJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
-
-            return (JToken)JsonConvert.DeserializeObject(jsonContent);
-        }
-
-        // 後方追加されたマスタ用。ファイル未提供の旧Modを起動クラッシュさせず空定義でロードする
-        // For masters added later: load an empty definition instead of crashing older mods lacking the file
-        private static JToken GetJsonOrEmpty(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName, string emptyJson)
-        {
-            var index = 0;
-            var jsonContents = masterJsonFileContainer.ConfigJsons[index].JsonContents;
-            var jsonContent = jsonContents.TryGetValue(jsonFileName, out var content) ? content : emptyJson;
 
             return (JToken)JsonConvert.DeserializeObject(jsonContent);
         }

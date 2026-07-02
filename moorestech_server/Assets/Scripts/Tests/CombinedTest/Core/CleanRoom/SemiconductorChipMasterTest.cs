@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Mooresmaster.Loader.SemiconductorChipsModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
@@ -27,8 +28,21 @@ namespace Tests.CombinedTest.Core
         public void EmptyMaster_IsValid_ForModsWithoutSemiconductorContent()
         {
             var json = JToken.Parse("{\"chipLevels\":[],\"outputDistributions\":[]}");
-            var master = new SemiconductorChipMaster(json);
+            var master = CreateMaster(json);
             Assert.IsTrue(master.Validate(out var errorLogs), errorLogs);
+        }
+
+        // optionalキー未定義（null）は空マスタへ正規化され、opt-outとして動作する。
+        // A missing optional key (null) normalizes to an empty master and acts as an opt-out.
+        [Test]
+        public void NullModel_NormalizesToEmptyOptOut()
+        {
+            var master = new SemiconductorChipMaster(null);
+            Assert.IsTrue(master.Validate(out var errorLogs), errorLogs);
+
+            master.Initialize();
+            Assert.AreEqual(-1, master.GetChipLevel(new ItemId(1)));
+            Assert.IsFalse(master.TryGetDistribution(Guid.NewGuid(), Guid.NewGuid(), out _));
         }
 
         // chipLevels が空なのに分布が参照を持つ不整合は依然として reject される
@@ -41,7 +55,7 @@ namespace Tests.CombinedTest.Core
                 "\"machineRecipeGuid\":\"3c000000-0000-0000-0000-000000000001\"," +
                 "\"outputItemGuid\":\"3a000000-0000-0000-0000-000000000001\"," +
                 "\"levelWeights\":[{\"level\":1,\"weight\":1.0}]}]}");
-            var master = new SemiconductorChipMaster(json);
+            var master = CreateMaster(json);
             Assert.IsFalse(master.Validate(out _));
         }
 
@@ -121,7 +135,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void Validate_ValidMaster_Passes()
         {
-            var master = new SemiconductorChipMaster(ValidJToken());
+            var master = CreateMaster(ValidJToken());
             var ok = master.Validate(out var msg);
             Assert.IsTrue(ok, msg);
             Assert.IsNull(msg);
@@ -191,9 +205,16 @@ namespace Tests.CombinedTest.Core
 
         // Validate が false かつメッセージ非空であることを確認する共通アサート。
         // Shared assert: Validate returns false with a non-empty message.
+        // JTokenから半導体チップマスタを生成する共通ヘルパー。
+        // Shared helper to build a semiconductor chip master from a JToken.
+        private static SemiconductorChipMaster CreateMaster(JToken token)
+        {
+            return new SemiconductorChipMaster(SemiconductorChipsLoader.Load(token));
+        }
+
         private static void AssertValidateFails(JToken token)
         {
-            var master = new SemiconductorChipMaster(token);
+            var master = CreateMaster(token);
             var ok = master.Validate(out var msg);
             Assert.IsFalse(ok);
             Assert.IsNotEmpty(msg);
