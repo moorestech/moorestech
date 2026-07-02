@@ -60,8 +60,11 @@ namespace Server.Protocol.PacketResponse
             {
                 if (!GearChainSystemUtil.TryGetGearChainPole(request.FromPolePosVector, out var fromPole, out _)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InvalidTargetError);
 
+                // 新規ポール側は接続容量0の場合のみ上限超過として扱う
+                // Treat the new pole as full only when its connection capacity is zero
+                var anyConnectionFull = fromPole.IsConnectionFull || poleParam.MaxConnectionCount < 1;
                 var distance = Vector3Int.Distance(request.FromPolePosVector, placePosition);
-                var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromPole.MaxConnectionDistance, poleParam.MaxConnectionDistance, false, fromPole.IsConnectionFull, request.ChainItemId, inventory.InventoryItems, poleItemStack.Id);
+                var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromPole.MaxConnectionDistance, poleParam.MaxConnectionDistance, false, anyConnectionFull, request.ChainItemId, inventory.InventoryItems, poleItemStack.Id);
                 if (!judgement.IsPlaceable) return GearChainPoleExtendResponse.CreateFailed(judgement.FailureReason);
             }
 

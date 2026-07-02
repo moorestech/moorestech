@@ -56,7 +56,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 // 世代が進んでいたら結果を破棄する（フラグは進めた側が管理済み）
                 // Discard the result when the generation has advanced (the advancer manages the flag)
                 if (generation != _generation) return;
-                if (!response.IsSuccess)
+
+                // タイムアウト等の応答なし・失敗時は待ち状態を解除する
+                // Release the awaiting state on no-response (timeout) or failure
+                if (response == null || !response.IsSuccess)
                 {
                     IsAwaitingResponse = false;
                     return;
@@ -65,9 +68,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 // 新規ポールの生成を待って起点引き継ぎ先を解決する（引き継ぎ確定まで待ち状態を維持し孤立設置化を防ぐ）
                 // Wait for the new pole to spawn and resolve the next source (stay awaiting until hand-off to prevent isolated placement)
                 var placedPos = (Vector3Int)response.PlacedPolePos;
+                using var spawnWaitCancellation = new CancellationTokenSource();
                 await UniTask.WhenAny(
                     UniTask.WaitForSeconds(1f),
-                    UniTask.WaitUntil(() => _blockGameObjectDataStore.TryGetBlockGameObject(placedPos, out _)));
+                    UniTask.WaitUntil(() => _blockGameObjectDataStore.TryGetBlockGameObject(placedPos, out _), cancellationToken: spawnWaitCancellation.Token).SuppressCancellationThrow());
+
+                // 敗者側のポーリングを止める
+                // Stop the losing poll task
+                spawnWaitCancellation.Cancel();
 
                 if (generation != _generation) return;
                 IsAwaitingResponse = false;
