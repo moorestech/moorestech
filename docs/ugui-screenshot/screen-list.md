@@ -3,7 +3,7 @@
 UIをWebへ移行する準備として、現行Unityクライアントの全画面を洗い出し、実際にPlayModeで開いてスクリーンショットを取得した記録。
 This document enumerates every UI screen in the current Unity client and records screenshots actually captured in PlayMode, as reference material for the web-UI migration.
 
-- スクリーンショット保存先: `docs/ui-web-migration/screenshots/`
+- スクリーンショット保存先: `docs/ugui-screenshot/screenshots/`
 - 解像度: 1104×387（GameView rendering解像度。Unity CLI Loop skill既定値、全画面共通）
 - 取得方法: すべて実際にUnity Editor PlayMode上で対象UIを開いた状態を撮影（「推定」ではない）。主要画面はキー入力（InputSystem.QueueStateEvent注入）またはUIStateControlへのリフレクション強制遷移で到達し、`uloop screenshot --capture-mode rendering` で撮影。
 
