@@ -7,12 +7,7 @@ test("アイテム選択でレシピ表示、craft 可能なら送信できる",
   await expect(page.getByRole("heading", { name: "Items" })).toBeVisible();
   // 右リストの先頭 Plank(100) を選択
   // Select the first item Plank(100) in the right list
-  await page
-    .getByRole("heading", { name: "Items" })
-    .locator("..")
-    .locator(".grid > div")
-    .first()
-    .click();
+  await page.getByTestId("item-list-grid").locator("> div").first().click();
   await expect(page.getByRole("button", { name: "Craft" })).toBeEnabled();
   await page.getByRole("button", { name: "Craft" }).click();
   await expect

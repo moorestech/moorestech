@@ -1,3 +1,4 @@
+import { Group, Stack, Text } from "@mantine/core";
 import { ItemSlot } from "@/shared/ui";
 import type { MachineRecipe, ItemMasterEntry } from "@/bridge/payloadTypes";
 import { clampIndex } from "./craftLogic";
@@ -20,22 +21,22 @@ export default function MachineRecipeView({ recipes, recipeIndex, setRecipeIndex
   const recipe = recipes[index];
 
   return (
-    <div className="space-y-2">
+    <Stack gap="xs">
       <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
-      <div className="flex flex-wrap items-center gap-1">
+      <Group gap={4} align="center" wrap="wrap">
         {recipe.inputItems.map((r, i) => (
           <ItemSlot key={i} itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
         ))}
-        <span className="mx-2 text-gray-400">→</span>
-        <div className="flex flex-col items-center">
+        <Text c="dimmed" mx="xs">→</Text>
+        <Stack gap={0} align="center">
           <ItemSlot itemId={recipe.blockItemId} name={recipe.blockName} onLeftDown={() => onSelect(recipe.blockItemId)} />
-          <span className="text-[10px] text-gray-400 max-w-16 truncate">{recipe.blockName}</span>
-        </div>
-        <span className="mx-2 text-gray-400">→</span>
+          <Text fz={10} c="dimmed" maw="4rem" truncate="end">{recipe.blockName}</Text>
+        </Stack>
+        <Text c="dimmed" mx="xs">→</Text>
         {recipe.outputItems.map((r, i) => (
           <ItemSlot key={i} itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
         ))}
-      </div>
-    </div>
+      </Group>
+    </Stack>
   );
 }

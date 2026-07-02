@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { Stack, Tabs, Text, Title } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { useUiStore } from "@/app/uiStore";
 import { ItemIcon } from "@/shared/ui";
+import styles from "./RecipeViewer.module.css";
 import type {
   CraftRecipesData,
   MachineRecipe,
@@ -28,12 +30,12 @@ export default function RecipeViewer() {
   const loaded = recipes !== null && machineRecipes !== null && inventory !== null;
 
   return (
-    <div className="space-y-3 [grid-area:viewer] min-w-0">
-      <h2 className="text-lg font-semibold">Recipe</h2>
+    <Stack gap="sm" style={{ gridArea: "viewer", minWidth: 0 }}>
+      <Title order={2} size="h4">Recipe</Title>
       {!loaded ? (
-        <div className="text-sm text-gray-400">connecting...</div>
+        <Text size="sm" c="dimmed">connecting...</Text>
       ) : selectedItemId === null ? (
-        <div className="text-sm text-gray-400">右のアイテムリストからアイテムを選択してください</div>
+        <Text size="sm" c="dimmed">右のアイテムリストからアイテムを選択してください</Text>
       ) : (
         // key={selectedItemId} の再マウントで tabKey/recipeIndex をリセットする契約は維持
         // Keep the contract: remount via key={selectedItemId} resets tabKey/recipeIndex
@@ -47,7 +49,7 @@ export default function RecipeViewer() {
           onSelect={onSelect}
         />
       )}
-    </div>
+    </Stack>
   );
 }
 
@@ -95,10 +97,10 @@ function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster,
 
   if (activeTab === null) {
     return (
-      <div className="space-y-3">
+      <Stack gap="sm">
         <ItemHeader itemId={itemId} name={itemName} />
-        <div className="text-sm text-gray-400">このアイテムのレシピはありません</div>
-      </div>
+        <Text size="sm" c="dimmed">このアイテムのレシピはありません</Text>
+      </Stack>
     );
   }
 
@@ -107,26 +109,30 @@ function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster,
   const counts = buildOwnedCounts(inventory);
 
   return (
-    <div className="space-y-3">
+    <Stack gap="sm">
       <ItemHeader itemId={itemId} name={itemName} />
       {tabs.length > 1 ? (
-        <div className="flex flex-wrap gap-1">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => {
-                setTabKey(t.key);
-                setRecipeIndex(0);
-              }}
-              className={`flex items-center gap-1 text-sm rounded px-2 py-1 ${
-                t.key === activeTab.key ? "bg-gray-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-              }`}
-            >
-              {t.blockItemId !== null ? <ItemIcon itemId={t.blockItemId} className="w-5 h-5 object-contain" /> : null}
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          variant="pills"
+          value={activeTab.key}
+          onChange={(v) => {
+            if (v === null) return;
+            setTabKey(v);
+            setRecipeIndex(0);
+          }}
+        >
+          <Tabs.List>
+            {tabs.map((t) => (
+              <Tabs.Tab
+                key={t.key}
+                value={t.key}
+                leftSection={t.blockItemId !== null ? <ItemIcon itemId={t.blockItemId} className={styles.tabIcon} /> : undefined}
+              >
+                {t.label}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </Tabs>
       ) : null}
       {activeTab.blockItemId === null ? (
         <CraftRecipeView
@@ -146,6 +152,6 @@ function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster,
           onSelect={onSelect}
         />
       )}
-    </div>
+    </Stack>
   );
 }
