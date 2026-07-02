@@ -237,10 +237,12 @@ namespace Game.Block.Blocks.PowerGenerator
             saveData.FluidTank = null;
             if (_fuelFluidContainer != null)
             {
-                var fluidGuid = MasterHolder.FluidMaster.GetFluidMaster(_fuelFluidContainer.FluidId).FluidGuid;
+                // 空タンク(EmptyFluidId)はGuid変換できないためnullで保存する。Restore側はnullを空として復元する
+                // An empty tank (EmptyFluidId) has no Guid, so persist null; Restore maps null back to empty
+                var isEmpty = _fuelFluidContainer.FluidId == FluidMaster.EmptyFluidId;
                 saveData.FluidTank = new VanillaElectricGeneratorFluidSaveJsonObject
                 {
-                    FluidGuidStr = fluidGuid.ToString(),
+                    FluidGuidStr = isEmpty ? null : MasterHolder.FluidMaster.GetFluidMaster(_fuelFluidContainer.FluidId).FluidGuid.ToString(),
                     Amount = _fuelFluidContainer.Amount,
                 };
             }
