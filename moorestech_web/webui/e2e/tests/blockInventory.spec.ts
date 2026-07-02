@@ -42,9 +42,9 @@ test("filled スロット左クリックで block→grab の move_item を送り
     })
     .toEqual({ from: { area: "block", slot: 0 }, to: { area: "grab", slot: 0 }, count: 7 });
 
-  // mock が grab を更新し inventory event を流すので grab オーバーレイ(fixed z-40)が出現する
-  // The mock updates grab and pushes an inventory event, so the grab overlay (fixed z-40) appears
-  await expect(page.locator(".fixed.z-40")).toBeVisible();
+  // mock が grab を更新し inventory event を流すので grab オーバーレイが出現する
+  // The mock updates grab and pushes an inventory event, so the grab overlay appears
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
 });
 
 test("ブロックを閉じると panel が消える", async ({ page }) => {

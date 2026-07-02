@@ -2,10 +2,10 @@ import { test, expect } from "@playwright/test";
 
 type ActionRecord = { type: string; payload: unknown };
 
-// ホットバーグリッドはページ上で2番目の .grid.grid-cols-9（1番目はメイン）
-// The hotbar grid is the second .grid.grid-cols-9 on the page (the first is main)
+// ホットバーグリッドは data-testid="hotbar-grid" で特定する
+// The hotbar grid is identified via data-testid="hotbar-grid"
 const hotbarSlots = (page: import("@playwright/test").Page) =>
-  page.locator(".grid.grid-cols-9").nth(1).locator("> div");
+  page.getByTestId("hotbar-grid").locator("> div");
 
 test("ホットバー slot 0 が初期選択（data-selected）", async ({ page }) => {
   await page.goto("/");
