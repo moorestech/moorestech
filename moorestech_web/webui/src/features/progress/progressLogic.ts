@@ -7,8 +7,8 @@ export function clampProgress(n: number): number {
   return n;
 }
 
-// 丸めた進捗を CSS 幅パーセント文字列へ変換（0.4 → "40%"）。
-// Convert the clamped progress into a CSS width percent string (0.4 → "40%").
-export function percentWidth(n: number): string {
-  return `${clampProgress(n) * 100}%`;
+// 丸めた進捗を Mantine Progress の value へ変換（0.4 → 40）。
+// Convert the clamped progress into the Mantine Progress value (0.4 → 40).
+export function percentValue(n: number): number {
+  return clampProgress(n) * 100;
 }
