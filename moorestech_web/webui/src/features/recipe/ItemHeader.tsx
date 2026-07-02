@@ -1,12 +1,13 @@
+import { Group, Text } from "@mantine/core";
 import { ItemSlot } from "@/shared/ui";
 
 // 選択アイテムのアイコン+名前ヘッダ
 // Icon + name header for the selected item
 export default function ItemHeader({ itemId, name }: { itemId: number; name: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <Group gap="xs">
       <ItemSlot itemId={itemId} name={name} />
-      <span className="text-base text-gray-200">{name}</span>
-    </div>
+      <Text>{name}</Text>
+    </Group>
   );
 }

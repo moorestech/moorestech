@@ -1,3 +1,4 @@
+import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe, ItemMasterEntry } from "@/bridge/payloadTypes";
@@ -28,24 +29,22 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
   };
 
   return (
-    <div className="space-y-2">
+    <Stack gap="xs">
       <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
-      <div className="flex flex-wrap items-center gap-1">
+      <Group gap={4} align="center" wrap="wrap">
         {recipe.requiredItems.map((r, i) => (
-          <div key={i} className={(counts.get(r.itemId) ?? 0) >= r.count ? "" : "opacity-40"}>
+          // 所持数不足の素材は 40% 透過で強調を落とす（uGUI 準拠）
+          // Dim insufficient materials to 40% opacity, matching uGUI
+          <Box key={i} opacity={(counts.get(r.itemId) ?? 0) >= r.count ? 1 : 0.4}>
             <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
-          </div>
+          </Box>
         ))}
-        <span className="mx-2 text-gray-400">→</span>
+        <Text c="dimmed" mx="xs">→</Text>
         <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
-        <button
-          onClick={onCraft}
-          disabled={!isCraftable}
-          className="ml-3 bg-blue-700 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 text-sm rounded px-4 py-2"
-        >
+        <Button color="blue" size="sm" ml="sm" disabled={!isCraftable} onClick={onCraft}>
           Craft
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Group>
+    </Stack>
   );
 }

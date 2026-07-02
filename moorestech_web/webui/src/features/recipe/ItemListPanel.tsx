@@ -1,7 +1,8 @@
+import { ScrollArea, Stack, Text, Title } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { useUiStore } from "@/app/uiStore";
-import { ItemSlot } from "@/shared/ui";
+import { ItemSlot, SlotGrid } from "@/shared/ui";
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
@@ -12,23 +13,25 @@ export default function ItemListPanel() {
   const itemMaster = useItemMaster();
 
   return (
-    <div className="space-y-3 [grid-area:items]">
-      <h2 className="text-lg font-semibold">Items</h2>
+    <Stack gap="sm" style={{ gridArea: "items" }}>
+      <Title order={2} size="h4">Items</Title>
       {itemList ? (
-        <div className="grid grid-cols-5 gap-1 w-fit max-h-[70vh] overflow-y-auto pr-1">
-          {itemList.itemIds.map((id) => (
-            <ItemSlot
-              key={id}
-              itemId={id}
-              name={itemMaster?.get(id)?.name}
-              selected={id === selectedItemId}
-              onLeftDown={() => onSelect(id)}
-            />
-          ))}
-        </div>
+        <ScrollArea.Autosize mah="70vh" type="auto" offsetScrollbars>
+          <SlotGrid cols={5} testId="item-list-grid">
+            {itemList.itemIds.map((id) => (
+              <ItemSlot
+                key={id}
+                itemId={id}
+                name={itemMaster?.get(id)?.name}
+                selected={id === selectedItemId}
+                onLeftDown={() => onSelect(id)}
+              />
+            ))}
+          </SlotGrid>
+        </ScrollArea.Autosize>
       ) : (
-        <div className="text-sm text-gray-400">connecting...</div>
+        <Text size="sm" c="dimmed">connecting...</Text>
       )}
-    </div>
+    </Stack>
   );
 }
