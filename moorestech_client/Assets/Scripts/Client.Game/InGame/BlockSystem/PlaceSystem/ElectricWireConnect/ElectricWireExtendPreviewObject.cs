@@ -37,13 +37,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         {
             _mainCamera = mainCamera;
 
-            // プレビュー専用のGameObjectとメッシュ描画コンポーネントを構築する
+            // プレビュー用GameObjectを構築
             // Build a dedicated preview GameObject with mesh-rendering components
             _gameObject = new GameObject("ElectricWireExtendPreview");
             _meshFilter = _gameObject.AddComponent<MeshFilter>();
             var renderer = _gameObject.AddComponent<MeshRenderer>();
 
-            // 共通プレビュー材質を複製し、_PreviewColorで青赤を切り替える
+            // プレビュー材質を複製し青赤切替
             // Clone the shared preview material and switch blue/red via _PreviewColor
             _material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
             renderer.sharedMaterial = _material;

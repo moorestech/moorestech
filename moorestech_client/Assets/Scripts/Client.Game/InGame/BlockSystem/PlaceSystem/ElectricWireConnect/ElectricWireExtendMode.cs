@@ -32,7 +32,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         /// </summary>
         public void Update(PlaceSystemUpdateContext ctx, BlockGameObject source, Action<BlockGameObject> setSource)
         {
-            // 起点の接続上限・最大ワイヤー長を解決する（電気系でなければ何もしない）
+            // 起点の接続上限と最大長を解決
             // Resolve the origin's connection limit and max wire length (do nothing when it is not electric)
             if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out var sourceMaxLength)) return;
 
