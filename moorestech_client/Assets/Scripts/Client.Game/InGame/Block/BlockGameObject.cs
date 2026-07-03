@@ -50,8 +50,9 @@ namespace Client.Game.InGame.Block
            
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             
-            // 子供のBlockGameObjectChildを初期化
-            foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>()) child.Init(this);
+            // 子供のBlockGameObjectChildを初期化（非アクティブな子も後から有効化され得るため対象に含める）
+            // Initialize child BlockGameObjectChild components (include inactive ones that may be activated later)
+            foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>(true)) child.Init(this);
             
             // 地面との衝突判定を無効化
             foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))

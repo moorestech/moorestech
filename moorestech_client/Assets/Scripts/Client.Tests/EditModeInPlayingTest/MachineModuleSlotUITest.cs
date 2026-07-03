@@ -71,13 +71,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 // Place the machine and wait until the client-side BlockGameObject spawns.
                 var pos = new Vector3Int(0, 0, 0);
                 PlaceBlock(MachineBlockName, pos, BlockDirection.North);
-                BlockGameObject blockGameObject = null;
-                for (var i = 0; i < 60 && blockGameObject == null; i++)
-                {
-                    ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(pos, out blockGameObject);
-                    await UniTask.Yield();
-                }
-                Assert.IsNotNull(blockGameObject, "client BlockGameObject not spawned");
+                var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
                 // 機械インベントリUIをDI経由で生成し、モジュールスロット列が描画されることを確認
                 // Instantiate the machine inventory UI via DI and verify the module slot row is rendered.
