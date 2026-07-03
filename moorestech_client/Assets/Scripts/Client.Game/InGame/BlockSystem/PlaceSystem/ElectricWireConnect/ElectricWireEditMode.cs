@@ -13,6 +13,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
     /// </summary>
     public class ElectricWireEditMode
     {
+        // 設置系と同じ操作距離に制限する
+        // Limit to the same interaction distance as placement
+        private const float WireClickMaxDistance = 100f;
+
         private readonly ElectricWireToolContext _context;
 
         public ElectricWireEditMode(ElectricWireToolContext context)
@@ -59,7 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
                 // ワイヤーコライダーは子オブジェクトのため親を辿って本体を得る
                 // Wire colliders live on child objects, so climb to the parent to get the element
                 var ray = _context.MainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
-                if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.ElectricWireOnlyLayerMask)) return false;
+                if (!Physics.Raycast(ray, out var hit, WireClickMaxDistance, LayerConst.ElectricWireOnlyLayerMask)) return false;
 
                 wireElement = hit.collider.GetComponentInParent<ElectricWireLineViewElement>();
                 return wireElement != null;
@@ -67,7 +71,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
             void Disconnect(ElectricWireLineViewElement wireElement)
             {
-                // 両端InstanceIdを座標に解決して切断要求を送る
+                // 両端Idを座標解決し切断要求を送る
                 // Resolve both endpoint InstanceIds to positions and send the disconnect request
                 if (!_context.BlockDataStore.TryGetBlockGameObject(wireElement.FromId, out var fromBlock)) return;
                 if (!_context.BlockDataStore.TryGetBlockGameObject(wireElement.ToId, out var toBlock)) return;

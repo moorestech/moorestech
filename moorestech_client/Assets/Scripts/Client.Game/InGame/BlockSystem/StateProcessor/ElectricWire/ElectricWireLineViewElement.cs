@@ -76,7 +76,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             transform.localScale = Vector3.one;
 
-            // カテナリーメッシュとクリック判定用セグメントを生成する
+            // メッシュとクリック判定セグメントを生成
             // Generate the catenary mesh and click-detection segments
             var sag = Vector3.Distance(start, end) * SagRatio;
             var colliderSegments = new List<(Vector3 center, Vector3 up, float length)>();

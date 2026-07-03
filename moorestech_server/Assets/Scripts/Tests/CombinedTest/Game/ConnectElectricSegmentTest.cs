@@ -13,11 +13,11 @@ using static Tests.Module.TestMod.ForUnitTestModBlockId;
 
 namespace Tests.CombinedTest.Game
 {
-    // 明示ワイヤー接続でセグメントが形成・マージされることを検証する
+    // 明示接続でセグメントが形成・マージされるか検証
     // Verify that explicit wire connections form and merge energy segments
     public class ConnectElectricSegmentTest
     {
-        // 電柱同士をワイヤーで繋ぐと1つのセグメントに統合される
+        // 電柱同士を繋ぐと1つのセグメントに統合される
         // Wiring poles together merges them into a single segment
         [Test]
         public void PoleToPoleConnectionMergesIntoSingleSegment()
@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(transformers.ContainsKey(pole3.BlockInstanceId));
         }
 
-        // 電柱に機械・発電機をワイヤー接続すると、消費者・発電機として同一セグメントに登録される
+        // 電柱に機械・発電機を繋ぐと同一セグメントに登録
         // Wiring machines and generators to a pole registers them as consumers and generators in the same segment
         [Test]
         public void MachineAndGeneratorJoinPoleSegment()
@@ -73,7 +73,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(segment.Generators.ContainsKey(generator.BlockInstanceId));
         }
 
-        // 別々に構築した2セグメントを電柱で橋渡しすると1セグメントにマージされる
+        // 2セグメントを電柱で橋渡しすると1つにマージされる
         // Bridging two independently-built segments with a pole merges them into one
         [Test]
         public void BridgingTwoSegmentsMergesConsumersAndGenerators()
@@ -110,7 +110,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(2, segment.Generators.Count);
         }
 
-        // セーブ・ロード後にワイヤー接続が復元され、セグメントが再形成される
+        // ロード後にワイヤー接続が復元されセグメント再形成
         // After save/load the wire connections are restored and the segment reforms
         [Test]
         public void SaveLoadRestoresWiredSegment()

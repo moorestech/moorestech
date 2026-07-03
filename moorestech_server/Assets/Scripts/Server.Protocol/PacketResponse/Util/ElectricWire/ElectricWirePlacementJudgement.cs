@@ -9,10 +9,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     public readonly struct ElectricWirePlacementJudgement
     {
         public readonly bool IsPlaceable;
-        public readonly string FailureReason;
+        public readonly ElectricWirePlacementFailureReason FailureReason;
         public readonly ElectricWireConnectionCost WireCost;
 
-        private ElectricWirePlacementJudgement(bool isPlaceable, string failureReason, ElectricWireConnectionCost wireCost)
+        private ElectricWirePlacementJudgement(bool isPlaceable, ElectricWirePlacementFailureReason failureReason, ElectricWireConnectionCost wireCost)
         {
             IsPlaceable = isPlaceable;
             FailureReason = failureReason;
@@ -21,12 +21,31 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
         public static ElectricWirePlacementJudgement Success(ElectricWireConnectionCost wireCost)
         {
-            return new ElectricWirePlacementJudgement(true, string.Empty, wireCost);
+            return new ElectricWirePlacementJudgement(true, ElectricWirePlacementFailureReason.None, wireCost);
         }
 
-        public static ElectricWirePlacementJudgement Failure(string failureReason)
+        public static ElectricWirePlacementJudgement Failure(ElectricWirePlacementFailureReason failureReason)
         {
             return new ElectricWirePlacementJudgement(false, failureReason, default);
         }
+    }
+
+    /// <summary>
+    /// ワイヤー接続・延長の失敗理由。MessagePackはintでそのまま送受信する
+    /// Failure reasons for wire connection/extend; serialized as int by MessagePack
+    /// </summary>
+    public enum ElectricWirePlacementFailureReason
+    {
+        None,
+        TooFar,
+        AlreadyConnected,
+        ConnectionLimit,
+        NoWireItem,
+        NoPoleItem,
+        InvalidTarget,
+        PositionOccupied,
+        InventoryFull,
+        NotConnected,
+        InvalidMode,
     }
 }

@@ -132,7 +132,7 @@ namespace Client.Game.InGame.Context
                 // 機械の場合はそのプロセッサを付与する
                 // If it's a machine, add the corresponding processor
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();
-                // 電気系ブロックには電力ワイヤー描画プロセッサを付与する
+                // 電気系に描画プロセッサを付与
                 // Add the electric wire drawing processor to electric blocks
                 if (IsElectricWireConnectable(blockMasterElement.BlockParam)) block.gameObject.AddComponent<ElectricWireStateChangeProcessor>();
 

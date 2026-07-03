@@ -33,23 +33,23 @@ namespace Server.Protocol.PacketResponse
                 // モードに応じて接続または切断を実行する
                 // Execute connect or disconnect depending on mode
                 bool success;
-                string error;
+                ElectricWirePlacementFailureReason failureReason;
 
                 switch (data.Mode)
                 {
                     case WireEditMode.Connect:
-                        success = ElectricWireSystemUtil.TryConnect(data.PosAVector, data.PosBVector, data.PlayerId, new ItemId(data.ItemId), out error);
+                        success = ElectricWireSystemUtil.TryConnect(data.PosAVector, data.PosBVector, data.PlayerId, new ItemId(data.ItemId), out failureReason);
                         break;
 
                     case WireEditMode.Disconnect:
-                        success = ElectricWireSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, data.PlayerId, out error);
+                        success = ElectricWireSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, data.PlayerId, out failureReason);
                         break;
 
                     default:
-                        return new ElectricWireConnectionEditResponse(false, "Invalid mode");
+                        return new ElectricWireConnectionEditResponse(false, ElectricWirePlacementFailureReason.InvalidMode);
                 }
 
-                return new ElectricWireConnectionEditResponse(success, error);
+                return new ElectricWireConnectionEditResponse(success, failureReason);
             }
 
             #endregion
@@ -100,17 +100,17 @@ namespace Server.Protocol.PacketResponse
         public class ElectricWireConnectionEditResponse : ProtocolMessagePackBase
         {
             [Key(2)] public bool IsSuccess { get; set; }
-            [Key(3)] public string Error { get; set; }
+            [Key(3)] public ElectricWirePlacementFailureReason FailureReason { get; set; }
 
-            [IgnoreMember] public bool HasError => !string.IsNullOrEmpty(Error);
+            [IgnoreMember] public bool HasError => FailureReason != ElectricWirePlacementFailureReason.None;
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ElectricWireConnectionEditResponse() { }
 
-            public ElectricWireConnectionEditResponse(bool isSuccess, string error)
+            public ElectricWireConnectionEditResponse(bool isSuccess, ElectricWirePlacementFailureReason failureReason)
             {
                 IsSuccess = isSuccess;
-                Error = error ?? string.Empty;
+                FailureReason = failureReason;
             }
         }
 

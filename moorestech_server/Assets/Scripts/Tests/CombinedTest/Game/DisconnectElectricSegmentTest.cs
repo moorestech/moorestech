@@ -12,11 +12,11 @@ using static Tests.Module.TestMod.ForUnitTestModBlockId;
 
 namespace Tests.CombinedTest.Game
 {
-    // ワイヤー接続されたブロックの削除でセグメントが正しく分割・縮小されることを検証する
+    // ブロック削除でセグメントが分割・縮小されるか検証
     // Verify that removing a wired block correctly splits and shrinks energy segments
     public class DisconnectElectricSegmentTest
     {
-        // 鎖状セグメントの中間電柱を削除すると2セグメントへ分割される
+        // 鎖状の中間電柱を削除すると2セグメントに分割
         // Removing the middle pole of a chained segment splits it into two segments
         [Test]
         public void RemoveMiddlePoleSplitsSegment()
@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreNotSame(segment1, segment3);
         }
 
-        // 電柱を削除すると、繋がっていた機械・発電機は各自の単独セグメントに分かれる
+        // 電柱削除で機械・発電機は各自単独セグメントになる
         // Removing the pole splits the connected machine and generator into their own single-block segments
         [Test]
         public void RemovePoleDisconnectsMachineAndGenerator()
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Game
             // Remove the pole
             worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
 
-            // 機械と発電機は繋がりを失い、それぞれ単独セグメントになる
+            // 機械・発電機は繋がりを失い各自単独セグメント化
             // The machine and generator lose their link and each becomes a standalone segment
             Assert.AreEqual(2, networkDatastore.SegmentCount);
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(machineBlock.BlockInstanceId, out var machineSegment));

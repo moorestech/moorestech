@@ -32,13 +32,38 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         }
 
         /// <summary>
-        /// 受信済みワイヤー状態から起点⇔対象が既に接続済みかを判定する
-        /// Judge whether origin and target are already connected, using received wire state
+        /// 既存ブロック同士の接続可否を評価する。既接続・接続上限は受信済みワイヤー状態から内部で判定する
+        /// Evaluate connecting two existing blocks; already-connected and full states are derived internally from received wire state
         /// </summary>
-        public static bool IsAlreadyConnected(BlockGameObject blockA, BlockGameObject blockB)
+        public static ElectricWirePlacementJudgement Evaluate(BlockGameObject source, BlockGameObject target, int sourceMaxConnectionCount, int targetMaxConnectionCount, float sourceMaxWireLength, float targetMaxWireLength, float distance, ItemId wireItemId, IEnumerable<IItemStack> inventoryItems)
         {
-            // どちらか一方の接続先集合に相手が含まれていれば接続済み
-            // Connected when either side's partner set contains the other
+            var alreadyConnected = IsAlreadyConnected(source, target);
+            var anyConnectionFull = IsConnectionFull(source, sourceMaxConnectionCount) || IsConnectionFull(target, targetMaxConnectionCount);
+
+            return ElectricWirePlacementEvaluator.EvaluateWireConnection(
+                distance, sourceMaxWireLength, targetMaxWireLength,
+                alreadyConnected, anyConnectionFull,
+                wireItemId, inventoryItems, ItemMaster.EmptyItemId);
+        }
+
+        /// <summary>
+        /// 新設電柱への延長可否を評価する。新設側は未接続のため起点の状態のみ内部で判定する
+        /// Evaluate extending to a newly placed pole; only the origin's state matters since the new pole has no connections
+        /// </summary>
+        public static ElectricWirePlacementJudgement EvaluateNewPole(BlockGameObject source, int sourceMaxConnectionCount, float sourceMaxWireLength, float poleMaxWireLength, float distance, ItemId wireItemId, ItemId poleItemId, IEnumerable<IItemStack> inventoryItems)
+        {
+            var sourceFull = IsConnectionFull(source, sourceMaxConnectionCount);
+
+            return ElectricWirePlacementEvaluator.EvaluateWireConnection(
+                distance, sourceMaxWireLength, poleMaxWireLength,
+                false, sourceFull,
+                wireItemId, inventoryItems, poleItemId);
+        }
+
+        // どちらか一方の接続先集合に相手が含まれていれば接続済み
+        // Connected when either side's partner set contains the other
+        private static bool IsAlreadyConnected(BlockGameObject blockA, BlockGameObject blockB)
+        {
             if (blockA.TryGetComponent<ElectricWireStateChangeProcessor>(out var processorA) &&
                 processorA.CurrentPartnerIds.Contains(blockB.BlockInstanceId)) return true;
 
@@ -46,26 +71,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
                    processorB.CurrentPartnerIds.Contains(blockA.BlockInstanceId);
         }
 
-        /// <summary>
-        /// 受信済みワイヤー状態とマスタ上限から接続数が満杯かを判定する
-        /// Judge whether the connection count is full, using received wire state and the master limit
-        /// </summary>
-        public static bool IsConnectionFull(BlockGameObject block, int maxWireConnectionCount)
+        // 受信済みワイヤー状態とマスタ上限から接続数が満杯かを判定する
+        // Judge whether the connection count is full, using received wire state and the master limit
+        private static bool IsConnectionFull(BlockGameObject block, int maxWireConnectionCount)
         {
             return block.TryGetComponent<ElectricWireStateChangeProcessor>(out var processor) &&
                    maxWireConnectionCount <= processor.CurrentPartnerIds.Count;
-        }
-
-        /// <summary>
-        /// 距離・両端の最大長・接続状態・所持アイテムからサーバーと同じ接続可否を評価する
-        /// Evaluate connection eligibility from distance, endpoint limits, connection state and held items
-        /// </summary>
-        public static ElectricWirePlacementJudgement Evaluate(float fromMaxWireLength, float toMaxWireLength, float distance, bool alreadyConnected, bool anyConnectionFull, ItemId wireItemId, ItemId poleItemId, IEnumerable<IItemStack> inventoryItems)
-        {
-            return ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, fromMaxWireLength, toMaxWireLength,
-                alreadyConnected, anyConnectionFull,
-                wireItemId, inventoryItems, poleItemId);
         }
     }
 }

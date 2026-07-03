@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 usedCount++;
             }
 
-            // ②範囲内の未接続機械/発電機を残り本数まで収集する
+            // ②範囲内の未接続機械/発電機を残数まで収集
             // Collect unconnected machines/generators within range up to remaining capacity
             results.AddRange(CollectPoleMachineTargets(ownParam, position, usedCount));
 
@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
         {
             var results = new List<(BlockInstanceId, IElectricWireConnector, float)>();
 
-            // 範囲内のワイヤー0本の機械/発電機を近い順に残り本数まで
+            // 範囲内の未接続機械/発電機を近い順に残数まで
             // Unconnected machines/generators within machine range, nearest first, up to remaining capacity
             var machineCandidates = CollectConnectors(ElectricConnectionRangeService.EnumerateMachineRange(position, ownParam))
                 .Where(c => (c.Connector.WireConsumer != null || c.Connector.WireGenerator != null) && c.Connector.WireConnections.Count == 0)
@@ -114,12 +114,13 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 false, target.IsWireConnectionFull,
                 ItemMaster.EmptyItemId, System.Array.Empty<IItemStack>(), ItemMaster.EmptyItemId);
 
-            return probe.FailureReason != ElectricWirePlacementEvaluator.TooFarError
-                   && probe.FailureReason != ElectricWirePlacementEvaluator.AlreadyConnectedError
-                   && probe.FailureReason != ElectricWirePlacementEvaluator.ConnectionLimitError;
+            return probe.FailureReason is not (
+                ElectricWirePlacementFailureReason.TooFar
+                or ElectricWirePlacementFailureReason.AlreadyConnected
+                or ElectricWirePlacementFailureReason.ConnectionLimit);
         }
 
-        // 範囲内のグリッド座標を走査し、重複を除いたワイヤー端点を収集する
+        // 範囲内を走査し重複を除いた端点を収集する
         // Scan grid positions in range and collect deduplicated wire endpoints
         private static List<(Vector3Int Position, IElectricWireConnector Connector)> CollectConnectors(IEnumerable<Vector3Int> range)
         {

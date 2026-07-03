@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
@@ -56,11 +55,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             ClientContext.VanillaApi.SendOnly.DisconnectElectricWire(posA, posB);
         }
 
+        // 延長応答で解決した電柱の受け渡しスロット。上位がTryConsumePlacedPoleでポーリング取り込みする
+        // Hand-off slot for the pole resolved from the extend response; the owner polls it via TryConsumePlacedPole
+        private static BlockGameObject _placedPole;
+        private static int _placedPoleEpoch;
+
         /// <summary>
-        /// 電柱を設置しつつ起点へ接続し、設置された電柱GameObjectを解決してコールバックする
-        /// Place a pole while wiring it to the origin, then resolve the placed pole GameObject and call back
+        /// 延長応答で設置された電柱を取り込む。世代一致時のみ有効で、呼び出しでスロットは空になる
+        /// Consume the pole placed by an extend response; valid only when the epoch matches, and the slot is cleared on call
         /// </summary>
-        public static void Extend(Vector3Int fromPos, int poleSlot, PlaceInfo polePlaceInfo, ItemId wireItemId, BlockGameObjectDataStore blockDataStore, Action<BlockGameObject> onPlaced)
+        public static bool TryConsumePlacedPole(int currentEpoch, out BlockGameObject placedPole)
+        {
+            placedPole = _placedPole;
+            _placedPole = null;
+            return placedPole != null && _placedPoleEpoch == currentEpoch;
+        }
+
+        /// <summary>
+        /// 電柱を設置しつつ起点へ接続し、設置された電柱GameObjectを受け渡しスロットへ保持する
+        /// Place a pole while wiring it to the origin, then hold the resolved pole GameObject in the hand-off slot
+        /// </summary>
+        public static void Extend(Vector3Int fromPos, int poleSlot, PlaceInfo polePlaceInfo, ItemId wireItemId, BlockGameObjectDataStore blockDataStore, int epoch)
         {
             UniTask.Create(async () =>
             {
@@ -76,7 +91,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
                 if (blockDataStore.TryGetBlockGameObject(placedId, out var placedBlock))
                 {
-                    onPlaced(placedBlock);
+                    _placedPole = placedBlock;
+                    _placedPoleEpoch = epoch;
                 }
             });
         }
