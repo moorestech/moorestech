@@ -8,10 +8,10 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
-    /// 歯車チェーンポール延長のゴーストブロックと接続線を表示する。
-    /// 接続線は既存のチェーン表示と異なり任意のワールド座標を受け取れる。
-    /// Displays the ghost pole block and connection line for gear chain pole extension.
-    /// Unlike the existing chain view, the line accepts arbitrary world positions.
+    /// 歯車チェーンポール延長のゴーストブロックと接続線の表示。
+    /// PositionGhostは入力フェーズの環境クエリ（配置と地面判定）、Applyは出力フェーズの表示反映で何も返さない。
+    /// Ghost pole block and connection line view for gear chain pole extension.
+    /// PositionGhost is the input-phase environment query (placement and ground detect); Apply is the output-phase render that returns nothing.
     /// </summary>
     public class GearChainPoleExtendPreviewObject
     {
@@ -19,6 +19,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         private const float LineSpacing = 0.1f;
 
         private readonly IPlacementPreviewBlockGameObjectController _ghostController;
+        private readonly List<PlaceInfo> _positionedPlaceInfos = new();
 
         private GameObject _lineRoot;
         private LineRenderer _lineRenderer1;
@@ -30,48 +31,68 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         }
 
         /// <summary>
-        /// ゴーストブロックを表示し、地面判定込みの最終的な設置可否を返す
-        /// Show the ghost block and return final placeability including ground detection
+        /// ゴーストを配置して地面クリアかを返す入力フェーズのクエリ。表示可否の最終判定はApplyで行う
+        /// Input-phase query that positions the ghost and returns ground clearance. Final visibility is applied by Apply
         /// </summary>
-        public bool ShowGhost(PlaceInfo placeInfo, BlockMasterElement poleBlockMaster, bool isPlaceable)
+        public bool PositionGhost(PlaceInfo placeInfo, BlockMasterElement poleBlockMaster)
         {
-            var placeInfos = new List<PlaceInfo> { placeInfo };
+            _positionedPlaceInfos.Clear();
+            _positionedPlaceInfos.Add(placeInfo);
 
-            // ゴーストを配置しつつ地面との衝突を取得する（衝突していたら設置不可）
-            // Place the ghost and get ground collision (colliding means not placeable)
+            // 地面判定はゴーストの物理接触を読むため、配置と有効化が必要
+            // Ground detect reads the ghost's physics contact, so it must be positioned and activated
             _ghostController.SetActive(true);
-            var groundOverlapList = _ghostController.SetPreviewAndGroundDetect(placeInfos, poleBlockMaster);
-            var isGroundClear = !groundOverlapList[0];
-
-            // 最終判定で色分けを更新する
-            // Update the color with the final judgement
-            placeInfo.Placeable = isPlaceable && isGroundClear;
-            _ghostController.UpdatePlaceableColors(placeInfos);
-
-            return placeInfo.Placeable;
+            var groundOverlapList = _ghostController.SetPreviewAndGroundDetect(_positionedPlaceInfos, poleBlockMaster);
+            return !groundOverlapList[0];
         }
 
         /// <summary>
-        /// 接続線を判定色つきで表示する
-        /// Show the connection line colored by judgement
+        /// プレビュー表示指示を反映する。GhostVisibleは同フレームでのPositionGhost呼び出しが前提
+        /// Apply the preview command. GhostVisible assumes PositionGhost was called in the same frame
         /// </summary>
-        public void ShowLine(Vector3 start, Vector3 end, bool isPlaceable)
+        public void Apply(GearChainPolePreviewCommand command)
         {
-            EnsureLines();
-            _lineRoot.SetActive(true);
-
-            // 2本のラインを水平にオフセットして描画
-            // Draw two horizontally offset lines like the existing chain view
-            var direction = (end - start).normalized;
-            var right = Vector3.Cross(Vector3.up, direction).normalized;
-            if (right == Vector3.zero) right = Vector3.right;
-            var offset = right * (LineSpacing / 2f);
-
-            var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
-            ApplyLine(_lineRenderer1, start + offset, end + offset, color);
-            ApplyLine(_lineRenderer2, start - offset, end - offset, color);
+            ApplyGhost();
+            ApplyLine();
 
             #region Internal
+
+            void ApplyGhost()
+            {
+                if (!command.GhostVisible || _positionedPlaceInfos.Count == 0)
+                {
+                    _ghostController.SetActive(false);
+                    return;
+                }
+
+                // 最終判定色でゴーストを塗り直す
+                // Repaint the ghost with the final judgement color
+                _positionedPlaceInfos[0].Placeable = command.GhostPlaceable;
+                _ghostController.UpdatePlaceableColors(_positionedPlaceInfos);
+            }
+
+            void ApplyLine()
+            {
+                if (!command.LineVisible)
+                {
+                    if (_lineRoot != null) _lineRoot.SetActive(false);
+                    return;
+                }
+
+                EnsureLines();
+                _lineRoot.SetActive(true);
+
+                // 2本のラインを水平にオフセットして描画
+                // Draw two horizontally offset lines like the existing chain view
+                var direction = (command.LineEnd - command.LineStart).normalized;
+                var right = Vector3.Cross(Vector3.up, direction).normalized;
+                if (right == Vector3.zero) right = Vector3.right;
+                var offset = right * (LineSpacing / 2f);
+
+                var color = command.LinePlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
+                SetLine(_lineRenderer1, command.LineStart + offset, command.LineEnd + offset, color);
+                SetLine(_lineRenderer2, command.LineStart - offset, command.LineEnd - offset, color);
+            }
 
             void EnsureLines()
             {
@@ -97,7 +118,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
                 return lineRenderer;
             }
 
-            void ApplyLine(LineRenderer lineRenderer, Vector3 lineStart, Vector3 lineEnd, Color color)
+            void SetLine(LineRenderer lineRenderer, Vector3 lineStart, Vector3 lineEnd, Color color)
             {
                 lineRenderer.SetPosition(0, lineStart);
                 lineRenderer.SetPosition(1, lineEnd);
@@ -108,20 +129,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             #endregion
         }
 
-        public void HideGhost()
-        {
-            _ghostController.SetActive(false);
-        }
-
-        public void HideLine()
-        {
-            if (_lineRoot != null) _lineRoot.SetActive(false);
-        }
-
+        /// <summary>
+        /// 有効化・無効化時のリセット用に全表示を隠す
+        /// Hide everything for reset on enable/disable
+        /// </summary>
         public void Hide()
         {
-            HideGhost();
-            HideLine();
+            Apply(GearChainPolePreviewCommand.Hidden);
         }
     }
 }
