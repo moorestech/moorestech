@@ -1,17 +1,19 @@
-# PlayModeTestUtil ヘルパーAPI
+# EditModeInPlayingTestUtil ヘルパーAPI
 
-ソースファイル: `moorestech_client/Assets/Scripts/Client.Tests/PlayModeTest/Util/PlayModeTestUtil.cs`
+ソースファイル: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtil.cs`
 
 ## EnterPlayModeUtil
 
 ```csharp
-public static IEnumerator EnterPlayModeUtil()
+public static void EnterPlayModeUtil()
 ```
 
-PlayMode遷移の準備と実行を行う。以下を内部で実行:
+PlayMode遷移の準備を行う（voidメソッド。yield returnしない）。以下を内部で実行:
 1. `SessionState.SetBool("DebugObjectsBootstrap_Disabled", true)` - デバッグオブジェクト無効化
 2. `AssetBundle.UnloadAllAssetBundles(true)` - 前回の残留AssetBundleクリーンアップ
-3. `new EnterPlayMode(expectDomainReload: true)` をyield return
+
+**注意**: PlayMode遷移自体は行わない。呼び出し後にテスト側で
+`yield return new EnterPlayMode(expectDomainReload: true);` を[UnityTest]メソッド直下で呼ぶこと。
 
 ## LoadMainGame
 
@@ -21,7 +23,7 @@ public static async UniTask LoadMainGame(string serverDirectory = null, string s
 
 ゲームを起動してメインシーンをロードする。
 
-- `serverDirectory`: サーバーデータディレクトリ。省略時は`PlayModeTestServerDirectoryPath`（`PlayModeTest/ServerData`）
+- `serverDirectory`: サーバーデータディレクトリ。省略時は`EditModeInPlayingTestServerDirectoryPath`（`EditModeInPlayingTest/ServerData`）
 - `saveFilePath`: セーブファイルパス。省略時は`dummy_play_mode_test_{GUID}.json`（既存セーブを読まない）
 
 内部処理:
@@ -53,13 +55,22 @@ public static IBlock PlaceBlock(string blockName, Vector3Int position, BlockDire
 - `direction`: 向き（`BlockDirection.North/South/East/West`）
 - 戻り値: `IBlock` - 設置されたブロック
 
+## WaitBlockGameObjectSpawn
+
+```csharp
+public static async UniTask<BlockGameObject> WaitBlockGameObjectSpawn(Vector3Int position)
+```
+
+クライアント側の`BlockGameObject`がスポーンするまで待機する（最大180フレーム）。
+スポーンしなければAssertで失敗する。`PlaceBlock`の直後にクライアント側検証を行う場合に使用。
+
 ## RemoveBlock
 
 ```csharp
 public static bool RemoveBlock(Vector3Int position)
 ```
 
-指定座標のブロックを除去する。
+指定座標のブロックを除去する（`BlockRemoveReason.ManualRemove`）。
 
 ## InsertItemToBlock
 
@@ -74,12 +85,12 @@ public static IItemStack InsertItemToBlock(IBlock block, ItemId itemId, int coun
 - `count`: 挿入数
 - 戻り値: `IItemStack` - 挿入できなかった残り
 
-## PlayModeTestServerDirectoryPath
+## EditModeInPlayingTestServerDirectoryPath
 
 ```csharp
-public static string PlayModeTestServerDirectoryPath
+public static string EditModeInPlayingTestServerDirectoryPath
 ```
 
-PlayModeテスト用サーバーデータのパス: `moorestech_client/Assets/Scripts/Client.Tests/PlayModeTest/ServerData`
+テスト用サーバーデータのパス: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData`
 
 テスト用マスターデータ（blocks.json, items.json等）がここに配置されている。

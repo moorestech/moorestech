@@ -4,18 +4,25 @@
 
 ### unity-test.sh（CliTestRunner）では実行不可
 
-PlayModeテストは`EnterPlayMode`によるドメインリロードを含む。
+EditModeInPlayingTestは`EnterPlayMode`によるドメインリロードを含む。
 `CliTestRunner`は`runSynchronously = true`で動作するため、ドメインリロード時に
 `ResultCallbacks`インスタンスが破棄され、テスト結果が0件（passed: 0, failed: 0）として報告される。
 
 **実行方法**:
-- uLoop CLI: `uloop run-tests --port 56902 --filter-type regex --filter-value "Client\\.Tests\\.PlayModeTest\\.{ClassName}"`
+- uloop CLI: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Client\.Tests\.EditModeInPlayingTest\.{ClassName}"`
 - Unity Test Runnerウィンドウ: `Window > General > Test Runner` から手動実行
 
-### worktree環境での制限
+### uloop接続断とTestResults.xml
 
-git worktree環境ではuLoopが使用できないため、PlayModeテストはworktree環境では実行不可。
-メインのワーキングツリーで実行すること。
+ドメインリロードによりuloopの接続が一度切れる。「Unity is reloading (Domain Reload in progress)」
+エラーが出たら45秒以上待ってからリトライすること。結果が取得できない場合は
+`~/Library/Application Support/sakastudio/moorestech/TestResults.xml` を直接読む。
+
+### worktree環境での注意
+
+worktree環境で実行する場合はそのworktree用のUnityを起動する必要がある（uloopは起動中のUnityを対象にする）。
+また、worktreeでは `../moorestech_master` が解決できずマスター読込に失敗するため、
+`moorestech-worktrees/moorestech_master` へのsymlinkが必要。
 
 ## ドメインリロード関連
 
@@ -60,9 +67,9 @@ LogAssert.ignoreFailingMessages = true;
 
 ## サーバーデータ
 
-### PlayModeTestMod
+### EditModeInPlayingTestMod
 
-PlayModeテスト用のマスターデータは `PlayModeTest/ServerData/mods/PlayModeTestMod/master/` に配置。
+テスト用のマスターデータは `EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/` に配置。
 本番のVanillaModとは別のデータセットを使用する。
 
 テストで新しいブロックやアイテムが必要な場合は、このディレクトリ内のJSONファイルを編集する。
