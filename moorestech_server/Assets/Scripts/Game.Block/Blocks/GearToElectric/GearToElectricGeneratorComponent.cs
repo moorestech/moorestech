@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.GearToElectric
             GearToElectricGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(param.GearConsumption, blockInstanceId, connectorComponent)
+            base(param.GearConsumption, blockInstanceId, connectorComponent, null)
         {
             _param = param;
             _currentGeneratedPower = new ElectricPower(0);

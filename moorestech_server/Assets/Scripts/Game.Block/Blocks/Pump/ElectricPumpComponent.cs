@@ -9,15 +9,20 @@ namespace Game.Block.Blocks.Pump
     public class ElectricPumpComponent : IElectricConsumer
     {
         public BlockInstanceId BlockInstanceId { get; }
-        public ElectricPower RequestEnergy { get; }
+        public ElectricPower RequestEnergy => new(_requestEnergy.AsPrimitive() * (_output.CanAcceptGeneratedFluid ? 1f : _idlePowerRate));
         
         private readonly ElectricPumpProcessorComponent _processor;
+        private readonly PumpFluidOutputComponent _output;
+        private readonly ElectricPower _requestEnergy;
+        private readonly float _idlePowerRate;
 
-        public ElectricPumpComponent(BlockInstanceId blockInstanceId, ElectricPower requestEnergy, ElectricPumpProcessorComponent processor)
+        public ElectricPumpComponent(BlockInstanceId blockInstanceId, ElectricPower requestEnergy, float idlePowerRate, ElectricPumpProcessorComponent processor, PumpFluidOutputComponent output)
         {
             BlockInstanceId = blockInstanceId;
-            RequestEnergy = requestEnergy;
+            _requestEnergy = requestEnergy;
+            _idlePowerRate = idlePowerRate;
             _processor = processor;
+            _output = output;
         }
 
         

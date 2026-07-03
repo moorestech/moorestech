@@ -19,6 +19,7 @@ namespace Game.Block.Blocks.Pump
     public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
     {
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
+        public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
         
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;

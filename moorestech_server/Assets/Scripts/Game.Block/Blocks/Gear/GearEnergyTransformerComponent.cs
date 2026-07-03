@@ -26,13 +26,15 @@ namespace Game.Block.Blocks.Gear
 
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
+        private readonly Func<bool> _isActive;
 
-        public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+        public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Func<bool> isActive)
         {
             _consumption = consumption;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
             _simpleGearService = new SimpleGearService();
+            _isActive = isActive;
 
             GearNetworkDatastore.AddGear(this);
         }
@@ -47,7 +49,14 @@ namespace Game.Block.Blocks.Gear
             // 生成側（Generator）はConsumption=nullで常にトルク消費0
             // Generators pass null Consumption and always consume zero torque
             if (_consumption == null) return new Torque(0);
-            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
+            var requiredTorque = GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
+            return requiredTorque * GetDemandRate();
+        }
+
+        private float GetDemandRate()
+        {
+            if (_isActive == null || _isActive()) return 1f;
+            return _consumption.IdlePowerRate ?? 0.2f;
         }
 
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される

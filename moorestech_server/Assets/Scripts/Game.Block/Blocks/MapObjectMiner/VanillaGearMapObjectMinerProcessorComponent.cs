@@ -16,6 +16,8 @@ namespace Game.Block.Blocks.MapObjectMiner
 {
     public class VanillaGearMapObjectMinerProcessorComponent : IUpdatableBlockComponent, IBlockSaveState
     {
+        public bool HasMiningTargets => _miningTargetInfos.Count > 0;
+
         private readonly float _requestEnergy;
         private readonly VanillaChestComponent _vanillaChestComponent;
         

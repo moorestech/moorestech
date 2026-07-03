@@ -44,6 +44,10 @@ properties:
 - key: baseTorque
   type: number
   default: 1
+- key: idlePowerRate
+  type: number
+  default: 0.2
+  optional: true
 - key: torqueExponentUnder
   type: number
   default: 2
