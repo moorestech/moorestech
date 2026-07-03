@@ -2,6 +2,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
@@ -55,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             
             // 歯車チェーンポールのブロックアイテムは専用の接続システムで設置する
             // Gear chain pole block items are placed via the dedicated connection system
-            if (GearChainPoleExtendPreviewCalculator.TryGetPoleBlockMaster(context.HoldingItemId, out _))
+            if (GearChainPoleItemFinder.TryGetPoleBlockMaster(context.HoldingItemId, out _))
             {
                 return _gearChainPoleConnectSystem;
             }

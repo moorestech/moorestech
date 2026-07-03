@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Core.Master;
 using Game.Block.Interface;
@@ -6,7 +7,7 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 {
     /// <summary>
     /// ポールアイテム手持ち時のモード。手持ちポールの孤立設置と、起点からの連続延長設置を行う。
@@ -63,7 +64,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             {
                 // 起点あり: 手持ちポールを設置し自動選択したチェーンで起点と接続する
                 // With a source: place the holding pole and connect with an auto-selected chain
-                var chainItemId = GearChainPoleExtendPreviewCalculator.FindOwnedChainItemId(_modeContext.PlayerInventory);
+                var chainItemId = GearChainPoleItemFinder.FindOwnedChainItemId(_modeContext.PlayerInventory);
                 var fromPos = _modeContext.ConnectFromPole.GetBlockPosition();
                 var previewData = GearChainPoleExtendPreviewCalculator.CalculateExtend(fromPos, placePos, poleParam, updateContext.HoldingItemId, _modeContext.BlockGameObjectDataStore, _modeContext.PlayerInventory, chainItemId);
                 var placeable = _modeContext.PreviewObject.ShowGhost(placeInfo, poleBlockMaster, previewData.IsValid && previewData.IsPlaceable);
