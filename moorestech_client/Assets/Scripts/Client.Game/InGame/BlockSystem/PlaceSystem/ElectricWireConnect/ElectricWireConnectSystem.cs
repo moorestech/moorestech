@@ -19,9 +19,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         // The connection origin block; null means no origin selected
         private BlockGameObject _sourceBlock;
 
+        // ツール世代。Enable/Disableで進め、旧世代のin-flight応答を無視する
+        // Tool epoch; advanced on Enable/Disable so stale in-flight responses are ignored
+        private int _toolEpoch;
+
         public ElectricWireConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
         {
-            var wirePreview = new ElectricWireExtendPreviewObject();
+            var wirePreview = new ElectricWireExtendPreviewObject(mainCamera);
             _context = new ElectricWireToolContext(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, wirePreview);
             _editMode = new ElectricWireEditMode(_context);
             _extendMode = new ElectricWireExtendMode(_context);
@@ -29,9 +33,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
         public void Enable()
         {
-            // 有効化のたびに起点選択をリセットする
-            // Reset the origin selection each time the tool is enabled
+            // 有効化のたびに起点選択をリセットし、世代を進める
+            // Reset the origin selection and advance the epoch each time the tool is enabled
             _sourceBlock = null;
+            _toolEpoch++;
         }
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
@@ -44,14 +49,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
                 return;
             }
 
-            _extendMode.Update(context, _sourceBlock, newSource => _sourceBlock = newSource);
+            // 世代を捕捉した設定関数を渡し、ツール切替後の応答が状態を書き換えないようにする
+            // Pass an epoch-capturing setter so responses after a tool switch cannot mutate state
+            var epoch = _toolEpoch;
+            _extendMode.Update(context, _sourceBlock, newSource =>
+            {
+                if (epoch == _toolEpoch) _sourceBlock = newSource;
+            });
         }
 
         public void Disable()
         {
-            // ツール切替時のみ起点を解除し、プレビューを消す
-            // Release the origin only on tool switch, and hide previews
+            // ツール切替時のみ起点を解除し、世代を進めてプレビューを消す
+            // Release the origin only on tool switch, advance the epoch and hide previews
             _sourceBlock = null;
+            _toolEpoch++;
             _context.WirePreview.SetActive(false);
             _context.PreviewBlockController.SetActive(false);
         }

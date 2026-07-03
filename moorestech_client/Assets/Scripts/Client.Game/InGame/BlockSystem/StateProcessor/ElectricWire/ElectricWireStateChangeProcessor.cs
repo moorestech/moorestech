@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Block;
 using Game.Block.Blocks.ElectricWire;
@@ -14,6 +15,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
     /// </summary>
     public class ElectricWireStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
+        // 現在の接続先ID集合。電線ツールのプレビュー既接続判定が参照する
+        // Current partner ID set, referenced by the wire tool preview's already-connected judgement
+        public IReadOnlyCollection<BlockInstanceId> CurrentPartnerIds => _currentPartnerIds;
+        private readonly HashSet<BlockInstanceId> _currentPartnerIds = new();
+
         private ElectricWireLineView _wireLineView;
 
         public void Initialize(BlockGameObject blockGameObject)
@@ -36,6 +42,11 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             var partnerInstanceIds = state.PartnerBlockInstanceIds?
                 .Select(id => new BlockInstanceId(id))
                 .ToArray() ?? Array.Empty<BlockInstanceId>();
+
+            // 接続先ID集合を最新状態へ置き換える
+            // Replace the partner ID set with the latest state
+            _currentPartnerIds.Clear();
+            foreach (var id in partnerInstanceIds) _currentPartnerIds.Add(id);
 
             // ワイヤー表示を更新する
             // Update the wire display
