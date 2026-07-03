@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Common;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using UnityEngine;
@@ -18,8 +19,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         // 未解決時の再解決を試みる間隔
         // Interval between resolution retries while unresolved
         private const float RetryIntervalSeconds = 0.5f;
-        private static readonly Vector3 BlockCenterOffset = new(0.5f, 0.5f, 0.5f);
-
         [SerializeField] private MeshFilter meshFilter;
 
         private Mesh _generatedMesh;
@@ -68,8 +67,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(FromId, out var fromBlock)) return false;
             if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(ToId, out var toBlock)) return false;
 
-            var start = fromBlock.transform.position + BlockCenterOffset;
-            var end = toBlock.transform.position + BlockCenterOffset;
+            var start = ResolveEndpoint(fromBlock);
+            var end = ResolveEndpoint(toBlock);
 
             // メッシュはワールド座標で構築するため、自身の姿勢を原点に揃える
             // Reset own pose to origin since the mesh is built in world space
@@ -87,6 +86,18 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             return true;
 
             #region Internal
+
+            // 専用接続点があればそこへ、無ければブロック上面中央へ接続する
+            // Connect to the dedicated point when present, otherwise to the block top center
+            Vector3 ResolveEndpoint(BlockGameObject block)
+            {
+                var connectionPoint = block.GetComponentInChildren<ElectricWireConnectionPoint>(true);
+                if (connectionPoint != null) return connectionPoint.transform.position;
+
+                var min = block.BlockPosInfo.MinPos;
+                var max = block.BlockPosInfo.MaxPos + Vector3Int.one;
+                return new Vector3((min.x + max.x) * 0.5f, max.y, (min.z + max.z) * 0.5f);
+            }
 
             // セグメント情報に沿ってクリック判定用のCapsuleColliderを配置する
             // Place CapsuleColliders for click detection along the segment info
