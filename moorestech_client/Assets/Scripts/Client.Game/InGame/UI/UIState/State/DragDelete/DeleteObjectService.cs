@@ -68,15 +68,23 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
                 if (hovered == null) return;
 
-                if (hovered.IsRemovable(out var reason))
-                {
-                    _selection.AddTarget(hovered);
-                }
-                else
+                if (!hovered.IsRemovable(out var reason))
                 {
                     MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
                     _isRemoveDeniedReasonShown = true;
+                    return;
                 }
+
+                // 別カテゴリーのブロックは同時に選択できない旨を表示する
+                // Show that a different-category block cannot be selected at the same time
+                if (!_selection.IsCategoryCompatible(hovered))
+                {
+                    MouseCursorTooltip.Instance.Show("別カテゴリーのブロックは同時に選択できません。", isLocalize: false);
+                    _isRemoveDeniedReasonShown = true;
+                    return;
+                }
+
+                _selection.AddTarget(hovered);
             }
 
             void UpdateSingleHoverPreview()

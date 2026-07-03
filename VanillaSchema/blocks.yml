@@ -831,6 +831,9 @@ properties:
       type: boolean
       default: false
       optional: true
+    - key: destructionCategory
+      type: string
+      optional: true
 
 - key: gearChainItems
   type: array
