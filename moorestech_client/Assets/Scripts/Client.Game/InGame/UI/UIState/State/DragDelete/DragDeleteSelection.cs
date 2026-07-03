@@ -30,7 +30,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Whether the target's category can join this session (anything while empty, then same category only)
         public bool IsCategoryCompatible(IDeleteTarget target)
         {
-            if (target == null) return false;
             if (_sessionCategory == null) return true;
             return _sessionCategory == target.GetDestructionCategory();
         }
