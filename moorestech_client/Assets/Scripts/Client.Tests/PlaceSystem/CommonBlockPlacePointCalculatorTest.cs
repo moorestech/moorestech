@@ -111,8 +111,7 @@ namespace Client.Tests.PlaceSystem
                 null,
                 null,
                 null,
-                true,
-                null
+                true
             );
             
             List<PlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
@@ -140,7 +139,7 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void InfeasibleOverpass_KeepsEndpointsUnplaceable()
         {
-            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", Guid.Empty, Vector3Int.one, null, null, null, null, true, null);
+            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", Guid.Empty, Vector3Int.one, null, null, null, null, true);
             var obstacle = new HashSet<Vector3Int> { new(1, 0, 0), new(1, 1, 0) };
 
             // isNotExistBlock は常に true（占有なし扱い）。それでも端点は不可のまま残るべき

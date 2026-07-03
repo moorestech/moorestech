@@ -16,6 +16,7 @@ namespace Core.Master.Validator
             errorLogs += OverrideVerticalBlockValidation();
             errorLogs += GearChainItemsValidation();
             errorLogs += GearConsumptionValidation();
+            errorLogs += BlockDestructionCategoryValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -260,6 +261,37 @@ namespace Core.Master.Validator
                     error = null;
                     return false;
                 }
+            }
+
+            string BlockDestructionCategoryValidation()
+            {
+                // 破壊カテゴリ定義のblockGuid実在性と、複数カテゴリへの重複登録を検証する
+                // Validate blockGuid existence and reject a blockGuid registered under more than one category
+                var logs = "";
+                var assignedCategoryByBlockGuid = new Dictionary<Guid, string>();
+                foreach (var category in blocks.BlockDestructionCategories)
+                foreach (var target in category.TargetBlocks)
+                {
+                    // foreignKeyは自動生成されないため参照先の実在を手動で確認する
+                    // foreignKey validation is not auto-generated, so verify the referenced block exists
+                    if (!ExistsBlockGuid(target.BlockGuid))
+                    {
+                        logs += $"[BlockMaster] DestructionCategory:{category.CategoryKey} has invalid BlockGuid:{target.BlockGuid}\n";
+                    }
+
+                    // 逆引きは1ブロック1カテゴリ前提。重複するとロード順で結果が変わるため弾く
+                    // The reverse lookup assumes one category per block; duplicates make the result order-dependent
+                    if (assignedCategoryByBlockGuid.TryGetValue(target.BlockGuid, out var existingCategory))
+                    {
+                        logs += $"[BlockMaster] BlockGuid:{target.BlockGuid} is assigned to multiple destruction categories ({existingCategory}, {category.CategoryKey})\n";
+                    }
+                    else
+                    {
+                        assignedCategoryByBlockGuid.Add(target.BlockGuid, category.CategoryKey);
+                    }
+                }
+
+                return logs;
             }
 
             bool ExistsBlockGuid(Guid blockGuid)

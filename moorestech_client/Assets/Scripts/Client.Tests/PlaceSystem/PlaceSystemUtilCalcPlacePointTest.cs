@@ -28,8 +28,7 @@ namespace Client.Tests.PlaceSystem
                 null,
                 null,
                 null,
-                true,
-                null
+                true
             );
         }
 

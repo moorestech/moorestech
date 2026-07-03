@@ -831,9 +831,6 @@ properties:
       type: boolean
       default: false
       optional: true
-    - key: destructionCategory
-      type: string
-      optional: true
 
 - key: gearChainItems
   type: array
@@ -849,3 +846,24 @@ properties:
     - key: consumptionPerLength
       type: number
       default: 1
+
+# ブロック破壊カテゴリ定義。カテゴリキーと、それに属するブロックを外部キーで一元管理する
+# Block destruction category definitions; each maps a category key to its member blocks via foreign key
+- key: blockDestructionCategories
+  type: array
+  items:
+    type: object
+    properties:
+    - key: categoryKey
+      type: string
+    - key: targetBlocks
+      type: array
+      items:
+        type: object
+        properties:
+        - key: blockGuid
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
