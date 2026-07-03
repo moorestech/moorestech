@@ -30,8 +30,7 @@
     "Game.Gear",
     "Game.EnergySystem",
     "Game.PlayerConnection",
-    "Game.PlayerRiding.Interface",
-    "Game.World.EventHandler"
+    "Game.PlayerRiding.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

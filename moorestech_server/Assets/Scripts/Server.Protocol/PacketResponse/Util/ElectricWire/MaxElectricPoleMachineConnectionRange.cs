@@ -3,7 +3,7 @@ using Game.Block;
 using Mooresmaster.Model.BlocksModule;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
-namespace Game.World.EventHandler.EnergyEvent.EnergyService
+namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     public class MaxElectricPoleMachineConnectionRange
     {

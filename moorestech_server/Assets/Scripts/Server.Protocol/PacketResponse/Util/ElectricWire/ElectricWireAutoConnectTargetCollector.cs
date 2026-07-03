@@ -5,7 +5,6 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
-using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;

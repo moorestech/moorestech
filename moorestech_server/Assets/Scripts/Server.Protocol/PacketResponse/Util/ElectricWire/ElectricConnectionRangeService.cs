@@ -3,7 +3,7 @@ using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Game.World.EventHandler.EnergyEvent.EnergyService
+namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     public static class ElectricConnectionRangeService
     {
