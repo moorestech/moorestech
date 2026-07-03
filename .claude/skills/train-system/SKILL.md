@@ -11,6 +11,14 @@ description: >
 
 Single reference for all train/rail work. Read the shared contracts first, then the section matching your change.
 
+各セクションは元の6スキルを集約した要約。詳細な元ドキュメントは `references/` に完全な形で保存してある:
+- 1. Network Sync Flow → [references/network-sync.md](references/network-sync.md)
+- 2. Event Implementation → [references/event-implementation.md](references/event-implementation.md)
+- 3. Tick Simulation → [references/tick-simulation.md](references/tick-simulation.md)
+- 4. Save / Load → [references/save-load.md](references/save-load.md)
+- 5. Core Invariants → [references/system-notes.md](references/system-notes.md)
+- 6. Test Prioritization → [references/test-priorities.md](references/test-priorities.md)
+
 ## Shared Contracts (apply to every section)
 
 ### Reuse-First Rule
