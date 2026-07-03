@@ -107,6 +107,16 @@ implementationInterface:
 grep -r '"旧プロパティ名"' --include='*.json' . ../moorestech_master/ | grep -v '.claude/worktrees'
 ```
 
+## プロパティ追加時の生成コンストラクタ破壊（CRITICAL）
+
+`optional: true` を付けたプロパティを追加しても、SourceGenerator が生成する要素クラス（例 `BlockMasterElement`）の**コンストラクタには必須の末尾引数が1つ増える**（C# のデフォルト値は付かない）。そのため、手書きで `new XxxMasterElement(...)` している箇所（主に**テスト**）は全て CS7036（`There is no argument given ...`）でコンパイルエラーになる。JSON ローダー経由のロードは影響を受けないが、手動構築箇所は必ず引数追加が必要。
+
+**プロパティ追加後、必ず手動構築箇所を洗って末尾に引数を足す：**
+```bash
+grep -rn 'new <要素クラス名>(' --include='*.cs' moorestech_server moorestech_client | grep -v '/obj/'
+```
+optional なら末尾に `null`（または既定値相当）を渡す。追加位置はスキーマ上どこでも生成順は `PropertyTable` 順なので、原則**末尾プロパティとして足す**と既存の引数順が崩れず差分が最小になる。
+
 ## スキーマ変更後の最終検証（CRITICAL）
 
 スキーマ変更に伴うすべてのタスク（コード修正・JSON更新・テスト修正）が完了したら、**クライアントプロジェクトの全テストを実行すること**。CIはクライアントプロジェクトからEditModeテストを実行するため、サーバー側テストだけでは検証が不十分。

@@ -1,3 +1,4 @@
+using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
@@ -52,6 +53,13 @@ namespace Client.Game.InGame.Entity.Object
         public object GetDeleteTargetKey()
         {
             return TrainCarEntityObject;
+        }
+
+        // 車両はカテゴリー対象外なのでdefault扱い
+        // Train cars are not categorized, so treat them as default
+        public string GetDestructionCategory()
+        {
+            return BlockMasterElementExtension.DefaultDestructionCategory;
         }
     }
 }
