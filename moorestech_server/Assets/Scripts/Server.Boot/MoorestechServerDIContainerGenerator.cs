@@ -43,7 +43,7 @@ using Game.UnlockState;
 using Game.World;
 using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
-using Game.World.EventHandler.EnergyEvent.EnergyService;
+using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using MessagePack.Resolvers;
