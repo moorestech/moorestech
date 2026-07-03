@@ -1,5 +1,4 @@
 using System;
-using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Game.Train.RailGraph;
@@ -74,13 +73,6 @@ namespace Client.Game.InGame.Train.RailGraph
         public object GetDeleteTargetKey()
         {
             return RailObjectIdCarrier.GetRailObjectId();
-        }
-
-        // レールはカテゴリー対象外なのでdefault扱い
-        // Rails are not categorized, so treat them as default
-        public string GetDestructionCategory()
-        {
-            return BlockMasterElementExtension.DefaultDestructionCategory;
         }
         
         private DeleteDeniedReason CanDelete()

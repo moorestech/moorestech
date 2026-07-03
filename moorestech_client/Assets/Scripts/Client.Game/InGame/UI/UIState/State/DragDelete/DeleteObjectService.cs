@@ -68,11 +68,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
                 if (hovered == null) return;
 
-                // 削除可否・カテゴリー整合の判定と追加をサービス側へ集約し、拒否理由だけ受け取って表示する
-                // Delegate the removable/category judgement and the add to the service; just receive and show the deny reason
-                if (!_selection.TryAddTarget(hovered, out var denyReason))
+                if (hovered.IsRemovable(out var reason))
                 {
-                    MouseCursorTooltip.Instance.Show(denyReason, isLocalize: false);
+                    _selection.AddTarget(hovered);
+                }
+                else
+                {
+                    MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
                     _isRemoveDeniedReasonShown = true;
                 }
             }
