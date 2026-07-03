@@ -111,18 +111,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.HoldingItemId);
-            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface))
-            {
-                _autoConnectPreview.Hide();
-                return;
-            }
+            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) { _autoConnectPreview.Hide(); return; }
 
             // 設置可能な距離かどうか
-            if (!IsBlockPlaceableDistance(PlaceableMaxDistance))
-            {
-                _autoConnectPreview.Hide();
-                return;
-            }
+            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) { _autoConnectPreview.Hide(); return; }
             
             _previewBlockController.SetActive(true);
             
@@ -155,14 +147,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
             MarkInsufficientItemPreviewsAsNotPlaceable();
 
-            // 電気系ブロックなら自動接続ワイヤーを表示し、電線不足なら設置を赤＋無効化する
-            // For electric blocks, show auto-connect wires; turn red and disable placement when wires are insufficient
-            var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId);
-            var wirePlaceable = _autoConnectPreview.UpdatePreview(holdingBlockId, placePoint, _currentBlockDirection, _localPlayerInventory);
-            if (!wirePlaceable)
-            {
-                foreach (var placeInfo in _currentPlaceInfos) placeInfo.Placeable = false;
-            }
+            // 電気系ブロックなら各セルの自動接続を評価し、電線不足セルを赤＋ワイヤー線と合計消費数を表示する
+            // For electric blocks, evaluate auto-connect per cell, redden wire-insufficient cells and show wires with the total cost
+            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId), _currentBlockDirection, _localPlayerInventory, placePoint);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -217,8 +204,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
 
-                // 電線不足の電気系ブロックは設置クリックを無効化する（サーバーも拒否するが先回りで抑止）
-                // Disable the placement click for electric blocks lacking wires (server also rejects, but block early)
+                // 電線不足で全セル設置不可なら設置クリックを無効化する（サーバーも拒否するが先回りで抑止）
+                // Disable the placement click when no cell is placeable due to wire shortage (server also rejects, but block early)
                 if (!wirePlaceable) return;
 
                 SendPlaceProtocol(_currentPlaceInfos, context);

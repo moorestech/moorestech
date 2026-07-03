@@ -4,6 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Interface;
+using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
@@ -15,16 +16,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     /// </summary>
     public class ElectricWireAutoConnectPreview
     {
+        private static readonly IReadOnlyList<Vector3Int> EmptyTargets = new List<Vector3Int>();
+
         private readonly BlockGameObjectDataStore _blockDataStore;
         private readonly AutoConnectWirePreviewRenderer _renderer;
 
-        // グリッド座標・向き・ブロックが変化したときのみ再評価するためのキャッシュ
-        // Cache to re-evaluate only when grid position, direction or block changes
-        private bool _hasCache;
-        private Vector3Int _cachedPosition;
+        // セル単位の評価キャッシュ。向きかブロックが変わったら全破棄する
+        // Per-cell evaluation cache, fully invalidated when direction or block changes
+        private readonly Dictionary<Vector3Int, CellPlan> _cellPlanCache = new();
         private BlockDirection _cachedDirection;
         private BlockId _cachedBlockId;
-        private bool _cachedPlaceable;
+        private bool _hasCacheKey;
 
         public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore)
         {
@@ -33,10 +35,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         }
 
         /// <summary>
-        /// 電気系ブロックなら自動接続を評価してワイヤー表示を更新し、設置可否を返す。非電気系は常にtrue
-        /// Evaluates auto-connect for electric blocks, updates wires, and returns placeability. Non-electric is always true
+        /// 電気系なら各セルの自動接続を評価してPlaceableを上書きし、表示を更新する。戻り値は設置クリック可否
+        /// For electric blocks, evaluates auto-connect per cell, overrides Placeable and updates visuals. Returns click placeability
         /// </summary>
-        public bool UpdatePreview(BlockId blockId, Vector3Int position, BlockDirection direction, ILocalPlayerInventory inventory)
+        public bool ApplyAutoConnect(List<PlaceInfo> placeInfos, BlockId blockId, BlockDirection direction, ILocalPlayerInventory inventory, Vector3Int cursorCell)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
 
@@ -48,47 +50,70 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return true;
             }
 
-            // 位置・向き・ブロックが前回と同じなら再評価せずキャッシュ結果を返す
-            // Skip re-evaluation when position, direction and block are unchanged
-            if (_hasCache && _cachedPosition == position && _cachedDirection == direction && _cachedBlockId == blockId)
-                return _cachedPlaceable;
+            InvalidateCacheOnKeyChange();
 
-            // サーバーと同じ自動接続計画を評価する（シングルプレイなので同プロセスのワールド状態を直接参照）
-            // Evaluate the same server-side auto-connect plan (single-player shares world state in-process)
-            var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, position, direction, inventory.ToList());
-            UpdateVisual(position, plan);
+            // 各セルを個別評価し、電線不足セルをPlaceable=falseへ上書きしつつ合計消費数を集計する
+            // Evaluate each cell, override wire-insufficient cells to Placeable=false and sum the total cost
+            // 注意: ドラッグ中の未設置電柱同士の接続は評価に現れない近似（サーバーが設置順に個別再検証するため安全側）
+            // Note: connections between not-yet-placed poles in a drag are approximated away (the server re-validates each in placement order, so this stays safe)
+            var totalCost = 0;
+            var anyPlaceable = false;
+            PlaceInfo cursorInfo = null;
+            foreach (var placeInfo in placeInfos)
+            {
+                var plan = GetOrEvaluateCell(placeInfo.Position);
+                if (!plan.IsPlaceable) placeInfo.Placeable = false;
+                if (placeInfo.Placeable)
+                {
+                    totalCost += plan.TotalCost;
+                    anyPlaceable = true;
+                }
+                if (placeInfo.Position == cursorCell) cursorInfo = placeInfo;
+            }
 
-            _hasCache = true;
-            _cachedPosition = position;
-            _cachedDirection = direction;
-            _cachedBlockId = blockId;
-            _cachedPlaceable = plan.IsPlaceable;
-            return plan.IsPlaceable;
+            // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、ラベルは全セル合計を表示する
+            // Draw wires only for the cursor cell (all cells would be excessive); the label shows the drag-wide total
+            cursorInfo ??= placeInfos[^1];
+            var cursorTargets = cursorInfo.Placeable ? _cellPlanCache[cursorInfo.Position].TargetPositions : EmptyTargets;
+            _renderer.Show(cursorInfo.Position, cursorTargets, totalCost);
+
+            // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）
+            // Allow the click when any cell remains placeable (bad cells are rejected per-cell by the server, matching existing policy)
+            return anyPlaceable;
 
             #region Internal
 
-            void UpdateVisual(Vector3Int originPos, ElectricWireAutoConnectPlan evaluatedPlan)
+            void InvalidateCacheOnKeyChange()
             {
-                // 電線不足（設置不可）または接続先なしならワイヤーは非表示にする
-                // Hide wires when insufficient wires (not placeable) or there is no target
-                if (!evaluatedPlan.IsPlaceable || evaluatedPlan.Targets.Count == 0)
-                {
-                    _renderer.Hide();
-                    return;
-                }
+                if (_hasCacheKey && _cachedDirection == direction && _cachedBlockId == blockId) return;
+                _cellPlanCache.Clear();
+                _cachedDirection = direction;
+                _cachedBlockId = blockId;
+                _hasCacheKey = true;
+            }
 
-                // 接続先ブロックの座標を解決し、合計消費電線数を集計する
-                // Resolve target block positions and sum the total wire cost
+            CellPlan GetOrEvaluateCell(Vector3Int position)
+            {
+                if (_cellPlanCache.TryGetValue(position, out var cached)) return cached;
+
+                // サーバーと同じ自動接続計画を評価する（シングルプレイなので同プロセスのワールド状態を直接参照）
+                // Evaluate the same server-side auto-connect plan (single-player shares world state in-process)
+                var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, position, direction, inventory.ToList());
+
+                // 接続先ブロックの座標を解決し、消費電線数を集計してセル計画として保存する
+                // Resolve target block positions, sum the wire cost and store them as the cell plan
                 var targetPositions = new List<Vector3Int>();
-                var totalCost = 0;
-                foreach (var target in evaluatedPlan.Targets)
+                var cost = 0;
+                foreach (var target in plan.Targets)
                 {
                     if (!_blockDataStore.TryGetBlockGameObject(target.TargetId, out var targetBlock)) continue;
                     targetPositions.Add(targetBlock.BlockPosInfo.OriginalPos);
-                    totalCost += target.Cost.Count;
+                    cost += target.Cost.Count;
                 }
 
-                _renderer.Show(originPos, targetPositions, totalCost);
+                var cellPlan = new CellPlan(plan.IsPlaceable, cost, targetPositions);
+                _cellPlanCache[position] = cellPlan;
+                return cellPlan;
             }
 
             #endregion
@@ -97,7 +122,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public void Hide()
         {
             _renderer.Hide();
-            _hasCache = false;
+            _cellPlanCache.Clear();
+            _hasCacheKey = false;
+        }
+
+        // 1セル分の評価結果（可否・消費電線数・接続先座標）
+        // Evaluation result for a single cell (placeability, wire cost, target positions)
+        private class CellPlan
+        {
+            public readonly bool IsPlaceable;
+            public readonly int TotalCost;
+            public readonly IReadOnlyList<Vector3Int> TargetPositions;
+
+            public CellPlan(bool isPlaceable, int totalCost, IReadOnlyList<Vector3Int> targetPositions)
+            {
+                IsPlaceable = isPlaceable;
+                TotalCost = totalCost;
+                TargetPositions = targetPositions;
+            }
         }
     }
 }
