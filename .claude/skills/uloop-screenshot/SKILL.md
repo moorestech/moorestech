@@ -10,17 +10,27 @@ Take a screenshot of any Unity EditorWindow by name and save as PNG.
 ## Usage
 
 ```bash
-uloop screenshot [--window-name <name>] [--resolution-scale <scale>] [--match-mode <mode>] [--output-directory <path>]
+uloop screenshot [--window-name <name>] [--resolution-scale <scale>] [--match-mode <mode>] [--output-directory <path>] [--capture-mode <mode>]
 ```
 
 ## Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `--window-name` | string | `Game` | Window name to capture (e.g., "Game", "Scene", "Console", "Inspector", "Project", "Hierarchy", or any EditorWindow title) |
+| `--window-name` | string | `Game` | Window name to capture (e.g., "Game", "Scene", "Console", "Inspector", "Project", "Hierarchy", or any EditorWindow title). Ignored when `--capture-mode rendering`. |
 | `--resolution-scale` | number | `1.0` | Resolution scale (0.1 to 1.0) |
-| `--match-mode` | enum | `exact` | Window name matching mode: `exact`, `prefix`, or `contains`. All modes are case-insensitive. |
+| `--match-mode` | enum | `exact` | Window name matching mode: `exact`, `prefix`, or `contains`. All modes are case-insensitive. Ignored when `--capture-mode rendering`. |
 | `--output-directory` | string | `""` | Output directory path for saving screenshots. When empty, uses default path (.uloop/outputs/Screenshots/). Accepts absolute paths. |
+| `--capture-mode` | enum | `window` | `window` = capture EditorWindow including toolbar. `rendering` = capture game rendering only (PlayMode required; coordinates match simulate-mouse). |
+| `--annotate-elements` | bool | `false` | Annotate interactive UI elements with names and simulate-mouse coordinates. Requires `--capture-mode rendering` in PlayMode. |
+| `--elements-only` | bool | `false` | Return only annotated element JSON without capturing an image. Requires `--annotate-elements true` and `--capture-mode rendering` in PlayMode. |
+
+## Capture Modes
+
+| Mode | Description | Use case |
+|------|-------------|----------|
+| `window` | Captures the EditorWindow as displayed, including tab/toolbar chrome | Editor state documentation, Console/Inspector checks |
+| `rendering` | Captures the game rendering only, in PlayMode. Pixel coordinates match `simulate-mouse-input` | Automated playtesting, UI-coordinate-driven interaction |
 
 ## Match Modes
 
@@ -58,6 +68,12 @@ uloop screenshot --output-directory /tmp/screenshots
 
 # Combine options
 uloop screenshot --window-name Scene --resolution-scale 0.5 --output-directory /tmp/screenshots
+
+# PlayMode game-rendering capture (coordinates match simulate-mouse)
+uloop screenshot --capture-mode rendering
+
+# Annotate interactive UI elements with simulate-mouse coordinates (PlayMode)
+uloop screenshot --capture-mode rendering --annotate-elements true
 ```
 
 ## Output

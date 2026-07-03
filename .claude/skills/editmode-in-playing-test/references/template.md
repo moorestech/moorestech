@@ -2,19 +2,18 @@
 
 ## 基本テンプレート
 
-最もシンプルなPlayModeテスト。ゲームを起動して何らかの検証を行う。
+最もシンプルなEditModeInPlayingTest。ゲームを起動して何らかの検証を行う。
 
 ```csharp
 using System.Collections;
-using Client.Tests.PlayModeTest.Util;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using static Client.Tests.PlayModeTest.Util.PlayModeTestUtil;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
-namespace Client.Tests.PlayModeTest
+namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
     /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
@@ -25,7 +24,11 @@ namespace Client.Tests.PlayModeTest
         [UnityTest]
         public IEnumerator {テスト名}Test()
         {
-            yield return EnterPlayModeUtil();
+            EnterPlayModeUtil();
+
+            // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
+            // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
+            yield return new EnterPlayMode(expectDomainReload: true);
 
             // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
             // Prevent test failure from test framework internal errors during EnterPlayMode.
@@ -68,7 +71,8 @@ using Object = UnityEngine.Object;
 [UnityTest]
 public IEnumerator {UI名}DisplayTest()
 {
-    yield return EnterPlayModeUtil();
+    EnterPlayModeUtil();
+    yield return new EnterPlayMode(expectDomainReload: true);
     LogAssert.ignoreFailingMessages = true;
 
     yield return TestBody().ToCoroutine();
@@ -104,7 +108,8 @@ public IEnumerator {UI名}DisplayTest()
 [UnityTest]
 public IEnumerator {Feature}BehaviorTest()
 {
-    yield return EnterPlayModeUtil();
+    EnterPlayModeUtil();
+    yield return new EnterPlayMode(expectDomainReload: true);
     LogAssert.ignoreFailingMessages = true;
 
     yield return TestBody().ToCoroutine();
@@ -118,9 +123,10 @@ public IEnumerator {Feature}BehaviorTest()
     {
         await LoadMainGame();
 
-        // ブロック配置
-        // Place blocks
-        PlaceBlock("ブロック名", Vector3Int.zero, BlockDirection.North);
+        // ブロック配置とクライアント側スポーン待機
+        // Place block and wait for client-side spawn
+        var block = PlaceBlock("ブロック名", Vector3Int.zero, BlockDirection.North);
+        await WaitBlockGameObjectSpawn(Vector3Int.zero);
 
         // 物理演算の同期を待つ
         // Wait for physics sync
@@ -152,7 +158,8 @@ public IEnumerator {Feature}BehaviorTest()
 [UnityTest]
 public IEnumerator StartupWithTimeoutTest()
 {
-    yield return EnterPlayModeUtil();
+    EnterPlayModeUtil();
+    yield return new EnterPlayMode(expectDomainReload: true);
     LogAssert.ignoreFailingMessages = true;
 
     yield return TestBody().ToCoroutine();
@@ -175,5 +182,37 @@ public IEnumerator StartupWithTimeoutTest()
     }
 
     #endregion
+}
+```
+
+## OS入力注入テストテンプレート
+
+キーボード/マウス入力を注入するテスト。CI環境で不安定なため`[Category("IgnoreCI")]`を付与する。
+実例: `EditModeInPlayingTest/PlayerMovementTest.cs`
+
+```csharp
+using Client.Tests.EditModeInPlayingTest.OsInput;
+
+[Category("IgnoreCI")]
+public class {Feature}Test
+{
+    // CI/バッチ環境で仮想デバイスを確保する
+    // Ensure virtual input devices exist in CI/batch environments.
+    [SetUp]
+    public void SetUp() => OsInputSpoof.EnsureDevices();
+
+    // テスト終了時にキー状態リークを防止し仮想デバイスを破棄する
+    // Prevent key state leaks and clean up virtual devices on test end.
+    [TearDown]
+    public void TearDown()
+    {
+        OsInputSpoof.ReleaseAllKeys();
+        OsInputSpoof.CleanupDevices();
+    }
+
+    // TestBody内の先頭で使用不可環境をスキップ:
+    // Skip unavailable environments at the top of TestBody:
+    //   OsInputSpoof.AssertAvailableOrSkip();
+    //   OsInputSpoof.KeyDown(OsInputSpoof.DebugKey.W); / KeyUp(...)
 }
 ```
