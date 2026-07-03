@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.Gear
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
             FuelGearGeneratorItemComponent itemComponent,
             FuelGearGeneratorFluidComponent fluidComponent)
-            : base(null, blockInstanceId, connectorComponent, null)
+            : base(null, blockInstanceId, connectorComponent, AlwaysActive)
         {
             _fluidComponent = fluidComponent;
             _fuelService = new FuelGearGeneratorFuelService(param, itemComponent.InventoryService, fluidComponent);

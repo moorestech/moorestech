@@ -21,6 +21,7 @@ namespace Core.Master
         // カテゴリー未設定ブロックの破壊カテゴリー。デフォルト同士は従来どおり複数選択可能
         // Destruction category for blocks not listed in any definition; defaults can still be multi-selected together
         public const string DefaultDestructionCategory = "default";
+        public const float DefaultIdlePowerRate = 0.2f;
 
         public readonly Blocks Blocks;
 
@@ -50,14 +51,14 @@ namespace Core.Master
                 var blockType = block.Value<string>("blockType");
                 if (blockType is "ElectricMachine" or "ElectricMiner" or "ElectricPump")
                 {
-                    blockParam["idlePowerRate"] ??= 0.2f;
+                    blockParam["idlePowerRate"] ??= DefaultIdlePowerRate;
                 }
 
                 // gearConsumption参照を持つ全ブロックへ省略値を補完する
                 // Fill every gearConsumption reference so shared generated loaders can read it
                 if (blockParam["gearConsumption"] is JObject gearConsumption)
                 {
-                    gearConsumption["idlePowerRate"] ??= 0.2f;
+                    gearConsumption["idlePowerRate"] ??= DefaultIdlePowerRate;
                 }
             }
         }

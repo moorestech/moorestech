@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
@@ -28,6 +29,11 @@ namespace Game.Block.Blocks.Gear
         private readonly SimpleGearService _simpleGearService;
         private readonly Func<bool> _isActive;
 
+        public static bool AlwaysActive()
+        {
+            return true;
+        }
+
         public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Func<bool> isActive)
         {
             _consumption = consumption;
@@ -55,8 +61,8 @@ namespace Game.Block.Blocks.Gear
 
         private float GetDemandRate()
         {
-            if (_isActive == null || _isActive()) return 1f;
-            return _consumption.IdlePowerRate ?? 0.2f;
+            if (_isActive()) return 1f;
+            return _consumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
         }
 
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される

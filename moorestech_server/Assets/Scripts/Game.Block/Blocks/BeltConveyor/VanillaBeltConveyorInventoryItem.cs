@@ -78,8 +78,9 @@ namespace Game.Block.Blocks.BeltConveyor
             }
 
             var elapsedTicks = TotalTicks > RemainingTicks ? TotalTicks - RemainingTicks : 0;
+            var remainingRate = 1d - elapsedTicks / (double)TotalTicks;
             TotalTicks = newTotalTicks;
-            RemainingTicks = elapsedTicks >= newTotalTicks ? 0 : newTotalTicks - elapsedTicks;
+            RemainingTicks = (uint)Math.Ceiling(newTotalTicks * remainingRate);
         }
 
         public string GetSaveJsonString()

@@ -46,7 +46,7 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConsumption = machineParam.GearConsumption;
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
-            var idlePowerRate = gearConsumption.IdlePowerRate ?? 0.2f;
+            var idlePowerRate = gearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
             
             var effectComponent = new MachineModuleEffectComponent(module);
 

@@ -17,6 +17,7 @@ namespace Game.Block.Blocks.Pump
         private readonly ElectricPower _requiredPower;
         private readonly List<FluidGenerationEntry> _entries;
         private ElectricPower _currentPower;
+        public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
 
         public ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
         {

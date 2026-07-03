@@ -1,3 +1,4 @@
+using Core.Master;
 using Mooresmaster.Model.GearConsumptionModule;
 
 namespace Tests.UnitTest.Game
@@ -17,7 +18,7 @@ namespace Tests.UnitTest.Game
                 (float)baseRpm,
                 (float)minimumRpm,
                 (float)baseTorque,
-                0.2f,
+                BlockMaster.DefaultIdlePowerRate,
                 (float)torqueExponentUnder,
                 (float)torqueExponentOver);
         }

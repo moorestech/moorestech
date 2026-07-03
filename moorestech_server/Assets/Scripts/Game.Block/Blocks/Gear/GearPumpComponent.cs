@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Blocks.Pump;
-using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -15,11 +14,11 @@ namespace Game.Block.Blocks.Gear
         private readonly PumpFluidOutputComponent _output;
         private readonly List<FluidGenerationEntry> _entries;
 
-        public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
+        public GearPumpComponent(List<FluidGenerationEntry> entries, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output)
         {
             _gearEnergyTransformer = gearEnergyTransformer;
             _output = output;
-            _entries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid.items, blockPositionInfo.OriginalPos);
+            _entries = entries;
         }
 
         public void Update()
