@@ -3,8 +3,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     /// <summary>
-    /// 電気系ブロックパラメータからワイヤー端点仕様を取り出す。7種のBlockParamをswitchで判別する
-    /// Extracts wire endpoint spec from an electric block param via a switch over the 7 param types
+    /// 電気系ブロックのパラメータからワイヤー端点仕様を取り出す
+    /// Extracts wire endpoint spec from an electric block param
     /// </summary>
     public static class ElectricWireBlockParamResolver
     {

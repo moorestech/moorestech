@@ -147,8 +147,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
             MarkInsufficientItemPreviewsAsNotPlaceable();
 
-            // 電気系ブロックなら各セルの自動接続を評価し、電線不足セルを赤＋ワイヤー線と合計消費数を表示する
-            // For electric blocks, evaluate auto-connect per cell, redden wire-insufficient cells and show wires with the total cost
+            // 各セルの自動接続を評価し表示更新
+            // Evaluate auto-connect per cell and update the preview
             var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId), _currentBlockDirection, _localPlayerInventory, placePoint);
 
             // 最終的なPlaceable状態でプレビュー色を更新

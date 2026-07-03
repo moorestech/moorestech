@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 {
     /// <summary>
-    /// 起点選択済み時の挙動。別ブロックへの接続と、空きスペースへの電柱設置＋延長を処理する
-    /// Behavior while an origin is selected: connect to another block, or place a pole into empty space and extend
+    /// 起点選択済み時の接続・電柱延長設置を処理する挙動
+    /// Behavior when an origin is selected: connect, or place a pole and extend
     /// </summary>
     public class ElectricWireExtendMode
     {
