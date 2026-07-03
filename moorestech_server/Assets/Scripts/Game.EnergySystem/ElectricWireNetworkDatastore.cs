@@ -54,7 +54,7 @@ namespace Game.EnergySystem
                 foreach (var s in connectedSegments)
                 {
                     var size = _segmentMembers[s].Count;
-                    if (largest == null || size > largestSize)
+                    if (largest == null || largestSize < size)
                     {
                         largestSize = size;
                         largest = s;

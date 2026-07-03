@@ -78,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
                 var diff = b - a;
                 var length = diff.magnitude;
-                var axis = length > Mathf.Epsilon ? diff / length : Vector3.up;
+                var axis = Mathf.Epsilon < length ? diff / length : Vector3.up;
 
                 outColliderSegments.Add(((a + b) * 0.5f, axis, length));
             }

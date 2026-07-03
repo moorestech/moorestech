@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             // 未解決の間のみ一定間隔でパートナーブロックの生成を再確認する
             // While unresolved, periodically recheck whether the partner block has been created
             _retryTimer -= Time.deltaTime;
-            if (_retryTimer > 0f) return;
+            if (0f < _retryTimer) return;
             _retryTimer = RetryIntervalSeconds;
 
             if (!TryBuildLine()) return;

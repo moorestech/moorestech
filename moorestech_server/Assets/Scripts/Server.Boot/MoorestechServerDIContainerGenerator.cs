@@ -43,7 +43,6 @@ using Game.UnlockState;
 using Game.World;
 using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
-using Game.World.EventHandler.EnergyEvent;
 using Game.World.EventHandler.EnergyEvent.EnergyService;
 using Game.World.Interface.DataStore;
 using MessagePack;

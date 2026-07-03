@@ -35,7 +35,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // 距離・既存接続・接続数上限を先に確認する
             // Check distance, existing connection and capacity first
             var maxDistance = Mathf.Min(fromMaxWireLength, toMaxWireLength);
-            if (distance > maxDistance) return ElectricWirePlacementJudgement.Failure(TooFarError);
+            if (maxDistance < distance) return ElectricWirePlacementJudgement.Failure(TooFarError);
             if (alreadyConnected) return ElectricWirePlacementJudgement.Failure(AlreadyConnectedError);
             if (anyConnectionFull) return ElectricWirePlacementJudgement.Failure(ConnectionLimitError);
 
@@ -96,10 +96,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             {
                 if (itemStack.Id != itemId) continue;
                 total += itemStack.Count;
-                if (total >= required) return true;
+                if (required <= total) return true;
             }
 
-            return total >= required;
+            return required <= total;
         }
     }
 }

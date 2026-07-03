@@ -138,7 +138,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
 
             inventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot), itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(hotBarItemGuid), hotBarItemCount));
-            if (wireCount > 0) inventory.SetItem(10, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(WireItemGuid), wireCount));
+            if (0 < wireCount) inventory.SetItem(10, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(WireItemGuid), wireCount));
 
             return inventory;
         }

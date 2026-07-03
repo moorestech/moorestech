@@ -59,7 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             EnsureWireLineCount(targetBlockPositions.Count);
             for (var i = 0; i < _wireLines.Count; i++)
             {
-                if (i >= targetBlockPositions.Count)
+                if (targetBlockPositions.Count <= i)
                 {
                     _wireLines[i].SetActive(false);
                     continue;
