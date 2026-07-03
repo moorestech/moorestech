@@ -1,3 +1,4 @@
+using Client.Game.Common;
 using Client.Game.InGame.UI.UIState.State;
 
 namespace Client.Tests.UIState
@@ -13,7 +14,7 @@ namespace Client.Tests.UIState
         public int DeleteCount;
         public bool Removable;
         public object Key;
-        public string Category = "default";
+        public string Category = BlockMasterElementExtension.DefaultDestructionCategory;
 
         public void SetRemovePreviewing()
         {

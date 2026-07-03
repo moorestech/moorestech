@@ -68,23 +68,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
                 if (hovered == null) return;
 
-                if (!hovered.IsRemovable(out var reason))
+                // 削除可否・カテゴリー整合の判定と追加をサービス側へ集約し、拒否理由だけ受け取って表示する
+                // Delegate the removable/category judgement and the add to the service; just receive and show the deny reason
+                if (!_selection.TryAddTarget(hovered, out var denyReason))
                 {
-                    MouseCursorTooltip.Instance.Show(reason, isLocalize: false);
+                    MouseCursorTooltip.Instance.Show(denyReason, isLocalize: false);
                     _isRemoveDeniedReasonShown = true;
-                    return;
                 }
-
-                // 別カテゴリーのブロックは同時に選択できない旨を表示する
-                // Show that a different-category block cannot be selected at the same time
-                if (!_selection.IsCategoryCompatible(hovered))
-                {
-                    MouseCursorTooltip.Instance.Show("別カテゴリーのブロックは同時に選択できません。", isLocalize: false);
-                    _isRemoveDeniedReasonShown = true;
-                    return;
-                }
-
-                _selection.AddTarget(hovered);
             }
 
             void UpdateSingleHoverPreview()
