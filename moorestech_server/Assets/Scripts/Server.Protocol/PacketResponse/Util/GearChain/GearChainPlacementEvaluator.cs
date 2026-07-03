@@ -80,7 +80,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
         /// チェーンアイテム設定から距離に応じた消費数を算出する
         /// Calculate consumption count for the distance from chain item master
         /// </summary>
-        public static bool TryCalculateChainCost(ItemId chainItemId, float distance, out GearChainConnectionCost chainCost)
+        private static bool TryCalculateChainCost(ItemId chainItemId, float distance, out GearChainConnectionCost chainCost)
         {
             chainCost = default;
 
