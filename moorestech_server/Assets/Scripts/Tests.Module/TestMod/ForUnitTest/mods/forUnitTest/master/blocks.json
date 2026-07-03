@@ -4446,18 +4446,5 @@
       "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
       "consumptionPerLength": 1
     }
-  ],
-  "blockDestructionCategories": [
-    {
-      "categoryKey": "foundation",
-      "targetBlocks": [
-        {
-          "blockGuid": "00000000-0000-0000-0000-000000000002"
-        },
-        {
-          "blockGuid": "00000000-0000-0000-0000-000000000004"
-        }
-      ]
-    }
   ]
 }
