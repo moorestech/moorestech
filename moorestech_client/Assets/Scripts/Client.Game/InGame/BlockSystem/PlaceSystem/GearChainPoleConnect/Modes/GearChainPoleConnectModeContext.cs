@@ -1,4 +1,5 @@
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -6,7 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using static Client.Common.LayerConst;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 {
     /// <summary>
     /// 歯車チェーンポール接続システムの各モードが共有する状態と共通操作。

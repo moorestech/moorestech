@@ -9,7 +9,7 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.GearChain;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
     /// 歯車チェーンポール接続・延長のプレビューを計算する。
@@ -51,54 +51,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             var distance = Vector3Int.Distance(fromPos, placePos);
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, chainItemId, playerInventory, poleItemId);
             return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement.IsPlaceable);
-        }
-
-        /// <summary>
-        /// アイテムが歯車チェーンポールのブロックアイテムならブロックマスタを返す
-        /// Resolve the block master when the item is a gear chain pole block item
-        /// </summary>
-        public static bool TryGetPoleBlockMaster(ItemId itemId, out BlockMasterElement poleBlockMaster)
-        {
-            poleBlockMaster = null;
-            if (itemId == ItemMaster.EmptyItemId || !MasterHolder.BlockMaster.IsBlock(itemId)) return false;
-
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(MasterHolder.BlockMaster.GetBlockId(itemId));
-            if (blockMaster.BlockType != BlockMasterElement.BlockTypeConst.GearChainPole) return false;
-
-            poleBlockMaster = blockMaster;
-            return true;
-        }
-
-        /// <summary>
-        /// 延長接続で消費するチェーンアイテムをインベントリから自動選択する（未所持なら EmptyItemId）
-        /// Auto-select the chain item consumed by extension from inventory (EmptyItemId when none is owned)
-        /// </summary>
-        public static ItemId FindOwnedChainItemId(ILocalPlayerInventory playerInventory)
-        {
-            // 所持スロット順で最初に見つかったチェーンアイテムを採用する
-            // Adopt the first chain item found in inventory slot order
-            for (var i = 0; i < playerInventory.Count; i++)
-            {
-                var stackId = playerInventory[i].Id;
-                if (stackId == ItemMaster.EmptyItemId) continue;
-                if (IsChainItem(stackId)) return stackId;
-            }
-
-            return ItemMaster.EmptyItemId;
-
-            #region Internal
-
-            bool IsChainItem(ItemId itemId)
-            {
-                foreach (var gearChainItem in MasterHolder.BlockMaster.Blocks.GearChainItems)
-                {
-                    if (MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid) == itemId) return true;
-                }
-
-                return false;
-            }
-
-            #endregion
         }
 
         /// <summary>

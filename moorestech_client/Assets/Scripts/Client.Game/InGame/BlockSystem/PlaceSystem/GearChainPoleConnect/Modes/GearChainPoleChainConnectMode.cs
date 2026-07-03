@@ -1,7 +1,8 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 {
     /// <summary>
     /// チェーンアイテム手持ち時のモード。既存の設置済みポール同士の接続のみを行い、ポールの新規設置はしない。

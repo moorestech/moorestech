@@ -1,15 +1,20 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
+using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.UI.Inventory.Main;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
 {
     /// <summary>
-    /// GearChainPoleの接続システム。手持ちアイテムで操作モードが決まる。
+    /// GearChainPoleの接続システムのエントリポイント。手持ちアイテムで操作モードが決まる。
     /// ポールアイテム所持時は手持ちポールの新規設置と連続延長、チェーンアイテム所持時は既存ポール同士の接続のみを行う。
-    /// GearChainPole connection system whose mode is decided by the holding item.
+    /// Entry point of the GearChainPole connection system whose mode is decided by the holding item.
     /// Holding a pole item allows placing and continuously extending that pole; holding a chain item only connects existing poles.
+    ///
+    /// 実行フローは「本クラス（分岐のみ） → Modes/（モード別ロジック、Context経由で状態共有） → Parts/（計算・表示・通信・コライダー）」の一方向。
+    /// Execution flows one-way: this class (branching only) → Modes/ (per-mode logic sharing state via Context) → Parts/ (calculation, view, network, collider).
     /// </summary>
     public class GearChainPoleConnectSystem : IPlaceSystem
     {
@@ -38,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             // 手持ちがポールアイテムかチェーンアイテムかでモードを分岐する
             // Branch mode by whether the holding item is a pole item or a chain item
             var hitPole = _modeContext.GetGearChainPoleCollider();
-            if (GearChainPoleExtendPreviewCalculator.TryGetPoleBlockMaster(context.HoldingItemId, out var poleBlockMaster)) _placeExtendMode.ManualUpdate(context, hitPole, poleBlockMaster);
+            if (GearChainPoleItemFinder.TryGetPoleBlockMaster(context.HoldingItemId, out var poleBlockMaster)) _placeExtendMode.ManualUpdate(context, hitPole, poleBlockMaster);
             else _chainConnectMode.ManualUpdate(context, hitPole);
         }
 

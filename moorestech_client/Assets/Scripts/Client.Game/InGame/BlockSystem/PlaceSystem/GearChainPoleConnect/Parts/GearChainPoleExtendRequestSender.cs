@@ -7,7 +7,7 @@ using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
     /// 歯車チェーンポール延長プロトコルの送信と応答後の起点引き継ぎを管理する。
