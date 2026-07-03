@@ -16,7 +16,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
 
             Assert.AreEqual(1, target.SetPreviewCount);
         }
@@ -28,8 +28,8 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(target);
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
+            selection.TryAddTarget(target, out _);
 
             Assert.AreEqual(1, target.SetPreviewCount);
         }
@@ -41,7 +41,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = false };
 
             selection.BeginDrag();
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
             selection.CommitDelete();
 
             Assert.AreEqual(0, target.SetPreviewCount);
@@ -55,7 +55,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
             selection.CancelSelection();
 
             Assert.AreEqual(1, target.ResetCount);
@@ -69,7 +69,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
             selection.CommitDelete();
             // クリア済みなので二度目のCommitは何もしない
             // The selection is cleared, so a second commit deletes nothing more
@@ -86,14 +86,14 @@ namespace Client.Tests.UIState
             var second = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(first);
+            selection.TryAddTarget(first, out _);
             selection.CancelSelection();
 
             // 再ドラッグでキャンセルフラグが解除され、再び選択・確定できる
             // A fresh drag clears the canceled flag so selecting and committing works again
             selection.BeginDrag();
             Assert.IsTrue(selection.CanCommit());
-            selection.AddTarget(second);
+            selection.TryAddTarget(second, out _);
             selection.CommitDelete();
 
             Assert.AreEqual(1, second.DeleteCount);
@@ -108,7 +108,7 @@ namespace Client.Tests.UIState
 
             selection.BeginDrag();
             selection.CancelSelection();
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
 
             Assert.AreEqual(0, target.SetPreviewCount);
         }
@@ -120,7 +120,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
             selection.CancelSelection();
             selection.CommitDelete();
 
@@ -135,8 +135,8 @@ namespace Client.Tests.UIState
             var second = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(first);
-            selection.AddTarget(second);
+            selection.TryAddTarget(first, out _);
+            selection.TryAddTarget(second, out _);
             selection.CommitDelete();
 
             Assert.AreEqual(1, first.DeleteCount);
@@ -150,7 +150,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.AddTarget(target);
+            selection.TryAddTarget(target, out _);
             selection.CommitDelete();
 
             Assert.AreEqual(1, target.ResetCount);
@@ -167,8 +167,8 @@ namespace Client.Tests.UIState
             var second = new FakeDeleteTarget { Removable = true, Key = sharedKey };
 
             selection.BeginDrag();
-            selection.AddTarget(first);
-            selection.AddTarget(second);
+            selection.TryAddTarget(first, out _);
+            selection.TryAddTarget(second, out _);
             selection.CommitDelete();
 
             Assert.AreEqual(1, first.SetPreviewCount);
