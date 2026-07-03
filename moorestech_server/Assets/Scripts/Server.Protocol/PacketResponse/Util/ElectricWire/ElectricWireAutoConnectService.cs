@@ -33,13 +33,13 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
             // 全ターゲット合計コストを所持数が満たす最初の電線アイテムを選ぶ
             // Pick the first wire item whose held count covers the summed cost across all targets
-            return TrySelectWireItem(candidates, inventoryItems, out var targets, out var wireItemId)
+            return TrySelectWireItem(out var targets, out var wireItemId)
                 ? ElectricWireAutoConnectPlan.Success(targets, wireItemId)
                 : ElectricWireAutoConnectPlan.Failure(ElectricWirePlacementEvaluator.NoWireItemError);
 
             #region Internal
 
-            List<(BlockInstanceId, IElectricWireConnector, float)> CollectMachineTargets(BlockMasterElement master, Vector3Int pos, BlockDirection dir)
+            List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement master, Vector3Int pos, BlockDirection dir)
             {
                 // 自身の接続容量が0なら探索するまでもなく対象なし
                 // No point searching when this block has zero connection capacity
@@ -47,6 +47,58 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                     return new List<(BlockInstanceId, IElectricWireConnector, float)>();
 
                 return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, pos, dir, ownMaxWireLength);
+            }
+
+            // 全ターゲット距離を満たす電線アイテムをマスタ設定順に探す
+            // Search wire item configs in master order for one covering all target distances
+            bool TrySelectWireItem(out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out ItemId selectedWireItemId)
+            {
+                foreach (var electricWireItem in MasterHolder.BlockMaster.Blocks.ElectricWireItems)
+                {
+                    var candidateItemId = MasterHolder.ItemMaster.GetItemId(electricWireItem.ItemGuid);
+                    if (!TryBuildTargets(candidateItemId, out var builtTargets, out var totalRequired)) continue;
+                    if (!HasEnoughItem(candidateItemId, totalRequired)) continue;
+
+                    selectedTargets = builtTargets;
+                    selectedWireItemId = candidateItemId;
+                    return true;
+                }
+
+                selectedTargets = null;
+                selectedWireItemId = ItemMaster.EmptyItemId;
+                return false;
+            }
+
+            bool TryBuildTargets(ItemId candidateItemId, out List<(BlockInstanceId, ElectricWireConnectionCost)> builtTargets, out int totalRequired)
+            {
+                builtTargets = new List<(BlockInstanceId, ElectricWireConnectionCost)>();
+                totalRequired = 0;
+
+                foreach (var candidate in candidates)
+                {
+                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(candidateItemId, candidate.Distance, out var cost))
+                    {
+                        builtTargets = null;
+                        return false;
+                    }
+
+                    builtTargets.Add((candidate.TargetId, cost));
+                    totalRequired += cost.Count;
+                }
+
+                return true;
+            }
+
+            bool HasEnoughItem(ItemId itemId, int required)
+            {
+                var total = 0;
+                foreach (var itemStack in inventoryItems)
+                {
+                    if (itemStack.Id != itemId) continue;
+                    total += itemStack.Count;
+                }
+
+                return required <= total;
             }
 
             #endregion
@@ -73,84 +125,28 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 consumedWireCount += target.Cost.Count;
             }
 
-            ConsumeWireItems(inventory, plan.WireItemId, consumedWireCount);
+            ConsumeWireItems(plan.WireItemId, consumedWireCount);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
-        }
 
-        // 全ターゲット距離を満たす電線アイテムをマスタ設定順に探す
-        // Search wire item configs in master order for one covering all target distances
-        private static bool TrySelectWireItem(
-            IReadOnlyList<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> candidates,
-            IReadOnlyList<IItemStack> inventoryItems,
-            out List<(BlockInstanceId, ElectricWireConnectionCost)> targets,
-            out ItemId wireItemId)
-        {
-            foreach (var electricWireItem in MasterHolder.BlockMaster.Blocks.ElectricWireItems)
+            #region Internal
+
+            // 消費した電線アイテムをインベントリのスロットから順に減算する
+            // Decrease consumed wire items across inventory slots in order
+            void ConsumeWireItems(ItemId wireItemId, int amount)
             {
-                var candidateItemId = MasterHolder.ItemMaster.GetItemId(electricWireItem.ItemGuid);
-                if (!TryBuildTargets(candidates, candidateItemId, out var builtTargets, out var totalRequired)) continue;
-                if (!HasEnoughItem(inventoryItems, candidateItemId, totalRequired)) continue;
-
-                targets = builtTargets;
-                wireItemId = candidateItemId;
-                return true;
-            }
-
-            targets = null;
-            wireItemId = ItemMaster.EmptyItemId;
-            return false;
-        }
-
-        private static bool TryBuildTargets(
-            IReadOnlyList<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> candidates,
-            ItemId wireItemId,
-            out List<(BlockInstanceId, ElectricWireConnectionCost)> targets,
-            out int totalRequired)
-        {
-            targets = new List<(BlockInstanceId, ElectricWireConnectionCost)>();
-            totalRequired = 0;
-
-            foreach (var candidate in candidates)
-            {
-                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(wireItemId, candidate.Distance, out var cost))
+                var remaining = amount;
+                for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
                 {
-                    targets = null;
-                    return false;
+                    var itemStack = inventory.InventoryItems[i];
+                    if (itemStack.Id != wireItemId) continue;
+
+                    var consumeAmount = Math.Min(itemStack.Count, remaining);
+                    inventory.SetItem(i, itemStack.SubItem(consumeAmount));
+                    remaining -= consumeAmount;
                 }
-
-                targets.Add((candidate.TargetId, cost));
-                totalRequired += cost.Count;
             }
 
-            return true;
-        }
-
-        private static bool HasEnoughItem(IReadOnlyList<IItemStack> items, ItemId itemId, int required)
-        {
-            var total = 0;
-            foreach (var itemStack in items)
-            {
-                if (itemStack.Id != itemId) continue;
-                total += itemStack.Count;
-            }
-
-            return required <= total;
-        }
-
-        // 消費した電線アイテムをインベントリのスロットから順に減算する
-        // Decrease consumed wire items across inventory slots in order
-        private static void ConsumeWireItems(IOpenableInventory inventory, ItemId wireItemId, int amount)
-        {
-            var remaining = amount;
-            for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
-            {
-                var itemStack = inventory.InventoryItems[i];
-                if (itemStack.Id != wireItemId) continue;
-
-                var consumeAmount = Math.Min(itemStack.Count, remaining);
-                inventory.SetItem(i, itemStack.SubItem(consumeAmount));
-                remaining -= consumeAmount;
-            }
+            #endregion
         }
     }
 }

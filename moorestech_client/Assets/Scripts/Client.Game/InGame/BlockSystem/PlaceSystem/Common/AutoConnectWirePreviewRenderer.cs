@@ -69,36 +69,40 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 _wireLines[i].Draw(origin, end);
             }
 
-            UpdateCostLabel(origin, totalWireCost);
+            UpdateCostLabel();
+
+            #region Internal
+
+            // 合計消費電線数ラベルを起点上に置き、カメラへ向ける
+            // Place the total wire cost label above the origin and billboard it to the camera
+            void UpdateCostLabel()
+            {
+                if (totalWireCost <= 0)
+                {
+                    _costLabel.gameObject.SetActive(false);
+                    return;
+                }
+
+                _costLabel.gameObject.SetActive(true);
+                _costLabel.text = $"電線 x{totalWireCost}";
+                _costLabel.color = WithAlpha(MaterialConst.PlaceableColor);
+
+                var labelTransform = _costLabel.transform;
+                labelTransform.position = origin + CostLabelOffset;
+                labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
+            }
+
+            void EnsureWireLineCount(int count)
+            {
+                while (_wireLines.Count < count) _wireLines.Add(new WireLine(_root));
+            }
+
+            #endregion
         }
 
         public void Hide()
         {
             _root.gameObject.SetActive(false);
-        }
-
-        // 合計消費電線数ラベルを起点上に置き、カメラへ向ける
-        // Place the total wire cost label above the origin and billboard it to the camera
-        private void UpdateCostLabel(Vector3 origin, int totalWireCost)
-        {
-            if (totalWireCost <= 0)
-            {
-                _costLabel.gameObject.SetActive(false);
-                return;
-            }
-
-            _costLabel.gameObject.SetActive(true);
-            _costLabel.text = $"電線 x{totalWireCost}";
-            _costLabel.color = WithAlpha(MaterialConst.PlaceableColor);
-
-            var labelTransform = _costLabel.transform;
-            labelTransform.position = origin + CostLabelOffset;
-            labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
-        }
-
-        private void EnsureWireLineCount(int count)
-        {
-            while (_wireLines.Count < count) _wireLines.Add(new WireLine(_root));
         }
 
         private static Color WithAlpha(Color color)

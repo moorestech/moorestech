@@ -83,8 +83,41 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             _generatedMesh = CatenaryWireMeshBuilder.Build(start, end, sag, colliderSegments);
 
             meshFilter.mesh = _generatedMesh;
-            BuildColliders(colliderSegments);
+            BuildColliders();
             return true;
+
+            #region Internal
+
+            // セグメント情報に沿ってクリック判定用のCapsuleColliderを配置する
+            // Place CapsuleColliders for click detection along the segment info
+            void BuildColliders()
+            {
+                foreach (var segment in colliderSegments)
+                {
+                    // 専用レイヤに置き、既存のブロック操作レイキャストへの干渉を防ぐ
+                    // Place on the dedicated layer to avoid interfering with existing block-operation raycasts
+                    var colliderObject = new GameObject("WireCollider");
+                    colliderObject.layer = LayerConst.ElectricWireLayer;
+
+                    var colliderTransform = colliderObject.transform;
+                    colliderTransform.SetParent(transform, false);
+
+                    // カプセルのローカルY軸をセグメント軸方向へ向ける
+                    // Orient the capsule's local Y axis along the segment axis
+                    colliderTransform.position = segment.center;
+                    colliderTransform.rotation = Quaternion.FromToRotation(Vector3.up, segment.up);
+
+                    // トリガー化してプレイヤーとの物理衝突を防ぐ（レイキャストにはヒットする）
+                    // Make it a trigger to avoid physical collision with the player (still hit by raycasts)
+                    var capsule = colliderObject.AddComponent<CapsuleCollider>();
+                    capsule.isTrigger = true;
+                    capsule.direction = 1;
+                    capsule.radius = CatenaryWireMeshBuilder.WireRadius;
+                    capsule.height = segment.length;
+                }
+            }
+
+            #endregion
         }
 
         private void OnDestroy()
@@ -92,35 +125,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             // 動的生成したメッシュを破棄してリークを防ぐ
             // Destroy the dynamically generated mesh to prevent a leak
             if (_generatedMesh != null) Destroy(_generatedMesh);
-        }
-
-        // セグメント情報に沿ってクリック判定用のCapsuleColliderを配置する
-        // Place CapsuleColliders for click detection along the segment info
-        private void BuildColliders(List<(Vector3 center, Vector3 up, float length)> colliderSegments)
-        {
-            foreach (var segment in colliderSegments)
-            {
-                // 専用レイヤに置き、既存のブロック操作レイキャストへの干渉を防ぐ
-                // Place on the dedicated layer to avoid interfering with existing block-operation raycasts
-                var colliderObject = new GameObject("WireCollider");
-                colliderObject.layer = LayerConst.ElectricWireLayer;
-
-                var colliderTransform = colliderObject.transform;
-                colliderTransform.SetParent(transform, false);
-
-                // カプセルのローカルY軸をセグメント軸方向へ向ける
-                // Orient the capsule's local Y axis along the segment axis
-                colliderTransform.position = segment.center;
-                colliderTransform.rotation = Quaternion.FromToRotation(Vector3.up, segment.up);
-
-                // トリガー化してプレイヤーとの物理衝突を防ぐ（レイキャストにはヒットする）
-                // Make it a trigger to avoid physical collision with the player (still hit by raycasts)
-                var capsule = colliderObject.AddComponent<CapsuleCollider>();
-                capsule.isTrigger = true;
-                capsule.direction = 1;
-                capsule.radius = CatenaryWireMeshBuilder.WireRadius;
-                capsule.height = segment.length;
-            }
         }
     }
 }
