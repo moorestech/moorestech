@@ -16,6 +16,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public class GearChainPoleExtendRequestSender
     {
+        // 新規ポールのエンティティ生成を待つ上限秒数
+        // Timeout seconds for waiting the new pole entity to spawn
+        private const float PoleSpawnWaitSeconds = 1f;
+
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
         private int _generation;
@@ -62,41 +66,33 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 
             UniTask.Create(async () =>
             {
+                // 応答を待ち、成功時のみ新規ポールの生成を待って引き継ぎ先を解決する
+                // Await the response, then resolve the next source only on success by waiting for the new pole to spawn
                 var response = command.FromPos.HasValue
                     ? await ClientContext.VanillaApi.Response.ExtendGearChainPole(command.FromPos.Value, command.PoleSlot, command.PlaceInfo, command.ChainItemId, CancellationToken.None)
                     : await ClientContext.VanillaApi.Response.PlaceIsolatedGearChainPole(command.PoleSlot, command.PlaceInfo, CancellationToken.None);
+                var placedPole = response is { IsSuccess: true } ? await WaitForPlacedPole((Vector3Int)response.PlacedPolePos) : null;
 
-                // 世代が進んでいたら結果を破棄する（フラグは進めた側が管理済み）
-                // Discard the result when the generation has advanced (the advancer manages the flag)
-                if (generation != _generation) return;
-
-                // タイムアウト等の応答なし・失敗時は待ち状態を解除する
-                // Release the awaiting state on no-response (timeout) or failure
-                if (response == null || !response.IsSuccess)
-                {
-                    IsAwaitingResponse = false;
-                    return;
-                }
-
-                // 新規ポールの生成を待って起点引き継ぎ先を解決する（引き継ぎ確定まで待ち状態を維持し孤立設置化を防ぐ）
-                // Wait for the new pole to spawn and resolve the next source (stay awaiting until hand-off to prevent isolated placement)
-                var placedPos = (Vector3Int)response.PlacedPolePos;
-                using var spawnWaitCancellation = new CancellationTokenSource();
-                await UniTask.WhenAny(
-                    UniTask.WaitForSeconds(1f),
-                    UniTask.WaitUntil(() => _blockGameObjectDataStore.TryGetBlockGameObject(placedPos, out _), cancellationToken: spawnWaitCancellation.Token).SuppressCancellationThrow());
-
-                // 敗者側のポーリングを止める
-                // Stop the losing poll task
-                spawnWaitCancellation.Cancel();
-
+                // 世代が進んでいたら応答ごと破棄する（フラグは進めた側が管理済み）
+                // Discard everything when the generation has advanced (the advancer manages the flag)
                 if (generation != _generation) return;
                 IsAwaitingResponse = false;
-                if (!command.CanContinueExtension) return;
-                if (!_blockGameObjectDataStore.TryGetBlockGameObject(placedPos, out var placedBlock)) return;
-
-                _resolvedPole = placedBlock.GetComponentInChildren<GearChainPoleConnectAreaCollider>();
+                if (command.CanContinueExtension) _resolvedPole = placedPole;
             });
+        }
+
+        private async UniTask<GearChainPoleConnectAreaCollider> WaitForPlacedPole(Vector3Int placedPos)
+        {
+            // エンティティ生成をタイムアウト付きで毎フレーム確認する（引き継ぎ確定まで待ち状態を維持し孤立設置化を防ぐ）
+            // Poll the entity spawn every frame with a timeout (stay awaiting until hand-off to prevent isolated placement)
+            var startTime = Time.time;
+            while (Time.time - startTime < PoleSpawnWaitSeconds)
+            {
+                if (_blockGameObjectDataStore.TryGetBlockGameObject(placedPos, out var placedBlock)) return placedBlock.GetComponentInChildren<GearChainPoleConnectAreaCollider>();
+                await UniTask.NextFrame();
+            }
+
+            return null;
         }
     }
 }
