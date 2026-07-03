@@ -31,7 +31,35 @@ namespace Core.Master
 
         public BlockMaster(JToken blockJToken)
         {
+            ApplyIdlePowerRateDefaults(blockJToken);
             Blocks = BlocksLoader.Load(blockJToken);
+        }
+
+        private static void ApplyIdlePowerRateDefaults(JToken blockJToken)
+        {
+            if (blockJToken["data"] is not JArray blockData) return;
+
+            // 既存マスタの省略値をローダー前に補完する
+            // Fill omitted values before the generated loader reads old masters
+            foreach (var block in blockData.OfType<JObject>())
+            {
+                if (block["blockParam"] is not JObject blockParam) continue;
+
+                // 電気消費ブロックは直下にidlePowerRateを持つ
+                // Electric consumers carry idlePowerRate directly on blockParam
+                var blockType = block.Value<string>("blockType");
+                if (blockType is "ElectricMachine" or "ElectricMiner" or "ElectricPump")
+                {
+                    blockParam["idlePowerRate"] ??= 0.2f;
+                }
+
+                // gearConsumption参照を持つ全ブロックへ省略値を補完する
+                // Fill every gearConsumption reference so shared generated loaders can read it
+                if (blockParam["gearConsumption"] is JObject gearConsumption)
+                {
+                    gearConsumption["idlePowerRate"] ??= 0.2f;
+                }
+            }
         }
 
         public bool Validate(out string errorLogs)

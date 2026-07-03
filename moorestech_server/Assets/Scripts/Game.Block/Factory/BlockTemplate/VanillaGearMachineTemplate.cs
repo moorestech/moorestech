@@ -44,17 +44,18 @@ namespace Game.Block.Factory.BlockTemplate
             var connectSetting = machineParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
             var gearConsumption = machineParam.GearConsumption;
-            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
+            var idlePowerRate = gearConsumption.IdlePowerRate ?? 0.2f;
             
             var effectComponent = new MachineModuleEffectComponent(module);
 
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
             var processor = componentStates == null
-                ? new VanillaMachineProcessorComponent(input, output, requirePower, effectComponent)
-                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
+                ? new VanillaMachineProcessorComponent(input, output, requirePower, idlePowerRate, effectComponent)
+                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, idlePowerRate, blockMasterElement);
+            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector, () => processor.CurrentState == ProcessState.Processing);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);

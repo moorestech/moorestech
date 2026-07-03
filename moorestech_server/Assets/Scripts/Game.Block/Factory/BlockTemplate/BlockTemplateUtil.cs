@@ -76,7 +76,7 @@ namespace Game.Block.Factory.BlockTemplate
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             VanillaMachineModuleInventory vanillaMachineModuleInventory,
             MachineModuleEffectComponent machineModuleEffectComponent,
-            float requestPower, BlockMasterElement blockMasterElement)
+            float requestPower, float idlePowerRate, BlockMasterElement blockMasterElement)
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
@@ -162,6 +162,7 @@ namespace Game.Block.Factory.BlockTemplate
                 remainingTicks,
                 recipe,
                 requestPower,
+                idlePowerRate,
                 machineModuleEffectComponent,
                 pendingOutputs);
 

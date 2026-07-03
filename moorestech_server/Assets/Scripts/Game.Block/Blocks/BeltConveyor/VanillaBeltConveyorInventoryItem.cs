@@ -65,6 +65,23 @@ namespace Game.Block.Blocks.BeltConveyor
             }
         }
 
+        public void UpdateTicksForSpeedChange(uint newTotalTicks)
+        {
+            if (TotalTicks == newTotalTicks) return;
+
+            // 既存進捗率を保ったまま、新しい搬送時間へ再計算する
+            // Recalculate against the new transit time while preserving existing progress
+            if (TotalTicks == 0 || TotalTicks == uint.MaxValue)
+            {
+                ResetTicksOnSpeedRecovery(newTotalTicks);
+                return;
+            }
+
+            var elapsedTicks = TotalTicks > RemainingTicks ? TotalTicks - RemainingTicks : 0;
+            TotalTicks = newTotalTicks;
+            RemainingTicks = elapsedTicks >= newTotalTicks ? 0 : newTotalTicks - elapsedTicks;
+        }
+
         public string GetSaveJsonString()
         {
             return JsonConvert.SerializeObject(new VanillaBeltConveyorInventoryItemJsonObject(this));

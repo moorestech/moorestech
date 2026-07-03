@@ -29,6 +29,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 100,
+        "idlePowerRate": 0.25,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
         "inputFluidSlotCount": 0,
@@ -2103,6 +2104,7 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "baseTorque": 0.02,
+          "idlePowerRate": 0.3,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -3697,6 +3699,7 @@
         ],
         "innerTankCapacity": 100,
         "requiredPower": 50,
+        "idlePowerRate": 0.4,
         "fluidInventoryConnectors": {
           "outflowConnects": [
             {

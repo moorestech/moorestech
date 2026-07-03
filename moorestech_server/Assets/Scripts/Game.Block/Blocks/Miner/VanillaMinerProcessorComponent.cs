@@ -26,7 +26,8 @@ namespace Game.Block.Blocks.Miner
     public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IUpdatableBlockComponent
     {
         public bool IsDestroy { get; private set; }
-        public float RequestEnergy { get; }
+        public float RequestEnergy => _baseRequestEnergy * (_currentState == VanillaMinerState.Mining ? 1f : _idlePowerRate);
+        public bool IsMining => _currentState == VanillaMinerState.Mining;
         public IObservable<Unit> OnChangeBlockState => _blockStateChangeSubject;
         private Subject<Unit> _blockStateChangeSubject = new();
         
@@ -36,6 +37,8 @@ namespace Game.Block.Blocks.Miner
         
         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
         private readonly BlockInstanceId _blockInstanceId;
+        private readonly float _baseRequestEnergy;
+        private readonly float _idlePowerRate;
         
         // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
         // Use this flag because you want to keep _currentPower until the next energy supply or update
@@ -48,10 +51,11 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
         {
             _blockInstanceId = blockInstanceId;
-            RequestEnergy = requestPower;
+            _baseRequestEnergy = requestPower;
+            _idlePowerRate = idlePowerRate;
             
             _blockInventoryUpdate = openableInventoryUpdateEvent;
             
@@ -82,8 +86,8 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
-            : this(blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
+        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+            : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
 
@@ -149,11 +153,10 @@ namespace Game.Block.Blocks.Miner
 
             void MinerProgressUpdate()
             {
-                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, RequestEnergy);
-                if (subTicks == 0)
+                // 採掘可能性を先に判定し、進行計算はフル要求電力を基準にする
+                // Check mining feasibility first, then calculate progress against full demand
+                if (_miningItems.Count == 0)
                 {
-                    // 電力の都合で処理を進められないのでreturn
-                    // Cannot proceed due to power constraints
                     _currentState = VanillaMinerState.Idle;
                     return;
                 }
@@ -169,6 +172,13 @@ namespace Game.Block.Blocks.Miner
                 }
 
                 _currentState = VanillaMinerState.Mining;
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, _baseRequestEnergy);
+                if (subTicks == 0)
+                {
+                    // 電力の都合で処理を進められないのでreturn
+                    // Cannot proceed due to power constraints
+                    return;
+                }
 
                 if (subTicks >= _remainingTicks)
                 {

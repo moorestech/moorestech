@@ -273,7 +273,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 foreach (var item in _inventoryItems)
                 {
-                    item?.ResetTicksOnSpeedRecovery(ticks);
+                    item?.UpdateTicksForSpeedChange(ticks);
                 }
             }
         }

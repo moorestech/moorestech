@@ -1,4 +1,5 @@
 using Core.Update;
+using System.Linq;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
 using Game.Block.Interface;
@@ -14,7 +15,7 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly double _timeOfItemEnterToExit;
 
         public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double timeOfItemEnterToExit, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
-            : base(gearConsumption, entityId, blockConnectorComponent)
+            : base(gearConsumption, entityId, blockConnectorComponent, () => beltConveyorComponent.BeltConveyorItems.Any(item => item != null))
         {
             _beltConveyorComponent = beltConveyorComponent;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;

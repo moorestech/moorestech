@@ -17,6 +17,7 @@ namespace Tests.UnitTest.Game
                 (float)baseRpm,
                 (float)minimumRpm,
                 (float)baseTorque,
+                0.2f,
                 (float)torqueExponentUnder,
                 (float)torqueExponentOver);
         }
