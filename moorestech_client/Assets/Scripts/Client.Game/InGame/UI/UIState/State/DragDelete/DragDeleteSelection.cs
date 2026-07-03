@@ -13,29 +13,62 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
         private bool _canceled;
 
-        // 新しいドラッグ開始時に選択とキャンセル状態をリセットする
-        // Reset selection and canceled state when a new drag begins
+        // 最初に選択したブロックの破壊カテゴリーをセッションのカテゴリーとして固定する（未選択時はnull）
+        // Fix the first selected block's destruction category as the session category (null while empty)
+        private string _sessionCategory;
+
+        // 別カテゴリー混在時の拒否理由。IsRemovableのreasonと同様に生文字列で表示する
+        // Deny reason shown when mixing categories; a raw string like IsRemovable's reason
+        public const string DifferentCategoryDenyReason = "別カテゴリーのブロックは同時に選択できません。";
+
+        // 新しいドラッグ開始時に選択・キャンセル状態・セッションカテゴリーをリセットする
+        // Reset selection, canceled state, and session category when a new drag begins
         public void BeginDrag()
         {
             _selectedTargets.Clear();
             _canceled = false;
+            _sessionCategory = null;
         }
 
-        // 削除可能で未選択の対象を追加し、プレビュー表示する
-        // Add a removable, not-yet-selected target and show its preview
-        public void AddTarget(IDeleteTarget target)
+        // 対象を選択へ追加する。削除可否・カテゴリー整合をまとめて判定し、追加不可なら拒否理由を返す
+        // Add a target to the selection; judges removability and category together, returning a deny reason when rejected
+        public bool TryAddTarget(IDeleteTarget target, out string denyReason)
         {
-            if (_canceled) return;
-            if (target == null) return;
-            if (!target.IsRemovable(out _)) return;
+            denyReason = null;
+            if (_canceled) return false;
 
-            // 既に同じ論理対象が選択済みなら何もしない（重複Delete防止）
-            // Skip when the same logical target is already selected (prevents duplicate Delete)
+            // 削除不可なら対象由来の理由をそのまま返す
+            // Rejected as non-removable; surface the target's own reason
+            if (!target.IsRemovable(out denyReason)) return false;
+
+            // セッションカテゴリーと異なるカテゴリーは追加しない（混在防止）
+            // Reject a target whose category differs from the session category (prevents mixing)
+            if (!IsCategoryCompatible(target))
+            {
+                denyReason = DifferentCategoryDenyReason;
+                return false;
+            }
+
+            // 既に同じ論理対象が選択済みなら重複追加しない（拒否理由なしの成功扱い）
+            // Skip when already selected: success without a deny reason (prevents duplicate Delete)
             var key = target.GetDeleteTargetKey();
-            if (_selectedTargets.ContainsKey(key)) return;
+            if (_selectedTargets.ContainsKey(key)) return true;
+
+            // 最初の追加でセッションカテゴリーを固定する
+            // Fix the session category on the first added target
+            _sessionCategory ??= target.GetDestructionCategory();
 
             _selectedTargets.Add(key, target);
             target.SetRemovePreviewing();
+            return true;
+        }
+
+        // このセッションに追加可能なカテゴリーか（未選択時は何でも可、以降は同一カテゴリーのみ）
+        // Whether the target's category can join this session (anything while empty, then same category only)
+        private bool IsCategoryCompatible(IDeleteTarget target)
+        {
+            if (_sessionCategory == null) return true;
+            return _sessionCategory == target.GetDestructionCategory();
         }
 
         // 選択を全てリセットしてキャンセル状態にする（ESC操作）
@@ -46,6 +79,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             _selectedTargets.Clear();
             _canceled = true;
+            _sessionCategory = null;
         }
 
         // 選択対象を全て削除しMaterialを戻して選択を空にする（マウス離し操作）
@@ -63,6 +97,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             }
 
             _selectedTargets.Clear();
+            _sessionCategory = null;
         }
 
         // キャンセルされていない場合のみ削除確定を許可する
