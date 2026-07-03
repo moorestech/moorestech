@@ -9,6 +9,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 using Object = UnityEngine.Object;
@@ -133,7 +134,7 @@ namespace Client.Game.InGame.Context
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();
                 // 電気系ブロックには電力ワイヤー描画プロセッサを付与する
                 // Add the electric wire drawing processor to electric blocks
-                if (IsElectricWireConnectable(blockType)) block.gameObject.AddComponent<ElectricWireStateChangeProcessor>();
+                if (IsElectricWireConnectable(blockMasterElement.BlockParam)) block.gameObject.AddComponent<ElectricWireStateChangeProcessor>();
 
                 // 初期化
                 // Initialize
@@ -153,18 +154,11 @@ namespace Client.Game.InGame.Context
                     BlockTypeConst.GearMiner;
             }
 
-            // 電力ワイヤーコネクターを持つブロックタイプか判定する
-            // Determine whether the block type has an electric wire connector
-            bool IsElectricWireConnectable(string type)
+            // 電力ワイヤーコネクターを持つブロックパラメータか判定する（サーバー共有Resolverに委譲）
+            // Determine whether the block param has an electric wire connector (delegates to the server-shared resolver)
+            bool IsElectricWireConnectable(IBlockParam blockParam)
             {
-                return type is
-                    BlockTypeConst.ElectricPole or
-                    BlockTypeConst.ElectricMachine or
-                    BlockTypeConst.ElectricGenerator or
-                    BlockTypeConst.ElectricMiner or
-                    BlockTypeConst.GearToElectricGenerator or
-                    BlockTypeConst.ElectricToGearGenerator or
-                    BlockTypeConst.ElectricPump;
+                return ElectricWireBlockParamResolver.TryGetWireParam(blockParam, out _, out _);
             }
 
             #endregion
