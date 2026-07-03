@@ -9,10 +9,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// <summary>
     /// 歯車チェーンポール延長プロトコルの送信と、応答で確定した引き継ぎ先ポールの保持。
     /// コールバックは持たず、結果は上位がTryConsumePlacedPoleでループ先頭から取り込む一方向構造。
-    /// 世代カウンタにより、無効化や再選択後に古い応答が結果を上書きするのを防ぐ。
     /// Sends the gear chain pole extend protocol and holds the resolved next-source pole from the response.
     /// No callbacks: the upper layer consumes the result via TryConsumePlacedPole at the top of its loop, keeping the flow one-way.
-    /// A generation counter prevents stale responses from overwriting the result after invalidation or re-selection.
     /// </summary>
     public class GearChainPoleExtendRequestSender
     {
@@ -22,7 +20,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
+        // 応答待ち中に無効化や再送信が起きても、最後の1件以外の古い応答を確実に捨てるための世代トークン。
+        // Sendは自分の世代番号をキャプチャし、応答到着時に現在値と一致した場合のみ結果を反映する。
+        // これがないと「送信→起点選び直し→古い応答が遅れて到着」の順序で、破棄済みの結果が起点を上書きしてしまう。
+        // Generation token that guarantees only the latest response survives invalidation or re-sending while awaiting.
+        // Each Send captures its own generation and applies the result only when it still matches on arrival.
+        // Without this, the order send → re-select source → stale response arrives would overwrite the source with a discarded result.
         private int _generation;
+
         private GearChainPoleConnectAreaCollider _resolvedPole;
 
         public bool IsAwaitingResponse { get; private set; }
