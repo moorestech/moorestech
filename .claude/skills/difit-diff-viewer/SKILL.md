@@ -40,9 +40,8 @@ description: git の差分を difit (GitHub 風のローカル Web ビューア)
 3. **必ずバックグラウンドで起動する**（`run_in_background: true`）。difit は終了しない常駐サーバーなので、フォアグラウンドで叩くとセッションが固まる。
 
    ```
-   npx --yes difit . <base> --include-untracked --no-open --keep-alive --port <PORT>
+   npx --yes difit . <base> --include-untracked
    ```
-   **`--keep-alive` は必須**（下記 Gotchas）。付けないと最初のクライアント切断（curl ヘルスチェック含む）で即落ちする。
 
 4. 数秒待ってから出力ファイルを読み、`difit server started on http://localhost:<port>` の行で実際の URL とポートを確認してユーザーに伝える。ポートは使用中だと自動で繰り上がるため、出力を読むまで確定しない。
 5. difit はブラウザを自動で開く（`--no-open` 指定時を除く）。

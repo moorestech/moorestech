@@ -37,11 +37,5 @@ namespace Client.Game.InGame.UI.UIState.State
         ///     Key identifying the logical delete target, used to dedupe duplicate selection of the same machine/train/rail edge
         /// </summary>
         object GetDeleteTargetKey();
-
-        /// <summary>
-        ///     破壊カテゴリー（同一破壊セッションで混在させないための区別。未設定はdefault）
-        ///     Destruction category used to prevent mixing categories in one destroy session (unset means default)
-        /// </summary>
-        string GetDestructionCategory();
     }
 }

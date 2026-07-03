@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using NUnit.Framework;
 
@@ -16,7 +17,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
 
             Assert.AreEqual(1, target.SetPreviewCount);
         }
@@ -28,8 +29,8 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(target, out _);
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
+            selection.AddTarget(target);
 
             Assert.AreEqual(1, target.SetPreviewCount);
         }
@@ -41,7 +42,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = false };
 
             selection.BeginDrag();
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
             selection.CommitDelete();
 
             Assert.AreEqual(0, target.SetPreviewCount);
@@ -55,7 +56,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
             selection.CancelSelection();
 
             Assert.AreEqual(1, target.ResetCount);
@@ -69,7 +70,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
             selection.CommitDelete();
             // クリア済みなので二度目のCommitは何もしない
             // The selection is cleared, so a second commit deletes nothing more
@@ -86,14 +87,14 @@ namespace Client.Tests.UIState
             var second = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(first, out _);
+            selection.AddTarget(first);
             selection.CancelSelection();
 
             // 再ドラッグでキャンセルフラグが解除され、再び選択・確定できる
             // A fresh drag clears the canceled flag so selecting and committing works again
             selection.BeginDrag();
             Assert.IsTrue(selection.CanCommit());
-            selection.TryAddTarget(second, out _);
+            selection.AddTarget(second);
             selection.CommitDelete();
 
             Assert.AreEqual(1, second.DeleteCount);
@@ -108,7 +109,7 @@ namespace Client.Tests.UIState
 
             selection.BeginDrag();
             selection.CancelSelection();
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
 
             Assert.AreEqual(0, target.SetPreviewCount);
         }
@@ -120,7 +121,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
             selection.CancelSelection();
             selection.CommitDelete();
 
@@ -135,8 +136,8 @@ namespace Client.Tests.UIState
             var second = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(first, out _);
-            selection.TryAddTarget(second, out _);
+            selection.AddTarget(first);
+            selection.AddTarget(second);
             selection.CommitDelete();
 
             Assert.AreEqual(1, first.DeleteCount);
@@ -150,7 +151,7 @@ namespace Client.Tests.UIState
             var target = new FakeDeleteTarget { Removable = true };
 
             selection.BeginDrag();
-            selection.TryAddTarget(target, out _);
+            selection.AddTarget(target);
             selection.CommitDelete();
 
             Assert.AreEqual(1, target.ResetCount);
@@ -167,14 +168,55 @@ namespace Client.Tests.UIState
             var second = new FakeDeleteTarget { Removable = true, Key = sharedKey };
 
             selection.BeginDrag();
-            selection.TryAddTarget(first, out _);
-            selection.TryAddTarget(second, out _);
+            selection.AddTarget(first);
+            selection.AddTarget(second);
             selection.CommitDelete();
 
             Assert.AreEqual(1, first.SetPreviewCount);
             Assert.AreEqual(0, second.SetPreviewCount);
             Assert.AreEqual(1, first.DeleteCount);
             Assert.AreEqual(0, second.DeleteCount);
+        }
+
+        /// <summary>
+        ///     呼び出し回数を記録するIDeleteTargetのテスト用実装
+        ///     Test implementation of IDeleteTarget that records call counts
+        /// </summary>
+        private class FakeDeleteTarget : IDeleteTarget
+        {
+            public int SetPreviewCount;
+            public int ResetCount;
+            public int DeleteCount;
+            public bool Removable;
+            public object Key;
+
+            public void SetRemovePreviewing()
+            {
+                SetPreviewCount++;
+            }
+
+            public void ResetMaterial()
+            {
+                ResetCount++;
+            }
+
+            public bool IsRemovable(out string reason)
+            {
+                reason = null;
+                return Removable;
+            }
+
+            public void Delete()
+            {
+                DeleteCount++;
+            }
+
+            public object GetDeleteTargetKey()
+            {
+                // Key未指定なら自身を一意キーとする（既存テストは個別インスタンス＝個別キー）
+                // Default to self as the unique key when Key is unset (existing tests use per-instance keys)
+                return Key ?? this;
+            }
         }
     }
 }

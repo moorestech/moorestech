@@ -1,4 +1,3 @@
-using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Cysharp.Threading.Tasks;
@@ -55,13 +54,6 @@ namespace Client.Game.InGame.Block
         public object GetDeleteTargetKey()
         {
             return BlockGameObject;
-        }
-
-        // ブロックマスタで定義された破壊カテゴリーを返す（未設定はdefault）
-        // Return the destruction category defined in the block master (unset means default)
-        public string GetDestructionCategory()
-        {
-            return BlockGameObject.BlockMasterElement.GetDestructionCategory();
         }
 
         private async UniTask DeleteAsync()
