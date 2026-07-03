@@ -88,54 +88,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             #endregion
         }
 
-        public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
-        {
-            // 接続対象を取得する
-            // Acquire target chain poles
-            error = string.Empty;
-            if (!TryGetGearChainPole(posA, out var poleA, out var transformerA) || !TryGetGearChainPole(posB, out var poleB, out var transformerB))
-            {
-                error = GearChainPlacementEvaluator.InvalidTargetError;
-                return false;
-            }
-
-            // 相互接続でない場合は失敗
-            // Fail when not connected to each other
-            if (!poleA.ContainsChainConnection(poleB.BlockInstanceId) || !poleB.ContainsChainConnection(poleA.BlockInstanceId))
-            {
-                error = "NotConnected";
-                return false;
-            }
-
-            // 切断し、アイテムを返却
-            // Disconnect and refund items
-            poleA.TryRemoveChainConnection(poleB.BlockInstanceId, out var cost);
-            poleB.TryRemoveChainConnection(poleA.BlockInstanceId, out _);
-            
-            RefundConsumption(cost, playerId);
-            
-            RebuildNetworks(transformerA, transformerB);
-            
-            return true;
-            
-            #region Internal
-            
-            void RefundConsumption(GearChainConnectionCost connectionCost, int player)
-            {
-                // 消費したアイテムをインベントリへ戻す
-                // Return consumed items to inventory
-                var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(player).MainOpenableInventory;
-                
-                var remainder = inventory.InsertItem(connectionCost.ItemId, connectionCost.Count);
-                
-                if (remainder.Count <= 0) return;
-                inventory.InsertItem(remainder);
-            }
-            
-            #endregion
-        }
-
-
         public static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)
         {
             // 指定座標からコンポーネントを解決する

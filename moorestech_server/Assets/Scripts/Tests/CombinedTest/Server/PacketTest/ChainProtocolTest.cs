@@ -59,12 +59,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             var blockAEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockA.BlockPositionInfo);
             var blockBEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockB.BlockPositionInfo);
             Assert.IsTrue(events.Any(e => e.Tag == blockAEventTag || e.Tag == blockBEventTag), "Block state change event should be published");
-
-            // 切断プロトコルを送信する
-            // Send disconnect protocol
-            var disconnectBytes = packet.GetPacketResponse(Disconnect(posA, posB), new PacketResponseContext()).First();
-            var typedDisconnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(disconnectBytes.ToArray());
-            Assert.True(typedDisconnect.IsSuccess);
         }
 
         private byte[] Connect(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId)
@@ -72,13 +66,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 接続要求のメッセージパックを生成する
             // Build connect request message pack
             return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, playerId, itemId));
-        }
-
-        private byte[] Disconnect(Vector3Int posA, Vector3Int posB)
-        {
-            // 切断要求のメッセージパックを生成する
-            // Build disconnect request message pack
-            return MessagePackSerializer.Serialize(GearChainConnectionEditProtocol.GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB, PlayerId));
         }
     }
 }

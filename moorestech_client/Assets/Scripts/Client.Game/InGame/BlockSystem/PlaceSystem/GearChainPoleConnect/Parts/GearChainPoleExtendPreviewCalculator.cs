@@ -57,7 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         /// クライアント側の情報からポールの判定用情報を解決する
         /// Resolve pole judgement info from client-side data
         /// </summary>
-        public static bool TryGetPoleInfo(Vector3Int pos, BlockGameObjectDataStore blockGameObjectDataStore, out GearChainPoleClientInfo info)
+        private static bool TryGetPoleInfo(Vector3Int pos, BlockGameObjectDataStore blockGameObjectDataStore, out GearChainPoleClientInfo info)
         {
             info = default;
 
