@@ -13,6 +13,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -105,8 +106,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.IsFalse(negativeResponse.IsSuccess);
             Assert.IsFalse(overResponse.IsSuccess);
-            Assert.AreEqual("NoPoleItem", negativeResponse.Error);
-            Assert.AreEqual("NoPoleItem", overResponse.Error);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoPoleItem, negativeResponse.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoPoleItem, overResponse.FailureReason);
             Assert.IsFalse(worldBlockDatastore.Exists(newPolePos));
             Assert.AreEqual(1, CountItem(inventory, _poleItemId));
             Assert.AreEqual(10, CountItem(inventory, _wireItemId));

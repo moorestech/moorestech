@@ -18,8 +18,13 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     /// </summary>
     public static class ElectricWireAutoConnectService
     {
-        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<IItemStack> inventoryItems)
+        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, ItemId placingItemId, IReadOnlyList<IItemStack> inventoryItems)
         {
+            // 電線アイテム未設定のマスタでは自動接続なしで設置を許可する
+            // With no wire items configured, allow placement without auto-connect
+            if (MasterHolder.BlockMaster.Blocks.ElectricWireItems.Length == 0)
+                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), ItemMaster.EmptyItemId);
+
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
 
             // 電柱設置か機械/発電機設置かで対象選定ロジックが異なる
@@ -31,11 +36,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), ItemMaster.EmptyItemId);
 
-            // 全ターゲット合計コストを所持数が満たす最初の電線アイテムを選ぶ
+            // 合計コストを所持数が満たす最初の電線を選ぶ
             // Pick the first wire item whose held count covers the summed cost across all targets
             return TrySelectWireItem(out var targets, out var wireItemId)
                 ? ElectricWireAutoConnectPlan.Success(targets, wireItemId)
-                : ElectricWireAutoConnectPlan.Failure(ElectricWirePlacementEvaluator.NoWireItemError);
+                : ElectricWireAutoConnectPlan.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             #region Internal
 
@@ -49,7 +54,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, pos, dir, ownMaxWireLength);
             }
 
-            // 全ターゲット距離を満たす電線アイテムをマスタ設定順に探す
+            // 距離を満たす電線をマスタ設定順に探す
             // Search wire item configs in master order for one covering all target distances
             bool TrySelectWireItem(out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out ItemId selectedWireItemId)
             {
@@ -57,7 +62,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 {
                     var candidateItemId = MasterHolder.ItemMaster.GetItemId(electricWireItem.ItemGuid);
                     if (!TryBuildTargets(candidateItemId, out var builtTargets, out var totalRequired)) continue;
-                    if (!HasEnoughItem(candidateItemId, totalRequired)) continue;
+
+                    // 設置ブロックと電線が同一アイテムなら設置分の1個を上乗せして判定する
+                    // Require one extra when the placed block shares the wire item
+                    var requiredTotal = totalRequired + (candidateItemId == placingItemId ? 1 : 0);
+                    if (!HasEnoughItem(candidateItemId, requiredTotal)) continue;
 
                     selectedTargets = builtTargets;
                     selectedWireItemId = candidateItemId;
@@ -125,28 +134,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 consumedWireCount += target.Cost.Count;
             }
 
-            ConsumeWireItems(plan.WireItemId, consumedWireCount);
+            ElectricWireSystemUtil.ConsumeItem(inventory, plan.WireItemId, consumedWireCount);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
-
-            #region Internal
-
-            // 消費した電線アイテムをインベントリのスロットから順に減算する
-            // Decrease consumed wire items across inventory slots in order
-            void ConsumeWireItems(ItemId wireItemId, int amount)
-            {
-                var remaining = amount;
-                for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
-                {
-                    var itemStack = inventory.InventoryItems[i];
-                    if (itemStack.Id != wireItemId) continue;
-
-                    var consumeAmount = Math.Min(itemStack.Count, remaining);
-                    inventory.SetItem(i, itemStack.SubItem(consumeAmount));
-                    remaining -= consumeAmount;
-                }
-            }
-
-            #endregion
         }
     }
 }

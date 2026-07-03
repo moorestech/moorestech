@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Server
                 15f, 10f, 12f, false, false, _wireItemId, inventory, ItemMaster.EmptyItemId);
 
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(ElectricWirePlacementEvaluator.TooFarError, judgement.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.TooFar, judgement.FailureReason);
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Server
                 5f, 10f, 12f, true, false, _wireItemId, inventory, ItemMaster.EmptyItemId);
 
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(ElectricWirePlacementEvaluator.AlreadyConnectedError, judgement.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.AlreadyConnected, judgement.FailureReason);
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace Tests.UnitTest.Server
                 5f, 10f, 12f, false, true, _wireItemId, inventory, ItemMaster.EmptyItemId);
 
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(ElectricWirePlacementEvaluator.ConnectionLimitError, judgement.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.ConnectionLimit, judgement.FailureReason);
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace Tests.UnitTest.Server
                 5f, 10f, 12f, false, false, _wireItemId, inventory, ItemMaster.EmptyItemId);
 
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(ElectricWirePlacementEvaluator.NoWireItemError, judgement.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, judgement.FailureReason);
         }
 
         [Test]
@@ -87,7 +87,7 @@ namespace Tests.UnitTest.Server
                 5f, 10f, 12f, false, false, _wireItemId, inventory, ForUnitTestItemId.ItemId1);
 
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(ElectricWirePlacementEvaluator.NoPoleItemError, judgement.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoPoleItem, judgement.FailureReason);
         }
 
         [Test]
@@ -101,7 +101,7 @@ namespace Tests.UnitTest.Server
                 5.5f, 10f, 12f, false, false, _wireItemId, inventory, ItemMaster.EmptyItemId);
 
             Assert.True(judgement.IsPlaceable);
-            Assert.AreEqual(string.Empty, judgement.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.None, judgement.FailureReason);
             Assert.AreEqual(_wireItemId, judgement.WireCost.ItemId);
             Assert.AreEqual(6, judgement.WireCost.Count);
         }
@@ -117,7 +117,7 @@ namespace Tests.UnitTest.Server
                 5f, 10f, 12f, false, false, _wireItemId, inventory, _wireItemId);
 
             Assert.False(judgement.IsPlaceable);
-            Assert.AreEqual(ElectricWirePlacementEvaluator.NoWireItemError, judgement.FailureReason);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, judgement.FailureReason);
         }
 
         [Test]

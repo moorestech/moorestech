@@ -13,6 +13,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -65,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Run extend with origin (origin distance 4 + machine distance 2 = 6 wires)
             var response = SendExtend(fromPos, newPolePos);
 
-            Assert.IsTrue(response.IsSuccess, response.Error);
+            Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
             Assert.IsTrue(worldBlockDatastore.Exists(newPolePos));
 
             var newPole = worldBlockDatastore.GetBlock(newPolePos);
@@ -85,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 起点なし孤立設置は電線消費なしで電柱のみ設置する()
         {
-            // 周囲に何も無い空きスペースへ起点なしで電柱を設置する
+            // 空きスペースへ起点なしで電柱を設置する
             // Place a pole without origin in empty space with nothing nearby
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var newPolePos = new Vector3Int(50, 0, 50);
@@ -93,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var response = SendIsolatedPlace(newPolePos);
 
-            Assert.IsTrue(response.IsSuccess, response.Error);
+            Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
             Assert.IsTrue(worldBlockDatastore.Exists(newPolePos));
             Assert.AreEqual(0, CountItem(inventory, _poleItemId));
 
@@ -114,7 +115,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var inventory = SetupInventory(poleCount: 1, wireCount: 10);
             var response = SendIsolatedPlace(newPolePos);
 
-            Assert.IsTrue(response.IsSuccess, response.Error);
+            Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
 
             // 最寄り電柱1本へ自動接続され、距離3の電線が消費される
             // Auto-connects to the nearest pole and consumes 3 wires for distance 3
@@ -123,6 +124,34 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(newConnector.ContainsWireConnection(existingConnector.BlockInstanceId));
             Assert.IsTrue(existingConnector.ContainsWireConnection(newConnector.BlockInstanceId));
             Assert.AreEqual(7, CountItem(inventory, _wireItemId));
+            Assert.AreEqual(0, CountItem(inventory, _poleItemId));
+        }
+
+        [Test]
+        public void 未接続機械を起点にした延長で二重接続や電線二重消費が起きない()
+        {
+            // 新電柱の機械範囲内にいる未接続機械そのものを起点にする（起点が機械収集で再収集される回帰ケース）
+            // Use an unconnected machine inside the new pole's machine range as the origin (regression: origin re-collected as machine)
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var machinePos = Vector3Int.zero;
+            var newPolePos = new Vector3Int(2, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+
+            // 電線を必要数ちょうど（距離2＝2本）にし、二重計上なら検証で弾かれ失敗する
+            // Hold exactly the needed wires (distance 2 = 2); double counting would fail the validation
+            var inventory = SetupInventory(poleCount: 1, wireCount: 2);
+            var response = SendExtend(machinePos, newPolePos);
+
+            Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
+
+            // 起点との接続が1本だけ残り、電線2本のみ消費される
+            // Exactly one edge to the origin remains and only 2 wires are consumed
+            var newConnector = worldBlockDatastore.GetBlock(newPolePos).GetComponent<IElectricWireConnector>();
+            var machineConnector = machine.GetComponent<IElectricWireConnector>();
+            Assert.AreEqual(1, newConnector.WireConnections.Count);
+            Assert.IsTrue(newConnector.ContainsWireConnection(machineConnector.BlockInstanceId));
+            Assert.IsTrue(machineConnector.ContainsWireConnection(newConnector.BlockInstanceId));
+            Assert.AreEqual(0, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, CountItem(inventory, _poleItemId));
         }
 

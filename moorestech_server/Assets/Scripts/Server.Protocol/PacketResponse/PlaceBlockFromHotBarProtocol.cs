@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse
             var plan = default(ElectricWireAutoConnectPlan);
             if (isElectric)
             {
-                plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, placeInfo.Position, placeInfo.Direction, inventoryData.MainOpenableInventory.InventoryItems);
+                plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, placeInfo.Position, placeInfo.Direction, item.Id, inventoryData.MainOpenableInventory.InventoryItems);
                 if (!plan.IsPlaceable) return;
             }
 

@@ -75,13 +75,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             var end = toBlockPos + BlockCenterOffset;
 
             _gameObject.SetActive(true);
-            UpdateCostLabel(start, end, placeable, wireCostCount);
+            UpdateCostLabel();
 
             // 変化が無ければメッシュは再構築しない
             // Skip mesh rebuild when nothing changed
             if (_hasCache && _cachedStart == start && _cachedEnd == end && _cachedPlaceable == placeable) return;
 
-            // カテナリーメッシュを再生成し、可否に応じて色を設定する
+            // メッシュ再生成し可否色を設定
             // Rebuild the catenary mesh and set color by placeability
             var sag = Vector3.Distance(start, end) * SagRatio;
             var newMesh = CatenaryWireMeshBuilder.Build(start, end, sag, new List<(Vector3, Vector3, float)>());
@@ -97,25 +97,29 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _cachedEnd = end;
             _cachedPlaceable = placeable;
             _hasCache = true;
-        }
 
-        // 消費電線数ラベルをワイヤー中点に置き、カメラへ向けて可否色と同期させる
-        // Place the wire cost label at the wire midpoint, billboard it to the camera and sync its color
-        private void UpdateCostLabel(Vector3 start, Vector3 end, bool placeable, int wireCostCount)
-        {
-            if (wireCostCount <= 0)
+            #region Internal
+
+            // 消費電線数ラベルをワイヤー中点に置き、カメラへ向けて可否色と同期させる
+            // Place the wire cost label at the wire midpoint, billboard it to the camera and sync its color
+            void UpdateCostLabel()
             {
-                _costLabel.gameObject.SetActive(false);
-                return;
+                if (wireCostCount <= 0)
+                {
+                    _costLabel.gameObject.SetActive(false);
+                    return;
+                }
+
+                _costLabel.gameObject.SetActive(true);
+                _costLabel.text = $"電線 x{wireCostCount}";
+                _costLabel.color = placeable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
+
+                var labelTransform = _costLabel.transform;
+                labelTransform.position = (start + end) * 0.5f + CostLabelOffset;
+                labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
             }
 
-            _costLabel.gameObject.SetActive(true);
-            _costLabel.text = $"電線 x{wireCostCount}";
-            _costLabel.color = placeable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
-
-            var labelTransform = _costLabel.transform;
-            labelTransform.position = (start + end) * 0.5f + CostLabelOffset;
-            labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
+            #endregion
         }
     }
 }

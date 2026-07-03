@@ -20,7 +20,7 @@ using static Tests.Module.TestMod.ForUnitTestModBlockId;
 
 namespace Tests.CombinedTest.Game
 {
-    // ワイヤー接続のセーブ/ロード復元と、ブロック撤去時の切断・返却挙動を検証する
+    // ワイヤーのセーブ復元と撤去時の切断・返却を検証
     // Verify wire connections survive save/load and disconnect/refund correctly when a block is removed
     public class ElectricWireSaveLoadTest
     {
@@ -48,8 +48,8 @@ namespace Tests.CombinedTest.Game
             var inventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(wireItemId, 10));
 
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, PlayerId, wireItemId, out var errorA), errorA);
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posGenerator, posMachine, PlayerId, wireItemId, out var errorB), errorB);
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, PlayerId, wireItemId, out var errorA), errorA.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posGenerator, posMachine, PlayerId, wireItemId, out var errorB), errorB.ToString());
 
             var networkDatastore = saveServiceProvider.GetService<IElectricWireNetworkDatastore>();
             Assert.AreEqual(1, networkDatastore.SegmentCount);
@@ -95,11 +95,11 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(savedCost.ItemId, loadedCost.ItemId);
             Assert.AreEqual(savedCost.Count, loadedCost.Count);
 
-            // 復元後に切断すると、セーブ前と同一のコストが電線として返却されること
+            // 復元後の切断でセーブ前と同じコストが返却される
             // Disconnecting after restore refunds the same wire cost as before the save
             var loadedInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var beforeDisconnectCount = CountItem(loadedInventory, wireItemId);
-            Assert.IsTrue(ElectricWireSystemUtil.TryDisconnect(posPole, posGenerator, PlayerId, out var disconnectError), disconnectError);
+            Assert.IsTrue(ElectricWireSystemUtil.TryDisconnect(posPole, posGenerator, PlayerId, out var disconnectError), disconnectError.ToString());
             var afterDisconnectCount = CountItem(loadedInventory, wireItemId);
             Assert.AreEqual(savedCost.Count, afterDisconnectCount - beforeDisconnectCount);
         }
@@ -125,8 +125,8 @@ namespace Tests.CombinedTest.Game
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(wireItemId, 10));
 
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, wireItemId, out var errorA), errorA);
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posB, posC, PlayerId, wireItemId, out var errorB), errorB);
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, wireItemId, out var errorA), errorA.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posB, posC, PlayerId, wireItemId, out var errorB), errorB.ToString());
 
             var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
             Assert.AreEqual(1, networkDatastore.SegmentCount);

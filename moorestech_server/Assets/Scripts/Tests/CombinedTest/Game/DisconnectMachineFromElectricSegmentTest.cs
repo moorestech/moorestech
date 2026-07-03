@@ -17,7 +17,7 @@ namespace Tests.CombinedTest.Game
     /// </summary>
     public class DisconnectMachineFromElectricSegmentTest
     {
-        // 電柱に接続された2つの発電機を順に削除し、セグメントに残る発電機が正しく減ることを確認する
+        // 2つの発電機を順に削除し残る発電機が減るか確認
         // Remove two generators wired to a pole one by one and confirm the surviving generators shrink correctly
         [Test]
         public void RemoveGeneratorDetachesFromSegment()
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(0, segment.Generators.Count);
         }
 
-        // 電柱に接続された2つの機械を順に削除し、セグメントに残る消費者が正しく減ることを確認する
+        // 2つの機械を順に削除し残る消費者が減るか確認
         // Remove two machines wired to a pole one by one and confirm the surviving consumers shrink correctly
         [Test]
         public void RemoveMachineDetachesFromSegment()

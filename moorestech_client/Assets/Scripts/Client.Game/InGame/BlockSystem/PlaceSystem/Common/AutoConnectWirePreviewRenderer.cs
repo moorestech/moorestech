@@ -29,12 +29,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             _mainCamera = mainCamera;
 
-            // ワイヤー線とラベルをまとめる親GameObjectを構築する
+            // 線とラベルの親を構築
             // Build a parent GameObject grouping wire lines and the label
             var rootObject = new GameObject("AutoConnectWirePreview");
             _root = rootObject.transform;
 
-            // 合計消費電線数のワールド空間ラベルを子として生成する
+            // 合計コストのラベルを子生成
             // Create a world-space total wire cost label as a child
             var labelObject = new GameObject("AutoConnectWireCostLabel");
             labelObject.transform.SetParent(_root, false);
@@ -131,7 +131,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 _meshFilter = _gameObject.AddComponent<MeshFilter>();
                 var renderer = _gameObject.AddComponent<MeshRenderer>();
 
-                // 共通プレビュー材質を複製し、半透明の接続可能色で固定する
+                // 材質を複製し半透明接続色で固定
                 // Clone the shared preview material and fix it to the semi-transparent placeable color
                 var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
                 var color = WithAlpha(MaterialConst.PlaceableColor);

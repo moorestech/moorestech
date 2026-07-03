@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Server
             var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, _wireItemId, out var error);
 
             Assert.IsFalse(connected);
-            Assert.AreEqual("TooFar", error);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.TooFar, error);
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace Tests.UnitTest.Server
             var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, _wireItemId, out var error);
 
             Assert.IsFalse(connected);
-            Assert.AreEqual("NoWireItem", error);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, error);
             Assert.AreEqual(2, CountItem(inventory, _wireItemId));
             Assert.IsFalse(connectorA.ContainsWireConnection(connectorB.BlockInstanceId));
         }
@@ -82,7 +82,7 @@ namespace Tests.UnitTest.Server
             var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, _wireItemId, out var error);
 
             Assert.IsTrue(connected);
-            Assert.IsEmpty(error ?? string.Empty);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.None, error);
             Assert.IsTrue(connectorA.ContainsWireConnection(connectorB.BlockInstanceId));
             Assert.IsTrue(connectorB.ContainsWireConnection(connectorA.BlockInstanceId));
             Assert.AreEqual(2, CountItem(inventory, _wireItemId));
@@ -102,7 +102,7 @@ namespace Tests.UnitTest.Server
             var disconnected = ElectricWireSystemUtil.TryDisconnect(posA, posB, PlayerId, out var error);
 
             Assert.IsTrue(disconnected);
-            Assert.IsEmpty(error ?? string.Empty);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.None, error);
             Assert.IsFalse(connectorA.ContainsWireConnection(connectorB.BlockInstanceId));
             Assert.IsFalse(connectorB.ContainsWireConnection(connectorA.BlockInstanceId));
             Assert.AreEqual(5, CountItem(inventory, _wireItemId));
@@ -120,7 +120,7 @@ namespace Tests.UnitTest.Server
             var disconnected = ElectricWireSystemUtil.TryDisconnect(posA, posB, PlayerId, out var error);
 
             Assert.IsFalse(disconnected);
-            Assert.AreEqual("NotConnected", error);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NotConnected, error);
         }
 
         #region TestUtil

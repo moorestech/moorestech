@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using Core.Inventory;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -11,23 +14,23 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     public static class ElectricWireSystemUtil
     {
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, ItemId wireItemId, out string error)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, ItemId wireItemId, out ElectricWirePlacementFailureReason failureReason)
         {
             // 接続対象を取得する
             // Acquire target wire connectors
-            error = string.Empty;
+            failureReason = ElectricWirePlacementFailureReason.None;
             var foundA = TryGetWireConnector(posA, out var connectorA);
             var foundB = TryGetWireConnector(posB, out var connectorB);
 
             if (!foundA || !foundB)
             {
-                error = ElectricWirePlacementEvaluator.InvalidTargetError;
+                failureReason = ElectricWirePlacementFailureReason.InvalidTarget;
                 return false;
             }
 
             if (connectorA.BlockInstanceId == connectorB.BlockInstanceId)
             {
-                error = ElectricWirePlacementEvaluator.InvalidTargetError;
+                failureReason = ElectricWirePlacementFailureReason.InvalidTarget;
                 return false;
             }
 
@@ -44,7 +47,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
             if (!judgement.IsPlaceable)
             {
-                error = judgement.FailureReason;
+                failureReason = judgement.FailureReason;
                 return false;
             }
 
@@ -56,47 +59,51 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             {
                 connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out _);
                 connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
-                error = ElectricWirePlacementEvaluator.ConnectionLimitError;
+                failureReason = ElectricWirePlacementFailureReason.ConnectionLimit;
                 return false;
             }
 
-            Consume(judgement.WireCost);
+            ConsumeItem(inventory, wireItemId, judgement.WireCost.Count);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
 
             return true;
-
-            #region Internal
-
-            void Consume(ElectricWireConnectionCost consumedCost)
-            {
-                var remaining = consumedCost.Count;
-
-                // スロットを順に減算する
-                // Decrease stacks across slots
-                for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
-                {
-                    var itemStack = inventory.InventoryItems[i];
-                    if (itemStack.Id != wireItemId) continue;
-
-                    var consumeAmount = Math.Min(itemStack.Count, remaining);
-                    var updated = itemStack.SubItem(consumeAmount);
-                    inventory.SetItem(i, updated);
-
-                    remaining -= consumeAmount;
-                }
-            }
-
-            #endregion
         }
 
-        public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out string error)
+        // 指定アイテムをインベントリのスロット順に減算する
+        // Decrease the given item across inventory slots in order
+        public static void ConsumeItem(IOpenableInventory inventory, ItemId itemId, int amount)
+        {
+            var remaining = amount;
+            for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
+            {
+                var itemStack = inventory.InventoryItems[i];
+                if (itemStack.Id != itemId) continue;
+
+                var consumeAmount = Math.Min(itemStack.Count, remaining);
+                inventory.SetItem(i, itemStack.SubItem(consumeAmount));
+                remaining -= consumeAmount;
+            }
+        }
+
+        // 指定アイテムの所持合計を数える
+        // Count the total held amount of the given item
+        public static int CountItem(IOpenableInventory inventory, ItemId itemId)
+        {
+            var total = 0;
+            foreach (var itemStack in inventory.InventoryItems)
+                if (itemStack.Id == itemId)
+                    total += itemStack.Count;
+            return total;
+        }
+
+        public static bool TryDisconnect(Vector3Int posA, Vector3Int posB, int playerId, out ElectricWirePlacementFailureReason failureReason)
         {
             // 接続対象を取得する
             // Acquire target wire connectors
-            error = string.Empty;
+            failureReason = ElectricWirePlacementFailureReason.None;
             if (!TryGetWireConnector(posA, out var connectorA) || !TryGetWireConnector(posB, out var connectorB))
             {
-                error = ElectricWirePlacementEvaluator.InvalidTargetError;
+                failureReason = ElectricWirePlacementFailureReason.InvalidTarget;
                 return false;
             }
 
@@ -104,48 +111,43 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // Fail when not connected to each other
             if (!connectorA.ContainsWireConnection(connectorB.BlockInstanceId) || !connectorB.ContainsWireConnection(connectorA.BlockInstanceId))
             {
-                error = "NotConnected";
+                failureReason = ElectricWirePlacementFailureReason.NotConnected;
+                return false;
+            }
+
+            // 返却アイテムが入らない場合は切断させない（返却消滅の防止）
+            // Reject the disconnect when the refund cannot fit, preventing item loss
+            var cost = connectorA.WireConnections[connectorB.BlockInstanceId].Cost;
+            var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+            var hasRefund = 0 < cost.Count && cost.ItemId != ItemMaster.EmptyItemId;
+            var refundStack = hasRefund ? ServerContext.ItemStackFactory.Create(cost.ItemId, cost.Count) : null;
+            if (hasRefund && !inventory.InsertionCheck(new List<IItemStack> { refundStack }))
+            {
+                failureReason = ElectricWirePlacementFailureReason.InventoryFull;
                 return false;
             }
 
             // 切断し、アイテムを返却する
             // Disconnect and refund items
-            connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out var cost);
+            connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out _);
             connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
-
-            RefundConsumption(cost, playerId);
+            if (hasRefund) inventory.InsertItem(refundStack);
 
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
 
             return true;
-
-            #region Internal
-
-            void RefundConsumption(ElectricWireConnectionCost connectionCost, int player)
-            {
-                // 消費したアイテムをインベントリへ戻す
-                // Return consumed items to inventory
-                var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(player).MainOpenableInventory;
-
-                var remainder = inventory.InsertItem(connectionCost.ItemId, connectionCost.Count);
-
-                if (remainder.Count <= 0) return;
-                inventory.InsertItem(remainder);
-            }
-
-            #endregion
         }
 
-        // 両側にワイヤーを張り、片側でも失敗したらロールバックする。成功時のみtrueを返す
-        // Wire both connectors, rolling back if either side fails; returns true only on success
+        // 両側にワイヤーを張り、片側が失敗したら自分が追加したエッジだけ戻す。成功時のみtrueを返す
+        // Wire both connectors; on failure roll back only the edge this call added. Returns true only on success
         public static bool TryConnectBothSides(IElectricWireConnector self, IElectricWireConnector target, ElectricWireConnectionCost cost)
         {
-            var addedSelf = self.TryAddWireConnection(target.BlockInstanceId, cost);
-            var addedTarget = addedSelf && target.TryAddWireConnection(self.BlockInstanceId, cost);
-            if (addedSelf && addedTarget) return true;
+            // 自分側が張れない（既接続・上限）なら既存エッジに触れず失敗させる
+            // When the self side cannot add (already connected / full), fail without touching existing edges
+            if (!self.TryAddWireConnection(target.BlockInstanceId, cost)) return false;
+            if (target.TryAddWireConnection(self.BlockInstanceId, cost)) return true;
 
             self.TryRemoveWireConnection(target.BlockInstanceId, out _);
-            target.TryRemoveWireConnection(self.BlockInstanceId, out _);
             return false;
         }
 

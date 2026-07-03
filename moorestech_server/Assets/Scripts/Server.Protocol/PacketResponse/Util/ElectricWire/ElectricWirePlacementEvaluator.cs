@@ -14,14 +14,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     /// </summary>
     public static class ElectricWirePlacementEvaluator
     {
-        public const string TooFarError = "TooFar";
-        public const string AlreadyConnectedError = "AlreadyConnected";
-        public const string ConnectionLimitError = "ConnectionLimit";
-        public const string NoWireItemError = "NoWireItem";
-        public const string NoPoleItemError = "NoPoleItem";
-        public const string InvalidTargetError = "InvalidTarget";
-        public const string PositionOccupiedError = "PositionOccupied";
-
         public static ElectricWirePlacementJudgement EvaluateWireConnection(
             float distance,
             float fromMaxWireLength,
@@ -35,9 +27,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // 距離・既存接続・接続数上限を先に確認する
             // Check distance, existing connection and capacity first
             var maxDistance = Mathf.Min(fromMaxWireLength, toMaxWireLength);
-            if (maxDistance < distance) return ElectricWirePlacementJudgement.Failure(TooFarError);
-            if (alreadyConnected) return ElectricWirePlacementJudgement.Failure(AlreadyConnectedError);
-            if (anyConnectionFull) return ElectricWirePlacementJudgement.Failure(ConnectionLimitError);
+            if (maxDistance < distance) return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.TooFar);
+            if (alreadyConnected) return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.AlreadyConnected);
+            if (anyConnectionFull) return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
 
             // インベントリを一度だけ列挙して使い回す
             // Materialize inventory once for reuse across the following checks
@@ -46,18 +38,18 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // ポールアイテムが指定されている場合は所持を確認する
             // When a pole item is specified, ensure at least one is held
             if (poleItemId != ItemMaster.EmptyItemId && !HasEnoughItem(items, poleItemId, 1))
-                return ElectricWirePlacementJudgement.Failure(NoPoleItemError);
+                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoPoleItem);
 
             // ワイヤーコストと所持数を確認
             // Calculate the wire cost and verify inventory covers it
             // 同一アイテムなら1個上乗せで判定
             // Require one extra when the pole shares the wire item
             if (!TryCalculateWireCost(wireItemId, distance, out var cost))
-                return ElectricWirePlacementJudgement.Failure(NoWireItemError);
+                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             var requiredWireCount = cost.Count + (poleItemId != ItemMaster.EmptyItemId && poleItemId == cost.ItemId ? 1 : 0);
             if (!HasEnoughItem(items, cost.ItemId, requiredWireCount))
-                return ElectricWirePlacementJudgement.Failure(NoWireItemError);
+                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             return ElectricWirePlacementJudgement.Success(cost);
         }

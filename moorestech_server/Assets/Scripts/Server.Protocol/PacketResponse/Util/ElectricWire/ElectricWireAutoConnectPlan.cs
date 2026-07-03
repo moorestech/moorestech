@@ -14,10 +14,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     {
         public readonly IReadOnlyList<(BlockInstanceId TargetId, ElectricWireConnectionCost Cost)> Targets;
         public readonly ItemId WireItemId;
-        public readonly string FailureReason;
+        public readonly ElectricWirePlacementFailureReason FailureReason;
         public readonly bool IsPlaceable;
 
-        private ElectricWireAutoConnectPlan(IReadOnlyList<(BlockInstanceId, ElectricWireConnectionCost)> targets, ItemId wireItemId, string failureReason, bool isPlaceable)
+        private ElectricWireAutoConnectPlan(IReadOnlyList<(BlockInstanceId, ElectricWireConnectionCost)> targets, ItemId wireItemId, ElectricWirePlacementFailureReason failureReason, bool isPlaceable)
         {
             Targets = targets;
             WireItemId = wireItemId;
@@ -29,10 +29,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
         // Zero targets is still a successful plan; no wire is required
         public static ElectricWireAutoConnectPlan Success(IReadOnlyList<(BlockInstanceId, ElectricWireConnectionCost)> targets, ItemId wireItemId)
         {
-            return new ElectricWireAutoConnectPlan(targets, wireItemId, string.Empty, true);
+            return new ElectricWireAutoConnectPlan(targets, wireItemId, ElectricWirePlacementFailureReason.None, true);
         }
 
-        public static ElectricWireAutoConnectPlan Failure(string failureReason)
+        public static ElectricWireAutoConnectPlan Failure(ElectricWirePlacementFailureReason failureReason)
         {
             return new ElectricWireAutoConnectPlan(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), ItemMaster.EmptyItemId, failureReason, false);
         }

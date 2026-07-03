@@ -41,6 +41,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
+            // 延長応答で設置された電柱をポーリング取り込みし、現世代のみ起点へ反映する
+            // Poll the pole placed by an extend response and adopt it as origin only within the current epoch
+            if (ElectricWireExtendRequestSender.TryConsumePlacedPole(_toolEpoch, out var placedPole)) _sourceBlock = placedPole;
+
             // 起点未選択なら選択・切断、選択済みなら接続・延長を処理する
             // No origin: select or disconnect; with origin: connect or extend
             if (_sourceBlock == null)
@@ -49,13 +53,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
                 return;
             }
 
-            // 世代を捕捉した設定関数を渡し、ツール切替後の応答が状態を書き換えないようにする
-            // Pass an epoch-capturing setter so responses after a tool switch cannot mutate state
-            var epoch = _toolEpoch;
-            _extendMode.Update(context, _sourceBlock, newSource =>
-            {
-                if (epoch == _toolEpoch) _sourceBlock = newSource;
-            });
+            // 延長送信が発生したら起点をクリアし、応答はポーリングで取り込む
+            // Clear the origin when an extend request was sent; the response is adopted via polling
+            var extendRequested = _extendMode.Update(context, _sourceBlock, _toolEpoch);
+            if (extendRequested) _sourceBlock = null;
         }
 
         public void Disable()

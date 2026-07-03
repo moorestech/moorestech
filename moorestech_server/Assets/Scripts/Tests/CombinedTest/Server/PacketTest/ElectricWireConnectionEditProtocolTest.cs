@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -91,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var response = SendDisconnect(posA, posB);
 
             Assert.IsFalse(response.IsSuccess);
-            Assert.AreEqual("NotConnected", response.Error);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NotConnected, response.FailureReason);
         }
 
         [Test]
@@ -106,7 +107,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var response = SendConnect(posA, posB);
 
             Assert.IsFalse(response.IsSuccess);
-            Assert.AreEqual("NoWireItem", response.Error);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, response.FailureReason);
             Assert.IsFalse(connectorA.ContainsWireConnection(connectorB.BlockInstanceId));
         }
 

@@ -30,7 +30,7 @@ namespace Server.Protocol.PacketResponse
 
             return result.IsSuccess
                 ? ElectricWireExtendResponse.CreateSuccess(result.PlacedPolePos, result.PlacedBlockInstanceId)
-                : ElectricWireExtendResponse.CreateFailure(result.Error);
+                : ElectricWireExtendResponse.CreateFailure(result.FailureReason);
         }
 
         [MessagePackObject]
@@ -81,7 +81,7 @@ namespace Server.Protocol.PacketResponse
         public class ElectricWireExtendResponse : ProtocolMessagePackBase
         {
             [Key(2)] public bool IsSuccess { get; set; }
-            [Key(3)] public string Error { get; set; }
+            [Key(3)] public ElectricWirePlacementFailureReason FailureReason { get; set; }
             [Key(4)] public Vector3IntMessagePack PlacedPolePos { get; set; }
             [Key(5)] public int PlacedBlockInstanceId { get; set; }
 
@@ -94,19 +94,19 @@ namespace Server.Protocol.PacketResponse
                 {
                     Tag = ElectricWireExtendProtocol.Tag,
                     IsSuccess = true,
-                    Error = string.Empty,
+                    FailureReason = ElectricWirePlacementFailureReason.None,
                     PlacedPolePos = new Vector3IntMessagePack(placedPolePos),
                     PlacedBlockInstanceId = placedBlockInstanceId,
                 };
             }
 
-            public static ElectricWireExtendResponse CreateFailure(string error)
+            public static ElectricWireExtendResponse CreateFailure(ElectricWirePlacementFailureReason failureReason)
             {
                 return new ElectricWireExtendResponse
                 {
                     Tag = ElectricWireExtendProtocol.Tag,
                     IsSuccess = false,
-                    Error = error ?? string.Empty,
+                    FailureReason = failureReason,
                     PlacedPolePos = new Vector3IntMessagePack(Vector3Int.zero),
                     PlacedBlockInstanceId = 0,
                 };

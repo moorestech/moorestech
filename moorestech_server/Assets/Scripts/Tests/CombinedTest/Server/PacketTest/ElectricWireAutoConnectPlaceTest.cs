@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 電線不足時は設置自体が失敗し状態が変化しない()
         {
-            // 電柱の近くに機械を置こうとするが、電線を1つも持っていない
+            // 電柱の近くに機械を置くが電線を1つも持たない
             // Attempt to place a machine near a pole while holding zero wire items
             var (packet, serviceProvider) = CreateServer();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -132,7 +132,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private static IOpenableInventory SetupInventory(ServiceProvider serviceProvider, Guid hotBarItemGuid, int hotBarItemCount, int wireCount)
         {
-            // ホットバーに設置対象ブロックを、別スロットに電線をセットする
+            // ホットバーに設置ブロック、別スロットに電線を置く
             // Put the block item on the hot bar and wire items into another slot
             var itemStackFactory = ServerContext.ItemStackFactory;
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
