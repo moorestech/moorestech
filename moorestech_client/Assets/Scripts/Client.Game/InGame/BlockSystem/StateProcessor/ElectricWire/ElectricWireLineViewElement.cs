@@ -71,8 +71,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         {
             foreach (var segment in colliderSegments)
             {
+                // 専用レイヤに置き、既存のブロック操作レイキャストへの干渉を防ぐ
+                // Place on the dedicated layer to avoid interfering with existing block-operation raycasts
                 var colliderObject = new GameObject("WireCollider");
-                colliderObject.layer = LayerConst.BlockLayer;
+                colliderObject.layer = LayerConst.ElectricWireLayer;
 
                 var colliderTransform = colliderObject.transform;
                 colliderTransform.SetParent(transform, false);
