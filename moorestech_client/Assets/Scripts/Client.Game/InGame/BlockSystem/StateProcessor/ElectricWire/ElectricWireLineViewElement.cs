@@ -63,7 +63,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         // Attempt to resolve both endpoints and build the mesh; returns false if the partner is not yet created
         private bool TryBuildLine()
         {
-            // 両端ブロックの座標をBlockGameObjectDataStoreから解決する
+            // 両端ブロックの座標を解決する
             // Resolve endpoint positions from the BlockGameObjectDataStore
             if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(FromId, out var fromBlock)) return false;
             if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(ToId, out var toBlock)) return false;

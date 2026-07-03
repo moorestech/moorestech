@@ -25,7 +25,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            // RequireComponentで保証されるライン表示コンポーネントを取得する
+            // ライン表示コンポーネントを取得
             // Get the line view component guaranteed by RequireComponent
             _wireLineView = GetComponent<ElectricWireLineView>();
             _wireLineView.Initialize(blockGameObject);

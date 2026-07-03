@@ -75,7 +75,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             var maxRange = ServerContext.GetService<MaxElectricPoleMachineConnectionRange>();
             var machinePositionInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
 
-            // 自身のmachineConnectionRangeに収まる接続可能な最寄り電柱1本のみを対象にする
+            // 接続可能な最寄り電柱1本を対象にする
             // Only the nearest connectable pole whose machine range covers this position
             var nearestPole = ElectricConnectionRangeService
                 .EnumerateCandidatePolePositions(machinePositionInfo, maxRange.GetHorizontal(), maxRange.GetHeight())

@@ -14,7 +14,7 @@ namespace Game.Block.Blocks.ElectricWire
 
         public ElectricWireSaveDataJsonObject(Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> wireConnections)
         {
-            // DictionaryからConnectionDataのリストに変換する
+            // 接続をリストに変換する
             // Convert Dictionary to List of ConnectionData
             Connections = new List<ElectricWireConnectionJsonObject>();
             foreach (var target in wireConnections)
