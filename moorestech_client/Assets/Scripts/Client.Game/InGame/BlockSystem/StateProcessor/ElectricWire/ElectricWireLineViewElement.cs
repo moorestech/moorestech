@@ -15,11 +15,16 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         // ワイヤーの垂れ量は両端距離に比例させる
         // Wire sag is proportional to the distance between endpoints
         private const float SagRatio = 0.1f;
+        // 未解決時の再解決を試みる間隔
+        // Interval between resolution retries while unresolved
+        private const float RetryIntervalSeconds = 0.5f;
         private static readonly Vector3 BlockCenterOffset = new(0.5f, 0.5f, 0.5f);
 
         [SerializeField] private MeshFilter meshFilter;
 
         private Mesh _generatedMesh;
+        private bool _isResolved;
+        private float _retryTimer;
 
         // 両端のブロックインスタンスID（Task 11の切断が参照する契約）
         // Both endpoint block instance IDs (contract referenced by Task 11 cutting)
@@ -35,10 +40,33 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             FromId = fromId;
             ToId = toId;
 
+            // 即座に解決できなければUpdateでの遅延再試行に委ねる
+            // If not resolvable immediately, defer to the retry loop in Update
+            _isResolved = TryBuildLine();
+            enabled = !_isResolved;
+        }
+
+        private void Update()
+        {
+            // 未解決の間のみ一定間隔でパートナーブロックの生成を再確認する
+            // While unresolved, periodically recheck whether the partner block has been created
+            _retryTimer -= Time.deltaTime;
+            if (_retryTimer > 0f) return;
+            _retryTimer = RetryIntervalSeconds;
+
+            if (!TryBuildLine()) return;
+            _isResolved = true;
+            enabled = false;
+        }
+
+        // 両端ブロックの解決とメッシュ構築を試みる。相手が未生成ならfalseを返す
+        // Attempt to resolve both endpoints and build the mesh; returns false if the partner is not yet created
+        private bool TryBuildLine()
+        {
             // 両端ブロックの座標をBlockGameObjectDataStoreから解決する
             // Resolve endpoint positions from the BlockGameObjectDataStore
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(fromId, out var fromBlock)) return;
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(toId, out var toBlock)) return;
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(FromId, out var fromBlock)) return false;
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(ToId, out var toBlock)) return false;
 
             var start = fromBlock.transform.position + BlockCenterOffset;
             var end = toBlock.transform.position + BlockCenterOffset;
@@ -56,6 +84,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
             meshFilter.mesh = _generatedMesh;
             BuildColliders(colliderSegments);
+            return true;
         }
 
         private void OnDestroy()

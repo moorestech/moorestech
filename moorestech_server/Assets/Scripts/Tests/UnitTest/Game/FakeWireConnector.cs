@@ -72,6 +72,13 @@ namespace Tests.UnitTest.Game
             b.TryRemoveWireConnection(a.BlockInstanceId, out _);
         }
 
+        // テスト間でIDが漏れて偽成功しないよう、静的レジストリを空にする
+        // Empties the static registry so IDs don't leak across tests and cause false positives
+        public static void ClearRegistry()
+        {
+            Registry.Clear();
+        }
+
         public bool ContainsWireConnection(BlockInstanceId partnerId)
         {
             return _wireConnections.ContainsKey(partnerId);

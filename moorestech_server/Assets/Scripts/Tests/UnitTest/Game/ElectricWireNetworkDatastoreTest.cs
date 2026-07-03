@@ -10,6 +10,14 @@ namespace Tests.UnitTest.Game
     /// </summary>
     public class ElectricWireNetworkDatastoreTest
     {
+        // 前テストのIDが残ると別テストを偽成功させ得るため、毎回レジストリを空にする
+        // Clear the registry each run since a leftover ID from a prior test could cause a false pass
+        [SetUp]
+        public void SetUp()
+        {
+            FakeWireConnector.ClearRegistry();
+        }
+
         [Test]
         public void 孤立コネクタは単独セグメントに所属する()
         {
