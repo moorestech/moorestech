@@ -18,16 +18,11 @@ namespace Core.Master
     
     public class BlockMaster : IMasterValidator
     {
-        // カテゴリー未設定ブロックの破壊カテゴリー。デフォルト同士は従来どおり複数選択可能
-        // Destruction category for blocks not listed in any definition; defaults can still be multi-selected together
-        public const string DefaultDestructionCategory = "default";
-
         public readonly Blocks Blocks;
 
         private Dictionary<BlockId, BlockMasterElement> _blockElementTableById;
         private Dictionary<Guid, BlockId> _blockGuidToBlockId;
         private Dictionary<ItemId, BlockId> _itemIdToBlockId;
-        private Dictionary<Guid, string> _blockGuidToDestructionCategory;
 
         public BlockMaster(JToken blockJToken)
         {
@@ -42,24 +37,6 @@ namespace Core.Master
         public void Initialize()
         {
             BlockMasterUtil.Initialize(Blocks, out _blockElementTableById, out _blockGuidToBlockId, out _itemIdToBlockId, GetBlockMaster);
-
-            // 破壊カテゴリ定義から blockGuid→カテゴリキー の逆引き表を構築する
-            // Build a blockGuid→categoryKey reverse lookup from the destruction category definitions
-            _blockGuidToDestructionCategory = new Dictionary<Guid, string>();
-            foreach (var category in Blocks.BlockDestructionCategories)
-            foreach (var target in category.TargetBlocks)
-            {
-                _blockGuidToDestructionCategory[target.BlockGuid] = category.CategoryKey;
-            }
-        }
-
-        // ブロックの破壊カテゴリーを取得する。定義に無いブロックはdefault扱い
-        // Get a block's destruction category; blocks absent from any definition are treated as default
-        public string GetDestructionCategory(Guid blockGuid)
-        {
-            return _blockGuidToDestructionCategory.TryGetValue(blockGuid, out var category)
-                ? category
-                : DefaultDestructionCategory;
         }
         
         public BlockMasterElement GetBlockMaster(BlockId blockId)
