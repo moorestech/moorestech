@@ -23,12 +23,6 @@ EditMode テストでは本番アセットも MonoBehaviour Update も UI Prefab
 
 5. **uloop CLI のパスが通っていること**: `which uloop` で見つかること。
 
-6. **(moorestech worktree 限定) ServerDirectory の override 済みであること**: Hermes worktree 構成では `ServerDirectory.GetDirectory()`（Editor 既定）が `CurrentDirectory/../../moorestech_master/server_v8/` を返すが、これは `worktrees/moorestech/moorestech_master/...` に解決され **存在しない**（companion master は `worktrees/moorestech_master/<task>/` にある）。この状態で PlayMode 起動すると mod がロードできず MasterHolder が空になり、`GetBlockId(guid)` 等が失敗して録画準備が全滅する。**PlayMode 起動前に** companion master を明示指定する（`cache/StringDebugParameters.json` に永続化・PlayModeSetting ウィンドウと同じ仕組み。存在しなければ既定パスへフォールバックするだけなので実害はない）:
-   ```bash
-   uloop execute-dynamic-code --project-path ./moorestech_client --code 'Common.Debug.DebugParameters.SaveString(Server.Boot.ServerDirectory.DebugServerDirectorySettingKey, "/Users/admin/dev-agent/worktrees/moorestech_master/<task>/server_v8/"); return Server.Boot.ServerDirectory.GetDirectory();'
-   ```
-   返り値が companion のパスであること、かつ編集したいマスタ（例: blocks.json の新フィールド）がその mod に入っていることを確認してから起動する。
-
 ## 重要な設計判断 (ユーザー指示を反映)
 
 ### 探索と実行計画作成は必ずサブエージェントに先行委譲する
