@@ -209,6 +209,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 if (!wirePlaceable) return;
 
                 SendPlaceProtocol(_currentPlaceInfos, context);
+
+                // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
+                // Placement changes the world and inventory, so drop the auto-connect evaluation cache
+                _autoConnectPreview.Hide();
             }
 
             void MarkInsufficientItemPreviewsAsNotPlaceable()
