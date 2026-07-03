@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.ElectricWire
 
         public BlockInstanceId BlockInstanceId { get; }
         public float MaxWireLength { get; }
-        public bool IsWireConnectionFull => _wireConnections.Count >= _maxWireConnectionCount;
+        public bool IsWireConnectionFull => _maxWireConnectionCount <= _wireConnections.Count;
 
         // このブロックが持つ電力上の役割。持たない役割はnull
         // Electric roles of this block; null when the role is absent
