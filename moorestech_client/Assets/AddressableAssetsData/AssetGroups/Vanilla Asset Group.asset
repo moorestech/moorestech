@@ -255,6 +255,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35e588632b9ea984baf4cb1175c069ee
+    m_Address: Vanilla/Train/Locomotive_CombinedStaticMeshes
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 378bab6c515bb4252a5166202effa6fe
     m_Address: Vanilla/Item/Iron_Ingot_item
     m_ReadOnly: 0
@@ -1052,6 +1057,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e83f622eeba41ae4b9696601b8bc61a4
     m_Address: Vanilla/Block/Fast_BeltConveyor_Cross
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e84dd0a45abe8724380d4a09a514d79e
+    m_Address: Vanilla/Train/CargoCar_CombinedStaticMeshes
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -160,9 +160,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2111956852526239060, guid: aa6c93f707827450ba679d52727164eb, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8921408973457575416, guid: aa6c93f707827450ba679d52727164eb, type: 3}
       propertyPath: m_Name
-      value: Electric_pole_wide_range Variant
+      value: Electric_pole_wide_range
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

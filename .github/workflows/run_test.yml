@@ -1,4 +1,4 @@
-name: Run Unity Test
+name: Unity Test
 on:
   pull_request:
     paths-ignore:
@@ -7,9 +7,17 @@ on:
   # 手動実行デバッグ用
   workflow_dispatch: {}
 
+# PR更新時に同一PRの古い実行をキャンセルする（groupはworkflow×ref単位。PRのrefはrefs/pull/N/mergeでPRごとに一意）。
+# cancel-in-progressをPRイベント限定にしているため、手動実行(workflow_dispatch)が実行中にキャンセルされることはない。
+# Cancel outdated runs of the same PR on update (the group is per workflow and ref; a PR's ref is unique per PR).
+# cancel-in-progress only applies to PR events, so manual workflow_dispatch runs are never cancelled mid-run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
-    name: Run Unity Test
+    name: EditMode Test (Client + Server)
     runs-on: ubuntu-latest
     steps:
       # 使用するGithub Tokenを動的に生成する

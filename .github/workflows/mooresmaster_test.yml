@@ -13,6 +13,14 @@ on:
   # Manual execution for debugging
   workflow_dispatch: {}
 
+# PR更新時に同一PRの古い実行をキャンセルする（groupはworkflow×ref単位。PRのrefはrefs/pull/N/mergeでPRごとに一意）。
+# cancel-in-progressをPRイベント限定にしているため、masterへのpushや手動実行が実行中にキャンセルされることはない。
+# Cancel outdated runs of the same PR on update (the group is per workflow and ref; a PR's ref is unique per PR).
+# cancel-in-progress only applies to PR events, so master pushes and manual runs are never cancelled mid-run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
     name: Mooresmaster Test
