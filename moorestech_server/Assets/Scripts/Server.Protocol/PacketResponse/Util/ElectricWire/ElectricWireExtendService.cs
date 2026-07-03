@@ -93,20 +93,23 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (!TryPlacePole(polePlaceInfo, blockId, out var selfConnector))
                 return ExtendResult.Failure(ElectricWirePlacementEvaluator.PositionOccupiedError);
 
+            // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の電線だけを消費する
+            // Validated ahead, but to survive runtime drift we consume wires only for connections that actually succeeded
             var connectedConnectors = new List<IElectricWireConnector> { selfConnector };
+            var consumedWire = 0;
             foreach (var (targetId, cost) in targets)
             {
                 var targetConnector = ServerContext.WorldBlockDatastore.GetBlock(targetId)?.GetComponent<IElectricWireConnector>();
                 if (targetConnector == null) continue;
-                selfConnector.TryAddWireConnection(targetId, cost);
-                targetConnector.TryAddWireConnection(selfConnector.BlockInstanceId, cost);
+                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, cost)) continue;
                 connectedConnectors.Add(targetConnector);
+                consumedWire += cost.Count;
             }
 
-            // 電柱を1個、電線を合計分消費してから連結成分を再構築する
-            // Consume one pole and the total wires, then rebuild connected components
+            // 電柱を1個、張れた電線分を消費してから連結成分を再構築する
+            // Consume one pole and the successfully-placed wires, then rebuild connected components
             inventory.SetItem(poleInventorySlot, inventory.GetItem(poleInventorySlot).SubItem(1));
-            ConsumeWire(inventory, wireItemId, totalWire);
+            ConsumeWire(inventory, wireItemId, consumedWire);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
 
             return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());

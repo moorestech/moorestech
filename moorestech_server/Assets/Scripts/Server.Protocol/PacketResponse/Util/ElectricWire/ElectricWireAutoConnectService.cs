@@ -60,19 +60,20 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             var datastore = ServerContext.WorldBlockDatastore;
             var connectedConnectors = new List<IElectricWireConnector> { selfConnector };
 
-            // 検証済みの各ターゲットへワイヤーを張る
-            // Wire each target that was already validated in the plan
+            // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の電線だけを消費する
+            // Validated ahead, but to survive runtime drift we consume wires only for connections that actually succeeded
+            var consumedWireCount = 0;
             foreach (var target in plan.Targets)
             {
                 var targetConnector = datastore.GetBlock(target.TargetId)?.GetComponent<IElectricWireConnector>();
                 if (targetConnector == null) continue;
+                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, target.Cost)) continue;
 
-                selfConnector.TryAddWireConnection(target.TargetId, target.Cost);
-                targetConnector.TryAddWireConnection(selfConnector.BlockInstanceId, target.Cost);
                 connectedConnectors.Add(targetConnector);
+                consumedWireCount += target.Cost.Count;
             }
 
-            ConsumeWireItems(plan, inventory);
+            ConsumeWireItems(inventory, plan.WireItemId, consumedWireCount);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
         }
 
@@ -133,20 +134,18 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 total += itemStack.Count;
             }
 
-            return total >= required;
+            return required <= total;
         }
 
         // 消費した電線アイテムをインベントリのスロットから順に減算する
         // Decrease consumed wire items across inventory slots in order
-        private static void ConsumeWireItems(ElectricWireAutoConnectPlan plan, IOpenableInventory inventory)
+        private static void ConsumeWireItems(IOpenableInventory inventory, ItemId wireItemId, int amount)
         {
-            var remaining = 0;
-            foreach (var target in plan.Targets) remaining += target.Cost.Count;
-
-            for (var i = 0; i < inventory.InventoryItems.Count && remaining > 0; i++)
+            var remaining = amount;
+            for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
             {
                 var itemStack = inventory.InventoryItems[i];
-                if (itemStack.Id != plan.WireItemId) continue;
+                if (itemStack.Id != wireItemId) continue;
 
                 var consumeAmount = Math.Min(itemStack.Count, remaining);
                 inventory.SetItem(i, itemStack.SubItem(consumeAmount));

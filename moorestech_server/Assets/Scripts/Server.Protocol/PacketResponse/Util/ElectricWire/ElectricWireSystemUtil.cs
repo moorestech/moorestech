@@ -136,6 +136,19 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             #endregion
         }
 
+        // 両側にワイヤーを張り、片側でも失敗したらロールバックする。成功時のみtrueを返す
+        // Wire both connectors, rolling back if either side fails; returns true only on success
+        public static bool TryConnectBothSides(IElectricWireConnector self, IElectricWireConnector target, ElectricWireConnectionCost cost)
+        {
+            var addedSelf = self.TryAddWireConnection(target.BlockInstanceId, cost);
+            var addedTarget = addedSelf && target.TryAddWireConnection(self.BlockInstanceId, cost);
+            if (addedSelf && addedTarget) return true;
+
+            self.TryRemoveWireConnection(target.BlockInstanceId, out _);
+            target.TryRemoveWireConnection(self.BlockInstanceId, out _);
+            return false;
+        }
+
         public static bool TryGetWireConnector(Vector3Int position, out IElectricWireConnector connector)
         {
             // 指定座標からコンポーネントを解決する
