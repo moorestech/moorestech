@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Core.Item.Interface;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
@@ -14,34 +16,55 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
     public static class ElectricWireExtendPreviewCalculator
     {
         /// <summary>
-        /// ブロックが電気系（ワイヤー端点）かを判定し、最大ワイヤー長を返す
-        /// Judge whether a block is electric (wire endpoint) and return its max wire length
+        /// ブロックが電気系（ワイヤー端点）かを判定し、接続数上限と最大ワイヤー長を返す
+        /// Judge whether a block is electric (wire endpoint) and return its connection limit and max wire length
         /// </summary>
-        public static bool TryResolveMaxWireLength(BlockGameObject block, out float maxWireLength)
+        public static bool TryResolveWireParam(BlockGameObject block, out int maxWireConnectionCount, out float maxWireLength)
         {
-            return TryResolveMaxWireLength(block.BlockMasterElement, out maxWireLength);
+            return TryResolveWireParam(block.BlockMasterElement, out maxWireConnectionCount, out maxWireLength);
         }
 
-        public static bool TryResolveMaxWireLength(BlockMasterElement master, out float maxWireLength)
+        public static bool TryResolveWireParam(BlockMasterElement master, out int maxWireConnectionCount, out float maxWireLength)
         {
-            // 7種の電気系BlockParamから最大長を取り出す（非電気系はfalse）
-            // Extract max length from the 7 electric block params (non-electric returns false)
-            if (ElectricWireBlockParamResolver.TryGetWireParam(master.BlockParam, out _, out maxWireLength)) return true;
-            maxWireLength = 0f;
-            return false;
+            // 7種の電気系BlockParamから上限値を取り出す（非電気系はfalse）
+            // Extract limits from the 7 electric block params (non-electric returns false)
+            return ElectricWireBlockParamResolver.TryGetWireParam(master.BlockParam, out maxWireConnectionCount, out maxWireLength);
         }
 
         /// <summary>
-        /// 距離・両端の最大長・所持アイテムからサーバーと同じ接続可否を評価する
-        /// Evaluate connection eligibility from distance, both endpoints' max length and held items
+        /// 受信済みワイヤー状態から起点⇔対象が既に接続済みかを判定する
+        /// Judge whether origin and target are already connected, using received wire state
         /// </summary>
-        public static ElectricWirePlacementJudgement Evaluate(float fromMaxWireLength, float toMaxWireLength, float distance, ItemId wireItemId, ItemId poleItemId, IEnumerable<IItemStack> inventoryItems)
+        public static bool IsAlreadyConnected(BlockGameObject blockA, BlockGameObject blockB)
         {
-            // 既存接続状態はクライアントで確定できないためfalse固定（最終判定はサーバー権威）
-            // Existing connection state is unknown on the client, so pass false (server is authoritative)
+            // どちらか一方の接続先集合に相手が含まれていれば接続済み
+            // Connected when either side's partner set contains the other
+            if (blockA.TryGetComponent<ElectricWireStateChangeProcessor>(out var processorA) &&
+                processorA.CurrentPartnerIds.Contains(blockB.BlockInstanceId)) return true;
+
+            return blockB.TryGetComponent<ElectricWireStateChangeProcessor>(out var processorB) &&
+                   processorB.CurrentPartnerIds.Contains(blockA.BlockInstanceId);
+        }
+
+        /// <summary>
+        /// 受信済みワイヤー状態とマスタ上限から接続数が満杯かを判定する
+        /// Judge whether the connection count is full, using received wire state and the master limit
+        /// </summary>
+        public static bool IsConnectionFull(BlockGameObject block, int maxWireConnectionCount)
+        {
+            return block.TryGetComponent<ElectricWireStateChangeProcessor>(out var processor) &&
+                   maxWireConnectionCount <= processor.CurrentPartnerIds.Count;
+        }
+
+        /// <summary>
+        /// 距離・両端の最大長・接続状態・所持アイテムからサーバーと同じ接続可否を評価する
+        /// Evaluate connection eligibility from distance, endpoint limits, connection state and held items
+        /// </summary>
+        public static ElectricWirePlacementJudgement Evaluate(float fromMaxWireLength, float toMaxWireLength, float distance, bool alreadyConnected, bool anyConnectionFull, ItemId wireItemId, ItemId poleItemId, IEnumerable<IItemStack> inventoryItems)
+        {
             return ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 distance, fromMaxWireLength, toMaxWireLength,
-                alreadyConnected: false, anyConnectionFull: false,
+                alreadyConnected, anyConnectionFull,
                 wireItemId, inventoryItems, poleItemId);
         }
     }
