@@ -86,11 +86,12 @@ skill を探す時は repo 配下 grep だけで判断せず、`~/.claude/skills
    ```bash
    npx difit HEAD master --merge-base --port <PORT> --no-open --background --keep-alive
    ```
+   **このコマンドは必ず harness の `run_in_background: true` で起動する。** `--background` は difit の挙動フラグで `npx` ラッパーは戻らないため、フォアグラウンド実行すると difit は立つのにセッションが固まる（過去に約20分スタックした。詳細は `difit-diff-viewer` skill の Gotchas）。起動後は `sleep` せず出力ファイルか `curl localhost:<PORT>` で応答確認。
 2. その port を Cloudflare Tunnel で公開（認証不要の quick tunnel）:
    ```bash
    cloudflared tunnel --url http://localhost:<PORT>
    ```
-   出力される `https://<ランダム>.trycloudflare.com` が公開 URL。
+   **これも常駐プロセスなので `run_in_background: true` で起動する。** 出力される `https://<ランダム>.trycloudflare.com` が公開 URL（出力ファイルを読んで取得）。
 3. 公開 URL を最終報告に必ず記載する。difit / cloudflared プロセスは開発者が見終わるまで常駐させたままにする（勝手に kill しない）。
 
 > **VM 内 DNS は `*.trycloudflare.com` を解決できない（誤検知に注意）。** トンネル起動直後に VM 内から `curl https://<host>.trycloudflare.com` すると `000`／exit 6（Couldn't resolve host）になるが、これは VM のリゾルバの問題であってトンネルは生きている（cloudflared ログに `Registered tunnel connection ... location=...` が出ていれば OK）。**外部ブラウザ（ユーザー側）は公開 DNS で解決でき到達する。** VM 内から到達確認したいときは公開 DNS で名前解決してから叩く:
