@@ -13,12 +13,26 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
         private bool _canceled;
 
-        // 新しいドラッグ開始時に選択とキャンセル状態をリセットする
-        // Reset selection and canceled state when a new drag begins
+        // 最初に選択したブロックの破壊カテゴリーをセッションのカテゴリーとして固定する（未選択時はnull）
+        // Fix the first selected block's destruction category as the session category (null while empty)
+        private string _sessionCategory;
+
+        // 新しいドラッグ開始時に選択・キャンセル状態・セッションカテゴリーをリセットする
+        // Reset selection, canceled state, and session category when a new drag begins
         public void BeginDrag()
         {
             _selectedTargets.Clear();
             _canceled = false;
+            _sessionCategory = null;
+        }
+
+        // このセッションに追加可能なカテゴリーか（未選択時は何でも可、以降は同一カテゴリーのみ）
+        // Whether the target's category can join this session (anything while empty, then same category only)
+        public bool IsCategoryCompatible(IDeleteTarget target)
+        {
+            if (target == null) return false;
+            if (_sessionCategory == null) return true;
+            return _sessionCategory == target.GetDestructionCategory();
         }
 
         // 削除可能で未選択の対象を追加し、プレビュー表示する
@@ -29,10 +43,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (target == null) return;
             if (!target.IsRemovable(out _)) return;
 
+            // セッションカテゴリーと異なるカテゴリーは追加しない（混在防止）
+            // Reject a target whose category differs from the session category (prevents mixing)
+            if (!IsCategoryCompatible(target)) return;
+
             // 既に同じ論理対象が選択済みなら何もしない（重複Delete防止）
             // Skip when the same logical target is already selected (prevents duplicate Delete)
             var key = target.GetDeleteTargetKey();
             if (_selectedTargets.ContainsKey(key)) return;
+
+            // 最初の追加でセッションカテゴリーを固定する
+            // Fix the session category on the first added target
+            _sessionCategory ??= target.GetDestructionCategory();
 
             _selectedTargets.Add(key, target);
             target.SetRemovePreviewing();
@@ -46,6 +68,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             _selectedTargets.Clear();
             _canceled = true;
+            _sessionCategory = null;
         }
 
         // 選択対象を全て削除しMaterialを戻して選択を空にする（マウス離し操作）
@@ -63,6 +86,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             }
 
             _selectedTargets.Clear();
+            _sessionCategory = null;
         }
 
         // キャンセルされていない場合のみ削除確定を許可する
