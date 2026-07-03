@@ -50,6 +50,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return true;
             }
 
+            // セルが無ければ評価も表示も不要
+            // Nothing to evaluate or show without cells
+            if (placeInfos.Count == 0) { Hide(); return true; }
+
             InvalidateCacheOnKeyChange();
 
             // 各セルを個別評価し、電線不足セルをPlaceable=falseへ上書きしつつ合計消費数を集計する
