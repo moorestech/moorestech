@@ -85,7 +85,7 @@ namespace Game.EnergySystem
 
             // 所属セグメントから役割とメンバーを除去
             // Strip roles and membership from the owning segment
-            RemoveRoles(segment, connector);
+            RemoveRoles();
             var members = _segmentMembers[segment];
             members.Remove(connector);
             _connectorToSegment.Remove(connector.BlockInstanceId);
@@ -121,6 +121,19 @@ namespace Game.EnergySystem
                 }
                 _segmentMembers.Add(newSegment, newMembers);
             }
+
+            #region Internal
+
+            // 所属セグメントから各エネルギー役割を取り除く
+            // Strip each energy role from the owning segment
+            void RemoveRoles()
+            {
+                if (connector.WireConsumer != null) segment.RemoveEnergyConsumer(connector.WireConsumer);
+                if (connector.WireGenerator != null) segment.RemoveGenerator(connector.WireGenerator);
+                if (connector.WireTransformer != null) segment.RemoveEnergyTransformer(connector.WireTransformer);
+            }
+
+            #endregion
         }
 
         public void RebuildAround(params IElectricWireConnector[] connectors)
@@ -158,13 +171,6 @@ namespace Game.EnergySystem
             if (connector.WireConsumer != null) segment.AddEnergyConsumer(connector.WireConsumer);
             if (connector.WireGenerator != null) segment.AddGenerator(connector.WireGenerator);
             if (connector.WireTransformer != null) segment.AddEnergyTransformer(connector.WireTransformer);
-        }
-
-        private static void RemoveRoles(EnergySegment segment, IElectricWireConnector connector)
-        {
-            if (connector.WireConsumer != null) segment.RemoveEnergyConsumer(connector.WireConsumer);
-            if (connector.WireGenerator != null) segment.RemoveGenerator(connector.WireGenerator);
-            if (connector.WireTransformer != null) segment.RemoveEnergyTransformer(connector.WireTransformer);
         }
     }
 }

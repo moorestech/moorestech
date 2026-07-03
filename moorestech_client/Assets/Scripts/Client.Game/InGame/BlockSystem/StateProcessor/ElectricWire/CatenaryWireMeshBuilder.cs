@@ -31,11 +31,95 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
             // セグメントごとのコライダー配置情報を書き出す
             // Write out collider placement info per segment
-            BuildColliderSegments(points, outColliderSegments);
+            BuildColliderSegments();
 
             // 折れ線から四角チューブメッシュを構築する
             // Build the square tube mesh from the polyline
-            return BuildTubeMesh(points);
+            return BuildTubeMesh();
+
+            #region Internal
+
+            // セグメントごとの中心・軸方向・長さを算出する
+            // Compute center, axis direction, and length per segment
+            void BuildColliderSegments()
+            {
+                if (outColliderSegments == null) return;
+                outColliderSegments.Clear();
+
+                for (var i = 0; i < points.Length - 1; i++)
+                {
+                    var a = points[i];
+                    var b = points[i + 1];
+
+                    var diff = b - a;
+                    var length = diff.magnitude;
+                    var axis = Mathf.Epsilon < length ? diff / length : Vector3.up;
+
+                    outColliderSegments.Add(((a + b) * 0.5f, axis, length));
+                }
+            }
+
+            // 折れ線に沿って四角断面のチューブメッシュを構築する
+            // Build a square cross-section tube mesh along the polyline
+            Mesh BuildTubeMesh()
+            {
+                var ringCount = points.Length;
+                var vertices = new Vector3[ringCount * 4];
+
+                // 各リングに断面4頂点を配置する
+                // Place four cross-section vertices per ring
+                for (var ring = 0; ring < ringCount; ring++)
+                {
+                    var tangent = ComputeTangent(ring);
+                    var right = Vector3.Cross(Vector3.up, tangent);
+                    right = right.sqrMagnitude < 1e-6f ? Vector3.right : right.normalized;
+                    var up = Vector3.Cross(tangent, right).normalized;
+
+                    var baseIndex = ring * 4;
+                    vertices[baseIndex + 0] = points[ring] + (right + up) * WireRadius;
+                    vertices[baseIndex + 1] = points[ring] + (right - up) * WireRadius;
+                    vertices[baseIndex + 2] = points[ring] + (-right - up) * WireRadius;
+                    vertices[baseIndex + 3] = points[ring] + (-right + up) * WireRadius;
+                }
+
+                // 隣接リングを4面のクアッドで接続する
+                // Connect adjacent rings with four-sided quads
+                var triangles = new List<int>((ringCount - 1) * 24);
+                for (var ring = 0; ring < ringCount - 1; ring++)
+                {
+                    var b0 = ring * 4;
+                    var b1 = (ring + 1) * 4;
+                    for (var k = 0; k < 4; k++)
+                    {
+                        var k2 = (k + 1) % 4;
+                        triangles.Add(b0 + k);
+                        triangles.Add(b1 + k);
+                        triangles.Add(b0 + k2);
+                        triangles.Add(b0 + k2);
+                        triangles.Add(b1 + k);
+                        triangles.Add(b1 + k2);
+                    }
+                }
+
+                var mesh = new Mesh { name = "ElectricWireMesh" };
+                mesh.SetVertices(vertices);
+                mesh.SetTriangles(triangles, 0);
+                mesh.RecalculateNormals();
+                mesh.RecalculateBounds();
+                return mesh;
+            }
+
+            // リング位置での接線を近傍頂点から求める
+            // Estimate the tangent at a ring from neighboring vertices
+            Vector3 ComputeTangent(int ring)
+            {
+                var previous = points[Mathf.Max(ring - 1, 0)];
+                var next = points[Mathf.Min(ring + 1, points.Length - 1)];
+                var tangent = next - previous;
+                return tangent.sqrMagnitude < 1e-6f ? Vector3.forward : tangent.normalized;
+            }
+
+            #endregion
         }
 
         /// <summary>
@@ -62,86 +146,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
             }
 
             return points;
-        }
-
-        // セグメントごとの中心・軸方向・長さを算出する
-        // Compute center, axis direction, and length per segment
-        private static void BuildColliderSegments(Vector3[] points, List<(Vector3 center, Vector3 up, float length)> outColliderSegments)
-        {
-            if (outColliderSegments == null) return;
-            outColliderSegments.Clear();
-
-            for (var i = 0; i < points.Length - 1; i++)
-            {
-                var a = points[i];
-                var b = points[i + 1];
-
-                var diff = b - a;
-                var length = diff.magnitude;
-                var axis = Mathf.Epsilon < length ? diff / length : Vector3.up;
-
-                outColliderSegments.Add(((a + b) * 0.5f, axis, length));
-            }
-        }
-
-        // 折れ線に沿って四角断面のチューブメッシュを構築する
-        // Build a square cross-section tube mesh along the polyline
-        private static Mesh BuildTubeMesh(Vector3[] points)
-        {
-            var ringCount = points.Length;
-            var vertices = new Vector3[ringCount * 4];
-
-            // 各リングに断面4頂点を配置する
-            // Place four cross-section vertices per ring
-            for (var ring = 0; ring < ringCount; ring++)
-            {
-                var tangent = ComputeTangent(points, ring);
-                var right = Vector3.Cross(Vector3.up, tangent);
-                right = right.sqrMagnitude < 1e-6f ? Vector3.right : right.normalized;
-                var up = Vector3.Cross(tangent, right).normalized;
-
-                var baseIndex = ring * 4;
-                vertices[baseIndex + 0] = points[ring] + (right + up) * WireRadius;
-                vertices[baseIndex + 1] = points[ring] + (right - up) * WireRadius;
-                vertices[baseIndex + 2] = points[ring] + (-right - up) * WireRadius;
-                vertices[baseIndex + 3] = points[ring] + (-right + up) * WireRadius;
-            }
-
-            // 隣接リングを4面のクアッドで接続する
-            // Connect adjacent rings with four-sided quads
-            var triangles = new List<int>((ringCount - 1) * 24);
-            for (var ring = 0; ring < ringCount - 1; ring++)
-            {
-                var b0 = ring * 4;
-                var b1 = (ring + 1) * 4;
-                for (var k = 0; k < 4; k++)
-                {
-                    var k2 = (k + 1) % 4;
-                    triangles.Add(b0 + k);
-                    triangles.Add(b1 + k);
-                    triangles.Add(b0 + k2);
-                    triangles.Add(b0 + k2);
-                    triangles.Add(b1 + k);
-                    triangles.Add(b1 + k2);
-                }
-            }
-
-            var mesh = new Mesh { name = "ElectricWireMesh" };
-            mesh.SetVertices(vertices);
-            mesh.SetTriangles(triangles, 0);
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            return mesh;
-        }
-
-        // リング位置での接線を近傍頂点から求める
-        // Estimate the tangent at a ring from neighboring vertices
-        private static Vector3 ComputeTangent(Vector3[] points, int ring)
-        {
-            var previous = points[Mathf.Max(ring - 1, 0)];
-            var next = points[Mathf.Min(ring + 1, points.Length - 1)];
-            var tangent = next - previous;
-            return tangent.sqrMagnitude < 1e-6f ? Vector3.forward : tangent.normalized;
         }
     }
 }
