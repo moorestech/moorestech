@@ -40,7 +40,7 @@ namespace Game.EnergySystem
                 queue.Clear();
                 queue.Enqueue(start);
 
-                while (queue.Count > 0)
+                while (0 < queue.Count)
                 {
                     var current = queue.Dequeue();
                     component.Add(current);

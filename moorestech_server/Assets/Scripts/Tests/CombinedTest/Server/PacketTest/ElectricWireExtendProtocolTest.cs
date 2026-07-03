@@ -132,7 +132,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             inventory.SetItem(PoleSlot, ServerContext.ItemStackFactory.Create(_poleItemId, poleCount));
-            if (wireCount > 0) inventory.SetItem(WireSlot, ServerContext.ItemStackFactory.Create(_wireItemId, wireCount));
+            if (0 < wireCount) inventory.SetItem(WireSlot, ServerContext.ItemStackFactory.Create(_wireItemId, wireCount));
             return inventory;
         }
 

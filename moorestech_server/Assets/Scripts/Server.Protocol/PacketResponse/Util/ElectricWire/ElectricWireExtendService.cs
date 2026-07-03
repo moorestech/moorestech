@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 return ExtendResult.Failure(ElectricWirePlacementEvaluator.InvalidTargetError);
 
             var distance = Vector3Int.Distance(fromPos, polePlaceInfo.Position);
-            if (distance > Mathf.Min(fromConnector.MaxWireLength, poleParam.MaxWireLength))
+            if (Mathf.Min(fromConnector.MaxWireLength, poleParam.MaxWireLength) < distance)
                 return ExtendResult.Failure(ElectricWirePlacementEvaluator.TooFarError);
             if (fromConnector.IsWireConnectionFull)
                 return ExtendResult.Failure(ElectricWirePlacementEvaluator.ConnectionLimitError);
@@ -148,7 +148,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
         private static void ConsumeWire(IOpenableInventory inventory, ItemId wireItemId, int amount)
         {
             var remaining = amount;
-            for (var i = 0; i < inventory.InventoryItems.Count && remaining > 0; i++)
+            for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
             {
                 var itemStack = inventory.InventoryItems[i];
                 if (itemStack.Id != wireItemId) continue;

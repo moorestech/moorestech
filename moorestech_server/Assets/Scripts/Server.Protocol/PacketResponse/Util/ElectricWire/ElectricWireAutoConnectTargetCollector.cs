@@ -61,7 +61,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
             foreach (var candidate in machineCandidates)
             {
-                if (usedCount >= ownParam.MaxWireConnectionCount) break;
+                if (ownParam.MaxWireConnectionCount <= usedCount) break;
                 results.Add((candidate.Connector.BlockInstanceId, candidate.Connector, candidate.Distance));
                 usedCount++;
             }

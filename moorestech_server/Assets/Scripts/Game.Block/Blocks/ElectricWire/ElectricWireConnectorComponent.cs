@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.ElectricWire
             // 新しい接続先を記録する
             // Store new partner connection
             if (_wireConnections.ContainsKey(partnerId)) return false;
-            if (_wireConnections.Count >= _maxWireConnectionCount) return false;
+            if (_maxWireConnectionCount <= _wireConnections.Count) return false;
             var connector = ResolveWireTarget(partnerId);
             if (connector == null) return false;
             _wireConnections.Add(partnerId, (connector, connectionCost));
@@ -132,7 +132,7 @@ namespace Game.Block.Blocks.ElectricWire
             foreach (var connection in data.Connections)
             {
                 if (connection.TargetBlockInstanceId == BlockInstanceId.AsPrimitive()) continue;
-                if (_wireConnections.Count >= _maxWireConnectionCount) break;
+                if (_maxWireConnectionCount <= _wireConnections.Count) break;
                 var targetId = new BlockInstanceId(connection.TargetBlockInstanceId);
                 if (_wireConnections.ContainsKey(targetId)) continue;
                 var connector = ResolveWireTarget(targetId);

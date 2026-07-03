@@ -13,6 +13,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
     /// 電力ワイヤーの状態変更を処理するプロセッサ
     /// Processor for handling electric wire state changes
     /// </summary>
+    [RequireComponent(typeof(ElectricWireLineView))]
     public class ElectricWireStateChangeProcessor : MonoBehaviour, IBlockStateChangeProcessor
     {
         // 現在の接続先ID集合。電線ツールのプレビュー既接続判定が参照する
@@ -24,9 +25,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
         public void Initialize(BlockGameObject blockGameObject)
         {
-            // 動的付与のため、ライン表示コンポーネントも自身で生成する
-            // Since this is added dynamically, create the line view component here too
-            _wireLineView = gameObject.AddComponent<ElectricWireLineView>();
+            // RequireComponentで保証されるライン表示コンポーネントを取得する
+            // Get the line view component guaranteed by RequireComponent
+            _wireLineView = GetComponent<ElectricWireLineView>();
             _wireLineView.Initialize(blockGameObject);
         }
 
