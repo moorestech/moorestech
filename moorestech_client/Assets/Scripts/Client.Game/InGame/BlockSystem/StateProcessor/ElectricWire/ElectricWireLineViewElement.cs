@@ -84,7 +84,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
                 colliderTransform.position = segment.center;
                 colliderTransform.rotation = Quaternion.FromToRotation(Vector3.up, segment.up);
 
+                // トリガー化してプレイヤーとの物理衝突を防ぐ（レイキャストにはヒットする）
+                // Make it a trigger to avoid physical collision with the player (still hit by raycasts)
                 var capsule = colliderObject.AddComponent<CapsuleCollider>();
+                capsule.isTrigger = true;
                 capsule.direction = 1;
                 capsule.radius = CatenaryWireMeshBuilder.WireRadius;
                 capsule.height = segment.length;
