@@ -15,8 +15,8 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     /// <summary>
-    /// レール式延長（電柱設置＋起点接続＋機械自動接続）を実行する。全検証を設置前に完了し通過時のみ状態変更する
-    /// Runs rail-style extend (place pole + wire origin + auto-connect machines); validates all before placing, mutates only on pass
+    /// レール式延長設置を実行。設置前に全検証し通過時のみ状態変更する
+    /// Runs rail-style extend placement; validates before placing, mutates only on pass
     /// </summary>
     public static class ElectricWireExtendService
     {
@@ -82,8 +82,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 totalWire += cost.Count;
             }
 
-            // 電柱1個＋電線合計の所持を確認する。電柱と電線が同一アイテムなら合算で判定する
-            // Verify holding one pole plus the total wires; when pole and wire share an item, check the combined amount
+            // 電柱1個＋電線合計の所持を確認する
+            // Verify holding one pole plus the total wire count
+            // 電柱と電線が同一アイテムなら合算で判定する
+            // When pole and wire share the item, judge by the combined amount
             var wireNeeded = totalWire + (poleItem.Id == wireItemId ? 1 : 0);
             if (CountItem(inventory, wireItemId) < wireNeeded)
                 return ExtendResult.Failure(ElectricWirePlacementEvaluator.NoWireItemError);
@@ -160,7 +162,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 remaining -= consume;
             }
         }
-
         private static int CountItem(IOpenableInventory inventory, ItemId itemId)
         {
             var total = 0;

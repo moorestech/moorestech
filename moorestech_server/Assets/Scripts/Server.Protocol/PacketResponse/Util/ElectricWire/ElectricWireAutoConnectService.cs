@@ -13,8 +13,8 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     /// <summary>
-    /// 設置時の電力ワイヤー自動接続を計画・実行する。全検証を設置前に完了させ、通過時のみ状態を変更する
-    /// Plans and executes wire auto-connect on placement; validates everything before mutating state
+    /// 設置時の電力ワイヤー自動接続を計画・実行する
+    /// Plans and executes wire auto-connect on placement
     /// </summary>
     public static class ElectricWireAutoConnectService
     {

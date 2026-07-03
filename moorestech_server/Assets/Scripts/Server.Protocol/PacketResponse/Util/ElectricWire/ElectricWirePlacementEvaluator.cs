@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     /// <summary>
-    /// ワイヤー接続の可否を純粋関数として判定する。距離・既存接続状態・所持アイテムのみから結果を導く
-    /// Judge wire connection eligibility as a pure function, using only distance, connection state and held items
+    /// ワイヤー接続の可否を純粋関数として判定する
+    /// Judge wire connection eligibility as a pure function
     /// </summary>
     public static class ElectricWirePlacementEvaluator
     {
@@ -48,8 +48,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (poleItemId != ItemMaster.EmptyItemId && !HasEnoughItem(items, poleItemId, 1))
                 return ElectricWirePlacementJudgement.Failure(NoPoleItemError);
 
-            // ワイヤーコストを算出し、所持数が足りているか確認する。ポールと電線が同一アイテムなら1個上乗せで判定する
-            // Calculate the wire cost and verify inventory covers it; require one extra when the pole shares the wire item
+            // ワイヤーコストと所持数を確認
+            // Calculate the wire cost and verify inventory covers it
+            // 同一アイテムなら1個上乗せで判定
+            // Require one extra when the pole shares the wire item
             if (!TryCalculateWireCost(wireItemId, distance, out var cost))
                 return ElectricWirePlacementJudgement.Failure(NoWireItemError);
 

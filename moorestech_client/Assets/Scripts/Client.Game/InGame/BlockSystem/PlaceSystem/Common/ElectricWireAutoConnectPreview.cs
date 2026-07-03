@@ -56,8 +56,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             InvalidateCacheOnKeyChange();
 
-            // 各セルを個別評価し、電線不足セルをPlaceable=falseへ上書きしつつ合計消費数を集計する
-            // Evaluate each cell, override wire-insufficient cells to Placeable=false and sum the total cost
+            // 各セルを評価し可否と消費数を集計
+            // Evaluate each cell for placeability and sum the total cost
             // 注意: ドラッグ中の未設置電柱同士の接続は評価に現れない近似（サーバーが設置順に個別再検証するため安全側）
             // Note: connections between not-yet-placed poles in a drag are approximated away (the server re-validates each in placement order, so this stays safe)
             var totalCost = 0;
@@ -104,8 +104,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Evaluate the same server-side auto-connect plan (single-player shares world state in-process)
                 var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, position, direction, inventory.ToList());
 
-                // 接続先ブロックの座標を解決し、消費電線数を集計してセル計画として保存する
-                // Resolve target block positions, sum the wire cost and store them as the cell plan
+                // 座標解決と消費数集計しセル計画化
+                // Resolve target positions, sum the wire cost and store as the cell plan
                 var targetPositions = new List<Vector3Int>();
                 var cost = 0;
                 foreach (var target in plan.Targets)
