@@ -168,16 +168,6 @@ namespace Client.Network.API
         }
 
         /// <summary>
-        /// ギアチェーンポール間の接続を解除する
-        /// Disconnect a connection between GearChainPoles
-        /// </summary>
-        public void DisconnectGearChain(Vector3Int posA, Vector3Int posB)
-        {
-            var request = GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
-            _packetSender.Send(request);
-        }
-
-        /// <summary>
         /// 電気系ブロック間に電線を接続する
         /// Connect an electric wire between electric blocks
         /// </summary>

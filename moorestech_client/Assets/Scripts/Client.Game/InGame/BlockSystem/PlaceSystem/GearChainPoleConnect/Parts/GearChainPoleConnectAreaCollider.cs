@@ -2,7 +2,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
     /// GearChainPoleの接続用Collider

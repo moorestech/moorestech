@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 {
     /// <summary>
     /// GearChainPoleの接続対象を識別するためのインターフェース
