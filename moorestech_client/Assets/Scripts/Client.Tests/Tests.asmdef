@@ -28,7 +28,8 @@
         "Server.Util",
         "Game.Train",
         "Core.Update",
-        "Core.Inventory"
+        "Core.Inventory",
+        "Client.WebUiHost"
     ],
     "includePlatforms": [
         "Editor"
@@ -41,7 +42,8 @@
         "MessagePack.dll",
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-        "Microsoft.Extensions.DependencyInjection.dll"
+        "Microsoft.Extensions.DependencyInjection.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [

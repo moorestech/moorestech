@@ -16,9 +16,11 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     fs: {
-      // リポジトリ外や node_modules 階層への /@fs/ アクセスを封じる
-      // Prevent /@fs/ access to outside-repo / node_modules paths
-      allow: ["./src", "./public", "./index.html"],
+      // Vite は allow リストに node_modules を含むエントリを拒否するため、
+      // プロジェクトルート自体を許可してデフォルト挙動(リポジトリ外は元々アクセス不可)に委ねる
+      // Vite rejects allow entries containing node_modules, so allow the project root itself
+      // and rely on the default behavior (access outside the repo is already blocked)
+      allow: ["."],
       strict: true,
     },
     proxy: {
