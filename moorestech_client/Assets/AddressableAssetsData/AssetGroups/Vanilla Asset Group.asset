@@ -590,6 +590,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7feb80a3971ba3c448413bf3080ecb47
+    m_Address: Vanilla/Train/Locomotive_CombinedSkinnedMesh
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ff9d8ff6a11a80469efcac66b15bfe8
     m_Address: Vanilla/Block/Stone_oven
     m_ReadOnly: 0
