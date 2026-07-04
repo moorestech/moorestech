@@ -444,12 +444,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1360136767314304250}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b266723374a144d27989f433d8f34cea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CefUnity.Runtime::CefUnity.Runtime.CefUnityBrowserSample
-  _url: https://google.com
+  _url: http://localhost:5173/
   _rawImage: {fileID: 4882653979629314944}
   _resolutionScale: 1
   _enableLog: 0
@@ -605,6 +605,7 @@ GameObject:
   - component: {fileID: 7319079166698153583}
   - component: {fileID: 9027665098605481233}
   - component: {fileID: 1134843864969124345}
+  - component: {fileID: 1058626130104492160}
   m_Layer: 5
   m_Name: MainGameUI
   m_TagString: Untagged
@@ -751,6 +752,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvasGroup: {fileID: 9027665098605481233}
+--- !u!114 &1058626130104492160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1438684973846715391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9935ab096bc4411ebf58fa7bb2603c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.UIState.WebUiCefToggle
+  cefUnityRoot: {fileID: 1360136767314304250}
 --- !u!1 &1960350296268097667
 GameObject:
   m_ObjectHideFlags: 0
