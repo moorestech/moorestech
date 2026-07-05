@@ -11,7 +11,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Fluid;
 using MessagePack;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Machine
@@ -81,9 +81,9 @@ namespace Game.Block.Blocks.Machine
                 // SelfConnector（自分側）のConnectTankIndexを取得
                 // Get ConnectTankIndex from SelfConnector
                 var tankIndex = -1;
-                if (info.SelfConnector?.ConnectOption is FluidConnectOption selfOption)
+                if (info.SelfConnector is IFluidConnector selfConnector)
                 {
-                    tankIndex = selfOption.ConnectTankIndex;
+                    tankIndex = selfConnector.Option.ConnectTankIndex;
                 }
                 
                 // 対応するタンクが存在しない場合はスキップ
@@ -113,17 +113,21 @@ namespace Game.Block.Blocks.Machine
                     container.FluidId = FluidMaster.EmptyFluidId;
                 }
             }
-        }
-        
-        private double GetFlowRate(ConnectedInfo info)
-        {
-            if (info.SelfConnector?.ConnectOption is FluidConnectOption fluidOption)
+
+            #region Internal
+
+            double GetFlowRate(ConnectedInfo info)
             {
-                return fluidOption.FlowCapacity;
+                if (info.SelfConnector is IFluidConnector fluidConnector)
+                {
+                    return fluidConnector.Option.FlowCapacity;
+                }
+                throw new ArgumentException("FluidConnectOption is not set on connector");
             }
-            throw new ArgumentException("FluidConnectOption is not set on connector");
+
+            #endregion
         }
-        
+
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
         {
             // 接続情報からConnectTankIndexを取得する
@@ -167,11 +171,11 @@ namespace Game.Block.Blocks.Machine
                     var pipeContainer = GetFluidContainerFromPipe(pipe);
                     if (pipeContainer == source)
                     {
-                        // ターゲット側（自分側）のConnectOptionからConnectTankIndexを取得
+                        // ターゲット側（自分側）のOptionからConnectTankIndexを取得
                         // Get ConnectTankIndex from TargetConnector
-                        if (info.TargetConnector?.ConnectOption is FluidConnectOption targetOption)
+                        if (info.TargetConnector is IFluidConnector targetConnector)
                         {
-                            return targetOption.ConnectTankIndex;
+                            return targetConnector.Option.ConnectTankIndex;
                         }
                     }
                 }

@@ -8,7 +8,7 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Fluid;
 using Game.Train.Event;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using JetBrains.Annotations;
@@ -248,15 +248,19 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             }
 
             fluidContainer.ClearPreviousSources();
-        }
 
-        private static double GetFlowRate(ConnectedInfo info)
-        {
-            if (info.SelfConnector?.ConnectOption is FluidConnectOption fluidOption)
+            #region Internal
+
+            double GetFlowRate(ConnectedInfo info)
             {
-                return fluidOption.FlowCapacity;
+                if (info.SelfConnector is IFluidConnector fluidConnector)
+                {
+                    return fluidConnector.Option.FlowCapacity;
+                }
+                throw new ArgumentException("FluidConnectOption is not set on connector");
             }
-            throw new ArgumentException("FluidConnectOption is not set on connector");
+
+            #endregion
         }
 
         public class TrainPlatformFluidContainerSaveJsonObject

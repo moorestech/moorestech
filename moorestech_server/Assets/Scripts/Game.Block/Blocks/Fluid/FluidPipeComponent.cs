@@ -8,7 +8,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using MessagePack;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
 using UniRx;
 
@@ -286,12 +286,12 @@ namespace Game.Block.Blocks.Fluid
             // Get the maximum fluid transfer rate between two IFluidInventories. The transfer rate is the minimum of the two IFluidInventories' flow capacities multiplied by the time per game update (in seconds).
             double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
             {
-                var selfOption = connectedInfo.SelfConnector?.ConnectOption as FluidConnectOption;
-                var targetOption = connectedInfo.TargetConnector?.ConnectOption as FluidConnectOption;
-                
-                if (selfOption == null || targetOption == null) throw new ArgumentException();
-                
-                return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.SecondsPerTick;
+                var selfConnector = connectedInfo.SelfConnector as IFluidConnector;
+                var targetConnector = connectedInfo.TargetConnector as IFluidConnector;
+
+                if (selfConnector == null || targetConnector == null) throw new ArgumentException("Fluid connector option is not set");
+
+                return Math.Min(selfConnector.Option.FlowCapacity, targetConnector.Option.FlowCapacity) * GameUpdater.SecondsPerTick;
             }
 
             #endregion
