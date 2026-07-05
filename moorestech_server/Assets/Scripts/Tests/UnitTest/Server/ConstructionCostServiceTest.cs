@@ -55,7 +55,7 @@ namespace Tests.UnitTest.Server
             var material1Id = MasterHolder.ItemMaster.GetItemId(Material1Guid);
             var material2Id = MasterHolder.ItemMaster.GetItemId(Material2Guid);
 
-            // Test3を2スロットに分割して配置し、先頭スロットから消費されることを確認する
+            // 先頭スロットから消費確認
             // Split Test3 across two slots and verify consumption starts from the first slot
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(material1Id, 1));
             inventory.SetItem(5, ServerContext.ItemStackFactory.Create(material1Id, 3));

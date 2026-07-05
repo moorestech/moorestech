@@ -16,7 +16,7 @@ using Server.Protocol.PacketResponse.Util.ElectricWire;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    /// BlockId直指定と建設コスト消費で複数セルにブロックを設置する
+    /// BlockId指定と建設コストで複数セル設置
     /// Places blocks across multiple cells by direct BlockId with construction-cost consumption
     /// </summary>
     public class PlaceBlockProtocol : IPacketResponse
@@ -44,51 +44,55 @@ namespace Server.Protocol.PacketResponse
 
             foreach (var placeInfo in data.PlacePositions)
             {
-                PlaceBlock(placeInfo, data.BlockId, inventoryData);
+                PlaceBlock(placeInfo);
             }
 
             return null;
-        }
 
-        private static void PlaceBlock(PlaceInfoMessagePack placeInfo, BlockId blockId, PlayerInventoryData inventoryData)
-        {
-            // すでにブロックがある場合は何もしない
-            // Do nothing when a block already exists
-            if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
+            #region Internal
 
-            var placeBlockId = blockId.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
-            var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-
-            // 建設コストを賄えないセルはスキップする（足りる分だけ設置）
-            // Skip cells whose construction cost cannot be covered (place only what is affordable)
-            var inventory = inventoryData.MainOpenableInventory;
-            if (!ConstructionCostService.HasRequiredItems(blockMaster.RequiredItems, inventory.InventoryItems)) return;
-
-            // 電気系ブロックなら自動接続計画を設置前に検証する。電線不足なら設置しない
-            // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
-            var isElectric = ElectricWireBlockParamResolver.TryGetWireParam(blockMaster.BlockParam, out _, out _);
-            var plan = default(ElectricWireAutoConnectPlan);
-            if (isElectric)
+            void PlaceBlock(PlaceInfoMessagePack placeInfo)
             {
-                // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
-                // Pass construction-cost materials as reservations to exclude them from wire availability
-                var reservedItems = blockMaster.RequiredItems == null
-                    ? Array.Empty<(ItemId, int)>()
-                    : blockMaster.RequiredItems.Select(v => (MasterHolder.ItemMaster.GetItemId(v.ItemGuid), v.Count)).ToArray();
-                plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, reservedItems, inventory.InventoryItems);
-                if (!plan.IsPlaceable) return;
+                // すでにブロックがある場合は何もしない
+                // Do nothing when a block already exists
+                if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
+
+                var placeBlockId = data.BlockId.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
+                var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
+
+                // コスト不足セルはスキップ
+                // Skip cells whose construction cost cannot be covered (place only what is affordable)
+                var inventory = inventoryData.MainOpenableInventory;
+                if (!ConstructionCostService.HasRequiredItems(blockMaster.RequiredItems, inventory.InventoryItems)) return;
+
+                // 電気なら自動接続を事前検証
+                // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
+                var isElectric = ElectricWireBlockParamResolver.TryGetWireParam(blockMaster.BlockParam, out _, out _);
+                var plan = default(ElectricWireAutoConnectPlan);
+                if (isElectric)
+                {
+                    // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
+                    // Pass construction-cost materials as reservations to exclude them from wire availability
+                    var reservedItems = blockMaster.RequiredItems == null
+                        ? Array.Empty<(ItemId, int)>()
+                        : blockMaster.RequiredItems.Select(v => (MasterHolder.ItemMaster.GetItemId(v.ItemGuid), v.Count)).ToArray();
+                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, reservedItems, inventory.InventoryItems);
+                    if (!plan.IsPlaceable) return;
+                }
+
+                // 設置に失敗した場合はコストを消費しない
+                // Do not consume the cost when placement fails
+                if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
+
+                ConstructionCostService.ConsumeRequiredItems(blockMaster.RequiredItems, inventory);
+
+                // 計画を実行しワイヤー消費
+                // Execute the validated plan: add wires and consume wire items
+                if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
             }
 
-            // 設置に失敗した場合はコストを消費しない
-            // Do not consume the cost when placement fails
-            if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
-
-            ConstructionCostService.ConsumeRequiredItems(blockMaster.RequiredItems, inventory);
-
-            // 検証済みの計画を実行してワイヤーを張り、電線を消費する
-            // Execute the validated plan: add wires and consume wire items
-            if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
+            #endregion
         }
 
         [MessagePackObject]

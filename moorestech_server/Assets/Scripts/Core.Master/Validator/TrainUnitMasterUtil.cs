@@ -42,7 +42,7 @@ namespace Core.Master.Validator
 
             string TrainCarRequiredItemsValidation()
             {
-                // 建設コスト(requiredItems)のitemGuid実在性と、同一車両内の重複を検証する
+                // itemGuid実在性+重複を検証
                 // Validate itemGuid existence and reject duplicates within a train car's requiredItems
                 var logs = "";
                 foreach (var trainCar in train.TrainCars)

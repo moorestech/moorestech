@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(MachineBlockGuid, unlockedGuid);
             Assert.IsTrue(controller.BlockUnlockStateInfos[MachineBlockGuid].IsUnlocked);
 
-            // 別サーバーインスタンスにロードして状態が引き継がれるか
+            // 別サーバーで状態引継ぎ確認
             // Load into another server instance and check the state carries over
             var saveJson = controller.GetSaveJsonObject();
             var (_, newServiceProvider) = CreateServer();
