@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Item;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
@@ -81,7 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // プレイヤーのメインインベントリを満杯にする
             // Fill the player's main inventory completely.
             var mainInventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            var fillItemMaxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId2).MaxStack;
+            var fillItemMaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId2);
             for (var i = 0; i < mainInventory.GetSlotSize(); i++)
                 mainInventory.SetItem(i, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, fillItemMaxStack));
 
