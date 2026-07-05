@@ -133,6 +133,31 @@ namespace Core.Master.Validator
                             }
                             break;
                         }
+                        case UnlockItemStackLevelGameActionParam unlockItemStackLevel:
+                        {
+                            if (unlockItemStackLevel.TargetItemGuids == null) break;
+                            foreach (var itemGuid in unlockItemStackLevel.TargetItemGuids)
+                            {
+                                // 対象アイテムの実在を検証
+                                // Validate that the target item exists
+                                var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid);
+                                if (itemId == null)
+                                {
+                                    localErrors += $"[ResearchMaster] Research:{researchName} has invalid ClearedAction.TargetItemGuid:{itemGuid}\n";
+                                    continue;
+                                }
+
+                                // 解放レベルがスタックテーブル長を超えていないか検証
+                                // Validate that the unlock level does not exceed the stack table length
+                                var element = MasterHolder.ItemMaster.GetItemMaster(itemId.Value);
+                                var table = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid);
+                                if (unlockItemStackLevel.Level > table.StackCounts.Length)
+                                {
+                                    localErrors += $"[ResearchMaster] Research:{researchName} unlockItemStackLevel Level:{unlockItemStackLevel.Level} exceeds table length:{table.StackCounts.Length} for ItemGuid:{itemGuid}\n";
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
                 return localErrors;
