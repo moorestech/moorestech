@@ -66,13 +66,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return _gearChainPoleConnectSystem;
             }
 
-            // ブロックアイテムの場合は共通ブロック設置システムを返す
-            // For block items, return common block place system
-            if (MasterHolder.BlockMaster.IsBlock(context.HoldingItemId))
+            // ビルドメニューで選択中なら通常ブロック設置システムを使う
+            // Use the common placement system while a build-menu selection exists
+            if (context.SelectedBlockId.HasValue)
             {
                 return _commonBlockPlaceSystem;
             }
-            
+
             return EmptyPlaceSystem;
             
             #region Internal
