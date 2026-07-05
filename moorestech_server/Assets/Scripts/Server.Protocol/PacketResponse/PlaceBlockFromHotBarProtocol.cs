@@ -45,9 +45,10 @@ namespace Server.Protocol.PacketResponse
         {
             //すでにブロックがある場合はそもまま処理を終了
             if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
-            
+
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            var item = inventoryData.MainOpenableInventory.GetItem(data.InventorySlot);
+            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.HotBarSlot, inventoryData.MainOpenableInventory.GetSlotSize());
+            var item = inventoryData.MainOpenableInventory.GetItem(inventorySlot);
             if (!MasterHolder.BlockMaster.IsBlock(item.Id)) return;
             
             // ブロックIDの設定
@@ -63,7 +64,7 @@ namespace Server.Protocol.PacketResponse
 
             //アイテムを減らし、セットする
             item = item.SubItem(1);
-            inventoryData.MainOpenableInventory.SetItem(data.InventorySlot, item);
+            inventoryData.MainOpenableInventory.SetItem(inventorySlot, item);
         }
         
         #endregion
@@ -75,8 +76,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int PlayerId { get; set; }
             
             [Key(3)] public int HotBarSlot { get; set; }
-            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-            
+
             [Key(4)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
             
             public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int hotBarSlot, List<PlaceInfo> placeInfos)

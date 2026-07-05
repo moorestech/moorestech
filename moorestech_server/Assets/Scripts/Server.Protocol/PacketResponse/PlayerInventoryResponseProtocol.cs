@@ -25,8 +25,9 @@ namespace Server.Protocol.PacketResponse
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             
             //メインインベントリのアイテムを設定
+            var slotSize = playerInventory.MainOpenableInventory.GetSlotSize();
             var mainItems = new List<ItemMessagePack>();
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            for (var i = 0; i < slotSize; i++)
             {
                 var id = playerInventory.MainOpenableInventory.GetItem(i).Id;
                 var count = playerInventory.MainOpenableInventory.GetItem(i).Count;
