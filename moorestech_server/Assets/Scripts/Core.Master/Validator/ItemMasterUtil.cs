@@ -16,6 +16,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += ModulesValidation();
             errorLogs += LevelFamiliesValidation();
+            errorLogs += StackLevelTableValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -103,6 +104,30 @@ namespace Core.Master.Validator
                         }
                     }
                 }
+
+                return logs;
+            }
+
+            string StackLevelTableValidation()
+            {
+                // 空配列・1未満のスタック数・アイテムからの参照先テーブル実在を検証
+                // Validate empty arrays, sub-1 counts, and that each item references an existing table
+                var logs = "";
+                if (items.ItemStackLevelTables == null) return logs;
+
+                var tableGuids = new HashSet<Guid>();
+                foreach (var table in items.ItemStackLevelTables)
+                {
+                    tableGuids.Add(table.TableGuid);
+                    if (table.StackCounts.Length == 0)
+                        logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has empty StackCounts\n";
+                    foreach (var count in table.StackCounts)
+                        if (count < 1)
+                            logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has invalid StackCount:{count} (must be >= 1)\n";
+                }
+                foreach (var item in items.Data)
+                    if (!tableGuids.Contains(item.StackLevelTableGuid))
+                        logs += $"[ItemMaster.data] Name:{item.Name} references missing StackLevelTableGuid:{item.StackLevelTableGuid}\n";
 
                 return logs;
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Mooresmaster.Model.GameActionModule;
 using UniRx;
 
 namespace Core.Item
@@ -47,6 +48,24 @@ namespace Core.Item
 
             _unlockedLevels[itemGuid] = clamped;
             _onStackLevelUnlocked.OnNext((itemGuid, clamped));
+        }
+
+        // clearedActions配列からunlockItemStackLevelだけを適用する（サーバー実行・クライアント導出の共通入口）
+        // Apply only unlockItemStackLevel from a clearedActions array (shared by server execution and client derivation)
+        public void ApplyUnlockItemStackLevelActions(GameActionElement[] actions)
+        {
+            if (actions == null) return;
+            foreach (var action in actions) ApplyUnlockItemStackLevelAction(action);
+        }
+
+        public void ApplyUnlockItemStackLevelAction(GameActionElement action)
+        {
+            if (action.GameActionType != GameActionElement.GameActionTypeConst.unlockItemStackLevel) return;
+            var param = (UnlockItemStackLevelGameActionParam)action.GameActionParam;
+            foreach (var itemGuid in param.TargetItemGuids)
+            {
+                UnlockStackLevel(itemGuid, param.Level);
+            }
         }
 
         #region SaveLoad
