@@ -17,6 +17,7 @@ items:
     - unlockMachineRecipe
     - playSkit
     - playBackgroundSkit
+    - unlockItemStackLevel
   - key: gameActionParam
     switch: ./gameActionType
     cases:
@@ -112,4 +113,19 @@ items:
         type: enum
         options:
           - normal
-          - background 
+          - background
+    - when: unlockItemStackLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: targetItemGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+      - key: level
+        type: integer
+        default: 2 
