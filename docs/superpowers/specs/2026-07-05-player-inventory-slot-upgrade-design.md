@@ -49,6 +49,12 @@ enum `gameActionType` に `unlockPlayerInventorySlotLevel` を追加。パラメ
 
 ## 2. サーバー状態管理
 
+### レイヤリング制約（重要）
+
+- **Core.Master（ItemMaster等）は変更しない。** プレイヤーインベントリはGame層のドメインであり、そのロジックをCore層に置くのは誤り
+- レベル→スロット数の解決は Game.PlayerInventory.Interface の `PlayerInventorySlotLevelMasterUtil`（static）が担う。マスタ生成物へは既存の `MasterHolder.ItemMaster.Items`（public readonlyフィールド）を読むだけで、Core側への追加は行わない
+- イベントはC# eventではなくUniRx（`IObservable<T>` + `Subject<T>`）を使う
+
 ### 新規store: PlayerInventorySlotLevelDataStore（Game.PlayerInventory）
 
 グローバル（ワールド共通）の単一レベル値を保持する。
