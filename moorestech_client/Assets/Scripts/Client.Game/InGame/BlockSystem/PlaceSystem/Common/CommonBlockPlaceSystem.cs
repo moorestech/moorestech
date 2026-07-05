@@ -201,7 +201,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 // 設置は選択中ホットバースロット1枠からのみ消費されるため、その枠の所持数で判定する
                 // Placement consumes only from the selected hotbar slot, so judge by that slot's count
-                var holdingSlotIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(context.CurrentSelectHotbarSlotIndex);
+                var holdingSlotIndex = _localPlayerInventory.GetHotBarInventorySlot(context.CurrentSelectHotbarSlotIndex);
                 var availableCount = _localPlayerInventory[holdingSlotIndex].Count;
 
                 // 設置可能なブロック数をカウントし、所持数を超えたら設置不可にする

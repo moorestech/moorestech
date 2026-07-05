@@ -96,7 +96,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 return localType switch
                 {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
+                    LocalMoveInventoryType.MainOrSub => localSlot < _localPlayerInventory.MainSlotCount
                         ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
                         : _subInventory.ISubInventoryIdentifier.ToMessagePack(),
                     LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
@@ -108,9 +108,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 return localType switch
                 {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
+                    LocalMoveInventoryType.MainOrSub => localSlot < _localPlayerInventory.MainSlotCount
                         ? localSlot
-                        : localSlot - PlayerInventoryConst.MainInventorySize,
+                        : localSlot - _localPlayerInventory.MainSlotCount,
                     LocalMoveInventoryType.Grab => 0,
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };
@@ -138,6 +138,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public void SetMainItem(int slot, IItemStack itemStack)
         {
+            // 範囲外スロットの通知はレベルアップによる拡張なので末尾まで成長させる
+            // An out-of-range slot notification means a level-up expansion, so grow to that slot
+            if (slot >= _localPlayerInventory.MainSlotCount) _localPlayerInventory.EnsureMainSlotCount(slot + 1);
             _localPlayerInventory[slot] = itemStack;
         }
         
