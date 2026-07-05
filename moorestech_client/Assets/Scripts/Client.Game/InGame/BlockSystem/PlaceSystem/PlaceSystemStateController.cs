@@ -7,14 +7,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         private readonly PlaceSystemSelector _placeSystemSelector;
         private readonly HotBarView _hotBarView;
-        
+        private readonly BlockPlacementSelection _blockPlacementSelection;
+
         private IPlaceSystem _currentPlaceSystem;
         private int _lastSelectHotBarSlot;
-        
-        public PlaceSystemStateController(HotBarView hotBarView, PlaceSystemSelector placeSystemSelector)
+
+        public PlaceSystemStateController(HotBarView hotBarView, PlaceSystemSelector placeSystemSelector, BlockPlacementSelection blockPlacementSelection)
         {
             _hotBarView = hotBarView;
             _placeSystemSelector = placeSystemSelector;
+            _blockPlacementSelection = blockPlacementSelection;
             
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
             Disable();
@@ -53,7 +55,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     _hotBarView.CurrentItem.Id,
                     isSelectSlotChanged,
                     _lastSelectHotBarSlot,
-                    selectIndex
+                    selectIndex,
+                    _blockPlacementSelection.SelectedBlockId
                 );
                 
                 _lastSelectHotBarSlot = selectIndex;
