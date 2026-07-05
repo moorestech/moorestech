@@ -7,7 +7,6 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
 

@@ -9,8 +9,8 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.InventoryConnectsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -229,7 +229,7 @@ namespace Tests.CombinedTest.Core
             var component = splitter.GetComponent<VanillaFilterSplitterComponent>();
 
             var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FilterSplitter).BlockParam as FilterSplitterBlockParam;
-            var outputs = param.InventoryConnectors.OutputConnects.items;
+            var outputs = param.InventoryConnectors.OutputConnects;
 
             var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)splitter.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
             connectedTargets.Clear();
@@ -237,8 +237,8 @@ namespace Tests.CombinedTest.Core
             var dummies = new DummyBlockInventory[outputs.Length];
             for (var i = 0; i < outputs.Length; i++)
             {
-                var selfConnector = new BlockConnectInfoElement(i, "Inventory", outputs[i].ConnectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
-                var targetConnector = new BlockConnectInfoElement(i + 100, "Inventory", Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), null);
+                var selfConnector = new OutputConnectsElement(i, outputs[i].ConnectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
+                var targetConnector = new OutputConnectsElement(i + 100, Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>());
                 dummies[i] = new DummyBlockInventory();
                 connectedTargets.Add(dummies[i], new ConnectedInfo(selfConnector, targetConnector, null));
             }

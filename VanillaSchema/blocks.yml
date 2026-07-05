@@ -4,6 +4,18 @@
 id: blocks
 type: object
 isDefaultOpen: true
+globalDefineInterface:
+- interfaceName: IBlockConnector
+  properties:
+  - key: connectorGuid
+    type: uuid
+  - key: offset
+    type: vector3Int
+  - key: directions
+    type: array
+    optional: true
+    items:
+      type: vector3Int
 defineInterface:
 - interfaceName: IMachineParam
   properties:

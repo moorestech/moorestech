@@ -7,7 +7,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Pump
@@ -74,17 +74,21 @@ namespace Game.Block.Blocks.Pump
             {
                 _tank.FluidId = FluidMaster.EmptyFluidId;
             }
+
+            #region Internal
+
+            double GetFlowRate(ConnectedInfo info)
+            {
+                if (info.SelfConnector is IFluidConnector fluidConnector)
+                {
+                    return fluidConnector.Option.FlowCapacity;
+                }
+                throw new ArgumentException("FluidConnectOption is not set on connector");
+            }
+
+            #endregion
         }
 
-        private static double GetFlowRate(ConnectedInfo info)
-        {
-            if (info.SelfConnector?.ConnectOption is FluidConnectOption option)
-            {
-                return option.FlowCapacity;
-            }
-            throw new ArgumentException("FluidConnectOption is not set on connector");
-        }
-        
         public void EnqueueGeneratedFluid(FluidStack fluidStack)
         {
             _tank.AddLiquid(fluidStack, FluidContainer.Empty);
