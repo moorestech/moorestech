@@ -118,7 +118,10 @@ namespace Core.Master.Validator
                 var tableGuids = new HashSet<Guid>();
                 foreach (var table in items.ItemStackLevelTables)
                 {
-                    tableGuids.Add(table.TableGuid);
+                    // TableGuid重複はInitializeのDictionary.Addが生の例外で落ちるため検証で弾く
+                    // Duplicate TableGuid would throw raw in Initialize's Dictionary.Add, so reject it here
+                    if (!tableGuids.Add(table.TableGuid))
+                        logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has duplicate TableGuid:{table.TableGuid}\n";
                     if (table.StackCounts.Length == 0)
                         logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has empty StackCounts\n";
                     foreach (var count in table.StackCounts)

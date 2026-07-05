@@ -135,7 +135,13 @@ namespace Core.Master.Validator
                         }
                         case UnlockItemStackLevelGameActionParam unlockItemStackLevel:
                         {
-                            if (unlockItemStackLevel.TargetItemGuids == null) break;
+                            // TargetItemGuidsがnullだと実行側が無ガードで走査し実行時NREになるため検証で弾く
+                            // Null TargetItemGuids would NRE the unguarded runtime foreach, so reject it in validation
+                            if (unlockItemStackLevel.TargetItemGuids == null)
+                            {
+                                localErrors += $"[ResearchMaster] Research:{researchName} has invalid (null) ClearedAction.TargetItemGuids\n";
+                                break;
+                            }
                             foreach (var itemGuid in unlockItemStackLevel.TargetItemGuids)
                             {
                                 // 対象アイテムの実在を検証
@@ -147,13 +153,13 @@ namespace Core.Master.Validator
                                     continue;
                                 }
 
-                                // 解放レベルがスタックテーブル長を超えていないか検証
-                                // Validate that the unlock level does not exceed the stack table length
+                                // 解放レベルが1以上かつスタックテーブル長を超えていないか検証
+                                // Validate that the unlock level is at least 1 and does not exceed the stack table length
                                 var element = MasterHolder.ItemMaster.GetItemMaster(itemId.Value);
                                 var table = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid);
-                                if (unlockItemStackLevel.Level > table.StackCounts.Length)
+                                if (unlockItemStackLevel.Level < 1 || table.StackCounts.Length < unlockItemStackLevel.Level)
                                 {
-                                    localErrors += $"[ResearchMaster] Research:{researchName} unlockItemStackLevel Level:{unlockItemStackLevel.Level} exceeds table length:{table.StackCounts.Length} for ItemGuid:{itemGuid}\n";
+                                    localErrors += $"[ResearchMaster] Research:{researchName} unlockItemStackLevel Level:{unlockItemStackLevel.Level} out of range [1,{table.StackCounts.Length}] for ItemGuid:{itemGuid}\n";
                                 }
                             }
                             break;
