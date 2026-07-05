@@ -48,3 +48,22 @@
 - `RemoveBlockProtocol`のGetBlockMaster二重呼び＋itemIdフォールバック → プラン5のフォールバック削除時に整理
 - 新規マスタバリデータ4種のmutationテスト（不正マスタを食わせるテスト基盤が無い）→ 任意
 - unlockTrainCarGuidsのエディタ表示がGUID生値（車両にnameフィールドが無い）→ 車両name追加は別件
+
+## プラン2完了に伴う追記（2026-07-05）
+
+プラン2（本番マスタ正式移行）完了。moorestech_master ブランチ `plan2-master-migration`（b191737）、移行スクリプトは `tools/plan2_migration/migrate.py`（非冪等・適用済み。追補時の参考実装）。
+
+### プラン4への申し送り
+- **requiredItems未投入の除外9ブロック+車両3種**: blockType TrainRail(レール橋脚)/TrainStation/TrainItemPlatform/TrainFluidPlatform/ElectricPole×3/GearChainPole×2 と train.json trainCars。5プロトコル改修と同時に requiredItems を投入し、対応する素材レシピ（存続10件のうち9件）を削除する追補スクリプトを書くこと（migrate.py は適用済みデータ上で再実行不可）
+- 除外ブロックは現状「research解放後は無償設置＋アイテムレシピも並行存在」の暫定状態
+- unlockTrainCar は投入済み（鉄道の時代×2・ディーゼル機関車研究×1）。プラン4のクライアント車両メニューはこの解放状態を参照できる
+
+### プラン5への申し送り
+- ブロックアイテム削除時: (a) 木のシャフト素材レシピ98b86740の扱い（機械レシピ「原始的な加工機→鉄のロッド」が木のシャフトを材料参照。アイテム削除なら機械レシピ側の材料置換が必要）、(b) ビルドメニューのアイコンは itemGuid→ItemImageContainer 経由のまま。item imagePath は全件空文字のため、blocks側 imagePath への画像パス整備 or 別のアイコン解決が必要、(c) category も未投入（クライアント未使用のため）
+- 木のシャフトのみ「craftコスト==建設コスト」の往復中立でアイテム経路が残存（増殖なし・ただしバランス調整でコスト乖離させると増殖経路化するので注意）
+
+### 既知の残事象
+- 既存セーブ: research完了済みでも clearedActions は再実行されないため、旧セーブではブロック未解放の可能性。新規セーブでの確認を正とする（逆に暫定解放期間中のセーブは解放済みのまま残る可能性もあり、どちらも実害は開発段階では許容）
+- moorestech_master の local master(cd5fc11) が e5e144b から先行分岐しており、plan2-master-migration（e5e144b→8beb0f2→...→b191737）とのマージ/リベース整理が未実施
+- MapObject guid e76e6b65 がマップに存在するがマスタ未定義のInfoログ多数（プラン2以前からの既存事象・変更範囲外）
+- 燃料式風車の unlockBlock が4研究ノードに重複出現（旧giveItem×3の置換由来。解放は冪等なので実害なし、データ整理は任意）
