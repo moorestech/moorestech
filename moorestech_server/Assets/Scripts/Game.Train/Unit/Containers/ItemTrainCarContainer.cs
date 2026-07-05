@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Core.Inventory;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -89,7 +90,7 @@ namespace Game.Train.Unit.Containers
 
         public bool IsFull()
         {
-            return _itemDataStoreService.InventoryItems.All(stack => stack.Id != ItemMaster.EmptyItemId && stack.Count >= MasterHolder.ItemMaster.GetItemMaster(stack.Id).MaxStack);
+            return _itemDataStoreService.InventoryItems.All(stack => stack.Id != ItemMaster.EmptyItemId && stack.Count >= ItemStackLevelDataStore.Instance.GetMaxStack(stack.Id));
         }
 
         public bool IsEmpty()

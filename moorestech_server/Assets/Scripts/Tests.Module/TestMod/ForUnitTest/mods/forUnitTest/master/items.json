@@ -1,7 +1,6 @@
 {
     "data": [
         {
-            "maxStack": 100,
             "name": "Test1",
             "itemGuid": "00000000-0000-0000-1234-000000000001",
             "imagePath": "Test1",
@@ -11,7 +10,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 50,
             "name": "Test2",
             "itemGuid": "00000000-0000-0000-1234-000000000002",
             "imagePath": "Test2",
@@ -21,7 +19,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 300,
             "name": "Test3",
             "itemGuid": "00000000-0000-0000-1234-000000000003",
             "imagePath": "Test1",
@@ -31,7 +28,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Test4",
             "itemGuid": "00000000-0000-0000-1234-000000000004",
             "imagePath": "Test1",
@@ -41,7 +37,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 200,
             "name": "Test5",
             "itemGuid": "00000000-0000-0000-1234-000000000005",
             "imagePath": "Test1",
@@ -51,7 +46,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Test6",
             "itemGuid": "00000000-0000-0000-1234-000000000006",
             "imagePath": "Test1",
@@ -61,7 +55,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Test7",
             "itemGuid": "00000000-0000-0000-1234-000000000007",
             "imagePath": "Test1",
@@ -71,7 +64,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Test8",
             "itemGuid": "00000000-0000-0000-1234-000000000008",
             "imagePath": "Test1",
@@ -81,7 +73,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Test9",
             "itemGuid": "00000000-0000-0000-1234-000000000009",
             "imagePath": "Test1",
@@ -91,7 +82,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Test10",
             "itemGuid": "00000000-0000-0000-1234-000000000010",
             "imagePath": "Test1",
@@ -101,7 +91,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Test11",
             "itemGuid": "00000000-0000-0000-1234-000000000011",
             "imagePath": "Test1",
@@ -111,7 +100,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "tree",
             "itemGuid": "00000000-0000-0000-1234-000000000012",
             "imagePath": "Test1",
@@ -121,7 +109,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "stone",
             "itemGuid": "00000000-0000-0000-1234-000000000013",
             "imagePath": "Test1",
@@ -131,7 +118,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "SmallTestGear",
             "itemGuid": "00000000-0000-0000-1234-000000000014",
             "imagePath": "Test1",
@@ -141,7 +127,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "BigTestGear",
             "itemGuid": "16000000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -151,7 +136,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestShaft",
             "itemGuid": "17000000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -161,7 +145,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestGearMachine",
             "itemGuid": "18000000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -171,7 +154,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestSimpleGearGenerator",
             "itemGuid": "19000000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -181,7 +163,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestFastSimpleGearGenerator",
             "itemGuid": "11100000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -191,7 +172,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "SmallRequireTorqueTestGear",
             "itemGuid": "11200000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -201,7 +181,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "BigRequireTorqueTestGear",
             "itemGuid": "11300000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -211,7 +190,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "InfinityTestSimpleGearGenerator",
             "itemGuid": "11400000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -221,7 +199,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "GearBeltConveyor",
             "itemGuid": "11800000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -231,7 +208,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "SmallGearBeltConveyor",
             "itemGuid": "30000000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -241,7 +217,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestElectricMachine1",
             "itemGuid": "11900000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -251,7 +226,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestElectricMachine2",
             "itemGuid": "12010000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -261,7 +235,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestElectricMachine3",
             "itemGuid": "12102000-0000-0000-0000-000000000000",
             "imagePath": "Test1",
@@ -271,7 +244,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "GearMiner",
             "imagePath": "Test1",
             "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f",
@@ -281,7 +253,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Chainer - A",
             "itemGuid": "189672cb-6811-4080-bde1-1f9ff0ec63ff",
             "sortPriority": 100,
@@ -290,7 +261,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Chainer - B",
             "itemGuid": "547791fe-bfd8-4748-aafa-c7449391eca5",
             "sortPriority": 100,
@@ -299,7 +269,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "Chainer - C",
             "itemGuid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627",
             "sortPriority": 100,
@@ -308,7 +277,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestTrainRail",
             "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
             "sortPriority": 100,
@@ -317,7 +285,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestTrainStation",
             "itemGuid": "9bdfa843-d4ee-4033-a61c-538bb9aaa21d",
             "sortPriority": 100,
@@ -326,7 +293,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestTrainItemPlatform",
             "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
             "sortPriority": 100,
@@ -336,7 +302,6 @@
         },
         {
             "name": "TestGearMapObjectMiner",
-            "maxStack": 100,
             "imagePath": "",
             "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
             "sortPriority": 100,
@@ -345,7 +310,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "FluidPipe",
             "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
             "sortPriority": 100,
@@ -354,7 +318,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "OneWayFluidPipe",
             "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
             "sortPriority": 100,
@@ -371,7 +334,6 @@
             "recipeViewType": "Default",
             "initialUnlocked": true,
             "sortPriority": 100,
-            "maxStack": 100,
             "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
             "name": "FluidMachine",
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
@@ -385,7 +347,6 @@
             "recipeViewType": "Default",
             "initialUnlocked": true,
             "sortPriority": 100,
-            "maxStack": 100,
             "name": "SimpleGearGenerator",
             "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
@@ -394,7 +355,6 @@
             "itemGuid": "913fc0e2-2de2-4597-b6c5-e8912994372b",
             "imagePath": "",
             "name": "BaseCamp1",
-            "maxStack": 100,
             "sortPriority": 700,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -405,7 +365,6 @@
             "itemGuid": "344879fd-ee1b-4ff4-93ce-a606016eae61",
             "imagePath": "",
             "name": "BaseCamp2",
-            "maxStack": 100,
             "sortPriority": 710,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -416,7 +375,6 @@
             "itemGuid": "cac50667-3c2b-4641-a481-1545b265a108",
             "imagePath": "",
             "name": "BaseTransformedBlock",
-            "maxStack": 100,
             "sortPriority": 720,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -427,7 +385,6 @@
             "itemGuid": "c9715726-11d8-4e3f-a925-f460956f3505",
             "imagePath": "",
             "name": "GearPump",
-            "maxStack": 100,
             "sortPriority": 730,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -438,7 +395,6 @@
             "itemGuid": "0393ee28-cec8-4a37-94bd-15d79e027721",
             "imagePath": "",
             "name": "ElectricPump",
-            "maxStack": 100,
             "sortPriority": 735,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -449,7 +405,6 @@
             "itemGuid": "11110000-0000-0000-0000-000000000000",
             "imagePath": "",
             "name": "TestGearToElectricGenerator",
-            "maxStack": 100,
             "sortPriority": 740,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -460,7 +415,6 @@
             "itemGuid": "11110009-0000-0000-0000-000000000000",
             "imagePath": "",
             "name": "TestElectricToGearGenerator",
-            "maxStack": 100,
             "sortPriority": 741,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -471,7 +425,6 @@
             "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
             "imagePath": "",
             "name": "GearChainPole",
-            "maxStack": 100,
             "sortPriority": 745,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -482,7 +435,6 @@
             "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
             "imagePath": "",
             "name": "Chain",
-            "maxStack": 100,
             "sortPriority": 746,
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
@@ -490,7 +442,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 1,
             "name": "TestTrainCar",
             "itemGuid": "20000000-0000-0000-0000-000000000000",
             "imagePath": "TestTrainCar",
@@ -504,7 +455,6 @@
             "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
             "imagePath": "",
             "name": "GearBeltConveyorSplitter",
-            "maxStack": 100,
             "sortPriority": 820,
             "initialUnlocked": false,
             "recipeViewType": "IsUnlocked",
@@ -518,7 +468,6 @@
             "itemGuid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
             "imagePath": "",
             "name": "TestTrainFluidPlatform",
-            "maxStack": 100,
             "sortPriority": 830,
             "initialUnlocked": false,
             "recipeViewType": "IsUnlocked",
@@ -532,7 +481,6 @@
             "itemGuid": "00000000-0000-0000-1234-000000000031",
             "imagePath": "",
             "name": "TestFilterSplitter",
-            "maxStack": 100,
             "sortPriority": 840,
             "initialUnlocked": false,
             "recipeViewType": "IsUnlocked",
@@ -543,7 +491,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 300,
             "name": "Test3Lv2",
             "itemGuid": "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
             "imagePath": "Test1",
@@ -553,7 +500,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 300,
             "name": "Test3Lv3",
             "itemGuid": "adf11728-e5e7-b180-b6e1-7396d29e787d",
             "imagePath": "Test1",
@@ -563,7 +509,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestGearBeltConveyorUp",
             "itemGuid": "11800000-0000-0000-0000-0000000000a1",
             "imagePath": "Test1",
@@ -573,7 +518,6 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
-            "maxStack": 100,
             "name": "TestGearBeltConveyorDown",
             "itemGuid": "11800000-0000-0000-0000-0000000000a2",
             "imagePath": "Test1",

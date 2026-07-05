@@ -18,9 +18,9 @@ namespace Core.Item.Implementation
             if (id == ItemMaster.EmptyItemId) throw new ArgumentException("Item id cannot be null");
             if (count < 1) throw new ArgumentOutOfRangeException();
             
-            var itemMaster = MasterHolder.ItemMaster.GetItemMaster(id);
-            if (itemMaster.MaxStack < count)
-                throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{itemMaster.MaxStack}");
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(id);
+            if (maxStack < count)
+                throw new ArgumentOutOfRangeException($"アイテムスタック数の最大値を超えています ID:{id} Count:{count} MaxStack:{maxStack}");
             
             Id = id;
             Count = count;
@@ -53,7 +53,7 @@ namespace Core.Item.Implementation
             
             
             var newCount = ((ItemStack)receiveItemStack).Count + Count;
-            var tmpStack = MasterHolder.ItemMaster.GetItemMaster(Id).MaxStack;
+            var tmpStack = ItemStackLevelDataStore.Instance.GetMaxStack(Id);
             
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
@@ -77,7 +77,7 @@ namespace Core.Item.Implementation
         
         public bool IsAllowedToAdd(IItemStack item)
         {
-            var tmpStack = MasterHolder.ItemMaster.GetItemMaster(Id).MaxStack;
+            var tmpStack = ItemStackLevelDataStore.Instance.GetMaxStack(Id);
             
             return (Id == item.Id || item.Id == ItemMaster.EmptyItemId) &&
                    item.Count + Count <= tmpStack;

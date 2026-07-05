@@ -22,9 +22,6 @@ properties:
       optional: true
     - key: name
       type: string
-    - key: maxStack
-      type: integer
-      default: 100
     - key: sortPriority
       type: number
       optional: true

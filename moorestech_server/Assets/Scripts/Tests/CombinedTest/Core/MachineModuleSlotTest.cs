@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
@@ -103,8 +104,8 @@ namespace Tests.CombinedTest.Core
 
             // インプットを満杯にしてさらに挿入しても、モジュールスロットへ溢れないことを確認
             // Fill the input range completely; further inserts must not overflow into module slots
-            var item1MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(1)).MaxStack;
-            var item2MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(2)).MaxStack;
+            var item1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(1));
+            var item2MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(2));
             inventory.SetItem(0, itemStackFactory.Create(new ItemId(1), item1MaxStack));
             inventory.SetItem(1, itemStackFactory.Create(new ItemId(2), item2MaxStack));
 
@@ -301,7 +302,7 @@ namespace Tests.CombinedTest.Core
             // アウトプットを「ベース1セットは入るが追加セットは入らない」量まで埋める
             // Fill outputs so one base set fits but the extra set does not
             var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(outputItemId).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(outputItemId);
             foreach (var inventory in new[] { modInventory, ctrlInventory })
             {
                 inventory.SetItem(InputSlotCount, itemStackFactory.Create(outputItemId, maxStack));
