@@ -74,6 +74,13 @@ namespace Client.Game.InGame.UI.UIState
             if (_isCefActive) InputManager.MouseCursorVisible(true);
         }
 
+        private void OnDestroy()
+        {
+            // シーンアンロード等でCEF表示中に破棄されるとゲートがtrueのまま残り、次シーンの遷移・カメラが止まるため解除する
+            // If destroyed while CEF is active (e.g. scene unload) the gate would stay true and freeze the next scene's transitions/camera, so release it
+            if (_appliedCefActive) WebUiScreenGate.SetCefActive(false);
+        }
+
         private void ApplyState()
         {
             // CEFルートの表示を切り替える
