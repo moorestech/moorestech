@@ -96,7 +96,7 @@ namespace Server.Protocol.PacketResponse
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
                 if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0)
                 {
-                    result.AddRange(ConstructionCostService.CreateRefundItems(blockMaster.RequiredItems));
+                    result.AddRange(ConstructionCostService.CreateRefundItems(ConstructionCostService.ToItemCounts(blockMaster.RequiredItems)));
                 }
                 else
                 {
