@@ -58,7 +58,7 @@
 - Modify: `/Users/katsumi/moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/placeSystem.json`（既存4エントリへのplaceParam:{}追加のみ。BeltConveyorエントリ追加はTask 7）
 
 **Interfaces:**
-- Produces: `Mooresmaster.Model.PlaceSystemModule` に生成される `PlaceSystemMasterElement.PlaceParam` プロパティと `BeltConveyorPlaceParam` クラス（`UpBlockGuid: Guid`, `DownBlockGuid: Guid`, `StraightBlockGuids: Guid[]`）。※生成名はSourceGeneratorの命名規則に従うため、再生成後にStep 4で実名を確認し、以降のタスクで差異があれば読み替えること
+- Produces: `Mooresmaster.Model.PlaceSystemModule` に生成される `PlaceSystemMasterElement.PlaceParam` プロパティと `BeltConveyorPlaceParam` クラス（`UpBlockGuid: Guid`, `DownBlockGuid: Guid`, `StraightBlocks: StraightBlocksElement[]` — 各要素は`Length: int`と`BlockGuid: Guid`）。※生成名はSourceGeneratorの命名規則に従うため、再生成後にStep 4で実名を確認し、以降のタスクで差異があれば読み替えること
 
 - [ ] **Step 1: edit-schemaスキルを読む**
 
@@ -125,17 +125,22 @@
             schemaId: blocks
             foreignKeyIdPath: /data/[*]/blockGuid
             displayElementPath: /data/[*]/name
-        - key: straightBlockGuids
+        - key: straightBlocks
           type: array
           items:
-            type: uuid
-            foreignKey:
-              schemaId: blocks
-              foreignKeyIdPath: /data/[*]/blockGuid
-              displayElementPath: /data/[*]/name
+            type: object
+            properties:
+            - key: length
+              type: integer
+            - key: blockGuid
+              type: uuid
+              foreignKey:
+                schemaId: blocks
+                foreignKeyIdPath: /data/[*]/blockGuid
+                displayElementPath: /data/[*]/name
 ```
 
-設計メモ: 長さ（Nマス）はマスターに持たせず、各直線ブロックの`blockSize.z`から導出する（冗長性と不整合を排除）。バリデーションはStep 6で追加。
+設計メモ: 長さ（Nマス）は**マスターの`length`フィールドで明示設定する**（blockSizeからの導出はしない）。設置ストライドとデコンポーザの割当はこの`length`が正。blockSizeとの食い違いはStep 6のバリデーションでデータ不整合エラーとして検出する。
 
 - [ ] **Step 3: 全placeSystem.jsonデータに placeParam を追加**
 
@@ -163,7 +168,7 @@ Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件。その後、生成された型名を確認する:
 
 Run: `grep -rn "class.*PlaceParam" /Users/katsumi/moorestech/moorestech_client/Library/ --include="*.cs" -l 2>/dev/null | head -3` で生成物を探すか、`uloop execute-dynamic-code` で `typeof(Mooresmaster.Model.PlaceSystemModule.PlaceSystemMasterElement).GetProperty("PlaceParam")` と `BeltConveyorPlaceParam` 型の存在・プロパティ名を確認。
-Expected: `PlaceParam`プロパティと`BeltConveyorPlaceParam`型（`UpBlockGuid`/`DownBlockGuid`/`StraightBlockGuids`）。名前が想定と違う場合は以降のタスクで読み替え。
+Expected: `PlaceParam`プロパティと`BeltConveyorPlaceParam`型（`UpBlockGuid`/`DownBlockGuid`/`StraightBlocks`。要素に`Length`/`BlockGuid`）。名前が想定と違う場合は以降のタスクで読み替え。
 
 - [ ] **Step 5: テスト用masterに歯車ベルト2連/3連ブロックとBeltConveyorエントリを追加**
 
@@ -194,10 +199,10 @@ public static readonly BlockId GearBeltConveyor3 = GetBlockId("00000000-0000-000
       "placeParam": {
         "upBlockGuid": "00000000-0000-0000-1234-0000000000a1",
         "downBlockGuid": "00000000-0000-0000-1234-0000000000a2",
-        "straightBlockGuids": [
-          "00000000-0000-0000-1234-000000000015",
-          "00000000-0000-0000-1234-0000000000a3",
-          "00000000-0000-0000-1234-0000000000a4"
+        "straightBlocks": [
+          { "length": 1, "blockGuid": "00000000-0000-0000-1234-000000000015" },
+          { "length": 2, "blockGuid": "00000000-0000-0000-1234-0000000000a3" },
+          { "length": 3, "blockGuid": "00000000-0000-0000-1234-0000000000a4" }
         ]
       }
     }
@@ -223,19 +228,24 @@ string BeltConveyorParamValidation()
 
         var lengthOneCount = 0;
         var seenLengths = new HashSet<int>();
-        foreach (var straightGuid in param.StraightBlockGuids)
+        foreach (var straightBlock in param.StraightBlocks)
         {
-            logs += ValidateBlockGuidExists(straightGuid, "straightBlockGuids");
-            var block = blockMaster.Blocks.Data.FirstOrDefault(b => b.BlockGuid == straightGuid);
+            logs += ValidateBlockGuidExists(straightBlock.BlockGuid, "straightBlocks");
+            var block = blockMaster.Blocks.Data.FirstOrDefault(b => b.BlockGuid == straightBlock.BlockGuid);
             if (block == null) continue;
 
-            // 直線ブロックは1x1xNサイズ必須、長さ重複禁止
-            // Straight blocks must be 1x1xN and each length must be unique
-            if (block.BlockSize[0] != 1 || block.BlockSize[1] != 1)
-                logs += $"[PlaceSystemMaster] BeltConveyor straight block {block.Name} must be 1x1xN size\n";
-            if (!seenLengths.Add(block.BlockSize[2]))
-                logs += $"[PlaceSystemMaster] BeltConveyor duplicated length:{block.BlockSize[2]} block:{block.Name}\n";
-            if (block.BlockSize[2] == 1) lengthOneCount++;
+            // lengthは1以上・重複禁止・length==1がちょうど1件
+            // Length must be >=1, unique, and exactly one length-1 entry must exist
+            if (straightBlock.Length < 1)
+                logs += $"[PlaceSystemMaster] BeltConveyor straight block {block.Name} has invalid length:{straightBlock.Length}\n";
+            if (!seenLengths.Add(straightBlock.Length))
+                logs += $"[PlaceSystemMaster] BeltConveyor duplicated length:{straightBlock.Length} block:{block.Name}\n";
+            if (straightBlock.Length == 1) lengthOneCount++;
+
+            // マスターのlengthとblockSizeの食い違いはデータ不整合として検出
+            // Mismatch between master length and blockSize is reported as a data error
+            if (block.BlockSize[0] != 1 || block.BlockSize[1] != 1 || block.BlockSize[2] != straightBlock.Length)
+                logs += $"[PlaceSystemMaster] BeltConveyor straight block {block.Name} blockSize must be [1,1,{straightBlock.Length}]\n";
         }
         if (lengthOneCount != 1)
             logs += "[PlaceSystemMaster] BeltConveyor entry must contain exactly one length-1 straight block\n";
@@ -273,8 +283,8 @@ cd /Users/katsumi/moorestech_master && git add -A && git commit -m "chore: place
 - Produces:
   - `bool TryGetFamily(BlockId blockId, out BeltConveyorPlaceParam param)`
   - `bool TryGetFamilyByGuid(Guid blockGuid, out BeltConveyorPlaceParam param)`
-  - `BlockId GetRepresentativeBlockId(BeltConveyorPlaceParam param)` — blockSize.z==1の直線ブロック
-  - `List<(int length, BlockId blockId)> GetStraightVariantsDesc(BeltConveyorPlaceParam param)` — 長さ降順
+  - `BlockId GetRepresentativeBlockId(BeltConveyorPlaceParam param)` — マスター定義`length==1`の直線ブロック
+  - `List<(int length, BlockId blockId)> GetStraightVariantsDesc(BeltConveyorPlaceParam param)` — マスター定義`length`の降順
   - `bool IsHiddenVariant(Guid blockGuid)` — ファミリー所属かつ代表Guidでない（up/down/長尺。self参照のファミリーでは常にfalse）
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -361,9 +371,9 @@ namespace Game.Block.Interface.Extension
                     beltParam = param;
                     return true;
                 }
-                foreach (var straightGuid in param.StraightBlockGuids)
+                foreach (var straightBlock in param.StraightBlocks)
                 {
-                    if (straightGuid != blockGuid) continue;
+                    if (straightBlock.BlockGuid != blockGuid) continue;
                     beltParam = param;
                     return true;
                 }
@@ -374,23 +384,23 @@ namespace Game.Block.Interface.Extension
 
         public static BlockId GetRepresentativeBlockId(BeltConveyorPlaceParam beltParam)
         {
-            // 代表はblockSize.z==1の直線ブロック（バリデータが1件のみを保証）
-            // The representative is the length-1 straight block (validator guarantees exactly one)
-            foreach (var straightGuid in beltParam.StraightBlockGuids)
+            // 代表はマスター定義length==1の直線ブロック（バリデータが1件のみを保証）
+            // The representative is the master-defined length-1 straight block (validator guarantees exactly one)
+            foreach (var straightBlock in beltParam.StraightBlocks)
             {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(straightGuid);
-                if (GetStraightLength(blockId) == 1) return blockId;
+                if (straightBlock.Length == 1) return MasterHolder.BlockMaster.GetBlockId(straightBlock.BlockGuid);
             }
             throw new InvalidOperationException("BeltConveyor entry has no length-1 straight block");
         }
 
         public static List<(int length, BlockId blockId)> GetStraightVariantsDesc(BeltConveyorPlaceParam beltParam)
         {
+            // 長さはマスター定義のlengthをそのまま使用する（blockSizeからは導出しない）
+            // Lengths come straight from the master-defined length field (never derived from blockSize)
             var variants = new List<(int length, BlockId blockId)>();
-            foreach (var straightGuid in beltParam.StraightBlockGuids)
+            foreach (var straightBlock in beltParam.StraightBlocks)
             {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(straightGuid);
-                variants.Add((GetStraightLength(blockId), blockId));
+                variants.Add((straightBlock.Length, MasterHolder.BlockMaster.GetBlockId(straightBlock.BlockGuid)));
             }
             variants.Sort((a, b) => b.length.CompareTo(a.length));
             return variants;
@@ -402,15 +412,10 @@ namespace Game.Block.Interface.Extension
             var representativeGuid = MasterHolder.BlockMaster.GetBlockMaster(GetRepresentativeBlockId(param)).BlockGuid;
             return blockGuid != representativeGuid;
         }
-
-        private static int GetStraightLength(BlockId blockId)
-        {
-            return MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize[2];
-        }
     }
 }
 ```
-（`BlockSize`がVector3Int型なら`.z`、int[]なら`[2]`。`MasterHolder.BlockMaster.GetBlockId(Guid)`が無い場合は既存のGuid→BlockId変換APIを`BlockMaster`から探して使用）
+（`StraightBlocks`要素の生成型名はTask 1 Step 4で確認した実名に合わせる。`MasterHolder.BlockMaster.GetBlockId(Guid)`が無い場合は既存のGuid→BlockId変換APIを`BlockMaster`から探して使用）
 
 - [ ] **Step 4: テストパス確認**
 
@@ -1196,7 +1201,7 @@ mooreseditor.appが起動中なら終了（起動中はJSON編集が数秒で書
    - `sortPriority`: 1連と同値（メニュー非表示のため実質不使用）
    - `initialUnlocked`: false
 3. **items.json**: 12隠しアイテムを追加（既存の`上り歯車ベルトコンベア`アイテムエントリ（itemGuid `45ab6580-83fa-4696-a4e4-10ed1be294c8`）をdeep-copyし、itemGuid=新規UUID・name=ブロックと同名に変更。プラン5でitemGuidフィールドごと削除される暫定措置）
-4. **placeSystem.json**: BeltConveyorエントリ7件を追加（priority 140〜200、usePlaceItems=[]、冒頭の表のとおり。基本土台と分岐器2種はup/down/straightsすべて自身のGuid）
+4. **placeSystem.json**: BeltConveyorエントリ7件を追加（priority 140〜200、usePlaceItems=[]、冒頭の表のとおり。`straightBlocks`は`{ "length": N, "blockGuid": ... }`形式で**長さを明示設定**する。例: 歯車ベルトは`[{length:1,1連Guid},{length:2,2連Guid},{length:3,3連Guid}]`、電気ベルトはlength 1〜5の5件。基本土台と分岐器2種はup/down=自身Guid・straightBlocks=`[{length:1, 自身Guid}]`）
 
 - [ ] **Step 3: 実行と検証**
 
