@@ -23,7 +23,7 @@
 | 永続化キー | GUID（ItemGuid等）。揮発int（ItemId/BlockId）禁止。マスタ由来値（容量・スロット数等）は保存せずロード時にマスタから導出 | `ItemStackSaveJsonObject.cs` |
 | グローバル最小状態の永続化 | レベル・カウント等の単一値は `WorldSaveAllInfoV1` に**素のフィールド（int等）で追加してよい**（JsonObjectで包むのはドメイン内に複数値がある場合）。冪等再実行で導出可能でも、ロード順都合での明示保存は正 | `WorldSaveAllInfoV1.cs` の `inventorySlotLevel`（承認済み設計） |
 | マスタ生成物へのアクセス | `MasterHolder.XxxMaster` の public readonly フィールド/メソッドを**読むだけ**。`Mooresmaster.Model.*` の手動作成・変更禁止 | `MasterHolder.cs`、AGENTS.md |
-| マスタ値のドメイン解釈 | 該当ドメインの `Game.Xxx.Interface` に static util | `Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`（スロットレベル機能） |
+| マスタ値のドメイン解釈 | 該当ドメインの `Game.Xxx.Interface` に static util | `Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`（承認済み設計・実装前。実装完了後に実在確認すること） |
 | 永続強化・アンロック | 冪等（unlock/set-max）。increment禁止（ロード時にclearedActions再実行されるため） | `ResearchDataStore.LoadResearchData` |
 | DI 登録 | `MoorestechServerDIContainerGenerator.cs` に AddSingleton | 同ファイル内の既存登録 |
 | 新プロトコル/同期 | 新設前に「既存同期情報から導出できないこと」を示す。作る場合は creating-server-protocol スキル | design-question-triage の導出可能テスト |
