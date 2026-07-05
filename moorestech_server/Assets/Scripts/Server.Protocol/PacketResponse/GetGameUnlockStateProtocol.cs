@@ -83,11 +83,31 @@ namespace Server.Protocol.PacketResponse
                 }
             }
 
+            // ブロックと列車車両のアンロック状態を取得
+            // Get block and train car unlock states
+            var lockedBlock = new List<string>();
+            var unlockedBlock = new List<string>();
+            foreach (var block in gameUnlockStateData.BlockUnlockStateInfos.Values)
+            {
+                if (block.IsUnlocked) unlockedBlock.Add(block.BlockGuid.ToString());
+                else lockedBlock.Add(block.BlockGuid.ToString());
+            }
+
+            var lockedTrainCar = new List<string>();
+            var unlockedTrainCar = new List<string>();
+            foreach (var trainCar in gameUnlockStateData.TrainCarUnlockStateInfos.Values)
+            {
+                if (trainCar.IsUnlocked) unlockedTrainCar.Add(trainCar.TrainCarGuid.ToString());
+                else lockedTrainCar.Add(trainCar.TrainCarGuid.ToString());
+            }
+
             return new ResponseGameUnlockStateProtocolMessagePack(
                 unlockedCraftRecipe, lockedCraftRecipe,
                 lockedItem, unlockedItem,
                 lockedChallengeCategory, unlockedChallengeCategory,
-                lockedMachineRecipe, unlockedMachineRecipe);
+                lockedMachineRecipe, unlockedMachineRecipe,
+                lockedBlock, unlockedBlock,
+                lockedTrainCar, unlockedTrainCar);
         }
         
         
@@ -111,6 +131,10 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public List<Guid> LockedCategoryChallengeGuids => LockedChallengeCategoryGuidsStr.Select(Guid.Parse).ToList();
             [IgnoreMember] public List<Guid> UnlockedMachineRecipeGuids => UnlockedMachineRecipeGuidsStr.Select(Guid.Parse).ToList();
             [IgnoreMember] public List<Guid> LockedMachineRecipeGuids => LockedMachineRecipeGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> UnlockedBlockGuids => UnlockedBlockGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> LockedBlockGuids => LockedBlockGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> UnlockedTrainCarGuids => UnlockedTrainCarGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> LockedTrainCarGuids => LockedTrainCarGuidsStr.Select(Guid.Parse).ToList();
 
             [Key(2)] public List<string> UnlockedCraftRecipeGuidsStr { get; set; }
             [Key(3)] public List<string> LockedCraftRecipeGuidsStr { get; set; }
@@ -124,6 +148,11 @@ namespace Server.Protocol.PacketResponse
             [Key(8)] public List<string> LockedMachineRecipeGuidsStr { get; set; }
             [Key(9)] public List<string> UnlockedMachineRecipeGuidsStr { get; set; }
 
+            [Key(10)] public List<string> LockedBlockGuidsStr { get; set; }
+            [Key(11)] public List<string> UnlockedBlockGuidsStr { get; set; }
+            [Key(12)] public List<string> LockedTrainCarGuidsStr { get; set; }
+            [Key(13)] public List<string> UnlockedTrainCarGuidsStr { get; set; }
+
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseGameUnlockStateProtocolMessagePack() { }
@@ -131,7 +160,9 @@ namespace Server.Protocol.PacketResponse
                 List<string> unlockedCraftRecipeGuidsStr, List<string> lockedCraftRecipeGuidsStr,
                 List<int> lockedItemIds, List<int> unlockedItemIds,
                 List<string> lockedChallengeCategoryGuidsStr, List<string> unlockedChallengeCategoryGuidsStr,
-                List<string> lockedMachineRecipeGuidsStr, List<string> unlockedMachineRecipeGuidsStr)
+                List<string> lockedMachineRecipeGuidsStr, List<string> unlockedMachineRecipeGuidsStr,
+                List<string> lockedBlockGuidsStr, List<string> unlockedBlockGuidsStr,
+                List<string> lockedTrainCarGuidsStr, List<string> unlockedTrainCarGuidsStr)
             {
                 Tag = ProtocolTag;
                 UnlockedCraftRecipeGuidsStr = unlockedCraftRecipeGuidsStr;
@@ -142,6 +173,10 @@ namespace Server.Protocol.PacketResponse
                 UnlockedChallengeCategoryGuidsStr = unlockedChallengeCategoryGuidsStr;
                 LockedMachineRecipeGuidsStr = lockedMachineRecipeGuidsStr;
                 UnlockedMachineRecipeGuidsStr = unlockedMachineRecipeGuidsStr;
+                LockedBlockGuidsStr = lockedBlockGuidsStr;
+                UnlockedBlockGuidsStr = unlockedBlockGuidsStr;
+                LockedTrainCarGuidsStr = lockedTrainCarGuidsStr;
+                UnlockedTrainCarGuidsStr = unlockedTrainCarGuidsStr;
             }
         }
     }
