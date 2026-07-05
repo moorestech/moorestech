@@ -815,7 +815,9 @@ namespace Game.UnlockState.Holders
             foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
             {
                 if (_infos.ContainsKey(block.BlockGuid)) continue;
-                _infos.Add(block.BlockGuid, new BlockUnlockStateInfo(block.BlockGuid, block.InitialUnlocked));
+                // InitialUnlockedはoptionalスキーマのためnull=falseとして扱う
+                // InitialUnlocked is an optional schema field; treat null as false
+                _infos.Add(block.BlockGuid, new BlockUnlockStateInfo(block.BlockGuid, block.InitialUnlocked ?? false));
             }
         }
 
@@ -877,7 +879,9 @@ namespace Game.UnlockState.Holders
             foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
             {
                 if (_infos.ContainsKey(trainCar.TrainCarGuid)) continue;
-                _infos.Add(trainCar.TrainCarGuid, new TrainCarUnlockStateInfo(trainCar.TrainCarGuid, trainCar.InitialUnlocked));
+                // InitialUnlockedはoptionalスキーマのためnull=falseとして扱う
+                // InitialUnlocked is an optional schema field; treat null as false
+                _infos.Add(trainCar.TrainCarGuid, new TrainCarUnlockStateInfo(trainCar.TrainCarGuid, trainCar.InitialUnlocked ?? false));
             }
         }
 
