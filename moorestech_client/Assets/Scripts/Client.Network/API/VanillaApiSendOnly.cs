@@ -49,7 +49,13 @@ namespace Client.Network.API
             var request = new PlaceBlockFromHotBarProtocol.SendPlaceHotBarBlockProtocolMessagePack(_playerId, hotBarSlot, placePositions);
             _packetSender.Send(request);
         }
-        
+
+        public void PlaceBlock(List<PlaceInfo> placePositions, BlockId blockId)
+        {
+            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(_playerId, blockId, placePositions);
+            _packetSender.Send(request);
+        }
+
         public void SendPlayerPosition(Vector3 pos)
         {
             var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(_playerId, pos);
