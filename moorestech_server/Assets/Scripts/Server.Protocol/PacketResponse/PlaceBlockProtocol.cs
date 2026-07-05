@@ -64,7 +64,8 @@ namespace Server.Protocol.PacketResponse
                 // コスト不足セルはスキップ
                 // Skip cells whose construction cost cannot be covered (place only what is affordable)
                 var inventory = inventoryData.MainOpenableInventory;
-                if (!ConstructionCostService.HasRequiredItems(blockMaster.RequiredItems, inventory.InventoryItems)) return;
+                var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return;
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
@@ -74,10 +75,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
-                    var reservedItems = blockMaster.RequiredItems == null
-                        ? Array.Empty<(ItemId, int)>()
-                        : blockMaster.RequiredItems.Select(v => (MasterHolder.ItemMaster.GetItemId(v.ItemGuid), v.Count)).ToArray();
-                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, reservedItems, inventory.InventoryItems);
+                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, costItemCounts, inventory.InventoryItems);
                     if (!plan.IsPlaceable) return;
                 }
 
@@ -85,7 +83,7 @@ namespace Server.Protocol.PacketResponse
                 // Do not consume the cost when placement fails
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
 
-                ConstructionCostService.ConsumeRequiredItems(blockMaster.RequiredItems, inventory);
+                ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
