@@ -17,7 +17,7 @@ namespace Game.UnlockState.Holders
 
         public CraftRecipeUnlockStateHolder()
         {
-            // マスタの全クラフトレシピを初期解放フラグ付きで登録
+            // 初期解放フラグ付きで登録
             // Register all craft recipes with their initial unlocked flag
             foreach (var recipe in MasterHolder.CraftRecipeMaster.GetAllCraftRecipes())
             {

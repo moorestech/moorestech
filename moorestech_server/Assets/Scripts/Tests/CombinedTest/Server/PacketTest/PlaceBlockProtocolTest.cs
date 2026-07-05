@@ -23,8 +23,8 @@ namespace Tests.CombinedTest.Server.PacketTest
     {
         private const int PlayerId = 3;
 
-        private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3 (TestBlockコスト×2)
-        private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4 (TestBlockコスト×1)
+        private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
+        private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
         private static readonly Guid PoleMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱コスト×1)
         private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001"); // TestElectricWire
 
@@ -111,7 +111,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = CreateServer();
             var world = ServerContext.WorldBlockDatastore;
 
-            // 距離1の位置に未接続機械を先に置いてから電柱をプロトコルで設置する
+            // 距離1に機械→電柱設置
             // Pre-place an unconnected machine at distance 1, then place a pole via the protocol
             world.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 

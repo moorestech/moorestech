@@ -43,6 +43,9 @@ namespace Game.UnlockState.Holders
             if (jsonObjects == null) return;
             foreach (var jsonObject in jsonObjects)
             {
+                // マスタに存在しない車両はスキップ
+                // Skip train cars that don't exist in master
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(Guid.Parse(jsonObject.TrainCarGuid), out _)) continue;
                 var state = new TrainCarUnlockStateInfo(jsonObject);
                 _infos[state.TrainCarGuid] = state;
             }

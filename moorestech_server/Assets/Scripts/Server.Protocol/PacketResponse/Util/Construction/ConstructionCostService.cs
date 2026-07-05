@@ -18,7 +18,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         {
             if (requiredItems == null || requiredItems.Length == 0) return true;
 
-            // 素材ごとにインベントリ全スロットの合計所持数を数える
+            // 全スロットの所持数を合算
             // Sum held counts across all inventory slots per material
             foreach (var requiredItem in requiredItems)
             {
@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             var result = new List<IItemStack>();
             if (requiredItems == null) return result;
 
-            // コスト定義どおりのアイテムスタックを全額生成する
+            // コスト全額分のスタック生成
             // Create refund stacks matching the full cost definition
             foreach (var requiredItem in requiredItems)
             {

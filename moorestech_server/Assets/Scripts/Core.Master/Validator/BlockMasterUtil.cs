@@ -216,7 +216,7 @@ namespace Core.Master.Validator
 
             string BlockRequiredItemsValidation()
             {
-                // 建設コスト(requiredItems)のitemGuid実在性と、同一ブロック内の重複を検証する
+                // itemGuid実在性+重複を検証
                 // Validate itemGuid existence and reject duplicates within a block's requiredItems
                 var logs = "";
                 foreach (var block in blocks.Data)

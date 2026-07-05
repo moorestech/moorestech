@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4
-        private static readonly Guid TestBlockItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002"); // Test2 (TestBlockの旧アイテム)
+        private static readonly Guid TestBlockItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002"); // Test2(旧TestBlockアイテム)
 
         [Test]
         public void requiredItems定義ブロックの破壊で素材が全額返却される()
