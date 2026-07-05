@@ -64,10 +64,19 @@ namespace Client.WebUiHost.Boot
             {
                 // 起動途中で失敗したら、握ったポート/プロセスを解放してフィールドを null のまま残す
                 // If startup failed midway, release the held port/process and leave the fields null
+                //
+                // 後始末の例外が元の起動例外をマスクしないよう各ステップを隔離してログのみに留める（2-B）
+                // Isolate each cleanup step and only log its fault so it cannot mask the original startup exception (2-B)
                 if (!started)
                 {
-                    vite?.Kill();
-                    if (kestrelStarted) await kestrel.StopAsync();
+                    try { vite?.Kill(); }
+                    catch (Exception e) { Debug.LogWarning($"[WebUiHost] rollback vite kill failed: {e.GetBaseException().Message}"); }
+
+                    if (kestrelStarted)
+                    {
+                        try { await kestrel.StopAsync(); }
+                        catch (Exception e) { Debug.LogWarning($"[WebUiHost] rollback kestrel stop failed: {e.GetBaseException().Message}"); }
+                    }
                 }
             }
 

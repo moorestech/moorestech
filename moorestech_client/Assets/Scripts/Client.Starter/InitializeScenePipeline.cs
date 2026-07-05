@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,17 +69,17 @@ namespace Client.Starter
             // ---- Web UI server bootstrap (earliest phase) ----
             // The GameShutdownEvent subscription is installed once inside WebUiHost itself
             //
-            // WebUI 起動失敗（port 5050 衝突等の外部リソース境界）でゲーム本体を止めないよう隔離する（2-A）
-            // Isolate WebUI startup failure (external resource boundary, e.g. port 5050 collision) so it never blocks game boot (2-A)
+            // WebUI は非必須。起動失敗（ポート衝突・node 欠如による Win32Exception 等）でゲーム本体を止めないよう全例外を隔離する（2-A）
+            // WebUI is non-essential; isolate ALL startup failures (port collision, missing node → Win32Exception, etc.) so game boot is never blocked (2-A)
             try
             {
                 await Client.WebUiHost.Boot.WebUiHost.StartAsync();
             }
-            catch (Exception e) when (e is SocketException or IOException)
+            catch (Exception e)
             {
-                // ポート衝突系は WebUI 無しでゲーム続行。フィールドは StartAsync 側で null に巻き戻り再試行可能
-                // On port-collision faults, continue without WebUI; StartAsync already rolled fields back to null for retry
-                Debug.LogWarning($"[WebUiHost] start skipped (port/socket unavailable): {e.Message}");
+                // WebUI 無しでゲーム続行。フィールドは StartAsync 側で null に巻き戻り再試行可能
+                // Continue without WebUI; StartAsync already rolled fields back to null for retry
+                Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
             }
 
 #if UNITY_EDITOR
