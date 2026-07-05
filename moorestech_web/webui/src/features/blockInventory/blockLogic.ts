@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { ActionPayloads } from "@/bridge";
-import type { BlockInventoryData } from "@/bridge/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
 import ChestInventory from "./ChestInventory";
 import TankInventory from "./TankInventory";
 import GenericBlockInventory from "./GenericBlockInventory";
@@ -23,7 +23,7 @@ export function placePayload(blockSlotIndex: number, grabCount: number): MoveIte
 // Static blockType → React component registry; a mutable object so later features extend it without rewrites
 // キーは C# BlockMasterElement.BlockType の実値に厳密一致させる(実マスタは "Chest" 等の PascalCase)
 // Keys must exactly match C# BlockMasterElement.BlockType (the real master uses PascalCase like "Chest")
-export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryData }>;
+export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
   Chest: ChestInventory,
   // "tank" は実マスタに無い INV-6 部品デモ用キー(実流体ブロック配線は後続)

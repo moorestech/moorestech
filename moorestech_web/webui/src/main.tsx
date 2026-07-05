@@ -5,6 +5,7 @@ import { MantineProvider } from "@mantine/core";
 // Load index.css after Mantine globals so the CEF-transparent body background wins
 import "@mantine/core/styles.css";
 import App from "@/app/App";
+import { AppErrorBoundary } from "@/app/AppErrorBoundary";
 import "@/app/index.css";
 import { setToastSink } from "@/bridge/notify";
 import { emitToast } from "@/features/toast/toastStore";
@@ -16,7 +17,9 @@ setToastSink(emitToast);
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <MantineProvider defaultColorScheme="dark">
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </MantineProvider>
   </StrictMode>
 );

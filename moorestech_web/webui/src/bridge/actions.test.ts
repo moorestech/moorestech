@@ -26,6 +26,19 @@ describe("shouldToastFailure", () => {
     expect(shouldToastFailure("inventory.move_item", undefined)).toBe(true);
   });
 
+  // block/modal も action type ごとの良性コードだけ抑止する
+  // block/modal also suppress only the benign codes defined per action type
+  it("block/modal の良性失敗は抑止する", () => {
+    expect(shouldToastFailure("block_inventory.move_item", "empty_slot")).toBe(false);
+    expect(shouldToastFailure("block_inventory.move_item", "insufficient_count")).toBe(false);
+    expect(shouldToastFailure("ui.modal.respond", "no_pending_modal")).toBe(false);
+  });
+
+  it("block/modal でも実バグ由来の失敗は表示する", () => {
+    expect(shouldToastFailure("block_inventory.move_item", "invalid_slot")).toBe(true);
+    expect(shouldToastFailure("ui.modal.respond", "invalid_id")).toBe(true);
+  });
+
   it("非インベントリ操作の失敗は常に表示する", () => {
     expect(shouldToastFailure("craft.execute", "anything")).toBe(true);
     expect(shouldToastFailure("debug.echo", undefined)).toBe(true);

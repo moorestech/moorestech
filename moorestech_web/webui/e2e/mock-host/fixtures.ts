@@ -36,7 +36,6 @@ export const blockChest = {
   blockName: "Chest",
   itemSlots: [{ itemId: 1, count: 7 }, { itemId: 2, count: 4 }, ...Array.from({ length: 7 }, empty)],
   fluidSlots: [],
-  progress: null,
 } satisfies BlockInventoryData;
 
 // INV-6 タンク機械: 液体スロット + 製作進捗(ProgressArrow 用)
@@ -54,14 +53,10 @@ export const blockTank = {
   progress: 0.5,
 } satisfies BlockInventoryData;
 
+// 閉状態は本番ワイヤ同様 open:false のみ（他キーは C# 側で省略される）
+// Closed matches the production wire: only open:false (the C# side omits every other key)
 export const blockClosed = {
   open: false,
-  blockType: "",
-  identifier: "",
-  blockName: "",
-  itemSlots: [],
-  fluidSlots: [],
-  progress: null,
 } satisfies BlockInventoryData;
 
 // COM-2 モーダル: 確認ダイアログのサンプル

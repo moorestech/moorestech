@@ -1,0 +1,20 @@
+{
+  "codes": [
+    "unknown_action",
+    "host_stopping",
+    "internal_error",
+    "unknown_error",
+    "invalid_payload",
+    "invalid_count",
+    "invalid_slot",
+    "empty_slot",
+    "insufficient_count",
+    "grab_not_empty",
+    "invalid_index",
+    "invalid_recipe",
+    "recipe_locked",
+    "invalid_id",
+    "invalid_result",
+    "no_pending_modal"
+  ]
+}
