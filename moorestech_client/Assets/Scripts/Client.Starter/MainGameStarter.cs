@@ -36,6 +36,7 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
@@ -92,6 +93,7 @@ namespace Client.Starter
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
+        [SerializeField] private BuildMenuView buildMenuView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private MachineRecipeView machineRecipeView;
@@ -202,6 +204,7 @@ namespace Client.Starter
             builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<DebugBlockInfoState>(Lifetime.Singleton);
             builder.Register<TrainHUDScreenState>(Lifetime.Singleton);
+            builder.Register<BuildMenuState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             builder.Register<RideVehicleInputService>(Lifetime.Singleton);
@@ -251,6 +254,7 @@ namespace Client.Starter
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
+            builder.RegisterComponent(buildMenuView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);
