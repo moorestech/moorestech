@@ -362,6 +362,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 foreach (var info in infos)
                 {
+                    // セル毎の垂直オーバーライドBlockIdを解決し設置情報に格納する（暫定措置。Task 6で単純化）
+                    // Guid.Emptyは純粋ロジックテストのモック要素を示すため解決をスキップする
+                    // Resolve the vertical-override BlockId per cell (temporary; simplified when Task 6 removes overrides)
+                    // Guid.Empty marks a mock element used by pure-logic tests; skip resolution for it
+                    if (holdingBlockMasterElement.BlockGuid != Guid.Empty)
+                    {
+                        info.BlockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(info.VerticalDirection);
+                    }
+
                     //TODO ブロックの数が足りているかどうか
                     // Raiserが立体交差不能で立てた設置不可フラグを残したまま、占有判定を重ねる
                     // Keep the infeasibility flag the Raiser set for an impossible overpass, then AND in occupancy.
@@ -377,10 +386,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         // 設置予定地にブロックが既に存在しているかどうか
         private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement holdingBlockMasterElement)
         {
-            // 設置の縦方向のguidを取得
-            var blockId = holdingBlockMasterElement.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-
-            var size = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            var size = MasterHolder.BlockMaster.GetBlockMaster(placeInfo.BlockId).BlockSize;
             var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
 
             return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);

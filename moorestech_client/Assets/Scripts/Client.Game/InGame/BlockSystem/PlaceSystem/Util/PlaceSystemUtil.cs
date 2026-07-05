@@ -143,11 +143,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
 
-        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos, BlockId blockId)
+        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
         {
-            // BlockId駆動でPlaceInfoをサーバーに送信
-            // Send PlaceInfo to server driven by BlockId
-            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos, blockId);
+            // セル毎BlockId付きでPlaceInfoをサーバーに送信
+            // Send PlaceInfo to server; each cell already carries its own BlockId
+            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
     }

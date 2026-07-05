@@ -37,11 +37,6 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<SendPlaceBlockProtocolMessagePack>(payload);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
 
-            // 未解放ブロックは全セルの設置を拒否する
-            // Reject all cells when the block is locked
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(data.BlockId).BlockGuid;
-            if (!_gameUnlockStateDataController.BlockUnlockStateInfos[blockGuid].IsUnlocked) return null;
-
             foreach (var placeInfo in data.PlacePositions)
             {
                 PlaceBlock(placeInfo);
@@ -57,8 +52,13 @@ namespace Server.Protocol.PacketResponse
                 // Do nothing when a block already exists
                 if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
 
-                var placeBlockId = data.BlockId.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
+                var placeBlockId = placeInfo.BlockId;
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
+
+                // 未解放セルはスキップ（バリアントはファミリー代表のunlock状態で判定）
+                // Skip locked cells; variants resolve unlock via their family representative
+                if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) return;
+
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
                 // コスト不足セルはスキップ
@@ -90,23 +90,29 @@ namespace Server.Protocol.PacketResponse
                 if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
             }
 
+            bool IsUnlocked(BlockId blockId, Guid blockGuid)
+            {
+                // ベルトファミリーは代表ブロックのunlock状態を参照する
+                // Belt families resolve unlock state through the representative block
+                var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var beltParam)
+                    ? MasterHolder.BlockMaster.GetBlockMaster(BeltConveyorPlaceFamilyUtil.GetRepresentativeBlockId(beltParam)).BlockGuid
+                    : blockGuid;
+                return _gameUnlockStateDataController.BlockUnlockStateInfos[unlockGuid].IsUnlocked;
+            }
+
             #endregion
         }
 
         [MessagePackObject]
         public class SendPlaceBlockProtocolMessagePack : ProtocolMessagePackBase
         {
-            [IgnoreMember] public BlockId BlockId => new(BlockIdInt);
-
             [Key(2)] public int PlayerId { get; set; }
-            [Key(3)] public int BlockIdInt { get; set; }
-            [Key(4)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
+            [Key(3)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
 
-            public SendPlaceBlockProtocolMessagePack(int playerId, BlockId blockId, List<PlaceInfo> placeInfos)
+            public SendPlaceBlockProtocolMessagePack(int playerId, List<PlaceInfo> placeInfos)
             {
                 Tag = ProtocolTag;
                 PlayerId = playerId;
-                BlockIdInt = blockId.AsPrimitive();
                 PlacePositions = placeInfos.ConvertAll(v => new PlaceInfoMessagePack(v));
             }
 
