@@ -29,7 +29,7 @@ export async function dispatchAction<K extends keyof ActionPayloads>(
   try {
     const result = await sendAction(type, payload);
     if (!result.ok) {
-      if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${result.error ?? "unknown"}`);
+      if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${result.error ?? "unknown"}`, "error");
       return false;
     }
     return true;
@@ -37,7 +37,7 @@ export async function dispatchAction<K extends keyof ActionPayloads>(
     // 切断中の失敗は再接続オーバーレイが状態を伝えるため個別トーストしない
     // Don't toast per-failure while disconnected; the reconnect overlay conveys the state
     const message = e instanceof Error ? e.message : String(e);
-    if (message !== "disconnected") notify(`${type} error: ${message}`);
+    if (message !== "disconnected") notify(`${type} error: ${message}`, "error");
     return false;
   }
 }

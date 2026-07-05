@@ -1,6 +1,6 @@
+import { useMemo } from "react";
 import { Paper, Title } from "@mantine/core";
-import { useTopic, useTopicSelector, dispatchAction, Topics } from "@/bridge";
-import type { ActionPayloads } from "@/bridge";
+import { useTopic, useTopicSelector, Topics } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { resolveBlockComponent } from "./blockLogic";
 import { BlockInteractionContext, type BlockInteraction } from "./blockInteractionContext";
@@ -15,18 +15,16 @@ export default function BlockInventoryPanel() {
   const grabCount = useTopicSelector(Topics.inventory, (inv) => inv?.grab.count ?? 0);
   const itemMaster = useItemMaster();
 
+  // grab と名前解決だけを memo 化した context 値。identity 安定で Body の無駄な再レンダーを防ぐ
+  // Context value memoized to grab + name resolution only; stable identity avoids needless Body re-renders
+  const interaction = useMemo<BlockInteraction>(
+    () => ({ grabCount, resolveName: (itemId) => itemMaster?.get(itemId)?.name }),
+    [grabCount, itemMaster],
+  );
+
   // 未受信または閉状態なら何も描画しない（ブロック UI が開いていない）
   // Render nothing when not received or closed (no block UI is open)
   if (!data || !data.open) return null;
-
-  // grab/名前/送信を context へまとめ、{data} 固定 contract の登録コンポーネントへ供給する
-  // Bundle grab/name/dispatch into context and supply them to registered {data}-contract components
-  const interaction: BlockInteraction = {
-    grabCount,
-    resolveName: (itemId) => itemMaster?.get(itemId)?.name,
-    dispatch: (payload: ActionPayloads["block_inventory.move_item"]) =>
-      void dispatchAction("block_inventory.move_item", payload),
-  };
 
   // blockType に対応するコンポーネントを解決（未登録は GenericBlockInventory にフォールバック）
   // Resolve the component for blockType (unregistered falls back to GenericBlockInventory)

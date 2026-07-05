@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { Button, Group, Stack, Text, Title } from "@mantine/core";
-import { useTopic, dispatchAction, Topics } from "@/bridge";
+import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
+import { readActiveLayer } from "@/app/activeLayer";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { InventoryArea, SlotData, SlotRef } from "@/bridge/payloadTypes";
 import { resolveDirectMoveTarget } from "../inventoryLogic";
@@ -19,29 +20,34 @@ export default function InventoryPanel() {
   const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
 
-  // 1-9 キーでホットバー選択。Hooks は早期 return より前で無条件に実行する
-  // Keys 1-9 select a hotbar slot; the hook must run unconditionally, before any early return
+  // 1-9 キーでホットバー選択。リスナーは1回だけ張り、最新値は readTopic(getState) で読む
+  // Keys 1-9 select a hotbar slot; attach the listener once and read the latest value via readTopic (getState)
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       // 入力欄フォーカス中はゲーム操作を奪わない
       // Don't hijack typing while an input/textarea is focused
       const tag = document.activeElement?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (!inventory) return;
+      // オーバーレイ表示中はゲーム系入力を止める（レイヤーが game のときのみ発火）
+      // Suppress game inputs while an overlay is up (fires only when the layer is game)
+      if (readActiveLayer() !== "game") return;
+      const latest = readTopic(Topics.inventory);
+      if (!latest) return;
       const index = keyToHotbarIndex(e.key);
-      if (index === null || index >= inventory.hotbarSlots.length) return;
+      if (index === null || index >= latest.hotbarSlots.length) return;
       // 実際に選択が変わるときだけ送信する（uGUI 同様）
       // Dispatch only when the selection actually changes, matching uGUI
-      if (index === inventory.selectedHotbar) return;
+      if (index === latest.selectedHotbar) return;
       void dispatchAction("inventory.select_hotbar", { index });
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [inventory]);
+  }, []);
 
-  // ホイールでホットバー選択を循環。変化時のみ送信する
-  // Cycle the hotbar selection on wheel; dispatch only when it changes
+  // ホイールでホットバー選択を循環。変化時のみ送信し、オーバーレイ表示中は無効化する
+  // Cycle the hotbar selection on wheel; dispatch only on change and suppress while an overlay is up
   const onHotbarWheel = (e: { deltaY: number }) => {
+    if (readActiveLayer() !== "game") return;
     if (!inventory || inventory.hotbarSlots.length === 0) return;
     const delta = e.deltaY > 0 ? 1 : -1;
     const index = cycleHotbar(inventory.selectedHotbar, delta, inventory.hotbarSlots.length);

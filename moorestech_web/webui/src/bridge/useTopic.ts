@@ -33,3 +33,15 @@ export function useTopicSelector<K extends keyof TopicPayloads, R>(
 
   return useTopicStore((s) => selector((s.topics[topic] ?? null) as TopicPayloads[K] | null));
 }
+
+// 接続状態を購読するフック。feature/app 層は topicStore を直接触らずこれを使う
+// Hook subscribing to connection status; feature/app layers use this instead of touching topicStore
+export function useConnectionStatus() {
+  return useTopicStore((s) => s.status);
+}
+
+// フック外（イベントハンドラ等）から最新 topic 値を読む命令的アクセサ。購読はしない
+// Imperative accessor to read the latest topic value outside hooks (event handlers); does not subscribe
+export function readTopic<K extends keyof TopicPayloads>(topic: K): TopicPayloads[K] | null {
+  return (useTopicStore.getState().topics[topic] ?? null) as TopicPayloads[K] | null;
+}

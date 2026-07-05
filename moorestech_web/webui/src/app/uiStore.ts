@@ -5,9 +5,11 @@ import { create } from "zustand";
 type UiState = {
   selectedItemId: number | null;
   setSelectedItem: (itemId: number) => void;
+  clearSelectedItem: () => void;
 };
 
 export const useUiStore = create<UiState>((set) => ({
   selectedItemId: null,
   setSelectedItem: (itemId) => set({ selectedItemId: itemId }),
+  clearSelectedItem: () => set({ selectedItemId: null }),
 }));

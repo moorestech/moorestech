@@ -10,7 +10,9 @@ export default function ToastHost() {
   return (
     <Stack gap="xs" className={styles.host} data-testid="toast-host">
       {toasts.map((t) => (
-        <Notification key={t.id} color="red" withCloseButton={false} withBorder>
+        // variant で色分け（error=赤 / info=青）
+        // Color by variant (error=red / info=blue)
+        <Notification key={t.id} color={t.variant === "error" ? "red" : "blue"} withCloseButton={false} withBorder>
           {t.message}
         </Notification>
       ))}

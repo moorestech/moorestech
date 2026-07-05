@@ -8,11 +8,14 @@ import styles from "./GrabOverlay.module.css";
 export default function GrabOverlay({ grab }: { grab: SlotData }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
+  // grab を保持している間だけ mousemove を購読する（未保持時の毎回再レンダーを避ける）
+  // Subscribe to mousemove only while a grab is held (avoids re-renders when nothing is grabbed)
   useEffect(() => {
+    if (grab.count === 0) return;
     const onMove = (e: globalThis.MouseEvent) => setMousePos({ x: e.clientX, y: e.clientY });
     window.addEventListener("mousemove", onMove);
     return () => window.removeEventListener("mousemove", onMove);
-  }, []);
+  }, [grab.count]);
 
   if (grab.count === 0) return null;
 

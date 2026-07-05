@@ -27,7 +27,7 @@ export const useTopicStore = create<TopicState>((set) => ({
 export function deliverTopicPayload(topic: string, data: unknown): boolean {
   if (!validateTopicPayload(topic, data)) {
     console.warn(`[topicStore] dropped invalid payload for topic ${topic}`, data);
-    notify(`Invalid data received for ${topic}`);
+    notify(`Invalid data received for ${topic}`, "error");
     return false;
   }
   useTopicStore.getState().setTopic(topic, data);

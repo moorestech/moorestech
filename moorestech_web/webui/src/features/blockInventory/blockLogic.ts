@@ -2,7 +2,6 @@ import type { ComponentType } from "react";
 import type { ActionPayloads } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
 import ChestInventory from "./ChestInventory";
-import TankInventory from "./TankInventory";
 import GenericBlockInventory from "./GenericBlockInventory";
 
 type MoveItemPayload = ActionPayloads["block_inventory.move_item"];
@@ -26,13 +25,10 @@ export function placePayload(blockSlotIndex: number, grabCount: number): MoveIte
 export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
   Chest: ChestInventory,
-  // "tank" は実マスタに無い INV-6 部品デモ用キー(実流体ブロック配線は後続)
-  // "tank" is a demo key for the INV-6 parts; no real master blockType yet (real fluid-block wiring is later)
-  tank: TankInventory,
 };
 
-// 未登録 blockType はフォールバックで汎用描画（tank 等が実装前でもクラッシュしない）
-// Unknown blockType falls back to a generic view (tank etc. won't crash before its feature lands)
+// 未登録 blockType はフォールバックで汎用描画（流体ブロック等が専用 UI 未実装でもクラッシュしない）
+// Unknown blockType falls back to a generic view (fluid blocks etc. won't crash before a dedicated UI lands)
 export function resolveBlockComponent(blockType: string): BlockInventoryComponent {
   return blockComponents[blockType] ?? GenericBlockInventory;
 }
