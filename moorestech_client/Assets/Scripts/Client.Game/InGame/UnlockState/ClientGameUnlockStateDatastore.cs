@@ -96,6 +96,11 @@ namespace Client.Game.InGame.UnlockState
                      var machineRecipeGuid = message.UnlockedMachineRecipeGuid;
                      _machineRecipeUnlockStateInfos[machineRecipeGuid] = new MachineRecipeUnlockStateInfo(machineRecipeGuid, true);
                      break;
+                 // Block/TrainCarの解放反映はプラン3で実装するため、ここでは受信を握りつぶす
+                 // Block/TrainCar unlock handling arrives in plan 3; ignore the events for now
+                 case UnlockEventType.Block:
+                 case UnlockEventType.TrainCar:
+                     break;
                  default:
                      throw new ArgumentOutOfRangeException();
              }
