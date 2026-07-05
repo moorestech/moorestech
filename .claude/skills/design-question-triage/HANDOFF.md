@@ -2,6 +2,14 @@
 
 新セッションでこの作業を再開するための唯一のドキュメント。会話履歴の読み直しは不要。
 
+> **STATUS (2026-07-05 15:55 完了)**: 残作業 1〜6 すべて完了。
+> - iteration-2: with-skill 84% / baseline 65% (+19pt)。ユーザーレビュー承認済み（feedback.json）
+> - GOAL VERIFICATION: PASS / blocker なし（fresh sonnet、score 非開示）
+> - コミット: 8c69779c9（本体+references）/ 043ac2022（evals）/ 8042bb592（HANDOFF）
+> - live trial: ✅ 合格。素の「壁打ちしたい」で brainstorming → 本スキルが自然発火、前提6件を根拠つき宣言、質問は「適用粒度」1問のみ（C型）。fresh evaluator PASS / blocker なし。報告書: .mso/live-trial/20260705-152411-design-question-triage-natfire/report.md
+> - 未実施は任意の 7（description 最適化ループ）のみ
+> - 次 iter 候補（with-skill 側の残弱点2系統）: ①導出可能情報のための新機構新設の必然性明記 ②支配戦略選択の質問化。詳細は iteration-2 の grading.json 参照
+
 ## 1. 何を作っているか
 
 スキル `design-question-triage`（本ディレクトリ）。壁打ち・要件確認でユーザーへ質問する前に、
