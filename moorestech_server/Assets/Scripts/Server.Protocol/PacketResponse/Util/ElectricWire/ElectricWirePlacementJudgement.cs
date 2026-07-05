@@ -47,5 +47,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
         InventoryFull,
         NotConnected,
         InvalidMode,
+        NotUnlocked,
+        InsufficientItems,
     }
 }

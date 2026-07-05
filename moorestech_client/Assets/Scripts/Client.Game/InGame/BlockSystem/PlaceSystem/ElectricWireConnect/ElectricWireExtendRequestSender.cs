@@ -75,11 +75,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         /// 電柱を設置しつつ起点へ接続し、設置された電柱GameObjectを受け渡しスロットへ保持する
         /// Place a pole while wiring it to the origin, then hold the resolved pole GameObject in the hand-off slot
         /// </summary>
-        public static void Extend(Vector3Int fromPos, int poleSlot, PlaceInfo polePlaceInfo, ItemId wireItemId, BlockGameObjectDataStore blockDataStore, int epoch)
+        public static void Extend(Vector3Int fromPos, BlockId poleBlockId, PlaceInfo polePlaceInfo, ItemId wireItemId, BlockGameObjectDataStore blockDataStore, int epoch)
         {
             UniTask.Create(async () =>
             {
-                var response = await ClientContext.VanillaApi.Response.ExtendElectricWire(fromPos, poleSlot, polePlaceInfo, wireItemId, CancellationToken.None);
+                var response = await ClientContext.VanillaApi.Response.ExtendElectricWire(fromPos, poleBlockId, polePlaceInfo, wireItemId, CancellationToken.None);
                 if (response == null || !response.IsSuccess) return;
 
                 // 設置イベントの反映を待ってから電柱GameObjectを解決する

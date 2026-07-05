@@ -78,11 +78,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             {
                 // 延長用電柱アイテムをインベントリから自動選択する
                 // Auto-select the pole item for extension from the inventory
-                if (!ElectricWireExtendRequestSender.TryFindPoleSlot(_context.Inventory, out var poleSlot, out var poleMaster, out var poleItemId))
+                if (!ElectricWireExtendRequestSender.TryFindPoleSlot(_context.Inventory, out _, out var poleMaster, out var poleItemId))
                 {
                     HidePreview();
                     return false;
                 }
+
+                // 暫定: 選択中電柱アイテムからBlockIdを解決する（Task 9で選択駆動へ置換）
+                // Interim: resolve the BlockId from the selected pole item (replaced by selection-driven flow in Task 9)
+                var poleBlockId = MasterHolder.BlockMaster.GetBlockId(poleItemId);
 
                 // 電柱の設置座標を地面レイキャストから求める
                 // Compute the pole placement position from a ground raycast
@@ -126,7 +130,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
                 {
                     _context.WirePreview.SetActive(false);
                     _context.PreviewBlockController.SetActive(false);
-                    ElectricWireExtendRequestSender.Extend(fromPos, poleSlot, placeInfo, wireItemId, _context.BlockDataStore, toolEpoch);
+                    ElectricWireExtendRequestSender.Extend(fromPos, poleBlockId, placeInfo, wireItemId, _context.BlockDataStore, toolEpoch);
                     return true;
                 }
 
