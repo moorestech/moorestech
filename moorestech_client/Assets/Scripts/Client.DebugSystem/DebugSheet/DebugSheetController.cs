@@ -81,6 +81,7 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
             rootPage.AddBoolWithSave(false, TrainUnitDebugOverlayLabel, TrainUnitDebugOverlayKey);
             rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
+            rootPage.AddBoolWithSave(true, WebUiCefActiveLabel, WebUiCefActiveKey);
         }
         public static void CloseDebugSheet()
         {
