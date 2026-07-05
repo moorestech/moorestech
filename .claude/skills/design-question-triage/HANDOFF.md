@@ -8,7 +8,11 @@
 > - コミット: 8c69779c9（本体+references）/ 043ac2022（evals）/ 8042bb592（HANDOFF）
 > - live trial: ✅ 合格。素の「壁打ちしたい」で brainstorming → 本スキルが自然発火、前提6件を根拠つき宣言、質問は「適用粒度」1問のみ（C型）。fresh evaluator PASS / blocker なし。報告書: .mso/live-trial/20260705-152411-design-question-triage-natfire/report.md
 > - 未実施は任意の 7（description 最適化ループ）のみ
-> - 次 iter 候補（with-skill 側の残弱点2系統）: ①導出可能情報のための新機構新設の必然性明記 ②支配戦略選択の質問化。詳細は iteration-2 の grading.json 参照
+>
+> **iteration-3（2026-07-05 16:15 完了・低コスト構成）**: iteration-2 の残弱点2系統に改善投入し検証済み。
+> - 改善: ①新設ゲート（a7e6e53c3）②推奨リトマス（1dbd35cc1）
+> - 検証: with-skill 1本のみ（sonnet, eval-0）で 7/7（iteration-2 は 6/7）。前回 FAIL の新機構必然性アサーションが PASS
+> - 限界: eval-1（推奨リトマスの直接対象）は再走しておらず間接確認のみ。次に回すならそこから
 
 ## 1. 何を作っているか
 
