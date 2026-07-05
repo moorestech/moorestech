@@ -34,6 +34,8 @@ namespace Game.Action
                     case GameActionElement.GameActionTypeConst.unlockItemRecipeView:
                     case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
                     case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
+                    case GameActionElement.GameActionTypeConst.unlockBlock:
+                    case GameActionElement.GameActionTypeConst.unlockTrainCar:
                         ExecuteAction(action, context);
                         break;
                 }
@@ -69,6 +71,14 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
                     UnlockMachineRecipe();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockBlock:
+                    UnlockBlock();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockTrainCar:
+                    UnlockTrainCar();
                     break;
 
                 case GameActionElement.GameActionTypeConst.giveItem:
@@ -112,6 +122,24 @@ namespace Game.Action
                 foreach (var guid in machineRecipeGuids)
                 {
                     _gameUnlockStateDataController.UnlockMachineRecipe(guid);
+                }
+            }
+
+            void UnlockBlock()
+            {
+                var blockGuids = ((UnlockBlockGameActionParam)action.GameActionParam).UnlockBlockGuids;
+                foreach (var guid in blockGuids)
+                {
+                    _gameUnlockStateDataController.UnlockBlock(guid);
+                }
+            }
+
+            void UnlockTrainCar()
+            {
+                var trainCarGuids = ((UnlockTrainCarGameActionParam)action.GameActionParam).UnlockTrainCarGuids;
+                foreach (var guid in trainCarGuids)
+                {
+                    _gameUnlockStateDataController.UnlockTrainCar(guid);
                 }
             }
 
