@@ -96,19 +96,19 @@ namespace Client.Network.API
             return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash, tickSequenceId);
         }
 
-        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot, CancellationToken ct)
+        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
         {
             // 列車設置のレスポンスを取得する
             // Get response for train placement
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerConnectionSetting.PlayerId);
+            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarGuid, _playerConnectionSetting.PlayerId);
             return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 
         public async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
             TrainUnitInstanceId targetTrainUnitInstanceId,
             RailPosition railPosition,
-            int hotBarSlot,
+            Guid trainCarGuid,
             bool attachCarFacingForward,
             bool attachToTargetTrainHead,
             CancellationToken ct)
@@ -119,7 +119,7 @@ namespace Client.Network.API
             var request = new AttachTrainCarToUnitProtocol.AttachTrainCarToUnitRequestMessagePack(
                 targetTrainUnitInstanceId,
                 railPositionSnapshot,
-                hotBarSlot,
+                trainCarGuid,
                 _playerConnectionSetting.PlayerId,
                 attachCarFacingForward,
                 attachToTargetTrainHead);

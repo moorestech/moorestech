@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Core.Master;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
@@ -78,12 +80,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // Send the placement request on click
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                RequestPlacementAsync(hit, context.CurrentSelectHotbarSlotIndex).Forget();
+                // 暫定: 保持アイテムから車両Guidを解決する（Task 9で選択駆動へ置換）
+                // Interim: resolve the car guid from the held item (replaced by selection-driven flow in Task 9)
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(context.HoldingItemId, out var carMaster)) return;
+                RequestPlacementAsync(hit, carMaster.TrainCarGuid).Forget();
             }
 
             #region Internal
 
-            async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, int hotBarSlot)
+            async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, Guid trainCarGuid)
             {
                 // 既存編成への連結modeでは対象unitを明示して送る
                 // In attach mode, send the target unit explicitly
@@ -98,7 +103,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var attachResponse = await ClientContext.VanillaApi.Response.AttachTrainCarToUnit(
                         placementHit.TargetTrainUnitInstanceId,
                         placementHit.RailPosition,
-                        hotBarSlot,
+                        trainCarGuid,
                         placementHit.AttachCarFacingForward,
                         placementHit.AttachTargetEndpoint == TrainCarAttachTargetEndpoint.Head,
                         CancellationToken.None);
@@ -111,7 +116,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 // 新規編成modeではRailPositionのみで設置を依頼する
                 // In new-unit mode, request placement with only the RailPosition
-                var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
+                var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, trainCarGuid, CancellationToken.None);
                 if (placeResponse == null || !placeResponse.Success)
                 {
                     Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={placeResponse?.FailureType}");
