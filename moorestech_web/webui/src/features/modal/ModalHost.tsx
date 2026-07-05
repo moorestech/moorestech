@@ -1,4 +1,4 @@
-import { Button, Modal, Text, Title } from "@mantine/core";
+import { Button, Modal, Text } from "@mantine/core";
 import { useTopic, dispatchAction, Topics } from "@/bridge";
 import { respondPayload, buttonColor } from "./modalLogic";
 
@@ -23,10 +23,14 @@ export function ModalHost() {
     <Modal.Root opened onClose={() => void cancel()} centered transitionProps={{ duration: 0 }}>
       <Modal.Overlay data-testid="modal-backdrop" backgroundOpacity={0.6} />
       <Modal.Content data-testid="modal" w={320}>
+        {/* Header+Title で Content に aria-labelledby を自動配線（uGUI titleText 相当） */}
+        {/* Header+Title auto-wires aria-labelledby onto Content (mirrors uGUI titleText) */}
+        <Modal.Header>
+          <Modal.Title fz="h4" fw={700}>{title}</Modal.Title>
+        </Modal.Header>
         <Modal.Body p="lg">
-          {/* タイトルと本文。uGUI の titleText / descriptionText に対応 */}
-          {/* Title and body, mapping to uGUI titleText / descriptionText */}
-          <Title order={2} size="h4" mb="xs">{title}</Title>
+          {/* 本文。uGUI の descriptionText に対応 */}
+          {/* Body text, mapping to uGUI descriptionText */}
           <Text size="sm" c="dimmed" mb="lg">{message}</Text>
           <Button data-testid="modal-button" fullWidth color={buttonColor(variant)} onClick={() => void confirm()}>
             {buttonText}

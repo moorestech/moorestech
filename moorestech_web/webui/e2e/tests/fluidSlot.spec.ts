@@ -18,7 +18,7 @@ test("tank の block inventory パネルに Fluid Tank が表示される", asyn
 test("水の流体スロットが量 500 を表示する", async ({ page }) => {
   await page.request.get("/__block?type=tank");
   await page.goto("/");
-  await expect(page.getByTestId("tank-body")).toBeVisible();
+  await expect(page.getByTestId("generic-block-fluids")).toBeVisible();
   // fluidId=10,amount=500 の流体スロットに整形済みの 500 が出る
   // The fluid slot for fluidId=10, amount=500 shows the formatted 500
   await expect(page.getByTestId("fluid-slot").filter({ hasText: "500" })).toBeVisible();
@@ -27,7 +27,7 @@ test("水の流体スロットが量 500 を表示する", async ({ page }) => {
 test("Water 名のツールチップが hover で表示される", async ({ page }) => {
   await page.request.get("/__block?type=tank");
   await page.goto("/");
-  await expect(page.getByTestId("tank-body")).toBeVisible();
+  await expect(page.getByTestId("generic-block-fluids")).toBeVisible();
   // Mantine Tooltip は hover 時のみマウントされるため、開いてから可視検証する
   // The Mantine Tooltip mounts only on hover, so open it before asserting visibility
   await page.getByTestId("fluid-slot").first().hover();
@@ -37,7 +37,7 @@ test("Water 名のツールチップが hover で表示される", async ({ page
 test("progress-arrow のフィル幅が 50% になる", async ({ page }) => {
   await page.request.get("/__block?type=tank");
   await page.goto("/");
-  await expect(page.getByTestId("tank-body")).toBeVisible();
+  await expect(page.getByTestId("generic-block-fluids")).toBeVisible();
   // progress 0.5 → フィル要素のインラインスタイル width:50%
   // progress 0.5 → fill element inline style width:50%
   const fill = page.getByTestId("progress-arrow").locator("> div");

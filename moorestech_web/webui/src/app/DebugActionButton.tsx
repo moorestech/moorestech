@@ -7,7 +7,7 @@ import { emitToast } from "@/features/toast/toastStore";
 export default function DebugActionButton() {
   const onClick = async () => {
     const ok = await dispatchAction("debug.echo", { hello: "world" });
-    if (ok) emitToast("debug.echo ok");
+    if (ok) emitToast("debug.echo ok", "info");
   };
 
   return (
