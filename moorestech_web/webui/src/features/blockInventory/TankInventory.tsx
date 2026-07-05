@@ -1,10 +1,10 @@
 import { Group } from "@mantine/core";
-import type { BlockInventoryData } from "@/bridge/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
 import { FluidSlot, ProgressArrow } from "@/shared/ui";
 
 // Tank UI: uGUI 流体タンク同様 fluidSlots を列展開＋進捗矢印
 // Tank UI: mirrors uGUI fluid tank; fluidSlots row plus a progress arrow
-export default function TankInventory({ data }: { data: BlockInventoryData }) {
+export default function TankInventory({ data }: { data: BlockInventoryOpen }) {
   return (
     <Group data-testid="tank-body" gap="xs" align="center">
       {/* 各流体スロットを横並びで描画 */}

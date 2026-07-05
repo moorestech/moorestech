@@ -1,0 +1,136 @@
+using System.Collections.Generic;
+using System.IO;
+using Client.WebUiHost.Common;
+using Client.WebUiHost.Game.Topics;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace Client.Tests.WebUi
+{
+    /// <summary>
+    /// C#⇔TS のワイヤ契約テスト: 実 DTO を WebUiJson でシリアライズし正準フィクスチャと一致検証する
+    /// C#⇔TS wire-contract test: serialize real DTOs via WebUiJson and match them against canonical fixtures
+    /// フィクスチャは TS 側 vitest と同一ファイルを参照する単一ソース
+    /// The fixtures are the single source, referenced by the TS-side vitest too
+    /// </summary>
+    public class WireContractTest
+    {
+        // インベントリ snapshot は全フィールド必須（省略なし）の代表ケース
+        // The inventory snapshot represents the all-fields-present (no omission) case
+        [Test]
+        public void InventorySnapshotMatchesFixture()
+        {
+            var dto = new PlayerInventoryDto
+            {
+                MainSlots = new List<SlotDto> { new SlotDto { ItemId = 1, Count = 10 }, new SlotDto { ItemId = 2, Count = 5 } },
+                HotbarSlots = new List<SlotDto> { new SlotDto { ItemId = 3, Count = 1 } },
+                Grab = new SlotDto { ItemId = 0, Count = 0 },
+                SelectedHotbar = 2,
+            };
+            AssertMatchesFixture(dto, "inventory_snapshot.json");
+        }
+
+        // 開状態: blockType/itemSlots/fluidSlots/progress が全て存在する（presence 側）
+        // Open state: blockType/itemSlots/fluidSlots/progress are all present (the presence variant)
+        [Test]
+        public void BlockInventoryOpenMatchesFixture()
+        {
+            var dto = new BlockInventoryDto
+            {
+                Open = true,
+                BlockType = "Chest",
+                Identifier = "block:1",
+                BlockName = "Chest",
+                ItemSlots = new List<BlockItemSlotDto> { new BlockItemSlotDto { ItemId = 1, Count = 7 }, new BlockItemSlotDto { ItemId = 2, Count = 4 } },
+                FluidSlots = new List<BlockFluidSlotDto> { new BlockFluidSlotDto { FluidId = 10, Amount = 500, Capacity = 1000, Name = "Water" } },
+                Progress = 0.5,
+            };
+            AssertMatchesFixture(dto, "block_inventory_open.json");
+        }
+
+        // 閉状態: NullValueHandling.Ignore で open 以外の全キーが省略される（omission 側）
+        // Closed state: NullValueHandling.Ignore omits every key except open (the omission variant)
+        [Test]
+        public void BlockInventoryClosedMatchesFixture()
+        {
+            AssertMatchesFixture(new BlockInventoryDto { Open = false }, "block_inventory_closed.json");
+        }
+
+        // label あり: progress の label キーが存在する（presence 側）
+        // With label: the progress label key is present (the presence variant)
+        [Test]
+        public void ProgressWithLabelMatchesFixture()
+        {
+            AssertMatchesFixture(new ProgressDto { Visible = true, Progress = 0.4f, Label = "Crafting" }, "progress_with_label.json");
+        }
+
+        // label なし: null の label キーが省略される（omission 側）
+        // Without label: the null label key is omitted (the omission variant)
+        [Test]
+        public void ProgressNoLabelMatchesFixture()
+        {
+            AssertMatchesFixture(new ProgressDto { Visible = false, Progress = 0f, Label = null }, "progress_no_label.json");
+        }
+
+        // modal あり: modal オブジェクトが存在する（presence 側）
+        // With modal: the modal object is present (the presence variant)
+        [Test]
+        public void ModalOpenMatchesFixture()
+        {
+            var dto = new ModalTopicDto
+            {
+                Modal = new ModalDto { Id = "m1", Title = "確認", Message = "これは確認ダイアログです", ButtonText = "OK", Variant = "confirm" },
+            };
+            AssertMatchesFixture(dto, "modal_open.json");
+        }
+
+        // modal なし: null の modal キーが省略され {} になる（omission 側）
+        // Without modal: the null modal key is omitted, yielding {} (the omission variant)
+        [Test]
+        public void ModalNoneMatchesFixture()
+        {
+            AssertMatchesFixture(new ModalTopicDto { Modal = null }, "modal_none.json");
+        }
+
+        // 全 Action ハンドラ + dispatcher が返し得るエラーコードを error_codes.json が過不足なく網羅する
+        // error_codes.json must exactly cover every error code the Action handlers + dispatcher can return
+        [Test]
+        public void ErrorCodesFixtureCoversAllHandlerCodes()
+        {
+            // 全 Actions/*.cs の ActionResult.Fail(...) と dispatcher の literal を grep して手維持する正準セット
+            // The canonical set, hand-maintained by grepping ActionResult.Fail(...) across Actions/*.cs and dispatcher literals
+            var expected = new HashSet<string>
+            {
+                "unknown_action", "host_stopping", "internal_error", "unknown_error",
+                "invalid_payload", "invalid_count", "invalid_slot",
+                "empty_slot", "insufficient_count", "grab_not_empty",
+                "invalid_index", "invalid_recipe", "recipe_locked",
+                "invalid_id", "invalid_result", "no_pending_modal",
+            };
+
+            var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();
+            Assert.AreEqual(shared.Count, new HashSet<string>(shared).Count, "error_codes.json に重複コードがある / duplicate codes");
+            Assert.That(new HashSet<string>(shared), Is.EquivalentTo(expected), "error_codes.json が C# のエラーコード集合と不一致 / mismatch with the C# error-code set");
+        }
+
+        #region Internal
+
+        // DTO を WebUiJson でシリアライズし、キー順序差を無視して JToken.DeepEquals で照合する
+        // Serialize the DTO via WebUiJson and match with JToken.DeepEquals, ignoring key-order differences
+        private static void AssertMatchesFixture(object dto, string fixtureName)
+        {
+            var actual = JToken.Parse(WebUiJson.Serialize(dto));
+            var expected = JToken.Parse(LoadFixture(fixtureName));
+            Assert.IsTrue(JToken.DeepEquals(expected, actual), $"{fixtureName} mismatch\nexpected: {expected}\nactual:   {actual}");
+        }
+
+        private static string LoadFixture(string fixtureName)
+        {
+            var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
+            return File.ReadAllText(path);
+        }
+
+        #endregion
+    }
+}

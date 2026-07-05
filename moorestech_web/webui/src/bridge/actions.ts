@@ -2,14 +2,20 @@ import { sendAction } from "./webSocketClient";
 import { notify } from "./notify";
 import type { ActionPayloads } from "./protocol";
 
-// インベントリ操作のクリック連鎖は stale state で良性の失敗を生む（topic event が再同期する）。
-// これらの error code だけ抑止し、invalid_* 等の実バグ由来の失敗は従来どおりトーストする
-// Click chains on inventory ops yield benign failures from stale state (topic events reconcile them).
-// Suppress only those error codes; genuine failures (invalid_*, etc.) still toast as before
-const BENIGN_INVENTORY_ERRORS = new Set(["empty_slot", "insufficient_count", "grab_not_empty"]);
+// stale state 由来のクリック連鎖失敗は良性で、後続の topic event が再同期する。action type ごとに抑止コードを定義する
+// Click-chain failures from stale state are benign and reconciled by a later topic event; suppress codes per action type
+// これ以外（invalid_* 等の実バグ由来）はトーストする。ここに載るコードは共有 error_codes.json の部分集合であること
+// Anything else (genuine failures like invalid_*) still toasts; codes here must stay a subset of the shared error_codes.json
+export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<string>>> = {
+  "inventory.move_item": new Set(["empty_slot", "insufficient_count"]),
+  "inventory.split": new Set(["grab_not_empty", "empty_slot"]),
+  "block_inventory.move_item": new Set(["empty_slot", "insufficient_count"]),
+  "ui.modal.respond": new Set(["no_pending_modal"]),
+};
 
 export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {
-  return !(type.startsWith("inventory.") && error !== undefined && BENIGN_INVENTORY_ERRORS.has(error));
+  if (error === undefined) return true;
+  return !(BENIGN_ERRORS[type]?.has(error) ?? false);
 }
 
 // action を発行し、失敗時はトースト表示して false を返す UI 向けラッパ

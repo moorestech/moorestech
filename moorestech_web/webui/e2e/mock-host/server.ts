@@ -101,9 +101,38 @@ function clone<T>(o: T): T {
   return JSON.parse(JSON.stringify(o)) as T;
 }
 
-function send(ws: WebSocket, obj: unknown) {
-  ws.send(JSON.stringify(obj));
+// 本番 host の NullValueHandling.Ignore と同形状にするため、送信直前に null 値キーを再帰的に除去する
+// Recursively drop null-valued keys right before send to match the real host's NullValueHandling.Ignore shape
+function stripNulls(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stripNulls);
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (v === null) continue;
+      out[k] = stripNulls(v);
+    }
+    return out;
+  }
+  return value;
 }
+
+function send(ws: WebSocket, obj: unknown) {
+  ws.send(JSON.stringify(stripNulls(obj)));
+}
+
+// 本番 dispatcher が受理する既知 action type。未知は unknown_action で拒否する
+// Action types the real dispatcher accepts; unknown ones are rejected with unknown_action
+const KNOWN_ACTIONS = new Set<string>([
+  "inventory.move_item",
+  "inventory.split",
+  "inventory.collect",
+  "inventory.sort",
+  "inventory.select_hotbar",
+  "craft.execute",
+  "ui.modal.respond",
+  "block_inventory.move_item",
+  "debug.echo",
+]);
 
 // インベントリ状態は接続ごとに分離する。並列テストが同一 inv を奪い合わないため
 // Inventory state is isolated per connection so parallel tests don't race on the same inv
@@ -118,8 +147,13 @@ wss.on("connection", (ws) => {
 
   // block 領域はテスト用 currentBlock を、それ以外は接続ごとの inv を参照する
   // The block area refers to the test-only currentBlock; other areas refer to the per-connection inv
-  const blockSlotOf = (ref: BlockSlotRef): SlotData =>
-    ref.area === "block" ? currentBlock.itemSlots[ref.slot] : slotOf(ref as SlotRef);
+  const blockSlotOf = (ref: BlockSlotRef): SlotData => {
+    if (ref.area !== "block") return slotOf(ref as SlotRef);
+    // block 操作は開状態でのみ発生する。閉なら空スロット扱いで安全に倒す
+    // Block ops only happen while open; treat a closed block as an empty slot to stay safe
+    if (!currentBlock.open) return { itemId: 0, count: 0 };
+    return currentBlock.itemSlots[ref.slot];
+  };
 
   // from の count 個を to へ移す最小モデル。空・数量不足は host と同じエラーコードを返す（成功は null）
   // Minimal model: move count items from→to; empty/insufficient return the host's error codes (null on success)
@@ -196,6 +230,15 @@ wss.on("connection", (ws) => {
       }
       return;
     }
+    // 購読解除: グローバル購読 Set から除去する（本番 host が unsubscribe を尊重するのに合わせる）
+    // Unsubscribe: remove from the global subscription Sets (mirrors the real host honoring unsubscribe)
+    if (msg.op === "unsubscribe") {
+      for (const topic of msg.topics) {
+        if (topic === Topics.blockInventory) blockSubscribers.delete(ws);
+        if (topic === Topics.modal) modalSubscribers.delete(ws);
+      }
+      return;
+    }
     if (msg.op === "action") {
       received.push({ type: msg.type, payload: msg.payload });
       // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
@@ -239,6 +282,10 @@ wss.on("connection", (ws) => {
             send(ws, { op: "event", topic: Topics.blockInventory, data: currentBlock });
           }, 30);
         }
+      } else if (msg.type !== "fail.always" && !KNOWN_ACTIONS.has(msg.type)) {
+        // 未知 action type は本番 dispatcher と同じく unknown_action で拒否する（既知だが未実装の split/sort/craft は no-op で ok:true）
+        // Unknown action types are rejected with unknown_action like the real dispatcher (known-but-unimplemented split/sort/craft stay no-op ok:true)
+        error = "unknown_action";
       }
       send(ws, { op: "result", requestId: msg.requestId, ok: error === undefined, error });
       return;

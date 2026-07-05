@@ -30,27 +30,37 @@ export type ModalRequest = {
   buttonText: string;
   variant: "confirm" | "error";
 };
-export type ModalData = { modal: ModalRequest | null };
+// modal は C# 側 NullValueHandling.Ignore で null 時にキーごと省略される（無し時は {}）
+// modal is dropped key-and-all when null by the C# NullValueHandling.Ignore (absent → {})
+export type ModalData = { modal?: ModalRequest };
 
 // COM-3 汎用プログレス。uGUI ProgressBarView(Show/Hide + 0..1) 相当
 // COM-3 generic progress; mirrors uGUI ProgressBarView (Show/Hide + 0..1)
-export type ProgressData = { visible: boolean; progress: number; label: string | null };
+// label は null 時にキー省略されるため optional（型で欠落を表現する）
+// label is key-omitted when null, so it is optional (the type expresses the omission)
+export type ProgressData = { visible: boolean; progress: number; label?: string };
 
 // INV-6 液体スロット。uGUI FluidSlotView(アイコン + amount/capacity + 名前 tooltip) 相当
 // INV-6 fluid slot; mirrors uGUI FluidSlotView (icon + amount/capacity + name tooltip)
 export type FluidSlotData = { fluidId: number; amount: number; capacity: number; name: string };
 
-// INV-4/BLK-1 ブロックインベントリ。blockType で React コンポーネントを静的解決
-// INV-4/BLK-1 block inventory; blockType statically resolves to a React component
-export type BlockInventoryData = {
-  open: boolean;
+// INV-4/BLK-1 ブロックインベントリ。閉状態は open:false のみ、他キーは C# 側で全省略される
+// INV-4/BLK-1 block inventory; the closed state is only open:false, the C# side omits every other key
+// open を判別子にした discriminated union で「開なら全フィールド存在」を型が保証する（!data.open ガードを正当化）
+// A discriminated union on open lets the type guarantee "all fields present when open" (justifies the !data.open guard)
+export type BlockInventoryOpen = {
+  open: true;
   blockType: string;
   identifier: string;
   blockName: string;
   itemSlots: SlotData[];
   fluidSlots: FluidSlotData[];
-  progress: number | null;
+  // progress は null 時にキー省略されるため optional
+  // progress is key-omitted when null, so it is optional
+  progress?: number;
 };
+export type BlockInventoryClosed = { open: false };
+export type BlockInventoryData = BlockInventoryOpen | BlockInventoryClosed;
 
 export type RequiredItem = { itemId: number; count: number };
 export type CraftRecipe = {

@@ -1,6 +1,8 @@
 // Unity 側 Web UI ホストと通信する WebSocket クライアント
 // WebSocket client for the Unity-side Web UI host
 import type { ServerMsg, ClientMsg, ActionResult, TopicPayloads } from "./protocol";
+import { validateTopicPayload } from "./validators";
+import { notify } from "./notify";
 
 export type { ActionResult };
 
@@ -122,7 +124,15 @@ class WebSocketClient {
       if (msg.op !== "snapshot" && msg.op !== "event") return;
       if (typeof msg.topic !== "string") return;
       const set = this.listeners.get(msg.topic);
-      if (set) set.forEach((l) => l(msg.data));
+      if (!set) return;
+      // topic 配信の単一チェックポイント: 契約違反の payload は警告＋toast で通知して破棄する
+      // Single choke point for topic delivery: warn + toast on a contract-violating payload, then drop it
+      if (!validateTopicPayload(msg.topic, msg.data)) {
+        console.warn(`[webSocketClient] dropped invalid payload for topic ${msg.topic}`, msg.data);
+        notify(`Invalid data received for ${msg.topic}`);
+        return;
+      }
+      set.forEach((l) => l(msg.data));
     };
 
     ws.onerror = () => {
