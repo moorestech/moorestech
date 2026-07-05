@@ -2952,7 +2952,6 @@
       "overrideVerticalBlock": {}
     },
     {
-      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
@@ -3216,8 +3215,6 @@
     {
       "time": 1,
       "recipeViewType": 100,
-      "initialUnlocked": true,
-      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
