@@ -4,6 +4,8 @@ using Core.Item;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.Research;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -71,6 +73,52 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(2, occupiedCounts.Count);
             Assert.AreEqual(100, occupiedCounts[0]);
             Assert.AreEqual(50, occupiedCounts[1]);
+        }
+
+        // 強化後の個数を持つセーブが正常にロードできる（ロード順回帰）
+        // A save containing counts above the base limit loads without errors (load-order regression)
+        [Test]
+        public void SaveWithUpgradedStackLoadsSuccessfullyTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
+            researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+
+            // 基礎上限100を超える150個を1スロットに保持した状態でセーブ
+            // Save with a single slot holding 150 items, above the base limit of 100
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            inventory.MainOpenableInventory.InsertItem(ServerContext.ItemStackFactory.Create(Test1ItemGuid, 150));
+            var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            // 新しいコンテナでロード。レベル復元がインベントリ復元より先でなければ例外死する
+            // Load in a fresh container; this throws unless levels are restored before the inventory
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            // 150個が1スタックで復元される（メインInvはホットバー優先挿入のため非空スロットで検証）
+            // 150 items are restored as a single stack (verified by non-empty slot due to hotbar-first insert)
+            var loadedInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var occupiedSlots = loadedInventory.MainOpenableInventory.InventoryItems.Where(item => item.Count > 0).ToList();
+            Assert.AreEqual(1, occupiedSlots.Count);
+            Assert.AreEqual(150, occupiedSlots[0].Count);
+            Assert.AreEqual(2, ItemStackLevelDataStore.Instance.GetUnlockedLevel(Test1ItemGuid));
+        }
+
+        // ロード後の研究再実行と永続化レベルが二重適用されない
+        // Research re-execution after load does not double-apply on top of persisted levels
+        [Test]
+        public void LoadDoesNotDoubleApplyLevelsTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+            var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            // 冪等 unlock（max適用）なのでレベルは2のまま
+            // Idempotent unlock (max-based) keeps the level at exactly 2
+            Assert.AreEqual(2, ItemStackLevelDataStore.Instance.GetUnlockedLevel(Test1ItemGuid));
         }
     }
 }
