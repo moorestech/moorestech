@@ -64,6 +64,13 @@ namespace Core.Master.Validator
                         {
                             logs += $"[TrainUnitMaster] TrainCar:{trainCar.TrainCarGuid} has duplicate RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
                         }
+
+                        // count 0以下は無償設置と0個返却を生むためマスタエラー
+                        // Non-positive counts allow free placement and zero-stack refunds, so treat them as master errors
+                        if (requiredItem.Count <= 0)
+                        {
+                            logs += $"[TrainUnitMaster] TrainCar:{trainCar.TrainCarGuid} has invalid RequiredItem.Count:{requiredItem.Count}\n";
+                        }
                     }
                 }
 
