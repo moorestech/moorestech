@@ -17,11 +17,18 @@ namespace Client.Game.InGame.UnlockState
         public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos => _challengeCategoryUnlockStateInfos;
         public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos => _machineRecipeUnlockStateInfos;
 
+        // ブロック・列車車両の解放状態はTask 5でハンドシェイク/イベントから充填する
+        // Block and train car unlock states are filled from handshake/event in Task 5
+        public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos => _blockUnlockStateInfos;
+        public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos => _trainCarUnlockStateInfos;
+
 
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
         private readonly Dictionary<Guid, ChallengeCategoryUnlockStateInfo> _challengeCategoryUnlockStateInfos = new();
         private readonly Dictionary<Guid, MachineRecipeUnlockStateInfo> _machineRecipeUnlockStateInfos = new();
+        private readonly Dictionary<Guid, BlockUnlockStateInfo> _blockUnlockStateInfos = new();
+        private readonly Dictionary<Guid, TrainCarUnlockStateInfo> _trainCarUnlockStateInfos = new();
         
         public ClientGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
