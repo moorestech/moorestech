@@ -35,6 +35,10 @@ namespace Client.Tests.Gear
         {
             var deltasA = CollectSpinDeltas(prefabPath, yawA);
             var deltasB = CollectSpinDeltas(prefabPath, yawB);
+
+            // 回転パーツ0件での空振りPASSを防ぐ
+            // Prevent a vacuous pass when no rotating parts were collected
+            Assert.Greater(deltasA.Count, 0, prefabPath);
             Assert.AreEqual(deltasA.Count, deltasB.Count);
 
             for (var i = 0; i < deltasA.Count; i++)
