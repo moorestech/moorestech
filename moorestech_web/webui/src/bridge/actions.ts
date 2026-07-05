@@ -34,7 +34,10 @@ export async function dispatchAction<K extends keyof ActionPayloads>(
     }
     return true;
   } catch (e) {
-    notify(`${type} error: ${e instanceof Error ? e.message : String(e)}`);
+    // 切断中の失敗は再接続オーバーレイが状態を伝えるため個別トーストしない
+    // Don't toast per-failure while disconnected; the reconnect overlay conveys the state
+    const message = e instanceof Error ? e.message : String(e);
+    if (message !== "disconnected") notify(`${type} error: ${message}`);
     return false;
   }
 }

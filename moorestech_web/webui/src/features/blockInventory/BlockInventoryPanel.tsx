@@ -1,5 +1,5 @@
 import { Paper, Title } from "@mantine/core";
-import { useTopic, dispatchAction, Topics } from "@/bridge";
+import { useTopic, useTopicSelector, dispatchAction, Topics } from "@/bridge";
 import type { ActionPayloads } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { resolveBlockComponent } from "./blockLogic";
@@ -10,7 +10,9 @@ import styles from "./style.module.css";
 // Block UI overlay; the SubInventoryState equivalent, statically resolving the body from blockType
 export default function BlockInventoryPanel() {
   const data = useTopic(Topics.blockInventory);
-  const inventory = useTopic(Topics.inventory);
+  // grab.count しか使わないためセレクタ購読にし、他インベントリ更新での再レンダーを避ける
+  // Only grab.count is used, so subscribe via a selector to avoid re-rendering on other inventory updates
+  const grabCount = useTopicSelector(Topics.inventory, (inv) => inv?.grab.count ?? 0);
   const itemMaster = useItemMaster();
 
   // 未受信または閉状態なら何も描画しない（ブロック UI が開いていない）
@@ -20,7 +22,7 @@ export default function BlockInventoryPanel() {
   // grab/名前/送信を context へまとめ、{data} 固定 contract の登録コンポーネントへ供給する
   // Bundle grab/name/dispatch into context and supply them to registered {data}-contract components
   const interaction: BlockInteraction = {
-    grabCount: inventory?.grab.count ?? 0,
+    grabCount,
     resolveName: (itemId) => itemMaster?.get(itemId)?.name,
     dispatch: (payload: ActionPayloads["block_inventory.move_item"]) =>
       void dispatchAction("block_inventory.move_item", payload),

@@ -37,8 +37,8 @@ export const Topics = {
   progress: "ui.progress",
 } as const;
 
-// topic → payload 型の対応表。useTopic/subscribeTopic がこれで型付けされる
-// topic → payload type registry; types useTopic/subscribeTopic
+// topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
+// topic → payload type registry; types useTopic/useTopicSelector
 export type TopicPayloads = {
   [Topics.inventory]: PlayerInventoryData;
   [Topics.craftRecipes]: CraftRecipesData;

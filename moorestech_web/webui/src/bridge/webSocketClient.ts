@@ -1,8 +1,8 @@
-// Unity 側 Web UI ホストと通信する WebSocket クライアント
-// WebSocket client for the Unity-side Web UI host
-import type { ServerMsg, ClientMsg, ActionResult, TopicPayloads } from "./protocol";
-import { validateTopicPayload } from "./validators";
-import { notify } from "./notify";
+// Unity 側 Web UI ホストと通信する WebSocket クライアント（純粋なトランスポート）
+// WebSocket client that talks to the Unity-side Web UI host (a pure transport)
+import type { ServerMsg, ClientMsg, ActionResult } from "./protocol";
+import { deliverTopicPayload, useTopicStore } from "./topicStore";
+import { subscriptions } from "./subscriptionManager";
 
 export type { ActionResult };
 
@@ -18,13 +18,10 @@ function safeParse(raw: string): Partial<ServerMsg> | null {
   }
 }
 
-type Listener = (data: unknown) => void;
-
 class WebSocketClient {
   private ws: WebSocket | null = null;
   private readonly url: string;
-  private readonly listeners = new Map<string, Set<Listener>>();
-  private readonly pendingSubscribes = new Set<string>();
+  private hasConnected = false;
   private reconnectDelayMs = 100;
   private nextRequestId = 1;
   private readonly pendingActions = new Map<
@@ -34,26 +31,10 @@ class WebSocketClient {
 
   constructor(url: string) {
     this.url = url;
+    // 購読マネージャの送信口を自身の sendRaw に束ねる（refcount→op 送信の一方通行）
+    // Bind the subscription manager's transport to this socket's sendRaw (one-way refcount→op send)
+    subscriptions.setSend((msg) => this.sendRaw(msg));
     this.openSocket();
-  }
-
-  subscribe(topic: string, listener: Listener): () => void {
-    let set = this.listeners.get(topic);
-    if (!set) {
-      set = new Set();
-      this.listeners.set(topic, set);
-    }
-    set.add(listener);
-
-    this.sendSubscribe(topic);
-
-    return () => {
-      set!.delete(listener);
-      if (set!.size === 0) {
-        this.listeners.delete(topic);
-        this.sendRaw({ op: "unsubscribe", topics: [topic] });
-      }
-    };
   }
 
   // タイムアウト・切断時は reject
@@ -75,14 +56,6 @@ class WebSocketClient {
     });
   }
 
-  private sendSubscribe(topic: string) {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      this.sendRaw({ op: "subscribe", topics: [topic] });
-    } else {
-      this.pendingSubscribes.add(topic);
-    }
-  }
-
   private sendRaw(msg: ClientMsg) {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(msg));
@@ -95,15 +68,11 @@ class WebSocketClient {
 
     ws.onopen = () => {
       this.reconnectDelayMs = 100;
-      // 保留中の subscribe と、再接続時は listener が登録済みのトピックを全て再購読
-      // On (re)connect, flush pending subscribes and re-subscribe known topics
-      const toSub = new Set<string>();
-      this.pendingSubscribes.forEach((t) => toSub.add(t));
-      this.listeners.forEach((_, t) => toSub.add(t));
-      this.pendingSubscribes.clear();
-      if (toSub.size > 0) {
-        this.sendRaw({ op: "subscribe", topics: Array.from(toSub) });
-      }
+      this.hasConnected = true;
+      // 接続確立を公開し、参照カウント>0 の topic を一括再購読する
+      // Publish the open state and resubscribe all refcount>0 topics in one batch
+      useTopicStore.getState().setStatus("open");
+      subscriptions.resubscribe();
     };
 
     ws.onmessage = (ev) => {
@@ -123,16 +92,9 @@ class WebSocketClient {
       }
       if (msg.op !== "snapshot" && msg.op !== "event") return;
       if (typeof msg.topic !== "string") return;
-      const set = this.listeners.get(msg.topic);
-      if (!set) return;
-      // topic 配信の単一チェックポイント: 契約違反の payload は警告＋toast で通知して破棄する
-      // Single choke point for topic delivery: warn + toast on a contract-violating payload, then drop it
-      if (!validateTopicPayload(msg.topic, msg.data)) {
-        console.warn(`[webSocketClient] dropped invalid payload for topic ${msg.topic}`, msg.data);
-        notify(`Invalid data received for ${msg.topic}`);
-        return;
-      }
-      set.forEach((l) => l(msg.data));
+      // topic 配信の単一チェックポイント: バリデーション→ストア反映（違反は deliver 内で破棄）
+      // Single choke point for topic delivery: validate → store write (violations are dropped inside deliver)
+      deliverTopicPayload(msg.topic, msg.data);
     };
 
     ws.onerror = () => {
@@ -149,6 +111,9 @@ class WebSocketClient {
       });
       this.pendingActions.clear();
       this.ws = null;
+      // 一度でも接続していれば reconnecting、未接続なら connecting のまま
+      // reconnecting if we ever connected, otherwise stay connecting
+      useTopicStore.getState().setStatus(this.hasConnected ? "reconnecting" : "connecting");
       // 指数バックオフで再接続（上限 5 秒）
       // Exponential backoff reconnect (capped at 5s)
       const delay = Math.min(this.reconnectDelayMs, 5000);
@@ -161,15 +126,6 @@ class WebSocketClient {
 // モジュール内シングルトンで接続を保持
 // Keep the connection as a module-level singleton
 const client = new WebSocketClient(`ws://${location.host}/ws`);
-
-export function subscribeTopic<K extends keyof TopicPayloads>(
-  topic: K,
-  listener: (data: TopicPayloads[K]) => void,
-) {
-  // as TopicPayloads[K] はランタイム非保証のキャスト境界。未知 topic は購読されないため到達しない
-  // This cast is a runtime-unchecked boundary; unknown topics are never subscribed so they don't reach here
-  return client.subscribe(topic, (d) => listener(d as TopicPayloads[K]));
-}
 
 // UI コードは原則 actions.ts の dispatchAction を使うこと（reject の処理が必要なため）
 // UI code should normally use dispatchAction in actions.ts, which handles rejections
