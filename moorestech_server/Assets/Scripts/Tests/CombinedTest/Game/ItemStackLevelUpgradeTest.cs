@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Game
 
             // 強化後は150個が1スロットに収まりあふれない（メインInvはホットバー優先挿入）
             // After the upgrade 150 fits in a single slot without overflow (main inv inserts hotbar-first)
-            var occupiedSlots = inventory.MainOpenableInventory.InventoryItems.Where(item => item.Count > 0).ToList();
+            var occupiedSlots = inventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).ToList();
             Assert.AreEqual(1, occupiedSlots.Count);
             Assert.AreEqual(150, occupiedSlots[0].Count);
         }
@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Game
 
             // 強化前は上限100であふれ、100と50の2スタックに分かれる
             // Before the upgrade it overflows at 100, splitting into two stacks of 100 and 50
-            var occupiedCounts = inventory.MainOpenableInventory.InventoryItems.Where(item => item.Count > 0).Select(item => item.Count).ToList();
+            var occupiedCounts = inventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).Select(item => item.Count).ToList();
             Assert.AreEqual(2, occupiedCounts.Count);
             Assert.AreEqual(100, occupiedCounts[0]);
             Assert.AreEqual(50, occupiedCounts[1]);
@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Game
             // 150個が1スタックで復元される（メインInvはホットバー優先挿入のため非空スロットで検証）
             // 150 items are restored as a single stack (verified by non-empty slot due to hotbar-first insert)
             var loadedInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            var occupiedSlots = loadedInventory.MainOpenableInventory.InventoryItems.Where(item => item.Count > 0).ToList();
+            var occupiedSlots = loadedInventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).ToList();
             Assert.AreEqual(1, occupiedSlots.Count);
             Assert.AreEqual(150, occupiedSlots[0].Count);
             Assert.AreEqual(2, ItemStackLevelDataStore.Instance.GetUnlockedLevel(Test1ItemGuid));

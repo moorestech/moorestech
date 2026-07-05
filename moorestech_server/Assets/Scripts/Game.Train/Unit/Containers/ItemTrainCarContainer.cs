@@ -90,7 +90,7 @@ namespace Game.Train.Unit.Containers
 
         public bool IsFull()
         {
-            return _itemDataStoreService.InventoryItems.All(stack => stack.Id != ItemMaster.EmptyItemId && stack.Count >= ItemStackLevelDataStore.Instance.GetMaxStack(stack.Id));
+            return _itemDataStoreService.InventoryItems.All(stack => stack.Id != ItemMaster.EmptyItemId && ItemStackLevelDataStore.Instance.GetMaxStack(stack.Id) <= stack.Count);
         }
 
         public bool IsEmpty()
