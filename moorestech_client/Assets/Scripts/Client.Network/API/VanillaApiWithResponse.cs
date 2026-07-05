@@ -41,18 +41,20 @@ namespace Client.Network.API
             var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
             var initialHandShake = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
 
-            // 研究状態を先に取得しレベルを適用（インベントリ等のItemStack生成前に上限を正すため）
-            // Fetch research states first and apply levels before any ItemStack is built from responses
+            // 研究・チャレンジ状態を先に取得しレベルを適用（インベントリ等のItemStack生成前に上限を正すため）
+            // Fetch research and challenge states first and apply levels before any ItemStack is built from responses
             var researchNodeStates = await GetResearchNodeStates(ct);
             ResearchItemStackLevelApplier.ApplyCompleted(researchNodeStates);
 
-            //必要なデータを取得する（研究状態は上で先行取得済み）
-            // Fetch all required resources (research node states were fetched above)
-            var (mapObjects, worldData, inventory, challenges, unlockState, craftTree, playedSkitIds, railGraphSnapshot, trainUnitSnapshots) = await UniTask.WhenAll(
+            var challenges = await GetChallengeResponse(ct);
+            ChallengeItemStackLevelApplier.ApplyFromResponses(challenges);
+
+            //必要なデータを取得する（研究・チャレンジ状態は上で先行取得済み）
+            // Fetch all required resources (research node and challenge states were fetched above)
+            var (mapObjects, worldData, inventory, unlockState, craftTree, playedSkitIds, railGraphSnapshot, trainUnitSnapshots) = await UniTask.WhenAll(
                 GetMapObjectInfo(ct),
                 GetWorldData(ct),
                 GetPlayerInventory(playerId, ct),
-                GetChallengeResponse(ct),
                 GetUnlockState(ct),
                 GetCraftTree(playerId, ct),
                 GetPlayedSkitIds(ct),
