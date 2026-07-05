@@ -1,0 +1,50 @@
+  │ 3   │ FluidMaster.GetTankCapacity(level)     │ Core.Master          │ マスタ値解釈 │ 違反                          │
+  ├─────┼────────────────────────────────────────┼──────────────────────┼──────────────┼───────────────────────────────┤
+  │ 4   │ TankCapacityLevelDataStore / interface │ Game.Fluid           │ 状態store    │ ok（IResearchDataStore 前例） │
+  ├─────┼────────────────────────────────────────┼──────────────────────┼──────────────┼───────────────────────────────┤
+  │ 5   │ event Action<float> OnCapacityChanged  │ Game.Fluid           │ C# event     │ 違反                          │
+  ├─────┼────────────────────────────────────────┼──────────────────────┼──────────────┼───────────────────────────────┤
+  │ 6   │ GameActionExecutor case 追加           │ Game.Action          │ 既存機構     │ ok                            │
+  ├─────┼────────────────────────────────────────┼──────────────────────┼──────────────┼───────────────────────────────┤
+  │ 7   │ DI AddSingleton                        │ DIContainerGenerator │ DI           │ ok（前例通り）                │
+  ├─────┼────────────────────────────────────────┼──────────────────────┼──────────────┼───────────────────────────────┤
+  │ 8   │ tankCapacityLevel (int) 保存           │ Game.SaveLoad        │ 永続化       │ ok（inventorySlotLevel 前例） │
+  ├─────┼────────────────────────────────────────┼──────────────────────┼──────────────┼───────────────────────────────┤
+  │ 9   │ tankCapacity (float) 保存              │ Game.SaveLoad        │ 永続化       │ 違反                          │
+  ├─────┼────────────────────────────────────────┼──────────────────────┼──────────────┼───────────────────────────────┤
+  │ 10  │ 新プロトコル追加なし                   │ Client               │ 通信         │ ok                            │
+  └─────┴────────────────────────────────────────┴──────────────────────┴──────────────┴───────────────────────────────┘
+
+⏺ Write(/private/tmp/claude-501/-Users-katsumi-moorestech-worktrees-tree1/831c510f-8217-447c-8dfe-b4bb597cd109/scratchpad/skill-iter/live-trial/findings-B.json)
+  ⎿  Wrote 44 lines to ../../../../private/tmp/claude-501/-Users-katsumi-moorestech-worktrees-tree1/831c510f-8217-447c-8dfe-b4bb597cd109/scratchpad/skill-iter/live-trial/findings-B.json
+       1 {
+       2   "reviewedFile": "fluid-tank-upgrade-plan.md",
+       4   "findings": [
+       5     {
+       6       "target": "§2 FluidMaster の拡張 — Core.Master/FluidMaster.cs に GetTankCapacity(int level) を追加",
+       8       "reason": "Core.Master の責務はマスタデータの生ロード・保持・ID解決のみで、ドメイン固有の解釈ロジック（レベル→タンク容量の解決）を置いてはいけない。『マスタデータが出所だからマスタ管理クラスに置くの
+         が自然』という根拠は層マップの Red Flag そのもの（データの出所と解釈ロジックの所有者は別物）。判定質問『この機能が無くても Core.Master にとって意味を持つか』→ No。前例: スロットレベル機能では PlayerInvent
+         orySlotLevelMasterUtil を Game.PlayerInventory.Interface に置き、Core 側への追加はゼロとした。",
+         る。実装は MasterHolder.FluidMaster の生成物（Fluids.TankCapacityLevels）を読むだけにし、TankCapacityLevelDataStore.CurrentCapacity もこの util を呼ぶ形に計画書を書き換える。"
+      10     },
+     … +45 lines
+
+  Thought for 7s
+
+⏺ Write(.mso/live-trial/20260705-152834-sar-organic-trigger/out/status.json)
+  ⎿  Wrote 1 line to .mso/live-trial/20260705-152834-sar-organic-trigger/out/status.json
+      1 {"status": "PASS", "issues": 5}
+
+⏺ DONE: PASS
+  ⎿  Stop says: ✅ 完了時刻: 2026-07-05 15:31:45 JST
+
+✻ Sautéed for 2m 47s
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯ findings-B.json の内容を見せて
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [🤖Fable 5 8%]🌿 feature/item-stack-upgrade +1📁tree1\moorestech-worktrees\katsumi\Users\
+  Compact: ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ [8%] 67.6K/835.0K
+  Session: ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ [9%] 31m/5h | [35%] 2/7d
+  🗣 次のファイルに書かれたタスクを読み、その指示どおりに実行してください。余計な確…
+  ⏵⏵ bypass permissions on (shift+tab to cycle) · ← for agents
