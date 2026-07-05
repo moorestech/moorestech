@@ -43,6 +43,17 @@ namespace Core.Inventory
         {
             return _inventory.Count;
         }
+
+        public void ExpandSlots(int newSlotCount)
+        {
+            // 末尾に空スロットを追加する。縮小は非対応で無視する
+            // Append empty slots at the tail; shrinking is not supported and ignored
+            while (_inventory.Count < newSlotCount)
+            {
+                _inventory.Add(_itemStackFactory.CreatEmpty());
+                InvokeEvent(_inventory.Count - 1);
+            }
+        }
         
         public ReadOnlyCollection<IItemStack> CreateCopiedItems()
         {
