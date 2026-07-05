@@ -33,8 +33,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             //パケットでプレイヤーインベントリを生成
             
             //ホットバーにアイテムとしてのブロックをセットする
-            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot, inventory.MainOpenableInventory.GetSlotSize());
             inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(BlockItemId, 3));
             
             //ブロックを置く
@@ -78,8 +78,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             //パケットでプレイヤーインベントリを生成
             
             //ホットバーにアイテムとしてのブロックをセットする
-            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot, inventory.MainOpenableInventory.GetSlotSize());
             inventory.MainOpenableInventory.SetItem(slot, itemStackFactory.Create(BlockItemId, 4));
             
             
