@@ -51,8 +51,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         private void Awake()
         {
-            // 動的生成されるスロットのUIイベントを購読する
-            // Subscribe UI events of dynamically created slot views
+            // 動的生成スロットのUI購読
+            // Subscribe UI of generated slots
             mainSlotsView.OnSlotViewCreated.Subscribe(slotView => slotView.OnPointerEvent.Subscribe(ItemSlotUIEvent));
 
             //整理ボタンのクリックでメイン＋開いているサブインベントリを整理する
@@ -78,7 +78,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private void ItemSlotUIEvent((ItemSlotView slotObject, ItemUIEventType itemUIEvent) eventProperty)
         {
             var (slotObject, itemUIEvent) = eventProperty;
-            var index = IndexOfMainSlotView(slotObject);
+            var index = IndexOfMainSlotView();
             if (index == -1)
                 index = mainSlotsView.SlotViews.Count + _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
 
@@ -107,17 +107,21 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 case ItemUIEventType.CursorMove: break;
                 default: throw new ArgumentOutOfRangeException(nameof(itemUIEvent), itemUIEvent, null);
             }
-        }
 
-        private int IndexOfMainSlotView(ItemSlotView slotObject)
-        {
-            // IReadOnlyListにIndexOfが無いため手動で探索する
-            // Search manually because IReadOnlyList has no IndexOf
-            for (var i = 0; i < mainSlotsView.SlotViews.Count; i++)
+            #region Internal
+
+            int IndexOfMainSlotView()
             {
-                if (mainSlotsView.SlotViews[i] == slotObject) return i;
+                // IReadOnlyListにIndexOfが無いため手動で探索する
+                // Search manually because IReadOnlyList has no IndexOf
+                for (var i = 0; i < mainSlotsView.SlotViews.Count; i++)
+                {
+                    if (mainSlotsView.SlotViews[i] == slotObject) return i;
+                }
+                return -1;
             }
-            return -1;
+
+            #endregion
         }
         
         
@@ -328,7 +332,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             InventoryType GetInventoryType(int index, bool hasSub)
             {
                 var mainSlotCount = _playerInventory.LocalPlayerInventory.MainSlotCount;
-                if (hasSub && index >= mainSlotCount)
+                if (hasSub && mainSlotCount <= index)
                     return InventoryType.SubInventory;
 
                 // ホットバーの判定
@@ -341,7 +345,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             (int start, int end) GetTargetRange(InventoryType source, bool hasSub)
             {
                 var mainSlotCount = _playerInventory.LocalPlayerInventory.MainSlotCount;
-                var hotBarStart = mainSlotCount - PlayerInventoryConst.HotBarSlotCount;
+                var hotBarStart = PlayerInventoryConst.HotBarSlotToInventorySlot(0, mainSlotCount);
                 switch (source)
                 {
                     case InventoryType.MainInventory:
@@ -423,8 +427,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         private void InventoryViewUpdate()
         {
-            // スロット数の変化を検知してビューを生成する
-            // Detect slot count changes and build missing slot views
+            // スロット数変化でビュー生成
+            // Build views when slot count changes
             mainSlotsView.SetSlotCount(_playerInventory.LocalPlayerInventory.MainSlotCount);
 
             for (var i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)

@@ -8,8 +8,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void DynamicSizeHotBarSlotTest()
         {
-            // 45スロット時は従来と同じ36〜44がホットバー
-            // With 45 slots the hotbar is the classic 36..44 range
+            // 45スロットは従来通り36-44
+            // 45 slots keep the classic 36-44
             Assert.AreEqual(36, PlayerInventoryConst.HotBarSlotToInventorySlot(0, 45));
             Assert.AreEqual(44, PlayerInventoryConst.HotBarSlotToInventorySlot(8, 45));
 

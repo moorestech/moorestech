@@ -13,8 +13,8 @@ namespace Tests.CombinedTest.Game
 {
     public class PlayerInventorySlotLevelTest
     {
-        // レベル解放でスロット数が上がり、冪等に動作する
-        // Unlocking a level raises the slot count and behaves idempotently
+        // 解放でスロット数上昇・冪等
+        // Unlock raises count, idempotent
         [Test]
         public void UnlockLevelIsIdempotentTest()
         {
@@ -45,8 +45,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(1, store.CurrentLevel);
         }
 
-        // 拡張しても既存アイテムはスロット位置ごと保持される
-        // Expansion preserves existing items at their slot indices
+        // 拡張後もアイテム位置保持
+        // Expansion preserves item positions
         [Test]
         public void ExpandSlotsKeepsExistingItemsTest()
         {
@@ -71,8 +71,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(54, service.GetSlotSize());
         }
 
-        // レベル解放で既存プレイヤーのインベントリが拡張され、アイテムが保持される
-        // Level unlock expands existing player inventories while preserving items
+        // 解放で拡張、アイテム保持
+        // Unlock expands, items preserved
         [Test]
         public void UnlockLevelExpandsPlayerInventoryTest()
         {
@@ -89,14 +89,14 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(54, inventory.MainOpenableInventory.GetSlotSize());
             Assert.AreEqual(9, inventory.MainOpenableInventory.GetItem(44).Count);
 
-            // レベル解放後に取得した新規プレイヤーも54スロット
-            // A newly created player after the unlock also gets 54 slots
+            // 解放後の新規プレイヤーも54スロット
+            // New players after unlock also get 54 slots
             var newPlayerInventory = inventoryDataStore.GetInventoryData(1);
             Assert.AreEqual(54, newPlayerInventory.MainOpenableInventory.GetSlotSize());
         }
 
-        // 研究完了のclearedActionsでスロットレベルが解放される
-        // Completing research unlocks the slot level via clearedActions
+        // 研究完了でスロットレベル解放
+        // Research completion unlocks the slot level
         [Test]
         public void ResearchClearedActionUnlocksSlotLevelTest()
         {

@@ -3,8 +3,8 @@ using System;
 namespace Game.PlayerInventory.Interface
 {
     /// <summary>
-    ///     プレイヤーインベントリのスロット数レベルをワールド共通で保持する
-    ///     Holds the world-global player inventory slot level
+    ///     スロットレベルをワールド共通保持
+    ///     Holds slot level globally
     /// </summary>
     public interface IPlayerInventorySlotLevelDataStore
     {

@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
                 // Resolve and validate held item
                 var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
                 var mainInventory = inventoryData.MainOpenableInventory;
-                var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.HotBarSlot, mainInventory.GetSlotSize());
+                var inventorySlot = inventoryData.GetHotBarSlotIndex(data.HotBarSlot);
                 var item = mainInventory.GetItem(inventorySlot);
                 if (item == null || item.Count <= 0)
                 {
