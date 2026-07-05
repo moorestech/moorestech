@@ -22,18 +22,20 @@
 
 `option`は`IBlockConnector`に含めない。SourceGeneratorの最小検証では、`IBlockConnector.option`を匿名objectとして定義すると、インターフェース側は`Mooresmaster.Model.OptionModule.Option`、具象側は`Mooresmaster.Model.GearModule.Option`のように別型で生成され、C#のインターフェース実装が成立しない。
 
-`BlockConnectorComponent`は接続位置計算と`connectorGuid`保持だけに責務を絞り、Optionが必要なGear/Fluid側では`IGearConnector`/`IFluidConnector`のようなドメイン別インターフェースへキャストして取り出す。
+`BlockConnectorComponent`は接続位置計算と`connectorGuid`保持だけに責務を絞り、Optionが必要な側でキャストして取り出す。Fluidは`IFluidConnector`へ、Gearは生成される具体型`GearConnectsElement`へ直接キャストする（後述）。
 
 ### 2. ドメイン別Optionインターフェースを使うか
 
 Gear/FluidのOptionは別々の具体型として扱う。`IBlockConnectOption`のような空共通インターフェースは実用上ほぼ使わないため、現時点では採用しない。
 
-代わりに、Option型付きのドメイン別コネクタインターフェースを使う。
+ドメイン別コネクタインターフェースは**Fluidのみ**採用する。
 
-- `IGearConnector : IBlockConnector` -> `GearConnectOption Option`
 - `IFluidConnector : IBlockConnector` -> `FluidConnectOption Option`
+- Gearはインターフェースを作らず、生成される具体型`GearConnectsElement`へ直接キャストする
 
-この形はSourceGenerator最小検証で、`InflowConnectsElement : IFluidConnector`かつ`IFluidConnector : IBlockConnector`として生成されることを確認済み。
+理由: Fluidは inflow / outflow で`InflowConnectsElement` / `OutflowConnectsElement`の2つの生成型に分かれ、パイプ側は相手コネクタがどちらの型か事前に知れない。インターフェースがないとOption読み出し8箇所（Pump / FluidPipe / MachineFluidInventory / TrainPlatform 等）が2型switchになる。一方Gearは生成型が`GearConnectsElement`の1つだけなので、具体型キャストでインターフェースと安全性・記述量がほぼ同等になる。
+
+`IFluidConnector`の形はSourceGenerator最小検証で、`InflowConnectsElement : IFluidConnector`かつ`IFluidConnector : IBlockConnector`として生成されることを確認済み。
 
 ### 3. `globalDefineInterface`を使うか
 
@@ -137,7 +139,7 @@ properties:
 
 **ファイル**: `VanillaSchema/ref/gearConnects.yml`
 
-`gearConnects.items`を直接定義し、各要素に`implementationInterface: [IGearConnector]`を付ける。`option`には`gearConnectOption`を参照させる。
+`gearConnects.items`を直接定義し、各要素に`implementationInterface: [IBlockConnector]`を付ける。`option`には`gearConnectOption`を参照させる。Gearはドメイン別インターフェースを作らず、利用側は生成型`GearConnectsElement`へ直接キャストする。
 
 **ファイル**: `VanillaSchema/ref/gearConnectOption.yml`
 
@@ -155,20 +157,13 @@ properties:
 ```yaml
 id: gear
 type: object
-defineInterface:
-- interfaceName: IGearConnector
-  implementationInterface:
-  - IBlockConnector
-  properties:
-  - key: option
-    ref: gearConnectOption
 properties:
 - key: gearConnects
   type: array
   items:
     type: object
     implementationInterface:
-    - IGearConnector
+    - IBlockConnector
     properties:
     - key: connectorGuid
       type: uuid
@@ -287,12 +282,12 @@ properties:
 1. `ConnectOption` -> `Option`
 2. `BlockConnectInfo` -> Inventory/Gear/Fluid別の配列型または共通インターフェース受け
 3. `BlockConnectInfoElement` -> `IBlockConnector`
-4. Gear/FluidのOption取得 -> `IGearConnector`/`IFluidConnector`へキャストして`Option`参照
+4. FluidのOption取得 -> `IFluidConnector`へキャストして`Option`参照。GearのOption取得 -> 生成型`GearConnectsElement`へ直接キャスト
 5. `Mooresmaster.Model.BlockConnectInfoModule` using削除
 
 ### Option参照の置換方針
 
-`BlockConnectorComponent`と`ConnectedInfo`は共通の`IBlockConnector`だけを保持するため、`FluidPipeComponent`や`GearEnergyTransformerComponent`で`Option`を使う箇所はドメイン別インターフェースにキャストする。
+`BlockConnectorComponent`と`ConnectedInfo`は共通の`IBlockConnector`だけを保持するため、`Option`を使う箇所は各利用側でキャストする。Fluidは`IFluidConnector`、Gearは生成型`GearConnectsElement`。
 
 Fluidの例:
 
@@ -305,19 +300,19 @@ var selfOption = selfConnector.Option;
 var targetOption = targetConnector.Option;
 ```
 
-Gearの例:
+Gearの例（具体型キャスト）:
 
 ```csharp
-var selfConnector = target.Value.SelfConnector as IGearConnector;
-var targetConnector = target.Value.TargetConnector as IGearConnector;
+var selfConnector = target.Value.SelfConnector as GearConnectsElement;
+var targetConnector = target.Value.TargetConnector as GearConnectsElement;
 if (selfConnector == null || targetConnector == null) throw new ArgumentException("Gear connector option is not set");
 
 result.Add(new GearConnect(target.Key, selfConnector.Option, targetConnector.Option));
 ```
 
-これにより、`BlockConnectorComponent`は接続位置計算と`connectorGuid`保持だけを担当し、Gear/Fluid固有の`Option`解釈は各コンポーネント側に残せる。`IFluidConnector`/`IGearConnector`を実装していないコネクタが混ざると従来同様に例外で検出する。
+これにより、`BlockConnectorComponent`は接続位置計算と`connectorGuid`保持だけを担当し、Gear/Fluid固有の`Option`解釈は各コンポーネント側に残せる。想定外のコネクタが混ざるとキャスト失敗で従来同様に例外で検出する。
 
-`GearChainPoleComponent`の`_chainOption`は、旧`GearConnectOption`から新しい`gearConnectOption`生成型のインスタンスへ置き換える。チェーン接続はマスタコネクタ由来ではないため、`IGearConnector`へキャストせず従来通り手動Optionを渡す。
+`GearChainPoleComponent`の`_chainOption`は、旧`GearConnectOption`から新しい`gearConnectOption`生成型のインスタンスへ置き換える。チェーン接続はマスタコネクタ由来ではないため、コネクタへのキャストは行わず従来通り手動Optionを渡す。
 
 ### 確定で修正対象になるファイル
 
