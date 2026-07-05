@@ -358,23 +358,23 @@ namespace Client.Network.API
         // Place a new pole from the source pole and connect the chain
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> ExtendGearChainPole(
             Vector3Int fromPolePos,
-            int poleInventorySlot,
+            BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
             ItemId chainItemId,
             CancellationToken ct)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleInventorySlot, polePlaceInfo, chainItemId);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleBlockId, polePlaceInfo, chainItemId);
             return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
         }
 
         // 接続なしの孤立ポールを設置する
         // Place an isolated pole without any connection
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> PlaceIsolatedGearChainPole(
-            int poleInventorySlot,
+            BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
             CancellationToken ct)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleInventorySlot, polePlaceInfo);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleBlockId, polePlaceInfo);
             return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
         }
 
