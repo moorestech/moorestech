@@ -18,11 +18,13 @@ namespace Client.DebugSystem
             {
                 //TODO: あとでItemImageContainer.GetItemViewの引数をItemIdにする
                 var itemImage = ClientContext.ItemImageContainer.GetItemView(itemId);
-                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
-                var subText = $"Count:{maxStack}";
+                var subText = $"Count:{ItemStackLevelDataStore.Instance.GetMaxStack(itemId)}";
 
                 AddButton(itemImage.ItemName, subText, icon: itemImage.ItemImage, clicked: () =>
                 {
+                    // クリック時点で最新の解放済み上限を再評価する（実行中の解放を反映）
+                    // Re-evaluate the current unlocked max stack at click time to reflect runtime unlocks
+                    var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
                     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
                     var command = $"{SendCommandProtocol.GiveCommand} {playerId} {itemId} {maxStack}";
                     ClientContext.VanillaApi.SendOnly.SendCommand(command);

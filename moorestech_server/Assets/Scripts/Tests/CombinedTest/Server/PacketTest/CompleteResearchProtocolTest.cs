@@ -19,7 +19,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class CompleteResearchProtocolTest
     {
-        private const int ResearchNodeCount = 4;
+        private const int ResearchNodeCount = 5;
 
         [Test]
         public void CompleteResearchTest()
