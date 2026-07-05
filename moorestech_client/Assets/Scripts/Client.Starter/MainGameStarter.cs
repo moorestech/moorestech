@@ -157,6 +157,7 @@ namespace Client.Starter
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
+            builder.RegisterEntryPoint<ItemStackLevelEventHandler>();
             
             //プレゼンターアセンブリ
             // register presenter assembly
