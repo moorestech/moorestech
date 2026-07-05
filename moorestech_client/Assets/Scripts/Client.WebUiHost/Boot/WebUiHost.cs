@@ -30,7 +30,9 @@ namespace Client.WebUiHost.Boot
             // Wait for the previous stop to complete (avoids port 5050 collision on rapid restart)
             if (!_stopTask.IsCompleted)
             {
-                await _stopTask;
+                // 前回停止の fault は StopAsync 内でログ済み。ここでは待つだけで再 throw させない（2-B）
+                // The previous stop's fault is already logged inside StopAsync; only wait here, do not rethrow (2-B)
+                await _stopTask.ContinueWith(_ => { });
             }
             if (_kestrel != null) return;
 
@@ -38,12 +40,36 @@ namespace Client.WebUiHost.Boot
             // Install the GameShutdownEvent subscription exactly once per domain; hold it as IDisposable
             _shutdownSubscription ??= GameShutdownEvent.OnGameShutdown.Subscribe(_ => Stop());
 
-            _hub = new WebSocketHub();
-            _kestrel = new KestrelServer();
-            await _kestrel.StartAsync(_hub);
+            // ローカルで起動し、成功後にフィールドへ代入する。途中失敗時は起動済みを片付け null 残留させない（2-A）
+            // Start into locals and assign fields only on success; on partial failure, tear down and leave fields null (2-A)
+            var hub = new WebSocketHub();
+            var kestrel = new KestrelServer();
+            ViteProcess vite = null;
+            var kestrelStarted = false;
+            var started = false;
+            try
+            {
+                await kestrel.StartAsync(hub);
+                kestrelStarted = true;
 
-            _vite = new ViteProcess();
-            await _vite.StartAsync();
+                vite = new ViteProcess();
+                await vite.StartAsync();
+
+                _hub = hub;
+                _kestrel = kestrel;
+                _vite = vite;
+                started = true;
+            }
+            finally
+            {
+                // 起動途中で失敗したら、握ったポート/プロセスを解放してフィールドを null のまま残す
+                // If startup failed midway, release the held port/process and leave the fields null
+                if (!started)
+                {
+                    vite?.Kill();
+                    if (kestrelStarted) await kestrel.StopAsync();
+                }
+            }
 
             Debug.Log("[WebUiHost] ready. Open http://localhost:5173/");
         }
@@ -60,12 +86,23 @@ namespace Client.WebUiHost.Boot
         // Actual stop sequence shared by normal path and editor hook path
         public static async UniTask StopAsync()
         {
-            // Vite はメインスレッドで同期 kill（Process.Kill はメインスレッド前提）
-            // Kill Vite synchronously on the main thread (Process.Kill assumes main thread)
-            if (_vite != null)
+            // フィールドをローカルへ退避し即 null 化する。二重 Stop を冪等にし、以後の Start を再試行可能にする
+            // Move fields to locals and null them immediately; makes double-stop idempotent and lets a later Start retry
+            var vite = _vite;
+            var hub = _hub;
+            var kestrel = _kestrel;
+            _vite = null;
+            _hub = null;
+            _kestrel = null;
+
+            // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
+            // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
+            if (vite != null)
             {
-                _vite.Kill();
-                _vite = null;
+                // Vite kill はメインスレッドで同期実行（Process.Kill はメインスレッド前提）
+                // Kill Vite synchronously on the main thread (Process.Kill assumes main thread)
+                try { vite.Kill(); }
+                catch (Exception e) { Debug.LogWarning($"[WebUiHost] vite kill failed: {e.GetBaseException().Message}"); }
             }
 
             // Kestrel/WS 停止はスレッドプールへ逃がしてメインスレッドを解放
@@ -74,20 +111,32 @@ namespace Client.WebUiHost.Boot
 
             // セーブデータ/Mod 切り替えに備えてアイコンキャッシュを破棄する
             // Drop the icon cache in case the save data / mod set changes
-            Game.ItemIconEndpoint.ClearCache();
-            Game.ItemMasterEndpoint.ClearCache();
-
-            if (_hub != null)
+            try
             {
-                _hub.ClearBindings();
-                await _hub.CloseAllAsync();
-                _hub = null;
+                Game.ItemIconEndpoint.ClearCache();
+                Game.ItemMasterEndpoint.ClearCache();
+            }
+            catch (Exception e) { Debug.LogWarning($"[WebUiHost] icon cache clear failed: {e.GetBaseException().Message}"); }
+
+            if (hub != null)
+            {
+                // トピック/アクションのバインド解除
+                // Release topic/action bindings
+                try { hub.ClearBindings(); }
+                catch (Exception e) { Debug.LogWarning($"[WebUiHost] clear bindings failed: {e.GetBaseException().Message}"); }
+
+                // 全 WS 接続を close（送信ループと競合しない CloseAsync 経由）
+                // Close all WS connections (via CloseAsync, which does not race the send loop)
+                try { await hub.CloseAllAsync(); }
+                catch (Exception e) { Debug.LogWarning($"[WebUiHost] close all failed: {e.GetBaseException().Message}"); }
             }
 
-            if (_kestrel != null)
+            if (kestrel != null)
             {
-                await _kestrel.StopAsync();
-                _kestrel = null;
+                // Kestrel 停止でポートを確実に解放する（次回 Start の port 5050 衝突を防ぐ）
+                // Stop Kestrel to release the port for sure (prevents port 5050 collision on next Start)
+                try { await kestrel.StopAsync(); }
+                catch (Exception e) { Debug.LogWarning($"[WebUiHost] kestrel stop failed: {e.GetBaseException().Message}"); }
             }
 
             Debug.Log("[WebUiHost] stopped");
