@@ -1,5 +1,6 @@
 ﻿using Cinemachine;
 using Client.Common;
+using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.Input;
 using Client.Input;
 using DG.Tweening;
@@ -41,6 +42,10 @@ namespace Client.Game.InGame.Control
         
         private void Update()
         {
+            // CEF WebUI表示中はカメラ操作を停止する（静的ゲートを毎フレームポーリング）
+            // Stop camera control while the CEF WebUI is shown (poll the static gate each frame)
+            if (WebUiScreenGate.IsCefActive) return;
+
             var distance = _cinemachineFraming.m_CameraDistance;
             if (UnityEngine.Input.GetKey(KeyCode.F1)) distance -= Time.deltaTime * 3f; // TODO InputManagerに移動
             if (UnityEngine.Input.GetKey(KeyCode.F2)) distance += Time.deltaTime * 3f; // TODO InputManagerに移動
