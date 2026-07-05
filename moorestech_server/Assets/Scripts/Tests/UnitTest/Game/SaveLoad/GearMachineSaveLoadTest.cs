@@ -41,8 +41,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 3));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 1));
             
-            //処理を開始
-            gearMachineBlock.GetComponent<GearEnergyTransformer>().SupplyPower(new RPM(1000), new Torque(1000), true);
+            //処理を開始（gearの現在値は導出のみのため、機械の電力経路へ直接供給して加工を開始させる）
+            //Start processing: gear values are derived-only, so feed the machine's power path directly to begin crafting
+            gearMachineBlock.GetComponent<VanillaMachineProcessorComponent>().SupplyPower(1_000_000f);
             GameUpdater.UpdateOneTick();
             //別のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(5), 6));

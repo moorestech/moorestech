@@ -1,259 +1,157 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
-using UnityEngine;
+using Game.Gear.Tick;
 
 namespace Game.Gear.Common
 {
+    // 噛み合いでつながったgearの連結成分。需給計算はGearTickUpdater起点のRunTickでのみ行う。
+    // 各gearの現在値(実RPM/トルク/向き)は保持せず、符号付き原点RPM比×原点RPMから TryResolveRotation で導出する。
+    // A connected component of meshed gears; supply-demand runs only through RunTick. Per-gear values are derived via TryResolveRotation, not stored.
     public class GearNetwork
     {
         public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
         public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
-        
-        public GearNetworkInfo CurrentGearNetworkInfo { get; private set; }
-        
-        private readonly Dictionary<BlockInstanceId, GearRotationInfo> _checkedGearComponents = new();
-        private readonly List<IGearGenerator> _gearGenerators = new();
-        private readonly List<IGearEnergyTransformer> _gearTransformers = new();
         public readonly GearNetworkId NetworkId;
-        
+
+        // 毎tickの燃料消費等が必要なgeneratorを含むか。GearTickUpdaterの燃料更新対象の判定に使う
+        // Whether this network contains generators needing per-tick fuel updates; used by GearTickUpdater
+        public bool HasContinuousTickGenerator => _continuousTickGeneratorCount > 0;
+
+        private readonly List<IGearEnergyTransformer> _gearTransformers = new();
+        private readonly List<IGearGenerator> _gearGenerators = new();
+        private int _continuousTickGeneratorCount;
+
+        // topologyと原点が不変な間再利用するtraversal cache。topology変更・原点交代・generator消失でnull化される
+        // Traversal cache reused while topology and origin stay unchanged; nulled on topology change, origin switch, or loss of generators
+        private GearNetworkRotationCache _rotationCache;
+
         public GearNetwork(GearNetworkId networkId)
         {
             NetworkId = networkId;
         }
-        
+
+        // 現在の需給集約情報。実体はGearRuntimeStateStoreのnetwork単位stateから組み立てる
+        // Current aggregate supply-demand info, assembled from the store's per-network state
+        public GearNetworkInfo CurrentGearNetworkInfo
+        {
+            get
+            {
+                var state = GearRuntimeStateStore.Instance.GetNetworkState(NetworkId);
+                return new GearNetworkInfo(state.DemandPower, state.AvailablePower, state.NetworkLoadRate, state.StopReason);
+            }
+        }
+
         public void AddGear(IGearEnergyTransformer gear)
         {
             switch (gear)
             {
                 case IGearGenerator generator:
                     _gearGenerators.Add(generator);
+                    if (generator.RequiresContinuousTick) _continuousTickGeneratorCount++;
                     break;
                 default:
                     _gearTransformers.Add(gear);
                     break;
             }
         }
-        
+
         public void RemoveGear(IGearEnergyTransformer gear)
         {
             switch (gear)
             {
                 case IGearGenerator generator:
                     _gearGenerators.Remove(generator);
+                    if (generator.RequiresContinuousTick) _continuousTickGeneratorCount--;
                     break;
                 default:
                     _gearTransformers.Remove(gear);
                     break;
             }
         }
-        
-        public void ManualUpdate()
+
+        public void MarkTopologyDirty()
         {
-            //もっとも早いジェネレーターを選定し、そのジェネレーターを起点として、各歯車コンポーネントのRPMと回転方向を計算していく
-            IGearGenerator fastestOriginGenerator = null;
-            foreach (var gearGenerator in GearGenerators)
+            _rotationCache = null;
+        }
+
+        // gearの実RPMと絶対回転方向を符号付き原点RPM比から導出する。停止時はRPM0（向きは維持）。
+        // 未計算・cache外・generator不在なら false を返し、呼び出し側はゼロ扱いにする。
+        // Derive a gear's actual RPM and absolute direction from its signed ratio; RPM is 0 while stopped (direction kept).
+        // Returns false when uncomputed / outside the cache / no generator, so callers treat it as zero.
+        public bool TryResolveRotation(BlockInstanceId blockInstanceId, out RPM rpm, out bool isClockwise)
+        {
+            rpm = new RPM(0);
+            isClockwise = true;
+            if (_rotationCache == null) return false;
+            if (!_rotationCache.TryGetRotation(blockInstanceId, out var rotation)) return false;
+
+            var origin = _rotationCache.Origin;
+            isClockwise = rotation.IsSameDirectionAsOrigin ? origin.GenerateIsClockwise : !origin.GenerateIsClockwise;
+
+            var state = GearRuntimeStateStore.Instance.GetNetworkState(NetworkId);
+            rpm = state.IsStopped ? new RPM(0) : new RPM(Math.Abs(rotation.SignedRpmRatio) * origin.GenerateRpm.AsPrimitive());
+            return true;
+        }
+
+        // 1tick分の需給計算。traversal cacheを再構築した場合trueを返す（診断カウンタ用）
+        // Run one tick of supply-demand; returns true when the traversal cache was rebuilt (for diagnostics)
+        public bool RunTick(GearDemandSnapshot demandSnapshot, GearRuntimeStateStore store)
+        {
+            // 最も速いgeneratorを原点として選定する
+            // Pick the fastest generator as the traversal origin
+            IGearGenerator originGenerator = null;
+            foreach (var generator in _gearGenerators)
             {
-                if (fastestOriginGenerator == null)
-                {
-                    fastestOriginGenerator = gearGenerator;
-                    continue;
-                }
-                
-                if (gearGenerator.GenerateRpm > fastestOriginGenerator.GenerateRpm) fastestOriginGenerator = gearGenerator;
-            }
-            
-            if (fastestOriginGenerator == null)
-            {
-                //ジェネレーターがない場合はすべてにゼロを供給して終了
-                CurrentGearNetworkInfo = GearNetworkInfo.CreateEmpty();
-                foreach (var transformer in GearTransformers) transformer.SupplyPower(new RPM(0), new Torque(0), true);
-                return;
-            }
-            
-            //そのジェネレータと接続している各歯車コンポーネントを深さ優先度探索でたどり、RPMと回転方向を計算していく
-            _checkedGearComponents.Clear();
-            var generatorGearRotationInfo = new GearRotationInfo(fastestOriginGenerator.GenerateRpm, fastestOriginGenerator.GenerateIsClockwise, fastestOriginGenerator);
-            _checkedGearComponents.Add(fastestOriginGenerator.BlockInstanceId, generatorGearRotationInfo);
-            var rocked = false;
-            foreach (var connect in fastestOriginGenerator.GetGearConnects())
-            {
-                rocked = CalcGearInfo(connect, generatorGearRotationInfo);
-                //ロックを検知したので処理を終了
-                if (rocked) break;
-            }
-            
-            if (rocked)
-            {
-                CurrentGearNetworkInfo = new GearNetworkInfo(0, 0, 0, GearNetworkStopReason.Rocked);
-                SetNetworkStop();
-                return;
+                if (originGenerator == null || generator.GenerateRpm > originGenerator.GenerateRpm) originGenerator = generator;
             }
 
-            // エネルギー収支を計算し、不足している場合はネットワークを停止
-            var (totalRequiredGearPower, totalGeneratePower) = CalculateEnergyBalance();
-            if (totalRequiredGearPower > totalGeneratePower)
+            // generatorが無い場合は空状態を書き、回転定義を破棄する（gearは導出でゼロになる）
+            // Without any generator, write the empty state and drop the rotation cache (gears derive to zero)
+            if (originGenerator == null)
             {
-                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, 0f, GearNetworkStopReason.OverRequirePower);
-                SetNetworkStop();
-                return;
-            }
-
-            //すべてのジェネレーターから生成GPを取得し、合算する
-            DistributeGearPower();
-            
-            #region Internal
-            
-            bool CalcGearInfo(GearConnect gearConnect, GearRotationInfo connectGearRotationInfo)
-            {
-                var transformer = gearConnect.Transformer;
-                
-                //RPMと回転方向を計算する
-                var isReverseRotation = IsReverseRotation(gearConnect);
-                var isClockwise = isReverseRotation ? !connectGearRotationInfo.IsClockwise : connectGearRotationInfo.IsClockwise;
-                RPM rpm;
-                if (transformer is IGear gear &&
-                    connectGearRotationInfo.EnergyTransformer is IGear connectGear &&
-                    isReverseRotation)
-                {
-                    var gearRate = (float)connectGear.TeethCount / gear.TeethCount;
-                    rpm = connectGearRotationInfo.Rpm * gearRate;
-                }
-                else
-                {
-                    rpm = connectGearRotationInfo.Rpm;
-                }
-                
-                // もし既に計算済みの場合、新たな計算と一致するかを計算し、一致しない場合はロックフラグを立てる
-                if (_checkedGearComponents.TryGetValue(transformer.BlockInstanceId, out var info))
-                {
-                    if (info.IsClockwise != isClockwise || // 回転方向が一致しない場合
-                        Math.Abs((info.Rpm - rpm).AsPrimitive()) > 0.1f) // RPMが一致しない場合
-                        return true;
-                    
-                    // 深さ優先度探索でループになったのでこの探索は終了
-                    return false;
-                }
-                
-                if (transformer is IGearGenerator generator
-                    && generator.GenerateIsClockwise != isClockwise // もしこれがジェネレーターである場合、回転方向が合っているかを確認
-                    && fastestOriginGenerator.BlockInstanceId != transformer.BlockInstanceId // 上記が一番早い起点となるジェネレーターでない場合はロックをする
-                   )
-                    return true;
-                
-                // 計算済みとして登録
-                var gearRotationInfo = new GearRotationInfo(rpm, isClockwise, transformer);
-                _checkedGearComponents.Add(transformer.BlockInstanceId, gearRotationInfo);
-                
-                // この歯車が接続している歯車を再帰的に計算する
-                foreach (var connect in transformer.GetGearConnects())
-                {
-                    var isRocked = CalcGearInfo(connect, gearRotationInfo);
-                    //ロックを検知したので処理を終了
-                    if (isRocked) return true;
-                }
-                
+                _rotationCache = null;
+                store.SetNetworkState(NetworkId, new GearNetworkRuntimeState(false, GearNetworkStopReason.None, 0f, 0f, 0f));
                 return false;
             }
-            
-            bool IsReverseRotation(GearConnect connect)
+
+            // topology変更または原点交代時のみtraversalを再構築する
+            // Rebuild the traversal only when topology changed or the origin generator switched
+            var rebuilt = false;
+            if (_rotationCache == null || _rotationCache.OriginBlockInstanceId != originGenerator.BlockInstanceId)
             {
-                return connect.Self.IsReverse && connect.Target.IsReverse;
-            }
-            
-            void SetNetworkStop()
-            {
-                foreach (var transformer in GearTransformers) transformer.StopNetwork();
-                foreach (var generator in GearGenerators) generator.StopNetwork();
+                _rotationCache = GearRotationTraversalBuilder.Build(originGenerator);
+                rebuilt = true;
             }
 
-            (float totalRequiredGearPower, float totalGeneratePower) CalculateEnergyBalance()
+            // 符号衝突（逆回転）または現在RPMでの歯車比矛盾があればロック停止する
+            // Lock the network on a sign conflict (reverse rotation) or a gear-ratio conflict at the current rpm
+            if (_rotationCache.HasDirectionConflict || _rotationCache.IsRpmConflicted(originGenerator.GenerateRpm.AsPrimitive()))
             {
-                // 要求されているギアパワーを算出
-                var totalRequired = 0f;
-                foreach (var transformer in GearTransformers)
-                {
-                    var info = _checkedGearComponents[transformer.BlockInstanceId];
-                    totalRequired += info.RequiredTorque.AsPrimitive() * info.Rpm.AsPrimitive();
-                }
-
-                // 生成されるギアパワーを算出
-                var totalGenerate = 0f;
-                foreach (var generator in GearGenerators)
-                {
-                    totalGenerate += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
-                }
-
-                return (totalRequired, totalGenerate);
+                GearNetworkPowerCalculator.StopNetwork(this, store, GearNetworkStopReason.Rocked, 0f, 0f);
+                return rebuilt;
             }
-            
-            // ここのロジックはドキュメント参照
-            // https://splashy-relative-f65.notion.site/923bdb103c434e629e7a22b4e1618fdf?pvs=4
-            void DistributeGearPower()
-            {
-                // 要求されているギアパワーを算出
-                var totalRequiredGearPower = 0f;
-                foreach (var transformer in GearTransformers)
-                {
-                    var info = _checkedGearComponents[transformer.BlockInstanceId];
-                    
-                    totalRequiredGearPower += info.RequiredTorque.AsPrimitive() * info.Rpm.AsPrimitive();
-                }
-                
-                // 生成されるギアパワーを算出
-                var totalGeneratePower = 0f;
-                foreach (var generator in GearGenerators)
-                {
-                    totalGeneratePower += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
-                }
-                
-                // 要求されたトルクの量が供給量を上回ってるとき、その量に応じてRPMを減速させる
-                var operationRate = totalGeneratePower == 0 ? 0 : Mathf.Min(1, totalRequiredGearPower / totalGeneratePower);
-                
-                CurrentGearNetworkInfo = new GearNetworkInfo(totalRequiredGearPower, totalGeneratePower, operationRate, GearNetworkStopReason.None);
-                
-                // 生成されるギアパワーを各歯車コンポーネントに供給する
-                foreach (var transformer in GearTransformers)
-                {
-                    var info = _checkedGearComponents[transformer.BlockInstanceId];
-                    
-                    var supplyTorque = info.RequiredTorque / totalRequiredGearPower * totalGeneratePower;
-                    if (float.IsNaN(supplyTorque.AsPrimitive()))
-                    {
-                        supplyTorque = new Torque(0);
-                    }
-                    // 要求トルク以上のトルクが供給されないようにする
-                    supplyTorque = new Torque(Mathf.Min(supplyTorque.AsPrimitive(), info.RequiredTorque.AsPrimitive()));
-                    
-                    transformer.SupplyPower(info.Rpm , supplyTorque, info.IsClockwise);
-                }
-                
-                foreach (var generator in GearGenerators)
-                {
-                    var info = _checkedGearComponents[generator.BlockInstanceId];
-                    
-                    generator.SupplyPower(info.Rpm , generator.GenerateTorque, info.IsClockwise);
-                }
-            }
-            
-            #endregion
+
+            GearNetworkPowerCalculator.CalculateAndDistribute(this, _rotationCache, demandSnapshot, store);
+            return rebuilt;
         }
-    }
-    
-    public class GearRotationInfo
-    {
-        public readonly RPM Rpm;
-        public readonly bool IsClockwise;
-        
-        public readonly Torque RequiredTorque;
-        public readonly IGearEnergyTransformer EnergyTransformer;
-        
-        public GearRotationInfo(RPM rpm, bool isClockwise, IGearEnergyTransformer energyTransformer)
+
+        // 毎tick駆動が必要なgeneratorの燃料消費・出力更新。確定済みの負荷率を渡す
+        // Per-tick fuel consumption and output update for continuous generators, fed the settled load rate
+        public void ConsumeGeneratorTicks(GearRuntimeStateStore store)
         {
-            Rpm = rpm;
-            IsClockwise = isClockwise;
-            EnergyTransformer = energyTransformer;
-            RequiredTorque = energyTransformer.GetRequiredTorque(rpm, isClockwise);
+            var networkLoadRate = store.GetNetworkState(NetworkId).NetworkLoadRate;
+            foreach (var generator in _gearGenerators)
+            {
+                if (generator.RequiresContinuousTick) generator.ConsumeGeneratorTick(networkLoadRate);
+            }
+        }
+
+        // テスト互換用の即時再計算。本番経路はGearTickUpdaterのみが入口となる
+        // Immediate recalculation kept for test compatibility; production flows only through GearTickUpdater
+        public void ManualUpdate()
+        {
+            RunTick(GearDemandSnapshotUpdater.SharedSnapshot, GearRuntimeStateStore.Instance);
         }
     }
 }
