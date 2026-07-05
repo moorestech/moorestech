@@ -208,23 +208,50 @@ namespace Game.Block.Blocks.GearChainPole
         }
 
         public BlockInstanceId BlockInstanceId { get; }
-        public RPM CurrentRpm => _gearService.CurrentRpm;
-        public Torque CurrentTorque => _gearService.CurrentTorque;
-        public bool IsCurrentClockwise => _gearService.IsCurrentClockwise;
 
-
-        public void StopNetwork()
+        // 現在値は保持せず、所属networkの符号付き原点RPM比×原点RPMから導出する
+        // Current values are not stored; they are derived from the owning network's signed ratio × origin RPM
+        public RPM CurrentRpm
         {
-            // ネットワーク停止をサービスに委譲する
-            // Delegate network stop to service
-            _gearService.StopNetwork();
+            get
+            {
+                TryResolveRotation(out var rpm, out _);
+                return rpm;
+            }
         }
 
-        public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
+        public Torque CurrentTorque
         {
-            // 入力された回転をサービスへ転送する
-            // Forward supplied rotation to service
-            _gearService.SupplyPower(rpm, torque, isClockwise);
+            get
+            {
+                if (!TryResolveRotation(out var rpm, out var isClockwise)) return new Torque(0);
+                if (rpm.AsPrimitive() <= 0f) return new Torque(0);
+                return GetRequiredTorque(rpm, isClockwise);
+            }
+        }
+
+        public bool IsCurrentClockwise
+        {
+            get
+            {
+                TryResolveRotation(out _, out var isClockwise);
+                return isClockwise;
+            }
+        }
+
+        public void NotifyStateChanged()
+        {
+            _gearService.NotifyStateChanged();
+        }
+
+        // 所属networkを引き、符号付き原点RPM比から実RPMと絶対回転方向を導出する
+        // Look up the owning network and derive actual RPM and absolute direction from the signed origin RPM ratio
+        private bool TryResolveRotation(out RPM rpm, out bool isClockwise)
+        {
+            rpm = new RPM(0);
+            isClockwise = true;
+            if (!GearNetworkDatastore.TryGetGearNetwork(BlockInstanceId, out var network)) return false;
+            return network.TryResolveRotation(BlockInstanceId, out rpm, out isClockwise);
         }
 
         #endregion
@@ -242,8 +269,8 @@ namespace Game.Block.Blocks.GearChainPole
             var bytes = MessagePackSerializer.Serialize(stateDetail);
             return new[]
             {
-                new(GearChainPoleStateDetail.BlockStateDetailKey, bytes), 
-                _gearService.GetBlockStateDetail(),
+                new(GearChainPoleStateDetail.BlockStateDetailKey, bytes),
+                _gearService.GetBlockStateDetail(CurrentRpm, CurrentTorque, IsCurrentClockwise),
             };
         }
 
