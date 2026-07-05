@@ -6,8 +6,8 @@ using UniRx;
 
 namespace Core.Item
 {
-    // アイテムごとの解放済みスタックレベルを保持する実行時状態ストア
-    // Runtime store that owns unlocked stack levels per item
+    // アイテムごとの解放済みスタックレベル状態ストア
+    // Runtime store for unlocked stack levels per item
     public class ItemStackLevelDataStore
     {
         public static ItemStackLevelDataStore Instance { get; private set; }
