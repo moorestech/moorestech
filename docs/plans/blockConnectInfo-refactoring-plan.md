@@ -290,6 +290,35 @@ properties:
 4. Gear/FluidのOption取得 -> `IGearConnector`/`IFluidConnector`へキャストして`Option`参照
 5. `Mooresmaster.Model.BlockConnectInfoModule` using削除
 
+### Option参照の置換方針
+
+`BlockConnectorComponent`と`ConnectedInfo`は共通の`IBlockConnector`だけを保持するため、`FluidPipeComponent`や`GearEnergyTransformerComponent`で`Option`を使う箇所はドメイン別インターフェースにキャストする。
+
+Fluidの例:
+
+```csharp
+var selfConnector = info.SelfConnector as IFluidConnector;
+var targetConnector = info.TargetConnector as IFluidConnector;
+if (selfConnector == null || targetConnector == null) throw new ArgumentException("Fluid connector option is not set");
+
+var selfOption = selfConnector.Option;
+var targetOption = targetConnector.Option;
+```
+
+Gearの例:
+
+```csharp
+var selfConnector = target.Value.SelfConnector as IGearConnector;
+var targetConnector = target.Value.TargetConnector as IGearConnector;
+if (selfConnector == null || targetConnector == null) throw new ArgumentException("Gear connector option is not set");
+
+result.Add(new GearConnect(target.Key, selfConnector.Option, targetConnector.Option));
+```
+
+これにより、`BlockConnectorComponent`は接続位置計算と`connectorGuid`保持だけを担当し、Gear/Fluid固有の`Option`解釈は各コンポーネント側に残せる。`IFluidConnector`/`IGearConnector`を実装していないコネクタが混ざると従来同様に例外で検出する。
+
+`GearChainPoleComponent`の`_chainOption`は、旧`GearConnectOption`から新しい`gearConnectOption`生成型のインスタンスへ置き換える。チェーン接続はマスタコネクタ由来ではないため、`IGearConnector`へキャストせず従来通り手動Optionを渡す。
+
 ### 確定で修正対象になるファイル
 
 | ファイル | 修正内容 |
