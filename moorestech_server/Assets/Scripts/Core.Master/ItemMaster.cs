@@ -30,6 +30,8 @@ namespace Core.Master
         // baseItemId → level-ordered variants (index 0 = the base)
         private Dictionary<ItemId, ItemId[]> _levelVariantTable;
 
+        private Dictionary<Guid, ItemStackLevelTableMasterElement> _stackLevelTableByGuid;
+
         public ItemMaster(JToken itemJToken)
         {
             Items = ItemsLoader.Load(itemJToken);
@@ -43,6 +45,11 @@ namespace Core.Master
         public void Initialize()
         {
             ItemMasterUtil.Initialize(Items, out _itemElementTableById, out _itemGuidToItemId, out _moduleByItemId, out _levelVariantTable);
+
+            // スタックレベルテーブルのGUID索引を構築
+            // Build the GUID index of stack level tables
+            _stackLevelTableByGuid = new Dictionary<Guid, ItemStackLevelTableMasterElement>();
+            foreach (var table in Items.ItemStackLevelTables) _stackLevelTableByGuid.Add(table.TableGuid, table);
         }
         
         public ItemMasterElement GetItemMaster(ItemId itemId)
@@ -130,6 +137,15 @@ namespace Core.Master
             var variants = _levelVariantTable[baseItemId];
             var index = Math.Clamp(level - 1, 0, variants.Length - 1);
             return variants[index];
+        }
+
+        public ItemStackLevelTableMasterElement GetStackLevelTable(Guid tableGuid)
+        {
+            if (!_stackLevelTableByGuid.TryGetValue(tableGuid, out var table))
+            {
+                throw new InvalidOperationException($"ItemStackLevelTable not found. TableGuid:{tableGuid}");
+            }
+            return table;
         }
     }
 }
