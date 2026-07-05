@@ -20,6 +20,7 @@ properties:
         displayElementPath: /data/[*]/name
     - key: requiredItems
       type: array
+      optional: true
       overrideCodeGeneratePropertyName: TrainCarRequiredItemElement
       items:
         type: object
@@ -35,6 +36,7 @@ properties:
           default: 1
     - key: initialUnlocked
       type: boolean
+      optional: true
       default: false
     - key: addressablePath
       type: string

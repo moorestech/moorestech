@@ -118,6 +118,7 @@ properties:
         displayElementPath: /data/[*]/name
     - key: requiredItems
       type: array
+      optional: true
       overrideCodeGeneratePropertyName: ConstructionRequiredItemElement
       items:
         type: object
@@ -139,9 +140,11 @@ properties:
       optional: true
     - key: sortPriority
       type: integer
+      optional: true
       default: 0
     - key: initialUnlocked
       type: boolean
+      optional: true
       default: false
     - key: blockSize
       type: vector3Int
