@@ -127,8 +127,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         
         private Dictionary<int, IItemStack> CreateSetItems(Random random, IItemStackFactory itemStackFactory)
         {
-            // レベル0の45スロットを対象にランダムなアイテム配置を作る
-            // Build random item placements for the 45 level-0 slots
+            // 45スロットへランダム配置
+            // Random placements for 45 slots
             var items = new Dictionary<int, IItemStack>();
             for (var i = 0; i < 45; i++)
             {

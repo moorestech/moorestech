@@ -47,7 +47,7 @@ namespace Server.Protocol.PacketResponse
             if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
 
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(data.HotBarSlot, inventoryData.MainOpenableInventory.GetSlotSize());
+            var inventorySlot = inventoryData.GetHotBarSlotIndex(data.HotBarSlot);
             var item = inventoryData.MainOpenableInventory.GetItem(inventorySlot);
             if (!MasterHolder.BlockMaster.IsBlock(item.Id)) return;
             

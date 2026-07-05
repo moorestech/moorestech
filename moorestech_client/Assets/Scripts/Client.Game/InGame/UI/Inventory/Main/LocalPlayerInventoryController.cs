@@ -140,7 +140,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             // 範囲外スロットの通知はレベルアップによる拡張なので末尾まで成長させる
             // An out-of-range slot notification means a level-up expansion, so grow to that slot
-            if (slot >= _localPlayerInventory.MainSlotCount) _localPlayerInventory.EnsureMainSlotCount(slot + 1);
+            if (_localPlayerInventory.MainSlotCount <= slot) _localPlayerInventory.EnsureMainSlotCount(slot + 1);
             _localPlayerInventory[slot] = itemStack;
         }
         

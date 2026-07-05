@@ -38,8 +38,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             _mainInventory = new List<IItemStack>();
 
-            // 初期サイズはレベル0のスロット数。実サイズはサーバーレスポンスで確定する
-            // Initial size is the level-0 slot count; the real size comes from the server response
+            // 初期値はレベル0スロット数（暫定）
+            // Initial value is provisional (level-0 count)
             var itemStackFactory = ServerContext.ItemStackFactory;
             var initialSlotCount = PlayerInventorySlotLevelMasterUtil.GetSlotCount(0);
             for (var i = 0; i < initialSlotCount; i++) _mainInventory.Add(itemStackFactory.CreatEmpty());
@@ -49,8 +49,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
         public void EnsureMainSlotCount(int slotCount)
         {
-            // レベルアップ通知（範囲外スロットのイベント）で末尾に空スロットを足す
-            // Grow with empty tail slots when an out-of-range slot event arrives after level up
+            // レベルアップ時に末尾拡張
+            // Grow tail slots on level-up
             var itemStackFactory = ServerContext.ItemStackFactory;
             while (_mainInventory.Count < slotCount)
             {
@@ -140,8 +140,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public void SetMainInventory(List<IItemStack> mainInventoryList)
         {
+            // 古いレスポンスが拡張後に適用されても縮小しない（メインは縮まない不変条件）
+            // Never shrink even when a stale response lands after expansion (main never shrinks)
+            var beforeCount = _mainInventory.Count;
             _mainInventory.Clear();
             _mainInventory.AddRange(mainInventoryList);
+            EnsureMainSlotCount(beforeCount);
         }
         
     }

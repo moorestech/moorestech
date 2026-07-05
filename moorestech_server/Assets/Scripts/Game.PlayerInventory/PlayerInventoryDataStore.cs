@@ -27,8 +27,8 @@ namespace Game.PlayerInventory
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent)grabInventoryUpdateEvent;
             _slotLevelDataStore = slotLevelDataStore;
 
-            // レベル上昇で全プレイヤーのメインインベントリを拡張する
-            // Expand every player's main inventory when the slot level rises
+            // レベル上昇で全プレイヤー拡張
+            // Expand all players on level up
             _slotLevelDataStore.OnSlotCountChanged.Subscribe(slotCount =>
             {
                 foreach (var inventory in _playerInventoryData.Values)

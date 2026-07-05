@@ -11,8 +11,8 @@ namespace Tests.CombinedTest.Game
 {
     public class PlayerInventorySlotLevelSaveLoadTest
     {
-        // セーブ→ロードでレベルとインベントリサイズが復元される
-        // Save then load restores the level and the inventory size
+        // セーブ→ロードでレベル/サイズ復元
+        // Save then load restores level and size
         [Test]
         public void SaveLoadRestoresSlotLevelTest()
         {
@@ -35,8 +35,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(3, loadedInventory.MainOpenableInventory.GetItem(50).Count);
         }
 
-        // レベル情報のない旧セーブ（アイテム数45）はレベル0でもアイテムを失わない
-        // Legacy saves without level info keep all 45 items even at level 0
+        // 旧セーブ（レベル無し）でもアイテム維持
+        // Legacy saves without level keep items
         [Test]
         public void LoadLegacySaveWithoutLevelKeepsItemsTest()
         {
@@ -45,8 +45,8 @@ namespace Tests.CombinedTest.Game
             inventory.MainOpenableInventory.SetItem(44, new ItemId(1), 8);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
-            // inventorySlotLevelキーを消して旧フォーマットを再現する
-            // Strip the inventorySlotLevel key to emulate the legacy format
+            // キー削除で旧フォーマット再現
+            // Strip the key to emulate legacy format
             var legacyJson = Newtonsoft.Json.Linq.JObject.Parse(saveJson);
             legacyJson.Remove("inventorySlotLevel");
 

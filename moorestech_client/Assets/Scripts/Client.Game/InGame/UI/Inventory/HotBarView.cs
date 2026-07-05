@@ -71,11 +71,9 @@ namespace Client.Game.InGame.UI.Inventory
             void UpdateHotBarElement(int slot, IItemStack item)
             {
                 //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
-                var startHotBarSlot = _localPlayerInventory.MainSlotCount - PlayerInventoryConst.HotBarSlotCount;
+                if (!_localPlayerInventory.IsHotBarSlot(slot)) return;
 
-                if (slot < startHotBarSlot || _localPlayerInventory.MainSlotCount <= slot) return;
-                
-                slot -= startHotBarSlot;
+                slot -= _localPlayerInventory.GetHotBarInventorySlot(0);
                 // 同じアイテムなら更新しない
                 if (hotBarItems[slot].ItemId == item.Id) return;
                 
