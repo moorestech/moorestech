@@ -153,7 +153,6 @@ namespace Server.Protocol.PacketResponse
             [Key(12)] public List<string> LockedTrainCarGuidsStr { get; set; }
             [Key(13)] public List<string> UnlockedTrainCarGuidsStr { get; set; }
 
-
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseGameUnlockStateProtocolMessagePack() { }
             public ResponseGameUnlockStateProtocolMessagePack(

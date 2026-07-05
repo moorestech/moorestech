@@ -14,6 +14,7 @@ namespace Core.Master.Validator
             errorLogs += BlockItemGuidValidation();
             errorLogs += BlockParamValidation();
             errorLogs += OverrideVerticalBlockValidation();
+            errorLogs += BlockRequiredItemsValidation();
             errorLogs += GearChainItemsValidation();
             errorLogs += ElectricWireItemsValidation();
             errorLogs += GearConsumptionValidation();
@@ -206,6 +207,36 @@ namespace Core.Master.Validator
                         if (!ExistsBlockGuid(overrideVertical.DownBlockGuid.Value))
                         {
                             logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.DownBlockGuid:{overrideVertical.DownBlockGuid}\n";
+                        }
+                    }
+                }
+
+                return logs;
+            }
+
+            string BlockRequiredItemsValidation()
+            {
+                // 建設コスト(requiredItems)のitemGuid実在性と、同一ブロック内の重複を検証する
+                // Validate itemGuid existence and reject duplicates within a block's requiredItems
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.RequiredItems == null) continue;
+
+                    var seenItemGuids = new HashSet<Guid>();
+                    foreach (var requiredItem in block.RequiredItems)
+                    {
+                        var id = MasterHolder.ItemMaster.GetItemIdOrNull(requiredItem.ItemGuid);
+                        if (id == null)
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                        }
+
+                        // ConstructionCostServiceは重複を合算しないため、重複定義はマスタエラーとする
+                        // ConstructionCostService does not sum duplicates, so a duplicate definition is a master error
+                        if (!seenItemGuids.Add(requiredItem.ItemGuid))
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} has duplicate RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
                         }
                     }
                 }

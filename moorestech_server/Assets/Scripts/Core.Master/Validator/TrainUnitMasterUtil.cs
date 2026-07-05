@@ -12,6 +12,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += TrainCarWeightValidation();
             errorLogs += TrainCarValidation();
+            errorLogs += TrainCarRequiredItemsValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -33,6 +34,36 @@ namespace Core.Master.Validator
                     if (itemId == null)
                     {
                         logs += $"[TrainMaster] Invalid RailItemGuid:{railItem.ItemGuid}\n";
+                    }
+                }
+
+                return logs;
+            }
+
+            string TrainCarRequiredItemsValidation()
+            {
+                // 建設コスト(requiredItems)のitemGuid実在性と、同一車両内の重複を検証する
+                // Validate itemGuid existence and reject duplicates within a train car's requiredItems
+                var logs = "";
+                foreach (var trainCar in train.TrainCars)
+                {
+                    if (trainCar.RequiredItems == null) continue;
+
+                    var seenItemGuids = new HashSet<Guid>();
+                    foreach (var requiredItem in trainCar.RequiredItems)
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(requiredItem.ItemGuid);
+                        if (itemId == null)
+                        {
+                            logs += $"[TrainUnitMaster] TrainCar:{trainCar.TrainCarGuid} has invalid RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                        }
+
+                        // ConstructionCostServiceは重複を合算しないため、重複定義はマスタエラーとする
+                        // ConstructionCostService does not sum duplicates, so a duplicate definition is a master error
+                        if (!seenItemGuids.Add(requiredItem.ItemGuid))
+                        {
+                            logs += $"[TrainUnitMaster] TrainCar:{trainCar.TrainCarGuid} has duplicate RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                        }
                     }
                 }
 
