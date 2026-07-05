@@ -131,7 +131,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
         {
             // 設置前に自動接続計画を検証する。電線不足なら設置しない
             // Validate the auto-connect plan before placement; do not place when wires are insufficient
-            var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, polePlaceInfo.Position, polePlaceInfo.Direction, inventory.GetItem(poleInventorySlot).Id, inventory.InventoryItems);
+            var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, polePlaceInfo.Position, polePlaceInfo.Direction, new[] { (inventory.GetItem(poleInventorySlot).Id, 1) }, inventory.InventoryItems);
             if (!plan.IsPlaceable)
                 return ExtendResult.Failure(plan.FailureReason);
 
