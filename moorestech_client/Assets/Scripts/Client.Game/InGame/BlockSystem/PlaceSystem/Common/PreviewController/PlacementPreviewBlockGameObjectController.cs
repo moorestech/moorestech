@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -39,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             var isGroundDetectedList = new List<bool>();
             foreach (var placeInfo in placePointInfos)
             {
-                var blockId = holdingBlockMaster.BlockGuid.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
+                var blockId = placeInfo.BlockId;
 
                 var pos = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(placeInfo.Position, placeInfo.Direction, blockId);
                 var rot = placeInfo.Direction.GetRotation();

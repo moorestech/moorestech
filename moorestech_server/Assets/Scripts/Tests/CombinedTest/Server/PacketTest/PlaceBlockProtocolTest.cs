@@ -7,6 +7,8 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
+using Game.UnlockState.States;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +16,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.Construction;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -128,6 +131,63 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(4, GetItemCount(inventory, WireItemGuid));
         }
 
+        [Test]
+        public void セル毎に異なるBlockIdを一括設置できる()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            // 素材付与（歯車ベルト1セット×2）
+            // Grant two cost sets of the gear belt family materials
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 2);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = new Vector3Int(10, 0, 10), Direction = BlockDirection.North,
+                    VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor,
+                },
+                new()
+                {
+                    Position = new Vector3Int(10, 0, 11), Direction = BlockDirection.North,
+                    VerticalDirection = BlockVerticalDirection.Up, BlockId = ForUnitTestModBlockId.TestGearBeltConveyorUp,
+                },
+            };
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 10)));
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 11)));
+            Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp,
+                ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(10, 0, 11)).BlockId);
+        }
+
+        [Test]
+        public void バリアントの設置可否はファミリー代表のunlock状態で決まる()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3, 1);
+
+            // 代表（GearBeltConveyor）が未解放なら長尺バリアントも設置不可
+            // A length variant cannot be placed while the family representative is locked
+            LockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = new Vector3Int(20, 0, 10), Direction = BlockDirection.North,
+                    VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3,
+                },
+            };
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+            Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
+
+            // 代表を解放すると長尺バリアントが設置できる
+            // Unlocking the representative allows the variant placement
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
+        }
+
         #region TestUtil
 
         private static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
@@ -167,9 +227,47 @@ namespace Tests.CombinedTest.Server.PacketTest
                     Position = new Vector3Int(x, y),
                     Direction = BlockDirection.North,
                     VerticalDirection = BlockVerticalDirection.Horizontal,
+                    BlockId = blockId,
                 });
             }
-            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, blockId, placeInfos));
+            return CreatePlacePayload(placeInfos);
+        }
+
+        private static byte[] CreatePlacePayload(List<PlaceInfo> placeInfos)
+        {
+            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfos));
+        }
+
+        private static void GrantRequiredItems(ServiceProvider serviceProvider, BlockId blockId, int costSets)
+        {
+            var inventory = GetInventory(serviceProvider);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            var itemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+            foreach (var (itemId, count) in itemCounts)
+            {
+                inventory.InsertItem(itemId, count * costSets);
+            }
+        }
+
+        private static void UnlockBlock(ServiceProvider serviceProvider, BlockId blockId)
+        {
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
+        }
+
+        private static void LockBlock(ServiceProvider serviceProvider, BlockId blockId)
+        {
+            // IGameUnlockStateDataControllerにはUnlockのみ存在するため、Load経由で強制的にロック状態へ書き換える
+            // The controller only exposes Unlock, so force the locked state back via a state-load overwrite
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
+            var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
+            controller.LoadUnlockState(new GameUnlockStateJsonObject
+            {
+                BlockUnlockStateInfos = new List<BlockUnlockStateInfoJsonObject>
+                {
+                    new() { BlockGuid = blockGuid.ToString(), IsUnlocked = false },
+                },
+            });
         }
 
         #endregion
