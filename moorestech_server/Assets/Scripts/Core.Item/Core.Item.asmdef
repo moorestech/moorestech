@@ -6,7 +6,8 @@
     "Core.ConfigJson",
     "Core.Item.Interface",
     "Game.Context",
-    "Core.Master"
+    "Core.Master",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

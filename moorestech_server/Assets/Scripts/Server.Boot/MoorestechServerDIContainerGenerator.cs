@@ -93,6 +93,10 @@ namespace Server.Boot
             var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             MasterHolder.Load(masterJsonFileContainer);
 
+            // スタックレベルストアを生成（ItemStack生成前に必須。ctorでstatic Instanceが設定される）
+            // Create the stack level store before any ItemStack creation (ctor sets the static Instance)
+            var itemStackLevelDataStore = new ItemStackLevelDataStore();
+
             // ServerContext用のインスタンスを登録
             // Register instances used by ServerContext.
             var initializerCollection = new ServiceCollection();
@@ -159,6 +163,7 @@ namespace Server.Boot
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
+            services.AddSingleton(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<ResearchEvent>();
             
