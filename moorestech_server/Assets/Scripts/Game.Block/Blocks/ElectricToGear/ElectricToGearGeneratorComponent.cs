@@ -154,9 +154,13 @@ namespace Game.Block.Blocks.ElectricToGear
             // Re-evaluate and update fulfillment against the new mode's requiredPower
             UpdateFulfillment(_suppliedPower);
 
-            // モード自体が変わったらクライアントへ状態変化を通知
-            // Notify the client of a state change when the mode index itself changes
-            if (changed) _onChangeBlockState.OnNext(Unit.Default);
+            // モード変更は充足率が同じでも出力RPM/トルクが変わるため、クライアント通知に加えnetwork再配分を要求する
+            // A mode change alters output RPM/torque even at the same fulfillment rate, so notify the client and request the network's recalculation
+            if (changed)
+            {
+                GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
+                _onChangeBlockState.OnNext(Unit.Default);
+            }
             return true;
         }
 
