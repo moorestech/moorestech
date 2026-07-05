@@ -323,6 +323,49 @@
       },
       "blockSize": [
         1,
+        3,
+        1
+      ],
+      "name": "TestLockedElectricPole",
+      "blockType": "ElectricPole",
+      "blockParam": {
+        "machineConnectionRange": 5,
+        "poleConnectionRange": 7,
+        "poleConnectionHeightRange": 5,
+        "machineConnectionHeightRange": 5,
+        "maxWireConnectionCount": 8,
+        "maxWireLength": 12
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000101",
+      "blockGuid": "00000000-0000-0000-0000-000000000101",
+      "overrideVerticalBlock": {},
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000005",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
         1,
         1
       ],
