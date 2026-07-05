@@ -19,8 +19,8 @@ namespace Tests.CombinedTest.Game
         public static readonly Guid StackUpgradeResearchGuid = Guid.Parse("a5b6c7d8-0000-4000-8000-000000000001");
         public static readonly Guid Test1ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
-        // 研究完了で対象アイテムのスタック上限が上がる
-        // Completing the research raises the target item's stack limit
+        // 研究完了でスタック上限が上がる
+        // Completing the research raises the stack limit
         [Test]
         public void CompleteResearchUnlocksStackLevelTest()
         {
@@ -34,8 +34,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(200, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1));
         }
 
-        // アップグレード後は基礎上限を超えて挿入・合算できる
-        // After the upgrade, more than the base limit can be inserted and merged
+        // 上限超えても挿入・合算できる
+        // Items can be inserted and merged beyond the base limit
         [Test]
         public void UpgradedItemCanStackBeyondBaseLimitTest()
         {
@@ -54,8 +54,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(150, occupiedSlots[0].Count);
         }
 
-        // アップグレード前は従来通り100であふれる
-        // Before the upgrade, stacks still overflow at 100
+        // 従来通り100であふれる
+        // Stacks still overflow at 100
         [Test]
         public void NonUpgradedItemStillOverflowsAtBaseLimitTest()
         {
@@ -67,16 +67,16 @@ namespace Tests.CombinedTest.Game
             inventory.MainOpenableInventory.InsertItem(item100A);
             inventory.MainOpenableInventory.InsertItem(item50);
 
-            // 強化前は上限100であふれ、100と50の2スタックに分かれる
-            // Before the upgrade it overflows at 100, splitting into two stacks of 100 and 50
+            // 強化前は100と50の2スタックに分かれる
+            // Before the upgrade it splits into stacks of 100 and 50
             var occupiedCounts = inventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).Select(item => item.Count).ToList();
             Assert.AreEqual(2, occupiedCounts.Count);
             Assert.AreEqual(100, occupiedCounts[0]);
             Assert.AreEqual(50, occupiedCounts[1]);
         }
 
-        // 強化後の個数を持つセーブが正常にロードできる（ロード順回帰）
-        // A save containing counts above the base limit loads without errors (load-order regression)
+        // 強化後のセーブが正常にロードできる
+        // A save with upgraded counts loads without errors
         [Test]
         public void SaveWithUpgradedStackLoadsSuccessfullyTest()
         {
@@ -84,8 +84,8 @@ namespace Tests.CombinedTest.Game
             var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
             researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
 
-            // 基礎上限100を超える150個を1スロットに保持した状態でセーブ
-            // Save with a single slot holding 150 items, above the base limit of 100
+            // 上限超える150個を保持しセーブ
+            // Save with a slot holding 150 items beyond the base limit
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             inventory.MainOpenableInventory.InsertItem(ServerContext.ItemStackFactory.Create(Test1ItemGuid, 150));
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
@@ -104,8 +104,8 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(2, ItemStackLevelDataStore.Instance.GetUnlockedLevel(Test1ItemGuid));
         }
 
-        // ロード後の研究再実行と永続化レベルが二重適用されない
-        // Research re-execution after load does not double-apply on top of persisted levels
+        // 研究再実行で二重適用されない
+        // Research re-execution does not double-apply
         [Test]
         public void LoadDoesNotDoubleApplyLevelsTest()
         {

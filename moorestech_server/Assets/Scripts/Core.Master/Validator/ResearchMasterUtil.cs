@@ -153,8 +153,8 @@ namespace Core.Master.Validator
                                     continue;
                                 }
 
-                                // 解放レベルが1以上かつスタックテーブル長を超えていないか検証
-                                // Validate that the unlock level is at least 1 and does not exceed the stack table length
+                                // 解放レベルがテーブル長範囲内か検証
+                                // Validate the unlock level is within the table range
                                 var element = MasterHolder.ItemMaster.GetItemMaster(itemId.Value);
                                 var table = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid);
                                 if (unlockItemStackLevel.Level < 1 || table.StackCounts.Length < unlockItemStackLevel.Level)

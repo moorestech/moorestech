@@ -46,7 +46,7 @@ namespace Core.Master
         {
             ItemMasterUtil.Initialize(Items, out _itemElementTableById, out _itemGuidToItemId, out _moduleByItemId, out _levelVariantTable);
 
-            // スタックレベルテーブルのGUID索引を構築
+            // スタックレベルテーブルのGUID索引構築
             // Build the GUID index of stack level tables
             _stackLevelTableByGuid = new Dictionary<Guid, ItemStackLevelTableMasterElement>();
             foreach (var table in Items.ItemStackLevelTables) _stackLevelTableByGuid.Add(table.TableGuid, table);
