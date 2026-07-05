@@ -1,7 +1,7 @@
 # UI 網羅性 再監査 実行計画書
 
 **由来**: 学習メモ `ui-completeness-off-state-overlays.md`（uGUI→Web 移行で `BackgroundSkitManager` を見落とした失敗）を、再発防止のための**実行可能な再監査手順**へ展開したもの。
-**対象成果物**: `docs/cef-webui-migration-todo.md`（特に §5 機能カバレッジ・チェックリスト）の網羅性を、構造的に保証されたレベルへ引き上げる。
+**対象成果物**: `docs/webui/cef-webui-migration-todo.md`（特に §5 機能カバレッジ・チェックリスト）の網羅性を、構造的に保証されたレベルへ引き上げる。
 **作成日**: 2026-06-14
 
 ---

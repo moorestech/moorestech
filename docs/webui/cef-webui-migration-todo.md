@@ -1,11 +1,11 @@
 # moorestech Web UI 移行 完全 TODO リスト
 
-**親計画**: `docs/cef-webui-plan.md`（CEF + React + Tailwind + TS への UI 刷新）
+**親計画**: `docs/webui/cef-webui-plan.md`（CEF + React + Tailwind + TS への UI 刷新）
 **このドキュメントの目的**: 現行 uGUI が持つ**すべての UI 機能**を洗い出し、Web (CEF) への移行に必要な作業を漏れなく TODO 化する。
 **作成日**: 2026-06-14 / multi-lens-review-loop（網羅性・事実正確性・アーキ実現性・順序依存・リスク見積 + codex 外部監査）で収束まで洗練。
-**網羅性 再監査(2026-06-14)**: `docs/ui-completeness-reaudit-plan.md` の手順で全ソースルートの **407 `.cs` + 32 UI 資産を全件 triage**（並列8エージェント、件数突合済み）。発覚した追加項目: INFRA-6 の第2状態機械 `GameStateType`、FEAT-COM-6(UIRoot 全UIトグル)、FEAT-COM-7(カーソル追従)、FEAT-CUT-1(カットシーン)、MODE-3 dev群拡充、BLK-5/6/7・WORLD-1 の責務是正、ChallengeList 死コード精査。詳細は §5 末尾。
+**網羅性 再監査(2026-06-14)**: `docs/webui/ui-completeness-reaudit-plan.md` の手順で全ソースルートの **407 `.cs` + 32 UI 資産を全件 triage**（並列8エージェント、件数突合済み）。発覚した追加項目: INFRA-6 の第2状態機械 `GameStateType`、FEAT-COM-6(UIRoot 全UIトグル)、FEAT-COM-7(カーソル追従)、FEAT-CUT-1(カットシーン)、MODE-3 dev群拡充、BLK-5/6/7・WORLD-1 の責務是正、ChallengeList 死コード精査。詳細は §5 末尾。
 
-**実装セッション(2026-06-14, `docs/cef-webui-session-plan-2026-06-14.md`)**: subagent-driven + 並列wave方式で 5 機能を実装。**Web 側**(React/uGUI準拠レイアウト)は vitest 単体 46 + Playwright e2e 20 全 green、各機能の動作動画を `docs/webui-feature-videos-2026-06-14/` に収録。**C# ホスト側**(Topic/Action)は `uloop compile` ErrorCount 0 で通過、uGUI へは additive な getter/setter/event のみ追加(凍結方針維持)。**実機 web↔host 連携検証は INFRA-1(CEF 破損)解消待ち** — 現状の動作保証は mock host 相手の e2e + 録画 + コンパイルまで。
+**実装セッション(2026-06-14, 実行計画は完了済みのため削除)**: subagent-driven + 並列wave方式で 5 機能を実装。**Web 側**(React/uGUI準拠レイアウト)は vitest 単体 46 + Playwright e2e 20 全 green、各機能の動作動画を `docs/webui-feature-videos-2026-06-14/` に収録。**C# ホスト側**(Topic/Action)は `uloop compile` ErrorCount 0 で通過、uGUI へは additive な getter/setter/event のみ追加(凍結方針維持)。**実機 web↔host 連携検証は INFRA-1(CEF 破損)解消待ち** — 現状の動作保証は mock host 相手の e2e + 録画 + コンパイルまで。
 - FEAT-INV-2(ホットバー選択)・FEAT-COM-2(モーダル)・FEAT-COM-3(プログレスバー)・FEAT-INV-6(液体スロット/ProgressArrow)・FEAT-INV-4+BLK-1(SubInventory 土台+チェスト) = Web 実装 + host Topic/Action 実装済(上記の検証範囲)。
 - 追加 host: `inventory.select_hotbar`/`ui.modal`(+`WebUiModalService`)/`ui.modal.respond`/`ui.progress`/`block_inventory.current`/`block_inventory.move_item`、`InventoryTopic.selectedHotbar`。
 
@@ -405,7 +405,7 @@
 
 ## 5. 機能カバレッジ・チェックリスト（漏れ防止マスター）
 
-uGUI 全 UI を **(軸A)全ソースルートの全 `.cs` 台帳 + (軸B)`UIStateEnum`(11状態) + (軸C)状態外オーバーレイ** 起点で網羅確認（`docs/ui-completeness-reaudit-plan.md` の手順で 2026-06-14 再監査。母集団 407 `.cs` + 32 UI 資産を全件 triage 済み）:
+uGUI 全 UI を **(軸A)全ソースルートの全 `.cs` 台帳 + (軸B)`UIStateEnum`(11状態) + (軸C)状態外オーバーレイ** 起点で網羅確認（`docs/webui/ui-completeness-reaudit-plan.md` の手順で 2026-06-14 再監査。母集団 407 `.cs` + 32 UI 資産を全件 triage 済み）:
 
 **軸B（状態機械起点）:**
 - [x] GameScreen（ホットバー/キーヒント/3Dツールチップ/採掘HUD）→ FEAT-INV-2, COM-4, WORLD-1, MODE-5
