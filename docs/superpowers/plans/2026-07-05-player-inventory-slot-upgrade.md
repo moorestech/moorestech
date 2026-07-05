@@ -119,30 +119,42 @@ git commit -m "feat: add playerInventorySlotLevels schema and unlockPlayerInvent
 
 ---
 
-### Task 2: ItemMasterアクセサとPlayerInventoryConstの新API（追加のみ）
+### Task 2: スロットレベル解決ユーティリティとPlayerInventoryConstの新API（追加のみ）
 
 **Files:**
-- Modify: `moorestech_server/Assets/Scripts/Core.Master/ItemMaster.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.PlayerInventory.Interface/PlayerInventoryConst.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/HotBarSlotToInventorySlotTest.cs`（新signatureのテスト追記）
 
 **Interfaces:**
-- Produces: `ItemMaster.GetPlayerInventorySlotCount(int level)` → int（未定義/空配列なら45、levelは[0, 最大]にクランプ）、`ItemMaster.GetMaxPlayerInventorySlotLevel()` → int（未定義なら0）
+- Produces: `PlayerInventorySlotLevelMasterUtil.GetSlotCount(int level)` → int（未定義/空配列なら45、levelは[0, 最大]にクランプ）、`PlayerInventorySlotLevelMasterUtil.GetMaxLevel()` → int（未定義なら0）
 - Produces: `PlayerInventoryConst.HotBarSlotCount`（const 9）、`PlayerInventoryConst.HotBarSlotToInventorySlot(int hotBarSlot, int mainInventorySize)`、`PlayerInventoryConst.GetHotBarSlots(int mainInventorySize)` → int[]、`PlayerInventoryConst.IsHotBarSlot(int slot, int mainInventorySize)`
+- **Core.Master（ItemMaster等）は変更禁止。** プレイヤーインベントリのドメインロジックはGame層に置く。マスタ生成物へは既存の`MasterHolder.ItemMaster.Items`（public readonlyフィールド）経由で読むだけ
 - **旧API（MainInventorySize等）はこのタスクでは削除しない**（Task 11で削除）
 
-- [ ] **Step 1: ItemMaster.cs にアクセサ追加**
+**⚠️ 新規サーバー.csファイル追加のため、作成後にUnity Editor再起動をユーザーに依頼してからコンパイル・テストを実行すること。**
 
-クラス末尾に追加:
+- [ ] **Step 1: PlayerInventorySlotLevelMasterUtil.cs を新規作成**（Game.PlayerInventory.Interface。Core.Master参照はasmdefに既存）
 
 ```csharp
+using System;
+using Core.Master;
+
+namespace Game.PlayerInventory.Interface
+{
+    /// <summary>
+    ///     items.jsonのplayerInventorySlotLevelsからレベル→スロット数を解決する
+    ///     Resolves level → slot count from playerInventorySlotLevels in items.json
+    /// </summary>
+    public static class PlayerInventorySlotLevelMasterUtil
+    {
         // スロットレベル未定義時の従来スロット数
         // Fallback slot count when slot levels are undefined in master data
         private const int FallbackMainInventorySlotCount = 45;
 
-        public int GetPlayerInventorySlotCount(int level)
+        public static int GetSlotCount(int level)
         {
-            var levels = Items.PlayerInventorySlotLevels;
+            var levels = MasterHolder.ItemMaster.Items.PlayerInventorySlotLevels;
             if (levels == null || levels.Length == 0) return FallbackMainInventorySlotCount;
 
             // 範囲外レベルは[0, 最大]へクランプする
@@ -151,12 +163,14 @@ git commit -m "feat: add playerInventorySlotLevels schema and unlockPlayerInvent
             return levels[index].SlotCount;
         }
 
-        public int GetMaxPlayerInventorySlotLevel()
+        public static int GetMaxLevel()
         {
-            var levels = Items.PlayerInventorySlotLevels;
+            var levels = MasterHolder.ItemMaster.Items.PlayerInventorySlotLevels;
             if (levels == null || levels.Length == 0) return 0;
             return levels.Length - 1;
         }
+    }
+}
 ```
 
 （生成プロパティ名が`PlayerInventorySlotLevels`/`SlotCount`と異なる場合はコンパイルエラーで判明するので生成コードに合わせる）
@@ -211,13 +225,13 @@ git commit -m "feat: add playerInventorySlotLevels schema and unlockPlayerInvent
         }
 ```
 
-- [ ] **Step 4: コンパイル＆テスト実行**
+- [ ] **Step 4: Unity再起動をユーザーに依頼 → コンパイル＆テスト実行**
 
 Run: `uloop compile --project-path ./moorestech_client`（SUCCESS）
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "HotBarSlotToInventorySlotTest"`
 Expected: PASS
 
-- [ ] **Step 5: コミット** `git add -A && git commit -m "feat: add dynamic-size hotbar helpers and inventory slot level master accessors"`
+- [ ] **Step 5: コミット** `git add -A && git commit -m "feat: add dynamic-size hotbar helpers and inventory slot level master util"`
 
 ---
 
@@ -237,12 +251,14 @@ public interface IPlayerInventorySlotLevelDataStore
 {
     int CurrentLevel { get; }
     int CurrentSlotCount { get; }
-    event Action<int> OnSlotCountChanged; // 引数は新しいスロット数
+    IObservable<int> OnSlotCountChanged { get; } // UniRx。流れる値は新しいスロット数
     void UnlockLevel(int level);
     void LoadLevel(int level);
     int GetSaveLevel();
 }
 ```
+
+- イベントはC# eventではなく**UniRx**を使う（Game.UnlockStateと同様のスタイル）。`Game.PlayerInventory.asmdef`のreferencesに`"UniRx"`を追加する（Game.UnlockState.asmdefに前例あり）。インターフェース宣言は`System.IObservable`なのでGame.PlayerInventory.Interface側にUniRx参照は不要
 
 **⚠️ 新規サーバー.csファイル追加のため、作成後にUnity Editor再起動をユーザーに依頼してからコンパイル・テストを実行すること。**
 
@@ -254,6 +270,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 
 namespace Tests.CombinedTest.Game
 {
@@ -268,7 +285,7 @@ namespace Tests.CombinedTest.Game
             var store = serviceProvider.GetService<IPlayerInventorySlotLevelDataStore>();
 
             var eventCount = 0;
-            store.OnSlotCountChanged += _ => eventCount++;
+            store.OnSlotCountChanged.Subscribe(_ => eventCount++);
 
             Assert.AreEqual(0, store.CurrentLevel);
             Assert.AreEqual(45, store.CurrentSlotCount);
@@ -310,8 +327,8 @@ namespace Game.PlayerInventory.Interface
         int CurrentLevel { get; }
         int CurrentSlotCount { get; }
 
-        /// <summary>スロット数が実際に増えたときのみ発火。引数は新しいスロット数</summary>
-        event Action<int> OnSlotCountChanged;
+        /// <summary>スロット数が実際に増えたときのみ発行。流れる値は新しいスロット数</summary>
+        IObservable<int> OnSlotCountChanged { get; }
 
         void UnlockLevel(int level);
         void LoadLevel(int level);
@@ -324,24 +341,25 @@ namespace Game.PlayerInventory.Interface
 
 ```csharp
 using System;
-using Core.Master;
 using Game.PlayerInventory.Interface;
+using UniRx;
 
 namespace Game.PlayerInventory
 {
     public class PlayerInventorySlotLevelDataStore : IPlayerInventorySlotLevelDataStore
     {
         public int CurrentLevel => _currentLevel;
-        public int CurrentSlotCount => MasterHolder.ItemMaster.GetPlayerInventorySlotCount(_currentLevel);
-        public event Action<int> OnSlotCountChanged;
+        public int CurrentSlotCount => PlayerInventorySlotLevelMasterUtil.GetSlotCount(_currentLevel);
+        public IObservable<int> OnSlotCountChanged => _onSlotCountChanged;
 
+        private readonly Subject<int> _onSlotCountChanged = new();
         private int _currentLevel;
 
         public void UnlockLevel(int level)
         {
             // レベルは下がらない冪等操作。範囲外は最大レベルへクランプ
             // Idempotent unlock; the level never decreases and clamps to the max defined level
-            var clamped = Math.Clamp(level, 0, MasterHolder.ItemMaster.GetMaxPlayerInventorySlotLevel());
+            var clamped = Math.Clamp(level, 0, PlayerInventorySlotLevelMasterUtil.GetMaxLevel());
             if (clamped <= _currentLevel) return;
 
             SetLevel(clamped);
@@ -349,7 +367,7 @@ namespace Game.PlayerInventory
 
         public void LoadLevel(int level)
         {
-            var clamped = Math.Clamp(level, 0, MasterHolder.ItemMaster.GetMaxPlayerInventorySlotLevel());
+            var clamped = Math.Clamp(level, 0, PlayerInventorySlotLevelMasterUtil.GetMaxLevel());
             if (clamped == _currentLevel) return;
 
             SetLevel(clamped);
@@ -362,17 +380,21 @@ namespace Game.PlayerInventory
 
         private void SetLevel(int level)
         {
-            // スロット数が実際に変わったときだけイベント発火する
-            // Fire the event only when the slot count actually changes
+            // スロット数が実際に変わったときだけイベント発行する
+            // Publish the event only when the slot count actually changes
             var beforeSlotCount = CurrentSlotCount;
             _currentLevel = level;
-            if (CurrentSlotCount != beforeSlotCount) OnSlotCountChanged?.Invoke(CurrentSlotCount);
+            if (CurrentSlotCount != beforeSlotCount) _onSlotCountChanged.OnNext(CurrentSlotCount);
         }
     }
 }
 ```
 
-- [ ] **Step 4: DI登録**（`MoorestechServerDIContainerGenerator.cs`、`IPlayerInventoryDataStore`登録行の直前に追加）
+- [ ] **Step 4: asmdefにUniRx参照を追加＆DI登録**
+
+`moorestech_server/Assets/Scripts/Game.PlayerInventory/Game.PlayerInventory.asmdef` の `references` 配列に `"UniRx"` を追加（Game.UnlockState.asmdefと同形式）。
+
+`MoorestechServerDIContainerGenerator.cs` の `IPlayerInventoryDataStore` 登録行の直前に追加:
 
 ```csharp
             services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
@@ -527,7 +549,7 @@ InsertItemのホットバー優先スロットを動的化:
         }
 ```
 
-- [ ] **Step 3: PlayerInventoryDataStore を書き換え**
+- [ ] **Step 3: PlayerInventoryDataStore を書き換え**（ファイル先頭に `using UniRx;` を追加）
 
 ```csharp
         private readonly IPlayerInventorySlotLevelDataStore _slotLevelDataStore;
@@ -541,11 +563,11 @@ InsertItemのホットバー優先スロットを動的化:
 
             // レベル上昇で全プレイヤーのメインインベントリを拡張する
             // Expand every player's main inventory when the slot level rises
-            _slotLevelDataStore.OnSlotCountChanged += slotCount =>
+            _slotLevelDataStore.OnSlotCountChanged.Subscribe(slotCount =>
             {
                 foreach (var inventory in _playerInventoryData.Values)
                     ((MainOpenableInventoryData)inventory.MainOpenableInventory).ExpandSlots(slotCount);
-            };
+            });
         }
 ```
 
@@ -812,7 +834,7 @@ Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --f
 ```csharp
             // 初期サイズはレベル0のスロット数。実サイズはサーバーレスポンスで確定する
             // Initial size is the level-0 slot count; the real size comes from the server response
-            var initialSlotCount = MasterHolder.ItemMaster.GetPlayerInventorySlotCount(0);
+            var initialSlotCount = PlayerInventorySlotLevelMasterUtil.GetSlotCount(0);
             for (var i = 0; i < initialSlotCount; i++) _mainInventory.Add(itemStackFactory.CreatEmpty());
 ```
 
