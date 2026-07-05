@@ -224,7 +224,9 @@ namespace Client.Network.API
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
-                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids);
+                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids,
+                response.LockedBlockGuids, response.UnlockedBlockGuids,
+                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
