@@ -20,7 +20,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     /// </summary>
     public static class ElectricWireExtendService
     {
-        public static ExtendResult Execute(bool hasFromConnector, Vector3Int fromPos, PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, int playerId, int poleInventorySlot, ItemId wireItemId)
+        public static ExtendResult Execute(bool hasFromConnector, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, int playerId, int poleInventorySlot, ItemId wireItemId)
         {
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
         // 起点との明示接続＋設置電柱の未接続機械収集をアトミックに行う
         // Atomically wire the origin plus collect unconnected machines around the placed pole
-        private static ExtendResult ExecuteExtendWithOrigin(IOpenableInventory inventory, Vector3Int fromPos, PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, int poleInventorySlot, IItemStack poleItem, BlockId blockId, ElectricPoleBlockParam poleParam, ItemId wireItemId)
+        private static ExtendResult ExecuteExtendWithOrigin(IOpenableInventory inventory, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, int poleInventorySlot, IItemStack poleItem, BlockId blockId, ElectricPoleBlockParam poleParam, ItemId wireItemId)
         {
             // 起点コネクタを解決し、距離・上限・コストを検証する
             // Resolve the origin connector and validate distance, capacity and cost
@@ -127,7 +127,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
         // 起点なし設置。通常のブロック設置と同じ自動接続（最寄り電柱1本＋未接続機械）を適用する
         // Placement without origin; applies the same auto-connect as normal placement (nearest pole + unconnected machines)
-        private static ExtendResult ExecuteIsolatedPlace(IOpenableInventory inventory, PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, int poleInventorySlot, BlockId blockId)
+        private static ExtendResult ExecuteIsolatedPlace(IOpenableInventory inventory, PlaceInfoMessagePack polePlaceInfo, int poleInventorySlot, BlockId blockId)
         {
             // 設置前に自動接続計画を検証する。電線不足なら設置しない
             // Validate the auto-connect plan before placement; do not place when wires are insufficient
@@ -146,7 +146,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
         }
 
-        private static bool TryPlacePole(PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, BlockId blockId, out IElectricWireConnector selfConnector)
+        private static bool TryPlacePole(PlaceInfoMessagePack polePlaceInfo, BlockId blockId, out IElectricWireConnector selfConnector)
         {
             // ブロックを設置しワイヤー端点を解決する
             // Place the block and resolve its wire connector component

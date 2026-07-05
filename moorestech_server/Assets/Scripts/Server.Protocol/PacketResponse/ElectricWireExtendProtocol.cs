@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public bool HasFromConnector { get; set; }
             [Key(3)] public Vector3IntMessagePack FromPos { get; set; }
-            [Key(4)] public PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack PolePlaceInfo { get; set; }
+            [Key(4)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public int PoleInventorySlot { get; set; }
             [Key(7)] public int WireItemId { get; set; }
@@ -55,7 +55,7 @@ namespace Server.Protocol.PacketResponse
                     Tag = ElectricWireExtendProtocol.Tag,
                     HasFromConnector = true,
                     FromPos = new Vector3IntMessagePack(fromPos),
-                    PolePlaceInfo = new PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack(polePlaceInfo),
+                    PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleInventorySlot = poleInventorySlot,
                     WireItemId = wireItemId.AsPrimitive(),
@@ -69,7 +69,7 @@ namespace Server.Protocol.PacketResponse
                     Tag = ElectricWireExtendProtocol.Tag,
                     HasFromConnector = false,
                     FromPos = new Vector3IntMessagePack(Vector3Int.zero),
-                    PolePlaceInfo = new PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack(polePlaceInfo),
+                    PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleInventorySlot = poleInventorySlot,
                     WireItemId = wireItemId.AsPrimitive(),
