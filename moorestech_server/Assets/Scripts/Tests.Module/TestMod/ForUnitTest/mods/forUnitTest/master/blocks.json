@@ -1474,6 +1474,91 @@
       },
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
       "blockGuid": "00000000-0000-0000-0000-00000000002c",
+      "overrideVerticalBlock": {},
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestLockedGearChainPole",
+      "blockType": "GearChainPole",
+      "blockParam": {
+        "maxConnectionDistance": 10,
+        "maxConnectionCount": 2,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "a1b2c3d4-1102-4102-8102-000000000102"
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000102",
+      "blockGuid": "00000000-0000-0000-0000-000000000102",
       "overrideVerticalBlock": {}
     },
     {

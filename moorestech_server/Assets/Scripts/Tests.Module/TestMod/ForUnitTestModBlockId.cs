@@ -64,6 +64,7 @@ namespace Tests.Module.TestMod
         public static BlockId TestElectricToGearGenerator => GetBlock("00000000-0000-0000-0000-000000000099");
         public static BlockId ElectricPump => GetBlock("3829088a-5a78-43d7-8c3c-d3e4bb91b90a");
         public static BlockId GearChainPole => GetBlock("00000000-0000-0000-0000-00000000002c");
+        public static BlockId LockedGearChainPole => GetBlock("00000000-0000-0000-0000-000000000102");
         public static BlockId TestTrainFluidPlatform => GetBlock("00000000-0000-0000-0000-000000000029");
         public static BlockId FilterSplitter => GetBlock("00000000-0000-0000-0000-000000000031");
     }
