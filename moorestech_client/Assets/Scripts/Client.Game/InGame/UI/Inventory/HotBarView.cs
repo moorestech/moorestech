@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.Inventory
         private CancellationTokenSource _loadCancellationTokenSource;
         private LoadedAsset<GameObject> _currentLoadedAsset;
         
-        public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
+        public IItemStack CurrentItem => _localPlayerInventory[_localPlayerInventory.GetHotBarInventorySlot(SelectIndex)];
         
         /// <summary>
         /// 0〜8のインデックス　インベントリ上のどのアイテムかは <see cref="PlayerInventoryConst.HotBarSlotToInventorySlot"/> を参照
@@ -71,11 +71,9 @@ namespace Client.Game.InGame.UI.Inventory
             void UpdateHotBarElement(int slot, IItemStack item)
             {
                 //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
-                var c = PlayerInventoryConst.MainInventoryColumns;
-                var r = PlayerInventoryConst.MainInventoryRows;
-                var startHotBarSlot = c * (r - 1);
-                
-                if (slot < startHotBarSlot || PlayerInventoryConst.MainInventorySize <= slot) return;
+                var startHotBarSlot = _localPlayerInventory.MainSlotCount - PlayerInventoryConst.HotBarSlotCount;
+
+                if (slot < startHotBarSlot || _localPlayerInventory.MainSlotCount <= slot) return;
                 
                 slot -= startHotBarSlot;
                 // 同じアイテムなら更新しない
@@ -137,7 +135,7 @@ namespace Client.Game.InGame.UI.Inventory
                 _currentLoadedAsset?.Dispose();
                 _currentLoadedAsset = null;
                 
-                var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
+                var itemId = _localPlayerInventory[_localPlayerInventory.GetHotBarInventorySlot(selectIndex)].Id;
                 
                 if (itemId == ItemMaster.EmptyItemId) return;
                 

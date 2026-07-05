@@ -111,7 +111,7 @@ namespace Client.Game.InGame.Electric
             (bool isElectricalBlock, bool isPole) IsDisplay()
             {
                 var hotBarSlot = _hotBarView.SelectIndex;
-                var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
+                var id = _localPlayerInventory[_localPlayerInventory.GetHotBarInventorySlot(hotBarSlot)].Id;
                 
                 if (id == ItemMaster.EmptyItemId) return (false, false);
                 

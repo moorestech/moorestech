@@ -14,8 +14,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         public IItemStack this[int index] { get; }
         public IObservable<int> OnItemChange { get; }
-        
+
         public int Count { get; }
+        public int MainSlotCount { get; }
         public bool IsItemExist(ItemId itemId, int itemSlot);
     }
     
@@ -28,18 +29,34 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private readonly Subject<int> _onItemChange = new();
         
         public int Count => _mainInventory.Count + _subInventory.Count;
-        
+        public int MainSlotCount => _mainInventory.Count;
+
         private readonly List<IItemStack> _mainInventory;
         private ISubInventory _subInventory;
-        
+
         public LocalPlayerInventory()
         {
             _mainInventory = new List<IItemStack>();
-            
+
+            // 初期サイズはレベル0のスロット数。実サイズはサーバーレスポンスで確定する
+            // Initial size is the level-0 slot count; the real size comes from the server response
             var itemStackFactory = ServerContext.ItemStackFactory;
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) _mainInventory.Add(itemStackFactory.CreatEmpty());
-            
+            var initialSlotCount = PlayerInventorySlotLevelMasterUtil.GetSlotCount(0);
+            for (var i = 0; i < initialSlotCount; i++) _mainInventory.Add(itemStackFactory.CreatEmpty());
+
             _subInventory = new EmptySubInventory();
+        }
+
+        public void EnsureMainSlotCount(int slotCount)
+        {
+            // レベルアップ通知（範囲外スロットのイベント）で末尾に空スロットを足す
+            // Grow with empty tail slots when an out-of-range slot event arrives after level up
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            while (_mainInventory.Count < slotCount)
+            {
+                _mainInventory.Add(itemStackFactory.CreatEmpty());
+                _onItemChange.OnNext(_mainInventory.Count - 1);
+            }
         }
         
         public IEnumerator<IItemStack> GetEnumerator()
