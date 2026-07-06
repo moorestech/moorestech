@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (poleItem.Count < 1 || !MasterHolder.BlockMaster.IsBlock(poleItem.Id))
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoPoleItem);
 
-            var blockId = MasterHolder.BlockMaster.GetBlockId(poleItem.Id).GetVerticalOverrideBlockId(polePlaceInfo.VerticalDirection);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(poleItem.Id);
             if (MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockParam is not ElectricPoleBlockParam poleParam)
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
 

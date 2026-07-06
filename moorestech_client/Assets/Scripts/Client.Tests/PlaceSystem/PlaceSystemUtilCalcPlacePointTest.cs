@@ -31,9 +31,7 @@ namespace Client.Tests.PlaceSystem
                 new Vector3Int(1, 1, 1),
                 null,
                 null,
-                null,
-                null,
-                true
+                null
             );
         }
 

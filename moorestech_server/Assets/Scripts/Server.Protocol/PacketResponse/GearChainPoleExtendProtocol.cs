@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
             // Resolve block and parameter from the pole item
             var poleItemStack = inventory.GetItem(request.PoleInventorySlot);
             if (!MasterHolder.BlockMaster.IsBlock(poleItemStack.Id)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NoPoleItemError);
-            var blockId = MasterHolder.BlockMaster.GetBlockId(poleItemStack.Id).GetVerticalOverrideBlockId(request.PolePlaceInfo.VerticalDirection);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(poleItemStack.Id);
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not GearChainPoleBlockParam poleParam) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NoPoleItemError);
 
