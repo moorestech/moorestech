@@ -1,7 +1,7 @@
 {
-  "version": "2.2.0",
+  "version": "1.6.3",
   "serverVersion": "1.6.3",
-  "updatedAt": "2026-07-03T01:41:57.136Z",
+  "updatedAt": "2026-07-06T06:04:40.302Z",
   "tools": [
     {
       "name": "clear-console",
