@@ -1,8 +1,13 @@
 import type { ComponentType } from "react";
 import type { ActionPayloads } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
-import ChestInventory from "./ChestInventory";
-import GenericBlockInventory from "./GenericBlockInventory";
+import ChestInventory from "./views/ChestInventory";
+import GearMachineInventory from "./views/GearMachineInventory";
+import GearMinerInventory from "./views/GearMinerInventory";
+import GeneratorInventory from "./views/GeneratorInventory";
+import GenericBlockInventory from "./views/GenericBlockInventory";
+import MachineInventory from "./views/MachineInventory";
+import MinerInventory from "./views/MinerInventory";
 
 type MoveItemPayload = ActionPayloads["block_inventory.move_item"];
 
@@ -38,6 +43,13 @@ export function blockSlotClickPayload(
 export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
   Chest: ChestInventory,
+  ElectricMachine: MachineInventory,
+  GearMachine: GearMachineInventory,
+  ElectricGenerator: GeneratorInventory,
+  FuelGearGenerator: GeneratorInventory,
+  SimpleGearGenerator: GeneratorInventory,
+  ElectricMiner: MinerInventory,
+  GearMiner: GearMinerInventory,
 };
 
 // 未登録 blockType はフォールバックで汎用描画（流体ブロック等が専用 UI 未実装でもクラッシュしない）

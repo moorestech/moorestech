@@ -7,9 +7,9 @@ import { describe, it, expect, vi } from "vitest";
 vi.mock("@/bridge/webSocketClient", () => ({ sendAction: vi.fn() }));
 
 import { blockSlotClickPayload, pickUpPayload, placePayload, resolveBlockComponent } from "./blockLogic";
-import ChestInventory from "./ChestInventory";
-import TankInventory from "./TankInventory";
-import GenericBlockInventory from "./GenericBlockInventory";
+import ChestInventory from "./views/ChestInventory";
+import TankInventory from "./views/TankInventory";
+import GenericBlockInventory from "./views/GenericBlockInventory";
 
 describe("pickUpPayload", () => {
   it("block スロット→grab へ count ごと拾う payload を作る", () => {
@@ -55,6 +55,17 @@ describe("resolveBlockComponent", () => {
   });
   it("未登録 blockType はフォールバックを返す", () => {
     expect(resolveBlockComponent("unknown")).toBe(GenericBlockInventory);
+  });
+  it.each([
+    "ElectricMachine",
+    "GearMachine",
+    "ElectricGenerator",
+    "FuelGearGenerator",
+    "SimpleGearGenerator",
+    "ElectricMiner",
+    "GearMiner",
+  ])("resolves a dedicated view for %s", (blockType) => {
+    expect(resolveBlockComponent(blockType)).not.toBe(GenericBlockInventory);
   });
 });
 

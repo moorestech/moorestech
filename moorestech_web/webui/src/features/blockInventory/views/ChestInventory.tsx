@@ -1,5 +1,5 @@
 import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
-import BlockItemGrid from "./BlockItemGrid";
+import BlockItemGrid from "../BlockItemGrid";
 
 // Chest UI: uGUI ChestBlockInventoryView 同様 itemSlots をグリッド展開
 // Chest UI: mirrors uGUI ChestBlockInventoryView; itemSlots as a grid

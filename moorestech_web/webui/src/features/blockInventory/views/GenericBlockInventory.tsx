@@ -1,7 +1,7 @@
 import { Group, Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
 import { FluidSlot, ProgressArrow } from "@/shared/ui";
-import BlockItemGrid from "./BlockItemGrid";
+import BlockItemGrid from "../BlockItemGrid";
 
 // 未登録 blockType 用フォールバック。item/fluid/progress を過不足なく描画しクラッシュを防ぐ
 // Fallback for unregistered blockTypes; renders items/fluids/progress so no data is lost and nothing crashes
