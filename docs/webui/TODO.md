@@ -3,7 +3,7 @@
 CEF 上で動く React 製ゲーム内 UI（`moorestech_web/webui` + `Client.WebUiHost`）の**入口ドキュメント**。
 最新の全体像はここを見る。個別項目の詳細な受け入れ条件・監査根拠は下記「詳細台帳」を参照。
 
-**最終更新**: 2026-07-06
+**最終更新**: 2026-07-07
 
 ---
 
@@ -17,7 +17,8 @@ CEF 上で動く React 製ゲーム内 UI（`moorestech_web/webui` + `Client.Web
 | `cef-webui-tree2-render-investigation-2026-07-04.md` | vite.config 残骸による描画不能バグの解決記録（再発防止の教訓） |
 | `ui-completeness-reaudit-plan.md` | uGUI→Web の網羅性 再監査**手順書**（見落とし再発防止のプロセス定義。再利用可） |
 | `2026-07-07-parity-audit-verification-handoff.md` | パリティ監査の裏取り結果。**要訂正5点**あり、台帳化・実装前に必読 |
-| `2026-07-07-parity-implementation-plan.md` | パリティ実装の**実行計画書**（Phase 0-6）。残タスク着手時はまずこれに従う |
+| `2026-07-07-parity-implementation-plan.md` | パリティ実装の**ロードマップ**（Phase 0-6 概要） |
+| `../superpowers/plans/2026-07-07-webui-parity-phase0-2.md` | Phase 0〜2 の**実行計画**（writing-plans形式・完全コード付き）。着手はこちらから |
 | `archive/2026-07-02-webui-mantine-migration.md` | Tailwind→Mantine 移行計画（**完了済み・履歴保管**） |
 
 > 注: `cef-webui-migration-todo.md` は 2026-06-14 時点のスナップショットで、以降の実装
@@ -74,7 +75,7 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 ### 2. 機能移行（uGUI パリティ・大部分未着手）
 ブロック系 payload は capability 詳細（機械/発電機/採掘機/ギア/フィルタ分岐器・FluidSlots・Progress）まで拡充済み（`BlockDetailDtoBuilder`）。残りのブロック種も**「実装漏れ確定 → topic 拡充 → ビュー実装」の順**を守る。
 
-- [x] 個別ブロック UI（FEAT-BLK-2/3/4/5/8）: 発電機 / 機械 / 採掘機 / ギア系（`GearEnergyTransformerUIView`）/ フィルタ分岐器（2026-07-06）
+- [x] 個別ブロック UI（FEAT-BLK-2/3/4/5/8）: 発電機 / 機械 / 採掘機 / ギア系（`GearEnergyTransformerUIView`）/ フィルタ分岐器（2026-07-06）※ギア**伝達**系5ブロック（blockType: Shaft/Gear/GearChainPole）はレジストリ未登録で Generic 落ち、ElectricToGearGenerator も未対応 — 2a 参照
 - [ ] **個別ブロック UI（残り）**: 電柱ネットワーク情報（`ElectricPoleNetworkInfoUIView`）/ 列車 PF / ベースキャンプ
 - [x] 研究ツリー（FEAT-RES-1, `ResearchTreeView`）（2026-07-06）※報酬アイテムの個数表示は保留（ワイヤ型が個数を未伝搬・要 C# 変更）
 - [ ] **チャレンジ / 実績**（FEAT-CHAL-1/2, `ChallengeListUI` / `CurrentChallengeHudView`）
@@ -85,6 +86,44 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 - [ ] ワールド系（FEAT-WORLD-1 3D ツールチップ / WORLD-2 HP バー / WORLD-3 マップ）
 - [ ] チュートリアル（FEAT-TUT-1）/ スキット（FEAT-SKIT-1/2）/ カットシーン（FEAT-CUT-1）
 - [ ] ポーズメニュー（FEAT-SYS-1）※メインメニュー SYS-2/3 は D3 決定でスコープ外
+
+### 2a. 操作・表示パリティ台帳（2026-07-07 統合。裏取り済み監査＋種リストの一本化。台帳はここが唯一の正）
+> 出典: `2026-07-07-parity-audit-verification-handoff.md`（**要訂正5点を反映済み**）と
+> `2026-07-06-all-code-review-progress.md` の種リスト。個別の証拠ファイルパスは申し送りを参照。
+> 画面カバレッジ: uGUI `UIStateEnum` 11 ステート中 web 対応は 3＋GameScreen（残り7画面は「2. 機能移行」の大物画面参照）。
+
+**ブロックインベントリ操作（優先度1 → 実行計画 `../superpowers/plans/2026-07-07-webui-parity-phase0-2.md`）**
+- [ ] ブロックスロット右クリック（空手: 半分取り(切り捨て) / grab保持: 1個置き）
+- [ ] ブロックスロットダブルクリック収集（C# `block_inventory.collect` 新設が必要。既存 `inventory.collect` は block を拒否）
+- [ ] Shift直接移動の SubInventory 対応（main/hotbar→block、block→main。uGUI `PlayerInventoryDirectMover` 準拠の複数スタック配分）
+- [ ] blockInventory e2e のジェスチャ網羅（現状は左クリック pickup のみで欠落を検出できない）
+- [ ] Esc でのブロックUIクローズ: uGUI `SubInventoryState` が webモードでも稼働しているため**動作している可能性が高い**。PlayModeスモークで検証し結果をここへ記録（未動作なら実装タスク化）
+
+**ギア系・個別ブロック（優先度2）**
+- [ ] ギア伝達系5ブロックが Generic 落ち: レジストリへ **Shaft / Gear / GearChainPole** を登録（⚠「GearEnergyTransformer」という blockType は存在しない。実装時は v8 blocks.json で `blockUIAddressablesPath: "Vanilla/UI/Block/GearEnergyTransformerUI"` を持つ blockType を再列挙して確定）
+- [ ] ElectricToGearGenerator 専用ビュー＋出力モード選択（v8 に1ブロック実在。uGUI: `ElectricToGearGeneratorBlockInventoryView`）
+
+**プレイヤーインベントリ（優先度4。⚠右クリック半分/1個置き/ダブルクリック収集は実装済み — 欠けはドラッグ系のみ）**
+- [ ] スプリットドラッグ（grab の複数スロット均等配分）
+- [ ] 右ドラッグ連続1個配置
+
+**クラフト・表示系（優先度5）**
+- [ ] CraftRecipeView に所持数/必要数の数値テキスト（不足赤字）とツールチップ内訳（⚠40%透過減光は実装済み。無いのはこの粒度のみ）
+- [ ] アイテムリストのクラフト可能数バッジ/グレーアウト（`craftLogic.craftable()` はボタン活性にのみ使用中）
+- [ ] 機械詳細の分間生産数表示（`details/MachineSection.tsx` は進捗＋電力率のみ）
+- [ ] ホイールのホットバー切替を入力量累積に（現状 deltaY の符号のみ＝±1固定。uGUI は入力量累積）
+- [ ] クラフト長押し・連続クラフト（FEAT-CRAFT-1 既存記載の再掲）
+
+**品質フォロー（種リスト由来）**
+- [ ] `ui_state.request` が現 state を問わず受理される（Story/PauseMenu 中の遅延要求で強制遷移し得る。ホワイトリスト検討）
+- [ ] `useItemMaster` のモジュールキャッシュが WS 再接続後も stale（外部ブラウザ開発フロー限定の実害）
+- [ ] crafting 系 validator の深掘り（壊れ payload での React クラッシュ耐性。all-code-review で見送り分）
+
+**低優先・記録のみ**
+- BaseCamp 完成ボタン: v8 マスタに BaseCamp ブロックは**0個**のため現行コンテンツでは発生しない。マスタに実体が出たら着手
+- 研究ノードの UIScale 未反映（未検証・低影響）
+- クラフト不可時のカーソルツールチップ（web にツールチップ基盤自体が無い可能性が高い・未検証）
+- TankInventory は意図的温存（`blockLogic.test.ts` に意図明記済み）。**整理不要 — タスク化しないこと**
 
 ### 3. 検証（未検証で残る実機挙動）
 - [ ] PlayMode で Ctrl+I トグルの実機目視確認（`unity-playmode-recorded-playtest` で録画可）

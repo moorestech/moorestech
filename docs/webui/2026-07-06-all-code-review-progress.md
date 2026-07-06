@@ -94,7 +94,7 @@
 
 ### その後のフェーズ
 - 「ステート、プロップス、Context、状態管理ライブラリの利用の適正化」— レビュー全系統でCritical 0のため軽量確認で足りる見込み
-- 「実装漏れの徹底洗い出し」— 種リスト: Shift直接移動のSubInventory非対応 / BlockItemGrid右クリック系 / blockInventory e2e拡充 / ui_state.requestホワイトリスト / useItemMaster staleキャッシュ / モーダルプロデューサ配線 / crafting validators深掘り（今回見送り分）/ 既存記録分（block右クリ・Esc close・13種ブロックビュー・列車インベントリ）/ **研究報酬アイテムの個数表示**（feature/webui-block-research-uiの保留タスクから移設）
+- 「実装漏れの徹底洗い出し」— 種リスト: Shift直接移動のSubInventory非対応 / BlockItemGrid右クリック系 / blockInventory e2e拡充 / ui_state.requestホワイトリスト / useItemMaster staleキャッシュ / モーダルプロデューサ配線 / crafting validators深掘り（今回見送り分）/ 既存記録分（block右クリ・Esc close・13種ブロックビュー・列車インベントリ）/ **研究報酬アイテムの個数表示**（feature/webui-block-research-uiの保留タスクから移設） → **2026-07-07 TODO.md「2a. 操作・表示パリティ台帳」へ移設済み（本行は履歴として保存）**
 
 ## 未コミットの残置ファイル（ツール副産物・要ユーザー判断）
 - `.moorestech-external-revisions.json`（Task4検証時の旧pin。恒久対応要判断）
