@@ -7,11 +7,13 @@ import { createContext, useContext } from "react";
 export type BlockInteraction = {
   grabCount: number;
   resolveName: (itemId: number) => string | undefined;
+  resolveMaxStack: (itemId: number) => number | undefined;
 };
 
 const noop: BlockInteraction = {
   grabCount: 0,
   resolveName: () => undefined,
+  resolveMaxStack: () => undefined,
 };
 
 export const BlockInteractionContext = createContext<BlockInteraction>(noop);
