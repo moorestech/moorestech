@@ -9,6 +9,7 @@ using Game.UnlockState;
 using Game.UnlockState.States;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
@@ -82,6 +83,16 @@ namespace Tests.CombinedTest.Server.PacketTest
             foreach (var (itemId, count) in itemCounts)
             {
                 inventory.InsertItem(itemId, count * costSets);
+            }
+        }
+
+        public static void AssertInventoryEmptyOfRequiredItems(ServiceProvider serviceProvider, BlockId blockId)
+        {
+            var inventory = GetInventory(serviceProvider);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            foreach (var requiredItem in blockMaster.RequiredItems)
+            {
+                Assert.AreEqual(0, GetItemCount(inventory, requiredItem.ItemGuid));
             }
         }
 

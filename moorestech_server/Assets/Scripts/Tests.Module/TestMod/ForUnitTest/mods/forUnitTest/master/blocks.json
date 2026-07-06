@@ -2309,7 +2309,17 @@
         "horizontalBlockGuid": "00000000-0000-0000-0000-000000000015",
         "downBlockGuid": "00000000-0000-0000-0000-0000000000a2"
       },
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": true,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "maxStack": 100,
@@ -4368,7 +4378,17 @@
       "itemGuid": "11800000-0000-0000-0000-0000000000a1",
       "blockGuid": "00000000-0000-0000-0000-0000000000a1",
       "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": true,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "blockSize": [
@@ -4484,7 +4504,17 @@
       "itemGuid": "11800000-0000-0000-0000-0000000000a2",
       "blockGuid": "00000000-0000-0000-0000-0000000000a2",
       "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": true,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "blockSize": [
@@ -4699,7 +4729,17 @@
       "itemGuid": "11800000-0000-0000-0000-0000000000a3",
       "blockGuid": "00000000-0000-0000-0000-0000000000a3",
       "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": true,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "blockSize": [
@@ -4968,7 +5008,17 @@
       "itemGuid": "11800000-0000-0000-0000-0000000000a4",
       "blockGuid": "00000000-0000-0000-0000-0000000000a4",
       "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "enableConveyorPlacement": true,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     }
   ],
   "gearChainItems": [
