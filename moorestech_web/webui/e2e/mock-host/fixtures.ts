@@ -10,6 +10,11 @@ import type {
   UiStateData,
 } from "../../src/bridge/payloadTypes";
 
+// BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリーは別ファイルへ分割し再エクスポートする（200行制約）
+// Split the BLK-2..5/8 detail blocks and the FEAT-RES-1 research tree into separate files and re-export (200-line limit)
+export * from "./blockDetailFixtures";
+export * from "./researchFixtures";
+
 const empty = () => ({ itemId: 0, count: 0 });
 
 // 9列×4行のメイン + 9列ホットバー。Wood を2スロットに分けて collect の集約を観測可能にする

@@ -15,6 +15,7 @@ import type {
   UiStateData,
 } from "../../src/bridge/payloadTypes";
 import * as fx from "./fixtures";
+import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 const PORT = Number(process.env.MOCK_PORT ?? 5273);
@@ -40,6 +41,24 @@ const modalSubscribers = new Set<WebSocket>();
 let currentUiState: UiStateData = clone(fx.uiState);
 const uiStateSubscribers = new Set<WebSocket>();
 
+// research.tree はグローバルな可変状態。research.complete でノードを completed 化して購読者へ push
+// research.tree is global mutable state; research.complete flips a node to completed and pushes to subscribers
+let researchTree = clone(fx.researchTree);
+const researchTreeSubscribers = new Set<WebSocket>();
+
+// /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
+// Type map switched via /__block?type=X; defaults to chest (reliably shows an open panel)
+const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
+  chest: fx.blockChest,
+  tank: fx.blockTank,
+  closed: fx.blockClosed,
+  machine: fx.blockMachine,
+  gearMachine: fx.blockGearMachine,
+  generator: fx.blockGenerator,
+  miner: fx.blockMiner,
+  filterSplitter: fx.blockFilterSplitter,
+};
+
 const MIME: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -63,7 +82,7 @@ const server = createServer(async (req, res) => {
   // Test-only: swap the served block inventory and push an event to subscribers
   if (url.startsWith("/__block")) {
     const type = new URL(url, "http://x").searchParams.get("type") ?? "chest";
-    currentBlock = clone(type === "tank" ? fx.blockTank : type === "closed" ? fx.blockClosed : fx.blockChest);
+    currentBlock = clone(BLOCK_FIXTURES[type] ?? fx.blockChest);
     for (const ws of blockSubscribers) send(ws, { op: "event", topic: Topics.blockInventory, data: currentBlock });
     res.setHeader("content-type", "application/json");
     res.end(JSON.stringify({ ok: true }));
@@ -85,6 +104,15 @@ const server = createServer(async (req, res) => {
     const state = new URL(url, "http://x").searchParams.get("state") ?? "PlayerInventory";
     currentUiState = { state };
     for (const ws of uiStateSubscribers) send(ws, { op: "event", topic: Topics.uiState, data: currentUiState });
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ ok: true }));
+    return;
+  }
+  // テスト用: 研究ツリーをフィクスチャへ戻して購読者へ event push（テスト間の状態漏れ防止）
+  // Test-only: reset the research tree to the fixture and push an event (prevents cross-test state leakage)
+  if (url.startsWith("/__research")) {
+    researchTree = clone(fx.researchTree);
+    for (const ws of researchTreeSubscribers) send(ws, { op: "event", topic: Topics.researchTree, data: researchTree });
     res.setHeader("content-type", "application/json");
     res.end(JSON.stringify({ ok: true }));
     return;
@@ -148,6 +176,9 @@ const KNOWN_ACTIONS = new Set<string>([
   "ui.modal.respond",
   "block_inventory.move_item",
   "ui_state.request",
+  "research.complete",
+  "filter_splitter.set_mode",
+  "filter_splitter.set_filter_item",
   "debug.echo",
 ]);
 
@@ -229,6 +260,7 @@ wss.on("connection", (ws) => {
     if (topic === Topics.modal) return { modal: currentModal };
     if (topic === Topics.progress) return fx.progressSample;
     if (topic === Topics.uiState) return currentUiState;
+    if (topic === Topics.researchTree) return researchTree;
     return undefined;
   };
 
@@ -236,6 +268,7 @@ wss.on("connection", (ws) => {
     blockSubscribers.delete(ws);
     modalSubscribers.delete(ws);
     uiStateSubscribers.delete(ws);
+    researchTreeSubscribers.delete(ws);
   });
 
   ws.on("message", (raw) => {
@@ -245,6 +278,7 @@ wss.on("connection", (ws) => {
         if (topic === Topics.blockInventory) blockSubscribers.add(ws);
         if (topic === Topics.modal) modalSubscribers.add(ws);
         if (topic === Topics.uiState) uiStateSubscribers.add(ws);
+        if (topic === Topics.researchTree) researchTreeSubscribers.add(ws);
         const data = topicData(topic);
         if (data !== undefined) send(ws, { op: "snapshot", topic, data });
       }
@@ -257,6 +291,7 @@ wss.on("connection", (ws) => {
         if (topic === Topics.blockInventory) blockSubscribers.delete(ws);
         if (topic === Topics.modal) modalSubscribers.delete(ws);
         if (topic === Topics.uiState) uiStateSubscribers.delete(ws);
+        if (topic === Topics.researchTree) researchTreeSubscribers.delete(ws);
       }
       return;
     }
@@ -319,6 +354,26 @@ wss.on("connection", (ws) => {
             }
           }, 30);
         }
+      } else if (msg.type === "filter_splitter.set_mode") {
+        // 対象方向の mode を書換え、block topic を再配信する
+        // Rewrite the target direction's mode and republish the block topic
+        const applied = applyFilterMode(currentBlock, msg.payload as ActionPayloads["filter_splitter.set_mode"]);
+        if (!applied) error = "invalid_direction";
+        else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: currentBlock }), 30);
+      } else if (msg.type === "filter_splitter.set_filter_item") {
+        // filterItemIds[slotIndex] を clear:0/固定grabID へ書換え、block topic を再配信する
+        // Rewrite filterItemIds[slotIndex] to clear:0/fixed grab id and republish the block topic
+        const applied = applyFilterItem(currentBlock, msg.payload as ActionPayloads["filter_splitter.set_filter_item"]);
+        if (!applied) error = "invalid_slot";
+        else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: currentBlock }), 30);
+      } else if (msg.type === "research.complete") {
+        // 該当ノードを completed 化し、全 research 購読者へ push（研究実行→遷移を再現）
+        // Flip the node to completed and push to all research subscribers (reproduces research→transition)
+        const applied = applyResearchComplete(researchTree, msg.payload as ActionPayloads["research.complete"]);
+        if (!applied) error = "research_not_found";
+        else setTimeout(() => {
+          for (const sub of researchTreeSubscribers) send(sub, { op: "event", topic: Topics.researchTree, data: researchTree });
+        }, 30);
       } else if (msg.type !== "fail.always" && !KNOWN_ACTIONS.has(msg.type)) {
         // 未知 action type は本番 dispatcher と同じく unknown_action で拒否する（既知だが未実装の split/sort/craft は no-op で ok:true）
         // Unknown action types are rejected with unknown_action like the real dispatcher (known-but-unimplemented split/sort/craft stay no-op ok:true)
