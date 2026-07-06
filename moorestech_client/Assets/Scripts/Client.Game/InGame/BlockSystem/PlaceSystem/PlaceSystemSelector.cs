@@ -46,32 +46,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
         {
-            // マスターデータからPlaceSystemを検索
-            // Search PlaceSystem from master data
-            var placeSystemElement = GetPlaceSystemElement(context.HoldingItemId);
-            if (placeSystemElement != null)
-            {
-                // PlaceModeに基づいて適切なシステムを返す
-                // Return appropriate system based on PlaceMode
-                return placeSystemElement.PlaceMode switch
-                {
-                    PlaceSystemMasterElement.PlaceModeConst.TrainRail => _trainRailPlaceSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.TrainCar => _trainCarPlaceSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect => _electricWireConnectSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.BeltConveyor => _beltConveyorPlaceSystem,
-                    _ => throw new System.Exception($"Unsupported PlaceMode: {placeSystemElement.PlaceMode}"),
-                };
-            }
-
-            // 歯車チェーンポールのブロックアイテムは専用の接続システムで設置する
-            // Gear chain pole block items are placed via the dedicated connection system
-            if (GearChainPoleItemFinder.TryGetPoleBlockMaster(context.HoldingItemId, out _))
-            {
-                return _gearChainPoleConnectSystem;
-            }
-
             // ビルドメニュー選択がベルトファミリーなら専用設置システムを使う
             // Route belt-family build menu selections to the dedicated place system
             if (context.SelectedBlockId.HasValue && BeltConveyorPlaceFamilyUtil.TryGetFamily(context.SelectedBlockId.Value, out _))
@@ -86,39 +60,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return _commonBlockPlaceSystem;
             }
 
+            // 接続ツール系（レール/歯車/電線/車両）はTask 8で選択駆動として復活予定
+            // Connect tools (rail/gear/wire/car) will return as selection-driven in Task 8
             return EmptyPlaceSystem;
-            
-            #region Internal
-            
-            PlaceSystemMasterElement GetPlaceSystemElement(ItemId itemId)
-            {
-                if (itemId == ItemMaster.EmptyItemId)
-                {
-                    return null;
-                }
-                
-                // アイテムIDからGuidを取得
-                // Get Guid from ItemId
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                var itemGuid = itemMaster.ItemGuid;
-                
-                // UsePlaceItemsに現在のアイテムGuidが含まれている要素を検索
-                // Search elements that contain current item Guid in UsePlaceItems
-                var matchingElements = MasterHolder.PlaceSystemMaster.PlaceSystem.Data
-                    .Where(element => element.UsePlaceItems.Contains(itemGuid))
-                    .ToList();
-                
-                if (matchingElements.Count == 0)
-                {
-                    return null;
-                }
-                
-                // Priorityが最も高いものを返す（Priorityは大きいほど優先度が高い）
-                // Return the one with highest Priority (larger Priority value means higher priority)
-                return matchingElements.OrderByDescending(element => element.Priority).First();
-            }
-            
-            #endregion
         }
     }
 }
