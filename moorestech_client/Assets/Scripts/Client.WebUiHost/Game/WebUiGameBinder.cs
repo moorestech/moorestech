@@ -63,6 +63,11 @@ namespace Client.WebUiHost.Game
             var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState);
             hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
 
+            // UIステートトピックを登録（Web側画面ルーティングの正）
+            // Register the UI-state topic (source of truth for web-side routing)
+            var uiStateTopic = new UiStateTopic(hub, uiStateControl);
+            hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
+
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic
             var unlockStateData = ClientDIContext.DIContainer
@@ -95,6 +100,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new SelectHotbarActionHandler(hotBarView));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
+            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
         }
     }
 }
