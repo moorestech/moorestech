@@ -77,22 +77,22 @@ namespace Client.Game.InGame.UI.UIState
                 return new UITransitContext(requested);
             }
 
+            void ForceReturnToGameScreen()
+            {
+                // GameScreen以外なら終了処理を呼んでパネル等を閉じる
+                // If not GameScreen, run its exit to close panels etc.
+                var lastState = CurrentState;
+                if (lastState != UIStateEnum.GameScreen) _uiStateDictionary.GetState(lastState).OnExit();
+
+                // GameScreenへ再入場しカーソル・カメラ・操作説明を確定させる（同一状態でもカーソル復元のため実行）
+                // Re-enter GameScreen to settle cursor/camera/key description (run even for the same state to restore cursor)
+                CurrentState = UIStateEnum.GameScreen;
+                _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(UIStateEnum.GameScreen));
+
+                if (lastState != CurrentState) OnStateChanged?.Invoke(CurrentState);
+            }
+
             #endregion
-        }
-
-        private void ForceReturnToGameScreen()
-        {
-            // GameScreen以外なら終了処理を呼んでパネル等を閉じる
-            // If not GameScreen, run its exit to close panels etc.
-            var lastState = CurrentState;
-            if (lastState != UIStateEnum.GameScreen) _uiStateDictionary.GetState(lastState).OnExit();
-
-            // GameScreenへ再入場しカーソル・カメラ・操作説明を確定させる（同一状態でもカーソル復元のため実行）
-            // Re-enter GameScreen to settle cursor/camera/key description (run even for the same state to restore cursor)
-            CurrentState = UIStateEnum.GameScreen;
-            _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(UIStateEnum.GameScreen));
-
-            if (lastState != CurrentState) OnStateChanged?.Invoke(CurrentState);
         }
     }
 }
