@@ -211,7 +211,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Disable the placement click when no cell is placeable due to wire shortage (server also rejects, but block early)
                 if (!wirePlaceable) return;
 
-                SendPlaceBlockProtocol(_currentPlaceInfos, context.SelectedBlockId.Value);
+                SendPlaceBlockProtocol(_currentPlaceInfos);
 
                 // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the auto-connect evaluation cache

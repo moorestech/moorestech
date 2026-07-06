@@ -67,3 +67,24 @@
 - moorestech_master の local master(cd5fc11) が e5e144b から先行分岐しており、plan2-master-migration（e5e144b→8beb0f2→...→b191737）とのマージ/リベース整理が未実施
 - MapObject guid e76e6b65 がマップに存在するがマスタ未定義のInfoログ多数（プラン2以前からの既存事象・変更範囲外）
 - 燃料式風車の unlockBlock が4研究ノードに重複出現（旧giveItem×3の置換由来。解放は冪等なので実害なし、データ整理は任意）
+
+## ベルト長尺バリアント移行完了に伴う追記（2026-07-06, Task 9）
+
+全10タスク完了・E2E検証実施済み（実施内容は`.superpowers/sdd/task-9-report.md`参照）。ブランチ`feature/belt-conveyor-place-system`。
+
+### プラン4への申し送り（Step 3記載事項）
+- **ベルト4種は長尺バリアント方式に移行済み**。プラン4で「除外9ブロック+車両3種」へrequiredItems投入する際、旧レシピ産出数>1のブロックがないか要チェック（今回投入時に該当したのはベルト4種のみだった。長尺バリアント12種は`requiredItems`が1連と同一＝1セットで統一済みのため、この観点では追加確認不要）
+- `PlaceBlockProtocol`の未解放判定は`BeltConveyorPlaceFamilyUtil.TryGetFamily`経由でファミリー代表（length==1の直線ブロック）のunlock状態を参照する。**プラン4の特殊プロトコル移行時、同種の「バリアント→代表」解決パターンが必要になった場合はこのユーティリティを参考にできる**
+- `PlaceBlockFromHotBarProtocol`は垂直オーバーライド呼び出しが除去済み。ベルト旧アイテム＋今回追加の隠しアイテム12個は、itemGuidフィールド削除時（プラン5）に一括削除対象
+
+### プラン5への申し送り
+- 垂直オーバーライド機構は完全削除済み（スキーマ・コード・データ）。プラン5のitemGuid/usePlaceItems削除時に参照する旧経路は残っていない
+- ベルト長尺バリアント12種の隠しアイテム（itemGuid）もプラン5の一括削除対象に含まれる（上記プラン4申し送りと同一事項）
+
+### E2E検証で判明した事実
+- **列車車両unlockテストの既存失敗**: `BlockUnlockStateTest.列車車両の解放が保存とロードで維持される`はマージ地点38a78d2c8で既に失敗する**親ブランチ由来の既存問題**（`f226731c3`がテストマスタ先頭車両に`initialUnlocked:True`を設定したが、テストコード側は初期ロック前提のまま）。ベルト作業とは無関係、対応不要
+- **基本土台をBeltConveyor対象外にした経緯**: Task 8で`placeSystem.json`のBeltConveyorエントリ（priority=180）に基本土台ブロック（blockSize[5,1,5]）が誤って`straightBlocks[0]`として登録されていることが判明。`CommonBlockPlacePointCalculator`のバリデータが大型ブロック（isLargeBlock）のコンベア設置を許容しないため、この状態ではPlay Mode起動自体が例外で失敗していた。設計ミスと判断しエントリを削除（moorestech_master `584a14e`）。旧仕様でも大型ブロックはコンベア設置無効だったため退行なし。基本土台は通常の`CommonBlockPlaceSystem`（blockSize刻み設置）のみで設置可能
+- **`PlaceBlockProtocol`の未解放判定は「ファミリー代表」基準**: `BeltConveyorPlaceFamilyUtil.TryGetFamily`で解決される代表（length==1の直線ブロック）のunlock状態のみが参照され、上り・下り・2連〜5連の個別blockGuidを直接unlockしても設置可否には反映されない。E2E検証時にこれを踏み、代表guidの再確認が必要だった（実装は意図通り、テスト手順上の注意点）
+- **moorestech-worktrees/moorestech_masterはRepositorySync管理の実クローンになった**（旧仕様のsymlinkから移行済み、旧symlinkは`_bk`へ退避）。ピンと一致していれば自己管理されるため新常態として受容してよいが、ローカル限定コミット（下記）はcanonicalリポジトリへの手動fetch+resetでのみ同期される
+- **moorestech_master側の未pushコミット群**: `f67eee8`（chore: placeSystem既存エントリにplaceParam追加）、`8919c5c`（feat: ベルト長尺バリアント12種とBeltConveyor placeSystemエントリを追加）、`584a14e`（fix: 基本土台のBeltConveyorエントリを削除）の3件は`origin/master`に存在しない（`git branch -r --contains`で確認済み）。moorestech_masterリポジトリの正式push作業が別途必要
+- ClientContext.VanillaApi.Response.BlockRemove等の実プロトコル経由の削除は、client側の可視化オブジェクトも正しく同期して破棄される（`ServerContext.WorldBlockDatastore.RemoveBlock`をテストコードから直接呼ぶ場合はネットワークブロードキャストを経由しないため、client側の可視化は同期されない点に注意。データ層の検証のみなら直接呼び出しで十分だが、見た目の同期まで検証したい場合は実プロトコル経由が必須）

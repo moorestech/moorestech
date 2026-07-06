@@ -51,9 +51,9 @@ namespace Server.Protocol.PacketResponse
             var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(request.PoleBlockId).BlockGuid;
             if (!_gameUnlockStateDataController.BlockUnlockStateInfos[baseBlockGuid].IsUnlocked) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NotUnlockedError);
 
-            // 縦向きオーバーライドを適用しポールパラメータを解決する
-            // Apply vertical override and resolve the pole parameter
-            var blockId = request.PoleBlockId.GetVerticalOverrideBlockId(request.PolePlaceInfo.VerticalDirection);
+            // 指定BlockIdからポールパラメータを解決する
+            // Resolve the pole parameter from the requested BlockId
+            var blockId = request.PoleBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not GearChainPoleBlockParam poleParam) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NoPoleItemError);
 
