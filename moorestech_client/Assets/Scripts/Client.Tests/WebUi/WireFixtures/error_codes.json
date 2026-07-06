@@ -17,6 +17,11 @@
     "invalid_result",
     "no_pending_modal",
     "invalid_state",
-    "unsupported_state"
+    "unsupported_state",
+    "invalid_guid",
+    "research_failed",
+    "block_not_open",
+    "invalid_direction",
+    "filter_request_failed"
   ]
 }

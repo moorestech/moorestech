@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import type { BlockInventoryData, ModalRequest, UiStateData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
 
@@ -12,6 +12,7 @@ export const received: { type: string; payload: unknown }[] = [];
 export const blockSubscribers = new Set<WebSocket>();
 export const modalSubscribers = new Set<WebSocket>();
 export const uiStateSubscribers = new Set<WebSocket>();
+export const researchTreeSubscribers = new Set<WebSocket>();
 
 // 再代入される可変状態を1オブジェクトに集約し、モジュール間で参照共有する
 // Group reassignable mutable state in one object so modules share it by reference
@@ -25,4 +26,7 @@ export const state = {
   // 既定はインベントリ画面。既存 e2e の表示前提を維持する
   // Default inventory screen; keeps existing e2e display assumptions
   currentUiState: clone(fx.uiState) as UiStateData,
+  // research.complete でノードを completed 化し購読者へ push する可変ツリー
+  // Mutable tree; research.complete flips a node to completed and pushes to subscribers
+  researchTree: clone(fx.researchTree) as ResearchTreeData,
 };

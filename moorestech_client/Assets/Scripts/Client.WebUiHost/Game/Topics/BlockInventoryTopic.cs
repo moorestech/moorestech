@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.UIState;
@@ -7,9 +8,9 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Core.Master;
+using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
-using Game.Block.Interface.State;
+using Server.Event.EventReceive;
 using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
@@ -25,14 +26,16 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly SubInventoryState _subInventoryState;
+        private readonly BlockNetworkInfoCache _networkCache = new();
         private readonly IDisposable _subInventorySubscription;
-
-        // 開いているブロックの状態変化（流体量・進捗）を購読する。ブロックが変わるたび張り替える
-        // Subscribes to the open block's state changes (fluid amount, progress); rebound whenever the block changes
+        private BlockGameObject _trackedBlock;
         private IDisposable _blockStateSubscription;
-        private string _subscribedEventTag;
         private bool _publishScheduled;
         private bool _disposed;
+
+        // Task 8 の action handler がスナップショット反映に使う公開口
+        // Public access point used by Task 8 action handlers to apply snapshots
+        public BlockNetworkInfoCache NetworkCache => _networkCache;
 
         public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
         {
@@ -43,12 +46,14 @@ namespace Client.WebUiHost.Game.Topics
             // 開閉（UIステート遷移）とスロット更新の両方を購読して push する
             // Subscribe to open/close (UI-state transitions) and slot updates, then push
             _uiStateControl.OnStateChanged += OnStateChanged;
-            _subInventorySubscription = _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => OnSubInventoryUpdated());
+            _subInventorySubscription = _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => SchedulePublish());
+            // ネットワーク取得完了でも再配信する
+            // Republish when a network fetch completes
+            _networkCache.OnUpdated += SchedulePublish;
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
         {
-            SyncBlockStateSubscription();
             return UniTask.FromResult(BuildJson());
         }
 
@@ -57,37 +62,13 @@ namespace Client.WebUiHost.Game.Topics
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _subInventorySubscription.Dispose();
-            _blockStateSubscription?.Dispose();
+            _networkCache.OnUpdated -= SchedulePublish;
+            TrackBlock(null);
         }
 
         private void OnStateChanged(UIStateEnum state)
         {
-            SyncBlockStateSubscription();
             SchedulePublish();
-        }
-
-        private void OnSubInventoryUpdated()
-        {
-            SyncBlockStateSubscription();
-            SchedulePublish();
-        }
-
-        // 現在開いているブロックの状態イベントへ購読を合わせる。対象が変わったときだけ張り替える
-        // Align the subscription to the currently open block's state event; rebind only when the target changes
-        private void SyncBlockStateSubscription()
-        {
-            var open = _uiStateControl.CurrentState == UIStateEnum.SubInventory;
-            var blockSource = _subInventoryState.CurrentSubInventorySource as BlockSubInventorySource;
-            var targetTag = open && blockSource != null ? blockSource.CreateBlockStateEventTag() : null;
-            if (targetTag == _subscribedEventTag) return;
-
-            _blockStateSubscription?.Dispose();
-            _blockStateSubscription = null;
-            _subscribedEventTag = null;
-            if (targetTag == null) return;
-
-            _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(targetTag, _ => SchedulePublish());
-            _subscribedEventTag = targetTag;
         }
 
         // INFRA-7 デバウンス規約: 中間状態を畳んでフレーム末に一度だけ全量配信する
@@ -121,8 +102,18 @@ namespace Client.WebUiHost.Game.Topics
 
             if (!open || sub == null || blockSource == null)
             {
+                TrackBlock(null);
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
+
+            // BlockGameObject は既存公開の datastore から座標で解決する（uGUI 編集なし）
+            // Resolve the BlockGameObject by position via the existing public datastore (no uGUI edits)
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(blockSource.BlockPosition, out var block))
+            {
+                TrackBlock(null);
+                return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
+            }
+            TrackBlock(block);
 
             var dto = new BlockInventoryDto
             {
@@ -131,8 +122,8 @@ namespace Client.WebUiHost.Game.Topics
                 BlockName = blockSource.BlockName,
                 Identifier = blockSource.BlockPosition.ToString(),
                 ItemSlots = new List<BlockItemSlotDto>(sub.Count),
-                FluidSlots = BuildFluidSlots(blockSource),
-                Progress = BuildProgress(blockSource),
+                FluidSlots = new List<BlockFluidSlotDto>(),
+                Progress = null,
             };
 
             // SubInventory からスロットを写す（id/count は InventoryTopic 同型）
@@ -142,59 +133,40 @@ namespace Client.WebUiHost.Game.Topics
                 dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });
             }
 
+            // capability 詳細とネットワーク集約を充填する
+            // Fill capability details and network aggregates
+            BlockDetailDtoBuilder.Apply(dto, block, _networkCache);
             return WebUiJson.Serialize(dto);
+        }
 
-            #region Internal
-
-            List<BlockFluidSlotDto> BuildFluidSlots(BlockSubInventorySource source)
+        // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える
+        // Switch the tracked block, re-wiring the state-event subscription and network fetches
+        private void TrackBlock(BlockGameObject block)
+        {
+            if (ReferenceEquals(_trackedBlock, block)) return;
+            // 前のブロックの state イベント購読を解除する
+            // Unsubscribe the previous block's state event
+            _blockStateSubscription?.Dispose();
+            _blockStateSubscription = null;
+            _trackedBlock = block;
+            if (block == null)
             {
-                // 流体状態が無いブロック（チェスト等）は空リスト
-                // Blocks without fluid state (chests etc.) yield an empty list
-                var slots = new List<BlockFluidSlotDto>();
-                var fluidState = source.GetFluidInventoryStateOrNull();
-                if (fluidState == null) return slots;
-
-                // 入力→出力の順で全タンクを写す。空タンクも容量表示のため残す
-                // Copy all tanks in input-then-output order; keep empty tanks to show capacity
-                AddTanks(fluidState.InputTanks);
-                AddTanks(fluidState.OutputTanks);
-                return slots;
-
-                void AddTanks(List<FluidMessagePack> tanks)
-                {
-                    if (tanks == null) return;
-                    foreach (var tank in tanks)
-                    {
-                        slots.Add(new BlockFluidSlotDto
-                        {
-                            FluidId = tank.FluidId,
-                            Amount = tank.Amount,
-                            Capacity = tank.MaxCapacity,
-                            Name = ResolveFluidName(tank.FluidId),
-                        });
-                    }
-                }
+                _networkCache.Clear();
+                return;
             }
 
-            string ResolveFluidName(int fluidId)
-            {
-                // 空タンクは名前なし。それ以外はマスタから表示名を引く
-                // Empty tanks have no name; otherwise resolve the display name from master
-                var id = new FluidId(fluidId);
-                if (id == FluidMaster.EmptyFluidId) return null;
-                return MasterHolder.FluidMaster.GetFluidMaster(id).Name;
-            }
+            // uGUI BlockGameObject と同じ per-block イベントタグを直接購読して再配信トリガにする
+            // Directly subscribe the same per-block event tag as uGUI BlockGameObject as the republish trigger
+            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
+            _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(eventTag, _ => SchedulePublish());
 
-            double? BuildProgress(BlockSubInventorySource source)
-            {
-                // 機械のみ加工進捗を持つ。非機械は null（キー省略）
-                // Only machines have processing progress; non-machines yield null (key omitted)
-                var machineState = source.GetMachineStateOrNull();
-                if (machineState == null) return null;
-                return machineState.ProcessingRate;
-            }
-
-            #endregion
+            var blockType = block.BlockMasterElement.BlockType;
+            // ネットワーク集約の要否は blockType で決める（spec §2-a の組み合わせ表）
+            // Whether to fetch network aggregates is decided by blockType (spec §2-a combination table)
+            var electric = blockType is "ElectricMachine" or "ElectricGenerator" or "ElectricMiner";
+            var gear = blockType is "GearMachine" or "GearMiner" or "FuelGearGenerator" or "SimpleGearGenerator";
+            var filterSplitter = blockType == "FilterSplitter";
+            _networkCache.Track(block, electric, gear, filterSplitter);
         }
     }
 }

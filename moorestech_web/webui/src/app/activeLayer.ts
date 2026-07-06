@@ -1,14 +1,15 @@
 import { readTopic, Topics } from "@/bridge";
 
-// 最前面 UI レイヤー。modal 最優先 → block インベントリ → 素の game
-// Frontmost UI layer: modal first → block inventory → bare game
-export type ActiveLayer = "modal" | "blockInventory" | "game";
+// 前面UI層の優先順位
+// Frontmost UI layer priority
+export type ActiveLayer = "modal" | "blockInventory" | "research" | "game";
 
 // 各オーバーレイの有無から最前面レイヤーを導出する純関数（優先順位を1箇所に固定）
 // Pure derivation of the frontmost layer from overlay presence (priority fixed in one place)
-export function deriveActiveLayer(input: { modalOpen: boolean; blockInventoryOpen: boolean }): ActiveLayer {
+export function deriveActiveLayer(input: { modalOpen: boolean; blockInventoryOpen: boolean; researchOpen: boolean }): ActiveLayer {
   if (input.modalOpen) return "modal";
   if (input.blockInventoryOpen) return "blockInventory";
+  if (input.researchOpen) return "research";
   return "game";
 }
 
@@ -17,8 +18,10 @@ export function deriveActiveLayer(input: { modalOpen: boolean; blockInventoryOpe
 export function readActiveLayer(): ActiveLayer {
   const modal = readTopic(Topics.modal);
   const block = readTopic(Topics.blockInventory);
+  const uiState = readTopic(Topics.uiState);
   return deriveActiveLayer({
     modalOpen: modal?.modal != null,
     blockInventoryOpen: block?.open === true,
+    researchOpen: uiState?.state === "ResearchTree",
   });
 }

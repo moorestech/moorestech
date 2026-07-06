@@ -6,6 +6,7 @@ import { ToastHost } from "@/features/toast";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryPanel } from "@/features/blockInventory";
+import { ResearchTreePanel } from "@/features/research";
 import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
 import { readActiveLayer } from "./activeLayer";
 import { screenForUiState } from "./uiScreenRouting";
@@ -57,6 +58,7 @@ export default function App() {
       {screen === "playerInventory" && <ItemListPanel />}
       {/* オーバーレイ系（grid セルでなく fixed/center 配置） */}
       {/* Overlays (fixed/centered, not grid cells) */}
+      {screen === "researchTree" && <ResearchTreePanel />}
       <BlockInventoryPanel />
       <ModalHost />
       <ProgressBar />

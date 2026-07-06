@@ -1,8 +1,14 @@
 import type { ComponentType } from "react";
 import type { ActionPayloads } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
-import ChestInventory from "./ChestInventory";
-import GenericBlockInventory from "./GenericBlockInventory";
+import ChestInventory from "./views/ChestInventory";
+import FilterSplitterInventory from "./views/FilterSplitterInventory";
+import GearMachineInventory from "./views/GearMachineInventory";
+import GearMinerInventory from "./views/GearMinerInventory";
+import GeneratorInventory from "./views/GeneratorInventory";
+import GenericBlockInventory from "./views/GenericBlockInventory";
+import MachineInventory from "./views/MachineInventory";
+import MinerInventory from "./views/MinerInventory";
 
 type MoveItemPayload = ActionPayloads["block_inventory.move_item"];
 
@@ -18,6 +24,19 @@ export function placePayload(blockSlotIndex: number, grabCount: number): MoveIte
   return { from: { area: "grab", slot: 0 }, to: { area: "block", slot: blockSlotIndex }, count: grabCount };
 }
 
+// スロットクリックの共通分岐: grab 保持なら置く / 中身ありなら丸ごと拾う / それ以外は無操作
+// Shared slot-click branch: place while holding grab / pick the whole stack when filled / otherwise no-op
+export function blockSlotClickPayload(
+  slotIndex: number,
+  slotItemId: number,
+  slotCount: number,
+  grabCount: number,
+): MoveItemPayload | null {
+  if (grabCount > 0) return placePayload(slotIndex, grabCount);
+  if (slotItemId > 0) return pickUpPayload(slotIndex, slotCount);
+  return null;
+}
+
 // blockType → React コンポーネントの静的レジストリ。後続 feature が再代入なしで拡張できるよう可変オブジェクト
 // Static blockType → React component registry; a mutable object so later features extend it without rewrites
 // キーは C# BlockMasterElement.BlockType の実値に厳密一致させる(実マスタは "Chest" 等の PascalCase)
@@ -25,6 +44,14 @@ export function placePayload(blockSlotIndex: number, grabCount: number): MoveIte
 export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
   Chest: ChestInventory,
+  FilterSplitter: FilterSplitterInventory,
+  ElectricMachine: MachineInventory,
+  GearMachine: GearMachineInventory,
+  ElectricGenerator: GeneratorInventory,
+  FuelGearGenerator: GeneratorInventory,
+  SimpleGearGenerator: GeneratorInventory,
+  ElectricMiner: MinerInventory,
+  GearMiner: GearMinerInventory,
 };
 
 // 未登録 blockType はフォールバックで汎用描画（流体ブロック等が専用 UI 未実装でもクラッシュしない）

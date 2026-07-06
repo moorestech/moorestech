@@ -3,9 +3,23 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Topics } from "../../src/bridge/transport/protocol";
+import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers } from "./state";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers } from "./state";
+
+// /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
+// Type map switched via /__block?type=X; defaults to chest (reliably shows an open panel)
+const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
+  chest: fx.blockChest,
+  tank: fx.blockTank,
+  closed: fx.blockClosed,
+  machine: fx.blockMachine,
+  gearMachine: fx.blockGearMachine,
+  generator: fx.blockGenerator,
+  miner: fx.blockMiner,
+  filterSplitter: fx.blockFilterSplitter,
+};
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 
@@ -33,7 +47,7 @@ export function createMockHttpServer(): Server {
     // Test-only: swap the served block inventory and push an event to subscribers
     if (url.startsWith("/__block")) {
       const type = new URL(url, "http://x").searchParams.get("type") ?? "chest";
-      state.currentBlock = clone(type === "tank" ? fx.blockTank : type === "closed" ? fx.blockClosed : fx.blockChest);
+      state.currentBlock = clone(BLOCK_FIXTURES[type] ?? fx.blockChest);
       for (const ws of blockSubscribers) send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));
@@ -55,6 +69,15 @@ export function createMockHttpServer(): Server {
       const uiState = new URL(url, "http://x").searchParams.get("state") ?? "PlayerInventory";
       state.currentUiState = { state: uiState };
       for (const ws of uiStateSubscribers) send(ws, { op: "event", topic: Topics.uiState, data: state.currentUiState });
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+    // テスト用: 研究ツリーをフィクスチャへ戻して購読者へ event push（テスト間の状態漏れ防止）
+    // Test-only: reset the research tree to the fixture and push an event (prevents cross-test state leakage)
+    if (url.startsWith("/__research")) {
+      state.researchTree = clone(fx.researchTree);
+      for (const ws of researchTreeSubscribers) send(ws, { op: "event", topic: Topics.researchTree, data: state.researchTree });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));
       return;

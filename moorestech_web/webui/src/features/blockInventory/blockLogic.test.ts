@@ -6,10 +6,10 @@ import { describe, it, expect, vi } from "vitest";
 // stub it so this node-env test can load the component tree
 vi.mock("@/bridge/transport/webSocketClient", () => ({ sendAction: vi.fn() }));
 
-import { pickUpPayload, placePayload, resolveBlockComponent } from "./blockLogic";
-import ChestInventory from "./ChestInventory";
-import TankInventory from "./TankInventory";
-import GenericBlockInventory from "./GenericBlockInventory";
+import { blockSlotClickPayload, pickUpPayload, placePayload, resolveBlockComponent } from "./blockLogic";
+import ChestInventory from "./views/ChestInventory";
+import TankInventory from "./views/TankInventory";
+import GenericBlockInventory from "./views/GenericBlockInventory";
 
 describe("pickUpPayload", () => {
   it("block スロット→grab へ count ごと拾う payload を作る", () => {
@@ -31,6 +31,18 @@ describe("placePayload", () => {
   });
 });
 
+describe("blockSlotClickPayload", () => {
+  it("grab 保持時は grabCount ごと place payload を返す（スロットが空でも置く）", () => {
+    expect(blockSlotClickPayload(1, 0, 0, 4)).toEqual(placePayload(1, 4));
+  });
+  it("grab 無し + 中身ありは slot.count 全量の pickup payload を返す", () => {
+    expect(blockSlotClickPayload(2, 10, 6, 0)).toEqual(pickUpPayload(2, 6));
+  });
+  it("grab 無し + スロット空は null を返す（無操作）", () => {
+    expect(blockSlotClickPayload(3, 0, 0, 0)).toBeNull();
+  });
+});
+
 describe("resolveBlockComponent", () => {
   it("Chest(実マスタ値) は ChestInventory を返す", () => {
     expect(resolveBlockComponent("Chest")).toBe(ChestInventory);
@@ -43,6 +55,17 @@ describe("resolveBlockComponent", () => {
   });
   it("未登録 blockType はフォールバックを返す", () => {
     expect(resolveBlockComponent("unknown")).toBe(GenericBlockInventory);
+  });
+  it.each([
+    "ElectricMachine",
+    "GearMachine",
+    "ElectricGenerator",
+    "FuelGearGenerator",
+    "SimpleGearGenerator",
+    "ElectricMiner",
+    "GearMiner",
+  ])("resolves a dedicated view for %s", (blockType) => {
+    expect(resolveBlockComponent(blockType)).not.toBe(GenericBlockInventory);
   });
 });
 
