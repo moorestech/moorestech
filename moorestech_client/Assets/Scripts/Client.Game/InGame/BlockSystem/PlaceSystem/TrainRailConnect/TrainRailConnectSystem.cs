@@ -101,7 +101,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         var pierBlockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
                         var pierBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(pierBlockId);
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
-                        var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemStack.Id);
+                        var placeInfo = _trainRailPlaceSystemService.ManualUpdate(pierBlockId);
                         var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, context.HoldingItemId);
                         ShowPreview(previewData);
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
-using Core.Master;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
@@ -40,9 +39,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
-            // スロット変更時は候補選択を初期化する
-            // Reset route selection when slot selection changes
-            if (context.IsSelectSlotChanged)
+            // 選択変更時は候補選択を初期化する
+            // Reset route selection when the build-menu selection changes
+            if (context.IsSelectionChanged)
             {
                 _detector.ResetSelection();
             }
@@ -56,7 +55,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // レール上の設置候補を検出する
             // Detect the placement candidate on the rail
-            if (!_detector.TryDetect(context.HoldingItemId, out var hit))
+            if (!_detector.TryDetect(context.SelectedTrainCarGuid, out var hit))
             {
                 _previewController.SetActive(false);
                 return;
@@ -69,21 +68,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // railpositionからpreviewを描画する
             // Render the preview directly from railposition
             var railPosition = hit.RailPosition;
-            var hasPreview = railPosition != null && _previewController.ShowPreview(context.HoldingItemId, railPosition, hit.IsPlaceable);
+            var hasPreview = railPosition != null && _previewController.ShowPreview(context.SelectedTrainCarGuid, railPosition, hit.IsPlaceable);
             _previewController.SetActive(hasPreview);
             if (!hit.IsPlaceable)
             {
                 return;
             }
 
-            // クリック時に設置リクエストを送る
-            // Send the placement request on click
+            // クリック時に選択中の車両Guidで設置リクエストを送る
+            // Send the placement request with the selected car guid on click
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                // 暫定: 保持アイテムから車両Guidを解決する（Task 9で選択駆動へ置換）
-                // Interim: resolve the car guid from the held item (replaced by selection-driven flow in Task 9)
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(context.HoldingItemId, out var carMaster)) return;
-                RequestPlacementAsync(hit, carMaster.TrainCarGuid).Forget();
+                RequestPlacementAsync(hit, context.SelectedTrainCarGuid).Forget();
             }
 
             #region Internal

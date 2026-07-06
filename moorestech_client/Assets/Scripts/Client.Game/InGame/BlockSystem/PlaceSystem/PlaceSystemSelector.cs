@@ -10,6 +10,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Core.Master;
 using Game.Block.Interface.Extension;
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.PlaceSystemModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -46,23 +47,35 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
         {
-            // ビルドメニュー選択がベルトファミリーなら専用設置システムを使う
-            // Route belt-family build menu selections to the dedicated place system
-            if (context.SelectedBlockId.HasValue && BeltConveyorPlaceFamilyUtil.TryGetFamily(context.SelectedBlockId.Value, out _))
+            switch (context.SelectionType)
             {
-                return _beltConveyorPlaceSystem;
-            }
+                case PlacementSelectionType.Block:
+                {
+                    // ベルトファミリー→レール橋脚→歯車ポールの順に専用システムへ振り分け、残りは通常ブロック
+                    // Route by belt family, then rail pier, then gear chain pole; fall back to common blocks
+                    var blockId = context.SelectedBlockId.Value;
+                    if (BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out _)) return _beltConveyorPlaceSystem;
 
-            // ビルドメニューで選択中なら通常ブロック設置システムを使う
-            // Use the common placement system while a build-menu selection exists
-            if (context.SelectedBlockId.HasValue)
-            {
-                return _commonBlockPlaceSystem;
+                    var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                    if (blockMaster.BlockType == BlockMasterElement.BlockTypeConst.TrainRail) return _trainRailPlaceSystem;
+                    if (blockMaster.BlockType == BlockMasterElement.BlockTypeConst.GearChainPole) return _gearChainPoleConnectSystem;
+                    return _commonBlockPlaceSystem;
+                }
+                case PlacementSelectionType.TrainCar:
+                    return _trainCarPlaceSystem;
+                case PlacementSelectionType.ConnectTool:
+                    // 接続ツールは選択中の接続モードで3系統へ振り分ける
+                    // Route connect tools to the three connect systems by the selected place mode
+                    return context.SelectedConnectPlaceMode switch
+                    {
+                        PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
+                        PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
+                        PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect => _electricWireConnectSystem,
+                        _ => EmptyPlaceSystem,
+                    };
+                default:
+                    return EmptyPlaceSystem;
             }
-
-            // 接続ツール系（レール/歯車/電線/車両）はTask 8で選択駆動として復活予定
-            // Connect tools (rail/gear/wire/car) will return as selection-driven in Task 8
-            return EmptyPlaceSystem;
         }
     }
 }
