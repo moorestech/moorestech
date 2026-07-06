@@ -7,7 +7,6 @@ using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
 using UniRx;
 using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
@@ -43,13 +42,15 @@ namespace Client.Game.InGame.UI.Inventory.Main
             };
             
             if (fromInvItem.Count < count) return;
-            
+
             SetInventory();
-            
-            if (isMoveSendData) SendMoveItemData();
-            
+
+            // サーバー送信は結合スロット→サーバースロット変換を担う専用クラスへ委譲する
+            // Delegate server dispatch (combined-slot to server-slot conversion) to a dedicated class
+            if (isMoveSendData) InventoryMoveServerDispatcher.SendMoveItemData(_subInventory, from, fromSlot, to, toSlot, count);
+
             #region Internal
-            
+
             void SetInventory()
             {
                 var itemStackFactory = ServerContext.ItemStackFactory;
@@ -87,42 +88,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         break;
                 }
             }
-            
-            void SendMoveItemData()
-            {
-                // ローカル結合スロットをサーバーのインベントリ内スロットへ変換する
-                // Convert combined local slots into inventory-local server slots.
-                var fromIdentifier = GetServerInventoryIdentifier(from, fromSlot);
-                var toIdentifier = GetServerInventoryIdentifier(to, toSlot);
-                var fromServerSlot = GetServerInventorySlot(from, fromSlot);
-                var toServerSlot = GetServerInventorySlot(to, toSlot);
-                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromIdentifier, fromServerSlot, toIdentifier, toServerSlot);
-            }
-            
-            InventoryIdentifierMessagePack GetServerInventoryIdentifier(LocalMoveInventoryType localType, int localSlot)
-            {
-                return localType switch
-                {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
-                        ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
-                        : _subInventory.ISubInventoryIdentifier.ToMessagePack(),
-                    LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
-                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
-                };
-            }
 
-            int GetServerInventorySlot(LocalMoveInventoryType localType, int localSlot)
-            {
-                return localType switch
-                {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
-                        ? localSlot
-                        : localSlot - PlayerInventoryConst.MainInventorySize,
-                    LocalMoveInventoryType.Grab => 0,
-                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
-                };
-            }
-            
             #endregion
         }
         
