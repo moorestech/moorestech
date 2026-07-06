@@ -106,6 +106,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
+            hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
+            hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
+            hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
         }
     }
 }
