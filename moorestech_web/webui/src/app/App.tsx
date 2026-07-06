@@ -6,8 +6,9 @@ import { ToastHost } from "@/features/toast";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryPanel } from "@/features/blockInventory";
-import { useConnectionStatus } from "@/bridge";
+import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
 import { readActiveLayer } from "./activeLayer";
+import { screenForUiState } from "./uiScreenRouting";
 import { useUiStore } from "./uiStore";
 import styles from "./App.module.css";
 
@@ -21,6 +22,10 @@ export default function App() {
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
   // Show the overlay only when disconnected after a prior connect (before first connect, panels show connecting...)
   const disconnected = useConnectionStatus() === "reconnecting";
+
+  // ui_state.current による画面ルーティング（C# UIStateControl が正。セレクタはプリミティブを返す）
+  // Screen routing by ui_state.current (C# UIStateControl is authoritative; the selector returns a primitive)
+  const screen = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null));
 
   // Esc でアイテム選択を解除する。modal 等のオーバーレイは自前で Esc を処理するため game レイヤーのみ
   // Esc clears item selection; overlays like the modal handle Esc themselves, so only at the game layer
@@ -36,17 +41,19 @@ export default function App() {
 
   return (
     <div className={styles.layout}>
-      <Group gap="md" style={{ gridArea: "header" }}>
-        <Title order={1} size="h3">moorestech Web UI</Title>
-        {DebugActionButton ? (
-          <Suspense fallback={null}>
-            <DebugActionButton />
-          </Suspense>
-        ) : null}
-      </Group>
-      <InventoryPanel />
-      <RecipeViewer />
-      <ItemListPanel />
+      {screen !== "none" && (
+        <Group gap="md" style={{ gridArea: "header" }}>
+          <Title order={1} size="h3">moorestech Web UI</Title>
+          {DebugActionButton ? (
+            <Suspense fallback={null}>
+              <DebugActionButton />
+            </Suspense>
+          ) : null}
+        </Group>
+      )}
+      {screen !== "none" && <InventoryPanel />}
+      {screen === "playerInventory" && <RecipeViewer />}
+      {screen === "playerInventory" && <ItemListPanel />}
       {/* オーバーレイ系（grid セルでなく fixed/center 配置） */}
       {/* Overlays (fixed/centered, not grid cells) */}
       <BlockInventoryPanel />
