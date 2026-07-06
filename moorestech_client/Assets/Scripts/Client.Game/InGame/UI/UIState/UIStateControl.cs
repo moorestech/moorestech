@@ -18,7 +18,6 @@ namespace Client.Game.InGame.UI.UIState
         {
             CurrentState = initialState;
             _uiStateDictionary.GetState(CurrentState).OnEnter(initialContext);
-            WebUiScreenGate.SetCurrentUiState(CurrentState);
         }
 
         // Web UI からの遷移要求を受け付ける（次のUpdateで最優先消費）
@@ -31,26 +30,21 @@ namespace Client.Game.InGame.UI.UIState
         // UI state
         private void Update()
         {
-            // webモード終了の立ち下がりでGameScreenへ正規化しカーソル・カメラを復元する
-            // On the web-mode falling edge, normalize to GameScreen to restore cursor/camera
+            // webモード切替の両エッジでGameScreenへ正規化する（uGUI/Webビューの表示不整合を防ぐ）
+            // Normalize to GameScreen on both web-mode edges (prevents uGUI/web view visibility mismatch)
             var webUiMode = WebUiScreenGate.IsWebUiMode;
-            if (_lastWebUiMode && !webUiMode)
+            if (webUiMode != _lastWebUiMode)
             {
                 _lastWebUiMode = webUiMode;
                 _webTransitionRequest = null;
                 ForceReturnToGameScreen();
                 return;
             }
-            _lastWebUiMode = webUiMode;
 
             // Web要求を最優先で消費し、無ければ現stateの入力判定を使う
             // Consume the web request first; otherwise poll the current state's input
             var nextContext = ConsumeWebRequest() ?? _uiStateDictionary.GetState(CurrentState).GetNextUpdate();
             if (nextContext == null) return;
-
-            // webモード中はWeb未実装stateへの遷移を抑止する（不可視UIへの閉じ込め防止）
-            // While in web mode, suppress transitions to web-unimplemented states (avoid invisible-UI traps)
-            if (webUiMode && !WebUiScreenGate.IsWebSupportedState(nextContext.NextStateEnum)) return;
 
             var lastState = CurrentState;
             nextContext.SetLastState(lastState);
@@ -61,7 +55,6 @@ namespace Client.Game.InGame.UI.UIState
             _uiStateDictionary.GetState(lastState).OnExit();
             _uiStateDictionary.GetState(CurrentState).OnEnter(nextContext);
 
-            WebUiScreenGate.SetCurrentUiState(CurrentState);
             OnStateChanged?.Invoke(CurrentState);
 
             #region Internal
@@ -93,7 +86,6 @@ namespace Client.Game.InGame.UI.UIState
             CurrentState = UIStateEnum.GameScreen;
             _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
-            WebUiScreenGate.SetCurrentUiState(CurrentState);
             if (lastState != CurrentState) OnStateChanged?.Invoke(CurrentState);
         }
     }
