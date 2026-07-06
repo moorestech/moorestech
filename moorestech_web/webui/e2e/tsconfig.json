@@ -12,5 +12,5 @@
     "baseUrl": "..",
     "paths": { "@/*": ["src/*"] }
   },
-  "include": ["**/*.ts", "../src/bridge/protocol.ts", "../src/bridge/payloadTypes.ts"]
+  "include": ["**/*.ts", "../src/bridge/transport/protocol.ts", "../src/bridge/contract/payloadTypes.ts"]
 }
