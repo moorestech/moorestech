@@ -108,10 +108,14 @@
 - Minorトリアージ残（対応不要と判断・記録のみ）: 200行超4ファイル（既存違反）、`NoPoleItem` enum未使用化、防御的nullチェック、ローカル関数名不一致、キーヘルプ文言、素材自動選択の毎フレーム走査、車両にnameフィールド無し（プラン5で再燃）
 - 修正後の全回帰: 922/922テスト全PASS（CombinedTest 297 + UnitTest 476 + Client.Tests 149、新規4テスト込み）
 
-### 残作業（プラン4のスコープ外・引き継ぎ）
-- 本流`feature/replace-place-system`へのマージ＋worktree掃除（メインチェックアウトは他セッション共用のため要調整）
-- moorestech_master未pushコミット5件（f67eee8 / 8919c5c / 584a14e / a883fb2 / dce2ff9）のpush判断（ユーザー回答待ち）。大容量リポジトリのためsafe-github-push手順で
-- メインcheckoutのstash@{0}処分（PlaceBlockProtocol.cs旧差分。beltマージで上書きされた領域のため恐らくdrop可、要確認）
+### 残作業（2026-07-07 全て完了）
+- ~~本流マージ~~: `feature/replace-place-system-plan4`を本流へマージ（9470efb60）、plan4 worktree削除・ブランチ削除済み。gitignore下の進行台帳・プレイテスト録画は`.superpowers/sdd-plan4/`へ退避
+- ~~moorestech_master push~~: `plan2-master-migration`ブランチをoriginへpush済み（新規ブランチ、9コミット、大容量ファイルなしを確認のうえ一括push）
+- ~~stash@{0}処分~~: 内容がTask 1正準化の巻き戻し＋旧ピン（f67eee8＜現行dce2ff9）で現行より古いことを確認しdrop済み
+
+### 次のアクション
+- プラン5着手（`2026-07-05-satisfactory-placement-plan5-destructive-cleanup.md`、7タスク）。着手前にbelt側変更との整合を再確認
+- master側電線コミット（hermes）とのマージ時に`ElectricWireConnect`エントリ＋`electricWireItems`を追加し、電線シナリオを再検証（上記Task 13の唯一の未達）
 
 ### プラン5への申し送り（プラン4分）
 - 旧経路`PlaceHotBarBlock`/`PlaceBlockFromHotBarProtocol`はTask 10で参照排除済み・本体はプラン5で削除
