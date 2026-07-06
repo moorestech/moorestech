@@ -319,6 +319,48 @@
       },
       "blockSize": [
         1,
+        3,
+        1
+      ],
+      "name": "TestLockedElectricPole",
+      "blockType": "ElectricPole",
+      "blockParam": {
+        "machineConnectionRange": 5,
+        "poleConnectionRange": 7,
+        "poleConnectionHeightRange": 5,
+        "machineConnectionHeightRange": 5,
+        "maxWireConnectionCount": 8,
+        "maxWireLength": 12
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000101",
+      "blockGuid": "00000000-0000-0000-0000-000000000101",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000005",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
         1,
         1
       ],
@@ -1416,7 +1458,91 @@
         }
       },
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
-      "blockGuid": "00000000-0000-0000-0000-00000000002c"
+      "blockGuid": "00000000-0000-0000-0000-00000000002c",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestLockedGearChainPole",
+      "blockType": "GearChainPole",
+      "blockParam": {
+        "maxConnectionDistance": 10,
+        "maxConnectionCount": 2,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "connectType": "Gear",
+              "connectOption": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "a1b2c3d4-1102-4102-8102-000000000102"
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000102",
+      "blockGuid": "00000000-0000-0000-0000-000000000102"
     },
     {
       "modelTransform": {
@@ -2780,7 +2906,69 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainRail",
-      "blockGuid": "00000000-0000-0000-0000-000000000024"
+      "blockGuid": "00000000-0000-0000-0000-000000000024",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "00000000-0000-0000-1234-000000000103",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestLockedTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000103",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "00000000-0000-0000-1234-000000000104",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestRailCostTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000104",
+      "requiredItems": [
+        {
+          "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+          "count": 5
+        }
+      ],
+      "initialUnlocked": true
     },
     {
       "blockSize": [

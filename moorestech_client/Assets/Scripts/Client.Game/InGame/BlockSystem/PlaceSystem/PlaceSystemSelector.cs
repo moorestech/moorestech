@@ -10,6 +10,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Core.Master;
 using Game.Block.Interface.Extension;
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.PlaceSystemModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -46,79 +47,35 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
         {
-            // マスターデータからPlaceSystemを検索
-            // Search PlaceSystem from master data
-            var placeSystemElement = GetPlaceSystemElement(context.HoldingItemId);
-            if (placeSystemElement != null)
+            switch (context.SelectionType)
             {
-                // PlaceModeに基づいて適切なシステムを返す
-                // Return appropriate system based on PlaceMode
-                return placeSystemElement.PlaceMode switch
+                case PlacementSelectionType.Block:
                 {
-                    PlaceSystemMasterElement.PlaceModeConst.TrainRail => _trainRailPlaceSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.TrainCar => _trainCarPlaceSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect => _electricWireConnectSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.BeltConveyor => _beltConveyorPlaceSystem,
-                    _ => throw new System.Exception($"Unsupported PlaceMode: {placeSystemElement.PlaceMode}"),
-                };
-            }
+                    // ベルトファミリー→レール橋脚→歯車ポールの順に専用システムへ振り分け、残りは通常ブロック
+                    // Route by belt family, then rail pier, then gear chain pole; fall back to common blocks
+                    var blockId = context.SelectedBlockId.Value;
+                    if (BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out _)) return _beltConveyorPlaceSystem;
 
-            // 歯車チェーンポールのブロックアイテムは専用の接続システムで設置する
-            // Gear chain pole block items are placed via the dedicated connection system
-            if (GearChainPoleItemFinder.TryGetPoleBlockMaster(context.HoldingItemId, out _))
-            {
-                return _gearChainPoleConnectSystem;
-            }
-
-            // ビルドメニュー選択がベルトファミリーなら専用設置システムを使う
-            // Route belt-family build menu selections to the dedicated place system
-            if (context.SelectedBlockId.HasValue && BeltConveyorPlaceFamilyUtil.TryGetFamily(context.SelectedBlockId.Value, out _))
-            {
-                return _beltConveyorPlaceSystem;
-            }
-
-            // ビルドメニューで選択中なら通常ブロック設置システムを使う
-            // Use the common placement system while a build-menu selection exists
-            if (context.SelectedBlockId.HasValue)
-            {
-                return _commonBlockPlaceSystem;
-            }
-
-            return EmptyPlaceSystem;
-            
-            #region Internal
-            
-            PlaceSystemMasterElement GetPlaceSystemElement(ItemId itemId)
-            {
-                if (itemId == ItemMaster.EmptyItemId)
-                {
-                    return null;
+                    var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                    if (blockMaster.BlockType == BlockMasterElement.BlockTypeConst.TrainRail) return _trainRailPlaceSystem;
+                    if (blockMaster.BlockType == BlockMasterElement.BlockTypeConst.GearChainPole) return _gearChainPoleConnectSystem;
+                    return _commonBlockPlaceSystem;
                 }
-                
-                // アイテムIDからGuidを取得
-                // Get Guid from ItemId
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                var itemGuid = itemMaster.ItemGuid;
-                
-                // UsePlaceItemsに現在のアイテムGuidが含まれている要素を検索
-                // Search elements that contain current item Guid in UsePlaceItems
-                var matchingElements = MasterHolder.PlaceSystemMaster.PlaceSystem.Data
-                    .Where(element => element.UsePlaceItems.Contains(itemGuid))
-                    .ToList();
-                
-                if (matchingElements.Count == 0)
-                {
-                    return null;
-                }
-                
-                // Priorityが最も高いものを返す（Priorityは大きいほど優先度が高い）
-                // Return the one with highest Priority (larger Priority value means higher priority)
-                return matchingElements.OrderByDescending(element => element.Priority).First();
+                case PlacementSelectionType.TrainCar:
+                    return _trainCarPlaceSystem;
+                case PlacementSelectionType.ConnectTool:
+                    // 接続ツールは選択中の接続モードで3系統へ振り分ける
+                    // Route connect tools to the three connect systems by the selected place mode
+                    return context.SelectedConnectPlaceMode switch
+                    {
+                        PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
+                        PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
+                        PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect => _electricWireConnectSystem,
+                        _ => EmptyPlaceSystem,
+                    };
+                default:
+                    return EmptyPlaceSystem;
             }
-            
-            #endregion
         }
     }
 }

@@ -135,14 +135,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return snapped + new Vector3Int(0, heightOffset, 0);
         }
         
-        public static void SendPlaceProtocol(List<PlaceInfo> currentPlaceInfos, PlaceSystemUpdateContext context)
-        {
-            // PlaceInfoをサーバーに送信
-            // Send PlaceInfo to server
-            ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
-            SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
-        }
-
         public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
         {
             // セル毎BlockId付きでPlaceInfoをサーバーに送信

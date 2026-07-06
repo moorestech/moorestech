@@ -16,6 +16,7 @@ namespace Tests.Module.TestMod
         public static BlockId BlockId => GetBlock("00000000-0000-0000-0000-000000000002");
         public static BlockId BeltConveyorId => GetBlock("00000000-0000-0000-0000-000000000003");
         public static BlockId ElectricPoleId => GetBlock("00000000-0000-0000-0000-000000000004");
+        public static BlockId LockedElectricPoleId => GetBlock("00000000-0000-0000-0000-000000000101");
         public static BlockId GeneratorId => GetBlock("00000000-0000-0000-0000-000000000005");
         public static BlockId ElectricMinerId => GetBlock("00000000-0000-0000-0000-000000000006");
         public static BlockId ChestId => GetBlock("00000000-0000-0000-0000-000000000007");
@@ -48,6 +49,8 @@ namespace Tests.Module.TestMod
         public static BlockId GearMiner => GetBlock("00000000-0000-0000-0000-00000000001c");
         
         public static BlockId TestTrainRail => GetBlock("00000000-0000-0000-0000-000000000024");
+        public static BlockId LockedTrainRail => GetBlock("00000000-0000-0000-0000-000000000103");
+        public static BlockId RailCostTrainRail => GetBlock("00000000-0000-0000-0000-000000000104"); // 橋脚コストがレールアイテムと同一のテスト用 / Pier cost shares the rail item
         public static BlockId TestTrainStation => GetBlock("00000000-0000-0000-0000-000000000025");
         public static BlockId TestTrainItemPlatform => GetBlock("00000000-0000-0000-0000-000000000026");
         
@@ -67,6 +70,7 @@ namespace Tests.Module.TestMod
         public static BlockId TestElectricToGearGenerator => GetBlock("00000000-0000-0000-0000-000000000099");
         public static BlockId ElectricPump => GetBlock("3829088a-5a78-43d7-8c3c-d3e4bb91b90a");
         public static BlockId GearChainPole => GetBlock("00000000-0000-0000-0000-00000000002c");
+        public static BlockId LockedGearChainPole => GetBlock("00000000-0000-0000-0000-000000000102");
         public static BlockId TestTrainFluidPlatform => GetBlock("00000000-0000-0000-0000-000000000029");
         public static BlockId FilterSplitter => GetBlock("00000000-0000-0000-0000-000000000031");
     }

@@ -6,8 +6,11 @@ using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
+using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.TrainModule;
+using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
@@ -20,6 +23,7 @@ namespace Server.Protocol.PacketResponse
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly ITrainUnitMutationDatastore _trainUnitMutationDatastore;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
 
         public AttachTrainCarToUnitProtocol(ServiceProvider serviceProvider)
         {
@@ -28,6 +32,7 @@ namespace Server.Protocol.PacketResponse
             _trainUnitLookupDatastore = serviceProvider.GetService<ITrainUnitLookupDatastore>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
             _trainUnitMutationDatastore = serviceProvider.GetService<ITrainUnitMutationDatastore>();
+            _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -46,14 +51,25 @@ namespace Server.Protocol.PacketResponse
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InvalidRequest);
                 }
 
-                // 手持ちアイテムを取得して検証する
-                // Resolve and validate held item
-                var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
-                var mainInventory = inventoryData.MainOpenableInventory;
-                var item = mainInventory.GetItem(data.InventorySlot);
-                if (item == null || item.Count <= 0)
+                // 車両マスタとアンロック状態を検証する
+                // Validate the train car master and its unlock state
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(data.TrainCarGuid, out var trainCarMaster))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.ItemNotFound);
+                }
+                if (!_gameUnlockStateDataController.TrainCarUnlockStateInfos[data.TrainCarGuid].IsUnlocked)
+                {
+                    return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.NotUnlocked);
+                }
+
+                // 建設コストの充足をインベントリ横断で検証する
+                // Validate construction cost across the whole inventory
+                var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+                var mainInventory = inventoryData.MainOpenableInventory;
+                var costItemCounts = ConstructionCostService.ToItemCounts(trainCarMaster.RequiredItems);
+                if (!ConstructionCostService.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))
+                {
+                    return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InsufficientItems);
                 }
 
                 // 連結先編成を解決する
@@ -65,7 +81,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 連結位置と車両マスターを検証して新規車両を生成する
                 // Validate attach position/master and create a car
-                if (!TryCreateCarAndRailPosition(item.Id, data, out var attachingCar, out var attachingRailPosition, out var failureType))
+                if (!TryCreateCarAndRailPosition(trainCarMaster, data, out var attachingCar, out var attachingRailPosition, out var failureType))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(failureType);
                 }
@@ -77,16 +93,16 @@ namespace Server.Protocol.PacketResponse
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InvalidRailPosition);
                 }
 
-                // 在庫消費と単機スナップショット通知を行う、サーバー側datastoreも更新
-                // Consume inventory and notify per-unit snapshot
-                mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
+                // 建設コスト消費と単機スナップショット通知を行う、サーバー側datastoreも更新
+                // Consume construction cost and notify per-unit snapshot
+                ConstructionCostService.ConsumeRequiredItems(costItemCounts, mainInventory);
                 _trainUnitMutationDatastore.RegisterTrain(targetTrain);
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetTrain);
                 return AttachTrainCarToUnitResponseMessagePack.CreateSuccess();
             }
 
             bool TryCreateCarAndRailPosition(
-                ItemId trainItemId,
+                TrainCarMasterElement trainCarMaster,
                 AttachTrainCarToUnitRequestMessagePack request,
                 out TrainCar attachingCar,
                 out RailPosition attachingRailPosition,
@@ -95,14 +111,6 @@ namespace Server.Protocol.PacketResponse
                 attachingCar = null;
                 attachingRailPosition = null;
                 failureType = AttachTrainCarFailureType.InvalidRailPosition;
-
-                // 車両マスターを検証する
-                // Validate train car master
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainItemId, out var trainCarMaster))
-                {
-                    failureType = AttachTrainCarFailureType.ItemNotFound;
-                    return false;
-                }
 
                 // レール位置を復元し長さ整合を検証する
                 // Restore rail position and validate expected length
@@ -257,8 +265,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public TrainUnitInstanceId TargetTrainUnitInstanceId { get; set; }
             [Key(3)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
-            [Key(4)] public int HotBarSlot { get; set; }
-            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+            [Key(4)] public Guid TrainCarGuid { get; set; }
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public bool AttachCarFacingForward { get; set; }
             [Key(7)] public bool AttachToTargetTrainHead { get; set; }
@@ -272,7 +279,7 @@ namespace Server.Protocol.PacketResponse
             public AttachTrainCarToUnitRequestMessagePack(
                 TrainUnitInstanceId targetTrainUnitInstanceId,
                 RailPositionSnapshotMessagePack railPosition,
-                int hotBarSlot,
+                Guid trainCarGuid,
                 int playerId,
                 bool attachCarFacingForward,
                 bool attachToTargetTrainHead)
@@ -280,7 +287,7 @@ namespace Server.Protocol.PacketResponse
                 Tag = ProtocolTag;
                 TargetTrainUnitInstanceId = targetTrainUnitInstanceId;
                 RailPosition = railPosition;
-                HotBarSlot = hotBarSlot;
+                TrainCarGuid = trainCarGuid;
                 PlayerId = playerId;
                 AttachCarFacingForward = attachCarFacingForward;
                 AttachToTargetTrainHead = attachToTargetTrainHead;
@@ -325,7 +332,9 @@ namespace Server.Protocol.PacketResponse
             RailNotFound = 2,
             ItemNotFound = 3,
             InvalidRailPosition = 4,
-            TrainNotFound = 5
+            TrainNotFound = 5,
+            NotUnlocked = 6,
+            InsufficientItems = 7,
         }
 
         #endregion

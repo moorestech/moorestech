@@ -16,23 +16,33 @@ namespace Core.Master.Validator
 
             #region Internal
 
+            // 接続ツール3モードのビルドメニュー用フィールド（name/icon/設置ブロック）を検証
+            // Validate build-menu fields (name/icon/place block) for the three connect tool modes
             string PlaceItemValidation()
             {
                 var logs = "";
-                for (var i = 0; i < placeSystem.Data.Length; i++)
+                foreach (var element in placeSystem.Data)
                 {
-                    var element = placeSystem.Data[i];
-                    foreach (var itemGuid in element.UsePlaceItems)
-                    {
-                        var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid);
-                        if (itemId == null)
-                        {
-                            logs += $"[PlaceSystemMaster] PlaceMode:{element.PlaceMode} has invalid UsePlaceItem:{itemGuid}\n";
-                        }
-                    }
+                    // BeltConveyor等の非接続モードはビルドメニューに出ないためスキップ
+                    // Skip non-connect modes (e.g. BeltConveyor) since they do not appear in the build menu
+                    if (!IsConnectMode(element.PlaceMode)) continue;
+
+                    if (string.IsNullOrEmpty(element.Name))
+                        logs += $"[PlaceSystemMaster] PlaceMode:{element.PlaceMode} has empty name\n";
+
+                    if (element.IconItemGuid == null || MasterHolder.ItemMaster.GetItemIdOrNull(element.IconItemGuid.Value) == null)
+                        logs += $"[PlaceSystemMaster] PlaceMode:{element.PlaceMode} has invalid iconItemGuid:{element.IconItemGuid}\n";
+
+                    if (element.PlaceBlockGuid != null && MasterHolder.BlockMaster.GetBlockIdOrNull(element.PlaceBlockGuid.Value) == null)
+                        logs += $"[PlaceSystemMaster] PlaceMode:{element.PlaceMode} has invalid placeBlockGuid:{element.PlaceBlockGuid}\n";
                 }
 
                 return logs;
+
+                bool IsConnectMode(string placeMode) =>
+                    placeMode is PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect
+                        or PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect
+                        or PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect;
             }
 
             // BeltConveyorモードのブロック参照と長尺構成を検証

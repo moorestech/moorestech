@@ -189,7 +189,7 @@ namespace Client.Starter
             builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
-            builder.Register<BlockPlacementSelection>(Lifetime.Singleton);
+            builder.Register<PlacementSelection>(Lifetime.Singleton);
             
             
             //UIコントロール
