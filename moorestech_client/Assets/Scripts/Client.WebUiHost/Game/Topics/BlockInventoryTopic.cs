@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
 
 namespace Client.WebUiHost.Game.Topics
@@ -118,6 +119,15 @@ namespace Client.WebUiHost.Game.Topics
         public List<BlockItemSlotDto> ItemSlots;
         public List<BlockFluidSlotDto> FluidSlots;
         public double? Progress;
+        // capability 詳細（該当ブロックのみ。null はキー省略される）
+        // Capability details (only for applicable blocks; null keys are omitted)
+        public MachineDetailDto Machine;
+        public GeneratorDetailDto Generator;
+        public MinerDetailDto Miner;
+        public GearDetailDto Gear;
+        public ElectricNetworkDto ElectricNetwork;
+        public GearNetworkDto GearNetwork;
+        public FilterSplitterDto FilterSplitter;
     }
 
     public class BlockItemSlotDto
