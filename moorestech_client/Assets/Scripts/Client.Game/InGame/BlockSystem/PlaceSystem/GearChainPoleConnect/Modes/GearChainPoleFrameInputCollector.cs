@@ -3,10 +3,11 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
+using Core.Master;
 using Game.Block.Interface;
-using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using static Client.Common.LayerConst;
@@ -41,13 +42,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public GearChainPolePlaceExtendInput CollectPlaceExtend(PlaceSystemUpdateContext context, IGearChainPoleConnectAreaCollider sourcePole, BlockMasterElement poleBlockMaster, bool isAwaitingResponse)
         {
             var poleParam = (GearChainPoleBlockParam)poleBlockMaster.BlockParam;
+
+            // 選択中ポールのBlockIdと建設コストをマスタから解決する
+            // Resolve the selected pole's BlockId and construction cost from master
+            var poleBlockId = MasterHolder.BlockMaster.GetBlockId(poleBlockMaster.BlockGuid);
+            var reservedItemCounts = ConstructionCostService.ToItemCounts(poleBlockMaster.RequiredItems);
+
             var input = new GearChainPolePlaceExtendInput
             {
                 HitPole = GetHitPole(),
                 SourcePole = sourcePole,
                 Clicked = IsScreenClicked(),
                 IsAwaitingResponse = isAwaitingResponse,
-                PoleInventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(context.CurrentSelectHotbarSlotIndex),
+                PoleBlockId = poleBlockId,
                 OwnedChainItemId = GearChainPoleItemFinder.FindOwnedChainItemId(_playerInventory),
                 MaxConnectionCount = poleParam.MaxConnectionCount,
             };
@@ -73,19 +80,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
             // 起点があれば延長の設置可否を評価しておく
             // Pre-evaluate extension placeability when a source exists
-            if (sourcePole != null) input.ExtendPreview = GearChainPoleExtendPreviewCalculator.CalculateExtend(input.SourcePolePos, placePos, poleParam, context.HoldingItemId, _blockGameObjectDataStore, _playerInventory, input.OwnedChainItemId);
+            if (sourcePole != null) input.ExtendPreview = GearChainPoleExtendPreviewCalculator.CalculateExtend(input.SourcePolePos, placePos, poleParam, reservedItemCounts, _blockGameObjectDataStore, _playerInventory, input.OwnedChainItemId);
 
             return input;
         }
 
         public GearChainPoleChainConnectInput CollectChainConnect(PlaceSystemUpdateContext context, IGearChainPoleConnectAreaCollider sourcePole)
         {
+            // 接続に使うチェーンアイテムをインベントリから自動選択する（手持ち非依存）
+            // Auto-select the chain item from inventory, independent of the held item
+            var ownedChainItemId = GearChainPoleItemFinder.FindOwnedChainItemId(_playerInventory);
+
             var input = new GearChainPoleChainConnectInput
             {
                 HitPole = GetHitPole(),
                 SourcePole = sourcePole,
                 Clicked = IsScreenClicked(),
-                HoldingChainItemId = context.HoldingItemId,
+                HoldingChainItemId = ownedChainItemId,
             };
             if (sourcePole != null)
             {
@@ -98,7 +109,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (input.HitPole != null)
             {
                 input.HitPolePos = input.HitPole.GetBlockPosition();
-                if (sourcePole != null && input.SourcePolePos != input.HitPolePos) input.PoleToPolePreview = GearChainPoleExtendPreviewCalculator.CalculatePoleToPole(input.SourcePolePos, input.HitPolePos, _blockGameObjectDataStore, _playerInventory, context.HoldingItemId);
+                if (sourcePole != null && input.SourcePolePos != input.HitPolePos) input.PoleToPolePreview = GearChainPoleExtendPreviewCalculator.CalculatePoleToPole(input.SourcePolePos, input.HitPolePos, _blockGameObjectDataStore, _playerInventory, ownedChainItemId);
             }
             else if (sourcePole != null && PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var cursorPoint, out _))
             {

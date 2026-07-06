@@ -66,7 +66,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
     public interface ITrainCarPlacementDetector
     {
-        bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit);
+        bool TryDetect(Guid trainCarGuid, out TrainCarPlacementHit hit);
         void AdvanceSelection();
         void ResetSelection();
     }
@@ -102,12 +102,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _selectionStep = 0;
         }
 
-        public bool TryDetect(ItemId holdingItemId, out TrainCarPlacementHit hit)
+        public bool TryDetect(Guid trainCarGuid, out TrainCarPlacementHit hit)
         {
             hit = default;
             // 車両マスターを解決する
             // Resolve the train car master definition
-            if (!TryResolveTrainCarMaster(holdingItemId, out var trainCarMaster))
+            if (!TryResolveTrainCarMaster(trainCarGuid, out var trainCarMaster))
             {
                 return false;
             }
@@ -133,11 +133,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             #region Internal
 
-            bool TryResolveTrainCarMaster(ItemId itemId, out TrainCarMasterElement trainCarMasterElement)
+            bool TryResolveTrainCarMaster(Guid guid, out TrainCarMasterElement trainCarMasterElement)
             {
-                // 手持ちアイテムが車両マスターに対応するか判定する
-                // Ensure the held item represents a train car master
-                return MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(itemId, out trainCarMasterElement);
+                // 選択中の車両Guidが車両マスターに対応するか判定する
+                // Ensure the selected car guid represents a train car master
+                return MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(guid, out trainCarMasterElement);
             }
 
             void BuildPlacement(RailPosition centerRailPosition, TrainCarMasterElement trainCarMasterElement, out TrainCarPlacementHit result)
