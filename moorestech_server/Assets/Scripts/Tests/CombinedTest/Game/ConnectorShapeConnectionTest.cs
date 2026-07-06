@@ -31,5 +31,37 @@ namespace Tests.CombinedTest.Game
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             Assert.AreEqual(2, gearNetworkDatastore.GearNetworks.Count);
         }
+
+        [Test]
+        // 90度回転した歯車同士は歯の位置が合っても噛み合わない（回転軸が直交）
+        // Gears rotated 90 degrees do not mesh even when teeth positions match (axes orthogonal)
+        public void RotatedGearMeshingAxisMismatchDoesNotConnectTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            // North歯車（軸=ワールドZ）とUpNorth歯車（軸=ワールドY）を±X面で向かい合わせる
+            // Face a North gear (axis world-Z) and an UpNorth gear (axis world-Y) across the ±X faces
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(1, 0, 0), BlockDirection.UpNorth, Array.Empty<BlockCreateParam>(), out _);
+
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            Assert.AreEqual(2, gearNetworkDatastore.GearNetworks.Count);
+        }
+
+        [Test]
+        // 軸が平行な歯車同士は従来どおり噛み合う（対照実験）
+        // Gears with parallel axes still mesh (control case)
+        public void ParallelAxisGearsConnectTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+            Assert.AreEqual(1, gearNetworkDatastore.GearNetworks.Count);
+        }
     }
 }
