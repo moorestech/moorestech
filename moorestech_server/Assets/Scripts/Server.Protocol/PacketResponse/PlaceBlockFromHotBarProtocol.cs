@@ -50,8 +50,7 @@ namespace Server.Protocol.PacketResponse
             
             // ブロックIDの設定
             var blockId = MasterHolder.BlockMaster.GetBlockId(item.Id);
-            blockId = blockId.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-            
+
             // paramsの作成
             var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 

@@ -13,9 +13,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += BlockItemGuidValidation();
             errorLogs += BlockParamValidation();
-            errorLogs += OverrideVerticalBlockValidation();
             errorLogs += BlockRequiredItemsValidation();
-            errorLogs += OverrideVerticalRequiredItemsValidation();
             errorLogs += GearChainItemsValidation();
             errorLogs += ElectricWireItemsValidation();
             errorLogs += GearConsumptionValidation();
@@ -178,43 +176,6 @@ namespace Core.Master.Validator
                 return logs;
             }
 
-            string OverrideVerticalBlockValidation()
-            {
-                var logs = "";
-                foreach (var block in blocks.Data)
-                {
-                    if (block.OverrideVerticalBlock == null) continue;
-
-                    var overrideVertical = block.OverrideVerticalBlock;
-
-                    // 空のGUIDは「オーバーライドなし」を意味するためスキップ
-                    // Empty GUID means no override, so skip
-                    if (overrideVertical.UpBlockGuid.HasValue && overrideVertical.UpBlockGuid.Value != Guid.Empty)
-                    {
-                        if (!ExistsBlockGuid(overrideVertical.UpBlockGuid.Value))
-                        {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.UpBlockGuid:{overrideVertical.UpBlockGuid}\n";
-                        }
-                    }
-                    if (overrideVertical.HorizontalBlockGuid.HasValue && overrideVertical.HorizontalBlockGuid.Value != Guid.Empty)
-                    {
-                        if (!ExistsBlockGuid(overrideVertical.HorizontalBlockGuid.Value))
-                        {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.HorizontalBlockGuid:{overrideVertical.HorizontalBlockGuid}\n";
-                        }
-                    }
-                    if (overrideVertical.DownBlockGuid.HasValue && overrideVertical.DownBlockGuid.Value != Guid.Empty)
-                    {
-                        if (!ExistsBlockGuid(overrideVertical.DownBlockGuid.Value))
-                        {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.DownBlockGuid:{overrideVertical.DownBlockGuid}\n";
-                        }
-                    }
-                }
-
-                return logs;
-            }
-
             string BlockRequiredItemsValidation()
             {
                 // itemGuid実在性+重複を検証
@@ -250,51 +211,6 @@ namespace Core.Master.Validator
                 }
 
                 return logs;
-            }
-
-            string OverrideVerticalRequiredItemsValidation()
-            {
-                // 解放判定は基底・コストは実体ブロック参照のため、不一致は縦向き設置の無償化を生む
-                // Unlock uses the base block while cost uses the placed block, so mismatched costs enable free vertical placement
-                var logs = "";
-                foreach (var block in blocks.Data)
-                {
-                    var overrideVertical = block.OverrideVerticalBlock;
-                    if (overrideVertical == null) continue;
-
-                    logs += ValidateOverrideRequiredItems(block, overrideVertical.UpBlockGuid);
-                    logs += ValidateOverrideRequiredItems(block, overrideVertical.DownBlockGuid);
-                    logs += ValidateOverrideRequiredItems(block, overrideVertical.HorizontalBlockGuid);
-                }
-
-                return logs;
-            }
-
-            string ValidateOverrideRequiredItems(BlockMasterElement baseBlock, Guid? overrideGuid)
-            {
-                if (!overrideGuid.HasValue || overrideGuid.Value == Guid.Empty) return "";
-
-                // GUID実在性はOverrideVerticalBlockValidationが検証済みのため未解決はスキップ
-                // Unresolved GUIDs are already reported by OverrideVerticalBlockValidation, so skip them here
-                var overrideBlock = blocks.Data.FirstOrDefault(b => b.BlockGuid == overrideGuid.Value);
-                if (overrideBlock == null) return "";
-
-                if (IsSameRequiredItems(baseBlock.RequiredItems, overrideBlock.RequiredItems)) return "";
-                return $"[BlockMaster] Name:{baseBlock.Name} and override block {overrideBlock.Name} have mismatched RequiredItems\n";
-            }
-
-            bool IsSameRequiredItems(ConstructionRequiredItemElement[] baseItems, ConstructionRequiredItemElement[] overrideItems)
-            {
-                var baseCosts = (baseItems ?? Array.Empty<ConstructionRequiredItemElement>()).ToDictionary(v => v.ItemGuid, v => v.Count);
-                var overrideCosts = (overrideItems ?? Array.Empty<ConstructionRequiredItemElement>()).ToDictionary(v => v.ItemGuid, v => v.Count);
-                if (baseCosts.Count != overrideCosts.Count) return false;
-
-                foreach (var baseCost in baseCosts)
-                {
-                    if (!overrideCosts.TryGetValue(baseCost.Key, out var count) || count != baseCost.Value) return false;
-                }
-
-                return true;
             }
 
             string GearChainItemsValidation()

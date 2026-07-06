@@ -4,6 +4,7 @@ using System.Text;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
+using Game.Block.Interface.Extension;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -56,6 +57,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             // Enumerate unlocked blocks in sort order and create slots
             var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
                 .Where(IsUnlocked)
+                .Where(b => !BeltConveyorPlaceFamilyUtil.IsHiddenVariant(b.BlockGuid))
                 .OrderBy(b => b.SortPriority ?? 0)
                 .ThenBy(b => b.Name)
                 .ToList();
