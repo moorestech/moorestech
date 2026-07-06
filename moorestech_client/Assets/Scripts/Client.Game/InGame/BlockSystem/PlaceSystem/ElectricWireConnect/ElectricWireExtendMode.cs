@@ -5,6 +5,7 @@ using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
+using Mooresmaster.Model.PlaceSystemModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
@@ -35,7 +36,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             // Resolve the origin's connection limit and max wire length (do nothing when it is not electric)
             if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out var sourceMaxLength)) return false;
 
-            var wireItemId = ctx.HoldingItemId;
+            // 敷設に使う電線アイテムをマスタ定義順で自動選択する（手持ち非依存）
+            // Auto-select the wire item in master definition order, independent of the held item
+            var wireItemId = ElectricWireItemAutoSelector.FindOwnedWireItemId(_context.Inventory);
             var fromPos = source.BlockPosInfo.OriginalPos;
 
             // 接続先ブロックがカーソル下にあり、起点と異なる電気系なら接続モード
@@ -76,17 +79,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
             bool ExtendToEmptySpace()
             {
-                // 延長用電柱アイテムをインベントリから自動選択する
-                // Auto-select the pole item for extension from the inventory
-                if (!ElectricWireExtendRequestSender.TryFindPoleSlot(_context.Inventory, out _, out var poleMaster, out var poleItemId))
+                // 延長用電柱ブロックを接続ツールマスタから解決する（選択駆動）
+                // Resolve the extension pole block from the connect tool master (selection-driven)
+                if (!ConnectToolMasterUtil.TryGetPlaceBlock(PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect, out var poleBlockId, out var poleMaster))
                 {
                     HidePreview();
                     return false;
                 }
 
-                // 暫定: 選択中電柱アイテムからBlockIdを解決する（Task 9で選択駆動へ置換）
-                // Interim: resolve the BlockId from the selected pole item (replaced by selection-driven flow in Task 9)
-                var poleBlockId = MasterHolder.BlockMaster.GetBlockId(poleItemId);
+                // 電柱の建設コストを賄えるかを所持素材から判定する
+                // Judge from owned materials whether the pole's construction cost is affordable
+                var canAffordPole = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(poleMaster.RequiredItems, _context.Inventory) >= 1;
 
                 // 電柱の設置座標を地面レイキャストから求める
                 // Compute the pole placement position from a ground raycast
@@ -114,9 +117,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
                 // 新設電柱側の判定はCalculator内部に委ねる
                 // Judgement for the newly placed pole is delegated to the calculator
+                // 電柱は建設コスト充足を別途判定するためワイヤー判定へはポールアイテム所持前提を渡さない
+                // Pole affordability is judged separately, so the wire judgement receives no pole-item assumption
                 var distance = Vector3Int.Distance(fromPos, placeInfo.Position);
-                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, sourceMaxLength, poleMaxLength, distance, wireItemId, poleItemId, _context.Inventory);
-                var placeable = placeInfo.Placeable && judgement.IsPlaceable;
+                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, sourceMaxLength, poleMaxLength, distance, wireItemId, ItemMaster.EmptyItemId, _context.Inventory);
+                var placeable = placeInfo.Placeable && judgement.IsPlaceable && canAffordPole;
 
                 // ゴーストとワイヤー線を可否色で表示する
                 // Show the ghost and wire line colored by placeability
