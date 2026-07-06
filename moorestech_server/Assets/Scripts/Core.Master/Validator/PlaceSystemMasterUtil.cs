@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Model.PlaceSystemModule;
 
 namespace Core.Master.Validator
@@ -8,6 +11,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += PlaceItemValidation();
+            errorLogs += BeltConveyorParamValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -29,6 +33,55 @@ namespace Core.Master.Validator
                 }
 
                 return logs;
+            }
+
+            // BeltConveyorモードのブロック参照と長尺構成を検証
+            // Validate block references and length composition of BeltConveyor mode entries
+            string BeltConveyorParamValidation()
+            {
+                var logs = "";
+                foreach (var element in placeSystem.Data)
+                {
+                    if (element.PlaceParam is not BeltConveyorPlaceParam param) continue;
+
+                    logs += ValidateBlockGuidExists(param.UpBlockGuid, "upBlockGuid");
+                    logs += ValidateBlockGuidExists(param.DownBlockGuid, "downBlockGuid");
+
+                    var lengthOneCount = 0;
+                    var seenLengths = new HashSet<int>();
+                    foreach (var straightBlock in param.StraightBlocks)
+                    {
+                        logs += ValidateBlockGuidExists(straightBlock.BlockGuid, "straightBlocks");
+                        var block = MasterHolder.BlockMaster.Blocks.Data.FirstOrDefault(b => b.BlockGuid == straightBlock.BlockGuid);
+                        if (block == null) continue;
+
+                        // lengthは1以上・重複禁止・length==1がちょうど1件
+                        // Length must be >=1, unique, and exactly one length-1 entry must exist
+                        if (straightBlock.Length < 1)
+                            logs += $"[PlaceSystemMaster] BeltConveyor straight block {block.Name} has invalid length:{straightBlock.Length}\n";
+                        if (!seenLengths.Add(straightBlock.Length))
+                            logs += $"[PlaceSystemMaster] BeltConveyor duplicated length:{straightBlock.Length} block:{block.Name}\n";
+                        if (straightBlock.Length == 1) lengthOneCount++;
+
+                        // マスターのlengthとblockSizeの食い違いはデータ不整合として検出
+                        // Mismatch between master length and blockSize is reported as a data error
+                        if (block.BlockSize.x != 1 || block.BlockSize.y != 1 || block.BlockSize.z != straightBlock.Length)
+                            logs += $"[PlaceSystemMaster] BeltConveyor straight block {block.Name} blockSize must be [1,1,{straightBlock.Length}]\n";
+                    }
+
+                    if (lengthOneCount != 1)
+                        logs += "[PlaceSystemMaster] BeltConveyor entry must contain exactly one length-1 straight block\n";
+                }
+
+                return logs;
+
+                // BlockGuidがBlockMasterに存在するかを検証する
+                // Validate that the given BlockGuid exists in BlockMaster
+                string ValidateBlockGuidExists(Guid blockGuid, string fieldName)
+                {
+                    var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+                    return blockId == null ? $"[PlaceSystemMaster] BeltConveyor has invalid {fieldName}:{blockGuid}\n" : "";
+                }
             }
 
             #endregion

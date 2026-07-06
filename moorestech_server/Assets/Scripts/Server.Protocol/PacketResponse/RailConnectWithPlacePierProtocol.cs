@@ -58,7 +58,7 @@ namespace Server.Protocol.PacketResponse
 
             // 橋脚がレールブロックであることと建設コストを設置前に検証する
             // Validate the pier is a rail block and its construction cost before placement
-            var blockId = request.PierBlockId.GetVerticalOverrideBlockId(request.PierPlaceInfo.VerticalDirection);
+            var blockId = request.PierBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not TrainRailBlockParam) return RailConnectWithPlacePierResponse.CreateFailedResponse();
             var pierItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);

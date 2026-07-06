@@ -35,6 +35,10 @@ namespace Tests.Module.TestMod
         public static BlockId Teeth20RequireTorqueTestGear => GetBlock("00000000-0000-0000-0000-000000000013");
         public static BlockId InfinityTorqueSimpleGearGenerator => GetBlock("00000000-0000-0000-0000-000000000014");
         public static BlockId GearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000015");
+        public static BlockId GearBeltConveyor2 => GetBlock("00000000-0000-0000-0000-0000000000a3");
+        public static BlockId GearBeltConveyor3 => GetBlock("00000000-0000-0000-0000-0000000000a4");
+        public static BlockId TestGearBeltConveyorUp => GetBlock("00000000-0000-0000-0000-0000000000a1");
+        public static BlockId TestGearBeltConveyorDown => GetBlock("00000000-0000-0000-0000-0000000000a2");
         public static BlockId SmallGearBeltConveyor => GetBlock("00000000-0000-0000-0000-000000000030");
         public static BlockId GearBeltConveyorSplitter => GetBlock("eccb9f59-4439-4caf-9ae8-67da50549040");
         

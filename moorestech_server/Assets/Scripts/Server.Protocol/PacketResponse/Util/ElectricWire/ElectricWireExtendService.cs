@@ -36,9 +36,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             if (!ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[baseBlockGuid].IsUnlocked)
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
 
-            // 縦向きオーバーライドを適用し電柱パラメータを解決する
-            // Apply vertical override and resolve the pole parameter
-            var blockId = poleBlockId.GetVerticalOverrideBlockId(polePlaceInfo.VerticalDirection);
+            // 指定BlockIdから電柱パラメータを解決する
+            // Resolve the pole parameter from the requested BlockId
+            var blockId = poleBlockId;
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not ElectricPoleBlockParam poleParam)
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
