@@ -98,9 +98,14 @@
 - PlayMode実機検証: 6シナリオ中5成功（ビルドメニュー3種表示・橋脚設置・歯車ポール延長・破壊全額返却・車両設置撤去）。録画とスクショは `.superpowers/sdd/task-13-playtest-media/`
 - 唯一の失敗「電線接続ツール」は新規バグではなくTask 6既知事項の顕在化: `plan2-master-migration`に`electricWireItems`が無いため`ElectricWireConnect`エントリを意図的に非追加。**master側電線コミットとのマージ時にエントリ＋`electricWireItems`を追加し再検証すること**（コード側の電線経路はTask 3/9でテスト済み）
 
+### 最終whole-branchレビュー結果（2026-07-07、2レンズ並行）
+新規Critical/Importantなし。既知トリアージ項目は全て実コードで記載どおりを再確認。新規Minor2件:
+- **レール予約ガード欠落（潜在・現状発火不可）**: `RailConnectWithPlacePierProtocol.cs:64-90`が橋脚コストとレール敷設アイテムを独立検証・消費。wire/chainにあるreserved予約ガードがrailのみ無く、橋脚requiredItemsにレールと同一アイテムを含めると増殖経路化する。現行マスタは重複なしのため発火しないが、バランス調整時の地雷
+- **Attach側の失敗経路テスト欠落**: `AttachTrainCarToUnitProtocol.cs:56-62`のNotUnlocked/ItemNotFound分岐が未テスト（Place側は4経路網羅、計画上はAttach 2件指定のため計画準拠）
+
 ### 未処理のユーザー判断事項
 - **Important（Task 5、plan-mandated既存挙動）**: `RailConnectWithPlacePierProtocol`のTryConnect失敗時に`Success=true`＋橋脚コスト消費＋孤立橋脚残置。GearChain前例（ロールバック＋失敗応答）に合わせるか判断待ち。修正はRemoveBlockミラーで小規模
-- Minorトリアージ7件（progress.md各タスク行参照）: 200行超4ファイル（既存違反）、`NoPoleItem` enum未使用化、防御的nullチェック、ローカル関数名不一致、キーヘルプ文言、素材自動選択の毎フレーム走査、車両にnameフィールド無し（プラン5で再燃）
+- Minorトリアージ（progress.md各タスク行参照）: 200行超4ファイル（既存違反）、`NoPoleItem` enum未使用化、防御的nullチェック、ローカル関数名不一致、キーヘルプ文言、素材自動選択の毎フレーム走査、車両にnameフィールド無し（プラン5で再燃）、＋上記新規Minor2件
 
 ### 残作業（プラン4のスコープ外・引き継ぎ）
 - 本流`feature/replace-place-system`へのマージ＋worktree掃除（メインチェックアウトは他セッション共用のため要調整）
