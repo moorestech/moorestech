@@ -107,11 +107,20 @@ namespace Client.Tests.WebUi
                 "empty_slot", "insufficient_count", "grab_not_empty",
                 "invalid_index", "invalid_recipe", "recipe_locked",
                 "invalid_id", "invalid_result", "no_pending_modal",
+                "invalid_state", "unsupported_state",
             };
 
             var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();
             Assert.AreEqual(shared.Count, new HashSet<string>(shared).Count, "error_codes.json に重複コードがある / duplicate codes");
             Assert.That(new HashSet<string>(shared), Is.EquivalentTo(expected), "error_codes.json が C# のエラーコード集合と不一致 / mismatch with the C# error-code set");
+        }
+
+        // ui_state: 列挙名文字列1フィールドの最小契約（INFRA-6）
+        // ui_state: the minimal one-field enum-name contract (INFRA-6)
+        [Test]
+        public void UiStateMatchesFixture()
+        {
+            AssertMatchesFixture(new UiStateDto { State = "PlayerInventory" }, "ui_state.json");
         }
 
         #region Internal
