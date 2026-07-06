@@ -85,10 +85,12 @@
 - 決定論再チェック結果: web側200行超ゼロ。10ファイル規約違反3件（WebUiHost/Game/Actions 11・blockInventory/views 11・e2e/tests 11）→ 解消作業中
 - レビュー範囲外の既存200行超（記録のみ・未対応）: MainGameStarter 327 / ResearchTreeElement 279 / CommonSlotView 235 / CraftInventoryView 213（いずれもブランチdiff外）
 
-**クローズ処理**
-1. 最終QA: uloop compile / NUnit / tsc / vitest / e2e 全green + 決定論チェック再実行（dir-file-limit・file-too-longの解消確認）
-2. 本ドキュメントとレジャー更新、AGENTS.mdタスクリストから「all-code-review」行を削除
-3. /tmp の一時ファイル削除
+**クローズ処理** → **完了（2026-07-07 02:15）**
+1. 最終QA全green: uloop compile ErrorCount 0 / C#テスト 57/57 PASS / tsc EXIT 0 / vitest 122 PASS / e2e 34 PASS
+2. 決定論再チェック: dir-file-limit違反 0（マージ起因の3件=Actions/views/e2e-testsも解消済み: `7aaa91689` `dd917997c`）、ブランチdiff内のfile-too-long違反 0
+3. AGENTS.mdタスクリストから「all-code-review」行を削除、一時ファイル削除、feature worktree/ブランチ削除
+
+**all-code-review タスクはこれで完了。** レビュー全44系統の指摘は、適用（機械的修正M1-M7・設計判断F1-F6・分割第2/3波・規約解消）または実装漏れフェーズの種リストへの記録で全件処理済み。
 
 ### その後のフェーズ
 - 「ステート、プロップス、Context、状態管理ライブラリの利用の適正化」— レビュー全系統でCritical 0のため軽量確認で足りる見込み
