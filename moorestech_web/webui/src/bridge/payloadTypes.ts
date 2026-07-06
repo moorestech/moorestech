@@ -52,6 +52,31 @@ export type FluidSlotData = { fluidId: number; amount: number; capacity: number;
 // INV-4/BLK-1 block inventory; the closed state is only open:false, the C# side omits every other key
 // open を判別子にした discriminated union で「開なら全フィールド存在」を型が保証する（!data.open ガードを正当化）
 // A discriminated union on open lets the type guarantee "all fields present when open" (justifies the !data.open guard)
+// BLK-2〜5/8 ブロック詳細。capability合成（機能単位optional）でブロック種別unionにしない(spec D1)
+// BLK-2..5/8 block details; capability composition (per-feature optionals), never a per-blockType union (spec D1)
+export type MachineDetailData = {
+  recipeGuid: string;
+  currentState: string;
+  currentPower: number;
+  requestPower: number;
+  // itemSlots を 入力→出力→モジュール に分割する位置（uGUIのスロット構成順）
+  // Split positions of itemSlots into input→output→module (uGUI slot ordering)
+  slotLayout: { input: number; output: number; module: number };
+};
+export type GeneratorDetailData = { remainingFuelTime: number; currentFuelTime: number; operatingRate: number };
+export type MinerDetailData = {
+  currentPower: number;
+  requestPower: number;
+  miningItems: { itemId: number; itemsPerMinute: number }[];
+};
+export type GearDetailData = { isClockwise: boolean; currentRpm: number; currentTorque: number; baseRpm: number; baseTorque: number };
+export type ElectricNetworkData = { totalGeneratePower: number; totalRequiredPower: number; consumerCount: number; powerRate: number };
+export type GearNetworkStopReason = "none" | "rocked" | "overRequirePower";
+export type GearNetworkData = { totalRequiredGearPower: number; totalGenerateGearPower: number; stopReason: GearNetworkStopReason };
+export type FilterSplitterMode = "default" | "whitelist" | "blacklist";
+export type FilterSplitterDirectionData = { mode: FilterSplitterMode; filterItemIds: number[] };
+export type FilterSplitterData = { directionCount: number; filterSlotCountPerDirection: number; directions: FilterSplitterDirectionData[] };
+
 export type BlockInventoryOpen = {
   open: true;
   blockType: string;
@@ -62,6 +87,15 @@ export type BlockInventoryOpen = {
   // progress は null 時にキー省略されるため optional
   // progress is key-omitted when null, so it is optional
   progress?: number;
+  // 詳細は該当ブロックのみ付与（C# NullValueHandling.Ignore で非該当キーは省略）
+  // Details are attached only for applicable blocks (absent keys omitted via C# NullValueHandling.Ignore)
+  machine?: MachineDetailData;
+  generator?: GeneratorDetailData;
+  miner?: MinerDetailData;
+  gear?: GearDetailData;
+  electricNetwork?: ElectricNetworkData;
+  gearNetwork?: GearNetworkData;
+  filterSplitter?: FilterSplitterData;
 };
 export type BlockInventoryClosed = { open: false };
 export type BlockInventoryData = BlockInventoryOpen | BlockInventoryClosed;
