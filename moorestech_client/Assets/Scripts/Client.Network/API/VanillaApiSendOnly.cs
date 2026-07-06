@@ -50,9 +50,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        public void PlaceBlock(List<PlaceInfo> placePositions, BlockId blockId)
+        public void PlaceBlock(List<PlaceInfo> placePositions)
         {
-            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(_playerId, blockId, placePositions);
+            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(_playerId, placePositions);
             _packetSender.Send(request);
         }
 

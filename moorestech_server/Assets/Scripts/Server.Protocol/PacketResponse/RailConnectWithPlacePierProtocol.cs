@@ -46,8 +46,7 @@ namespace Server.Protocol.PacketResponse
             
             // ブロックIDの設定
             var blockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
-            blockId = blockId.GetVerticalOverrideBlockId(request.PierPlaceInfo.VerticalDirection);
-            
+
             // paramsの設定
             BlockCreateParam[] createParams = request.PierPlaceInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
             

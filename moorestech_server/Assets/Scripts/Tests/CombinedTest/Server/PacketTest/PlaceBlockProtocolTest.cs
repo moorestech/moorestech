@@ -1,28 +1,21 @@
 using System;
 using System.Collections.Generic;
-using Core.Inventory;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
-using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
-using MessagePack;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
     public class PlaceBlockProtocolTest
     {
-        private const int PlayerId = 3;
-
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
         private static readonly Guid PoleMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱コスト×1)
@@ -106,6 +99,36 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
+        public void 長尺ベルトは全セルを占有しコスト1セットで設置される()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3, 1);
+            // バリアントの設置可否はファミリー代表のunlock状態で決まる
+            // Variant placement is gated by the family representative's unlock state
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = new Vector3Int(30, 0, 10), Direction = BlockDirection.North,
+                    VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3,
+                },
+            };
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+
+            // 3セル全て同一ブロックとして占有される
+            // All three cells are occupied by the same block entity
+            var block = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(30, 0, 10));
+            Assert.IsNotNull(block);
+            Assert.AreEqual(block, ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(30, 0, 12)));
+
+            // コストは1セットのみ消費（素材残0）
+            // Exactly one cost set consumed (no materials remain)
+            AssertInventoryEmptyOfRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3);
+        }
+
+        [Test]
         public void 電柱設置で自動接続の電線と建設コストが同時に消費される()
         {
             var (packet, serviceProvider) = CreateServer();
@@ -127,51 +150,5 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, GetItemCount(inventory, PoleMaterialGuid));
             Assert.AreEqual(4, GetItemCount(inventory, WireItemGuid));
         }
-
-        #region TestUtil
-
-        private static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
-        {
-            return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-        }
-
-        private static IOpenableInventory GetInventory(ServiceProvider serviceProvider)
-        {
-            return serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-        }
-
-        private static void SetItem(IOpenableInventory inventory, int slot, Guid itemGuid, int count)
-        {
-            inventory.SetItem(slot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(itemGuid), count));
-        }
-
-        private static int GetItemCount(IOpenableInventory inventory, Guid itemGuid)
-        {
-            var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
-            var total = 0;
-            foreach (var stack in inventory.InventoryItems)
-            {
-                if (stack.Id != itemId) continue;
-                total += stack.Count;
-            }
-            return total;
-        }
-
-        private static byte[] CreatePlaceBlockPayload(BlockId blockId, params (int x, int y)[] positions)
-        {
-            var placeInfos = new List<PlaceInfo>();
-            foreach (var (x, y) in positions)
-            {
-                placeInfos.Add(new PlaceInfo
-                {
-                    Position = new Vector3Int(x, y),
-                    Direction = BlockDirection.North,
-                    VerticalDirection = BlockVerticalDirection.Horizontal,
-                });
-            }
-            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, blockId, placeInfos));
-        }
-
-        #endregion
     }
 }

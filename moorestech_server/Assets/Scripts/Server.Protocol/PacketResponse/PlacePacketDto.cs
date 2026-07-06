@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master;
 using Game.Block.Interface;
 using MessagePack;
 using Newtonsoft.Json;
@@ -19,6 +20,9 @@ namespace Server.Protocol.PacketResponse
         [Key(2)] public BlockVerticalDirection VerticalDirection { get; set; }
         [Key(3)] public BlockCreateParamMessagePack[] BlockCreateParams { get; set; }
 
+        [Key(4)] public int BlockIdInt { get; set; }
+        [IgnoreMember] public BlockId BlockId => new(BlockIdInt);
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlaceInfoMessagePack() { }
 
@@ -28,6 +32,7 @@ namespace Server.Protocol.PacketResponse
             Position = new Vector3IntMessagePack(placeInfo.Position);
             Direction = placeInfo.Direction;
             VerticalDirection = placeInfo.VerticalDirection;
+            BlockIdInt = placeInfo.BlockId.AsPrimitive();
         }
     }
 
@@ -52,6 +57,7 @@ namespace Server.Protocol.PacketResponse
         public Vector3Int Position { get; set; }
         public BlockDirection Direction { get; set; }
         public BlockVerticalDirection VerticalDirection { get; set; }
+        public BlockId BlockId;
 
         public bool Placeable { get; set; }
 
