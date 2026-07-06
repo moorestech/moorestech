@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.UI.Inventory.Craft;
+using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using UniRx;
 using UnityEngine;
@@ -91,7 +92,9 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         public void SetActive(bool isActive)
         {
-            gameObject.SetActive(isActive);
+            // webモード中はWeb側が同画面を描画するためuGUIビューは表示しない（falseは常に通す）
+            // In web mode the web renders this screen, so never show the uGUI view (false always passes)
+            gameObject.SetActive(isActive && !WebUiScreenGate.IsWebUiMode);
         }
     }
 }

@@ -14,23 +14,9 @@ namespace Client.Game.InGame.UI.UIState
         // Poll interval for the debug switch (throttled to avoid reading 3 JSON files every frame)
         private const float DebugPollInterval = 0.5f;
 
-        private readonly List<GameObject> _uguiRoots = new();
-        private readonly Dictionary<GameObject, bool> _uguiRootActiveSnapshot = new();
         private bool _isCefActive;
-        private bool _hasAppliedOnce;
         private bool _appliedCefActive;
         private float _lastDebugPollTime;
-
-        private void Awake()
-        {
-            // CefUnity以外の直下の子を全てuGUIルートとして収集する
-            // Collect every direct child except CefUnity as an uGUI root
-            for (var i = 0; i < transform.childCount; i++)
-            {
-                var child = transform.GetChild(i).gameObject;
-                if (child != cefUnityRoot) _uguiRoots.Add(child);
-            }
-        }
 
         private void Start()
         {
@@ -55,10 +41,6 @@ namespace Client.Game.InGame.UI.UIState
                 return;
             }
 
-            // CEF表示はUIState駆動（webモード かつ Web実装済み画面のみ表示）
-            // CEF visibility is UIState-driven (shown only in web mode AND a web-implemented screen state)
-            SyncCefRootVisibility();
-
             // デバッグスイッチのポーリングは0.5秒間隔に間引く
             // Throttle the debug-switch polling to 0.5s
             if (Time.unscaledTime - _lastDebugPollTime < DebugPollInterval) return;
@@ -72,10 +54,6 @@ namespace Client.Game.InGame.UI.UIState
                 _isCefActive = debugValue;
                 ApplyState();
             }
-
-            // CEF表示中はカーソル解放を再表明する（起動時の初期化順序競合への保険）
-            // Re-assert cursor release while CEF is shown (guards against boot init-order races)
-            if (WebUiScreenGate.IsCefVisible) InputManager.MouseCursorVisible(true);
         }
 
         private void OnDestroy()
@@ -87,55 +65,15 @@ namespace Client.Game.InGame.UI.UIState
 
         private void ApplyState()
         {
-            // uGUIルートの表示状態を記録・復元する（一斉SetActive(true)による状態破壊を防ぐ）
-            // Snapshot / restore uGUI roots' active state (avoids destroying state via a blanket SetActive(true))
-            if (_isCefActive) SnapshotAndHideUguiRoots();
-            else RestoreUguiRoots();
+            // webモード中はCEFルートを常時表示する（透明オーバーレイ。uGUIは隠さず共存）
+            // While in web mode the CEF root stays always visible (transparent overlay; uGUI coexists unhidden)
+            cefUnityRoot.SetActive(_isCefActive);
 
             // 入力・カーソル調停ゲートを更新する（一方通行: 書き込みはここのみ）
             // Update the input/cursor arbitration gate (one-way: written only here)
             WebUiScreenGate.SetWebUiMode(_isCefActive);
-            SyncCefRootVisibility();
-            if (WebUiScreenGate.IsCefVisible) InputManager.MouseCursorVisible(true);
 
             _appliedCefActive = _isCefActive;
-            _hasAppliedOnce = true;
-
-            #region Internal
-
-            void SnapshotAndHideUguiRoots()
-            {
-                // 既にCEF適用済みなら記録済みスナップショットを壊さないためスキップ
-                // Skip when CEF is already applied so the existing snapshot is not overwritten
-                if (_appliedCefActive) return;
-
-                _uguiRootActiveSnapshot.Clear();
-                foreach (var root in _uguiRoots)
-                {
-                    _uguiRootActiveSnapshot[root] = root.activeSelf;
-                    root.SetActive(false);
-                }
-            }
-
-            void RestoreUguiRoots()
-            {
-                // 初回(初期状態CEF OFF)は現状のactiveSelfを尊重しSetActiveを一切呼ばない
-                // On the first apply (boot with CEF OFF) respect current activeSelf and don't call SetActive at all
-                if (!_hasAppliedOnce || !_appliedCefActive) return;
-
-                foreach (var root in _uguiRoots)
-                    if (_uguiRootActiveSnapshot.TryGetValue(root, out var wasActive)) root.SetActive(wasActive);
-            }
-
-            #endregion
-        }
-
-        private void SyncCefRootVisibility()
-        {
-            // 変化時のみSetActive（毎フレームの無駄なヒエラルキー操作を避ける）
-            // SetActive only on change (avoids needless hierarchy churn every frame)
-            var visible = WebUiScreenGate.IsCefVisible;
-            if (cefUnityRoot.activeSelf != visible) cefUnityRoot.SetActive(visible);
         }
     }
 }

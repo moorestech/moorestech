@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ClassLibrary;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Core.Item.Interface;
 using Core.Master;
@@ -378,7 +379,11 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public void SetActive(bool isActive)
         {
-            mainInventoryObject.SetActive(isActive);
+            // webモード中はWeb側が同画面を描画するためuGUIビューは表示しない（falseは常に通す）
+            // In web mode the web renders this screen, so never show the uGUI view (false always passes)
+            var visible = isActive && !WebUiScreenGate.IsWebUiMode;
+            mainInventoryObject.SetActive(visible);
+            subInventoryParent.gameObject.SetActive(visible);
         }
         
         private void InventoryViewUpdate()
