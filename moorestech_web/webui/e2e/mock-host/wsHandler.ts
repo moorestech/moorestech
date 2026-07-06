@@ -5,7 +5,7 @@ import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers } from "./state";
-import { applyMove, applyBlockMove, applyCollect } from "./inventoryModel";
+import { applyMove, applyBlockMove, applyCollect, applyBlockCollect } from "./inventoryModel";
 import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 
 // 本番 dispatcher が受理する既知 action type。未知は unknown_action で拒否する
@@ -19,6 +19,7 @@ const KNOWN_ACTIONS = new Set<string>([
   "craft.execute",
   "ui.modal.respond",
   "block_inventory.move_item",
+  "block_inventory.collect",
   "ui_state.request",
   "research.complete",
   "filter_splitter.set_mode",
@@ -119,6 +120,14 @@ export function attachWsHandlers(wss: WebSocketServer) {
               send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock });
             }, 30);
           }
+        } else if (msg.type === "block_inventory.collect") {
+          // 実 host と同様に集約適用後、inventory と block の両 topic を再配信する
+          // Apply the consolidation then republish both the inventory and block topics, like the real host
+          applyBlockCollect(inv, state.currentBlock, msg.payload as ActionPayloads["block_inventory.collect"]);
+          setTimeout(() => {
+            send(ws, { op: "event", topic: Topics.inventory, data: inv });
+            send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock });
+          }, 30);
         } else if (msg.type === "ui_state.request") {
           // 実 host の許可制を再現: GameScreen/PlayerInventory のみ受理し、GameScreen 遷移では block も閉じる
           // Mirror the real host's allowlist: accept only GameScreen/PlayerInventory; GameScreen also closes the block
