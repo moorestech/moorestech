@@ -193,7 +193,7 @@ namespace Client.WebUiHost.Boot
             }
             // セーフティネット: Vite が残っていたら port ベースで特定して kill
             // Safety net: if any Vite is still holding the port, resolve its pid and kill
-            ViteProcess.KillAnyLingering();
+            ViteProcessKiller.KillAnyLingering();
         }
 #endif
     }
