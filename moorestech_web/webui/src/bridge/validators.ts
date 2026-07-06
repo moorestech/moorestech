@@ -56,6 +56,12 @@ function validProgress(d: unknown): boolean {
   return isObject(d) && isBool(d.visible) && isNumber(d.progress) && (d.label === undefined || isString(d.label));
 }
 
+// state は列挙名文字列。値の解釈（既知/未知）はルータ側の責務
+// state is an enum-name string; interpreting known/unknown values is the router's job
+function validUiState(d: unknown): boolean {
+  return isObject(d) && isString(d.state);
+}
+
 function validCraftRecipes(d: unknown): boolean {
   return isObject(d) && Array.isArray(d.recipes);
 }
@@ -74,6 +80,7 @@ const validators: Record<string, (d: unknown) => boolean> = {
   [Topics.craftRecipes]: validCraftRecipes,
   [Topics.machineRecipes]: validMachineRecipes,
   [Topics.itemList]: validItemList,
+  [Topics.uiState]: validUiState,
 };
 
 // 既知 topic は検証、未知 topic は購読されず到達しないため素通しする

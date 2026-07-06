@@ -8,6 +8,7 @@ import type {
   ModalData,
   ProgressData,
   BlockInventoryData,
+  UiStateData,
 } from "./payloadTypes";
 
 // 通信の op レベルのメッセージ型（webSocketClient が使用）
@@ -35,6 +36,7 @@ export const Topics = {
   blockInventory: "block_inventory.current",
   modal: "ui.modal",
   progress: "ui.progress",
+  uiState: "ui_state.current",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -47,6 +49,7 @@ export type TopicPayloads = {
   [Topics.blockInventory]: BlockInventoryData;
   [Topics.modal]: ModalData;
   [Topics.progress]: ProgressData;
+  [Topics.uiState]: UiStateData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
@@ -60,5 +63,6 @@ export type ActionPayloads = {
   "craft.execute": { recipeGuid: string };
   "ui.modal.respond": { id: string; result: "confirm" | "cancel" };
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
+  "ui_state.request": { state: "GameScreen" | "PlayerInventory" };
   "debug.echo": { hello: string };
 };
