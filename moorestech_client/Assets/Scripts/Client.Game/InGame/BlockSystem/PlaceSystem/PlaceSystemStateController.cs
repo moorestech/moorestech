@@ -35,6 +35,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _currentPlaceSystem.Disable();
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
             _lastSelectHotBarSlot = -1;
+
+            // 選択の前回値も初期化し、再Enable直後の最初のフレームでIsSelectionChanged=trueにする
+            // Reset previous selection values so the first frame after re-enable reports IsSelectionChanged=true
+            _lastSelectionType = PlacementSelectionType.None;
+            _lastSelectedBlockId = null;
+            _lastSelectedTrainCarGuid = Guid.Empty;
+            _lastSelectedConnectPlaceMode = null;
         }
 
         public void ManualUpdate()
