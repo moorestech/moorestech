@@ -86,7 +86,7 @@ namespace Client.WebUiHost.Game
             var recipeContainer = ClientDIContext.DIContainer
                 .DIContainerResolver
                 .Resolve<ItemRecipeViewerDataContainer>();
-            var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer, unlockStateData);
+            var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
 
             // 研究ツリートピックを登録（表示可否は ui_state.current 側で判定）

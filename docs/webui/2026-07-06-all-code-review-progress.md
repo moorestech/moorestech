@@ -55,14 +55,15 @@
 - post-check: rationale-guard Critical 0 / convention-guard 機械的6件適用（commit `e74f10fa4`）、要判断2件は根拠保全優先で温存
 - 設計判断をユーザー確認済み。回答: 品質修正3件適用（validators深掘りは見送り）/ モーダルは記録のみ+pending破棄 / 流体・進捗は実配信を実装 / try-catch明文化+bridge・recipe分割+200行超分割すべて実施
 
-### 作業キュー（承認済み・これから実行）
-**第2波A: C#系fixエージェント**（仕様: scratchpad/acr-fix2-cs-spec.md）
-- F1: MoveItem検証の集約 — LocalPlayerInventoryController.TryMoveItem(out denyReason) へ1本化、両ハンドラはパース+マップのみに縮小
-- F2: レシピ表示フィルタ一本化 — ItemListView.IsShow × RecipeViewerItemListTopic.IsShow を単一評価器へ（uGUIのデバッグ強制表示とtopicの警告フォールバックは呼び出し側に残す）
-- F3: craft unlockゲートのテスト — 判定を静的純関数抽出しNUnit 3ケース以上
-- F4: BlockInventoryTopic 流体/進捗の実配信 — uGUIのデータ源を調査して配線。サーバープロトコル拡張が必要ならBLOCKED報告で止める
-- F5: AGENTS.md try-catch規約に「外部境界の隔離のみ許容+根拠コメント必須」を明文化
-- F6: WebSocketHub.ClearBindings で modal pending を破棄 + TODO.mdに「RequestModalプロデューサ未配線」を記録
+### 作業キュー（承認済み・実行中）
+**第2波A: C#系fixエージェント** → **完了（2026-07-07 01:10頃）** 検証: compile ErrorCount 0 / テスト51 PASS（F3新規4件含む）
+- F1: MoveItem検証を LocalPlayerInventoryController.TryMoveItem(out denyReason) へ集約、両ハンドラ縮小。エラーコード不変（commit `a4ad7302a`）
+- F2: ItemRecipeViewerDataContainer.EvaluateVisibility へSSOT化。uGUIのDebug強制表示・topicの警告フォールバックは呼び出し側残置、表示結果不変（同上）
+- F3: CraftExecuteActionHandler.ResolveCraftRecipe を純関数抽出、CraftActionTest.cs にNUnit 4ケース追加（同上）
+- F4: **サーバー拡張不要と判明し実装完了**。流体量(FluidMachineInventoryStateDetail)・進捗(CommonMachineBlockStateDetail.ProcessingRate)は既存 va:event:changeBlockState で受信済み。BlockSubInventorySource に状態アクセサ追加、BlockInventoryTopic で FluidSlots/Progress 構築＋状態イベント購読で再配信。DTOは BlockInventoryDto.cs へ分割（commit `8ea8c9f18`）
+- F5: AGENTS.md try-catch規約へ外部境界例外を明文化（commit `280696b8a`）
+- F6: WebUiModalService.CancelPending 追加、ClearBindings から呼び出し。TODO.md 追記（同上）
+- レポート: `.superpowers/sdd/acr-fix2-cs-report.md`
 
 **第2波B: Web系fixエージェント** → **完了（2026-07-07 00:xx）**
 - bridge/ 15ファイル → transport(7)/store(4)/contract(3) へ分割、index.tsバレル維持、deep import・vi.mock・fixtureパス追随（commit `b641527f9`）

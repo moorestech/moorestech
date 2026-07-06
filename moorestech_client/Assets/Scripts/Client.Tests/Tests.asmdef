@@ -29,7 +29,8 @@
         "Game.Train",
         "Core.Update",
         "Core.Inventory",
-        "Client.WebUiHost"
+        "Client.WebUiHost",
+        "Game.UnlockState"
     ],
     "includePlatforms": [
         "Editor"
