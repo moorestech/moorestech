@@ -88,3 +88,26 @@
 - **moorestech-worktrees/moorestech_masterはRepositorySync管理の実クローンになった**（旧仕様のsymlinkから移行済み、旧symlinkは`_bk`へ退避）。ピンと一致していれば自己管理されるため新常態として受容してよいが、ローカル限定コミット（下記）はcanonicalリポジトリへの手動fetch+resetでのみ同期される
 - **moorestech_master側の未pushコミット群**: `f67eee8`（chore: placeSystem既存エントリにplaceParam追加）、`8919c5c`（feat: ベルト長尺バリアント12種とBeltConveyor placeSystemエントリを追加）、`584a14e`（fix: 基本土台のBeltConveyorエントリを削除）の3件は`origin/master`に存在しない（`git branch -r --contains`で確認済み）。moorestech_masterリポジトリの正式push作業が別途必要
 - ClientContext.VanillaApi.Response.BlockRemove等の実プロトコル経由の削除は、client側の可視化オブジェクトも正しく同期して破棄される（`ServerContext.WorldBlockDatastore.RemoveBlock`をテストコードから直接呼ぶ場合はネットワークブロードキャストを経由しないため、client側の可視化は同期されない点に注意。データ層の検証のみなら直接呼び出しで十分だが、見た目の同期まで検証したい場合は実プロトコル経由が必須）
+
+## プラン4完了に伴う追記（2026-07-07）
+
+プラン4（特殊システム縦切り）全13タスク完了。ブランチ `feature/replace-place-system-plan4`、moorestech_master は `plan2-master-migration` @ dce2ff9（ピン一致）。進行詳細は `.superpowers/sdd/progress.md`（gitignore下）参照。
+
+### 検証結果（Task 13）
+- 全回帰: コンパイル0エラー / 0警告、918/918テスト全PASS（Client.Tests 149 + CombinedTest 293 + UnitTest 476）
+- PlayMode実機検証: 6シナリオ中5成功（ビルドメニュー3種表示・橋脚設置・歯車ポール延長・破壊全額返却・車両設置撤去）。録画とスクショは `.superpowers/sdd/task-13-playtest-media/`
+- 唯一の失敗「電線接続ツール」は新規バグではなくTask 6既知事項の顕在化: `plan2-master-migration`に`electricWireItems`が無いため`ElectricWireConnect`エントリを意図的に非追加。**master側電線コミットとのマージ時にエントリ＋`electricWireItems`を追加し再検証すること**（コード側の電線経路はTask 3/9でテスト済み）
+
+### 未処理のユーザー判断事項
+- **Important（Task 5、plan-mandated既存挙動）**: `RailConnectWithPlacePierProtocol`のTryConnect失敗時に`Success=true`＋橋脚コスト消費＋孤立橋脚残置。GearChain前例（ロールバック＋失敗応答）に合わせるか判断待ち。修正はRemoveBlockミラーで小規模
+- Minorトリアージ7件（progress.md各タスク行参照）: 200行超4ファイル（既存違反）、`NoPoleItem` enum未使用化、防御的nullチェック、ローカル関数名不一致、キーヘルプ文言、素材自動選択の毎フレーム走査、車両にnameフィールド無し（プラン5で再燃）
+
+### 残作業（プラン4のスコープ外・引き継ぎ）
+- 本流`feature/replace-place-system`へのマージ＋worktree掃除（メインチェックアウトは他セッション共用のため要調整）
+- moorestech_master未pushコミット5件（f67eee8 / 8919c5c / 584a14e / a883fb2 / dce2ff9）のpush判断（ユーザー回答待ち）。大容量リポジトリのためsafe-github-push手順で
+- メインcheckoutのstash@{0}処分（PlaceBlockProtocol.cs旧差分。beltマージで上書きされた領域のため恐らくdrop可、要確認）
+
+### プラン5への申し送り（プラン4分）
+- 旧経路`PlaceHotBarBlock`/`PlaceBlockFromHotBarProtocol`はTask 10で参照排除済み・本体はプラン5で削除
+- `NoPoleItem` enumが未使用化済み（電柱延長のBlockId化に伴う）。プラン5の削除候補
+- 車両にnameフィールドが無い問題（unlockTrainCarGuidsのエディタ表示がGUID生値）はプラン5の車両アイテム削除時に再燃する
