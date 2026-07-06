@@ -1,6 +1,6 @@
 ---
 name: unity-playmode-recorded-playtest
-description: 'Unity Editor を PlayMode 起動し、uloop と Unity Recorder で end-to-end gameplay を録画付き検証する枠組み。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」と言われた場合。フォーカス不要が必須要件のとき積極的に起動する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。クリック対象は collider.bounds.center を狙う、対象コードが legacy UnityEngine.Input を読むなら注入で駆動不可、InputSystem.Update()はスニペットで呼ばない、本番マスタ validation・AppDomain 持ち越し等の落とし穴は Body 参照。'
+description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + tools/playtest/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。DSLが無いブランチのみレガシー手動フロー（uloop往復）へフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。フォーカス不要が必須要件のとき積極的に起動する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。クリック対象は collider.bounds.center を狙う、対象コードが legacy UnityEngine.Input を読むなら注入で駆動不可、InputSystem.Update()はスニペットで呼ばない、等の落とし穴は Body 参照。'
 ---
 
 # unity-playmode-recorded-playtest
@@ -11,246 +11,177 @@ Unity PlayMode を CLI から自動操作し、シナリオを録画付きで en
 
 EditMode テストでは本番アセットも MonoBehaviour Update も UI Prefab も走らない。「実プレイで動くか」を機械的に確認する手段がない。このスキルは PlayMode + Unity Recorder + uloop で end-to-end を録画付き検証する。**フォーカス不要**なので別作業中の裏で回せる。
 
-## 前提条件
+過去187セッションの分析で、旧来の「1操作=1CLI往復」方式は録画付き検証1回に **Bash呼び出し約170〜190回（固定sleep 30〜43回）** を要していた。これを解決するのが**プレイテストDSL**（下記）で、シェル1コマンドに圧縮される。
 
-1. **Unity CLI Loop サーバが起動済み**: Unity Editor のメニューから `Window > Unity CLI Loop > Server` を開いて Start。**起動していない場合 `uloop list` 等が "Unity CLI Loop server is not" エラーで失敗する**。`uloop compile` / `uloop run-tests` だけは別経路なので動くため、これらが動いても CLI Loop が動いている保証にはならない。`uloop list` でツール一覧が返ることを確認してから始める。
+## 実行方式の選択（最初に判定する）
 
-2. **Unity Recorder パッケージがインストール済み**: `Packages/manifest.json` に `com.unity.recorder` が含まれること。バージョンは 5.x 以降推奨。
+```bash
+ls <repo-root>/moorestech_client/Assets/Scripts/Client.Playtest/ 2>/dev/null
+```
 
-3. **PlayMode で起動するシーンが分かっていること**: 通常はビルド設定の最初のシーン (例: `GameInitializer` 等のブートストラップシーン)。シーンを直接指定せずに `control-play-mode --action Play` を呼ぶとビルド設定の最初のシーンから走る。
+- **ある → 「方式A: プレイテストDSL」を使う（第一選択・以下参照）**
+- **無い → 「方式B: レガシー手動フロー」へフォールバック**（本ファイル後半）。ただし長期作業なら DSL のあるブランチ（`feature/playtest-stabilization`、コミット ad7535766 以降）の取り込みを先に検討する
 
-4. **プロジェクトのブート完了判定方法を把握していること**: 「DI コンテナがロードされた」「主要 static クラスに値が入った」等の判定条件。例: moorestech では `ClientContext.VanillaApi != null && ServerContext.WorldBlockDatastore != null` が ready の指標。
+どちらの方式でも「入力注入の鉄則」「masterデータのピン留め」「Gotchas」節は共通で適用される。
 
-5. **uloop CLI のパスが通っていること**: `which uloop` で見つかること。
+---
 
-6. **(moorestech worktree 限定) ServerDirectory の override 済みであること**: Hermes worktree 構成では `ServerDirectory.GetDirectory()`（Editor 既定）が `CurrentDirectory/../../moorestech_master/server_v8/` を返すが、これは `worktrees/moorestech/moorestech_master/...` に解決され **存在しない**（companion master は `worktrees/moorestech_master/<task>/` にある）。この状態で PlayMode 起動すると mod がロードできず MasterHolder が空になり、`GetBlockId(guid)` 等が失敗して録画準備が全滅する。**PlayMode 起動前に** companion master を明示指定する（`cache/StringDebugParameters.json` に永続化・PlayModeSetting ウィンドウと同じ仕組み。存在しなければ既定パスへフォールバックするだけなので実害はない）:
+# 方式A: プレイテストDSL（第一選択）
+
+`Client.Playtest` asmdef（Editor専用・Test Runner非依存の事前コンパイル済みDSL）と `tools/playtest/` のシェルランナーで、検証を1コマンドで完走させる。
+
+## 一発実行
+
+```bash
+cd <repo-root>
+./tools/playtest/run-scenario.sh \
+    <path-to>/moorestech_client \
+    tools/playtest/scenarios/<scenario>.cs \
+    [master-server-dir]   # 省略時: /Users/katsumi/moorestech-worktrees/playtest-master/server_v8
+```
+
+内部の流れ（すべて自動・リトライ内蔵）:
+1. **preflight**: CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試し、スキーマ不整合をPlayMode前に検出）
+2. **boot**: `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)` を EDC 1回で実行。NoSaveフラグ・`DebugServerDirectory`・`DebugObjectsBootstrap_Disabled` を設定して GameInitializer シーンから PlayMode 突入
+3. **ready待ち**: ゲーム初期化完了イベント（`GameInitializedEvent`）で書かれる `ready.marker` をファイルポーリング（実測 ~26秒。EDCを連打しない）
+4. **シナリオ投入**: シナリオ全文を EDC 1回で `PlaytestRunner.Run` に渡す（DSL側は事前コンパイル済みなのでAPI推測ミスが構造的に起きない）
+5. **回収**: `result.json` の出現を待って表示。`Success` で exit 0/1
+
+成果物は `moorestech_client/PlaytestResults/<セッション>/<ラン名>/` に result.json・スクショPNG・録画mp4（git管理外）。
+
+## シナリオの書き方
+
+execute-dynamic-code のスニペット形式（using可・文の羅列・return で値を返す）。`tools/playtest/scenarios/sample-chest.cs` が実証済みサンプル。
+
+```csharp
+using Client.Playtest;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using UnityEngine;
+
+var options = new PlaytestRunOptions { Record = true };   // Record=true で mp4 録画内蔵
+return PlaytestRunner.Run("my-scenario", options, async p =>
+{
+    await p.SetupFlatGround();                              // 足場(50x3x50 @ y30)生成+ワープ
+    p.PlaceBlockDirect("木のチェスト", new Vector3Int(3, 32, 3), BlockDirection.North);
+    await p.WaitBlockGameObject(new Vector3Int(3, 32, 3));  // クライアント側 View 出現待ち
+    await p.GiveItem("鉄インゴット", 16);                    // 本番giveコマンド経路+サーバー在庫反映待ち
+    p.GiveItemDirect("鉄板", 8);                            // サーバー直挿入（即時・状態を素早く作る用）
+    await p.Until(() => p.CountItem("鉄インゴット") >= 16, 10f, "在庫反映");
+    p.Assert(p.GetBlock(new Vector3Int(3, 32, 3)) != null, "チェスト存在");
+    await p.Screenshot("final");                            // UI込みGameViewスクショ
+});
+```
+
+### Driver API（PlaytestDriver）
+
+| API | 用途 | 経路 |
+|---|---|---|
+| `SetupFlatGround()` | 足場生成+ワープ（無限落下対策の定型） | 板Primitive(50,3,50)@(0,30,0)+Warp |
+| `WarpPlayer(pos)` / `PlayerPosition` | テレポート/現在地 | `SetPlayerPosition`+サーバー同期 |
+| `GiveItem(name, count)` | アイテム付与（反映待ち込み） | 本番 give コマンド経路 |
+| `GiveItemDirect(name, count)` | アイテム付与（即時） | サーバーインベントリ直挿入 |
+| `CountItem(name)` | サーバー在庫数 | メインインベントリ集計 |
+| `PlaceBlockDirect(name, pos, dir)` | ブロック設置（即時・非消費） | `WorldBlockDatastore.TryAddBlock` |
+| `RemoveBlock(pos)` / `GetBlock(pos)` | 削除/取得 | サーバーデータストア |
+| `WaitBlockGameObject(pos)` | クライアント View 出現待ち | フレームポーリング(15s) |
+| `Until(cond, timeout, label)` | 条件待機（固定sleepの代替） | 成否を result.json に記録 |
+| `WaitSeconds(s)` / `Screenshot(name)` / `Assert(cond, label)` | 待機/撮影/検証 | |
+| `SendCommand(cmd)` / `ServerService<T>()` | 低レベル脱出口 | VanillaApi / ServerContext DI |
+
+- **Direct系**=サーバーデータストア直叩き（状態を素早く作る・本番プロトコル非経由・インベントリ非消費）。**非Direct系**=本番経路。「UIバグの検証」と「状態構築」を使い分ける
+- 例外・タイムアウト・Assert失敗はすべて result.json に落ちる（Runner内で捕捉し `Error` に記録）
+- ブロック/アイテムは**マスタの日本語 Name** で指定（例: 「木のチェスト」「鉄インゴット」）。実在名は master の blocks.json / items.json で確認
+
+### DSLに無い操作（UI入力・カメラ操作等）
+
+セマンティック入力層（ClickBlock/DragItem 等）は未実装（Phase 3 予定。前提: legacy Input 残存3箇所=カメラズームF1/F2・設置高さQ/E・右クリックカメラの InputSystem 移行）。UIクリック・ドラッグが必要なシナリオは、**DSLでPlayMode起動と状態構築だけ済ませ、入力は「入力注入の鉄則」節の QueueStateEvent スニペットを EDC で併用**する（PlayMode中はEDCがいつでも打てる。DSLと排他ではない）。
+
+## masterデータのピン留め（worktree運用の要）
+
+**moorestech_master リポジトリの HEAD は「いま最も進んだブランチ」用のスキーマに移行していることがある**。ブランチのスキーマ（VanillaSchema/*.yml）と master JSON が不整合だと `MooresmasterLoaderException` で PlayMode 初期化が**無言死**する（例: HEAD が plan4 用 `sortPriority` に移行済みなのに、旧ブランチは `priority` を期待 → data[0].priority で例外）。
+
+対策（実証済み手順）:
+1. **ブランチ互換コミットにピン留めした master の git worktree を作る**:
    ```bash
-   uloop execute-dynamic-code --project-path ./moorestech_client --code 'Common.Debug.DebugParameters.SaveString(Server.Boot.ServerDirectory.DebugServerDirectorySettingKey, "/Users/admin/dev-agent/worktrees/moorestech_master/<task>/server_v8/"); return Server.Boot.ServerDirectory.GetDirectory();'
+   git -C /Users/katsumi/moorestech_master worktree add \
+       /Users/katsumi/moorestech-worktrees/playtest-master <互換コミット>
    ```
-   返り値が companion のパスであること、かつ編集したいマスタ（例: blocks.json の新フィールド）がその mod に入っていることを確認してから起動する。
+   互換コミットの特定: リポジトリ直下 `.moorestech-external-revisions.json` の `moorestech_master.commitHash` が**そのブランチがコミットした時点の期待値**（今回はこれで 584a14e と特定できた）
+2. run-scenario.sh の第3引数（または preflight の第2引数）にそのパスを渡す
+3. preflight [4/4] のマスタロードドライランが不整合を PlayMode 前に検出してくれる
+4. **注意**: Unity Editor が `.moorestech-external-revisions.json` と `_CompileRequester.cs` を自動書き換えすることがある。スキーマを更新していないなら**コミットせず revert する**（`git checkout -- <両ファイル>`）
 
-## 重要な設計判断 (ユーザー指示を反映)
+## DSL利用時の落とし穴（実際に踏んだもの）
 
-### 探索と実行計画作成は必ずサブエージェントに先行委譲する
-PlayMode 起動・録画・シナリオ実行に着手する**前に、必ずサブエージェント（Plan または general-purpose）へコード/データの探索と実行計画作成を委譲する**。メインエージェントがいきなり PlayMode を起動してはならない。理由: playtest シナリオは「設置プロトコルの呼び方」「ブロックの前提依存（例: 鉄道は先にレール設置が必要）」「絶対座標と connector offset」「readiness 判定条件」「legacy Input 箇所」など、コードとマスタデータを実際に読まないと確定できない情報に依存する。これを探索しないまま実行すると、設置失敗・接続不一致・無限ループ polling などで録画が無駄になる。サブエージェントには次を必ず調査・出力させる:
-- 検証対象シナリオを成立させる**前提手順の連鎖**（依存ブロック・必要アイテム・操作順序）
-- 各操作の**呼び出し経路**（API / controller 層 / `QueueStateEvent` 注入 / リフレクション遷移のどれを使うか。OS simulate-* は使わない — 「入力注入の鉄則」節）
-- **絶対座標とconnector offset の表**（複数ブロック連結時。後述「座標設計」参照）
-- プロジェクトの**readiness 判定条件**と NoSave フラグ等の起動前提
-- Step 単位に分解した**実行計画**（各 Step の uloop コマンドと期待結果）
+1. **コンパイル直後・ドメインリロード中の EDC は失敗する**: run-scenario.sh / preflight.sh は `edc_retry`（5秒間隔・最大6〜8回）で吸収済み。手で叩くときも1回の失敗で諦めない
+2. **worktree 初回起動のスキーマ再コンパイル**: 「Schemaフォルダに変更がありました→Core.Master再コンパイル」が**PlayMode中に発火するとドメインリロードで初期化が破壊される**（WebUiHost が起動→停止を繰り返すのが痕跡）。worktree 初回は PlayMode 前に `uloop compile` を一度通して落ち着かせる
+3. **DebugObjectsBootstrap**: 無効化しないと IngameDebugConsole が毎フレーム NRE を吐く環境がある（エラーログ1.9万件で本当のエラーが埋もれた）。`PlaytestBoot` はテストと同じ `DebugObjectsBootstrap_Disabled` SessionState フラグを自動設定し、Play終了時に復元する
+4. **worktree の Library**: メインの `Library`(28G) を `cp -Rc`（APFS clonefile）で複製すれば再インポート不要で数秒。**メイン側の Unity が閉じている時に行う**。`Assets/PersonalAssets`（非公開アセット）と `UserSettings` も同様にコピー
+5. **moorestech_web の node バイナリ**: worktree には `moorestech_web/node/` が無く WebUiHost がエラーを出すが、**ゲーム初期化は継続する**（無視可。気になるなら `moorestech_web/setup.sh`）
 
-メインはこの実行計画を受け取ってから Step 1 以降を実行する。
+## トラブルシュート（DSL実行が進まないとき）
 
-### 録画は Unity Recorder 一択
-macOS の `screencapture -V` や `ffmpeg -f avfoundation` を使うアプローチも技術的には可能だが、**OS 越し画面キャプチャはフォーカス・解像度・他ウィンドウ重なりに脆弱**。Unity Recorder は GameView レンダリング結果を内部で直接受け取るので、Unity ウィンドウが他アプリの裏に隠れていても録画品質が変わらない。「フォーカス不要」が要件のとき OS 録画は選択肢から外す。
+ready.marker が出ない / result.json が出ないときの診断EDC（1回で全部見る）:
+```bash
+uloop execute-dynamic-code --project-path <client> --code 'return "playing=" + UnityEditor.EditorApplication.isPlaying + " serverCtx=" + Game.Context.ServerContext.IsInitialized + " ready=" + Client.Playtest.Core.PlaytestGameReady.IsReady + " scene=" + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;'
+```
+- `serverCtx=False` のまま → 初期化前半で死んでいる。`uloop get-logs --log-type Error` と `--log-type Exception` を確認（**NREスパムで埋もれるので、メッセージをdedupして眺める**）。`MooresmasterLoaderException` ならピン留め master を確認
+- `playing=False` → PlayMode に入っていない。boot の EDC レスポンスを確認
+- 進行地点の特定には最新の Log 型ログ（`[WebUiHost] ready` 等）が有効
 
-### 座標設計は別エージェントに事前検討させる
-複数ブロックを連結するシナリオ (例: ベルト連鎖、回路) では **Plan サブエージェントに「絶対座標で input/output offset が一致するか」を表で出させてから実装**する。手書きで座標を決めると connector 不一致で「設置は成功するが繋がらない」状態になる。**connector の YAML データを実際に grep で読み**、各ブロックの `inputConnects[].offset` / `outputConnects[].offset` を「OriginalPos + offset = 絶対座標」で計算した表が信頼できる証拠。
+---
 
-### 検証は内部状態の dump ではなく UI を開いて視覚確認する
-`WorldBlockDatastore.GetItem(slot)` で数値を返すだけだと「データレイヤは正しいが UI Prefab 配線が間違っている」バグを見落とす。**SubInventory state を強制起動して `screenshot --capture-mode rendering` で撮る**。プレイヤーが実際に見る画面に item アイコンが表示されることまで含めて確認する。内部 dump はサニティチェック用の補助。
+# Step 0: サブエージェントによる探索と実行計画作成（複雑シナリオでは必須）
 
-### セーブをロード・保存しないモードで起動する (moorestech、必要に応じて)
-playtest は再現性が命なので、既存セーブをロードせず・オートセーブもしないクリーンな状態で起動するのが望ましい。既存セーブで世界が汚れる / playtest の操作が本番セーブを破壊するのを防げる。「まっさらな世界から検証する」シナリオでは原則これを使う（既存セーブの状態を引き継いで検証したい場合のみ無効のまま）。
+PlayMode 起動より前に行う。単純なシナリオ（設置→give→assert 程度）なら DSL の Driver API 表だけで書けるので省略可。**複数ブロック連結・UI操作・列車などの複雑シナリオでは、必ず Plan または general-purpose サブエージェントに探索を委譲**し、以下を調査・出力させる:
 
-PlayMode 突入前 (EditMode 中) に SessionState フラグを立ててから `control-play-mode --action Play` する:
+1. **前提手順の連鎖** — シナリオ成立に先行して必要な操作（依存ブロック・必要アイテム・操作順序）。例: 「列車に乗る」には先にレール設置 → 列車設置が要る
+2. **各操作の呼び出し経路** — DSL Driver / API 直叩き / `QueueStateEvent` 注入 / リフレクション遷移のどれか。**対象が触る入力読み取り箇所を grep し、legacy `UnityEngine.Input.*` を読んでいたら注入で駆動できない**ことを明示させる
+3. **絶対座標と connector offset の表** — 複数ブロック連結なら YAML の `inputConnects[].offset` / `outputConnects[].offset` を「OriginalPos + offset = 絶対座標」で計算した表。手書き座標は「設置は成功するが繋がらない」を生む
+4. **実コードで使うAPI/フィールド名の実在確認** — スニペットで叩く名前を**実ファイルを Read して確認**（存在しない名前を polling に書くと Result 空のまま無限ループ化する）
+5. **Step 単位の実行計画** — 各 Step のコマンドと期待結果
+
+---
+
+# 方式B: レガシー手動フロー（DSLが無いブランチ用）
+
+DSL 未導入ブランチでのフォールバック。全体フロー:
+
+```
+1. (前提) Unity 起動、CLI Loop サーバ起動済み（uloop list で確認）
+2. NoSave フラグ: SessionState.SetBool("moorestech_SkipSaveLoadPlayMode", true)
+   masterパス: DebugParameters.SaveString(ServerDirectory.DebugServerDirectorySettingKey, <ピン留めmaster>)
+   デバッグ無効化: SessionState.SetBool("DebugObjectsBootstrap_Disabled", true)
+3. uloop control-play-mode --action Play
+4. readiness polling（下記ガード付き until。固定sleepの多段待機はしない）
+5. シナリオ準備（世界配置・カメラframing・UI状態遷移）— まだ録画しない
+6. de-risk probe: 単体入力を注入して期待状態を1つ確認（録画前の必須ゲート）
+7. Recorder 起動（AppDomain に保持）← アクション直前で初めてON
+8. シナリオ実行（API叩き / QueueStateEvent注入 / リフレクション遷移）
+9. 各ビートで uloop screenshot --capture-mode rendering + 内部状態read
+10. Recorder 停止（アクション直後に即OFF）→ control-play-mode --action Stop
+11. 動画確認（0 byteは失敗）。必要なら ffmpeg -ss -t -c copy で切り出し
+```
+
+## readiness polling のガード（無限ループ事故防止・5点全部付ける）
+
+ポーリングを `until <cmd> | grep -q <pattern>` "だけ" で書くと、スニペットのコンパイル失敗（存在しないAPI・shellエスケープで `&&` が化ける等）で `Result` が空になり**無限ループ化する**。
+
+1. **事前単発検証**: ループ化前に1回叩いて `Success: true` + `Result` の形式を目視
+2. **ループ内でエラーを毎回判定して即 abort（最重要）**: `error CS` / `CompilationErrors` 非空 / `"Success": false` / `Result` 空 → 待たずに停止。`Domain Reload` だけは一過性なので短く待って再試行。判定優先順位は**エラー検知 > 成功検知 > 待機**
+3. **timeout 必須**（最後の保険。エラー検知の代わりではない）。抜けたら `uloop get-logs --log-type Error`
+4. **grep は Result 行に限定**（`grep -q "Result.*ready=True"`）
+5. **sleep は 5 秒以上**（短間隔はドメインリロードを煽る）
+
+長い C# は `--code` 直書きせず**一時ファイルに書いて `$(cat file)` で渡す**とエスケープ事故を防げる。検証系スニペットは `$"..."` 補間より `"x=" + val` 連結が安定。
+
+## Recorder の手動制御（DSLの `Record=true` が使えない場合）
+
+snippet 間で RecorderController を持ち越すには `AppDomain.SetData/GetData` が唯一の手段（static/EditorPrefs 不可、Domain Reload で消える）:
 
 ```bash
-uloop execute-dynamic-code --project-path ./moorestech_client --code 'UnityEditor.SessionState.SetBool("moorestech_SkipSaveLoadPlayMode", true); return "set";'
-```
-
-`InitializeScenePipeline` がこれを読み、サーバを `AutoSave=false` + 一時 saveFilePath で起動する。フラグは PlayMode 終了時に自動クリアされるため Play のたびに立て直す。moorestech 固有の仕組み (Unity ツールバーの「NoSave Play」再生ボタンと同一)。
-
-### 「プレイヤー側に近い」優先順位
-プロジェクトに UI controller 層 (例: `LocalPlayerInventoryController`) があるなら、ネットワークプロトコル層 (`VanillaApi.SendOnly` 等) より上の controller 層を優先して叩く。理由: controller 層は「local UI 状態の更新 + サーバ送信」を 1 コールでやるので、UI と data の整合性まで確認できる。サーバ送信だけだと UI 更新パスが回らずバグを見落とす。
-
-### 入力注入の鉄則 — OS入力(simulate-*)と InputSystem注入(QueueStateEvent)を混ぜない（最重要）
-
-このスキルで入力を扱うとき、世界は2つしかなく**両立しない。フォーカス不要のこのスキルでは必ず前者(A)だけで通す**:
-
-- **(A) InputSystem 直接注入 — `InputSystem.QueueStateEvent(Mouse.current / Keyboard.current, …)`**: フォーカス不要・決定論的。マウスもキーボードもこれで送る。**今回これだけで通したら一発で撮れた。**
-- **(B) OS入力 — `uloop simulate-keyboard` / `uloop simulate-mouse-input`**: OS経由でキー/マウスを送るため **Unity Editor をフォアグラウンドに引き出す**。すると Game View が OSポインタフォーカスを取得し、**実OSマウス状態が毎 dynamic frame `Mouse.current` に forward され、(A) の `QueueStateEvent` 注入を上書きして無効化する**。
-
-**致命的な相互作用（今回1時間溶かした事故）**: (A)でマウスを注入してドラッグ中に、ESCを (B)`simulate-keyboard` で1回送った瞬間に Editor が前面化 → 以降マウス注入が毎フレーム実OSカーソル(例: 画面外(1049,2086)・ボタン非押下)に戻され、選択が一切積まれなくなった。**一度この汚染が起きると PlayMode 再起動でしか戻らなかった**。
-
-したがって:
-- **DON'T**: PlayMode 中に `uloop simulate-keyboard` / `uloop simulate-mouse-input`（フォーカスを伴う系）を使う。キー入力も含めて。
-- **DO**: マウスもキーも `InputSystem.QueueStateEvent` で注入する。`InputSystem.Update()` はスニペット内で呼ばない（後述）。
-
-```csharp
-// マウス（押下/移動/解放）。HELD: true=押下中(ドラッグ), false=解放
-using UnityEngine.InputSystem; using UnityEngine.InputSystem.LowLevel;
-var st = new MouseState { position = new UnityEngine.Vector2(SX, SY) };
-st = st.WithButton(MouseButton.Left, HELD);
-InputSystem.QueueStateEvent(Mouse.current, st);   // ← Update()は呼ばない。次のPlayModeフレームに処理させる
-```
-```csharp
-// キーボード（down と release を別スニペット＝別フレームで）
-var ks = new KeyboardState(); ks.Set(Key.Escape, true);
-InputSystem.QueueStateEvent(Keyboard.current, ks);   // down
-// （shell sleep 0.5 を挟む）
-InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());   // release
-```
-
-#### 前提: 検証対象コードが「InputSystem を読んでいる」こと
-`QueueStateEvent` で注入できるのは InputSystem 側(`Mouse.current` / `Keyboard.current` / InputAction)だけ。**検証対象コードが legacy `UnityEngine.Input.mousePosition` / `Input.GetKeyDown` を読んでいると、いくら注入しても駆動できない**（別系統）。Step 0 探索で対象シナリオが触る入力読み取り箇所を grep し、legacy を読んでいたら「`Mouse.current` 等へ移行しないと録画で駆動不能」とユーザーに報告する（今回は `BlockClickDetectUtil` の raycast を `Input.mousePosition` → `Mouse.current.position` へ移行して初めて録画が成立した）。
-
-#### `InputSystem.Update()` をスニペット内で呼ぶな
-queue 後に自前で `InputSystem.Update()` を呼ぶと、それは editor-update 文脈であり、InputAction の `WasPressedThisFrame()`/`IsPressed()` が発火しない（低レベル `Mouse.leftButton.isPressed` は変わるのに高レベル Action は False のまま）。**「queue → shell sleep（=本物の PlayMode フレームを進める）→ 別スニペットで読む」が唯一機能する。**
-
-#### 座標系（混同すると上下反転）
-- `Mouse.current.position` と `Camera.WorldToScreenPoint` は **左下原点ピクセル**（同一系。注入はこちらで計算する）。
-- `uloop simulate-mouse-input --x/--y` は **左上原点**。混ぜると反転する（そもそも simulate-* は使わない方針だが念のため）。
-
-#### ワールドオブジェクトを狙うときは collider.bounds.center
-クリック対象の screen 座標は **`Camera.main.WorldToScreenPoint(collider.bounds.center)`** で出す。論理原点(Vector3Int)や `OriginalPos`+手書きoffset を狙うと、footprint origin 規約のズレで地面(Terrain)に当たり、Block 専用レイヤマスク付き raycast が MISS して `selected=0` になる（今回 collider 中心は論理原点から約 (+1.0, +0.9, +1.5) ズレていた）。詰まったら **無マスクで `Physics.Raycast` を撃ち、当たった collider の `gameObject.layer` を出して**、狙うべき層と実際に当たる層の差を可視化する。
-
-## 全体フロー
-
-```
-0. サブエージェントにコード/データ探索 + 実行計画作成を委譲 (必須・後述 Step 0)
-1. (前提) Unity 起動、CLI Loop サーバ起動済み
-2. uloop control-play-mode --action Play     # PlayMode 突入
-3. shell sleep 15-25 + readiness polling      # ブート待機
-4. シナリオ準備 (世界配置・カメラframing・UI状態遷移) — まだ録画しない
-5. de-risk probe: 単体入力を注入して期待状態を1つ確認  # 録画前の必須ゲート
-6. uloop execute-dynamic-code で Recorder 起動 (AppDomain に保持) ← ここで初めてON
-7. シナリオ実行ループ (a/b/c を組み合わせる) — Step 0 の実行計画に従う
-   a. API 叩き                              # 設置・データ操作・準備
-   b. InputSystem QueueStateEvent で入力注入  # マウス/キー。OS simulate-* は使わない
-   c. リフレクションで状態強制遷移            # クリックでしか開けない UI 等の代替
-8. 待機は shell sleep で              # Thread.Sleep / InputSystem.Update() は禁止
-9. uloop screenshot --capture-mode rendering  # 視覚検証 (各ビート)
-10. uloop execute-dynamic-code で Recorder 停止 ← アクション直後に即OFF
-11. uloop control-play-mode --action Stop      # PlayMode 終了
-12. 動画ファイル確認 (`/tmp/<name>.mp4`) + 必要なら ffmpeg -ss -t -c copy で切り出し
-```
-
-## 確立された録画ワークフロー（実プレイ視点・決定版 / 検証済み）
-
-UIインタラクション機能を実プレイ視点で録る決定版手順。各 Step の詳細・スニペットは後続節を参照。**この順序を守れば、文脈ゼロの担当でも一発で撮れることを別subagentで実証済み。**
-
-1. **Step 0 探索**（実コードを Read して確定）: 対象が読む入力経路（`Mouse.current`/InputAction か legacy `Input` か）・readiness 条件・設置API・状態遷移の仕方・**実際に叩く API/フィールド名の実在**。
-2. **NoSave→Play→ready待ち**: SessionState フラグ→`control-play-mode Play`→単発検証してから timeout 付き until で ready をポーリング。
-3. **クリーン足場ステージを作る**（「カメラframing」節の推奨パターン）: `CreatePrimitive(Cube)` の広い板を空中配置 → `SetControllable(false)`+`SetPlayerPosition`(Warp) でプレイヤーを足場に着地 → 対象を足場上・プレイヤー前方に設置（`sleep 2` で View 生成待ち）。
-4. **実プレイヤーカメラのまま framing**: Cinemachine を切り離さず `StartTweenCamera`（pitch 浅め・distance 中庸）で寄せ、`screenshot --capture-mode rendering` で**アバター＋足場＋対象が映る**まで反復。
-5. **de-risk probe**（録画前の必須ゲート）: `collider.bounds.center` を1点 queue→sleep→内部状態 read で「単体選択=1」を確認。通らなければ座標/入力汚染/layer を切り分け。
-6. **Recorder ON**（アクション直前。boot/準備/de-risk は録らない）。
-7. **シナリオ実行**: 入力は全て `QueueStateEvent`（マウス/キー）。ドラッグは held 維持、**キー注入時は held マウスstateも再アサート**、`InputSystem.Update()` は呼ばない。各ビートで `screenshot` ＋内部状態 read。
-8. **Recorder OFF**（アクション直後）→ `control-play-mode Stop`。
-9. **受け入れ4条件を全部確認**（Step 7 参照）: 動画非0 / 内部 state / UI要素 / **実プレイ視点（アバター・地面・HUD が映る）**。
-10. **詰まったら**: 入力が一切効かない/汚染は **PlayMode 再起動で回復**。OS `simulate-*` は最後まで使わない。
-
-## Step 0: サブエージェントによる探索と実行計画作成 (必須)
-
-PlayMode 起動より前に行う。**メインは Plan または general-purpose サブエージェントを起動**し、検証対象シナリオについて以下を調査・出力させる:
-
-1. **前提手順の連鎖** — シナリオを成立させるために先行して必要な操作（依存ブロック・必要アイテム・操作順序）。例: 「列車に乗る」には先にレール設置 → 列車設置が要る。
-2. **各操作の呼び出し経路** — API 直叩き / controller 層 / `QueueStateEvent` 注入 / リフレクション遷移 のどれを使うか。**対象シナリオが触る入力読み取り箇所を grep し、`UnityEngine.Input.mousePosition` / `Input.GetKeyDown` といった legacy Input を読んでいたら注入で駆動できない**（`Mouse.current`/`Keyboard.current` への移行が要る）ことを明示させる。OS `simulate-*` は使わない前提で計画する。
-3. **絶対座標と connector offset の表** — 複数ブロックを連結するなら YAML を読んで `inputConnects[].offset` / `outputConnects[].offset` を絶対座標で計算した表（「座標設計」節参照）。クリック対象は `collider.bounds.center` を狙う前提で screen 座標式も出す。
-4. **readiness 判定条件と起動前提** — ブート完了判定の static 条件、NoSave フラグ等。
-5. **実コードで使うAPI/フィールド名の実在確認** — スニペットで叩く予定のメソッド/プロパティ/private フィールド名を**実ファイルを Read して確認**する（タスク記述や記憶のAPI名を無検証で使わない）。存在しない名前を polling/probe に書くと `Result` が空になり until ループが無限化する。今回 `SelectedCount()` が実コードに無く（内部 `Dictionary` だった）reflection で `.Count` を読む必要があった。
-6. **Step 単位の実行計画** — 各 Step の uloop コマンドと期待結果を列挙したもの。
-
-メインはこの実行計画を受領・確認してから Step 1 以降に進む。探索を省略してメインが直接 PlayMode を起動することは禁止。
-
-## Step 1: PlayMode 起動とブート待機
-
-```bash
-uloop control-play-mode --action Play
-sleep 18   # 必要時間はプロジェクト依存。アセットロードが重い場合 30-60s 必要
-```
-
-**ブート完了 polling** をプロジェクト固有の readiness 条件で行う。
-
-### Step 1a: ポーリング snippet を「先に 1 回単発実行」する (必須)
-
-ループ化する前に、必ずスニペットを単発で叩いて `Success: true` かつ `Result` が期待形式で返ることを確認する。スニペット内の C# にコンパイルエラーがあると `Result` が空のまま返り、後段の `grep` が永遠に成功しないので **until ループに入れた瞬間に無限ループ化する** (実例: `MasterHolder.BlockMaster?.GetBlockMasters().Count` のように存在しないメソッドを書いてしまうケース)。
-
-```bash
-# 単発検証: Success=true と Result= の中身を目視確認する
-uloop execute-dynamic-code --project-path ./<unity-project> --code '
-using UnityEngine.SceneManagement;
-// ↓ プロジェクト固有: 自分の DI / static state の null チェックに置き換える
-// using YourProject.Context;
-// return $"scene={SceneManager.GetActiveScene().name} ready={YourContext.IsInitialized}";
-return $"scene={SceneManager.GetActiveScene().name}";
-' 2>&1 | head -10
-```
-
-### Step 1b: 単発で動いた snippet を「毎回エラー判定する」 until に乗せる
-
-ポーリングの各反復で**必ず出力を一度キャプチャし、(1) コンパイルエラー / `Success: false` / `Result` 空 を検知したら待たずに即 abort、(2) ready=True なら成功で抜ける、(3) クリーンに走ったが未 ready のときだけ sleep して再試行**する。`grep -q "Result.*ready=True"` "だけ" で待つのは禁止 — スニペットがコンパイル失敗して `Result` が空でも grep が永遠に空振りし、`待つべきでない状況をひたすら待ち続ける`（今回の事故そのもの）。`timeout` は最後の保険であって、エラー検知の代わりにはならない。
-
-**スニペットは shell エスケープで壊れやすい**（今回 `&&` が `\&\&` に化けてコンパイル失敗 → `Result` 空 → 待ち続けた）。`--code` に長い C# を直書きせず、**一時ファイルに書いて `$(cat file)` で渡す**とエスケープ事故を防げる。
-
-```bash
-# readiness スニペットを temp ファイルへ（エスケープ事故回避）。&& 等もそのまま書ける
-cat > /tmp/ready_probe.cs <<'EOF'
-using UnityEngine.SceneManagement;
-return "scene=" + SceneManager.GetActiveScene().name
-     + " ready=" + (YourContext.IsInitialized ? "True" : "False");
-EOF
-
-# 120 秒上限・各反復でエラー判定してから待つ
-CODE=$(cat /tmp/ready_probe.cs)
-timeout 120 bash -c '
-CODE="$1"
-while true; do
-  OUT=$(uloop execute-dynamic-code --project-path ./<unity-project> --code "$CODE" 2>&1)
-  # (1) スニペットが壊れている/失敗している → 待たずに即停止
-  if echo "$OUT" | grep -qiE "CompilationErrors.*[^][]|\"Success\": false|Domain Reload|error CS[0-9]"; then
-    # Domain Reload だけは一過性なので短く待って再試行、それ以外は abort
-    if echo "$OUT" | grep -qi "Domain Reload"; then sleep 8; continue; fi
-    echo "SNIPPET_ERROR — 待機中止"; echo "$OUT" | head -30; exit 2
-  fi
-  # (2) ready 到達 → 成功
-  if echo "$OUT" | grep -q "Result.*ready=True"; then echo "READY"; exit 0; fi
-  # (3) クリーンに走ったが未 ready → ここでだけ待つ
-  sleep 5
-done
-' _ "$CODE"
-RC=$?
-if [ $RC -eq 2 ]; then echo "スニpeットが壊れている。コードを直して再実行"; fi
-if [ $RC -ne 0 ] && [ $RC -ne 2 ]; then echo "boot timeout"; uloop get-logs --project-path ./<unity-project> --log-type Error --max-count 20; fi
-```
-
-判定の優先順位は **エラー検知 > ready 検知 > 待機**。`Result` が空＝「まだ未 ready」ではなく「スニペットが走っていない」可能性が高いので、空 Result は待機ではなく abort 側に倒す。
-
-`timeout` で抜けた場合・SNIPPET_ERROR の場合は必ず `uloop get-logs --log-type Error` を確認 (本番マスタの validation 失敗・サーバーポート競合 `SocketException: Address already in use`・スニペット compile error 等でブートが止まっていることがある)。
-
-## Step 1.5: de-risk probe（録画前の必須ゲート）
-
-世界配置・カメラframing・状態遷移を終えたら、**録画を始める前に「単体の入力注入で期待状態が1つ成立するか」を確認する**。ここを通さずに本番シナリオを録ると、座標ズレ・入力汚染・API名乖離で `selected=0` のまま全テイクが無駄になる（今回これで撮り直しになった）。
-
-例（破壊モードで1台ホバー選択できるか）:
-```bash
-# 1) collider中心の screen 座標を1点 queue（HELD=true）= 「入力注入の鉄則」節のマウス QueueStateEvent スニペットを SX/SY=collider中心・HELD=true で1回実行
-uloop execute-dynamic-code --project-path ./<proj> --code '
-var st = new UnityEngine.InputSystem.LowLevel.MouseState { position = new UnityEngine.Vector2(409f, 458f) };
-st = st.WithButton(UnityEngine.InputSystem.LowLevel.MouseButton.Left, true);
-UnityEngine.InputSystem.InputSystem.QueueStateEvent(UnityEngine.InputSystem.Mouse.current, st);
-return "queued";'
-sleep 0.5                               # 本物のフレームを進める
-# 2) 別スニペットで内部状態を read（API名は実コードで確認したものを使う）
-uloop execute-dynamic-code --project-path ./<proj> --code '
-var sel = /* DeleteObjectState._selection を reflection 取得 */;
-var dict = (System.Collections.IDictionary)sel.GetType()
-  .GetField("_selectedTargets", System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)
-  .GetValue(sel);
-return $"selected={dict.Count}";'   # ← 1 を期待
-```
-- `selected>=1` なら注入が本物の raycast/選択を駆動できている → 録画へ。
-- `selected=0` なら原因切り分け: (a) `Mouse.current.position` が注入値か実OSカーソルか直読み、(b) 無マスク `Physics.Raycast` で当たる collider の layer を出す（Terrain に当たっていないか）、(c) `collider.bounds.center` を狙っているか、(d) OS simulate-* で汚染していないか。直してから再 probe。
-
-## Step 2: Unity Recorder の起動
-
-**録画ウィンドウは最小に**: boot待ち・世界配置・カメラframing・状態遷移・de-risk probe は**録画OFFのまま**やり、検証アクション（撮りたい操作）の直前に StartRecording、直後に StopRecording する。これを怠ると尺が膨らむ（実測: 全部録ると 3分/80MB、アクションだけだと 1:23/34MB、さらに `ffmpeg -ss <start> -t <dur> -c copy out.mp4` で無再エンコ切り出しすると数秒/数MB）。尺の主因は入力ステップ間の必須 `sleep 0.5` なので、sleep は削れない＝録画窓を絞るのが効く。
-
-snippet 間で RecorderController を持ち越すため `AppDomain.SetData` を使う (これが唯一信頼できる cross-snippet state):
-
-```bash
-uloop execute-dynamic-code --project-path ./<unity-project> --code '
+uloop execute-dynamic-code --project-path <proj> --code '
 using System;
 using UnityEngine;
 using UnityEditor.Recorder;
@@ -258,9 +189,8 @@ using UnityEditor.Recorder.Encoder;
 using UnityEditor.Recorder.Input;
 
 var settings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
-settings.SetRecordModeToManual();
+settings.SetRecordModeToManual();    // 忘れると FrameInterval で勝手に停止する
 settings.FrameRate = 30;
-
 var movie = ScriptableObject.CreateInstance<MovieRecorderSettings>();
 movie.name = "playtest";
 movie.Enabled = true;
@@ -268,251 +198,120 @@ movie.EncoderSettings = new CoreEncoderSettings {
     EncodingQuality = CoreEncoderSettings.VideoEncodingQuality.High,
     Codec = CoreEncoderSettings.OutputCodec.MP4,
 };
-movie.ImageInputSettings = new GameViewInputSettings {
-    OutputWidth = 1280,
-    OutputHeight = 720,
-};
+movie.ImageInputSettings = new GameViewInputSettings { OutputWidth = 1280, OutputHeight = 720 };
 movie.OutputFile = "/tmp/playtest";   // .mp4 自動付与
-
 settings.AddRecorderSettings(movie);
 var ctrl = new RecorderController(settings);
 ctrl.PrepareRecording();
 ctrl.StartRecording();
 AppDomain.CurrentDomain.SetData("playtest_recorder", ctrl);
-return $"recording started: /tmp/playtest.mp4 isRec={ctrl.IsRecording()}";
-'
+return "recording started isRec=" + ctrl.IsRecording();'
 ```
 
-## Step 3: シナリオ実行 - API/入力注入/リフレクションの使い分け
+停止は `GetData` で取得して `StopRecording()` → `sleep 2`（muxer完了待ち）→ `ffprobe` 確認。`scripts/start-recording.sh` / `scripts/stop-recording.sh` が参考実装。
 
-**入力は原則すべて `InputSystem.QueueStateEvent` で注入する**（「入力注入の鉄則」節参照）。OS `simulate-keyboard`/`simulate-mouse-input` は注入を汚染するため使わない。
+**録画ウィンドウは最小に**: boot待ち・世界配置・framing・de-risk probe は録画OFFのまま行い、検証アクションの直前ON/直後OFF。尺の主因は入力ステップ間の必須 sleep 0.5 なので、録画窓を絞るのが効く（実測: 全部録ると3分/80MB、アクションだけだと1:23/34MB）。1280×720 30fps H264 で約25MB/分。
 
-| プレイヤー操作 | 手段 | 備考 |
-|---|---|---|
-| データ準備（インベントリ初期化、座標テレポート、世界配置）| **API 直叩き** (`execute-dynamic-code`) | プレイヤーの採掘・歩行を省略。フォーカス不要 |
-| キー入力 (ESC/E/数字/Tab 等、InputSystem 配下) | **`QueueStateEvent(Keyboard.current, …)`** | down と release を別スニペット=別フレームで。OS simulate-keyboard は禁止 |
-| マウス（クリック/ドラッグ/ホバー） | **`QueueStateEvent(Mouse.current, …)`** | position=`WorldToScreenPoint(collider.bounds.center)`。ドラッグは HELD=true で position を複数フレームに渡って更新、最後に HELD=false |
-| legacy `UnityEngine.Input.GetKeyDown`/`Input.mousePosition` でしか拾えない箇所 | **コードを InputSystem へ移行**、または **リフレクションで状態強制遷移** | 注入では届かない。移行できないなら下記リフレクションで代替 |
-| クリックでしか開けない UI window の強制起動 (例: SubInventory/DeleteBar) | リフレクションで `UIStateControl` の state を `OnExit→OnEnter→CurrentState set` | programmatic に開ける |
+## 待機の取り方
 
-### 連続ドラッグの組み立て方（押下したまま移動）
-`uloop` のマウスアクションは「押下したまま経路移動」を持たないので、`QueueStateEvent` を**1ステップ1スニペットで** position+button 同時送出し、間に `shell sleep 0.5`（最低0.4）を挟む。`InputSystem.Update()` はスニペット内で呼ばない（本物のフレームに処理させる）。
+- PlayMode の時間を進める待機は **shell sleep + 別スニペット**。EDC 内 `Thread.Sleep` は main thread を握って Update ごと止めるので禁止
+- `InputSystem.Update()` をスニペット内で呼ぶと editor-update 文脈になり InputAction の `WasPressedThisFrame`/`IsPressed` が発火しない。**「queue → shell sleep（本物のフレームを進める）→ 別スニペットで read」が唯一機能する**
 
-```
-[down]  queue pos=p0, HELD=true   → sleep0.5 →  (この間に GetKeyDown 発火 = ドラッグ開始)
-[move]  queue pos=p1, HELD=true   → sleep0.5 →  (IsPressed 継続、p1 上の対象を選択)
-[move]  queue pos=p2, HELD=true   → sleep0.5
-[up]    queue pos=p2, HELD=false  → sleep0.5 →  (GetKeyUp 発火 = 確定/削除)
-```
-各ビート後に状態を**別スニペットで read**して期待値（選択数・state 等）を確認してから次へ進む。
+---
 
-#### ⚠️ ドラッグ中に別デバイス(キー)を注入するときは held マウスstateを毎フレーム re-assert する（実測30分溶かした罠）
-マウス左ボタンを HELD=true のまま「キーボードの `QueueStateEvent`(例: ESC down/up)」を注入すると、**キーイベントを跨いだ瞬間に held 中の左ボタンに spurious な press edge が乗り、`WasPressedThisFrame`(GetKeyDown)が再発火する**。ドラッグ系stateだと `BeginDrag()` 等が再走し、選択がリセット→カーソル下を再選択→意図せぬ確定(誤削除)になる。
-対策: **ドラッグ中にキー入力を注入する各フレームで、同じスニペット内 or 直前直後に「左ボタン HELD=true・同座標」のマウスstateも一緒に re-queue し、押下を連続的に維持する**。これで press edge が再発火せず、ESC等のキーがクリーンに一発で効く。
+# 入力注入の鉄則（方式A/B共通・最重要）
+
+世界は2つあり**両立しない。必ず (A) だけで通す**:
+
+- **(A) InputSystem 直接注入 — `InputSystem.QueueStateEvent(Mouse.current / Keyboard.current, …)`**: フォーカス不要・決定論的
+- **(B) OS入力 — `uloop simulate-keyboard` / `simulate-mouse-input`**: Editor を前面化させ、**実OSマウス状態が毎フレーム `Mouse.current` に forward されて (A) の注入を上書き無効化する。一度汚染すると PlayMode 再起動でしか戻らない**（ドラッグ中に ESC を simulate-keyboard で1回送っただけで以降全注入が死んだ実績あり）
+
 ```csharp
-// 例: ESC を押す瞬間も左ドラッグを維持する（マウスstateを先に re-assert してからキーを送る）
-var ms = new MouseState { position = new UnityEngine.Vector2(SX, SY) };
-ms = ms.WithButton(MouseButton.Left, true);   // ← held を再アサート
-InputSystem.QueueStateEvent(Mouse.current, ms);
+// マウス（押下/移動/解放）。HELD: true=押下中(ドラッグ), false=解放
+using UnityEngine.InputSystem; using UnityEngine.InputSystem.LowLevel;
+var st = new MouseState { position = new UnityEngine.Vector2(SX, SY) };
+st = st.WithButton(MouseButton.Left, HELD);
+InputSystem.QueueStateEvent(Mouse.current, st);   // Update()は呼ばない
+```
+```csharp
+// キーボード（down と release を別スニペット=別フレームで）
 var ks = new KeyboardState(); ks.Set(Key.Escape, true);
 InputSystem.QueueStateEvent(Keyboard.current, ks);
+// （shell sleep 0.5 を挟んでから）
+InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
 ```
 
-### legacy Input 遷移をリフレクションで代替する典型コード
+- **前提: 対象コードが InputSystem を読んでいること**。legacy `UnityEngine.Input.mousePosition` / `Input.GetKeyDown` を読む箇所は注入で駆動不可（moorestech の残存箇所: カメラズームF1/F2・設置高さQ/E・右クリックカメラ）。移行するか、リフレクションで状態遷移を代替
+- **クリック座標は `Camera.main.WorldToScreenPoint(collider.bounds.center)`**（左下原点。`--capture-mode rendering` のスクショ座標と同一系）。論理原点や手書きoffsetを狙うと Terrain に当たって raycast MISS。詰まったら無マスク `Physics.Raycast` で当たる layer を可視化
+- **ドラッグ中にキーを注入する各フレームでは、held マウス state（HELD=true・同座標）を同時に re-queue** しないと spurious press edge で `WasPressedThisFrame` が再発火し、選択リセット/誤確定が起きる
+- 連続ドラッグは「1ステップ1スニペット（position+button 同時送出）+ 間に shell sleep 0.5」で組む。各ビート後に別スニペットで状態を read してから次へ
 
-UI ステートマシン型のプロジェクトで `Input.GetKeyDown` が遷移トリガになっているとき:
+## de-risk probe（録画前の必須ゲート）
 
-```csharp
-using System.Reflection;
+録画開始前に「単体の入力注入で期待状態が1つ成立するか」を必ず確認する（座標ズレ・入力汚染・API名乖離で全テイクが無駄になるのを防ぐ）。`collider.bounds.center` を1点 queue → sleep 0.5 → 別スニペットで内部状態 read（例: `selected=1`）。0 なら (a) `Mouse.current.position` が注入値か実OSカーソルか、(b) 無マスク raycast の当たり layer、(c) 狙い座標、(d) OS simulate-* 汚染、の順に切り分け。
 
-var ctrl = UnityEngine.Object.FindFirstObjectByType<UIStateControl>();
-var dictField = typeof(UIStateControl).GetField("_uiStateDictionary", BindingFlags.NonPublic | BindingFlags.Instance);
-var dict = dictField.GetValue(ctrl);
-var getStateMethod = dict.GetType().GetMethod("GetState");
+## カメラ framing は「実プレイ視点」を壊すな（録画の価値そのもの）
 
-// 1. 現在 state に OnExit
-var cur = getStateMethod.Invoke(dict, new object[] { ctrl.CurrentState });
-cur.GetType().GetMethod("OnExit").Invoke(cur, null);
+- **不合格の典型**: `CinemachineBrain` を無効化して俯瞰カメラを直置き → アバター・地面・HUDが消えた「実プレイ感ゼロ」の絵。内部 state が正しくても不合格
+- **正解**: 実プレイヤーカメラを生かしたまま、プレイヤー位置 × カメラ角度/距離をセットで反復。`SetControllable(false)` → `SetPlayerPosition`(Warp) で足場に立たせ、`StartTweenCamera`(pitch浅め・distance中庸) で寄せ、screenshot で**アバター+足場+対象が映る**まで詰める
+- **推奨パターン「クリーン足場ステージ」**は DSL の `SetupFlatGround()` に実装済み（板Primitive(50,3,50)@(0,30,0)+Warp）。手動でも同じ構成を作る
+- カメラ controller の `SetEnabled(false)` 系は `Camera.main` を null 化して raycast/WorldToScreenPoint が全滅する。**切り離さないのが正解**
 
-// 2. 次 state に OnEnter (必要なら context を渡す)
-var ctxContainer = new UITransitContextContainer();
-ctxContainer.Set<ISubInventorySource>(/* プロジェクト固有のソース */);
-var ctx = System.Activator.CreateInstance(typeof(UITransitContext), TargetStateEnum, ctxContainer);
-var next = getStateMethod.Invoke(dict, new object[] { TargetStateEnum });
-next.GetType().GetMethod("OnEnter").Invoke(next, new object[] { ctx });
+## 検証と完了判定（成功条件4つ全部）
 
-// 3. CurrentState を更新 (private setter を SetValue で書く)
-typeof(UIStateControl).GetProperty("CurrentState").SetValue(ctrl, TargetStateEnum);
-```
+1. 動画が想定サイズで生成（`ffprobe` で Duration 確認、0 byte は失敗）
+2. 期待する内部 state の達成（DSL なら result.json の Asserts、手動なら EDC read）
+3. 検証スクショに期待 UI 要素が映っている（**内部 dump だけで済ませない** — 「データは正しいが UI Prefab 配線が違う」を見落とす。SubInventory 等を開いて撮る）
+4. **絵が実プレイ視点**（アバター・地面・HUD が映る）
 
-`UIStateControl` 等のクラス名はプロジェクト固有。State machine pattern を採用していない場合は別アプローチ (ScreenSpaceOverlay の親 Canvas を SetActive 等)。
+---
 
-## Step 4: 待機の取り方
-
-PlayMode 内で時間を進めるには `shell sleep` を使う。**execute-dynamic-code 内で `Thread.Sleep` を呼ぶと PlayMode の Update が止まる** (main thread を握ってしまうため)。同じく **`InputSystem.Update()` をスニペット内で呼んでも入力は前進しない**（InputAction が発火しない。「入力注入の鉄則」節）。入力注入も「queue → shell sleep → 別スニペットで read」で本物のフレームに処理させる。
-
-```bash
-# PlayMode が動き続ける正しい待機:
-sleep 6
-uloop execute-dynamic-code --code '...verify state...'
-
-# ❌ NG (Update が 6 秒凍る):
-uloop execute-dynamic-code --code 'System.Threading.Thread.Sleep(6000); return ...'
-```
-
-
-## Step 5: 視覚検証 (screenshot + UI 強制起動)
-
-```bash
-# 撮影前に UI を強制起動 (Step 3 のリフレクションパターン)
-uloop execute-dynamic-code --code '... force UIStateControl to TargetState ...'
-sleep 1   # UI 描画を待つ (TextMeshPro 等の async layout 対策)
-
-uloop screenshot --window-name Game --capture-mode rendering
-ls -t <unity-project>/.uloop/outputs/Screenshots/Rendering_*.png | head -1
-```
-
-`--capture-mode rendering` は GameView のレンダリング結果のみ取得 (PlayMode 必須)。`--capture-mode window` は EditorWindow 全体を取るが GameView ツールバーが映り込む。検証用は基本 `rendering`。
-
-スクリーンショットは Editor の `.uloop/outputs/Screenshots/` 配下に保存される (Project ルート相対)。Read tool で画像表示できる。
-
-## Step 6: 録画停止と動画取得
-
-```bash
-uloop execute-dynamic-code --code '
-using System;
-using UnityEditor.Recorder;
-var ctrl = AppDomain.CurrentDomain.GetData("playtest_recorder") as RecorderController;
-if (ctrl == null) return "ERROR: recorder not in AppDomain";
-ctrl.StopRecording();
-return "stopped";
-'
-sleep 2   # MP4 muxer 完了待ち
-ls -lh /tmp/playtest.mp4
-ffprobe /tmp/playtest.mp4 2>&1 | grep -E "Duration|Stream.*Video"
-
-uloop control-play-mode --action Stop
-```
-
-## Gotchas
+# Gotchas（方式A/B共通）
 
 ### Unity CLI Loop サーバ
-- **`uloop list` がエラーでもユーザーに「サーバを起動して」と言うだけで OK**。ユーザー側で `Window > Unity CLI Loop > Server` から Start。Editor を再起動するとサーバも再起動が必要。
-- `uloop compile` と `uloop run-tests` は別経路で動くため、これらが通っても `uloop list` / `simulate-*` / `screenshot` の保証にはならない。**この機能群を使う前に必ず `uloop list` で確認する**。
+- `uloop list` がエラーなら Editor 側で `Window > Unity CLI Loop > Server` を Start してもらう。`uloop compile`/`run-tests` は別経路なので、これらが通っても CLI Loop の保証にならない
 
-### 入力は QueueStateEvent 一択（OS simulate-* 禁止）— 詳細は「入力注入の鉄則」節
-- **PlayMode 中に `uloop simulate-keyboard` / `simulate-mouse-input`（OS入力）を使うと、Editor が前面化し実OSマウスが `Mouse.current` を毎フレーム上書きして `QueueStateEvent` 注入を無効化する。一度汚染すると再起動でしか戻らない。** キーもマウスも `QueueStateEvent` で送る。
-- `QueueStateEvent` で届くのは InputSystem 側だけ。対象コードが legacy `UnityEngine.Input.*` を読んでいたら注入で駆動できない → コードを `Mouse.current`/`Keyboard.current` へ移行するか、リフレクションで状態遷移を代替する。
-- スニペット内で `InputSystem.Update()` を呼ぶと InputAction の `WasPressedThisFrame`/`IsPressed` が発火しない。queue→shell sleep→別スニペットで read。
+### masterデータ・スキーマ不整合（worktree の最頻出死因）
+- `MooresmasterLoaderException`（例: `PropertyPath: data[0].priority`）で初期化が無言死。**ブランチ互換コミットへピン留めした master worktree** + **preflight のマスタロードドライラン**で対処（方式Aの「masterデータのピン留め」節）
+- 互換コミットは `.moorestech-external-revisions.json` の `commitHash` で特定できる
+- 本番マスタは `IMasterValidator.Validate` が走るため、ロジックテストで出なかった master 不整合をこのスキルが最初に検出することが多い（これ自体が bug 検出機会）
 
-### AppDomain 越しの RecorderController 保持
-- `execute-dynamic-code` は snippet ごとに新しい compilation context。**static field や local 変数は持ち越されない**。
-- `AppDomain.CurrentDomain.SetData(key, obj)` / `GetData(key)` は唯一信頼できる cross-snippet 手段。Domain Reload (PlayMode 終了等) で消える。
-- `EditorPrefs` は string-only なので RecorderController のような Object 参照には使えない。
-- 同じキーで上書きすると前の RecorderController が garbage collect されないことがある。新しい録画を始める前に明示的に Stop + null clear すべき。
+### EDC（execute-dynamic-code）
+- コンパイル直後・ドメインリロード中は失敗する → 5秒間隔でリトライ
+- `using UnityEngine;` した snippet の `Object` は CS0104 → `UnityEngine.Object` と完全修飾
+- 存在しないAPI推測が最頻出エラー → 書く前に実ファイルを Read/Grep でシグネチャ確認
+- `Result` が空 =「未ready」ではなく「スニペットが壊れている」可能性が高い。待たずに abort 側へ倒す
+- リポジトリ直下に複数 Unity プロジェクトがあると "Multiple Unity projects found" 警告が stdout を汚す → JSON抽出は `sed -n '/^{/,$p'` を通す（run-scenario.sh 実装済み）
 
-### Thread.Sleep 禁止
-- `execute-dynamic-code` の snippet は main thread で動く。`Thread.Sleep(N)` で N ミリ秒スレッドを止めると PlayMode の Update も止まる。
-- 待機は **shell sleep + 別 snippet 呼び出し** で行う。snippet 間は PlayMode が動き続ける。
-
-### `until` / `while` ループの無限ループ事故
-ポーリングを `until <cmd> | grep -q <pattern>; do sleep N; done` で書くと、`<cmd>` 側のスニペットがコンパイルエラーで失敗した瞬間に `Result` が空になり、grep が永遠に成功しないため**無限ループに突入する** (実例 1: `MasterHolder.BlockMaster?.GetBlockMasters().Count` のような存在しないメソッドを polling snippet に書いてしまった。実例 2: readiness snippet の `&&` が shell エスケープで `\&\&` に化けてコンパイル失敗 → `Result` 空のまま timeout いっぱい待ち続け、ユーザーが「コンパイルエラーが起きていたのにずっと待っていた」と指摘)。
-
-これを避けるため、ポーリング系コマンドには以下 5 つのガードを**全て**付ける:
-
-1. **事前単発検証**: ループ化する前に snippet を単発で 1 回叩き、`Success: true` かつ `Result` 行が期待形式で返ることを目視確認する (Step 1a 参照)。
-2. **ループ内でエラーを毎回判定して即 abort（最重要・省略禁止）**: 各反復で出力を一度キャプチャし、`error CS` / `CompilationErrors` に中身がある / `"Success": false` / `Result` 空 を検知したら**待たずに即停止**する。`grep -q "<成功パターン>"` "だけ" で待つのは禁止 — 失敗時に永遠に空振りする。判定の優先順位は **エラー検知 > 成功検知 > 待機**。一過性の `Domain Reload` だけは短く待って再試行してよいが、それ以外のエラーは abort。実装例は Step 1b の while ループを参照。
-3. **timeout 必須**: `timeout 120 bash -c '...'` のように外周で時間制限する（ガード 2 をすり抜けた場合の最後の保険であって、エラー検知の代わりにはならない）。timeout で抜けたら必ず `uloop get-logs --log-type Error` を吐かせて原因を可視化する。
-4. **grep は Result 行に限定**: `grep -q "Result.*ready=True"` のように Result 行内のパターンに当てる。`grep -q "True"` のように緩いと CompilationErrors の中身などで偽陽性を起こす。
-5. **sleep は 5 秒以上**: 短すぎる間隔 (例: `sleep 1`) で再試行すると Domain Reload と uloop の compilation を煽って Unity 側まで巻き込んで遅くなる。
-
-つまり「待つ前にまずエラーを疑う」。`Result` が空＝「まだ未 ready」ではなく「スニペットが走っていない／壊れている」可能性が高いので、空 Result は待機ではなく abort 側に倒す。
-
-### 文字列補間とエスケープで Result が空になる
-`execute-dynamic-code` の C# で `$"..."` 補間を使い、それを shell のシングルクォート＋エスケープで囲むと、エスケープが噛み合わず**コンパイル失敗→`Result` 空**になりやすい（until に乗せれば無限ループ、単発でも「動いたのに結果が出ない」と誤認する）。検証系スニペットは**補間を避けて `"remaining=" + count` のように文字列連結**で組むと安定する。Result が空のときは、まず生成した C# の構文（クォート・補間）を疑う。
-
-### control-play-mode の action
-`--action` の有効値は **`Play` / `Stop`**（`Status` 等は無い）。再生中かどうかの確認は別途 `execute-dynamic-code` で `UnityEngine.Application.isPlaying` / `UnityEditor.EditorApplication.isPlaying` を読むのが確実。
+### PlayMode 中のスキーマ再コンパイル
+- 「Schemaフォルダに変更がありました」が PlayMode 中に発火するとドメインリロードで初期化破壊。worktree 初回は PlayMode 前にコンパイルを通す。Editor が自動書き換えする `.moorestech-external-revisions.json` / `_CompileRequester.cs` はスキーマ未更新なら revert
 
 ### moorestech: ブロックのサーバー設置 API
-`WorldBlockDatastore.TryAddBlock` は拡張メソッド版より **5引数版 `TryAddBlock(blockId, pos, BlockDirection.North, System.Array.Empty<Game.Block.Interface.BlockCreateParam>(), out var b)` が確実**（拡張版は解決順で CS7036 になることがある）。`blockId` は `MasterHolder.BlockMaster.GetBlockId(new System.Guid("…"))`。設置後 `sleep 2` で client `BlockGameObject`+collider(Addressable) 生成を待つ。
-
-### Recorder の落とし穴
-- `RecordMode.Manual` を忘れるとデフォルトの `FrameInterval` で勝手に停止し、想定より早く録画が切れる。手動 Stop 前提のスクリプトでは必ず Manual に設定する。
-
-### ブート失敗の切り分け
-- PlayMode 起動後 30 秒経っても ready が True にならないとき、まず `uloop get-logs --log-type Error` を見る。
-- 本番アセットの `IMasterValidator.Validate` で失敗すると ブートが止まり scene 遷移しない。**この skill が初めてプロジェクトに「本番アセットを通す」契機になる**ため、ロジックテストでは出ていなかった master data の不整合 (例: 存在しないアイテム key を参照するレシピ) を検出することが多い。
-- これは bug 検出機会なので、「Recorder を使って end-to-end 確認すること自体が静的バリデーションだけでは捕まらないクラスのバグを発見する手段」と考える。
-
-### カメラframing は「実プレイ視点」を壊すな（最重要 — 録画の価値そのもの）
-このスキルで実ゲームを録る目的は **「プレイヤーが実際に見る画面」を撮ること**。ここを外すと、実システム(実ブロック/raycast/サーバー)を通していても、絵としては合成キューブを孤立空間に並べて撮るのと**本質的に変わらなくなる**。
-- **不合格になる典型**: framing が面倒だからと `CinemachineBrain` を無効化して `Camera.main` を任意の俯瞰に直接配置する。→ アバター・地面・HUD が消え、空/雲を背景に対象が浮く「実プレイ感ゼロ」の絵になる（実際にこれで不合格動画が生まれ、担当が「面倒で打ち切った手抜き」と認めた。技術的障害ではなく、プレイヤー位置×tween角度の反復を惜しんだだけ）。
-- **正しいやり方**: **実プレイヤーカメラ(Cinemachine 等)を生かしたまま** framing する。
-  1. プレイヤーを対象が視界に入る位置・向きに立たせる（`PlayerObjectController.transform` 等）。
-  2. `StartTweenCamera` 等の角度/距離を**プレイヤー基準で**詰める。FramingTransposer は follow 追従するので、カメラ単体でなく「プレイヤー位置 × カメラ角度/距離」をセットで反復する。
-  3. `screenshot --capture-mode rendering` で **アバターと地面(必要なら HUD)が映り、かつ対象もフレームに入る**ことを確認するまで反復。
-  4. その確定フレームで対象 collider 中心の `WorldToScreenPoint` を取り、de-risk probe → 録画へ。
-- 罠（切り離しを試みた場合の二次被害）: カメラcontrollerの `SetEnabled(false)` 系は Camera コンポーネントごと殺し `Camera.main` を null 化する（raycast/WorldToScreenPoint 全滅）。**そもそも切り離さないのが正解。**
-- framing の試行回数を惜しまない。2〜3回失敗しても俯瞰へ逃げず、プレイヤー位置を変えて追い込む。
-
-#### 推奨パターン: 実ワールド内に「クリーン足場ステージ」を作る（検証済み・一番楽に実プレイ視点を保てる）
-雑多な地形と follow カメラで構図が決まらないとき、**カメラを切り離す代わりに、実ワールド内に平らな足場を作ってそこにプレイヤーを立たせる**。実プレイヤーカメラ(Cinemachine)・アバター・HUD はそのままなので実プレイ視点を100%保てる上、背景がクリーンで被写体が見やすい。今回これで一発成功した。
-1. **足場を置く**: `GameObject.CreatePrimitive(PrimitiveType.Cube)` で広い板(例 localScale=(50,3,50))を空中(例 position=(0,30,0))に。CreatePrimitive の BoxCollider をそのまま使う。無地マテリアル、layer は Default で可（Block レイヤの raycast と干渉しない）。
-2. **プレイヤーを足場に乗せる**: 生 `transform.position` 代入は ThirdPersonController の重力で弾かれる。**`SetControllable(false)` で入力を止めてから `SetPlayerPosition(...)`(内部 `CharacterController.Warp`)で足場直上へワープ** → 数フレームで天面に着地・安定する（screenshot で立脚を確認）。ThirdPersonController の GroundLayers が Default を含むので接地判定も通る。
-3. **対象を足場の上に設置**し、プレイヤーの前方に並べる。足場という安定した立脚点があると follow カメラの構図が決まりやすく、`StartTweenCamera(pitch 浅め, distance 中庸)` を寄せるだけでアバター・足場・対象が綺麗にフレームインする。
-4. screenshot で **アバターと足場が映る**ことを確認 → de-risk probe → 録画。
-
-### uloop の cwd（複数 Unity プロジェクト同居時）
-- リポジトリ root 直下に複数の Unity プロジェクト(例: `moorestech_client` と `moorestech_server`)があると、`--project-path` を付けても "Multiple Unity projects found" 警告が stdout に混ざり、`grep`/JSON パースを汚す。
-- 対象プロジェクト dir に `cd` してから `uloop` を呼ぶと出力が綺麗になる（until ループの偽陽性も減る）。
+- `WorldBlockDatastore.TryAddBlock` は **5引数版**（`blockId, pos, direction, Array.Empty<BlockCreateParam>(), out var b`）が確実（拡張メソッド版は CS7036 になることがある）。DSL の `PlaceBlockDirect` はこれを内包
+- 設置後はクライアント View 生成待ちが必要（DSL: `WaitBlockGameObject`。手動: sleep 2）
 
 ### 座標とエンティティの対応
-- ブロックの「論理座標」(Vector3Int) と View 層の `BlockGameObject.OriginalPos` は同じこともあれば違うこともある (回転や footprint origin 規約で変わる)。
-- View 層の API (例: SubInventory 強制起動で BlockGameObject を渡すケース) では **必ず View 層の座標を使う**。`BlockGameObjectDataStore.BlockGameObjectDictionary` を一度ダンプして、論理座標との対応を確認してから使う。
+- 論理座標(Vector3Int)と View 層の `BlockGameObject.OriginalPos` は回転・footprint origin 規約でズレることがある。View 層 API には View 層の座標を使う（`BlockGameObjectDataStore` をダンプして対応確認）
 
-### スクリーンショットの座標系
-- `--capture-mode rendering`: GameView 内部レンダー (1280×720 等のターゲット解像度)。視覚検証用。基本これ。
-- 注入マウス座標(`Mouse.current.position` = 左下原点)と `Camera.WorldToScreenPoint` は同一系なので、rendering 解像度を基準に screen 座標を計算すれば一致する。
-- `--capture-mode window`: Game ウィンドウ全体 (920×653 等の Editor サイズ)。GameView ツールバーが映り込むので検証用には非推奨。
+### スクリーンショット
+- `--capture-mode rendering`: GameView レンダリング結果のみ（PlayMode必須・検証用は基本これ）。`window` はツールバーが映り込む
+- DSL の `Screenshot()` は `ScreenCapture.CaptureScreenshot`（UIオーバーレイ込み・フォーカス不要・ファイル出現をフレームポーリング）
+- 撮り損ねた瞬間は二度と撮れない。複数の中間状態は録画で押さえ、スクショは節目の証拠用
 
-### `UnityEngine.Object` vs `object`
-- `using UnityEngine;` した snippet で `Object.FindFirstObjectByType<T>()` と書くと **CS0104 ambiguous reference (UnityEngine.Object と System.Object)** で失敗する。
-- 必ず `UnityEngine.Object.FindFirstObjectByType<T>()` と完全修飾する。
+### control-play-mode
+- `--action` は `Play` / `Stop` / `Pause` のみ（Status は無い）。再生確認は EDC で `EditorApplication.isPlaying` を読む
 
-### `BlockId` 等のプロジェクト固有 struct
-- `IBlockComponent` インターフェース継承の有無で `ComponentManager.GetComponent<T>()` が CS0311 で失敗する。要求型は `IBlockComponent` を継承する具象または `IOpenableBlockInventoryComponent` のような派生インターフェースで取得し、必要なら `IOpenableInventory` 等の親インターフェースに代入する。
+### エラーログの読み方
+- IngameDebugConsole 等の毎フレーム NRE でエラーが数万件に膨れて本当のエラーが埋もれる。**メッセージを dedup して件数付きで眺める**（`DebugObjectsBootstrap_Disabled` で予防）
+- Exception 型ログ（`--log-type Exception`）と Error 型は別枠。両方見る
 
-### Unity フォーカス
-- Editor ウィンドウがフォーカスされていなくてもこのスキルは動く (uloop が Editor 内部の API を直接叩くため)。`execute-dynamic-code`・`QueueStateEvent` 注入・`screenshot --capture-mode rendering`・Recorder は全てフォーカス不要。
-- **フォーカスを要求するのは OS入力系 (`simulate-keyboard`/`simulate-mouse-input`) だけで、それらは前面化して `QueueStateEvent` 注入を汚染するため、このスキルでは使わない**（「入力注入の鉄則」節）。結果としてセッション全体をフォーカス不要・無汚染で通せる。
-
-### 動画サイズ
-- 1280×720 30fps H264 で **1 分あたり ~25MB**。3-5 分の playtest で 100MB、長尺で 300MB+。
-- 必要部分だけ抽出するなら `ffmpeg -ss 0 -i in.mp4 -t 30 -c copy out.mp4` (再エンコードなし) で先頭 30s 切り出し。
-
-### 検証スクショの撮り直しが効かない
-- スクリーンショットは記録用。**撮り損ねた瞬間 (アイテム搬送中の belt 上を流れる物体等) は二度と撮れない** (PlayMode は時間が進む)。
-- 「複数の中間状態を撮りたい」場合は録画動画を後で見直す方が確実。スクショは「最終状態の証拠」「前後比較の節目」用と割り切る。
-
-## Step 7: 検証と完了判定
-
-**成功条件 (4 つ全部満たすこと)**:
-1. 動画ファイルが想定サイズで生成された (`ls -lh /tmp/<name>.mp4` + `ffprobe Duration` で確認、0 byte は失敗)
-2. 期待する内部 state (出力 chest の item count 等) が達成された (`execute-dynamic-code` で読み取り)
-3. 検証スクショに期待する UI 要素 (item アイコン等) が映っている
-4. **絵が実プレイ視点であること** — 動画/スクショに **プレイヤーアバター・地面・通常の HUD** が映り、実際にプレイヤーが見る画面になっている（カメラを孤立俯瞰に切り離した「対象だけが空に浮く」絵は、内部 state が正しくても**不合格**。「カメラframing は実プレイ視点を壊すな」節参照）。スクショを Read して目視確認し、前任/既存の正式動画があれば構図を照合する。
-
-**失敗パターン → 切り分け**:
-| 症状 | 原因候補 | 確認方法 |
-|---|---|---|
-| ブートが完了しない (60 秒経っても scene が target に切り替わらない) | 本番マスタ validation 失敗、Asset ロード失敗 | `uloop get-logs --log-type Error` |
-| 自動搬送が始まらない | connector 不整合 (offset 計算ミス)、座標が footprint 内で重なっている | YAML の `inputConnects[].offset` / `outputConnects[].offset` を絶対座標で再計算 |
-| 録画が空 / 0 byte | AppDomain key 不一致、Stop 前に PlayMode が落ちた、Recorder package 未インストール | `Packages/manifest.json` で `com.unity.recorder` 確認、Stop 時の `was recording` 戻り値が True か |
+### 環境構築（worktree）
+- Library(28G) は `cp -Rc`（APFS clonefile）で複製 → 再インポート不要。**メイン側 Unity を閉じてから**
+- `Assets/PersonalAssets`（非公開アセット）・`UserSettings` も同様にコピー
+- 複数 worktree の Unity Editor は同時起動できる（プロジェクトパスが違えば独立）
 
 ## Available scripts
 
-- `scripts/start-recording.sh` — RecorderController を起動するための execute-dynamic-code を 1 コマンドにラップ。引数: `--project-path <unity-project> --output <path-without-ext>`。
-- `scripts/stop-recording.sh` — AppDomain から RecorderController を取得して停止。引数: `--project-path <unity-project>`。
-
-両方とも参考実装。プロジェクト固有の readiness 判定や width/height は呼び出し側で snippet を編集して使うのが正しい。
+- `tools/playtest/run-scenario.sh`（リポジトリ側・方式A）— preflight→boot→シナリオ→result.json 回収の一発実行
+- `tools/playtest/preflight.sh`（リポジトリ側・方式A）— 疎通/コンパイル/master実在/マスタロードドライラン
+- `scripts/start-recording.sh` / `scripts/stop-recording.sh`（本スキル同梱・方式B用参考実装）— Recorder 手動制御のラッパー
