@@ -97,7 +97,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         // pierがある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
                         // Pier available: pass the placing TrainRail block's max length
-                        var (itemStack, pierInventorySlot) = pierSlots.First();
+                        var (itemStack, _) = pierSlots.First();
                         var pierBlockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
                         var pierBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(pierBlockId);
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
@@ -108,7 +108,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         if (!previewData.IsPlaceable) return;
 
                         // 設置
-                        SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierInventorySlot);
+                        SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierBlockId);
                     }
                 }
             }
@@ -163,18 +163,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _connectFromArea = null;
             }
             
-            void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, int pierInventorySlot)
+            void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, BlockId pierBlockId)
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 if (!TryResolveNode(fromDestination, out var fromNode)) return;
-                
+
                 _previewObject.SetActive(false);
-                
+
                 _connectFromArea = null;
-                
+
                 UniTask.Create(async () =>
                 {
-                    var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo, railTypeGuid, CancellationToken.None);
+                    var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierBlockId, placeInfo, railTypeGuid, CancellationToken.None);
                     if (!response.Success) return;
                     
                     await UniTask.WhenAny(
