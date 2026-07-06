@@ -499,7 +499,7 @@ namespace Tests.CombinedTest.Game
 
             GearConnectsElement CreateGearConnector(int index)
             {
-                return new GearConnectsElement(index, Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>(), new GearConnectOption(true));
+                return new GearConnectsElement(index, Guid.NewGuid(), null, Vector3Int.zero, Array.Empty<Vector3Int>(), new GearConnectOption(true, null));
             }
         }
         

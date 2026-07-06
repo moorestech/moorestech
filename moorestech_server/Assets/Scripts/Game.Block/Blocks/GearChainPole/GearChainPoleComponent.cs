@@ -31,7 +31,7 @@ namespace Game.Block.Blocks.GearChainPole
         // Hold chain connection and adjacent gear connectors
         private readonly BlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly SimpleGearService _gearService;
-        private readonly GearConnectOption _chainOption = new(false);
+        private readonly GearConnectOption _chainOption = new(false, null);
 
         private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> _chainTargets = new();
 

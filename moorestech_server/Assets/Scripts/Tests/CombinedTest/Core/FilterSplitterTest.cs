@@ -237,8 +237,8 @@ namespace Tests.CombinedTest.Core
             var dummies = new DummyBlockInventory[outputs.Length];
             for (var i = 0; i < outputs.Length; i++)
             {
-                var selfConnector = new OutputConnectsElement(i, outputs[i].ConnectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
-                var targetConnector = new OutputConnectsElement(i + 100, Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>());
+                var selfConnector = new OutputConnectsElement(i, outputs[i].ConnectorGuid, null, Vector3Int.zero, Array.Empty<Vector3Int>());
+                var targetConnector = new OutputConnectsElement(i + 100, Guid.NewGuid(), null, Vector3Int.zero, Array.Empty<Vector3Int>());
                 dummies[i] = new DummyBlockInventory();
                 connectedTargets.Add(dummies[i], new ConnectedInfo(selfConnector, targetConnector, null));
             }

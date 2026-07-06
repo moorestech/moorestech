@@ -89,7 +89,7 @@ namespace Tests.UnitTest.Core.Other
 
         private static IBlockConnector CreateInventoryConnector(int index, Guid connectorGuid)
         {
-            return new OutputConnectsElement(index, connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
+            return new OutputConnectsElement(index, connectorGuid, null, Vector3Int.zero, Array.Empty<Vector3Int>());
         }
 
         private sealed class RoundRobinTarget
