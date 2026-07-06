@@ -9,7 +9,7 @@ vi.mock("./webSocketClient", () => ({ sendAction: vi.fn() }));
 import { validateTopicPayload } from "./validators";
 import { BENIGN_ERRORS } from "./actions";
 import { Topics } from "./protocol";
-import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData } from "./payloadTypes";
+import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData } from "./payloadTypes";
 
 // C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
 // Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
@@ -68,6 +68,12 @@ describe("wire contract fixtures (shared with C#)", () => {
     expect(validateTopicPayload(Topics.modal, none)).toBe(true);
     expect((open as ModalData).modal?.id).toBe("m1");
     expect((none as ModalData).modal).toBeUndefined();
+  });
+
+  it("ui_state が受理され型消費できる", () => {
+    const data = loadFixture("ui_state.json");
+    expect(validateTopicPayload(Topics.uiState, data)).toBe(true);
+    expect((data as UiStateData).state).toBe("PlayerInventory");
   });
 
   it("契約違反 payload はバリデータで破棄される", () => {

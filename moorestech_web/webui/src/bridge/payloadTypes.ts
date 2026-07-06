@@ -40,6 +40,10 @@ export type ModalData = { modal?: ModalRequest };
 // label is key-omitted when null, so it is optional (the type expresses the omission)
 export type ProgressData = { visible: boolean; progress: number; label?: string };
 
+// INFRA-6 最小版: C# UIStateEnum の現在値。未知のstate名も受理し画面ルータが安全側に倒す
+// Minimal INFRA-6: current C# UIStateEnum value; unknown names are accepted and the router fails safe
+export type UiStateData = { state: string };
+
 // INV-6 液体スロット。uGUI FluidSlotView(アイコン + amount/capacity + 名前 tooltip) 相当
 // INV-6 fluid slot; mirrors uGUI FluidSlotView (icon + amount/capacity + name tooltip)
 export type FluidSlotData = { fluidId: number; amount: number; capacity: number; name: string };
