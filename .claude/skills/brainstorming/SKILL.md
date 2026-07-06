@@ -70,6 +70,8 @@ digraph brainstorming {
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - When the options are discrete (2-4 choices), use the AskUserQuestion tool — do NOT present numbered options as plain text (inconsistent across sessions and harder for the user to answer)
+- One AskUserQuestion call = ONE question. Never bundle multiple questions into the questions array — that is a "one question at a time" violation even though the tool allows it
+- Final litmus before sending any AskUserQuestion: if an option is marked (推奨/Recommended) and the recommendation rests on a principle or investigation fact (not user preference), the question is type-B — delete it and fold the recommendation into the premise declaration instead
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
 
@@ -78,6 +80,12 @@ digraph brainstorming {
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
+
+**Self-refutation before presenting (required):**
+
+- Before presenting any design, attack it yourself: construct at least one concrete input that must NOT work (rotation/orientation, multi-cell, boundary, scale, concurrent state) and verify the design rejects it. If the design cannot express the rejection, that is the signal to add an extension point — do not ship the design without resolving it.
+- Include the strongest counterexample and how the design handles it in the presentation. Finding your design's fatal case before the user does is the single highest-trust move in a design dialogue.
+- When a premise asserts game/physics behavior (e.g. "perpendicular gears never mesh"), check whether a real-world exception exists (e.g. bevel gears) — if the design would collapse when the assertion is wrong, confirm it with the user as a type-C question.
 
 **Presenting the design:**
 
@@ -236,6 +244,8 @@ subagent や検索で解決し、結果は Phase 3 の前提に含める。
 4. 派生可能な状態は導出を基本とし、復元順序などの実制約があるときだけ既存の永続化パターンで補う
 5. 置換・移行はコンパイルエラー駆動（型やプロパティを消して漏れを機械検出）にできるならそうする
 6. YAGNI。将来の拡張可能性を理由に選択肢を増やさない
+7. N対Nの適合・互換のような「関係」データは、各要素の属性（受け入れリスト等）に分散させず、中央の正規化テーブル（ペア表＋foreignKey＋検証）を第一候補にする（SSOT）。分散属性案を提示するなら必ず中央表案と並べて比較する
+8. コードの注入点を設ける際は、実行時注入（delegate/interface渡し）と型レベル束縛（ジェネリック型パラメータ）の型安全度トレードオフを一度は比較する。「注入ミスがコンパイルエラーになるか」を比較軸に含める
 
 プロジェクト固有の原則は `references/` を参照する（moorestech なら `references/moorestech-principles.md` を必ず読む）。
 
