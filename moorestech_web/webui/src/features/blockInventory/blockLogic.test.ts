@@ -6,7 +6,14 @@ import { describe, it, expect, vi } from "vitest";
 // stub it so this node-env test can load the component tree
 vi.mock("@/bridge/transport/webSocketClient", () => ({ sendAction: vi.fn() }));
 
-import { blockSlotClickPayload, pickUpPayload, placePayload, resolveBlockComponent } from "./blockLogic";
+import {
+  blockShiftMovePayloads,
+  blockSlotClickPayload,
+  blockSlotRightClickPayload,
+  pickUpPayload,
+  placePayload,
+  resolveBlockComponent,
+} from "./blockLogic";
 import ChestInventory from "./views/ChestInventory";
 import TankInventory from "./views/TankInventory";
 import GenericBlockInventory from "./views/GenericBlockInventory";
@@ -74,5 +81,38 @@ describe("resolveBlockComponent", () => {
 describe("TankInventory", () => {
   it("コンポーネントとして存在する", () => {
     expect(TankInventory).toBeTypeOf("function");
+  });
+});
+
+describe("blockSlotRightClickPayload", () => {
+  it("grab 保持時は block スロットへ1個置く", () => {
+    expect(blockSlotRightClickPayload(2, 0, 0, 5)).toEqual({
+      from: { area: "grab", slot: 0 },
+      to: { area: "block", slot: 2 },
+      count: 1,
+    });
+  });
+  it("空手 + 2個以上は半分(切り捨て)を grab へ拾う", () => {
+    expect(blockSlotRightClickPayload(0, 1, 7, 0)).toEqual(pickUpPayload(0, 3));
+  });
+  it("空手 + 1個は半分が0のため無操作(uGUI準拠)", () => {
+    expect(blockSlotRightClickPayload(0, 1, 1, 0)).toBeNull();
+  });
+  it("空手 + 空スロットは無操作", () => {
+    expect(blockSlotRightClickPayload(0, 0, 0, 0)).toBeNull();
+  });
+});
+
+describe("blockShiftMovePayloads", () => {
+  const slot = (itemId: number, count: number) => ({ itemId, count });
+  it("main の同種スタック→空スロットの順に block からの配分 payload を作る", () => {
+    const mainSlots = [slot(1, 98), slot(0, 0)];
+    expect(blockShiftMovePayloads(4, 1, 7, mainSlots, 100)).toEqual([
+      { from: { area: "block", slot: 4 }, to: { area: "main", slot: 0 }, count: 2 },
+      { from: { area: "block", slot: 4 }, to: { area: "main", slot: 1 }, count: 5 },
+    ]);
+  });
+  it("移動先が無ければ空配列", () => {
+    expect(blockShiftMovePayloads(0, 1, 7, [slot(2, 5)], 100)).toEqual([]);
   });
 });
