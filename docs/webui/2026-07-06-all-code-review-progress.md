@@ -71,10 +71,19 @@
 - 検証: tsc EXIT 0 / vitest 80 passed / e2e 24 passed — ベースラインと同一値で挙動不変確認
 - レポート: `.superpowers/sdd/acr-fix2-web-report.md`
 
-**第3波: 200行超ファイル分割**（C#分はF1完了後。LocalPlayerInventoryControllerがF1と重なるため順序必須）
-- ~~e2e mock-host server.ts(333)~~ → **完了**: 責務別6モジュール（server 13/wire 24/state 28/inventoryModel 76/httpHandler 83/wsHandler 140行）へ分割、tsc/vitest 80/e2e 24 全green（commit `b561483a4`）
-- 残: PlayerInventoryViewController(424) / InitializeScenePipeline(382) / ViteProcess(256) / HotBarView(225) / LocalPlayerInventoryController(205+F1増分)
-- partial禁止のもと責務単位で通常クラスへ分割
+**第3波: 200行超ファイル分割** → **完了（2026-07-07 02:00頃）** compile 0 / テスト51 PASS・partial不使用・公開シグネチャ不変
+- e2e mock-host server.ts(333) → 責務別6モジュール（最大 wsHandler 140行）（commit `b561483a4`）
+- PlayerInventoryViewController 423→112: Main/Interaction/ へ操作解釈3クラス抽出（commit `0719dd09e`）
+- InitializeScenePipeline 382→182: Initialization/ へ初期化フェーズ3クラス抽出（commit `18e041036`）
+- ViteProcess 256→172 / LocalPlayerInventoryController 226→192 / HotBarView 224→157（commit `af6d00acf`）
+- 留意: InitializeScenePipeline はブート経路のため実挙動の最終確認はPlayModeスモークが望ましい（レポート記載）
+
+**feature/webui-block-research-ui 取り込み** → **完了（2026-07-07 02:20頃）**（ユーザー承認済み5ステップ計画）
+- マージ競合なし（88ファイル +2651/-125）。予告どおりF4版BlockInventoryDto.csがfeature版BlockDetail/BlockInventoryDtos.cs（スーパーセット）と型重複→F4版を削除しfeature版に一本化（commit `ce28b9af0`）
+- 検証: uloop compile 0 / C#テスト57 PASS（新規BlockDetail/Research系6件含む）/ tsc 0 / vitest 122 / e2e 34 — 期待値と完全一致
+- マージ後整理: Research系3トピックを Topics/Research/ へ移動、F4残置の未使用アクセサ3件削除（commit `9e21b2748`）。BlockName等プロパティ3件はfeatureコードが使用中のため残置
+- 決定論再チェック結果: web側200行超ゼロ。10ファイル規約違反3件（WebUiHost/Game/Actions 11・blockInventory/views 11・e2e/tests 11）→ 解消作業中
+- レビュー範囲外の既存200行超（記録のみ・未対応）: MainGameStarter 327 / ResearchTreeElement 279 / CommonSlotView 235 / CraftInventoryView 213（いずれもブランチdiff外）
 
 **クローズ処理**
 1. 最終QA: uloop compile / NUnit / tsc / vitest / e2e 全green + 決定論チェック再実行（dir-file-limit・file-too-longの解消確認）
@@ -83,7 +92,7 @@
 
 ### その後のフェーズ
 - 「ステート、プロップス、Context、状態管理ライブラリの利用の適正化」— レビュー全系統でCritical 0のため軽量確認で足りる見込み
-- 「実装漏れの徹底洗い出し」— 種リスト: Shift直接移動のSubInventory非対応 / BlockItemGrid右クリック系 / blockInventory e2e拡充 / ui_state.requestホワイトリスト / useItemMaster staleキャッシュ / モーダルプロデューサ配線 / crafting validators深掘り（今回見送り分）/ 既存記録分（block右クリ・Esc close・13種ブロックビュー・列車インベントリ）
+- 「実装漏れの徹底洗い出し」— 種リスト: Shift直接移動のSubInventory非対応 / BlockItemGrid右クリック系 / blockInventory e2e拡充 / ui_state.requestホワイトリスト / useItemMaster staleキャッシュ / モーダルプロデューサ配線 / crafting validators深掘り（今回見送り分）/ 既存記録分（block右クリ・Esc close・13種ブロックビュー・列車インベントリ）/ **研究報酬アイテムの個数表示**（feature/webui-block-research-uiの保留タスクから移設）
 
 ## 未コミットの残置ファイル（ツール副産物・要ユーザー判断）
 - `.moorestech-external-revisions.json`（Task4検証時の旧pin。恒久対応要判断）
