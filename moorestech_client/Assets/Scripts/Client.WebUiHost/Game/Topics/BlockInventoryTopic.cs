@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -8,6 +10,7 @@ using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
+using Server.Event.EventReceive;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -22,8 +25,15 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly SubInventoryState _subInventoryState;
+        private readonly BlockNetworkInfoCache _networkCache = new();
+        private BlockGameObject _trackedBlock;
+        private IDisposable _blockStateSubscription;
         private bool _publishScheduled;
         private bool _disposed;
+
+        // Task 8 の action handler がスナップショット反映に使う公開口
+        // Public access point used by Task 8 action handlers to apply snapshots
+        public BlockNetworkInfoCache NetworkCache => _networkCache;
 
         public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState)
         {
@@ -35,6 +45,9 @@ namespace Client.WebUiHost.Game.Topics
             // Subscribe to open/close (UI-state transitions) and slot updates, then push
             _uiStateControl.OnStateChanged += OnStateChanged;
             _subInventoryState.OnSubInventoryUpdated += SchedulePublish;
+            // ネットワーク取得完了でも再配信する
+            // Republish when a network fetch completes
+            _networkCache.OnUpdated += SchedulePublish;
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -47,6 +60,8 @@ namespace Client.WebUiHost.Game.Topics
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _subInventoryState.OnSubInventoryUpdated -= SchedulePublish;
+            _networkCache.OnUpdated -= SchedulePublish;
+            TrackBlock(null);
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -81,8 +96,18 @@ namespace Client.WebUiHost.Game.Topics
 
             if (!open || sub == null || blockSource == null)
             {
+                TrackBlock(null);
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
+
+            // BlockGameObject は既存公開の datastore から座標で解決する（uGUI 編集なし）
+            // Resolve the BlockGameObject by position via the existing public datastore (no uGUI edits)
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(blockSource.BlockPosition, out var block))
+            {
+                TrackBlock(null);
+                return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
+            }
+            TrackBlock(block);
 
             var dto = new BlockInventoryDto
             {
@@ -102,45 +127,40 @@ namespace Client.WebUiHost.Game.Topics
                 dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count });
             }
 
+            // capability 詳細とネットワーク集約を充填する
+            // Fill capability details and network aggregates
+            BlockDetailDtoBuilder.Apply(dto, block, _networkCache);
             return WebUiJson.Serialize(dto);
         }
-    }
 
-    /// <summary>
-    /// block_inventory.current の配信 DTO
-    /// Payload DTO for block_inventory.current
-    /// </summary>
-    public class BlockInventoryDto
-    {
-        public bool Open;
-        public string BlockType;
-        public string Identifier;
-        public string BlockName;
-        public List<BlockItemSlotDto> ItemSlots;
-        public List<BlockFluidSlotDto> FluidSlots;
-        public double? Progress;
-        // capability 詳細（該当ブロックのみ。null はキー省略される）
-        // Capability details (only for applicable blocks; null keys are omitted)
-        public MachineDetailDto Machine;
-        public GeneratorDetailDto Generator;
-        public MinerDetailDto Miner;
-        public GearDetailDto Gear;
-        public ElectricNetworkDto ElectricNetwork;
-        public GearNetworkDto GearNetwork;
-        public FilterSplitterDto FilterSplitter;
-    }
+        // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える
+        // Switch the tracked block, re-wiring the state-event subscription and network fetches
+        private void TrackBlock(BlockGameObject block)
+        {
+            if (ReferenceEquals(_trackedBlock, block)) return;
+            // 前のブロックの state イベント購読を解除する
+            // Unsubscribe the previous block's state event
+            _blockStateSubscription?.Dispose();
+            _blockStateSubscription = null;
+            _trackedBlock = block;
+            if (block == null)
+            {
+                _networkCache.Clear();
+                return;
+            }
 
-    public class BlockItemSlotDto
-    {
-        public int ItemId;
-        public int Count;
-    }
+            // uGUI BlockGameObject と同じ per-block イベントタグを直接購読して再配信トリガにする
+            // Directly subscribe the same per-block event tag as uGUI BlockGameObject as the republish trigger
+            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
+            _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(eventTag, _ => SchedulePublish());
 
-    public class BlockFluidSlotDto
-    {
-        public int FluidId;
-        public double Amount;
-        public double Capacity;
-        public string Name;
+            var blockType = block.BlockMasterElement.BlockType;
+            // ネットワーク集約の要否は blockType で決める（spec §2-a の組み合わせ表）
+            // Whether to fetch network aggregates is decided by blockType (spec §2-a combination table)
+            var electric = blockType is "ElectricMachine" or "ElectricGenerator" or "ElectricMiner";
+            var gear = blockType is "GearMachine" or "GearMiner" or "FuelGearGenerator" or "SimpleGearGenerator";
+            var filterSplitter = blockType == "FilterSplitter";
+            _networkCache.Track(block, electric, gear, filterSplitter);
+        }
     }
 }
