@@ -1,4 +1,4 @@
-import type { BlockInventoryData } from "../../src/bridge/payloadTypes";
+import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 
 const empty = () => ({ itemId: 0, count: 0 });
 

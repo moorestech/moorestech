@@ -1,4 +1,4 @@
-import type { ResearchTreeData } from "../../src/bridge/payloadTypes";
+import type { ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
 
 // FEAT-RES-1 研究ツリー: 完了済み/前提不足/研究可能の3状態を含む
 // FEAT-RES-1 research tree: contains completed / pre-node-lacking / researchable states

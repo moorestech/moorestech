@@ -1,5 +1,5 @@
-import type { BlockInventoryData, ResearchTreeData } from "../../src/bridge/payloadTypes";
-import type { ActionPayloads } from "../../src/bridge/protocol";
+import type { BlockInventoryData, ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
+import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 
 // mock 用の固定 grab アイテムID。clear:false 時に C# 側が持ち手アイテムを設定するのを代替する
 // Fixed mock grab item id; stands in for the C# side assigning the currently grabbed item on clear:false
