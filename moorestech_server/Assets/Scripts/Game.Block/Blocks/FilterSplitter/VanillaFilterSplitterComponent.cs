@@ -9,6 +9,7 @@ using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.FilterSplitter
 {
@@ -28,14 +29,14 @@ namespace Game.Block.Blocks.FilterSplitter
         public int FilterSlotCountPerDirection => _filterSlotCount;
 
         private readonly DirectionState[] _directions;
-        private readonly BlockConnectorComponent<IBlockInventory> _connectorComponent;
+        private readonly BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> _connectorComponent;
         private readonly BlockInstanceId _blockInstanceId;
         private readonly int _filterSlotCount;
         private int _roundRobinIndex = -1;
 
         public VanillaFilterSplitterComponent(
             BlockInstanceId blockInstanceId,
-            BlockConnectorComponent<IBlockInventory> connectorComponent,
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> connectorComponent,
             IReadOnlyList<IBlockConnector> outputConnectorElements,
             int filterSlotCountPerDirection)
         {
@@ -52,7 +53,7 @@ namespace Game.Block.Blocks.FilterSplitter
         public VanillaFilterSplitterComponent(
             Dictionary<string, string> componentStates,
             BlockInstanceId blockInstanceId,
-            BlockConnectorComponent<IBlockInventory> connectorComponent,
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> connectorComponent,
             IReadOnlyList<IBlockConnector> outputConnectorElements,
             int filterSlotCountPerDirection) :
             this(blockInstanceId, connectorComponent, outputConnectorElements, filterSlotCountPerDirection)

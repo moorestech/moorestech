@@ -8,6 +8,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -23,11 +24,11 @@ namespace Game.Block.Blocks.BeltConveyor
     
     public class VanillaBeltConveyorBlockInventoryInserter : IBeltConveyorBlockInventoryInserter
     {
-        private readonly BlockConnectorComponent<IBlockInventory> _blockConnectorComponent;
+        private readonly BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> _blockConnectorComponent;
         private readonly BlockInstanceId _sourceBlockInstanceId;
         private int _roundRobinIndex = -1;
 
-        public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+        public VanillaBeltConveyorBlockInventoryInserter(BlockInstanceId sourceBlockInstanceId, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
         {
             _sourceBlockInstanceId = sourceBlockInstanceId;
             _blockConnectorComponent = blockConnectorComponent;

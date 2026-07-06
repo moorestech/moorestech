@@ -14,6 +14,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using Random = System.Random;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
@@ -45,7 +46,7 @@ namespace Tests.CombinedTest.Core
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
             beltConveyorComponent.InsertItem(item, InsertItemContext.Empty);
             
-            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             beltConnectInventory.Add(chestComponent, new ConnectedInfo());
             
             
@@ -73,7 +74,7 @@ namespace Tests.CombinedTest.Core
             
             chestComponent.SetItem(0, new ItemId(1), 1);
             
-            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var chestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chest.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             chestConnectInventory.Add(beltConveyorComponent, new ConnectedInfo());
             GameUpdater.UpdateOneTick();
             

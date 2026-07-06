@@ -17,6 +17,7 @@ using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
@@ -301,7 +302,7 @@ namespace Tests.CombinedTest.Core
             var lastBelt = beltComponents[^1];
             var blockedInventory = new ConfigurableBlockInventory(1, 10, true, true);
             var lastBeltBlock = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, beltCount - 1));
-            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)lastBeltBlock.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)lastBeltBlock.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             connectedTargets.Clear();
             AddTarget(connectedTargets, blockedInventory, 0);
 
@@ -442,7 +443,7 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             var beltConveyor = blockFactory.Create(ForUnitTestModBlockId.BeltConveyorId, new BlockInstanceId(int.MaxValue), new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one));
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             return (beltConveyorComponent, connectedTargets);
         }
 

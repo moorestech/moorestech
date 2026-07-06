@@ -14,6 +14,7 @@ using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.UnitTest.Core.Other
 {
@@ -32,7 +33,7 @@ namespace Tests.UnitTest.Core.Other
             // コネクターとインサーターを準備する
             // Prepare connectors and inserter
             var blockPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, blockPosInfo);
+            var blockConnector = new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(null, null, blockPosInfo);
             var inserter = new VanillaBeltConveyorBlockInventoryInserter(new BlockInstanceId(1), blockConnector);
 
             var targets = CreateTargets();
