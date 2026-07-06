@@ -1,6 +1,6 @@
 import { dispatchAction } from "@/bridge";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
-import type { SlotData } from "@/bridge/payloadTypes";
+import type { SlotData } from "@/bridge/contract/payloadTypes";
 import { pickUpPayload, placePayload } from "./blockLogic";
 import { useBlockInteraction } from "./blockInteractionContext";
 

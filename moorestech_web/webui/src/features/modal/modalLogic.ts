@@ -1,4 +1,4 @@
-import type { ModalRequest } from "@/bridge/payloadTypes";
+import type { ModalRequest } from "@/bridge/contract/payloadTypes";
 import type { ActionPayloads } from "@/bridge";
 
 // modal 応答の action payload を組み立てる純関数。confirm/cancel を id 付きで返す。

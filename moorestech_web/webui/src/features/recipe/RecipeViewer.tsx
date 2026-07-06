@@ -1,6 +1,6 @@
 import { Stack, Text, Title } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
-import { useItemMaster } from "@/bridge/useItemMaster";
+import { useItemMaster } from "@/bridge/store/useItemMaster";
 import { useUiStore } from "@/app/uiStore";
 import RecipeContent from "./RecipeContent";
 
