@@ -6,7 +6,6 @@ using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.UnlockState;
 using Mooresmaster.Model.ItemsModule;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -23,21 +22,19 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly ItemRecipeViewerDataContainer _recipeContainer;
-        private readonly IGameUnlockStateData _unlockStateData;
         private readonly IDisposable _subscription;
 
         // 未知のRecipeViewTypeの警告ログを1回に抑制するためのフラグ
         // Flag to emit the unknown-RecipeViewType warning only once
         private bool _unknownViewTypeWarned;
 
-        public RecipeViewerItemListTopic(WebSocketHub hub, ItemRecipeViewerDataContainer recipeContainer, IGameUnlockStateData unlockStateData)
+        public RecipeViewerItemListTopic(WebSocketHub hub, ItemRecipeViewerDataContainer recipeContainer)
         {
             _hub = hub;
             _recipeContainer = recipeContainer;
-            _unlockStateData = unlockStateData;
 
-            // ClientGameUnlockStateData より後に購読登録されるため、ここでは更新後の状態を読める
-            // Subscribed after ClientGameUnlockStateData, so the updated unlock state is visible here
+            // アンロックイベントで再配信する。判定は評価器が最新のアンロック状態を参照する
+            // Republish on unlock events; the evaluator reads the latest unlock state during the check
             _subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => _hub.Publish(TopicName, BuildJson()));
         }
 
@@ -66,66 +63,21 @@ namespace Client.WebUiHost.Game.Topics
 
             #region Internal
 
-            // uGUI ItemListView.IsShow の移植。DebugParametersの強制表示分岐はtopicがデバッグ非依存のため移植しない（uGUIからの逸脱）
-            // Port of uGUI ItemListView.IsShow. The DebugParameters force-show branch is intentionally not ported since topics are debug-independent (deviation from uGUI)
+            // 表示判定は共有評価器へ委譲。未知タイプはtopicでは例外禁止のため非表示＋警告1回に倒す（uGUIからの逸脱）
+            // Visibility is delegated to the shared evaluator; unknown types fall back to hidden + one warning since topics must not throw (deviation from uGUI)
             bool IsShow(ItemId itemId, ItemMasterElement itemMaster)
             {
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)
+                var visibility = _recipeContainer.EvaluateVisibility(itemId, itemMaster);
+                if (visibility == RecipeViewerItemVisibility.UnknownType)
                 {
-                    // デフォルトはアンロックされていてレシピがあれば表示する（クラフトまたは機械レシピ）
-                    // Default is to display if unlocked and has a recipe (craft or machine)
-                    if (!IsItemUnlocked(itemId)) return false;
-
-                    var itemRecipes = _recipeContainer.GetItem(itemId);
-                    if (itemRecipes == null) return false;
-
-                    var hasUnlockedCraftRecipe = itemRecipes.UnlockedCraftRecipes().Count != 0;
-                    var hasUnlockedMachineRecipe = itemRecipes.UnlockedMachineRecipes().Count != 0;
-                    return hasUnlockedCraftRecipe || hasUnlockedMachineRecipe;
-                }
-
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsUnlocked)
-                {
-                    // アンロックされていれば表示する
-                    // Display if unlocked
-                    return IsItemUnlocked(itemId);
-                }
-
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)
-                {
-                    // アンロック済みクラフトレシピがあれば表示する
-                    // Display if there is an unlocked craft recipe
-                    var itemRecipes = _recipeContainer.GetItem(itemId);
-                    if (itemRecipes == null) return false;
-                    return itemRecipes.UnlockedCraftRecipes().Count != 0;
-                }
-
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceHide)
-                {
+                    if (!_unknownViewTypeWarned)
+                    {
+                        _unknownViewTypeWarned = true;
+                        Debug.LogWarning($"[WebUiHost] Unknown RecipeViewType: {itemMaster.RecipeViewType}");
+                    }
                     return false;
                 }
-
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceShow)
-                {
-                    return true;
-                }
-
-                // uGUIではthrowするが、topicでは例外禁止のため非表示扱い＋警告1回に倒す（uGUIからの逸脱）
-                // uGUI throws here, but topics must not throw, so fall back to hidden with a single warning (deviation from uGUI)
-                if (!_unknownViewTypeWarned)
-                {
-                    _unknownViewTypeWarned = true;
-                    Debug.LogWarning($"[WebUiHost] Unknown RecipeViewType: {itemMaster.RecipeViewType}");
-                }
-                return false;
-            }
-
-            bool IsItemUnlocked(ItemId itemId)
-            {
-                // dict に無いアイテムはロック扱いに倒して例外を避ける
-                // Treat items missing from the dict as locked to avoid exceptions
-                if (!_unlockStateData.ItemUnlockStateInfos.TryGetValue(itemId, out var state)) return false;
-                return state.IsUnlocked;
+                return visibility == RecipeViewerItemVisibility.Show;
             }
 
             #endregion

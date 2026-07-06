@@ -1,7 +1,6 @@
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
 using Newtonsoft.Json.Linq;
@@ -40,15 +39,9 @@ namespace Client.WebUiHost.Game.Actions
             // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
             if (fromType == toType && fromSlot == toSlot) return UniTask.FromResult(ActionResult.Success());
 
-            // 移動元の実在チェック。空・数量不足は安定したエラーコードで返す
-            // Validate the source stack; report empty / insufficient stacks with stable error codes
-            var fromItem = fromType == LocalMoveInventoryType.Grab ? _controller.GrabInventory : _controller.LocalPlayerInventory[fromSlot];
-            if (fromItem.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
-            if (fromItem.Count < count) return UniTask.FromResult(ActionResult.Fail("insufficient_count"));
-
-            // block 移動も MainOrSub 結合 index で MoveItem が処理する
-            // Block moves are handled by MoveItem via the MainOrSub combined index
-            _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
+            // 実在・数量検証は controller に集約。block も MainOrSub 結合 index で移動する
+            // Presence/count validation lives in the controller; block moves also use the MainOrSub combined index
+            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(denyReason));
             return UniTask.FromResult(ActionResult.Success());
 
             #region Internal

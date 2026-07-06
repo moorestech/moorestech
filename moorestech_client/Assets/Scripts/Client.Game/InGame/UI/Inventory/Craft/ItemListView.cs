@@ -7,7 +7,6 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Common.Debug;
 using Core.Master;
-using Game.UnlockState;
 using Mooresmaster.Model.CraftRecipesModule;
 using Mooresmaster.Model.ItemsModule;
 using UniRx;
@@ -24,7 +23,6 @@ namespace Client.Game.InGame.UI.Inventory.Craft
         
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
         [Inject] private ItemRecipeViewerDataContainer _itemRecipeViewerDataContainer;
-        [Inject] private IGameUnlockStateData _gameUnlockStateData;
         private readonly List<ItemSlotView> _itemListObjects = new();
         
         public IObservable<RecipeViewerItemRecipes> OnClickItem => _onClickItem;
@@ -83,59 +81,22 @@ namespace Client.Game.InGame.UI.Inventory.Craft
             
             bool IsShow(ItemMasterElement itemMaster)
             {
+                // デバッグ強制表示はuGUI専用。評価前に短絡して従来挙動を保つ
+                // Debug force-show is uGUI-only; short-circuit before evaluation to keep legacy behavior
                 if (DebugParameters.GetValueOrDefaultBool(DebugConst.IsItemListViewForceShowKey))
                 {
                     return true;
                 }
-                
+
+                // 表示判定は共有評価器へ一本化。未知タイプはuGUIでは従来どおり例外にする
+                // Visibility is unified into the shared evaluator; unknown types still throw on uGUI
                 var itemId = MasterHolder.ItemMaster.GetItemId(itemMaster.ItemGuid);
-                
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.Default)
+                var visibility = _itemRecipeViewerDataContainer.EvaluateVisibility(itemId, itemMaster);
+                if (visibility == RecipeViewerItemVisibility.UnknownType)
                 {
-                    // デフォルトはアンロックされていてレシピがあれば表示する（クラフトまたは機械レシピ）
-                    // Default is to display if unlocked and has a recipe (craft or machine)
-                    var state = _gameUnlockStateData.ItemUnlockStateInfos[itemId];
-                    var isItemUnlocked = state.IsUnlocked;
-
-                    var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
-                    var hasUnlockedCraftRecipe = itemRecipes.UnlockedCraftRecipes().Count != 0;
-                    var hasUnlockedMachineRecipe = itemRecipes.UnlockedMachineRecipes().Count != 0;
-                    var hasAnyUnlockedRecipe = hasUnlockedCraftRecipe || hasUnlockedMachineRecipe;
-
-                    return isItemUnlocked && hasAnyUnlockedRecipe;
+                    throw new Exception($"{itemMaster.RecipeViewType}タイプの判定の実装が足りません");
                 }
-
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsUnlocked)
-                {
-                    // アンロックされていれば表示する
-                    // Display if unlocked
-                    var state = _gameUnlockStateData.ItemUnlockStateInfos[itemId];
-                    return state.IsUnlocked;
-                }
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist)
-                {
-                    var itemRecipes = _itemRecipeViewerDataContainer.GetItem(itemId);
-                    var unlockRecipes = itemRecipes.UnlockedCraftRecipes();
-                    if (unlockRecipes.Count == 0)
-                    {
-                        // クラフトレシピがない場合は表示しない
-                        // Do not display if there is no craft recipe
-                        return false;
-                    }
-                    return true;
-                }
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceHide)
-                {
-                    return false;
-                }
-                if (itemMaster.RecipeViewType is ItemMasterElement.RecipeViewTypeConst.ForceShow)
-                {
-                    // 強制表示の場合は表示する
-                    // If it is a forced display, display it
-                    return true;
-                }
-                
-                throw new Exception($"{itemMaster.RecipeViewType}タイプの判定の実装が足りません");
+                return visibility == RecipeViewerItemVisibility.Show;
             }
             
   #endregion

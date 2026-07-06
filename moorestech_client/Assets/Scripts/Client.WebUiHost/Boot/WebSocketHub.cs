@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.WebUiHost.Game;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 
@@ -82,6 +83,10 @@ namespace Client.WebUiHost.Boot
                 (kv.Value as IDisposable)?.Dispose();
             }
             _actionHandlers.Clear();
+
+            // 保留中モーダルの await を放置しないよう cancel で解決する
+            // Resolve any pending modal await with cancel so it is not left dangling
+            WebUiModalService.Instance?.CancelPending();
         }
 
         // 全接続のうち指定トピックを購読している接続に event を配信
