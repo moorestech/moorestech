@@ -2931,7 +2931,42 @@
       },
       "name": "TestTrainRail",
       "blockGuid": "00000000-0000-0000-0000-000000000024",
-      "overrideVerticalBlock": {}
+      "overrideVerticalBlock": {},
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "00000000-0000-0000-1234-000000000103",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestLockedTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000103",
+      "overrideVerticalBlock": {},
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ]
     },
     {
       "blockSize": [
