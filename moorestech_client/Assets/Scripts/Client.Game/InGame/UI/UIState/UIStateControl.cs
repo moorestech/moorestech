@@ -12,7 +12,7 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum CurrentState { get; private set; }
 
         private UIStateEnum? _webTransitionRequest;
-        private bool _lastWebUiMode;
+        private bool? _lastWebUiMode;
 
         public void Initialize(UIStateEnum initialState, UITransitContext initialContext)
         {
@@ -33,7 +33,13 @@ namespace Client.Game.InGame.UI.UIState
             // webモード切替の両エッジでGameScreenへ正規化する（uGUI/Webビューの表示不整合を防ぐ）
             // Normalize to GameScreen on both web-mode edges (prevents uGUI/web view visibility mismatch)
             var webUiMode = WebUiScreenGate.IsWebUiMode;
-            if (webUiMode != _lastWebUiMode)
+            if (_lastWebUiMode == null)
+            {
+                // 初回Updateは記録のみとし、起動時の偽エッジ正規化を防ぐ（乗車ログイン時のTrainHUD維持）
+                // First Update only records the mode, preventing spurious boot-edge normalization (keeps TrainHUD on ride-login)
+                _lastWebUiMode = webUiMode;
+            }
+            else if (webUiMode != _lastWebUiMode)
             {
                 _lastWebUiMode = webUiMode;
                 _webTransitionRequest = null;
