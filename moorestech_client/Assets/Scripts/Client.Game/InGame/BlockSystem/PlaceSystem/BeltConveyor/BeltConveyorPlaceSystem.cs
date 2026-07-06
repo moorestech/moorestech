@@ -53,10 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             // デバッグモード時はプレビューを維持
             // Keep preview in debug mode
-            if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))
-            {
-                _previewBlockController.SetActive(false);
-            }
+            if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) _previewBlockController.SetActive(false);
 
             // 連続設置状態をリセット
             _clickStartPosition = null;
@@ -73,6 +70,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private void GroundClickControl(PlaceSystemUpdateContext context)
         {
+            // placeModeスイッチ経由(HoldingItemId駆動)で到達した場合はSelectedBlockIdが無いことがある
+            // SelectedBlockId can be absent when reached via the placeMode switch (driven by HoldingItemId)
+            if (!context.SelectedBlockId.HasValue) return;
+
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
             if (_previousSelectedBlockId != context.SelectedBlockId)
