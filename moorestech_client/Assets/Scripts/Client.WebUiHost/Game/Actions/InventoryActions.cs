@@ -35,13 +35,9 @@ namespace Client.WebUiHost.Game.Actions
             // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
             if (fromType == toType && fromSlot == toSlot) return UniTask.FromResult(ActionResult.Success());
 
-            // 移動元の実在チェック。空・数量不足は安定したエラーコードで返す
-            // Validate the source stack; report empty / insufficient stacks with stable error codes
-            var fromItem = fromType == LocalMoveInventoryType.Grab ? _controller.GrabInventory : _controller.LocalPlayerInventory[fromSlot];
-            if (fromItem.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
-            if (fromItem.Count < count) return UniTask.FromResult(ActionResult.Fail("insufficient_count"));
-
-            _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
+            // 実在・数量検証は controller に集約。拒否理由をそのままエラーコードに写す
+            // Presence/count validation lives in the controller; map the deny reason straight to the error code
+            if (!_controller.TryMoveItem(fromType, fromSlot, toType, toSlot, count, out var denyReason)) return UniTask.FromResult(ActionResult.Fail(denyReason));
             return UniTask.FromResult(ActionResult.Success());
         }
     }
