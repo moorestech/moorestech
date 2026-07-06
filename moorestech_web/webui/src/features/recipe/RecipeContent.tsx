@@ -7,7 +7,7 @@ import type {
   MachineRecipesData,
   PlayerInventoryData,
   ItemMasterEntry,
-} from "@/bridge/payloadTypes";
+} from "@/bridge/contract/payloadTypes";
 import {
   buildOwnedCounts,
   selectCraftRecipes,

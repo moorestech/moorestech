@@ -4,7 +4,7 @@ import type {
   CraftRecipesData,
   MachineRecipe,
   MachineRecipesData,
-} from "@/bridge/payloadTypes";
+} from "@/bridge/contract/payloadTypes";
 
 // タブ定義。blockItemId が null ならクラフトレシピのタブ
 // Tab descriptor; blockItemId null means the craft recipe tab

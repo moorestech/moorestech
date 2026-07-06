@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { useTopic, readTopic, dispatchAction, Topics } from "@/bridge";
-import { useItemMaster } from "@/bridge/useItemMaster";
+import { useItemMaster } from "@/bridge/store/useItemMaster";
 import { readActiveLayer } from "@/app/activeLayer";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
-import type { InventoryArea, SlotData, SlotRef } from "@/bridge/payloadTypes";
+import type { InventoryArea, SlotData, SlotRef } from "@/bridge/contract/payloadTypes";
 import { resolveDirectMoveTarget } from "../inventoryLogic";
 import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
 import GrabOverlay from "./GrabOverlay";

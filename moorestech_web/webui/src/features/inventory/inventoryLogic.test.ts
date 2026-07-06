@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolveDirectMoveTarget } from "./inventoryLogic";
-import type { SlotData } from "@/bridge/payloadTypes";
+import type { SlotData } from "@/bridge/contract/payloadTypes";
 
 const slots = (xs: SlotData[]): SlotData[] => xs;
 

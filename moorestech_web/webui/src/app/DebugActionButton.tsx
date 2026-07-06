@@ -1,5 +1,5 @@
 import { Button } from "@mantine/core";
-import { dispatchAction } from "@/bridge/actions";
+import { dispatchAction } from "@/bridge/transport/actions";
 import { emitToast } from "@/features/toast/toastStore";
 
 // debug.echo を発行して双方向APIの疎通を確認する開発用ボタン

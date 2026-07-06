@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useTopicStore } from "./topicStore";
-import { subscriptions } from "./subscriptionManager";
-import type { TopicPayloads } from "./protocol";
+import { subscriptions } from "../transport/subscriptionManager";
+import type { TopicPayloads } from "../transport/protocol";
 
 // 指定トピックを購読して最新の値を返す React フック（初回 snapshot 前は null）
 // React hook that subscribes to a topic and returns the latest value (null before the first snapshot)
