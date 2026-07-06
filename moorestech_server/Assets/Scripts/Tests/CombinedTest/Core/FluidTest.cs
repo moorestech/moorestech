@@ -17,6 +17,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UniRx;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
@@ -146,8 +147,8 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
             
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
             
             // パイプ同士が接続されているかのテスト
             // Test if the pipes are connected
@@ -182,7 +183,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oneWayFluidPipeBlock);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
             
-            BlockConnectorComponent<IFluidInventory> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
             
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();

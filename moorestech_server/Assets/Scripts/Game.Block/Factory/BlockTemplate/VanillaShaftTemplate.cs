@@ -24,7 +24,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var configParam = blockMasterElement.BlockParam as ShaftBlockParam;
             var connectSetting = configParam.Gear.GearConnects;
-            var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+            var blockComponent = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(connectSetting, connectSetting, blockPositionInfo);
             var gearEnergyTransformer = new GearEnergyTransformer(configParam.GearConsumption, blockInstanceId, blockComponent);
             
             var components = new List<IBlockComponent>

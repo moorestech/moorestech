@@ -16,6 +16,7 @@ using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
@@ -124,7 +125,7 @@ namespace Tests.CombinedTest.Core
 
             // dir1 の接続を外す
             // Disconnect dir1 from the splitter
-            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)splitter.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)splitter.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             connectedTargets.Remove(dummies[1]);
 
             // 6 個挿入 → dir0 と dir2 のみに分配される (dir1 はスキップされ詰まらない)
@@ -231,7 +232,7 @@ namespace Tests.CombinedTest.Core
             var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FilterSplitter).BlockParam as FilterSplitterBlockParam;
             var outputs = param.InventoryConnectors.OutputConnects;
 
-            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)splitter.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectedTargets = (Dictionary<IBlockInventory, ConnectedInfo>)splitter.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             connectedTargets.Clear();
 
             var dummies = new DummyBlockInventory[outputs.Length];
