@@ -64,6 +64,21 @@ namespace Client.WebUiHost.Game
             return _pendingSource.Task;
         }
 
+        // バインド解除時に保留要求を cancel で解決し状態を初期化する（await リーク防止）
+        // On unbind, resolve the pending request as cancel and reset state (prevents leaked awaits)
+        public void CancelPending()
+        {
+            _pendingSource?.TrySetResult("cancel");
+            _pendingSource = null;
+            _pendingId = null;
+            Pending = null;
+            _onPendingChanged.OnNext(Unit.Default);
+
+            // 自分が現行 Instance なら破棄扱いにして解決口を閉じる
+            // If this is the current Instance, treat it as disposed and close the resolution point
+            if (ReferenceEquals(Instance, this)) Instance = null;
+        }
+
         // Web からの応答。id 不一致は古い応答なので無視する
         // Reply from the web; ignore id mismatches as stale responses
         public bool Respond(string id, string result)
