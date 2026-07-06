@@ -181,7 +181,7 @@ public class BlockConnectorComponent<TTarget, TConnectJudge>
 
 ### GearConnectJudge の判定ロジック
 
-1. 双方の `IBlockConnector` を `GearConnectsElement` にキャストし、`Option.MeshingAxis` を取得（歯車ドメインの生成型は1種のみのため直接キャスト。前回リファクタの `GearConnect.FromConnectedInfo` と同方式）
+1. 双方の `IBlockConnector` を `is not GearConnectsElement` でパターンマッチし、`Option.MeshingAxis` を取得。マッチ失敗（歯車以外、または方向無制限経路でコネクタ未特定）なら true（制約なし）を返す。ConnectJudgeContext のコネクタは方向無制限経路で null 相当になり得るため、直接キャスト（失敗時throw）ではなくnull許容の判定にしている
 2. どちらかの `meshingAxis` が未設定なら true（向き制約なし）
 3. 各ローカル軸を `BlockDirection.GetRotation()` によるワールド変換（`GetCoordinateConvertAction` と同じ回転行列 + RoundToInt）でワールド軸に変換
 4. 外積がゼロベクトル（= 平行、逆向き含む）なら true、それ以外は false
