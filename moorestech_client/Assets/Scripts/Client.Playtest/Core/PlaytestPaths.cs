@@ -45,6 +45,11 @@ namespace Client.Playtest.Core
             var baseDirectory = string.IsNullOrEmpty(SessionDirectory) ? Path.Combine(RootDirectory, "adhoc") : SessionDirectory;
             var directory = Path.Combine(baseDirectory, runName);
             Directory.CreateDirectory(directory);
+
+            // 再実行時に前回のresult.jsonをCLI側が誤回収しないよう先に消す
+            // Delete a stale result.json first so the CLI never collects the previous run's result
+            var staleResultPath = Path.Combine(directory, "result.json");
+            if (File.Exists(staleResultPath)) File.Delete(staleResultPath);
             return directory;
         }
     }
