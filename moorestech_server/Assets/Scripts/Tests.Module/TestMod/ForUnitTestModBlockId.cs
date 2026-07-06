@@ -50,6 +50,7 @@ namespace Tests.Module.TestMod
         
         public static BlockId TestTrainRail => GetBlock("00000000-0000-0000-0000-000000000024");
         public static BlockId LockedTrainRail => GetBlock("00000000-0000-0000-0000-000000000103");
+        public static BlockId RailCostTrainRail => GetBlock("00000000-0000-0000-0000-000000000104"); // 橋脚コストがレールアイテムと同一のテスト用 / Pier cost shares the rail item
         public static BlockId TestTrainStation => GetBlock("00000000-0000-0000-0000-000000000025");
         public static BlockId TestTrainItemPlatform => GetBlock("00000000-0000-0000-0000-000000000026");
         

@@ -20,9 +20,9 @@ namespace Server.Protocol.PacketResponse
 {
     /// <summary>
     /// 橋脚ブロックを自動設置しながらレールを接続するプロトコル。
-    /// 解放状態と橋脚コストを設置前に検証し、レール不足時は設置をロールバックして失敗させる。
+    /// 解放状態と橋脚コストを設置前に検証し、レール不足や接続失敗時は設置をロールバックして失敗させる。
     /// Protocol to connect rails while automatically placing a pier block.
-    /// Unlock state and pier cost are validated before placement; rail shortages roll back the placement.
+    /// Unlock state and pier cost are validated before placement; rail shortages and connection failures roll back the placement.
     /// </summary>
     public class RailConnectWithPlacePierProtocol : IPacketResponse
     {
@@ -79,14 +79,33 @@ namespace Server.Protocol.PacketResponse
                 return RailConnectWithPlacePierResponse.CreateFailedResponse();
             }
 
-            var connectResult = _commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.RailTypeGuid);
+            // レール所要数に橋脚コスト中の同一アイテム分を予約として上乗せして判定する
+            // Judge rail sufficiency with the pier cost's same-item amount added as a reservation
+            var railItemId = request.RailTypeGuid == Guid.Empty ? ItemMaster.EmptyItemId : MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
+            if (request.RailTypeGuid != Guid.Empty)
+            {
+                var reservedRailCount = pierItemCounts.Where(pair => pair.itemId == railItemId).Sum(pair => pair.count);
+                var ownedRailCount = inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
+                if (ownedRailCount < requiredCount + reservedRailCount)
+                {
+                    ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
+                    return RailConnectWithPlacePierResponse.CreateFailedResponse();
+                }
+            }
+
+            // 接続失敗時は孤立橋脚とコスト消費を残さないよう設置を取り消して失敗させる
+            // On connection failure, roll back the placement so no orphan pier or cost consumption remains
+            if (!_commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.RailTypeGuid))
+            {
+                ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
+                return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            }
 
             // 橋脚コストと接続に使ったレールを消費する
             // Consume the pier cost and the rails used by the connection
             ConstructionCostService.ConsumeRequiredItems(pierItemCounts, inventory);
-            if (connectResult && request.RailTypeGuid != Guid.Empty)
+            if (request.RailTypeGuid != Guid.Empty)
             {
-                var railItemId = MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
                 ElectricWireSystemUtil.ConsumeItem(inventory, railItemId, requiredCount);
             }
 

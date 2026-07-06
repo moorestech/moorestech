@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mainInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId3, 3));
             mainInventory.SetItem(1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId4, 2));
 
-            var response = ExecuteAttach(setup, BuildAttachSnapshot(setup));
+            var response = ExecuteAttach(setup, BuildAttachSnapshot(setup), setup.TrainCarGuid);
 
             // 連結成功・2両化・素材全消費を検証する
             // Validate success, a 2-car train, and fully consumed materials
@@ -58,16 +58,38 @@ namespace Tests.CombinedTest.Server.PacketTest
             mainInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId3, 2));
             mainInventory.SetItem(1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId4, 2));
 
-            var response = ExecuteAttach(setup, BuildAttachSnapshot(setup));
+            var response = ExecuteAttach(setup, BuildAttachSnapshot(setup), setup.TrainCarGuid);
 
-            // 失敗応答・編成不変・素材非消費を検証する
-            // Validate failure response, unchanged train, and untouched materials
-            Assert.IsFalse(response.Success, "素材不足では失敗するべき / Attach should fail when materials are insufficient");
-            Assert.AreEqual(AttachTrainCarFailureType.InsufficientItems, response.FailureType, "InsufficientItemsを返すべき / Should return InsufficientItems");
-            var train = setup.Environment.GetITrainLookupDatastore().GetRegisteredTrains().Last();
-            Assert.AreEqual(1, train.Cars.Count, "編成は1両のままであるべき / Train should stay at 1 car");
+            // 素材非消費も検証する
+            // Also validate untouched materials
+            AssertRejected(setup, response, AttachTrainCarFailureType.InsufficientItems);
             Assert.AreEqual(2, TotalCount(mainInventory, ForUnitTestItemId.ItemId3), "素材は消費されないべき / Materials should not be consumed");
             Assert.AreEqual(2, TotalCount(mainInventory, ForUnitTestItemId.ItemId4), "素材は消費されないべき / Materials should not be consumed");
+        }
+
+        [Test]
+        public void 未解放車両は連結されずNotUnlockedを返す()
+        {
+            // 2両目(initialUnlocked無し)のGuidで連結を要求する
+            // Request attach with the 2nd car guid that lacks initialUnlocked
+            var setup = SetupTargetTrain();
+            var lockedTrainCarGuid = MasterHolder.TrainUnitMaster.Train.TrainCars[1].TrainCarGuid;
+
+            var response = ExecuteAttach(setup, BuildAttachSnapshot(setup), lockedTrainCarGuid);
+
+            AssertRejected(setup, response, AttachTrainCarFailureType.NotUnlocked);
+        }
+
+        [Test]
+        public void 存在しない車両Guidは連結されずItemNotFoundを返す()
+        {
+            // マスタに存在しないGuidで連結を要求する
+            // Request attach with a guid absent from the master
+            var setup = SetupTargetTrain();
+
+            var response = ExecuteAttach(setup, BuildAttachSnapshot(setup), Guid.NewGuid());
+
+            AssertRejected(setup, response, AttachTrainCarFailureType.ItemNotFound);
         }
 
         #region Internal
@@ -132,19 +154,29 @@ namespace Tests.CombinedTest.Server.PacketTest
             return new RailPositionSnapshotMessagePack(attachRailPosition.CreateSaveSnapshot());
         }
 
-        private static AttachTrainCarToUnitResponseMessagePack ExecuteAttach(AttachTestSetup setup, RailPositionSnapshotMessagePack railPosition)
+        private static AttachTrainCarToUnitResponseMessagePack ExecuteAttach(AttachTestSetup setup, RailPositionSnapshotMessagePack railPosition, Guid trainCarGuid)
         {
             // 後尾連結(前向き)で送信する
             // Send a rear-attach request with a forward-facing car
             var packet = MessagePackSerializer.Serialize(new AttachTrainCarToUnitRequestMessagePack(
                 setup.TargetTrainUnitInstanceId,
                 railPosition,
-                setup.TrainCarGuid,
+                trainCarGuid,
                 PlayerId,
                 true,
                 false));
             var responses = setup.Environment.PacketResponseCreator.GetPacketResponse(packet, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<AttachTrainCarToUnitResponseMessagePack>(responses[0]);
+        }
+
+        private static void AssertRejected(AttachTestSetup setup, AttachTrainCarToUnitResponseMessagePack response, AttachTrainCarFailureType expectedFailureType)
+        {
+            // 失敗応答と編成不変を検証する
+            // Validate the failure response and the unchanged train
+            Assert.IsFalse(response.Success, "連結は拒否されるべき / Attach should be rejected");
+            Assert.AreEqual(expectedFailureType, response.FailureType, $"{expectedFailureType}を返すべき / Should return {expectedFailureType}");
+            var train = setup.Environment.GetITrainLookupDatastore().GetRegisteredTrains().Last();
+            Assert.AreEqual(1, train.Cars.Count, "編成は1両のままであるべき / Train should stay at 1 car");
         }
 
         private static IOpenableInventory GetMainInventory(TrainTestEnvironment environment)

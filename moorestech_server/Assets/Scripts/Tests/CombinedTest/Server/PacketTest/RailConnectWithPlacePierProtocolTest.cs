@@ -108,6 +108,34 @@ namespace Tests.CombinedTest.Server.PacketTest
             AssertFailedWithoutStateChange(response, expectedMaterialCount: 2, expectedRailCount: 100);
         }
 
+        [Test]
+        public void 橋脚コストとレールが同一アイテムなら合算不足で失敗しロールバックされる()
+        {
+            // 橋脚コスト(レールx5)と敷設分(約10)は個別には足りるが合算15には足りない12個を所持する
+            // Hold 12 rails: enough for pier cost (5) and laying (about 10) separately but not for the combined 15
+            _inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_railItemId, 12));
+
+            var response = Send(ForUnitTestModBlockId.RailCostTrainRail);
+
+            AssertFailedWithoutStateChange(response, expectedMaterialCount: 0, expectedRailCount: 12);
+        }
+
+        [Test]
+        public void 橋脚コストとレールが同一アイテムでも合算充足なら成功し両方消費される()
+        {
+            _inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_railItemId, 30));
+
+            var response = Send(ForUnitTestModBlockId.RailCostTrainRail);
+
+            // 橋脚コスト(レールx5)＋距離比例のレール敷設分が合算で消費されることを検証する
+            // Verify the pier cost (5 rails) plus the distance-based laying cost are consumed together
+            Assert.IsTrue(response.Success, "設置は成功するべき / Placement should succeed");
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(PierPosition), "橋脚が設置されるべき / Pier should be placed");
+            Assert.IsTrue(_environment.GetRailGraphDatastore().TryGetRailNode(response.ToNodeId, out var toNode), "toNodeが存在するべき / toNode should exist");
+            var expectedRailCount = Mathf.CeilToInt(RailConnectionEditProtocol.GetRailLength(_fromNode, toNode));
+            Assert.AreEqual(30 - 5 - expectedRailCount, CountItem(_railItemId), "橋脚コストと敷設レールが合算消費されるべき / Pier cost and laying rails should both be consumed");
+        }
+
         private void SetInventory(int materialCount, int railCount)
         {
             if (0 < materialCount) _inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_materialItemId, materialCount));
