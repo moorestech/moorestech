@@ -14,12 +14,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
     public struct PlaceSystemUpdateContext
     {
-        public readonly ItemId HoldingItemId;
-
-        public readonly bool IsSelectSlotChanged;
-        public readonly int PreviousSelectHotbarSlotIndex;
-        public readonly int CurrentSelectHotbarSlotIndex;
-
         // ビルドメニューで選択中のブロック（未選択はnull）
         // The block selected in the build menu (null when nothing is selected)
         public readonly BlockId? SelectedBlockId;
@@ -31,14 +25,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public readonly string SelectedConnectPlaceMode;
         public readonly bool IsSelectionChanged;
 
-        public PlaceSystemUpdateContext(ItemId holdingItemId, bool isSelectSlotChanged, int previousSelectHotbarSlotIndex, int currentSelectHotbarSlotIndex, BlockId? selectedBlockId, PlacementSelectionType selectionType, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, bool isSelectionChanged)
+        public PlaceSystemUpdateContext(PlacementSelectionType selectionType, BlockId? selectedBlockId, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, bool isSelectionChanged)
         {
-            HoldingItemId = holdingItemId;
-            IsSelectSlotChanged = isSelectSlotChanged;
-            PreviousSelectHotbarSlotIndex = previousSelectHotbarSlotIndex;
-            CurrentSelectHotbarSlotIndex = currentSelectHotbarSlotIndex;
-            SelectedBlockId = selectedBlockId;
             SelectionType = selectionType;
+            SelectedBlockId = selectedBlockId;
             SelectedTrainCarGuid = selectedTrainCarGuid;
             SelectedConnectPlaceMode = selectedConnectPlaceMode;
             IsSelectionChanged = isSelectionChanged;
