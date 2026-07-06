@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { ActionPayloads } from "@/bridge";
-import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
+import type { BlockInventoryOpen, SlotData } from "@/bridge/contract/payloadTypes";
+import { planDirectMoves } from "@/features/inventory/inventoryLogic";
 import ChestInventory from "./views/ChestInventory";
 import FilterSplitterInventory from "./views/FilterSplitterInventory";
 import GearMachineInventory from "./views/GearMachineInventory";
@@ -35,6 +36,38 @@ export function blockSlotClickPayload(
   if (grabCount > 0) return placePayload(slotIndex, grabCount);
   if (slotItemId > 0) return pickUpPayload(slotIndex, slotCount);
   return null;
+}
+
+// 右クリック: grab保持なら1個置き / 空手で2個以上なら半分(切り捨て)を grab へ / それ以外は無操作
+// Right-click: place one while holding grab / grab half (floor) of 2+ items empty-handed / otherwise no-op
+export function blockSlotRightClickPayload(
+  slotIndex: number,
+  slotItemId: number,
+  slotCount: number,
+  grabCount: number,
+): MoveItemPayload | null {
+  if (grabCount > 0) return { from: { area: "grab", slot: 0 }, to: { area: "block", slot: slotIndex }, count: 1 };
+  // uGUI 準拠の切り捨て半分。1個は half=0 になるため無操作
+  // uGUI-style floored half; a single item halves to 0, hence a no-op
+  const half = Math.floor(slotCount / 2);
+  if (slotItemId > 0 && half > 0) return pickUpPayload(slotIndex, half);
+  return null;
+}
+
+// Shift+クリック: block スロットからプレイヤー main へ配分（uGUI はサブ→メインのみでホットバー除外）
+// Shift-click: allocate a block slot into the player's main area (uGUI moves sub→main only, hotbar excluded)
+export function blockShiftMovePayloads(
+  blockSlotIndex: number,
+  slotItemId: number,
+  slotCount: number,
+  mainSlots: SlotData[],
+  maxStack: number | undefined,
+): MoveItemPayload[] {
+  return planDirectMoves(slotCount, slotItemId, maxStack, mainSlots).map((move) => ({
+    from: { area: "block", slot: blockSlotIndex },
+    to: { area: "main", slot: move.slot },
+    count: move.count,
+  }));
 }
 
 // blockType → React コンポーネントの静的レジストリ。後続 feature が再代入なしで拡張できるよう可変オブジェクト

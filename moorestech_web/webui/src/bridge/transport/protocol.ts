@@ -66,6 +66,7 @@ export type ActionPayloads = {
   "craft.execute": { recipeGuid: string };
   "ui.modal.respond": { id: string; result: "confirm" | "cancel" };
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
+  "block_inventory.collect": { slot: BlockSlotRef };
   "ui_state.request": { state: "GameScreen" | "PlayerInventory" };
   "research.complete": { researchGuid: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
