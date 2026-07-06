@@ -1,0 +1,24 @@
+/* 研究ツリー: 全画面固定 + 内部スクロールキャンバス。z-index はモーダル(依存: ModalHost)より下 */
+/* Research tree: full-screen fixed with an inner scroll canvas; z-index stays below the modal host */
+.panel {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--mantine-color-dark-8);
+  display: flex;
+  flex-direction: column;
+}
+.scroll { flex: 1; }
+.canvas { position: relative; }
+.node, .nodeCompleted {
+  position: absolute;
+  width: 200px;
+  transform: translate(-50%, -50%);
+}
+.nodeCompleted { outline: 2px solid var(--mantine-color-green-6); }
+.line {
+  position: absolute;
+  height: 3px;
+  background: var(--mantine-color-dark-4);
+  transform-origin: 0 50%;
+}
