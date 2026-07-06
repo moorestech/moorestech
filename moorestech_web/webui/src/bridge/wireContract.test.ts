@@ -9,7 +9,7 @@ vi.mock("./webSocketClient", () => ({ sendAction: vi.fn() }));
 import { validateTopicPayload } from "./validators";
 import { BENIGN_ERRORS } from "./actions";
 import { Topics } from "./protocol";
-import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData } from "./payloadTypes";
+import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData } from "./payloadTypes";
 
 // C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
 // Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
@@ -81,6 +81,43 @@ describe("wire contract fixtures (shared with C#)", () => {
     expect(validateTopicPayload(Topics.progress, { visible: true })).toBe(false);
     expect(validateTopicPayload(Topics.blockInventory, { open: true })).toBe(false);
     expect(validateTopicPayload(Topics.modal, { modal: { id: "x" } })).toBe(false);
+  });
+});
+
+describe("block detail fixtures", () => {
+  const cases = [
+    "block_inventory_machine.json",
+    "block_inventory_gear_machine.json",
+    "block_inventory_generator.json",
+    "block_inventory_miner.json",
+    "block_inventory_filter_splitter.json",
+  ];
+  for (const file of cases) {
+    it(`accepts ${file} and types it as open`, () => {
+      const data = loadFixture(file);
+      expect(validateTopicPayload(Topics.blockInventory, data)).toBe(true);
+      const payload = data as BlockInventoryData;
+      if (!payload.open) throw new Error("fixture must be open");
+      expect(payload.blockType.length).toBeGreaterThan(0);
+    });
+  }
+  it("consumes capability fields with the declared types", () => {
+    const machine = loadFixture("block_inventory_machine.json") as BlockInventoryData;
+    if (!machine.open || !machine.machine) throw new Error("machine fixture shape");
+    expect(machine.machine.slotLayout.input + machine.machine.slotLayout.output + machine.machine.slotLayout.module).toBe(machine.itemSlots.length);
+    const gear = loadFixture("block_inventory_gear_machine.json") as BlockInventoryData;
+    if (!gear.open || !gear.gearNetwork) throw new Error("gear fixture shape");
+    expect(["none", "rocked", "overRequirePower"]).toContain(gear.gearNetwork.stopReason);
+  });
+});
+
+describe("research_tree fixture", () => {
+  it("accepts and types research payload", () => {
+    const data = loadFixture("research_tree.json");
+    expect(validateTopicPayload(Topics.researchTree, data)).toBe(true);
+    const tree = data as ResearchTreeData;
+    expect(tree.nodes.length).toBe(2);
+    expect(tree.nodes[1].prevGuids).toContain(tree.nodes[0].guid);
   });
 });
 

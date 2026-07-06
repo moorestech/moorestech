@@ -1,0 +1,18 @@
+{
+  "open": true,
+  "blockType": "GearMachine",
+  "identifier": "(0, 0, 0)",
+  "blockName": "ギア機械",
+  "itemSlots": [ { "itemId": 3, "count": 2 }, { "itemId": 0, "count": 0 } ],
+  "fluidSlots": [],
+  "progress": 0.1,
+  "machine": {
+    "recipeGuid": "00000000-0000-0000-0000-000000000000",
+    "currentState": "idle",
+    "currentPower": 0.0,
+    "requestPower": 0.0,
+    "slotLayout": { "input": 1, "output": 1, "module": 0 }
+  },
+  "gear": { "isClockwise": true, "currentRpm": 12.5, "currentTorque": 3.0, "baseRpm": 20.0, "baseTorque": 5.0 },
+  "gearNetwork": { "totalRequiredGearPower": 60.0, "totalGenerateGearPower": 100.0, "stopReason": "none" }
+}
