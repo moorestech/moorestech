@@ -41,6 +41,7 @@ export default function App() {
 
   return (
     <div className={styles.layout}>
+      {screen !== "none" && <div className={styles.backdrop} data-testid="screen-backdrop" />}
       {screen !== "none" && (
         <Group gap="md" style={{ gridArea: "header" }}>
           <Title order={1} size="h3">moorestech Web UI</Title>
