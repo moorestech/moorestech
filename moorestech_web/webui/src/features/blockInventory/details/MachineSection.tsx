@@ -3,7 +3,7 @@ import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
 import { ItemSlot, SlotGrid, ProgressArrow, FluidSlot } from "@/shared/ui";
 import { dispatchAction } from "@/bridge";
 import { useBlockInteraction } from "../blockInteractionContext";
-import { pickUpPayload, placePayload } from "../blockLogic";
+import { blockSlotClickPayload } from "../blockLogic";
 import { computePowerRate, splitSlotIndices } from "./detailLogic";
 
 // 機械: 入力→出力→モジュールの分割グリッド + 進捗 + 電力率（uGUI MachineBlockInventoryView 準拠）
@@ -15,17 +15,13 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
   const powerRate = computePowerRate(data.machine.currentPower, data.machine.requestPower);
   const lacking = powerRate < 1;
 
-  // grab 保持時は置く、空かつ中身ありなら拾う。表示更新は topic event 駆動に委ねる
-  // Place while holding grab; pick up when empty and the slot has items; rendering follows topic events
+  // クリック分岐は blockLogic に共通化。payload が null なら無操作、表示更新は topic event 駆動に委ねる
+  // Click branching is shared in blockLogic; a null payload means no-op, and rendering follows topic events
   const slotAt = (i: number) => {
     const slot = data.itemSlots[i];
     const onLeftDown = () => {
-      if (grabCount > 0) {
-        void dispatchAction("block_inventory.move_item", placePayload(i, grabCount));
-        return;
-      }
-      if (slot.count === 0) return;
-      void dispatchAction("block_inventory.move_item", pickUpPayload(i, slot.count));
+      const payload = blockSlotClickPayload(i, slot.itemId, slot.count, grabCount);
+      if (payload) void dispatchAction("block_inventory.move_item", payload);
     };
     return (
       <ItemSlot key={i} itemId={slot.itemId} count={slot.count} name={resolveName(slot.itemId)} onLeftDown={onLeftDown} />
