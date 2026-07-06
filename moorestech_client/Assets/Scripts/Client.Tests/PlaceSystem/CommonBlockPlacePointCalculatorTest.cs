@@ -1,106 +1,73 @@
 using System;
-using System.Collections.Generic;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem
 {
+    // コンベア分岐削除後(Task 6)の直線設置ロジックを検証する
+    // Verify the straight-line placement logic left after Task 6 removed the conveyor branch
     public class CommonBlockPlacePointCalculatorTest
     {
-        private readonly TestCase[] _testCases =
-        {
-            new() // 1ブロックだけ設置
-            {
-                PlaceStartPoint = new Vector3Int(0, 0, 0),
-                PlaceEndPoint = new Vector3Int(0, 0, 0),
-                ExpectedPoints = new[]
-                {
-                    (new Vector3Int(0, 0, 0), BlockVerticalDirection.Horizontal),
-                },
-            },
-            new() // 連続2ブロック設置 & 初期高さ + 1の場合
-            {
-                PlaceStartPoint = new Vector3Int(0, 0, 0),
-                PlaceEndPoint = new Vector3Int(1, 1, 0),
-                ExpectedPoints = new[]
-                {
-                    (new Vector3Int(0, 0, 0), BlockVerticalDirection.Up),
-                    (new Vector3Int(1, 1, 0), BlockVerticalDirection.Horizontal),
-                },
-            },
-            new() // 連続2ブロック設置 & 初期高さ - 1の場合
-            {
-                PlaceStartPoint = new Vector3Int(0, 1, 0),
-                PlaceEndPoint = new Vector3Int(1, 0, 0),
-                ExpectedPoints = new[]
-                {
-                    (new Vector3Int(0, 0, 0), BlockVerticalDirection.Down),
-                    (new Vector3Int(1, 0, 0), BlockVerticalDirection.Horizontal),
-                },
-            },
-            new() // 連続3ブロック設置 & 初期高さ - 1の場合
-            {
-                PlaceStartPoint = new Vector3Int(0, 1, 0),
-                PlaceEndPoint = new Vector3Int(2, 0, 0),
-                ExpectedPoints = new[]
-                {
-                    (new Vector3Int(0, 1, 0), BlockVerticalDirection.Horizontal),
-                    (new Vector3Int(1, 0, 0), BlockVerticalDirection.Down),
-                    (new Vector3Int(2, 0, 0), BlockVerticalDirection.Horizontal),
-                },
-            },
-            new() // 連続3ブロック設置 & 初期高さ + 2の場合
-            {
-                PlaceStartPoint = new Vector3Int(0, 0, 0),
-                PlaceEndPoint = new Vector3Int(2, 2, 0),
-                ExpectedPoints = new[]
-                {
-                    (new Vector3Int(0, 1, 0), BlockVerticalDirection.Horizontal),
-                    (new Vector3Int(1, 1, 0), BlockVerticalDirection.Up),
-                    (new Vector3Int(2, 2, 0), BlockVerticalDirection.Horizontal),
-                },
-            },
-            new() // 連続3ブロック設置 & 初期高さ - 2の場合
-            {
-                PlaceStartPoint = new Vector3Int(0, 2, 0),
-                PlaceEndPoint = new Vector3Int(2, 0, 0),
-                ExpectedPoints = new[]
-                {
-                    (new Vector3Int(0, 1, 0), BlockVerticalDirection.Horizontal),
-                    (new Vector3Int(1, 0, 0), BlockVerticalDirection.Down),
-                    (new Vector3Int(2, 0, 0), BlockVerticalDirection.Horizontal),
-                },
-            },
-        };
-        
+        // 常にDirection=指定値・VerticalDirection=Horizontalで設置情報を返すこと
+        // Placement info always carries the given Direction and a Horizontal VerticalDirection
         [Test]
-        public void BlockPlaceTest()
+        public void StraightLine_AlwaysHorizontal_WithGivenDirection()
         {
-            for (var i = 0; i < _testCases.Length; i++)
+            var blockMasterElement = MakeBlock(Vector3Int.one);
+
+            var actual = CommonBlockPlacePointCalculator.CalculatePoint(
+                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
+                blockMasterElement, (_, _) => true, _ => false);
+
+            Assert.AreEqual(3, actual.Count);
+            foreach (var info in actual)
             {
-                var testCase = _testCases[i];
-                
-                // isStartDirectionZがどちらの場合でも同一の挙動を期待する
-                
-                Debug.Log($"TestCase: {i} startDirectionZ: true");
-                BlockPlaceTest(testCase, true);
-                Debug.Log("  Passed");
-                
-                Debug.Log($"TestCase: {i} startDirectionZ: false");
-                BlockPlaceTest(testCase, false);
-                Debug.Log("  Passed");
+                Assert.AreEqual(BlockDirection.East, info.Direction);
+                Assert.AreEqual(BlockVerticalDirection.Horizontal, info.VerticalDirection);
+                Assert.IsTrue(info.Placeable);
             }
         }
-        
-        private void BlockPlaceTest(TestCase testCase, bool isStartDirectionZ)
+
+        // blockSize分だけ間隔を空けて配置点を刻むこと
+        // Placement points are spaced by blockSize
+        [Test]
+        public void MultiCellBlockSize_StepsByBlockSize()
         {
-            var blockMasterElement = new BlockMasterElement(
+            var blockMasterElement = MakeBlock(new Vector3Int(2, 1, 1));
+
+            var actual = CommonBlockPlacePointCalculator.CalculatePoint(
+                new Vector3Int(0, 0, 0), new Vector3Int(4, 0, 0), false, BlockDirection.North,
+                blockMasterElement, (_, _) => true, _ => false);
+
+            Assert.AreEqual(3, actual.Count);
+            Assert.AreEqual(new Vector3Int(0, 0, 0), actual[0].Position);
+            Assert.AreEqual(new Vector3Int(2, 0, 0), actual[1].Position);
+            Assert.AreEqual(new Vector3Int(4, 0, 0), actual[2].Position);
+        }
+
+        // isNotExistBlockがfalseを返す位置だけPlaceable=falseになること
+        // Only the position where isNotExistBlock returns false becomes unplaceable
+        [Test]
+        public void IsNotExistBlock_False_MarksPositionUnplaceable()
+        {
+            var blockMasterElement = MakeBlock(Vector3Int.one);
+            var occupied = new Vector3Int(1, 0, 0);
+
+            var actual = CommonBlockPlacePointCalculator.CalculatePoint(
+                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
+                blockMasterElement, (info, _) => info.Position != occupied, _ => false);
+
+            Assert.IsTrue(actual[0].Placeable);
+            Assert.IsFalse(actual[1].Placeable);
+            Assert.IsTrue(actual[2].Placeable);
+        }
+
+        private static BlockMasterElement MakeBlock(Vector3Int blockSize)
+        {
+            return new BlockMasterElement(
                 0,
                 Guid.Empty,
                 "TestBlock",
@@ -111,58 +78,11 @@ namespace Client.Tests.PlaceSystem
                 null,
                 0,
                 false,
-                testCase.BlockSize,
+                blockSize,
                 null,
                 null,
-                null,
-                null,
-                true
+                null
             );
-            
-            List<PlaceInfo> actual = CommonBlockPlacePointCalculator.CalculatePoint(
-                testCase.PlaceStartPoint,
-                testCase.PlaceEndPoint,
-                isStartDirectionZ,
-                BlockDirection.North,
-                blockMasterElement,
-                (_, _) => true,
-                _ => false
-            );
-            
-            Assert.AreEqual(testCase.ExpectedPoints.Length, actual.Count);
-            for (var i = 0; i < testCase.ExpectedPoints.Length; i++)
-            {
-                (Vector3Int position, BlockVerticalDirection? verticalDirection) expected = testCase.ExpectedPoints[i];
-                
-                Assert.AreEqual(expected.position, actual[i].Position);
-                Assert.AreEqual(testCase.ExpectedPoints[i].verticalDirection, actual[i].VerticalDirection);
-            }
-        }
-        
-        // 立体交差不能(高さ2を3セルで跨げない)の端点設置不可フラグが占有判定で上書きされず残ることを検証する
-        // Verify the infeasible-overpass unplaceable flag (height-2 obstacle uncrossable in 3 cells) survives the occupancy check.
-        [Test]
-        public void InfeasibleOverpass_KeepsEndpointsUnplaceable()
-        {
-            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", Guid.Empty, null, null, null, 0, false, Vector3Int.one, null, null, null, null, true);
-            var obstacle = new HashSet<Vector3Int> { new(1, 0, 0), new(1, 1, 0) };
-
-            // isNotExistBlock は常に true（占有なし扱い）。それでも端点は不可のまま残るべき
-            // isNotExistBlock always returns true (no occupancy); the endpoints must still stay unplaceable.
-            var actual = CommonBlockPlacePointCalculator.CalculatePoint(
-                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
-                blockMasterElement, (_, _) => true, obstacle.Contains);
-
-            Assert.IsFalse(actual[0].Placeable);
-            Assert.IsFalse(actual[2].Placeable);
-        }
-
-        private struct TestCase
-        {
-            public Vector3Int BlockSize;
-            public Vector3Int PlaceStartPoint;
-            public Vector3Int PlaceEndPoint;
-            public (Vector3Int position, BlockVerticalDirection verticalDirection)[] ExpectedPoints;
         }
     }
 }

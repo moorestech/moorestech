@@ -9,8 +9,8 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltConveyor
 {
-    // CommonBlockPlacePointCalculatorTestのコンベア系ケースを移植（元は消さない。Task 6で元を削除）
-    // Ported from CommonBlockPlacePointCalculatorTest's conveyor cases (original kept until Task 6 removes it)
+    // CommonBlockPlacePointCalculatorTestのコンベア系ケースを移植（Task 6で元のケースは削除済み）
+    // Ported from CommonBlockPlacePointCalculatorTest's conveyor cases (the original cases were removed in Task 6)
     public class BeltConveyorPlacePointCalculatorTest
     {
         private readonly TestCase[] _testCases =
@@ -114,9 +114,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 testCase.BlockSize,
                 null,
                 null,
-                null,
-                null,
-                true
+                null
             );
 
             List<PlaceInfo> actual = BeltConveyorPlacePointCalculator.CalculatePoint(
@@ -144,7 +142,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         [Test]
         public void InfeasibleOverpass_KeepsEndpointsUnplaceable()
         {
-            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", Guid.Empty, null, null, null, 0, false, Vector3Int.one, null, null, null, null, true);
+            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", Guid.Empty, null, null, null, 0, false, Vector3Int.one, null, null, null);
             var obstacle = new HashSet<Vector3Int> { new(1, 0, 0), new(1, 1, 0) };
 
             // isNotExistBlock は常に true（占有なし扱い）。それでも端点は不可のまま残るべき

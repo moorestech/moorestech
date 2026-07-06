@@ -874,36 +874,6 @@ properties:
         - key: inventoryConnectors
           ref: inventoryConnects
 
-    - key: overrideVerticalBlock
-      type: object
-      optional: true
-      properties:
-      - key: upBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-      - key: horizontalBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-      - key: downBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-    - key: enableConveyorPlacement
-      type: boolean
-      default: false
-      optional: true
-
 - key: gearChainItems
   type: array
   items:
