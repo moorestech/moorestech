@@ -1,5 +1,9 @@
 # 実行計画書: uGUI→WebUI パリティ実装（2026-07-07）
 
+> **2026-07-07 更新**: Phase 0〜2 は writing-plans 形式の実行計画
+> `docs/superpowers/plans/2026-07-07-webui-parity-phase0-2.md` に詳細化済み。実行はそちらに従う。
+> Phase 3〜6 のロードマップは引き続き本書が正。
+
 `2026-07-07-parity-audit-verification-handoff.md`（裏取り済み申し送り）を実行に落とす計画。
 **着手前に必ず申し送り本文を読むこと。** 特に「要訂正5点」を織り込まずに監査原文や
 種リストをそのまま台帳化・実装すると誤った修正をする（GearEnergyTransformerキー追加、
