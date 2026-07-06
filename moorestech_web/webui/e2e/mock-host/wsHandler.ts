@@ -1,0 +1,140 @@
+import type { WebSocketServer } from "ws";
+import { Topics } from "../../src/bridge/transport/protocol";
+import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/protocol";
+import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
+import * as fx from "./fixtures";
+import { send, clone } from "./wire";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers } from "./state";
+import { applyMove, applyBlockMove, applyCollect } from "./inventoryModel";
+
+// 本番 dispatcher が受理する既知 action type。未知は unknown_action で拒否する
+// Action types the real dispatcher accepts; unknown ones are rejected with unknown_action
+const KNOWN_ACTIONS = new Set<string>([
+  "inventory.move_item",
+  "inventory.split",
+  "inventory.collect",
+  "inventory.sort",
+  "inventory.select_hotbar",
+  "craft.execute",
+  "ui.modal.respond",
+  "block_inventory.move_item",
+  "ui_state.request",
+  "debug.echo",
+]);
+
+// インベントリ状態は接続ごとに分離する。並列テストが同一 inv を奪い合わないため
+// Inventory state is isolated per connection so parallel tests don't race on the same inv
+export function attachWsHandlers(wss: WebSocketServer) {
+  wss.on("connection", (ws) => {
+    let inv: PlayerInventoryData = clone(fx.inventory);
+
+    const topicData = (topic: string): unknown => {
+      if (topic === Topics.inventory) return inv;
+      if (topic === Topics.craftRecipes) return fx.craftRecipes;
+      if (topic === Topics.machineRecipes) return fx.machineRecipes;
+      if (topic === Topics.itemList) return fx.itemList;
+      if (topic === Topics.blockInventory) return state.currentBlock;
+      if (topic === Topics.modal) return { modal: state.currentModal };
+      if (topic === Topics.progress) return fx.progressSample;
+      if (topic === Topics.uiState) return state.currentUiState;
+      return undefined;
+    };
+
+    ws.on("close", () => {
+      blockSubscribers.delete(ws);
+      modalSubscribers.delete(ws);
+      uiStateSubscribers.delete(ws);
+    });
+
+    ws.on("message", (raw) => {
+      const msg = JSON.parse(raw.toString()) as ClientMsg;
+      if (msg.op === "subscribe") {
+        for (const topic of msg.topics) {
+          if (topic === Topics.blockInventory) blockSubscribers.add(ws);
+          if (topic === Topics.modal) modalSubscribers.add(ws);
+          if (topic === Topics.uiState) uiStateSubscribers.add(ws);
+          const data = topicData(topic);
+          if (data !== undefined) send(ws, { op: "snapshot", topic, data });
+        }
+        return;
+      }
+      // 購読解除: グローバル購読 Set から除去する（本番 host が unsubscribe を尊重するのに合わせる）
+      // Unsubscribe: remove from the global subscription Sets (mirrors the real host honoring unsubscribe)
+      if (msg.op === "unsubscribe") {
+        for (const topic of msg.topics) {
+          if (topic === Topics.blockInventory) blockSubscribers.delete(ws);
+          if (topic === Topics.modal) modalSubscribers.delete(ws);
+          if (topic === Topics.uiState) uiStateSubscribers.delete(ws);
+        }
+        return;
+      }
+      if (msg.op === "action") {
+        received.push({ type: msg.type, payload: msg.payload });
+        // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
+        // ack is decided after apply like the real host; the topic event is pushed later on a separate channel
+        let error: string | undefined;
+        if (msg.type === "fail.always") {
+          error = "mock_error";
+        } else if (msg.type === "inventory.move_item") {
+          // 状態が変化したときだけ topic event を流す（host の失敗は packet を出さない）
+          // Emit a topic event only when state changed (the host's failed move sends no packet)
+          const moveError = applyMove(inv, msg.payload as ActionPayloads["inventory.move_item"]);
+          if (moveError) error = moveError;
+          else setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+        } else if (msg.type === "inventory.collect") {
+          applyCollect(inv, msg.payload as ActionPayloads["inventory.collect"]);
+          setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+        } else if (msg.type === "inventory.select_hotbar") {
+          // 選択 index を更新して inventory topic を再配信
+          // Update the selected index and republish the inventory topic
+          const index = (msg.payload as ActionPayloads["inventory.select_hotbar"]).index;
+          if (typeof index === "number" && index >= 0 && index < inv.hotbarSlots.length) {
+            inv.selectedHotbar = index;
+            setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+          } else {
+            error = "invalid_index";
+          }
+        } else if (msg.type === "ui.modal.respond") {
+          // どの結果でもモーダルを閉じ、全 modal 購読者へ modal:null を push
+          // Any result closes the modal and pushes modal:null to all modal subscribers
+          state.currentModal = null;
+          setTimeout(() => {
+            for (const sub of modalSubscribers) send(sub, { op: "event", topic: Topics.modal, data: { modal: null } });
+          }, 30);
+        } else if (msg.type === "block_inventory.move_item") {
+          const moveError = applyBlockMove(inv, state.currentBlock, msg.payload as ActionPayloads["block_inventory.move_item"]);
+          if (moveError) {
+            error = moveError;
+          } else {
+            setTimeout(() => {
+              send(ws, { op: "event", topic: Topics.inventory, data: inv });
+              send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock });
+            }, 30);
+          }
+        } else if (msg.type === "ui_state.request") {
+          // 実 host の許可制を再現: GameScreen/PlayerInventory のみ受理し、GameScreen 遷移では block も閉じる
+          // Mirror the real host's allowlist: accept only GameScreen/PlayerInventory; GameScreen also closes the block
+          const requestedState = (msg.payload as ActionPayloads["ui_state.request"]).state;
+          if (requestedState !== "GameScreen" && requestedState !== "PlayerInventory") {
+            error = "unsupported_state";
+          } else {
+            state.currentUiState = { state: requestedState };
+            if (requestedState === "GameScreen") state.currentBlock = clone(fx.blockClosed);
+            setTimeout(() => {
+              for (const sub of uiStateSubscribers) send(sub, { op: "event", topic: Topics.uiState, data: state.currentUiState });
+              if (requestedState === "GameScreen") {
+                for (const sub of blockSubscribers) send(sub, { op: "event", topic: Topics.blockInventory, data: state.currentBlock });
+              }
+            }, 30);
+          }
+        } else if (msg.type !== "fail.always" && !KNOWN_ACTIONS.has(msg.type)) {
+          // 未知 action type は本番 dispatcher と同じく unknown_action で拒否する（既知だが未実装の split/sort/craft は no-op で ok:true）
+          // Unknown action types are rejected with unknown_action like the real dispatcher (known-but-unimplemented split/sort/craft stay no-op ok:true)
+          error = "unknown_action";
+        }
+        send(ws, { op: "result", requestId: msg.requestId, ok: error === undefined, error });
+        return;
+      }
+    });
+  });
+}
