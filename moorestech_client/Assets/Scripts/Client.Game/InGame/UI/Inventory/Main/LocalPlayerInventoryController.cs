@@ -126,6 +126,27 @@ namespace Client.Game.InGame.UI.Inventory.Main
             #endregion
         }
         
+        public bool TryMoveItem(LocalMoveInventoryType fromType, int fromSlot, LocalMoveInventoryType toType, int toSlot, int count, out string denyReason)
+        {
+            // 移動元の実在・数量を検証してから MoveItem を呼ぶ（Web/uGUI 共通の検証口）
+            // Validate the source stack's presence and count before calling MoveItem (shared web/uGUI guard)
+            var fromItem = fromType == LocalMoveInventoryType.Grab ? GrabInventory : LocalPlayerInventory[fromSlot];
+            if (fromItem.Id == ItemMaster.EmptyItemId)
+            {
+                denyReason = "empty_slot";
+                return false;
+            }
+            if (fromItem.Count < count)
+            {
+                denyReason = "insufficient_count";
+                return false;
+            }
+
+            denyReason = null;
+            MoveItem(fromType, fromSlot, toType, toSlot, count);
+            return true;
+        }
+
         public void CollectItems(LocalMoveInventoryType targetType, int targetSlot)
         {
             // 同種アイテムを所持数の少ない順に集積先へ移す（uGUI ダブルクリックと Web collect の共通実装）
