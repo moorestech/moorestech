@@ -3,7 +3,7 @@
 CEF 上で動く React 製ゲーム内 UI（`moorestech_web/webui` + `Client.WebUiHost`）の**入口ドキュメント**。
 最新の全体像はここを見る。個別項目の詳細な受け入れ条件・監査根拠は下記「詳細台帳」を参照。
 
-**最終更新**: 2026-07-05
+**最終更新**: 2026-07-06
 
 ---
 
@@ -55,8 +55,8 @@ uGUI パリティの大物（研究ツリー・チャレンジ・列車・個別
 ## 残タスク
 
 ### 0. 後始末（軽微・即対応可）
-- [ ] `moorestech_web/webui/tailwind.config.js` / `tailwind.config.d.ts` を削除（Mantine 移行の唯一の残骸。依存・ディレクティブは既に不使用）
-- [ ] `cef-webui-migration-todo.md` §5 / INFRA-3 を最新実装（topicStore・ワイヤ契約単一化・`WebUiCefToggle.cs`）で更新、または本 TODO.md に一本化する方針を確定
+- [x] `moorestech_web/webui/tailwind.config.js` / `tailwind.config.d.ts` を削除（Mantine 移行の唯一の残骸。依存・ディレクティブは既に不使用）。併せて `tsconfig.node.json` の `include` から存在しない `tailwind.config.ts` 参照を除去（2026-07-06）
+- [x] 進捗の正を本 TODO.md に一本化する方針を確定。`cef-webui-migration-todo.md` 冒頭に「2026-06-14 スナップショットの詳細台帳・根拠アーカイブ」バナーを追加（最新進捗は反映しない運用に確定）（2026-07-06）
 
 ### 1. 横断インフラ（`cef-webui-migration-todo.md` INFRA-* 参照）
 - [ ] **INFRA-1 CEF バイナリの恒久統合**（最優先の未解決課題）: `manifest.json` は今も `jp.juha.cefunitysample` を git URL 参照。LFS ポインタが解決されず手動 pull 回避を繰り返している。embedded package 化等の恒久対応
