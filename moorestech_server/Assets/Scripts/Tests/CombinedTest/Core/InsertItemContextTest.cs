@@ -257,7 +257,7 @@ namespace Tests.CombinedTest.Core
 
         private static IBlockConnector CreateInventoryConnector(int index)
         {
-            return new OutputConnectsElement(index, Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>());
+            return new OutputConnectsElement(index, Guid.NewGuid(), null, Vector3Int.zero, Array.Empty<Vector3Int>());
         }
     }
 }
