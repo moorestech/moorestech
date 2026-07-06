@@ -1,5 +1,11 @@
 # moorestech Web UI 移行 完全 TODO リスト
 
+> ⚠️ **本書は 2026-06-14 スナップショットの詳細台帳（履歴・根拠アーカイブ）です。**
+> 進捗の正（最新の現状・残タスク）は `docs/webui/TODO.md` を参照してください。
+> 以降の実装（topicStore 導入・C#⇔TS ワイヤ契約単一化 `bridge/protocol.ts`・
+> `WebUiCefToggle.cs` の Ctrl+I トグル＝INFRA-3 相当・Tailwind→Mantine 移行完了）は
+> 本書には未反映です。個別項目の受け入れ条件・監査根拠を参照する用途にのみ使ってください。
+
 **親計画**: `docs/webui/cef-webui-plan.md`（CEF + React + Tailwind + TS への UI 刷新）
 **このドキュメントの目的**: 現行 uGUI が持つ**すべての UI 機能**を洗い出し、Web (CEF) への移行に必要な作業を漏れなく TODO 化する。
 **作成日**: 2026-06-14 / multi-lens-review-loop（網羅性・事実正確性・アーキ実現性・順序依存・リスク見積 + codex 外部監査）で収束まで洗練。
