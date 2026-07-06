@@ -15,8 +15,8 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public InventoryIdentifierMessagePack InventoryIdentifier { get; }
         public string UIPrefabAddressablePath => _blockGameObject.BlockMasterElement.BlockUIAddressablesPath;
 
-        // 外部からブロック種別/表示名/座標を読む公開口
-        // External read access to block type, name, and position
+        // ブロック種別/表示名/座標の公開口
+        // Read access to block type, name, position
         public string BlockName => _blockGameObject.BlockMasterElement.Name;
         public string BlockTypeName => _blockGameObject.BlockMasterElement.BlockType;
         public Vector3Int BlockPosition => _blockGameObject.BlockPosInfo.OriginalPos;

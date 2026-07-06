@@ -79,8 +79,8 @@ namespace Client.Game.InGame.UI.UIState
 
             void ForceReturnToGameScreen()
             {
-                // GameScreen以外なら終了処理を呼んでパネル等を閉じる
-                // If not GameScreen, run its exit to close panels etc.
+                // GameScreen外は終了処理を実行
+                // Run exit unless on GameScreen
                 var lastState = CurrentState;
                 if (lastState != UIStateEnum.GameScreen) _uiStateDictionary.GetState(lastState).OnExit();
 

@@ -32,13 +32,13 @@ namespace Client.Game.InGame.UI.UIState.State
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
 
-        // 外部から開いているサブと発生元を読む公開口
-        // External read access to the open sub-inventory and its source
+        // 開いているサブと発生元の公開口
+        // Read access to the open sub and its source
         public ISubInventory CurrentSubInventory => _currentView;
         public ISubInventorySource CurrentSubInventorySource => _subInventorySource;
 
-        // スロット単位の更新通知。中身が変わるたびに発火する
-        // Per-slot update notification, fired whenever the contents change
+        // スロット単位の更新通知(変更毎に発火)
+        // Per-slot update notification (fired on change)
         public IObservable<Unit> OnSubInventoryUpdated => _onSubInventoryUpdated;
         private readonly Subject<Unit> _onSubInventoryUpdated = new();
 
@@ -64,8 +64,8 @@ namespace Client.Game.InGame.UI.UIState.State
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
                 _currentView.UpdateInventorySlot(packet.Slot, item);
 
-                // 外部購読者（Web UI など）へ更新を通知する
-                // Notify external subscribers (e.g. Web UI) of the update
+                // 外部購読者(Web UI等)へ通知
+                // Notify external subscribers (e.g. Web UI)
                 _onSubInventoryUpdated.OnNext(Unit.Default);
             }
             else if (packet.EventType == InventoryEventType.Remove)
