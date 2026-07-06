@@ -1,3 +1,6 @@
+// debug.echo は疎通確認用のため、本番ビルドへ混入しないようエディタ/開発ビルド限定にする
+// debug.echo is connectivity-only, so gate it to editor/development builds to keep it out of production
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -20,3 +23,4 @@ namespace Client.WebUiHost.Game.Actions
         }
     }
 }
+#endif

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ItemSlot } from "@/shared/ui";
-import type { SlotData } from "@/bridge/payloadTypes";
+import type { SlotData } from "@/bridge/contract/payloadTypes";
 import styles from "./GrabOverlay.module.css";
 
 // マウス追従の grab オーバーレイ。mousemove の再レンダリングをこのコンポーネント内に閉じ込める

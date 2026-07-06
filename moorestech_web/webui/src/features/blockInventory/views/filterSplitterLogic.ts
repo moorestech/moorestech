@@ -1,4 +1,4 @@
-import type { FilterSplitterMode } from "@/bridge/payloadTypes";
+import type { FilterSplitterMode } from "@/bridge/contract/payloadTypes";
 
 export type FilterSlotClickAction = "set" | "clear" | "noop";
 

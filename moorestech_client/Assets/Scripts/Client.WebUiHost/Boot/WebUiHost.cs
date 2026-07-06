@@ -24,7 +24,7 @@ namespace Client.WebUiHost.Boot
 
         public static WebSocketHub Hub => _hub;
 
-        public static async UniTask StartAsync()
+        public static async UniTask<bool> StartAsync()
         {
             // 前回の停止完了を待つ（連続 Start/Stop で port 5050 衝突を避ける）
             // Wait for the previous stop to complete (avoids port 5050 collision on rapid restart)
@@ -34,7 +34,9 @@ namespace Client.WebUiHost.Boot
                 // The previous stop's fault is already logged inside StopAsync; only wait here, do not rethrow (2-B)
                 await _stopTask.ContinueWith(_ => { });
             }
-            if (_kestrel != null) return;
+            // 起動済みならtrueを返す
+            // Return true if already running
+            if (_kestrel != null) return true;
 
             // GameShutdownEvent 購読はドメイン寿命で 1 度だけ張る。IDisposable で保持し意図を型で表現
             // Install the GameShutdownEvent subscription exactly once per domain; hold it as IDisposable
@@ -53,7 +55,10 @@ namespace Client.WebUiHost.Boot
                 kestrelStarted = true;
 
                 vite = new ViteProcess();
-                await vite.StartAsync();
+
+                // Vite が起動できない（node 欠如・ready 未達）と無 UI になるため、失敗扱いでロールバックする
+                // A Vite failure (missing node / not ready) leaves the UI blank, so roll back as a failure
+                if (!await vite.StartAsync()) return false;
 
                 _hub = hub;
                 _kestrel = kestrel;
@@ -81,6 +86,7 @@ namespace Client.WebUiHost.Boot
             }
 
             Debug.Log("[WebUiHost] ready. Open http://localhost:5173/");
+            return true;
         }
 
         // 停止開始（通常経路）。停止タスクをフィールドに保持し Forget で投げる

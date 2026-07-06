@@ -50,40 +50,44 @@ namespace Client.WebUiHost.Game.Actions
             // Block moves are handled by MoveItem via the MainOrSub combined index
             _controller.MoveItem(fromType, fromSlot, toType, toSlot, count);
             return UniTask.FromResult(ActionResult.Success());
-        }
 
-        // main/hotbar/grab は既存マッパ、block は結合 index へ変換する
-        // main/hotbar/grab via the existing mapper; block maps to the combined index
-        private bool TryParseAreaSlot(JToken token, out LocalMoveInventoryType type, out int localSlot)
-        {
-            type = LocalMoveInventoryType.MainOrSub;
-            localSlot = -1;
-            if (token is not JObject obj) return false;
+            #region Internal
 
-            if (obj["area"] is not JValue { Type: JTokenType.String } areaValue) return false;
-            var area = (string)areaValue;
+            // main/hotbar/grab は既存マッパ、block は結合 index へ変換する
+            // main/hotbar/grab via the existing mapper; block maps to the combined index
+            bool TryParseAreaSlot(JToken token, out LocalMoveInventoryType type, out int localSlot)
+            {
+                type = LocalMoveInventoryType.MainOrSub;
+                localSlot = -1;
+                if (token is not JObject obj) return false;
 
-            // block 以外は area/slot の共通パースに委譲する
-            // Delegate non-block areas to the shared area/slot parser
-            if (area != "block") return InventoryAreaMapper.TryParseSlotRef(token, out type, out localSlot);
+                if (obj["area"] is not JValue { Type: JTokenType.String } areaValue) return false;
+                var area = (string)areaValue;
 
-            // block の slot は必須。サブインベントリは結合インベントリの MainInventorySize 以降に並ぶ
-            // block requires a slot; the sub-inventory lives after MainInventorySize in the combined inventory
-            if (obj["slot"] is not JValue { Value: long slotLong }) return false;
+                // block 以外は area/slot の共通パースに委譲する
+                // Delegate non-block areas to the shared area/slot parser
+                if (area != "block") return InventoryAreaMapper.TryParseSlotRef(token, out type, out localSlot);
 
-            // 発生元がブロックのときだけ許可する。列車等の非ブロックサブは block action で操作させない
-            // Allow only when the source is a block; non-block subs (e.g. trains) must not be moved via a block action
-            if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource) return false;
+                // block の slot は必須。サブインベントリは結合インベントリの MainInventorySize 以降に並ぶ
+                // block requires a slot; the sub-inventory lives after MainInventorySize in the combined inventory
+                if (obj["slot"] is not JValue { Value: long slotLong }) return false;
 
-            // 閉状態や範囲外 slot を弾く。サブ未オープンだと結合 identifier が null で MoveItem が例外になる
-            // Reject closed/out-of-range slots; with no open sub-inventory the combined identifier is null and MoveItem throws
-            var sub = _subInventoryState.CurrentSubInventory;
-            if (sub == null) return false;
-            if (slotLong < 0 || sub.Count <= slotLong) return false;
+                // 発生元がブロックのときだけ許可する。列車等の非ブロックサブは block action で操作させない
+                // Allow only when the source is a block; non-block subs (e.g. trains) must not be moved via a block action
+                if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource) return false;
 
-            type = LocalMoveInventoryType.MainOrSub;
-            localSlot = PlayerInventoryConst.MainInventorySize + (int)slotLong;
-            return true;
+                // 閉状態や範囲外 slot を弾く。サブ未オープンだと結合 identifier が null で MoveItem が例外になる
+                // Reject closed/out-of-range slots; with no open sub-inventory the combined identifier is null and MoveItem throws
+                var sub = _subInventoryState.CurrentSubInventory;
+                if (sub == null) return false;
+                if (slotLong < 0 || sub.Count <= slotLong) return false;
+
+                type = LocalMoveInventoryType.MainOrSub;
+                localSlot = PlayerInventoryConst.MainInventorySize + (int)slotLong;
+                return true;
+            }
+
+            #endregion
         }
     }
 }

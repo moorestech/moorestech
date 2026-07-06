@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using UniRx;
 
 namespace Client.WebUiHost.Game
 {
@@ -31,7 +32,8 @@ namespace Client.WebUiHost.Game
 
         // Pending が変化したら発火する（topic 再配信のトリガ）
         // Fires when Pending changes, triggering topic republish
-        public event Action OnPendingChanged;
+        public IObservable<Unit> OnPendingChanged => _onPendingChanged;
+        private readonly Subject<Unit> _onPendingChanged = new();
 
         private string _pendingId;
         private UniTaskCompletionSource<string> _pendingSource;
@@ -57,7 +59,7 @@ namespace Client.WebUiHost.Game
                 ButtonText = buttonText,
                 Variant = variant,
             };
-            OnPendingChanged?.Invoke();
+            _onPendingChanged.OnNext(Unit.Default);
 
             return _pendingSource.Task;
         }
@@ -72,7 +74,7 @@ namespace Client.WebUiHost.Game
             _pendingSource = null;
             _pendingId = null;
             Pending = null;
-            OnPendingChanged?.Invoke();
+            _onPendingChanged.OnNext(Unit.Default);
 
             source.TrySetResult(result);
             return true;

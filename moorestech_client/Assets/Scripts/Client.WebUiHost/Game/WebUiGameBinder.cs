@@ -96,7 +96,11 @@ namespace Client.WebUiHost.Game
 
             // action ハンドラ登録
             // Register action handlers
+            // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
+            // Register debug.echo only in editor/development builds, matching EchoActionHandler's gate
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
             hub.RegisterAction(new EchoActionHandler());
+#endif
             hub.RegisterAction(new MoveItemActionHandler(controller));
             hub.RegisterAction(new SplitGrabActionHandler(controller));
             hub.RegisterAction(new CollectActionHandler(controller));

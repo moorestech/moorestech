@@ -7,7 +7,7 @@ import "@mantine/core/styles.css";
 import App from "@/app/App";
 import { AppErrorBoundary } from "@/app/AppErrorBoundary";
 import "@/app/index.css";
-import { setToastSink } from "@/bridge/notify";
+import { setToastSink } from "@/bridge/transport/notify";
 import { emitToast } from "@/features/toast/toastStore";
 
 // bridge の通知 sink に toast store を注入（bridge→features の逆依存を作らない）

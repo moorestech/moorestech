@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Box, ScrollArea, Title } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
-import type { ResearchNodeData } from "@/bridge/payloadTypes";
+import type { ResearchNodeData } from "@/bridge/contract/payloadTypes";
 import { computeCanvasBounds, lineBetween, buildOwnedCounts } from "./researchLogic";
 import ResearchNodeCard from "./ResearchNodeCard";
 import styles from "./style.module.css";

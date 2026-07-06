@@ -8,7 +8,7 @@ import type {
   ModalRequest,
   ProgressData,
   UiStateData,
-} from "../../src/bridge/payloadTypes";
+} from "../../src/bridge/contract/payloadTypes";
 
 // BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリーは別ファイルへ分割し再エクスポートする（200行制約）
 // Split the BLK-2..5/8 detail blocks and the FEAT-RES-1 research tree into separate files and re-export (200-line limit)

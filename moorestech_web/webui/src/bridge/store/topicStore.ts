@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { validateTopicPayload } from "./validators";
-import { notify } from "./notify";
+import { validateTopicPayload } from "../contract/validators";
+import { notify } from "../transport/notify";
 
 // 接続状態。connecting=初回接続前, open=接続中, reconnecting=一度接続した後の切断中
 // Connection status: connecting=before first connect, open=connected, reconnecting=dropped after a prior connect

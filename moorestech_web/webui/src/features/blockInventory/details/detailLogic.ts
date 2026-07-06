@@ -1,4 +1,4 @@
-import type { GearNetworkStopReason } from "@/bridge/payloadTypes";
+import type { GearNetworkStopReason } from "@/bridge/contract/payloadTypes";
 
 // uGUI CommonMachineBlockStateDetail.PowerRate と同式（ワイヤ非送信のためWeb側算出）
 // Same formula as uGUI CommonMachineBlockStateDetail.PowerRate (not on the wire; computed web-side)
