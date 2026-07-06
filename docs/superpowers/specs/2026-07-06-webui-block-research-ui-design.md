@@ -102,12 +102,11 @@ type BlockInventoryOpen = {
 
 ### 2-b. 新topic `research.tree`
 
-open判別union（blockInventoryと同型）:
+nodes のみを運ぶ（**表示可否は既存 `ui_state.current` topic の `state === "ResearchTree"` から導出**。
+計画作成時に `UiStateTopic`/`screenForUiState` の既存実装を発見したため、open union による状態の二重配信を避ける — D2/SSOT 準拠）:
 
 ```ts
-type ResearchTreePayload =
-  | { open: false }
-  | { open: true; nodes: ResearchNodeDto[] };
+type ResearchTreePayload = { nodes: ResearchNodeDto[] };
 
 type ResearchNodeDto = {
   guid: string;
@@ -122,7 +121,7 @@ type ResearchNodeDto = {
 };
 ```
 
-- `open` は `UIStateControl.CurrentState == ResearchTree` を映す（既存公開イベント購読、C#追加改修ゼロ）
+- ノード再取得は uGUI と同じく ResearchTree 突入時（`UIStateControl.OnStateChanged` 購読、C#追加改修ゼロ）
 - 状態int→文字列対応: 0=completed, 1=researchable, 2=unresearchableAllReasons, 3=unresearchableNotEnoughItem, 4=unresearchableNotEnoughPreNode
 
 ### 2-c. 新Action
@@ -148,7 +147,7 @@ type ResearchNodeDto = {
 - 列車等の非ブロックsourceは従来通り「閉」扱い（既存挙動維持）
 
 ### 3-c. ResearchTopic（新規、`research.tree`）
-- `UIStateControl.OnStateChanged` 購読。ResearchTree 突入時に `GetResearchNodeStates` を取得し、`MasterHolder.ResearchMaster.GetAllResearches()` と合成して publish。退出時 `{open:false}` を publish
+- `UIStateControl.OnStateChanged` 購読。ResearchTree 突入時に `GetResearchNodeStates` を取得し、`MasterHolder.ResearchMaster.GetAllResearches()` と合成して publish。表示可否の判定は `ui_state.current` 側の責務（本topicは退出時に何もしない）
 - Guid→ItemId 変換は `MasterHolder.ItemMaster` で実施
 
 ### 3-d. ActionHandler（新規3つ）
@@ -187,9 +186,9 @@ type ResearchNodeDto = {
 
 | 層 | 内容 |
 |---|---|
-| WireFixtures | 新規: machine詳細つきopen / gearMachineフル合成 / filterSplitter / research open(+closed)。C# `WireContractTest` と TS `wireContract.test.ts` 両側で照合 |
+| WireFixtures | 新規: machine詳細つきopen / gearMachineフル合成 / generator(progress省略) / miner / filterSplitter / research_tree。C# `WireContractTest` と TS `wireContract.test.ts` 両側で照合 |
 | vitest | `researchLogic`（キャンバスサイズ/接続線/充足判定）、capability分岐ロジック、filterSplitterモード表示ロジック等の純関数テスト |
-| mock-host | fixtures に各ブロック種別 + research を追加。`/__block?type=machine|generator|miner|gearMachine|gearMiner|filterSplitter` 拡張、`/__research?open=1` 追加。新Action を `KNOWN_ACTIONS` + apply ロジックに追加 |
+| mock-host | fixtures に各ブロック種別 + research を追加。`/__block?type=machine|generator|miner|gearMachine|gearMiner|filterSplitter` 拡張、`/__uistate?state=ResearchTree` 追加。新Action を `KNOWN_ACTIONS` + apply ロジックに追加 |
 | Playwright e2e | 各ブロックビューの表示検証 + filterSplitter操作の `/__actions` payload検証 + 研究ボタンのaction payload検証 |
 | C# | `uloop compile` ErrorCount 0。`WireContractTest` / `ErrorCodesFixtureCoversAllHandlerCodes` green |
 
