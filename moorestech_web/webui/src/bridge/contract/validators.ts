@@ -28,8 +28,46 @@ function validInventory(d: unknown): boolean {
   return isObject(d) && isArrayOf(d.mainSlots, isSlot) && isArrayOf(d.hotbarSlots, isSlot) && isSlot(d.grab) && isNumber(d.selectedHotbar);
 }
 
-// 閉状態は open:false のみ。開状態は全フィールド必須で progress のみ省略可
-// Closed is only open:false; open requires every field with progress the sole optional
+// 各capability詳細のshapeガード。undefined(キー省略)は常に許容する
+// Shape guards per capability detail; undefined (omitted key) is always accepted
+function validMachineDetail(v: unknown): boolean {
+  if (v === undefined) return true;
+  if (!isObject(v)) return false;
+  const layout = v.slotLayout;
+  return (
+    isString(v.recipeGuid) && isString(v.currentState) && isNumber(v.currentPower) && isNumber(v.requestPower) &&
+    isObject(layout) && isNumber(layout.input) && isNumber(layout.output) && isNumber(layout.module)
+  );
+}
+function validGeneratorDetail(v: unknown): boolean {
+  if (v === undefined) return true;
+  return isObject(v) && isNumber(v.remainingFuelTime) && isNumber(v.currentFuelTime) && isNumber(v.operatingRate);
+}
+function validMinerDetail(v: unknown): boolean {
+  if (v === undefined) return true;
+  return isObject(v) && isNumber(v.currentPower) && isNumber(v.requestPower) &&
+    isArrayOf(v.miningItems, (m) => isObject(m) && isNumber(m.itemId) && isNumber(m.itemsPerMinute));
+}
+function validGearDetail(v: unknown): boolean {
+  if (v === undefined) return true;
+  return isObject(v) && isBool(v.isClockwise) && isNumber(v.currentRpm) && isNumber(v.currentTorque) && isNumber(v.baseRpm) && isNumber(v.baseTorque);
+}
+function validElectricNetwork(v: unknown): boolean {
+  if (v === undefined) return true;
+  return isObject(v) && isNumber(v.totalGeneratePower) && isNumber(v.totalRequiredPower) && isNumber(v.consumerCount) && isNumber(v.powerRate);
+}
+function validGearNetwork(v: unknown): boolean {
+  if (v === undefined) return true;
+  return isObject(v) && isNumber(v.totalRequiredGearPower) && isNumber(v.totalGenerateGearPower) && isString(v.stopReason);
+}
+function validFilterSplitter(v: unknown): boolean {
+  if (v === undefined) return true;
+  return isObject(v) && isNumber(v.directionCount) && isNumber(v.filterSlotCountPerDirection) &&
+    isArrayOf(v.directions, (d) => isObject(d) && isString(d.mode) && isArrayOf(d.filterItemIds, isNumber));
+}
+
+// 閉状態は open:false のみ。開状態は基本フィールド必須 + capability詳細は省略可
+// Closed is only open:false; open requires base fields, capability details are optional
 function validBlockInventory(d: unknown): boolean {
   if (!isObject(d) || !isBool(d.open)) return false;
   if (!d.open) return true;
@@ -39,7 +77,10 @@ function validBlockInventory(d: unknown): boolean {
     isString(d.blockName) &&
     isArrayOf(d.itemSlots, isSlot) &&
     isArrayOf(d.fluidSlots, isFluidSlot) &&
-    (d.progress === undefined || isNumber(d.progress))
+    (d.progress === undefined || isNumber(d.progress)) &&
+    validMachineDetail(d.machine) && validGeneratorDetail(d.generator) && validMinerDetail(d.miner) &&
+    validGearDetail(d.gear) && validElectricNetwork(d.electricNetwork) && validGearNetwork(d.gearNetwork) &&
+    validFilterSplitter(d.filterSplitter)
   );
 }
 
@@ -72,6 +113,19 @@ function validItemList(d: unknown): boolean {
   return isObject(d) && isArrayOf(d.itemIds, isNumber);
 }
 
+// 研究ノードは表示に使う全フィールドを検査する（不正ノード1件で全体破棄）
+// Validate every displayed field of research nodes (one bad node drops the whole payload)
+function validResearchNode(v: unknown): boolean {
+  return isObject(v) && isString(v.guid) && isString(v.name) && isString(v.description) && isString(v.state) &&
+    isObject(v.position) && isNumber(v.position.x) && isNumber(v.position.y) &&
+    isArrayOf(v.prevGuids, isString) &&
+    isArrayOf(v.consumeItems, (c) => isObject(c) && isNumber(c.itemId) && isNumber(c.count)) &&
+    isArrayOf(v.rewardItemIds, isNumber) && isArrayOf(v.unlockItemIds, isNumber);
+}
+function validResearchTree(d: unknown): boolean {
+  return isObject(d) && isArrayOf(d.nodes, validResearchNode);
+}
+
 const validators: Record<string, (d: unknown) => boolean> = {
   [Topics.inventory]: validInventory,
   [Topics.blockInventory]: validBlockInventory,
@@ -81,6 +135,7 @@ const validators: Record<string, (d: unknown) => boolean> = {
   [Topics.machineRecipes]: validMachineRecipes,
   [Topics.itemList]: validItemList,
   [Topics.uiState]: validUiState,
+  [Topics.researchTree]: validResearchTree,
 };
 
 // 既知 topic は検証、未知 topic は購読されず到達しないため素通しする

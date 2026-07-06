@@ -89,6 +89,11 @@ namespace Client.WebUiHost.Game
             var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
 
+            // 研究ツリートピックを登録（表示可否は ui_state.current 側で判定）
+            // Register the research-tree topic (visibility is decided by ui_state.current)
+            var researchTopic = new ResearchTopic(hub, uiStateControl);
+            hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
+
             // action ハンドラ登録
             // Register action handlers
             // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
@@ -105,6 +110,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
+            hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
+            hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
+            hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
         }
     }
 }
