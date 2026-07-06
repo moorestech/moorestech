@@ -74,3 +74,22 @@ export function applyCollect(inv: PlayerInventoryData, p: ActionPayloads["invent
     s.itemId = 0;
   }
 }
+
+// host の CollectItems と同様に grab 状態で集積先を決め、main/hotbar/block を跨いで同種を集約する
+// Like the host's CollectItems, pick the target from grab state and consolidate across main/hotbar/block
+export function applyBlockCollect(
+  inv: PlayerInventoryData,
+  currentBlock: BlockInventoryData,
+  p: ActionPayloads["block_inventory.collect"],
+) {
+  const grabHeld = inv.grab.count > 0;
+  const target = grabHeld ? inv.grab : blockSlotOf(inv, currentBlock, p.slot);
+  if (target.count === 0) return;
+  const blockSlots = currentBlock.open ? currentBlock.itemSlots : [];
+  for (const s of [...inv.mainSlots, ...inv.hotbarSlots, ...blockSlots]) {
+    if (s === target || s.itemId !== target.itemId || s.count === 0) continue;
+    target.count += s.count;
+    s.count = 0;
+    s.itemId = 0;
+  }
+}
