@@ -125,3 +125,23 @@ export type RecipeViewerItemListData = { itemIds: number[] };
 
 export type ItemMasterEntry = { itemId: number; name: string; maxStack: number };
 export type ItemMasterData = { items: ItemMasterEntry[] };
+
+// FEAT-RES-1 研究ツリー。表示可否は ui_state.current(ResearchTree) から導出し、本topicはノードデータのみ運ぶ
+// FEAT-RES-1 research tree; visibility derives from ui_state.current (ResearchTree), this topic carries node data only
+export type ResearchNodeState =
+  | "completed" | "researchable"
+  | "unresearchableNotEnoughItem" | "unresearchableNotEnoughPreNode" | "unresearchableAllReasons";
+export type ResearchNodeData = {
+  guid: string;
+  name: string;
+  description: string;
+  state: ResearchNodeState;
+  // マスタ GraphViewSettings.UIPosition。uGUI anchoredPosition と同値
+  // Master GraphViewSettings.UIPosition; same value as the uGUI anchoredPosition
+  position: { x: number; y: number };
+  prevGuids: string[];
+  consumeItems: { itemId: number; count: number }[];
+  rewardItemIds: number[];
+  unlockItemIds: number[];
+};
+export type ResearchTreeData = { nodes: ResearchNodeData[] };

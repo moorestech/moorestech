@@ -113,6 +113,19 @@ function validItemList(d: unknown): boolean {
   return isObject(d) && isArrayOf(d.itemIds, isNumber);
 }
 
+// 研究ノードは表示に使う全フィールドを検査する（不正ノード1件で全体破棄）
+// Validate every displayed field of research nodes (one bad node drops the whole payload)
+function validResearchNode(v: unknown): boolean {
+  return isObject(v) && isString(v.guid) && isString(v.name) && isString(v.description) && isString(v.state) &&
+    isObject(v.position) && isNumber(v.position.x) && isNumber(v.position.y) &&
+    isArrayOf(v.prevGuids, isString) &&
+    isArrayOf(v.consumeItems, (c) => isObject(c) && isNumber(c.itemId) && isNumber(c.count)) &&
+    isArrayOf(v.rewardItemIds, isNumber) && isArrayOf(v.unlockItemIds, isNumber);
+}
+function validResearchTree(d: unknown): boolean {
+  return isObject(d) && isArrayOf(d.nodes, validResearchNode);
+}
+
 const validators: Record<string, (d: unknown) => boolean> = {
   [Topics.inventory]: validInventory,
   [Topics.blockInventory]: validBlockInventory,
@@ -122,6 +135,7 @@ const validators: Record<string, (d: unknown) => boolean> = {
   [Topics.machineRecipes]: validMachineRecipes,
   [Topics.itemList]: validItemList,
   [Topics.uiState]: validUiState,
+  [Topics.researchTree]: validResearchTree,
 };
 
 // 既知 topic は検証、未知 topic は購読されず到達しないため素通しする

@@ -9,6 +9,7 @@ import type {
   ProgressData,
   BlockInventoryData,
   UiStateData,
+  ResearchTreeData,
 } from "./payloadTypes";
 
 // 通信の op レベルのメッセージ型（webSocketClient が使用）
@@ -37,6 +38,7 @@ export const Topics = {
   modal: "ui.modal",
   progress: "ui.progress",
   uiState: "ui_state.current",
+  researchTree: "research.tree",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -50,6 +52,7 @@ export type TopicPayloads = {
   [Topics.modal]: ModalData;
   [Topics.progress]: ProgressData;
   [Topics.uiState]: UiStateData;
+  [Topics.researchTree]: ResearchTreeData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
@@ -64,5 +67,10 @@ export type ActionPayloads = {
   "ui.modal.respond": { id: string; result: "confirm" | "cancel" };
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
   "ui_state.request": { state: "GameScreen" | "PlayerInventory" };
+  "research.complete": { researchGuid: string };
+  "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
+  // clear:true は右クリック相当のフィルタ解除。clear:false は C# 側が Grab の持ち手アイテムを設定する
+  // clear:true clears the filter (right-click); with clear:false the C# side assigns the currently grabbed item
+  "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
   "debug.echo": { hello: string };
 };

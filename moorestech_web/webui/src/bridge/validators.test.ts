@@ -38,3 +38,20 @@ describe("validBlockInventory capability details", () => {
     expect(validateTopicPayload(Topics.blockInventory, { open: false })).toBe(true);
   });
 });
+
+describe("validResearchTree", () => {
+  const node = {
+    guid: "abc", name: "研究1", description: "説明",
+    state: "researchable", position: { x: 100, y: -50 },
+    prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
+    rewardItemIds: [2], unlockItemIds: [],
+  };
+  it("accepts nodes payload", () => {
+    expect(validateTopicPayload(Topics.researchTree, { nodes: [node] })).toBe(true);
+    expect(validateTopicPayload(Topics.researchTree, { nodes: [] })).toBe(true);
+  });
+  it("rejects malformed node", () => {
+    expect(validateTopicPayload(Topics.researchTree, { nodes: [{ ...node, position: { x: "0", y: 0 } }] })).toBe(false);
+    expect(validateTopicPayload(Topics.researchTree, {})).toBe(false);
+  });
+});
