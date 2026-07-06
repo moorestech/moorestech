@@ -33,7 +33,7 @@
 
 ### 前提（トリアージ済み・宣言）
 - moorestech_server 本体の改修は不要。必要データは全てクライアント受信済み
-- C#側は「uGUIへadditiveなgetter+event → WebUiHostのTopic/Action → WireFixtures → TS」の既存型を踏襲
+- C#側は「WebUiHostのTopic/Action → WireFixtures → TS」の既存型を踏襲（**Client.Game 編集ゼロ**。既存公開getter/イベント直接購読のみ）
 - 高頻度値（トルク/RPM）は既存 end-of-frame デバウンスに乗せる。サンプリング間引き等の最適化はしない
 - UIは uGUI パリティ（ズームなし・スクロールのみ・停止理由テキストはハードコード）
 - 消費アイテム充足ハイライトは Web側で inventory topic から算出（craftビューの `buildOwnedCounts` 型）
@@ -136,8 +136,9 @@ type ResearchNodeDto = {
 
 ## 3. C#ホスト側設計（Client.WebUiHost）
 
-### 3-a. 情報源への additive 追加
-- `BlockGameObject` に `public event Action OnBlockStateChanged` を追加（`SubscribeBlockState` の `_blockStateMessagePack = data` 直後に発火）。既存 `GetStateDetail<T>(key)` はそのまま利用
+### 3-a. 情報源（uGUI編集ゼロ・計画時に確定）
+- ブロック状態変更の検知は WebUiHost が `va:event:changeBlockState:{pos}` サーバーイベントを**直接購読**（`CraftingRecipesTopic` と同型）。データは既存公開の `BlockGameObject.GetStateDetail<T>(key)` を読む
+- `BlockGameObject` の解決は既存公開の `ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(pos)`。**Client.Game への変更は一切不要**（並行UIStateセッションとの衝突回避）
 
 ### 3-b. BlockInventoryTopic の拡張
 - 開いたブロックの `OnBlockStateChanged` を購読 → end-of-frame デバウンスで再publish（閉時に購読解除）
