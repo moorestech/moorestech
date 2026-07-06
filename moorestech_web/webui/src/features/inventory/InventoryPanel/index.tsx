@@ -5,7 +5,7 @@ import { useItemMaster } from "@/bridge/store/useItemMaster";
 import { readActiveLayer } from "@/app/activeLayer";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { InventoryArea, SlotData, SlotRef } from "@/bridge/contract/payloadTypes";
-import { resolveDirectMoveTarget } from "../inventoryLogic";
+import { planDirectMoves } from "../inventoryLogic";
 import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
 import GrabOverlay from "./GrabOverlay";
 import styles from "./style.module.css";
@@ -93,17 +93,26 @@ export default function InventoryPanel() {
     void dispatchAction("inventory.collect", { slot: ref });
   };
 
-  // Shift+クリック: 反対エリアの同種スタック→空スロットの順で移動先を探す
-  // Shift-click: prefer a same-item stack in the opposite area, then an empty slot
+  // Shift+クリック: ブロックUIが開いていれば block へ、閉なら反対エリアへ配分する（uGUI DirectMover 準拠）
+  // Shift-click: allocate into the block while its UI is open, else into the opposite area (mirrors uGUI DirectMover)
   const directMove = (from: SlotRef, slot: SlotData) => {
+    // マスタ未ロード時は maxStack 不明として planDirectMoves が空スロットのみ使う
+    // With the master unloaded, maxStack is unknown and planDirectMoves falls back to empty slots
+    const maxStack = itemMaster?.get(slot.itemId)?.maxStack;
+    // block 開閉は event 時点の最新値を readTopic で読む（キー入力リスナーと同じ規約）
+    // Read the block open state at event time via readTopic (same contract as the keydown listener)
+    const block = readTopic(Topics.blockInventory);
+    if (block?.open) {
+      for (const m of planDirectMoves(slot.count, slot.itemId, maxStack, block.itemSlots)) {
+        void dispatchAction("block_inventory.move_item", { from, to: { area: "block", slot: m.slot }, count: m.count });
+      }
+      return;
+    }
     const targetArea: InventoryArea = from.area === "hotbar" ? "main" : "hotbar";
     const targetSlots = targetArea === "main" ? inventory.mainSlots : inventory.hotbarSlots;
-    // マスタ未ロード時は maxStack 不明のため同種スタック探索をスキップし、空スロットのみ探す
-    // Skip the same-item stack search while the item master is unloaded; fall back to empty slots
-    const maxStack = itemMaster?.get(slot.itemId)?.maxStack;
-    const target = resolveDirectMoveTarget(targetSlots, slot.itemId, maxStack);
-    if (target < 0) return;
-    void dispatchAction("inventory.move_item", { from, to: { area: targetArea, slot: target }, count: slot.count });
+    for (const m of planDirectMoves(slot.count, slot.itemId, maxStack, targetSlots)) {
+      void dispatchAction("inventory.move_item", { from, to: { area: targetArea, slot: m.slot }, count: m.count });
+    }
   };
 
   const renderSlot = (area: InventoryArea, index: number, slot: SlotData) => {
