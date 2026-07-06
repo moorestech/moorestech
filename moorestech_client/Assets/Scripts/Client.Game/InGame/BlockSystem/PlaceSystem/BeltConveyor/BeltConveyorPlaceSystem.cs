@@ -86,9 +86,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
-            // ファミリー定義を解決（代表・斜面・長尺バリアント）
-            // Resolve the family definition (representative, slopes, length variants)
-            BeltConveyorPlaceFamilyUtil.TryGetFamily(context.SelectedBlockId.Value, out var beltParam);
+            // ファミリー定義を解決（代表・斜面・長尺バリアント）。非ファミリーブロックは対象外
+            // Resolve the family definition (representative, slopes, length variants); bail out for non-family blocks
+            if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(context.SelectedBlockId.Value, out var beltParam)) return;
             var representativeBlockId = BeltConveyorPlaceFamilyUtil.GetRepresentativeBlockId(beltParam);
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(representativeBlockId);
             var variants = BeltConveyorPlaceFamilyUtil.GetStraightVariantsDesc(beltParam);
