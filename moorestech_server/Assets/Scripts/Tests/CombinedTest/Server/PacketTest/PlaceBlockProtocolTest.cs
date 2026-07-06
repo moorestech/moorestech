@@ -1,31 +1,19 @@
 using System;
-using System.Collections.Generic;
-using Core.Inventory;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
-using Game.PlayerInventory.Interface;
-using Game.UnlockState;
-using Game.UnlockState.States;
 using Game.World.Interface.DataStore;
-using MessagePack;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Server.Boot;
 using Server.Protocol;
-using Server.Protocol.PacketResponse;
-using Server.Protocol.PacketResponse.Util.Construction;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
     public class PlaceBlockProtocolTest
     {
-        private const int PlayerId = 3;
-
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
         private static readonly Guid PoleMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱コスト×1)
@@ -130,146 +118,5 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, GetItemCount(inventory, PoleMaterialGuid));
             Assert.AreEqual(4, GetItemCount(inventory, WireItemGuid));
         }
-
-        [Test]
-        public void セル毎に異なるBlockIdを一括設置できる()
-        {
-            var (packet, serviceProvider) = CreateServer();
-            // 素材付与（歯車ベルト1セット×2）
-            // Grant two cost sets of the gear belt family materials
-            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 2);
-            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
-
-            var placeInfos = new List<PlaceInfo>
-            {
-                new()
-                {
-                    Position = new Vector3Int(10, 0, 10), Direction = BlockDirection.North,
-                    VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor,
-                },
-                new()
-                {
-                    Position = new Vector3Int(10, 0, 11), Direction = BlockDirection.North,
-                    VerticalDirection = BlockVerticalDirection.Up, BlockId = ForUnitTestModBlockId.TestGearBeltConveyorUp,
-                },
-            };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
-
-            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 10)));
-            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 11)));
-            Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp,
-                ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(10, 0, 11)).BlockId);
-        }
-
-        [Test]
-        public void バリアントの設置可否はファミリー代表のunlock状態で決まる()
-        {
-            var (packet, serviceProvider) = CreateServer();
-            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3, 1);
-
-            // 代表（GearBeltConveyor）が未解放なら長尺バリアントも設置不可
-            // A length variant cannot be placed while the family representative is locked
-            LockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
-            var placeInfos = new List<PlaceInfo>
-            {
-                new()
-                {
-                    Position = new Vector3Int(20, 0, 10), Direction = BlockDirection.North,
-                    VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3,
-                },
-            };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
-            Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
-
-            // 代表を解放すると長尺バリアントが設置できる
-            // Unlocking the representative allows the variant placement
-            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
-            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
-        }
-
-        #region TestUtil
-
-        private static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
-        {
-            return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-        }
-
-        private static IOpenableInventory GetInventory(ServiceProvider serviceProvider)
-        {
-            return serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-        }
-
-        private static void SetItem(IOpenableInventory inventory, int slot, Guid itemGuid, int count)
-        {
-            inventory.SetItem(slot, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(itemGuid), count));
-        }
-
-        private static int GetItemCount(IOpenableInventory inventory, Guid itemGuid)
-        {
-            var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
-            var total = 0;
-            foreach (var stack in inventory.InventoryItems)
-            {
-                if (stack.Id != itemId) continue;
-                total += stack.Count;
-            }
-            return total;
-        }
-
-        private static byte[] CreatePlaceBlockPayload(BlockId blockId, params (int x, int y)[] positions)
-        {
-            var placeInfos = new List<PlaceInfo>();
-            foreach (var (x, y) in positions)
-            {
-                placeInfos.Add(new PlaceInfo
-                {
-                    Position = new Vector3Int(x, y),
-                    Direction = BlockDirection.North,
-                    VerticalDirection = BlockVerticalDirection.Horizontal,
-                    BlockId = blockId,
-                });
-            }
-            return CreatePlacePayload(placeInfos);
-        }
-
-        private static byte[] CreatePlacePayload(List<PlaceInfo> placeInfos)
-        {
-            return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfos));
-        }
-
-        private static void GrantRequiredItems(ServiceProvider serviceProvider, BlockId blockId, int costSets)
-        {
-            var inventory = GetInventory(serviceProvider);
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            var itemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
-            foreach (var (itemId, count) in itemCounts)
-            {
-                inventory.InsertItem(itemId, count * costSets);
-            }
-        }
-
-        private static void UnlockBlock(ServiceProvider serviceProvider, BlockId blockId)
-        {
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
-            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
-        }
-
-        private static void LockBlock(ServiceProvider serviceProvider, BlockId blockId)
-        {
-            // IGameUnlockStateDataControllerにはUnlockのみ存在するため、Load経由で強制的にロック状態へ書き換える
-            // The controller only exposes Unlock, so force the locked state back via a state-load overwrite
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
-            var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
-            controller.LoadUnlockState(new GameUnlockStateJsonObject
-            {
-                BlockUnlockStateInfos = new List<BlockUnlockStateInfoJsonObject>
-                {
-                    new() { BlockGuid = blockGuid.ToString(), IsUnlocked = false },
-                },
-            });
-        }
-
-        #endregion
     }
 }
