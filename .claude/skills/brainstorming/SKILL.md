@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. ALSO fires on design consultations — 壁打ち / 仕様相談 / 「これどうしたらいい？」型の相談: if your reply would propose a design, approach, or fix strategy, invoke this FIRST instead of answering directly (applies mid-conversation too, not just fresh requests). Explores user intent, requirements and design before implementation."
 ---
 
 # Brainstorming Ideas Into Designs
@@ -69,6 +69,7 @@ digraph brainstorming {
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
+- When the options are discrete (2-4 choices), use the AskUserQuestion tool — do NOT present numbered options as plain text (inconsistent across sessions and harder for the user to answer)
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
 
@@ -82,7 +83,7 @@ digraph brainstorming {
 
 - Once you believe you understand what you're building, present the design
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far
+- Ask after each section whether it looks right so far (small designs that fit in one message may be presented and approved as a whole)
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
 
@@ -115,6 +116,7 @@ After writing the spec document, look at it with fresh eyes:
 2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
 3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
+5. **Evidence scope check:** Every "verified/tested/実装済み" claim must not exceed what was actually checked — write "X is tested" only if a test exercises X itself; if it's a sibling going through the same path, say that instead (e.g. "same code path is tested with a machine block, chest itself untested").
 
 Fix any issues inline. No need to re-review — just fix and move on.
 
