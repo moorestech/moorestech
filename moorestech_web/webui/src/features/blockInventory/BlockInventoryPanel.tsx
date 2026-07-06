@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { Paper, Title } from "@mantine/core";
-import { useTopic, useTopicSelector, Topics } from "@/bridge";
+import { CloseButton, Group, Paper, Title } from "@mantine/core";
+import { useTopic, useTopicSelector, Topics, dispatchAction } from "@/bridge";
 import { useItemMaster } from "@/bridge/useItemMaster";
 import { resolveBlockComponent } from "./blockLogic";
 import { BlockInteractionContext, type BlockInteraction } from "./blockInteractionContext";
@@ -33,7 +33,18 @@ export default function BlockInventoryPanel() {
   return (
     <BlockInteractionContext.Provider value={interaction}>
       <Paper data-testid="block-inventory" className={styles.panel} p="md" withBorder bg="dark.6" c="dark.1">
-        <Title order={2} size="h4" mb="sm">{data.blockName}</Title>
+        <Group justify="space-between" mb="sm">
+          <Title order={2} size="h4">{data.blockName}</Title>
+          {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
+          {/* Mouse-driven close, like uGUI Esc/Tab; asks the host to transit to GameScreen */}
+          <CloseButton
+            data-testid="block-inventory-close"
+            aria-label="close"
+            onClick={() => {
+              void dispatchAction("ui_state.request", { state: "GameScreen" });
+            }}
+          />
+        </Group>
         <Body data={data} />
       </Paper>
     </BlockInteractionContext.Provider>
