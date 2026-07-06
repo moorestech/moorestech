@@ -17,13 +17,15 @@ namespace Client.WebUiHost.Boot
         private Process _process;
         private ManualResetEventSlim _readySignal;
 
-        public async UniTask StartAsync()
+        public async UniTask<bool> StartAsync()
         {
             var nodePath = WebUiPaths.NodeBinary;
             var pnpmPath = WebUiPaths.PnpmBinary;
             var webuiRoot = WebUiPaths.WebuiRoot;
 
-            if (!IsEnvironmentReady()) return;
+            // node/pnpm/webuiRoot が欠けていれば起動不可として false を返す（呼び出し元がホスト無効化に使う）
+            // Return false when node/pnpm/webuiRoot is missing, marking startup unavailable (caller disables the host)
+            if (!IsEnvironmentReady()) return false;
 
             // node_modules が無ければ pnpm install を先に走らせる
             // Run pnpm install first if node_modules is missing
@@ -35,9 +37,9 @@ namespace Client.WebUiHost.Boot
             _readySignal = new ManualResetEventSlim(false);
             _process = SpawnViteDev();
 
-            // stdout に "ready in" が出るまで待機（最大 30 秒）
-            // Wait for "ready in" marker in stdout (cap 30 seconds)
-            await WaitForReady(30);
+            // stdout に "ready in" が出るまで待機（最大 30 秒）。時間内に来なければ false
+            // Wait for "ready in" marker in stdout (cap 30 seconds); false when it does not arrive in time
+            return await WaitForReady(30);
 
             #region Internal
 
@@ -132,7 +134,7 @@ namespace Client.WebUiHost.Boot
                 }
             }
 
-            async UniTask WaitForReady(int timeoutSec)
+            async UniTask<bool> WaitForReady(int timeoutSec)
             {
                 var start = DateTime.UtcNow;
                 while (!_readySignal.IsSet)
@@ -140,10 +142,11 @@ namespace Client.WebUiHost.Boot
                     if ((DateTime.UtcNow - start).TotalSeconds > timeoutSec)
                     {
                         Debug.LogError($"[WebUiHost] Vite did not become ready within {timeoutSec}s");
-                        return;
+                        return false;
                     }
                     await UniTask.Delay(100);
                 }
+                return true;
             }
 
             #endregion
