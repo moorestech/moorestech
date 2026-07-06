@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -6,6 +7,7 @@ using Game.EnergySystem;
 using Game.World.Interface.DataStore;
 using NUnit.Framework;
 using Server.Protocol;
+using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
@@ -94,6 +96,36 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.AreEqual(2, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
+        }
+
+        [Test]
+        public void 長尺ベルトは全セルを占有しコスト1セットで設置される()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3, 1);
+            // バリアントの設置可否はファミリー代表のunlock状態で決まる
+            // Variant placement is gated by the family representative's unlock state
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = new Vector3Int(30, 0, 10), Direction = BlockDirection.North,
+                    VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3,
+                },
+            };
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+
+            // 3セル全て同一ブロックとして占有される
+            // All three cells are occupied by the same block entity
+            var block = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(30, 0, 10));
+            Assert.IsNotNull(block);
+            Assert.AreEqual(block, ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(30, 0, 12)));
+
+            // コストは1セットのみ消費（素材残0）
+            // Exactly one cost set consumed (no materials remain)
+            AssertInventoryEmptyOfRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3);
         }
 
         [Test]
