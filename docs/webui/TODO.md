@@ -16,6 +16,8 @@ CEF 上で動く React 製ゲーム内 UI（`moorestech_web/webui` + `Client.Web
 | `cef-webui-plan.md` | CEF + React 採用の意思決定根拠・技術比較（Servo/Ladybird/Ultralight 検討ログ） |
 | `cef-webui-tree2-render-investigation-2026-07-04.md` | vite.config 残骸による描画不能バグの解決記録（再発防止の教訓） |
 | `ui-completeness-reaudit-plan.md` | uGUI→Web の網羅性 再監査**手順書**（見落とし再発防止のプロセス定義。再利用可） |
+| `2026-07-07-parity-audit-verification-handoff.md` | パリティ監査の裏取り結果。**要訂正5点**あり、台帳化・実装前に必読 |
+| `2026-07-07-parity-implementation-plan.md` | パリティ実装の**実行計画書**（Phase 0-6）。残タスク着手時はまずこれに従う |
 | `archive/2026-07-02-webui-mantine-migration.md` | Tailwind→Mantine 移行計画（**完了済み・履歴保管**） |
 
 > 注: `cef-webui-migration-todo.md` は 2026-06-14 時点のスナップショットで、以降の実装
