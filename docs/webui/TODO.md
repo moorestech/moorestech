@@ -28,19 +28,22 @@ CEF 上で動く React 製ゲーム内 UI（`moorestech_web/webui` + `Client.Web
 
 Web UI は**中核ループ（インベントリ・クラフト・モーダル・進捗）が動作する第一段階**まで到達。
 基盤（ワイヤ契約・状態管理・CEF ライフサイクル）は増設に耐える形に固まった。
-uGUI パリティの大物（研究ツリー・チャレンジ・列車・個別機械 UI・スキット等）は大部分が未着手。
+個別ブロック詳細（機械/発電機/採掘機/ギア/フィルタ分岐器）と研究ツリーは移行済み（2026-07-06）。
+uGUI パリティの残りの大物（チャレンジ・列車・電柱ネットワーク・スキット等）は未着手。
 
 ### 実装済み（機能）
 - プレイヤーインベントリ（メインスロット + ホットバー、Grab オーバーレイ、ドラッグ/クリック操作）
 - ホットバー選択（数字キー）
 - ブロックインベントリ: Chest（汎用収納）/ Tank（流体）/ Generic（未登録ブロックのフォールバック汎用描画）
+- 個別ブロック詳細 UI（FEAT-BLK-2/3/4/5/8・2026-07-06）: 機械 / 発電機 / 採掘機 / ギア機械 / フィルタ分岐器。capability 表示（電力・トルク・ギアネットワーク・燃料/進捗・FluidSlots）とフィルタ分岐器のモード/フィルタ設定アクションまで配線済み
+- 研究ツリー（FEAT-RES-1・2026-07-06）: UIPosition 配置 + 接続線 + 研究実行。表示可否は `ui_state.current` の `ResearchTree` から導出（`research.tree` topic はノードデータのみ運ぶ）
 - レシピビューア（クラフト `CraftRecipeView` / 機械 `MachineRecipeView` / アイテムリスト / ページャ）
 - クラフト進捗バー（`ProgressArrow`）
 - モーダル（確認ダイアログ）
 - トースト通知（アクション失敗・バリデーション違反）
 - 再接続オーバーレイ（切断検知で UI 全体をブロック）
 - アイテムアイコン PNG / アイテムマスタ JSON の HTTP 配信
-- E2E（Playwright + mock-host）: inventory / blockInventory / fluidSlot / hotbar / modal / progress / recipe
+- E2E（Playwright + mock-host）: inventory / blockInventory / fluidSlot / hotbar / modal / progress / recipe / uiState / blockDetails / filterSplitter / research
 
 ### 基盤の到達点（直近コミットで整備）
 - **ワイヤ契約の単一ソース化**: `bridge/protocol.ts` に Topic/ServerMsg/ClientMsg/Payload を集約。C# `WireFixtures/` を共有する `wireContract.test.ts` / `WireContractTest.cs` が C#⇔TS の型一致を両側から強制
@@ -67,10 +70,11 @@ uGUI パリティの大物（研究ツリー・チャレンジ・列車・個別
 - [ ] INFRA-13 CEF 堅牢性 — 一部前進（起動隔離・WS 境界隔離済み）、残りは継続
 
 ### 2. 機能移行（uGUI パリティ・大部分未着手）
-ブロック系ビューを増やす前に、まず C# 側 payload の拡充が必要（現状 `BlockInventoryTopic` は FluidSlots 空・Progress null をハードコード）。**「実装漏れ確定 → topic 拡充 → ビュー実装」の順**を守る。
+ブロック系 payload は capability 詳細（機械/発電機/採掘機/ギア/フィルタ分岐器・FluidSlots・Progress）まで拡充済み（`BlockDetailDtoBuilder`）。残りのブロック種も**「実装漏れ確定 → topic 拡充 → ビュー実装」の順**を守る。
 
-- [ ] **個別ブロック UI**（FEAT-BLK-2〜10）: 発電機 / 機械 / 採掘機 / ギア系（`GearEnergyTransformerUIView`）/ 電柱ネットワーク情報（`ElectricPoleNetworkInfoUIView`）/ フィルタ分岐器 / 列車 PF / ベースキャンプ。現状は Chest/Tank/Generic フォールバックのみで専用情報が欠落
-- [ ] **研究ツリー**（FEAT-RES-1, `ResearchTreeView`）
+- [x] 個別ブロック UI（FEAT-BLK-2/3/4/5/8）: 発電機 / 機械 / 採掘機 / ギア系（`GearEnergyTransformerUIView`）/ フィルタ分岐器（2026-07-06）
+- [ ] **個別ブロック UI（残り）**: 電柱ネットワーク情報（`ElectricPoleNetworkInfoUIView`）/ 列車 PF / ベースキャンプ
+- [x] 研究ツリー（FEAT-RES-1, `ResearchTreeView`）（2026-07-06）※報酬アイテムの個数表示は保留（ワイヤ型が個数を未伝搬・要 C# 変更）
 - [ ] **チャレンジ / 実績**（FEAT-CHAL-1/2, `ChallengeListUI` / `CurrentChallengeHudView`）
 - [ ] **列車 UI 一式**（FEAT-TRAIN-1, `TrainInventoryView` / 各 PF インベントリ / `TrainHUDScreen`）
 - [ ] クラフトツリー（FEAT-CRAFT-4）/ 長押しクラフト仕上げ（FEAT-CRAFT-1）

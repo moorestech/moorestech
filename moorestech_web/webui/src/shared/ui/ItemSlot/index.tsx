@@ -13,11 +13,12 @@ type Props = {
   onLeftDown?: (shiftKey: boolean) => void;
   onRightDown?: () => void;
   onDoubleClick?: () => void;
+  testId?: string;
 };
 
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
-export default function ItemSlot({ itemId, count, name, selected, onLeftDown, onRightDown, onDoubleClick }: Props) {
+export default function ItemSlot({ itemId, count, name, selected, onLeftDown, onRightDown, onDoubleClick, testId }: Props) {
   const onMouseDown = (e: MouseEvent) => {
     e.preventDefault();
     if (e.button === 0) onLeftDown?.(e.shiftKey);
@@ -32,6 +33,7 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
     <Tooltip label={name} disabled={!hasItem || !name}>
       <div
         className={styles.slot}
+        data-testid={testId}
         data-selected={selected ? "true" : undefined}
         onMouseDown={onMouseDown}
         onDoubleClick={onDoubleClick}

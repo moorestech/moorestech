@@ -40,6 +40,7 @@ export default function FilterSplitterInventory({ data }: { data: BlockInventory
                 name={resolveName(itemId)}
                 onLeftDown={() => sendFilterItemAction(dirIndex, slotIndex, false)}
                 onRightDown={() => sendFilterItemAction(dirIndex, slotIndex, true)}
+                testId={`filter-slot-${dirIndex}-${slotIndex}`}
               />
             ))}
           </Group>
