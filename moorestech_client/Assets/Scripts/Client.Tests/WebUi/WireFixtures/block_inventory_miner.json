@@ -1,0 +1,15 @@
+{
+  "open": true,
+  "blockType": "ElectricMiner",
+  "identifier": "(3, 0, 8)",
+  "blockName": "電動採掘機",
+  "itemSlots": [ { "itemId": 11, "count": 42 }, { "itemId": 0, "count": 0 } ],
+  "fluidSlots": [],
+  "progress": 0.66,
+  "miner": {
+    "currentPower": 50.0,
+    "requestPower": 100.0,
+    "miningItems": [ { "itemId": 11, "itemsPerMinute": 12.0 } ]
+  },
+  "electricNetwork": { "totalGeneratePower": 100.0, "totalRequiredPower": 100.0, "consumerCount": 1, "powerRate": 1.0 }
+}

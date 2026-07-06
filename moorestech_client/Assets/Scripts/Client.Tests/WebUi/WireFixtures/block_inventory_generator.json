@@ -1,0 +1,10 @@
+{
+  "open": true,
+  "blockType": "ElectricGenerator",
+  "identifier": "(5, 0, 5)",
+  "blockName": "発電機",
+  "itemSlots": [ { "itemId": 9, "count": 30 } ],
+  "fluidSlots": [],
+  "generator": { "remainingFuelTime": 12.5, "currentFuelTime": 30.0, "operatingRate": 0.75 },
+  "electricNetwork": { "totalGeneratePower": 200.0, "totalRequiredPower": 150.0, "consumerCount": 2, "powerRate": 1.0 }
+}
