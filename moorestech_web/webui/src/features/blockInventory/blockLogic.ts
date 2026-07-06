@@ -18,6 +18,19 @@ export function placePayload(blockSlotIndex: number, grabCount: number): MoveIte
   return { from: { area: "grab", slot: 0 }, to: { area: "block", slot: blockSlotIndex }, count: grabCount };
 }
 
+// スロットクリックの共通分岐: grab 保持なら置く / 中身ありなら丸ごと拾う / それ以外は無操作
+// Shared slot-click branch: place while holding grab / pick the whole stack when filled / otherwise no-op
+export function blockSlotClickPayload(
+  slotIndex: number,
+  slotItemId: number,
+  slotCount: number,
+  grabCount: number,
+): MoveItemPayload | null {
+  if (grabCount > 0) return placePayload(slotIndex, grabCount);
+  if (slotItemId > 0) return pickUpPayload(slotIndex, slotCount);
+  return null;
+}
+
 // blockType → React コンポーネントの静的レジストリ。後続 feature が再代入なしで拡張できるよう可変オブジェクト
 // Static blockType → React component registry; a mutable object so later features extend it without rewrites
 // キーは C# BlockMasterElement.BlockType の実値に厳密一致させる(実マスタは "Chest" 等の PascalCase)
