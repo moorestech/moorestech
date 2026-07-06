@@ -8,6 +8,7 @@
         "Client.Network",
         "Core.Item.Interface",
         "Core.Master",
+        "Game.Block.Interface",
         "Game.Context",
         "Game.PlayerInventory.Interface",
         "Game.UnlockState",
