@@ -13,11 +13,12 @@
   grid-template-rows: auto 1fr auto;
 }
 
-/* 画面表示中のみの全面 dim。クリックは透過し、後続siblingのパネルが上に描画される */
-/* Full-screen dim only while a screen is open; clicks pass through and later siblings paint above */
+/* 画面表示中のみの全面 dim。z-index:-1 で背景のみを覆い、パネルは上に描画される */
+/* Full-screen dim only while a screen is open; z-index:-1 keeps it behind the panels */
 .backdrop {
   position: fixed;
   inset: 0;
   background: rgba(17, 17, 17, 0.6);
   pointer-events: none;
+  z-index: -1;
 }
