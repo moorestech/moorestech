@@ -1,5 +1,4 @@
 using System;
-using Client.Game.InGame.UI.Inventory;
 using Core.Master;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -7,11 +6,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     public class PlaceSystemStateController
     {
         private readonly PlaceSystemSelector _placeSystemSelector;
-        private readonly HotBarView _hotBarView;
         private readonly PlacementSelection _placementSelection;
 
         private IPlaceSystem _currentPlaceSystem;
-        private int _lastSelectHotBarSlot;
 
         // 前回フレームの選択内容（選択変化検知に使う）
         // Previous frame's selection (used to detect selection changes)
@@ -20,9 +17,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private Guid _lastSelectedTrainCarGuid;
         private string _lastSelectedConnectPlaceMode;
 
-        public PlaceSystemStateController(HotBarView hotBarView, PlaceSystemSelector placeSystemSelector, PlacementSelection placementSelection)
+        public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector, PlacementSelection placementSelection)
         {
-            _hotBarView = hotBarView;
             _placeSystemSelector = placeSystemSelector;
             _placementSelection = placementSelection;
 
@@ -34,7 +30,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             _currentPlaceSystem.Disable();
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
-            _lastSelectHotBarSlot = -1;
 
             // 選択の前回値も初期化し、再Enable直後の最初のフレームでIsSelectionChanged=trueにする
             // Reset previous selection values so the first frame after re-enable reports IsSelectionChanged=true
@@ -63,9 +58,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
             PlaceSystemUpdateContext CreateContext()
             {
-                var selectIndex = _hotBarView.SelectIndex;
-                var isSelectSlotChanged = _lastSelectHotBarSlot != selectIndex;
-
                 // 選択内容の変化を検知する（車両プレビューのリセット等に使う）
                 // Detect selection changes (used to reset previews such as the train car preview)
                 var isSelectionChanged = _lastSelectionType != _placementSelection.SelectionType
@@ -74,18 +66,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                                          || _lastSelectedConnectPlaceMode != _placementSelection.SelectedConnectPlaceMode;
 
                 var context = new PlaceSystemUpdateContext(
-                    _hotBarView.CurrentItem.Id,
-                    isSelectSlotChanged,
-                    _lastSelectHotBarSlot,
-                    selectIndex,
-                    _placementSelection.SelectedBlockId,
                     _placementSelection.SelectionType,
+                    _placementSelection.SelectedBlockId,
                     _placementSelection.SelectedTrainCarGuid,
                     _placementSelection.SelectedConnectPlaceMode,
                     isSelectionChanged
                 );
 
-                _lastSelectHotBarSlot = selectIndex;
                 _lastSelectionType = _placementSelection.SelectionType;
                 _lastSelectedBlockId = _placementSelection.SelectedBlockId;
                 _lastSelectedTrainCarGuid = _placementSelection.SelectedTrainCarGuid;

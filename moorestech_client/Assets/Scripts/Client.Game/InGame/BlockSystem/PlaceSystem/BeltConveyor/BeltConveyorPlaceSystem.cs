@@ -70,8 +70,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         private void GroundClickControl(PlaceSystemUpdateContext context)
         {
-            // placeModeスイッチ経由(HoldingItemId駆動)で到達した場合はSelectedBlockIdが無いことがある
-            // SelectedBlockId can be absent when reached via the placeMode switch (driven by HoldingItemId)
+            // ビルドメニューでブロック以外を選択中はSelectedBlockIdが無いことがある
+            // SelectedBlockId can be absent when the build-menu selection is not a block
             if (!context.SelectedBlockId.HasValue) return;
 
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
