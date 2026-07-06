@@ -11,6 +11,7 @@ using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
+using UniRx;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -38,7 +39,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         // スロット単位の更新通知。中身が変わるたびに発火する
         // Per-slot update notification, fired whenever the contents change
-        public event Action OnSubInventoryUpdated;
+        public IObservable<Unit> OnSubInventoryUpdated => _onSubInventoryUpdated;
+        private readonly Subject<Unit> _onSubInventoryUpdated = new();
 
 
         public SubInventoryState(PlayerInventoryViewController playerInventoryViewController)
@@ -64,7 +66,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 // 外部購読者（Web UI など）へ更新を通知する
                 // Notify external subscribers (e.g. Web UI) of the update
-                OnSubInventoryUpdated?.Invoke();
+                _onSubInventoryUpdated.OnNext(Unit.Default);
             }
             else if (packet.EventType == InventoryEventType.Remove)
             {
@@ -143,7 +145,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 // ロード完了を外部購読者（Web UI など）へ通知する
                 // Notify external subscribers (e.g. Web UI) that loading has finished
-                OnSubInventoryUpdated?.Invoke();
+                _onSubInventoryUpdated.OnNext(Unit.Default);
             }
 
             #endregion

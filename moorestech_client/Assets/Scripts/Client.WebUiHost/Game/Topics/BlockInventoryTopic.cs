@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -21,6 +22,7 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly SubInventoryState _subInventoryState;
+        private readonly IDisposable _subInventorySubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
@@ -33,7 +35,7 @@ namespace Client.WebUiHost.Game.Topics
             // 開閉（UIステート遷移）とスロット更新の両方を購読して push する
             // Subscribe to open/close (UI-state transitions) and slot updates, then push
             _uiStateControl.OnStateChanged += OnStateChanged;
-            _subInventoryState.OnSubInventoryUpdated += SchedulePublish;
+            _subInventorySubscription = _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -45,7 +47,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
-            _subInventoryState.OnSubInventoryUpdated -= SchedulePublish;
+            _subInventorySubscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -60,14 +62,18 @@ namespace Client.WebUiHost.Game.Topics
             if (_publishScheduled) return;
             _publishScheduled = true;
             PublishAtEndOfFrame().Forget();
-        }
 
-        private async UniTaskVoid PublishAtEndOfFrame()
-        {
-            await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
-            _publishScheduled = false;
-            if (_disposed) return;
-            _hub.Publish(TopicName, BuildJson());
+            #region Internal
+
+            async UniTaskVoid PublishAtEndOfFrame()
+            {
+                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+                _publishScheduled = false;
+                if (_disposed) return;
+                _hub.Publish(TopicName, BuildJson());
+            }
+
+            #endregion
         }
 
         private string BuildJson()

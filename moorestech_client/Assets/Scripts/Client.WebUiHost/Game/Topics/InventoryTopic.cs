@@ -98,11 +98,15 @@ namespace Client.WebUiHost.Game.Topics
             for (var i = 0; i < InventoryAreaMapper.MainAreaSize; i++) dto.MainSlots.Add(ToDto(inv[i]));
             for (var i = InventoryAreaMapper.MainAreaSize; i < PlayerInventoryConst.MainInventorySize; i++) dto.HotbarSlots.Add(ToDto(inv[i]));
             return WebUiJson.Serialize(dto);
-        }
 
-        private static SlotDto ToDto(IItemStack stack)
-        {
-            return new SlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count };
+            #region Internal
+
+            static SlotDto ToDto(IItemStack stack)
+            {
+                return new SlotDto { ItemId = stack.Id.AsPrimitive(), Count = stack.Count };
+            }
+
+            #endregion
         }
     }
 

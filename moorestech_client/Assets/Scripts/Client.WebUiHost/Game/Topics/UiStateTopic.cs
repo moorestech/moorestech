@@ -52,14 +52,18 @@ namespace Client.WebUiHost.Game.Topics
             if (_publishScheduled) return;
             _publishScheduled = true;
             PublishAtEndOfFrame().Forget();
-        }
 
-        private async UniTaskVoid PublishAtEndOfFrame()
-        {
-            await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
-            _publishScheduled = false;
-            if (_disposed) return;
-            _hub.Publish(TopicName, BuildJson());
+            #region Internal
+
+            async UniTaskVoid PublishAtEndOfFrame()
+            {
+                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+                _publishScheduled = false;
+                if (_disposed) return;
+                _hub.Publish(TopicName, BuildJson());
+            }
+
+            #endregion
         }
 
         private string BuildJson()

@@ -1,4 +1,5 @@
 using System;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +19,8 @@ namespace Client.Game.InGame.UI.ProgressBar
 
         // Show/Hide/SetProgress いずれかで状態が変化したら発火する
         // Fires whenever Show/Hide/SetProgress changes the state
-        public event Action OnProgressChanged;
+        public IObservable<Unit> OnProgressChanged => _onProgressChanged;
+        private readonly Subject<Unit> _onProgressChanged = new();
 
         private void Awake()
         {
@@ -29,19 +31,19 @@ namespace Client.Game.InGame.UI.ProgressBar
         public void Show()
         {
             viewRoot.SetActive(true);
-            OnProgressChanged?.Invoke();
+            _onProgressChanged.OnNext(Unit.Default);
         }
 
         public void Hide()
         {
             viewRoot.SetActive(false);
-            OnProgressChanged?.Invoke();
+            _onProgressChanged.OnNext(Unit.Default);
         }
 
         public void SetProgress(float progress)
         {
             scrollbar.size = progress;
-            OnProgressChanged?.Invoke();
+            _onProgressChanged.OnNext(Unit.Default);
         }
     }
 }
