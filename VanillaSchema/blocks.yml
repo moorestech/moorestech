@@ -338,6 +338,7 @@ properties:
       - when: Gear
         type: object
         implementationInterface:
+        - IGearConnectors
         - IGearOverloadParam
         properties:
         - key: teethCount

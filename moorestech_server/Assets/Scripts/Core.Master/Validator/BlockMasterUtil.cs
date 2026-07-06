@@ -19,6 +19,7 @@ namespace Core.Master.Validator
             errorLogs += BlockDestructionCategoryValidation();
             errorLogs += ConnectorSettingsValidation();
             errorLogs += ConnectorShapeGuidValidation();
+            errorLogs += MeshingAxisValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -339,6 +340,34 @@ namespace Core.Master.Validator
                 {
                     if (shapeGuid == null || ExistsConnectorShape(shapeGuid.Value)) return "";
                     return $"[BlockMaster] Name:{blockName} has invalid connector ShapeGuid:{shapeGuid}\n";
+                }
+            }
+
+            string MeshingAxisValidation()
+            {
+                // 歯車コネクタの噛み合い軸が軸整列単位ベクトルであることを検証する
+                // Validate that gear connector meshing axes are axis-aligned unit vectors
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.BlockParam is not IGearConnectors gearConnectors) continue;
+                    foreach (var connector in gearConnectors.Gear.GearConnects)
+                    {
+                        if (!connector.Option.MeshingAxis.HasValue) continue;
+                        var axis = connector.Option.MeshingAxis.Value;
+                        if (IsAxisAlignedUnitVector(axis)) continue;
+                        logs += $"[BlockMaster] Name:{block.Name} has invalid meshingAxis:{axis} (must be an axis-aligned unit vector, e.g. (0,0,1))\n";
+                    }
+                }
+                return logs;
+
+                bool IsAxisAlignedUnitVector(UnityEngine.Vector3Int axis)
+                {
+                    var unitComponentCount = 0;
+                    if (Math.Abs(axis.x) == 1) unitComponentCount++;
+                    if (Math.Abs(axis.y) == 1) unitComponentCount++;
+                    if (Math.Abs(axis.z) == 1) unitComponentCount++;
+                    return unitComponentCount == 1 && Math.Abs(axis.x) <= 1 && Math.Abs(axis.y) <= 1 && Math.Abs(axis.z) <= 1;
                 }
             }
 
