@@ -34,8 +34,8 @@ namespace Client.WebUiHost.Boot
                 // The previous stop's fault is already logged inside StopAsync; only wait here, do not rethrow (2-B)
                 await _stopTask.ContinueWith(_ => { });
             }
-            // 既に起動済みなら利用可能として true を返す
-            // Already running, so report available with true
+            // 起動済みならtrueを返す
+            // Return true if already running
             if (_kestrel != null) return true;
 
             // GameShutdownEvent 購読はドメイン寿命で 1 度だけ張る。IDisposable で保持し意図を型で表現
