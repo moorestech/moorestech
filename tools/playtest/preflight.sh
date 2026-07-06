@@ -34,17 +34,23 @@ edc_retry() {
 }
 
 echo "== [1/4] CLI Loop疎通（モーダル/ビジー検出） =="
-PING=$(timeout 20 uloop execute-dynamic-code --project-path "$PROJECT_PATH" \
-    --code 'return "pong:" + UnityEditor.EditorApplication.isPlaying;' 2>/dev/null | extract_json | json_get Result)
+# ドメインリロード・インポート中を跨げるようリトライ付きで疎通確認する
+# Ping with retries so a domain reload or import in progress doesn't fail the check
+PING=$(edc_retry 'return "pong:" + UnityEditor.EditorApplication.isPlaying;' | json_get Result)
 if [[ "$PING" == pong:* ]]; then
     echo "OK: editor responding (isPlaying=${PING#pong:})"
 else
-    echo "NG: editor not responding within 20s — モーダルダイアログ/ビジー/未起動の可能性"
+    echo "NG: editor not responding — モーダルダイアログ/ビジー/未起動の可能性"
     FAIL=1
 fi
 
 echo "== [2/4] コンパイル =="
-COMPILE=$(uloop compile --project-path "$PROJECT_PATH" 2>/dev/null | extract_json)
+COMPILE=""
+for _ in 1 2 3; do
+    COMPILE=$(uloop compile --project-path "$PROJECT_PATH" 2>/dev/null | extract_json)
+    [[ "$(echo "$COMPILE" | json_get Success)" == "True" || -n "$(echo "$COMPILE" | json_get ErrorCount)" ]] && break
+    sleep 5
+done
 if [[ "$(echo "$COMPILE" | json_get Success)" == "True" ]]; then
     echo "OK: compile clean"
 else
