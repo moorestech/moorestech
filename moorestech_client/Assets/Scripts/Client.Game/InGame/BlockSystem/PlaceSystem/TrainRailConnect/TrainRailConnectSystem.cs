@@ -9,12 +9,12 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
-using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.PlaceSystemModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
@@ -69,7 +69,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             // Compute ConnectionDestination for both endpoints
             var fromDestination = _connectFromArea.CreateConnectionDestination();
-            
+
+            // 敷設に使うレールアイテムをマスタ定義順で自動選択する（手持ち非依存）
+            // Auto-select the rail item in master definition order, independent of the held item
+            var railItemId = TrainRailItemAutoSelector.FindOwnedRailItemId(_playerInventory);
+
             // If the connection point is not under the cursor, return.
             var connectToArea = GetTrainRailConnectAreaCollider();
             if (connectToArea == null)
@@ -77,32 +81,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var position, out _))
                 {
                     _trainRailPlaceSystemService.Enable();
-                    
-                    (IItemStack stack, int i)[] pierSlots = _playerInventory.Select((stack, i) => (stack, i)).Where(itemStack =>
+
+                    // 橋脚ブロックを接続ツールマスタから解決する（選択駆動）
+                    // Resolve the pier block from the connect tool master (selection-driven)
+                    if (!ConnectToolMasterUtil.TryGetPlaceBlock(PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect, out var pierBlockId, out var pierBlockMaster))
                     {
-                        if (!MasterHolder.BlockMaster.IsBlock(itemStack.stack.Id)) return false;
-                        var blockId = MasterHolder.BlockMaster.GetBlockId(itemStack.stack.Id);
-                        var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                        return blockMasterElement.BlockType == BlockMasterElement.BlockTypeConst.TrainRail;
-                    }).ToArray();
-                    
-                    if (!pierSlots.Any())
-                    {
-                        // pierがない場合は設置不可。仮にデフォルトの最大長で判定する
-                        // No pier in inventory: still preview with default max length
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, context.HoldingItemId);
+                        // 橋脚未定義の場合は設置不可。仮にデフォルトの最大長で判定する
+                        // No pier defined: still preview with default max length
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, railItemId);
                         ShowPreview(previewData);
                     }
                     else
                     {
-                        // pierがある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
+                        // 橋脚がある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
                         // Pier available: pass the placing TrainRail block's max length
-                        var (itemStack, _) = pierSlots.First();
-                        var pierBlockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
-                        var pierBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(pierBlockId);
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
                         var placeInfo = _trainRailPlaceSystemService.ManualUpdate(pierBlockId);
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, context.HoldingItemId);
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, railItemId);
                         ShowPreview(previewData);
 
                         if (!previewData.IsPlaceable) return;
@@ -131,7 +126,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     return;
                 }
                 
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, context.HoldingItemId);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, railItemId);
                 ShowPreview(previewData);
 
                 if (!previewData.IsPlaceable) return;

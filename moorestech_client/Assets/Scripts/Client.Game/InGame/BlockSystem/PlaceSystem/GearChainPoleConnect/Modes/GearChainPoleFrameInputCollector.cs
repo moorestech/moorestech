@@ -43,8 +43,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         {
             var poleParam = (GearChainPoleBlockParam)poleBlockMaster.BlockParam;
 
-            // 暫定: 設置対象ポールのBlockIdと建設コストをマスタから解決する（Task 9で選択駆動へ置換）
-            // Interim: resolve the placing pole's BlockId and construction cost from master (replaced by selection-driven flow in Task 9)
+            // 選択中ポールのBlockIdと建設コストをマスタから解決する
+            // Resolve the selected pole's BlockId and construction cost from master
             var poleBlockId = MasterHolder.BlockMaster.GetBlockId(poleBlockMaster.BlockGuid);
             var reservedItemCounts = ConstructionCostService.ToItemCounts(poleBlockMaster.RequiredItems);
 
@@ -87,12 +87,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
         public GearChainPoleChainConnectInput CollectChainConnect(PlaceSystemUpdateContext context, IGearChainPoleConnectAreaCollider sourcePole)
         {
+            // 接続に使うチェーンアイテムをインベントリから自動選択する（手持ち非依存）
+            // Auto-select the chain item from inventory, independent of the held item
+            var ownedChainItemId = GearChainPoleItemFinder.FindOwnedChainItemId(_playerInventory);
+
             var input = new GearChainPoleChainConnectInput
             {
                 HitPole = GetHitPole(),
                 SourcePole = sourcePole,
                 Clicked = IsScreenClicked(),
-                HoldingChainItemId = context.HoldingItemId,
+                HoldingChainItemId = ownedChainItemId,
             };
             if (sourcePole != null)
             {
@@ -105,7 +109,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (input.HitPole != null)
             {
                 input.HitPolePos = input.HitPole.GetBlockPosition();
-                if (sourcePole != null && input.SourcePolePos != input.HitPolePos) input.PoleToPolePreview = GearChainPoleExtendPreviewCalculator.CalculatePoleToPole(input.SourcePolePos, input.HitPolePos, _blockGameObjectDataStore, _playerInventory, context.HoldingItemId);
+                if (sourcePole != null && input.SourcePolePos != input.HitPolePos) input.PoleToPolePreview = GearChainPoleExtendPreviewCalculator.CalculatePoleToPole(input.SourcePolePos, input.HitPolePos, _blockGameObjectDataStore, _playerInventory, ownedChainItemId);
             }
             else if (sourcePole != null && PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var cursorPoint, out _))
             {
