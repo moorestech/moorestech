@@ -3,7 +3,7 @@ import { dispatchAction } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
 import { ItemSlot } from "@/shared/ui";
 import { useBlockInteraction } from "../blockInteractionContext";
-import { filterSlotClickAction, modeLabel, nextMode } from "./filterSplitterLogic";
+import { filterSlotClickAction, modeLabel, nextMode } from "../filterSplitterLogic";
 
 // 方向別のフィルタ操作ビュー
 // Per-direction filter operation view
