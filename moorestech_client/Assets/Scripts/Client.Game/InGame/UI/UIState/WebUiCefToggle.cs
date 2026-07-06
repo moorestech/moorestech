@@ -55,6 +55,10 @@ namespace Client.Game.InGame.UI.UIState
                 return;
             }
 
+            // CEF表示はUIState駆動（webモード かつ Web実装済み画面のみ表示）
+            // CEF visibility is UIState-driven (shown only in web mode AND a web-implemented screen state)
+            SyncCefRootVisibility();
+
             // デバッグスイッチのポーリングは0.5秒間隔に間引く
             // Throttle the debug-switch polling to 0.5s
             if (Time.unscaledTime - _lastDebugPollTime < DebugPollInterval) return;
@@ -71,22 +75,18 @@ namespace Client.Game.InGame.UI.UIState
 
             // CEF表示中はカーソル解放を再表明する（起動時の初期化順序競合への保険）
             // Re-assert cursor release while CEF is shown (guards against boot init-order races)
-            if (_isCefActive) InputManager.MouseCursorVisible(true);
+            if (WebUiScreenGate.IsCefVisible) InputManager.MouseCursorVisible(true);
         }
 
         private void OnDestroy()
         {
             // シーンアンロード等でCEF表示中に破棄されるとゲートがtrueのまま残り、次シーンの遷移・カメラが止まるため解除する
             // If destroyed while CEF is active (e.g. scene unload) the gate would stay true and freeze the next scene's transitions/camera, so release it
-            if (_appliedCefActive) WebUiScreenGate.SetCefActive(false);
+            if (_appliedCefActive) WebUiScreenGate.SetWebUiMode(false);
         }
 
         private void ApplyState()
         {
-            // CEFルートの表示を切り替える
-            // Toggle the CEF root visibility
-            cefUnityRoot.SetActive(_isCefActive);
-
             // uGUIルートの表示状態を記録・復元する（一斉SetActive(true)による状態破壊を防ぐ）
             // Snapshot / restore uGUI roots' active state (avoids destroying state via a blanket SetActive(true))
             if (_isCefActive) SnapshotAndHideUguiRoots();
@@ -94,8 +94,9 @@ namespace Client.Game.InGame.UI.UIState
 
             // 入力・カーソル調停ゲートを更新する（一方通行: 書き込みはここのみ）
             // Update the input/cursor arbitration gate (one-way: written only here)
-            WebUiScreenGate.SetCefActive(_isCefActive);
-            if (_isCefActive) InputManager.MouseCursorVisible(true);
+            WebUiScreenGate.SetWebUiMode(_isCefActive);
+            SyncCefRootVisibility();
+            if (WebUiScreenGate.IsCefVisible) InputManager.MouseCursorVisible(true);
 
             _appliedCefActive = _isCefActive;
             _hasAppliedOnce = true;
@@ -127,6 +128,14 @@ namespace Client.Game.InGame.UI.UIState
             }
 
             #endregion
+        }
+
+        private void SyncCefRootVisibility()
+        {
+            // 変化時のみSetActive（毎フレームの無駄なヒエラルキー操作を避ける）
+            // SetActive only on change (avoids needless hierarchy churn every frame)
+            var visible = WebUiScreenGate.IsCefVisible;
+            if (cefUnityRoot.activeSelf != visible) cefUnityRoot.SetActive(visible);
         }
     }
 }
