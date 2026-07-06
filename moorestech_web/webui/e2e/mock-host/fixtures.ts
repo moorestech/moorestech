@@ -7,6 +7,7 @@ import type {
   BlockInventoryData,
   ModalRequest,
   ProgressData,
+  UiStateData,
 } from "../../src/bridge/payloadTypes";
 
 const empty = () => ({ itemId: 0, count: 0 });
@@ -95,6 +96,10 @@ export const craftRecipes = {
 export const machineRecipes = { recipes: [] } satisfies MachineRecipesData;
 
 export const itemList = { itemIds: [100, 1, 2] } satisfies RecipeViewerItemListData;
+
+// INFRA-6: 既定はインベントリ画面（既存 e2e が前提とする表示状態を保つ）
+// INFRA-6: default to the inventory screen (keeps the visibility existing e2e tests assume)
+export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
 
 export const itemMaster = {
   items: [

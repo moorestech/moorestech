@@ -12,6 +12,7 @@ import type {
   BlockInventoryData,
   BlockSlotRef,
   ModalRequest,
+  UiStateData,
 } from "../../src/bridge/payloadTypes";
 import * as fx from "./fixtures";
 
@@ -33,6 +34,11 @@ const blockSubscribers = new Set<WebSocket>();
 // Modal is hidden by default; show via /__modal?show=1 (opt-in so the full-screen backdrop never blocks other tests)
 let currentModal: ModalRequest | null = null;
 const modalSubscribers = new Set<WebSocket>();
+
+// ui_state は既定でインベントリ画面。/__uistate?state=X で切替（既存 e2e の表示前提を守る既定値）
+// ui_state defaults to the inventory screen; switch via /__uistate?state=X (default keeps existing e2e assumptions)
+let currentUiState: UiStateData = clone(fx.uiState);
+const uiStateSubscribers = new Set<WebSocket>();
 
 const MIME: Record<string, string> = {
   ".html": "text/html",
@@ -69,6 +75,16 @@ const server = createServer(async (req, res) => {
     const show = new URL(url, "http://x").searchParams.get("show") === "1";
     currentModal = show ? clone(fx.modalSample) : null;
     for (const ws of modalSubscribers) send(ws, { op: "event", topic: Topics.modal, data: { modal: currentModal } });
+    res.setHeader("content-type", "application/json");
+    res.end(JSON.stringify({ ok: true }));
+    return;
+  }
+  // テスト用: ui_state を差し替えて購読者へ event push
+  // Test-only: swap the served ui_state and push an event to subscribers
+  if (url.startsWith("/__uistate")) {
+    const state = new URL(url, "http://x").searchParams.get("state") ?? "PlayerInventory";
+    currentUiState = { state };
+    for (const ws of uiStateSubscribers) send(ws, { op: "event", topic: Topics.uiState, data: currentUiState });
     res.setHeader("content-type", "application/json");
     res.end(JSON.stringify({ ok: true }));
     return;
@@ -131,6 +147,7 @@ const KNOWN_ACTIONS = new Set<string>([
   "craft.execute",
   "ui.modal.respond",
   "block_inventory.move_item",
+  "ui_state.request",
   "debug.echo",
 ]);
 
@@ -211,12 +228,14 @@ wss.on("connection", (ws) => {
     if (topic === Topics.blockInventory) return currentBlock;
     if (topic === Topics.modal) return { modal: currentModal };
     if (topic === Topics.progress) return fx.progressSample;
+    if (topic === Topics.uiState) return currentUiState;
     return undefined;
   };
 
   ws.on("close", () => {
     blockSubscribers.delete(ws);
     modalSubscribers.delete(ws);
+    uiStateSubscribers.delete(ws);
   });
 
   ws.on("message", (raw) => {
@@ -225,6 +244,7 @@ wss.on("connection", (ws) => {
       for (const topic of msg.topics) {
         if (topic === Topics.blockInventory) blockSubscribers.add(ws);
         if (topic === Topics.modal) modalSubscribers.add(ws);
+        if (topic === Topics.uiState) uiStateSubscribers.add(ws);
         const data = topicData(topic);
         if (data !== undefined) send(ws, { op: "snapshot", topic, data });
       }
@@ -236,6 +256,7 @@ wss.on("connection", (ws) => {
       for (const topic of msg.topics) {
         if (topic === Topics.blockInventory) blockSubscribers.delete(ws);
         if (topic === Topics.modal) modalSubscribers.delete(ws);
+        if (topic === Topics.uiState) uiStateSubscribers.delete(ws);
       }
       return;
     }
@@ -280,6 +301,22 @@ wss.on("connection", (ws) => {
           setTimeout(() => {
             send(ws, { op: "event", topic: Topics.inventory, data: inv });
             send(ws, { op: "event", topic: Topics.blockInventory, data: currentBlock });
+          }, 30);
+        }
+      } else if (msg.type === "ui_state.request") {
+        // 実 host の許可制を再現: GameScreen/PlayerInventory のみ受理し、GameScreen 遷移では block も閉じる
+        // Mirror the real host's allowlist: accept only GameScreen/PlayerInventory; GameScreen also closes the block
+        const state = (msg.payload as ActionPayloads["ui_state.request"]).state;
+        if (state !== "GameScreen" && state !== "PlayerInventory") {
+          error = "unsupported_state";
+        } else {
+          currentUiState = { state };
+          if (state === "GameScreen") currentBlock = clone(fx.blockClosed);
+          setTimeout(() => {
+            for (const sub of uiStateSubscribers) send(sub, { op: "event", topic: Topics.uiState, data: currentUiState });
+            if (state === "GameScreen") {
+              for (const sub of blockSubscribers) send(sub, { op: "event", topic: Topics.blockInventory, data: currentBlock });
+            }
           }, 30);
         }
       } else if (msg.type !== "fail.always" && !KNOWN_ACTIONS.has(msg.type)) {
