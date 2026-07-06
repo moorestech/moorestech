@@ -55,9 +55,9 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = CreateServer();
             var controller = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            // テストマスタの先頭車両を対象にする（initialUnlocked未設定なので初期ロック）
-            // Use the first train car in the test master (locked initially)
-            var trainCarGuid = global::Core.Master.MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid;
+            // テストマスタの2両目を対象にする（1両目はinitialUnlocked:true、2両目は初期ロック）
+            // Use the second train car in the test master (the first is initialUnlocked, the second stays locked)
+            var trainCarGuid = global::Core.Master.MasterHolder.TrainUnitMaster.Train.TrainCars[1].TrainCarGuid;
             Assert.IsFalse(controller.TrainCarUnlockStateInfos[trainCarGuid].IsUnlocked);
 
             controller.UnlockTrainCar(trainCarGuid);
