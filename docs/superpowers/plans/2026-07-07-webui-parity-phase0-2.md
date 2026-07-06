@@ -200,7 +200,7 @@ Expected: 出力なし（`setTopic` の定義・呼び出しは `src/bridge/stor
 - [ ] **Step 2: useTopicStore が bridge/store の外から直接触られていないことを確認**
 
 Run: `grep -rn "useTopicStore" src | grep -v "src/bridge/store"`
-Expected: 出力なし
+Expected: `src/bridge/transport/webSocketClient.ts` の `setStatus` 呼び出しのみ（接続ステータスの書き込みは「WS 層のみが書く」という topicStore 自身の設計コメントが公認する正規経路。feature/コンポーネントからのヒットが出たら違反）
 
 - [ ] **Step 3: deliverTopicPayload の呼び出し元が WS 層だけであることを確認**
 
