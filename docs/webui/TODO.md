@@ -93,10 +93,10 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 > 画面カバレッジ: uGUI `UIStateEnum` 11 ステート中 web 対応は 3＋GameScreen（残り7画面は「2. 機能移行」の大物画面参照）。
 
 **ブロックインベントリ操作（優先度1 → 実行計画 `../superpowers/plans/2026-07-07-webui-parity-phase0-2.md`）**
-- [ ] ブロックスロット右クリック（空手: 半分取り(切り捨て) / grab保持: 1個置き）
-- [ ] ブロックスロットダブルクリック収集（C# `block_inventory.collect` 新設が必要。既存 `inventory.collect` は block を拒否）
-- [ ] Shift直接移動の SubInventory 対応（main/hotbar→block、block→main。uGUI `PlayerInventoryDirectMover` 準拠の複数スタック配分）
-- [ ] blockInventory e2e のジェスチャ網羅（現状は左クリック pickup のみで欠落を検出できない）
+- [x] ブロックスロット右クリック（空手: 半分取り(切り捨て) / grab保持: 1個置き）（2026-07-07・e2e検証済み）
+- [x] ブロックスロットダブルクリック収集（C# `block_inventory.collect` 新設済み・`BlockAreaSlotParser` 共通化）（2026-07-07）
+- [x] Shift直接移動の SubInventory 対応（main/hotbar→block、block→main。`planDirectMoves` で uGUI 準拠の複数スタック配分）（2026-07-07）
+- [x] blockInventory e2e のジェスチャ網羅（`blockInventoryGestures.spec.ts` 5ケース追加、e2e計39件）（2026-07-07）
 - [ ] Esc でのブロックUIクローズ: uGUI `SubInventoryState` が webモードでも稼働しているため**動作している可能性が高い**。PlayModeスモークで検証し結果をここへ記録（未動作なら実装タスク化）
 
 **ギア系・個別ブロック（優先度2）**
