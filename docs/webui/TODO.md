@@ -49,6 +49,7 @@ uGUI パリティの大物（研究ツリー・チャレンジ・列車・個別
 - **CEF ライフサイクル隔離**: 起動部分失敗時ロールバック、Editor ドメインリロード/PlayMode 終了/Editor 終了フックでの確実なクリーンアップ、WS 境界の隔離
 - **Ctrl+I 排他トグル** `WebUiCefToggle.cs`（uGUI/CEF 表示の重なり制御、INFRA-3 相当。※台帳未反映）
 - Mantine v8 + CSS Modules への移行完了（Tailwind 依存は package.json から撤去済み）
+- **INFRA-6 最小版（2026-07-06）**: `ui_state.current` topic + `ui_state.request` action で UIState⇔Web を橋渡し。CEF表示はUIState駆動（GameScreen=非表示で通常プレイ、PlayerInventory/SubInventory=CEF表示）。App.tsx は state で画面をルーティング。**webモード中の未対応state遷移は抑止**（PauseMenu等はCtrl+IでuGUIモードへ）。GameStateType（第2状態機械）のTopic化は未着手
 
 ---
 
@@ -61,7 +62,8 @@ uGUI パリティの大物（研究ツリー・チャレンジ・列車・個別
 ### 1. 横断インフラ（`cef-webui-migration-todo.md` INFRA-* 参照）
 - [ ] **INFRA-1 CEF バイナリの恒久統合**（最優先の未解決課題）: `manifest.json` は今も `jp.juha.cefunitysample` を git URL 参照。LFS ポインタが解決されず手動 pull 回避を繰り返している。embedded package 化等の恒久対応
 - [ ] **INFRA-4 C#→TS 型自動生成**: `bridge/payloadTypes.ts` は現状手書き。C# からの生成に置換
-- [ ] INFRA-5 アセット配信拡張 / INFRA-6 UIState・GameStateType 橋渡し / INFRA-7 サーバーイベント push 規約 / INFRA-8 Windows・Linux 対応（`ViteProcess.cs:246` に Windows pid 特定の TODO）/ INFRA-9 本番配信堅牢性 / INFRA-10 CEF 音声専有 / INFRA-11 i18n / INFRA-12 要素 ID 規約 — いずれも未着手
+- 🟡 **INFRA-6 UIState 橋渡し（最小版済・2026-07-06）**: `ui_state.current` topic + `ui_state.request` action で UIState⇔Web を橋渡し済み。CEF表示はUIState駆動、App.tsx が state で画面ルーティング、webモード中の未対応state遷移は抑止。**GameStateType（第2状態機械）のTopic化は未着手**
+- [ ] INFRA-5 アセット配信拡張 / INFRA-7 サーバーイベント push 規約 / INFRA-8 Windows・Linux 対応（`ViteProcess.cs:246` に Windows pid 特定の TODO）/ INFRA-9 本番配信堅牢性 / INFRA-10 CEF 音声専有 / INFRA-11 i18n / INFRA-12 要素 ID 規約 — いずれも未着手
 - [ ] INFRA-13 CEF 堅牢性 — 一部前進（起動隔離・WS 境界隔離済み）、残りは継続
 
 ### 2. 機能移行（uGUI パリティ・大部分未着手）
@@ -81,6 +83,7 @@ uGUI パリティの大物（研究ツリー・チャレンジ・列車・個別
 ### 3. 検証（未検証で残る実機挙動）
 - [ ] PlayMode で Ctrl+I トグルの実機目視確認（`unity-playmode-recorded-playtest` で録画可）
 - [ ] INFRA-1 解消後の 実機 web↔host 連携検証（現状の保証は mock-host 相手の e2e + 録画 + コンパイルまで）
+- [ ] webモードの実機遷移確認（Tab開閉・ブロックインタラクト・✕ボタン。INFRA-1 解消後 or PlayMode録画）
 
 ### 4. 検討事項（`cef-webui-plan.md` 由来・台帳未収録）
 - [ ] Ultralight 等 軽量代替レンダラーの試用・抽象化レイヤー要件抽出
