@@ -15,10 +15,14 @@ export default function BlockInventoryPanel() {
   const grabCount = useTopicSelector(Topics.inventory, (inv) => inv?.grab.count ?? 0);
   const itemMaster = useItemMaster();
 
-  // grab と名前解決だけを memo 化した context 値。identity 安定で Body の無駄な再レンダーを防ぐ
-  // Context value memoized to grab + name resolution only; stable identity avoids needless Body re-renders
+  // grab と名前/maxStack 解決だけを memo 化した context 値。identity 安定で Body の無駄な再レンダーを防ぐ
+  // Context value memoized to grab + name/maxStack resolution only; stable identity avoids needless Body re-renders
   const interaction = useMemo<BlockInteraction>(
-    () => ({ grabCount, resolveName: (itemId) => itemMaster?.get(itemId)?.name }),
+    () => ({
+      grabCount,
+      resolveName: (itemId) => itemMaster?.get(itemId)?.name,
+      resolveMaxStack: (itemId) => itemMaster?.get(itemId)?.maxStack,
+    }),
     [grabCount, itemMaster],
   );
 
