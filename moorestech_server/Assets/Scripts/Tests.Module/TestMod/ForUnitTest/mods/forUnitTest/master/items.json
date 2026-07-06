@@ -461,6 +461,16 @@
       "handGrabModelAddressablePath": ""
     },
     {
+      "itemGuid": "00000000-0000-0000-1234-000000000104",
+      "imagePath": "",
+      "name": "TestRailCostTrainRail",
+      "maxStack": 100,
+      "sortPriority": 748,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "handGrabModelAddressablePath": ""
+    },
+    {
       "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
       "imagePath": "",
       "name": "Chain",
