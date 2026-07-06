@@ -1,7 +1,7 @@
 // Unity 側 Web UI ホストと通信する WebSocket クライアント（純粋なトランスポート）
 // WebSocket client that talks to the Unity-side Web UI host (a pure transport)
 import type { ServerMsg, ClientMsg, ActionResult } from "./protocol";
-import { deliverTopicPayload, useTopicStore } from "./topicStore";
+import { deliverTopicPayload, useTopicStore } from "../store/topicStore";
 import { subscriptions } from "./subscriptionManager";
 
 export type { ActionResult };

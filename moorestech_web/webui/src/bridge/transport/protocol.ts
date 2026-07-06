@@ -10,7 +10,7 @@ import type {
   BlockInventoryData,
   UiStateData,
   ResearchTreeData,
-} from "./payloadTypes";
+} from "../contract/payloadTypes";
 
 // 通信の op レベルのメッセージ型（webSocketClient が使用）
 // Wire-level message types at the op layer (used by webSocketClient)

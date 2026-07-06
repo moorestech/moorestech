@@ -52,7 +52,7 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 - **CEF ライフサイクル隔離**: 起動部分失敗時ロールバック、Editor ドメインリロード/PlayMode 終了/Editor 終了フックでの確実なクリーンアップ、WS 境界の隔離
 - **Ctrl+I 排他トグル** `WebUiCefToggle.cs`（uGUI/CEF 表示の重なり制御、INFRA-3 相当。※台帳未反映）
 - Mantine v8 + CSS Modules への移行完了（Tailwind 依存は package.json から撤去済み）
-- **INFRA-6 最小版（2026-07-06）**: `ui_state.current` topic + `ui_state.request` action で UIState⇔Web を橋渡し。CEF表示はUIState駆動（GameScreen=非表示で通常プレイ、PlayerInventory/SubInventory=CEF表示）。App.tsx は state で画面をルーティング。**webモード中の未対応state遷移は抑止**（PauseMenu等はCtrl+IでuGUIモードへ）。GameStateType（第2状態機械）のTopic化は未着手
+- **INFRA-6 uGUIステートマシン・パススルー型（2026-07-06）**: uGUIの`UIStateControl`が唯一の状態源としてフル稼働（B/G/T/R/Esc 等すべて従来通り）。CEFはwebモード中**常時表示の透明オーバーレイ**（body透過 + 画面表示中のみ dim バックドロップ）。Webが置換済みのビュー（`PlayerInventoryViewController` / `RecipeViewerView`）だけ `SetActive` 内で webモードゲート。`ui_state.current` topic + `ui_state.request` action は維持。CEF RawImage の raycastTarget=0 で世界クリック貫通。PlayMode 遷移マトリクス **10/10 PASS** 検証済み（2026-07-06、`.superpowers/sdd/task-4-verification-report.md`）
 
 ---
 
@@ -87,7 +87,11 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 ### 3. 検証（未検証で残る実機挙動）
 - [ ] PlayMode で Ctrl+I トグルの実機目視確認（`unity-playmode-recorded-playtest` で録画可）
 - [ ] INFRA-1 解消後の 実機 web↔host 連携検証（現状の保証は mock-host 相手の e2e + 録画 + コンパイルまで）
-- [ ] webモードの実機遷移確認（Tab開閉・ブロックインタラクト・✕ボタン。INFRA-1 解消後 or PlayMode録画）
+- [x] webモードの実機遷移確認（Tab開閉・ブロックインタラクト・✕ボタン）: **PlayMode 遷移マトリクス 10/10 PASS**（2026-07-06、レポート `.superpowers/sdd/task-4-verification-report.md`）
+
+#### 既知の制限
+- **入力の二重配送**: Web パネルのクリックが uGUI / 3D にも届く。実害は限定的だが恒久対応は INFRA-2（入力排他の一元化）で対処予定
+- **Vite dev server 死活検知なし**: dev server 停止時の検知・復旧が未実装（INFRA-13 系フォローアップ）
 
 ### 4. 検討事項（`cef-webui-plan.md` 由来・台帳未収録）
 - [ ] Ultralight 等 軽量代替レンダラーの試用・抽象化レイヤー要件抽出

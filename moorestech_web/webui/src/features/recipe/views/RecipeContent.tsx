@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
 import { Stack, Tabs, Text } from "@mantine/core";
 import { ItemIcon } from "@/shared/ui";
-import styles from "./RecipeViewer.module.css";
+import styles from "../RecipeViewer.module.css";
 import type {
   CraftRecipesData,
   MachineRecipesData,
   PlayerInventoryData,
   ItemMasterEntry,
-} from "@/bridge/payloadTypes";
+} from "@/bridge/contract/payloadTypes";
 import {
   buildOwnedCounts,
   selectCraftRecipes,
   groupMachineRecipesByBlock,
   buildRecipeTabs,
-} from "./craftLogic";
+} from "../craftLogic";
 import ItemHeader from "./ItemHeader";
 import CraftRecipeView from "./CraftRecipeView";
 import MachineRecipeView from "./MachineRecipeView";

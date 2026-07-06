@@ -4,17 +4,17 @@ import { fileURLToPath } from "node:url";
 
 // actions 経由で webSocketClient が読み込まれ location.host を参照するため node 環境で stub する
 // Stub webSocketClient because importing actions pulls it in and it touches location.host, absent in node
-vi.mock("./webSocketClient", () => ({ sendAction: vi.fn() }));
+vi.mock("../transport/webSocketClient", () => ({ sendAction: vi.fn() }));
 
 import { validateTopicPayload } from "./validators";
-import { BENIGN_ERRORS } from "./actions";
-import { Topics } from "./protocol";
+import { BENIGN_ERRORS } from "../transport/actions";
+import { Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData } from "./payloadTypes";
 
 // C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
 // Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
 const fixturesDir = fileURLToPath(
-  new URL("../../../../moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/", import.meta.url),
+  new URL("../../../../../moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/", import.meta.url),
 );
 
 function loadFixture(name: string): unknown {

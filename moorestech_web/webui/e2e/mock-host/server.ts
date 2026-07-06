@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { WebSocketServer, type WebSocket } from "ws";
-import type { ClientMsg, ActionPayloads } from "../../src/bridge/protocol";
-import { Topics } from "../../src/bridge/protocol";
+import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/protocol";
+import { Topics } from "../../src/bridge/transport/protocol";
 import type {
   PlayerInventoryData,
   SlotData,
@@ -13,7 +13,7 @@ import type {
   BlockSlotRef,
   ModalRequest,
   UiStateData,
-} from "../../src/bridge/payloadTypes";
+} from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 

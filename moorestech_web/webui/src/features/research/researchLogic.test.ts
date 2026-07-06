@@ -7,7 +7,7 @@ import {
   isItemSufficient,
   lineBetween,
 } from "./researchLogic";
-import type { ResearchNodeData } from "@/bridge/payloadTypes";
+import type { ResearchNodeData } from "@/bridge/contract/payloadTypes";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
   guid, name: guid, description: "", state: "researchable",

@@ -10,8 +10,8 @@ namespace Client.Tests.WebUi
 {
     /// <summary>
     /// C#⇔TS のワイヤ契約テスト: 実 DTO を WebUiJson でシリアライズし正準フィクスチャと一致検証する
-    /// C#⇔TS wire-contract test: serialize real DTOs via WebUiJson and match them against canonical fixtures
     /// フィクスチャは TS 側 vitest と同一ファイルを参照する単一ソース
+    /// C#⇔TS wire-contract test: serialize real DTOs via WebUiJson and match them against canonical fixtures
     /// The fixtures are the single source, referenced by the TS-side vitest too
     /// </summary>
     public class WireContractTest
@@ -125,8 +125,6 @@ namespace Client.Tests.WebUi
             AssertMatchesFixture(new UiStateDto { State = "PlayerInventory" }, "ui_state.json");
         }
 
-        #region Internal
-
         // DTO を WebUiJson でシリアライズし、キー順序差を無視して JToken.DeepEquals で照合する
         // Serialize the DTO via WebUiJson and match with JToken.DeepEquals, ignoring key-order differences
         private static void AssertMatchesFixture(object dto, string fixtureName)
@@ -141,7 +139,5 @@ namespace Client.Tests.WebUi
             var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
             return File.ReadAllText(path);
         }
-
-        #endregion
     }
 }

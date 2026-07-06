@@ -73,12 +73,16 @@ namespace Client.Starter
             // WebUI is non-essential; isolate ALL startup failures (port collision, missing node → Win32Exception, etc.) so game boot is never blocked (2-A)
             try
             {
-                await Client.WebUiHost.Boot.WebUiHost.StartAsync();
+                // 起動成否を uGUI/Web 表示ゲートへ伝える。失敗（例外/false）なら uGUI を出すため無効化する
+                // Propagate startup success to the uGUI/Web gate; on failure (exception/false) disable it so uGUI shows
+                var hostStarted = await Client.WebUiHost.Boot.WebUiHost.StartAsync();
+                Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(hostStarted);
             }
             catch (Exception e)
             {
                 // WebUI 無しでゲーム続行。フィールドは StartAsync 側で null に巻き戻り再試行可能
                 // Continue without WebUI; StartAsync already rolled fields back to null for retry
+                Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(false);
                 Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
             }
 

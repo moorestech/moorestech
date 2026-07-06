@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validateTopicPayload } from "./validators";
-import { Topics } from "./protocol";
+import { Topics } from "../transport/protocol";
 
 const openBase = {
   open: true, blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockName: "電気機械",

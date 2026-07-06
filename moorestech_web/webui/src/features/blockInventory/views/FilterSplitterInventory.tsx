@@ -1,6 +1,6 @@
 import { Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
-import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
 import { ItemSlot } from "@/shared/ui";
 import { useBlockInteraction } from "../blockInteractionContext";
 import { filterSlotClickAction, modeLabel, nextMode } from "./filterSplitterLogic";

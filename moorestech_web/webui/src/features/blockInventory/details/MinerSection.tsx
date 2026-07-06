@@ -1,5 +1,5 @@
 import { Group, Stack, Text } from "@mantine/core";
-import type { BlockInventoryOpen } from "@/bridge/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
 import { ItemSlot, ProgressArrow } from "@/shared/ui";
 import { useBlockInteraction } from "../blockInteractionContext";
 import { computePowerRate } from "./detailLogic";

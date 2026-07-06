@@ -1,5 +1,5 @@
 import { Tooltip } from "@mantine/core";
-import type { FluidSlotData } from "@/bridge/payloadTypes";
+import type { FluidSlotData } from "@/bridge/contract/payloadTypes";
 import { formatAmount, fillRatio } from "./fluidLogic";
 import styles from "./style.module.css";
 

@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // notify は sink 未注入で no-op のため、呼び出しを検証できるようモックする
 // Mock notify (a no-op without an injected sink) so its calls can be asserted
-vi.mock("./notify", () => ({ notify: vi.fn() }));
+vi.mock("../transport/notify", () => ({ notify: vi.fn() }));
 
 import { useTopicStore, deliverTopicPayload } from "./topicStore";
-import { notify } from "./notify";
-import { Topics } from "./protocol";
+import { notify } from "../transport/notify";
+import { Topics } from "../transport/protocol";
 
 const validInventory = {
   mainSlots: [{ itemId: 1, count: 2 }],

@@ -1,6 +1,6 @@
 // topic payload の実行時 shape ガード。依存追加なしの手書きチェックで単一チェックポイントに使う
 // Runtime shape guards for topic payloads; hand-written (no deps) for use at a single choke point
-import { Topics } from "./protocol";
+import { Topics } from "../transport/protocol";
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);

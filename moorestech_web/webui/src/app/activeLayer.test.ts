@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 
 // activeLayer は barrel 経由で webSocketClient を読み込む。import 時に location.host を触るため node で stub
 // activeLayer loads webSocketClient via the barrel, which touches location.host at import; stub it for node
-vi.mock("@/bridge/webSocketClient", () => ({ sendAction: vi.fn() }));
+vi.mock("@/bridge/transport/webSocketClient", () => ({ sendAction: vi.fn() }));
 
 import { deriveActiveLayer } from "./activeLayer";
 

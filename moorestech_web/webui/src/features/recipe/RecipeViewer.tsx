@@ -1,8 +1,8 @@
 import { Stack, Text, Title } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
-import { useItemMaster } from "@/bridge/useItemMaster";
+import { useItemMaster } from "@/bridge/store/useItemMaster";
 import { useUiStore } from "@/app/uiStore";
-import RecipeContent from "./RecipeContent";
+import RecipeContent from "./views/RecipeContent";
 
 // 中央カラム: 選択アイテムのクラフトレシピと機械レシピを表示する（uGUI の RecipeViewer 相当）
 // Center column: shows craft and machine recipes for the selected item, like uGUI's RecipeViewer

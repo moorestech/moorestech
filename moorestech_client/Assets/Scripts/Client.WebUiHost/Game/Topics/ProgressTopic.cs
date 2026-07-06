@@ -3,6 +3,7 @@ using Client.Game.InGame.UI.ProgressBar;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -16,6 +17,7 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly ProgressBarView _view;
+        private readonly IDisposable _subscription;
         private bool _publishScheduled;
         private bool _disposed;
 
@@ -26,7 +28,7 @@ namespace Client.WebUiHost.Game.Topics
 
             // Show/Hide/SetProgress の変化を購読して push する
             // Subscribe to Show/Hide/SetProgress changes and push them
-            _view.OnProgressChanged += SchedulePublish;
+            _subscription = _view.OnProgressChanged.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -37,7 +39,7 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose()
         {
             _disposed = true;
-            _view.OnProgressChanged -= SchedulePublish;
+            _subscription.Dispose();
         }
 
         // INFRA-7 デバウンス規約: 採掘中の毎フレーム SetProgress をフレーム末の1回に畳む
@@ -47,14 +49,18 @@ namespace Client.WebUiHost.Game.Topics
             if (_publishScheduled) return;
             _publishScheduled = true;
             PublishAtEndOfFrame().Forget();
-        }
 
-        private async UniTaskVoid PublishAtEndOfFrame()
-        {
-            await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
-            _publishScheduled = false;
-            if (_disposed) return;
-            _hub.Publish(TopicName, BuildJson());
+            #region Internal
+
+            async UniTaskVoid PublishAtEndOfFrame()
+            {
+                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
+                _publishScheduled = false;
+                if (_disposed) return;
+                _hub.Publish(TopicName, BuildJson());
+            }
+
+            #endregion
         }
 
         private string BuildJson()

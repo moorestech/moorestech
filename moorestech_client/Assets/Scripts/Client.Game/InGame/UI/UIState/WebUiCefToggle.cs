@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Client.Input;
 using Common.Debug;
 using UnityEngine;
 using static Client.Game.DebugConst;

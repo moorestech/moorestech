@@ -1,8 +1,8 @@
 import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
-import type { CraftRecipe, ItemMasterEntry } from "@/bridge/payloadTypes";
-import { clampIndex, craftable } from "./craftLogic";
+import type { CraftRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
+import { clampIndex, craftable } from "../craftLogic";
 import RecipePager from "./RecipePager";
 
 type Props = {

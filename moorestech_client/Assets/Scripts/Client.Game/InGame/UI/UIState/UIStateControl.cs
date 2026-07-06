@@ -12,7 +12,7 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum CurrentState { get; private set; }
 
         private UIStateEnum? _webTransitionRequest;
-        private bool _lastWebUiMode;
+        private bool? _lastWebUiMode;
 
         public void Initialize(UIStateEnum initialState, UITransitContext initialContext)
         {
@@ -33,7 +33,13 @@ namespace Client.Game.InGame.UI.UIState
             // webモード切替の両エッジでGameScreenへ正規化する（uGUI/Webビューの表示不整合を防ぐ）
             // Normalize to GameScreen on both web-mode edges (prevents uGUI/web view visibility mismatch)
             var webUiMode = WebUiScreenGate.IsWebUiMode;
-            if (webUiMode != _lastWebUiMode)
+            if (_lastWebUiMode == null)
+            {
+                // 初回Updateは記録のみとし、起動時の偽エッジ正規化を防ぐ（乗車ログイン時のTrainHUD維持）
+                // First Update only records the mode, preventing spurious boot-edge normalization (keeps TrainHUD on ride-login)
+                _lastWebUiMode = webUiMode;
+            }
+            else if (webUiMode != _lastWebUiMode)
             {
                 _lastWebUiMode = webUiMode;
                 _webTransitionRequest = null;
@@ -71,22 +77,22 @@ namespace Client.Game.InGame.UI.UIState
                 return new UITransitContext(requested);
             }
 
+            void ForceReturnToGameScreen()
+            {
+                // GameScreen外は終了処理を実行
+                // Run exit unless on GameScreen
+                var lastState = CurrentState;
+                if (lastState != UIStateEnum.GameScreen) _uiStateDictionary.GetState(lastState).OnExit();
+
+                // GameScreenへ再入場しカーソル・カメラ・操作説明を確定させる（同一状態でもカーソル復元のため実行）
+                // Re-enter GameScreen to settle cursor/camera/key description (run even for the same state to restore cursor)
+                CurrentState = UIStateEnum.GameScreen;
+                _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(UIStateEnum.GameScreen));
+
+                if (lastState != CurrentState) OnStateChanged?.Invoke(CurrentState);
+            }
+
             #endregion
-        }
-
-        private void ForceReturnToGameScreen()
-        {
-            // GameScreen以外なら終了処理を呼んでパネル等を閉じる
-            // If not GameScreen, run its exit to close panels etc.
-            var lastState = CurrentState;
-            if (lastState != UIStateEnum.GameScreen) _uiStateDictionary.GetState(lastState).OnExit();
-
-            // GameScreenへ再入場しカーソル・カメラ・操作説明を確定させる（同一状態でもカーソル復元のため実行）
-            // Re-enter GameScreen to settle cursor/camera/key description (run even for the same state to restore cursor)
-            CurrentState = UIStateEnum.GameScreen;
-            _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(UIStateEnum.GameScreen));
-
-            if (lastState != CurrentState) OnStateChanged?.Invoke(CurrentState);
         }
     }
 }
