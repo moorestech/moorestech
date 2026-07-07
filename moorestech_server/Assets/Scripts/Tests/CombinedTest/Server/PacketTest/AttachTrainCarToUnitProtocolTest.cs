@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             AssertRejected(setup, response, AttachTrainCarFailureType.ItemNotFound);
         }
 
-        #region Internal
+        #region TestUtil
 
         private readonly struct AttachTestSetup
         {

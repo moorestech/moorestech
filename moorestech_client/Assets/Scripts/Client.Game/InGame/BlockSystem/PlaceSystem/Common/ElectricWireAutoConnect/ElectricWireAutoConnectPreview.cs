@@ -64,19 +64,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // Evaluate cells in order while decrementing a virtual inventory, predicting the server's sequential consumption
             // 注意: ドラッグ中の未設置電柱同士の接続は評価に現れない近似（サーバーが設置順に個別再検証するため安全側）
             // Note: connections between not-yet-placed poles in a drag are approximated away (the server re-validates each in placement order, so this stays safe)
-            var virtualCounts = BuildVirtualCounts();
+            var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, blockMaster.RequiredItems);
             var totalCost = 0;
             var anyPlaceable = false;
             PlaceInfo cursorInfo = null;
             foreach (var placeInfo in placeInfos)
             {
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = TrySelectWire(targets, virtualCounts, out var wireItemId, out var cellCost);
+                var wirePlaceable = TrySelectWire(targets, virtualInventory, out var wireItemId, out var cellCost);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
                 {
-                    ConsumeVirtual(virtualCounts, wireItemId, cellCost);
+                    virtualInventory.ConsumePlacedCell(wireItemId, cellCost);
                     totalCost += cellCost;
                     anyPlaceable = true;
                 }
@@ -102,20 +102,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _cachedDirection = direction;
                 _cachedBlockId = blockId;
                 _hasCacheKey = true;
-            }
-
-            Dictionary<ItemId, int> BuildVirtualCounts()
-            {
-                // 所持アイテムをID別に合算する
-                // Sum held items per item id
-                var counts = new Dictionary<ItemId, int>();
-                foreach (var itemStack in inventory)
-                {
-                    if (itemStack.Count <= 0) continue;
-                    counts[itemStack.Id] = counts.GetValueOrDefault(itemStack.Id) + itemStack.Count;
-                }
-
-                return counts;
             }
 
             List<(Vector3Int TargetPos, float Distance)> GetOrCollectCellGeometry(Vector3Int position)
@@ -147,7 +133,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
         // 全ターゲットを賄える電線アイテムをマスタ設定順に仮想在庫から選ぶ（サーバーと同じ選定規則）
         // Pick the wire item covering all targets in master order against the virtual inventory (same rule as the server)
-        private static bool TrySelectWire(List<(Vector3Int TargetPos, float Distance)> targets, Dictionary<ItemId, int> virtualCounts, out ItemId wireItemId, out int totalCost)
+        private static bool TrySelectWire(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, out ItemId wireItemId, out int totalCost)
         {
             wireItemId = ItemMaster.EmptyItemId;
             totalCost = 0;
@@ -163,7 +149,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 var candidateItemId = MasterHolder.ItemMaster.GetItemId(wireItem.ItemGuid);
                 if (!TrySumCost(candidateItemId, out var cost)) continue;
 
-                if (virtualCounts.GetValueOrDefault(candidateItemId) < cost) continue;
+                if (!virtualInventory.CanAffordWire(candidateItemId, cost)) continue;
 
                 wireItemId = candidateItemId;
                 totalCost = cost;
@@ -187,14 +173,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             }
 
             #endregion
-        }
-
-        // 選択電線の消費を仮想在庫へ反映する（ブロック本体は建設コスト方式のためここでは扱わない）
-        // Apply the selected wire consumption to the virtual inventory (block bodies are handled by construction cost)
-        private static void ConsumeVirtual(Dictionary<ItemId, int> virtualCounts, ItemId wireItemId, int wireCost)
-        {
-            if (wireItemId == ItemMaster.EmptyItemId || wireCost <= 0) return;
-            virtualCounts[wireItemId] = virtualCounts.GetValueOrDefault(wireItemId) - wireCost;
         }
     }
 }

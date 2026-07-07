@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.GearPole
     /// 単一のチェーン接続を表示するコンポーネント
     /// Component for displaying a single chain connection
     /// </summary>
-    public class GearChainPoleChainLineViewElement : MonoBehaviour
+    public class GearChainPoleChainLineViewElement : MonoBehaviour, IConnectionLineViewElement
     {
         private const float LineSpacing = 0.1f;
 
