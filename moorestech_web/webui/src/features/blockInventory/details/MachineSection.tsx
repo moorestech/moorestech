@@ -1,30 +1,34 @@
 import { Group, Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
 import { ItemSlot, SlotGrid, ProgressArrow, FluidSlot } from "@/shared/ui";
-import { dispatchAction } from "@/bridge";
 import { useBlockInteraction } from "../blockInteractionContext";
-import { blockSlotClickPayload } from "../blockLogic";
+import { useBlockSlotGestures } from "../useBlockSlotGestures";
 import { computePowerRate, splitSlotIndices } from "./detailLogic";
 
 // 機械: 入力→出力→モジュールの分割グリッド + 進捗 + 電力率（uGUI MachineBlockInventoryView 準拠）
 // Machine: split input→output→module grids, progress, and power rate (mirrors uGUI MachineBlockInventoryView)
 export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
-  const { grabCount, resolveName } = useBlockInteraction();
+  const { resolveName } = useBlockInteraction();
+  // ジェスチャ配線は BlockItemGrid と共通。分割グリッドでも右クリ/Shift/収集がフルに効く
+  // Gesture wiring shared with BlockItemGrid; split grids get the full right-click/Shift/collect set
+  const gestures = useBlockSlotGestures();
   if (!data.machine) return null;
   const { input, output, module } = splitSlotIndices(data.machine.slotLayout, data.itemSlots.length);
   const powerRate = computePowerRate(data.machine.currentPower, data.machine.requestPower);
   const lacking = powerRate < 1;
 
-  // クリック分岐は blockLogic に共通化。payload が null なら無操作、表示更新は topic event 駆動に委ねる
-  // Click branching is shared in blockLogic; a null payload means no-op, and rendering follows topic events
   const slotAt = (i: number) => {
     const slot = data.itemSlots[i];
-    const onLeftDown = () => {
-      const payload = blockSlotClickPayload(i, slot.itemId, slot.count, grabCount);
-      if (payload) void dispatchAction("block_inventory.move_item", payload);
-    };
     return (
-      <ItemSlot key={i} itemId={slot.itemId} count={slot.count} name={resolveName(slot.itemId)} onLeftDown={onLeftDown} />
+      <ItemSlot
+        key={i}
+        itemId={slot.itemId}
+        count={slot.count}
+        name={resolveName(slot.itemId)}
+        onLeftDown={(shiftKey) => gestures.onLeftDown(i, slot, shiftKey)}
+        onRightDown={() => gestures.onRightDown(i, slot)}
+        onDoubleClick={() => gestures.onDoubleClick(i)}
+      />
     );
   };
 
