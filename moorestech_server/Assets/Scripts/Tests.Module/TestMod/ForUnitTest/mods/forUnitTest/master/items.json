@@ -7,7 +7,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": true,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Test2",
@@ -16,7 +17,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": true,
-            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000050"
+            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000050",
+            "maxStack": 50
         },
         {
             "name": "Test3",
@@ -25,7 +27,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000300"
+            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000300",
+            "maxStack": 300
         },
         {
             "name": "Test4",
@@ -34,7 +37,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Test5",
@@ -43,7 +47,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000200"
+            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000200",
+            "maxStack": 200
         },
         {
             "name": "Test6",
@@ -52,7 +57,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Test7",
@@ -61,7 +67,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Test8",
@@ -70,7 +77,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Test9",
@@ -79,7 +87,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Test10",
@@ -88,7 +97,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Test11",
@@ -97,7 +107,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "tree",
@@ -106,7 +117,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "stone",
@@ -115,7 +127,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "SmallTestGear",
@@ -124,7 +137,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "BigTestGear",
@@ -133,7 +147,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestShaft",
@@ -142,7 +157,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestGearMachine",
@@ -151,7 +167,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestSimpleGearGenerator",
@@ -160,7 +177,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestFastSimpleGearGenerator",
@@ -169,7 +187,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "SmallRequireTorqueTestGear",
@@ -178,7 +197,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "BigRequireTorqueTestGear",
@@ -187,7 +207,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "InfinityTestSimpleGearGenerator",
@@ -196,7 +217,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "GearBeltConveyor",
@@ -205,7 +227,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "SmallGearBeltConveyor",
@@ -214,7 +237,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestElectricMachine1",
@@ -223,7 +247,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestElectricMachine2",
@@ -232,7 +257,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestElectricMachine3",
@@ -241,7 +267,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "GearMiner",
@@ -250,7 +277,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Chainer - A",
@@ -258,7 +286,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Chainer - B",
@@ -266,7 +295,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "Chainer - C",
@@ -274,7 +304,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestTrainRail",
@@ -282,7 +313,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestTrainStation",
@@ -290,7 +322,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestTrainItemPlatform",
@@ -298,7 +331,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestGearMapObjectMiner",
@@ -307,7 +341,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "FluidPipe",
@@ -315,7 +350,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "OneWayFluidPipe",
@@ -323,7 +359,8 @@
             "sortPriority": 100,
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "blockSize": [
@@ -336,7 +373,8 @@
             "sortPriority": 100,
             "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
             "name": "FluidMachine",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "blockSize": [
@@ -349,7 +387,8 @@
             "sortPriority": 100,
             "name": "SimpleGearGenerator",
             "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "913fc0e2-2de2-4597-b6c5-e8912994372b",
@@ -359,7 +398,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "344879fd-ee1b-4ff4-93ce-a606016eae61",
@@ -369,7 +409,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "cac50667-3c2b-4641-a481-1545b265a108",
@@ -379,7 +420,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "c9715726-11d8-4e3f-a925-f460956f3505",
@@ -389,7 +431,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "0393ee28-cec8-4a37-94bd-15d79e027721",
@@ -399,7 +442,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "11110000-0000-0000-0000-000000000000",
@@ -409,7 +453,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "11110009-0000-0000-0000-000000000000",
@@ -419,7 +464,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
@@ -429,7 +475,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
@@ -439,7 +486,8 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "name": "TestTrainCar",
@@ -449,7 +497,8 @@
             "recipeViewType": "ForceView",
             "initialUnlocked": true,
             "handGrabModelAddressablePath": "",
-            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000001"
+            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000001",
+            "maxStack": 1
         },
         {
             "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
@@ -462,7 +511,8 @@
                 "handGrabModel": "",
                 "entityModel": ""
             },
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
@@ -475,7 +525,8 @@
                 "handGrabModel": "",
                 "entityModel": ""
             },
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "00000000-0000-0000-1234-000000000031",
@@ -488,43 +539,8 @@
                 "handGrabModel": "",
                 "entityModel": ""
             },
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
-        },
-        {
-            "name": "Test3Lv2",
-            "itemGuid": "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
-            "imagePath": "Test1",
-            "sortPriority": 100,
-            "recipeViewType": "ForceView",
-            "initialUnlocked": false,
-            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000300"
-        },
-        {
-            "name": "Test3Lv3",
-            "itemGuid": "adf11728-e5e7-b180-b6e1-7396d29e787d",
-            "imagePath": "Test1",
-            "sortPriority": 100,
-            "recipeViewType": "ForceView",
-            "initialUnlocked": false,
-            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000300"
-        },
-        {
-            "name": "TestGearBeltConveyorUp",
-            "itemGuid": "11800000-0000-0000-0000-0000000000a1",
-            "imagePath": "Test1",
-            "sortPriority": 100,
-            "recipeViewType": "ForceView",
-            "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
-        },
-        {
-            "name": "TestGearBeltConveyorDown",
-            "itemGuid": "11800000-0000-0000-0000-0000000000a2",
-            "imagePath": "Test1",
-            "sortPriority": 100,
-            "recipeViewType": "ForceView",
-            "initialUnlocked": false,
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "00000000-0000-0000-1234-000000000032",
@@ -537,7 +553,8 @@
                 "handGrabModel": "",
                 "entityModel": ""
             },
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
             "itemGuid": "00000000-0000-0000-1234-000000000033",
@@ -550,105 +567,57 @@
                 "handGrabModel": "",
                 "entityModel": ""
             },
-            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
-        }
-    ],
-    "modules": [
-        {
-            "moduleGuid": "00000000-0000-0000-5678-000000000001",
-            "name": "TestSpeedModule",
-            "itemGuid": "00000000-0000-0000-1234-000000000001",
-            "effectAxis": "Speed",
-            "tier": 1,
-            "effectValue": 0.5,
-            "tradeoffValue": 0.5
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
-            "moduleGuid": "00000000-0000-0000-5678-000000000002",
-            "name": "TestProductivityModule",
-            "itemGuid": "00000000-0000-0000-1234-000000000002",
-            "effectAxis": "Productivity",
-            "tier": 1,
-            "effectValue": 1.0,
-            "tradeoffValue": 0.5
+            "name": "Test3Lv2",
+            "itemGuid": "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000300",
+            "maxStack": 300
         },
         {
-            "moduleGuid": "00000000-0000-0000-5678-000000000003",
-            "name": "TestEfficiencyModule",
-            "itemGuid": "00000000-0000-0000-1234-000000000003",
-            "effectAxis": "Efficiency",
-            "tier": 1,
-            "effectValue": 0.3,
-            "tradeoffValue": 0.0
+            "name": "Test3Lv3",
+            "itemGuid": "adf11728-e5e7-b180-b6e1-7396d29e787d",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "22222222-2222-2222-2222-000000000300",
+            "maxStack": 300
         },
         {
-            "moduleGuid": "00000000-0000-0000-5678-000000000004",
-            "name": "TestQualityModule",
-            "itemGuid": "00000000-0000-0000-1234-000000000005",
-            "effectAxis": "Quality",
-            "tier": 1,
-            "effectValue": 1.0,
-            "tradeoffValue": 0.5
+            "name": "TestGearBeltConveyorUp",
+            "itemGuid": "11800000-0000-0000-0000-0000000000a1",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
-            "moduleGuid": "00000000-0000-0000-5678-000000000005",
-            "name": "TestQualityFractionalModule",
-            "itemGuid": "00000000-0000-0000-1234-000000000006",
-            "effectAxis": "Quality",
-            "tier": 2,
-            "effectValue": 0.4,
-            "tradeoffValue": 0.0
-        }
-    ],
-    "levelFamilies": [
-        {
-            "familyGuid": "00000000-0000-0000-9876-000000000001",
-            "name": "Test3Family",
-            "baseItemGuid": "00000000-0000-0000-1234-000000000003",
-            "levelItemGuids": [
-                "00000000-0000-0000-1234-000000000003",
-                "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
-                "adf11728-e5e7-b180-b6e1-7396d29e787d"
-            ]
-        }
-    ],
-    "itemStackLevelTables": [
-        {
-            "tableGuid": "11111111-1111-1111-1111-111111111111",
-            "name": "TestStackTable",
-            "stackCounts": [
-                100,
-                200,
-                300
-            ]
+            "name": "TestGearBeltConveyorDown",
+            "itemGuid": "11800000-0000-0000-0000-0000000000a2",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111",
+            "maxStack": 100
         },
         {
-            "tableGuid": "22222222-2222-2222-2222-000000000050",
-            "name": "Stack50",
-            "stackCounts": [
-                50
-            ]
-        },
-        {
-            "tableGuid": "22222222-2222-2222-2222-000000000300",
-            "name": "Stack300",
-            "stackCounts": [
-                300
-            ]
-        },
-        {
-            "tableGuid": "22222222-2222-2222-2222-000000000200",
-            "name": "Stack200",
-            "stackCounts": [
-                200
-            ]
-        },
-        {
-            "tableGuid": "22222222-2222-2222-2222-000000000001",
-            "name": "Stack1",
-            "stackCounts": [
-                1
-            ]
+            "maxStack": 100,
+            "name": "TestElectricWire",
+            "itemGuid": "00000000-0000-0000-4649-000000000001",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false
         }
     ]
 }
