@@ -31,7 +31,11 @@ namespace Client.Game.InGame.Control.BuildView
         {
             _currentBuildState = state;
 
-            // セッション開始時のみ復帰用に現在カメラを保存する
+            // 記憶したモードを照準プロバイダへ再適用する（セッション外はTopDown固定のため）
+            // Re-apply the remembered mode to the aim provider (it is pinned to TopDown outside sessions)
+            AimPointProvider.SetMode(CurrentMode);
+
+            // セッション開始時のみ復帰用カメラを保存
             // Save the current camera for restoration only when the session starts
             if (!_isSessionActive)
             {
@@ -57,19 +61,33 @@ namespace Client.Game.InGame.Control.BuildView
             }
             _applier.RestoreCamera(_savedCamera);
             _applier.SetCursorVisible(false);
+
+            // 右ドラッグ回転の残留を防ぎ、セッション外の照準はマウスへ戻す（モード記憶はCurrentModeが保持）
+            // Clear any lingering right-drag rotation and return the aim to the mouse outside sessions (CurrentMode keeps the memory)
+            _applier.SetCameraRotatable(false);
+            AimPointProvider.SetMode(BuildViewMode.TopDown);
             _isSessionActive = false;
+
+            #region Internal
+
+            bool IsBuildState(UIStateEnum state)
+            {
+                return state is UIStateEnum.BuildMenu or UIStateEnum.PlaceBlock or UIStateEnum.DeleteBar;
+            }
+
+            #endregion
         }
 
         // 建設系ステート中に毎フレーム呼ぶ（Vトグルと俯瞰時の右クリック回転）
         // Called every frame during build states (V toggle and top-down right-click rotation)
         public void ManualUpdate()
         {
-            //TODO InputSystemのリファクタ対象
+            //TODO InputSystem対応
             if (HybridInput.GetKeyDown(KeyCode.V)) ToggleViewMode();
 
             if (CurrentMode != BuildViewMode.TopDown) return;
 
-            //TODO InputSystemのリファクタ対象
+            //TODO InputSystem対応
             if (HybridInput.GetMouseButtonDown(1))
             {
                 _applier.SetCursorVisible(false);
@@ -102,24 +120,23 @@ namespace Client.Game.InGame.Control.BuildView
         {
             if (CurrentMode == BuildViewMode.FirstPerson)
             {
-                // メニュー表示中はカーソルを解放しクロスヘアを消す
-                // Free the cursor and hide the crosshair while the menu is open
+                // メニュー表示中はカーソルを解放し、クロスヘアと視点回転を止める
+                // While the menu is open, free the cursor and stop the crosshair and look rotation
                 _applier.SetFirstPersonCamera(true);
                 var isMenu = state == UIStateEnum.BuildMenu;
+                _applier.SetCameraRotatable(!isMenu);
                 _applier.SetCursorVisible(isMenu);
                 _applier.SetCrosshairVisible(!isMenu);
             }
             else
             {
+                // 俯瞰は右ドラッグ中のみ回転可のため、ステート適用時は必ず解除する
+                // Top-down rotates only while right-dragging, so always clear it when applying a state
+                _applier.SetCameraRotatable(false);
                 _applier.SetCursorVisible(true);
                 _applier.SetCrosshairVisible(false);
                 if (state == UIStateEnum.PlaceBlock) _applier.ApplyTopDownCamera();
             }
-        }
-
-        private static bool IsBuildState(UIStateEnum state)
-        {
-            return state is UIStateEnum.BuildMenu or UIStateEnum.PlaceBlock or UIStateEnum.DeleteBar;
         }
     }
 }

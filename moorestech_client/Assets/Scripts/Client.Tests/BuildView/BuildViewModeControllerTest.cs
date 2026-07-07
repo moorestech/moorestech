@@ -92,6 +92,9 @@ namespace Client.Tests.BuildView
             _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             Assert.Contains("Fps:True", _applier.Calls);
             Assert.IsFalse(_applier.Calls.Contains("TopDown"));
+            // 再入場で記憶したFPSが照準プロバイダにも再適用されること
+            // Re-entering re-applies the remembered FPS mode to the aim provider
+            Assert.AreEqual(BuildViewMode.FirstPerson, AimPointProvider.CurrentMode);
         }
 
         [Test]
@@ -104,6 +107,9 @@ namespace Client.Tests.BuildView
             Assert.AreEqual(true, _applier.LastCursorVisible);
             Assert.AreEqual(false, _applier.LastCrosshairVisible);
             Assert.IsFalse(_applier.Calls.Contains("Fps:False"));
+            // メニュー中はマウス移動で視点が回らないこと
+            // The view must not rotate with mouse movement while the menu is open
+            Assert.Contains("Rotatable:False", _applier.Calls);
         }
 
         [Test]
@@ -115,6 +121,10 @@ namespace Client.Tests.BuildView
             Assert.Contains("Fps:False", _applier.Calls);
             Assert.Contains("Restore", _applier.Calls);
             Assert.AreEqual(false, _applier.LastCrosshairVisible);
+            // セッション外の照準はマウスへ戻り、回転も解除されること
+            // Outside the session the aim returns to the mouse and rotation is cleared
+            Assert.AreEqual(BuildViewMode.TopDown, AimPointProvider.CurrentMode);
+            Assert.Contains("Rotatable:False", _applier.Calls);
         }
 
         [Test]

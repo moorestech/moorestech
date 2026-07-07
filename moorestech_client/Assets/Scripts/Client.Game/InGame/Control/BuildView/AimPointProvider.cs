@@ -1,5 +1,5 @@
+using Client.Input;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Client.Game.InGame.Control.BuildView
 {
@@ -22,7 +22,7 @@ namespace Client.Game.InGame.Control.BuildView
             // FPS locks the cursor, so aim at the screen center
             if (CurrentMode == BuildViewMode.FirstPerson) return new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
 
-            return Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : UnityEngine.Input.mousePosition;
+            return HybridInput.GetMousePosition();
         }
     }
 }

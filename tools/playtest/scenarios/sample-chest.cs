@@ -19,6 +19,6 @@ return PlaytestRunner.Run("sample-chest", options, async p =>
     await p.GiveItem("鉄インゴット", 16);
 
     p.Assert(p.GetBlock(chestPosition) != null, "チェストがサーバーに存在する");
-    p.Assert(p.CountItem("鉄インゴット") >= 16, "鉄インゴットが16個以上付与された");
+    p.Assert(16 <= p.CountItem("鉄インゴット"), "鉄インゴットが16個以上付与された");
     await p.Screenshot("final");
 });

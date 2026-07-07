@@ -1,7 +1,7 @@
 namespace Client.Game.InGame.Control.BuildView
 {
     /// <summary>
-    ///     視点モード切替の副作用（カメラ・カーソル・クロスヘア・自機表示）を適用する
+    ///     視点モード切替の副作用を適用する
     ///     Applies view-mode side effects (camera, cursor, crosshair, player model)
     /// </summary>
     public interface IBuildViewApplier

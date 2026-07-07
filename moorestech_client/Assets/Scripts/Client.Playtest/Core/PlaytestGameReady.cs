@@ -20,7 +20,7 @@ namespace Client.Playtest.Core
             var startTime = Time.realtimeSinceStartup;
             while (!IsReady)
             {
-                if (Time.realtimeSinceStartup - startTime > timeoutSeconds)
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
                 {
                     throw new TimeoutException($"game not ready within {timeoutSeconds}s");
                 }

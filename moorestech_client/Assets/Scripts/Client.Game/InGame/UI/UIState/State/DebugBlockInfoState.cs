@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // ESCまたはF3でGameScreenへ戻る
             // Return to GameScreen on ESC or F3
             if (InputManager.UI.CloseUI.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
-            //TODO InputSystemのリファクタ対象
+            //TODO InputSystem対応
             if (UnityEngine.Input.GetKeyDown(KeyCode.F3)) return new UITransitContext(UIStateEnum.GameScreen);
 
             // カーソル下のブロックにバウンディングボックスを表示
@@ -43,13 +43,13 @@ namespace Client.Game.InGame.UI.UIState.State
                 LogClickedBlockInfo();
             }
 
-            //TODO InputSystemのリファクタ対象
+            //TODO InputSystem対応
             if (UnityEngine.Input.GetMouseButtonDown(1))
             {
                 InputManager.MouseCursorVisible(false);
                 _inGameCameraController.SetControllable(true);
             }
-            //TODO InputSystemのリファクタ対象
+            //TODO InputSystem対応
             if (UnityEngine.Input.GetMouseButtonUp(1))
             {
                 InputManager.MouseCursorVisible(true);
