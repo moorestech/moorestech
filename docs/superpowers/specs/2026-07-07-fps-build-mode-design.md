@@ -24,7 +24,7 @@
 - FPS中もWASD移動・ジャンプは有効（現行建設モードも移動を止めていない）
 - 自機モデルはFPS中非表示
 - モード記憶はセッション内のみ（設定ファイル永続化はYAGNI）
-- トグルキーは **V**（InputSystemアクションとして追加）
+- トグルキーは **V**（既存ステートのTab/B/Gと同じ`UnityEngine.Input.GetKeyDown`直接読み＋`//TODO InputSystemのリファクタ対象`コメント方式。前例準拠）
 - クロスヘアは中央ドットの最小UI
 
 ## アーキテクチャ
@@ -95,7 +95,7 @@ PlaceSystem層                 │
 | `DeleteObjectState` | 同上（`OnEnter(false)` の「カメラ維持」挙動は TopDown モード時の挙動として維持） |
 | `BuildMenuState` | `BuildViewModeController` のカメラセッション参加を追加（FPS中にTabでメニューを開いてもカメラが戻らない）。メニュー表示中はモードに関わらずカーソル解放 |
 | `InGameCameraController` | FPS用に追従オフセット（頭部高さ）をTween対象へ追加。`Update()`内のF1/F2ズームと距離クランプ（0.6〜10）は毎フレーム距離を上書きするため、FPS中は無効化するフラグを追加（距離0を維持） |
-| `moorestechInputSettings.inputactions` | `Playable` マップに `ToggleBuildView`（V）を追加し、`InputManager.Playable` に公開 |
+| （入力） | Vキーは `UnityEngine.Input.GetKeyDown(KeyCode.V)` 直接読み（`.inputactions`は変更しない。既存TODOリファクタに乗る） |
 | `PlaceSystemUtil` ほかレイ取得箇所 | `Input.mousePosition` → `AimPointProvider.GetAimScreenPoint()` |
 | `KeyControlDescription` 表示文言 | 各ステートで「V: 視点切替」を追記 |
 
