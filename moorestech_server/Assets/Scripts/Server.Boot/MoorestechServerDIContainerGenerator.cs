@@ -8,6 +8,7 @@ using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
+using Game.Blueprint;
 using Game.Challenge;
 using Game.Context;
 using Game.Crafting.Interface;
@@ -159,6 +160,7 @@ namespace Server.Boot
             services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
+            services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
             services.AddSingleton<ResearchEvent>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());

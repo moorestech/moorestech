@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Game.Blueprint;
 using Game.Challenge;
 using Game.CraftTree;
 using Game.CraftTree.Json;
@@ -31,7 +32,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             ResearchSaveJsonObject research,
             List<TrainUnitSaveData> trainUnits,
             List<RailSegmentSaveData> railSegments,
-            List<PlayerRidingSaveData> playerRidingStates)
+            List<PlayerRidingSaveData> playerRidingStates,
+            List<BlueprintJsonObject> blueprints)
         {
             World = world;
             Inventory = inventory;
@@ -45,6 +47,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             TrainUnits = trainUnits ?? new List<TrainUnitSaveData>();
             RailSegments = railSegments ?? new List<RailSegmentSaveData>();
             PlayerRidingStates = playerRidingStates ?? new List<PlayerRidingSaveData>();
+            Blueprints = blueprints ?? new List<BlueprintJsonObject>();
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -60,5 +63,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("trainUnits")] public List<TrainUnitSaveData> TrainUnits { get; }
         [JsonProperty("railSegments")] public List<RailSegmentSaveData> RailSegments { get; }
         [JsonProperty("playerRidingStates")] public List<PlayerRidingSaveData> PlayerRidingStates { get; }
+        [JsonProperty("blueprints")] public List<BlueprintJsonObject> Blueprints { get; set; }
     }
 }

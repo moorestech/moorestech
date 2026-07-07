@@ -1,0 +1,18 @@
+{
+    "name": "Game.Blueprint",
+    "rootNamespace": "",
+    "references": [
+        "Core.Master",
+        "Game.Block.Interface",
+        "Game.World.Interface"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
