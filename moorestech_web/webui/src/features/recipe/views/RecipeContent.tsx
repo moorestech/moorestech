@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Stack, Tabs, Text } from "@mantine/core";
 import { ItemIcon } from "@/shared/ui";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
@@ -41,6 +41,16 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
 
   const [tabKey, setTabKey] = useState(tabs[0]?.key ?? "");
   const [recipeIndex, setRecipeIndex] = useState(0);
+  // topic 更新でタブ構成が変わって先頭タブへフォールバックする際、ページ位置の持ち越しを防ぐ
+  // When a topic update drops the active tab and we fall back to the first one, reset the page index too
+  useEffect(() => {
+    if (tabs.length === 0) return;
+    if (!tabs.some((t) => t.key === tabKey)) {
+      setTabKey(tabs[0].key);
+      setRecipeIndex(0);
+    }
+  }, [tabs, tabKey]);
+
   // topic 更新でタブ構成が変わった場合は先頭タブへフォールバック
   // Fall back to the first tab if a topic update changed the tab set
   const activeTab = tabs.find((t) => t.key === tabKey) ?? tabs[0] ?? null;

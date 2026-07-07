@@ -1,6 +1,6 @@
-import { Group, Stack } from "@mantine/core";
+import { Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
-import { FluidSlot, ProgressArrow } from "@/shared/ui";
+import { FluidSlotRow } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
 
 // 未登録 blockType 用フォールバック。item/fluid/progress を過不足なく描画しクラッシュを防ぐ
@@ -13,16 +13,9 @@ export default function GenericBlockInventory({ data }: { data: BlockInventoryOp
       {data.itemSlots.length > 0 ? (
         <BlockItemGrid itemSlots={data.itemSlots} testId="generic-block-grid" />
       ) : null}
-      {/* 流体スロットがあれば横並び＋進捗矢印で描画 */}
-      {/* Render fluid slots in a row plus a progress arrow when present */}
-      {data.fluidSlots.length > 0 ? (
-        <Group data-testid="generic-block-fluids" gap="xs" align="center">
-          {data.fluidSlots.map((fluid, i) => (
-            <FluidSlot key={i} fluid={fluid} />
-          ))}
-          {data.progress != null ? <ProgressArrow value={data.progress} /> : null}
-        </Group>
-      ) : null}
+      {/* 流体スロットは共通の FluidSlotRow（空なら非描画） */}
+      {/* Fluid slots via the shared FluidSlotRow (renders nothing when empty) */}
+      <FluidSlotRow fluids={data.fluidSlots} progress={data.progress} testId="generic-block-fluids" />
     </Stack>
   );
 }
