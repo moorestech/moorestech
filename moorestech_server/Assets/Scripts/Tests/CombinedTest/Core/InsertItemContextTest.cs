@@ -17,6 +17,7 @@ using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
@@ -53,7 +54,7 @@ namespace Tests.CombinedTest.Core
             var targetConnector = CreateInventoryConnector(1);
             var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
 
-            var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>();
+            var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
             var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConnectorComponent.ConnectedTargets;
             connectInventory.Clear();
             connectInventory.Add(dummyTarget, connectedInfo);
@@ -114,7 +115,7 @@ namespace Tests.CombinedTest.Core
             var targetConnector = CreateInventoryConnector(1);
             var connectedInfo = new ConnectedInfo(selfConnector, targetConnector, null);
 
-            var chestConnectorComponent = chest.GetComponent<BlockConnectorComponent<IBlockInventory>>();
+            var chestConnectorComponent = chest.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
             var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)chestConnectorComponent.ConnectedTargets;
             connectInventory.Clear();
             connectInventory.Add(dummyTarget, connectedInfo);
@@ -214,7 +215,7 @@ namespace Tests.CombinedTest.Core
             var beltInputConnector = CreateInventoryConnector(1);
             var inputChestConnectedInfo = new ConnectedInfo(inputChestConnector, beltInputConnector, beltConveyor);
 
-            var inputChestConnectorComponent = inputChest.GetComponent<BlockConnectorComponent<IBlockInventory>>();
+            var inputChestConnectorComponent = inputChest.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
             var inputChestConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)inputChestConnectorComponent.ConnectedTargets;
             inputChestConnectInventory.Clear();
             inputChestConnectInventory.Add(beltConveyorComponent, inputChestConnectedInfo);
@@ -225,7 +226,7 @@ namespace Tests.CombinedTest.Core
             var targetInputConnector = CreateInventoryConnector(1);
             var beltConnectedInfo = new ConnectedInfo(beltOutputConnector, targetInputConnector, null);
 
-            var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>();
+            var beltConnectorComponent = beltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
             var beltConnectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)beltConnectorComponent.ConnectedTargets;
             beltConnectInventory.Clear();
             beltConnectInventory.Add(dummyTarget, beltConnectedInfo);
@@ -257,7 +258,7 @@ namespace Tests.CombinedTest.Core
 
         private static IBlockConnector CreateInventoryConnector(int index)
         {
-            return new OutputConnectsElement(index, Guid.NewGuid(), Vector3Int.zero, Array.Empty<Vector3Int>());
+            return new OutputConnectsElement(index, Guid.NewGuid(), null, Vector3Int.zero, Array.Empty<Vector3Int>());
         }
     }
 }

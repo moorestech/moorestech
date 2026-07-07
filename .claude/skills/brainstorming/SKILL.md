@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation."
+description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. ALSO fires on design consultations — 壁打ち / 仕様相談 / 「これどうしたらいい？」型の相談: if your reply would propose a design, approach, or fix strategy, invoke this FIRST instead of answering directly (applies mid-conversation too, not just fresh requests). Explores user intent, requirements and design before implementation."
 ---
 
 # Brainstorming Ideas Into Designs
@@ -69,6 +69,9 @@ digraph brainstorming {
 - If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
 - For appropriately-scoped projects, ask questions one at a time to refine the idea
 - Prefer multiple choice questions when possible, but open-ended is fine too
+- When the options are discrete (2-4 choices), use the AskUserQuestion tool — do NOT present numbered options as plain text (inconsistent across sessions and harder for the user to answer)
+- One AskUserQuestion call = ONE question. Never bundle multiple questions into the questions array — that is a "one question at a time" violation even though the tool allows it
+- Final litmus before sending any AskUserQuestion: if an option is marked (推奨/Recommended) and the recommendation rests on a principle or investigation fact (not user preference), the question is type-B — delete it and fold the recommendation into the premise declaration instead
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
 
@@ -78,11 +81,17 @@ digraph brainstorming {
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
 
+**Self-refutation before presenting (required):**
+
+- Before presenting any design, attack it yourself: construct at least one concrete input that must NOT work (rotation/orientation, multi-cell, boundary, scale, concurrent state) and verify the design rejects it. If the design cannot express the rejection, that is the signal to add an extension point — do not ship the design without resolving it.
+- Include the strongest counterexample and how the design handles it in the presentation. Finding your design's fatal case before the user does is the single highest-trust move in a design dialogue.
+- When a premise asserts game/physics behavior (e.g. "perpendicular gears never mesh"), check whether a real-world exception exists (e.g. bevel gears) — if the design would collapse when the assertion is wrong, confirm it with the user as a type-C question.
+
 **Presenting the design:**
 
 - Once you believe you understand what you're building, present the design
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far
+- Ask after each section whether it looks right so far (small designs that fit in one message may be presented and approved as a whole)
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
 
@@ -115,6 +124,7 @@ After writing the spec document, look at it with fresh eyes:
 2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
 3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
+5. **Evidence scope check:** Every "verified/tested/実装済み" claim must not exceed what was actually checked — write "X is tested" only if a test exercises X itself; if it's a sibling going through the same path, say that instead (e.g. "same code path is tested with a machine block, chest itself untested").
 
 Fix any issues inline. No need to re-review — just fix and move on.
 
@@ -234,6 +244,8 @@ subagent や検索で解決し、結果は Phase 3 の前提に含める。
 4. 派生可能な状態は導出を基本とし、復元順序などの実制約があるときだけ既存の永続化パターンで補う
 5. 置換・移行はコンパイルエラー駆動（型やプロパティを消して漏れを機械検出）にできるならそうする
 6. YAGNI。将来の拡張可能性を理由に選択肢を増やさない
+7. N対Nの適合・互換のような「関係」データは、各要素の属性（受け入れリスト等）に分散させず、中央の正規化テーブル（ペア表＋foreignKey＋検証）を第一候補にする（SSOT）。分散属性案を提示するなら必ず中央表案と並べて比較する
+8. コードの注入点を設ける際は、実行時注入（delegate/interface渡し）と型レベル束縛（ジェネリック型パラメータ）の型安全度トレードオフを一度は比較する。「注入ミスがコンパイルエラーになるか」を比較軸に含める
 
 プロジェクト固有の原則は `references/` を参照する（moorestech なら `references/moorestech-principles.md` を必ず読む）。
 

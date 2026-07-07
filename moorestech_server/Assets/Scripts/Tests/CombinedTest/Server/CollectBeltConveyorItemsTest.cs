@@ -174,8 +174,8 @@ namespace Tests.CombinedTest.Server
             // Create connectors with fixed Guids
             var sourceGuid = Guid.NewGuid();
             var goalGuid = Guid.NewGuid();
-            var sourceConnector = new InputConnectsElement(0, sourceGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
-            var goalConnector = new OutputConnectsElement(0, goalGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
+            var sourceConnector = new InputConnectsElement(0, sourceGuid, null, Vector3Int.zero, Array.Empty<Vector3Int>());
+            var goalConnector = new OutputConnectsElement(0, goalGuid, null, Vector3Int.zero, Array.Empty<Vector3Int>());
 
             // ベルトコンベアを作成してアイテムを設定
             // Create belt conveyor and set item
