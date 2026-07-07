@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game
 
             var connectors = new List<IBlockConnector>
             {
-                new InputConnectsElement(0, Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}),
+                new InputConnectsElement(0, Guid.NewGuid(), null, new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}),
             };
 
 
@@ -45,7 +45,7 @@ namespace Tests.UnitTest.Game
 
             var connectors = new List<IBlockConnector>
             {
-                new InputConnectsElement(0, Guid.NewGuid(), new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}),
+                new InputConnectsElement(0, Guid.NewGuid(), null, new Vector3Int(1, 0, 0), new []{new Vector3Int(1,0,0)}),
             };
 
 

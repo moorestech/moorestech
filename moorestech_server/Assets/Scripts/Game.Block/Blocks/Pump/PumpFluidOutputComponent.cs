@@ -9,6 +9,7 @@ using Game.Block.Interface.Component;
 using Game.Fluid;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Pump
 {
@@ -21,15 +22,15 @@ namespace Game.Block.Blocks.Pump
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
         
         private readonly FluidContainer _tank;
-        private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
 
-        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
+        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
             _tank = new FluidContainer(capacity);
             _fluidConnector = fluidConnector;
         }
 
-        public PumpFluidOutputComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory> fluidConnector) : this(capacity, fluidConnector)
+        public PumpFluidOutputComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector) : this(capacity, fluidConnector)
         {
             if (!componentStates.TryGetValue(SaveKey, out var state) || string.IsNullOrEmpty(state))
             {
