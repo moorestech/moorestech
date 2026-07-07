@@ -3,7 +3,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.UI.Inventory.Main;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
     /// 電線ツールの各モードで共有する依存をまとめて渡すためのコンテキスト

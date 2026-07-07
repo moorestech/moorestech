@@ -1,5 +1,6 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Input;
@@ -11,7 +12,7 @@ using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 {
     /// <summary>
     /// 起点選択済み時の接続・電柱延長設置を処理する挙動

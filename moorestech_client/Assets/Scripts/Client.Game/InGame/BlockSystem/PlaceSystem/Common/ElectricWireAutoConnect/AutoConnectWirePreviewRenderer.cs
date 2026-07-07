@@ -4,7 +4,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using TMPro;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
     /// <summary>
     /// 設置プレビュー中に自動接続される複数ワイヤーと合計消費電線数を半透明で描画する

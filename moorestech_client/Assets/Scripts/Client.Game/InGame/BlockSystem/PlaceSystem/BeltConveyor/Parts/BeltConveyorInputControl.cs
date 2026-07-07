@@ -2,7 +2,7 @@ using Client.Input;
 using Game.Block.Interface;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
     /// 高さオフセットと設置方向のキー入力処理
