@@ -52,9 +52,9 @@ namespace Tests.CombinedTest.Game.Energy
             // Advance several ticks to stabilize the supply
             for (var i = 0; i < 3; i++) GameUpdater.UpdateOneTick();
 
-            // 無限発電機から要求電力を全量受け取れている
-            // The machine receives its full requested power from the infinite generator
-            Assert.AreEqual(processor.RequestPower, processor.CurrentPower, 0.001f);
+            // 無限発電機から現在の実効要求電力（アイドル時はアイドル電力）を全量受け取れている
+            // The machine receives its full effective requested power (idle power when idle) from the infinite generator
+            Assert.AreEqual(processor.EffectiveRequestPower, processor.CurrentPower, 0.001f);
         }
 
         private static Vector3Int Pos(int x, int z)
