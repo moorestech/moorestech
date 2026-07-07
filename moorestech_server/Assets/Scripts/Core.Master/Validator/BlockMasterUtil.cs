@@ -174,6 +174,17 @@ namespace Core.Master.Validator
                             }
                         }
                     }
+
+                    // CleanRoomAirFilter: filterItemGuid
+                    // CleanRoomAirFilter: filterItemGuid
+                    if (block.BlockParam is CleanRoomAirFilterBlockParam cleanRoomAirFilter)
+                    {
+                        var id = MasterHolder.ItemMaster.GetItemIdOrNull(cleanRoomAirFilter.FilterItemGuid);
+                        if (id == null)
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid FilterItemGuid:{cleanRoomAirFilter.FilterItemGuid}\n";
+                        }
+                    }
                 }
 
                 return logs;

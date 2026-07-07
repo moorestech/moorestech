@@ -5117,6 +5117,248 @@
           "count": 1
         }
       ]
+    },
+    {
+      "name": "TestCleanRoomWall",
+      "blockType": "CleanRoomWall",
+      "blockParam": {},
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "c3c16652-0ddd-4dd4-ab85-035d602246a3",
+      "blockGuid": "2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8"
+    },
+    {
+      "name": "TestCleanRoomDoor",
+      "blockType": "CleanRoomDoor",
+      "blockParam": {},
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "f458559d-5c3d-4606-8cc2-6b33f694c2c3",
+      "blockGuid": "07d7e1a2-b1fd-412f-819c-af098e79e4d4"
+    },
+    {
+      "name": "TestCleanRoomItemHatch",
+      "blockType": "CleanRoomItemHatch",
+      "blockParam": {
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "317b198c-341a-4506-af21-b3ba71261802"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "connectorGuid": "22c61d79-fe65-4481-b957-cf6181686291"
+            }
+          ]
+        }
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "c74d50c4-f35f-4863-81ae-bd0b7b62e4f7",
+      "blockGuid": "d6268837-5326-480b-960a-ffdce4b5478e"
+    },
+    {
+      "name": "TestCleanRoomPipeHatch",
+      "blockType": "CleanRoomPipeHatch",
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "11f20a86-36ad-48b2-b0cf-36a63816d3cd"
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "97ceb974-7571-4cf3-89f2-c67d08d17f85"
+            }
+          ]
+        }
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "6488f3bc-ed15-49df-acbb-1738edd13b99",
+      "blockGuid": "8e425510-aa34-4a1b-9f40-5f8079183ab2"
+    },
+    {
+      "name": "TestCleanRoomAirFilter",
+      "blockType": "CleanRoomAirFilter",
+      "blockParam": {
+        "requiredPower": 100,
+        "removalVolumePerSecond": 5,
+        "filterItemGuid": "6e355e23-8e9e-46d2-9405-b0e6bb612890",
+        "filterCapacity": 5000,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "40e4307b-a5f8-4374-95bc-440131022863",
+      "blockGuid": "21e760d0-54b2-41a5-8cef-d78e1efb8fb8"
+    },
+    {
+      "name": "TestCleanRoomMachine",
+      "blockType": "CleanRoomMachine",
+      "blockParam": {
+        "requiredPower": 100,
+        "idlePowerRate": 0.2,
+        "inputSlotCount": 2,
+        "outputSlotCount": 2,
+        "moduleSlotCount": 0,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "7b1c4c79-9e79-4ae6-a0bd-64377309f17b"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "45e79bf1-9a0d-4ea0-b3ba-81bacbadc9a8"
+            }
+          ]
+        },
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "itemGuid": "ed649456-fc6a-4b33-9ad0-ae9af40fe66e",
+      "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc"
     }
   ],
   "connectorSettings": {
