@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -97,7 +98,7 @@ namespace Game.Map
                 {
                     var itemCount = _random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
                     var itemId = MasterHolder.ItemMaster.GetItemId(earnItemConfig.ItemGuid);
-                    var maxStack = MasterHolder.ItemMaster.GetItemMaster(itemId).MaxStack;
+                    var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
 
                     // 最大スタック数を超える場合は分割して追加
                     // Split into multiple stacks if exceeding max stack size

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Item;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Blocks.TrainRail.ContainerComponents;
@@ -74,8 +75,7 @@ namespace Tests.UnitTest.Game
             Assert.IsNotNull(loaderTrainPlatformTransfer, "積込プラットフォームのコンポーネント取得に失敗しました。");
             Assert.IsNotNull(unloaderTrainPlatformTransfer, "荷降ろしプラットフォームのコンポーネント取得に失敗しました。");
 
-            var itemMaster = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1);
-            var maxStack = itemMaster.MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             loadingContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
             unloadingContainer.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 

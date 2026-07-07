@@ -1,3 +1,4 @@
+using Core.Item;
 using Core.Master;
 using Game.Context;
 using Game.Train.Diagram;
@@ -508,7 +509,7 @@ namespace Tests.UnitTest.Game
             else
             {
                 startEntry.SetDepartureCondition(TrainDiagram.DepartureConditionType.TrainInventoryFull);
-                var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
                 scenario.ItemContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
             }
 
