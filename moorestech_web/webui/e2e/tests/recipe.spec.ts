@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-type ActionRecord = { type: string; payload: unknown };
+import { payloadsOf } from "../support/actions";
 
 test("アイテム選択でレシピ表示、craft 可能なら送信できる", async ({ page }) => {
   await page.goto("/");
@@ -12,8 +11,7 @@ test("アイテム選択でレシピ表示、craft 可能なら送信できる",
   await page.getByRole("button", { name: "Craft" }).click();
   await expect
     .poll(async () => {
-      const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
-      return actions.some((a) => a.type === "craft.execute");
+      return (await payloadsOf(page, "craft.execute")).length > 0;
     })
     .toBe(true);
 });

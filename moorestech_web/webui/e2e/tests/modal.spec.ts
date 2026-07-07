@@ -1,17 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { payloadsOf } from "../support/actions";
+import { setModal } from "../support/mockControl";
 
-type ActionRecord = { type: string; payload: unknown };
-
-// モーダルは opt-in。各テストは描画前に /__modal?show=1 で表示要求する
-// The modal is opt-in; each test requests it via /__modal?show=1 before rendering
+// モーダルは opt-in。各テストは描画前に表示要求する
+// The modal is opt-in; each test requests it before rendering
 test.beforeEach(async ({ page }) => {
-  await page.request.get("/__modal?show=1");
+  await setModal(page, true);
 });
 
 // 後続テストファイルへグローバル modal 状態を漏らさない（backdrop が他テストを妨げる）
 // Don't leak the global modal state into later test files (the backdrop would block them)
 test.afterEach(async ({ page }) => {
-  await page.request.get("/__modal?show=0");
+  await setModal(page, false);
 });
 
 test("接続後にモーダルが描画される", async ({ page }) => {
@@ -32,11 +32,8 @@ test("OK クリックで confirm を送りモーダルが消える", async ({ pa
   // ui.modal.respond is sent with {id, confirm}
   await expect
     .poll(async () => {
-      const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
-      // /__actions は全テスト横断で蓄積されるため、最新の respond を見る（前テストの confirm を拾わない）
-      // /__actions accumulates across tests, so read the latest respond (don't pick up a prior test's confirm)
-      const responds = actions.filter((a) => a.type === "ui.modal.respond");
-      return responds[responds.length - 1]?.payload;
+      const responds = await payloadsOf(page, "ui.modal.respond");
+      return responds[responds.length - 1];
     })
     .toEqual({ id: "m1", result: "confirm" });
   // mock が modal:null を push し、モーダルが消える
@@ -52,11 +49,8 @@ test("背景クリックで cancel を送る", async ({ page }) => {
   await page.getByTestId("modal-backdrop").click({ position: { x: 5, y: 5 } });
   await expect
     .poll(async () => {
-      const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
-      // /__actions は全テスト横断で蓄積されるため、最新の respond を見る（前テストの confirm を拾わない）
-      // /__actions accumulates across tests, so read the latest respond (don't pick up a prior test's confirm)
-      const responds = actions.filter((a) => a.type === "ui.modal.respond");
-      return responds[responds.length - 1]?.payload;
+      const responds = await payloadsOf(page, "ui.modal.respond");
+      return responds[responds.length - 1];
     })
     .toEqual({ id: "m1", result: "cancel" });
 });

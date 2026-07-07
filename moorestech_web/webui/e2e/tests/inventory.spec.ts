@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
-
-type ActionRecord = { type: string; payload: unknown };
+import { payloadsOf } from "../support/actions";
 
 test("接続後にインベントリが描画される", async ({ page }) => {
   await page.goto("/");
@@ -34,9 +33,8 @@ test("ダブルクリックで同種を集約し、collect はクリックされ
   // The web sends the clicked slot, not a target; the grab/slot decision lives on the host
   await expect
     .poll(async () => {
-      const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
-      const collect = actions.find((a) => a.type === "inventory.collect");
-      return collect?.payload as { slot?: { area?: string; slot?: number } } | undefined;
+      const payloads = await payloadsOf(page, "inventory.collect");
+      return payloads[0] as { slot?: { area?: string; slot?: number } } | undefined;
     })
     .toEqual({ slot: { area: "main", slot: 0 } });
   // クリック連鎖の stale な2回目 pickup は host で empty_slot 失敗するが、良性なのでトーストを出さない。
@@ -53,8 +51,7 @@ test("右クリックで inventory.split を送る", async ({ page }) => {
   await firstSlot.click({ button: "right" });
   await expect
     .poll(async () => {
-      const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
-      return actions.some((a) => a.type === "inventory.split");
+      return (await payloadsOf(page, "inventory.split")).length > 0;
     })
     .toBe(true);
 });

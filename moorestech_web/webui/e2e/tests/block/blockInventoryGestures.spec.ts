@@ -1,23 +1,16 @@
 import { test, expect } from "@playwright/test";
-
-type ActionRecord = { type: string; payload: unknown };
-
-// 指定 type の action payload 一覧を返す。received は全テスト横断で蓄積されるため全等値で照合する
-// List payloads of a given action type; received accumulates across tests, so match by full equality
-const payloadsOf = async (page: import("@playwright/test").Page, type: string) => {
-  const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
-  return actions.filter((a) => a.type === type).map((a) => a.payload);
-};
+import { payloadsOf } from "../../support/actions";
+import { setBlock } from "../../support/mockControl";
 
 // 各テスト冒頭で chest を配信状態へリセットし、終了後は閉に戻して後続へ漏らさない
 // Reset to chest before each test and back to closed afterwards so state never leaks
 test.beforeEach(async ({ page }) => {
-  await page.request.get("/__block?type=chest");
+  await setBlock(page, "chest");
   await page.goto("/");
   await expect(page.getByTestId("block-inventory")).toBeVisible();
 });
 test.afterEach(async ({ page }) => {
-  await page.request.get("/__block?type=closed");
+  await setBlock(page, "closed");
 });
 
 test("空手の右クリックで半分(切り捨て)を grab へ拾う", async ({ page }) => {
