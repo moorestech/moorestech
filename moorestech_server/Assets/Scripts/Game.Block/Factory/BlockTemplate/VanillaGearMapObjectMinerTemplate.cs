@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Gear;
@@ -41,12 +42,14 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConnectSetting = minerParam.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
             
+            var gearEnergyTransformer = new GearEnergyTransformer(minerParam.GearConsumption, blockInstanceId, gearConnector);
+
             // MapObject採掘機
             // MapObject Miner
+            var idleTorqueRate = minerParam.GearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
             var gearMapObjectMinerProcessorComponent = componentStates == null ?
-                new VanillaGearMapObjectMinerProcessorComponent(blockPositionInfo, minerParam, chestComponent) :
-                new VanillaGearMapObjectMinerProcessorComponent(componentStates, blockPositionInfo, minerParam, chestComponent);
-            var gearEnergyTransformer = new GearEnergyTransformer(minerParam.GearConsumption, blockInstanceId, gearConnector, () => gearMapObjectMinerProcessorComponent.HasMiningTargets);
+                new VanillaGearMapObjectMinerProcessorComponent(blockPositionInfo, minerParam, chestComponent, gearEnergyTransformer, idleTorqueRate) :
+                new VanillaGearMapObjectMinerProcessorComponent(componentStates, blockPositionInfo, minerParam, chestComponent, gearEnergyTransformer, idleTorqueRate);
             
             var gearMinerComponent = new VanillaGearMapObjectMinerComponent(gearEnergyTransformer, gearMapObjectMinerProcessorComponent);
             

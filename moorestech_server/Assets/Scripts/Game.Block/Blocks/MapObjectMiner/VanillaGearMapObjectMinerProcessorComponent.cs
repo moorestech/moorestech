@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
 using Game.Block.Blocks.Chest;
+using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -16,22 +17,24 @@ namespace Game.Block.Blocks.MapObjectMiner
 {
     public class VanillaGearMapObjectMinerProcessorComponent : IUpdatableBlockComponent, IBlockSaveState
     {
-        public bool HasMiningTargets => _miningTargetInfos.Values.Any(info => info.MapObjects.Count > 0);
-
         private readonly float _requestEnergy;
         private readonly VanillaChestComponent _vanillaChestComponent;
-        
+        private readonly GearEnergyTransformer _gearEnergyTransformer;
+        private readonly float _idleTorqueRate;
+
         // 採掘対象
         // Mining target
         private readonly List<Guid> _miningTargetGuids;
         private readonly Dictionary<Guid, MiningTargetInfo> _miningTargetInfos;
-        
+
         private float _currentPower;
-        
-        public VanillaGearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent)
+
+        public VanillaGearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate)
         {
             _requestEnergy = (float)(blockParam.GearConsumption.BaseTorque * blockParam.GearConsumption.BaseRpm);
             _vanillaChestComponent = vanillaChestComponent;
+            _gearEnergyTransformer = gearEnergyTransformer;
+            _idleTorqueRate = idleTorqueRate;
             
             var minPos = blockPositionInfo.MinPos - blockParam.MiningAreaRange;
             var maxPos = blockPositionInfo.MaxPos + blockParam.MiningAreaRange;
@@ -61,11 +64,13 @@ namespace Game.Block.Blocks.MapObjectMiner
             
             _miningTargetGuids = new List<Guid>();
             _miningTargetGuids.AddRange(_miningTargetInfos.Keys);
+
+            UpdateTorqueRequestRate();
         }
-        
-        
-        public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent) :
-            this(blockPositionInfo, blockParam, vanillaChestComponent)
+
+
+        public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate) :
+            this(blockPositionInfo, blockParam, vanillaChestComponent, gearEnergyTransformer, idleTorqueRate)
         {
             // 秒数からtickに変換して復元
             // Convert seconds back to ticks for restoration
@@ -125,9 +130,19 @@ namespace Game.Block.Blocks.MapObjectMiner
                     info.RemainingMiningTicks -= subTicks;
                 }
             }
+
+            UpdateTorqueRequestRate();
         }
-        
-        
+
+        private void UpdateTorqueRequestRate()
+        {
+            // 採掘対象の有無に応じて要求トルク倍率を変更要求する
+            // Push the torque request rate based on remaining mining targets
+            var hasMiningTargets = _miningTargetInfos.Values.Any(info => info.MapObjects.Count > 0);
+            _gearEnergyTransformer.SetTorqueRequestRate(hasMiningTargets ? 1f : _idleTorqueRate);
+        }
+
+
         public string SaveKey { get; } = typeof(VanillaGearMapObjectMinerProcessorComponent).FullName;
         public string GetSaveState()
         {

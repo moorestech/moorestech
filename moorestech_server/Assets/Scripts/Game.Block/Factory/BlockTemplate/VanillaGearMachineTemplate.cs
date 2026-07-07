@@ -55,12 +55,12 @@ namespace Game.Block.Factory.BlockTemplate
             var processor = componentStates == null
                 ? new VanillaMachineProcessorComponent(input, output, requirePower, idlePowerRate, effectComponent)
                 : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, idlePowerRate, blockMasterElement);
-            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector, () => processor.CurrentState == ProcessState.Processing);
+            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
 
-            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer);
+            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer, idlePowerRate);
 
             var components = new List<IBlockComponent>
             {

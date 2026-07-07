@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
@@ -27,22 +26,24 @@ namespace Game.Block.Blocks.Gear
 
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
-        private readonly Func<bool> _isActive;
 
-        public static bool AlwaysActive()
-        {
-            return true;
-        }
+        // 具体コンポーネントから変更要求される要求トルク倍率
+        // Torque request rate pushed by concrete components
+        private float _torqueRequestRate = 1f;
 
-        public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Func<bool> isActive)
+        public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             _consumption = consumption;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
             _simpleGearService = new SimpleGearService();
-            _isActive = isActive;
 
             GearNetworkDatastore.AddGear(this);
+        }
+
+        public void SetTorqueRequestRate(float rate)
+        {
+            _torqueRequestRate = rate;
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -55,14 +56,7 @@ namespace Game.Block.Blocks.Gear
             // 生成側（Generator）はConsumption=nullで常にトルク消費0
             // Generators pass null Consumption and always consume zero torque
             if (_consumption == null) return new Torque(0);
-            var requiredTorque = GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
-            return requiredTorque * GetDemandRate();
-        }
-
-        private float GetDemandRate()
-        {
-            if (_isActive()) return 1f;
-            return _consumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm) * _torqueRequestRate;
         }
 
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
