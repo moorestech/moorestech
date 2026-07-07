@@ -38,7 +38,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 switch (entry.EntryType)
                 {
                     case PlacementSelectionType.Block:
-                        _placementSelection.SetSelectedBlock(entry.BlockId);
+                        _placementSelection.SetSelectedBlock(entry.BlockId, null);
                         break;
                     case PlacementSelectionType.TrainCar:
                         _placementSelection.SetSelectedTrainCar(entry.TrainCarGuid);
