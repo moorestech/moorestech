@@ -65,10 +65,11 @@ namespace Client.Playtest.Operations
             // Set directly into a specific hotbar slot for HoldingItemId-driven place systems
             var itemId = ResolveItemId(itemName);
             var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(hotbarSlot);
+            var mainInventory = GetMainInventory(playerId);
+            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(hotbarSlot, mainInventory.GetSlotSize());
             var clientCountBefore = CountItemClientSide(itemId);
 
-            GetMainInventory(playerId).SetItem(inventorySlot, ServerContext.ItemStackFactory.Create(itemId, count));
+            mainInventory.SetItem(inventorySlot, ServerContext.ItemStackFactory.Create(itemId, count));
 
             // HotBarView.CurrentItemはクライアント側インベントリを読むため、反映を待つ
             // HotBarView.CurrentItem reads the client-side inventory, so wait for the sync

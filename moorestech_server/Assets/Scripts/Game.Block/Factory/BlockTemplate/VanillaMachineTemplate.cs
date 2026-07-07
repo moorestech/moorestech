@@ -42,7 +42,7 @@ namespace Game.Block.Factory.BlockTemplate
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             // 機械はConsumer役をワイヤー端点に渡す
             // Machine passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null, null, null);
+            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null);
 
             var components = new List<IBlockComponent>
             {
@@ -88,7 +88,7 @@ namespace Game.Block.Factory.BlockTemplate
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             // 機械はConsumer役をワイヤー端点に渡す
             // Machine passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null, null, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, componentStates);
 
             var components = new List<IBlockComponent>
             {

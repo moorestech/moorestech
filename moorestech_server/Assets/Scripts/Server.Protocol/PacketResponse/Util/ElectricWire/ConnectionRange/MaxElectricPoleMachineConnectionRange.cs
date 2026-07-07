@@ -3,7 +3,7 @@ using Game.Block;
 using Mooresmaster.Model.BlocksModule;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange
 {
     public class MaxElectricPoleMachineConnectionRange
     {

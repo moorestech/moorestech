@@ -13,6 +13,10 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
 {
     /// <summary>

@@ -27,6 +27,7 @@ namespace Game.SaveLoad.Json
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
         private readonly IBlueprintDatastore _blueprintDatastore;
+        private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -39,7 +40,8 @@ namespace Game.SaveLoad.Json
             TrainSaveLoadService trainSaveLoadService,
             RailGraphSaveLoadService railGraphSaveLoadService,
             IPlayerRidingDatastore playerRidingDatastore,
-            IBlueprintDatastore blueprintDatastore)
+            IBlueprintDatastore blueprintDatastore,
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -52,6 +54,7 @@ namespace Game.SaveLoad.Json
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _playerRidingDatastore = playerRidingDatastore;
             _blueprintDatastore = blueprintDatastore;
+            _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
         }
 
         public string AssembleSaveJson()
@@ -72,7 +75,8 @@ namespace Game.SaveLoad.Json
                 _trainSaveLoadService.GetSaveJsonObject(),
                 _railGraphSaveLoadService.GetSaveData(),
                 _playerRidingDatastore.GetSaveData(),
-                _blueprintDatastore.GetSaveJsonObject()
+                _blueprintDatastore.GetSaveJsonObject(),
+                _playerInventorySlotLevelDataStore.GetSaveLevel()
             );
 
             return JsonConvert.SerializeObject(saveData);

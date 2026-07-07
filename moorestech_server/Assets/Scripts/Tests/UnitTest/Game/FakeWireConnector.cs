@@ -28,30 +28,28 @@ namespace Tests.UnitTest.Game
         public bool IsWireConnectionFull => false;
         public bool IsDestroy { get; private set; }
 
-        public IElectricConsumer WireConsumer { get; private set; }
-        public IElectricGenerator WireGenerator { get; private set; }
-        public IElectricTransformer WireTransformer { get; private set; }
+        public IElectricEnergyRole EnergyRole { get; private set; }
 
         public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections => _wireConnections;
 
         public static FakeWireConnector CreateTransformer(int id)
         {
             var connector = new FakeWireConnector(new BlockInstanceId(id));
-            connector.WireTransformer = new FakeElectricTransformer(connector.BlockInstanceId);
+            connector.EnergyRole = new FakeElectricTransformer(connector.BlockInstanceId);
             return connector;
         }
 
         public static FakeWireConnector CreateGenerator(int id)
         {
             var connector = new FakeWireConnector(new BlockInstanceId(id));
-            connector.WireGenerator = new FakeElectricGenerator(connector.BlockInstanceId);
+            connector.EnergyRole = new FakeElectricGenerator(connector.BlockInstanceId);
             return connector;
         }
 
         public static FakeWireConnector CreateConsumer(int id)
         {
             var connector = new FakeWireConnector(new BlockInstanceId(id));
-            connector.WireConsumer = new FakeElectricConsumer(connector.BlockInstanceId);
+            connector.EnergyRole = new FakeElectricConsumer(connector.BlockInstanceId);
             return connector;
         }
 

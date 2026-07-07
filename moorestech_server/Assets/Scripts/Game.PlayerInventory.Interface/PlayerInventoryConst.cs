@@ -5,41 +5,28 @@ namespace Game.PlayerInventory.Interface
     public static class PlayerInventoryConst
     {
         public const int MainInventoryColumns = 9;
-        public const int MainInventoryRows = 5;
-        public const int MainInventorySize = MainInventoryColumns * MainInventoryRows;
-        
-        /// <summary>
-        ///     ホットバーとなるインベントリのスロット
-        /// </summary>
-        public static readonly int[] HotBarSlots =
+
+        public const int HotBarSlotCount = 9;
+
+        // ホットバーは常にメインインベントリの最後の9スロット
+        // The hotbar is always the last nine slots of the main inventory
+        public static int HotBarSlotToInventorySlot(int hotBarSlot, int mainInventorySize)
         {
-            HotBarSlotToInventorySlot(0),
-            HotBarSlotToInventorySlot(1),
-            HotBarSlotToInventorySlot(2),
-            HotBarSlotToInventorySlot(3),
-            HotBarSlotToInventorySlot(4),
-            HotBarSlotToInventorySlot(5),
-            HotBarSlotToInventorySlot(6),
-            HotBarSlotToInventorySlot(7),
-            HotBarSlotToInventorySlot(8),
-        };
-        
-        
-        /// <summary>
-        ///     0〜8までのホットバーのIDをインベントリのスロットに変換します
-        /// </summary>
-        /// <exception cref="Exception">0〜8以外だとスローします</exception>
-        public static int HotBarSlotToInventorySlot(int slot)
-        {
-            if (slot < 0 || MainInventoryColumns <= slot)
+            if (hotBarSlot < 0 || HotBarSlotCount <= hotBarSlot)
                 throw new Exception("ホットバーは0～8までです");
-            //インベントリの一番したがホットバーとなる
-            return (MainInventoryRows - 1) * MainInventoryColumns + slot;
+            return mainInventorySize - HotBarSlotCount + hotBarSlot;
         }
-        
-        /// <summary>
-        ///     指定されたスロットがホットバーかどうかを判定します
-        /// </summary>
-        public static bool IsHotBarSlot(int slot) => slot >= HotBarSlotToInventorySlot(0) && slot < MainInventorySize;
+
+        public static int[] GetHotBarSlots(int mainInventorySize)
+        {
+            var slots = new int[HotBarSlotCount];
+            for (var i = 0; i < HotBarSlotCount; i++) slots[i] = mainInventorySize - HotBarSlotCount + i;
+            return slots;
+        }
+
+        public static bool IsHotBarSlot(int slot, int mainInventorySize)
+        {
+            return mainInventorySize - HotBarSlotCount <= slot && slot < mainInventorySize;
+        }
     }
 }

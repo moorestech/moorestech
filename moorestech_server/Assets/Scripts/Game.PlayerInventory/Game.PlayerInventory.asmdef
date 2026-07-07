@@ -11,7 +11,8 @@
     "Game.Context",
     "Game.Block",
     "Core.Master",
-    "Server.Util"
+    "Server.Util",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
