@@ -4,6 +4,7 @@
   "references": [
     "Game.Map.Interface",
     "Core.Item.Interface",
+    "Core.Item",
     "Game.Base",
     "Game.SaveLoad.Interface",
     "Game.SaveLoad",

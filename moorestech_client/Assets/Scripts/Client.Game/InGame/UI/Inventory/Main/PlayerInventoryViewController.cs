@@ -5,6 +5,7 @@ using ClassLibrary;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Input;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -388,7 +389,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 if (targetItem.Id == ItemMaster.EmptyItemId || targetItem.Id != sourceItemStack.Id) 
                     return false;
                 
-                var maxStack = MasterHolder.ItemMaster.GetItemMaster(targetItem.Id).MaxStack;
+                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(targetItem.Id);
                 if (targetItem.Count >= maxStack) 
                     return false;
                 

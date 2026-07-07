@@ -481,12 +481,12 @@
       },
       "hash": "7746d058e39c5de6b3bde667d5a852f9b8c89fdc"
     },
-    "jp.juha.cefunitysample": {
-      "version": "https://github.com/KurisuJuha/cef-unity-moorestech.git?path=/Assets/CefUnity",
+    "jp.juha.cefunity": {
+      "version": "https://github.com/KurisuJuha/cef-unity.git?path=cef-unity-unityproject/Assets/CefUnity",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "3ddfc60bdf786b6233d9eb8a5e8110348941dffb"
+      "hash": "eb7a09882369f7e74c946f05c265b590547fdddc"
     },
     "org.nuget.microsoft.codeanalysis.analyzers": {
       "version": "3.11.0",
