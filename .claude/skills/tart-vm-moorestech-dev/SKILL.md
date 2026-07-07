@@ -39,7 +39,7 @@ ls /Applications/Unity/Hub/Editor # → 6000.3.8f1 が存在する
 クライアントや UI など **見た目・挙動が伴う実装** は、ユーザーが後から差分を目で確認できる形にする。コードだけ出して「直しました」で終わらせない。
 
 優先順位:
-1. **録画**: `unity-playmode-recorded-playtest` skill を使う。第一選択はプレイテストDSL（`tools/playtest/run-scenario.sh` + `PlaytestRunOptions{Record=true}`）の1コマンド一発実行で、preflight〜PlayMode起動〜録画〜result.json回収まで自動化される。DSLが無いブランチのみ手動フロー（PlayMode を CLI 起動して Unity Recorder 制御）。フォーカス不要なので無人で回せる。入力は InputSystem QueueStateEvent で注入する（OS の simulate-keyboard / simulate-mouse は使わない）。
+1. **録画**: `unity-playmode-recorded-playtest` skill を使う。第一選択はプレイテストDSL（同 skill 同梱の `scripts/run-scenario.sh` + `PlaytestRunOptions{Record=true}`）の1コマンド一発実行で、preflight〜PlayMode起動〜録画〜result.json回収まで自動化される。DSLが無いブランチのみ手動フロー（PlayMode を CLI 起動して Unity Recorder 制御）。フォーカス不要なので無人で回せる。入力は InputSystem QueueStateEvent で注入する（OS の simulate-keyboard / simulate-mouse は使わない）。
 2. **スクリーンショット**: 録画が過剰な小さな UI 変更は `uloop-screenshot` skill で Game View / 該当 EditorWindow を PNG 保存する。
 3. ランタイム挙動の不具合調査は `unity-runtime-bug-hunt`、PlayMode 統合テストは `editmode-in-playing-test` skill を併用する。
 

@@ -1,6 +1,6 @@
 ---
 name: unity-playmode-recorded-playtest
-description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + tools/playtest/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー手持ち駆動システム（歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。フォーカス不要が必須要件のとき積極的に起動する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。サーバーポート11564は固定のため他worktreeのPlayModeと同時実行不可。'
+description: 'Unity Editor を PlayMode 起動し、録画付きで end-to-end gameplay を検証する枠組み。第一選択はプレイテストDSL（Client.Playtest asmdef + 本スキル同梱の scripts/run-scenario.sh）による1コマンド一発実行で、preflight→PlayMode起動→シナリオ投入→result.json回収まで自動化される（実測ready~26秒）。UI経路設置（ビルドメニュー→クリック/ドラッグ）とホットバー手持ち駆動システム（歯車チェーンポール等）もDSLで操作可能。ユースケース別の詳細は references/ を参照（本文にルーティング表）。DSLが無いブランチのみレガシー手動フローへフォールバック。Use When: 「Unity をコードで動かして録画したい」「フォーカス無しで PlayMode テスト」「Recorder を CLI 制御」「実プレイで動くか確認」「キーマウ操作でE2E検証」「MonoBehaviour Update を回した状態で API 叩いて検証」「ロジック単体テストでは捕まらないシナリオを通しで確認」「プレイテストDSLでシナリオ実行」と言われた場合。フォーカス不要が必須要件のとき積極的に起動する。入力は必ず InputSystem QueueStateEvent で注入し OS simulate-keyboard/simulate-mouse-input は使わない（前面化して注入を汚染する・最重要）。masterデータはブランチ互換コミットへピン留めした worktree を使う（スキーマ不整合は MooresmasterLoaderException で初期化が無言死する）。サーバーポート11564は固定のため他worktreeのPlayModeと同時実行不可。'
 ---
 
 # unity-playmode-recorded-playtest
@@ -30,10 +30,13 @@ ls <repo-root>/moorestech_client/Assets/Scripts/Client.Playtest/ 2>/dev/null
 
 ## 最初の1コマンド
 
+ランナー・プリフライト・実証済みシナリオはすべて本スキルに同梱されている（`scripts/` と `scenarios/`）。リポジトリ側に配置は不要で、repoルートからスキルディレクトリ相対で呼ぶ。
+
 ```bash
 cd <repo-root>   # 必ずpwd確認（worktree頻用）
+SKILL=.claude/skills/unity-playmode-recorded-playtest
 uloop control-play-mode --project-path ./moorestech_client --action stop   # 前回状態の持ち越し防止
-./tools/playtest/run-scenario.sh ./moorestech_client tools/playtest/scenarios/belt-line-via-ui.cs
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/belt-line-via-ui.cs"
 ```
 
 これが通れば環境は健全。通らなければ troubleshooting.md。
@@ -63,8 +66,9 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 4. スニペットで使うAPI/フィールド名の実在確認（実ファイルをReadして確認。存在しない名前はpollingを無限ループ化させる）
 5. Step単位の実行計画（各Stepのコマンドと期待結果）
 
-## Available scripts
+## Available scripts / scenarios（すべて本スキル同梱）
 
-- `tools/playtest/run-scenario.sh`（リポジトリ側）— preflight→boot→シナリオ→result.json回収の一発実行
-- `tools/playtest/preflight.sh`（リポジトリ側）— 疎通/コンパイル/master実在/マスタロードドライラン/ポート空き
-- `scripts/start-recording.sh` / `scripts/stop-recording.sh`（本スキル同梱）— Recorder手動制御の参考実装（方式B用）
+- `scripts/run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]` — preflight→boot→シナリオ投入→result.json回収の一発実行
+- `scripts/preflight.sh <unity-project-path> [master-server-dir]` — 疎通/コンパイル/master実在/マスタロードドライラン/ポート空き（run-scenario.shが自動で呼ぶ。単体診断にも使える）
+- `scenarios/*.cs` — 実証済みシナリオ集。`belt-line.cs`(direct構築) / `belt-line-via-ui.cs`(UI経路) / `gear-chain-pole-via-ui.cs`(ホットバー駆動) / `gear-chain-connect-via-ui.cs`(クリック結線) / `train-rail-connect-via-ui.cs`(レール結線) / `sample-chest.cs`(最小例)。新規シナリオもここに追加する
+- `scripts/start-recording.sh` / `scripts/stop-recording.sh` — Recorder手動制御の参考実装（レガシー方式B用）
