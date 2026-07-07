@@ -27,6 +27,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         {
             var request = BlueprintRequest.CreateCreateRequest(name, min, max);
             var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(request, ct);
+
+            // タイムアウト等のnullレスポンスは失敗として返す
+            // Treat a null response (timeout etc.) as failure
+            if (response == null) return (false, null);
+
             ApplyResponse(response);
             return (response.Success, response.RegisteredName);
         }
@@ -39,9 +44,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
         private void ApplyResponse(BlueprintResponse response)
         {
-            // 成功レスポンスのみ最新全件を持つため、失敗時はキャッシュを保持する
-            // Only success responses carry the full list; keep the cache on failure
-            if (!response.Success && response.FailureReason != BlueprintFailureReason.None) return;
+            // 成功レスポンスのみ最新全件を持つため、null・失敗時はキャッシュを保持する
+            // Only success responses carry the full list; keep the cache on null or failure
+            if (response == null || !response.Success) return;
 
             _blueprints.Clear();
             _blueprints.AddRange(response.Blueprints);
