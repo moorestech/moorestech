@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.GearConnectOptionModule;
+using Mooresmaster.Model.GearModule;
 
 namespace Game.Gear.Common
 {
@@ -36,6 +38,17 @@ namespace Game.Gear.Common
             Transformer = transformer;
             Self = self;
             Target = target;
+        }
+
+        public static GearConnect FromConnectedInfo(IGearEnergyTransformer transformer, ConnectedInfo info)
+        {
+            // 生成型からOptionを取り出す
+            // Read options from the generated type
+            var selfConnector = info.SelfConnector as GearConnectsElement;
+            var targetConnector = info.TargetConnector as GearConnectsElement;
+            if (selfConnector == null || targetConnector == null) throw new ArgumentException("Gear connector option is not set");
+
+            return new GearConnect(transformer, selfConnector.Option, targetConnector.Option);
         }
     }
     
