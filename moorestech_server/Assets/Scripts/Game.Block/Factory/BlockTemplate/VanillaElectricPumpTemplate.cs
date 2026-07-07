@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Pump;
 using Game.Block.Blocks.Fluid;
@@ -31,7 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector)
                 : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
             var processorComponent = new ElectricPumpProcessorComponent(param, outputComponent, blockPositionInfo);
-            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), processorComponent);
+            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), param.IdlePowerRate, processorComponent);
 
             var components = new List<IBlockComponent>
             {
