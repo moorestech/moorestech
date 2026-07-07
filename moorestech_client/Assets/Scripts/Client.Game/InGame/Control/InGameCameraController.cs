@@ -27,7 +27,15 @@ namespace Client.Game.InGame.Control
         private DG.Tweening.Sequence _currentSequence;
         
         private bool _isControllable;
-        
+
+        private const float FirstPersonCameraDistance = 0.15f;
+        private const float FirstPersonTweenDuration = 0.25f;
+        private static readonly Vector3 FirstPersonTrackedOffset = new(0f, 1.6f, 0f);
+
+        private bool _isFirstPerson;
+        private Vector3 _storedTrackedObjectOffset;
+        private Tweener _offsetTweener;
+
         public void Initialize()
         {
             CameraManager.RegisterCamera(this);
@@ -41,10 +49,15 @@ namespace Client.Game.InGame.Control
         
         private void Update()
         {
-            var distance = _cinemachineFraming.m_CameraDistance;
-            if (UnityEngine.Input.GetKey(KeyCode.F1)) distance -= Time.deltaTime * 3f; // TODO InputManagerに移動
-            if (UnityEngine.Input.GetKey(KeyCode.F2)) distance += Time.deltaTime * 3f; // TODO InputManagerに移動
-            _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
+            // FPS中は距離クランプがFPS距離を上書きするためズーム処理ごと止める
+            // Skip zoom while in FPS because the clamp would override the FPS distance
+            if (!_isFirstPerson)
+            {
+                var distance = _cinemachineFraming.m_CameraDistance;
+                if (UnityEngine.Input.GetKey(KeyCode.F1)) distance -= Time.deltaTime * 3f; // TODO InputManagerに移動
+                if (UnityEngine.Input.GetKey(KeyCode.F2)) distance += Time.deltaTime * 3f; // TODO InputManagerに移動
+                _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
+            }
             
             if (!_isControllable && _currentSequence == null) return;
             
@@ -93,7 +106,29 @@ namespace Client.Game.InGame.Control
             mainCamera.enabled = cameraEnabled;
             mainCamera.GetComponent<AudioListener>().enabled = cameraEnabled;
         }
-        
+
+        public void SetFirstPersonMode(bool enabled)
+        {
+            if (_isFirstPerson == enabled) return;
+            _isFirstPerson = enabled;
+
+            _offsetTweener?.Kill();
+            if (enabled)
+            {
+                // 三人称の追従オフセットを保存し頭部高さ・最小距離へ寄せる
+                // Store the third-person tracked offset, then tween to head height and minimum distance
+                _storedTrackedObjectOffset = _cinemachineFraming.m_TrackedObjectOffset;
+                StartTweenCamera(CameraEulerAngle, FirstPersonCameraDistance, FirstPersonTweenDuration);
+                _offsetTweener = DOTween.To(() => _cinemachineFraming.m_TrackedObjectOffset, x => _cinemachineFraming.m_TrackedObjectOffset = x, FirstPersonTrackedOffset, FirstPersonTweenDuration);
+            }
+            else
+            {
+                // 距離はこの後のTween（俯瞰 or 復帰）に任せ、オフセットのみ戻す
+                // Only restore the offset; distance is handled by the following top-down or restore tween
+                _offsetTweener = DOTween.To(() => _cinemachineFraming.m_TrackedObjectOffset, x => _cinemachineFraming.m_TrackedObjectOffset = x, _storedTrackedObjectOffset, FirstPersonTweenDuration);
+            }
+        }
+
         public void StartTweenCamera(Vector3 targetRotation, float targetDistance, float duration)
         {
             // DoTweenでカメラの向きを変える

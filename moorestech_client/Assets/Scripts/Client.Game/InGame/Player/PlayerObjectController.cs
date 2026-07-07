@@ -17,6 +17,7 @@ namespace Client.Game.InGame.Player
         
         public void SetAnimationState(string state);
         public void SetControllable(bool enable);
+        public void SetModelVisible(bool visible);
     }
     
     public class PlayerAnimationState
@@ -104,6 +105,16 @@ namespace Client.Game.InGame.Player
         public void SetControllable(bool enable)
         {
             controller.SetControllable(enable);
+        }
+
+        private Renderer[] _modelRenderers;
+
+        public void SetModelVisible(bool visible)
+        {
+            // FPS視点で自機が映り込まないよう見た目だけ切り替える
+            // Toggle only the visuals so the player mesh does not block the FPS view
+            _modelRenderers ??= GetComponentsInChildren<Renderer>(true);
+            foreach (var modelRenderer in _modelRenderers) modelRenderer.enabled = visible;
         }
 
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
