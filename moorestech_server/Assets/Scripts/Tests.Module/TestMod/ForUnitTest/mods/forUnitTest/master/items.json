@@ -659,5 +659,13 @@
                 1
             ]
         }
+    ],
+    "playerInventorySlotLevels": [
+        {
+            "slotCount": 45
+        },
+        {
+            "slotCount": 54
+        }
     ]
 }

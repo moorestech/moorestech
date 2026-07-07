@@ -15,15 +15,18 @@ namespace Game.Action
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
+        private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
 
         public GameActionExecutor(
             IGameUnlockStateDataController gameUnlockStateDataController,
             IPlayerInventoryDataStore playerInventoryDataStore,
-            IItemStackLevelUnlocker itemStackLevelUnlocker)
+            IItemStackLevelUnlocker itemStackLevelUnlocker,
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _playerInventoryDataStore = playerInventoryDataStore;
             _itemStackLevelUnlocker = itemStackLevelUnlocker;
+            _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
         }
 
         public void ExecuteUnlockActions(GameActionElement[] actions, ActionExecutionContext context = default)
@@ -39,6 +42,7 @@ namespace Game.Action
                     case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
                     case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
                     case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
+                    case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
                         ExecuteAction(action, context);
                         break;
                 }
@@ -83,6 +87,10 @@ namespace Game.Action
                 case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
                     _itemStackLevelUnlocker.ApplyUnlockItemStackLevelAction(action);
                     break;
+
+                case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
+                    UnlockPlayerInventorySlotLevel();
+                    break;
             }
             
             #region Internal
@@ -122,6 +130,12 @@ namespace Game.Action
                 {
                     _gameUnlockStateDataController.UnlockMachineRecipe(guid);
                 }
+            }
+
+            void UnlockPlayerInventorySlotLevel()
+            {
+                var level = ((UnlockPlayerInventorySlotLevelGameActionParam)action.GameActionParam).Level;
+                _playerInventorySlotLevelDataStore.UnlockLevel(level);
             }
 
             void GiveItem()

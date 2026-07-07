@@ -139,6 +139,7 @@ namespace Server.Boot
             // Register gameplay services.
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
+            services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();

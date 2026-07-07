@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // ホットバー（最下段）にアイテムを置き、整理で動かないことを確認する
             // Put an item on the hotbar (bottom row) to verify it is left untouched.
-            var hotBarSlot = PlayerInventoryConst.HotBarSlots[0];
+            var hotBarSlot = PlayerInventoryConst.GetHotBarSlots(mainInventory.GetSlotSize())[0];
             mainInventory.SetItem(hotBarSlot, new ItemId(5), 9);
 
             // メインインベントリを整理

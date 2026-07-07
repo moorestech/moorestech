@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var craftElement = MasterHolder.CraftRecipeMaster.CraftRecipes.Data[CraftRecipeId];
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)), new PacketResponseContext());
             
-            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0, playerInventoryData.MainOpenableInventory.GetSlotSize());
             Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id.AsPrimitive());
             Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
@@ -50,7 +50,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)), new PacketResponseContext());
             
-            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0, playerInventoryData.MainOpenableInventory.GetSlotSize());
             var resultItemGuid = MasterHolder.ItemMaster.GetItemId(craftElement.CraftResultItemGuid);
             Assert.AreEqual(resultItemGuid, playerInventoryData.MainOpenableInventory.GetItem(slot).Id);
             Assert.AreEqual(craftElement.CraftResultCount, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftElement.CraftRecipeGuid)), new PacketResponseContext());
             
             //アイテムがクラフトされていないことをテスト
-            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            var slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0, playerInventoryData.MainOpenableInventory.GetSlotSize());
             Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Id.AsPrimitive());
             Assert.AreEqual(0, playerInventoryData.MainOpenableInventory.GetItem(slot).Count);
         }
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //不要なアテムを追加
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            for (var i = 0; i < playerInv.MainOpenableInventory.GetSlotSize(); i++)
             {
                 var item = itemStackFactory.Create(new ItemId(10), 100);
                 playerInv.MainOpenableInventory.SetItem(i, item);

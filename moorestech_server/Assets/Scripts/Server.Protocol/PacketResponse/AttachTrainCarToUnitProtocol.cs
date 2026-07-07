@@ -50,7 +50,8 @@ namespace Server.Protocol.PacketResponse
                 // Resolve and validate held item
                 var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
                 var mainInventory = inventoryData.MainOpenableInventory;
-                var item = mainInventory.GetItem(data.InventorySlot);
+                var inventorySlot = inventoryData.GetHotBarSlotIndex(data.HotBarSlot);
+                var item = mainInventory.GetItem(inventorySlot);
                 if (item == null || item.Count <= 0)
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.ItemNotFound);
@@ -79,7 +80,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 在庫消費と単機スナップショット通知を行う、サーバー側datastoreも更新
                 // Consume inventory and notify per-unit snapshot
-                mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
+                mainInventory.SetItem(inventorySlot, item.Id, item.Count - 1);
                 _trainUnitMutationDatastore.RegisterTrain(targetTrain);
                 _trainUnitSnapshotNotifyEvent.NotifySnapshot(targetTrain);
                 return AttachTrainCarToUnitResponseMessagePack.CreateSuccess();
@@ -258,7 +259,6 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public TrainUnitInstanceId TargetTrainUnitInstanceId { get; set; }
             [Key(3)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
             [Key(4)] public int HotBarSlot { get; set; }
-            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public bool AttachCarFacingForward { get; set; }
             [Key(7)] public bool AttachToTargetTrainHead { get; set; }

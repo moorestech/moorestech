@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
             var slotIndex = context.CurrentSelectHotbarSlotIndex;
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slotIndex);
+            var inventorySlot = _localPlayerInventory.GetHotBarInventorySlot(slotIndex);
             var itemStack = _localPlayerInventory[inventorySlot];
             var itemId = itemStack.Id;
             var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemId);

@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             mainItems.Add(0, itemStackFactory.Create(new ItemId(2), 10));
             mainItems.Add(10, itemStackFactory.Create(new ItemId(5), 1));
             mainItems.Add(30, itemStackFactory.Create(new ItemId(10), 10));
-            mainItems.Add(PlayerInventoryConst.MainInventorySize - 1, itemStackFactory.Create(new ItemId(12), 11));
+            mainItems.Add(inventory.MainOpenableInventory.GetSlotSize() - 1, itemStackFactory.Create(new ItemId(12), 11));
             
             var craftItems = new Dictionary<int, IItemStack>();
             craftItems.Add(0, itemStackFactory.Create(new ItemId(2), 5));
@@ -57,7 +57,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 .GetInventoryData(playerEntityId);
             
             //メインのインベントリのチェック
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            for (var i = 0; i < loadedPlayerInventory.MainOpenableInventory.GetSlotSize(); i++)
             {
                 if (mainItems.ContainsKey(i))
                 {
@@ -112,7 +112,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 var loadedInventory = loadedPlayerInventory.GetInventoryData(playerItem.Key);
                 //インベントリのチェック
-                for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+                for (var i = 0; i < loadedInventory.MainOpenableInventory.GetSlotSize(); i++)
                 {
                     if (playerItem.Value.ContainsKey(i))
                     {
@@ -127,8 +127,10 @@ namespace Tests.UnitTest.Game.SaveLoad
         
         private Dictionary<int, IItemStack> CreateSetItems(Random random, IItemStackFactory itemStackFactory)
         {
+            // 45スロットへランダム配置
+            // Random placements for 45 slots
             var items = new Dictionary<int, IItemStack>();
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            for (var i = 0; i < 45; i++)
             {
                 if (random.Next(0, 2) == 0) continue;
                 var id = new ItemId(random.Next(1, 20));
