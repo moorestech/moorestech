@@ -86,6 +86,14 @@ namespace Game.Gear.Common
                 _instance._networksRequiringRecalc.Add(network);
         }
 
+        // consumerが要求トルク変化時（稼働/idle切替等）に自ら呼び、所属networkを次の再計算対象に加える
+        // Called by a consumer itself when its required torque changes (e.g. active/idle switch), scheduling its network for recalculation
+        public static void NotifyRequiredTorqueChanged(IGearEnergyTransformer gear)
+        {
+            if (_instance._topologyMap.TryGetNetwork(gear.BlockInstanceId, out var network))
+                _instance._networksRequiringRecalc.Add(network);
+        }
+
         public static GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
         {
             _instance.FlushPendingMutations();
