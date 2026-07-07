@@ -4,7 +4,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Game.Gear.Common;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.GearConsumptionModule;
 using UniRx;
 
@@ -88,7 +87,7 @@ namespace Game.Block.Blocks.Gear
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
+                result.Add(GearConnect.FromConnectedInfo(target.Key, target.Value));
             }
             return result;
         }

@@ -1684,7 +1684,8 @@ MonoBehaviour:
     - rid: 3331677946101629112
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
-        isReverse: 1
+        isReverse: 0
+        directionMode: 0
         rotationAxis: 1
         rotationTransform: {fileID: 1249975213152999919}
         rotationSpeed: 1
@@ -1692,13 +1693,15 @@ MonoBehaviour:
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
         isReverse: 0
+        directionMode: 0
         rotationAxis: 1
         rotationTransform: {fileID: 1484686555961022137}
         rotationSpeed: 1
     - rid: 3331677946101629114
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
-        isReverse: 0
+        isReverse: 1
+        directionMode: 0
         rotationAxis: 0
         rotationTransform: {fileID: 6466623224438294828}
         rotationSpeed: 1

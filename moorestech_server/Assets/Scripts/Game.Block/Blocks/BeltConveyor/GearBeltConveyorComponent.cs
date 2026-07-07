@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly double _timeOfItemEnterToExit;
         private readonly float _idleTorqueRate;
 
-        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double timeOfItemEnterToExit, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+        public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double timeOfItemEnterToExit, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> blockConnectorComponent)
             : base(gearConsumption, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;

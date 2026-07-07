@@ -16,21 +16,22 @@ using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class BlockTemplateUtil
     {
-        public static BlockConnectorComponent<IBlockInventory> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockConnectorComponent<IBlockInventory>(inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
+            return new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
         }
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory, VanillaMachineModuleInventory) GetMachineIOInventory(
             BlockId blockId, BlockInstanceId blockInstanceId,
             IMachineParam machineParam,
-            BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             var inputSlotCount = machineParam.InputSlotCount;
