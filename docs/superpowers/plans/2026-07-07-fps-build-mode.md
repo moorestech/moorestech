@@ -4,7 +4,7 @@
 
 **Goal:** 建設・削除モードに一人称視点（FPS）を追加し、Vキーで俯瞰⇔FPSを即時切替できるようにする。
 
-**Architecture:** `BuildViewModeController`（DIシングルトン・純C#）が視点モードの記憶・トグル・建設系ステート間のカメラセッションを所有し、副作用は`IBuildViewApplier`越しに適用（テストはFakeで駆動）。レイキャスト起点は`AimPointProvider`（静的）で「マウス座標 or 画面中央」を一元切替し、全設置システムが無改修でFPS対応する。
+**Architecture:** `BuildViewModeController`（DIシングルトン・純C#）が視点モードの記憶・トグル・建設系ステート間のカメラセッションを所有し、**各建設系ステートから`OnEnterBuildState`/`OnLeaveBuildState`/`ManualUpdate`で明示的に駆動される**（`UIStateControl`への参照・購読なし。依存方向はUIState層→Control層の一方向）。副作用は`IBuildViewApplier`越しに適用（テストはFakeで駆動）。レイキャスト起点は`AimPointProvider`（静的）で「マウス座標 or 画面中央」を一元切替し、全設置システムが無改修でFPS対応する。
 
 **Tech Stack:** Unity 6 / VContainer / Cinemachine (FramingTransposer) / DOTween / NUnit (EditMode) / uloop CLI
 
@@ -19,17 +19,16 @@
 - シーン等Unity固有ファイルの直接編集禁止。変更は `uloop execute-dynamic-code` 経由のみ
 - 各タスク末尾で必ずgit commit（作業ディレクトリは `/Users/katsumi/moorestech`。最初に`pwd`確認）
 - テスト実行: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。ドメインリロードエラー時は45秒待ってリトライ
-- 新規イベントはUniRx（本計画では既存`UIStateControl.OnStateChanged`(C# event)への購読のみで新規イベントなし）
+- 新規イベントはUniRx（本計画ではイベント新設・購読なし。コントローラはステートから直接駆動される）
 
 ## 配置と前例
 
 - `Control/BuildView/` 新設（Control直下は現在5ファイル、10ファイル制限内に収めるためサブディレクトリ化）
 - 画面中央レイの前例: `MapObjectMiningController.cs:45`（採掘は既に画面中央レイ）
-- `UIStateControl.OnStateChanged`購読の前例: `DisplayEnergizedRange.cs:31`
+- ステートがコントローラを明示駆動する前例: `PlaceBlockState`→`PlaceSystemStateController.ManualUpdate()/Disable()`（`BuildViewModeController`も同じ駆動パターンに乗る。逆向きの`OnStateChanged`購読はしない）
 - Fakeによるテストの前例: `Client.Tests/UIState/FakeDeleteTarget.cs`
 - Vキーは`UnityEngine.Input.GetKeyDown`直接読み＋`//TODO InputSystemのリファクタ対象`（`PlaceBlockState.cs:40,67`等の既存前例に準拠。`.inputactions`は触らない）
 - DI登録は`MainGameStarter.cs`の「設置システム」ブロック直後（`builder.Register<PlacementSelection>`の下）
-- `IInitializable`登録の前例: `MainGameStarter.cs:234-235`
 
 ---
 
@@ -351,7 +350,7 @@ git commit -m "feat: FPSカメラモード・自機非表示・クロスヘアVi
 
 **Interfaces:**
 - Consumes: Task 1の`BuildViewMode`/`AimPointProvider`、Task 2の`SetFirstPersonMode`/`SetModelVisible`/`CrosshairView`、既存の`TweenCameraInfo`（現在は`Client.Game.InGame.UI.UIState.Input`。Task 4で`Client.Game.InGame.Control`へ移設されるため、本タスクではusingで旧namespaceを参照）
-- Produces: `BuildViewModeController { BuildViewMode CurrentMode; void OnUIStateChanged(UIStateEnum next); void ManualUpdate(); void ToggleViewMode(); }`、`IBuildViewApplier`（下記7メソッド）
+- Produces: `BuildViewModeController { BuildViewMode CurrentMode; void OnEnterBuildState(UIStateEnum state); void OnLeaveBuildState(UIStateEnum next); void ManualUpdate(); void ToggleViewMode(); }`、`IBuildViewApplier`（下記7メソッド）。コントローラは`UIStateControl`に依存しない（Task 4で各ステートが駆動する）
 
 - [ ] **Step 1: IBuildViewApplierを作成**
 
@@ -467,9 +466,7 @@ namespace Client.Tests.BuildView
         public void SetUp()
         {
             _applier = new FakeBuildViewApplier();
-            // UIStateControlはInitialize()でのみ使うためテストではnullで良い
-            // UIStateControl is only used by Initialize(), so null is fine in tests
-            _controller = new BuildViewModeController(_applier, null);
+            _controller = new BuildViewModeController(_applier);
         }
         
         [TearDown]
@@ -481,7 +478,7 @@ namespace Client.Tests.BuildView
         [Test]
         public void EnterPlaceBlockInTopDownAppliesTopDownCamera()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             Assert.Contains("Capture", _applier.Calls);
             Assert.Contains("TopDown", _applier.Calls);
             Assert.AreEqual(true, _applier.LastCursorVisible);
@@ -490,7 +487,7 @@ namespace Client.Tests.BuildView
         [Test]
         public void EnterDeleteBarInTopDownDoesNotMoveCamera()
         {
-            _controller.OnUIStateChanged(UIStateEnum.DeleteBar);
+            _controller.OnEnterBuildState(UIStateEnum.DeleteBar);
             Assert.IsFalse(_applier.Calls.Contains("TopDown"));
             Assert.IsFalse(_applier.Calls.Contains("Restore"));
         }
@@ -498,23 +495,33 @@ namespace Client.Tests.BuildView
         [Test]
         public void TransitBetweenBuildStatesCapturesCameraOnlyOnce()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
-            _controller.OnUIStateChanged(UIStateEnum.DeleteBar);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            _controller.OnLeaveBuildState(UIStateEnum.DeleteBar);
+            _controller.OnEnterBuildState(UIStateEnum.DeleteBar);
             Assert.AreEqual(1, _applier.Calls.FindAll(c => c == "Capture").Count);
         }
         
         [Test]
-        public void ExitToGameScreenRestoresSavedCamera()
+        public void LeaveToBuildStateDoesNotRestoreCamera()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
-            _controller.OnUIStateChanged(UIStateEnum.GameScreen);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            _controller.OnLeaveBuildState(UIStateEnum.BuildMenu);
+            Assert.IsFalse(_applier.Calls.Contains("Restore"));
+        }
+        
+        [Test]
+        public void LeaveToGameScreenRestoresSavedCameraAndHidesCursor()
+        {
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            _controller.OnLeaveBuildState(UIStateEnum.GameScreen);
             Assert.AreSame(_applier.CapturedCamera, _applier.LastRestoredCamera);
+            Assert.AreEqual(false, _applier.LastCursorVisible);
         }
         
         [Test]
         public void ToggleToFirstPersonAppliesFpsCursorLockAndCrosshair()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
             Assert.AreEqual(BuildViewMode.FirstPerson, _controller.CurrentMode);
             Assert.AreEqual(BuildViewMode.FirstPerson, AimPointProvider.CurrentMode);
@@ -526,12 +533,12 @@ namespace Client.Tests.BuildView
         [Test]
         public void FirstPersonModeIsRememberedAcrossSessions()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
-            _controller.OnUIStateChanged(UIStateEnum.GameScreen);
+            _controller.OnLeaveBuildState(UIStateEnum.GameScreen);
             _applier.Calls.Clear();
             
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             Assert.Contains("Fps:True", _applier.Calls);
             Assert.IsFalse(_applier.Calls.Contains("TopDown"));
         }
@@ -539,20 +546,21 @@ namespace Client.Tests.BuildView
         [Test]
         public void BuildMenuInFirstPersonFreesCursorAndHidesCrosshairKeepingCamera()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
-            _controller.OnUIStateChanged(UIStateEnum.BuildMenu);
+            _controller.OnLeaveBuildState(UIStateEnum.BuildMenu);
+            _controller.OnEnterBuildState(UIStateEnum.BuildMenu);
             Assert.AreEqual(true, _applier.LastCursorVisible);
             Assert.AreEqual(false, _applier.LastCrosshairVisible);
             Assert.IsFalse(_applier.Calls.Contains("Fps:False"));
         }
         
         [Test]
-        public void ExitFromFirstPersonDisablesFpsAndRestores()
+        public void LeaveFromFirstPersonDisablesFpsAndRestores()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
-            _controller.OnUIStateChanged(UIStateEnum.GameScreen);
+            _controller.OnLeaveBuildState(UIStateEnum.GameScreen);
             Assert.Contains("Fps:False", _applier.Calls);
             Assert.Contains("Restore", _applier.Calls);
             Assert.AreEqual(false, _applier.LastCrosshairVisible);
@@ -561,7 +569,7 @@ namespace Client.Tests.BuildView
         [Test]
         public void ToggleBackToTopDownInDeleteBarRestoresSavedCamera()
         {
-            _controller.OnUIStateChanged(UIStateEnum.DeleteBar);
+            _controller.OnEnterBuildState(UIStateEnum.DeleteBar);
             _controller.ToggleViewMode();
             _applier.Calls.Clear();
             _controller.ToggleViewMode();
@@ -572,7 +580,7 @@ namespace Client.Tests.BuildView
         [Test]
         public void ToggleBackToTopDownInPlaceBlockAppliesTopDown()
         {
-            _controller.OnUIStateChanged(UIStateEnum.PlaceBlock);
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
             _applier.Calls.Clear();
             _controller.ToggleViewMode();
@@ -595,67 +603,63 @@ Expected: `BuildViewModeController`が存在しないためコンパイルエラ
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.Input;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Client.Game.InGame.Control.BuildView
 {
     /// <summary>
     ///     建設系視点モードの記憶・トグル・カメラセッションを管理する
     ///     Owns build view mode memory, toggling, and the camera session across build states
+    ///     各建設系ステートがOnEnterBuildState/OnLeaveBuildState/ManualUpdateで駆動する（UIStateControlへの依存なし）
+    ///     Driven by each build state via OnEnterBuildState/OnLeaveBuildState/ManualUpdate (no UIStateControl dependency)
     /// </summary>
-    public class BuildViewModeController : IInitializable
+    public class BuildViewModeController
     {
         public BuildViewMode CurrentMode { get; private set; } = BuildViewMode.TopDown;
         
         private readonly IBuildViewApplier _applier;
-        private readonly UIStateControl _uiStateControl;
         
         private TweenCameraInfo _savedCamera;
         private bool _isSessionActive;
         private UIStateEnum _currentBuildState;
         
-        public BuildViewModeController(IBuildViewApplier applier, UIStateControl uiStateControl)
+        public BuildViewModeController(IBuildViewApplier applier)
         {
             _applier = applier;
-            _uiStateControl = uiStateControl;
         }
         
-        public void Initialize()
+        // 建設系ステートのOnEnter先頭で呼ぶ
+        // Call at the top of a build state's OnEnter
+        public void OnEnterBuildState(UIStateEnum state)
         {
-            _uiStateControl.OnStateChanged += OnUIStateChanged;
-        }
-        
-        public void OnUIStateChanged(UIStateEnum next)
-        {
-            var nextIsBuild = IsBuildState(next);
-            if (nextIsBuild) _currentBuildState = next;
+            _currentBuildState = state;
             
-            // セッション開始: 復帰用に現在カメラを保存して視点を適用
-            // Session start: save the current camera for restoration and apply the view
-            if (!_isSessionActive && nextIsBuild)
+            // セッション開始時のみ復帰用に現在カメラを保存する
+            // Save the current camera for restoration only when the session starts
+            if (!_isSessionActive)
             {
                 _savedCamera = _applier.CaptureCurrentCamera();
                 _isSessionActive = true;
-                ApplyForState(next);
             }
-            // セッション継続: ステートに応じた視点適用のみ（カメラ保存はしない）
-            // Session continues: only apply the view for the new state (no re-capture)
-            else if (_isSessionActive && nextIsBuild)
+            
+            ApplyForState(state);
+        }
+        
+        // 遷移確定時（UITransitContextを返す直前）に呼ぶ。建設系への遷移ならno-op
+        // Call right before returning a UITransitContext; no-op when moving to another build state
+        public void OnLeaveBuildState(UIStateEnum next)
+        {
+            if (!_isSessionActive || IsBuildState(next)) return;
+            
+            // FPSを解除して保存カメラへ復帰し、カーソルは非表示へ戻す（現行踏襲。遷移先のOnEnterが必要なら再表示する）
+            // Leave FPS, restore the saved camera, and hide the cursor (existing behavior; the next state's OnEnter re-shows it if needed)
+            if (CurrentMode == BuildViewMode.FirstPerson)
             {
-                ApplyForState(next);
+                _applier.SetFirstPersonCamera(false);
+                _applier.SetCrosshairVisible(false);
             }
-            // セッション終了: FPSを解除して保存カメラへ復帰
-            // Session end: leave FPS and restore the saved camera
-            else if (_isSessionActive && !nextIsBuild)
-            {
-                if (CurrentMode == BuildViewMode.FirstPerson)
-                {
-                    _applier.SetFirstPersonCamera(false);
-                    _applier.SetCrosshairVisible(false);
-                }
-                _applier.RestoreCamera(_savedCamera);
-                _isSessionActive = false;
-            }
+            _applier.RestoreCamera(_savedCamera);
+            _applier.SetCursorVisible(false);
+            _isSessionActive = false;
         }
         
         // 建設系ステート中に毎フレーム呼ぶ（Vトグルと俯瞰時の右クリック回転）
@@ -796,7 +800,7 @@ namespace Client.Game.InGame.Control.BuildView
             // 建設系視点モード
             // register build view mode
             builder.Register<IBuildViewApplier, BuildViewApplier>(Lifetime.Singleton);
-            builder.Register<BuildViewModeController>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<BuildViewModeController>(Lifetime.Singleton);
 ```
 
 - [ ] **Step 7: コンパイル＆テスト実行**
@@ -805,7 +809,7 @@ Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BuildView"`
-Expected: 12件PASS（AimPointProviderTest 2件＋BuildViewModeControllerTest 10件）
+Expected: 13件PASS（AimPointProviderTest 2件＋BuildViewModeControllerTest 11件）
 
 - [ ] **Step 8: Commit**
 
@@ -821,6 +825,7 @@ git commit -m "feat: BuildViewModeControllerで視点モードのセッション
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/BuildMenuState.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/TweenCameraInfo.cs`
 - Delete: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/Input/ScreenClickableCameraController.cs`（＋.meta）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Control/InGameCameraController.cs`（using修正のみ）
@@ -828,8 +833,8 @@ git commit -m "feat: BuildViewModeControllerで視点モードのセッション
 - Modify: Task 3で作成した`IBuildViewApplier.cs` / `BuildViewApplier.cs` / `BuildViewModeController.cs` / `FakeBuildViewApplier.cs`（using修正のみ）
 
 **Interfaces:**
-- Consumes: Task 3の`BuildViewModeController.ManualUpdate()`
-- Produces: `TweenCameraInfo`（namespace `Client.Game.InGame.Control`へ移設、`public const float DefaultTweenDuration = 0.25f`を内包）。Shift+B挙動の削除
+- Consumes: Task 3の`BuildViewModeController.OnEnterBuildState(UIStateEnum)` / `OnLeaveBuildState(UIStateEnum)` / `ManualUpdate()`
+- Produces: `TweenCameraInfo`（namespace `Client.Game.InGame.Control`へ移設、`public const float DefaultTweenDuration = 0.25f`を内包）。Shift+B挙動の削除。各建設系ステートの遷移リターンを`Leave(next)`ローカルヘルパーへ一本化（コントローラへの通知漏れ防止）
 
 - [ ] **Step 1: TweenCameraInfoをControlへ移設**
 
@@ -906,8 +911,10 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public void OnEnter(UITransitContext context)
         {
-            // カメラ・カーソルはBuildViewModeControllerがOnStateChangedで適用する
-            // Camera and cursor are applied by BuildViewModeController via OnStateChanged
+            // カメラ・カーソルの適用はBuildViewModeControllerに委譲する
+            // Camera and cursor handling is delegated to BuildViewModeController
+            _buildViewModeController.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
@@ -920,19 +927,27 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
-            if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
-            if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
+            if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
             // Tabでビルドメニューを開き直す
             // Reopen the build menu with Tab
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
             //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
 
             _buildViewModeController.ManualUpdate();
             _placeSystemStateController.ManualUpdate();
             
             return null;
+        }
+        
+        // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
+        // Notify the controller before transiting; it decides whether the session ends
+        private UITransitContext Leave(UIStateEnum next)
+        {
+            _buildViewModeController.OnLeaveBuildState(next);
+            return new UITransitContext(next);
         }
         
         private void OnPlaceBlock(BlockGameObject blockGameObject)
@@ -956,10 +971,6 @@ namespace Client.Game.InGame.UI.UIState.State
             
             _blockPlacedDisposable.ForEach(d => d.Dispose());
             _blockPlacedDisposable.Clear();
-            
-            // 非建設系ステートがOnEnterでカーソルを再表示できるよう、先に隠しておく（現行踏襲）
-            // Hide the cursor first so non-build states can re-show it in OnEnter (existing behavior)
-            InputManager.MouseCursorVisible(false);
         }
     }
 }
@@ -967,7 +978,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
 - [ ] **Step 3: DeleteObjectStateを書き換え**
 
-変更点のみ（他は現状維持）:
+変更点のみ（他は現状維持。usingに`Client.Game.InGame.Control.BuildView`を追加、`Client.Game.InGame.Control`と`Client.Game.InGame.UI.UIState.Input`のusingは未使用になれば削除）:
 
 ```csharp
 // ctor: InGameCameraControllerの代わりにBuildViewModeControllerを受け取り、ScreenClickableCameraController生成を削除
@@ -981,15 +992,72 @@ public DeleteObjectState(DeleteBarObject deleteBarObject, BuildViewModeControlle
 
 フィールド: `private readonly ScreenClickableCameraController _screenClickableCameraController;` → `private readonly BuildViewModeController _buildViewModeController;`
 
-`OnEnter`: `_screenClickableCameraController.OnEnter(false);` を削除し、`KeyControlDescription`の文言に`V: 視点切替`を追加:
+`OnEnter`: `_screenClickableCameraController.OnEnter(false);` → `_buildViewModeController.OnEnterBuildState(UIStateEnum.DeleteBar);`（先頭で呼ぶ）。`KeyControlDescription`の文言に`V: 視点切替`を追加:
 
 ```csharp
 KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
 ```
 
-`GetNextUpdate`: `_screenClickableCameraController.GetNextUpdate();` → `_buildViewModeController.ManualUpdate();`
+`GetNextUpdate`: `_screenClickableCameraController.GetNextUpdate();` → `_buildViewModeController.ManualUpdate();`。`HandleTransition`内の3つの遷移リターンをすべて`Leave`経由へ:
 
-`OnExit`: `_screenClickableCameraController.OnExit();` → `InputManager.MouseCursorVisible(false);`（using `Client.Input`は既存、`Client.Game.InGame.Control.BuildView`をusingに追加、`Client.Game.InGame.Control`と`Client.Game.InGame.UI.UIState.Input`のusingは未使用になれば削除）
+```csharp
+UITransitContext HandleTransition()
+{
+    // OpenMenu(ポーズ)もESCにbindされ、ここで拾うとESCの選択キャンセル/モード終了が死ぬため破壊モードでは扱わない
+    // OpenMenu(pause) is also bound to ESC; handling it here would shadow ESC's cancel/exit, so skip it in destroy mode
+    if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.GameScreen);
+    if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.BuildMenu);
+    if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
+
+    // ESCはまず削除選択のキャンセルに使い、キャンセルする選択が無ければ破壊モードを抜ける
+    // ESC is used first to cancel the delete selection; with nothing to cancel it leaves destroy mode
+    if (InputManager.UI.CloseUI.GetKeyDown && !_deleteObjectService.TryCancelSelection())
+    {
+        return Leave(UIStateEnum.GameScreen);
+    }
+    return null;
+}
+```
+
+クラスに`Leave`ヘルパーを追加（`#region Internal`の外、クラス直下）:
+
+```csharp
+// 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
+// Notify the controller before transiting; it decides whether the session ends
+private UITransitContext Leave(UIStateEnum next)
+{
+    _buildViewModeController.OnLeaveBuildState(next);
+    return new UITransitContext(next);
+}
+```
+
+`OnExit`: `_screenClickableCameraController.OnExit();` の行を削除（カーソル・カメラ処理は`OnLeaveBuildState`が遷移前に実施済み）
+
+- [ ] **Step 3.5: BuildMenuStateを書き換え**
+
+ctorに`BuildViewModeController`を追加し、カーソル制御をコントローラへ移管（usingに`Client.Game.InGame.Control.BuildView`を追加。`Client.Input`のusingは`InputManager.UI`参照が残るため維持）:
+
+```csharp
+public BuildMenuState(BuildMenuView buildMenuView, PlacementSelection placementSelection, BuildViewModeController buildViewModeController)
+{
+    _buildMenuView = buildMenuView;
+    _placementSelection = placementSelection;
+    _buildViewModeController = buildViewModeController;
+}
+
+public void OnEnter(UITransitContext context)
+{
+    // カーソル表示はBuildViewModeControllerが適用する（FPS中もメニューではカーソル解放）
+    // Cursor visibility is applied by BuildViewModeController (freed in the menu even during FPS)
+    _buildViewModeController.OnEnterBuildState(UIStateEnum.BuildMenu);
+    _buildMenuView.SetActive(true);
+    KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
+}
+```
+
+`GetNextUpdate`の3つの遷移リターンを`Leave`経由へ（エントリ確定時は`return Leave(UIStateEnum.PlaceBlock);`、`B`/CloseUIは`return Leave(UIStateEnum.GameScreen);`、OpenInventoryは`return Leave(UIStateEnum.PlayerInventory);`）。`Leave`ヘルパーはPlaceBlockStateと同じ実装をクラス直下に追加。
+
+`OnExit`: `InputManager.MouseCursorVisible(false);` の行を削除し`_buildMenuView.SetActive(false);`のみ残す（建設系内遷移では次ステートの`OnEnterBuildState`が、離脱時は`OnLeaveBuildState`がカーソルを設定するため）
 
 - [ ] **Step 4: TweenCameraInfoのnamespace変更に伴うusing修正**
 

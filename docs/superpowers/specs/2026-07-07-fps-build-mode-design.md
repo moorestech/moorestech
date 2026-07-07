@@ -55,11 +55,20 @@ PlaceSystem層                 │
 - 置き場所: `Client.Game/InGame/Control/BuildView/BuildViewMode.cs`
 
 #### 2. `BuildViewModeController`（DIシングルトン・中核）
-建設系視点モードの唯一の所有者。責務は以下。
+建設系視点モードの唯一の所有者。**各建設系ステートから明示的に駆動される受動的なコントローラ**であり、`UIStateControl` への参照・購読は持たない（依存方向は UIState層 → Control層 の一方向。`PlaceSystemStateController` を各ステートが `ManualUpdate()/Disable()` で駆動している既存イディオムと同型）。
 
+公開API:
+- `OnEnterBuildState(UIStateEnum state)` — 建設系ステートの `OnEnter` 先頭で呼ぶ。セッション未開始なら現在カメラを保存して開始し、ステートとモードに応じた視点を適用
+- `OnLeaveBuildState(UIStateEnum next)` — 遷移確定時（`GetNextUpdate` で `UITransitContext` を返す直前）に呼ぶ。遷移先が建設系ならno-op（セッション継続）、非建設系ならFPS解除・保存カメラ復帰・カーソル非表示でセッション終了
+- `ManualUpdate()` — 建設系ステートのupdate中に毎フレーム呼ぶ（Vトグル、俯瞰時の右クリック回転）
+- `ToggleViewMode()` — モード反転
+
+責務:
 - **モード記憶**: 現在の `BuildViewMode` を保持（初期値 TopDown）。セッション内のみ
 - **トグル処理**: 建設系ステートがアクティブな間、Vキー入力でモード切替。切替時にカメラTween・カーソル状態・クロスヘア表示・自機モデル表示を一括更新
 - **カメラセッション管理**: 建設系ステート（BuildMenu / PlaceBlock / DeleteBar）に入った時点の三人称カメラを保存し、**建設系以外のステートへ抜けた時のみ**復帰Tweenを実行する。建設系ステート間の遷移（Tab→ビルドメニュー→再設置、G↔Bなど）ではカメラを動かさない
+
+呼び忘れ防止のため、各建設系ステートは遷移リターンを `Leave(UIStateEnum next)` ローカルヘルパー（`OnLeaveBuildState` を呼んでから `UITransitContext` を生成）に一本化する。
 - **モードごとのカメラ適用**:
   - TopDown: 現行挙動を踏襲。俯瞰Tween（`CreateTopDownTweenCameraInfo()`）は**PlaceBlockに入った時のみ**実行し、BuildMenu・DeleteBarではカメラを動かさない。カーソル表示、右クリック押下中のみ回転
   - FirstPerson: 建設セッション開始時点でカメラ距離0・追従オフセットを頭部高さへTween。カーソルロック＋ `SetControllable(true)` 常時。クロスヘア表示、自機モデル非表示。セッション中はステートが変わっても維持
@@ -71,11 +80,11 @@ PlaceSystem層                 │
 #### 3. `AimPointProvider`（照準点プロバイダ）
 レイキャストの起点となるスクリーン座標を返す静的クラス。
 
-- TopDown: `Input.mousePosition`
-- FirstPerson: `new Vector2(Screen.width / 2f, Screen.height / 2f)`
-- モードは `BuildViewModeController` が切替時に `AimPointProvider.SetMode(mode)` で通知する（PlaceSystem層からControl層への依存を作らないため静的+set方式）
+- TopDown: `Input.mousePosition`（`Mouse.current` 優先の既存 `BlockClickDetectUtil` パターンに統一）
+- FirstPerson: `new Vector3(Screen.width / 2f, Screen.height / 2f, 0f)`
+- モードは `BuildViewModeController` が切替時に `AimPointProvider.SetMode(mode)` で通知する
 
-置き場所: `Client.Game/InGame/BlockSystem/PlaceSystem/Util/AimPointProvider.cs`
+置き場所: `Client.Game/InGame/Control/BuildView/AimPointProvider.cs`（照準は視点のドメインなのでControl層が所有し、PlaceSystem層がそれを読む）
 
 `PlaceSystemUtil.TryGetRayHitPosition` / `TryGetRaySpecifiedComponentHit`、および各PlaceSystem・削除サービス内に散在する `ScreenPointToRay(Input.mousePosition)` 直書きをすべて `AimPointProvider.GetAimScreenPoint()` 経由に置換する。置換漏れは `Input.mousePosition` のgrepで検出する。
 
@@ -91,9 +100,9 @@ PlaceSystem層                 │
 
 | ファイル | 変更内容 |
 |---|---|
-| `PlaceBlockState` | Shift+B分岐を削除。`ScreenClickableCameraController` 呼び出しを `BuildViewModeController` の enter/update/exit に置換 |
+| `PlaceBlockState` | Shift+B分岐を削除。`ScreenClickableCameraController` を廃し、`OnEnterBuildState`/`Leave`ヘルパー/`ManualUpdate` で `BuildViewModeController` を駆動 |
 | `DeleteObjectState` | 同上（`OnEnter(false)` の「カメラ維持」挙動は TopDown モード時の挙動として維持） |
-| `BuildMenuState` | `BuildViewModeController` のカメラセッション参加を追加（FPS中にTabでメニューを開いてもカメラが戻らない）。メニュー表示中はモードに関わらずカーソル解放 |
+| `BuildMenuState` | `OnEnterBuildState`/`Leave`ヘルパーを追加（FPS中にTabでメニューを開いてもカメラが戻らない）。カーソル制御は `BuildViewModeController` へ移管（メニュー中はモードに関わらずカーソル解放） |
 | `InGameCameraController` | FPS用に追従オフセット（頭部高さ）をTween対象へ追加。`Update()`内のF1/F2ズームと距離クランプ（0.6〜10）は毎フレーム距離を上書きするため、FPS中は無効化するフラグを追加（距離0を維持） |
 | （入力） | Vキーは `UnityEngine.Input.GetKeyDown(KeyCode.V)` 直接読み（`.inputactions`は変更しない。既存TODOリファクタに乗る） |
 | `PlaceSystemUtil` ほかレイ取得箇所 | `Input.mousePosition` → `AimPointProvider.GetAimScreenPoint()` |
@@ -108,11 +117,11 @@ PlaceSystem層                 │
 4. カメラTween（俯瞰⇔頭部）、カーソルロック状態、クロスヘア表示、自機モデル表示を一括切替
 
 ### 建設系ステートへの出入り
-1. GameScreen → BuildMenu/PlaceBlock/DeleteBar のいずれかに入る際、`BuildViewModeController.EnterBuildSession()` が現在カメラを保存。FirstPerson記憶ならこの時点でFPSカメラを適用、TopDown記憶ならカメラ適用は上記「モードごとのカメラ適用」の方針に従う（PlaceBlock進入時のみ俯瞰Tween）
-2. 建設系ステート間の遷移では `EnterBuildSession` は何もしない（セッション継続）。TopDownモードでは従来Tab遷移のたびにカメラが三人称へ戻ってバウンスしていたが、セッション化により解消される（意図した挙動変更）
-3. 建設系以外（GameScreen / PlayerInventory / Story 等）へ抜ける際、`ExitBuildSession()` が保存カメラへ復帰Tween・カーソル/クロスヘア/自機表示を通常状態へ戻す
+1. GameScreen → BuildMenu/PlaceBlock/DeleteBar のいずれかに入る際、そのステートの `OnEnter` 先頭が `OnEnterBuildState(state)` を呼ぶ。セッション未開始なら現在カメラを保存し、FirstPerson記憶ならこの時点でFPSカメラを適用、TopDown記憶ならカメラ適用は上記「モードごとのカメラ適用」の方針に従う（PlaceBlock進入時のみ俯瞰Tween）
+2. 建設系ステート間の遷移では、遷移元の `Leave(next)` → `OnLeaveBuildState(next)` がno-op（セッション継続）となり、遷移先の `OnEnterBuildState` が視点適用のみ行う。TopDownモードでは従来Tab遷移のたびにカメラが三人称へ戻ってバウンスしていたが、セッション化により解消される（意図した挙動変更）
+3. 建設系以外（GameScreen / PlayerInventory / Story 等）へ抜ける際、遷移元の `Leave(next)` → `OnLeaveBuildState(next)` が保存カメラへの復帰Tween・クロスヘア/自機表示の通常化・カーソル非表示（現行踏襲）でセッションを終了する。`OnLeaveBuildState` は遷移先ステートの `OnEnter` より先に実行されるため、インベントリ等がカーソルを再表示する動作と干渉しない
 
-セッションの開始・終了判定は `UIStateControl.OnStateChanged`（既存UniRxイベント）を購読し、遷移元・遷移先が建設系ステート集合に含まれるかで判定する。各ステートの `OnEnter`/`OnExit` に個別実装を散らばらせない。
+セッションの開始・終了判定は `BuildViewModeController` 内部の建設系ステート集合（BuildMenu / PlaceBlock / DeleteBar）との照合で行い、コントローラは `UIStateControl` を参照しない。各建設系ステートが enter/leave を明示的に通知する（`PlaceSystemStateController` と同じ駆動パターン）。
 
 ### 設置レイキャスト（変更後）
 1. 各PlaceSystemが `PlaceSystemUtil.TryGetRayHitPosition` を呼ぶ
