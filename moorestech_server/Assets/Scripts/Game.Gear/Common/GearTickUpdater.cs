@@ -22,6 +22,10 @@ namespace Game.Gear.Common
         // Buffer reused every tick for recalculation targets; stable ticks allocate nothing
         private readonly List<GearNetwork> _recalcBuffer = new();
 
+        // 破断チェック対象を毎tick使い回すバッファ。sweep中の破断による登録解除から走査を守る
+        // Buffer reused every tick for overload targets, shielding the sweep from breakage-triggered unregistration
+        private readonly List<IGearOverloadTickTarget> _overloadBuffer = new();
+
         public GearTickUpdater(GearNetworkDatastore gearNetworkDatastore)
         {
             _gearNetworkDatastore = gearNetworkDatastore;
@@ -50,19 +54,29 @@ namespace Game.Gear.Common
                 if (rebuilt) LastTickTraversalRebuildCount++;
             }
 
-            // 6) 毎tick駆動が必要なgeneratorを含むnetworkだけ燃料消費と出力更新を行う
-            // 6) Consume fuel and update output only for networks containing continuous-tick generators
+            // 6) 過負荷破断チェック。需給確定後の導出値(原点RPM比×原点RPM)で全対象をO(N)全なめし、超過gearを確率破断する
+            // 6) Overload breakage sweep: O(N) over all targets using post-settlement derived values, probabilistically breaking over-spec gears
+            _overloadBuffer.Clear();
+            _gearNetworkDatastore.CollectOverloadTickTargets(_overloadBuffer);
+            foreach (var target in _overloadBuffer) target.TickOverloadCheck();
+
+            // 7) 毎tick駆動が必要なgeneratorを含むnetworkだけ燃料消費と出力更新を行う
+            // 7) Consume fuel and update output only for networks containing continuous-tick generators
             foreach (var network in _gearNetworkDatastore.ContinuousTickNetworks)
             {
                 network.ConsumeGeneratorTicks(store);
             }
 
-            // 7) 再計算したnetworkのgearだけ、tick最後にまとめてクライアントへ状態変化を通知する（安定tickは通知ゼロ）
-            // 7) Notify clients at tick end only for gears in recalculated networks (stable ticks emit nothing)
+            // 8) 再計算したnetworkのgearだけ、tick最後にまとめてクライアントへ状態変化を通知する（安定tickは通知ゼロ）
+            // 8) Notify clients at tick end only for gears in recalculated networks (stable ticks emit nothing)
             foreach (var network in _recalcBuffer)
             {
-                foreach (var transformer in network.GearTransformers) transformer.NotifyStateChanged();
-                foreach (var generator in network.GearGenerators) generator.NotifyStateChanged();
+                // 同tickの破断sweepで破壊されたgearは通知Subjectがdispose済みのためスキップする
+                // Skip gears destroyed by this tick's breakage sweep; their notification subjects are already disposed
+                foreach (var transformer in network.GearTransformers)
+                    if (!transformer.IsDestroy) transformer.NotifyStateChanged();
+                foreach (var generator in network.GearGenerators)
+                    if (!generator.IsDestroy) generator.NotifyStateChanged();
             }
         }
     }

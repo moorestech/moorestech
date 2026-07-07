@@ -25,6 +25,10 @@ namespace Game.Gear.Common
         // Networks containing continuous-tick generators, tracked separately from the recalculation set
         private readonly HashSet<GearNetwork> _continuousTickNetworks = new();
 
+        // 毎tickの過負荷破断チェック対象。GearTickUpdaterが全なめする（対象は過負荷設定を持つgearのみ）
+        // Overload breakage targets swept every tick by GearTickUpdater (only gears with overload params register)
+        private readonly HashSet<IGearOverloadTickTarget> _overloadTickTargets = new();
+
         private readonly GearRuntimeStateStore _runtimeStateStore;
         private bool _isFlushing;
 
@@ -55,6 +59,23 @@ namespace Game.Gear.Common
         public static void RemoveGear(IGearEnergyTransformer gear)
         {
             _instance._pendingMutations.Add(new GearTopologyMutation(GearTopologyMutationType.Remove, gear));
+        }
+
+        public static void RegisterOverloadTickTarget(IGearOverloadTickTarget target)
+        {
+            _instance._overloadTickTargets.Add(target);
+        }
+
+        public static void UnregisterOverloadTickTarget(IGearOverloadTickTarget target)
+        {
+            _instance._overloadTickTargets.Remove(target);
+        }
+
+        // 破断チェック対象をbufferへコピーする。sweep中の破断→登録解除で集合が変化しても安全に走査できるようにする
+        // Copy overload targets into the buffer so breakage-triggered unregistration during the sweep cannot invalidate iteration
+        public void CollectOverloadTickTargets(List<IGearOverloadTickTarget> buffer)
+        {
+            buffer.AddRange(_overloadTickTargets);
         }
 
         // generatorが出力変化時に自ら呼び、所属networkを次の再計算対象に加える
