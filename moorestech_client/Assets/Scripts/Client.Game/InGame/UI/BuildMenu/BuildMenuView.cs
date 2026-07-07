@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.UI.Inventory.Common;
 using Cysharp.Threading.Tasks;
@@ -21,6 +23,7 @@ namespace Client.Game.InGame.UI.BuildMenu
         [Inject] private ClientBlueprintLibrary _blueprintLibrary;
 
         private readonly List<ItemSlotView> _slotViews = new();
+        private readonly List<string> _displayedBlueprintNames = new();
         private BuildMenuEntry? _clickedEntry;
 
         public void SetActive(bool active)
@@ -28,8 +31,12 @@ namespace Client.Game.InGame.UI.BuildMenu
             gameObject.SetActive(active);
             if (!active) return;
 
-            // まずキャッシュで即表示し、BPライブラリ更新後に再構築する
-            // Show the cached list immediately, then rebuild after the BP library refresh
+            // 前回セッションの未消費クリックを破棄してから表示する
+            // Discard an unconsumed click from the previous session before showing
+            _clickedEntry = null;
+
+            // まずキャッシュで即表示し、BPライブラリ更新後に必要なら再構築する
+            // Show the cached list immediately, then rebuild after the BP library refresh only if needed
             RebuildEntryList();
             RefreshBlueprintsAndRebuild().Forget();
         }
@@ -55,6 +62,21 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             // 更新完了前にメニューが閉じられていたら再構築しない
             // Skip the rebuild when the menu was closed before the refresh finished
+            if (!gameObject.activeSelf) return;
+
+            // BP一覧が表示中と同一なら再構築せず、RTT中のクリックを握り潰さない
+            // Skip the destructive rebuild when the BP list is unchanged so clicks in the RTT window survive
+            if (_blueprintLibrary.Blueprints.Select(b => b.Name).SequenceEqual(_displayedBlueprintNames)) return;
+
+            RebuildEntryList();
+        }
+
+        private async UniTask DeleteBlueprintAndRebuild(string blueprintName)
+        {
+            await _blueprintLibrary.DeleteBlueprint(blueprintName, this.GetCancellationTokenOnDestroy());
+
+            // 成功時はキャッシュが最新全件に置き換わるため、そこから再構築する
+            // On success the cache holds the refreshed full list, so rebuild from it
             if (gameObject.activeSelf) RebuildEntryList();
         }
 
@@ -62,7 +84,7 @@ namespace Client.Game.InGame.UI.BuildMenu
         {
             foreach (var slotView in _slotViews) Destroy(slotView.gameObject);
             _slotViews.Clear();
-            _clickedEntry = null;
+            _displayedBlueprintNames.Clear();
 
             // カタログが組み立てたエントリ一覧からスロットを生成する
             // Create slots from the entries assembled by the catalog
@@ -77,8 +99,28 @@ namespace Client.Game.InGame.UI.BuildMenu
                 else slotView.SetItem(entry.IconView, 0, entry.ToolTipText);
 
                 slotView.OnLeftClickUp.Subscribe(_ => _clickedEntry = entry).AddTo(slotView);
+
+                // BPエントリのみ右クリックで即削除する（v1は確認ダイアログ無し）
+                // Only blueprint entries are deletable: right-click deletes immediately (no confirm dialog in v1)
+                if (entry.EntryType == PlacementSelectionType.Blueprint)
+                {
+                    _displayedBlueprintNames.Add(entry.BlueprintName);
+                    slotView.OnRightClickUp.Subscribe(_ => DeleteBlueprintAndRebuild(entry.BlueprintName).Forget()).AddTo(slotView);
+                }
+
                 _slotViews.Add(slotView);
             }
+
+            // 再構築後も存在するエントリへの保留クリックは維持する
+            // Keep a pending click when its entry still exists after the rebuild
+            if (_clickedEntry.HasValue && !entries.Any(e => IsSameEntry(e, _clickedEntry.Value))) _clickedEntry = null;
+        }
+
+        // 選択の同一性をID系フィールドで判定する（アイコン参照は比較しない）
+        // Judge selection identity by the ID fields (icon references are excluded)
+        private static bool IsSameEntry(BuildMenuEntry a, BuildMenuEntry b)
+        {
+            return a.EntryType == b.EntryType && a.BlockId == b.BlockId && a.TrainCarGuid == b.TrainCarGuid && a.ConnectPlaceMode == b.ConnectPlaceMode && a.BlueprintName == b.BlueprintName;
         }
     }
 }
