@@ -74,7 +74,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePos)) return input;
 
             input.HasGhost = true;
-            input.GhostPlaceInfo = new PlaceInfo { Position = placePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, Placeable = true };
+            // BlockId未設定だとプレビュー生成がBlockElement not foundで毎フレーム死ぬ（セル毎BlockId化への追従漏れ）
+            // Without BlockId the preview creation dies every frame with BlockElement not found (missed per-cell BlockId migration)
+            input.GhostPlaceInfo = new PlaceInfo { Position = placePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, Placeable = true, BlockId = poleBlockId };
             input.GhostGroundClear = _previewObject.PositionGhost(input.GhostPlaceInfo, poleBlockMaster);
             input.GhostCenter = GearChainPoleExtendPreviewCalculator.GetPoleCenter(placePos);
 

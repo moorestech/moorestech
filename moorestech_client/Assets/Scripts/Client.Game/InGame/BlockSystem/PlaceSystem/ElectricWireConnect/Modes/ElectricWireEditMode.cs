@@ -63,7 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // ワイヤーコライダーは子オブジェクトのため親を辿って本体を得る
                 // Wire colliders live on child objects, so climb to the parent to get the element
-                var ray = _context.MainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+                var ray = _context.MainCamera.ScreenPointToRay(HybridInput.GetMousePosition());
                 if (!Physics.Raycast(ray, out var hit, WireClickMaxDistance, LayerConst.ElectricWireOnlyLayerMask)) return false;
 
                 wireElement = hit.collider.GetComponentInParent<ElectricWireLineViewElement>();

@@ -24,7 +24,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public UITransitContext GetNextUpdate()
         {
             //TODO InputManagerに移す
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.GameScreen);
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             
             return null;
