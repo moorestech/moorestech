@@ -74,6 +74,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SetTrainPlatformTransferModeProtocol.ProtocolTag, new SetTrainPlatformTransferModeProtocol(serviceProvider));
             _packetResponseDictionary.Add(FilterSplitterStateProtocol.ProtocolTag, new FilterSplitterStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetElectricToGearOutputModeProtocol.ProtocolTag, new SetElectricToGearOutputModeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(BlueprintProtocol.ProtocolTag, new BlueprintProtocol(serviceProvider));
         }
         
         public List<byte[]> GetPacketResponse(byte[] payload, PacketResponseContext context)
