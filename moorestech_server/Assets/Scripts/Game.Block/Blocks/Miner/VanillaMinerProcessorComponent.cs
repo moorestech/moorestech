@@ -20,6 +20,7 @@ using MessagePack;
 using Mooresmaster.Model.MineSettingsModule;
 using Newtonsoft.Json;
 using UniRx;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Miner
 {
@@ -48,7 +49,7 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
         {
             _blockInstanceId = blockInstanceId;
             RequestEnergy = requestPower;
@@ -82,7 +83,7 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
             : this(blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
