@@ -158,6 +158,12 @@ properties:
       - GearToElectricGenerator
       - ElectricToGearGenerator
       - FilterSplitter
+      - CleanRoomWall
+      - CleanRoomDoor
+      - CleanRoomItemHatch
+      - CleanRoomPipeHatch
+      - CleanRoomAirFilter
+      - CleanRoomMachine
     - key: itemGuid
       type: uuid
       foreignKey:
@@ -931,6 +937,88 @@ properties:
           default: 10
         - key: inventoryConnectors
           ref: inventoryConnects
+      - when: CleanRoomWall
+        type: object
+        properties: []
+      - when: CleanRoomDoor
+        type: object
+        properties: []
+      - when: CleanRoomItemHatch
+        type: object
+        implementationInterface:
+        - IInventoryConnectors
+        properties:
+        - key: inventoryConnectors
+          ref: inventoryConnects
+      - when: CleanRoomPipeHatch
+        type: object
+        properties:
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
+      - when: CleanRoomAirFilter
+        type: object
+        properties:
+        - key: requiredPower
+          type: number
+          default: 100
+        - key: removalVolumePerSecond
+          type: number
+          default: 5
+        - key: filterItemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: filterCapacity
+          type: number
+          default: 5000
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
+      - when: CleanRoomMachine
+        type: object
+        implementationInterface:
+        - IInventoryConnectors
+        - IMachineParam
+        properties:
+        - key: requiredPower
+          type: number
+          default: 5
+        - key: idlePowerRate
+          type: number
+          default: 0.2
+        - key: inputSlotCount
+          type: integer
+          default: 1
+        - key: outputSlotCount
+          type: integer
+          default: 1
+        - key: inventoryConnectors
+          ref: inventoryConnects
+        - key: inputTankCount
+          type: integer
+          default: 0
+        - key: outputTankCount
+          type: integer
+          default: 0
+        - key: innerTankCapacity
+          type: number
+          default: 0
+        - key: moduleSlotCount
+          type: integer
+          default: 0
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
 
 - key: gearChainItems
   type: array
