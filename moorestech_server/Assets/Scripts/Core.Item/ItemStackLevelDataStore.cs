@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
 using Mooresmaster.Model.GameActionModule;
 using UniRx;
@@ -8,9 +9,11 @@ namespace Core.Item
 {
     // アイテムごとの解放済みスタックレベル状態ストア
     // Runtime store for unlocked stack levels per item
-    public class ItemStackLevelDataStore
+    public class ItemStackLevelDataStore : IItemStackLevelLookup, IItemStackLevelUnlocker
     {
-        public static ItemStackLevelDataStore Instance { get; private set; }
+        // 静的公開は取得専用インターフェースのみ。変更系はDI注入されたIItemStackLevelUnlocker経由で行う
+        // Static exposure is lookup-only; mutations must go through a DI-injected IItemStackLevelUnlocker
+        public static IItemStackLevelLookup Instance { get; private set; }
 
         public IObservable<(Guid itemGuid, int level)> OnStackLevelUnlocked => _onStackLevelUnlocked;
         private readonly Subject<(Guid itemGuid, int level)> _onStackLevelUnlocked = new();
@@ -35,6 +38,11 @@ namespace Core.Item
         public int GetUnlockedLevel(Guid itemGuid)
         {
             return _unlockedLevels.GetValueOrDefault(itemGuid, 1);
+        }
+
+        public IReadOnlyDictionary<Guid, int> GetUnlockedLevels()
+        {
+            return _unlockedLevels;
         }
 
         public void UnlockStackLevel(Guid itemGuid, int level)

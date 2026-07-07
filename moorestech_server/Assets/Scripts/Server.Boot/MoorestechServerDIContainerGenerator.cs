@@ -164,6 +164,8 @@ namespace Server.Boot
             services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton(itemStackLevelDataStore);
+            services.AddSingleton<IItemStackLevelLookup>(itemStackLevelDataStore);
+            services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<ResearchEvent>();
             
@@ -214,6 +216,7 @@ namespace Server.Boot
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<CompletedChallengeEventPacket>();
             services.AddSingleton<ResearchCompleteEventPacket>();
+            services.AddSingleton<ItemStackLevelUnlockEventPacket>();
 
             services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
@@ -260,6 +263,7 @@ namespace Server.Boot
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedEventPacket>();
             serviceProvider.GetService<ResearchCompleteEventPacket>();
+            serviceProvider.GetService<ItemStackLevelUnlockEventPacket>();
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
             serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();
