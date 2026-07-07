@@ -8,6 +8,7 @@ using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
@@ -191,6 +192,7 @@ namespace Client.Starter
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<PlacementSelection>(Lifetime.Singleton);
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
 
             // 建設系視点モード
             // register build view mode
