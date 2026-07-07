@@ -75,3 +75,29 @@ export type ActionPayloads = {
   "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
   "debug.echo": { hello: string };
 };
+
+// 既知 action type の実行時リスト。ActionPayloads のキーと1:1（下の網羅チェックで担保）
+// Runtime list of known action types, 1:1 with ActionPayloads keys (enforced by the check below)
+export const ACTION_TYPES = [
+  "inventory.move_item",
+  "inventory.split",
+  "inventory.collect",
+  "inventory.sort",
+  "inventory.select_hotbar",
+  "craft.execute",
+  "ui.modal.respond",
+  "block_inventory.move_item",
+  "block_inventory.collect",
+  "ui_state.request",
+  "research.complete",
+  "filter_splitter.set_mode",
+  "filter_splitter.set_filter_item",
+  "debug.echo",
+] as const satisfies readonly (keyof ActionPayloads)[];
+
+export type ActionType = (typeof ACTION_TYPES)[number];
+
+// ActionPayloads にあって ACTION_TYPES に無いキーがあると never 制約違反でコンパイルエラーになる
+// A key in ActionPayloads missing from ACTION_TYPES violates the never constraint and fails to compile
+type AssertNever<T extends never> = T;
+export type ActionTypesExhaustive = AssertNever<Exclude<keyof ActionPayloads, ActionType>>;
