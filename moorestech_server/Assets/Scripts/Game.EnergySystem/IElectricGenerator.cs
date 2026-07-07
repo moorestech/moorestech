@@ -6,9 +6,8 @@ namespace Game.EnergySystem
     /// <summary>
     ///     何らかのエネルギーを生産するモノ
     /// </summary>
-    public interface IElectricGenerator : IBlockComponent
+    public interface IElectricGenerator : IElectricEnergyRole
     {
-        public BlockInstanceId BlockInstanceId { get; }
         ElectricPower OutputEnergy();
     }
 }

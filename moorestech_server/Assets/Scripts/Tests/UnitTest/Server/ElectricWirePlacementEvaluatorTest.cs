@@ -9,6 +9,8 @@ using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module;
 using Tests.Module.TestMod;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Tests.UnitTest.Server
 {
     public class ElectricWirePlacementEvaluatorTest

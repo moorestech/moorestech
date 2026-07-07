@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(playerId, data.PlayerId);
             
             //データの検証
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            for (var i = 0; i < playerInventoryData.MainOpenableInventory.GetSlotSize(); i++)
             {
                 if (i == 0)
                 {

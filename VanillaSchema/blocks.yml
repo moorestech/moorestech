@@ -251,6 +251,9 @@ properties:
         - key: requiredPower
           type: number
           default: 5
+        - key: idlePowerRate
+          type: number
+          default: 0.2
         - key: inputSlotCount
           type: integer
           default: 1
@@ -376,6 +379,9 @@ properties:
         - key: requiredPower
           type: number
           default: 5
+        - key: idlePowerRate
+          type: number
+          default: 0.2
         - key: outputItemSlotCount
           type: integer
           default: 3
@@ -853,6 +859,9 @@ properties:
         - key: requiredPower
           type: number
           default: 5
+        - key: idlePowerRate
+          type: number
+          default: 0.2
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
         - key: maxWireConnectionCount

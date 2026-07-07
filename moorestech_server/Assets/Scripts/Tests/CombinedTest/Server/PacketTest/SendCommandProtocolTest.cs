@@ -32,14 +32,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(10);
             
             //何もないインベントリに入れたのでホットバースロット0にアイテムが入っているかチェック
-            var id2Slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            var id2Slot = PlayerInventoryConst.HotBarSlotToInventorySlot(0, playerInventory.MainOpenableInventory.GetSlotSize());
             Assert.AreEqual(2, playerInventory.MainOpenableInventory.GetItem(id2Slot).Id.AsPrimitive());
             Assert.AreEqual(5, playerInventory.MainOpenableInventory.GetItem(id2Slot).Count);
             
             
             //別のアイテムIDを入れたので、ホットバースロット1にアイテムが入っているかチェック
             packet.GetPacketResponse(GetGiveCommandPacket(10, 3, 7), new PacketResponseContext());
-            var id3Slot = PlayerInventoryConst.HotBarSlotToInventorySlot(1);
+            var id3Slot = PlayerInventoryConst.HotBarSlotToInventorySlot(1, playerInventory.MainOpenableInventory.GetSlotSize());
             Assert.AreEqual(3, playerInventory.MainOpenableInventory.GetItem(id3Slot).Id.AsPrimitive());
             Assert.AreEqual(7, playerInventory.MainOpenableInventory.GetItem(id3Slot).Count);
             

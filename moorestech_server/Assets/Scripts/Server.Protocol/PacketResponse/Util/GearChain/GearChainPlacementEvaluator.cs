@@ -22,14 +22,16 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
         public const string NoPoleItemError = "NoPoleItem";
         public const string InvalidTargetError = "InvalidTarget";
         public const string PositionOccupiedError = "PositionOccupied";
+        public const string NotUnlockedError = "NotUnlocked";
+        public const string InsufficientItemsError = "InsufficientItems";
 
         /// <summary>
-        /// 距離・既接続・接続数上限・チェーンアイテム・ポールアイテムを一括判定する。
-        /// poleItemId が ItemMaster.EmptyItemId の場合はポールアイテムの所持チェックを行わない（既存ポール同士の接続用）。
-        /// Evaluate distance, existing connection, connection limit, chain items and pole item at once.
-        /// When poleItemId is ItemMaster.EmptyItemId, the pole item check is skipped (for pole-to-pole connection).
+        /// 距離・既接続・接続数上限・チェーンアイテムを一括判定する。
+        /// reservedItemCounts に建設コスト等の予約分を渡すと、チェーンと同一アイテムの予約数を必要数へ上乗せして判定する。
+        /// Evaluate distance, existing connection, connection limit and chain items at once.
+        /// Passing reservedItemCounts (e.g. construction cost) adds the reserved amount of the same item as the chain to the required count.
         /// </summary>
-        public static GearChainPlacementJudgement EvaluatePlacement(float connectionDistance, float fromMaxConnectionDistance, float toMaxConnectionDistance, bool alreadyConnected, bool anyConnectionFull, ItemId chainItemId, IEnumerable<IItemStack> inventoryItems, ItemId poleItemId)
+        public static GearChainPlacementJudgement EvaluatePlacement(float connectionDistance, float fromMaxConnectionDistance, float toMaxConnectionDistance, bool alreadyConnected, bool anyConnectionFull, ItemId chainItemId, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<(ItemId itemId, int count)> reservedItemCounts)
         {
             var stacks = inventoryItems as IItemStack[] ?? inventoryItems.ToArray();
 
@@ -45,15 +47,21 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // Check connection count limit
             if (anyConnectionFull) return GearChainPlacementJudgement.Failure(ConnectionLimitError);
 
-            // チェーンアイテムの必要数を所持しているか確認する
-            // Ensure required chain items are owned
+            // チェーンアイテムの必要数を算出する
+            // Calculate the required chain item count
             if (!TryCalculateChainCost(chainItemId, connectionDistance, out var chainCost)) return GearChainPlacementJudgement.Failure(NoItemError);
-            if (CountItem(chainItemId) < chainCost.Count) return GearChainPlacementJudgement.Failure(NoItemError);
 
-            // 延長設置時はポールアイテムの所持を確認する（チェーンと同一アイテムなら消費分を上乗せして判定）
-            // Ensure a pole item is owned when extending (require chain cost on top when it is the same item)
-            var requiredPoleCount = poleItemId == chainItemId ? chainCost.Count + 1 : 1;
-            if (poleItemId != ItemMaster.EmptyItemId && CountItem(poleItemId) < requiredPoleCount) return GearChainPlacementJudgement.Failure(NoPoleItemError);
+            // 予約リスト中のチェーンと同一アイテム分を必要数へ上乗せする
+            // Add the same-item amount reserved in the list on top of the required chain count
+            var reservedChain = 0;
+            if (reservedItemCounts != null)
+            {
+                foreach (var (itemId, count) in reservedItemCounts)
+                {
+                    if (itemId == chainItemId) reservedChain += count;
+                }
+            }
+            if (CountItem(chainItemId) < chainCost.Count + reservedChain) return GearChainPlacementJudgement.Failure(NoItemError);
 
             return GearChainPlacementJudgement.Success(chainCost);
 
