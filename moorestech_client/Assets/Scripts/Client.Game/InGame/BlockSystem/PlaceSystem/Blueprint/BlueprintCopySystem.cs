@@ -104,6 +104,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
             void HandleCancel()
             {
+                // 現状はPlaceBlockStateがESCを先に消費するため未到達（他状態から駆動された場合の保険として残置）
+                // Currently unreachable because PlaceBlockState consumes ESC first; kept as insurance when driven from other states
                 if (!InputManager.UI.CloseUI.GetKeyDown) return;
                 ResetSelection();
             }
