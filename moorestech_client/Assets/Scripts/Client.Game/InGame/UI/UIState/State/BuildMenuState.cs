@@ -49,11 +49,14 @@ namespace Client.Game.InGame.UI.UIState.State
                     case PlacementSelectionType.Blueprint:
                         _placementSelection.SetSelectedBlueprint(entry.BlueprintName);
                         break;
+                    case PlacementSelectionType.BlueprintCopy:
+                        _placementSelection.SetSelectedBlueprintCopyTool();
+                        break;
                 }
                 return Leave(UIStateEnum.PlaceBlock);
             }
 
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
             if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
 
             return null;

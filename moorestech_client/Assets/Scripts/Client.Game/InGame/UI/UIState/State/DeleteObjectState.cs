@@ -52,7 +52,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 // OpenMenu(ポーズ)もESCにbindされ、ここで拾うとESCの選択キャンセル/モード終了が死ぬため破壊モードでは扱わない
                 // OpenMenu(pause) is also bound to ESC; handling it here would shadow ESC's cancel/exit, so skip it in destroy mode
                 if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.GameScreen);
-                if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.BuildMenu);
+                if (HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.BuildMenu);
                 if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
 
                 // ESCはまず削除選択のキャンセルに使い、キャンセルする選択が無ければ破壊モードを抜ける

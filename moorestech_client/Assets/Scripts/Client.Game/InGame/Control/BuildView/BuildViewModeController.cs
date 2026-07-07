@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.Control.BuildView
@@ -64,17 +65,17 @@ namespace Client.Game.InGame.Control.BuildView
         public void ManualUpdate()
         {
             //TODO InputSystemのリファクタ対象
-            if (UnityEngine.Input.GetKeyDown(KeyCode.V)) ToggleViewMode();
+            if (HybridInput.GetKeyDown(KeyCode.V)) ToggleViewMode();
 
             if (CurrentMode != BuildViewMode.TopDown) return;
 
             //TODO InputSystemのリファクタ対象
-            if (UnityEngine.Input.GetMouseButtonDown(1))
+            if (HybridInput.GetMouseButtonDown(1))
             {
                 _applier.SetCursorVisible(false);
                 _applier.SetCameraRotatable(true);
             }
-            if (UnityEngine.Input.GetMouseButtonUp(1))
+            if (HybridInput.GetMouseButtonUp(1))
             {
                 _applier.SetCursorVisible(true);
                 _applier.SetCameraRotatable(false);
