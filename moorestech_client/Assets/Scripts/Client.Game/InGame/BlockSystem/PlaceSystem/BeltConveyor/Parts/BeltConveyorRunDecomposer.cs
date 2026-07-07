@@ -4,7 +4,7 @@ using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
     /// 1マス刻みの経路セル列を長尺バリアント・斜面ブロックの設置エンティティ列へ分解する純ロジック

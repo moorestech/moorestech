@@ -10,7 +10,7 @@ using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
     /// クライアント側でワイヤー接続可否を評価する。判定はサーバーと同じEvaluatorを共有する

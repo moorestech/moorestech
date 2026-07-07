@@ -11,7 +11,7 @@ using UnityEngine;
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
     /// <summary>
     /// 自動接続候補を受信済みクライアント状態のみで収集する。サーバーのワールド状態には触れない

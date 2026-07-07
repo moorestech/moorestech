@@ -5,7 +5,7 @@ using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
     /// 長尺分解済みエンティティ列に対し、所持素材で賄えない後続分をPlaceable=falseへ書き換える
