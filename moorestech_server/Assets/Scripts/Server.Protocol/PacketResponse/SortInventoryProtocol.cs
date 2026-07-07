@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse
             // メインインベントリのときはホットバーを整理対象から除外する
             // Exclude the hotbar from sorting when the target is the main inventory.
             IEnumerable<int> excludeSlots = data.Target.InventoryType == InventoryType.Main
-                ? PlayerInventoryConst.HotBarSlots
+                ? PlayerInventoryConst.GetHotBarSlots(inventory.GetSlotSize())
                 : Array.Empty<int>();
 
             // インベントリ自身が除外スロットを宣言している場合（機械のモジュールスロット等）は結合する

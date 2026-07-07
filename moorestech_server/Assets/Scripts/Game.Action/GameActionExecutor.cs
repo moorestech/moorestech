@@ -13,13 +13,16 @@ namespace Game.Action
     {
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        
+        private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
+
         public GameActionExecutor(
             IGameUnlockStateDataController gameUnlockStateDataController,
-            IPlayerInventoryDataStore playerInventoryDataStore)
+            IPlayerInventoryDataStore playerInventoryDataStore,
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _playerInventoryDataStore = playerInventoryDataStore;
+            _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
         }
 
         public void ExecuteUnlockActions(GameActionElement[] actions, ActionExecutionContext context = default)
@@ -36,6 +39,7 @@ namespace Game.Action
                     case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
                     case GameActionElement.GameActionTypeConst.unlockBlock:
                     case GameActionElement.GameActionTypeConst.unlockTrainCar:
+                    case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
                         ExecuteAction(action, context);
                         break;
                 }
@@ -83,6 +87,10 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.giveItem:
                     GiveItem();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
+                    UnlockPlayerInventorySlotLevel();
                     break;
             }
             
@@ -141,6 +149,12 @@ namespace Game.Action
                 {
                     _gameUnlockStateDataController.UnlockTrainCar(guid);
                 }
+            }
+
+            void UnlockPlayerInventorySlotLevel()
+            {
+                var level = ((UnlockPlayerInventorySlotLevelGameActionParam)action.GameActionParam).Level;
+                _playerInventorySlotLevelDataStore.UnlockLevel(level);
             }
 
             void GiveItem()

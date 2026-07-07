@@ -11,7 +11,6 @@ using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
-using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
 using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
 using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
@@ -128,19 +127,12 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, int pierInventorySlot, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
+        public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
         {
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerId, fromNodeId, fromGuid, pierInventorySlot, pierPlaceInfo, railTypeGuid);
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerId, fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
             _packetSender.Send(request);
         }
         
-        public void PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot)
-        {
-            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerId);
-            _packetSender.Send(request);
-        }
-
         public void SendTrainCarRidingInput(bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
         {
             var request = new TrainCarRidingInputMessagePack(_playerId, moveForward, moveBackward, selectPreviousBranch, selectNextBranch);

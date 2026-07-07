@@ -29,6 +29,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 100,
+        "idlePowerRate": 0.25,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
         "inputFluidSlotCount": 0,
@@ -303,6 +304,48 @@
       },
       "blockSize": [
         1,
+        3,
+        1
+      ],
+      "name": "TestLockedElectricPole",
+      "blockType": "ElectricPole",
+      "blockParam": {
+        "machineConnectionRange": 5,
+        "poleConnectionRange": 7,
+        "poleConnectionHeightRange": 5,
+        "machineConnectionHeightRange": 5,
+        "maxWireConnectionCount": 8,
+        "maxWireLength": 12
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000101",
+      "blockGuid": "00000000-0000-0000-0000-000000000101",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000005",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
         1,
         1
       ],
@@ -410,6 +453,7 @@
       "blockParam": {
         "outputItemSlotCount": 3,
         "requiredPower": 100,
+        "idlePowerRate": 0.2,
         "mineSettings": [
           {
             "time": 1,
@@ -1069,7 +1113,8 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
@@ -1240,7 +1285,8 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
@@ -1314,7 +1360,8 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
@@ -1390,11 +1437,96 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
-      "blockGuid": "00000000-0000-0000-0000-00000000002c"
+      "blockGuid": "00000000-0000-0000-0000-00000000002c",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestLockedGearChainPole",
+      "blockType": "GearChainPole",
+      "blockParam": {
+        "maxConnectionDistance": 10,
+        "maxConnectionCount": 2,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "a1b2c3d4-1102-4102-8102-000000000102",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000102",
+      "blockGuid": "00000000-0000-0000-0000-000000000102"
     },
     {
       "modelTransform": {
@@ -1540,7 +1672,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
@@ -1806,7 +1939,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "Teeth10RequireTorqueTestGear",
@@ -1921,7 +2055,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000013"
@@ -2094,6 +2229,7 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "baseTorque": 0.02,
+          "idlePowerRate": 0.3,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
@@ -2245,7 +2381,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
@@ -2290,6 +2427,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2405,6 +2543,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2520,6 +2659,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2690,7 +2830,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockSize": [
@@ -2719,7 +2860,69 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainRail",
-      "blockGuid": "00000000-0000-0000-0000-000000000024"
+      "blockGuid": "00000000-0000-0000-0000-000000000024",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "00000000-0000-0000-1234-000000000103",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestLockedTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000103",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "00000000-0000-0000-1234-000000000104",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestRailCostTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000104",
+      "requiredItems": [
+        {
+          "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+          "count": 5
+        }
+      ],
+      "initialUnlocked": true
     },
     {
       "blockSize": [
@@ -2928,7 +3131,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "TestGearMapObjectMiner",
@@ -3119,6 +3323,7 @@
         "poleConnectionRange": 5,
         "innerTankCapacity": 100,
         "requiredPower": 5,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
         "inventoryConnectors": {
@@ -3563,7 +3768,8 @@
           "minimumRpm": 0,
           "baseTorque": 5,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       }
     },
@@ -3589,6 +3795,7 @@
         ],
         "innerTankCapacity": 100,
         "requiredPower": 50,
+        "idlePowerRate": 0.4,
         "fluidInventoryConnectors": {
           "outflowConnects": [
             {
@@ -3693,7 +3900,8 @@
           "minimumRpm": 0,
           "baseTorque": 100,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         },
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
@@ -3833,7 +4041,8 @@
           "minimumRpm": 0,
           "baseTorque": 1.0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
@@ -4295,7 +4504,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a1",
@@ -4410,7 +4620,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a2",
@@ -4445,7 +4656,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "3a1a659d-bcbc-4776-aa12-5ef08e0ca5d1",
               "offset": [
                 0,
@@ -4483,15 +4693,11 @@
                   -1,
                   0
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "acb993d1-a6ca-441a-bd03-99fe497f46b6",
               "offset": [
                 0,
@@ -4509,17 +4715,13 @@
                   -1,
                   1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ]
         },
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "connectorGuid": "f80e621b-174a-404d-b9a8-8c9eda12e52d",
               "offset": [
                 0,
@@ -4568,12 +4770,11 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             },
             {
-              "connectType": "Gear",
               "connectorGuid": "04da4a4c-4256-4de0-ad81-c1f958a7a760",
               "offset": [
                 0,
@@ -4622,7 +4823,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             }
@@ -4633,7 +4834,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a3",
@@ -4668,7 +4870,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "30f69258-8caf-4823-9678-396e618c3c80",
               "offset": [
                 0,
@@ -4706,15 +4907,11 @@
                   -1,
                   0
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "28f0a9a8-947d-4dd8-bc2f-5394407064a8",
               "offset": [
                 0,
@@ -4732,17 +4929,13 @@
                   -1,
                   1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ]
         },
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "connectorGuid": "7ebfde75-f1e2-471e-8dac-3f5143efd0e0",
               "offset": [
                 0,
@@ -4791,12 +4984,11 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             },
             {
-              "connectType": "Gear",
               "connectorGuid": "5a4a1b4d-2253-4fc0-a474-44489e998256",
               "offset": [
                 0,
@@ -4845,12 +5037,11 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             },
             {
-              "connectType": "Gear",
               "connectorGuid": "d35c313f-f8d2-4287-a6ea-4a5dd5abf6ae",
               "offset": [
                 0,
@@ -4899,7 +5090,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             }
@@ -4910,7 +5101,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a4",

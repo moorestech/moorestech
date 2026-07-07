@@ -16,6 +16,8 @@ using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module.TestMod;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Tests.CombinedTest.Server.PacketTest
 {
     public class ElectricWireConnectionEditProtocolTest

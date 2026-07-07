@@ -24,11 +24,9 @@ namespace Game.Block.Blocks.ElectricWire
         public float MaxWireLength { get; }
         public bool IsWireConnectionFull => _maxWireConnectionCount <= _wireConnections.Count;
 
-        // このブロックが持つ電力上の役割。持たない役割はnull
-        // Electric roles of this block; null when the role is absent
-        public IElectricConsumer WireConsumer { get; }
-        public IElectricGenerator WireGenerator { get; }
-        public IElectricTransformer WireTransformer { get; }
+        // このブロックが持つ電力上の役割。必ず消費・発電・送電のいずれかに紐づく
+        // Electric role of this block; always tied to a consumer, generator or transformer
+        public IElectricEnergyRole EnergyRole { get; }
 
         private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> _wireConnections = new();
         public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections => _wireConnections;
@@ -38,16 +36,18 @@ namespace Game.Block.Blocks.ElectricWire
         private readonly Subject<Unit> _onChangeBlockState = new();
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        public ElectricWireConnectorComponent(int maxWireConnectionCount, float maxWireLength, BlockInstanceId blockInstanceId, IElectricConsumer consumer, IElectricGenerator generator, IElectricTransformer transformer, Dictionary<string, string> componentStates)
+        public ElectricWireConnectorComponent(int maxWireConnectionCount, float maxWireLength, BlockInstanceId blockInstanceId, IElectricEnergyRole energyRole, Dictionary<string, string> componentStates)
         {
+            // 役割なしのワイヤー端点は許容しない
+            // A wire endpoint without an energy role is not allowed
+            if (energyRole == null) throw new ArgumentNullException(nameof(energyRole));
+
             // 基本状態を初期化する
             // Initialize base state
             _maxWireConnectionCount = maxWireConnectionCount;
             MaxWireLength = maxWireLength;
             BlockInstanceId = blockInstanceId;
-            WireConsumer = consumer;
-            WireGenerator = generator;
-            WireTransformer = transformer;
+            EnergyRole = energyRole;
 
             _componentStates = componentStates;
             ServerContext.GetService<IElectricWireNetworkDatastore>().AddConnector(this);

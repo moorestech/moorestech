@@ -9,12 +9,12 @@ namespace Client.Game.InGame.UI.UIState.State
     public class BuildMenuState : IUIState
     {
         private readonly BuildMenuView _buildMenuView;
-        private readonly BlockPlacementSelection _blockPlacementSelection;
+        private readonly PlacementSelection _placementSelection;
 
-        public BuildMenuState(BuildMenuView buildMenuView, BlockPlacementSelection blockPlacementSelection)
+        public BuildMenuState(BuildMenuView buildMenuView, PlacementSelection placementSelection)
         {
             _buildMenuView = buildMenuView;
-            _blockPlacementSelection = blockPlacementSelection;
+            _placementSelection = placementSelection;
         }
 
         public void OnEnter(UITransitContext context)
@@ -26,11 +26,22 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // 選択が確定したら設置モードへ遷移する
-            // Transition to placement mode once a block is selected
-            if (_buildMenuView.TryConsumeSelectedBlock(out var selectedBlockId))
+            // 選択が確定したら種別に応じて選択状態を設定し設置モードへ遷移する
+            // On selection, set the placement selection by entry type and transition to placement mode
+            if (_buildMenuView.TryConsumeSelectedEntry(out var entry))
             {
-                _blockPlacementSelection.SetSelectedBlock(selectedBlockId);
+                switch (entry.EntryType)
+                {
+                    case PlacementSelectionType.Block:
+                        _placementSelection.SetSelectedBlock(entry.BlockId);
+                        break;
+                    case PlacementSelectionType.TrainCar:
+                        _placementSelection.SetSelectedTrainCar(entry.TrainCarGuid);
+                        break;
+                    case PlacementSelectionType.ConnectTool:
+                        _placementSelection.SetSelectedConnectTool(entry.ConnectPlaceMode);
+                        break;
+                }
                 return new UITransitContext(UIStateEnum.PlaceBlock);
             }
 
