@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { CloseButton, Group, Paper, Title } from "@mantine/core";
-import { useTopic, useTopicSelector, Topics, dispatchAction, useItemMaster } from "@/bridge";
+import { useTopic, useTopicSelector, Topics, UiStateNames, dispatchAction, useItemMaster } from "@/bridge";
 import { resolveBlockComponent } from "./blockComponentRegistry";
 import { BlockInteractionContext, type BlockInteraction } from "./blockInteractionContext";
 import styles from "./style.module.css";
@@ -44,7 +44,7 @@ export default function BlockInventoryPanel() {
             data-testid="block-inventory-close"
             aria-label="close"
             onClick={() => {
-              void dispatchAction("ui_state.request", { state: "GameScreen" });
+              void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
             }}
           />
         </Group>

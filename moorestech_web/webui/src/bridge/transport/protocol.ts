@@ -41,6 +41,15 @@ export const Topics = {
   researchTree: "research.tree",
 } as const;
 
+// C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
+// State names from the C# UIStateEnum; prevents scattered string literals
+export const UiStateNames = {
+  gameScreen: "GameScreen",
+  playerInventory: "PlayerInventory",
+  subInventory: "SubInventory",
+  researchTree: "ResearchTree",
+} as const;
+
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
 // topic → payload type registry; types useTopic/useTopicSelector
 export type TopicPayloads = {

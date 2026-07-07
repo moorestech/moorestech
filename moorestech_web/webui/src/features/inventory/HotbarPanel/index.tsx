@@ -1,7 +1,5 @@
-import { useEffect } from "react";
 import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics, useItemMaster } from "@/bridge";
-import { readActiveLayer } from "@/app/activeLayer";
-import { screenForUiState } from "@/app/uiScreenRouting";
+import { readActiveLayer, screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
@@ -18,29 +16,18 @@ export default function HotbarPanel() {
   // Display + key/wheel selection only during GameScreen (uGUI locks the cursor, so no clicks)
   const interactive = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null) !== "none");
 
-  // 1-9 キーでホットバー選択。リスナーは1回だけ張り、最新値は readTopic(getState) で読む
-  // Keys 1-9 select a hotbar slot; attach the listener once and read the latest value via readTopic (getState)
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      // 入力欄フォーカス中はゲーム操作を奪わない
-      // Don't hijack typing while an input/textarea is focused
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      // オーバーレイ表示中はゲーム系入力を止める（レイヤーが game のときのみ発火）
-      // Suppress game inputs while an overlay is up (fires only when the layer is game)
-      if (readActiveLayer() !== "game") return;
-      const latest = readTopic(Topics.inventory);
-      if (!latest) return;
-      const index = keyToHotbarIndex(e.key);
-      if (index === null || index >= latest.hotbarSlots.length) return;
-      // 実際に選択が変わるときだけ送信する（uGUI 同様）
-      // Dispatch only when the selection actually changes, matching uGUI
-      if (index === latest.selectedHotbar) return;
-      void dispatchAction("inventory.select_hotbar", { index });
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  // 1-9 キーでホットバー選択。ゲートは共有フックが担い、最新値は readTopic で読む
+  // Keys 1-9 select a hotbar slot; the shared hook gates it and the latest value comes via readTopic
+  useGameLayerKeydown((e) => {
+    const latest = readTopic(Topics.inventory);
+    if (!latest) return;
+    const index = keyToHotbarIndex(e.key);
+    if (index === null || index >= latest.hotbarSlots.length) return;
+    // 実際に選択が変わるときだけ送信する（uGUI 同様）
+    // Dispatch only when the selection actually changes, matching uGUI
+    if (index === latest.selectedHotbar) return;
+    void dispatchAction("inventory.select_hotbar", { index });
+  });
 
   // ホイールでホットバー選択を循環。変化時のみ送信し、オーバーレイ表示中は無効化する
   // Cycle the hotbar selection on wheel; dispatch only on change and suppress while an overlay is up

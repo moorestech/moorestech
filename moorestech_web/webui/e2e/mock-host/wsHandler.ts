@@ -1,5 +1,5 @@
 import type { WebSocketServer } from "ws";
-import { Topics, ACTION_TYPES } from "../../src/bridge/transport/protocol";
+import { Topics, UiStateNames, ACTION_TYPES } from "../../src/bridge/transport/protocol";
 import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/protocol";
 import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
@@ -117,14 +117,14 @@ export function attachWsHandlers(wss: WebSocketServer) {
           // 実 host の許可制を再現: GameScreen/PlayerInventory のみ受理し、GameScreen 遷移では block も閉じる
           // Mirror the real host's allowlist: accept only GameScreen/PlayerInventory; GameScreen also closes the block
           const requestedState = (msg.payload as ActionPayloads["ui_state.request"]).state;
-          if (requestedState !== "GameScreen" && requestedState !== "PlayerInventory") {
+          if (requestedState !== UiStateNames.gameScreen && requestedState !== UiStateNames.playerInventory) {
             error = "unsupported_state";
           } else {
             state.currentUiState = { state: requestedState };
-            if (requestedState === "GameScreen") state.currentBlock = clone(fx.blockClosed);
+            if (requestedState === UiStateNames.gameScreen) state.currentBlock = clone(fx.blockClosed);
             setTimeout(() => {
               for (const sub of uiStateSubscribers) send(sub, { op: "event", topic: Topics.uiState, data: state.currentUiState });
-              if (requestedState === "GameScreen") {
+              if (requestedState === UiStateNames.gameScreen) {
                 for (const sub of blockSubscribers) send(sub, { op: "event", topic: Topics.blockInventory, data: state.currentBlock });
               }
             }, 30);

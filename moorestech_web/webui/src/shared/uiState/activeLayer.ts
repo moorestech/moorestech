@@ -1,4 +1,4 @@
-import { readTopic, Topics } from "@/bridge";
+import { readTopic, Topics, UiStateNames } from "@/bridge";
 
 // 前面UI層の優先順位
 // Frontmost UI layer priority
@@ -22,6 +22,6 @@ export function readActiveLayer(): ActiveLayer {
   return deriveActiveLayer({
     modalOpen: modal?.modal != null,
     blockInventoryOpen: block?.open === true,
-    researchOpen: uiState?.state === "ResearchTree",
+    researchOpen: uiState?.state === UiStateNames.researchTree,
   });
 }
