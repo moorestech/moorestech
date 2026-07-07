@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# NOTE: 方式B(レガシー手動フロー)用の参考実装。DSLがあるブランチでは PlaytestRunOptions{Record=true} が録画を内蔵するのでこのスクリプトは不要。
 # Stop Unity Recorder previously started by start-recording.sh.
 # Usage: stop-recording.sh --project-path <unity-project>
 set -euo pipefail

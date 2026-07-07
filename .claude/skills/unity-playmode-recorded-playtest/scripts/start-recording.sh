@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# NOTE: 方式B(レガシー手動フロー)用の参考実装。DSLがあるブランチでは PlaytestRunOptions{Record=true} が録画を内蔵するのでこのスクリプトは不要。
 # Start Unity Recorder via uloop execute-dynamic-code, store controller in AppDomain.
 # Usage: start-recording.sh --project-path <unity-project> --output <path-without-ext> [--width 1280] [--height 720] [--fps 30]
 set -euo pipefail

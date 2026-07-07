@@ -1,0 +1,3 @@
+interface:
+  display_name: "Rail Network Sync"
+  short_description: "Handle train and rail protocol/event synchronization"

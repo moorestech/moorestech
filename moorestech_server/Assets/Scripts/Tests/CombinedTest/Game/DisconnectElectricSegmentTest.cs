@@ -1,123 +1,175 @@
-using System;
 using Core.Update;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
+using System;
 
 namespace Tests.CombinedTest.Game
 {
-    // ブロック削除でセグメントが分割・縮小されるか検証
-    // Verify that removing a wired block correctly splits and shrinks energy segments
+    //電柱が無くなったときにセグメントが切断されるテスト
     public class DisconnectElectricSegmentTest
     {
-        // 鎖状の中間電柱を削除すると2セグメントに分割
-        // Removing the middle pole of a chained segment splits it into two segments
         [Test]
-        public void RemoveMiddlePoleSplitsSegment()
+        public void RemoveElectricPoleToDisconnectSegment()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, saveServiceProvider) =
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            /*設置する電柱、機械、発電機の場所
+             * M □  □ G □  □ M
+             * P □  □ P □  □ P
+             * G
+             */
+            
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
-
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole1);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole3);
-            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
-            ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
-
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
-
-            // 中間電柱を削除して鎖を断つ
-            // Remove the middle pole to break the chain
-            worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
-
-            Assert.AreEqual(2, networkDatastore.SegmentCount);
-
-            // 両端の電柱が別セグメントに属することを確認
-            // Confirm the two end poles now belong to different segments
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment1));
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole3.BlockInstanceId, out var segment3));
-            Assert.AreNotSame(segment1, segment3);
+            
+            //電柱の設置
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(6, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            
+            //発電機と機械の設定
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(3, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(6, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            
+            IWorldEnergySegmentDatastore<EnergySegment> worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+            //セグメントの数を確認
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
+            
+            //右端の電柱を削除
+            worldBlockDatastore.RemoveBlock(Pos(6, 0), BlockRemoveReason.ManualRemove);
+            //セグメントの数を確認
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
+            //電柱を再設置
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(6, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            //セグメントの数を確認
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
+            
+            
+            //真ん中の電柱を削除
+            worldBlockDatastore.RemoveBlock(Pos(3, 0), BlockRemoveReason.ManualRemove);
+            //セグメントが増えていることを確認する
+            Assert.AreEqual(2, worldElectricSegment.GetEnergySegmentListCount());
+            
+            //真ん中の発電機が2つのセグメントにないことを確認する
+            Assert.AreEqual(false, worldElectricSegment.GetEnergySegment(0).Generators.ContainsKey(new BlockInstanceId(5)));
+            Assert.AreEqual(false, worldElectricSegment.GetEnergySegment(1).Generators.ContainsKey(new BlockInstanceId(5)));
+            
+            //両端の電柱が別のセグメントであることを確認する
+            var segment1Block = worldBlockDatastore.GetBlock(Pos(0, 0));
+            var segment2Block = worldBlockDatastore.GetBlock(Pos(6, 0));
+            var electricityTransformer1 = segment1Block.GetComponent<IElectricTransformer>();
+            var electricityTransformer2 = segment2Block.GetComponent<IElectricTransformer>();
+            var segment1 = worldElectricSegment.GetEnergySegment(electricityTransformer1);
+            var segment2 = worldElectricSegment.GetEnergySegment(electricityTransformer2);
+            
+            Assert.AreNotEqual(segment1.GetHashCode(), segment2.GetHashCode());
+            
+            //右端の電柱を削除する
+            worldBlockDatastore.RemoveBlock(Pos(6, 0), BlockRemoveReason.ManualRemove);
+            //セグメントが減っていることを確認する
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
         }
-
-        // 電柱削除で機械・発電機は各自単独セグメントになる
-        // Removing the pole splits the connected machine and generator into their own single-block segments
+        
+        //最後の電柱を削除した場合に、発電機と機械が正しく削除されるテスト
         [Test]
-        public void RemovePoleDisconnectsMachineAndGenerator()
+        public void RemoveLastElectricPoleWithGeneratorAndMachine()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var (_, saveServiceProvider) =
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            /*設置する電柱、機械、発電機の場所
+             * M □ P □ G
+             */
 
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            //電柱の設置
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            //発電機と機械の設定
             worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             worldBlockDatastore.TryAddBlock(GeneratorId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
-            ElectricWireTestUtil.Connect(Pos(2, 0), Pos(0, 0));
-            ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
 
-            // 機械・発電機・電柱が1セグメントに集約されている
-            // The machine, generator, and pole are consolidated into one segment
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(machineBlock.BlockInstanceId, out var joined));
-            Assert.AreEqual(1, joined.Consumers.Count);
-            Assert.AreEqual(1, joined.Generators.Count);
+            var machineInstanceId = machineBlock.BlockInstanceId;
+            var generatorInstanceId = generatorBlock.BlockInstanceId;
 
-            // 電柱を削除
-            // Remove the pole
+            IWorldEnergySegmentDatastore<EnergySegment> worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+
+            //セグメントの数を確認
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
+
+            //セグメントに発電機と機械が登録されていることを確認
+            var segment = worldElectricSegment.GetEnergySegment(0);
+            Assert.AreEqual(1, segment.Generators.Count);
+            Assert.AreEqual(1, segment.Consumers.Count);
+            Assert.IsTrue(segment.Generators.ContainsKey(generatorInstanceId));
+            Assert.IsTrue(segment.Consumers.ContainsKey(machineInstanceId));
+
+            //電柱を削除
             worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
 
-            // 機械・発電機は繋がりを失い各自単独セグメント化
-            // The machine and generator lose their link and each becomes a standalone segment
-            Assert.AreEqual(2, networkDatastore.SegmentCount);
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(machineBlock.BlockInstanceId, out var machineSegment));
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(generatorBlock.BlockInstanceId, out var generatorSegment));
-            Assert.AreNotSame(machineSegment, generatorSegment);
-            Assert.AreEqual(1, machineSegment.Consumers.Count);
-            Assert.AreEqual(1, generatorSegment.Generators.Count);
-
-            // 破壊後にtickしてもクラッシュしないこと
-            // Ticking after removal must not crash
+            //セグメントが削除されていることを確認
+            Assert.AreEqual(0, worldElectricSegment.GetEnergySegmentListCount());
+            
+            // アップデートを呼び出してもエラーが起きないことを確認
             Assert.DoesNotThrow(() => GameUpdater.UpdateOneTick());
         }
 
-        // ループ状に繋いだ電柱は1本削除しても連結が保たれ1セグメントのまま
-        // A looped pole network keeps its connectivity as a single segment after removing one pole
+        //電柱を消してもループによって1つのセグメントになっている時のテスト
         [Test]
-        public void LoopedSegmentStaysConnectedAfterRemovingOnePole()
+        public void LoopedElectricSegmentRemoveElectricPoleTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            /*設置する電柱、機械、発電機の場所
+             * P □ □ P □ □ P
+             * G □ □ □ □ □ □
+             * M □ □ □ □ □ M
+             * P □ □ P □ □ P
+             * G □ □ G
+             */
+            var (_, saveServiceProvider) =
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
-
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole1);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-
-            // 4本を四角形ループに接続
-            // Wire the four poles into a square loop
-            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
-            ElectricWireTestUtil.Connect(Pos(2, 0), Pos(2, 2));
-            ElectricWireTestUtil.Connect(Pos(2, 2), Pos(0, 2));
-            ElectricWireTestUtil.Connect(Pos(0, 2), Pos(0, 0));
-
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
-
-            // ループ上の1本を削除しても残りは別経路で繋がったまま
-            // Removing one pole on the loop still leaves the rest connected via the alternate path
-            worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
-
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment));
-            Assert.AreEqual(3, segment.EnergyTransformers.Count);
+            IWorldEnergySegmentDatastore<EnergySegment> worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+            
+            //電柱の設置
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(6, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(6, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            
+            //発電機と機械の設定
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(3, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(6, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            
+            
+            //セグメントの数を確認
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
+            
+            //真ん中の電柱を削除
+            worldBlockDatastore.RemoveBlock(Pos(3, 0), BlockRemoveReason.ManualRemove);
+            //セグメント数が変わってないかチェック
+            Assert.AreEqual(1, worldElectricSegment.GetEnergySegmentListCount());
+            
+            //真ん中の発電機がセグメントにないことを確認する
+            Assert.AreEqual(false, worldElectricSegment.GetEnergySegment(0).Generators.ContainsKey(new BlockInstanceId(105)));
         }
-
+        
         private static Vector3Int Pos(int x, int z)
         {
             return new Vector3Int(x, 0, z);

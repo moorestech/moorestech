@@ -55,6 +55,3 @@ function tsLayer(a: string): number {
 }
 // 未知 asmdef は既知の後ろ(50)へ。TS スライス("/"含む)は tsLayer で 60+。
 export const asmLayer = (a: string): number => (a in ASM_LAYER ? ASM_LAYER[a] : a.includes('/') ? tsLayer(a) : 50);
-
-// Dep-Map 列の大分類。Server(C#非Client) → Client(`Client.*`) → TS スライス("/"含む) の3群順。
-export const superGroup = (a: string): 0 | 1 | 2 => (a.includes('/') ? 2 : a.startsWith('Client.') ? 1 : 0);

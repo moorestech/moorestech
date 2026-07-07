@@ -26,8 +26,6 @@ namespace Server.Event.EventReceive
             unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockEventMessagePack(i)));
             unlockState.OnUnlockChallengeCategory.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ChallengeCategory, c)));
             unlockState.OnUnlockMachineRecipe.Subscribe(m => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.MachineRecipe, m)));
-            unlockState.OnUnlockBlock.Subscribe(b => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Block, b)));
-            unlockState.OnUnlockTrainCar.Subscribe(t => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.TrainCar, t)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)
@@ -46,16 +44,12 @@ namespace Server.Event.EventReceive
         [IgnoreMember] public ItemId UnlockedItemId => new(UnlockedItemIdInt);
         [IgnoreMember] public Guid UnlockedChallengeCategoryGuid => Guid.Parse(UnlockedChallengeCategoryGuidStr);
         [IgnoreMember] public Guid UnlockedMachineRecipeGuid => Guid.Parse(UnlockedMachineRecipeGuidStr);
-        [IgnoreMember] public Guid UnlockedBlockGuid => Guid.Parse(UnlockedBlockGuidStr);
-        [IgnoreMember] public Guid UnlockedTrainCarGuid => Guid.Parse(UnlockedTrainCarGuidStr);
 
         [Key(0)] public int UnlockEventTypeInt { get; set; }
         [Key(1)] public string UnlockedCraftRecipeGuidStr { get; set; }
         [Key(2)] public int UnlockedItemIdInt { get; set; }
         [Key(3)] public string UnlockedChallengeCategoryGuidStr { get; set; }
         [Key(4)] public string UnlockedMachineRecipeGuidStr { get; set; }
-        [Key(5)] public string UnlockedBlockGuidStr { get; set; }
-        [Key(6)] public string UnlockedTrainCarGuidStr { get; set; }
         
         
         
@@ -82,12 +76,6 @@ namespace Server.Event.EventReceive
                 case UnlockEventType.MachineRecipe:
                     UnlockedMachineRecipeGuidStr = guid.ToString();
                     break;
-                case UnlockEventType.Block:
-                    UnlockedBlockGuidStr = guid.ToString();
-                    break;
-                case UnlockEventType.TrainCar:
-                    UnlockedTrainCarGuidStr = guid.ToString();
-                    break;
             }
         }
     }
@@ -98,7 +86,5 @@ namespace Server.Event.EventReceive
         Item,
         ChallengeCategory,
         MachineRecipe,
-        Block,
-        TrainCar,
     }
 }

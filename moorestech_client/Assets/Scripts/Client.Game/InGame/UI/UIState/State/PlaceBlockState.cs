@@ -37,7 +37,7 @@ namespace Client.Game.InGame.UI.UIState.State
             //TODO InputSystemのリファクタ対象
             // シフト+Bのときはカメラの位置を変えない
             // Shift+B does not change camera position
-            _isChangeCameraAngle = !HybridInput.GetKey(KeyCode.LeftShift);
+            _isChangeCameraAngle = !UnityEngine.Input.GetKey(KeyCode.LeftShift);
             _screenClickableCameraController.OnEnter(_isChangeCameraAngle);
 
             if (_isChangeCameraAngle)
@@ -54,19 +54,16 @@ namespace Client.Game.InGame.UI.UIState.State
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
-            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除");
+            KeyControlDescription.Instance.SetText("1~9: 設置ブロック選択\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除");
         }
 
         public UITransitContext GetNextUpdate()
         {
-            // TabはOpenInventoryと同キーのため、ヘルプ表示どおりビルドメニュー再オープンを優先する
-            // Tab shares the OpenInventory binding; prioritize reopening the build menu as the on-screen help says
-            if (HybridInput.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
             //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
             _screenClickableCameraController.GetNextUpdate();
             _placeSystemStateController.ManualUpdate();

@@ -35,9 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             _previewBlockController.SetActive(false);
             
             if (!_isActive) return null;
-
-            var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(itemId);
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(holdingBlockId);
+            
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(MasterHolder.BlockMaster.GetBlockId(itemId));
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return null;
             PlacePosition = placePoint;
             
@@ -73,7 +72,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
                     Direction = DefaultBlockDirection,
                     VerticalDirection = BlockVerticalDirection.Horizontal,
                     Placeable = true,
-                    BlockId = holdingBlockId,
                     CreateParams = new BlockCreateParam[]
                     {
                         new(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(new RailBridgePierComponentStateDetail(RailDirection.ToVector3()))),

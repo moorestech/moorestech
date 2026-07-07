@@ -13,7 +13,6 @@ using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -90,19 +89,16 @@ namespace Tests.CombinedTest.Core
                 PlacePumpWithPipes(out pumpComponentRef, out pipeNegXRef, out pipePosZRef, out pipeNegZRef);
             }
 
-            // 指定秒数分、ポンプのワイヤーセグメントへ指定出力のテスト発電機を一時登録して稼働させる（tick数で制御）
-            // Helper to run for the given seconds with a test generator of the given output temporarily registered in the pump's wire segment
+            // 指定秒数分、毎フレーム電力を供給しながらゲームを進めるヘルパー（tick数で制御）
+            // Helper to run the game for a specified number of seconds while supplying power each frame (controlled by tick count)
             void RunForSeconds(ElectricPumpComponent component, ElectricPower supply, float seconds)
             {
-                var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
-                Assert.IsTrue(networkDatastore.TryGetEnergySegment(component.BlockInstanceId, out var segment));
-                var generator = new TestElectricGenerator(supply, BlockInstanceId.Create());
-                segment.AddGenerator(generator);
-
                 var ticks = (int)(seconds * GameUpdater.TicksPerSecond);
-                for (var i = 0; i < ticks; i++) GameUpdater.RunFrames(1);
-
-                segment.RemoveGenerator(generator);
+                for (var i = 0; i < ticks; i++)
+                {
+                    component.SupplyEnergy(supply);
+                    GameUpdater.RunFrames(1);
+                }
             }
             
             // すべてのパイプの液体量を合計するヘルパー

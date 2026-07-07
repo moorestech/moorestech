@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
-using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.Pump;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
@@ -33,9 +32,6 @@ namespace Game.Block.Factory.BlockTemplate
                 : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
             var processorComponent = new ElectricPumpProcessorComponent(param, outputComponent, blockPositionInfo);
             var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), processorComponent);
-            // ポンプはConsumer役をワイヤー端点に渡す
-            // Pump passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, electricComponent, null, null, componentStates);
 
             var components = new List<IBlockComponent>
             {
@@ -43,7 +39,6 @@ namespace Game.Block.Factory.BlockTemplate
                 outputComponent,
                 processorComponent,
                 electricComponent,
-                wireConnector,
             };
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

@@ -18,26 +18,6 @@ properties:
         schemaId: items
         foreignKeyIdPath: /data/[*]/itemGuid
         displayElementPath: /data/[*]/name
-    - key: requiredItems
-      type: array
-      optional: true
-      overrideCodeGeneratePropertyName: TrainCarRequiredItemElement
-      items:
-        type: object
-        properties:
-        - key: itemGuid
-          type: uuid
-          foreignKey:
-            schemaId: items
-            foreignKeyIdPath: /data/[*]/itemGuid
-            displayElementPath: /data/[*]/name
-        - key: count
-          type: integer
-          default: 1
-    - key: initialUnlocked
-      type: boolean
-      optional: true
-      default: false
     - key: addressablePath
       type: string
       optional: true

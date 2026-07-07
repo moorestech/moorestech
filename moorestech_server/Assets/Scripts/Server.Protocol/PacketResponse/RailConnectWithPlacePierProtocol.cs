@@ -46,7 +46,8 @@ namespace Server.Protocol.PacketResponse
             
             // ブロックIDの設定
             var blockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
-
+            blockId = blockId.GetVerticalOverrideBlockId(request.PierPlaceInfo.VerticalDirection);
+            
             // paramsの設定
             BlockCreateParam[] createParams = request.PierPlaceInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
             
@@ -120,7 +121,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public int FromNodeId { get; set; }
             [Key(3)] public Guid FromGuid { get; set; }
-            [Key(4)] public PlaceInfoMessagePack PierPlaceInfo
+            [Key(4)] public PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack PierPlaceInfo
             {
                 get;
                 set;
@@ -144,7 +145,7 @@ namespace Server.Protocol.PacketResponse
                     FromGuid = fromGuid,
                     PierInventorySlot = pierInventorySlot,
                     RailTypeGuid = railTypeGuid,
-                    PierPlaceInfo = new PlaceInfoMessagePack(placeInfo),
+                    PierPlaceInfo = new PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack(placeInfo),
                 };
             }
         }

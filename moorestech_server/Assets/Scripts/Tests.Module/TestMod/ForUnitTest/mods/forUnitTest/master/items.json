@@ -551,33 +551,6 @@
       "sortPriority": 100,
       "recipeViewType": "ForceView",
       "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "GearBeltConveyor2",
-      "itemGuid": "11800000-0000-0000-0000-0000000000a3",
-      "imagePath": "Test1",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "GearBeltConveyor3",
-      "itemGuid": "11800000-0000-0000-0000-0000000000a4",
-      "imagePath": "Test1",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
-    },
-    {
-      "maxStack": 100,
-      "name": "TestElectricWire",
-      "itemGuid": "00000000-0000-0000-4649-000000000001",
-      "imagePath": "Test1",
-      "sortPriority": 100,
-      "recipeViewType": "ForceView",
-      "initialUnlocked": false
     }
   ],
   "modules": [

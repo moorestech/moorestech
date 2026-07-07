@@ -153,19 +153,11 @@ namespace Client.Network.API
         public readonly List<Guid> LockedMachineRecipeGuids;
         public readonly List<Guid> UnlockedMachineRecipeGuids;
 
-        public readonly List<Guid> LockedBlockGuids;
-        public readonly List<Guid> UnlockedBlockGuids;
-
-        public readonly List<Guid> LockedTrainCarGuids;
-        public readonly List<Guid> UnlockedTrainCarGuids;
-
         public UnlockStateResponse(
             List<Guid> lockedCraftRecipeGuids, List<Guid> unlockedCraftRecipeGuids,
             List<ItemId> lockedItemIds, List<ItemId> unlockedItemIds,
             List<Guid> lockedChallengeCategoryGuids, List<Guid> unlockedChallengeCategoryGuids,
-            List<Guid> lockedMachineRecipeGuids, List<Guid> unlockedMachineRecipeGuids,
-            List<Guid> lockedBlockGuids, List<Guid> unlockedBlockGuids,
-            List<Guid> lockedTrainCarGuids, List<Guid> unlockedTrainCarGuids)
+            List<Guid> lockedMachineRecipeGuids, List<Guid> unlockedMachineRecipeGuids)
         {
             LockedCraftRecipeGuids = lockedCraftRecipeGuids;
             UnlockedCraftRecipeGuids = unlockedCraftRecipeGuids;
@@ -175,10 +167,6 @@ namespace Client.Network.API
             UnlockedChallengeCategoryGuids = unlockedChallengeCategoryGuids;
             LockedMachineRecipeGuids = lockedMachineRecipeGuids;
             UnlockedMachineRecipeGuids = unlockedMachineRecipeGuids;
-            LockedBlockGuids = lockedBlockGuids;
-            UnlockedBlockGuids = unlockedBlockGuids;
-            LockedTrainCarGuids = lockedTrainCarGuids;
-            UnlockedTrainCarGuids = unlockedTrainCarGuids;
         }
     }
     

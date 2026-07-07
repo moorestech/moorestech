@@ -1,5 +1,5 @@
 ---
-name: debug-workflow
+name: debugging-workflow
 description: >
   バグの原因を体系的に特定する。推測修正を防ぐため、複数観点 (データ / 状態 / 依存 /
   境界変換 / 既存成功パターン / 直近変更 / 未読領域) で仮説を網羅し、実観察 (ログ) で

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.ElectricToGear;
-using Game.Block.Blocks.ElectricWire;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -34,15 +33,10 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new ElectricToGearGeneratorComponent(param, blockInstanceId, gearConnector)
                 : new ElectricToGearGeneratorComponent(componentStates, param, blockInstanceId, gearConnector);
 
-            // 電気→歯車変換はConsumer役をワイヤー端点に渡す
-            // Electric-to-gear passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, component, null, null, componentStates);
-
             var components = new List<IBlockComponent>
             {
                 component,
                 gearConnector,
-                wireConnector,
             };
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

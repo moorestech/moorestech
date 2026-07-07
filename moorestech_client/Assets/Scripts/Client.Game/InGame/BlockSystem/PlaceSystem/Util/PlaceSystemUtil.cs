@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
-using Client.Input;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.SoundEffect;
-using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -33,7 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             surface = null;
             pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(HybridInput.GetMousePosition());
+            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
@@ -54,7 +52,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         public static bool TryGetRaySpecifiedComponentHit<T>(Camera mainCamera, out T component, int layerMask) where T : class
         {
             component = null;
-            var ray = mainCamera.ScreenPointToRay(HybridInput.GetMousePosition());
+            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
@@ -71,7 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             component = null;
             pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(HybridInput.GetMousePosition());
+            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
@@ -141,14 +139,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // PlaceInfoをサーバーに送信
             // Send PlaceInfo to server
             ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
-            SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
-        }
-
-        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
-        {
-            // セル毎BlockId付きでPlaceInfoをサーバーに送信
-            // Send PlaceInfo to server; each cell already carries its own BlockId
-            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
     }

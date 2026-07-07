@@ -86,10 +86,10 @@ namespace Tests.CombinedTest.Core
             var added = worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
             Assert.IsTrue(added, $"Failed to place pump at {pos}");
 
-            // ポンプが属するワイヤーセグメントへテスト発電機を登録し powerRate=1.0 にする
-            // Register a test generator into the pump's wire segment so powerRate = 1.0
-            var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pump.BlockInstanceId, out var segment));
+            // 電力を十分に供給して powerRate=1.0 にする
+            // Supply enough power so powerRate = 1.0
+            var segment = new EnergySegment();
+            segment.AddEnergyConsumer(pump.GetComponent<IElectricConsumer>());
             segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
 
             return pump;

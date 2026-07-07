@@ -200,18 +200,15 @@ namespace Game.Block.Blocks.PowerGenerator
         }
 
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
-        {
-            // タンク未生成（液体燃料設定なし）の場合は受け入れず全量返す
-            // Without a tank (no fluid fuel configured), reject and return the full stack
-            if (_fuelFluidContainer == null) return fluidStack;
+        { 
             return _fuelFluidContainer.AddLiquid(fluidStack, source);
         }
 
-
+        
         public List<FluidStack> GetFluidInventory()
         {
             var fluidStacks = new List<FluidStack>();
-            if (_fuelFluidContainer != null && _fuelFluidContainer.Amount > 0)
+            if (_fuelFluidContainer.Amount > 0)
             {
                 fluidStacks.Add(new FluidStack(_fuelFluidContainer.Amount, _fuelFluidContainer.FluidId));
             }
@@ -240,12 +237,10 @@ namespace Game.Block.Blocks.PowerGenerator
             saveData.FluidTank = null;
             if (_fuelFluidContainer != null)
             {
-                // 空タンク(EmptyFluidId)はGuid変換できないためnullで保存する。Restore側はnullを空として復元する
-                // An empty tank (EmptyFluidId) has no Guid, so persist null; Restore maps null back to empty
-                var isEmpty = _fuelFluidContainer.FluidId == FluidMaster.EmptyFluidId;
+                var fluidGuid = MasterHolder.FluidMaster.GetFluidMaster(_fuelFluidContainer.FluidId).FluidGuid;
                 saveData.FluidTank = new VanillaElectricGeneratorFluidSaveJsonObject
                 {
-                    FluidGuidStr = isEmpty ? null : MasterHolder.FluidMaster.GetFluidMaster(_fuelFluidContainer.FluidId).FluidGuid.ToString(),
+                    FluidGuidStr = fluidGuid.ToString(),
                     Amount = _fuelFluidContainer.Amount,
                 };
             }
@@ -276,7 +271,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 ? MasterHolder.FluidMaster.GetFluidId(saveData.CurrentFuelFluidGuid.Value)
                 : FluidMaster.EmptyFluidId;
 
-            if (saveData.FluidTank != null && _fuelFluidContainer != null)
+            if (saveData.FluidTank != null)
             {
                 var savedFluidGuid = saveData.FluidTank.FluidGuid;
                 _fuelFluidContainer.FluidId = savedFluidGuid.HasValue

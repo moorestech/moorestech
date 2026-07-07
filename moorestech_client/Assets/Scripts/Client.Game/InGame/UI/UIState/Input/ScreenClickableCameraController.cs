@@ -39,14 +39,14 @@ namespace Client.Game.InGame.UI.UIState.Input
         public void GetNextUpdate()
         {
             //TODO InputSystemのリファクタ対象
-            if (HybridInput.GetMouseButtonDown(1))
+            if (UnityEngine.Input.GetMouseButtonDown(1))
             {
                 InputManager.MouseCursorVisible(false);
                 _inGameCameraController.SetControllable(true);
             }
-
+            
             //TODO InputSystemのリファクタ対象
-            if (HybridInput.GetMouseButtonUp(1))
+            if (UnityEngine.Input.GetMouseButtonUp(1))
             {
                 InputManager.MouseCursorVisible(true);
                 _inGameCameraController.SetControllable(false);

@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Go to inventory with Tab, or back to game screen with ESC/R
             // TODO InputManagerに移す
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
-            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.GameScreen);
 
             return null;
         }

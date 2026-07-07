@@ -118,13 +118,16 @@ namespace Tests.CombinedTest.{Layer}
 
 ### 3. テスト実行
 
-作成後、uloop CLIでテスト実行（サーバーテストはクライアントプロジェクトからインポートされているため、クライアントのproject-pathで実行する）:
+作成後、MCPツールまたはシェルスクリプトでテスト実行:
 
-```bash
-uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "^Tests\.{TestType}\.{Layer}\.{ClassName}$"
 ```
+# MCPツール（推奨）
+mcp__moorestech_server__RunEditModeTests
+  groupNames: ["^Tests\\.{TestType}\\.{Layer}\\.{ClassName}$"]
 
-注意: 新規サーバー.csファイルはUnity再起動（Refresh不可）でないとコンパイルされない（file:パッケージのため）。
+# シェルスクリプト（フォールバック）
+./tools/unity-test.sh moorestech_server "^Tests\\.{TestType}\\.{Layer}\\.{ClassName}$"
+```
 
 ## リソース
 

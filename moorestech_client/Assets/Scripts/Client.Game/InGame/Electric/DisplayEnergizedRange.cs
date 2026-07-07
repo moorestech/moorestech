@@ -14,8 +14,7 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 namespace Client.Game.InGame.Electric
 {
     /// <summary>
-    ///     電気系ブロック設置時に電柱の自動接続の探索範囲をボックスで表示する
-    ///     Displays the pole's auto-connect search range as a box while placing an electric block
+    ///     TODO 各データにアクセスしやすいようなアクセッサを作ってそっちに乗り換える
     /// </summary>
     public class DisplayEnergizedRange : MonoBehaviour
     {

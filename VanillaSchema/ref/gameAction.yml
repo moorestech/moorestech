@@ -15,8 +15,6 @@ items:
     - unlockItemRecipeView
     - unlockChallengeCategory
     - unlockMachineRecipe
-    - unlockBlock
-    - unlockTrainCar
     - playSkit
     - playBackgroundSkit
   - key: gameActionParam
@@ -62,30 +60,6 @@ items:
             schemaId: machineRecipes
             foreignKeyIdPath: /data/[*]/machineRecipeGuid
             displayElementPath: /data/[*]/machineRecipeGuid
-    - when: unlockBlock
-      type: object
-      isDefaultOpen: true
-      properties:
-      - key: unlockBlockGuids
-        type: array
-        items:
-          type: uuid
-          foreignKey:
-            schemaId: blocks
-            foreignKeyIdPath: /data/[*]/blockGuid
-            displayElementPath: /data/[*]/name
-    - when: unlockTrainCar
-      type: object
-      isDefaultOpen: true
-      properties:
-      - key: unlockTrainCarGuids
-        type: array
-        items:
-          type: uuid
-          foreignKey:
-            schemaId: train
-            foreignKeyIdPath: /trainCars/[*]/trainCarGuid
-            displayElementPath: /trainCars/[*]/trainCarGuid
     - when: unlockChallengeCategory
       type: object
       isDefaultOpen: true

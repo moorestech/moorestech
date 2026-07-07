@@ -5,38 +5,14 @@
       "priority": 200,
       "usePlaceItems": [
         "20000000-0000-0000-0000-000000000000"
-      ],
-      "placeParam": {}
+      ]
     },
     {
       "placeMode": "GearChainPoleConnect",
       "priority": 300,
       "usePlaceItems": [
         "b15c8f72-df53-4f3a-810f-55a76f65d2ce"
-      ],
-      "placeParam": {}
-    },
-    {
-      "placeMode": "ElectricWireConnect",
-      "priority": 400,
-      "usePlaceItems": [
-        "00000000-0000-0000-4649-000000000001"
-      ],
-      "placeParam": {}
-    },
-    {
-      "placeMode": "BeltConveyor",
-      "priority": 140,
-      "usePlaceItems": [],
-      "placeParam": {
-        "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
-        "downBlockGuid": "00000000-0000-0000-0000-0000000000a2",
-        "straightBlocks": [
-          { "length": 1, "blockGuid": "00000000-0000-0000-0000-000000000015" },
-          { "length": 2, "blockGuid": "00000000-0000-0000-0000-0000000000a3" },
-          { "length": 3, "blockGuid": "00000000-0000-0000-0000-0000000000a4" }
-        ]
-      }
+      ]
     }
   ]
 }

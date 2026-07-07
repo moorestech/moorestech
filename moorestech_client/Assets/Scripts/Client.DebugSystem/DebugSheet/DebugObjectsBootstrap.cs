@@ -1,13 +1,15 @@
 using Client.Common.Asset;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Client.DebugSystem
 {
     public static class DebugObjectsBootstrap
     {
         private const string DebugObjectsAddress = "Vanilla/Debug/DebugObjects";
-        private const string DisabledSessionStateKey = "DebugObjectsBootstrap_Disabled";
         
         private static GameObject _debugObjectsInstance;
         private static LoadedAsset<GameObject> _debugObjectsAsset;
@@ -23,7 +25,9 @@ namespace Client.DebugSystem
             if (Disabled) return;
 
 #if UNITY_EDITOR
-            if (ConsumeDisableForNextInitialize()) return;
+            // SessionStateはドメインリロード後も保持されるため、テスト中の無効化に使用
+            // SessionState persists across domain reload, used to disable during tests.
+            if (SessionState.GetBool("DebugObjectsBootstrap_Disabled", false)) return;
 #endif
             
             // シーンロード時にイベント購読を初期化する
@@ -102,43 +106,5 @@ namespace Client.DebugSystem
             _debugObjectsAsset.Dispose();
             _debugObjectsAsset = null;
         }
-
-#if UNITY_EDITOR
-        private static void ClearDisableForNextInitialize()
-        {
-            // テスト後の明示クリーンアップで通常PlayModeへの漏れを防ぐ
-            // Prevent test cleanup state from leaking into normal PlayMode.
-            UnityEditor.SessionState.SetBool(DisabledSessionStateKey, false);
-        }
-
-        private static bool ConsumeDisableForNextInitialize()
-        {
-            if (!UnityEditor.SessionState.GetBool(DisabledSessionStateKey, false)) return false;
-
-            // テスト中断後に通常PlayModeへ漏れないよう一度だけ消費する
-            // Consume once so aborted tests do not suppress normal PlayMode.
-            UnityEditor.SessionState.SetBool(DisabledSessionStateKey, false);
-            return true;
-        }
-
-        [UnityEditor.InitializeOnLoadMethod]
-        private static void InitializeEditorDisableFlagCleanup()
-        {
-            // EditMode中の再コンパイルで残留フラグを消す
-            // Clear stale flags on script reload while the editor stays in EditMode.
-            if (!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) ClearDisableForNextInitialize();
-
-            // PlayMode終了時にも残留フラグを消す
-            // Clear stale flags when PlayMode returns to EditMode.
-            UnityEditor.EditorApplication.playModeStateChanged -= OnEditorPlayModeStateChanged;
-            UnityEditor.EditorApplication.playModeStateChanged += OnEditorPlayModeStateChanged;
-        }
-
-        private static void OnEditorPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
-        {
-            if (state != UnityEditor.PlayModeStateChange.EnteredEditMode) return;
-            ClearDisableForNextInitialize();
-        }
-#endif
     }
 }

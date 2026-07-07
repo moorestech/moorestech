@@ -31,7 +31,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Return to GameScreen on ESC or F3
             if (InputManager.UI.CloseUI.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
             //TODO InputSystemのリファクタ対象
-            if (HybridInput.GetKeyDown(KeyCode.F3)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.F3)) return new UITransitContext(UIStateEnum.GameScreen);
 
             // カーソル下のブロックにバウンディングボックスを表示
             // Show bounding box on the block under the cursor

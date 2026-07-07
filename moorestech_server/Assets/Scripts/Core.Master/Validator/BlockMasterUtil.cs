@@ -13,9 +13,8 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += BlockItemGuidValidation();
             errorLogs += BlockParamValidation();
-            errorLogs += BlockRequiredItemsValidation();
+            errorLogs += OverrideVerticalBlockValidation();
             errorLogs += GearChainItemsValidation();
-            errorLogs += ElectricWireItemsValidation();
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
             errorLogs += ConnectorSettingsValidation();
@@ -179,36 +178,36 @@ namespace Core.Master.Validator
                 return logs;
             }
 
-            string BlockRequiredItemsValidation()
+            string OverrideVerticalBlockValidation()
             {
-                // itemGuid実在性+重複を検証
-                // Validate itemGuid existence and reject duplicates within a block's requiredItems
                 var logs = "";
                 foreach (var block in blocks.Data)
                 {
-                    if (block.RequiredItems == null) continue;
+                    if (block.OverrideVerticalBlock == null) continue;
 
-                    var seenItemGuids = new HashSet<Guid>();
-                    foreach (var requiredItem in block.RequiredItems)
+                    var overrideVertical = block.OverrideVerticalBlock;
+
+                    // 空のGUIDは「オーバーライドなし」を意味するためスキップ
+                    // Empty GUID means no override, so skip
+                    if (overrideVertical.UpBlockGuid.HasValue && overrideVertical.UpBlockGuid.Value != Guid.Empty)
                     {
-                        var id = MasterHolder.ItemMaster.GetItemIdOrNull(requiredItem.ItemGuid);
-                        if (id == null)
+                        if (!ExistsBlockGuid(overrideVertical.UpBlockGuid.Value))
                         {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.UpBlockGuid:{overrideVertical.UpBlockGuid}\n";
                         }
-
-                        // ConstructionCostServiceは重複を合算しないため、重複定義はマスタエラーとする
-                        // ConstructionCostService does not sum duplicates, so a duplicate definition is a master error
-                        if (!seenItemGuids.Add(requiredItem.ItemGuid))
+                    }
+                    if (overrideVertical.HorizontalBlockGuid.HasValue && overrideVertical.HorizontalBlockGuid.Value != Guid.Empty)
+                    {
+                        if (!ExistsBlockGuid(overrideVertical.HorizontalBlockGuid.Value))
                         {
-                            logs += $"[BlockMaster] Name:{block.Name} has duplicate RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.HorizontalBlockGuid:{overrideVertical.HorizontalBlockGuid}\n";
                         }
-
-                        // count 0以下は無償設置と0個返却を生むためマスタエラー
-                        // Non-positive counts allow free placement and zero-stack refunds, so treat them as master errors
-                        if (requiredItem.Count <= 0)
+                    }
+                    if (overrideVertical.DownBlockGuid.HasValue && overrideVertical.DownBlockGuid.Value != Guid.Empty)
+                    {
+                        if (!ExistsBlockGuid(overrideVertical.DownBlockGuid.Value))
                         {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.Count:{requiredItem.Count}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.DownBlockGuid:{overrideVertical.DownBlockGuid}\n";
                         }
                     }
                 }
@@ -225,28 +224,6 @@ namespace Core.Master.Validator
                     if (id == null)
                     {
                         logs += $"[BlockMaster] GearChainItem has invalid ItemGuid:{gearChainItem.ItemGuid}\n";
-                    }
-                }
-
-                return logs;
-            }
-
-            string ElectricWireItemsValidation()
-            {
-                var logs = "";
-                foreach (var electricWireItem in blocks.ElectricWireItems)
-                {
-                    var id = MasterHolder.ItemMaster.GetItemIdOrNull(electricWireItem.ItemGuid);
-                    if (id == null)
-                    {
-                        logs += $"[BlockMaster] ElectricWireItem has invalid ItemGuid:{electricWireItem.ItemGuid}\n";
-                    }
-
-                    // 0以下はコスト計算が発散するため弾く
-                    // Reject non-positive values; the cost calculation diverges
-                    if (electricWireItem.ConsumptionPerLength <= 0)
-                    {
-                        logs += $"[BlockMaster] ElectricWireItem ConsumptionPerLength must be > 0. ItemGuid:{electricWireItem.ItemGuid}\n";
                     }
                 }
 

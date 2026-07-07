@@ -18,8 +18,6 @@ namespace Game.UnlockState
         public IReadOnlyDictionary<ItemId, ItemUnlockStateInfo> ItemUnlockStateInfos { get; }
         public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos { get; }
         public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos { get; }
-        public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos { get; }
-        public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos { get; }
     }
     
     /// <summary>
@@ -42,13 +40,7 @@ namespace Game.UnlockState
 
         public IObservable<Guid> OnUnlockMachineRecipe { get; }
         void UnlockMachineRecipe(Guid machineRecipeGuid);
-
-        public IObservable<Guid> OnUnlockBlock { get; }
-        void UnlockBlock(Guid blockGuid);
-
-        public IObservable<Guid> OnUnlockTrainCar { get; }
-        void UnlockTrainCar(Guid trainCarGuid);
-
+        
         void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
         GameUnlockStateJsonObject GetSaveJsonObject();
     }

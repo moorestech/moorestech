@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.ConveyorOverpass
 {
-    // 実際の自動立体交差配置(BeltConveyorPlacePointCalculator)で障害物を跨ぐベルト列を生成し、アイテムが流れることを検証する
+    // 実際の自動立体交差配置(CommonBlockPlacePointCalculator)で障害物を跨ぐベルト列を生成し、アイテムが流れることを検証する
     // Verify the real auto-overpass placement generates a belt run stepping over obstacles and items flow across it.
     public class ConveyorOverpassConveyanceTest
     {
@@ -56,7 +56,7 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             // 歯車ベルトのドラッグ配置を本番の計算経路で求める
             // Compute the dragged gear-belt placement via the production calc path.
             var holding = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor);
-            var placeInfos = BeltConveyorPlacePointCalculator.CalculatePoint(
+            var placeInfos = CommonBlockPlacePointCalculator.CalculatePoint(
                 start, end, false, BlockDirection.East, holding,
                 (info, _) => !world.Exists(info.Position),
                 cell => world.Exists(cell));
@@ -94,7 +94,7 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
                 foreach (var info in placeInfos)
                 {
                     if (!info.Placeable) continue;
-                    var blockId = ResolveVerticalBlockId(info.VerticalDirection);
+                    var blockId = holding.BlockGuid.GetVerticalOverrideBlockId(info.VerticalDirection);
                     Assert.IsTrue(world.TryAddBlock(blockId, info.Position, info.Direction, Array.Empty<BlockCreateParam>(), out var block), $"設置失敗 / placement failed at {info.Position}");
                     result.Add((block.GetComponent<VanillaBeltConveyorComponent>(), block.GetComponent<GearBeltConveyorComponent>()));
                 }
@@ -104,20 +104,6 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             int Count(VanillaBeltConveyorComponent belt)
             {
                 return belt.BeltConveyorItems.Count(x => x != null);
-            }
-
-            // ファミリーのUp/DownBlockGuidからセル毎の向き別BlockIdを解決する（水平は元のBlockGuidのまま）
-            // Resolve the per-cell BlockId from the family's Up/DownBlockGuid (horizontal keeps the original BlockGuid)
-            BlockId ResolveVerticalBlockId(BlockVerticalDirection verticalDirection)
-            {
-                if (!BeltConveyorPlaceFamilyUtil.TryGetFamilyByGuid(holding.BlockGuid, out var beltParam)) return MasterHolder.BlockMaster.GetBlockId(holding.BlockGuid);
-
-                return verticalDirection switch
-                {
-                    BlockVerticalDirection.Up => MasterHolder.BlockMaster.GetBlockId(beltParam.UpBlockGuid),
-                    BlockVerticalDirection.Down => MasterHolder.BlockMaster.GetBlockId(beltParam.DownBlockGuid),
-                    _ => MasterHolder.BlockMaster.GetBlockId(holding.BlockGuid),
-                };
             }
 
             #endregion
