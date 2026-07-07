@@ -104,6 +104,43 @@ namespace Client.WebUiHost.Game.Actions
     }
 
     /// <summary>
+    /// block_inventory.split: block スロットの半分を grab に取る（プレイヤー側 inventory.split の block 版）
+    /// block_inventory.split: grab half of a block slot's stack (block-side counterpart of inventory.split)
+    /// </summary>
+    public class BlockSplitGrabActionHandler : IActionHandler
+    {
+        public string ActionType => "block_inventory.split";
+
+        private readonly LocalPlayerInventoryController _controller;
+        private readonly SubInventoryState _subInventoryState;
+
+        public BlockSplitGrabActionHandler(LocalPlayerInventoryController controller, SubInventoryState subInventoryState)
+        {
+            _controller = controller;
+            _subInventoryState = subInventoryState;
+        }
+
+        public UniTask<ActionResult> ExecuteAsync(JObject payload)
+        {
+            if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+
+            // 入力は block スロットのみ。player 側スロットは既存 inventory.split の責務
+            // Input is a block slot only; player-side slots stay with the existing inventory.split
+            if (!BlockAreaSlotParser.TryParseBlockSlot(payload["from"], _subInventoryState, out var combinedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (_controller.GrabInventory.Id != ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("grab_not_empty"));
+
+            var item = _controller.LocalPlayerInventory[combinedSlot];
+            if (item.Id == ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("empty_slot"));
+
+            // 半分計算は SplitGrabActionHandler と同じ床関数。1個以下は成功扱いの no-op
+            // Half uses the same floor as SplitGrabActionHandler; a stack of 1 is a successful no-op
+            var half = item.Count / 2;
+            if (0 < half) _controller.MoveItem(LocalMoveInventoryType.MainOrSub, combinedSlot, LocalMoveInventoryType.Grab, 0, half);
+            return UniTask.FromResult(ActionResult.Success());
+        }
+    }
+
+    /// <summary>
     /// block_inventory.collect: block スロット起点の同種収集（uGUI サブ側ダブルクリック相当）
     /// block_inventory.collect: gather same-type items from a block slot (uGUI sub-side double-click equivalent)
     /// </summary>

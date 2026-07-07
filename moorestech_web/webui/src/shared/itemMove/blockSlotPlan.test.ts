@@ -43,13 +43,15 @@ describe("planBlockRightClick", () => {
       { type: "block_inventory.move_item", payload: { from: { area: "grab", slot: 0 }, to: { area: "block", slot: 2 }, count: 1 } },
     ]);
   });
-  it("空手+2個以上は半分(切り捨て)を grab へ拾う", () => {
+  it("空手+中身ありは block_inventory.split（半分掴みはホスト計算）", () => {
     expect(planBlockRightClick(0, slot(1, 7), 0)).toEqual([
-      { type: "block_inventory.move_item", payload: { from: { area: "block", slot: 0 }, to: { area: "grab", slot: 0 }, count: 3 } },
+      { type: "block_inventory.split", payload: { from: { area: "block", slot: 0 } } },
     ]);
   });
-  it("空手+1個は半分が0のため無操作(uGUI準拠)", () => {
-    expect(planBlockRightClick(0, slot(1, 1), 0)).toEqual([]);
+  it("空手+1個も split を送る（半分0の no-op 判断はホスト）", () => {
+    expect(planBlockRightClick(0, slot(1, 1), 0)).toEqual([
+      { type: "block_inventory.split", payload: { from: { area: "block", slot: 0 } } },
+    ]);
   });
   it("空手+空スロットは無操作", () => {
     expect(planBlockRightClick(0, slot(0, 0), 0)).toEqual([]);

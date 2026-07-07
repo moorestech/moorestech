@@ -18,7 +18,7 @@ CEF 上で動く React 製ゲーム内 UI（`moorestech_web/webui` + `Client.Web
 | `ui-completeness-reaudit-plan.md` | uGUI→Web の網羅性 再監査**手順書**（見落とし再発防止のプロセス定義。再利用可） |
 | `2026-07-07-parity-audit-verification-handoff.md` | パリティ監査の裏取り結果。**要訂正5点**あり、台帳化・実装前に必読 |
 | `2026-07-07-parity-implementation-plan.md` | パリティ実装の**ロードマップ**（Phase 0-6 概要） |
-| `2026-07-07-block-split-unification-handoff.md` | ブロック側半分掴みのホスト計算統一（`block_inventory.split` 追加）の申し送り。着手時必読（実コード裏取り・訂正済み、末尾に検証記録） |
+| `2026-07-07-block-split-unification-handoff.md` | ブロック側半分掴みのホスト計算統一（`block_inventory.split` 追加）の申し送り（**実装完了済み**・経緯記録として保管。末尾に検証記録と実装完了記録） |
 | `../superpowers/plans/2026-07-07-webui-parity-phase0-2.md` | Phase 0〜2 の**実行計画**（writing-plans形式・完全コード付き）。着手はこちらから |
 | `archive/2026-07-02-webui-mantine-migration.md` | Tailwind→Mantine 移行計画（**完了済み・履歴保管**） |
 
@@ -116,7 +116,7 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 - [ ] クラフト長押し・連続クラフト（FEAT-CRAFT-1 既存記載の再掲）
 
 **品質フォロー（種リスト由来）**
-- [ ] ブロック側「半分掴み」のホスト計算統一: C# に `block_inventory.split` を追加し `blockSlotPlan.ts` のクライアント床計算を廃止（現時点で挙動差ゼロ・構造統一のみ。手順は `2026-07-07-block-split-unification-handoff.md` が正）
+- [x] ブロック側「半分掴み」のホスト計算統一: C# に `block_inventory.split` を追加し `blockSlotPlan.ts` のクライアント床計算を廃止（2026-07-07 実装完了。unit/e2e/C#契約テスト全パス。経緯は `2026-07-07-block-split-unification-handoff.md`）
 - [ ] `ui_state.request` が現 state を問わず受理される（Story/PauseMenu 中の遅延要求で強制遷移し得る。ホワイトリスト検討）
 - [ ] itemMaster の WS 再接続後リフレッシュ（外部ブラウザ開発フロー限定の実害。※初回ロード失敗の永続 stale は 2026-07-07 の zustand ストア化＋3秒自動リトライで解消済み — `bridge/store/itemMasterStore.ts`。残るは「一度ロード成功した後の再接続で再取得しない」のみ）
 - [ ] crafting 系 validator の深掘り（壊れ payload での React クラッシュ耐性。all-code-review で見送り分）

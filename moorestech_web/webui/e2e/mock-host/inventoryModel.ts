@@ -44,6 +44,24 @@ export function applyBlockMove(
   return null;
 }
 
+// host の BlockSplitGrabActionHandler と同型: 空手前提で from の半分(床)を grab へ取る。1個は成功 no-op
+// Mirrors the host's BlockSplitGrabActionHandler: empty-handed only, grab floor(count/2) from the slot; 1 item is a success no-op
+export function applyBlockSplit(
+  inv: PlayerInventoryData,
+  currentBlock: BlockInventoryData,
+  p: ActionPayloads["block_inventory.split"],
+): string | null {
+  if (inv.grab.count > 0) return "grab_not_empty";
+  const from = blockSlotOf(inv, currentBlock, p.from);
+  if (from.count === 0) return "empty_slot";
+  const half = Math.floor(from.count / 2);
+  if (half === 0) return null;
+  inv.grab.itemId = from.itemId;
+  inv.grab.count = half;
+  from.count -= half;
+  return null;
+}
+
 // from の count 個を to へ移す最小モデル。block を跨がない移動は「閉ブロック」扱いの applyBlockMove と完全同型
 // Minimal move model; a non-block move is exactly applyBlockMove against a closed block
 export function applyMove(inv: PlayerInventoryData, p: ActionPayloads["inventory.move_item"]): string | null {

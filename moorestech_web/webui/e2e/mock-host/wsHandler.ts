@@ -5,7 +5,7 @@ import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers } from "./state";
-import { applyMove, applyBlockMove, applyCollect, applyBlockCollect } from "./inventoryModel";
+import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect } from "./inventoryModel";
 import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 
 // 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
@@ -99,6 +99,18 @@ export function attachWsHandlers(wss: WebSocketServer) {
           const moveError = applyBlockMove(inv, state.currentBlock, msg.payload as ActionPayloads["block_inventory.move_item"]);
           if (moveError) {
             error = moveError;
+          } else {
+            setTimeout(() => {
+              send(ws, { op: "event", topic: Topics.inventory, data: inv });
+              send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock });
+            }, 30);
+          }
+        } else if (msg.type === "block_inventory.split") {
+          // 半分計算は host 側の責務。適用成功時のみ両 topic を再配信する
+          // The host owns the half computation; republish both topics only when the apply succeeds
+          const splitError = applyBlockSplit(inv, state.currentBlock, msg.payload as ActionPayloads["block_inventory.split"]);
+          if (splitError) {
+            error = splitError;
           } else {
             setTimeout(() => {
               send(ws, { op: "event", topic: Topics.inventory, data: inv });
