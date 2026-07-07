@@ -11,12 +11,13 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Fluid;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UniRx;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
@@ -146,8 +147,8 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
             
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory>>();
-            BlockConnectorComponent<IFluidInventory> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
             
             // パイプ同士が接続されているかのテスト
             // Test if the pipes are connected
@@ -159,11 +160,11 @@ namespace Tests.CombinedTest.Core
             
             // 正しくオプションが読み込まれているかのテスト
             // Test if the options are read correctly
-            var option0 = connect0.Value.SelfConnector?.ConnectOption as FluidConnectOption;
+            var option0 = (connect0.Value.SelfConnector as IFluidConnector)?.Option;
             Assert.IsNotNull(option0);
             Assert.AreEqual(10, option0.FlowCapacity);
 
-            var option1 = connect0.Value.SelfConnector?.ConnectOption as FluidConnectOption;
+            var option1 = (connect0.Value.SelfConnector as IFluidConnector)?.Option;
             Assert.IsNotNull(option1);
             Assert.AreEqual(10, option1.FlowCapacity);
         }
@@ -182,7 +183,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oneWayFluidPipeBlock);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
             
-            BlockConnectorComponent<IFluidInventory> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory>>();
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
             
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
@@ -192,7 +193,7 @@ namespace Tests.CombinedTest.Core
             {
                 // 出力
                 var connect = oneWayFluidPipeConnector.ConnectedTargets[fluidPipe1];
-                var selfOption = connect.SelfConnector?.ConnectOption as FluidConnectOption;
+                var selfOption = (connect.SelfConnector as IFluidConnector)?.Option;
                 Assert.NotNull(selfOption);
             }
             {
