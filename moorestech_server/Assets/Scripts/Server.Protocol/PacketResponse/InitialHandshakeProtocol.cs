@@ -9,9 +9,9 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
-using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UnityEngine;
+using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -68,8 +68,8 @@ namespace Server.Protocol.PacketResponse
 
                 // 解放済みスタックレベルを初期データとして同梱する
                 // Bundle unlocked stack levels as part of the initial data
-                var itemStackLevels = _itemStackLevelLookup.GetUnlockedLevels()
-                    .Select(level => new ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack(level.Key, level.Value))
+                var itemStackLevels = _itemStackLevelLookup.UnlockedLevels
+                    .Select(level => new ItemStackLevelMessagePack(level.Key, level.Value))
                     .ToArray();
 
                 return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels);
@@ -119,7 +119,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public InitialHandshakeRidingStateType RidingStateType { get; set; }
             [Key(4)] public RidableIdentifierMessagePack RidingTarget { get; set; }
             [Key(5)] public int RidingSeatIndex { get; set; }
-            [Key(6)] public ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack[] ItemStackLevels { get; set; }
+            [Key(6)] public ItemStackLevelMessagePack[] ItemStackLevels { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
@@ -128,7 +128,7 @@ namespace Server.Protocol.PacketResponse
                 Vector3MessagePack playerPos,
                 RidableIdentifierMessagePack ridingTarget,
                 int ridingSeatIndex,
-                ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack[] itemStackLevels)
+                ItemStackLevelMessagePack[] itemStackLevels)
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;

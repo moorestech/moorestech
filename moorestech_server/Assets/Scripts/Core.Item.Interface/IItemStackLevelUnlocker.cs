@@ -8,9 +8,7 @@ namespace Core.Item.Interface
     public interface IItemStackLevelUnlocker
     {
         void UnlockStackLevel(Guid itemGuid, int level);
-
-        void ApplyUnlockItemStackLevelActions(GameActionElement[] actions);
-
+        
         void ApplyUnlockItemStackLevelAction(GameActionElement action);
     }
 }
