@@ -4,7 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
 
@@ -16,8 +16,8 @@ namespace Game.Block.Blocks.BeltConveyor
         public uint TotalTicks { get; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
-        public BlockConnectInfoElement StartConnector { get; }
-        public BlockConnectInfoElement GoalConnector { get; }
+        public IBlockConnector StartConnector { get; }
+        public IBlockConnector GoalConnector { get; }
     }
 
     public class VanillaBeltConveyorInventoryItem : IOnBeltConveyorItem
@@ -26,10 +26,10 @@ namespace Game.Block.Blocks.BeltConveyor
         public uint TotalTicks { get; private set; }
         public ItemId ItemId { get; }
         public ItemInstanceId ItemInstanceId { get; }
-        public BlockConnectInfoElement StartConnector { get; }
-        public BlockConnectInfoElement GoalConnector { get; private set; }
+        public IBlockConnector StartConnector { get; }
+        public IBlockConnector GoalConnector { get; private set; }
 
-        public VanillaBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector, uint totalTicks)
+        public VanillaBeltConveyorInventoryItem(ItemId itemId, ItemInstanceId itemInstanceId, IBlockConnector startConnector, IBlockConnector goalConnector, uint totalTicks)
         {
             ItemId = itemId;
             ItemInstanceId = itemInstanceId;
@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// GoalConnectorとGuidを更新
         /// Update GoalConnector and Guid
         /// </summary>
-        public void SetGoalConnector(BlockConnectInfoElement goalConnector)
+        public void SetGoalConnector(IBlockConnector goalConnector)
         {
             GoalConnector = goalConnector;
         }
@@ -109,8 +109,8 @@ namespace Game.Block.Blocks.BeltConveyor
             // Convert remaining seconds to ticks
             var remainingTicks = GameUpdater.SecondsToTicks(jsonData.RemainingSeconds);
 
-            var startConnector = FindBlockConnectInfoElementByGuid(jsonData.SourceConnectorGuid, inventoryConnectors.InputConnects.items);
-            var goalConnector = FindBlockConnectInfoElementByGuid(jsonData.GoalConnectorGuid, inventoryConnectors.OutputConnects.items);
+            var startConnector = FindConnectorByGuid(jsonData.SourceConnectorGuid, inventoryConnectors.InputConnects);
+            var goalConnector = FindConnectorByGuid(jsonData.GoalConnectorGuid, inventoryConnectors.OutputConnects);
 
             var item = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, startConnector, goalConnector, totalTicks)
             {
@@ -120,13 +120,14 @@ namespace Game.Block.Blocks.BeltConveyor
 
             #region Internal
 
-            BlockConnectInfoElement FindBlockConnectInfoElementByGuid(Guid? guid, BlockConnectInfoElement[] connectInfos)
+            IBlockConnector FindConnectorByGuid(Guid? guid, IReadOnlyList<IBlockConnector> connectors)
             {
-                foreach (var connectInfo in connectInfos)
+                if (connectors == null) return null;
+                foreach (var connector in connectors)
                 {
-                    if (connectInfo.ConnectorGuid == guid)
+                    if (connector.ConnectorGuid == guid)
                     {
-                        return connectInfo;
+                        return connector;
                     }
                 }
 

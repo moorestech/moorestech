@@ -7,8 +7,9 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Pump
 {
@@ -22,15 +23,15 @@ namespace Game.Block.Blocks.Pump
         public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
         
         private readonly FluidContainer _tank;
-        private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
 
-        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
+        public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
             _tank = new FluidContainer(capacity);
             _fluidConnector = fluidConnector;
         }
 
-        public PumpFluidOutputComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory> fluidConnector) : this(capacity, fluidConnector)
+        public PumpFluidOutputComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector) : this(capacity, fluidConnector)
         {
             if (!componentStates.TryGetValue(SaveKey, out var state) || string.IsNullOrEmpty(state))
             {
@@ -75,17 +76,21 @@ namespace Game.Block.Blocks.Pump
             {
                 _tank.FluidId = FluidMaster.EmptyFluidId;
             }
+
+            #region Internal
+
+            double GetFlowRate(ConnectedInfo info)
+            {
+                if (info.SelfConnector is IFluidConnector fluidConnector)
+                {
+                    return fluidConnector.Option.FlowCapacity;
+                }
+                throw new ArgumentException("FluidConnectOption is not set on connector");
+            }
+
+            #endregion
         }
 
-        private static double GetFlowRate(ConnectedInfo info)
-        {
-            if (info.SelfConnector?.ConnectOption is FluidConnectOption option)
-            {
-                return option.FlowCapacity;
-            }
-            throw new ArgumentException("FluidConnectOption is not set on connector");
-        }
-        
         public void EnqueueGeneratedFluid(FluidStack fluidStack)
         {
             _tank.AddLiquid(fluidStack, FluidContainer.Empty);

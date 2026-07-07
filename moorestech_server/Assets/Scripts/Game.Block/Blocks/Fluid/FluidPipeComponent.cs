@@ -8,9 +8,10 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using MessagePack;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
 using UniRx;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Fluid
 {
@@ -26,11 +27,11 @@ namespace Game.Block.Blocks.Fluid
         private readonly Dictionary<FluidContainer, SourceBucket> _pendingBySource = new();
         private readonly int _blockedRetryTicks;
 
-        private readonly BlockConnectorComponent<IFluidInventory> _connectorComponent;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _connectorComponent;
         private readonly Subject<Unit> _onChangeBlockState = new();
         private BlockPositionInfo _blockPositionInfo;
 
-        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory> connectorComponent, float capacity, int blockedRetryTicks, Dictionary<string, string> componentStates)
+        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent, float capacity, int blockedRetryTicks, Dictionary<string, string> componentStates)
         {
             _blockPositionInfo = blockPositionInfo;
             _connectorComponent = connectorComponent;
@@ -286,12 +287,12 @@ namespace Game.Block.Blocks.Fluid
             // Get the maximum fluid transfer rate between two IFluidInventories. The transfer rate is the minimum of the two IFluidInventories' flow capacities multiplied by the time per game update (in seconds).
             double GetMaxFlowRateFromConnection(ConnectedInfo connectedInfo)
             {
-                var selfOption = connectedInfo.SelfConnector?.ConnectOption as FluidConnectOption;
-                var targetOption = connectedInfo.TargetConnector?.ConnectOption as FluidConnectOption;
-                
-                if (selfOption == null || targetOption == null) throw new ArgumentException();
-                
-                return Math.Min(selfOption.FlowCapacity, targetOption.FlowCapacity) * GameUpdater.SecondsPerTick;
+                var selfConnector = connectedInfo.SelfConnector as IFluidConnector;
+                var targetConnector = connectedInfo.TargetConnector as IFluidConnector;
+
+                if (selfConnector == null || targetConnector == null) throw new ArgumentException("Fluid connector option is not set");
+
+                return Math.Min(selfConnector.Option.FlowCapacity, targetConnector.Option.FlowCapacity) * GameUpdater.SecondsPerTick;
             }
 
             #endregion

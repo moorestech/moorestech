@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
             var miningSettings = minerParam.MineSettings;
             
             var connectSetting = minerParam.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(connectSetting, connectSetting, blockPositionInfo);
             var gearConsumption = minerParam.GearConsumption;
 
             var requestPower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
