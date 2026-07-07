@@ -3,7 +3,6 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.FilterSplitter;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
@@ -28,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             // マスタの outputConnects の順序が方向インデックスとなる
             // The order of outputConnects in master data defines the direction index
-            BlockConnectInfoElement[] outputElements = param.InventoryConnectors.OutputConnects.items;
+            var outputElements = param.InventoryConnectors.OutputConnects;
 
             var splitter = componentStates == null
                 ? new VanillaFilterSplitterComponent(blockInstanceId, connectorComponent, outputElements, param.FilterSlotCountPerDirection)

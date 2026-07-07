@@ -11,6 +11,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -36,13 +37,13 @@ namespace Game.Block.Factory.BlockTemplate
         private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
-            BlockConnectorComponent<IBlockInventory> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(connectSetting, connectSetting, blockPositionInfo);
             var gearConsumption = machineParam.GearConsumption;
             var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
