@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { planDirectMoves } from "./inventoryLogic";
+import { planDirectMoves } from "./planDirectMoves";
 
 const slot = (itemId: number, count: number) => ({ itemId, count });
 

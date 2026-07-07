@@ -1,6 +1,6 @@
 import { readTopic, dispatchAction, Topics } from "@/bridge";
 import type { InventoryArea, ItemMasterEntry, PlayerInventoryData, SlotData, SlotRef } from "@/bridge/contract/payloadTypes";
-import { planDirectMoves } from "./inventoryLogic";
+import { planDirectMoves } from "@/shared/itemMove";
 
 const GRAB: SlotRef = { area: "grab", slot: 0 };
 
