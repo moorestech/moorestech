@@ -143,6 +143,9 @@ namespace Game.Gear.Common
             var networkLoadRate = store.GetNetworkState(NetworkId).NetworkLoadRate;
             foreach (var generator in _gearGenerators)
             {
+                // 同tickの破断sweep等で破壊済みのgeneratorはスキップする（topologyからの除去は次tickのflushで行われる）
+                // Skip generators already destroyed this tick (e.g. by the breakage sweep); topology removal happens at the next flush
+                if (generator.IsDestroy) continue;
                 if (generator.RequiresContinuousTick) generator.ConsumeGeneratorTick(networkLoadRate);
             }
         }
