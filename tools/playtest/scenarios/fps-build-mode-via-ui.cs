@@ -65,6 +65,10 @@ return PlaytestRunner.Run("fps-build-mode-via-ui", options, async p =>
     p.Assert(Cursor.lockState != CursorLockMode.Locked, "カーソルロック解除");
     p.Assert(!crosshairDot.activeInHierarchy, "クロスヘア非表示");
     p.Assert(playerRenderers.All(r => r.enabled), "自機Rendererが再表示");
+
+    // 俯瞰復帰Tween(0.25s)が整定してから照準する（照準とクリックの間にカメラが動くと投影がずれる）
+    // Let the top-down restore tween (0.25s) settle before aiming (a moving camera skews the projection)
+    await p.WaitSeconds(0.8f);
     var topDownPos = new Vector3Int(7, 32, 7);
     await p.AimAtPlaceOrigin("木のチェスト", topDownPos);
     await p.ClickPlace();
