@@ -10,6 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         TrainCar,
         ConnectTool,
         Blueprint,
+        BlueprintCopy,
     }
 
     /// <summary>
@@ -50,6 +51,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             ClearSelection();
             SelectionType = PlacementSelectionType.Blueprint;
             SelectedBlueprintName = blueprintName;
+        }
+
+        public void SetSelectedBlueprintCopyTool()
+        {
+            ClearSelection();
+            SelectionType = PlacementSelectionType.BlueprintCopy;
         }
 
         public void ClearSelection()
