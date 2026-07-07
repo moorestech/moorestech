@@ -1,7 +1,7 @@
 # ユースケース: UI経路（ビルドメニュー→プレビュー→クリック/ドラッグ）でブロックを設置する
 
 実プレイヤーと同じキーマウ経路で構築し、UI・操作系・設置プレビュー系のバグをE2Eで捕まえる。
-**実証済み手本**: `tools/playtest/scenarios/belt-line-via-ui.cs`（direct版`belt-line.cs`と同一assertで全通過）。
+**実証済み手本**: 本スキル同梱の `scenarios/belt-line-via-ui.cs`（direct版`belt-line.cs`と同一assertで全通過）。
 
 ## 最小コード（このまま使う）
 
@@ -49,6 +49,8 @@ await p.ExitToGameScreen();
 | 単クリック設置の向きはNorth固定（place system内部の`_currentBlockDirection`は外部から読めず回転キー注入は未対応） | 向きが要るラインはドラッグで組む／Northで成立する配置を選ぶ |
 | ベルトのドラッグは長尺バリアントに自動分解されることがある | セル単位のGetBlockは「そのセルを覆うブロック」を返すのでassertは通る |
 | 注入が効くのはInputSystem/`Client.Input.HybridInput`経由のコードのみ | 駆動しない入力を見つけたらHybridInput化する（input-injection.md） |
+| 高さのあるブロック（石窯等・高さ2以上）の**隣接セルへ後から**設置すると、照準レイが既設ブロックの天面にヒットして上（y+段数）に誤設置される | **背の高いブロックを最後に設置**する（ベルト等の低いブロックを先に敷く） |
+| 電気系ブロック（電線コネクタ持ち）は建設コストだけではプレビューが赤のまま設置不能（`ElectricWireAutoConnectPreview.TrySelectWire`の在庫ガード＝既知の実バグ。非電気ブロックは影響なし） | 修正されるまで `GiveItem("<ブロック名>", 1)` でブロックアイテム自体を在庫へ足す（設置クリックはUI経路のまま保てる） |
 
 ## 検証の定石
 
