@@ -4,7 +4,8 @@
     "references": [
         "Core.Master",
         "Game.Block.Interface",
-        "Game.World.Interface"
+        "Game.World.Interface",
+        "Game.Context"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
