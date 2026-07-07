@@ -23,10 +23,10 @@ namespace Game.Block.Blocks.Machine
         public float CurrentPower => _context.CurrentPower;
         public ProcessState CurrentState { get; private set; }
 
-        // 加工中のみモジュールの電力倍率を適用した要求電力
-        // Requested power applying the module power multiplier only while processing
+        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
+        // Requested power applies the idle rate or module multiplier based on the active state
         public float EffectiveRequestPower => _context.RequestPower *
-                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : 1f);
+                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);
 
         public IObservable<Unit> OnChangeBlockState => _changeState;
         private readonly Subject<Unit> _changeState = new();
@@ -34,26 +34,28 @@ namespace Game.Block.Blocks.Machine
         private readonly MachineProcessContext _context;
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
         private readonly ProcessingMachineProcessState _processingState;
+        private readonly float _idlePowerRate;
         
         private ProcessState _lastState = ProcessState.Idle;
 
         // 新規作成
         // For new creation
-        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, MachineModuleEffectComponent effect)
-            : this(input, output, effect, requestPower, ProcessState.Idle, 0, null, null)
+        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
+            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, 0, null, null)
         {
         }
 
         // セーブからの復元
         // For restoration from save
-        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs)
-            : this(input, output, effect, requestPower, currentState, remainingTicks, processingRecipe, pendingOutputs)
+        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs)
+            : this(input, output, effect, requestPower, idlePowerRate, currentState, remainingTicks, processingRecipe, pendingOutputs)
         {
         }
 
-        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
+        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
         {
             _context = new MachineProcessContext(input, output, effect, requestPower);
+            _idlePowerRate = idlePowerRate;
 
             // 加工状態を復元
             // Restore processing state
