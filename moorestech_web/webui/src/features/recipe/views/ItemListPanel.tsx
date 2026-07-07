@@ -1,6 +1,5 @@
 import { ScrollArea, Stack, Text, Title } from "@mantine/core";
-import { useTopic, Topics } from "@/bridge";
-import { useItemMaster } from "@/bridge/store/useItemMaster";
+import { useTopic, Topics, useItemMaster } from "@/bridge";
 import { useUiStore } from "@/app/uiStore";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
 

@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { CloseButton, Group, Paper, Title } from "@mantine/core";
-import { useTopic, useTopicSelector, Topics, dispatchAction } from "@/bridge";
-import { useItemMaster } from "@/bridge/store/useItemMaster";
+import { useTopic, useTopicSelector, Topics, dispatchAction, useItemMaster } from "@/bridge";
 import { resolveBlockComponent } from "./blockLogic";
 import { BlockInteractionContext, type BlockInteraction } from "./blockInteractionContext";
 import styles from "./style.module.css";

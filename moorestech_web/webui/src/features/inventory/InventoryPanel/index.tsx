@@ -1,6 +1,5 @@
 import { Button, Group, Stack, Text, Title } from "@mantine/core";
-import { useTopic, dispatchAction, Topics } from "@/bridge";
-import { useItemMaster } from "@/bridge/store/useItemMaster";
+import { useTopic, dispatchAction, Topics, useItemMaster } from "@/bridge";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { createSlotActions } from "../slotActions";
