@@ -76,15 +76,18 @@ public interface IBlockBlueprintSettings : IBlockComponent
 - v1の実装対象: `VanillaFilterSplitterComponent`（方向別フィルタ設定）。他は仕組みだけ用意し順次追加。
 - 設定JSONはクライアントでは不透明データとして素通しする（クライアントは解釈しない）。
 
-## プロトコル（新規3本）
+## プロトコル（新規1本: BP管理プロトコル）
 
 `creating-server-protocol` スキルの Request-Response 型に従う。
+1プロトコル＝1ドメインの方針に基づき、BP管理を単一プロトコル `va:blueprint` に集約し、
+リクエスト内の `Mode` enum で分岐する（`ElectricWireConnectionEditProtocol` の
+`WireEditMode` switch と同じ先行パターン）。
 
-| タグ | 内容 |
+| Mode | 内容 |
 |---|---|
-| `va:createBlueprint` | 範囲（min/max座標）＋名前 → サーバーが範囲内ブロックを抽出しライブラリへ登録。登録結果（ブロック数）を返す |
-| `va:getBlueprints` | ライブラリ全件（名前＋blocks）を返す。貼り付けプレビューとPlaceInfo展開に必要なためデータ本体ごと返す |
-| `va:deleteBlueprint` | 名前指定で削除 |
+| `Create` | 範囲（min/max座標）＋名前 → サーバーが範囲内ブロックを抽出しライブラリへ登録。登録結果（ブロック数）を返す |
+| `GetAll` | ライブラリ全件（名前＋blocks）を返す。貼り付けプレビューとPlaceInfo展開に必要なためデータ本体ごと返す |
+| `Delete` | 名前指定で削除 |
 
 - コピーの抽出はサーバーが行う（ブロック設定はサーバーにしか存在しないため）。
   レール系ブロック・対象外ブロックはこの抽出時にスキップする。
@@ -96,12 +99,12 @@ public interface IBlockBlueprintSettings : IBlockComponent
 既存の「選択→設置」フローに統合する。
 
 - ビルドメニュー: `BuildMenuEntry` にブループリント種別を追加。
-  「コピーツール」1エントリ＋保存済みBPの動的エントリ群（`va:getBlueprints` の結果から生成）。
+  「コピーツール」1エントリ＋保存済みBPの動的エントリ群（`va:blueprint` GetAll の結果から生成）。
   `BuildMenuEntryCatalog` を動的エントリ対応に拡張する。
 - コピーモード（新規 `IPlaceSystem` 実装 `BlueprintCopySystem`）:
   地面ドラッグで矩形を可視化（カーソル下の地面座標取得は既存設置系の計算を流用、矩形化は新規）→
   マウスリリースで名前入力ダイアログ →
-  確定で `va:createBlueprint` 送信。ESCキャンセル。削除ツールの「選択→プレビュー→コミット」構造を踏襲。
+  確定で `va:blueprint` Create 送信。ESCキャンセル。削除ツールの「選択→プレビュー→コミット」構造を踏襲。
 - 貼り付けモード（新規 `IPlaceSystem` 実装 `BlueprintPasteSystem`）:
   `PlacementSelectionType.Blueprint` を追加し `PlaceSystemSelector` で分岐。
   BP全ブロックのゴーストを既存 `BlockPlacePreviewObjectPool` で表示し、セルごとに設置可否を色分け。
@@ -120,12 +123,12 @@ public interface IBlockBlueprintSettings : IBlockComponent
 
 サーバー側 CombinedTest を主軸にする（`creating-server-tests` スキル準拠）。
 
-1. `va:createBlueprint`: 範囲抽出（包含規則・マルチセル・対象外ブロックのスキップ・空範囲拒否）
+1. `va:blueprint` Create: 範囲抽出（包含規則・マルチセル・対象外ブロックのスキップ・空範囲拒否）
 2. セーブ／ロード往復: `BlueprintDatastore` の永続化と `blockGuid` 欠落時の除外
 3. 貼り付け: BPから展開した `PlaceInfo` での設置、`BlockCreateParams` によるフィルタ設定復元
    （フィルタスプリッタで設定が再現されることを直接検証）
 4. 回転: 90/180/270度でのオフセット変換と `BlockDirection` 変換の整合（マルチセルブロック含む）
-5. `va:deleteBlueprint` / `va:getBlueprints` の往復
+5. `va:blueprint` Delete / GetAll の往復
 
 クライアント側はプレビュー・回転操作をプレイテストDSL（実プレイ検証）で確認する。
 
