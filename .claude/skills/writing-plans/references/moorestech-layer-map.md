@@ -28,6 +28,7 @@
 | DI 登録 | `MoorestechServerDIContainerGenerator.cs` に AddSingleton | 同ファイル内の既存登録 |
 | 新プロトコル/同期 | 新設前に「既存同期情報から導出できないこと」を示す。作る場合は creating-server-protocol スキル | design-question-triage の導出可能テスト |
 | スキーマ変更 | edit-schema スキル必須（csc.rsp / _CompileRequester / JSON更新箇所） | edit-schema スキル |
+| UIステート連動コンポーネント | ステートの挙動に**参加する**もの（カメラ・カーソル・設置等の制御）はステートから明示駆動（`OnEnter`/`GetNextUpdate`/`OnExit` から呼ぶ）。`UIStateControl.OnStateChanged` 購読は**表示専用オブザーバ**に限る | 駆動: `PlaceBlockState`→`PlaceSystemStateController.ManualUpdate()/Disable()`、購読（表示のみ）: `DisplayEnergizedRange` |
 
 ## 前例を探す Grep 例
 
@@ -51,3 +52,5 @@ grep -rn "GameActionTypeConst" moorestech_server/Assets/Scripts --include="*.cs"
 - `PlayerInventoryConst` 系「定数クラス」への状態・マスタ参照の混入 → 定数と純関数のみ許可
 - 「差分最小」を理由にした既存クラスへのちょい足し → 判定質問を通す
 - セーブJSONへのマスタ由来値（スロット数・容量）の保存 → レベル・GUID等の最小状態のみ保存
+- 制御コンポーネントのライフサイクルを `OnStateChanged` 購読で作る → ステート駆動へ（購読は表示オブザーバ限定）。発火タイミング（`OnEnter`より後）への回避策が設計に現れたら機構選定ミスのサイン
+- 既存コンポーネントを置換・吸収する設計で駆動機構を無言変更 → 置換対象の機構が第一の前例。変えるなら新規パターンとして注目点へ
