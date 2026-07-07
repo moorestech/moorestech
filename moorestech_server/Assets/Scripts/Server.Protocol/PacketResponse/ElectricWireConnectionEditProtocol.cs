@@ -105,8 +105,6 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public bool IsSuccess { get; set; }
             [Key(3)] public ElectricWirePlacementFailureReason FailureReason { get; set; }
 
-            [IgnoreMember] public bool HasError => FailureReason != ElectricWirePlacementFailureReason.None;
-
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ElectricWireConnectionEditResponse() { }
 

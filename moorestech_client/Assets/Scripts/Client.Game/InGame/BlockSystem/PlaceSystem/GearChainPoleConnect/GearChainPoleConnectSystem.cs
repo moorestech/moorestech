@@ -53,12 +53,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             if (context.SelectionType == PlacementSelectionType.Block)
             {
                 var poleBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.SelectedBlockId.Value);
-                var input = _inputCollector.CollectPlaceExtend(context, _sourcePole, poleBlockMaster, _requestSender.IsAwaitingResponse);
+                var input = _inputCollector.CollectPlaceExtend(_sourcePole, poleBlockMaster, _requestSender.IsAwaitingResponse);
                 result = GearChainPolePlaceExtendMode.Decide(input);
             }
             else
             {
-                var input = _inputCollector.CollectChainConnect(context, _sourcePole);
+                var input = _inputCollector.CollectChainConnect(_sourcePole);
                 result = GearChainPoleChainConnectMode.Decide(input);
             }
 
