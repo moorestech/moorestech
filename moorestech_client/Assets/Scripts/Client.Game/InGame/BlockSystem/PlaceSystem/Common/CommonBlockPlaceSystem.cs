@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
@@ -10,7 +11,6 @@ using Client.Input;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
-using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -36,6 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private int _clickStartHeightOffset;
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
+        private BlockId? _previousSelectedBlockId;
 
         private int _heightOffset;
 
@@ -100,17 +101,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         private void GroundClickControl(PlaceSystemUpdateContext context)
         {
-            if (context.IsSelectSlotChanged)
+            // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
+            // Reset the continuous placement state when the build-menu selected block changes
+            if (_previousSelectedBlockId != context.SelectedBlockId)
             {
                 _clickStartPosition = null;
                 _clickStartHeightOffset = _heightOffset;
             }
-            
+            _previousSelectedBlockId = context.SelectedBlockId;
+
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.HoldingItemId);
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.SelectedBlockId.Value);
             if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) { _autoConnectPreview.Hide(); return; }
 
             // 設置可能な距離かどうか
@@ -149,7 +153,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // 各セルの自動接続を評価し表示更新
             // Evaluate auto-connect per cell and update the preview
-            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId), _currentBlockDirection, _localPlayerInventory, placePoint);
+            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, context.SelectedBlockId.Value, _currentBlockDirection, _localPlayerInventory, placePoint);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -208,7 +212,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Disable the placement click when no cell is placeable due to wire shortage (server also rejects, but block early)
                 if (!wirePlaceable) return;
 
-                SendPlaceProtocol(_currentPlaceInfos, context);
+                SendPlaceBlockProtocol(_currentPlaceInfos);
 
                 // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the auto-connect evaluation cache
@@ -217,20 +221,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             void MarkInsufficientItemPreviewsAsNotPlaceable()
             {
-                // 設置は選択中ホットバースロット1枠からのみ消費されるため、その枠の所持数で判定する
-                // Placement consumes only from the selected hotbar slot, so judge by that slot's count
-                var holdingSlotIndex = _localPlayerInventory.GetHotBarInventorySlot(context.CurrentSelectHotbarSlotIndex);
-                var availableCount = _localPlayerInventory[holdingSlotIndex].Count;
+                // 建設コストで賄えるセル数まで設置可にする
+                // Allow placement up to the affordable cell count
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.SelectedBlockId.Value);
+                var affordableCellCount = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(blockMaster.RequiredItems, _localPlayerInventory);
 
-                // 設置可能なブロック数をカウントし、所持数を超えたら設置不可にする
-                // Count placeable blocks and mark as not placeable when exceeding available count
                 var placeableCount = 0;
                 for (var i = 0; i < _currentPlaceInfos.Count; i++)
                 {
                     if (!_currentPlaceInfos[i].Placeable) continue;
-
                     placeableCount++;
-                    if (placeableCount > availableCount)
+                    if (placeableCount > affordableCellCount)
                     {
                         _currentPlaceInfos[i].Placeable = false;
                     }

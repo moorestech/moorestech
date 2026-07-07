@@ -63,6 +63,8 @@
 
 移行スクリプトを用意する（mooreseditor 起動中はJSONが書き戻されるため、編集時は mooreseditor を終了しておくこと）。
 
+**順序制約（重要）**: 本番マスタへの `requiredItems` 投入は、スロット指定消費5プロトコルの改修とクライアント移行が完了した後に行うこと。投入スクリプトは `overrideVerticalBlock`（Up/Down/Horizontal）を持つブロックについて、基底とオーバーライド先の `requiredItems` を必ず同一内容に複製すること（解放判定は基底・コスト消費は実体ブロック参照のため、片方だけの投入は縦向き設置の無償化を生む。整合はロード時バリデーションで検証される）。理由: 破壊時返却は `requiredItems` 全額に変更済みのため、旧経路（ブロックアイテム1個消費）で設置したブロックに `requiredItems` が定義されていると「アイテム1個消費→素材全額返却」の増殖経路が生まれる。また本番マスタには既存のブロックレベル `initialUnlocked`/`sortPriority` キー（木の歯車等）が存在し新スキーマで発動するため、投入時に意図を確認して整理する。
+
 1. ブロック・車両を結果とするクラフトレシピを `requiredItems` へ機械変換し、該当レシピを削除
 2. items.json からブロックアイテム・車両アイテムを削除
 3. blocks.json に `requiredItems` / `imagePath` / `category` / `sortPriority` を設定（imagePath は旧アイテムから移植）
@@ -83,7 +85,7 @@
 - レール橋脚の単体設置もこのプロトコルに乗る（`BlockCreateParams` で `RailBridgePierComponentStateDetail` を運ぶ既存構造のまま）
 - `PlaceInfoMessagePack` / `BlockCreateParamMessagePack` は `RailConnectWithPlacePierProtocol` と `ElectricWireExtendProtocol` が型を再利用しているため、**共有DTOファイルへ移設**してから `PlaceBlockFromHotBarProtocol` を削除する
 
-### スロット指定消費プロトコルの改修（4本）
+### スロット指定消費プロトコルの改修（5本）
 
 | プロトコル | 変更 |
 |---|---|
@@ -91,11 +93,14 @@
 | `AttachTrainCarToUnitProtocol` | 同上 |
 | `RailConnectWithPlacePierProtocol` | `PierInventorySlot` → 橋脚 `BlockId` 指定。橋脚の `requiredItems` + レール素材の距離比例消費 |
 | `ElectricWireExtendProtocol` | `PoleInventorySlot` → 電柱 `BlockId` 指定。電柱の `requiredItems` + 電線の距離比例消費 |
+| `GearChainPoleExtendProtocol` | `PoleInventorySlot` → ポール `BlockId` 指定。ポールの `requiredItems` + チェーンの距離比例消費（2026-07-05追加の新プロトコル） |
 
 ### 現行維持のプロトコル
 
 - `RailConnectionEditProtocol` / `GearChainConnectionEditProtocol` / `ElectricWireConnectionEditProtocol`: 既にインベントリ検索型の素材消費であり目標モデルと整合済み。変更なし
 - 素材が複数種類ある場合（電線Mk1/Mk2等）の選定は、`ElectricWireAutoConnectService` と同じ「マスタ定義順で所持しているものを採用」ルールに統一する（現在クライアントが保持アイテムIDを渡している箇所は、この規則でクライアント側が選定して送る）
+- 2026-07-05の電線改修でエラー通知は文字列から `ElectricWirePlacementFailureReason` 等のenumに変更済み。クライアント改修（プラン3・4）はenum前提で実装する
+- `ElectricWireAutoConnectService.EvaluateAutoConnect` は「設置アイテム自身が電線を兼ねる場合の+1予約」（`placingItemId` 引数）を持つ。新モデルでは保持アイテムが存在しないため、この予約を「建設コスト(requiredItems)による予約リスト」に一般化する（プラン1で対応）
 - レール切断時の距離比例返却も現行維持
 
 ### 返却（解体）

@@ -11,6 +11,7 @@ using Game.Train.RailPositions;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Util.MessagePack;
 using UnityEngine;
 
@@ -90,9 +91,17 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
                 
-                // 破壊したブロック自体のアイテムを追加
-                // Add the item of the destroyed block itself
-                result.Add(ServerContext.ItemStackFactory.Create(itemId, 1));
+                // requiredItems定義ブロックは建設コストを全額返却し、未定義は従来どおりアイテム1個返す（プラン5でフォールバック削除予定）
+                // Refund the full construction cost when requiredItems is defined; otherwise fall back to one block item (fallback removed in plan 5)
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
+                if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0)
+                {
+                    result.AddRange(ConstructionCostService.CreateRefundItems(ConstructionCostService.ToItemCounts(blockMaster.RequiredItems)));
+                }
+                else
+                {
+                    result.Add(ServerContext.ItemStackFactory.Create(itemId, 1));
+                }
                 
                 // インベントリのアイテムを取得
                 // Get items from block inventory

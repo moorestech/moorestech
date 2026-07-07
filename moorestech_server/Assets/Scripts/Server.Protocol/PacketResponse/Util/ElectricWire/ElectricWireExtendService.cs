@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
@@ -24,40 +25,44 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     /// </summary>
     public static class ElectricWireExtendService
     {
-        public static ExtendResult Execute(bool hasFromConnector, Vector3Int fromPos, PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, int playerId, int poleInventorySlot, ItemId wireItemId)
+        public static ExtendResult Execute(bool hasFromConnector, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, int playerId, BlockId poleBlockId, ItemId wireItemId)
         {
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-
-            // スロット番号の妥当性を確認する（不正クライアント対策）
-            // Validate the slot index to guard against malicious clients
-            if (poleInventorySlot < 0 || inventory.GetSlotSize() <= poleInventorySlot)
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoPoleItem);
 
             // 設置先が既に埋まっていないか確認する
             // Ensure the target position is not already occupied
             if (ServerContext.WorldBlockDatastore.Exists(polePlaceInfo.Position))
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
-            // 指定スロットが電柱ブロックか確認する
-            // Ensure the item in the given slot resolves to an electric pole block
-            var poleItem = inventory.GetItem(poleInventorySlot);
-            if (poleItem.Count < 1 || !MasterHolder.BlockMaster.IsBlock(poleItem.Id))
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoPoleItem);
+            // ブロックの解放状態を検証する（解放判定は基底ブロック）
+            // Validate the unlock state (judged on the base block)
+            var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(poleBlockId).BlockGuid;
+            if (!ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[baseBlockGuid].IsUnlocked)
+                return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
 
-            var blockId = MasterHolder.BlockMaster.GetBlockId(poleItem.Id).GetVerticalOverrideBlockId(polePlaceInfo.VerticalDirection);
-            if (MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockParam is not ElectricPoleBlockParam poleParam)
+            // 指定BlockIdから電柱パラメータを解決する
+            // Resolve the pole parameter from the requested BlockId
+            var blockId = poleBlockId;
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            if (blockMaster.BlockParam is not ElectricPoleBlockParam poleParam)
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
+
+            // 建設コストの充足を検証する
+            // Validate the construction cost
+            var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+            if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems))
+                return ExtendResult.Failure(ElectricWirePlacementFailureReason.InsufficientItems);
 
             // 起点ありは明示接続＋機械収集、起点なしは通常設置と同じフル自動接続
             // With origin: explicit wire + machine collection; without: same full auto-connect as normal placement
             return hasFromConnector
-                ? ExecuteExtendWithOrigin(inventory, fromPos, polePlaceInfo, poleInventorySlot, poleItem, blockId, poleParam, wireItemId)
-                : ExecuteIsolatedPlace(inventory, polePlaceInfo, poleInventorySlot, blockId);
+                ? ExecuteExtendWithOrigin(inventory, fromPos, polePlaceInfo, blockId, poleParam, wireItemId, costItemCounts)
+                : ExecuteIsolatedPlace(inventory, polePlaceInfo, blockId, costItemCounts);
         }
 
         // 起点との明示接続＋設置電柱の未接続機械収集をアトミックに行う
         // Atomically wire the origin plus collect unconnected machines around the placed pole
-        private static ExtendResult ExecuteExtendWithOrigin(IOpenableInventory inventory, Vector3Int fromPos, PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, int poleInventorySlot, IItemStack poleItem, BlockId blockId, ElectricPoleBlockParam poleParam, ItemId wireItemId)
+        private static ExtendResult ExecuteExtendWithOrigin(IOpenableInventory inventory, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, BlockId blockId, ElectricPoleBlockParam poleParam, ItemId wireItemId, (ItemId itemId, int count)[] costItemCounts)
         {
             // 起点コネクタを解決し、距離・上限・コストを検証する
             // Resolve the origin connector and validate distance, capacity and cost
@@ -94,12 +99,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 totalWire += cost.Count;
             }
 
-            // 電柱1個＋電線合計の所持を確認する
-            // Verify holding one pole plus the total wire count
-            // 電柱と電線が同一アイテムなら合算で判定する
-            // When pole and wire share the item, judge by the combined amount
-            var wireNeeded = totalWire + (poleItem.Id == wireItemId ? 1 : 0);
-            if (ElectricWireSystemUtil.CountItem(inventory, wireItemId) < wireNeeded)
+            // 電線合計＋建設コスト中の同一アイテム分を合算で判定する
+            // Judge by total wires plus the same-item amount reserved by the construction cost
+            var reservedWire = 0;
+            foreach (var (itemId, count) in costItemCounts)
+            {
+                if (itemId == wireItemId) reservedWire += count;
+            }
+            if (ElectricWireSystemUtil.CountItem(inventory, wireItemId) < totalWire + reservedWire)
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             // 検証をすべて通過したのでここから状態を変更する
@@ -120,9 +127,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 consumedWire += cost.Count;
             }
 
-            // 電柱を1個、張れた電線分を消費してから連結成分を再構築する
-            // Consume one pole and the successfully-placed wires, then rebuild connected components
-            inventory.SetItem(poleInventorySlot, inventory.GetItem(poleInventorySlot).SubItem(1));
+            // 建設コストと張れた電線分を消費してから連結成分を再構築する
+            // Consume the construction cost and successfully-placed wires, then rebuild connected components
+            ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
             ElectricWireSystemUtil.ConsumeItem(inventory, wireItemId, consumedWire);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
 
@@ -131,26 +138,26 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
         // 起点なし設置。通常のブロック設置と同じ自動接続（最寄り電柱1本＋未接続機械）を適用する
         // Placement without origin; applies the same auto-connect as normal placement (nearest pole + unconnected machines)
-        private static ExtendResult ExecuteIsolatedPlace(IOpenableInventory inventory, PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, int poleInventorySlot, BlockId blockId)
+        private static ExtendResult ExecuteIsolatedPlace(IOpenableInventory inventory, PlaceInfoMessagePack polePlaceInfo, BlockId blockId, (ItemId itemId, int count)[] costItemCounts)
         {
-            // 設置前に自動接続計画を検証する。電線不足なら設置しない
-            // Validate the auto-connect plan before placement; do not place when wires are insufficient
-            var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, polePlaceInfo.Position, polePlaceInfo.Direction, inventory.GetItem(poleInventorySlot).Id, inventory.InventoryItems);
+            // 設置前に自動接続計画を検証する。建設コストは予約として渡し電線不足なら設置しない
+            // Validate the auto-connect plan before placement; pass the construction cost as reservations and do not place when wires are insufficient
+            var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, polePlaceInfo.Position, polePlaceInfo.Direction, costItemCounts, inventory.InventoryItems);
             if (!plan.IsPlaceable)
                 return ExtendResult.Failure(plan.FailureReason);
 
             if (!TryPlacePole(polePlaceInfo, blockId, out var selfConnector))
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
-            // 電柱を1個消費し、検証済み計画でワイヤーを張って電線を消費する
-            // Consume one pole, then execute the validated plan to add wires and consume wire items
-            inventory.SetItem(poleInventorySlot, inventory.GetItem(poleInventorySlot).SubItem(1));
+            // 建設コストを消費し、検証済み計画でワイヤーを張って電線を消費する
+            // Consume the construction cost, then execute the validated plan to add wires and consume wire items
+            ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
             ElectricWireAutoConnectService.ExecuteAutoConnect(plan, ServerContext.WorldBlockDatastore.GetBlock(selfConnector.BlockInstanceId), inventory);
 
             return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
         }
 
-        private static bool TryPlacePole(PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack polePlaceInfo, BlockId blockId, out IElectricWireConnector selfConnector)
+        private static bool TryPlacePole(PlaceInfoMessagePack polePlaceInfo, BlockId blockId, out IElectricWireConnector selfConnector)
         {
             // ブロックを設置しワイヤー端点を解決する
             // Place the block and resolve its wire connector component

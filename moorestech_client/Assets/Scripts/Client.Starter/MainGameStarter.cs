@@ -7,6 +7,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
@@ -36,6 +37,7 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
@@ -92,6 +94,7 @@ namespace Client.Starter
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
+        [SerializeField] private BuildMenuView buildMenuView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private MachineRecipeView machineRecipeView;
@@ -177,6 +180,7 @@ namespace Client.Starter
             // 設置システム
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
+            builder.Register<BeltConveyorPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
             builder.Register<TrainCarPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
@@ -185,6 +189,7 @@ namespace Client.Starter
             builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
+            builder.Register<PlacementSelection>(Lifetime.Singleton);
             
             
             //UIコントロール
@@ -201,6 +206,7 @@ namespace Client.Starter
             builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<DebugBlockInfoState>(Lifetime.Singleton);
             builder.Register<TrainHUDScreenState>(Lifetime.Singleton);
+            builder.Register<BuildMenuState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             builder.Register<RideVehicleInputService>(Lifetime.Singleton);
@@ -250,6 +256,7 @@ namespace Client.Starter
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
+            builder.RegisterComponent(buildMenuView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);

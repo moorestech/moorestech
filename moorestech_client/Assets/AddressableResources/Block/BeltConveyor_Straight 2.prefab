@@ -1,0 +1,208 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &799010471066498842
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8889897735717953628}
+  - component: {fileID: 7895484155146193678}
+  m_Layer: 0
+  m_Name: BeltConveyor_Straight 2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8889897735717953628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799010471066498842}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6882331993836478548}
+  - {fileID: 7041294015437456590}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7895484155146193678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 799010471066498842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87480b01aedd4404aa94ddce067f59a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor.BeltConveyorItemPath
+  paths:
+  - startGuid: 916a0a62-5282-41ad-b69b-18d24eb495ba
+    goalGuid: 8b59a5ae-ce34-4f0a-bf29-8b7f8bcb0347
+    bezierPath:
+      startPoint: {x: 0.5, y: 0.35, z: 0}
+      startControlPoint: {x: 0, y: 0, z: 0.3}
+      endControlPoint: {x: 0, y: 0, z: -0.3}
+      endPoint: {x: 0.5, y: 0.35, z: 2}
+  - startGuid: d5b58ba1-6dde-445b-9435-9045ea179704
+    goalGuid: 8b59a5ae-ce34-4f0a-bf29-8b7f8bcb0347
+    bezierPath:
+      startPoint: {x: 0.5, y: 0.35, z: 1}
+      startControlPoint: {x: 0, y: 0, z: 0.3}
+      endControlPoint: {x: 0, y: 0, z: -0.3}
+      endPoint: {x: 0.5, y: 0.35, z: 2}
+  - startGuid: b216a72a-f211-466e-9b43-a054774bf326
+    goalGuid: a5fad90f-4e6f-46b4-b06e-228a14d0d8e7
+    bezierPath:
+      startPoint: {x: 0.5, y: 0.35, z: 0}
+      startControlPoint: {x: 0, y: 0, z: 0.3}
+      endControlPoint: {x: 0, y: 0, z: -0.3}
+      endPoint: {x: 0.5, y: 0.35, z: 2}
+  - startGuid: 40c085db-0e19-4bb5-b9fc-85b7e086b878
+    goalGuid: a5fad90f-4e6f-46b4-b06e-228a14d0d8e7
+    bezierPath:
+      startPoint: {x: 0.5, y: 0.35, z: 1}
+      startControlPoint: {x: 0, y: 0, z: 0.3}
+      endControlPoint: {x: 0, y: 0, z: -0.3}
+      endPoint: {x: 0.5, y: 0.35, z: 2}
+  defaultPath:
+    startPoint: {x: 0.5, y: 0.35, z: 0}
+    startControlPoint: {x: 0, y: 0, z: 0.3}
+    endControlPoint: {x: 0, y: 0, z: -0.3}
+    endPoint: {x: 0.5, y: 0.35, z: 2}
+--- !u!1001 &1268580520756569652
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 8889897735717953628}
+    m_Modifications:
+    - target: {fileID: 7386717182988853866, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_Name
+      value: BeltConveyor_Straight
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: -4481035966587640396, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+--- !u!4 &7041294015437456590 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+  m_PrefabInstance: {fileID: 1268580520756569652}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &3436141654585295534
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 8889897735717953628}
+    m_Modifications:
+    - target: {fileID: 7386717182988853866, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_Name
+      value: BeltConveyor_Straight
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: -4481035966587640396, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+--- !u!4 &6882331993836478548 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8083210205398508282, guid: 22764527d2fc13546af09d27fe46126e, type: 3}
+  m_PrefabInstance: {fileID: 3436141654585295534}
+  m_PrefabAsset: {fileID: 0}

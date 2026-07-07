@@ -5,6 +5,7 @@ using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.SoundEffect;
+using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -134,11 +135,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return snapped + new Vector3Int(0, heightOffset, 0);
         }
         
-        public static void SendPlaceProtocol(List<PlaceInfo> currentPlaceInfos, PlaceSystemUpdateContext context)
+        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
         {
-            // PlaceInfoをサーバーに送信
-            // Send PlaceInfo to server
-            ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
+            // セル毎BlockId付きでPlaceInfoをサーバーに送信
+            // Send PlaceInfo to server; each cell already carries its own BlockId
+            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
     }
