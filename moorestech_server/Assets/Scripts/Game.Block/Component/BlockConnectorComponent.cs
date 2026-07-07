@@ -5,7 +5,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.ComponentAttribute;
 using Game.Context;
 using Game.World.Interface.DataStore;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
 
@@ -20,19 +20,19 @@ namespace Game.Block.Component
         private readonly List<IDisposable> _blockUpdateEvents = new();
 
         // key: インプットコネクターの位置
-        // value: そのコネクターと接続できる位置とBlockConnectInfoElement
-        private readonly Dictionary<Vector3Int, List<(Vector3Int position, BlockConnectInfoElement element)>> _inputConnectPoss;
+        // value: 接続可能位置とIBlockConnector
+        private readonly Dictionary<Vector3Int, List<(Vector3Int position, IBlockConnector connector)>> _inputConnectPoss;
 
         // key: アウトプット先の位置
-        // value: そのアウトプット先と接続するアウトプットコネクターの位置とBlockConnectInfoElement
-        private readonly Dictionary<Vector3Int, (Vector3Int position, BlockConnectInfoElement element)> _outputTargetToOutputConnector;
+        // value: アウトプットコネクターの位置とIBlockConnector
+        private readonly Dictionary<Vector3Int, (Vector3Int position, IBlockConnector connector)> _outputTargetToOutputConnector;
 
-        public BlockConnectorComponent(BlockConnectInfo inputConnectInfo, BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
+        public BlockConnectorComponent(IReadOnlyList<IBlockConnector> inputConnectors, IReadOnlyList<IBlockConnector> outputConnectors, BlockPositionInfo blockPositionInfo)
         {
             var worldBlockUpdateEvent = ServerContext.WorldBlockUpdateEvent;
 
-            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(inputConnectInfo, blockPositionInfo);
-            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(outputConnectInfo, blockPositionInfo);
+            _inputConnectPoss = BlockConnectorConnectPositionCalculator.CalculateConnectorToConnectPosList(inputConnectors, blockPositionInfo);
+            _outputTargetToOutputConnector = BlockConnectorConnectPositionCalculator.CalculateConnectPosToConnector(outputConnectors, blockPositionInfo);
 
             foreach (var outputPos in _outputTargetToOutputConnector.Keys)
             {
@@ -71,8 +71,8 @@ namespace Game.Block.Component
             // アウトプット先にターゲットのインプットオブジェクトがあるかどうかをチェックする
             // Check if target's input object exists at output destination
             var isConnect = false;
-            BlockConnectInfoElement selfElement = null;
-            BlockConnectInfoElement targetElement = null;
+            IBlockConnector selfConnector = null;
+            IBlockConnector targetElementConnector = null;
             foreach (var targetInput in targetConnector._inputConnectPoss)
             {
                 // アウトプット先に、インプットのコネクターがあるかどうかをチェックする
@@ -93,8 +93,8 @@ namespace Game.Block.Component
                     if (target.position == outputConnector.position)
                     {
                         isConnect = true;
-                        selfElement = outputConnector.element;
-                        targetElement = target.element;
+                        selfConnector = outputConnector.connector;
+                        targetElementConnector = target.connector;
                         break;
                     }
             }
@@ -106,7 +106,7 @@ namespace Game.Block.Component
             if (!_connectedTargets.ContainsKey(targetComponent))
             {
                 var block = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
-                var connectedInfo = new ConnectedInfo(selfElement, targetElement, block);
+                var connectedInfo = new ConnectedInfo(selfConnector, targetElementConnector, block);
                 _connectedTargets.Add(targetComponent, connectedInfo);
             }
         }

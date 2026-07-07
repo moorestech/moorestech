@@ -11,8 +11,8 @@ using Game.Gear.Common;
 using Core.Item.Interface;
 using Core.Master;
 using MessagePack;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.GearConnectOptionModule;
 using Newtonsoft.Json;
 using UniRx;
 
@@ -62,7 +62,7 @@ namespace Game.Block.Blocks.GearChainPole
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
+                result.Add(GearConnect.FromConnectedInfo(target.Key, target.Value));
             }
 
             // チェーン接続があれば追加する

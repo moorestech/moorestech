@@ -6,7 +6,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -36,14 +36,14 @@ namespace Game.Block.Blocks.FilterSplitter
         public VanillaFilterSplitterComponent(
             BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IBlockInventory> connectorComponent,
-            BlockConnectInfoElement[] outputConnectorElements,
+            IReadOnlyList<IBlockConnector> outputConnectorElements,
             int filterSlotCountPerDirection)
         {
             _blockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
             _filterSlotCount = Math.Max(0, filterSlotCountPerDirection);
-            _directions = new DirectionState[outputConnectorElements.Length];
-            for (var i = 0; i < outputConnectorElements.Length; i++)
+            _directions = new DirectionState[outputConnectorElements.Count];
+            for (var i = 0; i < outputConnectorElements.Count; i++)
             {
                 _directions[i] = new DirectionState(outputConnectorElements[i].ConnectorGuid, _filterSlotCount);
             }
@@ -53,7 +53,7 @@ namespace Game.Block.Blocks.FilterSplitter
             Dictionary<string, string> componentStates,
             BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IBlockInventory> connectorComponent,
-            BlockConnectInfoElement[] outputConnectorElements,
+            IReadOnlyList<IBlockConnector> outputConnectorElements,
             int filterSlotCountPerDirection) :
             this(blockInstanceId, connectorComponent, outputConnectorElements, filterSlotCountPerDirection)
         {
