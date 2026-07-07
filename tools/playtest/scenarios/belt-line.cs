@@ -37,7 +37,7 @@ return PlaytestRunner.Run("belt-line", options, async p =>
     // ライン接続の健全性を設置直後に検証（今回の失敗クラスを早期検出）
     // Verify line connectivity right after placement (catches this failure class early)
     var tailBelt = p.GetBlock(new Vector3Int(5, 32, 7));
-    var tailTargets = tailBelt.GetComponent<Game.Block.Component.BlockConnectorComponent<IBlockInventory>>().ConnectedTargets.Count;
+    var tailTargets = tailBelt.GetComponent<Game.Block.Component.BlockConnectorComponent<IBlockInventory, Game.Block.Interface.Component.ConnectJudge.DefaultConnectJudge>>().ConnectedTargets.Count;
     p.Assert(tailTargets == 1, "末端ベルトがチェストに接続している");
 
     // クライアント側の出現を待ってライン全景を撮影

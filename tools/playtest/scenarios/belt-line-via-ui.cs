@@ -45,7 +45,7 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
     // ライン接続の健全性を設置直後に検証（belt-line.csと同一assert）
     // Verify line connectivity right after placement (same assert as belt-line.cs)
     var tailBelt = p.GetBlock(new Vector3Int(5, 32, 7));
-    var tailTargets = tailBelt.GetComponent<Game.Block.Component.BlockConnectorComponent<IBlockInventory>>().ConnectedTargets.Count;
+    var tailTargets = tailBelt.GetComponent<Game.Block.Component.BlockConnectorComponent<IBlockInventory, Game.Block.Interface.Component.ConnectJudge.DefaultConnectJudge>>().ConnectedTargets.Count;
     p.Assert(tailTargets == 1, "末端ベルトがチェストに接続している");
 
     await p.WaitBlockGameObject(chestPosition);
