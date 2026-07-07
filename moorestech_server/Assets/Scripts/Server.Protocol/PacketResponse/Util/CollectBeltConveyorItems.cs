@@ -9,7 +9,7 @@ using Game.Context;
 using Game.Entity.Interface;
 using Game.Entity.Interface.EntityInstance;
 using Game.World.Interface.DataStore;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 
@@ -120,17 +120,17 @@ namespace Server.Protocol.PacketResponse.Util
 
                 result.Add(itemEntity);
             }
-            
-            return result;
-        }
 
-        /// <summary>
-        /// BlockConnectInfoElementからConnectorGuidを取得
-        /// Get ConnectorGuid from BlockConnectInfoElement
-        /// </summary>
-        private static Guid? GetConnectorGuidFromConnector(BlockConnectInfoElement connector)
-        {
-            return connector?.ConnectorGuid;
+            return result;
+
+            #region Internal
+
+            Guid? GetConnectorGuidFromConnector(IBlockConnector connector)
+            {
+                return connector?.ConnectorGuid;
+            }
+
+            #endregion
         }
     }
 }

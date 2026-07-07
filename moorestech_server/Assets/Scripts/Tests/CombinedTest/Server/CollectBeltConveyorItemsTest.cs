@@ -12,7 +12,8 @@ using Game.Entity.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.InventoryConnectsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util;
@@ -173,8 +174,8 @@ namespace Tests.CombinedTest.Server
             // Create connectors with fixed Guids
             var sourceGuid = Guid.NewGuid();
             var goalGuid = Guid.NewGuid();
-            var sourceConnector = new BlockConnectInfoElement(0, "Inventory", sourceGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
-            var goalConnector = new BlockConnectInfoElement(1, "Inventory", goalGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
+            var sourceConnector = new InputConnectsElement(0, sourceGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
+            var goalConnector = new OutputConnectsElement(0, goalGuid, Vector3Int.zero, Array.Empty<Vector3Int>());
 
             // ベルトコンベアを作成してアイテムを設定
             // Create belt conveyor and set item
@@ -259,7 +260,7 @@ namespace Tests.CombinedTest.Server
             return beltConveyor;
         }
 
-        private IBlock CreateOneItemInsertedItemWithConnectors(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore, BlockConnectInfoElement startConnector, BlockConnectInfoElement goalConnector)
+        private IBlock CreateOneItemInsertedItemWithConnectors(Vector3Int pos, BlockDirection blockDirection, IWorldBlockDatastore datastore, IBlockConnector startConnector, IBlockConnector goalConnector)
         {
             datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
