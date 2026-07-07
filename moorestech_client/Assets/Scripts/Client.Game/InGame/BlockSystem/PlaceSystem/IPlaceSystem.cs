@@ -18,19 +18,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // The block selected in the build menu (null when nothing is selected)
         public readonly BlockId? SelectedBlockId;
 
-        // ビルドメニューの選択種別と車両・接続ツールの選択値、選択変化フラグ
-        // The build-menu selection type, train car / connect tool value, and change flag
+        // ビルドメニューの選択種別と車両・接続ツール・BPの選択値、選択変化フラグ
+        // The build-menu selection type, train car / connect tool / blueprint value, and change flag
         public readonly PlacementSelectionType SelectionType;
         public readonly Guid SelectedTrainCarGuid;
         public readonly string SelectedConnectPlaceMode;
+        public readonly string SelectedBlueprintName;
         public readonly bool IsSelectionChanged;
 
-        public PlaceSystemUpdateContext(PlacementSelectionType selectionType, BlockId? selectedBlockId, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, bool isSelectionChanged)
+        public PlaceSystemUpdateContext(PlacementSelectionType selectionType, BlockId? selectedBlockId, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, string selectedBlueprintName, bool isSelectionChanged)
         {
             SelectionType = selectionType;
             SelectedBlockId = selectedBlockId;
             SelectedTrainCarGuid = selectedTrainCarGuid;
             SelectedConnectPlaceMode = selectedConnectPlaceMode;
+            SelectedBlueprintName = selectedBlueprintName;
             IsSelectionChanged = isSelectionChanged;
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Mod.Texture;
 using Core.Master;
@@ -15,12 +16,12 @@ using Mooresmaster.Model.TrainModule;
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    /// ビルドメニューの表示エントリ一覧を組み立てる（ブロック→車両→接続ツールの順）
-    /// Builds the list of build-menu entries: blocks, then train cars, then connect tools
+    /// ビルドメニューの表示エントリ一覧を組み立てる（ブロック→車両→接続ツール→BPの順）
+    /// Builds the list of build-menu entries: blocks, train cars, connect tools, then blueprints
     /// </summary>
     public static class BuildMenuEntryCatalog
     {
-        public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState)
+        public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
         {
             var entries = new List<BuildMenuEntry>();
 
@@ -56,6 +57,13 @@ namespace Client.Game.InGame.UI.BuildMenu
             {
                 var iconView = ClientContext.ItemImageContainer.GetItemView(tool.IconItemGuid.Value);
                 entries.Add(new BuildMenuEntry(PlacementSelectionType.ConnectTool, default, default, tool.PlaceMode, iconView, tool.Name));
+            }
+
+            // 保存済みブループリントのエントリを追加する
+            // Append entries for saved blueprints
+            foreach (var blueprint in blueprintLibrary.Blueprints)
+            {
+                entries.Add(new BuildMenuEntry(blueprint.Name));
             }
 
             return entries;
