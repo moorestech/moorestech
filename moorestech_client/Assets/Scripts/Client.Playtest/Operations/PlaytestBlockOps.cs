@@ -5,6 +5,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;
+using Game.UnlockState;
 using UnityEngine;
 
 namespace Client.Playtest.Operations
@@ -22,6 +23,14 @@ namespace Client.Playtest.Operations
                 if (MasterHolder.BlockMaster.GetBlockMaster(blockId).Name == blockName) return blockId;
             }
             throw new ArgumentException($"Block not found: {blockName}");
+        }
+
+        public static void UnlockBlockServerSide(string blockName)
+        {
+            // サーバー側でアンロックし、UnlockedEventPacket経由でクライアントのビルドメニューへ同期させる
+            // Unlock on the server; the UnlockedEventPacket syncs it to the client build menu
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ResolveBlockId(blockName)).BlockGuid;
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
         }
 
         public static IBlock PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
