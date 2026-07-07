@@ -46,21 +46,20 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConsumption = machineParam.GearConsumption;
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
-            var idlePowerRate = gearConsumption.IdlePowerRate;
             
             var effectComponent = new MachineModuleEffectComponent(module);
 
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
             var processor = componentStates == null
-                ? new VanillaMachineProcessorComponent(input, output, requirePower, idlePowerRate, effectComponent)
-                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, idlePowerRate, blockMasterElement);
+                ? new VanillaMachineProcessorComponent(input, output, requirePower, gearConsumption.IdlePowerRate, effectComponent)
+                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, gearConsumption.IdlePowerRate, blockMasterElement);
             var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
 
-            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer, idlePowerRate);
+            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer, gearConsumption.IdlePowerRate);
 
             var components = new List<IBlockComponent>
             {

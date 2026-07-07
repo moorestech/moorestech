@@ -42,10 +42,6 @@ namespace Server.Protocol.PacketResponse
                         success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, data.PlayerId, new ItemId(data.ItemId), out error);
                         break;
 
-                    case ChainEditMode.Disconnect:
-                        success = GearChainSystemUtil.TryDisconnect(data.PosAVector, data.PosBVector, data.PlayerId, out error);
-                        break;
-
                     default:
                         return new GearChainConnectionEditResponse(false, "Invalid mode");
                 }
@@ -84,17 +80,6 @@ namespace Server.Protocol.PacketResponse
                 };
             }
 
-            public static GearChainConnectionEditRequest CreateDisconnectRequest(Vector3Int posA, Vector3Int posB, int playerId)
-            {
-                return new GearChainConnectionEditRequest
-                {
-                    Tag = GearChainConnectionEditProtocol.Tag,
-                    PosA = new Vector3IntMessagePack(posA),
-                    PosB = new Vector3IntMessagePack(posB),
-                    Mode = ChainEditMode.Disconnect,
-                    PlayerId = playerId,
-                };
-            }
         }
 
         [MessagePackObject]
@@ -102,8 +87,6 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public bool IsSuccess { get; set; }
             [Key(3)] public string Error { get; set; }
-
-            [IgnoreMember] public bool HasError => !string.IsNullOrEmpty(Error);
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public GearChainConnectionEditResponse() { }
@@ -118,7 +101,6 @@ namespace Server.Protocol.PacketResponse
         public enum ChainEditMode
         {
             Connect,
-            Disconnect,
         }
     }
 }

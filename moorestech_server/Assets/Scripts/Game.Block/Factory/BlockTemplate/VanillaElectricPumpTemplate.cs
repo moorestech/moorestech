@@ -32,8 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector)
                 : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
             var processorComponent = new ElectricPumpProcessorComponent(param, outputComponent, blockPositionInfo);
-            var idlePowerRate = param.IdlePowerRate;
-            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), idlePowerRate, processorComponent);
+            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), param.IdlePowerRate, processorComponent);
 
             var components = new List<IBlockComponent>
             {
