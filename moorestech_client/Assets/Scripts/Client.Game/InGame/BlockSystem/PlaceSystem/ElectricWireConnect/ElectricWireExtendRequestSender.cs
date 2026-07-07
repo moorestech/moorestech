@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             poleMaster = null;
             poleItemId = ItemMaster.EmptyItemId;
 
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+            for (var i = 0; i < inventory.MainSlotCount; i++)
             {
                 var itemId = inventory[i].Id;
                 if (inventory[i].Count < 1 || !MasterHolder.BlockMaster.IsBlock(itemId)) continue;
