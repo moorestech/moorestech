@@ -3,6 +3,6 @@
 export { useTopic, useTopicSelector, useConnectionStatus, readTopic } from "./store/useTopic";
 export { useItemMaster } from "./store/useItemMaster";
 export { dispatchAction } from "./transport/actions";
-export { Topics } from "./transport/protocol";
+export { Topics, UiStateNames } from "./transport/protocol";
 export type { TopicPayloads, ActionPayloads } from "./transport/protocol";
 export type * from "./contract/payloadTypes";

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { Group, Loader, Overlay, Stack, Text, Title } from "@mantine/core";
 import { InventoryPanel, HotbarPanel } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel } from "@/features/recipe";
@@ -8,8 +8,7 @@ import { ProgressBar } from "@/features/progress";
 import { BlockInventoryPanel } from "@/features/blockInventory";
 import { ResearchTreePanel } from "@/features/research";
 import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
-import { readActiveLayer } from "./activeLayer";
-import { screenForUiState } from "./uiScreenRouting";
+import { screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
 import { useUiStore } from "./uiStore";
 import styles from "./App.module.css";
 
@@ -30,15 +29,10 @@ export default function App() {
 
   // Esc でアイテム選択を解除する。modal 等のオーバーレイは自前で Esc を処理するため game レイヤーのみ
   // Esc clears item selection; overlays like the modal handle Esc themselves, so only at the game layer
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      if (readActiveLayer() !== "game") return;
-      useUiStore.getState().clearSelectedItem();
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  useGameLayerKeydown((e) => {
+    if (e.key !== "Escape") return;
+    useUiStore.getState().clearSelectedItem();
+  });
 
   return (
     <div className={styles.layout}>
