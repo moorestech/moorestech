@@ -46,6 +46,9 @@ namespace Client.Game.InGame.UI.UIState.State
                     case PlacementSelectionType.ConnectTool:
                         _placementSelection.SetSelectedConnectTool(entry.ConnectPlaceMode);
                         break;
+                    case PlacementSelectionType.Blueprint:
+                        _placementSelection.SetSelectedBlueprint(entry.BlueprintName);
+                        break;
                 }
                 return Leave(UIStateEnum.PlaceBlock);
             }

@@ -41,6 +41,15 @@ namespace Client.Game.InGame.UI.Inventory.Common
             }
         }
 
+        // アイコン無しエントリをテキストのみで表示する（BPエントリ等）
+        // Display an icon-less entry as text only (e.g. blueprint entries)
+        public void SetTextOnly(string text, string toolTipText)
+        {
+            ItemViewData = null;
+            Count = 0;
+            commonSlotView.SetViewTextOnly(text, toolTipText);
+        }
+
         // クラフト数の表示のみを更新
         // Update only craftable count text
         public void SetCount(int count)

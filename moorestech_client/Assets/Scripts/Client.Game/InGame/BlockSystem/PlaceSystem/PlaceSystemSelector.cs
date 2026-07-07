@@ -1,5 +1,6 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
@@ -25,6 +26,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private readonly TrainRailConnectSystem _trainRailConnectSystem;
         private readonly GearChainPoleConnectSystem _gearChainPoleConnectSystem;
         private readonly ElectricWireConnectSystem _electricWireConnectSystem;
+        private readonly BlueprintPasteSystem _blueprintPasteSystem;
 
         public PlaceSystemSelector(
             CommonBlockPlaceSystem commonBlockPlaceSystem,
@@ -33,7 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             TrainRailPlaceSystem trainRailPlaceSystem,
             TrainRailConnectSystem trainRailConnectSystem,
             GearChainPoleConnectSystem gearChainPoleConnectSystem,
-            ElectricWireConnectSystem electricWireConnectSystem)
+            ElectricWireConnectSystem electricWireConnectSystem,
+            BlueprintPasteSystem blueprintPasteSystem)
         {
             EmptyPlaceSystem = new EmptyPlaceSystem();
             _commonBlockPlaceSystem = commonBlockPlaceSystem;
@@ -43,6 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _trainRailConnectSystem = trainRailConnectSystem;
             _gearChainPoleConnectSystem = gearChainPoleConnectSystem;
             _electricWireConnectSystem = electricWireConnectSystem;
+            _blueprintPasteSystem = blueprintPasteSystem;
         }
 
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
@@ -63,6 +67,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 }
                 case PlacementSelectionType.TrainCar:
                     return _trainCarPlaceSystem;
+                case PlacementSelectionType.Blueprint:
+                    return _blueprintPasteSystem;
                 case PlacementSelectionType.ConnectTool:
                     // 接続ツールは選択中の接続モードで3系統へ振り分ける
                     // Route connect tools to the three connect systems by the selected place mode

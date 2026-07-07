@@ -16,6 +16,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private BlockId? _lastSelectedBlockId;
         private Guid _lastSelectedTrainCarGuid;
         private string _lastSelectedConnectPlaceMode;
+        private string _lastSelectedBlueprintName;
 
         public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector, PlacementSelection placementSelection)
         {
@@ -37,6 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _lastSelectedBlockId = null;
             _lastSelectedTrainCarGuid = Guid.Empty;
             _lastSelectedConnectPlaceMode = null;
+            _lastSelectedBlueprintName = null;
         }
 
         public void ManualUpdate()
@@ -63,13 +65,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var isSelectionChanged = _lastSelectionType != _placementSelection.SelectionType
                                          || _lastSelectedBlockId != _placementSelection.SelectedBlockId
                                          || _lastSelectedTrainCarGuid != _placementSelection.SelectedTrainCarGuid
-                                         || _lastSelectedConnectPlaceMode != _placementSelection.SelectedConnectPlaceMode;
+                                         || _lastSelectedConnectPlaceMode != _placementSelection.SelectedConnectPlaceMode
+                                         || _lastSelectedBlueprintName != _placementSelection.SelectedBlueprintName;
 
                 var context = new PlaceSystemUpdateContext(
                     _placementSelection.SelectionType,
                     _placementSelection.SelectedBlockId,
                     _placementSelection.SelectedTrainCarGuid,
                     _placementSelection.SelectedConnectPlaceMode,
+                    _placementSelection.SelectedBlueprintName,
                     isSelectionChanged
                 );
 
@@ -77,6 +81,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 _lastSelectedBlockId = _placementSelection.SelectedBlockId;
                 _lastSelectedTrainCarGuid = _placementSelection.SelectedTrainCarGuid;
                 _lastSelectedConnectPlaceMode = _placementSelection.SelectedConnectPlaceMode;
+                _lastSelectedBlueprintName = _placementSelection.SelectedBlueprintName;
                 return context;
             }
 

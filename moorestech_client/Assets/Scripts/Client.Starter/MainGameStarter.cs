@@ -193,6 +193,7 @@ namespace Client.Starter
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<PlacementSelection>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
 
             // 建設系視点モード
             // register build view mode

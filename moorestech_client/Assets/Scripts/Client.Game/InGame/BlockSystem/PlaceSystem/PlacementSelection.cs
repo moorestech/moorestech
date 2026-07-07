@@ -9,6 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         Block,
         TrainCar,
         ConnectTool,
+        Blueprint,
     }
 
     /// <summary>
@@ -21,6 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public BlockId? SelectedBlockId { get; private set; }
         public Guid SelectedTrainCarGuid { get; private set; }
         public string SelectedConnectPlaceMode { get; private set; }
+        public string SelectedBlueprintName { get; private set; }
 
         public void SetSelectedBlock(BlockId blockId)
         {
@@ -43,12 +45,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             SelectedConnectPlaceMode = placeMode;
         }
 
+        public void SetSelectedBlueprint(string blueprintName)
+        {
+            ClearSelection();
+            SelectionType = PlacementSelectionType.Blueprint;
+            SelectedBlueprintName = blueprintName;
+        }
+
         public void ClearSelection()
         {
             SelectionType = PlacementSelectionType.None;
             SelectedBlockId = null;
             SelectedTrainCarGuid = Guid.Empty;
             SelectedConnectPlaceMode = null;
+            SelectedBlueprintName = null;
         }
     }
 }
