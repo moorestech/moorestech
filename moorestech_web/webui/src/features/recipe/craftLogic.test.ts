@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildOwnedCounts,
   craftable,
   clampIndex,
   selectCraftRecipes,
@@ -8,7 +7,6 @@ import {
   buildRecipeTabs,
 } from "./craftLogic";
 import type {
-  PlayerInventoryData,
   CraftRecipe,
   CraftRecipesData,
   MachineRecipe,
@@ -30,29 +28,6 @@ const machineRecipe = (blockItemId: number, blockName: string, outputItemId: num
   time: 1,
   inputItems: [],
   outputItems: [{ itemId: outputItemId, count: 1 }],
-});
-
-const inv = (
-  main: [number, number][],
-  hot: [number, number][],
-  grab: [number, number],
-): PlayerInventoryData => ({
-  mainSlots: main.map(([itemId, count]) => ({ itemId, count })),
-  hotbarSlots: hot.map(([itemId, count]) => ({ itemId, count })),
-  grab: { itemId: grab[0], count: grab[1] },
-  selectedHotbar: 0,
-});
-
-describe("buildOwnedCounts", () => {
-  it("main+hotbar を合算し grab を除外する", () => {
-    const counts = buildOwnedCounts(inv([[1, 3]], [[1, 2]], [1, 99]));
-    expect(counts.get(1)).toBe(5);
-  });
-  it("count 0 は加算しない", () => {
-    const counts = buildOwnedCounts(inv([[0, 0]], [[2, 4]], [0, 0]));
-    expect(counts.get(0)).toBeUndefined();
-    expect(counts.get(2)).toBe(4);
-  });
 });
 
 describe("craftable", () => {

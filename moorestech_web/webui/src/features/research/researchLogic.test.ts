@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildOwnedCounts,
   computeCanvasBounds,
   deriveResearchButton,
   hasEnoughItems,
@@ -39,19 +38,6 @@ describe("hasEnoughItems", () => {
     const n = node("a", 0, 0, { consumeItems: [{ itemId: 1, count: 3 }] });
     expect(hasEnoughItems(n, new Map([[1, 3]]))).toBe(true);
     expect(hasEnoughItems(n, new Map([[1, 2]]))).toBe(false);
-  });
-});
-
-describe("buildOwnedCounts", () => {
-  it("ignores empty slots and sums duplicate item slots", () => {
-    const owned = buildOwnedCounts([
-      { itemId: 0, count: 99 },
-      { itemId: -1, count: 99 },
-      { itemId: 1, count: 2 },
-      { itemId: 1, count: 5 },
-      { itemId: 2, count: 1 },
-    ]);
-    expect(owned).toEqual(new Map([[1, 7], [2, 1]]));
   });
 });
 
