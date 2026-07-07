@@ -64,11 +64,11 @@ SourceGenerator側ではローカル`defineInterface`は同一スキーマ内か
 
 ## スコープ
 
-- [ ] スキーマ変更（YAMLファイル）
-- [ ] SourceGenerator再生成
-- [ ] C#コード修正
-- [ ] JSONマスターデータ移行
-- [ ] 接続系テスト確認
+- [x] スキーマ変更（YAMLファイル）
+- [x] SourceGenerator再生成
+- [x] C#コード修正
+- [x] JSONマスターデータ移行
+- [x] 接続系テスト確認
 
 ## Phase 1: スキーマ変更
 

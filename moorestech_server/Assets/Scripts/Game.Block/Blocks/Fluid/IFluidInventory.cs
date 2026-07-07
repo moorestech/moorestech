@@ -4,6 +4,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Fluid
 {
@@ -12,9 +13,9 @@ namespace Game.Block.Blocks.Fluid
         public List<FluidStack> GetFluidInventory();
         public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source);
         
-        public static BlockConnectorComponent<IFluidInventory> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> CreateFluidInventoryConnector(FluidInventoryConnects fluidInventoryConnects, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockConnectorComponent<IFluidInventory>(
+            return new BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>(
                 fluidInventoryConnects.InflowConnects,
                 fluidInventoryConnects.OutflowConnects,
                 blockPositionInfo
