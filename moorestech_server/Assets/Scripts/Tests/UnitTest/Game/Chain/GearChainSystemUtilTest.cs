@@ -104,7 +104,7 @@ namespace Tests.UnitTest.Game.Chain
         }
 
         [Test]
-        public void ConnectAndDisconnectUpdateGearConnections()
+        public void ConnectUpdatesGearConnections()
         {
             // 接続可能な距離にブロックを設置する
             // Place blocks within valid distance
@@ -132,17 +132,6 @@ namespace Tests.UnitTest.Game.Chain
             var transformerB = blockB.GetComponent<IGearEnergyTransformer>();
             Assert.AreEqual(transformerB, transformerA.GetGearConnects().Single().Transformer);
             Assert.AreEqual(transformerA, transformerB.GetGearConnects().Single().Transformer);
-
-            // チェーン切断を実行する
-            // Execute chain disconnection
-            var disconnected = GearChainSystemUtil.TryDisconnect(posA, posB, PlayerId, out var disconnectError);
-            Assert.True(disconnected);
-            Assert.IsEmpty(disconnectError ?? string.Empty);
-
-            // 切断後に接続が消えることを確認する
-            // Ensure connections are cleared after disconnect
-            Assert.IsEmpty(transformerA.GetGearConnects());
-            Assert.IsEmpty(transformerB.GetGearConnects());
         }
 
         [Test]

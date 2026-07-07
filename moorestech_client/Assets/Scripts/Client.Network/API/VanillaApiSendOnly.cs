@@ -167,14 +167,5 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
-        /// <summary>
-        /// ギアチェーンポール間の接続を解除する
-        /// Disconnect a connection between GearChainPoles
-        /// </summary>
-        public void DisconnectGearChain(Vector3Int posA, Vector3Int posB)
-        {
-            var request = GearChainConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
-            _packetSender.Send(request);
-        }
     }
 }

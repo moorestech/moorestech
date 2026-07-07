@@ -1,0 +1,27 @@
+{
+  "skill_name": "design-question-triage",
+  "note": "iteration-2 でプロンプトから『前提と質問』という誘導語を除去（baseline に型を教えないため）。アサーションは実際の失敗モード（支配戦略の質問化・不要な機構新設・調査可能事項の質問）狙い撃ちに変更。",
+  "evals": [
+    {
+      "id": 0,
+      "name": "research-driven-machine-speed-upgrade",
+      "prompt": "moorestech で、機械の加工速度を研究で永続的にアップグレードできる機能を作りたい。まず壁打ちから始めたい。（この依頼に対するあなたの最初の返答を作成せよ）",
+      "expected_output": "自明な技術選択は自己解決され、質問はゲームデザイン判断のみに絞られている",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "timed-buff-consumable",
+      "prompt": "moorestech で、アイテムを消費すると一定時間プレイヤーの採掘速度が上がるバフポーション的な機能を作りたい。壁打ちを始めたい。（この依頼に対するあなたの最初の返答を作成せよ）",
+      "expected_output": "動的状態の置き場所・同期・永続化は自己解決され、質問はデザイン判断のみ",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "inventory-search-ui",
+      "prompt": "moorestech のプレイヤーインベントリにアイテム検索機能を付けたい。壁打ちからやりたい。（この依頼に対するあなたの最初の返答を作成せよ）",
+      "expected_output": "クライアント完結を自己解決し、質問はUI仕様のみ",
+      "files": []
+    }
+  ]
+}
