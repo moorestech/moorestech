@@ -128,9 +128,9 @@ namespace Game.EnergySystem
             // Strip each energy role from the owning segment
             void RemoveRoles()
             {
-                if (connector.WireConsumer != null) segment.RemoveEnergyConsumer(connector.WireConsumer);
-                if (connector.WireGenerator != null) segment.RemoveGenerator(connector.WireGenerator);
-                if (connector.WireTransformer != null) segment.RemoveEnergyTransformer(connector.WireTransformer);
+                if (connector.EnergyRole is IElectricConsumer consumer) segment.RemoveEnergyConsumer(consumer);
+                if (connector.EnergyRole is IElectricGenerator generator) segment.RemoveGenerator(generator);
+                if (connector.EnergyRole is IElectricTransformer transformer) segment.RemoveEnergyTransformer(transformer);
             }
 
             #endregion
@@ -168,9 +168,9 @@ namespace Game.EnergySystem
 
         private static void AddRoles(EnergySegment segment, IElectricWireConnector connector)
         {
-            if (connector.WireConsumer != null) segment.AddEnergyConsumer(connector.WireConsumer);
-            if (connector.WireGenerator != null) segment.AddGenerator(connector.WireGenerator);
-            if (connector.WireTransformer != null) segment.AddEnergyTransformer(connector.WireTransformer);
+            if (connector.EnergyRole is IElectricConsumer consumer) segment.AddEnergyConsumer(consumer);
+            if (connector.EnergyRole is IElectricGenerator generator) segment.AddGenerator(generator);
+            if (connector.EnergyRole is IElectricTransformer transformer) segment.AddEnergyTransformer(transformer);
         }
     }
 }
