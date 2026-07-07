@@ -7,3 +7,6 @@ properties:
 - key: isReverse
   type: boolean
   default: true
+- key: meshingAxis
+  type: vector3Int
+  optional: true

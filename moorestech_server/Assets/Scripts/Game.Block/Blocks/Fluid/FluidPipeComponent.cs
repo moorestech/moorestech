@@ -11,6 +11,7 @@ using MessagePack;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
 using UniRx;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Fluid
 {
@@ -26,11 +27,11 @@ namespace Game.Block.Blocks.Fluid
         private readonly Dictionary<FluidContainer, SourceBucket> _pendingBySource = new();
         private readonly int _blockedRetryTicks;
 
-        private readonly BlockConnectorComponent<IFluidInventory> _connectorComponent;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _connectorComponent;
         private readonly Subject<Unit> _onChangeBlockState = new();
         private BlockPositionInfo _blockPositionInfo;
 
-        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory> connectorComponent, float capacity, int blockedRetryTicks, Dictionary<string, string> componentStates)
+        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent, float capacity, int blockedRetryTicks, Dictionary<string, string> componentStates)
         {
             _blockPositionInfo = blockPositionInfo;
             _connectorComponent = connectorComponent;

@@ -13,6 +13,7 @@ using Game.Fluid;
 using MessagePack;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
 using UniRx;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Machine
 {
@@ -24,7 +25,7 @@ namespace Game.Block.Blocks.Machine
     {
         private readonly VanillaMachineInputInventory _inputInventory;
         private readonly VanillaMachineOutputInventory _outputInventory;
-        private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
         private readonly Subject<Unit> _onChangeBlockState = new();
         
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
@@ -32,7 +33,7 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineFluidInventoryComponent(
             VanillaMachineInputInventory inputInventory,
             VanillaMachineOutputInventory outputInventory,
-            BlockConnectorComponent<IFluidInventory> fluidConnector)
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
             _inputInventory = inputInventory;
             _outputInventory = outputInventory;
