@@ -1,4 +1,4 @@
-import type { ResearchNodeData, ResearchNodeState, SlotData } from "@/bridge/contract/payloadTypes";
+import type { ResearchNodeData, ResearchNodeState } from "@/bridge/contract/payloadTypes";
 
 // uGUIのY上向き座標をCSS topへ反転写像（screenY = offsetY - y）
 // Flip uGUI's Y-up coords to CSS top (screenY = offsetY - y)
@@ -32,17 +32,6 @@ export function lineBetween(from: { x: number; y: number }, to: { x: number; y: 
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   return { x: from.x, y: from.y, length: Math.hypot(dx, dy), angleDeg: (Math.atan2(dy, dx) * 180) / Math.PI };
-}
-
-// 所持数をitemId別に集計
-// Aggregate owned counts by itemId
-export function buildOwnedCounts(slots: SlotData[]): Map<number, number> {
-  const owned = new Map<number, number>();
-  for (const slot of slots) {
-    if (slot.itemId <= 0) continue;
-    owned.set(slot.itemId, (owned.get(slot.itemId) ?? 0) + slot.count);
-  }
-  return owned;
 }
 
 export function hasEnoughItems(node: ResearchNodeData, owned: Map<number, number>): boolean {

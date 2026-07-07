@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Stack, Tabs, Text } from "@mantine/core";
 import { ItemIcon } from "@/shared/ui";
+import { buildOwnedCounts } from "@/shared/ownedCounts";
 import styles from "../RecipeViewer.module.css";
 import type {
   CraftRecipesData,
@@ -9,7 +10,6 @@ import type {
   ItemMasterEntry,
 } from "@/bridge/contract/payloadTypes";
 import {
-  buildOwnedCounts,
   selectCraftRecipes,
   groupMachineRecipesByBlock,
   buildRecipeTabs,
@@ -37,7 +37,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   const tabs = useMemo(() => buildRecipeTabs(craftRecipes, machineGroups), [craftRecipes, machineGroups]);
   // サーバーの OneClickCraft は main+hotbar のみ参照するため、grab は所持数に含めない
   // The server's OneClickCraft only consults main+hotbar, so grab is excluded from the tally
-  const counts = useMemo(() => buildOwnedCounts(inventory), [inventory]);
+  const counts = useMemo(() => buildOwnedCounts([...inventory.mainSlots, ...inventory.hotbarSlots]), [inventory]);
 
   const [tabKey, setTabKey] = useState(tabs[0]?.key ?? "");
   const [recipeIndex, setRecipeIndex] = useState(0);
