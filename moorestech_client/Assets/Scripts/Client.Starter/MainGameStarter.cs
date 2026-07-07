@@ -17,6 +17,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
@@ -190,8 +191,13 @@ namespace Client.Starter
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<PlacementSelection>(Lifetime.Singleton);
-            
-            
+
+            // 建設系視点モード
+            // register build view mode
+            builder.Register<IBuildViewApplier, BuildViewApplier>(Lifetime.Singleton);
+            builder.Register<BuildViewModeController>(Lifetime.Singleton);
+
+
             //UIコントロール
             // register UI control
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
