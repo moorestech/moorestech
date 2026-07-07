@@ -47,8 +47,8 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
 
-            // 入力フィールド編集中はキー遷移を止める（BP名入力中のB/Tab等の誤爆防止）
-            // Suppress key transitions while a text field is edited (avoid B/Tab firing during BP naming)
+            // 入力フィールド編集中はキー遷移と視点操作を止める（BP名入力中のB/Tab/V等の誤爆防止）
+            // While a text field is edited, suppress key transitions and view input so BP naming (B/Tab/V etc.) can't trigger them
             if (!IsTextInputFocused())
             {
                 if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
@@ -58,9 +58,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
                 //TODO InputSystemのリファクタ対象
                 if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
+
+                _buildViewModeController.ManualUpdate();
             }
 
-            _buildViewModeController.ManualUpdate();
             _placeSystemStateController.ManualUpdate();
 
             return null;
