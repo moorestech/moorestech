@@ -1,4 +1,5 @@
-﻿using Client.Game.InGame.Control;
+﻿using Client.Game.Common;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -53,6 +54,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 旧uGUIのHUD表示をGameScreen復帰時に同期する
+            // Sync legacy uGUI HUD visibility when returning to GameScreen.
+            GameStateController.ChangeState(GameStateType.InGame);
+
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
 
