@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Cysharp.Threading.Tasks;
@@ -15,8 +16,10 @@ namespace Client.Playtest.Operations
 
         // kill floor(y<-50)に落ちない高さに足場を置く過去セッションの定番座標
         // Battle-tested scaffold placement that stays clear of the kill floor (y < -50)
+        // 上面をy=32ちょうどに揃える（設置プレビューのFloor(hit.y)がブロックグリッドと一致する条件）
+        // Top face is aligned exactly to y=32 (so the preview's Floor(hit.y) matches the block grid)
         public static readonly Vector3 GroundCenter = new(0, 30, 0);
-        public static readonly Vector3 GroundSize = new(50, 3, 50);
+        public static readonly Vector3 GroundSize = new(50, 4, 50);
 
         public static async UniTask CreateFlatGroundAndWarp()
         {
@@ -40,6 +43,10 @@ namespace Client.Playtest.Operations
             ground.name = GroundObjectName;
             ground.transform.position = GroundCenter;
             ground.transform.localScale = GroundSize;
+
+            // 設置プレビューのレイキャストが地面として認識できるようにマーカーを付与する
+            // Attach the marker so the placement-preview raycast recognizes this as ground
+            ground.AddComponent<GroundGameObject>();
             return ground;
         }
 

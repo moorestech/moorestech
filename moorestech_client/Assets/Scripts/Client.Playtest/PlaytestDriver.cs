@@ -2,12 +2,15 @@ using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Core;
+using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Client.Playtest
 {
@@ -41,6 +44,40 @@ namespace Client.Playtest
         public bool RemoveBlock(Vector3Int position) => PlaytestBlockOps.RemoveBlock(position);
         public IBlock GetBlock(Vector3Int position) => PlaytestBlockOps.GetBlock(position);
         public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position) => await PlaytestBlockOps.WaitBlockGameObjectSpawn(position, 15f);
+
+        // ---- UI経路操作 / UI-route operations ----
+        public UIStateEnum CurrentUiState => PlaytestUiOps.CurrentUiState();
+        public void UnlockBlock(string blockName) => PlaytestBlockOps.UnlockBlockServerSide(blockName);
+        public async UniTask PressKey(Key key) => await SemanticInput.TapKey(key);
+        // slotは0始まり（HotBarView.SelectIndexと同じ）。0→キー1、8→キー9
+        // slot is zero-based (same as HotBarView.SelectIndex): 0 -> key "1", 8 -> key "9"
+        public async UniTask SelectHotbar(int slot) => await SemanticInput.TapKey(Key.Digit1 + slot);
+        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await PlaytestUiOps.WaitUiState(state, timeoutSeconds);
+        public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName);
+        public async UniTask ExitToGameScreen() => await PlaytestUiOps.ExitToGameScreen();
+        public async UniTask AimAt(Vector3 worldPosition) => await PlaytestUiOps.AimAtWorldPosition(worldPosition);
+        public async UniTask ClickPlace() => await PlaytestUiOps.ClickPlace();
+
+        public async UniTask PlaceBlockViaUi(string blockName, Vector3Int origin, BlockDirection direction)
+        {
+            // ビルドメニュー選択→照準→クリック設置→サーバー反映待ちの統合操作（方向はデフォルトNorth前提）
+            // Composite op: build-menu select, aim, click-place, then wait for the server-side block (direction assumes default North)
+            await PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName);
+            await PlaytestUiOps.AimAtWorldPosition(PlaytestUiOps.PlaceAimPoint(blockName, origin, direction));
+            await PlaytestUiOps.ClickPlace();
+            await Until(() => PlaytestBlockOps.GetBlock(origin) != null, 15f, $"UI設置反映: {blockName} at {origin}");
+        }
+
+        public async UniTask DragPlaceViaUi(string blockName, Vector3Int fromOrigin, Vector3Int toOrigin)
+        {
+            // ドラッグ設置（ベルト等の経路設置）。方向はドラッグ経路から自動解決される
+            // Drag placement (belt runs, etc.); direction is auto-resolved from the drag path
+            await PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName);
+            var fromAim = PlaytestUiOps.PlaceAimPoint(blockName, fromOrigin, BlockDirection.North);
+            var toAim = PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North);
+            await PlaytestUiOps.DragPlace(fromAim, toAim);
+            await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UIドラッグ設置反映: {blockName} {fromOrigin}->{toOrigin}");
+        }
 
         // ---- 低レベルアクセス / Low-level access ----
         public void SendCommand(string command) => ClientContext.VanillaApi.SendOnly.SendCommand(command);

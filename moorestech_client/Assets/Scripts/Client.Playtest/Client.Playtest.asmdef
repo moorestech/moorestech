@@ -6,6 +6,7 @@
         "Client.Starter",
         "Client.Common",
         "Client.Network",
+        "Client.Mod",
         "Server.Boot",
         "Server.Protocol",
         "Core.Master",
@@ -13,11 +14,14 @@
         "Core.Item.Interface",
         "Game.Context",
         "Game.World.Interface",
+        "Game.UnlockState",
         "Game.Block.Interface",
         "Game.PlayerInventory.Interface",
         "Common.Debug",
+        "ClassLibrary",
         "UniTask",
         "UniRx",
+        "Unity.InputSystem",
         "Unity.Recorder.Editor"
     ],
     "includePlatforms": [

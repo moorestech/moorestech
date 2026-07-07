@@ -59,8 +59,35 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 `SendCommand` / `ServerService<T>()`。
 
 - Direct系＝サーバーデータストア直叩き（状態を素早く作る用・インベントリ非消費）
-- 非Direct系＝本番プロトコル経路。Phase 3でUIクリック経路(`via: UI`)を追加予定
+- 非Direct系＝本番プロトコル経路
 - 例外・タイムアウト・Assert失敗はすべて result.json に落ちる（実行は`Error`に記録して終了）
+
+## UI経路操作（Phase 3） / UI-route operations (Phase 3)
+
+実プレイヤーと同じキーマウス経路（B→ビルドメニュー→設置プレビュー→クリック/ドラッグ設置）で
+構築するAPI群。入力は`Client.Playtest/Input/SemanticInput.cs`がQueueStateEventで注入する
+（InputSystem.Update()は呼ばず通常フレーム更新に委ねる。フォーカス不要）。
+
+UI-route APIs that build through the same key/mouse path as a real player. Input is injected by
+SemanticInput via QueueStateEvent (no InputSystem.Update() calls; focus not required).
+
+```csharp
+p.UnlockBlock("ベルトコンベア");                     // サーバー側アンロック（イベントでクライアント同期）
+await p.GiveItem("鉄の歯車", 15);                    // 建設コストを事前に付与（UI設置は在庫消費する）
+// ドラッグ設置: ベルトの向きは経路から自動解決（(2,2)→(2,6)なら北向き5本）
+await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
+// 単クリック設置: 向きはデフォルトNorth（回転キー注入は未実装）
+await p.PlaceBlockViaUi("木のコンベアチェスト", new Vector3Int(4, 32, 8), BlockDirection.North);
+await p.ExitToGameScreen();
+```
+
+低レベルAPI: `PressKey(Key)` / `SelectHotbar(slot)`(0始まり=キー1) / `AimAt(worldPos)` /
+`ClickPlace()` / `WaitUiState(UIStateEnum, timeout)` / `CurrentUiState` /
+`PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName)`（ビルドメニューのスロットはEventSystem直叩きでクリック）。
+
+- 設置原点の照準は`PlaytestUiOps.PlaceAimPoint`がCalcPlacePointを逆算（接地面上のフットプリント中心）
+- 足場は上面がy=32ちょうど（`SetupFlatGround`が保証）。プレビューの`Floor(hit.y)`がブロックグリッドと一致する条件
+- 等価性シナリオ: `tools/playtest/scenarios/belt-line-via-ui.cs`（belt-line.csと同一ライン・同一assertをUI経路のみで構築）
 
 ## ハマりどころ（今回実際に踏んだもの） / Pitfalls actually hit
 
@@ -77,8 +104,21 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 5. **worktreeのLibrary**: メインの`Library`(28G)を`cp -Rc`（APFS clonefile）で複製すれば再インポート不要。
    メイン側のUnityが閉じている時に行うこと。
 
-## 今後 / Next (Phase 3)
+## UI経路のハマりどころ（Phase 3で実際に踏んだもの） / UI-route pitfalls actually hit
 
-- セマンティック入力層（`ClickBlock`/`DragItem`等、QueueStateEvent + WorldToScreenPoint）
-- 前提: legacy Input残存3箇所（カメラズームF1/F2・設置高さQ/E・右クリックカメラ）のInputSystem移行
+1. **legacy Input直読みは注入で駆動できない**: `UnityEngine.Input.mousePosition`/`GetKeyDown`直読み（21ファイル）は
+   QueueStateEvent注入が効かない。設置プレビュー・UIState遷移キー・右クリックカメラ等の主要経路は
+   `Client.Input.HybridInput`（InputSystem優先＋legacyフォールバック）へ移行済み。新規コードもHybridInputか
+   InputManagerを使うこと。
+2. **PlaceBlock中のメニュー再オープンはTab**: BはGameScreenへ抜ける。さらにTabはOpenInventoryと同キーのため、
+   遷移判定の順序次第でインベントリに食われる（実プレイでも死んでいたバグをこのテストが検出し、修正済み）。
+3. **単クリック設置の向きはNorth固定**: `_currentBlockDirection`は place system 内部状態で外から読めない。
+   回転が必要なラインはドラッグ設置（向き自動解決）で構成するか、Northで成立する配置を選ぶ。
+4. **足場の上面高さ**: 素のCubeは`GroundGameObject`が無く設置プレビューのレイキャスト対象にならない。
+   また上面がy=32ちょうどでないと`Floor(hit.y)`がずれて1段下に埋まる。`SetupFlatGround`が両方を保証する。
+
+## 今後 / Next
+
+- 回転キー（R）注入による設置方向指定（place system内部状態の追跡が必要）
+- ホットバー選択→設置のplaceModeスイッチ経路（HoldingItemId駆動）の検証
 - Enter Play Mode Optionsのドメインリロード無効化調査（Play開始の大幅短縮）
