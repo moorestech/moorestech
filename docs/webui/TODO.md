@@ -97,7 +97,7 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 - [x] ブロックスロットダブルクリック収集（C# `block_inventory.collect` 新設済み・`BlockAreaSlotParser` 共通化）（2026-07-07）
 - [x] Shift直接移動の SubInventory 対応（main/hotbar→block、block→main。`planDirectMoves` で uGUI 準拠の複数スタック配分）（2026-07-07）
 - [x] blockInventory e2e のジェスチャ網羅（`blockInventoryGestures.spec.ts` 5ケース追加、e2e計39件）（2026-07-07）
-- [ ] Esc でのブロックUIクローズ: uGUI `SubInventoryState` が webモードでも稼働しているため**動作している可能性が高い**。PlayModeスモークで検証し結果をここへ記録（未動作なら実装タスク化）
+- [x] Esc でのブロックUIクローズ: uGUI `SubInventoryState` 経由で動作確認済み（2026-07-07 PlayModeスモーク。webモード有効=`WebUiScreenGate.IsWebUiMode: True` のまま `QueueStateEvent` の Esc 注入で SubInventory→GameScreen 遷移を実測、クローズ後の GameScreen キーヒント表示もスクショ確認）
 
 **ギア系・個別ブロック（優先度2）**
 - [ ] ギア伝達系5ブロックが Generic 落ち: レジストリへ **Shaft / Gear / GearChainPole** を登録（⚠「GearEnergyTransformer」という blockType は存在しない。実装時は v8 blocks.json で `blockUIAddressablesPath: "Vanilla/UI/Block/GearEnergyTransformerUI"` を持つ blockType を再列挙して確定）
@@ -127,8 +127,11 @@ uGUI パリティの残りの大物（チャレンジ・列車・電柱ネット
 
 ### 3. 検証（未検証で残る実機挙動）
 - [ ] PlayMode で Ctrl+I トグルの実機目視確認（`unity-playmode-recorded-playtest` で録画可）
-- [ ] INFRA-1 解消後の 実機 web↔host 連携検証（現状の保証は mock-host 相手の e2e + 録画 + コンパイルまで）
+- [ ] INFRA-1 解消後の 実機 web↔host 連携検証（現状の保証は mock-host 相手の e2e + 録画 + コンパイルまで）。補足（2026-07-07）: CEFパネルへの `InputSystem.QueueStateEvent` 注入は不可（webUI は localhost の web アプリで Unity 入力系を経由しない）ため、実機ジェスチャ検証はブラウザ/E2E 側で行う
 - [x] webモードの実機遷移確認（Tab開閉・ブロックインタラクト・✕ボタン）: **PlayMode 遷移マトリクス 10/10 PASS**（2026-07-06、レポート `.superpowers/sdd/task-4-verification-report.md`）
+- [x] InitializeScenePipeline 分割後の PlayMode 起動スモーク（2026-07-07、ブロック操作パリティ検証と同時実施。MainGame 到達・WebUiHost 起動・webMode=True・新規アプリエラーなし）
+  - 環境注意: 共有 `../moorestech_master` が `plan2-master-migration`（placeSystem 新形式）だと本ブランチはマスタロードで起動不能。`master` ブランチの worktree `../moorestech_master-webui-smoke` を作成し `DebugServerDirectory` で指定済み（`cache/StringDebugParameters.json` に永続）
+  - 既存問題: MainGame シーンの `MapObjectGameObjectDatastore.mapObjects` に null 1216件があり起動時に LogError バースト（`moorestech/MapExportAndSetting` 再実行で解消見込み。パイプライン分割とは無関係）
 
 #### 既知の制限
 - **入力の二重配送**: Web パネルのクリックが uGUI / 3D にも届く。実害は限定的だが恒久対応は INFRA-2（入力排他の一元化）で対処予定
