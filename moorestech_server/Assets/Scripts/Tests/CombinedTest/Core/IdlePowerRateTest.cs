@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Core
             var param = (ElectricMachineBlockParam)block.BlockMasterElement.BlockParam;
             var electric = block.GetComponent<VanillaElectricMachineComponent>();
             var processor = block.GetComponent<VanillaMachineProcessorComponent>();
-            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
+            var idlePowerRate = param.IdlePowerRate;
             Assert.AreEqual(0.25f, idlePowerRate, 0.0001f);
 
             // 入力が無いIdle状態では要求電力がidlePowerRate分だけ下がる
@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Core
             var param = (ElectricPumpBlockParam)block.BlockMasterElement.BlockParam;
             var electric = block.GetComponent<ElectricPumpComponent>();
             var output = block.GetComponent<PumpFluidOutputComponent>();
-            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
+            var idlePowerRate = param.IdlePowerRate;
             Assert.AreEqual(param.RequiredPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
 
             // 内部タンクを満杯にすると生成不可のIdle扱いになり要求電力が下がる
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Core
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, new Vector3Int(20, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var param = (ElectricPumpBlockParam)block.BlockMasterElement.BlockParam;
             var electric = block.GetComponent<ElectricPumpComponent>();
-            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
+            var idlePowerRate = param.IdlePowerRate;
             Assert.AreEqual(param.RequiredPower * idlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
         }
 
@@ -100,7 +100,7 @@ namespace Tests.CombinedTest.Core
             var param = (ElectricMinerBlockParam)block.BlockMasterElement.BlockParam;
             var electric = block.GetComponent<VanillaElectricMinerComponent>();
             var processor = block.GetComponent<VanillaMinerProcessorComponent>();
-            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
+            var idlePowerRate = param.IdlePowerRate;
             Assert.AreEqual(param.RequiredPower * idlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
 
             processor.Update();
@@ -121,14 +121,13 @@ namespace Tests.CombinedTest.Core
             var belt = block.GetComponent<VanillaBeltConveyorComponent>();
             var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
             var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
-            var idlePowerRate = ResolveIdlePowerRate(param.GearConsumption.IdlePowerRate);
+            var idlePowerRate = param.GearConsumption.IdlePowerRate;
             Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
 
-            // アイテムが載ると次のUpdateで搬送中としてフル要求に戻る
-            // Once an item is on the belt, the next update makes it active and requests full torque
+            // アイテムが載るとイベントで搬送中としてフル要求に戻る
+            // Once an item is on the belt, the event makes it active and requests full torque
             var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
             belt.InsertItem(item, InsertItemContext.Empty);
-            GameUpdater.UpdateOneTick();
             Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 
@@ -145,7 +144,7 @@ namespace Tests.CombinedTest.Core
             var processor = block.GetComponent<VanillaMachineProcessorComponent>();
             var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
             var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
-            var idlePowerRate = ResolveIdlePowerRate(param.GearConsumption.IdlePowerRate);
+            var idlePowerRate = param.GearConsumption.IdlePowerRate;
             Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
 
             InsertRecipeInputs(block, GetMachineRecipe(ForUnitTestModBlockId.GearMachine));
@@ -166,7 +165,7 @@ namespace Tests.CombinedTest.Core
             var gear = block.GetComponent<GearEnergyTransformer>();
             var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
             var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
-            var idlePowerRate = ResolveIdlePowerRate(param.GearConsumption.IdlePowerRate);
+            var idlePowerRate = param.GearConsumption.IdlePowerRate;
             Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 
@@ -179,11 +178,6 @@ namespace Tests.CombinedTest.Core
         {
             var machineGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
             return MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(recipe => recipe.BlockGuid == machineGuid);
-        }
-
-        private static float ResolveIdlePowerRate(float? idlePowerRate)
-        {
-            return idlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
         }
 
         private static void InsertRecipeInputs(IBlock block, MachineRecipeMasterElement recipe)

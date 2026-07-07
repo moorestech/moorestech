@@ -1,4 +1,3 @@
-using Core.Master;
 using Core.Update;
 using System.Linq;
 using Game.Block.Blocks.Gear;
@@ -7,6 +6,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using Mooresmaster.Model.GearConsumptionModule;
+using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -21,16 +21,15 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             _beltConveyorComponent = beltConveyorComponent;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
-            _idleTorqueRate = gearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+            _idleTorqueRate = gearConsumption.IdlePowerRate;
 
+            _beltConveyorComponent.OnItemsChanged.Subscribe(_ => UpdateTorqueRequestRate());
             UpdateTorqueRequestRate();
         }
 
         public void Update()
         {
             BlockException.CheckDestroy(this);
-
-            UpdateTorqueRequestRate();
         }
 
         private void UpdateTorqueRequestRate()

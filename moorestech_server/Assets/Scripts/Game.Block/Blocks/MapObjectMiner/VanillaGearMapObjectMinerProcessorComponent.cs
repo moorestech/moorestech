@@ -123,15 +123,14 @@ namespace Game.Block.Blocks.MapObjectMiner
 
                     // 破壊された場合は削除
                     // If it is destroyed, delete it
-                    info.MapObjects.RemoveAll(mapObject => mapObject.IsDestroyed);
+                    var removedCount = info.MapObjects.RemoveAll(mapObject => mapObject.IsDestroyed);
+                    if (removedCount > 0) UpdateTorqueRequestRate();
                 }
                 else
                 {
                     info.RemainingMiningTicks -= subTicks;
                 }
             }
-
-            UpdateTorqueRequestRate();
         }
 
         private void UpdateTorqueRequestRate()

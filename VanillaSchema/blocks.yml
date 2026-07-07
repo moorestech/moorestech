@@ -176,7 +176,6 @@ properties:
         - key: idlePowerRate
           type: number
           default: 0.2
-          optional: true
         - key: inputSlotCount
           type: integer
           default: 1
@@ -287,7 +286,6 @@ properties:
         - key: idlePowerRate
           type: number
           default: 0.2
-          optional: true
         - key: outputItemSlotCount
           type: integer
           default: 3
@@ -761,7 +759,6 @@ properties:
         - key: idlePowerRate
           type: number
           default: 0.2
-          optional: true
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
       - when: GearToElectricGenerator
