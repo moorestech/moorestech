@@ -1,5 +1,7 @@
 # 申し送り: ブロック側「半分掴み」のホスト計算統一（block_inventory.split 追加）
 
+> **✅ 2026-07-07 実装完了**。本ドキュメントは経緯記録として保管。実装内容は末尾「実装完了記録」参照。
+
 **日付**: 2026-07-07 / **出典**: webuiクリーンアップ実行計画（`../superpowers/plans/2026-07-07-webui-cleanup.md`「意思決定の記録」§1）のスコープ外 follow-up
 
 ## 何が分裂しているか
@@ -56,3 +58,14 @@
 - 検証で発見・訂正済みの誤り2件（訂正コミット `dd319bf40`）:
   1. 手順3の旧記述「既存 `inventory.split` 分岐が手本」→ mock-host に split 適用は存在しなかった（現手順3が正）
   2. 手順5の旧記述「契約テストに新 action を追加」→ action フィクスチャ機構は存在しない（現手順5のエラーコード追随のみが正）
+
+## 実装完了記録（2026-07-07）
+
+手順1〜4を実装、手順5は予告どおり作業なしで完了（新エラーコード導入なし。`invalid_payload` / `invalid_slot` / `grab_not_empty` / `empty_slot` は全て既存正準セット内）。
+
+- **C#**: `BlockInventoryActions.cs` に `BlockSplitGrabActionHandler` を追加（block スロット限定・`item.Count / 2` の床関数は `SplitGrabActionHandler` と同一）。`WebUiGameBinder.cs` で登録
+- **プロトコル**: `protocol.ts` に `"block_inventory.split": { from: BlockSlotRef }` を追加（`ACTION_TYPES` も追随、網羅チェック通過）
+- **mock-host**: `inventoryModel.ts` に `applyBlockSplit`（grab_not_empty / empty_slot / 1個成功no-op をホスト同型で再現）、`wsHandler.ts` に適用分岐を追加
+- **プランナ**: `planBlockRightClick` の client 床計算を廃止し count なし `block_inventory.split` 送信へ切替。分岐点コメント削除（player 側との分裂解消）
+- **挙動変更1点**: 空手＋1個スロットの右クリックは従来 client 側で無操作だったが、player 側と同じく split を送りホストが no-op 判断する形に統一（unit テストもこの期待に更新）
+- **検証**: webui unit 144件 / e2e 44件 / C# `Client.Tests.WebUi` 57件 全パス、Unity コンパイルエラー0

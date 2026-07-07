@@ -13,13 +13,13 @@ test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
 });
 
-test("機械入力スロットの空手右クリックで半分(切り捨て)を grab へ拾う", async ({ page }) => {
-  // input slot0 = itemId3×5 → 半分は2
-  // input slot0 = itemId3 x5, so half floors to 2
+test("機械入力スロットの空手右クリックで block_inventory.split を送る", async ({ page }) => {
+  // input slot0 = itemId3×5。半分計算はホスト側（count はもう送らない）
+  // input slot0 = itemId3 x5; the host computes the half (no count is sent anymore)
   await page.getByTestId("machine-input-slots").locator("> div").first().click({ button: "right" });
   await expect
-    .poll(() => payloadsOf(page, "block_inventory.move_item"))
-    .toContainEqual({ from: { area: "block", slot: 0 }, to: { area: "grab", slot: 0 }, count: 2 });
+    .poll(() => payloadsOf(page, "block_inventory.split"))
+    .toContainEqual({ from: { area: "block", slot: 0 } });
 });
 
 test("機械出力スロットのダブルクリックで collect を送る", async ({ page }) => {

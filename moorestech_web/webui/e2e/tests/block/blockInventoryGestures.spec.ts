@@ -13,13 +13,13 @@ test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
 });
 
-test("空手の右クリックで半分(切り捨て)を grab へ拾う", async ({ page }) => {
-  // slot0 = Wood×7 → 半分は 3
-  // slot0 = Wood x7, so half floors to 3
+test("空手の右クリックで block_inventory.split を送り grab に半分入る", async ({ page }) => {
+  // slot0 = Wood×7。半分計算はホスト側（mock が床関数3を grab へ適用し overlay が出る）
+  // slot0 = Wood x7; the host computes the half (the mock applies floor=3 to grab, showing the overlay)
   await page.getByTestId("chest-grid").locator("> div").first().click({ button: "right" });
   await expect
-    .poll(() => payloadsOf(page, "block_inventory.move_item"))
-    .toContainEqual({ from: { area: "block", slot: 0 }, to: { area: "grab", slot: 0 }, count: 3 });
+    .poll(() => payloadsOf(page, "block_inventory.split"))
+    .toContainEqual({ from: { area: "block", slot: 0 } });
   await expect(page.getByTestId("grab-overlay")).toBeVisible();
 });
 

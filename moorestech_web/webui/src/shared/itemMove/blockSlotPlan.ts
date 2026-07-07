@@ -31,19 +31,14 @@ export function planBlockLeftClick(index: number, slot: SlotData, shiftKey: bool
   return [];
 }
 
-// 右クリック: grab保持なら1個置き / 空手で2個以上なら半分(切り捨て)を grab へ
-// Right click: place one while holding grab / grab half (floor) of 2+ items empty-handed
-// 注意: ホストに block_inventory.split が無いためここだけ client 計算（player 側 inventory.split と唯一異なる点）
-// Note: no block_inventory.split exists on the host, so only this path computes client-side (the sole divergence from inventory.split)
+// 右クリック: grab保持なら1個置き / 空手なら block_inventory.split（半分掴みはホスト計算。stale な client 数量に依存しない）
+// Right click: place one while holding grab / block_inventory.split empty-handed (the host computes the half; no stale client count)
 export function planBlockRightClick(index: number, slot: SlotData, grabCount: number): PlannedAction[] {
   if (grabCount > 0) {
     return [{ type: "block_inventory.move_item", payload: { from: grabRef, to: blockRef(index), count: 1 } }];
   }
-  const half = Math.floor(slot.count / 2);
-  if (slot.itemId > 0 && half > 0) {
-    return [{ type: "block_inventory.move_item", payload: { from: blockRef(index), to: grabRef, count: half } }];
-  }
-  return [];
+  if (slot.count === 0) return [];
+  return [{ type: "block_inventory.split", payload: { from: blockRef(index) } }];
 }
 
 // ダブルクリック: 収集先（grab かクリックスロットか）はホストが自身の grab 状態で決める
