@@ -339,6 +339,19 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
         }
 
+        public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> ExtendElectricWire(
+            Vector3Int fromPos,
+            int poleInventorySlot,
+            PlaceInfo polePlaceInfo,
+            ItemId wireItemId,
+            CancellationToken ct)
+        {
+            // 起点あり延長として電柱設置＋接続要求を送り、設置電柱情報を受け取る
+            // Send a with-origin extend request (place pole + wire) and receive the placed pole info
+            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleInventorySlot, polePlaceInfo, wireItemId);
+            return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
+        }
+
         // 起点ポールから新規ポールを自動設置しつつチェーン接続する
         // Place a new pole from the source pole and connect the chain
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> ExtendGearChainPole(
