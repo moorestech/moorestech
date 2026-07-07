@@ -78,9 +78,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             void UpdateHeightOffset()
             {
-                if (UnityEngine.Input.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
+                if (HybridInput.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
                     _heightOffset--;
-                else if (UnityEngine.Input.GetKeyDown(KeyCode.E)) _heightOffset++;
+                else if (HybridInput.GetKeyDown(KeyCode.E)) _heightOffset++;
             }
             
             void BlockDirectionControl()
@@ -90,7 +90,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     _currentBlockDirection = _currentBlockDirection.HorizonRotation();
                 
                 //TODo シフトはインプットマネージャーに入れる
-                if (UnityEngine.Input.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
+                if (HybridInput.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
                     _currentBlockDirection = _currentBlockDirection.VerticalRotation();
             }
             
