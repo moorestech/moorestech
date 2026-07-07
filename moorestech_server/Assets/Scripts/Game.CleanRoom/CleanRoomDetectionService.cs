@@ -6,15 +6,15 @@ using UnityEngine;
 namespace Game.CleanRoom
 {
     /// <summary>
-    ///     dirtyシードを予算内で局所再検出し部屋リストを差分更新する
-    ///     Incrementally re-detects rooms from dirty seeds within a per-tick budget
+    ///     変更単位のシードバッチを予算内で局所再検出し部屋リストを差分更新する
+    ///     Incrementally re-detects rooms from per-change seed batches within a per-tick budget
     /// </summary>
     public class CleanRoomDetectionService
     {
         public IReadOnlyList<CleanRoom> Rooms => _rooms;
 
         private readonly List<CleanRoom> _rooms = new();
-        private readonly HashSet<Vector3Int> _dirtySeeds = new();
+        private readonly Queue<List<Vector3Int>> _pendingBatches = new();
         private readonly IWorldBlockDatastore _world;
         private readonly int _dirtyCellBudgetPerTick;
         private int _nextRoomId;
@@ -31,8 +31,10 @@ namespace Game.CleanRoom
             var minPos = blockData.BlockPositionInfo.MinPos;
             var maxPos = blockData.BlockPositionInfo.MaxPos;
 
-            // 境界ブロックは占有セル+6近傍を、非境界は既存部屋に重なる占有セルのみシード化
-            // Boundary blocks seed their cells plus neighbors; others seed only cells overlapping existing rooms
+            // この変更の全シードをバッチ内で重複排除しつつ1つのアトミックなバッチへ集約する
+            // Collect all of this change's seeds into one atomic batch, deduped within the batch
+            var seedSet = new HashSet<Vector3Int>();
+            var batch = new List<Vector3Int>();
             for (var x = minPos.x; x <= maxPos.x; x++)
             for (var y = minPos.y; y <= maxPos.y; y++)
             for (var z = minPos.z; z <= maxPos.z; z++)
@@ -40,93 +42,90 @@ namespace Game.CleanRoom
                 var cell = new Vector3Int(x, y, z);
                 if (isBoundary)
                 {
-                    _dirtySeeds.Add(cell);
-                    foreach (var neighbor in CleanRoomCellSets.SixNeighbors(cell)) _dirtySeeds.Add(neighbor);
+                    AddSeed(cell);
+                    foreach (var neighbor in CleanRoomCellSets.SixNeighbors(cell)) AddSeed(neighbor);
                 }
                 else if (IsInsideAnyRoom(cell))
                 {
-                    _dirtySeeds.Add(cell);
+                    AddSeed(cell);
                 }
             }
+
+            // シードを生まない変更（部屋外の非境界ブロック等）はバッチ化しない
+            // A change yielding no seeds (e.g. a non-boundary block outside rooms) enqueues nothing
+            if (batch.Count > 0) _pendingBatches.Enqueue(batch);
+
+            #region Internal
+
+            void AddSeed(Vector3Int cell)
+            {
+                if (seedSet.Add(cell)) batch.Add(cell);
+            }
+
+            #endregion
         }
 
         public void ProcessDirtySeeds()
         {
-            if (_dirtySeeds.Count == 0) return;
+            if (_pendingBatches.Count == 0) return;
 
-            // tick冒頭で1回だけセル集合を構築し全シードで共有する
-            // Build the cell sets once at tick start and share them across all seeds
+            // tick冒頭で1回だけセル集合を構築し全バッチで共有する
+            // Build the cell sets once at tick start and share them across all batches
             CleanRoomCellSets.BuildCellSets(_world, out var boundaryCells, out var occupiedCells);
 
-            var oldRoomsBatch = new List<CleanRoom>();
-            var newRoomsBatch = new List<CleanRoom>();
             var visitedTotal = 0;
-            var processedSeedCount = 0;
+            var processedBatchCount = 0;
 
-            // 予算内でシードを消化する。前進保証のため最低1シードは必ず処理する
-            // Drain seeds within budget; always process at least one seed to guarantee progress
-            while (_dirtySeeds.Count > 0 && (processedSeedCount == 0 || visitedTotal < _dirtyCellBudgetPerTick))
+            // バッチ単位で予算内を消化する。前進保証のため最低1バッチは丸ごと処理する
+            // Drain whole batches within budget; always process at least one full batch for progress
+            while (_pendingBatches.Count > 0 && (processedBatchCount == 0 || visitedTotal < _dirtyCellBudgetPerTick))
             {
-                var seed = TakeSeed();
-                visitedTotal += ProcessSeed(seed);
-                processedSeedCount++;
+                visitedTotal += ProcessBatch(_pendingBatches.Dequeue());
+                processedBatchCount++;
             }
-
-            CommitBatch();
 
             #region Internal
 
-            Vector3Int TakeSeed()
+            int ProcessBatch(List<Vector3Int> seeds)
             {
-                var seed = Vector3Int.zero;
-                foreach (var candidate in _dirtySeeds)
-                {
-                    seed = candidate;
-                    break;
-                }
+                // バッチ全シードを1回のflood-fillで検出し訪問集合を共有する（リーク再fillも排除）
+                // Detect the whole batch in a single flood-fill sharing one visited set (dedups leak re-fills)
+                var newRooms = CleanRoomDetector.DetectFromSeeds(seeds, boundaryCells, occupiedCells, _nextRoomId, out var visitedCellCount);
+                _nextRoomId += newRooms.Count;
 
-                _dirtySeeds.Remove(seed);
-                return seed;
-            }
-
-            int ProcessSeed(Vector3Int seed)
-            {
-                // 境界セル自身のシードは探索も部屋差し替えも起こさない（近傍シードが担当する）
-                // A boundary-cell seed triggers no fill and no room replacement; its neighbor seeds handle it
-                if (boundaryCells.Contains(seed)) return 0;
-
-                // 同tickで検出済みの新部屋内のシードは再探索不要
-                // Seeds already inside a room detected this tick need no re-fill
-                foreach (var newRoom in newRoomsBatch)
-                    if (newRoom.Contains(seed))
-                        return 0;
-
-                var detected = CleanRoomDetector.DetectFromSeeds(new[] { seed }, boundaryCells, occupiedCells, _nextRoomId, out var visitedCellCount);
-                _nextRoomId += detected.Count;
-
-                CollectAffectedOldRooms(seed, detected);
-                newRoomsBatch.AddRange(detected);
+                // このバッチで差し替わる旧部屋を退避し、旧・新が同一スコープで共存するようにする
+                // Move old rooms replaced by this batch aside so old and new coexist in one scope
+                var oldRooms = TakeAffectedOldRooms(seeds, newRooms);
+                CommitBatch(newRooms, oldRooms);
                 return visitedCellCount;
             }
 
-            void CollectAffectedOldRooms(Vector3Int seed, List<CleanRoom> detected)
+            List<CleanRoom> TakeAffectedOldRooms(List<Vector3Int> seeds, List<CleanRoom> newRooms)
             {
-                // シード近傍か新部屋セルに重なる既存部屋を差し替え対象として退避する
-                // Move rooms touching the seed or overlapping new room cells into the batch
+                var oldRooms = new List<CleanRoom>();
                 for (var i = _rooms.Count - 1; i >= 0; i--)
                 {
                     if (!IsAffected(_rooms[i])) continue;
-                    oldRoomsBatch.Add(_rooms[i]);
+                    oldRooms.Add(_rooms[i]);
                     _rooms.RemoveAt(i);
                 }
 
+                return oldRooms;
+
                 bool IsAffected(CleanRoom room)
                 {
-                    if (room.Contains(seed)) return true;
-                    foreach (var neighbor in CleanRoomCellSets.SixNeighbors(seed))
-                        if (room.Contains(neighbor))
-                            return true;
-                    foreach (var newRoom in detected)
+                    // 探索に関与する非境界シードのみで判定する。健在な壁セルは隣接部屋を巻き込まない
+                    // Judge only by non-boundary seeds; an intact wall cell must not drag its neighbor room in
+                    foreach (var seed in seeds)
+                    {
+                        if (boundaryCells.Contains(seed)) continue;
+                        if (room.Contains(seed)) return true;
+                        foreach (var neighbor in CleanRoomCellSets.SixNeighbors(seed))
+                            if (room.Contains(neighbor))
+                                return true;
+                    }
+
+                    foreach (var newRoom in newRooms)
                     foreach (var cell in newRoom.Cells)
                         if (room.Contains(cell))
                             return true;
@@ -134,28 +133,28 @@ namespace Game.CleanRoom
                 }
             }
 
-            void CommitBatch()
+            void CommitBatch(List<CleanRoom> newRooms, List<CleanRoom> oldRooms)
             {
                 // 旧部屋と完全一致した新部屋は旧インスタンスをそのまま維持する
                 // A new room identical to an old one keeps the old instance untouched
-                for (var newIndex = newRoomsBatch.Count - 1; newIndex >= 0; newIndex--)
+                for (var newIndex = newRooms.Count - 1; newIndex >= 0; newIndex--)
                 {
-                    var identicalOldRoom = FindIdenticalRoom(newRoomsBatch[newIndex]);
+                    var identicalOldRoom = FindIdenticalRoom(newRooms[newIndex], oldRooms);
                     if (identicalOldRoom == null) continue;
                     _rooms.Add(identicalOldRoom);
-                    oldRoomsBatch.Remove(identicalOldRoom);
-                    newRoomsBatch.RemoveAt(newIndex);
+                    oldRooms.Remove(identicalOldRoom);
+                    newRooms.RemoveAt(newIndex);
                 }
 
                 // 残りの新部屋へ旧部屋の状態を引き継いで確定する。引き継がれない旧状態は消滅する
                 // Carry old state into the remaining new rooms and commit; uncarried old state dies here
-                CleanRoomCarryOver.Apply(newRoomsBatch, oldRoomsBatch);
-                _rooms.AddRange(newRoomsBatch);
+                CleanRoomCarryOver.Apply(newRooms, oldRooms);
+                _rooms.AddRange(newRooms);
             }
 
-            CleanRoom FindIdenticalRoom(CleanRoom newRoom)
+            CleanRoom FindIdenticalRoom(CleanRoom newRoom, List<CleanRoom> oldRooms)
             {
-                foreach (var oldRoom in oldRoomsBatch)
+                foreach (var oldRoom in oldRooms)
                 {
                     if (oldRoom.Volume != newRoom.Volume || oldRoom.SurfaceArea != newRoom.SurfaceArea) continue;
                     if (oldRoom.Cells.Count != newRoom.Cells.Count) continue;
@@ -179,9 +178,9 @@ namespace Game.CleanRoom
 
         public void RebuildAll()
         {
-            // ロード時用の全再検出。既存状態と未処理シードは全て破棄する
-            // Full re-detection for load; discards all existing state and pending seeds
-            _dirtySeeds.Clear();
+            // ロード時用の全再検出。既存状態と未処理バッチは全て破棄する
+            // Full re-detection for load; discards all existing state and pending batches
+            _pendingBatches.Clear();
             _rooms.Clear();
             _rooms.AddRange(CleanRoomDetector.DetectAllRooms(_world, out _));
             _nextRoomId = _rooms.Count;

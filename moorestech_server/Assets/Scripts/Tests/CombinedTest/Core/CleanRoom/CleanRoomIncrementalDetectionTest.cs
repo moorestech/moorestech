@@ -123,5 +123,61 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.AreEqual(2, service.Rooms.Count);
             Assert.Greater(elapsedTicks, 0);
         }
+
+        [Test]
+        public void ConcurrentBatchesEachPreserveTheirRoomsImpurityTest()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // budget=1（=1tickに1バッチ）で構築し、離れた内寸3x1x1の部屋を2つ検出する
+            // Construct with budget=1 (one batch per tick) and detect two distant 3x1x1 rooms
+            var service = new CleanRoomDetectionService(ServerContext.WorldBlockDatastore, 1);
+            CleanRoomDetectionTest.BuildBox(new Vector3Int(0, 0, 0), new Vector3Int(4, 2, 2));
+            CleanRoomDetectionTest.BuildBox(new Vector3Int(10, 0, 0), new Vector3Int(14, 2, 2));
+            service.RebuildAll();
+            Assert.AreEqual(2, service.Rooms.Count);
+
+            // 各部屋へ既知のNを注入する（セル包含で引き当て、リスト順には依存しない）
+            // Inject known N into each room, looked up by cell containment, never by list order
+            FindRoom(service, new Vector3Int(1, 1, 1)).SetImpurity(90.0);
+            FindRoom(service, new Vector3Int(11, 1, 1)).SetImpurity(60.0);
+
+            // 同一tick内で両部屋の中央に壁を置き分割する。2バッチが同時に保留される
+            // Split both rooms with a central wall in the same tick, leaving two batches pending
+            CleanRoomDetectionTest.AddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(2, 1, 1));
+            CleanRoomDetectionTest.AddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(12, 1, 1));
+            service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(2, 1, 1)));
+            service.OnBlockChanged(ServerContext.WorldBlockDatastore.GetOriginPosBlock(new Vector3Int(12, 1, 1)));
+
+            // 1tick目：部屋Aのバッチだけが丸ごと処理され、両サブ部屋へNが按分される
+            // Tick 1: only room A's batch is processed whole, splitting N across both sub-rooms
+            service.ProcessDirtySeeds();
+            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(1, 1, 1)).ImpurityCount, 0.001);
+            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(3, 1, 1)).ImpurityCount, 0.001);
+            Assert.AreEqual(60.0, FindRoom(service, new Vector3Int(11, 1, 1)).ImpurityCount, 0.001);
+
+            // 2tick目：部屋Bのバッチが処理される。Aは既検出のまま維持される
+            // Tick 2: room B's batch is processed while room A stays as already detected
+            service.ProcessDirtySeeds();
+            Assert.AreEqual(4, service.Rooms.Count);
+
+            // どのサブ部屋もN=0へリセットされず、各元部屋の残存セル分のNが保存される
+            // No sub-room resets to N=0; each original room preserves N over its surviving cells
+            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(1, 1, 1)).ImpurityCount, 0.001);
+            Assert.AreEqual(30.0, FindRoom(service, new Vector3Int(3, 1, 1)).ImpurityCount, 0.001);
+            Assert.AreEqual(20.0, FindRoom(service, new Vector3Int(11, 1, 1)).ImpurityCount, 0.001);
+            Assert.AreEqual(20.0, FindRoom(service, new Vector3Int(13, 1, 1)).ImpurityCount, 0.001);
+        }
+
+        private static global::Game.CleanRoom.CleanRoom FindRoom(CleanRoomDetectionService service, Vector3Int cell)
+        {
+            foreach (var room in service.Rooms)
+                if (room.Contains(cell))
+                    return room;
+
+            Assert.Fail($"No room contains cell {cell}");
+            return null;
+        }
     }
 }
