@@ -11,6 +11,8 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+
 namespace Server.Protocol.PacketResponse
 {
     public class PlaceBlockFromHotBarProtocol : IPacketResponse
@@ -43,9 +45,10 @@ namespace Server.Protocol.PacketResponse
         {
             //すでにブロックがある場合はそもまま処理を終了
             if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
-            
+
             //アイテムIDがブロックIDに変換できない場合はそもまま処理を終了
-            var item = inventoryData.MainOpenableInventory.GetItem(data.InventorySlot);
+            var inventorySlot = inventoryData.GetHotBarSlotIndex(data.HotBarSlot);
+            var item = inventoryData.MainOpenableInventory.GetItem(inventorySlot);
             if (!MasterHolder.BlockMaster.IsBlock(item.Id)) return;
             
             // ブロックIDの設定
@@ -70,7 +73,7 @@ namespace Server.Protocol.PacketResponse
 
             //アイテムを減らし、セットする
             item = item.SubItem(1);
-            inventoryData.MainOpenableInventory.SetItem(data.InventorySlot, item);
+            inventoryData.MainOpenableInventory.SetItem(inventorySlot, item);
 
             // 検証済みの計画を実行してワイヤーを張り、電線を消費する
             // Execute the validated plan: add wires and consume wire items
@@ -86,8 +89,7 @@ namespace Server.Protocol.PacketResponse
             [Key(2)] public int PlayerId { get; set; }
             
             [Key(3)] public int HotBarSlot { get; set; }
-            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
-            
+
             [Key(4)] public List<PlaceInfoMessagePack> PlacePositions { get; set; }
             
             public SendPlaceHotBarBlockProtocolMessagePack(int playerId, int hotBarSlot, List<PlaceInfo> placeInfos)

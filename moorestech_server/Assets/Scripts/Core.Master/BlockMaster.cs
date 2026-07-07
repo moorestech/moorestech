@@ -28,6 +28,7 @@ namespace Core.Master
         private Dictionary<Guid, BlockId> _blockGuidToBlockId;
         private Dictionary<ItemId, BlockId> _itemIdToBlockId;
         private Dictionary<Guid, string> _blockGuidToDestructionCategory;
+        private HashSet<(Guid, Guid)> _connectableShapePairs;
 
         public BlockMaster(JToken blockJToken)
         {
@@ -51,6 +52,16 @@ namespace Core.Master
             {
                 _blockGuidToDestructionCategory[target.BlockGuid] = category.CategoryKey;
             }
+
+            // コネクタ形状の互換ペアを順序正規化して集合化する
+            // Normalize pair order and collect connectable connector-shape pairs into a set
+            _connectableShapePairs = new HashSet<(Guid, Guid)>();
+            var connectableShapePairs = Blocks.ConnectorSettings?.ConnectableShapePairs;
+            if (connectableShapePairs == null) return;
+            foreach (var pair in connectableShapePairs)
+            {
+                _connectableShapePairs.Add(NormalizeShapePair(pair.Shape0, pair.Shape1));
+            }
         }
 
         // ブロックの破壊カテゴリーを取得する。定義に無いブロックはdefault扱い
@@ -61,7 +72,20 @@ namespace Core.Master
                 ? category
                 : DefaultDestructionCategory;
         }
-        
+
+        // コネクタ形状同士が接続可能かを返す。形状未設定はワイルドカード（制約なし）
+        // Whether two connector shapes may connect; unset shapes are wildcard (no constraint)
+        public bool CanConnectConnectorShapes(Guid? selfShapeGuid, Guid? targetShapeGuid)
+        {
+            if (selfShapeGuid == null || targetShapeGuid == null) return true;
+            return _connectableShapePairs.Contains(NormalizeShapePair(selfShapeGuid.Value, targetShapeGuid.Value));
+        }
+
+        private static (Guid, Guid) NormalizeShapePair(Guid shapeA, Guid shapeB)
+        {
+            return shapeA.CompareTo(shapeB) <= 0 ? (shapeA, shapeB) : (shapeB, shapeA);
+        }
+
         public BlockMasterElement GetBlockMaster(BlockId blockId)
         {
             if (!_blockElementTableById.TryGetValue(blockId, out var element))

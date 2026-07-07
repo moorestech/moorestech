@@ -12,6 +12,7 @@ using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -28,20 +29,20 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var machineParam = blockMasterElement.BlockParam as ElectricMachineBlockParam;
             
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, effectComponent);
+            var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, machineParam.IdlePowerRate, effectComponent);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             // 機械はConsumer役をワイヤー端点に渡す
             // Machine passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null, null, null);
+            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null);
 
             var components = new List<IBlockComponent>
             {
@@ -75,19 +76,19 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var machineParam = blockMasterElement.BlockParam as ElectricMachineBlockParam;
             
-            BlockConnectorComponent<IBlockInventory> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, blockMasterElement);
+            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, machineParam.IdlePowerRate, blockMasterElement);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             // 機械はConsumer役をワイヤー端点に渡す
             // Machine passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null, null, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, componentStates);
 
             var components = new List<IBlockComponent>
             {

@@ -17,7 +17,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             foreach (var railItem in MasterHolder.TrainUnitMaster.GetRailItems())
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
-                for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++)
+                for (var i = 0; i < inventory.MainSlotCount; i++)
                 {
                     if (inventory[i].Id == itemId && inventory[i].Count > 0) return itemId;
                 }

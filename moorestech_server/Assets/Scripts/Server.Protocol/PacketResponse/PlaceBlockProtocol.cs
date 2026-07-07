@@ -12,6 +12,7 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 
 namespace Server.Protocol.PacketResponse
 {

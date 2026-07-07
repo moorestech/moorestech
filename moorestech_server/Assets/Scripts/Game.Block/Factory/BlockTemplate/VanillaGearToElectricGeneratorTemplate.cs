@@ -26,11 +26,12 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var param = blockMasterElement.BlockParam as GearToElectricGeneratorBlockParam;
             var gearConnects = param.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnects, gearConnects, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(gearConnects, gearConnects, blockPositionInfo);
             var generatorComponent = new GearToElectricGeneratorComponent(param, blockInstanceId, gearConnector);
             // 歯車→電気変換はGenerator役をワイヤー端点に渡す
             // Gear-to-electric passes the generator role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, null, generatorComponent, null, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, generatorComponent, componentStates);
+
 
             var components = new List<IBlockComponent>
             {

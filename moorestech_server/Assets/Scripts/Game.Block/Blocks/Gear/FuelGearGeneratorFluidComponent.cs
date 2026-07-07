@@ -6,6 +6,7 @@ using Game.Block.Interface.Component;
 using Game.Fluid;
 using Newtonsoft.Json;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -16,12 +17,12 @@ namespace Game.Block.Blocks.Gear
     public class FuelGearGeneratorFluidComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
     {
         private readonly FluidContainer _fuelTank;
-        private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
+        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
         private bool _wasRefilledThisUpdate;
         private int _consecutiveUpdatesWithoutRefill;
         private bool _wasEverDisconnected;
         
-        public FuelGearGeneratorFluidComponent(float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector)
+        public FuelGearGeneratorFluidComponent(float tankCapacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
             _fuelTank = new FluidContainer(tankCapacity);
             _fluidConnector = fluidConnector;
@@ -30,7 +31,7 @@ namespace Game.Block.Blocks.Gear
             _wasEverDisconnected = false;
         }
         
-        public FuelGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity, BlockConnectorComponent<IFluidInventory> fluidConnector) 
+        public FuelGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
             : this(tankCapacity, fluidConnector)
         {
             if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
