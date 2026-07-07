@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.Context;
+using Client.Mod.Texture;
 using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.UnlockState;
@@ -32,8 +34,8 @@ namespace Client.Game.InGame.UI.BuildMenu
             foreach (var blockMaster in unlockedBlocks)
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
-                var iconItemId = MasterHolder.BlockMaster.GetItemId(blockId);
-                entries.Add(new BuildMenuEntry(PlacementSelectionType.Block, blockId, default, null, iconItemId, CreateBlockToolTip(blockMaster)));
+                var iconView = ClientContext.BlockImageContainer.GetBlockView(blockId);
+                entries.Add(new BuildMenuEntry(PlacementSelectionType.Block, blockId, default, null, iconView, CreateBlockToolTip(blockMaster)));
             }
 
             // 解放済み車両を列挙する
@@ -41,19 +43,19 @@ namespace Client.Game.InGame.UI.BuildMenu
             foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
             {
                 if (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked) continue;
-                var iconItemId = MasterHolder.ItemMaster.GetItemId(trainCar.ItemGuid);
-                entries.Add(new BuildMenuEntry(PlacementSelectionType.TrainCar, default, trainCar.TrainCarGuid, null, iconItemId, CreateTrainCarToolTip(trainCar)));
+                var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
+                entries.Add(new BuildMenuEntry(PlacementSelectionType.TrainCar, default, trainCar.TrainCarGuid, null, iconView, CreateTrainCarToolTip(trainCar, iconView)));
             }
 
-            // 接続ツールは常時表示する（ビルドメニュー対象外のBeltConveyorは除外）
-            // Connect tools are always visible (BeltConveyor is not a build-menu entry, so skip it)
+            // 接続ツールは常時表示する（ビルドメニュー対象外のBeltConveyorは除外。敷設素材アイテムのアイコンを使う）
+            // Connect tools are always visible (skip BeltConveyor; use the laying-material item icon)
             var connectTools = MasterHolder.PlaceSystemMaster.PlaceSystem.Data
                 .Where(e => e.PlaceMode != PlaceSystemMasterElement.PlaceModeConst.BeltConveyor)
                 .OrderBy(e => e.SortPriority ?? 0);
             foreach (var tool in connectTools)
             {
-                var iconItemId = MasterHolder.ItemMaster.GetItemId(tool.IconItemGuid.Value);
-                entries.Add(new BuildMenuEntry(PlacementSelectionType.ConnectTool, default, default, tool.PlaceMode, iconItemId, tool.Name));
+                var iconView = ClientContext.ItemImageContainer.GetItemView(tool.IconItemGuid.Value);
+                entries.Add(new BuildMenuEntry(PlacementSelectionType.ConnectTool, default, default, tool.PlaceMode, iconView, tool.Name));
             }
 
             return entries;
@@ -72,9 +74,11 @@ namespace Client.Game.InGame.UI.BuildMenu
                 return builder.ToString();
             }
 
-            string CreateTrainCarToolTip(TrainCarMasterElement trainCar)
+            string CreateTrainCarToolTip(TrainCarMasterElement trainCar, ItemViewData iconView)
             {
-                var builder = new StringBuilder(MasterHolder.ItemMaster.GetItemMaster(trainCar.ItemGuid).Name);
+                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
+                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
+                var builder = new StringBuilder(iconView.ItemName);
                 AppendRequiredItems(builder, ConstructionCostTexts(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
                 return builder.ToString();
             }

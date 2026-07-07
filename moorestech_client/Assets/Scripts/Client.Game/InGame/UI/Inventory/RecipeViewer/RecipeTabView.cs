@@ -52,8 +52,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             foreach (var machineRecipe in unlockedMachineRecipes)
             {
                 var blockId = machineRecipe.Key;
-                var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
-                var blockItemView = ClientContext.ItemImageContainer.GetItemView(itemId);
+                var blockItemView = ClientContext.BlockImageContainer.GetBlockView(blockId);
                 
                 var tabElement = Instantiate(tabElementPrefab, tabElementParent);
                 tabElement.Initialize();

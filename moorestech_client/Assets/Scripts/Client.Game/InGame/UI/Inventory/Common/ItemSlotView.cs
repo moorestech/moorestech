@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             ItemViewData = itemView;
             Count = count;
             
-            if (itemView == null || itemView.ItemId == ItemMaster.EmptyItemId)
+            if (itemView == null || itemView.IsEmpty)
             {
                 commonSlotView.SetViewClear();
             }

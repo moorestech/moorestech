@@ -143,6 +143,8 @@ namespace Client.Starter
             //セットされる変数
             BlockGameObjectPrefabContainer blockGameObjectPrefabContainer = null;
             ItemImageContainer itemImageContainer = null;
+            BlockImageContainer blockImageContainer = null;
+            TrainCarImageContainer trainCarImageContainer = null;
             FluidImageContainer fluidImageContainer = null;
             AsyncOperation sceneLoadTask = null;
             InitialHandshakeResponse handshakeResponse = null;
@@ -166,7 +168,7 @@ namespace Client.Starter
             MessagePackInitializer.Initialize();
             
             //staticアクセスできるコンテキストの作成
-            new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, fluidImageContainer , playerConnectionSetting, vanillaApi, modalManager);
+            new ClientContext(blockGameObjectPrefabContainer, itemImageContainer, blockImageContainer, trainCarImageContainer, fluidImageContainer, playerConnectionSetting, vanillaApi, modalManager);
             
             //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
@@ -258,9 +260,11 @@ namespace Client.Starter
                 // ブロックとアイテムのアセットをロード
                 // Load block and item assets.
                 await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadFluidAssets());
-                
-                // アイテム画像がロードされていないブロックのアイテム画像をロードする
-                await TakeBlockItemImage();
+
+                // ブロックと車両のアイコン画像をスクリーンショットで生成する
+                // Generate block and train car icon images via screenshots
+                await TakeBlockImage();
+                await TakeTrainCarImage();
             }
             
             async UniTask LoadBlockAssets()
@@ -288,33 +292,67 @@ namespace Client.Starter
                 loadingLog.text += $"\n液体画像ロード完了  {loadingStopwatch.Elapsed}";
             }
             
-            async UniTask TakeBlockItemImage()
+            async UniTask TakeBlockImage()
             {
-                // スクリーンショットを取る必要があるブロックを集める
-                // Collect the blocks that need to be screenshot.
+                // プレハブのあるブロックを全てスクリーンショット対象に集める
+                // Collect every block that has a prefab for screenshotting
+                blockImageContainer = new BlockImageContainer();
                 var takeBlockInfos = new List<BlockPrefabInfo>();
-                var itemIds = new List<ItemId>();
+                var blockIds = new List<BlockId>();
                 foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
                 {
-                    var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
-                    var itemViewData = itemImageContainer.GetItemView(itemId);
-                    
-                    if (itemViewData.ItemImage != null || !blockGameObjectPrefabContainer.BlockPrefabInfos.TryGetValue(blockId, out var blockObjectInfo)) continue;
-                    
-                    itemIds.Add(itemId);
+                    if (!blockGameObjectPrefabContainer.BlockPrefabInfos.TryGetValue(blockId, out var blockObjectInfo)) continue;
+
+                    blockIds.Add(blockId);
                     takeBlockInfos.Add(blockObjectInfo);
                 }
-                
-                // アイコンを設定
-                // Set the icon.
+
+                // BlockIdキーでアイコンを登録
+                // Register icons keyed by BlockId
                 var texture2Ds = await blockIconImagePhotographer.TakeBlockIconImages(takeBlockInfos);
-                for (var i = 0; i < itemIds.Count; i++)
+                for (var i = 0; i < blockIds.Count; i++)
                 {
-                    var itemViewData = new ItemViewData(texture2Ds[i], MasterHolder.ItemMaster.GetItemMaster(itemIds[i]));
-                    itemImageContainer.AddItemView(itemIds[i], itemViewData);
+                    var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockIds[i]);
+                    blockImageContainer.AddBlockView(blockIds[i], new ItemViewData(texture2Ds[i], blockMaster.Name));
                 }
-                
+
                 loadingLog.text += $"\nブロックスクリーンショット完了  {loadingStopwatch.Elapsed}";
+            }
+
+            async UniTask TakeTrainCarImage()
+            {
+                // 車両プレハブを直列ロードして撮影し、車両Guidキーで登録する
+                // Load train car prefabs sequentially, photograph them, register by car Guid
+                trainCarImageContainer = new TrainCarImageContainer();
+                var trainCarGuids = new List<Guid>();
+                var takeTargets = new List<(GameObject prefab, string debugName)>();
+                foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
+                {
+                    var prefab = await AddressableLoader.LoadAsyncDefault<GameObject>(trainCar.AddressablePath);
+                    trainCarGuids.Add(trainCar.TrainCarGuid);
+                    takeTargets.Add((prefab, TrainCarDisplayName(trainCar.AddressablePath)));
+                }
+
+                var texture2Ds = await blockIconImagePhotographer.TakeIconImages(takeTargets);
+                for (var i = 0; i < trainCarGuids.Count; i++)
+                {
+                    var displayName = takeTargets[i].debugName;
+                    trainCarImageContainer.AddTrainCarView(trainCarGuids[i], new ItemViewData(texture2Ds[i], displayName));
+                }
+
+                loadingLog.text += $"\n車両スクリーンショット完了  {loadingStopwatch.Elapsed}";
+
+                #region Internal
+
+                // 車両マスタにname未実装のため、当面はaddressablePath末尾を表示名に使う
+                // Train car masters have no name yet, so use the addressablePath tail as the display name for now
+                string TrainCarDisplayName(string addressablePath)
+                {
+                    var separatorIndex = addressablePath.LastIndexOf('/');
+                    return separatorIndex < 0 ? addressablePath : addressablePath[(separatorIndex + 1)..];
+                }
+
+                #endregion
             }
             
             async UniTask MainGameSceneLoad()

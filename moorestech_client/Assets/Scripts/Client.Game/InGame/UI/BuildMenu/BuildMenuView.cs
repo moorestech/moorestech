@@ -53,10 +53,8 @@ namespace Client.Game.InGame.UI.BuildMenu
             var entries = BuildMenuEntryCatalog.CreateEntries(_gameUnlockStateData);
             foreach (var entry in entries)
             {
-                var itemView = ClientContext.ItemImageContainer.GetItemView(entry.IconItemId);
-
                 var slotView = Instantiate(ItemSlotView.Prefab, blockListContainer);
-                slotView.SetItem(itemView, 0, entry.ToolTipText);
+                slotView.SetItem(entry.IconView, 0, entry.ToolTipText);
                 slotView.OnLeftClickUp.Subscribe(_ => _clickedEntry = entry).AddTo(slotView);
                 _slotViews.Add(slotView);
             }
