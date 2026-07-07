@@ -1,0 +1,42 @@
+{
+    "RunName": "train-rail-connect-via-ui",
+    "Success": true,
+    "Error": "",
+    "StartedAt": "2026-07-07T18:44:15.6485980+09:00",
+    "FinishedAt": "2026-07-07T18:44:21.2817520+09:00",
+    "Asserts": [
+        {
+            "Label": "橋脚設置反映 (10, 32, 6)",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "橋脚設置反映 (10, 32, 14)",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "両橋脚にRailComponentが生成されている",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "接続前は未接続（孤立設置の確認）",
+            "Passed": true,
+            "Message": "ok"
+        },
+        {
+            "Label": "クリック結線で2本のレールが接続された",
+            "Passed": true,
+            "Message": "condition met"
+        }
+    ],
+    "ErrorLogs": [
+        "[Error] FMOD failed to switch back to normal output ... : \"Cannot call this command after System::init. \" (32)"
+    ],
+    "Screenshots": [
+        "/Users/katsumi/moorestech-worktrees/playtest/moorestech_client/PlaytestResults/20260707_184348/train-rail-connect-via-ui/01-piers-placed.png",
+        "/Users/katsumi/moorestech-worktrees/playtest/moorestech_client/PlaytestResults/20260707_184348/train-rail-connect-via-ui/02-connected.png"
+    ],
+    "RecordingPath": "/Users/katsumi/moorestech-worktrees/playtest/moorestech_client/PlaytestResults/20260707_184348/train-rail-connect-via-ui/recording.mp4"
+}
