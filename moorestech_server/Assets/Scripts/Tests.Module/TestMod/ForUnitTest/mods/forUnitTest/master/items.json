@@ -530,6 +530,32 @@
       }
     },
     {
+      "itemGuid": "00000000-0000-0000-1234-000000000032",
+      "imagePath": "",
+      "name": "TestShapeOrderSourceChest",
+      "maxStack": 100,
+      "sortPriority": 850,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "addressablePaths": {
+        "handGrabModel": "",
+        "entityModel": ""
+      }
+    },
+    {
+      "itemGuid": "00000000-0000-0000-1234-000000000033",
+      "imagePath": "",
+      "name": "TestShapeOrderTargetChest",
+      "maxStack": 100,
+      "sortPriority": 860,
+      "initialUnlocked": false,
+      "recipeViewType": "IsUnlocked",
+      "addressablePaths": {
+        "handGrabModel": "",
+        "entityModel": ""
+      }
+    },
+    {
       "maxStack": 300,
       "name": "Test3Lv2",
       "itemGuid": "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
@@ -651,5 +677,9 @@
         "adf11728-e5e7-b180-b6e1-7396d29e787d"
       ]
     }
+  ],
+  "playerInventorySlotLevels": [
+    { "slotCount": 45 },
+    { "slotCount": 54 }
   ]
 }

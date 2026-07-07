@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Interface;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Game.Block.Component
@@ -12,17 +12,17 @@ namespace Game.Block.Component
         /// key: コネクターの位置
         ///      Position of the connector
         ///
-        /// value: そのコネクターと接続できる位置のリスト（BlockConnectInfoElement含む）
-        ///        List of positions that can be connected to the connector (includes BlockConnectInfoElement)
+        /// value: 接続可能位置のリスト（IBlockConnector含む）
+        ///        List of connectable positions (includes IBlockConnector)
         /// </summary>
-        public static Dictionary<Vector3Int, List<(Vector3Int position, BlockConnectInfoElement element)>> CalculateConnectorToConnectPosList(BlockConnectInfo inputConnectInfo, BlockPositionInfo blockPositionInfo)
+        public static Dictionary<Vector3Int, List<(Vector3Int position, IBlockConnector connector)>> CalculateConnectorToConnectPosList(IReadOnlyList<IBlockConnector> inputConnectors, BlockPositionInfo blockPositionInfo)
         {
             var blockDirection = blockPositionInfo.BlockDirection;
             var blockBaseOriginPos = blockDirection.GetBlockBaseOriginPos(blockPositionInfo);
-            var result = new Dictionary<Vector3Int, List<(Vector3Int position, BlockConnectInfoElement element)>>();
+            var result = new Dictionary<Vector3Int, List<(Vector3Int position, IBlockConnector connector)>>();
 
-            if (inputConnectInfo == null) return result;
-            foreach (var inputConnectSetting in inputConnectInfo.items)
+            if (inputConnectors == null) return result;
+            foreach (var inputConnectSetting in inputConnectors)
             {
                 var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
 
@@ -45,24 +45,24 @@ namespace Game.Block.Component
         /// key: コネクターと接続する位置
         ///     Position to connect to the connector
         ///
-        /// value: その位置と接続するコネクターの位置（BlockConnectInfoElement含む）
-        ///        Position of the connector to connect to that position (includes BlockConnectInfoElement)
+        /// value: 接続先コネクターの位置（IBlockConnector含む）
+        ///        Position of the connecting connector (includes IBlockConnector)
         /// </summary>
-        public static Dictionary<Vector3Int, (Vector3Int position, BlockConnectInfoElement element)> CalculateConnectPosToConnector(BlockConnectInfo outputConnectInfo, BlockPositionInfo blockPositionInfo)
+        public static Dictionary<Vector3Int, (Vector3Int position, IBlockConnector connector)> CalculateConnectPosToConnector(IReadOnlyList<IBlockConnector> outputConnectors, BlockPositionInfo blockPositionInfo)
         {
-            var result = new Dictionary<Vector3Int, (Vector3Int position, BlockConnectInfoElement element)>();
+            var result = new Dictionary<Vector3Int, (Vector3Int position, IBlockConnector connector)>();
 
-            if (outputConnectInfo == null) return result;
+            if (outputConnectors == null) return result;
 
-            var connectorToConnectPosList = CalculateConnectorToConnectPosList(outputConnectInfo, blockPositionInfo);
-            foreach (var (connectPos, targetElements) in connectorToConnectPosList)
+            var connectorToConnectPosList = CalculateConnectorToConnectPosList(outputConnectors, blockPositionInfo);
+            foreach (var (connectPos, targetConnectors) in connectorToConnectPosList)
             {
-                if (targetElements == null) continue;
+                if (targetConnectors == null) continue;
 
-                foreach (var (targetPos, element) in targetElements)
+                foreach (var (targetPos, connector) in targetConnectors)
                 {
                     // targetPosの重複は今のところ考慮しない
-                    result[targetPos] = (connectPos, element);
+                    result[targetPos] = (connectPos, connector);
                 }
             }
 

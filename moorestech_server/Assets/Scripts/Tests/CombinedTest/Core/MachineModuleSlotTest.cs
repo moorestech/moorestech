@@ -238,10 +238,10 @@ namespace Tests.CombinedTest.Core
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Efficiency, 1));
 
-            // Idle中はモジュールがあっても要求電力は変わらない
-            // While idle, the requested power is unchanged even with the module equipped
+            // Idle中はモジュールではなくidlePowerRate分だけ要求電力が下がる
+            // While idle, idlePowerRate reduces demand instead of the module
             var electric = block.GetComponent<VanillaElectricMachineComponent>();
-            Assert.AreEqual(processor.RequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
+            Assert.AreEqual(processor.EffectiveRequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
 
             // プロセス開始後は省エネ倍率分だけ要求電力が下がる
             // After processing starts, the requested power drops by the efficiency multiplier

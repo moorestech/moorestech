@@ -14,11 +14,9 @@ namespace Game.EnergySystem
         float MaxWireLength { get; }
         bool IsWireConnectionFull { get; }
 
-        // このブロックが持つ電力上の役割。持たない役割はnull
-        // Electric roles of this block; null when the role is absent
-        IElectricConsumer WireConsumer { get; }
-        IElectricGenerator WireGenerator { get; }
-        IElectricTransformer WireTransformer { get; }
+        // このブロックが持つ電力上の役割。必ず消費・発電・送電のいずれかに紐づく
+        // Electric role of this block; always tied to a consumer, generator or transformer
+        IElectricEnergyRole EnergyRole { get; }
 
         IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections { get; }
 

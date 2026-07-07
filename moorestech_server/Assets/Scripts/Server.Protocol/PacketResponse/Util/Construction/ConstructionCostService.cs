@@ -7,6 +7,7 @@ using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 
 namespace Server.Protocol.PacketResponse.Util.Construction
 {

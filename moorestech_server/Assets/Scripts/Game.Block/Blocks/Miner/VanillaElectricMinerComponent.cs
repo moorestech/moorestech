@@ -6,15 +6,14 @@ namespace Game.Block.Blocks.Miner
     public class VanillaElectricMinerComponent : IElectricConsumer
     {
         public BlockInstanceId BlockInstanceId { get; }
-        public ElectricPower RequestEnergy { get; }
+        public ElectricPower RequestEnergy => new(_vanillaMinerProcessorComponent.RequestEnergy);
         
         private readonly VanillaMinerProcessorComponent _vanillaMinerProcessorComponent;
         
-        public VanillaElectricMinerComponent(BlockInstanceId blockInstanceId, ElectricPower requestEnergy, VanillaMinerProcessorComponent vanillaMinerProcessorComponent)
+        public VanillaElectricMinerComponent(BlockInstanceId blockInstanceId, VanillaMinerProcessorComponent vanillaMinerProcessorComponent)
         {
             _vanillaMinerProcessorComponent = vanillaMinerProcessorComponent;
             BlockInstanceId = blockInstanceId;
-            RequestEnergy = requestEnergy;
         }
         
         public void SupplyEnergy(ElectricPower power)

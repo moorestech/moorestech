@@ -14,6 +14,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 0,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
         "inventoryConnectors": {
@@ -60,8 +61,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "directions": [
@@ -106,8 +106,7 @@
                   1
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "c410d96a-1ec2-4f3e-aa20-6623f917f778"
@@ -123,7 +122,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
@@ -152,8 +152,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -178,8 +177,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "39e1bb67-982e-407e-9d7e-81b591b55b2a"
@@ -217,11 +215,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -254,7 +247,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -277,10 +269,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "279abd08-6d4c-485a-8de0-98fa372a92f1"
             }
           ]
@@ -293,8 +281,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -343,7 +330,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
@@ -372,11 +360,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -409,7 +392,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -432,10 +414,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "c24a7a4d-8ce0-40c7-b7a4-6c55e65fc51a"
             }
           ]
@@ -448,8 +426,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -498,7 +475,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.01,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
@@ -517,6 +495,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 0,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
         "inventoryConnectors": {
@@ -562,8 +541,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -596,7 +574,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
@@ -625,8 +604,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -651,8 +629,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "46aed99a-3bc2-4725-87b0-129112e7c0a7"
@@ -689,11 +666,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [],
               "connectorGuid": "45c4977a-ca9f-45d4-9eeb-829a1f0d4230"
             }
@@ -705,7 +677,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -713,10 +684,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "f2276bf2-4c08-4921-a12d-8d214739809a"
             }
           ]
@@ -729,8 +696,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -779,7 +745,8 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "プレス機",
@@ -810,11 +777,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -847,11 +809,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -886,8 +843,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -936,7 +892,8 @@
           "minimumRpm": 0,
           "baseTorque": 2,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
@@ -961,8 +918,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1019,7 +975,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1052,9 +1007,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "e771a995-1ae5-4236-aa27-2b6d76ec8e34"
             }
           ],
@@ -1065,7 +1017,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1078,9 +1029,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "85f96224-0514-49b0-814c-858f558e4972"
             }
           ]
@@ -1095,7 +1043,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
@@ -1122,8 +1071,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1155,7 +1103,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1163,9 +1110,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "e0416e02-890d-45b6-b653-28748f467552"
             }
           ],
@@ -1176,7 +1120,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1189,9 +1132,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "4eaf23de-8243-4910-beb5-acf8d80f1eff"
             }
           ]
@@ -1206,7 +1146,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
@@ -1233,8 +1174,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1271,7 +1211,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1284,9 +1223,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "9ffa7bcb-0930-4dde-883b-4e47d52e45e8"
             }
           ],
@@ -1297,7 +1233,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1305,9 +1240,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "1b283493-d7ec-4051-8d9e-d42247369a27"
             }
           ]
@@ -1322,7 +1254,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
@@ -1348,8 +1281,7 @@
                 1,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1379,8 +1311,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "connectorGuid": "883dd7a6-24b9-4881-990e-1533726a1998"
@@ -1398,8 +1329,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "connectorGuid": "95741460-fd60-4517-9932-4b4a5e8a8e50"
@@ -1410,8 +1340,7 @@
                 2,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "directions": [
@@ -1436,8 +1365,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "connectorGuid": "33940bdf-65e9-41bd-bf5b-fb4a4868776e"
@@ -1453,7 +1381,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "initialUnlocked": true,
@@ -1485,7 +1414,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1493,9 +1421,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "b68ede1b-7d4a-4db9-9a3c-e46ae7bb60f4"
             }
           ]
@@ -1515,8 +1440,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1534,8 +1458,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "directions": [
@@ -1558,7 +1481,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
@@ -1590,11 +1514,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [],
               "connectorGuid": "5f90c920-a95e-4d05-bce3-2c4a3ec6df19"
             }
@@ -1606,7 +1525,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1614,10 +1532,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "7cfc2bc9-5e18-4830-8d91-df9f9ee47dd2"
             }
           ]
@@ -1630,8 +1544,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1680,7 +1593,8 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
@@ -1712,11 +1626,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   0,
@@ -1734,7 +1643,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1742,10 +1650,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "1d792219-31a9-4ce3-8309-51ff9f3a6cff"
             }
           ]
@@ -1758,8 +1662,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1808,7 +1711,8 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
@@ -1853,7 +1757,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
@@ -1880,8 +1785,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1909,7 +1813,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "855ec61a-a6c1-4a37-a885-1c5994ce573b",
@@ -1937,8 +1842,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1986,7 +1890,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
@@ -2030,7 +1935,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2063,9 +1967,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "5710cfa0-f296-4d31-89f2-ba5825ebe152"
             }
           ],
@@ -2076,7 +1977,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2089,9 +1989,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "c5c48153-533e-42c6-85c2-c70f850b8b22"
             }
           ]
@@ -2122,7 +2019,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2130,9 +2026,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "37bb6aa7-b7c8-4761-8707-7891d7a42810"
             }
           ],
@@ -2143,7 +2036,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2156,9 +2048,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "ab2d1437-3dd5-4632-883f-7ce3b594e32b"
             }
           ]
@@ -2189,7 +2078,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2202,9 +2090,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "2062d5ed-b5d1-48bf-bb1e-2ac1b994fc9c"
             }
           ],
@@ -2215,7 +2100,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2223,9 +2107,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "39f21d26-dcab-4e97-974a-128b5e535de2"
             }
           ]
@@ -2249,7 +2130,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "offset": [
                 0,
                 0,
@@ -2277,15 +2157,11 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "d4b9a8c9-2936-4fb0-a97e-d576926a10a2"
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "offset": [
                 0,
                 0,
@@ -2313,9 +2189,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "1b72b75b-5576-4e47-bb0f-093b38bd14c7"
             }
           ]
@@ -2341,7 +2214,6 @@
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "offset": [
                 0,
                 0,
@@ -2379,7 +2251,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "fd5a0906-34d1-4324-9e5e-3b7bd58c2bce"
@@ -2484,8 +2356,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [

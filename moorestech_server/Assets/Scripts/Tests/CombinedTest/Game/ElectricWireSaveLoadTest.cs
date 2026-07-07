@@ -18,6 +18,8 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
+
 namespace Tests.CombinedTest.Game
 {
     // ワイヤーのセーブ復元と撤去時の切断・返却を検証

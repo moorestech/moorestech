@@ -5,12 +5,12 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.UnitTest.Core.Other
 {
@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Core.Other
             inventoryList.Add(inventory3);
             
             var componentPos = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory>(null, null, componentPos);
+            var inputConnectorComponent = new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(null, null, componentPos);
             
             var targets = (Dictionary<IBlockInventory, ConnectedInfo>)inputConnectorComponent.ConnectedTargets;
             

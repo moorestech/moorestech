@@ -3,6 +3,7 @@ using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
 using Game.PlayerInventory.ItemManaged;
+using UniRx;
 
 namespace Game.PlayerInventory
 {
@@ -13,16 +14,26 @@ namespace Game.PlayerInventory
     public class PlayerInventoryDataStore : IPlayerInventoryDataStore
     {
         private readonly GrabInventoryUpdateEvent _grabInventoryUpdateEvent;
-        
-        
+
+
         private readonly MainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly Dictionary<int, PlayerInventoryData> _playerInventoryData = new();
-        
-        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IGrabInventoryUpdateEvent grabInventoryUpdateEvent)
+        private readonly IPlayerInventorySlotLevelDataStore _slotLevelDataStore;
+
+        public PlayerInventoryDataStore(IMainInventoryUpdateEvent mainInventoryUpdateEvent, IGrabInventoryUpdateEvent grabInventoryUpdateEvent, IPlayerInventorySlotLevelDataStore slotLevelDataStore)
         {
             //イベントの呼び出しをアセンブリに隠蔽するため、インターフェースをキャストします。
             _mainInventoryUpdateEvent = (MainInventoryUpdateEvent)mainInventoryUpdateEvent;
             _grabInventoryUpdateEvent = (GrabInventoryUpdateEvent)grabInventoryUpdateEvent;
+            _slotLevelDataStore = slotLevelDataStore;
+
+            // レベル上昇で全プレイヤー拡張
+            // Expand all players on level up
+            _slotLevelDataStore.OnSlotCountChanged.Subscribe(slotCount =>
+            {
+                foreach (var inventory in _playerInventoryData.Values)
+                    ((MainOpenableInventoryData)inventory.MainOpenableInventory).ExpandSlots(slotCount);
+            });
         }
         
         public List<int> GetAllPlayerId()
@@ -34,7 +45,7 @@ namespace Game.PlayerInventory
         {
             if (!_playerInventoryData.ContainsKey(playerId))
             {
-                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent);
+                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _slotLevelDataStore.CurrentSlotCount);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent);
                 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab));
@@ -67,7 +78,10 @@ namespace Game.PlayerInventory
                 (var mainItems, var grabItem) = saveInventory.GetPlayerInventoryData();
                 
                 //アイテムを復元
-                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, mainItems);
+                // セーブ済みアイテム数が現レベルのスロット数を超える場合はアイテム数まで拡張する
+                // Expand to the saved item count when it exceeds the current level's slot count
+                var slotCount = System.Math.Max(_slotLevelDataStore.CurrentSlotCount, mainItems.Count);
+                var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, slotCount, mainItems);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent, grabItem);
                 
                 var playerInventory = new PlayerInventoryData(main, grab);
