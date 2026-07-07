@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Item;
 using Core.Master;
 using Game.Context;
 using Game.Train.Event;
@@ -39,7 +40,7 @@ namespace Tests.UnitTest.Game
             var (_, target) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 4, 10, true);
             var (_, source) = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 4, 10, true);
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
 
             // target は index 2 だけ既存スタック。サービス委譲の挙動では余りは同種スタックの近傍に流れる
             // Only index 2 holds an existing stack; service-driven overflow spreads to nearby slots first.
@@ -137,7 +138,7 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainCar.IsInventoryEmpty(), "New train car inventory should start empty.");
             Assert.IsFalse(trainCar.IsInventoryFull(), "New train car inventory should not be full.");
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             var fullStack = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack);
             itemContainer.SetItem(0, fullStack);
 

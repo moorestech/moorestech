@@ -3,7 +3,7 @@ using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
 {
     /// <summary>
     /// 経路座標列から各セルの向き・傾斜（Up/Down/Horizontal）を解決する

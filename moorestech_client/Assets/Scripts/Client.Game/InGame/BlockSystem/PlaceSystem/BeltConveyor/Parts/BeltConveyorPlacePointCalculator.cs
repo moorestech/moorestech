@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
     /// コンベア専用の設置点計算（1マス刻み・カーブ・傾斜・立体交差を常時有効）

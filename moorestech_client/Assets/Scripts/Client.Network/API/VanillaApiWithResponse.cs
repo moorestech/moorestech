@@ -25,12 +25,14 @@ namespace Client.Network.API
     public class VanillaApiWithResponse
     {
         private readonly IItemStackFactory _itemStackFactory;
+        private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
 
         public VanillaApiWithResponse(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
             _itemStackFactory = ServerContext.ItemStackFactory;
+            _itemStackLevelUnlocker = ServerContext.GetService<IItemStackLevelUnlocker>();
             _packetExchangeManager = packetExchangeManager;
             _playerConnectionSetting = playerConnectionSetting;
         }
@@ -41,8 +43,15 @@ namespace Client.Network.API
             var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
             var initialHandShake = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
 
+            // ハンドシェイクに同梱されたスタックレベルを先に適用（インベントリ等のItemStack生成前に上限を正すため）
+            // Apply stack levels bundled in the handshake first so ItemStacks built from later responses use correct limits
+            foreach (var itemStackLevel in initialHandShake.ItemStackLevels)
+            {
+                _itemStackLevelUnlocker.UnlockStackLevel(itemStackLevel.ItemGuid, itemStackLevel.Level);
+            }
+
             //必要なデータを取得する
-            // Fetch all required resources including research node states
+            // Fetch all required resources
             var responses = await UniTask.WhenAll(
                 GetMapObjectInfo(ct),
                 GetWorldData(ct),

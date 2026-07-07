@@ -19,6 +19,7 @@ items:
     - unlockTrainCar
     - playSkit
     - playBackgroundSkit
+    - unlockItemStackLevel
     - unlockPlayerInventorySlotLevel
   - key: gameActionParam
     switch: ./gameActionType
@@ -140,6 +141,21 @@ items:
         options:
           - normal
           - background
+    - when: unlockItemStackLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: targetItemGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+      - key: level
+        type: integer
+        default: 2 
     - when: unlockPlayerInventorySlotLevel
       type: object
       isDefaultOpen: true
