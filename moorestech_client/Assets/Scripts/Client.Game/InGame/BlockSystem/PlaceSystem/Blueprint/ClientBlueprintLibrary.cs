@@ -1,0 +1,50 @@
+using System.Collections.Generic;
+using System.Threading;
+using Client.Game.InGame.Context;
+using Cysharp.Threading.Tasks;
+using Server.Protocol.PacketResponse;
+using UnityEngine;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
+{
+    /// <summary>
+    ///     サーバーのBPライブラリのクライアント側キャッシュ
+    ///     Client-side cache of the server blueprint library
+    /// </summary>
+    public class ClientBlueprintLibrary
+    {
+        private readonly List<BlueprintMessagePack> _blueprints = new();
+
+        public IReadOnlyList<BlueprintMessagePack> Blueprints => _blueprints;
+
+        public async UniTask Refresh(CancellationToken ct)
+        {
+            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateGetAllRequest(), ct);
+            ApplyResponse(response);
+        }
+
+        public async UniTask<(bool success, string registeredName)> CreateBlueprint(string name, Vector3Int min, Vector3Int max, CancellationToken ct)
+        {
+            var request = BlueprintRequest.CreateCreateRequest(name, min, max);
+            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(request, ct);
+            ApplyResponse(response);
+            return (response.Success, response.RegisteredName);
+        }
+
+        public async UniTask DeleteBlueprint(string name, CancellationToken ct)
+        {
+            var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(BlueprintRequest.CreateDeleteRequest(name), ct);
+            ApplyResponse(response);
+        }
+
+        private void ApplyResponse(BlueprintResponse response)
+        {
+            // 成功レスポンスのみ最新全件を持つため、失敗時はキャッシュを保持する
+            // Only success responses carry the full list; keep the cache on failure
+            if (!response.Success && response.FailureReason != BlueprintFailureReason.None) return;
+
+            _blueprints.Clear();
+            _blueprints.AddRange(response.Blueprints);
+        }
+    }
+}
