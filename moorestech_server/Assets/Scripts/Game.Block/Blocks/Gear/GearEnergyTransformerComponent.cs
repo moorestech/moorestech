@@ -7,6 +7,7 @@ using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.GearConsumptionModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -58,6 +59,10 @@ namespace Game.Block.Blocks.Gear
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
 
+        // 具体コンポーネントから変更要求される要求トルク倍率。稼働状況に応じた低消費（idle時等）に使う
+        // Torque request rate pushed by concrete components; used for operation-based low consumption (e.g. idle)
+        private float _torqueRequestRate = 1f;
+
         public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             _consumption = consumption;
@@ -66,6 +71,19 @@ namespace Game.Block.Blocks.Gear
             _simpleGearService = new SimpleGearService();
 
             GearNetworkDatastore.AddGear(this);
+        }
+
+        public void SetTorqueRequestRate(float rate)
+        {
+            // 同値なら何もしない。毎tick呼ぶcallerがいても安定tick（再計算0）を保つため
+            // No-op on the same value so per-tick callers keep stable ticks free of recalculation
+            if (Mathf.Approximately(_torqueRequestRate, rate)) return;
+
+            _torqueRequestRate = rate;
+
+            // 要求トルクが変わるため、所属networkを次tickの再計算対象へ加える
+            // The required torque changes, so schedule the owning network for recalculation next tick
+            GearNetworkDatastore.NotifyRequiredTorqueChanged(this);
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -78,7 +96,7 @@ namespace Game.Block.Blocks.Gear
             // 生成側（Generator）はConsumption=nullで常にトルク消費0
             // Generators pass null Consumption and always consume zero torque
             if (_consumption == null) return new Torque(0);
-            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
+            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm) * _torqueRequestRate;
         }
 
         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
