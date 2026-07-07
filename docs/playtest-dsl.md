@@ -9,18 +9,21 @@ play-verification session from ~170-190 Bash calls down to a single shell comman
 ## 構成 / Layout
 
 - `moorestech_client/Assets/Scripts/Client.Playtest/` — 事前コンパイル済みDSL（Editor専用asmdef、Test Runner非依存）
-- `tools/playtest/preflight.sh` — 実行前チェック（疎通/コンパイル/master実在/マスタロードドライラン）
-- `tools/playtest/run-scenario.sh` — 一発実行ランナー
-- `tools/playtest/scenarios/*.cs` — シナリオ置き場（execute-dynamic-codeに渡すC#スニペット。コンパイル資産にはならない）
+- `.claude/skills/unity-playmode-recorded-playtest/scripts/preflight.sh` — 実行前チェック（疎通/コンパイル/master実在/マスタロードドライラン）
+- `.claude/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh` — 一発実行ランナー
+- `.claude/skills/unity-playmode-recorded-playtest/scenarios/*.cs` — シナリオ置き場（execute-dynamic-codeに渡すC#スニペット。コンパイル資産にはならない）
+
+シェルスクリプトとシナリオは `unity-playmode-recorded-playtest` スキルに同梱されており、リポジトリ側の `tools/` には置かない。
 - 成果物は `moorestech_client/PlaytestResults/<セッション>/<ラン名>/`（result.json・スクショ・mp4、git管理外）
 
 ## 一発実行 / One-shot run
 
 ```bash
 cd <worktree-root>
-./tools/playtest/run-scenario.sh \
+SKILL=.claude/skills/unity-playmode-recorded-playtest
+"$SKILL/scripts/run-scenario.sh" \
     /path/to/moorestech_client \
-    tools/playtest/scenarios/sample-chest.cs \
+    "$SKILL/scenarios/sample-chest.cs" \
     [master-server-dir]   # 省略時: /Users/katsumi/moorestech-worktrees/playtest-master/server_v8
 ```
 
@@ -90,7 +93,7 @@ await p.ExitToGameScreen();
 
 - 設置原点の照準は`PlaytestUiOps.PlaceAimPoint`がCalcPlacePointを逆算（接地面上のフットプリント中心）
 - 足場は上面がy=32ちょうど（`SetupFlatGround`が保証）。プレビューの`Floor(hit.y)`がブロックグリッドと一致する条件
-- 等価性シナリオ: `tools/playtest/scenarios/belt-line-via-ui.cs`（belt-line.csと同一ライン・同一assertをUI経路のみで構築）
+- 等価性シナリオ: スキル同梱の `scenarios/belt-line-via-ui.cs`（belt-line.csと同一ライン・同一assertをUI経路のみで構築）
 
 ## ハマりどころ（今回実際に踏んだもの） / Pitfalls actually hit
 

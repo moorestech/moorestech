@@ -13,7 +13,9 @@ uloop launch ./moorestech_client
 uloop control-play-mode --project-path ./moorestech_client --action stop
 
 # 3. 一発実行（preflight→PlayMode起動→ready待ち→シナリオ投入→result.json回収まで全自動）
-./tools/playtest/run-scenario.sh ./moorestech_client tools/playtest/scenarios/<シナリオ名>.cs
+#    ランナーとシナリオは本スキル同梱（repoルート相対で指定する）
+SKILL=.claude/skills/unity-playmode-recorded-playtest
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/<シナリオ名>.cs"
 ```
 
 - 第3引数でmasterデータを差し替え可能。省略時 `/Users/katsumi/moorestech-worktrees/playtest-master/server_v8`（通常は省略）
@@ -21,7 +23,7 @@ uloop control-play-mode --project-path ./moorestech_client --action stop
 
 ## ランナー内部の流れ（すべて自動・リトライ内蔵）
 
-1. **preflight** (`tools/playtest/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）→ **サーバーポート11564の空き確認**
+1. **preflight** (スキル同梱 `scripts/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）→ **サーバーポート11564の空き確認**
 2. **boot**: `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)` をEDC 1回で実行。NoSaveフラグ・`DebugServerDirectory`・`DebugObjectsBootstrap_Disabled` を設定してPlayMode突入
 3. **ready待ち**: ゲーム初期化完了イベントで書かれる `ready.marker` をファイルポーリング（EDCを連打しない）
 4. **シナリオ投入**: シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済みなのでAPI推測ミスが構造的に起きない）
