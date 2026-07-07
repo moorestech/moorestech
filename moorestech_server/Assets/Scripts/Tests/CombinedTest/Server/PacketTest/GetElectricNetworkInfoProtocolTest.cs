@@ -2,7 +2,6 @@ using System;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -28,7 +27,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, Pos(0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generator);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 
-            var segmentDatastore = serviceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+            // 電柱に発電機と機械をワイヤー接続して1セグメントにまとめる
+            // Wire the generator and machine to the pole to form one segment
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, 2));
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
+
+            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
             Assert.IsTrue(segmentDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var segment));
 
             var expected = segment.GetCurrentStatistics();
@@ -60,6 +64,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, Pos(0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            // 発電機のみをワイヤー接続し、消費者ゼロのセグメントを作る
+            // Wire only the generator to build a consumer-less segment
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, 2));
 
             var info = InvokeGetElectricNetworkInfo(packet, pole.BlockInstanceId).Info;
 
