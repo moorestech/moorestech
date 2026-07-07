@@ -1,6 +1,6 @@
 using Game.EnergySystem;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
 {
     /// <summary>
     /// ワイヤー接続の可否判定結果。失敗理由とコストをまとめて保持する

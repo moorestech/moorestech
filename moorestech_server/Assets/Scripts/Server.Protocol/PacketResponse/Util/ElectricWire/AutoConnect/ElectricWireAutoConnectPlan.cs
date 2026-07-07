@@ -4,7 +4,9 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.EnergySystem;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
     /// 設置時自動接続の検証結果。対象一覧・コスト・電線アイテム・可否をまとめて保持する

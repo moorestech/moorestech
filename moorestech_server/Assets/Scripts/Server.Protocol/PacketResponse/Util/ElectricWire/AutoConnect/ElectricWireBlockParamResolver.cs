@@ -1,6 +1,6 @@
 using Mooresmaster.Model.BlocksModule;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
     /// 電気系ブロックのパラメータからワイヤー端点仕様を取り出す

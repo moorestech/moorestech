@@ -6,7 +6,7 @@ using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
 {
     /// <summary>
     /// ワイヤー接続の可否を純粋関数として判定する

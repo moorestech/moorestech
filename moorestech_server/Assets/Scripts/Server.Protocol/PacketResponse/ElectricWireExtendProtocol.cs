@@ -6,6 +6,8 @@ using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Util.MessagePack;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Server.Protocol.PacketResponse
 {
     public class ElectricWireExtendProtocol : IPacketResponse

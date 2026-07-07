@@ -10,7 +10,9 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 {
     public static class ElectricWireSystemUtil
     {
