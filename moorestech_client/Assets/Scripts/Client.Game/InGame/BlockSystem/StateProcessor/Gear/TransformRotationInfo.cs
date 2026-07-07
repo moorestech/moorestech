@@ -11,10 +11,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private RotationAxis rotationAxis;
         [SerializeField] private Transform rotationTransform;
         [SerializeField] private float rotationSpeed = 1;
-
-        public RotationAxis RotationAxis => rotationAxis;
+        
         public override Transform RotationTransform => rotationTransform;
-        public float RotationSpeed => rotationSpeed;
 
         public TransformRotationInfo()
         {
