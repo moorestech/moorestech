@@ -7,9 +7,9 @@ using Game.Block.Blocks.Connector;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Newtonsoft.Json;
+using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
 {
@@ -20,7 +20,9 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
+        public IObservable<Unit> OnItemsChanged => _onItemsChanged;
         private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
+        private readonly Subject<Unit> _onItemsChanged = new();
 
         private readonly IBeltConveyorBlockInventoryInserter _blockInventoryInserter;
         private readonly int _inventoryItemNum;
@@ -48,6 +50,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 if (itemJsons[i] != null)
                 {
                     _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i], inventoryConnectors, _ticksOfItemEnterToExit);
+                    NotifyItemsChanged();
                 }
             }
         }
@@ -75,6 +78,7 @@ namespace Game.Block.Blocks.BeltConveyor
             // Set target connector as item's start position
             var startConnector = context.TargetConnector;
             _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector, _ticksOfItemEnterToExit);
+            NotifyItemsChanged();
 
             // 挿入したのでアイテムを減らして返す
             // Return item with count reduced by 1
@@ -144,6 +148,7 @@ namespace Game.Block.Blocks.BeltConveyor
             //TODO lockすべき？？
             var goalConnector = _blockInventoryInserter?.GetNextGoalConnector(new List<IItemStack> { itemStack });
             _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector, _ticksOfItemEnterToExit);
+            NotifyItemsChanged();
         }
         
         public bool IsDestroy { get; private set; }
@@ -202,6 +207,7 @@ namespace Game.Block.Blocks.BeltConveyor
                     {
                         _inventoryItems[i - 1] = item;
                         _inventoryItems[i] = null;
+                        NotifyItemsChanged();
                         didMove = true;
                     }
                 }
@@ -216,7 +222,11 @@ namespace Game.Block.Blocks.BeltConveyor
 
                     // 渡した結果がnullItemだったらそのアイテムを消す
                     // Remove item if successfully inserted
-                    if (output.Id == ItemMaster.EmptyItemId) _inventoryItems[i] = null;
+                    if (output.Id == ItemMaster.EmptyItemId)
+                    {
+                        _inventoryItems[i] = null;
+                        NotifyItemsChanged();
+                    }
 
                     continue;
                 }
@@ -273,9 +283,14 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 foreach (var item in _inventoryItems)
                 {
-                    item?.ResetTicksOnSpeedRecovery(ticks);
+                    item?.UpdateTicksForSpeedChange(ticks);
                 }
             }
+        }
+
+        private void NotifyItemsChanged()
+        {
+            _onItemsChanged.OnNext(Unit.Default);
         }
     }
 }

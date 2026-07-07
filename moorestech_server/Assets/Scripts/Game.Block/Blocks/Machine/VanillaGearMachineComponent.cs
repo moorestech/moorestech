@@ -13,18 +13,31 @@ namespace Game.Block.Blocks.Machine
     {
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
+        private readonly float _idleTorqueRate;
 
-        public VanillaGearMachineComponent(VanillaMachineProcessorComponent vanillaMachineProcessorComponent, GearEnergyTransformer gearEnergyTransformer)
+        public VanillaGearMachineComponent(VanillaMachineProcessorComponent vanillaMachineProcessorComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate)
         {
             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
             _gearEnergyTransformer = gearEnergyTransformer;
+            _idleTorqueRate = idleTorqueRate;
 
             _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
+
+            // 加工状態の変化に応じて要求トルク倍率を変更要求する
+            // Push the torque request rate whenever the processing state changes
+            _vanillaMachineProcessorComponent.OnChangeBlockState.Subscribe(_ => UpdateTorqueRequestRate());
+            UpdateTorqueRequestRate();
         }
 
         private void OnGearUpdate(GearUpdateType gearUpdateType)
         {
             _vanillaMachineProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
+        }
+
+        private void UpdateTorqueRequestRate()
+        {
+            var isProcessing = _vanillaMachineProcessorComponent.CurrentState == ProcessState.Processing;
+            _gearEnergyTransformer.SetTorqueRequestRate(isProcessing ? 1f : _idleTorqueRate);
         }
 
         public bool IsDestroy { get; private set; }

@@ -6638,19 +6638,23 @@ MonoBehaviour:
       type: {class: AnimatorRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
         isReverse: 0
+        directionMode: 0
         animator: {fileID: 637293004719037227}
         rpm60Speed: 10
+        defaultPlayDirection: 0
     - rid: 3331677946101629134
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
         isReverse: 0
+        directionMode: 0
         rotationAxis: 2
         rotationTransform: {fileID: 1090121464604511345}
         rotationSpeed: 3
     - rid: 3331677946101629135
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
-        isReverse: 0
+        isReverse: 1
+        directionMode: 0
         rotationAxis: 2
         rotationTransform: {fileID: 2898157000496097117}
         rotationSpeed: 1

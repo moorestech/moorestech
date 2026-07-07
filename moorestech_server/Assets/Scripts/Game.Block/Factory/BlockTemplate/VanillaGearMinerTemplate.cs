@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Miner;
@@ -35,18 +36,18 @@ namespace Game.Block.Factory.BlockTemplate
             var miningSettings = minerParam.MineSettings;
             
             var connectSetting = minerParam.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(connectSetting, connectSetting, blockPositionInfo);
             var gearConsumption = minerParam.GearConsumption;
-            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var requestPower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
             var outputSlot = minerParam.OutputItemSlotCount;
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
-            var minerProcessorComponent = componentStates == null ? 
-                new VanillaMinerProcessorComponent(blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings) : 
-                new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
-                
-            var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer);
+            var minerProcessorComponent = componentStates == null ?
+                new VanillaMinerProcessorComponent(blockInstanceId, requestPower, gearConsumption.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings) :
+                new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, gearConsumption.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
+            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
+
+            var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer, gearConsumption.IdlePowerRate);
             
             var components = new List<IBlockComponent>
             {
