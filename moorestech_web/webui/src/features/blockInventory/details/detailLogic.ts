@@ -1,4 +1,5 @@
 import type { GearNetworkStopReason } from "@/bridge/contract/payloadTypes";
+import { clamp01 } from "@/shared/clamp01";
 
 // uGUI CommonMachineBlockStateDetail.PowerRate と同式（ワイヤ非送信のためWeb側算出）
 // Same formula as uGUI CommonMachineBlockStateDetail.PowerRate (not on the wire; computed web-side)
@@ -23,7 +24,7 @@ export function splitSlotIndices(
 // Clamp remaining/full fuel ratio to 0..1 (zero denominator → 0); mirrors the uGUI generator fuel bar
 export function fuelRatio(remainingFuelTime: number, currentFuelTime: number): number {
   if (currentFuelTime <= 0) return 0;
-  return Math.min(1, Math.max(0, remainingFuelTime / currentFuelTime));
+  return clamp01(remainingFuelTime / currentFuelTime);
 }
 
 // uGUI GearEnergyTransformerUIView.GetStopReasonText と同文言
