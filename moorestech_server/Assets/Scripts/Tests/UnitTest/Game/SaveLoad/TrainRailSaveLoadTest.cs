@@ -14,6 +14,7 @@ using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using System.Collections.Generic;
@@ -258,7 +259,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory), "駅インベントリの取得に失敗しました。");
 
             var stationParam = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             stationInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var entryNode = railComponents[0].FrontNode;

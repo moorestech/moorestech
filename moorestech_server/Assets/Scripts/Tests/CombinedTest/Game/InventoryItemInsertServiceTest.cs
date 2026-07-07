@@ -1,3 +1,4 @@
+using Core.Item;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -46,7 +47,7 @@ namespace Tests.CombinedTest.Game
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             
-            var id1MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(1)).MaxStack;
+            var id1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(1));
             
             //インベントリをアイテムで満たす
             for (var i = 0; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, new ItemId(1), id1MaxStack);

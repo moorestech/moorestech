@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Core.Item.Interface;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
@@ -103,7 +104,7 @@ namespace Tests.CombinedTest.Core
 
             var recipe = GetMachineRecipe();
             var (baseItemId, lv2ItemId) = GetBaseAndLv2ItemIds(recipe);
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(baseItemId).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(baseItemId);
 
             // 品質装着機・未装着機・変種空きあり装着機の3台を設置する
             // Place three machines: quality-equipped, plain, and quality-equipped with variant space
@@ -158,7 +159,7 @@ namespace Tests.CombinedTest.Core
             var lv2ItemId = MasterHolder.ItemMaster.GetLevelVariantItemId(baseItemId, 2);
             var lv3ItemId = MasterHolder.ItemMaster.GetLevelVariantItemId(baseItemId, 3);
             Assert.AreNotEqual(lv2ItemId, lv3ItemId);
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(baseItemId).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(baseItemId);
 
             // 前提: 品質1.0+0.4でシフト1.4（確定1段＋40%でもう1段）、生産性1.0で追加セット確定
             // Precondition: quality 1.0 + 0.4 gives shift 1.4 (one guaranteed + 40% one more); productivity 1.0 guarantees the extra set

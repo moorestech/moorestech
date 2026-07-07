@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
@@ -89,7 +90,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 一つ目のスロットにはID3の最大スタック数から1個少ないアイテムを入れる
             // First slot has ID3 items at max stack - 1
-            var id3MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(3)).MaxStack;
+            var id3MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(3));
             mainInventory.SetItem(0, itemStackFactory.Create(new ItemId(3), id3MaxStack - 1));
             // 二つめのスロットにはID4のアイテムを1つ入れておく
             // Second slot has 1 ID4 item

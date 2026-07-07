@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.TrainRail;
@@ -120,7 +121,7 @@ namespace Tests.UnitTest.Game
 
             // 事前に積んでおく（SetItem時点で1回イベントが出るが、ここでは別の検証）
             // Pre-load one slot (this raises one event but we re-create the receiver right after)
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             cargoInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var entryNode = railComponents[0].FrontNode;
