@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Group, Loader, Overlay, Stack, Text, Title } from "@mantine/core";
-import { InventoryPanel } from "@/features/inventory";
+import { InventoryPanel, HotbarPanel } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
 import { ModalHost } from "@/features/modal";
@@ -54,6 +54,9 @@ export default function App() {
         </Group>
       )}
       {screen !== "none" && <InventoryPanel />}
+      {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
+      {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
+      <HotbarPanel />
       {screen === "playerInventory" && <RecipeViewer />}
       {screen === "playerInventory" && <ItemListPanel />}
       {/* オーバーレイ系（grid セルでなく fixed/center 配置） */}
