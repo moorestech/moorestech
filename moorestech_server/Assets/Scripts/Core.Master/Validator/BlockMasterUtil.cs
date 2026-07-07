@@ -15,6 +15,7 @@ namespace Core.Master.Validator
             errorLogs += BlockParamValidation();
             errorLogs += OverrideVerticalBlockValidation();
             errorLogs += GearChainItemsValidation();
+            errorLogs += ElectricWireItemsValidation();
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
             errorLogs += ConnectorSettingsValidation();
@@ -224,6 +225,28 @@ namespace Core.Master.Validator
                     if (id == null)
                     {
                         logs += $"[BlockMaster] GearChainItem has invalid ItemGuid:{gearChainItem.ItemGuid}\n";
+                    }
+                }
+
+                return logs;
+            }
+
+            string ElectricWireItemsValidation()
+            {
+                var logs = "";
+                foreach (var electricWireItem in blocks.ElectricWireItems)
+                {
+                    var id = MasterHolder.ItemMaster.GetItemIdOrNull(electricWireItem.ItemGuid);
+                    if (id == null)
+                    {
+                        logs += $"[BlockMaster] ElectricWireItem has invalid ItemGuid:{electricWireItem.ItemGuid}\n";
+                    }
+
+                    // 0以下はコスト計算が発散するため弾く
+                    // Reject non-positive values; the cost calculation diverges
+                    if (electricWireItem.ConsumptionPerLength <= 0)
+                    {
+                        logs += $"[BlockMaster] ElectricWireItem ConsumptionPerLength must be > 0. ItemGuid:{electricWireItem.ItemGuid}\n";
                     }
                 }
 

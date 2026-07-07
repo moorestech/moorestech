@@ -1,3 +1,0 @@
-interface:
-  display_name: "Train/Rail Save Load"
-  short_description: "Implement save-load with rail segment based restore flow"

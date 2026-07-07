@@ -1,10 +1,8 @@
 using System;
 using Core.Update;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
-using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -15,36 +13,41 @@ using static Tests.Module.TestMod.ForUnitTestModBlockId;
 namespace Tests.CombinedTest.Game.Energy
 {
     /// <summary>
-    ///     複数セグメントに所属する発電機を破壊したときに、残存参照でtickがクラッシュしないことを検証する
-    ///     Verify that destroying a generator belonging to multiple segments does not crash the tick via a dangling reference
+    ///     セグメントの橋渡し役の発電機を破壊したときに、残りが正しく分割されクラッシュしないことを検証する
+    ///     Verify that destroying a bridging generator correctly splits the remainder without crashing
     /// </summary>
     public class RemoveGeneratorFromMultiSegmentTest
     {
+        // 2本の電柱を繋ぐ発電機を削除すると、電柱が別々のセグメントへ分割される
+        // Removing the generator that bridges two poles splits the poles into separate segments
         [Test]
-        public void RemovingGeneratorSharedByMultipleSegmentsDoesNotCrashOnNextTick()
+        public void RemovingBridgingGeneratorSplitsSegmentWithoutCrash()
         {
-            var (_, serviceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
 
-            // 電柱を置かずに発電機のみ設置し、自動セグメント接続を発生させない
-            // Place only the generator (no pole) so no automatic segment connection happens
-            var generatorPos = new Vector3Int(0, 0, 0);
-            worldBlockDatastore.TryAddBlock(InfinityGeneratorId, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
-            var generator = generatorBlock.GetComponent<IElectricGenerator>();
+            // 電柱 - 発電機 - 電柱 を一直線にワイヤー接続する
+            // Wire pole - generator - pole in a straight line
+            var generatorPos = new Vector3Int(2, 0, 0);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole1);
+            worldBlockDatastore.TryAddBlock(InfinityGeneratorId, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole2);
+            ElectricWireTestUtil.Connect(Pos(0, 0), generatorPos);
+            ElectricWireTestUtil.Connect(generatorPos, Pos(4, 0));
 
-            var segmentDatastore = serviceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+            // 発電機が橋渡しとなり全体が1セグメント
+            // The generator bridges everything into a single segment
+            Assert.AreEqual(1, networkDatastore.SegmentCount);
 
-            // 範囲が重なる電柱構成を模し、1台の発電機を2つのセグメントへ登録する
-            // Register one generator into two segments, emulating overlapping pole ranges
-            var segmentA = segmentDatastore.CreateEnergySegment();
-            segmentA.AddGenerator(generator);
-            var segmentB = segmentDatastore.CreateEnergySegment();
-            segmentB.AddGenerator(generator);
-
-            // 発電機を破壊。全セグメントから外れないと破壊済み参照が残る
-            // Destroy the generator; if it is not removed from every segment a dangling reference remains
+            // 発電機を破壊。橋渡しが消えるので両電柱は分断される
+            // Destroy the generator; the bridge is gone so the two poles are separated
             worldBlockDatastore.RemoveBlock(generatorPos, BlockRemoveReason.ManualRemove);
+
+            Assert.AreEqual(2, networkDatastore.SegmentCount);
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment1));
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole2.BlockInstanceId, out var segment2));
+            Assert.AreNotSame(segment1, segment2);
 
             // 破壊後にtickしても OutputEnergy が破壊済みコンポーネントを叩いて落ちないこと
             // Ticking after destruction must not crash by calling OutputEnergy on the destroyed component
@@ -52,6 +55,11 @@ namespace Tests.CombinedTest.Game.Energy
             {
                 for (var i = 0; i < 2; i++) GameUpdater.UpdateOneTick();
             });
+        }
+
+        private static Vector3Int Pos(int x, int z)
+        {
+            return new Vector3Int(x, 0, z);
         }
     }
 }

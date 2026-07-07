@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks;
+using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.Miner;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -29,16 +30,20 @@ namespace Game.Block.Factory.BlockTemplate
             
             var minerProcessorComponent = new VanillaMinerProcessorComponent(blockInstanceId, requestPower.AsPrimitive(), minerParam.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, minerProcessorComponent);
+            // 採掘機はConsumer役をワイヤー端点に渡す
+            // Miner passes the consumer role to the wire endpoint
+            var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, null);
             var components = new List<IBlockComponent>
             {
                 minerProcessorComponent,
                 electricMinerComponent,
                 inputConnectorComponent,
+                wireConnector,
             };
-            
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
-        
+
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var (requestPower, outputSlot) = GetData(blockMasterElement);
@@ -49,16 +54,20 @@ namespace Game.Block.Factory.BlockTemplate
             
             var minerProcessorComponent = new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower.AsPrimitive(), minerParam.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, minerProcessorComponent);
+            // 採掘機はConsumer役をワイヤー端点に渡す
+            // Miner passes the consumer role to the wire endpoint
+            var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, componentStates);
             var components = new List<IBlockComponent>
             {
                 minerProcessorComponent,
                 electricMinerComponent,
                 inputConnectorComponent,
+                wireConnector,
             };
-            
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
-        
+
         private (ElectricPower requestPower, int outputSlot) GetData(BlockMasterElement blockMasterElement)
         {
             var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
