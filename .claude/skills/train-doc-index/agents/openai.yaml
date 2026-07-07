@@ -1,3 +1,0 @@
-interface:
-  display_name: "Train Doc Router"
-  short_description: "Route train tasks to the right train workflow"

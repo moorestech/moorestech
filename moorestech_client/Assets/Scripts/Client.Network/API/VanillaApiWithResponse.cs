@@ -224,7 +224,9 @@ namespace Client.Network.API
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
-                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids);
+                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids,
+                response.LockedBlockGuids, response.UnlockedBlockGuids,
+                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
@@ -337,6 +339,19 @@ namespace Client.Network.API
         {
             var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerConnectionSetting.PlayerId, fromNodeId, fromGuid, pierInventorySlot, pierPlaceInfo, railTypeGuid);
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
+        }
+
+        public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> ExtendElectricWire(
+            Vector3Int fromPos,
+            int poleInventorySlot,
+            PlaceInfo polePlaceInfo,
+            ItemId wireItemId,
+            CancellationToken ct)
+        {
+            // 起点あり延長として電柱設置＋接続要求を送り、設置電柱情報を受け取る
+            // Send a with-origin extend request (place pole + wire) and receive the placed pole info
+            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleInventorySlot, polePlaceInfo, wireItemId);
+            return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
         }
 
         // 起点ポールから新規ポールを自動設置しつつチェーン接続する

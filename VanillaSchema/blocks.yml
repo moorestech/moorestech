@@ -164,6 +164,36 @@ properties:
         schemaId: items
         foreignKeyIdPath: /data/[*]/itemGuid
         displayElementPath: /data/[*]/name
+    - key: requiredItems
+      type: array
+      optional: true
+      overrideCodeGeneratePropertyName: ConstructionRequiredItemElement
+      items:
+        type: object
+        properties:
+        - key: itemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: count
+          type: integer
+          default: 1
+    - key: imagePath
+      type: string
+      optional: true
+    - key: category
+      type: string
+      optional: true
+    - key: sortPriority
+      type: integer
+      optional: true
+      default: 0
+    - key: initialUnlocked
+      type: boolean
+      optional: true
+      default: false
     - key: blockSize
       type: vector3Int
       default:
@@ -243,6 +273,12 @@ properties:
           default: 0
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
       - when: ElectricPole
         type: object
         properties:
@@ -258,6 +294,12 @@ properties:
         - key: machineConnectionHeightRange
           type: integer
           default: 5
+        - key: maxWireConnectionCount
+          type: integer
+          default: 8
+        - key: maxWireLength
+          type: number
+          default: 12
       - when: ElectricGenerator
         type: object
         implementationInterface:
@@ -319,6 +361,12 @@ properties:
               default: 10
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
       - when: ElectricMiner
         type: object
         implementationInterface:
@@ -335,6 +383,12 @@ properties:
           ref: mineSettings
         - key: inventoryConnectors
           ref: inventoryConnects
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
       - when: Gear
         type: object
         implementationInterface:
@@ -801,6 +855,12 @@ properties:
           default: 5
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
       - when: GearToElectricGenerator
         type: object
         implementationInterface:
@@ -816,6 +876,12 @@ properties:
           default: 100
         - key: gear
           ref: gear
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
       - when: ElectricToGearGenerator
         type: object
         implementationInterface:
@@ -840,6 +906,12 @@ properties:
               default: 0
         - key: gear
           ref: gear
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: maxWireLength
+          type: number
+          default: 8
       - when: FilterSplitter
         type: object
         implementationInterface:
@@ -850,36 +922,6 @@ properties:
           default: 10
         - key: inventoryConnectors
           ref: inventoryConnects
-
-    - key: overrideVerticalBlock
-      type: object
-      optional: true
-      properties:
-      - key: upBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-      - key: horizontalBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-      - key: downBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-    - key: enableConveyorPlacement
-      type: boolean
-      default: false
-      optional: true
 
 - key: gearChainItems
   type: array
@@ -916,3 +958,18 @@ properties:
             schemaId: blocks
             foreignKeyIdPath: /data/[*]/blockGuid
             displayElementPath: /data/[*]/name
+
+- key: electricWireItems
+  type: array
+  items:
+    type: object
+    properties:
+    - key: itemGuid
+      type: uuid
+      foreignKey:
+        schemaId: items
+        foreignKeyIdPath: /data/[*]/itemGuid
+        displayElementPath: /data/[*]/name
+    - key: consumptionPerLength
+      type: number
+      default: 1

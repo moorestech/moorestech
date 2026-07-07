@@ -1,5 +1,7 @@
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
@@ -7,6 +9,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Core.Master;
+using Game.Block.Interface.Extension;
 using Mooresmaster.Model.PlaceSystemModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -15,26 +18,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public readonly EmptyPlaceSystem EmptyPlaceSystem;
         private readonly CommonBlockPlaceSystem _commonBlockPlaceSystem;
+        private readonly BeltConveyorPlaceSystem _beltConveyorPlaceSystem;
         private readonly TrainRailPlaceSystem _trainRailPlaceSystem;
         private readonly TrainCarPlaceSystem _trainCarPlaceSystem;
         private readonly TrainRailConnectSystem _trainRailConnectSystem;
         private readonly GearChainPoleConnectSystem _gearChainPoleConnectSystem;
-        
+        private readonly ElectricWireConnectSystem _electricWireConnectSystem;
+
         public PlaceSystemSelector(
             CommonBlockPlaceSystem commonBlockPlaceSystem,
+            BeltConveyorPlaceSystem beltConveyorPlaceSystem,
             TrainCarPlaceSystem trainCarPlaceSystem,
             TrainRailPlaceSystem trainRailPlaceSystem,
             TrainRailConnectSystem trainRailConnectSystem,
-            GearChainPoleConnectSystem gearChainPoleConnectSystem)
+            GearChainPoleConnectSystem gearChainPoleConnectSystem,
+            ElectricWireConnectSystem electricWireConnectSystem)
         {
             EmptyPlaceSystem = new EmptyPlaceSystem();
             _commonBlockPlaceSystem = commonBlockPlaceSystem;
+            _beltConveyorPlaceSystem = beltConveyorPlaceSystem;
             _trainCarPlaceSystem = trainCarPlaceSystem;
             _trainRailPlaceSystem = trainRailPlaceSystem;
             _trainRailConnectSystem = trainRailConnectSystem;
             _gearChainPoleConnectSystem = gearChainPoleConnectSystem;
+            _electricWireConnectSystem = electricWireConnectSystem;
         }
-        
+
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
         {
             // マスターデータからPlaceSystemを検索
@@ -50,10 +59,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     PlaceSystemMasterElement.PlaceModeConst.TrainCar => _trainCarPlaceSystem,
                     PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
                     PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
+                    PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect => _electricWireConnectSystem,
+                    PlaceSystemMasterElement.PlaceModeConst.BeltConveyor => _beltConveyorPlaceSystem,
                     _ => throw new System.Exception($"Unsupported PlaceMode: {placeSystemElement.PlaceMode}"),
                 };
             }
-            
+
             // 歯車チェーンポールのブロックアイテムは専用の接続システムで設置する
             // Gear chain pole block items are placed via the dedicated connection system
             if (GearChainPoleItemFinder.TryGetPoleBlockMaster(context.HoldingItemId, out _))
@@ -61,13 +72,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 return _gearChainPoleConnectSystem;
             }
 
-            // ブロックアイテムの場合は共通ブロック設置システムを返す
-            // For block items, return common block place system
-            if (MasterHolder.BlockMaster.IsBlock(context.HoldingItemId))
+            // ビルドメニュー選択がベルトファミリーなら専用設置システムを使う
+            // Route belt-family build menu selections to the dedicated place system
+            if (context.SelectedBlockId.HasValue && BeltConveyorPlaceFamilyUtil.TryGetFamily(context.SelectedBlockId.Value, out _))
+            {
+                return _beltConveyorPlaceSystem;
+            }
+
+            // ビルドメニューで選択中なら通常ブロック設置システムを使う
+            // Use the common placement system while a build-menu selection exists
+            if (context.SelectedBlockId.HasValue)
             {
                 return _commonBlockPlaceSystem;
             }
-            
+
             return EmptyPlaceSystem;
             
             #region Internal

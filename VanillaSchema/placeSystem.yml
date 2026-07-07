@@ -19,6 +19,8 @@ properties:
       - TrainRailConnect
       - TrainCar
       - GearChainPoleConnect
+      - ElectricWireConnect
+      - BeltConveyor
     - key: priority
       type: integer
       autoIncrement:
@@ -33,4 +35,50 @@ properties:
           schemaId: items
           foreignKeyIdPath: /data/[*]/itemGuid
           displayElementPath: /data/[*]/name
+    - key: placeParam
+      switch: ./placeMode
+      cases:
+      - when: TrainRail
+        type: object
+        properties: []
+      - when: TrainRailConnect
+        type: object
+        properties: []
+      - when: TrainCar
+        type: object
+        properties: []
+      - when: GearChainPoleConnect
+        type: object
+        properties: []
+      - when: ElectricWireConnect
+        type: object
+        properties: []
+      - when: BeltConveyor
+        type: object
+        properties:
+        - key: upBlockGuid
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
+        - key: downBlockGuid
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
+        - key: straightBlocks
+          type: array
+          items:
+            type: object
+            properties:
+            - key: length
+              type: integer
+            - key: blockGuid
+              type: uuid
+              foreignKey:
+                schemaId: blocks
+                foreignKeyIdPath: /data/[*]/blockGuid
+                displayElementPath: /data/[*]/name
 

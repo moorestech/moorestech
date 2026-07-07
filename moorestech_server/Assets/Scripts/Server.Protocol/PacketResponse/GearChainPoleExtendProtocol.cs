@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
             // Resolve block and parameter from the pole item
             var poleItemStack = inventory.GetItem(request.PoleInventorySlot);
             if (!MasterHolder.BlockMaster.IsBlock(poleItemStack.Id)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NoPoleItemError);
-            var blockId = MasterHolder.BlockMaster.GetBlockId(poleItemStack.Id).GetVerticalOverrideBlockId(request.PolePlaceInfo.VerticalDirection);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(poleItemStack.Id);
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             if (blockMaster.BlockParam is not GearChainPoleBlockParam poleParam) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NoPoleItemError);
 
@@ -96,7 +96,7 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public bool HasFromPole { get; set; }
             [Key(3)] public Vector3IntMessagePack FromPolePos { get; set; }
-            [Key(4)] public PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack PolePlaceInfo { get; set; }
+            [Key(4)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public int PoleInventorySlot { get; set; }
             [Key(7)] public ItemId ChainItemId { get; set; }
@@ -115,7 +115,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     HasFromPole = true,
                     FromPolePos = new Vector3IntMessagePack(fromPolePos),
-                    PolePlaceInfo = new PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack(polePlaceInfo),
+                    PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleInventorySlot = poleInventorySlot,
                     ChainItemId = chainItemId,
@@ -128,7 +128,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     HasFromPole = false,
                     FromPolePos = new Vector3IntMessagePack(Vector3Int.zero),
-                    PolePlaceInfo = new PlaceBlockFromHotBarProtocol.PlaceInfoMessagePack(polePlaceInfo),
+                    PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleInventorySlot = poleInventorySlot,
                     ChainItemId = ItemMaster.EmptyItemId,

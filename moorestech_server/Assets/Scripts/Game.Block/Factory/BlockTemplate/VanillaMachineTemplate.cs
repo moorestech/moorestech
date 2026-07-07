@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks;
+using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -39,6 +40,9 @@ namespace Game.Block.Factory.BlockTemplate
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
+            // 機械はConsumer役をワイヤー端点に渡す
+            // Machine passes the consumer role to the wire endpoint
+            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null, null, null);
 
             var components = new List<IBlockComponent>
             {
@@ -48,8 +52,9 @@ namespace Game.Block.Factory.BlockTemplate
                 processor,
                 machineComponent,
                 inputConnectorComponent,
+                wireConnector,
             };
-            
+
             // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
             if (machineParam.FluidInventoryConnectors != null && (machineParam.InputTankCount > 0 || machineParam.OutputTankCount > 0))
             {
@@ -59,14 +64,14 @@ namespace Game.Block.Factory.BlockTemplate
                     output,
                     fluidConnector
                 );
-                
+
                 components.Add(fluidConnector);
                 components.Add(fluidInventory);
             }
-            
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
-        
+
         public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var machineParam = blockMasterElement.BlockParam as ElectricMachineBlockParam;
@@ -81,6 +86,9 @@ namespace Game.Block.Factory.BlockTemplate
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
+            // 機械はConsumer役をワイヤー端点に渡す
+            // Machine passes the consumer role to the wire endpoint
+            var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, null, null, componentStates);
 
             var components = new List<IBlockComponent>
             {
@@ -90,8 +98,9 @@ namespace Game.Block.Factory.BlockTemplate
                 processor,
                 machineComponent,
                 inputConnectorComponent,
+                wireConnector,
             };
-            
+
             // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
             if (machineParam.FluidInventoryConnectors != null && (machineParam.InputTankCount > 0 || machineParam.OutputTankCount > 0))
             {
@@ -101,13 +110,13 @@ namespace Game.Block.Factory.BlockTemplate
                     output,
                     fluidConnector
                 );
-                
+
                 components.Add(fluidConnector);
                 components.Add(fluidInventory);
             }
-            
+
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
-        
+
     }
 }

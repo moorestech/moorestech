@@ -49,7 +49,13 @@ namespace Client.Network.API
             var request = new PlaceBlockFromHotBarProtocol.SendPlaceHotBarBlockProtocolMessagePack(_playerId, hotBarSlot, placePositions);
             _packetSender.Send(request);
         }
-        
+
+        public void PlaceBlock(List<PlaceInfo> placePositions)
+        {
+            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(_playerId, placePositions);
+            _packetSender.Send(request);
+        }
+
         public void SendPlayerPosition(Vector3 pos)
         {
             var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(_playerId, pos);
@@ -167,5 +173,24 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
+        /// <summary>
+        /// 電気系ブロック間に電線を接続する
+        /// Connect an electric wire between electric blocks
+        /// </summary>
+        public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, ItemId wireItemId)
+        {
+            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, wireItemId);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// 電気系ブロック間の電線を切断する
+        /// Disconnect an electric wire between electric blocks
+        /// </summary>
+        public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
+        {
+            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
+            _packetSender.Send(request);
+        }
     }
 }
