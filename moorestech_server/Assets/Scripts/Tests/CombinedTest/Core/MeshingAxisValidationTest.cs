@@ -12,6 +12,7 @@ namespace Tests.CombinedTest.Core
     {
         [TestCase(0, 0, 0)]
         [TestCase(1, 1, 0)]
+        [TestCase(0, 0, 2)]
         // 不正な噛み合い軸はBlockMasterバリデーションで検出される
         // Invalid meshing axes are detected by BlockMaster validation
         public void InvalidMeshingAxisReturnsValidationErrorTest(int x, int y, int z)
