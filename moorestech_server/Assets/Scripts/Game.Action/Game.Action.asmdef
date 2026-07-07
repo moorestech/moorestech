@@ -6,6 +6,7 @@
     "Game.UnlockState",
     "Game.PlayerInventory.Interface",
     "Core.Item.Interface",
+    "Core.Item",
     "Core.Inventory",
     "Game.Context"
   ],

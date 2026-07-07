@@ -2,6 +2,7 @@
   "name": "Game.SaveLoad",
   "rootNamespace": "",
   "references": [
+    "Core.Item",
     "Game.Paths",
     "Game.Map.Interface",
     "Game.Entity.Interface",

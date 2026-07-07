@@ -140,6 +140,36 @@
       ]
     },
     {
+      "researchNodeGuid": "a5b6c7d8-0000-4000-8000-000000000001",
+      "researchNodeName": "Stack Upgrade Research",
+      "researchNodeDescription": "Unlocks stack level 2 for Test1",
+      "prevResearchNodeGuids": [],
+      "clearedActions": [
+        {
+          "gameActionType": "unlockItemStackLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "00000000-0000-0000-1234-000000000001"
+            ],
+            "level": 2
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          -200
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": []
+    },
+    {
       "researchNodeGuid": "aaaaaaaa-bbbb-cccc-dddd-000000000001",
       "researchNodeName": "Inventory Slot Upgrade Research",
       "researchNodeDescription": "unlock inventory slot level 1",

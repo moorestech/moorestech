@@ -1,3 +1,4 @@
+using Core.Item;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftTree;
@@ -25,6 +26,7 @@ namespace Game.SaveLoad.Json
         private readonly TrainSaveLoadService _trainSaveLoadService;
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
 
         public AssembleSaveJsonText(
@@ -38,6 +40,7 @@ namespace Game.SaveLoad.Json
             TrainSaveLoadService trainSaveLoadService,
             RailGraphSaveLoadService railGraphSaveLoadService,
             IPlayerRidingDatastore playerRidingDatastore,
+            ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
         {
             _inventoryDataStore = inventoryDataStore;
@@ -50,6 +53,7 @@ namespace Game.SaveLoad.Json
             _trainSaveLoadService = trainSaveLoadService;
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _playerRidingDatastore = playerRidingDatastore;
+            _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
         }
 
@@ -71,6 +75,7 @@ namespace Game.SaveLoad.Json
                 _trainSaveLoadService.GetSaveJsonObject(),
                 _railGraphSaveLoadService.GetSaveData(),
                 _playerRidingDatastore.GetSaveData(),
+                _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel()
             );
 

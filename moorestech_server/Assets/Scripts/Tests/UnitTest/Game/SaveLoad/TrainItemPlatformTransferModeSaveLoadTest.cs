@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.TrainRail;
@@ -39,7 +40,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNotNull(itemContainerComponent, "cargoContainerComponentの取得に失敗しました。");
 
             var cargoParam = (TrainItemPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             itemContainerComponent.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var entryNode = railComponents[0].FrontNode;

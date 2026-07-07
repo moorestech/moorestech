@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -13,15 +14,18 @@ namespace Game.Action
     {
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
 
         public GameActionExecutor(
             IGameUnlockStateDataController gameUnlockStateDataController,
             IPlayerInventoryDataStore playerInventoryDataStore,
+            IItemStackLevelUnlocker itemStackLevelUnlocker,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _playerInventoryDataStore = playerInventoryDataStore;
+            _itemStackLevelUnlocker = itemStackLevelUnlocker;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
         }
 
@@ -37,6 +41,7 @@ namespace Game.Action
                     case GameActionElement.GameActionTypeConst.unlockItemRecipeView:
                     case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
                     case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
+                    case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
                     case GameActionElement.GameActionTypeConst.unlockBlock:
                     case GameActionElement.GameActionTypeConst.unlockTrainCar:
                     case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
@@ -87,6 +92,10 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.giveItem:
                     GiveItem();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
+                    _itemStackLevelUnlocker.ApplyUnlockItemStackLevelAction(action);
                     break;
 
                 case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:

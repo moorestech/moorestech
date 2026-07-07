@@ -1,4 +1,5 @@
-﻿using Core.Master;
+﻿using Core.Item;
+using Core.Master;
 using Game.Context;
 using Game.Train.Diagram;
 using Game.Train.RailPositions;
@@ -112,7 +113,7 @@ namespace Tests.UnitTest.Game
                 "2種類の出発条件タイプが双方とも登録されていません。");
             Assert.IsFalse(entry.CanDepart(trainUnit), "条件競合時に列車が出発不可になっていません。");
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             scenario.ItemContainer.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             Assert.IsFalse(entry.CanDepart(trainUnit), "両条件が成立中にもかかわらず列車が出発可能になっています。");
