@@ -119,6 +119,13 @@ await p.ExitToGameScreen();
    回転が必要なラインはドラッグ設置（向き自動解決）で構成するか、Northで成立する配置を選ぶ。
 4. **足場の上面高さ**: 素のCubeは`GroundGameObject`が無く設置プレビューのレイキャスト対象にならない。
    また上面がy=32ちょうどでないと`Floor(hit.y)`がずれて1段下に埋まる。`SetupFlatGround`が両方を保証する。
+5. **サーバーポート11564は固定**: 他worktreeのPlayModeが占有していると起動が「Address already in use」で
+   無言死する（ready 300秒タイムアウト）。さらにPlayMode停止後もソケットがリークして残ることがあり、その場合は
+   当該Editorへ`UnityEditor.EditorUtility.RequestScriptReload()`を打つと解放される。preflight [5/5]が事前検出する。
+6. **HoldingItemId駆動の設置（歯車チェーンポール等）**: ビルドメニュー選択でなく「ホットバーの手持ちアイテム」で
+   place systemが切り替わる。`GiveItemToHotbar(slot,...)`→`SelectHotbar(slot)`で手持ちにし、UI stateは
+   ビルドメニュー経由でPlaceBlockに入れておく（例: `gear-chain-pole-via-ui.cs`。連続延長の起点は
+   `ExitToGameScreen()`でリセットでき、セグメントを分離できる）。
 
 ## 今後 / Next
 
