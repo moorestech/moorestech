@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
@@ -26,9 +25,6 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class RemoveTrainCarProtocolTest
     {
         private const int PlayerId = 1;
-        private const int HotBarSlot = 0;
-
-        private static int GetInventorySlot(PlayerInventoryData inventory) => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot, inventory.MainOpenableInventory.GetSlotSize());
 
         [Test]
         public void RemoveTrainCar_RefundsCarBlockAndContents_ToPlayerInventory()
@@ -37,10 +33,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Build the environment and place a single train car.
             var (environment, trainCar) = SetupAndPlaceTrain();
 
-            // 配置直後は列車アイテムが消費されている
-            // The train item is consumed right after placement.
+            // 配置直後は建設素材が消費されている
+            // The construction materials are consumed right after placement.
             var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            Assert.AreEqual(0, inventory.MainOpenableInventory.GetItem(GetInventorySlot(inventory)).Count, "配置で列車アイテムが消費されるべき / Train item should be consumed on placement");
+            Assert.AreEqual(0, TotalCount(inventory.MainOpenableInventory, ForUnitTestItemId.ItemId3), "配置で素材が消費されるべき / Materials should be consumed on placement");
+            Assert.AreEqual(0, TotalCount(inventory.MainOpenableInventory, ForUnitTestItemId.ItemId4), "配置で素材が消費されるべき / Materials should be consumed on placement");
 
             // 車両コンテナにアイテムを積み込む(アイテムコンテナを持つ場合のみ)
             // Load an item into the car container (only when the car has an item container).
@@ -58,16 +55,17 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive(), PlayerId));
             environment.PacketResponseCreator.GetPacketResponse(packet, new PacketResponseContext());
 
-            // 列車が削除され、車両ブロック本体がインベントリへ返却されている
-            // The train is removed and the car block item is refunded to the inventory.
+            // 列車が削除され、建設コスト全額(Test3x3 + Test4x2)がインベントリへ返却されている
+            // The train is removed and the full construction cost (Test3x3 + Test4x2) is refunded.
             Assert.AreEqual(0, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count, "削除後は列車が存在しないべき / No train should remain after removal");
-            Assert.IsTrue(InventoryContains(inventory.MainOpenableInventory, ForUnitTestItemId.TrainCarItem, 1), "車両ブロック本体が返却されるべき / Car block item should be refunded");
+            Assert.AreEqual(3, TotalCount(inventory.MainOpenableInventory, ForUnitTestItemId.ItemId3), "Test3が全額返却されるべき / Test3 should be fully refunded");
+            Assert.AreEqual(2, TotalCount(inventory.MainOpenableInventory, ForUnitTestItemId.ItemId4), "Test4が全額返却されるべき / Test4 should be fully refunded");
 
             // 積載アイテムも返却されている
             // Loaded items are refunded as well.
             if (hasItemContainer)
             {
-                Assert.IsTrue(InventoryContains(inventory.MainOpenableInventory, loadedItemId, 3), "車両内のアイテムが返却されるべき / Items inside the car should be refunded");
+                Assert.AreEqual(3, TotalCount(inventory.MainOpenableInventory, loadedItemId), "車両内のアイテムが返却されるべき / Items inside the car should be refunded");
             }
         }
 
@@ -96,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count, "満杯時は削除が中止され列車が残るべき / Train should remain when inventory is full");
         }
 
-        private static bool InventoryContains(IOpenableInventory inventory, ItemId itemId, int count)
+        private static int TotalCount(IOpenableInventory inventory, ItemId itemId)
         {
             var total = 0;
             for (var i = 0; i < inventory.GetSlotSize(); i++)
@@ -104,7 +102,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 var item = inventory.GetItem(i);
                 if (item.Id == itemId) total += item.Count;
             }
-            return count <= total;
+            return total;
         }
 
         private (TrainTestEnvironment Environment, TrainCar TrainCar) SetupAndPlaceTrain()
@@ -118,8 +116,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             rail1Component.FrontNode.ConnectNode(rail2Component.FrontNode);
             rail2Component.BackNode.ConnectNode(rail1Component.BackNode);
 
+            // 建設素材(Test3x3 + Test4x2)をインベントリへ投入する
+            // Put the construction materials (Test3x3 + Test4x2) into the inventory.
             var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            inventory.MainOpenableInventory.SetItem(GetInventorySlot(inventory), ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
+            inventory.MainOpenableInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId3, 3));
+            inventory.MainOpenableInventory.SetItem(1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId4, 2));
 
             // レール位置スナップショットを生成する
             // Create the rail position snapshot.
@@ -131,7 +132,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 配置プロトコルで列車を生成する
             // Create the train through the placement protocol.
-            var placePacket = MessagePackSerializer.Serialize(new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, HotBarSlot, PlayerId));
+            var placePacket = MessagePackSerializer.Serialize(new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarMasterElement.TrainCarGuid, PlayerId));
             environment.PacketResponseCreator.GetPacketResponse(placePacket, new PacketResponseContext());
 
             var trainCar = environment.GetITrainLookupDatastore().GetRegisteredTrains().Last().Cars[0];

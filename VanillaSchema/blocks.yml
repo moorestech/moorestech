@@ -164,6 +164,36 @@ properties:
         schemaId: items
         foreignKeyIdPath: /data/[*]/itemGuid
         displayElementPath: /data/[*]/name
+    - key: requiredItems
+      type: array
+      optional: true
+      overrideCodeGeneratePropertyName: ConstructionRequiredItemElement
+      items:
+        type: object
+        properties:
+        - key: itemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: count
+          type: integer
+          default: 1
+    - key: imagePath
+      type: string
+      optional: true
+    - key: category
+      type: string
+      optional: true
+    - key: sortPriority
+      type: integer
+      optional: true
+      default: 0
+    - key: initialUnlocked
+      type: boolean
+      optional: true
+      default: false
     - key: blockSize
       type: vector3Int
       default:
@@ -901,36 +931,6 @@ properties:
           default: 10
         - key: inventoryConnectors
           ref: inventoryConnects
-
-    - key: overrideVerticalBlock
-      type: object
-      optional: true
-      properties:
-      - key: upBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-      - key: horizontalBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-      - key: downBlockGuid
-        type: uuid
-        foreignKey:
-          schemaId: blocks
-          foreignKeyIdPath: /data/[*]/blockGuid
-          displayElementPath: /data/[*]/name
-        optional: true
-    - key: enableConveyorPlacement
-      type: boolean
-      default: false
-      optional: true
 
 - key: gearChainItems
   type: array

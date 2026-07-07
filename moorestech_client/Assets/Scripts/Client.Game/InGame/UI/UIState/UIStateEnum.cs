@@ -13,5 +13,6 @@
         ResearchTree,
         Debug,
         TrainHUDScreen,
+        BuildMenu,
     }
 }

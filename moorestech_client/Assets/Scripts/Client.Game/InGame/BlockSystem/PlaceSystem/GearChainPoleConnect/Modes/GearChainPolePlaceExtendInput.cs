@@ -29,7 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public Vector3 SourcePoleCenter;
         public GearChainPoleExtendPreviewData ExtendPreview;
 
-        public int PoleInventorySlot;
+        public BlockId PoleBlockId;
         public ItemId OwnedChainItemId;
         public int MaxConnectionCount;
     }
