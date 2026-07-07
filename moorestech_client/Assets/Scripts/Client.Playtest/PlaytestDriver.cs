@@ -48,6 +48,15 @@ namespace Client.Playtest
         // ---- UI経路操作 / UI-route operations ----
         public UIStateEnum CurrentUiState => PlaytestUiOps.CurrentUiState();
         public void UnlockBlock(string blockName) => PlaytestBlockOps.UnlockBlockServerSide(blockName);
+        public async UniTask GiveConstructionCost(string blockName, int blockCount) => await PlaytestItemOps.GiveConstructionCost(blockName, blockCount, 15f);
+
+        public async UniTask PrepareBlockForUiPlacement(string blockName, int blockCount)
+        {
+            // UI設置の前提を1行で整える: アンロック＋建設コスト付与（クライアント在庫反映待ち込み）
+            // One-liner setup for UI placement: unlock plus construction-cost grant (waits for client inventory sync)
+            PlaytestBlockOps.UnlockBlockServerSide(blockName);
+            await PlaytestItemOps.GiveConstructionCost(blockName, blockCount, 15f);
+        }
         public async UniTask PressKey(Key key) => await SemanticInput.TapKey(key);
         // slotは0始まり（HotBarView.SelectIndexと同じ）。0→キー1、8→キー9
         // slot is zero-based (same as HotBarView.SelectIndex): 0 -> key "1", 8 -> key "9"

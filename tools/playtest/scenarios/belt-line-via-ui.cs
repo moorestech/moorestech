@@ -28,13 +28,10 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
     // Warp near the line center so the top-down camera covers the whole build area
     p.WarpPlayer(new Vector3(4f, 33.5f, 5f));
 
-    // ブロックのアンロックと建設コストの付与（give経路・クライアント同期を1秒待つ）
-    // Unlock blocks and grant construction costs (give path; wait 1s for client-side sync)
-    p.UnlockBlock("ベルトコンベア");
-    p.UnlockBlock("木のコンベアチェスト");
-    await GiveConstructionCost("ベルトコンベア", 15);
-    await GiveConstructionCost("木のコンベアチェスト", 2);
-    await p.WaitSeconds(1f);
+    // UI設置の前提を整える: アンロック＋建設コスト付与（クライアント在庫反映待ち込み）
+    // Set up UI placement prerequisites: unlock plus construction cost (waits for client inventory sync)
+    await p.PrepareBlockForUiPlacement("ベルトコンベア", 15);
+    await p.PrepareBlockForUiPlacement("木のコンベアチェスト", 2);
 
     // UI経路のみでS字ラインを構築: 北5本→東3本→北1本→コンベアチェスト
     // Build the S-line via UI only: 5 north belts, 3 east belts, 1 north belt, then the conveyor chest
@@ -85,16 +82,4 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
     await p.Until(() => countInChest() >= 10, 120f, "全10個がチェストに到着");
     p.Assert(countInChest() == 10, "チェスト内の鉄インゴットがちょうど10個（紛失・重複なし）");
     await p.Screenshot("04-all-arrived");
-
-    // ブロックマスタのRequiredItemsを倍率付きでインベントリへ付与する
-    // Grant the block master's RequiredItems into the inventory with a multiplier
-    async UniTask GiveConstructionCost(string blockName, int multiplier)
-    {
-        var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName));
-        foreach (var required in blockMaster.RequiredItems)
-        {
-            var itemName = MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name;
-            await p.GiveItem(itemName, required.Count * multiplier);
-        }
-    }
 });

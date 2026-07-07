@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.Inventory.Main;
 using Core.Inventory;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -7,6 +8,7 @@ using Game.Context;
 using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Playtest.Operations
 {
@@ -52,6 +54,52 @@ namespace Client.Playtest.Operations
                 if (Time.realtimeSinceStartup - startTime > timeoutSeconds)
                 {
                     throw new TimeoutException($"give '{itemName}' x{count} not reflected within {timeoutSeconds}s");
+                }
+                await UniTask.Yield();
+            }
+        }
+
+        public static async UniTask GiveConstructionCost(string blockName, int blockCount, float timeoutSeconds)
+        {
+            // ブロックマスタのRequiredItemsをブロック数分付与する（UI設置はインベントリからコストを消費する）
+            // Grant the block master's RequiredItems for the given block count (UI placement consumes inventory cost)
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName));
+            if (blockMaster.RequiredItems == null || blockMaster.RequiredItems.Length == 0) return;
+
+            foreach (var required in blockMaster.RequiredItems)
+            {
+                var itemId = MasterHolder.ItemMaster.GetItemId(required.ItemGuid);
+                var itemName = MasterHolder.ItemMaster.GetItemMaster(itemId).Name;
+                var giveCount = required.Count * blockCount;
+                var clientCountBefore = CountItemClientSide(itemId);
+
+                await GiveItemViaCommand(itemName, giveCount, timeoutSeconds);
+
+                // 設置コスト判定はクライアント側インベントリを見るため、イベント同期の反映まで待つ
+                // Placement cost checks read the client-side inventory, so wait until the event sync lands
+                await WaitClientItemCount(itemId, clientCountBefore + giveCount, timeoutSeconds);
+            }
+        }
+
+        public static int CountItemClientSide(ItemId itemId)
+        {
+            var localInventory = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
+            var total = 0;
+            foreach (var stack in localInventory)
+            {
+                if (stack.Id == itemId) total += stack.Count;
+            }
+            return total;
+        }
+
+        public static async UniTask WaitClientItemCount(ItemId itemId, int expectedMinimum, float timeoutSeconds)
+        {
+            var startTime = Time.realtimeSinceStartup;
+            while (CountItemClientSide(itemId) < expectedMinimum)
+            {
+                if (Time.realtimeSinceStartup - startTime > timeoutSeconds)
+                {
+                    throw new TimeoutException($"client inventory of item {itemId} did not reach {expectedMinimum} within {timeoutSeconds}s");
                 }
                 await UniTask.Yield();
             }
