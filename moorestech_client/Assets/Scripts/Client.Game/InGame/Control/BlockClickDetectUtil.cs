@@ -1,7 +1,7 @@
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Control.BuildView;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Client.Game.InGame.Control
 {
@@ -42,11 +42,9 @@ namespace Client.Game.InGame.Control
             var camera = Camera.main;
             if (camera == null) return false;
             
-            // TODO InputSystemのリファクタ対象
-            // InputSystemのマウス座標を使う（実機と入力注入の双方を同一経路で扱う）
-            // Use the Input System mouse position so real and injected input share one path
-            var mousePosition = Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : UnityEngine.Input.mousePosition;
-            var ray = camera.ScreenPointToRay(mousePosition);
+            // 照準座標はAimPointProviderで視点モードに応じて一元解決する
+            // The aim point is resolved centrally by AimPointProvider per view mode
+            var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
             if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
             component = hit.collider.gameObject.GetComponentInChildren<T>();
