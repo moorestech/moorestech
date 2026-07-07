@@ -65,7 +65,11 @@ namespace Client.Playtest
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName);
         public async UniTask ExitToGameScreen() => await PlaytestUiOps.ExitToGameScreen();
         public async UniTask AimAt(Vector3 worldPosition) => await PlaytestUiOps.AimAtWorldPosition(worldPosition);
+        // 指定originに設置されるよう接地面上のフットプリント中心へ照準する（向きはNorth前提）
+        // Aim at the footprint center on the ground so placement lands on the given origin (assumes North)
+        public async UniTask AimAtPlaceOrigin(string blockName, Vector3Int origin) => await PlaytestUiOps.AimAtWorldPosition(PlaytestUiOps.PlaceAimPoint(blockName, origin, BlockDirection.North));
         public async UniTask ClickPlace() => await PlaytestUiOps.ClickPlace();
+        public async UniTask GiveItemToHotbar(int hotbarSlot, string itemName, int count) => await PlaytestItemOps.GiveItemToHotbar(hotbarSlot, itemName, count, 15f);
 
         public async UniTask PlaceBlockViaUi(string blockName, Vector3Int origin, BlockDirection direction)
         {

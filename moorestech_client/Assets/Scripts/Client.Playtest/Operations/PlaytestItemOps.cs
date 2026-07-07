@@ -59,6 +59,22 @@ namespace Client.Playtest.Operations
             }
         }
 
+        public static async UniTask GiveItemToHotbar(int hotbarSlot, string itemName, int count, float timeoutSeconds)
+        {
+            // HoldingItemId駆動の設置システム用に、ホットバーの特定スロットへ直接セットする
+            // Set directly into a specific hotbar slot for HoldingItemId-driven place systems
+            var itemId = ResolveItemId(itemName);
+            var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
+            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(hotbarSlot);
+            var clientCountBefore = CountItemClientSide(itemId);
+
+            GetMainInventory(playerId).SetItem(inventorySlot, ServerContext.ItemStackFactory.Create(itemId, count));
+
+            // HotBarView.CurrentItemはクライアント側インベントリを読むため、反映を待つ
+            // HotBarView.CurrentItem reads the client-side inventory, so wait for the sync
+            await WaitClientItemCount(itemId, clientCountBefore + count, timeoutSeconds);
+        }
+
         public static async UniTask GiveConstructionCost(string blockName, int blockCount, float timeoutSeconds)
         {
             // ブロックマスタのRequiredItemsをブロック数分付与する（UI設置はインベントリからコストを消費する）
