@@ -51,11 +51,11 @@ namespace Client.Game.InGame.UI.UIState.State
             // While a text field is edited, suppress key transitions and view input so BP naming (B/Tab/V etc.) can't trigger them
             if (!IsTextInputFocused())
             {
+                // TabはOpenInventoryと同キーのため、配置モード中はビルドメニュー再表示を先に判定する
+                // Tab shares the OpenInventory binding, so the build-menu reopen must be checked first while placing
+                if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
                 if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
                 if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
-                // Tabでビルドメニューを開き直す
-                // Reopen the build menu with Tab
-                if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
                 //TODO InputSystemのリファクタ対象
                 if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
 
