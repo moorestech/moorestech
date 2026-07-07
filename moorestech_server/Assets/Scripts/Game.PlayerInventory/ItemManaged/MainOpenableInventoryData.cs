@@ -18,16 +18,21 @@ namespace Game.PlayerInventory.ItemManaged
         private readonly OpenableInventoryItemDataStoreService _openableInventoryService;
         private readonly int _playerId;
         
-        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent)
+        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, int slotCount)
         {
             _playerId = playerId;
             _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
-            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, PlayerInventoryConst.MainInventorySize);
+            _openableInventoryService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotCount);
         }
-        
-        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, List<IItemStack> itemStacks) : this(playerId, mainInventoryUpdateEvent)
+
+        public MainOpenableInventoryData(int playerId, MainInventoryUpdateEvent mainInventoryUpdateEvent, int slotCount, List<IItemStack> itemStacks) : this(playerId, mainInventoryUpdateEvent, slotCount)
         {
             for (var i = 0; i < itemStacks.Count; i++) _openableInventoryService.SetItemWithoutEvent(i, itemStacks[i]);
+        }
+
+        public void ExpandSlots(int newSlotCount)
+        {
+            _openableInventoryService.ExpandSlots(newSlotCount);
         }
         
         public IItemStack GetItem(int slot)
@@ -60,12 +65,12 @@ namespace Game.PlayerInventory.ItemManaged
         /// </summary>
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return _openableInventoryService.InsertItemWithPrioritySlot(itemStack, PlayerInventoryConst.HotBarSlots);
+            return _openableInventoryService.InsertItemWithPrioritySlot(itemStack, PlayerInventoryConst.GetHotBarSlots(GetSlotSize()));
         }
-        
+
         public IItemStack InsertItem(ItemId itemId, int count)
         {
-            return _openableInventoryService.InsertItemWithPrioritySlot(itemId, count, PlayerInventoryConst.HotBarSlots);
+            return _openableInventoryService.InsertItemWithPrioritySlot(itemId, count, PlayerInventoryConst.GetHotBarSlots(GetSlotSize()));
         }
         
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)

@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const int PlayerId = 1;
         private const int HotBarSlot = 0;
 
-        private static int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+        private static int GetInventorySlot(PlayerInventoryData inventory) => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot, inventory.MainOpenableInventory.GetSlotSize());
 
         [Test]
         public void RemoveTrainCar_RefundsCarBlockAndContents_ToPlayerInventory()
@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 配置直後は列車アイテムが消費されている
             // The train item is consumed right after placement.
             var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            Assert.AreEqual(0, inventory.MainOpenableInventory.GetItem(InventorySlot).Count, "配置で列車アイテムが消費されるべき / Train item should be consumed on placement");
+            Assert.AreEqual(0, inventory.MainOpenableInventory.GetItem(GetInventorySlot(inventory)).Count, "配置で列車アイテムが消費されるべき / Train item should be consumed on placement");
 
             // 車両コンテナにアイテムを積み込む(アイテムコンテナを持つ場合のみ)
             // Load an item into the car container (only when the car has an item container).
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             rail2Component.BackNode.ConnectNode(rail1Component.BackNode);
 
             var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-            inventory.MainOpenableInventory.SetItem(InventorySlot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
+            inventory.MainOpenableInventory.SetItem(GetInventorySlot(inventory), ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
 
             // レール位置スナップショットを生成する
             // Create the rail position snapshot.

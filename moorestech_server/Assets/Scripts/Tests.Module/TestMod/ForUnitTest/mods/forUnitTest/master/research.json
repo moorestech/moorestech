@@ -168,6 +168,39 @@
         "IconItem": ""
       },
       "consumeItems": []
+    },
+    {
+      "researchNodeGuid": "aaaaaaaa-bbbb-cccc-dddd-000000000001",
+      "researchNodeName": "Inventory Slot Upgrade Research",
+      "researchNodeDescription": "unlock inventory slot level 1",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockPlayerInventorySlotLevel",
+          "gameActionParam": {
+            "level": 1
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "itemCount": 1
+        }
+      ],
+      "prevResearchNodeGuids": []
     }
   ]
 }

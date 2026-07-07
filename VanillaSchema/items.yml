@@ -132,3 +132,12 @@ properties:
       type: array
       items:
         type: integer
+- key: playerInventorySlotLevels
+  type: array
+  optional: true
+  overrideCodeGeneratePropertyName: PlayerInventorySlotLevelElement
+  items:
+    type: object
+    properties:
+    - key: slotCount
+      type: integer

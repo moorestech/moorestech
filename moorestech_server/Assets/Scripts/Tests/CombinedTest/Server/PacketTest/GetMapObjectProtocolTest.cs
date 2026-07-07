@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var mapObject = ServerContext.MapObjectDatastore.MapObjects[0];
 
             var playerInventory = playerInventoryDataStore.GetInventoryData(PlayerId).MainOpenableInventory;
-            var itemSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0);
+            var itemSlot = PlayerInventoryConst.HotBarSlotToInventorySlot(0, playerInventory.GetSlotSize());
 
             // 期待するアイテムIDをマスターデータから取得
             // Get expected item ID from master data

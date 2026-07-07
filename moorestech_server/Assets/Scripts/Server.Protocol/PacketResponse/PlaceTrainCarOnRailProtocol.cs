@@ -56,7 +56,8 @@ namespace Server.Protocol.PacketResponse
                 // Resolve and validate inventory item
                 var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
                 var mainInventory = inventoryData.MainOpenableInventory;
-                var item = mainInventory.GetItem(data.InventorySlot);
+                var inventorySlot = inventoryData.GetHotBarSlotIndex(data.HotBarSlot);
+                var item = mainInventory.GetItem(inventorySlot);
                 if (item == null || item.Count <= 0)
                 {
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.ItemNotFound);
@@ -71,7 +72,7 @@ namespace Server.Protocol.PacketResponse
                 
                 // アイテムを消費する
                 // Consume the train item from inventory
-                mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
+                mainInventory.SetItem(inventorySlot, item.Id, item.Count - 1);
 
                 // 新規編成の単機スナップショットを通知する
                 // Broadcast a per-unit snapshot for the newly created train.
@@ -203,7 +204,6 @@ namespace Server.Protocol.PacketResponse
         {
             [Key(2)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
             [Key(3)] public int HotBarSlot { get; set; }
-            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
             [Key(4)] public int PlayerId { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

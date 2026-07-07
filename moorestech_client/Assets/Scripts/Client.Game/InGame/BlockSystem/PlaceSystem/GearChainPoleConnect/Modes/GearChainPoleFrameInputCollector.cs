@@ -47,7 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 SourcePole = sourcePole,
                 Clicked = IsScreenClicked(),
                 IsAwaitingResponse = isAwaitingResponse,
-                PoleInventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(context.CurrentSelectHotbarSlotIndex),
+                PoleInventorySlot = _playerInventory.GetHotBarInventorySlot(context.CurrentSelectHotbarSlotIndex),
                 OwnedChainItemId = GearChainPoleItemFinder.FindOwnedChainItemId(_playerInventory),
                 MaxConnectionCount = poleParam.MaxConnectionCount,
             };
