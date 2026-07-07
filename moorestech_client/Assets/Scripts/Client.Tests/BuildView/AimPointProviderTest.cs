@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Client.Tests.BuildView
 {
     /// <summary>
-    ///     AimPointProviderのモード別照準座標を検証するテスト
+    ///     モード別照準座標を検証するテスト
     ///     Tests verifying AimPointProvider aim points per view mode
     /// </summary>
     public class AimPointProviderTest

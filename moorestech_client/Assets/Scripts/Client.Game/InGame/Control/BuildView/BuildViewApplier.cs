@@ -5,7 +5,7 @@ using Client.Input;
 namespace Client.Game.InGame.Control.BuildView
 {
     /// <summary>
-    ///     視点モードの副作用を実機（カメラ・カーソル・クロスヘア・自機）へ適用する
+    ///     視点モードの副作用を実機へ適用する
     ///     Applies view-mode side effects to the camera, cursor, crosshair, and player model
     /// </summary>
     public class BuildViewApplier : IBuildViewApplier
@@ -34,7 +34,7 @@ namespace Client.Game.InGame.Control.BuildView
 
         public void SetFirstPersonCamera(bool enabled)
         {
-            // カメラFPS化・常時視点回転・自機非表示を一括で切り替える
+            // FPS化・視点回転・自機非表示を一括切替
             // Toggle FPS camera, always-on look rotation, and player model visibility together
             _inGameCameraController.SetFirstPersonMode(enabled);
             _inGameCameraController.SetControllable(enabled);

@@ -25,7 +25,7 @@ namespace Client.Playtest.Operations
             var startTime = Time.realtimeSinceStartup;
             while (!File.Exists(path))
             {
-                if (Time.realtimeSinceStartup - startTime > 10f)
+                if (10f < Time.realtimeSinceStartup - startTime)
                 {
                     throw new TimeoutException($"screenshot '{name}' was not written within 10s");
                 }

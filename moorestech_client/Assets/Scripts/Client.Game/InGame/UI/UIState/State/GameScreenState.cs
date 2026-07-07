@@ -43,7 +43,7 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
             
-            //TODO InputSystemのリファクタ対象
+            //TODO InputSystem対応
             if (HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.BuildMenu);
             if (HybridInput.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.ChallengeList);
             if (HybridInput.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);

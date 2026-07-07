@@ -89,7 +89,7 @@ return PlaytestRunner.Run("fps-build-mode-via-ui", options, async p =>
     // 6: Exit build mode with G; third-person camera restored, player visible, crosshair hidden
     await p.PressKey(Key.G);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-    await p.Until(() => camera.CameraDistance > 0.5f, 5f, "三人称カメラ距離へ復帰");
+    await p.Until(() => 0.5f < camera.CameraDistance, 5f, "三人称カメラ距離へ復帰");
     p.Assert(playerRenderers.All(r => r.enabled), "自機Rendererが復帰");
     p.Assert(!crosshairDot.activeInHierarchy, "クロスヘアが非表示");
     await p.Screenshot("06-exit-restored");

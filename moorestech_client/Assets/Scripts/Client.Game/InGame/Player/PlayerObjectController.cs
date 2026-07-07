@@ -107,14 +107,11 @@ namespace Client.Game.InGame.Player
             controller.SetControllable(enable);
         }
 
-        private Renderer[] _modelRenderers;
-
         public void SetModelVisible(bool visible)
         {
-            // FPS視点で自機が映り込まないよう見た目だけ切り替える
-            // Toggle only the visuals so the player mesh does not block the FPS view
-            _modelRenderers ??= GetComponentsInChildren<Renderer>(true);
-            foreach (var modelRenderer in _modelRenderers) modelRenderer.enabled = visible;
+            // 手持ちアイテムの生成破棄でRendererが入れ替わるためキャッシュせず毎回取得する
+            // Grab items are created and destroyed under this hierarchy, so fetch renderers fresh each time
+            foreach (var modelRenderer in GetComponentsInChildren<Renderer>(true)) modelRenderer.enabled = visible;
         }
 
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)

@@ -33,7 +33,7 @@ namespace Client.Playtest.Operations
             var startTime = Time.realtimeSinceStartup;
             while (CurrentUiState() != expected)
             {
-                if (Time.realtimeSinceStartup - startTime > timeoutSeconds) throw new TimeoutException($"UI state did not reach {expected} (current: {CurrentUiState()})");
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime) throw new TimeoutException($"UI state did not reach {expected} (current: {CurrentUiState()})");
                 await UniTask.Yield();
             }
         }
@@ -59,7 +59,7 @@ namespace Client.Playtest.Operations
             var deadline = Time.realtimeSinceStartup + 15f;
             while (CurrentUiState() != UIStateEnum.PlaceBlock)
             {
-                if (Time.realtimeSinceStartup > deadline) throw new TimeoutException($"Build menu selection did not reach PlaceBlock: {blockName}");
+                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException($"Build menu selection did not reach PlaceBlock: {blockName}");
                 TryClickBuildMenuSlot(blockName);
                 await UniTask.DelayFrame(10);
             }
@@ -112,7 +112,6 @@ namespace Client.Playtest.Operations
             await UniTask.DelayFrame(3);
         }
 
-        #region Internal
 
         private static async UniTask<bool> PollUiState(UIStateEnum expected, float seconds)
         {
@@ -148,6 +147,5 @@ namespace Client.Playtest.Operations
             return true;
         }
 
-        #endregion
     }
 }

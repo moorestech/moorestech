@@ -56,7 +56,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
                 if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
                 if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
-                //TODO InputSystemのリファクタ対象
+                //TODO InputSystem対応
                 if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
 
                 _buildViewModeController.ManualUpdate();
@@ -65,14 +65,18 @@ namespace Client.Game.InGame.UI.UIState.State
             _placeSystemStateController.ManualUpdate();
 
             return null;
-        }
 
-        // 選択中のTMP_InputFieldが編集中かを判定する
-        // Whether the currently selected TMP_InputField is being edited
-        private static bool IsTextInputFocused()
-        {
-            var selected = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
-            return selected != null && selected.TryGetComponent<TMPro.TMP_InputField>(out var inputField) && inputField.isFocused;
+            #region Internal
+
+            // 選択中のTMP_InputFieldが編集中かを判定する
+            // Whether the currently selected TMP_InputField is being edited
+            static bool IsTextInputFocused()
+            {
+                var selected = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+                return selected != null && selected.TryGetComponent<TMPro.TMP_InputField>(out var inputField) && inputField.isFocused;
+            }
+
+            #endregion
         }
 
         // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）

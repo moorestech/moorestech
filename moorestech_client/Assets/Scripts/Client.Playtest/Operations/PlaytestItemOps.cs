@@ -51,7 +51,7 @@ namespace Client.Playtest.Operations
             var startTime = Time.realtimeSinceStartup;
             while (CountItem(playerId, itemId) < beforeCount + count)
             {
-                if (Time.realtimeSinceStartup - startTime > timeoutSeconds)
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
                 {
                     throw new TimeoutException($"give '{itemName}' x{count} not reflected within {timeoutSeconds}s");
                 }
@@ -113,7 +113,7 @@ namespace Client.Playtest.Operations
             var startTime = Time.realtimeSinceStartup;
             while (CountItemClientSide(itemId) < expectedMinimum)
             {
-                if (Time.realtimeSinceStartup - startTime > timeoutSeconds)
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
                 {
                     throw new TimeoutException($"client inventory of item {itemId} did not reach {expectedMinimum} within {timeoutSeconds}s");
                 }
