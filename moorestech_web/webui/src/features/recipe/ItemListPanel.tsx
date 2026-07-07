@@ -1,13 +1,13 @@
 import { ScrollArea, Stack, Text, Title } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
-import { useUiStore } from "@/app/uiStore";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
+import { useItemSelectionStore } from "./selectionStore";
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
 export default function ItemListPanel() {
-  const selectedItemId = useUiStore((s) => s.selectedItemId);
-  const onSelect = useUiStore((s) => s.setSelectedItem);
+  const selectedItemId = useItemSelectionStore((s) => s.selectedItemId);
+  const onSelect = useItemSelectionStore((s) => s.setSelectedItem);
   const itemList = useTopic(Topics.itemList);
   const itemMaster = useItemMaster();
 
