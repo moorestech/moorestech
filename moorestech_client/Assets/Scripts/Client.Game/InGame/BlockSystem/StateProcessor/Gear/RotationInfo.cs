@@ -10,7 +10,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] protected bool isReverse;
         [SerializeField] protected GearRotationDirectionMode directionMode;
 
-        public bool IsReverse => isReverse;
 
         // TransformRotationInfoのみ値を返す。Simulator互換のためベースに公開
         // Only TransformRotationInfo returns a value. Exposed on base for simulator compatibility

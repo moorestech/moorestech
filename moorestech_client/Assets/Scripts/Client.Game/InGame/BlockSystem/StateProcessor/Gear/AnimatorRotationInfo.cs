@@ -16,9 +16,6 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private float rpm60Speed = 1;
         [SerializeField] private AnimationPlayDirection defaultPlayDirection = AnimationPlayDirection.Positive;
 
-        public Animator Animator => animator;
-        public float Rpm60Speed => rpm60Speed;
-
         private bool _directionParameterChecked;
         private bool _hasDirectionParameter;
 
