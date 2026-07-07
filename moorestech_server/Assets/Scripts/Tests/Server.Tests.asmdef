@@ -53,7 +53,8 @@
         "Game.Research",
         "Game.PlayerRiding.Interface",
         "Game.PlayerRiding",
-        "Game.PlayerConnection"
+        "Game.PlayerConnection",
+        "Game.CleanRoom"
     ],
     "includePlatforms": [
         "Editor"
