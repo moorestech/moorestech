@@ -28,8 +28,8 @@ return PlaytestRunner.Run("fps-build-mode-via-ui", options, async p =>
 
     // 検証に使う実体への参照を確保する
     // Grab references to the objects under verification
-    var camera = Object.FindFirstObjectByType<InGameCameraController>();
-    var playerRenderers = Object.FindFirstObjectByType<PlayerObjectController>().GetComponentsInChildren<Renderer>(true);
+    var camera = UnityEngine.Object.FindFirstObjectByType<InGameCameraController>();
+    var playerRenderers = UnityEngine.Object.FindFirstObjectByType<PlayerObjectController>().GetComponentsInChildren<Renderer>(true);
     var crosshairDot = CrosshairView.Instance.transform.Find("Dot").gameObject;
     System.Func<int> countBlocks = () => ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count;
 
