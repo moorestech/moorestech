@@ -124,10 +124,11 @@ namespace Tests.CombinedTest.Core
             var idlePowerRate = ResolveIdlePowerRate(param.GearConsumption.IdlePowerRate);
             Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
 
-            // アイテムが載ると搬送中としてフル要求に戻る
-            // Once an item is on the belt, it is active and requests full torque
+            // アイテムが載ると次のUpdateで搬送中としてフル要求に戻る
+            // Once an item is on the belt, the next update makes it active and requests full torque
             var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
             belt.InsertItem(item, InsertItemContext.Empty);
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
         }
 

@@ -16,7 +16,7 @@
 | 歯車ネットワークのハードストップ | **維持**。アイドル中は回るが、加工開始で需要超過になれば停止する。発電追加等で供給が需要を上回れば毎tick再計算により自動復帰。過負荷対策はプレイヤーの電源設計の責務とする |
 | 適用範囲 | 消費ブロック全般（電気: 機械・採掘機・ポンプ / 歯車: 機械・採掘機・MapObject採掘機・ポンプ・ベルトコンベア） |
 | スコープ | サーバーロジックのみ。クライアント表示は既存の BlockState 同期に自然に追従する範囲でよい |
-| 実装方式 | **既存のエネルギー要求メソッド内に稼働判定と倍率乗算を直接書く**。新規クラス・インターフェース・サブクラスは作らない |
+| 実装方式 | **具体→抽象の一方向依存**。稼働判定と倍率決定は各具体コンポーネント（機械プロセス・採掘機プロセス等）が行い、汎用部品（`GearEnergyTransformer`）へは `SetTorqueRequestRate` で変更要求を叩く。汎用部品は「アイドルかどうか」を知らない |
 
 ## マスタデータ（スキーマ）変更
 
@@ -40,12 +40,17 @@
   `VanillaElectricMinerComponent.RequestEnergy`（現在コンストラクタ固定値）はプロセッサ参照の動的プロパティに変更
 - ポンプ: `ElectricPumpComponent.RequestEnergy` で内部タンクの受入可否を判定して乗算
 
-### 歯車側（`GearEnergyTransformer.GetRequiredTorque`）
+### 歯車側（具体コンポーネントから `GearEnergyTransformer` へ変更要求を叩く）
 
-- `GetRequiredTorque` 内で稼働判定し `× idlePowerRate` を乗算する
-- 稼働状態はコンストラクタで受け取る（ブロック側が自状態の判定を渡す。null / 未指定相当は常時稼働＝倍率1）
-- 発電機・シャフト・歯車・チェーンポール・電気⇄歯車コンバータ等の非消費ブロックは従来通り（常時稼働扱い、そもそも要求トルク0のものは影響なし）
-- 各 BlockTemplate の組み立て箇所を更新する。AGENTS.md の方針によりデフォルト引数は使わず全呼び出し側を明示的に変更する
+- `GearEnergyTransformer` は要求トルク倍率 `_torqueRequestRate`（初期値1）と `SetTorqueRequestRate(float)` だけを持ち、`GetRequiredTorque` は計算結果に倍率を乗算するのみ。稼働状態・idlePowerRate の語彙を持たない
+- 稼働判定と `idlePowerRate ?? 0.2` の解決は各具体側が行い、状態変化時に倍率を叩く
+  - GearMachine: `VanillaGearMachineComponent` が processor の `OnChangeBlockState` 購読＋初期化時に叩く
+  - GearMiner: `VanillaGearMinerComponent` が同様に `IsMining` で叩く
+  - GearMapObjectMiner: `VanillaGearMapObjectMinerProcessorComponent` が自身の `Update` で採掘対象の有無により叩く
+  - GearPump: `GearPumpComponent` が `Update` で生成可否により叩く
+  - GearBeltConveyor: `GearBeltConveyorComponent` 自身が `Update` でアイテム有無により叩く
+- 発電機・シャフト・歯車等の非消費ブロックは一切変更しない（倍率1のまま）
+- ロード直後の初回tickのみ倍率1で要求する可能性があるが、遷移1tickラグとして許容範囲
 
 ## ブロック別の稼働（フル要求）判定
 

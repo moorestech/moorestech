@@ -1,3 +1,4 @@
+using Core.Master;
 using Core.Update;
 using System.Linq;
 using Game.Block.Blocks.Gear;
@@ -13,17 +14,31 @@ namespace Game.Block.Blocks.BeltConveyor
     {
         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
         private readonly double _timeOfItemEnterToExit;
+        private readonly float _idleTorqueRate;
 
         public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double timeOfItemEnterToExit, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
-            : base(gearConsumption, entityId, blockConnectorComponent, () => beltConveyorComponent.BeltConveyorItems.Any(item => item != null))
+            : base(gearConsumption, entityId, blockConnectorComponent)
         {
             _beltConveyorComponent = beltConveyorComponent;
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
+            _idleTorqueRate = gearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+
+            UpdateTorqueRequestRate();
         }
 
         public void Update()
         {
             BlockException.CheckDestroy(this);
+
+            UpdateTorqueRequestRate();
+        }
+
+        private void UpdateTorqueRequestRate()
+        {
+            // ベルト上のアイテム有無で要求トルク倍率を変更要求する
+            // Push the torque request rate based on whether items are on the belt
+            var hasItem = _beltConveyorComponent.BeltConveyorItems.Any(item => item != null);
+            SetTorqueRequestRate(hasItem ? 1f : _idleTorqueRate);
         }
 
         public override void StopNetwork()

@@ -49,7 +49,7 @@ namespace Game.Block.Blocks.ElectricToGear
             ElectricToGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
-            base(null, blockInstanceId, connectorComponent, AlwaysActive)
+            base(null, blockInstanceId, connectorComponent)
         {
             _param = param;
             _selectedIndex = 0;
