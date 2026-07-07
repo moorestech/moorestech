@@ -76,7 +76,8 @@ MonoBehaviour:
     - rid: 6406021079487742082
       type: {class: TransformRotationInfo, ns: Client.Game.InGame.BlockSystem.StateProcessor, asm: Client.Game}
       data:
-        isReverse: 0
+        isReverse: 1
+        directionMode: 0
         rotationAxis: 1
         rotationTransform: {fileID: 7539570336613920954}
         rotationSpeed: 1
