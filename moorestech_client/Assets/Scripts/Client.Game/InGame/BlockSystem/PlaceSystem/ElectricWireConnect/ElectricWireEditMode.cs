@@ -2,6 +2,7 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Control.BuildView;
 using Client.Input;
 using UnityEngine;
 
@@ -62,7 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
                 // ワイヤーコライダーは子オブジェクトのため親を辿って本体を得る
                 // Wire colliders live on child objects, so climb to the parent to get the element
-                var ray = _context.MainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+                var ray = _context.MainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
                 if (!Physics.Raycast(ray, out var hit, WireClickMaxDistance, LayerConst.ElectricWireOnlyLayerMask)) return false;
 
                 wireElement = hit.collider.GetComponentInParent<ElectricWireLineViewElement>();

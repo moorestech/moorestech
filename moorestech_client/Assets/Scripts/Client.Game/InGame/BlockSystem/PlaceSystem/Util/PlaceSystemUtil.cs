@@ -4,6 +4,7 @@ using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
 using Game.Block.Interface;
@@ -32,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             surface = null;
             pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
@@ -53,7 +54,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         public static bool TryGetRaySpecifiedComponentHit<T>(Camera mainCamera, out T component, int layerMask) where T : class
         {
             component = null;
-            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
@@ -70,7 +71,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             component = null;
             pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
