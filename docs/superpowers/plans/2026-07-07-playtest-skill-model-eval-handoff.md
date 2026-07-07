@@ -3,6 +3,9 @@
 作成: 2026-07-07 / ブランチ: `feature/playtest-stabilization`（worktree: `/Users/katsumi/moorestech-worktrees/playtest`）
 前回申し送り: `2026-07-07-playtest-input-layer-handoff.md`（Phase 3完了により役目を終えた）
 
+> **実施済み（2026-07-07 同日）**: 6トライアル（Opus/Sonnet × L1/L2/L3）を完走し全合格。
+> 結果は `2026-07-07-playtest-skill-model-eval-results.md` が正。実バグ2件確定（レールBlockIdは修正済み 05a8cb1a8）。
+
 ## ゴール
 
 再構築した `unity-playmode-recorded-playtest` スキル（ユースケース別references構成）を使い、
