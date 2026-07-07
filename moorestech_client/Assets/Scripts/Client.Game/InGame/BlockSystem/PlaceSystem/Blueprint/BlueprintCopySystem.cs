@@ -11,7 +11,8 @@ using UnityEngine.InputSystem;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
     /// <summary>
-    ///     XZドラッグ＋スクロール高さ調整でBP登録範囲を選択し、名前入力後にCreateを送る
+    ///     ・XZドラッグ+スクロールで範囲選択
+    ///     ・名前入力後にCreate送信
     ///     Selects the blueprint box via XZ drag plus scroll height, then sends Create after name input
     /// </summary>
     public class BlueprintCopySystem : IPlaceSystem
@@ -28,7 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         private float _scrollAccumulator;
         private bool _isAwaitingName;
 
-        // ドラッグ開始時の上面高さの初期値（スクロールで調整可能）
+        // 開始時の上面高さ初期値（スクロール調整可）
         // Initial box height above the drag plane; adjustable via scroll
         private const int DefaultTopYOffset = 4;
 
@@ -41,6 +42,29 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             // Enable毎の重複購読を避けるため購読はコンストラクタで1回だけ行う
             // Subscribe once in the constructor to avoid duplicate subscriptions on repeated Enable
             SubscribeNameInput();
+
+            #region Internal
+
+            void SubscribeNameInput()
+            {
+                // 確定でCreate送信、キャンセルで選択解除
+                // Confirm sends Create (the server derives the anchor from the box); cancel clears the selection
+                _nameInputView.OnConfirm.Subscribe(name =>
+                {
+                    var (min, max) = CalcBox();
+                    _library.CreateBlueprint(name, min, max, CancellationToken.None).Forget();
+                    _isAwaitingName = false;
+                    ResetSelection();
+                }).AddTo(_nameInputView);
+
+                _nameInputView.OnCancel.Subscribe(_ =>
+                {
+                    _isAwaitingName = false;
+                    ResetSelection();
+                }).AddTo(_nameInputView);
+            }
+
+            #endregion
         }
 
         public void Enable()
@@ -50,7 +74,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
-            // 名前入力ダイアログ表示中はドラッグ操作を止める
+            // 名前入力中はドラッグを停止
             // Freeze drag interaction while the name dialog is open
             if (_isAwaitingName) return;
 
@@ -67,7 +91,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 if (EventSystem.current.IsPointerOverGameObject()) return;
                 if (!PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var hit, out _)) return;
 
-                _dragStart = SnapToCell(hit);
+                _dragStart = PlaceSystemUtil.SnapHitPointToCell(hit);
                 _dragEnd = _dragStart;
                 _topYOffset = DefaultTopYOffset;
                 _scrollAccumulator = 0f;
@@ -77,7 +101,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             void UpdateDrag()
             {
                 if (!_isDragging || !InputManager.Playable.ScreenLeftClick.GetKey) return;
-                if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var hit, out _)) _dragEnd = SnapToCell(hit);
+                if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var hit, out _)) _dragEnd = PlaceSystemUtil.SnapHitPointToCell(hit);
 
                 // スクロールで上面高さを1セル単位で調整（下限0=1段選択。微小デルタは蓄積して整数化）
                 // Scroll adjusts the box top per cell, floored at 0; fractional deltas accumulate into whole steps
@@ -110,6 +134,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 ResetSelection();
             }
 
+            float ReadScrollDelta()
+            {
+                // ホットバーと同じスケールでInputSystemスクロールを読む（入力注入対応。無ければlegacyへフォールバック）
+                // Read Input System scroll at the hot bar's scale (supports input injection); fall back to legacy Input
+                return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
+            }
+
             #endregion
         }
 
@@ -120,23 +151,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _isAwaitingName = false;
         }
 
-        private static float ReadScrollDelta()
-        {
-            // ホットバーと同じスケールでInputSystemスクロールを読む（入力注入対応。無ければlegacyへフォールバック）
-            // Read Input System scroll at the hot bar's scale (supports input injection); fall back to legacy Input
-            return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;
-        }
-
-        private static Vector3Int SnapToCell(Vector3 hitPoint)
-        {
-            // 貼り付けアンカーと同じ規約でセル化する（XZは床スナップ、Yは整数グリッド面の丸め）
-            // Snap to a cell with the paste-anchor convention: floor XZ, round Y on the integer grid face
-            return new Vector3Int(Mathf.FloorToInt(hitPoint.x), Mathf.RoundToInt(hitPoint.y), Mathf.FloorToInt(hitPoint.z));
-        }
-
         private (Vector3Int min, Vector3Int max) CalcBox()
         {
-            // XZはドラッグ両端、Yはドラッグ面からスクロール調整分までのボックス
+            // XZは両端・Yはスクロール分のボックス
             // XZ from drag endpoints; Y spans the drag plane up to the scroll offset
             var min = new Vector3Int(
                 Mathf.Min(_dragStart.x, _dragEnd.x),
@@ -153,25 +170,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         {
             _isDragging = false;
             _visualizer?.Hide();
-        }
-
-        private void SubscribeNameInput()
-        {
-            // 確定でCreate送信（アンカーはサーバーがボックスから導出）、キャンセルで選択解除
-            // Confirm sends Create (the server derives the anchor from the box); cancel clears the selection
-            _nameInputView.OnConfirm.Subscribe(name =>
-            {
-                var (min, max) = CalcBox();
-                _library.CreateBlueprint(name, min, max, CancellationToken.None).Forget();
-                _isAwaitingName = false;
-                ResetSelection();
-            }).AddTo(_nameInputView);
-
-            _nameInputView.OnCancel.Subscribe(_ =>
-            {
-                _isAwaitingName = false;
-                ResetSelection();
-            }).AddTo(_nameInputView);
         }
     }
 }

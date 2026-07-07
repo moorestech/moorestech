@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Tests.CombinedTest.Server.PacketTest
 {
     /// <summary>
-    /// BlueprintProtocol の Create/GetAll/Delete 各 Operation を検証する。
+    /// Create/GetAll/Delete各Operationを検証
     /// Verifies the Create/GetAll/Delete operations of BlueprintProtocol.
     /// </summary>
     public class BlueprintProtocolTest
@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
-            // Create: 範囲内ブロックからBPが登録される
+            // Create:範囲内ブロックでBP登録
             // Create registers a blueprint from the area
             var createResponse = Send(BlueprintRequest.CreateCreateRequest("base", new Vector3Int(0, 0, 0), new Vector3Int(5, 2, 5)));
             Assert.IsTrue(createResponse.Success);
@@ -64,7 +64,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, _) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 空範囲はEmptyArea、空文字名はInvalidName、存在しない削除はNotFound
+            // 空範囲→EmptyArea
+            // 空文字名→InvalidName
+            // 削除対象無→NotFound
             // Empty area, empty name, and missing-delete failures
             var empty = Send(BlueprintRequest.CreateCreateRequest("x", new Vector3Int(50, 0, 50), new Vector3Int(55, 2, 55)));
             Assert.IsFalse(empty.Success);

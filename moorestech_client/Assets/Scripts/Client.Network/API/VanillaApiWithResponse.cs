@@ -317,7 +317,7 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }
 
-        // ブループリントの作成・全件取得・削除 (Create/GetAll/Delete を 1 メソッドで扱う)
+        // BP Create/GetAll/Deleteを1メソッドで統合
         // Blueprint request (single endpoint for Create / GetAll / Delete)
         public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)
         {

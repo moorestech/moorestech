@@ -6,7 +6,7 @@ using Core.Master;
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    /// ビルドメニューの1エントリ（ブロック・車両・接続ツール・BPのいずれか）
+    /// ビルドメニュー1エントリ（ブロック/車両/接続具/BP）
     /// One build-menu entry: a block, a train car, a connect tool, or a blueprint
     /// </summary>
     public readonly struct BuildMenuEntry

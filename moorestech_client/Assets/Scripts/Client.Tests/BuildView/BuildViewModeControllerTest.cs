@@ -149,5 +149,39 @@ namespace Client.Tests.BuildView
             Assert.Contains("TopDown", _applier.Calls);
             Assert.IsFalse(_applier.Calls.Contains("Restore"));
         }
+
+        [Test]
+        public void TextInputFocusInFirstPersonFreesCursorAndRestoresOnUnfocus()
+        {
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            _controller.ToggleViewMode();
+
+            // フォーカス中はカーソル解放・回転停止・クロスヘア非表示になること
+            // While focused the cursor is freed, rotation stops, and the crosshair hides
+            _controller.SetTextInputFocused(true);
+            Assert.AreEqual(true, _applier.LastCursorVisible);
+            Assert.AreEqual(false, _applier.LastCameraRotatable);
+            Assert.AreEqual(false, _applier.LastCrosshairVisible);
+
+            // フォーカス解除でFPSのカーソルロック・回転・クロスヘアへ戻ること
+            // On unfocus the FPS cursor lock, rotation, and crosshair are restored
+            _controller.SetTextInputFocused(false);
+            Assert.AreEqual(false, _applier.LastCursorVisible);
+            Assert.AreEqual(true, _applier.LastCameraRotatable);
+            Assert.AreEqual(true, _applier.LastCrosshairVisible);
+        }
+
+        [Test]
+        public void TextInputFocusInTopDownIsNoOp()
+        {
+            _controller.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            var callCount = _applier.Calls.Count;
+
+            // 俯瞰ではカーソルは元々解放済みのため何も適用しないこと
+            // Top-down already has a free cursor, so focus changes apply nothing
+            _controller.SetTextInputFocused(true);
+            _controller.SetTextInputFocused(false);
+            Assert.AreEqual(callCount, _applier.Calls.Count);
+        }
     }
 }

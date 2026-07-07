@@ -30,9 +30,9 @@ namespace Game.Blueprint
                 return false;
             }
 
-            // アンカー = ボックスXZ中心セル・ボックス最下段Y（ボックスから決定論的に定まる）
-            // Anchor: XZ center cell and bottom Y of the box; deterministic from the box
-            var anchor = new Vector3Int((min.x + max.x) / 2, min.y, (min.z + max.z) / 2);
+            // アンカー = ボックスXZ中心セル・ボックス最下段Y（負座標でも1セルずれないようfloorで丸める）
+            // Anchor: XZ center cell and bottom Y of the box; floor so negative coordinates never shift a cell
+            var anchor = new Vector3Int(Mathf.FloorToInt((min.x + max.x) / 2f), min.y, Mathf.FloorToInt((min.z + max.z) / 2f));
             var blocks = new List<BlueprintBlockJsonObject>();
             foreach (var data in targets)
             {
@@ -58,15 +58,15 @@ namespace Game.Blueprint
                 return result;
             }
 
-            // 占有セルのいずれかがXYZバウンディングボックスに入っていれば対象
+            // 占有セルの一部がボックス内なら対象
             // Included when any occupied cell intersects the XYZ bounding box
             bool IntersectsBox(WorldBlockData data)
             {
                 foreach (var pos in data.Block.BlockPositionInfo.EnumeratePositions())
                 {
-                    if (pos.x >= min.x && pos.x <= max.x &&
-                        pos.y >= min.y && pos.y <= max.y &&
-                        pos.z >= min.z && pos.z <= max.z) return true;
+                    if (min.x <= pos.x && pos.x <= max.x &&
+                        min.y <= pos.y && pos.y <= max.y &&
+                        min.z <= pos.z && pos.z <= max.z) return true;
                 }
 
                 return false;
@@ -78,12 +78,12 @@ namespace Game.Blueprint
                 var offset = data.Block.BlockPositionInfo.OriginalPos - anchorPos;
                 var direction = (int)data.Block.BlockPositionInfo.BlockDirection;
 
-                // 設定を持つコンポーネントからJSONを収集する
+                // 設定持ちコンポーネントからJSON収集
                 // Collect settings JSON from settings-providing components
                 var settings = new Dictionary<string, string>();
                 foreach (var component in data.Block.ComponentManager.GetComponents<IBlockBlueprintSettings>())
                 {
-                    settings.Add(component.BlueprintSettingsKey, component.GetBlueprintSettingsJson());
+                    settings[component.BlueprintSettingsKey] = component.GetBlueprintSettingsJson();
                 }
 
                 return new BlueprintBlockJsonObject(offset, master.BlockGuid.ToString(), direction, settings);

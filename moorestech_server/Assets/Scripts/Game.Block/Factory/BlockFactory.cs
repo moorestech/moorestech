@@ -27,27 +27,31 @@ namespace Game.Block.Factory
             var effectiveCreateParams = createParams ?? Array.Empty<BlockCreateParam>();
             var block = value.New(blockElement, blockInstanceId, blockPositionInfo, effectiveCreateParams);
 
-            // ブループリント設定（UTF8 JSON）を対応コンポーネントへ汎用適用する
+            // BP設定(UTF8 JSON)を対応コンポーネントへ適用
             // Generically apply blueprint settings (UTF8 JSON) to supporting components
-            ApplyBlueprintSettings(block, effectiveCreateParams);
+            ApplyBlueprintSettings();
 
             return block;
-        }
 
-        private static void ApplyBlueprintSettings(IBlock block, BlockCreateParam[] createParams)
-        {
-            if (createParams.Length == 0) return;
+            #region Internal
 
-            // キーが一致するCreateParamを各IBlockBlueprintSettingsコンポーネントへ適用
-            // Apply key-matched create params to each IBlockBlueprintSettings component
-            foreach (var component in block.ComponentManager.GetComponents<IBlockBlueprintSettings>())
+            void ApplyBlueprintSettings()
             {
-                foreach (var param in createParams)
+                if (effectiveCreateParams.Length == 0) return;
+
+                // キー一致するCreateParamを各設定コンポーネントへ適用
+                // Apply key-matched create params to each IBlockBlueprintSettings component
+                foreach (var component in block.ComponentManager.GetComponents<IBlockBlueprintSettings>())
                 {
-                    if (param.Key != component.BlueprintSettingsKey) continue;
-                    component.ApplyBlueprintSettingsJson(Encoding.UTF8.GetString(param.Value));
+                    foreach (var param in effectiveCreateParams)
+                    {
+                        if (param.Key != component.BlueprintSettingsKey) continue;
+                        component.ApplyBlueprintSettingsJson(Encoding.UTF8.GetString(param.Value));
+                    }
                 }
             }
+
+            #endregion
         }
         
         public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string, string> state, BlockPositionInfo blockPositionInfo)

@@ -220,7 +220,7 @@ namespace Game.Block.Blocks.FilterSplitter
             var settings = JsonConvert.DeserializeObject<FilterSplitterBlueprintSettingsJsonObject>(json);
             if (settings?.Directions == null) return;
 
-            // ConnectorGuidで方向を突き合わせ、既存のSetMode/SetFilterItemで適用する
+            // ConnectorGuidで方向照合しSetMode/SetFilterItemで適用
             // Match directions by ConnectorGuid and apply via existing setters
             foreach (var saved in settings.Directions)
             {

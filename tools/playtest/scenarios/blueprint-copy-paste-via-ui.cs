@@ -1,6 +1,12 @@
-// ブループリント統合検証（UI経路）: コピー（XZドラッグ＋スクロール高さ＋名前入力）→R回転貼り付け→セーブ/ロード往復
-// コピー元: チェスト(2,32,2)North / 石窯(4,32,2)East / チェスト(2,32,4)North、ボックス(0,32,0)-(8,38,6)
-// アンカー(4,32,3)からのオフセットと、回転1回・貼り付けアンカー(14,32,14)での期待位置を厳密assertする
+// BP統合検証(UI経路)
+// コピー(ドラッグ+スクロール+名前入力)→R回転貼付→セーブロード往復
+// コピー元:
+// ・チェスト(2,32,2)North
+// ・石窯(4,32,2)East
+// ・チェスト(2,32,4)North
+// ・ボックス(0,32,0)-(8,38,6)
+// アンカー(4,32,3)基準のオフセットを厳密assert
+// 回転1回・貼付アンカー(14,32,14)の期待位置も検証
 // Blueprint integration scenario (UI route): copy via XZ drag + scroll height + naming, rotated paste, save/load round-trip
 // Sources: chest(2,32,2)North / stone kiln(4,32,2)East / chest(2,32,4)North, box (0,32,0)-(8,38,6)
 // Asserts exact offsets from anchor (4,32,3) and expected positions for one R rotation pasted at anchor (14,32,14)
@@ -33,12 +39,12 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.SetupFlatGround();
     p.WarpPlayer(new Vector3(5f, 33.5f, 4f));
 
-    // 解放と建設コスト付与（UI設置1回＋貼り付け2回分のチェスト、貼り付け1回分の石窯）
+    // 解放と建設コスト付与（内訳はコード参照）
     // Unlock and grant construction costs (chest: 1 UI place + 2 paste, kiln: 1 paste)
     await p.PrepareBlockForUiPlacement("木のチェスト", 4);
     await p.PrepareBlockForUiPlacement("石窯", 2);
 
-    // コピー元ブロック: UI設置1つ＋向き付き直設置2つ
+    // コピー元: UI設置1+直設置2
     // Source blocks: one via UI, two direct (one with a non-default direction)
     await p.PlaceBlockViaUi("木のチェスト", new Vector3Int(2, 32, 2), BlockDirection.North);
     p.PlaceBlockDirect("石窯", new Vector3Int(4, 32, 2), BlockDirection.East);
@@ -47,14 +53,14 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.WaitBlockGameObject(new Vector3Int(2, 32, 4));
     await p.Screenshot("01-source-blocks");
 
-    // BPコピーツールを選択（アイコン無しテキストスロット）
+    // BPコピーツールを選択（テキストスロット）
     // Select the blueprint copy tool (icon-less text slot)
     await OpenBuildMenuAndClickTextSlot("ブループリントコピー", "02-menu-copy-tool");
 
     var hotBarView = UnityEngine.Object.FindFirstObjectByType<HotBarView>();
     var hotbarBefore = hotBarView.SelectIndex;
 
-    // XZドラッグ＋スクロール+2で選択ボックスを作る
+    // XZドラッグ+スクロール+2で範囲選択
     // Build the selection box via XZ drag plus +2 scroll steps
     await p.AimAt(new Vector3(0.5f, 32f, 0.5f));
     SemanticInput.MouseButtonDown(0);
@@ -64,7 +70,8 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     InjectScrollWithHeldLeft(200f);
     await UniTask.DelayFrame(4);
 
-    // ボックス可視化: min(0,32,0)-max(8,38,6) → サイズ(9,7,7)（両端とも石窯に遮られない地面セルを狙う）
+    // ボックス可視化: min(0,32,0)-max(8,38,6)→サイズ(9,7,7)
+    // 両端とも石窯に遮られない地面セルを狙う
     // Box visualizer: min(0,32,0)-max(8,38,6) -> size (9,7,7); both corners aim at ground cells clear of the kiln
     var visualizer = GameObject.Find("BlueprintAreaVisualizer");
     p.Assert(visualizer != null && visualizer.activeSelf, "ドラッグ中に選択ボックスが表示される");
@@ -83,7 +90,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     var hotbarAfter = hotBarView.SelectIndex;
     p.Assert(true, $"watchlist2-observe: ドラッグ中スクロールでホットバー選択 {hotbarBefore} -> {hotbarAfter}");
 
-    // 名前入力中のキー抑止検証: B/G/V/Tabを注入しても配置モードとダイアログが維持される
+    // 名前入力中のB/G/V/Tabキー抑止を検証
     // Key suppression while naming: injecting B/G/V/Tab must not leave PlaceBlock nor close the dialog
     var nameFieldInfo = typeof(BlueprintNameInputView).GetField("nameInputField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
     var inputField = (TMPro.TMP_InputField)nameFieldInfo.GetValue(nameInputView);
@@ -111,7 +118,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     var confirmButton = (UnityEngine.UI.Button)confirmInfo.GetValue(nameInputView);
     ClickUi(confirmButton.gameObject);
 
-    // サーバー登録とBP内容（アンカー(4,32,3)基準のオフセット・向き）を検証
+    // サーバー登録とBPオフセット・向きを検証
     // Verify server registration and BP contents (offsets/directions relative to anchor (4,32,3))
     var datastore = p.ServerService<IBlueprintDatastore>();
     await p.Until(() => datastore.Blueprints.Any(b => b.Name == "conveyor"), 15f, "サーバーにBP『conveyor』が登録される");
@@ -121,7 +128,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     p.Assert(HasBpBlock(bp, new Vector3Int(0, 0, -1), BlockDirection.East), "BP内石窯 offset(0,0,-1) East");
     p.Assert(HasBpBlock(bp, new Vector3Int(-2, 0, 1), BlockDirection.North), "BP内チェストB offset(-2,0,1) North");
 
-    // 貼り付け: メニュー再表示→BPエントリ選択→R回転→アンカー(14,32,14)へ
+    // 貼付:メニュー→BP選択→R回転→(14,32,14)
     // Paste: reopen menu, select the BP entry, rotate with R, paste at anchor (14,32,14)
     p.WarpPlayer(new Vector3(14f, 33.5f, 14f));
     await OpenBuildMenuAndClickTextSlot("conveyor", "05-menu-bp-entry");
@@ -131,7 +138,10 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.Screenshot("06-paste-preview");
     await p.ClickPlace();
 
-    // 回転1回の期待位置: チェストA(13,32,16)East / 石窯(13,32,12)South / チェストB(15,32,16)East
+    // 回転1回の期待位置:
+    // ・チェストA(13,32,16)East
+    // ・石窯(13,32,12)South
+    // ・チェストB(15,32,16)East
     // Expected after one rotation: chestA (13,32,16) East / kiln (13,32,12) South / chestB (15,32,16) East
     var chestAPos = new Vector3Int(13, 32, 16);
     var kilnPos = new Vector3Int(13, 32, 12);
@@ -148,7 +158,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.ExitToGameScreen();
     await p.Screenshot("07-pasted");
 
-    // セーブ→JSON検証→WorldLoaderFromJsonと同経路の再ロード→メニュー残存確認
+    // セーブ→JSON検証→再ロード→メニュー確認
     // Save, verify the JSON, reload through the same path as WorldLoaderFromJson, confirm the menu entry survives
     var savePath = p.ServerService<SaveJsonFilePath>().Path;
     ClientContext.VanillaApi.SendOnly.Save();
@@ -162,7 +172,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     datastore.LoadBlueprints(loaded.Blueprints);
     p.Assert(datastore.Blueprints.Any(b => b.Name == "conveyor"), "セーブJSONからBPデータストアへ復元される");
 
-    // 復元後のビルドメニューにBPスロットが表示される
+    // 復元後メニューにBPスロット表示
     // The rebuilt build menu still lists the blueprint slot
     await p.PressKey(Key.B);
     await p.WaitUiState(UIStateEnum.BuildMenu, 10f);

@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
-            // カーソル表示はBuildViewModeControllerが適用する（FPS中もメニューではカーソル解放）
+            // カーソル適用はBuildViewModeController委譲（FPS中も解放）
             // Cursor visibility is applied by BuildViewModeController (freed in the menu even during FPS)
             _buildViewModeController.OnEnterBuildState(UIStateEnum.BuildMenu);
             _buildMenuView.SetActive(true);

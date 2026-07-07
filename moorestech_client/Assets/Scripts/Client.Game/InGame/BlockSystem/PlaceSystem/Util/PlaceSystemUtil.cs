@@ -47,10 +47,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             }
             
             pos = hit.point;
-            
+
             return true;
         }
-        
+
+        public static Vector3Int SnapHitPointToCell(Vector3 hitPoint)
+        {
+            // BPコピーと貼り付けで共通のセル化規約（XZは床スナップ、Yは整数グリッド面の丸め）
+            // Shared cell-snap convention for BP copy and paste: floor XZ, round Y on the integer grid face
+            return new Vector3Int(Mathf.FloorToInt(hitPoint.x), Mathf.RoundToInt(hitPoint.y), Mathf.FloorToInt(hitPoint.z));
+        }
+
         public static bool TryGetRaySpecifiedComponentHit<T>(Camera mainCamera, out T component, int layerMask) where T : class
         {
             component = null;

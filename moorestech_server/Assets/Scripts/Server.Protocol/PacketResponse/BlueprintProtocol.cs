@@ -7,7 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    /// ブループリントの作成・一覧取得・削除を行うプロトコル。Operation で分岐する。
+    /// ・BP作成/一覧取得/削除
+    /// ・Operationで分岐
     /// Protocol for creating, listing, and deleting blueprints; dispatches by Operation.
     /// </summary>
     public class BlueprintProtocol : IPacketResponse
@@ -43,7 +44,7 @@ namespace Server.Protocol.PacketResponse
 
             ProtocolMessagePackBase HandleCreate(BlueprintRequest req)
             {
-                if (string.IsNullOrEmpty(req.Name)) return FailResponse(BlueprintFailureReason.InvalidName);
+                if (string.IsNullOrWhiteSpace(req.Name)) return FailResponse(BlueprintFailureReason.InvalidName);
                 if (req.Min == null || req.Max == null) return FailResponse(BlueprintFailureReason.InvalidRequest);
 
                 // 範囲抽出。対象ブロック0なら空BPを作らず失敗を返す

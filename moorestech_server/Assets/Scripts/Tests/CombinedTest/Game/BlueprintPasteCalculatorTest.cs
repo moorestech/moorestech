@@ -21,7 +21,7 @@ namespace Tests.CombinedTest.Game
             var block = new BlueprintBlockJsonObject(new Vector3Int(2, 0, 3), chestGuid, (int)BlockDirection.North, new Dictionary<string, string>());
             var blueprint = new BlueprintJsonObject("rot", new List<BlueprintBlockJsonObject> { block });
 
-            // 90度回転: (2,0,3) -> (3,0,-2)、North -> East
+            // 90度回転: (2,0,3)→(3,0,-2)
             // One clockwise step: offset (2,0,3) -> (3,0,-2), North -> East
             var rotated = BlueprintPasteCalculator.CalculatePlacements(blueprint, new Vector3Int(10, 0, 10), 1);
             Assert.AreEqual(new Vector3Int(13, 0, 8), rotated[0].Position);
@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // マルチセルブロック（BlockSize 3,1,2）で回転前後の占有セル集合を比較
+            // マルチセル(3,1,2)で回転前後のセル集合比較
             // Compare occupied-cell sets before/after rotation for a 3x1x2 block
             var blockId = ForUnitTestModBlockId.MultiBlockGeneratorId;
             var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
@@ -51,13 +51,13 @@ namespace Tests.CombinedTest.Game
 
             var placed = BlueprintPasteCalculator.CalculatePlacements(blueprint, Vector3Int.zero, 1)[0];
 
-            // 回転後の原点からBlockPositionInfoを構築し、セル数がサイズ積と一致することを確認
+            // 回転後原点からセル数=サイズ積を確認
             // Rebuild BlockPositionInfo at the rotated origin and verify cell count
             var info = new BlockPositionInfo(placed.Position, placed.Direction, master.BlockSize);
             var actual = EnumerateCells(info);
             Assert.AreEqual(master.BlockSize.x * master.BlockSize.y * master.BlockSize.z, actual.Count);
 
-            // 回転前の全セルを直接回転した集合と、回転後BlockPositionInfoのセル集合が一致
+            // 回転前セルの直接回転と回転後集合が一致
             // Directly-rotated cells must equal the rotated BlockPositionInfo cells
             var originalInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, master.BlockSize);
             var expected = new HashSet<Vector3Int>();
