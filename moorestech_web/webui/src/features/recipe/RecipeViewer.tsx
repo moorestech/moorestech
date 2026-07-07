@@ -1,13 +1,13 @@
 import { Stack, Text, Title } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
-import { useUiStore } from "@/app/uiStore";
+import { useItemSelectionStore } from "./selectionStore";
 import RecipeContent from "./views/RecipeContent";
 
 // 中央カラム: 選択アイテムのクラフトレシピと機械レシピを表示する（uGUI の RecipeViewer 相当）
 // Center column: shows craft and machine recipes for the selected item, like uGUI's RecipeViewer
 export default function RecipeViewer() {
-  const selectedItemId = useUiStore((s) => s.selectedItemId);
-  const onSelect = useUiStore((s) => s.setSelectedItem);
+  const selectedItemId = useItemSelectionStore((s) => s.selectedItemId);
+  const onSelect = useItemSelectionStore((s) => s.setSelectedItem);
   const recipes = useTopic(Topics.craftRecipes);
   const machineRecipes = useTopic(Topics.machineRecipes);
   const inventory = useTopic(Topics.inventory);

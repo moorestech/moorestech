@@ -1,6 +1,6 @@
 import { Button } from "@mantine/core";
-import { dispatchAction } from "@/bridge/transport/actions";
-import { emitToast } from "@/features/toast/toastStore";
+import { dispatchAction } from "@/bridge";
+import { emitToast } from "@/features/toast";
 
 // debug.echo を発行して双方向APIの疎通を確認する開発用ボタン
 // Dev button that sends debug.echo to verify the bidirectional API
