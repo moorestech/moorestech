@@ -13,6 +13,13 @@
       "usePlaceItems": [
         "b15c8f72-df53-4f3a-810f-55a76f65d2ce"
       ]
+    },
+    {
+      "placeMode": "ElectricWireConnect",
+      "priority": 400,
+      "usePlaceItems": [
+        "00000000-0000-0000-4649-000000000001"
+      ]
     }
   ]
 }

@@ -13,6 +13,7 @@
         "Game.Block.Interface",
         "Game.Crafting",
         "Game.Crafting.Interface",
+        "Game.EnergySystem",
         "Game.Entity",
         "Game.Entity.Interface",
         "Game.Paths",

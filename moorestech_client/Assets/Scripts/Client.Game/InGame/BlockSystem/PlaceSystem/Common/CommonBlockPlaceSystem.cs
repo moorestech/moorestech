@@ -29,6 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
+        private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
@@ -44,6 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
+            _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore);
         }
         
         public void Enable()
@@ -57,6 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))
             {
                 _previewBlockController.SetActive(false);
+                _autoConnectPreview.Hide();
             }
 
             // 連続設置状態をリセット
@@ -105,13 +108,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
-            
+
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.HoldingItemId);
-            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return;
-            
+            if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) { _autoConnectPreview.Hide(); return; }
+
             // 設置可能な距離かどうか
-            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) return;
+            if (!IsBlockPlaceableDistance(PlaceableMaxDistance)) { _autoConnectPreview.Hide(); return; }
             
             _previewBlockController.SetActive(true);
             
@@ -144,10 +147,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
             MarkInsufficientItemPreviewsAsNotPlaceable();
 
+            // 各セルの自動接続を評価し表示更新
+            // Evaluate auto-connect per cell and update the preview
+            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, MasterHolder.BlockMaster.GetBlockId(context.HoldingItemId), _currentBlockDirection, _localPlayerInventory, placePoint);
+
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
             _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
-            
+
             // 設置するブロックをサーバーに送信
             // send block place info to server
             PlaceBlock();
@@ -192,9 +199,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Skip sending in debug mode
                 if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
 
+                // マウスを離したので連続設置状態は解除する（設置有無に関わらず）
+                // Clear the continuous-placement state on mouse release (regardless of whether we place)
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
+
+                // 電線不足で全セル設置不可なら設置クリックを無効化する（サーバーも拒否するが先回りで抑止）
+                // Disable the placement click when no cell is placeable due to wire shortage (server also rejects, but block early)
+                if (!wirePlaceable) return;
+
                 SendPlaceProtocol(_currentPlaceInfos, context);
+
+                // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
+                // Placement changes the world and inventory, so drop the auto-connect evaluation cache
+                _autoConnectPreview.Hide();
             }
 
             void MarkInsufficientItemPreviewsAsNotPlaceable()

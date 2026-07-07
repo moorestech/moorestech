@@ -1,261 +1,142 @@
-using System.Collections.Generic;
-using Core.Master;
+using System;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
-using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
-using System;
 
 namespace Tests.CombinedTest.Game
 {
+    // 明示接続でセグメントが形成・マージされるか検証
+    // Verify that explicit wire connections form and merge energy segments
     public class ConnectElectricSegmentTest
     {
-        //電柱を設置し、電柱に接続するテスト
+        // 電柱同士を繋ぐと1つのセグメントに統合される
+        // Wiring poles together merges them into a single segment
         [Test]
-        public void PlaceElectricPoleToPlaceElectricPoleTest()
+        public void PoleToPoleConnectionMergesIntoSingleSegment()
         {
-            var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            //範囲内の電柱
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole1);
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole2);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole3);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(-3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole4);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole5);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, -3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole6);
-            
-            //範囲外の電柱
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(7, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole7);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(-7, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole8);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 7), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole9);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, -7), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole10);
-            
-            IBlock[] poles =
-            {
-                pole1, pole2, pole3, pole4, pole5, pole6, pole7, pole8, pole9, pole10,
-            };
-            IBlock[] inRangePoles =
-            {
-                pole1,
-                pole2,
-                pole3,
-                pole4,
-                pole5,
-                pole6,
-            };
-            IBlock[] outOfRangePoles =
-            {
-                pole7,
-                pole8,
-                pole9,
-                pole10,
-            };
-            
-            IWorldEnergySegmentDatastore<EnergySegment> worldElectricSegment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
-            //セグメントの数を確認
-            Assert.AreEqual(5, worldElectricSegment.GetEnergySegmentListCount());
-            
-            var segment = worldElectricSegment.GetEnergySegment(0);
-            //電柱を取得する
-            IReadOnlyDictionary<BlockInstanceId, IElectricTransformer> electricPoles = segment.EnergyTransformers;
-            
-            //存在する電柱の数の確認
-            //存在している電柱のIDの確認
-            foreach (var pole in inRangePoles) Assert.AreEqual(true, electricPoles.ContainsKey(pole.BlockInstanceId));
-            
-            //存在しない電柱のIDの確認
-            foreach (var pole in outOfRangePoles) Assert.AreEqual(false, electricPoles.ContainsKey(pole.BlockInstanceId));
-            
-            //範囲外同士の接続確認
-            //セグメント繋がる位置に電柱を設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(5, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole11);
-            //セグメントの数を確認
-            Assert.AreEqual(4, worldElectricSegment.GetEnergySegmentListCount());
-            //マージ後のセグメント、電柱を取得
-            segment = worldElectricSegment.GetEnergySegment(3);
-            electricPoles = segment.EnergyTransformers;
-            //存在する電柱の数の確認
-            Assert.AreEqual(8, electricPoles.Count);
-            //マージされた電柱のIDの確認
-            Assert.AreEqual(true, electricPoles.ContainsKey(pole7.BlockInstanceId));
-            Assert.AreEqual(true, electricPoles.ContainsKey(pole11.BlockInstanceId));
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole3);
+
+            // 未接続なので3ブロックがそれぞれ独立セグメントを持つ
+            // With no wires yet, all three poles are separate segments
+            Assert.AreEqual(3, networkDatastore.SegmentCount);
+
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
+            ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
+
+            // 鎖状に繋いだので1セグメントに統合される
+            // Chained wiring collapses them into one segment
+            Assert.AreEqual(1, networkDatastore.SegmentCount);
+
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment));
+            var transformers = segment.EnergyTransformers;
+            Assert.AreEqual(3, transformers.Count);
+            Assert.IsTrue(transformers.ContainsKey(pole1.BlockInstanceId));
+            Assert.IsTrue(transformers.ContainsKey(pole2.BlockInstanceId));
+            Assert.IsTrue(transformers.ContainsKey(pole3.BlockInstanceId));
         }
-        
-        //電柱を設置した後に機械、発電機を設置するテスト
+
+        // 電柱に機械・発電機を繋ぐと同一セグメントに登録
+        // Wiring machines and generators to a pole registers them as consumers and generators in the same segment
         [Test]
-        public void PlaceElectricPoleToPlaceMachineTest()
+        public void MachineAndGeneratorJoinPoleSegment()
         {
-            var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            //起点となる電柱の設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var originElectricPole);
-            
-            //周りに機械を設置
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeMachine0);
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(-2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeMachine1);
-            //周りに発電機を設置
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeGenerator0);
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeGenerator1);
-            
-            //範囲外に機械を設置
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeMachine0);
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(-3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeMachine1);
-            //範囲外に発電機を設置
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeGenerator0);
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, -3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeGenerator1);
-            
-            IWorldEnergySegmentDatastore<EnergySegment> segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
-            //範囲内の設置
-            var segment = segmentDatastore.GetEnergySegment(0);
-            //機械、発電機を取得する
-            IReadOnlyDictionary<BlockInstanceId, IElectricConsumer> electricBlocks = segment.Consumers;
-            IReadOnlyDictionary<BlockInstanceId, IElectricGenerator> powerGeneratorBlocks = segment.Generators;
-            
-            
-            //存在する機械の数の確認
-            Assert.AreEqual(2, electricBlocks.Count);
-            Assert.AreEqual(2, powerGeneratorBlocks.Count);
-            //存在している機械のIDの確認
-            Assert.AreEqual(true, electricBlocks.ContainsKey(inRangeMachine0.BlockInstanceId));
-            Assert.AreEqual(true, electricBlocks.ContainsKey(inRangeMachine1.BlockInstanceId));
-            Assert.AreEqual(true, powerGeneratorBlocks.ContainsKey(inRangeGenerator0.BlockInstanceId));
-            Assert.AreEqual(true, powerGeneratorBlocks.ContainsKey(inRangeGenerator1.BlockInstanceId));
-            
-            //範囲外の機械、発電機が繋がるように電柱を設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole1);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(1, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole2);
-            
-            segment = segmentDatastore.GetEnergySegment(0);
-            electricBlocks = segment.Consumers;
-            powerGeneratorBlocks = segment.Generators;
-            //存在する機械の数の確認
-            Assert.AreEqual(1, segmentDatastore.GetEnergySegmentListCount());
-            Assert.AreEqual(3, electricBlocks.Count);
-            Assert.AreEqual(3, powerGeneratorBlocks.Count);
-            //追加されたIDの確認
-            Assert.AreEqual(true, electricBlocks.ContainsKey(outOfRangeMachine0.BlockInstanceId));
-            Assert.AreEqual(true, powerGeneratorBlocks.ContainsKey(outOfRangeGenerator0.BlockInstanceId));
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole);
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generator);
+
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, 2));
+
+            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var segment));
+            Assert.AreEqual(1, segment.Consumers.Count);
+            Assert.AreEqual(1, segment.Generators.Count);
+            Assert.IsTrue(segment.Consumers.ContainsKey(machine.BlockInstanceId));
+            Assert.IsTrue(segment.Generators.ContainsKey(generator.BlockInstanceId));
         }
-        
-        //機械、発電機を設置した後に電柱を設置するテスト
+
+        // 2セグメントを電柱で橋渡しすると1つにマージされる
+        // Bridging two independently-built segments with a pole merges them into one
         [Test]
-        public void PlaceMachineToPlaceElectricPoleTest()
+        public void BridgingTwoSegmentsMergesConsumersAndGenerators()
         {
-            var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            
-            //周りに機械を設置
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeMachine0);
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(-2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeMachine1);
-            //周りに発電機を設置
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeGenerator0);
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var inRangeGenerator1);
-            
-            //範囲外に機械を設置
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeMachine0);
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(-3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeMachine1);
-            //範囲外に発電機を設置
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeGenerator0);
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, -3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outOfRangeGenerator1);
-            
-            //起点となる電柱の設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var originPole);
-            
-            
-            //範囲内の設置
-            var segment = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>()
-                .GetEnergySegment(0);
-            //リフレクションで機械を取得する
-            IReadOnlyDictionary<BlockInstanceId, IElectricConsumer> electricBlocks = segment.Consumers;
-            IReadOnlyDictionary<BlockInstanceId, IElectricGenerator> powerGeneratorBlocks = segment.Generators;
-            
-            
-            //存在する機械の数の確認
-            Assert.AreEqual(2, electricBlocks.Count);
-            Assert.AreEqual(2, powerGeneratorBlocks.Count);
-            //存在している機械のIDの確認
-            Assert.AreEqual(true, electricBlocks.ContainsKey(inRangeMachine0.BlockInstanceId));
-            Assert.AreEqual(true, electricBlocks.ContainsKey(inRangeMachine1.BlockInstanceId));
-            Assert.AreEqual(true, powerGeneratorBlocks.ContainsKey(inRangeGenerator0.BlockInstanceId));
-            Assert.AreEqual(true, powerGeneratorBlocks.ContainsKey(inRangeGenerator1.BlockInstanceId));
-        }
-        
-        //別々のセグメント同士を電柱でつなぐテスト
-        [Test]
-        public void SegmentConnectionTest()
-        {
-            var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            //一つ目のセグメントを設置
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+
+            // 1つ目のセグメント
+            // First segment
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            //周りに機械と発電機を設置
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            
-            //二つ目のセグメントを設置
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, 2));
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, -2));
+
+            // 2つ目のセグメント
+            // Second segment
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(6, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            //周りに機械と発電機を設置
-            worldBlockDatastore.TryAddBlock(MachineId, Pos(7, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(7, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            
-            IWorldEnergySegmentDatastore<EnergySegment> segmentDatastore = saveServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
-            //セグメントの数を確認
-            Assert.AreEqual(2, segmentDatastore.GetEnergySegmentListCount());
-            
-            //セグメント同士をつなぐ電柱を設置
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            //セグメントの数を確認
-            Assert.AreEqual(1, segmentDatastore.GetEnergySegmentListCount());
-            //セグメントを取得
-            var segment = segmentDatastore.GetEnergySegment(0);
-            //機械、発電機の数を確認
+            worldBlockDatastore.TryAddBlock(MachineId, Pos(6, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(GeneratorId, Pos(6, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole2);
+            ElectricWireTestUtil.Connect(Pos(6, 0), Pos(6, 2));
+            ElectricWireTestUtil.Connect(Pos(6, 0), Pos(6, -2));
+
+            Assert.AreEqual(2, networkDatastore.SegmentCount);
+
+            // 2つの電柱を橋渡し
+            // Bridge the two poles
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(6, 0));
+
+            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole2.BlockInstanceId, out var segment));
             Assert.AreEqual(2, segment.Consumers.Count);
             Assert.AreEqual(2, segment.Generators.Count);
         }
-        
-        
-        // セーブ、ロードしてて別々の電柱同士を電柱でつなぐテスト
+
+        // ロード後にワイヤー接続が復元されセグメント再形成
+        // After save/load the wire connections are restored and the segment reforms
         [Test]
-        public void SaveLoadSegmentElectricPoleConnectionTest()
+        public void SaveLoadRestoresWiredSegment()
         {
-            var (_, saveServiceProvider) =
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
-            // 電柱を設置
+
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(6, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(3, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
+            ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
 
             var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
-            
-            // セーブデータをロード
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 
-            var segmentDatastore = loadServiceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
-            var segment = segmentDatastore.GetEnergySegment(0);
-            Assert.AreEqual(1, segmentDatastore.GetEnergySegmentListCount());
+            var networkDatastore = loadServiceProvider.GetService<IElectricWireNetworkDatastore>();
+            var loadedPole = ServerContext.WorldBlockDatastore.GetBlock(Pos(0, 0));
+
+            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(loadedPole.BlockInstanceId, out var segment));
             Assert.AreEqual(3, segment.EnergyTransformers.Count);
         }
-        
+
         private static Vector3Int Pos(int x, int z)
         {
             return new Vector3Int(x, 0, z);

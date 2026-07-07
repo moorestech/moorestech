@@ -109,7 +109,9 @@
         "innerTankCapacity": 0,
         "innerTankCount": 0,
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000001",
       "blockGuid": "00000000-0000-0000-0000-000000000001",
@@ -259,7 +261,9 @@
         "machineConnectionRange": 5,
         "poleConnectionRange": 7,
         "poleConnectionHeightRange": 5,
-        "machineConnectionHeightRange": 5
+        "machineConnectionHeightRange": 5,
+        "maxWireConnectionCount": 8,
+        "maxWireLength": 12
       },
       "itemGuid": "00000000-0000-0000-1234-000000000004",
       "blockGuid": "00000000-0000-0000-0000-000000000004",
@@ -357,7 +361,9 @@
             "time": 2,
             "power": 200
           }
-        ]
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000005",
       "blockGuid": "00000000-0000-0000-0000-000000000005",
@@ -432,7 +438,9 @@
             }
           ],
           "inputConnects": []
-        }
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000006",
       "blockGuid": "00000000-0000-0000-0000-000000000006",
@@ -567,7 +575,7 @@
         "inputItemSlotCount": 1,
         "fuelItemSlotCount": 4,
         "isInfinityPower": true,
-        "infinityPower": 10,
+        "infinityPower": 100000,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -651,7 +659,9 @@
             "time": 2,
             "power": 200
           }
-        ]
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
       "blockGuid": "00000000-0000-0000-0000-000000000008",
@@ -751,7 +761,9 @@
             "time": 2,
             "power": 200
           }
-        ]
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "overrideVerticalBlock": {}
     },
@@ -838,7 +850,9 @@
             "time": 2,
             "power": 200
           }
-        ]
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "overrideVerticalBlock": {}
     },
@@ -935,7 +949,9 @@
             "time": 2,
             "power": 200
           }
-        ]
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "overrideVerticalBlock": {}
     },
@@ -2364,7 +2380,9 @@
         "innerTankCapacity": 0,
         "innerTankCount": 0,
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "11900000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000019",
@@ -2479,7 +2497,9 @@
         "innerTankCount": 0,
         "innerTankCapacity": 0,
         "outputTankCount": 0,
-        "inputTankCount": 0
+        "inputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "12010000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
@@ -2594,7 +2614,9 @@
         "innerTankCount": 0,
         "innerTankCapacity": 0,
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "12102000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
@@ -3234,7 +3256,9 @@
           ]
         },
         "outputTankCount": 2,
-        "inputTankCount": 3
+        "inputTankCount": 3,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
@@ -3663,7 +3687,9 @@
             }
           ],
           "inflowConnects": []
-        }
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       }
     },
     {
@@ -3729,7 +3755,9 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        }
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "overrideVerticalBlock": {}
     },
@@ -4234,7 +4262,9 @@
               "connectorGuid": "72231375-1dcb-4af7-8314-9eaa783116e9"
             }
           ]
-        }
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
       "overrideVerticalBlock": {}
     },
@@ -4489,6 +4519,12 @@
           "blockGuid": "00000000-0000-0000-0000-000000000004"
         }
       ]
+    }
+  ],
+  "electricWireItems": [
+    {
+      "itemGuid": "00000000-0000-0000-4649-000000000001",
+      "consumptionPerLength": 1
     }
   ]
 }

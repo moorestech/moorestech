@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
+using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Component;
@@ -32,11 +33,16 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new VanillaElectricGeneratorComponent(blockInstanceId, blockPositionInfo, param)
                 : new VanillaElectricGeneratorComponent(componentStates, blockInstanceId, blockPositionInfo, param);
 
+            // 発電機はGenerator役をワイヤー端点に渡す
+            // Generator passes the generator role to the wire endpoint
+            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, generatorComponent, componentStates);
+
             var components = new List<IBlockComponent>
             {
                 generatorComponent,
                 inventoryConnectorComponent,
                 fluidConnectorComponent,
+                wireConnector,
             };
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
