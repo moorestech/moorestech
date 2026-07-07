@@ -44,3 +44,15 @@
 
 - uGUI 側の半分掴み実装（`SplitGrabActionHandler` が委譲する先）と数量セマンティクスを変えないこと。狙いは計算場所の統一のみ
 - 台帳エントリ: `TODO.md` 2a「品質フォロー」の該当行。着手時はこのドキュメントを正とする
+
+## 検証記録（2026-07-07 実コード裏取り済み）
+
+本ドキュメントの全主張を実コードと突き合わせて検証済み。行番号は 2026-07-07 時点（ドリフトし得るのでシンボル名で探すこと）。
+
+- 分裂の記述: `blockSlotPlan.ts` `planBlockRightClick`（床計算+`block_inventory.move_item`・分岐点コメント実在）/ `playerSlotPlan.ts` `planPlayerRightClick`（count なし `inventory.split`）で一致
+- C# 側: `SplitGrabActionHandler`（`InventoryActions.cs`、ActionType `"inventory.split"`、`item.Count / 2` の整数除算=床）、登録は `WebUiGameBinder.cs` の `hub.RegisterAction(...)`。`BlockInventoryActions.cs` は記載パスに実在し `BlockAreaSlotParser` を使用
+- プロトコル: `protocol.ts` に `ActionPayloads` / `ACTION_TYPES`（`satisfies`）/ `ActionTypesExhaustive`（never 制約）が実在、網羅チェックの説明は正確
+- テスト: `blockSlotPlan.test.ts` 実在。e2e は `e2e/tests/block/` 配下（`blockInventoryGestures.spec.ts` は Wood×7→count:3 を `toContainEqual` で payload 等値照合し grab-overlay 表示も検証、`machineGestures.spec.ts` に入力スロット右クリケース実在）
+- 検証で発見・訂正済みの誤り2件（訂正コミット `dd319bf40`）:
+  1. 手順3の旧記述「既存 `inventory.split` 分岐が手本」→ mock-host に split 適用は存在しなかった（現手順3が正）
+  2. 手順5の旧記述「契約テストに新 action を追加」→ action フィクスチャ機構は存在しない（現手順5のエラーコード追随のみが正）
