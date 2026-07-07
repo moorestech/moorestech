@@ -15,6 +15,8 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 using Object = UnityEngine.Object;
 
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+
 namespace Client.Game.InGame.Context
 {
     /// <summary>

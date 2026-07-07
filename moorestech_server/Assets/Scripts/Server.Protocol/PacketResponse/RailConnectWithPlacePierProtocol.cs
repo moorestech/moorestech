@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse

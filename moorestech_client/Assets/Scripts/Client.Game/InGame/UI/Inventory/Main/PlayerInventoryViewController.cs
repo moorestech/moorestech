@@ -22,8 +22,8 @@ namespace Client.Game.InGame.UI.Inventory.Main
     public class PlayerInventoryViewController : MonoBehaviour
     {
         [SerializeField] private GameObject mainInventoryObject;
-        
-        [SerializeField] private List<ItemSlotView> mainInventorySlotObjects;
+
+        [SerializeField] private PlayerInventoryMainSlotsView mainSlotsView;
         [SerializeField] private ItemSlotView grabInventorySlotView;
         
         public Transform SubInventoryParent => subInventoryParent.transform;
@@ -51,7 +51,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         private void Awake()
         {
-            foreach (var mainInventorySlotObject in mainInventorySlotObjects) mainInventorySlotObject.OnPointerEvent.Subscribe(ItemSlotUIEvent);
+            // 動的生成スロットのUI購読
+            // Subscribe UI of generated slots
+            mainSlotsView.OnSlotViewCreated.Subscribe(slotView => slotView.OnPointerEvent.Subscribe(ItemSlotUIEvent));
 
             //整理ボタンのクリックでメイン＋開いているサブインベントリを整理する
             //Clicking the sort button tidies the main and currently open sub inventory.
@@ -76,10 +78,10 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private void ItemSlotUIEvent((ItemSlotView slotObject, ItemUIEventType itemUIEvent) eventProperty)
         {
             var (slotObject, itemUIEvent) = eventProperty;
-            var index = mainInventorySlotObjects.IndexOf(slotObject);
+            var index = IndexOfMainSlotView();
             if (index == -1)
-                index = mainInventorySlotObjects.Count + _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
-            
+                index = mainSlotsView.SlotViews.Count + _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
+
             if (index == -1) throw new Exception("slot index not found");
             switch (itemUIEvent)
             {
@@ -105,6 +107,21 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 case ItemUIEventType.CursorMove: break;
                 default: throw new ArgumentOutOfRangeException(nameof(itemUIEvent), itemUIEvent, null);
             }
+
+            #region Internal
+
+            int IndexOfMainSlotView()
+            {
+                // IReadOnlyListにIndexOfが無いため手動で探索する
+                // Search manually because IReadOnlyList has no IndexOf
+                for (var i = 0; i < mainSlotsView.SlotViews.Count; i++)
+                {
+                    if (mainSlotsView.SlotViews[i] == slotObject) return i;
+                }
+                return -1;
+            }
+
+            #endregion
         }
         
         
@@ -314,38 +331,35 @@ namespace Client.Game.InGame.UI.Inventory.Main
             
             InventoryType GetInventoryType(int index, bool hasSub)
             {
-                if (hasSub && index >= PlayerInventoryConst.MainInventorySize)
+                var mainSlotCount = _playerInventory.LocalPlayerInventory.MainSlotCount;
+                if (hasSub && mainSlotCount <= index)
                     return InventoryType.SubInventory;
-                
+
                 // ホットバーの判定
-                if (PlayerInventoryConst.IsHotBarSlot(index))
+                if (_playerInventory.LocalPlayerInventory.IsHotBarSlot(index))
                     return InventoryType.HotBar;
-                
+
                 return InventoryType.MainInventory;
             }
-            
+
             (int start, int end) GetTargetRange(InventoryType source, bool hasSub)
             {
+                var mainSlotCount = _playerInventory.LocalPlayerInventory.MainSlotCount;
+                var hotBarStart = PlayerInventoryConst.HotBarSlotToInventorySlot(0, mainSlotCount);
                 switch (source)
                 {
                     case InventoryType.MainInventory:
                         // メインインベントリから：サブがあればサブへ、なければホットバーへ
-                        if (hasSub)
-                            return (PlayerInventoryConst.MainInventorySize, PlayerInventoryConst.MainInventorySize + _subInventory.Count);
-                        else
-                            return ((PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns, PlayerInventoryConst.MainInventorySize);
-                    
+                        return hasSub ? (mainSlotCount, mainSlotCount + _subInventory.Count) : (hotBarStart, mainSlotCount);
+
                     case InventoryType.HotBar:
                         // ホットバーから：サブがあればサブへ、なければメインインベントリへ
-                        if (hasSub)
-                            return (PlayerInventoryConst.MainInventorySize, PlayerInventoryConst.MainInventorySize + _subInventory.Count);
-                        else
-                            return (0, (PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns);
-                    
+                        return hasSub ? (mainSlotCount, mainSlotCount + _subInventory.Count) : (0, hotBarStart);
+
                     case InventoryType.SubInventory:
                         // サブインベントリから：メインインベントリへ（ホットバーを除く）
-                        return (0, (PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns);
-                    
+                        return (0, hotBarStart);
+
                     default:
                         return (0, 0);
                 }
@@ -413,18 +427,22 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         private void InventoryViewUpdate()
         {
+            // スロット数変化でビュー生成
+            // Build views when slot count changes
+            mainSlotsView.SetSlotCount(_playerInventory.LocalPlayerInventory.MainSlotCount);
+
             for (var i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
             {
                 var item = _playerInventory.LocalPlayerInventory[i];
                 var itemView = ClientContext.ItemImageContainer.GetItemView(item.Id);
-                
-                if (i < mainInventorySlotObjects.Count)
+
+                if (i < mainSlotsView.SlotViews.Count)
                 {
-                    mainInventorySlotObjects[i].SetItem(itemView, item.Count);
+                    mainSlotsView.SlotViews[i].SetItem(itemView, item.Count);
                 }
                 else
                 {
-                    var subIndex = i - mainInventorySlotObjects.Count;
+                    var subIndex = i - mainSlotsView.SlotViews.Count;
                     _subInventory.SubInventorySlotObjects[subIndex].SetItem(itemView, item.Count);
                 }
             }

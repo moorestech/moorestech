@@ -59,6 +59,8 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Util.MessagePack;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
+
 namespace Server.Boot
 {
     public class MoorestechServerDIContainerOptions
@@ -134,6 +136,7 @@ namespace Server.Boot
             // Register gameplay services.
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
+            services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();

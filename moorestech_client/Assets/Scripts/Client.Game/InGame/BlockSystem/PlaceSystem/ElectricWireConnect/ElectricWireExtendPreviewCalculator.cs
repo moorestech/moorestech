@@ -7,6 +7,9 @@ using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 {
     /// <summary>

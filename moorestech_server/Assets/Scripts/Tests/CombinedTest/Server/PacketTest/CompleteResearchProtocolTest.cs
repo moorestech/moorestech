@@ -19,7 +19,9 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class CompleteResearchProtocolTest
     {
-        private const int ResearchNodeCount = 4;
+        // ForUnitTestのresearch.json定義ノード数（スロットレベル解放ノード含む）
+        // Node count defined in ForUnitTest research.json (includes the slot level unlock node)
+        private const int ResearchNodeCount = 5;
 
         [Test]
         public void CompleteResearchTest()

@@ -7,6 +7,9 @@ using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>

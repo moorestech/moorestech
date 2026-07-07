@@ -8,6 +8,9 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
+
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>

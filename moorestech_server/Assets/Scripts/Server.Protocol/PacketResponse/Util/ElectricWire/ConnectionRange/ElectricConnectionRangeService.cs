@@ -3,7 +3,7 @@ using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange
 {
     public static class ElectricConnectionRangeService
     {

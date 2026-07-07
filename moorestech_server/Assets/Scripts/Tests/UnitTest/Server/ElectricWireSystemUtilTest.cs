@@ -13,6 +13,9 @@ using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module.TestMod;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Tests.UnitTest.Server
 {
     /// <summary>

@@ -32,7 +32,7 @@ namespace Game.Block.Factory.BlockTemplate
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, minerProcessorComponent);
             // 採掘機はConsumer役をワイヤー端点に渡す
             // Miner passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, null, null, null);
+            var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, null);
             var components = new List<IBlockComponent>
             {
                 minerProcessorComponent,
@@ -56,7 +56,7 @@ namespace Game.Block.Factory.BlockTemplate
             var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, minerProcessorComponent);
             // 採掘機はConsumer役をワイヤー端点に渡す
             // Miner passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, null, null, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, componentStates);
             var components = new List<IBlockComponent>
             {
                 minerProcessorComponent,
