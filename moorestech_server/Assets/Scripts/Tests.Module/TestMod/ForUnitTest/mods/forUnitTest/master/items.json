@@ -620,5 +620,9 @@
         "adf11728-e5e7-b180-b6e1-7396d29e787d"
       ]
     }
+  ],
+  "playerInventorySlotLevels": [
+    { "slotCount": 45 },
+    { "slotCount": 54 }
   ]
 }

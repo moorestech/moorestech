@@ -14,8 +14,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         public IItemStack this[int index] { get; }
         public IObservable<int> OnItemChange { get; }
-        
+
         public int Count { get; }
+        public int MainSlotCount { get; }
         public bool IsItemExist(ItemId itemId, int itemSlot);
     }
     
@@ -28,18 +29,34 @@ namespace Client.Game.InGame.UI.Inventory.Main
         private readonly Subject<int> _onItemChange = new();
         
         public int Count => _mainInventory.Count + _subInventory.Count;
-        
+        public int MainSlotCount => _mainInventory.Count;
+
         private readonly List<IItemStack> _mainInventory;
         private ISubInventory _subInventory;
-        
+
         public LocalPlayerInventory()
         {
             _mainInventory = new List<IItemStack>();
-            
+
+            // 初期値はレベル0スロット数（暫定）
+            // Initial value is provisional (level-0 count)
             var itemStackFactory = ServerContext.ItemStackFactory;
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) _mainInventory.Add(itemStackFactory.CreatEmpty());
-            
+            var initialSlotCount = PlayerInventorySlotLevelMasterUtil.GetSlotCount(0);
+            for (var i = 0; i < initialSlotCount; i++) _mainInventory.Add(itemStackFactory.CreatEmpty());
+
             _subInventory = new EmptySubInventory();
+        }
+
+        public void EnsureMainSlotCount(int slotCount)
+        {
+            // レベルアップ時に末尾拡張
+            // Grow tail slots on level-up
+            var itemStackFactory = ServerContext.ItemStackFactory;
+            while (_mainInventory.Count < slotCount)
+            {
+                _mainInventory.Add(itemStackFactory.CreatEmpty());
+                _onItemChange.OnNext(_mainInventory.Count - 1);
+            }
         }
         
         public IEnumerator<IItemStack> GetEnumerator()
@@ -123,8 +140,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public void SetMainInventory(List<IItemStack> mainInventoryList)
         {
+            // 古いレスポンスが拡張後に適用されても縮小しない（メインは縮まない不変条件）
+            // Never shrink even when a stale response lands after expansion (main never shrinks)
+            var beforeCount = _mainInventory.Count;
             _mainInventory.Clear();
             _mainInventory.AddRange(mainInventoryList);
+            EnsureMainSlotCount(beforeCount);
         }
         
     }
