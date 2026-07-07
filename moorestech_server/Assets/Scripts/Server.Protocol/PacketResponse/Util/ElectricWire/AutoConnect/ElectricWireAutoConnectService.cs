@@ -21,7 +21,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
     /// </summary>
     public static class ElectricWireAutoConnectService
     {
-        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, ItemId placingItemId, IReadOnlyList<IItemStack> inventoryItems)
+        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems)
         {
             // 電線アイテム未設定のマスタでは自動接続なしで設置を許可する
             // With no wire items configured, allow placement without auto-connect
@@ -66,9 +66,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                     var candidateItemId = MasterHolder.ItemMaster.GetItemId(electricWireItem.ItemGuid);
                     if (!TryBuildTargets(candidateItemId, out var builtTargets, out var totalRequired)) continue;
 
-                    // 設置ブロックと電線が同一アイテムなら設置分の1個を上乗せして判定する
-                    // Require one extra when the placed block shares the wire item
-                    var requiredTotal = totalRequired + (candidateItemId == placingItemId ? 1 : 0);
+                    // 建設コスト等で予約済みの数量を上乗せして所持数を判定する
+                    // Add quantities reserved by construction costs when judging held counts
+                    var reservedCount = 0;
+                    foreach (var reserved in reservedItems)
+                    {
+                        if (reserved.itemId == candidateItemId) reservedCount += reserved.count;
+                    }
+                    var requiredTotal = totalRequired + reservedCount;
                     if (!HasEnoughItem(candidateItemId, requiredTotal)) continue;
 
                     selectedTargets = builtTargets;

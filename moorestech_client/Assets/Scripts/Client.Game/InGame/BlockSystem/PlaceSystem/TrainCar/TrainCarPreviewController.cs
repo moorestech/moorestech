@@ -14,18 +14,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private GameObject _previewObject;
         private TrainCarRailPositionVisualPoseUpdater _poseUpdater;
         private TrainCarMaterialController _materialController;
-        private ItemId _currentItemId;
+        private Guid _currentTrainCarGuid;
 
         public void SetActive(bool isActive)
         {
             gameObject.SetActive(isActive);
         }
 
-        public bool ShowPreview(ItemId itemId, RailPosition railPosition, bool isPlaceable)
+        public bool ShowPreview(Guid trainCarGuid, RailPosition railPosition, bool isPlaceable)
         {
-            // 必要な時だけ preview Prefab を生成し、同じ item 中は再利用する
-            // Instantiate the preview Prefab only when needed and reuse it for the same item
-            if (!TryPreparePreviewObject(itemId, out _))
+            // 必要な時だけ preview Prefab を生成し、同じ車両 Guid 中は再利用する
+            // Instantiate the preview Prefab only when needed and reuse it for the same car guid
+            if (!TryPreparePreviewObject(trainCarGuid, out _))
             {
                 return false;
             }
@@ -52,17 +52,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             #region Internal
 
-            bool TryPreparePreviewObject(ItemId targetItemId, out TrainCarMasterElement trainCarMasterElement)
+            bool TryPreparePreviewObject(Guid targetTrainCarGuid, out TrainCarMasterElement trainCarMasterElement)
             {
                 trainCarMasterElement = null;
-                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(targetItemId, out trainCarMasterElement))
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(targetTrainCarGuid, out trainCarMasterElement))
                 {
                     return false;
                 }
 
-                // item が変わっていなければ object と material cache をそのまま使う
-                // Reuse the object and material cache while the item is unchanged
-                if (_previewObject != null && targetItemId.Equals(_currentItemId))
+                // 車両 Guid が変わっていなければ object と material cache をそのまま使う
+                // Reuse the object and material cache while the car guid is unchanged
+                if (_previewObject != null && targetTrainCarGuid.Equals(_currentTrainCarGuid))
                 {
                     return true;
                 }
@@ -78,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 _previewObject = Instantiate(prefab, transform);
                 _previewObject.transform.localPosition = Vector3.zero;
                 _previewObject.transform.localRotation = Quaternion.identity;
-                _currentItemId = targetItemId;
+                _currentTrainCarGuid = targetTrainCarGuid;
                 _poseUpdater = ResolvePoseUpdater(_previewObject, trainCarMasterElement);
                 _materialController = new TrainCarMaterialController(_previewObject);
                 DisableColliders(_previewObject);

@@ -11,7 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     public readonly struct GearChainPoleExtendSendCommand
     {
         public readonly Vector3Int? FromPos;
-        public readonly int PoleSlot;
+        public readonly BlockId PoleBlockId;
         public readonly PlaceInfo PlaceInfo;
         public readonly ItemId ChainItemId;
 
@@ -19,10 +19,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         // Do not hand over the placed pole as the next source when it reaches its connection limit immediately
         public readonly bool CanContinueExtension;
 
-        public GearChainPoleExtendSendCommand(Vector3Int? fromPos, int poleSlot, PlaceInfo placeInfo, ItemId chainItemId, bool canContinueExtension)
+        public GearChainPoleExtendSendCommand(Vector3Int? fromPos, BlockId poleBlockId, PlaceInfo placeInfo, ItemId chainItemId, bool canContinueExtension)
         {
             FromPos = fromPos;
-            PoleSlot = poleSlot;
+            PoleBlockId = poleBlockId;
             PlaceInfo = placeInfo;
             ChainItemId = chainItemId;
             CanContinueExtension = canContinueExtension;

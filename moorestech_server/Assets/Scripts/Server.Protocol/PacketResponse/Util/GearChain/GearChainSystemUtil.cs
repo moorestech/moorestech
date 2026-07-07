@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             var connectionDistance = Vector3Int.Distance(posA, posB);
             var alreadyConnected = poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId);
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(connectionDistance, poleA.MaxConnectionDistance, poleB.MaxConnectionDistance, alreadyConnected, poleA.IsConnectionFull || poleB.IsConnectionFull, itemId, inventory.InventoryItems, ItemMaster.EmptyItemId);
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(connectionDistance, poleA.MaxConnectionDistance, poleB.MaxConnectionDistance, alreadyConnected, poleA.IsConnectionFull || poleB.IsConnectionFull, itemId, inventory.InventoryItems, Array.Empty<(ItemId itemId, int count)>());
             if (!judgement.IsPlaceable)
             {
                 error = judgement.FailureReason;

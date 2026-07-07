@@ -11,6 +11,17 @@
       "defaultContainerType": "None",
       "fluidCapacity": 0,
       "ridableSeatCount": 0,
+      "initialUnlocked": true,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 3
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 2
+        }
+      ],
       "trainFuelItems": [
         {
           "itemGuid": "00000000-0000-0000-1234-000000000001",

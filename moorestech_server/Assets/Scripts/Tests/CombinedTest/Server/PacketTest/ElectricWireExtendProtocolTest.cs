@@ -26,14 +26,14 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class ElectricWireExtendProtocolTest
     {
         private const int PlayerId = 9;
-        private const int PoleSlot = 3;
+        private const int MaterialSlot = 3;
         private const int WireSlot = 4;
-        private static readonly Guid PoleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
+        private static readonly Guid MaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱の建設コスト×1)
         private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
 
         private ServiceProvider _serviceProvider;
         private PacketResponseCreator _packet;
-        private ItemId _poleItemId;
+        private ItemId _materialItemId;
         private ItemId _wireItemId;
 
         [SetUp]
@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _serviceProvider = serviceProvider;
             _packet = packet;
-            _poleItemId = MasterHolder.ItemMaster.GetItemId(PoleItemGuid);
+            _materialItemId = MasterHolder.ItemMaster.GetItemId(MaterialGuid);
             _wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
         }
 
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 
-            var inventory = SetupInventory(poleCount: 1, wireCount: 10);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 10);
             var fromConnector = fromPole.GetComponent<IElectricWireConnector>();
             var machineConnector = machine.GetComponent<IElectricWireConnector>();
 
@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(machineConnector.ContainsWireConnection(newConnector.BlockInstanceId));
             Assert.AreEqual(2, newConnector.WireConnections.Count);
             Assert.AreEqual(4, CountItem(inventory, _wireItemId));
-            Assert.AreEqual(0, CountItem(inventory, _poleItemId));
+            Assert.AreEqual(0, CountItem(inventory, _materialItemId));
         }
 
         [Test]
@@ -90,13 +90,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Place a pole without origin in empty space with nothing nearby
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var newPolePos = new Vector3Int(50, 0, 50);
-            var inventory = SetupInventory(poleCount: 1, wireCount: 0);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 0);
 
             var response = SendIsolatedPlace(newPolePos);
 
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
             Assert.IsTrue(worldBlockDatastore.Exists(newPolePos));
-            Assert.AreEqual(0, CountItem(inventory, _poleItemId));
+            Assert.AreEqual(0, CountItem(inventory, _materialItemId));
 
             var newPole = worldBlockDatastore.GetBlock(newPolePos);
             Assert.AreEqual(0, newPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
@@ -112,7 +112,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var newPolePos = new Vector3Int(3, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, existingPolePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var existingPole);
 
-            var inventory = SetupInventory(poleCount: 1, wireCount: 10);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 10);
             var response = SendIsolatedPlace(newPolePos);
 
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(newConnector.ContainsWireConnection(existingConnector.BlockInstanceId));
             Assert.IsTrue(existingConnector.ContainsWireConnection(newConnector.BlockInstanceId));
             Assert.AreEqual(7, CountItem(inventory, _wireItemId));
-            Assert.AreEqual(0, CountItem(inventory, _poleItemId));
+            Assert.AreEqual(0, CountItem(inventory, _materialItemId));
         }
 
         [Test]
@@ -139,7 +139,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 電線を必要数ちょうど（距離2＝2本）にし、二重計上なら検証で弾かれ失敗する
             // Hold exactly the needed wires (distance 2 = 2); double counting would fail the validation
-            var inventory = SetupInventory(poleCount: 1, wireCount: 2);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 2);
             var response = SendExtend(machinePos, newPolePos);
 
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
@@ -152,15 +152,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(newConnector.ContainsWireConnection(machineConnector.BlockInstanceId));
             Assert.IsTrue(machineConnector.ContainsWireConnection(newConnector.BlockInstanceId));
             Assert.AreEqual(0, CountItem(inventory, _wireItemId));
-            Assert.AreEqual(0, CountItem(inventory, _poleItemId));
+            Assert.AreEqual(0, CountItem(inventory, _materialItemId));
         }
 
         #region TestUtil
 
-        private IOpenableInventory SetupInventory(int poleCount, int wireCount)
+        private IOpenableInventory SetupInventory(int materialCount, int wireCount)
         {
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(PoleSlot, ServerContext.ItemStackFactory.Create(_poleItemId, poleCount));
+            if (0 < materialCount) inventory.SetItem(MaterialSlot, ServerContext.ItemStackFactory.Create(_materialItemId, materialCount));
             if (0 < wireCount) inventory.SetItem(WireSlot, ServerContext.ItemStackFactory.Create(_wireItemId, wireCount));
             return inventory;
         }
@@ -168,7 +168,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendExtend(Vector3Int fromPos, Vector3Int newPolePos)
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
-            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, PoleSlot, placeInfo, _wireItemId));
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, ForUnitTestModBlockId.ElectricPoleId, placeInfo, _wireItemId));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }
@@ -176,7 +176,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendIsolatedPlace(Vector3Int newPolePos)
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
-            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(PlayerId, PoleSlot, placeInfo, _wireItemId));
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateIsolatedPlaceRequest(PlayerId, ForUnitTestModBlockId.ElectricPoleId, placeInfo, _wireItemId));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }

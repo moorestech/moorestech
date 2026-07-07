@@ -105,19 +105,19 @@ namespace Client.Network.API
             return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash, tickSequenceId);
         }
 
-        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot, CancellationToken ct)
+        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
         {
             // 列車設置のレスポンスを取得する
             // Get response for train placement
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerConnectionSetting.PlayerId);
+            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarGuid, _playerConnectionSetting.PlayerId);
             return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 
         public async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
             TrainUnitInstanceId targetTrainUnitInstanceId,
             RailPosition railPosition,
-            int hotBarSlot,
+            Guid trainCarGuid,
             bool attachCarFacingForward,
             bool attachToTargetTrainHead,
             CancellationToken ct)
@@ -128,7 +128,7 @@ namespace Client.Network.API
             var request = new AttachTrainCarToUnitProtocol.AttachTrainCarToUnitRequestMessagePack(
                 targetTrainUnitInstanceId,
                 railPositionSnapshot,
-                hotBarSlot,
+                trainCarGuid,
                 _playerConnectionSetting.PlayerId,
                 attachCarFacingForward,
                 attachToTargetTrainHead);
@@ -233,7 +233,9 @@ namespace Client.Network.API
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
-                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids);
+                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids,
+                response.LockedBlockGuids, response.UnlockedBlockGuids,
+                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
@@ -339,25 +341,25 @@ namespace Client.Network.API
         public async UniTask<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse> PlaceRailWithPier(
             int fromNodeId,
             Guid fromGuid,
-            int pierInventorySlot,
+            BlockId pierBlockId,
             PlaceInfo pierPlaceInfo,
             Guid railTypeGuid,
             CancellationToken ct)
         {
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerConnectionSetting.PlayerId, fromNodeId, fromGuid, pierInventorySlot, pierPlaceInfo, railTypeGuid);
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerConnectionSetting.PlayerId, fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
         }
 
         public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> ExtendElectricWire(
             Vector3Int fromPos,
-            int poleInventorySlot,
+            BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
             ItemId wireItemId,
             CancellationToken ct)
         {
             // 起点あり延長として電柱設置＋接続要求を送り、設置電柱情報を受け取る
             // Send a with-origin extend request (place pole + wire) and receive the placed pole info
-            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleInventorySlot, polePlaceInfo, wireItemId);
+            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleBlockId, polePlaceInfo, wireItemId);
             return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
         }
 
@@ -365,23 +367,23 @@ namespace Client.Network.API
         // Place a new pole from the source pole and connect the chain
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> ExtendGearChainPole(
             Vector3Int fromPolePos,
-            int poleInventorySlot,
+            BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
             ItemId chainItemId,
             CancellationToken ct)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleInventorySlot, polePlaceInfo, chainItemId);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleBlockId, polePlaceInfo, chainItemId);
             return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
         }
 
         // 接続なしの孤立ポールを設置する
         // Place an isolated pole without any connection
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> PlaceIsolatedGearChainPole(
-            int poleInventorySlot,
+            BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
             CancellationToken ct)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleInventorySlot, polePlaceInfo);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleBlockId, polePlaceInfo);
             return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
         }
 

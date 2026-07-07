@@ -17,11 +17,15 @@ namespace Client.Game.InGame.UnlockState
         public IReadOnlyDictionary<Guid, ChallengeCategoryUnlockStateInfo> ChallengeCategoryUnlockStateInfos => _challengeCategoryUnlockStateInfos;
         public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos => _machineRecipeUnlockStateInfos;
 
+        public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos => _blockUnlockStateInfos;
+        public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos => _trainCarUnlockStateInfos;
 
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
         private readonly Dictionary<Guid, ChallengeCategoryUnlockStateInfo> _challengeCategoryUnlockStateInfos = new();
         private readonly Dictionary<Guid, MachineRecipeUnlockStateInfo> _machineRecipeUnlockStateInfos = new();
+        private readonly Dictionary<Guid, BlockUnlockStateInfo> _blockUnlockStateInfos = new();
+        private readonly Dictionary<Guid, TrainCarUnlockStateInfo> _trainCarUnlockStateInfos = new();
         
         public ClientGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -64,6 +68,28 @@ namespace Client.Game.InGame.UnlockState
                 _machineRecipeUnlockStateInfos[unlockedGuid] = new MachineRecipeUnlockStateInfo(unlockedGuid, true);
             }
 
+            // ブロックの解放状態を初期化
+            // Initialize block unlock states
+            foreach (var lockedGuid in unlockState.LockedBlockGuids)
+            {
+                _blockUnlockStateInfos[lockedGuid] = new BlockUnlockStateInfo(lockedGuid, false);
+            }
+            foreach (var unlockedGuid in unlockState.UnlockedBlockGuids)
+            {
+                _blockUnlockStateInfos[unlockedGuid] = new BlockUnlockStateInfo(unlockedGuid, true);
+            }
+
+            // 列車車両の解放状態を初期化
+            // Initialize train car unlock states
+            foreach (var lockedGuid in unlockState.LockedTrainCarGuids)
+            {
+                _trainCarUnlockStateInfos[lockedGuid] = new TrainCarUnlockStateInfo(lockedGuid, false);
+            }
+            foreach (var unlockedGuid in unlockState.UnlockedTrainCarGuids)
+            {
+                _trainCarUnlockStateInfos[unlockedGuid] = new TrainCarUnlockStateInfo(unlockedGuid, true);
+            }
+
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
         }
         
@@ -88,6 +114,18 @@ namespace Client.Game.InGame.UnlockState
                  case UnlockEventType.MachineRecipe:
                      var machineRecipeGuid = message.UnlockedMachineRecipeGuid;
                      _machineRecipeUnlockStateInfos[machineRecipeGuid] = new MachineRecipeUnlockStateInfo(machineRecipeGuid, true);
+                     break;
+                 // ブロックの解放をイベントから反映する
+                 // Reflect block unlock from the event
+                 case UnlockEventType.Block:
+                     var blockGuid = message.UnlockedBlockGuid;
+                     _blockUnlockStateInfos[blockGuid] = new BlockUnlockStateInfo(blockGuid, true);
+                     break;
+                 // 列車車両の解放をイベントから反映する
+                 // Reflect train car unlock from the event
+                 case UnlockEventType.TrainCar:
+                     var trainCarGuid = message.UnlockedTrainCarGuid;
+                     _trainCarUnlockStateInfos[trainCarGuid] = new TrainCarUnlockStateInfo(trainCarGuid, true);
                      break;
                  default:
                      throw new ArgumentOutOfRangeException();

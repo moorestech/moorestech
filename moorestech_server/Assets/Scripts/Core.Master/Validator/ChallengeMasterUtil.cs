@@ -275,6 +275,31 @@ namespace Core.Master.Validator
                             }
                             break;
                         }
+                        case UnlockBlockGameActionParam unlockBlock:
+                        {
+                            if (unlockBlock.UnlockBlockGuids == null) break;
+                            foreach (var blockGuid in unlockBlock.UnlockBlockGuids)
+                            {
+                                var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+                                if (blockId == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} has invalid UnlockBlockGuid:{blockGuid}\n";
+                                }
+                            }
+                            break;
+                        }
+                        case UnlockTrainCarGameActionParam unlockTrainCar:
+                        {
+                            if (unlockTrainCar.UnlockTrainCarGuids == null) break;
+                            foreach (var trainCarGuid in unlockTrainCar.UnlockTrainCarGuids)
+                            {
+                                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarGuid, out _))
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} has invalid UnlockTrainCarGuid:{trainCarGuid}\n";
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
                 return logs;

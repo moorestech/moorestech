@@ -28,14 +28,14 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class ElectricWireExtendProtocolFailureTest
     {
         private const int PlayerId = 9;
-        private const int PoleSlot = 3;
+        private const int MaterialSlot = 3;
         private const int WireSlot = 4;
-        private static readonly Guid PoleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
+        private static readonly Guid MaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱の建設コスト×1)
         private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
 
         private ServiceProvider _serviceProvider;
         private PacketResponseCreator _packet;
-        private ItemId _poleItemId;
+        private ItemId _materialItemId;
         private ItemId _wireItemId;
 
         [SetUp]
@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _serviceProvider = serviceProvider;
             _packet = packet;
-            _poleItemId = MasterHolder.ItemMaster.GetItemId(PoleItemGuid);
+            _materialItemId = MasterHolder.ItemMaster.GetItemId(MaterialGuid);
             _wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
         }
 
@@ -60,12 +60,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 
-            var inventory = SetupInventory(poleCount: 1, wireCount: 3);
-            var response = SendExtend(fromPos, newPolePos, PoleSlot);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 3);
+            var response = SendExtend(fromPos, newPolePos, ForUnitTestModBlockId.ElectricPoleId);
 
             Assert.IsFalse(response.IsSuccess);
             Assert.IsFalse(worldBlockDatastore.Exists(newPolePos));
-            Assert.AreEqual(1, CountItem(inventory, _poleItemId));
+            Assert.AreEqual(1, CountItem(inventory, _materialItemId));
             Assert.AreEqual(3, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
             Assert.AreEqual(0, machine.GetComponent<IElectricWireConnector>().WireConnections.Count);
@@ -82,54 +82,73 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BlockId, newPolePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
-            var inventory = SetupInventory(poleCount: 1, wireCount: 10);
-            var response = SendExtend(fromPos, newPolePos, PoleSlot);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 10);
+            var response = SendExtend(fromPos, newPolePos, ForUnitTestModBlockId.ElectricPoleId);
 
             Assert.IsFalse(response.IsSuccess);
-            Assert.AreEqual(1, CountItem(inventory, _poleItemId));
+            Assert.AreEqual(1, CountItem(inventory, _materialItemId));
             Assert.AreEqual(10, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
         }
 
         [Test]
-        public void 範囲外スロット指定は例外を出さず失敗応答を返す()
+        public void 未解放ブロック指定は失敗応答を返す()
         {
-            // 不正クライアント相当の範囲外スロットを送る
-            // Send an out-of-range slot as a malicious client would
+            // 未解放（initialUnlocked無し）の電柱ブロックIDを送る
+            // Send the BlockId of a locked pole (no initialUnlocked)
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var fromPos = Vector3Int.zero;
             var newPolePos = new Vector3Int(4, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
 
-            var inventory = SetupInventory(poleCount: 1, wireCount: 10);
+            var inventory = SetupInventory(materialCount: 1, wireCount: 10);
 
-            var negativeResponse = SendExtend(fromPos, newPolePos, -1);
-            var overResponse = SendExtend(fromPos, newPolePos, 9999);
+            var response = SendExtend(fromPos, newPolePos, ForUnitTestModBlockId.LockedElectricPoleId);
 
-            Assert.IsFalse(negativeResponse.IsSuccess);
-            Assert.IsFalse(overResponse.IsSuccess);
-            Assert.AreEqual(ElectricWirePlacementFailureReason.NoPoleItem, negativeResponse.FailureReason);
-            Assert.AreEqual(ElectricWirePlacementFailureReason.NoPoleItem, overResponse.FailureReason);
+            Assert.IsFalse(response.IsSuccess);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NotUnlocked, response.FailureReason);
             Assert.IsFalse(worldBlockDatastore.Exists(newPolePos));
-            Assert.AreEqual(1, CountItem(inventory, _poleItemId));
+            Assert.AreEqual(1, CountItem(inventory, _materialItemId));
+            Assert.AreEqual(10, CountItem(inventory, _wireItemId));
+            Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+        }
+
+        [Test]
+        public void 素材不足なら設置されずInsufficientItemsで拒否される()
+        {
+            // 電線は足りるが建設素材を持たない
+            // Wires are sufficient but the construction material is missing
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var fromPos = Vector3Int.zero;
+            var newPolePos = new Vector3Int(4, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
+
+            var inventory = SetupInventory(materialCount: 0, wireCount: 10);
+
+            var response = SendExtend(fromPos, newPolePos, ForUnitTestModBlockId.ElectricPoleId);
+
+            Assert.IsFalse(response.IsSuccess);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.InsufficientItems, response.FailureReason);
+            Assert.IsFalse(worldBlockDatastore.Exists(newPolePos));
+            Assert.AreEqual(0, CountItem(inventory, _materialItemId));
             Assert.AreEqual(10, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, fromPole.GetComponent<IElectricWireConnector>().WireConnections.Count);
         }
 
         #region TestUtil
 
-        private IOpenableInventory SetupInventory(int poleCount, int wireCount)
+        private IOpenableInventory SetupInventory(int materialCount, int wireCount)
         {
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(PoleSlot, ServerContext.ItemStackFactory.Create(_poleItemId, poleCount));
+            if (0 < materialCount) inventory.SetItem(MaterialSlot, ServerContext.ItemStackFactory.Create(_materialItemId, materialCount));
             if (0 < wireCount) inventory.SetItem(WireSlot, ServerContext.ItemStackFactory.Create(_wireItemId, wireCount));
             return inventory;
         }
 
-        private ElectricWireExtendProtocol.ElectricWireExtendResponse SendExtend(Vector3Int fromPos, Vector3Int newPolePos, int poleSlot)
+        private ElectricWireExtendProtocol.ElectricWireExtendResponse SendExtend(Vector3Int fromPos, Vector3Int newPolePos, BlockId poleBlockId)
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
-            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, poleSlot, placeInfo, _wireItemId));
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, poleBlockId, placeInfo, _wireItemId));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }

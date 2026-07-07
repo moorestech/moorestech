@@ -46,6 +46,15 @@
             "stackLevelTableGuid": "22222222-2222-2222-2222-000000000200"
         },
         {
+            "name": "TestLockedElectricPole",
+            "itemGuid": "00000000-0000-0000-1234-000000000101",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
             "name": "Test6",
             "itemGuid": "00000000-0000-0000-1234-000000000006",
             "imagePath": "Test1",
@@ -432,6 +441,36 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
+            "itemGuid": "00000000-0000-0000-1234-000000000102",
+            "imagePath": "",
+            "name": "TestLockedGearChainPole",
+            "sortPriority": 746,
+            "initialUnlocked": false,
+            "recipeViewType": "IsUnlocked",
+            "handGrabModelAddressablePath": "",
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "itemGuid": "00000000-0000-0000-1234-000000000103",
+            "imagePath": "",
+            "name": "TestLockedTrainRail",
+            "sortPriority": 747,
+            "initialUnlocked": false,
+            "recipeViewType": "IsUnlocked",
+            "handGrabModelAddressablePath": "",
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "itemGuid": "00000000-0000-0000-1234-000000000104",
+            "imagePath": "",
+            "name": "TestRailCostTrainRail",
+            "sortPriority": 748,
+            "initialUnlocked": false,
+            "recipeViewType": "IsUnlocked",
+            "handGrabModelAddressablePath": "",
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
             "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
             "imagePath": "",
             "name": "Chain",
@@ -553,6 +592,24 @@
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         },
         {
+            "name": "GearBeltConveyor2",
+            "itemGuid": "11800000-0000-0000-0000-0000000000a3",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "GearBeltConveyor3",
+            "itemGuid": "11800000-0000-0000-0000-0000000000a4",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
             "name": "TestElectricWire",
             "itemGuid": "00000000-0000-0000-4649-000000000001",
             "imagePath": "Test1",
@@ -560,6 +617,45 @@
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        }
+    ],
+    "itemStackLevelTables": [
+        {
+            "tableGuid": "11111111-1111-1111-1111-111111111111",
+            "name": "TestStackTable",
+            "stackCounts": [
+                100,
+                200,
+                300
+            ]
+        },
+        {
+            "tableGuid": "22222222-2222-2222-2222-000000000050",
+            "name": "Stack50",
+            "stackCounts": [
+                50
+            ]
+        },
+        {
+            "tableGuid": "22222222-2222-2222-2222-000000000300",
+            "name": "Stack300",
+            "stackCounts": [
+                300
+            ]
+        },
+        {
+            "tableGuid": "22222222-2222-2222-2222-000000000200",
+            "name": "Stack200",
+            "stackCounts": [
+                200
+            ]
+        },
+        {
+            "tableGuid": "22222222-2222-2222-2222-000000000001",
+            "name": "Stack1",
+            "stackCounts": [
+                1
+            ]
         }
     ],
     "modules": [
@@ -618,45 +714,6 @@
                 "00000000-0000-0000-1234-000000000003",
                 "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
                 "adf11728-e5e7-b180-b6e1-7396d29e787d"
-            ]
-        }
-    ],
-    "itemStackLevelTables": [
-        {
-            "tableGuid": "11111111-1111-1111-1111-111111111111",
-            "name": "TestStackTable",
-            "stackCounts": [
-                100,
-                200,
-                300
-            ]
-        },
-        {
-            "tableGuid": "22222222-2222-2222-2222-000000000050",
-            "name": "Stack50",
-            "stackCounts": [
-                50
-            ]
-        },
-        {
-            "tableGuid": "22222222-2222-2222-2222-000000000300",
-            "name": "Stack300",
-            "stackCounts": [
-                300
-            ]
-        },
-        {
-            "tableGuid": "22222222-2222-2222-2222-000000000200",
-            "name": "Stack200",
-            "stackCounts": [
-                200
-            ]
-        },
-        {
-            "tableGuid": "22222222-2222-2222-2222-000000000001",
-            "name": "Stack1",
-            "stackCounts": [
-                1
             ]
         }
     ],
