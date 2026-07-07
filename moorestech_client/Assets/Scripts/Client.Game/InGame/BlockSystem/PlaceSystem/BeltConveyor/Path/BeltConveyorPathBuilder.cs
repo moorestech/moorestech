@@ -3,7 +3,7 @@ using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
 {
     /// <summary>
     /// 座標列の組み立てと向き解決を束ねる（立体交差・占有判定より前段の純粋な経路計算）

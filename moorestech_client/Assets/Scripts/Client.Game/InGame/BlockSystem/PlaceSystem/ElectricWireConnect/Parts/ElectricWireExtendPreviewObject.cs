@@ -4,7 +4,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using TMPro;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
     /// 起点と接続先を結ぶプレビュー用ワイヤーをランタイム生成し、可否色と消費電線数を表示する

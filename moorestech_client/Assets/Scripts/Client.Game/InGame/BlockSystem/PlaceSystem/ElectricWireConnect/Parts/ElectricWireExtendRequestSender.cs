@@ -7,7 +7,7 @@ using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
     /// 電線ツールのプロトコル送信と延長応答で設置された電柱の受け渡しを担う

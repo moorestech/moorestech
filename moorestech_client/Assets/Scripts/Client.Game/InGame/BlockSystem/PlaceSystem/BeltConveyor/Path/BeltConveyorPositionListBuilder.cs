@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
 {
     /// <summary>
     /// 開始点から終了点までの1マス刻みの経路座標列を組み立てる（カーブ・傾斜のY軸調整込み）

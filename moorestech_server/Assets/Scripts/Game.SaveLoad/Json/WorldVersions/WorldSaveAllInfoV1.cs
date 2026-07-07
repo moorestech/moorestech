@@ -34,6 +34,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<RailSegmentSaveData> railSegments,
             List<PlayerRidingSaveData> playerRidingStates,
             List<BlueprintJsonObject> blueprints,
+            Dictionary<string, int> itemStackLevels,
             int inventorySlotLevel)
         {
             World = world;
@@ -49,6 +50,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             RailSegments = railSegments ?? new List<RailSegmentSaveData>();
             PlayerRidingStates = playerRidingStates ?? new List<PlayerRidingSaveData>();
             Blueprints = blueprints ?? new List<BlueprintJsonObject>();
+            ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
         }
         
@@ -66,6 +68,7 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("railSegments")] public List<RailSegmentSaveData> RailSegments { get; }
         [JsonProperty("playerRidingStates")] public List<PlayerRidingSaveData> PlayerRidingStates { get; }
         [JsonProperty("blueprints")] public List<BlueprintJsonObject> Blueprints { get; set; }
+        [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
     }
 }

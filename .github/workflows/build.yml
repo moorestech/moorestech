@@ -170,15 +170,15 @@ jobs:
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          git clone --depth 1 --branch main https://github.com/KurisuJuha/cef-unity-moorestech.git _cef_pkg
+          git clone --depth 1 --branch main https://github.com/KurisuJuha/cef-unity.git _cef_pkg
           cd _cef_pkg && git lfs pull && cd ..
-          cp -r _cef_pkg/Assets/CefUnity moorestech_client/CefUnityLocal
+          cp -r _cef_pkg/cef-unity-unityproject/Assets/CefUnity moorestech_client/CefUnityLocal
           cd moorestech_client/Packages
           python3 -c "
           import json
           with open('manifest.json', 'r') as f:
               data = json.load(f)
-          data['dependencies']['jp.juha.cefunitysample'] = 'file:../CefUnityLocal'
+          data['dependencies']['jp.juha.cefunity'] = 'file:../CefUnityLocal'
           with open('manifest.json', 'w') as f:
               json.dump(data, f, indent=2)
           "

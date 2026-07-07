@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Core.Master;
 using Game.Block.Interface;
 using NUnit.Framework;

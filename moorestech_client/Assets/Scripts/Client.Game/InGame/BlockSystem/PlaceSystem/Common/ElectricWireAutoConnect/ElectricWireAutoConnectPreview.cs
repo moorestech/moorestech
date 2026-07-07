@@ -10,7 +10,7 @@ using UnityEngine;
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
     /// <summary>
     /// 通常設置プレビュー中、電気系ブロックの自動接続先ワイヤーと合計消費電線数を表示する

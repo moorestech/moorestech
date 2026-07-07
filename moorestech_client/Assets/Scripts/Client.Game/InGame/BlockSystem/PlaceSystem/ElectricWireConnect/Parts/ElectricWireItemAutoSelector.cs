@@ -2,7 +2,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.PlayerInventory.Interface;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
     /// 敷設に使う電線アイテムをマスタ定義順で自動選択する（サーバーの自動接続と同一ルール）
