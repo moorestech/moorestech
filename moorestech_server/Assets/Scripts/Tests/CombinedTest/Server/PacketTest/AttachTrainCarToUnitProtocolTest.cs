@@ -126,7 +126,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 1両目マスタを解決する
             // Resolve the 1st car master
-            MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(ForUnitTestItemId.TrainCarItem, out var trainCarMasterElement);
+            var trainCarMasterElement = MasterHolder.TrainUnitMaster.Train.TrainCars[0];
             var trainLength = TrainLengthConverter.ToRailUnits(trainCarMasterElement.Length);
 
             // 連結先の単機編成を設置プロトコルで生成する
