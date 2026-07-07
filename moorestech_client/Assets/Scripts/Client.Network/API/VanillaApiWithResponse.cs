@@ -52,7 +52,7 @@ namespace Client.Network.API
 
             //必要なデータを取得する
             // Fetch all required resources
-            var (mapObjects, worldData, inventory, challenges, unlockState, craftTree, playedSkitIds, researchNodeStates, railGraphSnapshot, trainUnitSnapshots) = await UniTask.WhenAll(
+            var responses = await UniTask.WhenAll(
                 GetMapObjectInfo(ct),
                 GetWorldData(ct),
                 GetPlayerInventory(playerId, ct),
@@ -64,7 +64,7 @@ namespace Client.Network.API
                 GetRailGraphSnapshot(ct),
                 GetTrainUnitSnapshots(ct));
 
-            return new InitialHandshakeResponse(initialHandShake, (mapObjects, worldData, inventory, challenges, unlockState, craftTree, playedSkitIds, researchNodeStates, railGraphSnapshot, trainUnitSnapshots));
+            return new InitialHandshakeResponse(initialHandShake, responses);
         }
 
         public async UniTask<List<GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>> GetMapObjectInfo(CancellationToken ct)

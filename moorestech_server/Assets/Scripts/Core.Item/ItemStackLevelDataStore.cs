@@ -14,7 +14,8 @@ namespace Core.Item
         // 静的公開は取得専用インターフェースのみ。変更系はDI注入されたIItemStackLevelUnlocker経由で行う
         // Static exposure is lookup-only; mutations must go through a DI-injected IItemStackLevelUnlocker
         public static IItemStackLevelLookup Instance { get; private set; }
-
+        
+        public IReadOnlyDictionary<Guid, int> UnlockedLevels => _unlockedLevels;
         public IObservable<(Guid itemGuid, int level)> OnStackLevelUnlocked => _onStackLevelUnlocked;
         private readonly Subject<(Guid itemGuid, int level)> _onStackLevelUnlocked = new();
 
@@ -40,11 +41,6 @@ namespace Core.Item
             return _unlockedLevels.GetValueOrDefault(itemGuid, 1);
         }
 
-        public IReadOnlyDictionary<Guid, int> GetUnlockedLevels()
-        {
-            return _unlockedLevels;
-        }
-
         public void UnlockStackLevel(Guid itemGuid, int level)
         {
             // 冪等: 既に同レベル以上なら何もしない。テーブル長でクランプ
@@ -56,14 +52,6 @@ namespace Core.Item
 
             _unlockedLevels[itemGuid] = clamped;
             _onStackLevelUnlocked.OnNext((itemGuid, clamped));
-        }
-
-        // clearedActions配列からunlockItemStackLevelだけを適用する（サーバー実行・クライアント導出の共通入口）
-        // Apply only unlockItemStackLevel from a clearedActions array (shared by server execution and client derivation)
-        public void ApplyUnlockItemStackLevelActions(GameActionElement[] actions)
-        {
-            if (actions == null) return;
-            foreach (var action in actions) ApplyUnlockItemStackLevelAction(action);
         }
 
         public void ApplyUnlockItemStackLevelAction(GameActionElement action)
