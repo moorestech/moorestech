@@ -1,0 +1,3 @@
+ M .moorestech-external-revisions.json
+ M moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/TrainRail/TrainRailPlaceService.cs
+?? tools/playtest/scenarios/train-rail-connect-via-ui.cs

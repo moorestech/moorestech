@@ -13,8 +13,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
         public static int AdjustHeightOffset(int heightOffset)
         {
             //TODO InputManagerに移す
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Q)) return heightOffset - 1;
-            if (UnityEngine.Input.GetKeyDown(KeyCode.E)) return heightOffset + 1;
+            if (HybridInput.GetKeyDown(KeyCode.Q)) return heightOffset - 1;
+            if (HybridInput.GetKeyDown(KeyCode.E)) return heightOffset + 1;
             return heightOffset;
         }
 
@@ -27,7 +27,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             // ベルトの向きは経路(直線/カーブ/傾斜)から自動解決するため、意図的にVerticalRotationのみへ限定する
             // CommonBlockPlaceSystem fires both HorizonRotation and VerticalRotation when Shift is held (a latent bug);
             // belt direction is auto-resolved from the path, so we intentionally restrict Shift+rotate to VerticalRotation only
-            if (UnityEngine.Input.GetKey(KeyCode.LeftShift)) return currentDirection.VerticalRotation();
+            if (HybridInput.GetKey(KeyCode.LeftShift)) return currentDirection.VerticalRotation();
 
             // 東西南北の向きを変更する
             // rotate through the four horizontal directions
