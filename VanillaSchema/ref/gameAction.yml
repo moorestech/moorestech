@@ -17,6 +17,7 @@ items:
     - unlockMachineRecipe
     - playSkit
     - playBackgroundSkit
+    - unlockPlayerInventorySlotLevel
   - key: gameActionParam
     switch: ./gameActionType
     cases:
@@ -112,4 +113,10 @@ items:
         type: enum
         options:
           - normal
-          - background 
+          - background
+    - when: unlockPlayerInventorySlotLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: level
+        type: integer

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Core.Master;
@@ -57,7 +58,7 @@ namespace Client.Game.InGame.Mining
         {
             // 今持っているアイテムがマイニングツールとして登録されているかどうかをチェック
             // Check if the item you are currently holding is registered as a mining tool
-            var hotBarInventoryIndex = PlayerInventoryConst.HotBarSlotToInventorySlot(context.HotBarView.SelectIndex);
+            var hotBarInventoryIndex = context.LocalPlayerInventory.GetHotBarInventorySlot(context.HotBarView.SelectIndex);
             var inventoryItem = context.LocalPlayerInventory[hotBarInventoryIndex];
                 
             

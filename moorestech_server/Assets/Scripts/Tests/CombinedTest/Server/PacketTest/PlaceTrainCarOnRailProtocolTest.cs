@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const int PlayerId = 1;
         private const int HotBarSlot = 0;
         
-        private static int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+        private static int GetInventorySlot(PlayerInventoryData inventory) => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot, inventory.MainOpenableInventory.GetSlotSize());
 
         [Test]
         public void PlaceTrainOnRail_ValidRailAndItem_CreatesTrainUnit()
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 // インベントリに列車アイテムを設定する
                 // Put train item in inventory
                 var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-                inventory.MainOpenableInventory.SetItem(InventorySlot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
+                inventory.MainOpenableInventory.SetItem(GetInventorySlot(inventory), ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TrainCarItem, 1));
 
                 // レール位置スナップショットを生成
                 // Create rail position snapshot
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 Assert.AreEqual(1, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count, "列車が1つ生成されるべき / One train should be created");
                 
                 var inventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
-                Assert.AreEqual(0, inventory.MainOpenableInventory.GetItem(InventorySlot).Count, "列車アイテムが消費されるべき / Train item should be consumed");
+                Assert.AreEqual(0, inventory.MainOpenableInventory.GetItem(GetInventorySlot(inventory)).Count, "列車アイテムが消費されるべき / Train item should be consumed");
                 
                 var createdTrain = environment.GetITrainLookupDatastore().GetRegisteredTrains().Last();
                 Assert.Greater(createdTrain.Cars.Count, 0, "列車は1両以上の車両を持つべき / Train should have at least one car");
