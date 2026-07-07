@@ -89,4 +89,16 @@ done
 
 echo "== result =="
 cat "$RUN_DIR/result.json"
-python3 -c "import sys,json; sys.exit(0 if json.load(open('$RUN_DIR/result.json'))['Success'] else 1)"
+
+# 成功時はPlayModeを自動停止する（ポート占有・次回実行の持ち越し防止）。
+# 失敗時はライブ診断（EDCでの状態確認）のために意図的に残し、停止コマンドを案内する。
+# Auto-stop play mode on success (prevents port squatting and state carry-over into the next run).
+# On failure, keep play mode alive on purpose for live EDC diagnosis and print how to stop it.
+if python3 -c "import sys,json; sys.exit(0 if json.load(open('$RUN_DIR/result.json'))['Success'] else 1)"; then
+    echo "== stop play mode =="
+    uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1 && echo "play mode stopped"
+    exit 0
+else
+    echo "NG: scenario failed — PlayModeは診断用に残しています（停止: uloop control-play-mode --project-path $PROJECT_PATH --action stop）"
+    exit 1
+fi
