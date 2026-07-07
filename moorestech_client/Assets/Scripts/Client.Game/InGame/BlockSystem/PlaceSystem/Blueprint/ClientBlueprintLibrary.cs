@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             var request = BlueprintRequest.CreateCreateRequest(name, min, max);
             var response = await ClientContext.VanillaApi.Response.SendBlueprintRequest(request, ct);
 
-            // タイムアウト等のnullレスポンスは失敗として返す
+            // タイムアウト等のnull応答は失敗扱い
             // Treat a null response (timeout etc.) as failure
             if (response == null) return (false, null);
 

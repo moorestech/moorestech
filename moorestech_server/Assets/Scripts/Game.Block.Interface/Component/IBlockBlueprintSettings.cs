@@ -13,7 +13,7 @@ namespace Game.Block.Interface.Component
         // Readable JSON; represent item references as GUID strings
         string GetBlueprintSettingsJson();
 
-        // 抽出と対になる適用側。BlockFactory.Createが生成直後に呼ぶ
+        // 抽出と対の適用側。BlockFactory.Create直後に呼ぶ
         // Apply counterpart; invoked by BlockFactory.Create right after creation
         void ApplyBlueprintSettingsJson(string json);
     }

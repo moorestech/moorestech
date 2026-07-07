@@ -18,6 +18,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly BuildViewModeController _buildViewModeController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
+        private bool _wasTextInputFocused;
 
         public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
         {
@@ -29,9 +30,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
-            // カメラ・カーソルの適用はBuildViewModeControllerに委譲する
+            // カメラ・カーソルはBuildViewModeControllerへ委譲
             // Camera and cursor handling is delegated to BuildViewModeController
             _buildViewModeController.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            _wasTextInputFocused = false;
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -47,9 +49,18 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
 
+            // フォーカス変化を視点コントローラへ通知（FPS中のダイアログでカーソルを解放するため）
+            // Notify focus changes to the view controller so FPS dialogs can free the cursor
+            var isTextInputFocused = IsTextInputFocused();
+            if (isTextInputFocused != _wasTextInputFocused)
+            {
+                _wasTextInputFocused = isTextInputFocused;
+                _buildViewModeController.SetTextInputFocused(isTextInputFocused);
+            }
+
             // 入力フィールド編集中はキー遷移と視点操作を止める（BP名入力中のB/Tab/V等の誤爆防止）
             // While a text field is edited, suppress key transitions and view input so BP naming (B/Tab/V etc.) can't trigger them
-            if (!IsTextInputFocused())
+            if (!isTextInputFocused)
             {
                 // TabはOpenInventoryと同キーだが、配置モード中はビルドメニュー再表示を優先する
                 // Tab shares the OpenInventory binding, but reopening the build menu takes precedence while placing

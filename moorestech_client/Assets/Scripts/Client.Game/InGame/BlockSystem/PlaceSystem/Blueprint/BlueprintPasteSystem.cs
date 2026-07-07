@@ -14,7 +14,7 @@ using UnityEngine.EventSystems;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
     /// <summary>
-    ///     保存済みBPを回転・プレビュー付きでワールドへ貼り付ける設置システム
+    ///     BPを回転・プレビュー付きで貼り付ける設置系
     ///     Placement system that pastes a saved blueprint with rotation and ghost preview
     /// </summary>
     public class BlueprintPasteSystem : IPlaceSystem
@@ -26,6 +26,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
         private BlueprintJsonObject _currentBlueprint;
         private int _rotationStep;
+
+        // 手編集セーブ等でSettingsがnullのブロックを空設定として扱うための共有インスタンス
+        // Shared instance so blocks whose Settings is null (e.g. hand-edited saves) paste as settings-less
+        private static readonly Dictionary<string, string> EmptySettings = new();
 
         public BlueprintPasteSystem(Camera mainCamera, ClientBlueprintLibrary library, BlockGameObjectDataStore blockGameObjectDataStore)
         {
@@ -63,19 +67,34 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 return;
             }
 
-            // XZは床スナップ、Yは整数グリッド面のため丸めで誤差を吸収する
-            // Snap XZ by floor; round Y to absorb float error on the integer grid face
-            var anchor = new Vector3Int(Mathf.FloorToInt(hitPoint.x), Mathf.RoundToInt(hitPoint.y), Mathf.FloorToInt(hitPoint.z));
+            // コピー側と同じ規約でセルへスナップ
+            // Snap to the cursor cell with the convention shared with the copy side
+            var anchor = PlaceSystemUtil.SnapHitPointToCell(hitPoint);
 
             var placements = BlueprintPasteCalculator.CalculatePlacements(_currentBlueprint, anchor, _rotationStep);
             var placeableFlags = placements.Select(IsPlaceable).ToList();
             _previewController.UpdatePreview(placements, placeableFlags);
 
-            // 左クリックで設置可能セルのみ送信（サーバー側は部分成功を許容）
+            // 左クリックで設置可能セルのみ送信
             // Left click sends placeable cells only; server allows partial success
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp && !EventSystem.current.IsPointerOverGameObject()) SendPlace(placements, placeableFlags);
 
             #region Internal
+
+            void ResolveBlueprint(string blueprintName)
+            {
+                var pack = _library.Blueprints.FirstOrDefault(b => b.Name == blueprintName);
+                _currentBlueprint = pack?.ToJsonObject();
+            }
+
+            bool IsPlaceable(BlueprintPlacementElement placement)
+            {
+                // 全占有セルで既存ブロックとの重なりをチェック
+                // Check overlap against existing blocks over all occupied cells; server re-validates
+                var blockSize = MasterHolder.BlockMaster.GetBlockMaster(placement.BlockId).BlockSize;
+                var positionInfo = new BlockPositionInfo(placement.Position, placement.Direction, blockSize);
+                return !_blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
+            }
 
             void SendPlace(List<BlueprintPlacementElement> allPlacements, List<bool> flags)
             {
@@ -90,6 +109,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 PlaceSystemUtil.SendPlaceBlockProtocol(placeInfos);
             }
 
+            PlaceInfo ToPlaceInfo(BlueprintPlacementElement placement)
+            {
+                // 設定JSONをUTF8バイト化してCreateParamsへ載せる
+                // Encode settings JSON as UTF8 bytes into CreateParams; null settings from edited saves are treated as empty
+                var createParams = (placement.Settings ?? EmptySettings)
+                    .Select(kvp => new BlockCreateParam(kvp.Key, Encoding.UTF8.GetBytes(kvp.Value)))
+                    .ToArray();
+
+                return new PlaceInfo
+                {
+                    Position = placement.Position,
+                    Direction = placement.Direction,
+                    VerticalDirection = BlockVerticalDirection.Horizontal,
+                    BlockId = placement.BlockId,
+                    Placeable = true,
+                    CreateParams = createParams,
+                };
+            }
+
             #endregion
         }
 
@@ -97,40 +135,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         {
             _previewController?.Hide();
             _currentBlueprint = null;
-        }
-
-        private void ResolveBlueprint(string blueprintName)
-        {
-            var pack = _library.Blueprints.FirstOrDefault(b => b.Name == blueprintName);
-            _currentBlueprint = pack?.ToJsonObject();
-        }
-
-        private bool IsPlaceable(BlueprintPlacementElement placement)
-        {
-            // 全占有セルで既存ブロックとの重なりをチェック（サーバー側でも再検証される）
-            // Check overlap against existing blocks over all occupied cells; server re-validates
-            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(placement.BlockId).BlockSize;
-            var positionInfo = new BlockPositionInfo(placement.Position, placement.Direction, blockSize);
-            return !_blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
-        }
-
-        private static PlaceInfo ToPlaceInfo(BlueprintPlacementElement placement)
-        {
-            // 設定JSONをUTF8バイト化してCreateParamsへ載せる（Task 4の規約）
-            // Encode settings JSON as UTF8 bytes into CreateParams per the Task 4 convention
-            var createParams = placement.Settings
-                .Select(kvp => new BlockCreateParam(kvp.Key, Encoding.UTF8.GetBytes(kvp.Value)))
-                .ToArray();
-
-            return new PlaceInfo
-            {
-                Position = placement.Position,
-                Direction = placement.Direction,
-                VerticalDirection = BlockVerticalDirection.Horizontal,
-                BlockId = placement.BlockId,
-                Placeable = true,
-                CreateParams = createParams,
-            };
         }
     }
 }

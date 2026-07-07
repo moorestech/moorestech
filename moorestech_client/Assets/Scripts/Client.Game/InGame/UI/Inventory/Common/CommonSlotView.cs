@@ -77,7 +77,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public void SetViewTextOnly(string text, string toolTipText)
         {
-            // アイコン画像を隠しカウントテキスト欄をラベルとして使う
+            // アイコン非表示時はカウント欄をラベル流用
             // Hide the icon image and reuse the count text field as a label
             countText.text = text;
             itemImage.gameObject.SetActive(false);

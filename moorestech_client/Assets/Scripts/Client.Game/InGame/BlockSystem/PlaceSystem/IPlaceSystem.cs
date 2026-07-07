@@ -18,7 +18,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // The block selected in the build menu (null when nothing is selected)
         public readonly BlockId? SelectedBlockId;
 
-        // ビルドメニューの選択種別と車両・接続ツール・BPの選択値、選択変化フラグ
+        // ・選択種別
+        // ・車両/接続具/BPの選択値
+        // ・選択変化フラグ
         // The build-menu selection type, train car / connect tool / blueprint value, and change flag
         public readonly PlacementSelectionType SelectionType;
         public readonly Guid SelectedTrainCarGuid;

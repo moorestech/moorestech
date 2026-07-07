@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace Client.Game.InGame.UI.Blueprint
 {
     /// <summary>
-    ///     BP登録時の名前入力ダイアログ（確定・キャンセルをUniRxで通知）
+    ///     BP名入力ダイアログ（確定/キャンセルをUniRx通知）
     ///     Blueprint name input dialog; confirm and cancel are published via UniRx
     /// </summary>
     public class BlueprintNameInputView : MonoBehaviour

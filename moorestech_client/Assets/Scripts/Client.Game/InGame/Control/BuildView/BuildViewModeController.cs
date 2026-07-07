@@ -100,6 +100,24 @@ namespace Client.Game.InGame.Control.BuildView
             }
         }
 
+        // テキスト入力中はFPSのカーソルロック・視点回転・クロスヘアを解除し、解除時は現ステート適用へ戻す
+        // While a text field is focused, release the FPS cursor lock, look rotation, and crosshair; reapply the state on unfocus
+        public void SetTextInputFocused(bool focused)
+        {
+            if (!_isSessionActive || CurrentMode != BuildViewMode.FirstPerson) return;
+
+            if (focused)
+            {
+                _applier.SetCameraRotatable(false);
+                _applier.SetCursorVisible(true);
+                _applier.SetCrosshairVisible(false);
+            }
+            else
+            {
+                ApplyForState(_currentBuildState);
+            }
+        }
+
         public void ToggleViewMode()
         {
             CurrentMode = CurrentMode == BuildViewMode.TopDown ? BuildViewMode.FirstPerson : BuildViewMode.TopDown;

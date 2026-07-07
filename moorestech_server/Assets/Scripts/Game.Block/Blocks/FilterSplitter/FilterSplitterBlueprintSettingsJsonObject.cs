@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace Game.Block.Blocks.FilterSplitter
 {
     /// <summary>
-    ///     ブループリントへコピーされるフィルタスプリッタ設定のJSON形
+    ///     BPへコピーされるフィルタスプリッタ設定のJSON形
     ///     JSON shape of filter splitter settings copied into blueprints
     /// </summary>
     public class FilterSplitterBlueprintSettingsJsonObject

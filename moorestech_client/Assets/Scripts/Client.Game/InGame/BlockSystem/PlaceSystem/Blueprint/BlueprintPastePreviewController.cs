@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
     /// <summary>
-    ///     BP貼り付けのゴースト一括表示。複数ブロック種を同時にプールから取得する
+    ///     BP貼り付けゴーストの一括表示・プール取得
     ///     Batch ghost display for paste; pulls multiple block kinds from the pool
     /// </summary>
     public class BlueprintPastePreviewController

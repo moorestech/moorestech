@@ -17,6 +17,7 @@ namespace Client.Tests.BuildView
         public bool? LastFirstPersonCamera { get; private set; }
         public bool? LastCursorVisible { get; private set; }
         public bool? LastCrosshairVisible { get; private set; }
+        public bool? LastCameraRotatable { get; private set; }
 
         public TweenCameraInfo CaptureCurrentCamera()
         {
@@ -56,6 +57,7 @@ namespace Client.Tests.BuildView
         public void SetCameraRotatable(bool rotatable)
         {
             Calls.Add($"Rotatable:{rotatable}");
+            LastCameraRotatable = rotatable;
         }
     }
 }

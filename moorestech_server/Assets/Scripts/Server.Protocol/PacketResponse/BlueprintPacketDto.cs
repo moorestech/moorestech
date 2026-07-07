@@ -14,7 +14,7 @@ namespace Server.Protocol.PacketResponse
         [Key(2)] public BlueprintOperation Operation { get; set; }
         [Key(3)] public string Name { get; set; }
 
-        // コピー範囲はXYZ全体のバウンディングボックスで一意に指定する
+        // コピー範囲はXYZバウンディングボックスで指定
         // Copy area is uniquely specified as a full XYZ bounding box
         [Key(4)] public Vector3IntMessagePack Min { get; set; }
         [Key(5)] public Vector3IntMessagePack Max { get; set; }
@@ -22,7 +22,7 @@ namespace Server.Protocol.PacketResponse
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlueprintRequest() { Tag = BlueprintProtocol.ProtocolTag; }
 
-        // Operation ごとに必要なフィールドだけを設定する private コンストラクタ
+        // Operationごとに必要フィールドのみ設定
         // Private constructor; static factories below set only the fields each Operation needs
         private BlueprintRequest(BlueprintOperation operation, string name, Vector3IntMessagePack min, Vector3IntMessagePack max)
         {

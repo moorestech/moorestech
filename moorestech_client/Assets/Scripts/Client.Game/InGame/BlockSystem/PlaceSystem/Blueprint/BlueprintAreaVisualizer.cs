@@ -17,7 +17,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _cube.name = "BlueprintAreaVisualizer";
             Object.Destroy(_cube.GetComponent<Collider>());
 
-            // 既存の設置プレビュー材質を複製し選択色を適用する
+            // 設置プレビュー材質を複製し選択色を適用
             // Clone the shared placement preview material and tint it with the selection color
             var renderer = _cube.GetComponent<MeshRenderer>();
             var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
         public void Show(Vector3Int min, Vector3Int max)
         {
-            // セル境界に合わせて中心とサイズを算出する（各セルは1x1x1）
+            // セル境界から中心とサイズを算出（各セル1x1x1前提）
             // Center and scale from cell bounds; each cell is 1x1x1
             var size = new Vector3(max.x - min.x + 1, max.y - min.y + 1, max.z - min.z + 1);
             _cube.transform.position = new Vector3(min.x, min.y, min.z) + size * 0.5f;

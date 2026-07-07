@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Game
             var block = new BlueprintBlockJsonObject(new Vector3Int(1, 0, -2), System.Guid.NewGuid().ToString(), 3, settings);
             datastore.Register(new BlueprintJsonObject("roundtrip", new List<BlueprintBlockJsonObject> { block }));
 
-            // セーブJSONを取り出し、別Datastoreに復元して一致を確認
+            // セーブJSONを別Datastoreへ復元し一致確認
             // Extract save JSON and restore into a fresh datastore
             var saved = datastore.GetSaveJsonObject();
             var restored = new BlueprintDatastore();
