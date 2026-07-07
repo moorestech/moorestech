@@ -34,7 +34,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 return new UITransitContext(UIStateEnum.PlaceBlock);
             }
 
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
 
             return null;
