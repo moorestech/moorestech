@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Mod.Texture;
 using Core.Master;
 
 namespace Client.Game.InGame.UI.BuildMenu
@@ -14,16 +15,16 @@ namespace Client.Game.InGame.UI.BuildMenu
         public readonly BlockId BlockId;
         public readonly Guid TrainCarGuid;
         public readonly string ConnectPlaceMode;
-        public readonly ItemId IconItemId;
+        public readonly ItemViewData IconView;
         public readonly string ToolTipText;
 
-        public BuildMenuEntry(PlacementSelectionType entryType, BlockId blockId, Guid trainCarGuid, string connectPlaceMode, ItemId iconItemId, string toolTipText)
+        public BuildMenuEntry(PlacementSelectionType entryType, BlockId blockId, Guid trainCarGuid, string connectPlaceMode, ItemViewData iconView, string toolTipText)
         {
             EntryType = entryType;
             BlockId = blockId;
             TrainCarGuid = trainCarGuid;
             ConnectPlaceMode = connectPlaceMode;
-            IconItemId = iconItemId;
+            IconView = iconView;
             ToolTipText = toolTipText;
         }
     }

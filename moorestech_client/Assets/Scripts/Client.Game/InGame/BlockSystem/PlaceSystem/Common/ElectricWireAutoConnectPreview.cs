@@ -62,19 +62,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // 注意: ドラッグ中の未設置電柱同士の接続は評価に現れない近似（サーバーが設置順に個別再検証するため安全側）
             // Note: connections between not-yet-placed poles in a drag are approximated away (the server re-validates each in placement order, so this stays safe)
             var virtualCounts = BuildVirtualCounts();
-            var placingItemId = MasterHolder.BlockMaster.GetItemId(blockId);
             var totalCost = 0;
             var anyPlaceable = false;
             PlaceInfo cursorInfo = null;
             foreach (var placeInfo in placeInfos)
             {
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = TrySelectWire(targets, virtualCounts, placingItemId, out var wireItemId, out var cellCost);
+                var wirePlaceable = TrySelectWire(targets, virtualCounts, out var wireItemId, out var cellCost);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
                 {
-                    ConsumeVirtual(virtualCounts, placingItemId, wireItemId, cellCost);
+                    ConsumeVirtual(virtualCounts, wireItemId, cellCost);
                     totalCost += cellCost;
                     anyPlaceable = true;
                 }
@@ -145,14 +144,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         // 全ターゲットを賄える電線アイテムをマスタ設定順に仮想在庫から選ぶ（サーバーと同じ選定規則）
         // Pick the wire item covering all targets in master order against the virtual inventory (same rule as the server)
-        private static bool TrySelectWire(List<(Vector3Int TargetPos, float Distance)> targets, Dictionary<ItemId, int> virtualCounts, ItemId placingItemId, out ItemId wireItemId, out int totalCost)
+        private static bool TrySelectWire(List<(Vector3Int TargetPos, float Distance)> targets, Dictionary<ItemId, int> virtualCounts, out ItemId wireItemId, out int totalCost)
         {
             wireItemId = ItemMaster.EmptyItemId;
             totalCost = 0;
-
-            // 設置ブロック自身の1個が仮想在庫に無ければ設置不可
-            // The cell is unplaceable when the virtual inventory lacks the block item itself
-            if (virtualCounts.GetValueOrDefault(placingItemId) < 1) return false;
 
             // 接続先なし・電線未設定マスタは自動接続なしで設置可
             // No targets or no configured wire items allows placement without auto-connect
@@ -165,10 +160,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 var candidateItemId = MasterHolder.ItemMaster.GetItemId(wireItem.ItemGuid);
                 if (!TrySumCost(candidateItemId, out var cost)) continue;
 
-                // 設置ブロックと電線が同一アイテムなら設置分の1個を上乗せして判定する
-                // Require one extra when the placed block shares the wire item
-                var required = cost + (candidateItemId == placingItemId ? 1 : 0);
-                if (virtualCounts.GetValueOrDefault(candidateItemId) < required) continue;
+                if (virtualCounts.GetValueOrDefault(candidateItemId) < cost) continue;
 
                 wireItemId = candidateItemId;
                 totalCost = cost;
@@ -194,11 +186,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             #endregion
         }
 
-        // 設置ブロック1個と選択電線の消費を仮想在庫へ反映する
-        // Apply the placed block and selected wire consumption to the virtual inventory
-        private static void ConsumeVirtual(Dictionary<ItemId, int> virtualCounts, ItemId placingItemId, ItemId wireItemId, int wireCost)
+        // 選択電線の消費を仮想在庫へ反映する（ブロック本体は建設コスト方式のためここでは扱わない）
+        // Apply the selected wire consumption to the virtual inventory (block bodies are handled by construction cost)
+        private static void ConsumeVirtual(Dictionary<ItemId, int> virtualCounts, ItemId wireItemId, int wireCost)
         {
-            virtualCounts[placingItemId] = virtualCounts.GetValueOrDefault(placingItemId) - 1;
             if (wireItemId == ItemMaster.EmptyItemId || wireCost <= 0) return;
             virtualCounts[wireItemId] = virtualCounts.GetValueOrDefault(wireItemId) - wireCost;
         }
