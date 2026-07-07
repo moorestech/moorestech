@@ -53,6 +53,8 @@ using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -157,6 +159,9 @@ namespace Client.Starter
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
+            // スタックレベルの変更系はDI注入のみで公開する
+            // Expose stack level mutation only through DI injection
+            builder.RegisterInstance(ServerContext.GetService<IItemStackLevelUnlocker>());
             builder.RegisterEntryPoint<ItemStackLevelEventHandler>();
             
             //プレゼンターアセンブリ

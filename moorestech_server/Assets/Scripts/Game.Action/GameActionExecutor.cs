@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Core.Item;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -14,16 +14,16 @@ namespace Game.Action
     {
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
-        private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
+        private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
 
         public GameActionExecutor(
             IGameUnlockStateDataController gameUnlockStateDataController,
             IPlayerInventoryDataStore playerInventoryDataStore,
-            ItemStackLevelDataStore itemStackLevelDataStore)
+            IItemStackLevelUnlocker itemStackLevelUnlocker)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _playerInventoryDataStore = playerInventoryDataStore;
-            _itemStackLevelDataStore = itemStackLevelDataStore;
+            _itemStackLevelUnlocker = itemStackLevelUnlocker;
         }
 
         public void ExecuteUnlockActions(GameActionElement[] actions, ActionExecutionContext context = default)
@@ -81,7 +81,7 @@ namespace Game.Action
                     break;
 
                 case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
-                    _itemStackLevelDataStore.ApplyUnlockItemStackLevelAction(action);
+                    _itemStackLevelUnlocker.ApplyUnlockItemStackLevelAction(action);
                     break;
             }
             

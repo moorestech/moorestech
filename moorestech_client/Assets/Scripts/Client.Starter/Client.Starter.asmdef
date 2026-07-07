@@ -23,7 +23,8 @@
         "Client.WebUiHost",
         "UniRx",
         "Game.Train",
-        "Game.PlayerRiding.Interface"
+        "Game.PlayerRiding.Interface",
+        "Core.Item.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
