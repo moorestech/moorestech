@@ -110,7 +110,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // 通常設置と同じ計算でPlaceInfo生成
                 // Build the pole PlaceInfo using the same calculation as normal placement
-                var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, true, BlockDirection.North, poleMaster);
+                var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, BlockDirection.North, poleMaster);
                 var placeInfo = placeInfos[0];
 
                 // 設置可否を確定しワイヤー可否と合算

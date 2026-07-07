@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.StateProcessor.ConnectionLine;
 using Client.Game.InGame.Context;
 using Game.Block.Interface;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
     /// 単一の電力ワイヤー接続をカテナリー曲線で表示するコンポーネント
     /// Component that renders a single electric wire connection as a catenary curve
     /// </summary>
-    public class ElectricWireLineViewElement : MonoBehaviour
+    public class ElectricWireLineViewElement : MonoBehaviour, IConnectionLineViewElement
     {
         // ワイヤーの垂れ量は両端距離に比例させる
         // Wire sag is proportional to the distance between endpoints
@@ -19,6 +20,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
         // 未解決時の再解決を試みる間隔
         // Interval between resolution retries while unresolved
         private const float RetryIntervalSeconds = 0.5f;
+        // CapsuleColliderのdirectionはローカルY軸を表す1
+        // CapsuleCollider direction value 1 means the local Y axis
+        private const int CapsuleDirectionYAxis = 1;
         [SerializeField] private MeshFilter meshFilter;
 
         private Mesh _generatedMesh;
@@ -122,7 +126,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
                     // Make it a trigger to avoid physical collision with the player (still hit by raycasts)
                     var capsule = colliderObject.AddComponent<CapsuleCollider>();
                     capsule.isTrigger = true;
-                    capsule.direction = 1;
+                    capsule.direction = CapsuleDirectionYAxis;
                     capsule.radius = CatenaryWireMeshBuilder.WireRadius;
                     capsule.height = segment.length;
                 }

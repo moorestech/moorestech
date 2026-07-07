@@ -39,7 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             _previewObject = previewObject;
         }
 
-        public GearChainPolePlaceExtendInput CollectPlaceExtend(PlaceSystemUpdateContext context, IGearChainPoleConnectAreaCollider sourcePole, BlockMasterElement poleBlockMaster, bool isAwaitingResponse)
+        public GearChainPolePlaceExtendInput CollectPlaceExtend(IGearChainPoleConnectAreaCollider sourcePole, BlockMasterElement poleBlockMaster, bool isAwaitingResponse)
         {
             var poleParam = (GearChainPoleBlockParam)poleBlockMaster.BlockParam;
 
@@ -87,7 +87,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             return input;
         }
 
-        public GearChainPoleChainConnectInput CollectChainConnect(PlaceSystemUpdateContext context, IGearChainPoleConnectAreaCollider sourcePole)
+        public GearChainPoleChainConnectInput CollectChainConnect(IGearChainPoleConnectAreaCollider sourcePole)
         {
             // 接続に使うチェーンアイテムをインベントリから自動選択する（手持ち非依存）
             // Auto-select the chain item from inventory, independent of the held item
