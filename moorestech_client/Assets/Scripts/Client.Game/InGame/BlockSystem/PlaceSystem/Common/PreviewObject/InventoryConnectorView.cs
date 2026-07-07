@@ -22,7 +22,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
             
             void SetInventoryConnectors(InventoryConnects inventory)
             {
-                foreach (var inputConnect in inventory.InputConnects.items)
+                // スキーマ上optionalのため未定義の接続配列は空扱い
+                // Treat connect arrays omitted in master data as empty (optional in schema)
+                foreach (var inputConnect in inventory.InputConnects ?? System.Array.Empty<InputConnectsElement>())
                 {
                     var endPos = inputConnect.Offset;
                     if (inputConnect.Directions == null) return;
@@ -35,7 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
                     }
                 }
                 
-                foreach (var outputConnect in inventory.OutputConnects.items)
+                foreach (var outputConnect in inventory.OutputConnects ?? System.Array.Empty<OutputConnectsElement>())
                 {
                     var startPos = outputConnect.Offset;
                     if (outputConnect.Directions == null) return;
