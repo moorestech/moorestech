@@ -4,7 +4,10 @@
   "references": [
     "Game.Block.Interface",
     "Game.World.Interface",
-    "Core.Master"
+    "Core.Master",
+    "Core.Update",
+    "Game.Context",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
