@@ -1,5 +1,3 @@
-using Client.Game.InGame.UI.UIState.Input;
-
 namespace Client.Game.InGame.Control.BuildView
 {
     /// <summary>

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.BuildView;
-using Client.Game.InGame.UI.UIState.Input;
 using UnityEngine;
 
 namespace Client.Tests.BuildView
