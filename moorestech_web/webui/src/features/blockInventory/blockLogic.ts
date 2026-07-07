@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import type { ActionPayloads } from "@/bridge";
 import type { BlockInventoryOpen, SlotData } from "@/bridge/contract/payloadTypes";
-import { planDirectMoves } from "@/features/inventory/inventoryLogic";
+import { planDirectMoves } from "@/shared/itemMove";
 import ChestInventory from "./views/ChestInventory";
 import FilterSplitterInventory from "./views/FilterSplitterInventory";
 import GearMachineInventory from "./views/GearMachineInventory";
