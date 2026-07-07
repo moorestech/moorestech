@@ -137,7 +137,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 1両目マスタからレール位置スナップショットを生成する
             // Build the rail position snapshot from the 1st car master
-            MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(ForUnitTestItemId.TrainCarItem, out var trainCarMasterElement);
+            var trainCarMasterElement = MasterHolder.TrainUnitMaster.Train.TrainCars[0];
             var trainLength = TrainLengthConverter.ToRailUnits(trainCarMasterElement.Length);
             var railNodes = new List<IRailNode> { rail1Component.BackNode, rail2Component.BackNode };
             var railPosition = new RailPosition(railNodes, trainLength, 0);

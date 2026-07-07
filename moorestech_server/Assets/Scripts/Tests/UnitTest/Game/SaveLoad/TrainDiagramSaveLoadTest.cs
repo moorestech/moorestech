@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var firstTrain = MasterHolder.TrainUnitMaster.Train.TrainCars.First();
             var cars = new List<TrainCar>
             {
-                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, firstTrain.TrainCarGuid, firstTrain.ItemGuid, 400000, 1, trainLength, true).trainCar
+                TrainTestCarFactory.CreateTrainCarWithItemContainer(0, firstTrain.TrainCarGuid, 400000, 1, trainLength, true).trainCar
             };
             var train = new TrainUnit(railPosition, cars, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
             environment.GetITrainUnitMutationDatastore().RegisterTrain(train);

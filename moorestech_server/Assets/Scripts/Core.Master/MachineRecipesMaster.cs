@@ -39,13 +39,4 @@ namespace Core.Master
             return MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid == machineRecipeGuid);
         }
     }
-    
-    public static class MachineRecipeMasterExtension
-    {
-        public static ItemId GetBlockItemId(this MachineRecipeMasterElement recipe)
-        {
-            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-            return MasterHolder.BlockMaster.GetItemId(blockId);
-        }
-    }
 }
