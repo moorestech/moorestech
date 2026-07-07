@@ -9,10 +9,7 @@ using Game.PlayerInventory.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
-using Server.Util.MessagePack;
-using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 
@@ -56,8 +53,7 @@ namespace Server.Protocol.PacketResponse
             
             // ブロックIDの設定
             var blockId = MasterHolder.BlockMaster.GetBlockId(item.Id);
-            blockId = blockId.GetVerticalOverrideBlockId(placeInfo.VerticalDirection);
-            
+
             // paramsの作成
             var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
@@ -67,7 +63,7 @@ namespace Server.Protocol.PacketResponse
             var plan = default(ElectricWireAutoConnectPlan);
             if (isElectric)
             {
-                plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, placeInfo.Position, placeInfo.Direction, item.Id, inventoryData.MainOpenableInventory.InventoryItems);
+                plan = ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, placeInfo.Position, placeInfo.Direction, new[] { (item.Id, 1) }, inventoryData.MainOpenableInventory.InventoryItems);
                 if (!plan.IsPlaceable) return;
             }
 
@@ -107,57 +103,5 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public SendPlaceHotBarBlockProtocolMessagePack() { }
         }
-        
-        [MessagePackObject]
-        public class PlaceInfoMessagePack
-        {
-            [Key(0)] public Vector3IntMessagePack Position { get; set; }
-            
-            [Key(1)] public BlockDirection Direction { get; set; }
-            
-            [Key(2)] public BlockVerticalDirection VerticalDirection { get; set; }
-            [Key(3)] public BlockCreateParamMessagePack[] BlockCreateParams { get; set; }
-            
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public PlaceInfoMessagePack() { }
-            
-            public PlaceInfoMessagePack(PlaceInfo placeInfo)
-            {
-                BlockCreateParams = placeInfo.CreateParams.Select(v => new BlockCreateParamMessagePack(v)).ToArray();
-                Position = new Vector3IntMessagePack(placeInfo.Position);
-                Direction = placeInfo.Direction;
-                VerticalDirection = placeInfo.VerticalDirection;
-            }
-        }
-        
-        
-        [MessagePackObject]
-        public class BlockCreateParamMessagePack
-        {
-            [Key(0)] public string Key { get; set; }
-            [Key(1)] public byte[] Value { get; set; }
-            
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public BlockCreateParamMessagePack() { }
-            
-            public BlockCreateParamMessagePack(BlockCreateParam param)
-            {
-                Key = param.Key;
-                Value = param.Value;
-            }
-        }
-    }
-    
-    public class PlaceInfo
-    {
-        public Vector3Int Position { get; set; }
-        public BlockDirection Direction { get; set; }
-        public BlockVerticalDirection VerticalDirection { get; set; }
-        
-        public bool Placeable { get; set; }
-        
-        public BlockCreateParam[] CreateParams { get; set; } = Array.Empty<BlockCreateParam>();
-        
-        [JsonIgnore] public Dictionary<string, byte[]> CreateParamDictionary => CreateParams.ToDictionary(v => v.Key, v => v.Value);
     }
 }

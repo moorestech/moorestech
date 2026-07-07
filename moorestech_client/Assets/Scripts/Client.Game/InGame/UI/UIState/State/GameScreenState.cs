@@ -1,4 +1,5 @@
-﻿using Client.Game.InGame.Control;
+﻿using Client.Game.Common;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -43,7 +44,7 @@ namespace Client.Game.InGame.UI.UIState.State
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
             
             //TODO InputSystemのリファクタ対象
-            if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.BuildMenu);
             if (UnityEngine.Input.GetKeyDown(KeyCode.T)) return new UITransitContext(UIStateEnum.ChallengeList);
             if (UnityEngine.Input.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
             if (UnityEngine.Input.GetKeyDown(KeyCode.F3)) return new UITransitContext(UIStateEnum.Debug);
@@ -53,6 +54,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 旧uGUIのHUD表示をGameScreen復帰時に同期する
+            // Sync legacy uGUI HUD visibility when returning to GameScreen.
+            GameStateController.ChangeState(GameStateType.InGame);
+
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
 

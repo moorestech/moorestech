@@ -114,8 +114,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000001",
-      "blockGuid": "00000000-0000-0000-0000-000000000001",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000001"
     },
     {
       "modelTransform": {
@@ -145,7 +144,17 @@
       "itemGuid": "00000000-0000-0000-1234-000000000002",
       "blockGuid": "00000000-0000-0000-0000-000000000002",
       "blockParam": {},
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ],
+      "initialUnlocked": true
     },
     {
       "modelTransform": {
@@ -230,7 +239,7 @@
       },
       "itemGuid": "00000000-0000-0000-1234-000000000003",
       "blockGuid": "00000000-0000-0000-0000-000000000003",
-      "overrideVerticalBlock": {}
+      "initialUnlocked": true
     },
     {
       "modelTransform": {
@@ -267,7 +276,55 @@
       },
       "itemGuid": "00000000-0000-0000-1234-000000000004",
       "blockGuid": "00000000-0000-0000-0000-000000000004",
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000005",
+          "count": 1
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        3,
+        1
+      ],
+      "name": "TestLockedElectricPole",
+      "blockType": "ElectricPole",
+      "blockParam": {
+        "machineConnectionRange": 5,
+        "poleConnectionRange": 7,
+        "poleConnectionHeightRange": 5,
+        "machineConnectionHeightRange": 5,
+        "maxWireConnectionCount": 8,
+        "maxWireLength": 12
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000101",
+      "blockGuid": "00000000-0000-0000-0000-000000000101",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000005",
+          "count": 1
+        }
+      ]
     },
     {
       "modelTransform": {
@@ -366,8 +423,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000005",
-      "blockGuid": "00000000-0000-0000-0000-000000000005",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000005"
     },
     {
       "modelTransform": {
@@ -443,8 +499,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000006",
-      "blockGuid": "00000000-0000-0000-0000-000000000006",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000006"
     },
     {
       "modelTransform": {
@@ -541,8 +596,7 @@
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000007",
-      "blockGuid": "00000000-0000-0000-0000-000000000007",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000007"
     },
     {
       "modelTransform": {
@@ -664,8 +718,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "00000000-0000-0000-1234-000000000008",
-      "blockGuid": "00000000-0000-0000-0000-000000000008",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000008"
     },
     {
       "modelTransform": {
@@ -764,8 +817,7 @@
         ],
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      },
-      "overrideVerticalBlock": {}
+      }
     },
     {
       "modelTransform": {
@@ -853,8 +905,7 @@
         ],
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      },
-      "overrideVerticalBlock": {}
+      }
     },
     {
       "modelTransform": {
@@ -952,8 +1003,7 @@
         ],
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      },
-      "overrideVerticalBlock": {}
+      }
     },
     {
       "modelTransform": {
@@ -1068,8 +1118,7 @@
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
-      "blockGuid": "00000000-0000-0000-0000-00000000000c",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000c"
     },
     {
       "modelTransform": {
@@ -1241,8 +1290,7 @@
         }
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000d",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000d"
     },
     {
       "modelTransform": {
@@ -1317,8 +1365,7 @@
         }
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000e",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000e"
     },
     {
       "modelTransform": {
@@ -1396,7 +1443,90 @@
       },
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
       "blockGuid": "00000000-0000-0000-0000-00000000002c",
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestLockedGearChainPole",
+      "blockType": "GearChainPole",
+      "blockParam": {
+        "maxConnectionDistance": 10,
+        "maxConnectionCount": 2,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "a1b2c3d4-1102-4102-8102-000000000102",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000102",
+      "blockGuid": "00000000-0000-0000-0000-000000000102"
     },
     {
       "modelTransform": {
@@ -1547,8 +1677,7 @@
         }
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000f",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000f"
     },
     {
       "modelTransform": {
@@ -1623,8 +1752,7 @@
         "baseDestructionProbability": 0
       },
       "itemGuid": "19000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000010",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000010"
     },
     {
       "modelTransform": {
@@ -1701,8 +1829,7 @@
         "baseDestructionProbability": 0
       },
       "itemGuid": "11100000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000011",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000011"
     },
     {
       "modelTransform": {
@@ -1817,8 +1944,7 @@
         }
       },
       "name": "Teeth10RequireTorqueTestGear",
-      "blockGuid": "00000000-0000-0000-0000-000000000012",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000012"
     },
     {
       "modelTransform": {
@@ -1933,8 +2059,7 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000013",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000013"
     },
     {
       "modelTransform": {
@@ -2009,8 +2134,7 @@
         "baseDestructionProbability": 0
       },
       "itemGuid": "11400000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000014",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000014"
     },
     {
       "blockSize": [
@@ -2111,8 +2235,7 @@
         }
       },
       "itemGuid": "30000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000030",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000030"
     },
     {
       "blockSize": [
@@ -2264,12 +2387,16 @@
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
-        "horizontalBlockGuid": "00000000-0000-0000-0000-000000000015",
-        "downBlockGuid": "00000000-0000-0000-0000-0000000000a2"
-      },
-      "enableConveyorPlacement": true
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "maxStack": 100,
@@ -2385,8 +2512,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "11900000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000019",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000019"
     },
     {
       "maxStack": 100,
@@ -2502,8 +2628,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "12010000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000001a",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000001a"
     },
     {
       "maxStack": 100,
@@ -2619,8 +2744,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "12102000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000001b",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000001b"
     },
     {
       "name": "GearMiner",
@@ -2715,8 +2839,7 @@
         1,
         1
       ],
-      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f",
-      "overrideVerticalBlock": {}
+      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f"
     },
     {
       "maxStack": 100,
@@ -2738,7 +2861,68 @@
       },
       "name": "TestTrainRail",
       "blockGuid": "00000000-0000-0000-0000-000000000024",
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "00000000-0000-0000-1234-000000000103",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestLockedTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000103",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "itemGuid": "00000000-0000-0000-1234-000000000104",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestRailCostTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000104",
+      "requiredItems": [
+        {
+          "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+          "count": 5
+        }
+      ],
+      "initialUnlocked": true
     },
     {
       "blockSize": [
@@ -2802,8 +2986,7 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainStation",
-      "blockGuid": "00000000-0000-0000-0000-000000000025",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000025"
     },
     {
       "blockSize": [
@@ -2867,11 +3050,9 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainItemPlatform",
-      "blockGuid": "00000000-0000-0000-0000-000000000026",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000026"
     },
     {
-      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
@@ -2955,8 +3136,7 @@
         }
       },
       "name": "TestGearMapObjectMiner",
-      "blockGuid": "00000000-0000-0000-0000-000000000027",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000027"
     },
     {
       "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
@@ -3065,8 +3245,7 @@
         1,
         1,
         1
-      ],
-      "overrideVerticalBlock": {}
+      ]
     },
     {
       "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
@@ -3125,14 +3304,11 @@
         1,
         1,
         1
-      ],
-      "overrideVerticalBlock": {}
+      ]
     },
     {
       "time": 1,
       "recipeViewType": 100,
-      "initialUnlocked": true,
-      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
@@ -3261,8 +3437,7 @@
         "maxWireLength": 8
       },
       "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
-      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
-      "overrideVerticalBlock": {}
+      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0"
     },
     {
       "blockSize": [
@@ -3401,8 +3576,7 @@
       },
       "name": "FuelGearGenerator",
       "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
-      "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
-      "overrideVerticalBlock": {}
+      "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471"
     },
     {
       "blockGuid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
@@ -3416,11 +3590,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "requiredItems": [
           {
@@ -3448,11 +3617,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [
@@ -3488,11 +3652,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [],
@@ -3515,12 +3674,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
-      "enableConveyorPlacement": false,
       "blockParam": {
         "generateFluid": [
           {
@@ -3632,12 +3785,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
-      "enableConveyorPlacement": false,
       "blockParam": {
         "generateFluid": [
           {
@@ -3758,8 +3905,7 @@
         },
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      },
-      "overrideVerticalBlock": {}
+      }
     },
     {
       "blockSize": [
@@ -3900,8 +4046,7 @@
         }
       },
       "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
-      "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040",
-      "overrideVerticalBlock": {}
+      "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
     },
     {
       "blockSize": [
@@ -3973,8 +4118,7 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainFluidPlatform",
-      "blockGuid": "00000000-0000-0000-0000-000000000029",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000029"
     },
     {
       "blockSize": [
@@ -4054,8 +4198,7 @@
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000031",
-      "blockGuid": "00000000-0000-0000-0000-000000000031",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000031"
     },
     {
       "blockSize": [
@@ -4265,8 +4408,7 @@
         },
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      },
-      "overrideVerticalBlock": {}
+      }
     },
     {
       "blockSize": [
@@ -4368,8 +4510,16 @@
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a1",
       "blockGuid": "00000000-0000-0000-0000-0000000000a1",
-      "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "blockSize": [
@@ -4476,8 +4626,497 @@
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a2",
       "blockGuid": "00000000-0000-0000-0000-0000000000a2",
-      "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        2
+      ],
+      "name": "GearBeltConveyor2",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltConveyorItemCount": 8,
+        "timeOfItemEnterToExit": 0.8,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectorGuid": "3a1a659d-bcbc-4776-aa12-5ef08e0ca5d1",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectorGuid": "acb993d1-a6ca-441a-bd03-99fe497f46b6",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "connectorGuid": "f80e621b-174a-404d-b9a8-8c9eda12e52d",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "connectorGuid": "04da4a4c-4256-4de0-ad81-c1f958a7a760",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.02,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "itemGuid": "11800000-0000-0000-0000-0000000000a3",
+      "blockGuid": "00000000-0000-0000-0000-0000000000a3",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        3
+      ],
+      "name": "GearBeltConveyor3",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltConveyorItemCount": 12,
+        "timeOfItemEnterToExit": 1.2,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectorGuid": "30f69258-8caf-4823-9678-396e618c3c80",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectorGuid": "28f0a9a8-947d-4dd8-bc2f-5394407064a8",
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "connectorGuid": "7ebfde75-f1e2-471e-8dac-3f5143efd0e0",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "connectorGuid": "5a4a1b4d-2253-4fc0-a474-44489e998256",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "connectorGuid": "d35c313f-f8d2-4287-a6ea-4a5dd5abf6ae",
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.02,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "itemGuid": "11800000-0000-0000-0000-0000000000a4",
+      "blockGuid": "00000000-0000-0000-0000-0000000000a4",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     }
   ],
   "connectorSettings": {

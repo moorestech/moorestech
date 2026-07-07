@@ -164,6 +164,31 @@ namespace Core.Master.Validator
                             }
                             break;
                         }
+                        case UnlockBlockGameActionParam unlockBlock:
+                        {
+                            if (unlockBlock.UnlockBlockGuids == null) break;
+                            foreach (var blockGuid in unlockBlock.UnlockBlockGuids)
+                            {
+                                var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+                                if (blockId == null)
+                                {
+                                    localErrors += $"[ResearchMaster] Research:{researchName} has invalid ClearedAction.UnlockBlockGuid:{blockGuid}\n";
+                                }
+                            }
+                            break;
+                        }
+                        case UnlockTrainCarGameActionParam unlockTrainCar:
+                        {
+                            if (unlockTrainCar.UnlockTrainCarGuids == null) break;
+                            foreach (var trainCarGuid in unlockTrainCar.UnlockTrainCarGuids)
+                            {
+                                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarGuid, out _))
+                                {
+                                    localErrors += $"[ResearchMaster] Research:{researchName} has invalid ClearedAction.UnlockTrainCarGuid:{trainCarGuid}\n";
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
                 return localErrors;

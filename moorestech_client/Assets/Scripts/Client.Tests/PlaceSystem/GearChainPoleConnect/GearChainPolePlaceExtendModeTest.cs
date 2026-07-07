@@ -152,7 +152,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 GhostPlaceInfo = new PlaceInfo { Position = placePos, Placeable = true },
                 GhostGroundClear = true,
                 GhostCenter = placePos + new Vector3(0.5f, 0.5f, 0.5f),
-                PoleInventorySlot = 5,
+                PoleBlockId = new BlockId(5),
                 OwnedChainItemId = ChainItemId,
                 MaxConnectionCount = 4,
             };
