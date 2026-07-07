@@ -40,7 +40,7 @@ namespace Game.Block.Factory.BlockTemplate
             var gearConsumption = minerParam.GearConsumption;
 
             var requestPower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
-            var idlePowerRate = gearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+            var idlePowerRate = gearConsumption.IdlePowerRate;
             var outputSlot = minerParam.OutputItemSlotCount;
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             var minerProcessorComponent = componentStates == null ?

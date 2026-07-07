@@ -21,7 +21,6 @@ namespace Core.Master
         // カテゴリー未設定ブロックの破壊カテゴリー。デフォルト同士は従来どおり複数選択可能
         // Destruction category for blocks not listed in any definition; defaults can still be multi-selected together
         public const string DefaultDestructionCategory = "default";
-        public const float DefaultIdlePowerRate = 0.2f;
 
         public readonly Blocks Blocks;
 

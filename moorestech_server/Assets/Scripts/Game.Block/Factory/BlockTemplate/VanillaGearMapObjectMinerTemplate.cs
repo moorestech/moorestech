@@ -46,7 +46,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             // MapObject採掘機
             // MapObject Miner
-            var idleTorqueRate = minerParam.GearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+            var idleTorqueRate = minerParam.GearConsumption.IdlePowerRate;
             var gearMapObjectMinerProcessorComponent = componentStates == null ?
                 new VanillaGearMapObjectMinerProcessorComponent(blockPositionInfo, minerParam, chestComponent, gearEnergyTransformer, idleTorqueRate) :
                 new VanillaGearMapObjectMinerProcessorComponent(componentStates, blockPositionInfo, minerParam, chestComponent, gearEnergyTransformer, idleTorqueRate);

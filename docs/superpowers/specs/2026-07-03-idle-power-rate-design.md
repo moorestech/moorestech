@@ -12,7 +12,7 @@
 | 論点 | 決定 |
 |---|---|
 | 指定方法 | 比率（`idlePowerRate`）を各ブロックのマスタデータに持たせる |
-| スキーマデフォルト値 | **0.2**（既存 JSON はキー無し → 全既存機械が自動でアイドル省エネ化） |
+| スキーマデフォルト値 | **0.2**（エディタ入力時の既定値。JSON では必須キーとして明示する） |
 | 歯車ネットワークのハードストップ | **維持**。アイドル中は回るが、加工開始で需要超過になれば停止する。発電追加等で供給が需要を上回れば毎tick再計算により自動復帰。過負荷対策はプレイヤーの電源設計の責務とする |
 | 適用範囲 | 消費ブロック全般（電気: 機械・採掘機・ポンプ / 歯車: 機械・採掘機・MapObject採掘機・ポンプ・ベルトコンベア） |
 | スコープ | サーバーロジックのみ。クライアント表示は既存の BlockState 同期に自然に追従する範囲でよい |
@@ -20,10 +20,10 @@
 
 ## マスタデータ（スキーマ）変更
 
-新キー `idlePowerRate`（number、デフォルト 0.2、0〜1想定）を追加する。
+新キー `idlePowerRate`（number、必須、エディタデフォルト 0.2、0〜1想定）を追加する。
 
-- 歯車系: `VanillaSchema/ref/gearConsumption.yml` に追加。`gearConsumption` は歯車消費5ブロック（GearMachine / GearMiner / GearMapObjectMiner / GearPump / GearBeltConveyor）が共有する ref のため、1箇所で全てに行き渡る
-- 電気系: `VanillaSchema/blocks.yml` の ElectricMachine / ElectricMiner / ElectricPump の properties に追加（`requiredPower` の隣）
+- 歯車系: `VanillaSchema/ref/gearConsumption.yml` に `optional: false`（必須）相当で追加。`gearConsumption` は歯車消費5ブロック（GearMachine / GearMiner / GearMapObjectMiner / GearPump / GearBeltConveyor）が共有する ref のため、1箇所で全てに行き渡る
+- 電気系: `VanillaSchema/blocks.yml` の ElectricMachine / ElectricMiner / ElectricPump の properties に `optional: false`（必須）相当で追加（`requiredPower` の隣）
 - スキーマ編集時は edit-schema スキルに従い、SourceGenerator を再生成する
 
 意味論:
@@ -43,12 +43,12 @@
 ### 歯車側（具体コンポーネントから `GearEnergyTransformer` へ変更要求を叩く）
 
 - `GearEnergyTransformer` は要求トルク倍率 `_torqueRequestRate`（初期値1）と `SetTorqueRequestRate(float)` だけを持ち、`GetRequiredTorque` は計算結果に倍率を乗算するのみ。稼働状態・idlePowerRate の語彙を持たない
-- 稼働判定と `idlePowerRate ?? 0.2` の解決は各具体側が行い、状態変化時に倍率を叩く
+- 稼働判定とスキーマ必須キー（エディタデフォルト0.2）の参照は各具体側が行い、状態変化時に倍率を叩く
   - GearMachine: `VanillaGearMachineComponent` が processor の `OnChangeBlockState` 購読＋初期化時に叩く
   - GearMiner: `VanillaGearMinerComponent` が同様に `IsMining` で叩く
-  - GearMapObjectMiner: `VanillaGearMapObjectMinerProcessorComponent` が自身の `Update` で採掘対象の有無により叩く
+  - GearMapObjectMiner: `VanillaGearMapObjectMinerProcessorComponent` が初期化時と採掘対象消滅時のみ採掘対象の有無により叩く
   - GearPump: `GearPumpComponent` が `Update` で生成可否により叩く
-  - GearBeltConveyor: `GearBeltConveyorComponent` 自身が `Update` でアイテム有無により叩く
+  - GearBeltConveyor: `GearBeltConveyorComponent` がベルトのアイテム増減イベント購読＋初期化時に叩く
 - 発電機・シャフト・歯車等の非消費ブロックは一切変更しない（倍率1のまま）
 - ロード直後の初回tickのみ倍率1で要求する可能性があるが、遷移1tickラグとして許容範囲
 
@@ -83,4 +83,4 @@ creating-server-tests スキルに従い作成する。
 2. 歯車機械: アイドル時の要求トルクが低減され供給不足だったネットワークが回ること／加工開始で需要超過 → 既存ハードストップが発動すること
 3. 電気採掘機・ポンプ・ベルトコンベア: 各アイドル条件（鉱石なし・タンク満杯・ベルト空）で要求が低減されること
 4. EnergySegment 結合: アイドル機械が要求を下げた分、同一ネットワークの稼働中機械への配分が増えること
-5. マスタデータ: テスト用 blocks.json に `idlePowerRate` 明示指定ブロックを追加し、明示値とデフォルト値（キー省略時 0.2）の両方を検証
+5. マスタデータ: テスト用 blocks.json に `idlePowerRate` 明示指定ブロックを追加し、必須キーとして読み込まれることを検証

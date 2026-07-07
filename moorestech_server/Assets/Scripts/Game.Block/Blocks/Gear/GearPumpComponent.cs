@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Blocks.Pump;
@@ -22,7 +21,7 @@ namespace Game.Block.Blocks.Gear
             _gearEnergyTransformer = gearEnergyTransformer;
             _output = output;
             _entries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid.items, blockPositionInfo.OriginalPos);
-            _idleTorqueRate = param.GearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+            _idleTorqueRate = param.GearConsumption.IdlePowerRate;
 
             UpdateTorqueRequestRate();
         }

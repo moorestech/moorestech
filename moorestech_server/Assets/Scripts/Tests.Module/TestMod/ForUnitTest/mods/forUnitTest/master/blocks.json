@@ -408,6 +408,7 @@
       "blockParam": {
         "outputItemSlotCount": 3,
         "requiredPower": 100,
+        "idlePowerRate": 0.2,
         "mineSettings": [
           {
             "time": 1,
@@ -1097,7 +1098,8 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "00000000-0000-0000-1234-000000000014",
@@ -1244,7 +1246,8 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "16000000-0000-0000-0000-000000000000",
@@ -1314,7 +1317,8 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "17000000-0000-0000-0000-000000000000",
@@ -1392,7 +1396,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
@@ -1552,7 +1557,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "18000000-0000-0000-0000-000000000000",
@@ -1813,7 +1819,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "Teeth10RequireTorqueTestGear",
@@ -1919,7 +1926,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000013",
@@ -2266,7 +2274,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-000000000000",
@@ -2307,6 +2316,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2429,6 +2439,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2551,6 +2562,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2733,7 +2745,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockSize": [
@@ -2993,7 +3006,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "TestGearMapObjectMiner",
@@ -3193,6 +3207,7 @@
         "poleConnectionRange": 5,
         "innerTankCapacity": 100,
         "requiredPower": 5,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
         "inventoryConnectors": {
@@ -3667,7 +3682,8 @@
           "minimumRpm": 0,
           "baseTorque": 5,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       }
     },
@@ -3804,7 +3820,8 @@
           "minimumRpm": 0,
           "baseTorque": 100,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "overrideVerticalBlock": {}
@@ -3960,7 +3977,8 @@
           "minimumRpm": 0,
           "baseTorque": 1.0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
@@ -4319,7 +4337,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a1",
@@ -4435,7 +4454,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "11800000-0000-0000-0000-0000000000a2",

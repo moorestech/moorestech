@@ -33,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var effectComponent = new MachineModuleEffectComponent(module);
-            var idlePowerRate = machineParam.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+            var idlePowerRate = machineParam.IdlePowerRate;
             var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, idlePowerRate, effectComponent);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
@@ -76,7 +76,7 @@ namespace Game.Block.Factory.BlockTemplate
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var effectComponent = new MachineModuleEffectComponent(module);
-            var idlePowerRate = machineParam.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+            var idlePowerRate = machineParam.IdlePowerRate;
             var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, idlePowerRate, blockMasterElement);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
