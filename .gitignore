@@ -121,3 +121,4 @@ moorestech_server/UserSettings/UnityMcpSettings.json
 # プレイテスト成果物 / playtest artifacts
 moorestech_client/PlaytestResults/
 .idea/
+.mso/**/recording.mp4
