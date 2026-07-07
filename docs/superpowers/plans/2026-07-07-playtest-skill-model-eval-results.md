@@ -87,3 +87,9 @@
 - 各トライアル: `.mso/live-trial/20260707-*-{opus,sonnet}-l{1,2,3}-playtest/`（task.md / report.md / workflow.md / out/status.json / transcript.jsonl / pane.txt / artifacts/）
 - 録画 mp4 は git 管理外（`.mso/**/recording.mp4` を .gitignore 追加）。ローカルの同パスに保全
 - プロダクト修正: 05a8cb1a8（レールBlockId + 回帰シナリオ）
+
+## 結果ビューアー
+
+- URL: http://localhost:4983 （対象: `.mso/live-trial/` 全トライアル）
+- 再起動: `node /Users/katsumi/.claude/skills/run-skill-live-trial/templates/result-viewer/server.mjs --dir /Users/katsumi/moorestech-worktrees/playtest/.mso/live-trial --port 4983`
+- 停止: `lsof -i :4983` で PID 確認後 kill
