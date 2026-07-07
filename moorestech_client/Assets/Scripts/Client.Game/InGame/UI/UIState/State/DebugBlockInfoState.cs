@@ -114,6 +114,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 _hoveredBlock = null;
             }
             InputManager.MouseCursorVisible(false);
+
+            // 右ボタン押下中に抜けても回転が残らないよう必ず解除する
+            // Always clear rotation so it does not linger when exiting mid right-press
+            _inGameCameraController.SetControllable(false);
         }
     }
 }
