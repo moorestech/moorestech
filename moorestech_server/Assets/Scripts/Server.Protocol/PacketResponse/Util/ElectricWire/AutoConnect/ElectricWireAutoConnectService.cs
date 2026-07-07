@@ -10,7 +10,10 @@ using Core.Inventory;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
     /// 設置時の電力ワイヤー自動接続を計画・実行する

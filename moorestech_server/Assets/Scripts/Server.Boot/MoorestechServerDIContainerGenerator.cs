@@ -58,6 +58,8 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Util.MessagePack;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
+
 namespace Server.Boot
 {
     public class MoorestechServerDIContainerOptions

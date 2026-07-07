@@ -8,6 +8,8 @@ using Game.Block.Interface;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 {
     /// <summary>
