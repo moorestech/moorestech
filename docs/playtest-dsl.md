@@ -72,14 +72,17 @@ UI-route APIs that build through the same key/mouse path as a real player. Input
 SemanticInput via QueueStateEvent (no InputSystem.Update() calls; focus not required).
 
 ```csharp
-p.UnlockBlock("ベルトコンベア");                     // サーバー側アンロック（イベントでクライアント同期）
-await p.GiveItem("鉄の歯車", 15);                    // 建設コストを事前に付与（UI設置は在庫消費する）
+// UI設置の前提を1行で: アンロック＋マスタのRequiredItems×個数分の建設コスト付与（クライアント在庫反映待ち込み）
+await p.PrepareBlockForUiPlacement("ベルトコンベア", 15);
 // ドラッグ設置: ベルトの向きは経路から自動解決（(2,2)→(2,6)なら北向き5本）
 await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
 // 単クリック設置: 向きはデフォルトNorth（回転キー注入は未実装）
 await p.PlaceBlockViaUi("木のコンベアチェスト", new Vector3Int(4, 32, 8), BlockDirection.North);
 await p.ExitToGameScreen();
 ```
+
+分解して使う場合: `UnlockBlock(name)`（サーバー側アンロック→イベントでクライアント同期）と
+`GiveConstructionCost(name, blockCount)`（RequiredItems解決＋give経路＋クライアント同期待ち）。
 
 低レベルAPI: `PressKey(Key)` / `SelectHotbar(slot)`(0始まり=キー1) / `AimAt(worldPos)` /
 `ClickPlace()` / `WaitUiState(UIStateEnum, timeout)` / `CurrentUiState` /

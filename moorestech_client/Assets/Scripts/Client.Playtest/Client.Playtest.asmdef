@@ -21,6 +21,7 @@
         "ClassLibrary",
         "UniTask",
         "UniRx",
+        "VContainer",
         "Unity.InputSystem",
         "Unity.Recorder.Editor"
     ],
