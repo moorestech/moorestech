@@ -78,49 +78,11 @@ namespace Game.Block.Component
             if (!worldBlockDatastore.TryGetBlock(outputTargetPos, out BlockConnectorComponent<TTarget, TConnectJudge> targetConnector)) return;
             if (!worldBlockDatastore.TryGetBlock<TTarget>(outputTargetPos, out var targetComponent)) return;
 
-            // アウトプット先にターゲットのインプットオブジェクトがあるかどうかをチェックする
-            // Check if target's input object exists at output destination
-            var isConnect = false;
-            IBlockConnector selfConnector = null;
-            IBlockConnector targetElementConnector = null;
-            foreach (var targetInput in targetConnector._inputConnectPoss)
-            {
-                // アウトプット先に、インプットのコネクターがあるかどうかをチェックする
-                if (targetInput.Key != outputTargetPos) continue;
-
-                // インプットがどこからでも接続できるならそのまま接続
-                if (targetInput.Value == null)
-                {
-                    isConnect = true;
-                    break;
-                }
-
-                // インプット先に制限がある場合、その座標にアウトプットのコネクターがあるかをチェックする
-                var outputConnector = _outputTargetToOutputConnector[outputTargetPos];
-
-                // インプット先にアウトプットのコネクターがある場合は接続できる
-                foreach (var target in targetInput.Value)
-                    if (target.position == outputConnector.position)
-                    {
-                        isConnect = true;
-                        selfConnector = outputConnector.connector;
-                        targetElementConnector = target.connector;
-                        break;
-                    }
-            }
-
-            if (!isConnect) return;
-
             var targetBlock = ServerContext.WorldBlockDatastore.GetBlock(outputTargetPos);
 
-            // 形状互換表チェック（未設定コネクタ・未特定コネクタはワイルドカード）
-            // Shape table check (unset shapes and unresolved connectors are wildcard)
-            if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(selfConnector?.ShapeGuid, targetElementConnector?.ShapeGuid)) return;
-
-            // ドメイン固有の追加判定
-            // Domain-specific extra judge
-            var judgeContext = new ConnectJudgeContext(selfConnector, targetElementConnector, _blockPositionInfo, targetBlock.BlockPositionInfo);
-            if (!Judge.CanConnect(judgeContext)) return;
+            // 位置一致した候補を全て評価し、最初に通る組を採用する
+            // Evaluate all position-matched candidates and use the first valid pair
+            if (!TryFindConnectableCandidate(out var selfConnector, out var targetElementConnector)) return;
 
             // 接続元ブロックと接続先ブロックを接続
             // Connect source block to target block
@@ -129,6 +91,64 @@ namespace Game.Block.Component
                 var connectedInfo = new ConnectedInfo(selfConnector, targetElementConnector, targetBlock);
                 _connectedTargets.Add(targetComponent, connectedInfo);
             }
+
+            #region Internal
+
+            bool TryFindConnectableCandidate(out IBlockConnector validSelfConnector, out IBlockConnector validTargetConnector)
+            {
+                validSelfConnector = null;
+                validTargetConnector = null;
+                var candidates = CollectPositionMatchedCandidates();
+
+                // 形状互換表とドメイン判定の両方を通る候補を探す
+                // Find a candidate that passes both the shape table and domain judge
+                foreach (var candidate in candidates)
+                {
+                    if (!MasterHolder.BlockMaster.CanConnectConnectorShapes(candidate.selfConnector?.ShapeGuid, candidate.targetConnector?.ShapeGuid)) continue;
+
+                    var judgeContext = new ConnectJudgeContext(candidate.selfConnector, candidate.targetConnector, _blockPositionInfo, targetBlock.BlockPositionInfo);
+                    if (!Judge.CanConnect(judgeContext)) continue;
+
+                    validSelfConnector = candidate.selfConnector;
+                    validTargetConnector = candidate.targetConnector;
+                    return true;
+                }
+
+                return false;
+            }
+
+            List<(IBlockConnector selfConnector, IBlockConnector targetConnector)> CollectPositionMatchedCandidates()
+            {
+                var outputConnector = _outputTargetToOutputConnector[outputTargetPos];
+                var candidates = new List<(IBlockConnector selfConnector, IBlockConnector targetConnector)>();
+
+                // 対象位置の入力候補だけを集める
+                // Collect only input candidates at the target position
+                foreach (var targetInput in targetConnector._inputConnectPoss)
+                {
+                    if (targetInput.Key != outputTargetPos) continue;
+
+                    // 方向無制限入力では自側コネクタだけを確定する
+                    // For unrestricted input, resolve only the source connector
+                    if (targetInput.Value == null)
+                    {
+                        candidates.Add((outputConnector.connector, null));
+                        return candidates;
+                    }
+
+                    // 同じ位置にある全ての候補ペアを評価対象に残す
+                    // Keep every candidate pair at the same connector position
+                    foreach (var target in targetInput.Value)
+                    {
+                        if (target.position != outputConnector.position) continue;
+                        candidates.Add((outputConnector.connector, target.connector));
+                    }
+                }
+
+                return candidates;
+            }
+
+            #endregion
         }
 
         private void OnRemoveBlock(BlockRemoveProperties updateProperties)
