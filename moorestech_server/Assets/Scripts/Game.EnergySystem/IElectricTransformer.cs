@@ -6,8 +6,7 @@ namespace Game.EnergySystem
     /// <summary>
     ///     エネルギーを伝達するモノ
     /// </summary>
-    public interface IElectricTransformer : IBlockComponent
+    public interface IElectricTransformer : IElectricEnergyRole
     {
-        public BlockInstanceId BlockInstanceId { get; }
     }
 }

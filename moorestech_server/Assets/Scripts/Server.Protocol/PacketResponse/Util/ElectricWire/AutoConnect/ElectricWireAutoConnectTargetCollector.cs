@@ -9,7 +9,10 @@ using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Server.Protocol.PacketResponse.Util.ElectricWire
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
+
+namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
     /// 設置位置の周辺から自動接続対象の候補を収集する。電柱設置と機械設置で選定ルールが異なる
@@ -25,7 +28,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // ①範囲内で接続可能な最寄り電柱1本
             // Nearest connectable pole within pole range
             var nearestPole = CollectConnectors(ElectricConnectionRangeService.EnumeratePoleRange(position, ownParam))
-                .Where(c => c.Connector.WireTransformer != null)
+                .Where(c => c.Connector.EnergyRole is IElectricTransformer)
                 .Select(c => (c.Connector, Distance: Vector3Int.Distance(position, c.Position)))
                 .Where(c => IsGeometricallyConnectable(c.Distance, ownParam.MaxWireLength, c.Connector))
                 .OrderBy(c => c.Distance).ThenBy(c => c.Connector.BlockInstanceId.AsPrimitive())
@@ -53,7 +56,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // 範囲内の未接続機械/発電機を近い順に残数まで
             // Unconnected machines/generators within machine range, nearest first, up to remaining capacity
             var machineCandidates = CollectConnectors(ElectricConnectionRangeService.EnumerateMachineRange(position, ownParam))
-                .Where(c => (c.Connector.WireConsumer != null || c.Connector.WireGenerator != null) && c.Connector.WireConnections.Count == 0)
+                .Where(c => c.Connector.EnergyRole is IElectricConsumer or IElectricGenerator && c.Connector.WireConnections.Count == 0)
                 .Select(c => (c.Connector, Distance: Vector3Int.Distance(position, c.Position)))
                 .Where(c => IsGeometricallyConnectable(c.Distance, ownParam.MaxWireLength, c.Connector))
                 .OrderBy(c => c.Distance).ThenBy(c => c.Connector.BlockInstanceId.AsPrimitive());
@@ -93,7 +96,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
             IEnumerable<(IElectricWireConnector Connector, ElectricPoleBlockParam PoleParam)> ResolvePoleAt(Vector3Int polePos)
             {
-                if (!datastore.TryGetBlock<IElectricWireConnector>(polePos, out var connector) || connector.WireTransformer == null)
+                if (!datastore.TryGetBlock<IElectricWireConnector>(polePos, out var connector) || connector.EnergyRole is not IElectricTransformer)
                     yield break;
 
                 var poleParam = datastore.GetBlock(connector.BlockInstanceId).BlockMasterElement.BlockParam as ElectricPoleBlockParam;
