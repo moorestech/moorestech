@@ -29,11 +29,16 @@
    登録は `WebUiGameBinder.cs`）。half 計算は既存 `SplitGrabActionHandler` と同じ床関数に揃える
 2. **プロトコル**: `webui/src/bridge/transport/protocol.ts` の `ActionPayloads` にエントリ追加。
    `ACTION_TYPES` は網羅チェック（`ActionTypesExhaustive`）があるため、追記漏れはコンパイルエラーで検出される
-3. **mock-host**: `webui/e2e/mock-host/` に split 適用を実装（`inventoryModel.ts` / `wsHandler.ts`。既存 `inventory.split` 分岐が手本）
+3. **mock-host**: `webui/e2e/mock-host/` に split 適用を**新規実装**（`inventoryModel.ts` / `wsHandler.ts`）。
+   注意: mock-host に `inventory.split` の適用実装は**存在しない**（プレイヤー側 e2e は送信 payload の検証のみで状態適用していない）ため、手本になる split 分岐は無い。
+   構造の参考は `applyBlockMove`。この実装は省略不可——`blockInventoryGestures.spec.ts` が右クリ後の grab-overlay 表示（＝状態変化）を検証しているため、適用しないと手順4のテストが通らない
 4. **プランナ切替**: `blockSlotPlan.ts` の `planBlockRightClick` を「count 計算せず `block_inventory.split` を送る」に変更し、
    分岐点コメントを削除。`blockSlotPlan.test.ts` の期待値と、count を全等値照合している e2e
    （`blockInventoryGestures.spec.ts` の右クリ半分ケース、`machineGestures.spec.ts` の入力スロット右クリ）を追随させる
-5. **C# ⇔ TS ワイヤ契約**: `WireFixtures/` 共有の契約テストに新 action を追加（`wireContract.test.ts` / `WireContractTest.cs`）
+5. **C# ⇔ TS ワイヤ契約**: エラーコード正準セットの追随のみ。
+   `WireFixtures/` の契約テストが扱うのはホスト→クライアント payload と `error_codes.json` であり、action（クライアント→ホスト）のフィクスチャ機構は**存在しない**。
+   新ハンドラが新しい `ActionResult.Fail` コードを導入する場合に限り、`WireContractTest.cs` の正準セット（手維持 grep 由来）と `error_codes.json` を更新する。
+   既存コードの再利用で済むなら本手順の作業は無し。action フィクスチャの新設は本件のスコープ外（やるなら別判断）
 
 ## 注意
 
