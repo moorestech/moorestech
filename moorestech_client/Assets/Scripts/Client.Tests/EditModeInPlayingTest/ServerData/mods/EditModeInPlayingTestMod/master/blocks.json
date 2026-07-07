@@ -14,6 +14,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 0,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
         "inventoryConnectors": {
@@ -120,7 +121,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
@@ -329,7 +331,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
@@ -474,7 +477,8 @@
           "minimumRpm": 0,
           "baseTorque": 0.01,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
@@ -494,6 +498,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 0,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
         "inventoryConnectors": {
@@ -571,7 +576,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
@@ -743,7 +749,8 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "プレス機",
@@ -890,7 +897,8 @@
           "minimumRpm": 0,
           "baseTorque": 2,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
@@ -1041,7 +1049,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
@@ -1149,7 +1158,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
@@ -1258,7 +1268,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
@@ -1386,7 +1397,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "initialUnlocked": true,
@@ -1486,7 +1498,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
@@ -1598,7 +1611,8 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
@@ -1716,7 +1730,8 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "overrideVerticalBlock": {},
@@ -1762,7 +1777,8 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
@@ -1818,7 +1834,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "itemGuid": "855ec61a-a6c1-4a37-a885-1c5994ce573b",
@@ -1895,7 +1912,8 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",

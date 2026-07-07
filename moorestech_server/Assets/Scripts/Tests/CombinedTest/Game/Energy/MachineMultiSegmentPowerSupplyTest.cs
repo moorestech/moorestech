@@ -58,9 +58,9 @@ namespace Tests.CombinedTest.Game.Energy
             // Advance several ticks to stabilize the supply
             for (var i = 0; i < 3; i++) GameUpdater.UpdateOneTick();
 
-            // 発電機なしセグメントに打ち消されず、要求電力を受け取れている
-            // The machine receives its requested power without being zeroed by the generator-less segment
-            Assert.AreEqual(processor.RequestPower, processor.CurrentPower, 0.001f);
+            // 発電機なしセグメントに打ち消されず、現在の要求電力を受け取れている
+            // The machine receives its current requested power without being zeroed by the generator-less segment
+            Assert.AreEqual(processor.EffectiveRequestPower, processor.CurrentPower, 0.001f);
         }
     }
 }
