@@ -121,3 +121,38 @@
 - 旧経路`PlaceHotBarBlock`/`PlaceBlockFromHotBarProtocol`はTask 10で参照排除済み・本体はプラン5で削除
 - `NoPoleItem` enumが未使用化済み（電柱延長のBlockId化に伴う）。プラン5の削除候補
 - 車両にnameフィールドが無い問題（unlockTrainCarGuidsのエディタ表示がGUID生値）はプラン5の車両アイテム削除時に再燃する
+
+## プラン5完了に伴う追記（2026-07-07・移行プロジェクト完結）
+
+プラン5（破壊的クリーンアップ）全7タスク完了。作業ブランチ `feature/replace-palce-system-with-electric`、moorestech_master は `plan2-master-migration` @ 12e7bf0（ピン一致・push済み）。これにより「ブロック/車両アイテム」概念と旧ホットバー設置プロトコルは完全に消滅し、Satisfactory式設置システム移行プロジェクトは完結。
+
+### 電線マージ（プラン4 Task 13未達分の解消）
+- master(cd5fc11, hermes電線コミット群)を`plan2-master-migration`へマージ（f11e2ce）。コンフリクト3ファイルはplan2側を土台にmaster側の意味的追加（電線アイテム・electricWireItemsルート・blockDestructionCategories・クリーンルームデータのblocks.json統合）を再適用
+- `ElectricWireConnect`エントリは旧placeSystem形式から接続ツールエントリ形式（name/iconItemGuid/placeBlockGuid=電柱/sortPriority140）へ変換して追加
+- 電線シナリオを録画付きで再検証済み: ビルドメニューに電線接続ツール出現→実クリックで選択→電柱2本間の接続成立（電線8本消費・サーバーsegment統合確認）
+- クリーンルーム/半導体データはこのブランチのコード・スキーマに対応が無いが、ローダーは未知キーを無視するためblocks.json統合形をそのまま採用（該当機能ブランチのマージ時に有効化される）
+
+### 実施内容（コミット）
+- Task 1 返却フォールバック削除: 9894299a1（requiredItems未定義は本体返却なし。RemoveBlockRefundTestを新仕様化）
+- Task 2 旧ホットバー設置プロトコル削除: 02a4e0eda（`va:palceHotbarBlock`消滅。ElectricWireAutoConnectPlaceTestは新プロトコル＋建設コスト方式へ移行）
+- Task 3 アイコンのBlockId/車両Guidキー化: 6b19b862c（BlockImageContainer/TrainCarImageContainer新設・車両プレハブスクショ新設・BuildMenuEntryをIconView化。**ElectricWireAutoConnectPreviewのブロックアイテム仮想在庫ロジックを削除**（電線マージ後に顕在化する設置不可バグを予防）・クラフトツリーの機械本体素材ノード廃止）
+- Task 4 選択駆動化: 5ba01493a（DisplayEnergizedRangeをPlacementSelection.SelectedBlockId判定へ）
+- Task 5 スキーマitemGuid削除: 95a3c6fdc（blocks.yml/train.yml・IsBlock/GetBlockId(ItemId)/GetItemId(BlockId)/TryGetTrainCarMaster(ItemId)等のAPI・テストマスタJSON・テストコードのItemGuid依存を一括削除）
+- Task 6 本番マスタ削除: moorestech_master 12e7bf0（**81アイテム削除**=ブロック79＋車両3−木のシャフト1。ドリフト読み替えどおりベルト長尺バリアント12種込み。dangling参照ゼロ検証つきmigrate_plan5.py）＋ピン更新073bece8c
+
+### 検証結果（Task 7）
+- 全回帰: コンパイル0エラー、920/920 PASS（UnitTest 476 + CombinedTest 295 + Client.Tests 149。EditModeInPlayingTestの一括実行タイムアウト2件は単独再実行でPASS＝既知フレーク）
+- PlayMode実機検証（新規セーブ・録画 plan5-final-verification.mp4）:
+  1. 起動: エラー0・例外0、アイテム78件（159−81）、木のシャフト/電線/レール素材は存続
+  2. アイコン: ビルドメニューにブロック（石窯スクショアイコン）＋接続ツール3種が表示（車両アイコンは前段検証でBuildMenu表示確認済み）
+  3. 設置・破壊の往復: 石窯設置（砕いた石材20+レンガ5を全消費）→破壊（全額返却）で往復一致
+  4. クラフトUI: レシピ一覧は素材系のみ（ブロック/車両アイテムはマスタから消滅済み）
+  5. 鉄のロッド: 機械レシピ存続を実行時マスタで確認（原始的な加工機・鉄インゴット1＋木のシャフト1）
+  6. ホットバー: 木のシャフト所持状態でクリックしても設置モードに入らず、ブロック設置ゼロ（旧経路消滅）
+- 制約: ブロック設置のマウス操作（ゴーストプレビュー）は`PlaceSystemUtil`がlegacy `Input.mousePosition`を読むため入力注入では駆動不可。設置・破壊は実プロトコル（VanillaApi）経由で検証した。`feature/playtest-stabilization`のHybridInput対応で解消予定
+
+### 残件（プラン5スコープ外）
+- 車両nameフィールド追加（ビルドメニュー表示名はaddressablePath末尾で代替中。ツールチップ・unlockTrainCarGuidsエディタ表示の改善に必要）
+- moorestech_masterブランチ整理: local master(cd5fc11)は今回のマージでplan2-master-migrationに包含済み。masterブランチをplan2-master-migration(12e7bf0)へfast-forwardして一本化するかはユーザー判断（origin/masterへのpushを伴うため未実施）
+- `NoPoleItem` enum未使用化の削除、Responses.cs/CommonBlockPlaceSystem等の200行超ファイル棚卸し（既存違反）
+- EditModeInPlayingTestの一括実行フレーク（GameInitializerSceneLoader 60秒タイムアウト）はplaytest-stabilization側の課題として継続
