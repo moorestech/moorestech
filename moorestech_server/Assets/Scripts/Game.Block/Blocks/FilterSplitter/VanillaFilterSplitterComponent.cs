@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.FilterSplitter
     /// Whitelist/Blacklist で明示マッチした方向を優先、Default は fallback として使う。
     /// Filter splitter that routes items per direction. Explicit (Whitelist/Blacklist) directions take priority, Default acts as fallback.
     /// </summary>
-    public class VanillaFilterSplitterComponent : IBlockInventory, IBlockSaveState, IUpdatableBlockComponent
+    public class VanillaFilterSplitterComponent : IBlockInventory, IBlockSaveState, IUpdatableBlockComponent, IBlockBlueprintSettings
     {
         public string SaveKey { get; } = typeof(VanillaFilterSplitterComponent).FullName;
         public bool IsDestroy { get; private set; }
@@ -181,6 +181,75 @@ namespace Game.Block.Blocks.FilterSplitter
                 directions.Add(dir.ToJsonObject());
             }
             return JsonConvert.SerializeObject(new SaveJsonObject { Directions = directions });
+        }
+
+        #endregion
+
+        #region Blueprint Settings
+
+        public const string BlueprintSettingsSaveKey = "FilterSplitterBlueprintSettings";
+        public string BlueprintSettingsKey => BlueprintSettingsSaveKey;
+
+        public string GetBlueprintSettingsJson()
+        {
+            BlockException.CheckDestroy(this);
+
+            // 方向ごとのモードとフィルタGUIDのみ（BufferedItemは実行時状態のため除外）
+            // Mode and filter GUIDs per direction only; buffered items are runtime state
+            var directions = new List<FilterSplitterBlueprintDirectionSettingJsonObject>();
+            foreach (var dir in _directions)
+            {
+                var itemGuids = new List<string>();
+                foreach (var id in dir.FilterItems)
+                {
+                    itemGuids.Add(id == ItemMaster.EmptyItemId ? null : MasterHolder.ItemMaster.GetItemMaster(id).ItemGuid.ToString());
+                }
+                directions.Add(new FilterSplitterBlueprintDirectionSettingJsonObject
+                {
+                    ConnectorGuid = dir.ConnectorGuid.ToString(),
+                    Mode = (int)dir.Mode,
+                    FilterItemGuids = itemGuids,
+                });
+            }
+
+            return JsonConvert.SerializeObject(new FilterSplitterBlueprintSettingsJsonObject { Directions = directions });
+        }
+
+        public void ApplyBlueprintSettingsJson(string json)
+        {
+            var settings = JsonConvert.DeserializeObject<FilterSplitterBlueprintSettingsJsonObject>(json);
+            if (settings?.Directions == null) return;
+
+            // ConnectorGuidで方向を突き合わせ、既存のSetMode/SetFilterItemで適用する
+            // Match directions by ConnectorGuid and apply via existing setters
+            foreach (var saved in settings.Directions)
+            {
+                if (!Guid.TryParse(saved.ConnectorGuid, out var connectorGuid)) continue;
+                var index = FindDirectionIndexByGuid(connectorGuid);
+                if (index < 0) continue;
+
+                // 未知mode値はセーブロードと同じくDefaultへfallback
+                // Unknown mode value falls back to Default, same as save-load
+                SetMode(index, Enum.IsDefined(typeof(FilterSplitterMode), saved.Mode) ? (FilterSplitterMode)saved.Mode : FilterSplitterMode.Default);
+
+                if (saved.FilterItemGuids == null) continue;
+                for (var slot = 0; slot < saved.FilterItemGuids.Count && slot < _directions[index].FilterItems.Length; slot++)
+                {
+                    SetFilterItem(index, slot, ResolveItemId(saved.FilterItemGuids[slot]));
+                }
+            }
+
+            #region Internal
+
+            ItemId ResolveItemId(string guidStr)
+            {
+                // null/空文字/不正GUIDはいずれも空アイテム扱い（セーブロードと同じ慣例）
+                // Treat null/empty/invalid GUIDs as empty items, same convention as save-load
+                if (string.IsNullOrEmpty(guidStr) || !Guid.TryParse(guidStr, out var guid) || guid == Guid.Empty) return ItemMaster.EmptyItemId;
+                return MasterHolder.ItemMaster.GetItemIdOrNull(guid) ?? ItemMaster.EmptyItemId;
+            }
+
+            #endregion
         }
 
         #endregion
