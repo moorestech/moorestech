@@ -1001,7 +1001,12 @@
                 0
               ],
               "option": {
-                "isReverse": true
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1025,7 +1030,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "a0af84fd-5cc9-4a4d-b756-81521d93d77b"
+              "connectorGuid": "a0af84fd-5cc9-4a4d-b756-81521d93d77b",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1046,9 +1052,15 @@
                 ]
               ],
               "option": {
-                "isReverse": false
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "f2a52ab6-299d-4da8-a3b5-dd9877ad8a49"
+              "connectorGuid": "f2a52ab6-299d-4da8-a3b5-dd9877ad8a49",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -1099,7 +1111,12 @@
                 0
               ],
               "option": {
-                "isReverse": false
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1113,7 +1130,8 @@
                   1
                 ]
               ],
-              "connectorGuid": "a9f87ea0-c370-49a6-a2a5-6f8732fcc52a"
+              "connectorGuid": "a9f87ea0-c370-49a6-a2a5-6f8732fcc52a",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             },
             {
               "offset": [
@@ -1129,9 +1147,15 @@
                 ]
               ],
               "option": {
-                "isReverse": true
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "23a400fb-03c8-418d-94e9-a1b9c431f0ef"
+              "connectorGuid": "23a400fb-03c8-418d-94e9-a1b9c431f0ef",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1147,9 +1171,15 @@
                 ]
               ],
               "option": {
-                "isReverse": true
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "fb63936c-5bea-4ce5-83f5-1e428e1def52"
+              "connectorGuid": "fb63936c-5bea-4ce5-83f5-1e428e1def52",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1158,7 +1188,12 @@
                 0
               ],
               "option": {
-                "isReverse": true
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1167,7 +1202,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "9f9851a6-3c1a-49cc-bff2-223e1458af44"
+              "connectorGuid": "9f9851a6-3c1a-49cc-bff2-223e1458af44",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1183,9 +1219,15 @@
                 ]
               ],
               "option": {
-                "isReverse": true
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "2c81aa70-b156-4812-980a-6e9c3fc15cc5"
+              "connectorGuid": "2c81aa70-b156-4812-980a-6e9c3fc15cc5",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             }
           ]
         },
@@ -1239,7 +1281,12 @@
                 0
               ],
               "option": {
-                "isReverse": false
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1253,7 +1300,8 @@
                   1
                 ]
               ],
-              "connectorGuid": "aa9ff63e-efb6-459f-a710-14490e1d49ed"
+              "connectorGuid": "aa9ff63e-efb6-459f-a710-14490e1d49ed",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -1686,7 +1734,12 @@
                 0
               ],
               "option": {
-                "isReverse": true
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1710,7 +1763,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "5fba294f-51ae-4ffd-8326-c89144ba3663"
+              "connectorGuid": "5fba294f-51ae-4ffd-8326-c89144ba3663",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1731,9 +1785,15 @@
                 ]
               ],
               "option": {
-                "isReverse": false
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "2ebcab1f-91b7-422a-ab02-b58cde6fa959"
+              "connectorGuid": "2ebcab1f-91b7-422a-ab02-b58cde6fa959",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -1789,7 +1849,12 @@
                 0
               ],
               "option": {
-                "isReverse": true
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1813,7 +1878,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "b2700339-4db0-42bf-be4c-1c8966672788"
+              "connectorGuid": "b2700339-4db0-42bf-be4c-1c8966672788",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1834,9 +1900,15 @@
                 ]
               ],
               "option": {
-                "isReverse": false
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "42474ad9-bf31-4977-a775-0749b9c88ea0"
+              "connectorGuid": "42474ad9-bf31-4977-a775-0749b9c88ea0",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -3920,6 +3992,139 @@
       "blockGuid": "00000000-0000-0000-0000-000000000031"
     },
     {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestShapeOrderSourceChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "f2220000-0000-0000-0000-000000000001",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            }
+          ]
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000032",
+      "blockGuid": "00000000-0000-0000-0000-000000000032",
+      "overrideVerticalBlock": {}
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestShapeOrderTargetChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "f2220000-0000-0000-0000-000000000002",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "f2220000-0000-0000-0000-000000000003",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            }
+          ],
+          "outputConnects": []
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000033",
+      "blockGuid": "00000000-0000-0000-0000-000000000033",
+      "overrideVerticalBlock": {}
+    },
+    {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
       "itemGuid": "11110009-0000-0000-0000-000000000000",
       "name": "TestElectricToGearGenerator",
@@ -4722,6 +4927,28 @@
       ]
     }
   ],
+  "connectorSettings": {
+    "connectorShapes": [
+      {
+        "shapeGuid": "11111111-1111-1111-1111-111111111111",
+        "name": "gearTeeth"
+      },
+      {
+        "shapeGuid": "22222222-2222-2222-2222-222222222222",
+        "name": "gearShaft"
+      }
+    ],
+    "connectableShapePairs": [
+      {
+        "shape0": "11111111-1111-1111-1111-111111111111",
+        "shape1": "11111111-1111-1111-1111-111111111111"
+      },
+      {
+        "shape0": "22222222-2222-2222-2222-222222222222",
+        "shape1": "22222222-2222-2222-2222-222222222222"
+      }
+    ]
+  },
   "gearChainItems": [
     {
       "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",

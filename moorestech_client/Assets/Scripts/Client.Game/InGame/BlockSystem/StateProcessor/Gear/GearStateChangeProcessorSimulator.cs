@@ -25,6 +25,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         // Static simulator management list
         private static readonly List<GearStateChangeProcessorSimulator> _activeSimulators = new();
         private static bool _isEditorUpdateRegistered = false;
+
+        // エディタ更新の前回時刻(deltaTime計測用)
+        // Last editor update time (for measuring deltaTime)
+        private static double _lastEditorUpdateTime;
 #endif
 
         private void OnValidate()
@@ -44,6 +48,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         /// </summary>
         private static void OnEditorUpdate()
         {
+            // エディタはTime.deltaTimeが使えないため自前で計測する
+            // Editor updates cannot rely on Time.deltaTime, so measure it manually
+            var now = EditorApplication.timeSinceStartup;
+            var deltaTime = Mathf.Clamp((float)(now - _lastEditorUpdateTime), 0f, 0.1f);
+            _lastEditorUpdateTime = now;
+
             // アクティブな全シミュレーターを更新
             // Update all active simulators
             for (int i = _activeSimulators.Count - 1; i >= 0; i--)
@@ -67,7 +77,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                         simulator.simulateRpm,
                         0
                     );
-                    simulator.targetProcessor.Rotate(state);
+                    simulator.targetProcessor.Rotate(state, deltaTime);
                 }
             }
 
@@ -118,6 +128,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             // Register to EditorApplication.update only on first time
             if (!_isEditorUpdateRegistered)
             {
+                _lastEditorUpdateTime = EditorApplication.timeSinceStartup;
                 EditorApplication.update += OnEditorUpdate;
                 _isEditorUpdateRegistered = true;
             }

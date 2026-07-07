@@ -29,9 +29,9 @@ namespace Game.Block.Blocks.GearChainPole
 
         // チェーン接続と周辺ギアのコネクターを保持する
         // Hold chain connection and adjacent gear connectors
-        private readonly BlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
+        private readonly BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> _connectorComponent;
         private readonly SimpleGearService _gearService;
-        private readonly GearConnectOption _chainOption = new(false);
+        private readonly GearConnectOption _chainOption = new(false, null);
 
         private readonly Dictionary<BlockInstanceId, (IGearEnergyTransformer Transformer, GearChainConnectionCost Cost)> _chainTargets = new();
 
@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly Subject<Unit> _onChangeBlockState = new();
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer> connectorComponent, Dictionary<string, string> componentStates)
+        public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> connectorComponent, Dictionary<string, string> componentStates)
         {
             // 基本状態を初期化する
             // Initialize base state

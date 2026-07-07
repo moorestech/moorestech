@@ -69,5 +69,7 @@ namespace Tests.Module.TestMod
         public static BlockId GearChainPole => GetBlock("00000000-0000-0000-0000-00000000002c");
         public static BlockId TestTrainFluidPlatform => GetBlock("00000000-0000-0000-0000-000000000029");
         public static BlockId FilterSplitter => GetBlock("00000000-0000-0000-0000-000000000031");
+        public static BlockId TestShapeOrderSourceChest => GetBlock("00000000-0000-0000-0000-000000000032");
+        public static BlockId TestShapeOrderTargetChest => GetBlock("00000000-0000-0000-0000-000000000033");
     }
 }
