@@ -1,5 +1,5 @@
 import type { WebSocketServer } from "ws";
-import { Topics } from "../../src/bridge/transport/protocol";
+import { Topics, ACTION_TYPES } from "../../src/bridge/transport/protocol";
 import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/protocol";
 import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
@@ -8,24 +8,9 @@ import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers
 import { applyMove, applyBlockMove, applyCollect, applyBlockCollect } from "./inventoryModel";
 import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 
-// 本番 dispatcher が受理する既知 action type。未知は unknown_action で拒否する
-// Action types the real dispatcher accepts; unknown ones are rejected with unknown_action
-const KNOWN_ACTIONS = new Set<string>([
-  "inventory.move_item",
-  "inventory.split",
-  "inventory.collect",
-  "inventory.sort",
-  "inventory.select_hotbar",
-  "craft.execute",
-  "ui.modal.respond",
-  "block_inventory.move_item",
-  "block_inventory.collect",
-  "ui_state.request",
-  "research.complete",
-  "filter_splitter.set_mode",
-  "filter_splitter.set_filter_item",
-  "debug.echo",
-]);
+// 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
+// Action types the real dispatcher accepts, derived from protocol.ts to kill the duplicate list
+const KNOWN_ACTIONS = new Set<string>(ACTION_TYPES);
 
 // インベントリ状態は接続ごとに分離する。並列テストが同一 inv を奪い合わないため
 // Inventory state is isolated per connection so parallel tests don't race on the same inv
