@@ -43,8 +43,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // ブロックの実際のコネクタを使用してアイテムを設定
             // Set items using the block's actual connectors
-            var inputConnects = beltParam.InventoryConnectors.InputConnects.items;
-            var outputConnects = beltParam.InventoryConnectors.OutputConnects.items;
+            var inputConnects = beltParam.InventoryConnectors.InputConnects;
+            var outputConnects = beltParam.InventoryConnectors.OutputConnects;
             var sourceConnector = inputConnects[0];
             var goalConnector = outputConnects[0];
             var totalTicks = GameUpdater.SecondsToTicks(beltParam.TimeOfItemEnterToExit);
@@ -113,8 +113,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // ブロックの実際のコネクタを使用してアイテムを設定
             // Set items using the block's actual connectors
-            var inputConnects = gearBeltParam.InventoryConnectors.InputConnects.items;
-            var outputConnects = gearBeltParam.InventoryConnectors.OutputConnects.items;
+            var inputConnects = gearBeltParam.InventoryConnectors.InputConnects;
+            var outputConnects = gearBeltParam.InventoryConnectors.OutputConnects;
             var sourceConnector = inputConnects[0];
             var goalConnector = outputConnects[0];
             // 歯車ベルトコンベアはRPMによって速度が変わるため、テスト用に任意のtotalTicksを使用
