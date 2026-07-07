@@ -1,5 +1,4 @@
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.Control.BuildView

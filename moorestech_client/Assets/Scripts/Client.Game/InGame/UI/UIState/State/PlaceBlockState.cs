@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.Control;
+using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.Skit;
 using Client.Input;
 using UniRx;
@@ -14,38 +13,25 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class PlaceBlockState : IUIState
     {
-        private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
-        private readonly InGameCameraController _inGameCameraController;
+        private readonly BuildViewModeController _buildViewModeController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
-        
-        private bool _isChangeCameraAngle;
-        
-        public PlaceBlockState(SkitManager skitManager, InGameCameraController inGameCameraController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
+
+        public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
         {
             _skitManager = skitManager;
-            _inGameCameraController = inGameCameraController;
+            _buildViewModeController = buildViewModeController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
-            _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
         }
-        
+
         public void OnEnter(UITransitContext context)
         {
-            //TODO InputSystemのリファクタ対象
-            // シフト+Bのときはカメラの位置を変えない
-            // Shift+B does not change camera position
-            _isChangeCameraAngle = !UnityEngine.Input.GetKey(KeyCode.LeftShift);
-            _screenClickableCameraController.OnEnter(_isChangeCameraAngle);
-
-            if (_isChangeCameraAngle)
-            {
-                // カメラの位置を保存しておく
-                var topDown = _inGameCameraController.CreateTopDownTweenCameraInfo();
-                _inGameCameraController.StartTweenCamera(topDown);
-            }
+            // カメラ・カーソルの適用はBuildViewModeControllerに委譲する
+            // Camera and cursor handling is delegated to BuildViewModeController
+            _buildViewModeController.OnEnterBuildState(UIStateEnum.PlaceBlock);
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -54,48 +40,55 @@ namespace Client.Game.InGame.UI.UIState.State
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
-            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除");
+            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除");
         }
 
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
-            if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
-            if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
+            if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
             // Tabでビルドメニューを開き直す
             // Reopen the build menu with Tab
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
+            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
             //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
 
-            _screenClickableCameraController.GetNextUpdate();
+            _buildViewModeController.ManualUpdate();
             _placeSystemStateController.ManualUpdate();
-            
+
             return null;
         }
-        
+
+        // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
+        // Notify the controller before transiting; it decides whether the session ends
+        private UITransitContext Leave(UIStateEnum next)
+        {
+            _buildViewModeController.OnLeaveBuildState(next);
+            return new UITransitContext(next);
+        }
+
         private void OnPlaceBlock(BlockGameObject blockGameObject)
         {
             blockGameObject.EnablePreviewOnlyObjects(true, false);
-            
+
             _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
             {
                 blockGameObject.EnablePreviewOnlyObjects(true, true);
             }));
         }
-        
+
         public void OnExit()
         {
             _placeSystemStateController.Disable();
-            
+
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
                 blockGameObject.EnablePreviewOnlyObjects(false, false);
             }
-            
+
             _blockPlacedDisposable.ForEach(d => d.Dispose());
             _blockPlacedDisposable.Clear();
-            _screenClickableCameraController.OnExit();
         }
     }
 }

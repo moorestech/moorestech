@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
@@ -10,17 +11,21 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly BuildMenuView _buildMenuView;
         private readonly PlacementSelection _placementSelection;
+        private readonly BuildViewModeController _buildViewModeController;
 
-        public BuildMenuState(BuildMenuView buildMenuView, PlacementSelection placementSelection)
+        public BuildMenuState(BuildMenuView buildMenuView, PlacementSelection placementSelection, BuildViewModeController buildViewModeController)
         {
             _buildMenuView = buildMenuView;
             _placementSelection = placementSelection;
+            _buildViewModeController = buildViewModeController;
         }
 
         public void OnEnter(UITransitContext context)
         {
+            // カーソル表示はBuildViewModeControllerが適用する（FPS中もメニューではカーソル解放）
+            // Cursor visibility is applied by BuildViewModeController (freed in the menu even during FPS)
+            _buildViewModeController.OnEnterBuildState(UIStateEnum.BuildMenu);
             _buildMenuView.SetActive(true);
-            InputManager.MouseCursorVisible(true);
             KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
         }
 
@@ -42,19 +47,26 @@ namespace Client.Game.InGame.UI.UIState.State
                         _placementSelection.SetSelectedConnectTool(entry.ConnectPlaceMode);
                         break;
                 }
-                return new UITransitContext(UIStateEnum.PlaceBlock);
+                return Leave(UIStateEnum.PlaceBlock);
             }
 
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
-            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
 
             return null;
+        }
+
+        // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
+        // Notify the controller before transiting; it decides whether the session ends
+        private UITransitContext Leave(UIStateEnum next)
+        {
+            _buildViewModeController.OnLeaveBuildState(next);
+            return new UITransitContext(next);
         }
 
         public void OnExit()
         {
             _buildMenuView.SetActive(false);
-            InputManager.MouseCursorVisible(false);
         }
     }
 }

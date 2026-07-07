@@ -1,6 +1,5 @@
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Crosshair;
-using Client.Game.InGame.UI.UIState.Input;
 using Client.Input;
 
 namespace Client.Game.InGame.Control.BuildView

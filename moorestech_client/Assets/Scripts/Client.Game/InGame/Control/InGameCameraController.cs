@@ -1,6 +1,5 @@
 ﻿using Cinemachine;
 using Client.Common;
-using Client.Game.InGame.UI.UIState.Input;
 using Client.Input;
 using DG.Tweening;
 using UnityEngine;

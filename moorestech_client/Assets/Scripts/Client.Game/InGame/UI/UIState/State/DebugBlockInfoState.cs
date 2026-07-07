@@ -1,7 +1,6 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.UIState.Input;
 using Client.Input;
 using UnityEngine;
 
@@ -9,19 +8,19 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class DebugBlockInfoState : IUIState
     {
-        private readonly ScreenClickableCameraController _screenClickableCameraController;
+        private readonly InGameCameraController _inGameCameraController;
         private BlockGameObject _hoveredBlock;
 
         public DebugBlockInfoState(InGameCameraController inGameCameraController)
         {
-            _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
+            _inGameCameraController = inGameCameraController;
         }
 
         public void OnEnter(UITransitContext context)
         {
             // マウス自由操作モードに入り、右ドラッグでカメラ操作
             // Enter free-cursor mode; right-drag controls the camera
-            _screenClickableCameraController.OnEnter(false);
+            InputManager.MouseCursorVisible(true);
             KeyControlDescription.Instance.SetText("左クリック: ブロック情報をログ出力\nESC / F3: デバッグモード終了");
         }
 
@@ -44,7 +43,18 @@ namespace Client.Game.InGame.UI.UIState.State
                 LogClickedBlockInfo();
             }
 
-            _screenClickableCameraController.GetNextUpdate();
+            //TODO InputSystemのリファクタ対象
+            if (UnityEngine.Input.GetMouseButtonDown(1))
+            {
+                InputManager.MouseCursorVisible(false);
+                _inGameCameraController.SetControllable(true);
+            }
+            //TODO InputSystemのリファクタ対象
+            if (UnityEngine.Input.GetMouseButtonUp(1))
+            {
+                InputManager.MouseCursorVisible(true);
+                _inGameCameraController.SetControllable(false);
+            }
             return null;
 
             #region Internal
@@ -103,7 +113,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 _hoveredBlock.EnablePreviewOnlyObjects(false, false);
                 _hoveredBlock = null;
             }
-            _screenClickableCameraController.OnExit();
+            InputManager.MouseCursorVisible(false);
         }
     }
 }
