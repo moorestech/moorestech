@@ -2,6 +2,7 @@
   "name": "Game.EnergySystem",
   "rootNamespace": "",
   "references": [
+    "Core.Master",
     "Core.Update",
     "UniRx",
     "Game.Block.Interface"
