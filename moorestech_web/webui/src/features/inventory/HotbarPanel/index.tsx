@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics } from "@/bridge";
-import { useItemMaster } from "@/bridge/store/useItemMaster";
+import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics, useItemMaster } from "@/bridge";
 import { readActiveLayer } from "@/app/activeLayer";
 import { screenForUiState } from "@/app/uiScreenRouting";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
