@@ -7,12 +7,14 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
+using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.InventoryConnectsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.UnitTest.Core.Other
 {
@@ -31,7 +33,7 @@ namespace Tests.UnitTest.Core.Other
             // コネクターとインサーターを準備する
             // Prepare connectors and inserter
             var blockPosInfo = new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one);
-            var blockConnector = new BlockConnectorComponent<IBlockInventory>(null, null, blockPosInfo);
+            var blockConnector = new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(null, null, blockPosInfo);
             var inserter = new VanillaBeltConveyorBlockInventoryInserter(new BlockInstanceId(1), blockConnector);
 
             var targets = CreateTargets();
@@ -86,9 +88,9 @@ namespace Tests.UnitTest.Core.Other
             return result;
         }
 
-        private static BlockConnectInfoElement CreateInventoryConnector(int index, Guid connectorGuid)
+        private static IBlockConnector CreateInventoryConnector(int index, Guid connectorGuid)
         {
-            return new BlockConnectInfoElement(index, "Inventory", connectorGuid, Vector3Int.zero, Array.Empty<Vector3Int>(), null);
+            return new OutputConnectsElement(index, connectorGuid, null, Vector3Int.zero, Array.Empty<Vector3Int>());
         }
 
         private sealed class RoundRobinTarget
