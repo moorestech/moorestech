@@ -50,9 +50,9 @@ namespace Client.Game.InGame.UI.UIState.State
             if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
             // Tabでビルドメニューを開き直す
             // Reopen the build menu with Tab
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
+            if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
             //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || UnityEngine.Input.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
 
             _buildViewModeController.ManualUpdate();
             _placeSystemStateController.ManualUpdate();
