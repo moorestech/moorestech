@@ -59,6 +59,10 @@ namespace Client.Game.InGame.UI.BuildMenu
                 entries.Add(new BuildMenuEntry(PlacementSelectionType.ConnectTool, default, default, tool.PlaceMode, iconView, tool.Name));
             }
 
+            // 接続ツール群の並びにBPコピーツールを追加する（アイコン無しのテキスト表示）
+            // Append the blueprint copy tool alongside the connect tools (icon-less text slot)
+            entries.Add(new BuildMenuEntry(PlacementSelectionType.BlueprintCopy, default, default, null, null, "ブループリントコピー"));
+
             // 保存済みブループリントのエントリを追加する
             // Append entries for saved blueprints
             foreach (var blueprint in blueprintLibrary.Blueprints)

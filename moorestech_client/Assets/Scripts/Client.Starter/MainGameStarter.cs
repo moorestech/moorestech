@@ -39,6 +39,7 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -97,6 +98,7 @@ namespace Client.Starter
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BuildMenuView buildMenuView;
+        [SerializeField] private BlueprintNameInputView blueprintNameInputView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private MachineRecipeView machineRecipeView;
@@ -194,6 +196,7 @@ namespace Client.Starter
             builder.Register<PlacementSelection>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
+            builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
 
             // 建設系視点モード
             // register build view mode
@@ -266,6 +269,7 @@ namespace Client.Starter
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
             builder.RegisterComponent(buildMenuView);
+            builder.RegisterComponent(blueprintNameInputView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);

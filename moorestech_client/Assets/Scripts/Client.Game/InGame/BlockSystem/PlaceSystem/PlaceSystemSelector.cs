@@ -27,6 +27,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         private readonly GearChainPoleConnectSystem _gearChainPoleConnectSystem;
         private readonly ElectricWireConnectSystem _electricWireConnectSystem;
         private readonly BlueprintPasteSystem _blueprintPasteSystem;
+        private readonly BlueprintCopySystem _blueprintCopySystem;
 
         public PlaceSystemSelector(
             CommonBlockPlaceSystem commonBlockPlaceSystem,
@@ -36,7 +37,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             TrainRailConnectSystem trainRailConnectSystem,
             GearChainPoleConnectSystem gearChainPoleConnectSystem,
             ElectricWireConnectSystem electricWireConnectSystem,
-            BlueprintPasteSystem blueprintPasteSystem)
+            BlueprintPasteSystem blueprintPasteSystem,
+            BlueprintCopySystem blueprintCopySystem)
         {
             EmptyPlaceSystem = new EmptyPlaceSystem();
             _commonBlockPlaceSystem = commonBlockPlaceSystem;
@@ -47,6 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _gearChainPoleConnectSystem = gearChainPoleConnectSystem;
             _electricWireConnectSystem = electricWireConnectSystem;
             _blueprintPasteSystem = blueprintPasteSystem;
+            _blueprintCopySystem = blueprintCopySystem;
         }
 
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
@@ -69,6 +72,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                     return _trainCarPlaceSystem;
                 case PlacementSelectionType.Blueprint:
                     return _blueprintPasteSystem;
+                case PlacementSelectionType.BlueprintCopy:
+                    return _blueprintCopySystem;
                 case PlacementSelectionType.ConnectTool:
                     // 接続ツールは選択中の接続モードで3系統へ振り分ける
                     // Route connect tools to the three connect systems by the selected place mode
