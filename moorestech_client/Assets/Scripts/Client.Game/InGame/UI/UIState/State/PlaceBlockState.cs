@@ -45,19 +45,33 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
-            if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
             if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
-            // Tabでビルドメニューを開き直す
-            // Reopen the build menu with Tab
-            if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
-            //TODO InputSystemのリファクタ対象
-            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
+
+            // 入力フィールド編集中はキー遷移を止める（BP名入力中のB/Tab等の誤爆防止）
+            // Suppress key transitions while a text field is edited (avoid B/Tab firing during BP naming)
+            if (!IsTextInputFocused())
+            {
+                if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
+                if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
+                // Tabでビルドメニューを開き直す
+                // Reopen the build menu with Tab
+                if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
+                //TODO InputSystemのリファクタ対象
+                if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
+            }
 
             _buildViewModeController.ManualUpdate();
             _placeSystemStateController.ManualUpdate();
 
             return null;
+        }
+
+        // 選択中のTMP_InputFieldが編集中かを判定する
+        // Whether the currently selected TMP_InputField is being edited
+        private static bool IsTextInputFocused()
+        {
+            var selected = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+            return selected != null && selected.TryGetComponent<TMPro.TMP_InputField>(out var inputField) && inputField.isFocused;
         }
 
         // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
