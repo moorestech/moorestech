@@ -77,7 +77,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 
 | API | 用途 | 経路 |
 |---|---|---|
-| `SetupFlatGround()` | 足場生成+ワープ（無限落下対策の定型） | 板Primitive(50,3,50)@(0,30,0)+Warp |
+| `SetupFlatGround()` | 足場生成+ワープ（無限落下対策の定型） | 板Primitive(50,4,50)@(0,30,0)、上面y=32ちょうど+`GroundGameObject`付与+Warp |
 | `WarpPlayer(pos)` / `PlayerPosition` | テレポート/現在地 | `SetPlayerPosition`+サーバー同期 |
 | `GiveItem(name, count)` | アイテム付与（反映待ち込み） | 本番 give コマンド経路 |
 | `GiveItemDirect(name, count)` | アイテム付与（即時） | サーバーインベントリ直挿入 |
@@ -88,14 +88,25 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `Until(cond, timeout, label)` | 条件待機（固定sleepの代替） | 成否を result.json に記録 |
 | `WaitSeconds(s)` / `Screenshot(name)` / `Assert(cond, label)` | 待機/撮影/検証 | |
 | `SendCommand(cmd)` / `ServerService<T>()` | 低レベル脱出口 | VanillaApi / ServerContext DI |
+| `UnlockBlock(name)` | ブロック解放（ビルドメニュー表示の前提） | サーバー`UnlockBlock`→UnlockedEventPacketでクライアント同期 |
+| `DragPlaceViaUi(name, from, to)` | **UI経路**ドラッグ設置（ベルト等。向きは経路から自動解決） | B/Tab→ビルドメニュー→プレビュー→ドラッグ |
+| `PlaceBlockViaUi(name, origin, dir)` | **UI経路**単クリック設置（向きはNorth固定） | 同上＋クリック。設置反映まで`Until`込み |
+| `ExitToGameScreen()` / `WaitUiState(state, timeout)` / `CurrentUiState` | UIState遷移の操作/待機/確認 | B注入+`UIStateControl.CurrentState` |
+| `PressKey(key)` / `SelectHotbar(slot)` / `AimAt(worldPos)` / `ClickPlace()` | 低レベルUI入力（slotは0始まり=キー1） | `SemanticInput`(QueueStateEvent) |
 
 - **Direct系**=サーバーデータストア直叩き（状態を素早く作る・本番プロトコル非経由・インベントリ非消費）。**非Direct系**=本番経路。「UIバグの検証」と「状態構築」を使い分ける
 - 例外・タイムアウト・Assert失敗はすべて result.json に落ちる（Runner内で捕捉し `Error` に記録）
 - ブロック/アイテムは**マスタの日本語 Name** で指定（例: 「木のチェスト」「鉄インゴット」）。実在名は master の blocks.json / items.json で確認
 
-### DSLに無い操作（UI入力・カメラ操作等）
+### UI経路設置（Phase 3実装済み・等価性実証済み）
 
-セマンティック入力層（ClickBlock/DragItem 等）は未実装（Phase 3 予定。前提: legacy Input 残存3箇所=カメラズームF1/F2・設置高さQ/E・右クリックカメラの InputSystem 移行）。UIクリック・ドラッグが必要なシナリオは、**DSLでPlayMode起動と状態構築だけ済ませ、入力は「入力注入の鉄則」節の QueueStateEvent スニペットを EDC で併用**する（PlayMode中はEDCがいつでも打てる。DSLと排他ではない）。
+実プレイヤーと同じキーマウス経路での構築は `DragPlaceViaUi` / `PlaceBlockViaUi` を使う（`tools/playtest/scenarios/belt-line-via-ui.cs` がdirect版と同一assertで全通過した実証例）。前提と制約:
+
+1. **事前に `UnlockBlock` と建設コスト付与が必須**: ビルドメニューは解放済みブロックのみ表示し、UI設置はインベントリの `RequiredItems` を消費する（direct設置と違う）。コストはマスタの `RequiredItems` を読んで `GiveItem` する
+2. **メニュー再オープンはTab**: PlaceBlock中のBはGameScreenへ抜ける。`OpenBuildMenuAndSelectBlock` が状態を見て自動でB/Tabを使い分ける
+3. **単クリック設置の向きはNorth固定**: place system内部の `_currentBlockDirection` は外部から読めないため回転キー注入は未対応。向きが要るラインはドラッグ（経路から自動解決）で組む
+4. **注入が効くのは InputSystem/HybridInput 経由のコードのみ**: legacy `UnityEngine.Input` 直読み箇所（21ファイル中、設置プレビュー・UIState遷移キー・右クリックカメラは `Client.Input.HybridInput` へ移行済み）。新たに駆動しない入力を見つけたら HybridInput 化する
+5. ビルドメニューのスロット選択は座標クリックでなく **EventSystem直叩き**（`ExecuteEvents.pointerDown/UpHandler`）で行っている（OSカーソル非依存・カメラ非干渉）
 
 ## masterデータのピン留め（worktree運用の要）
 
