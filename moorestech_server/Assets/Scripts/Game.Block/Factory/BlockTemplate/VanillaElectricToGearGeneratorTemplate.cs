@@ -25,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
             var param = blockMasterElement.BlockParam as ElectricToGearGeneratorBlockParam;
             var gearConnects = param.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnects, gearConnects, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(gearConnects, gearConnects, blockPositionInfo);
 
             // セーブデータがあれば復元コンストラクタを使用し、なければ初期化コンストラクタを使用する
             // Use the restore constructor if save data exists, otherwise use the initializing constructor
