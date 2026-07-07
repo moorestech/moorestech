@@ -20,6 +20,13 @@
 | 派生状態の永続化 | 冪等再実行で復元可能でも、ロード順の制約があれば GameUnlockState 同様に永続化して先頭でロード | WorldLoaderFromJson はインベントリ復元(103行)が研究ロード(107行)より先 |
 | 研究/アンロック由来の派生値のクライアント同期に新プロトコルが要るか | 原則不要。クライアントは共有マスタ＋同期済み状態から導出する | 研究完了・アンロック状態は既に同期済み（InitialHandshake, GetResearchInfo, ResearchCompleteEventPacket, GetGameUnlockState, UnlockedEventPacket）。新設は既存同期情報から導出できないことを示してから |
 
+## プロトコル設計
+
+| 問い | 答え | 根拠 |
+|---|---|---|
+| 同一ドメインの複数操作（create/get/delete 等）を操作ごとに別プロトコルにするか | しない。1プロトコル＝1ドメインで、リクエスト内の Mode/Operation enum で switch 分岐する | ElectricWireConnectionEditProtocol（WireEditMode）、FilterSplitterStateProtocol（Operation）が先行例。2026-07-07 BP設計でCRUD3本案を提示しユーザーに1本化へ修正された実績 |
+| 新プロトコルを含む設計を書く前にやること | creating-server-protocol スキル本文を必ず読む（「スキルの型に従う」と書くだけでは不足） | 同スキルに粒度・命名・Request構築の規約が明記済み。読まずに設計書を書いてCRUD分割を通した事故が実際に起きた |
+
 ## マスタデータ・スキーマ
 
 | 問い | 答え | 根拠 |
