@@ -5,7 +5,7 @@
 
 ## 概要
 
-ワールド上の既存建築を矩形範囲で選択してコピーし、名前を付けてライブラリに保存、
+ワールド上の既存建築をバウンディングボックス範囲で選択してコピーし、名前を付けてライブラリに保存、
 一覧から選んで何度でも貼り付けられる機能。ライブラリはサーバーセーブに永続化し、
 貼り付けは既存の一括設置プロトコル `va:placeBlock` に乗せる。
 
@@ -20,8 +20,8 @@ existing bulk placement protocol.
 | 保存形態 | ライブラリ型（名前付き保存・何度でも貼り付け） |
 | 保存先 | サーバーセーブ内（`WorldSaveAllInfoV1` にセクション追加、ワールド共有） |
 | 解放 | 最初から使える（解放ゲートなし） |
-| 選択UX | 地面平面の矩形ドラッグ＋高さ全域（柱状選択） |
-| 包含規則 | 占有セルが1つでも矩形に入るブロックは含む |
+| 選択UX | XYZ全体のバウンディングボックス指定（ドラッグでXZ矩形＋ドラッグ中スクロールで上面高さ調整） |
+| 包含規則 | 占有セルが1つでもボックスに入るブロックは含む |
 | コピー対象 | ブロック＋向き＋ブロック設定（フィルタ等）。実行時状態は対象外 |
 | コピー対象外 | レール系ブロック、列車・エンティティ・MapObject、手動接続（歯車チェーン・電線手動張り） |
 | 回転 | 水平回転のみ（Rキー90度） |
@@ -31,19 +31,19 @@ existing bulk placement protocol.
 
 ### スコープ外（v1）
 
-BP文字列エクスポート／プレイヤー間共有、ワールド横断ライブラリ、高さ調整付き選択、
+BP文字列エクスポート／プレイヤー間共有、ワールド横断ライブラリ、
 上下反転、貼り付けUndo、BP数・サイズ上限、BPの上書き保存・リネーム（作成と削除のみ）。
 
 ## データモデル
 
-BPは「アンカーからの相対オフセット＋ブロック種＋向き＋設定バイト列」の列。
+BPは「アンカーからの相対オフセット＋ブロック種＋向き＋設定JSON」の列。
 座標・InstanceIdなどワールド固有の情報は持たない。
 
 ```
 BlueprintJsonObject
 ├ name: string（重複時は "name (2)" のように連番付与）
 ├ blocks: List<BlueprintBlockJsonObject>
-│   ├ offset: {x,y,z}          // アンカー（選択矩形のXZ中心セル・最下段Y）からの相対
+│   ├ offset: {x,y,z}          // アンカー（選択ボックスのXZ中心セル・ボックス最下段Y）からの相対
 │   ├ blockGuid: string        // BlockGuid（ロード時にBlockIdへ解決、失敗ブロックは除外）
 │   ├ direction: int           // BlockDirection
 │   └ settings: Dictionary<string, string>  // SettingsKey → 設定JSON文字列（可読形式）
@@ -51,7 +51,8 @@ BlueprintJsonObject
 
 - セーブ統合: `WorldSaveAllInfoV1` に `[JsonProperty("blueprints")] List<BlueprintJsonObject>` を追加。
   Research/Challenge と同じ先行パターン（保存は `AssembleSaveJsonText`、復元は `WorldLoaderFromJson`）。
-- 保持クラス: `Game.Blueprint`（新規 asmdef）の `BlueprintDatastore`。`ServerContext` からアクセス。
+- 保持クラス: `Game.Blueprint`（新規 asmdef）の `BlueprintDatastore`。DI singleton 登録し
+  必要箇所へコンストラクタ注入（Research/UnlockState と同じ慣例。`ServerContext` 静的公開はしない）。
 
 ## 設定の抽出と注入
 
@@ -62,17 +63,21 @@ BlueprintJsonObject
 // Game.Block.Interface/Component/
 public interface IBlockBlueprintSettings : IBlockComponent
 {
-    string SettingsKey { get; }
-    string GetBlueprintSettingsJson();  // 可読JSON。フィルタ等の参照はGUIDで表現する
+    string BlueprintSettingsKey { get; }
+    string GetBlueprintSettingsJson();          // 可読JSON。フィルタ等の参照はGUIDで表現する
+    void ApplyBlueprintSettingsJson(string json); // 抽出と対になる適用側（生成直後に呼ばれる）
 }
 ```
 
 - コピー時: 範囲内ブロックの `IBlockBlueprintSettings` 実装コンポーネントから
-  `SettingsKey → JSON文字列` を収集し、そのままBPに永続化する（可読・GUIDベース。
+  `BlueprintSettingsKey → JSON文字列` を収集し、そのままBPに永続化する（可読・GUIDベース。
   `FilterItemGuids` 等の既存セーブJSONと同じ流儀）。バイナリはセーブに入れない。
 - 貼り付け時: クライアントが各設定JSONをUTF8バイト列へ変換して
-  `PlaceInfo.BlockCreateParams`（key＋byte[]、通信用の既存機構）に載せ、
-  `BlockFactory.Create` → 各テンプレートの `New(…, createParams)` 経路で注入する（`Load` 経路とは別）。
+  `PlaceInfo.BlockCreateParams`（key＋byte[]、通信用の既存機構）に載せる。
+  適用は `BlockFactory.Create` がブロック生成直後に汎用で行う:
+  生成ブロックの `IBlockBlueprintSettings` コンポーネントを列挙し、`BlueprintSettingsKey` に
+  一致する CreateParam があれば `ApplyBlueprintSettingsJson` を呼ぶ。
+  **テンプレート個別の改修は不要**で、対応ブロックの追加はコンポーネント側の実装だけで済む。
 - v1の実装対象: `VanillaFilterSplitterComponent`（方向別フィルタ設定）。他は仕組みだけ用意し順次追加。
 - 設定JSONはクライアントでは不透明データとして素通しする（クライアントは解釈しない）。
 
@@ -85,7 +90,7 @@ public interface IBlockBlueprintSettings : IBlockComponent
 
 | Mode | 内容 |
 |---|---|
-| `Create` | 範囲（min/max座標）＋名前 → サーバーが範囲内ブロックを抽出しライブラリへ登録。登録結果（ブロック数）を返す |
+| `Create` | 範囲（min/maxのXYZバウンディングボックス）＋名前 → サーバーが範囲内ブロックを抽出しライブラリへ登録。登録結果（ブロック数）を返す |
 | `GetAll` | ライブラリ全件（名前＋blocks）を返す。貼り付けプレビューとPlaceInfo展開に必要なためデータ本体ごと返す |
 | `Delete` | 名前指定で削除 |
 
@@ -102,7 +107,8 @@ public interface IBlockBlueprintSettings : IBlockComponent
   「コピーツール」1エントリ＋保存済みBPの動的エントリ群（`va:blueprint` GetAll の結果から生成）。
   `BuildMenuEntryCatalog` を動的エントリ対応に拡張する。
 - コピーモード（新規 `IPlaceSystem` 実装 `BlueprintCopySystem`）:
-  地面ドラッグで矩形を可視化（カーソル下の地面座標取得は既存設置系の計算を流用、矩形化は新規）→
+  地面ドラッグでXZ矩形＋ドラッグ中スクロールで上面高さを調整し、選択ボックスを半透明表示
+  （カーソル下の地面座標取得は既存設置系の計算を流用、ボックス可視化は新規）→
   マウスリリースで名前入力ダイアログ →
   確定で `va:blueprint` Create 送信。ESCキャンセル。削除ツールの「選択→プレビュー→コミット」構造を踏襲。
 - 貼り付けモード（新規 `IPlaceSystem` 実装 `BlueprintPasteSystem`）:
@@ -110,7 +116,8 @@ public interface IBlockBlueprintSettings : IBlockComponent
   BP全ブロックのゴーストを既存 `BlockPlacePreviewObjectPool` で表示し、セルごとに設置可否を色分け。
   Rキーで90度回転（オフセットをアンカー周りに回転＋各ブロックに `HorizonRotation()` 適用）。
   左クリックで `PlaceInfo` 展開→送信。連続貼り付け可（モードは維持）。
-- アンカー: 選択矩形のXZ中心セル・最下段Y。回転しても貼り付け位置がカーソルから飛ばない。
+- アンカー: 選択ボックスのXZ中心セル・ボックス最下段Y（ボックスから決定論的に定まる）。
+  回転しても貼り付け位置がカーソルから飛ばない。
 
 ## エラーハンドリング
 
@@ -135,6 +142,6 @@ public interface IBlockBlueprintSettings : IBlockComponent
 ## 実装順序（概略）
 
 1. サーバー: `Game.Blueprint`（データモデル・Datastore・セーブ統合）
-2. サーバー: 3プロトコル＋`IBlockBlueprintSettings`（フィルタスプリッタ実装）＋テスト
-3. クライアント: コピーモード（矩形選択・名前入力）
+2. サーバー: BP管理プロトコル（`va:blueprint`）＋`IBlockBlueprintSettings`（フィルタスプリッタ実装・BlockFactory中央適用）＋テスト
+3. クライアント: コピーモード（ボックス選択・名前入力）
 4. クライアント: 貼り付けモード（ゴースト・回転・送信）＋ビルドメニュー統合
