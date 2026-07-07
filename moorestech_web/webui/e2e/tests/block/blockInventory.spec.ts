@@ -1,17 +1,17 @@
 import { test, expect } from "@playwright/test";
-
-type ActionRecord = { type: string; payload: unknown };
+import { payloadsOf } from "../../support/actions";
+import { setBlock } from "../../support/mockControl";
 
 // 各テスト冒頭で chest を配信状態へリセットしてから接続する（決定的に panel を出すため）
 // Reset the served block to chest before connecting so the panel deterministically shows
 // 終了後は閉に戻し、後続テストファイルへ open 状態を漏らさない
 // Reset to closed afterwards so the open state never leaks into later test files
 test.afterEach(async ({ page }) => {
-  await page.request.get("/__block?type=closed");
+  await setBlock(page, "closed");
 });
 
 test("chest の block inventory パネルが描画される", async ({ page }) => {
-  await page.request.get("/__block?type=chest");
+  await setBlock(page, "chest");
   await page.goto("/");
   await expect(page.getByTestId("block-inventory")).toBeVisible();
   await expect(page.getByText("Chest")).toBeVisible();
@@ -21,7 +21,7 @@ test("chest の block inventory パネルが描画される", async ({ page }) =
 });
 
 test("filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る", async ({ page }) => {
-  await page.request.get("/__block?type=chest");
+  await setBlock(page, "chest");
   await page.goto("/");
   await expect(page.getByTestId("block-inventory")).toBeVisible();
 
@@ -30,13 +30,12 @@ test("filled スロット左クリックで block→grab の move_item を送り
   const firstSlot = page.getByTestId("chest-grid").locator("> div").first();
   await firstSlot.click();
 
-  // block→grab の move_item が送られたことを /__actions で検証
-  // Verify the block→grab move_item was sent via /__actions
+  // block→grab の move_item が送られたことを action 記録で検証
+  // Verify the block→grab move_item was sent via the action log
   await expect
     .poll(async () => {
-      const actions: ActionRecord[] = await page.request.get("/__actions").then((r) => r.json());
-      const move = actions.find((a) => a.type === "block_inventory.move_item");
-      return move?.payload as
+      const payloads = await payloadsOf(page, "block_inventory.move_item");
+      return payloads[0] as
         | { from?: { area?: string; slot?: number }; to?: { area?: string; slot?: number }; count?: number }
         | undefined;
     })
@@ -48,12 +47,12 @@ test("filled スロット左クリックで block→grab の move_item を送り
 });
 
 test("ブロックを閉じると panel が消える", async ({ page }) => {
-  await page.request.get("/__block?type=chest");
+  await setBlock(page, "chest");
   await page.goto("/");
   await expect(page.getByTestId("block-inventory")).toBeVisible();
 
   // closed を配信すると mock が open:false の event を流し panel が閉じる
   // Serving closed makes the mock push an open:false event so the panel closes
-  await page.request.get("/__block?type=closed");
+  await setBlock(page, "closed");
   await expect(page.getByTestId("block-inventory")).toHaveCount(0);
 });

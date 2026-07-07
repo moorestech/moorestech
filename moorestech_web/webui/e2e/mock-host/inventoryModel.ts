@@ -23,23 +23,6 @@ export function blockSlotOf(inv: PlayerInventoryData, currentBlock: BlockInvento
   return currentBlock.itemSlots[ref.slot];
 }
 
-// from の count 個を to へ移す最小モデル。空・数量不足は host と同じエラーコードを返す（成功は null）
-// Minimal model: move count items from→to; empty/insufficient return the host's error codes (null on success)
-export function applyMove(inv: PlayerInventoryData, p: ActionPayloads["inventory.move_item"]): string | null {
-  const from = slotOf(inv, p.from);
-  const to = slotOf(inv, p.to);
-  if (from.count === 0) return "empty_slot";
-  if (from.count < p.count) return "insufficient_count";
-  if (to.count === 0) to.itemId = from.itemId;
-  to.count += p.count;
-  from.count -= p.count;
-  if (from.count <= 0) {
-    from.count = 0;
-    from.itemId = 0;
-  }
-  return null;
-}
-
 // ブロック⇔プレイヤー間の移動。block 領域を跨ぐ点以外は applyMove と同型
 // Block⇔player move; same shape as applyMove except it can span the block area
 export function applyBlockMove(
@@ -59,6 +42,12 @@ export function applyBlockMove(
     from.itemId = 0;
   }
   return null;
+}
+
+// from の count 個を to へ移す最小モデル。block を跨がない移動は「閉ブロック」扱いの applyBlockMove と完全同型
+// Minimal move model; a non-block move is exactly applyBlockMove against a closed block
+export function applyMove(inv: PlayerInventoryData, p: ActionPayloads["inventory.move_item"]): string | null {
+  return applyBlockMove(inv, { open: false }, p);
 }
 
 // host と同じく mock 自身の現在 grab 状態で集積先を決め、同種スタックを集約する
