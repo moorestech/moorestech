@@ -42,11 +42,6 @@ namespace Game.CleanRoom
 
         // 不純物数は負になり得ないため0でクランプする
         // Impurity count can never be negative, so clamp at zero
-        public void AddImpurity(double delta)
-        {
-            ImpurityCount = Math.Max(0, ImpurityCount + delta);
-        }
-
         public void SetImpurity(double value)
         {
             ImpurityCount = Math.Max(0, value);
