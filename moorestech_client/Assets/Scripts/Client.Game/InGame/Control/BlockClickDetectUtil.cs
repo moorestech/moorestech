@@ -1,5 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control.BuildView;
 using UnityEngine;
 
@@ -46,10 +47,24 @@ namespace Client.Game.InGame.Control
             // The aim point is resolved centrally by AimPointProvider per view mode
             var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
-            component = hit.collider.gameObject.GetComponentInChildren<T>();
+            var hits = Physics.RaycastAll(ray, 100, LayerConst.BlockOnlyLayerMask);
+            if (hits.Length == 0) return false;
             
-            return component is not null;
+            // 手前のプレビューゴーストだけを貫通対象にする
+            // Only nearby preview ghosts are allowed to be penetrated
+            System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+            
+            foreach (var hit in hits)
+            {
+                if (hit.collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
+                
+                component = hit.collider.gameObject.GetComponentInChildren<T>();
+                if (component is not null) return true;
+                
+                return false;
+            }
+            
+            return false;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Game.Block.Interface;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -21,15 +22,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public PlacementSelectionType SelectionType { get; private set; } = PlacementSelectionType.None;
         public BlockId? SelectedBlockId { get; private set; }
+        // スポイトでピックした向き（メニュー選択時はnull）
+        // The direction picked by the eyedropper (null when selected from the menu)
+        public BlockDirection? SelectedBlockDirection { get; private set; }
         public Guid SelectedTrainCarGuid { get; private set; }
         public string SelectedConnectPlaceMode { get; private set; }
         public string SelectedBlueprintName { get; private set; }
 
-        public void SetSelectedBlock(BlockId blockId)
+        public void SetSelectedBlock(BlockId blockId, BlockDirection? direction)
         {
             ClearSelection();
             SelectionType = PlacementSelectionType.Block;
             SelectedBlockId = blockId;
+            SelectedBlockDirection = direction;
         }
 
         public void SetSelectedTrainCar(Guid trainCarGuid)
@@ -63,6 +68,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             SelectionType = PlacementSelectionType.None;
             SelectedBlockId = null;
+            SelectedBlockDirection = null;
             SelectedTrainCarGuid = Guid.Empty;
             SelectedConnectPlaceMode = null;
             SelectedBlueprintName = null;

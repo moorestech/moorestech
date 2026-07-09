@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Game.Block.Interface;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -18,6 +19,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // The block selected in the build menu (null when nothing is selected)
         public readonly BlockId? SelectedBlockId;
 
+        // スポイトでピックした向き（未指定はnull）
+        // The eyedropped block direction (null when not specified)
+        public readonly BlockDirection? SelectedBlockDirection;
+
         // ・選択種別
         // ・車両/接続具/BPの選択値
         // ・選択変化フラグ
@@ -28,10 +33,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public readonly string SelectedBlueprintName;
         public readonly bool IsSelectionChanged;
 
-        public PlaceSystemUpdateContext(PlacementSelectionType selectionType, BlockId? selectedBlockId, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, string selectedBlueprintName, bool isSelectionChanged)
+        public PlaceSystemUpdateContext(PlacementSelectionType selectionType, BlockId? selectedBlockId, BlockDirection? selectedBlockDirection, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, string selectedBlueprintName, bool isSelectionChanged)
         {
             SelectionType = selectionType;
             SelectedBlockId = selectedBlockId;
+            SelectedBlockDirection = selectedBlockDirection;
             SelectedTrainCarGuid = selectedTrainCarGuid;
             SelectedConnectPlaceMode = selectedConnectPlaceMode;
             SelectedBlueprintName = selectedBlueprintName;

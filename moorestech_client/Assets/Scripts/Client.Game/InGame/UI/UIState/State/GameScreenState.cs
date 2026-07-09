@@ -2,6 +2,7 @@
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.State.BlockPick;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Input;
@@ -15,17 +16,20 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly SkitManager _skitManager;
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
         private readonly RideVehicleInputService _rideVehicleInputService;
+        private readonly BlockPickService _blockPickService;
 
         public GameScreenState(
             SkitManager skitManager,
             InGameCameraController inGameCameraController,
             GameScreenSubInventoryInteractService subInventoryInteractService,
-            RideVehicleInputService rideVehicleInputService)
+            RideVehicleInputService rideVehicleInputService,
+            BlockPickService blockPickService)
         {
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
+            _blockPickService = blockPickService;
         }
 
         public UITransitContext GetNextUpdate()
@@ -39,6 +43,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // ブロックや列車とインタラクトしたか
             if (_subInventoryInteractService.TryGetSubInventoryInteractObject(out var context)) return context;
+
+            // ミドルクリックでブロックをスポイトし配置モードへ入る
+            // Middle-click eyedrops a block and enters placement mode
+            if (_blockPickService.TryPickBlockUnderCursor()) return new UITransitContext(UIStateEnum.PlaceBlock);
 
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
@@ -61,7 +69,7 @@ namespace Client.Game.InGame.UI.UIState.State
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nミドルクリック: ブロックをスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
         
         public void OnExit()
