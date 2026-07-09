@@ -46,10 +46,20 @@ namespace Client.Game.InGame.Control
             // The aim point is resolved centrally by AimPointProvider per view mode
             var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
-            component = hit.collider.gameObject.GetComponentInChildren<T>();
+            var hits = Physics.RaycastAll(ray, 100, LayerConst.BlockOnlyLayerMask);
+            if (hits.Length == 0) return false;
             
-            return component is not null;
+            // プレビューゴーストを自然に飛ばすため、手前から順に対象コンポーネントを探す
+            // Search target components from nearest hits so preview ghosts are skipped naturally
+            System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+            
+            foreach (var hit in hits)
+            {
+                component = hit.collider.gameObject.GetComponentInChildren<T>();
+                if (component is not null) return true;
+            }
+            
+            return false;
         }
     }
 }
