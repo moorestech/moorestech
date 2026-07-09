@@ -19,12 +19,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
+        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
-            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, holdingBlockMasterElement, IsNotExistBlock, IsOccupied);
+            return CalculatePoint(startPoint, endPoint, blockDirection, holdingBlockMasterElement, IsNotExistBlock);
         }
-        
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied)
+
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var blockSize = holdingBlockMasterElement.BlockSize;
@@ -136,14 +136,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
 
             return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
-        }
-
-        // 1×1×1セルに既存ブロックが存在するか（障害物スキャン用）
-        // Whether a 1x1x1 cell is occupied by an existing block (used by obstacle scanning).
-        private bool IsOccupied(Vector3Int cell)
-        {
-            var positionInfo = new BlockPositionInfo(cell, BlockDirection.North, Vector3Int.one);
-            return _blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
         }
     }
 }
