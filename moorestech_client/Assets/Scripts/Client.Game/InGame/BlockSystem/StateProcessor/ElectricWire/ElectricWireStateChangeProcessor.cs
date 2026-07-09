@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
             // ワイヤー表示を更新する
             // Update the wire display
-            _wireLineView.UpdateWireLines(partnerInstanceIds);
+            _wireLineView.UpdateConnectionLines(partnerInstanceIds);
         }
     }
 }

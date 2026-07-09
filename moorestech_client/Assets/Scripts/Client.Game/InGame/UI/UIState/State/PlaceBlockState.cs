@@ -4,6 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.UIState.State.BlockPick;
 using Client.Game.Skit;
 using Client.Input;
 using UniRx;
@@ -18,14 +19,16 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly BuildViewModeController _buildViewModeController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
+        private readonly BlockPickService _blockPickService;
         private bool _wasTextInputFocused;
 
-        public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController)
+        public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, BlockPickService blockPickService)
         {
             _skitManager = skitManager;
             _buildViewModeController = buildViewModeController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
+            _blockPickService = blockPickService;
         }
 
         public void OnEnter(UITransitContext context)
@@ -42,7 +45,7 @@ namespace Client.Game.InGame.UI.UIState.State
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
-            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除");
+            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除\nミドルクリック: ブロックをスポイト");
         }
 
         public UITransitContext GetNextUpdate()
@@ -70,6 +73,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
 
                 _buildViewModeController.ManualUpdate();
+
+                // ミドルクリックで選択ブロックをスポイトで切り替える
+                // Middle-click switches the selected block via the eyedropper
+                _blockPickService.TryPickBlockUnderCursor();
             }
 
             _placeSystemStateController.ManualUpdate();

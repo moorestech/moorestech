@@ -28,7 +28,8 @@
         "Server.Util",
         "Game.Train",
         "Core.Update",
-        "Core.Inventory"
+        "Core.Inventory",
+        "Game.UnlockState"
     ],
     "includePlatforms": [
         "Editor"
