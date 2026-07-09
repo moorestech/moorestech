@@ -133,8 +133,7 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             
             void SetMachineSlot()
             {
-                var blockItemId = MasterHolder.BlockMaster.GetItemId(_currentBlockId);
-                var itemViewData = ClientContext.ItemImageContainer.GetItemView(blockItemId);
+                var itemViewData = ClientContext.BlockImageContainer.GetBlockView(_currentBlockId);
                 machineView.SetItem(itemViewData, 0);
             }
             

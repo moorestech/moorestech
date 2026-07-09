@@ -142,10 +142,10 @@ namespace Client.Game.InGame.CraftTree.TreeView
                         var count = inputItem.Count * Node.RequiredCount;
                         materials.Add(new CraftTreeNode(itemId, count, Node));
                     }
-                    
-                    var blockItemId = MasterHolder.BlockMaster.GetItemId(machineRecipe.Key);
-                    materials.Add(new CraftTreeNode(blockItemId, 1, Node));
-                    
+
+                    // ブロックアイテム概念の廃止に伴い、機械本体は素材ノードに含めない
+                    // With block items removed, the machine itself is no longer a material node
+
                     return materials;
                 }
                 

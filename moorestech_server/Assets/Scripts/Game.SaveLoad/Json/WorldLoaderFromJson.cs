@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Core.Item;
+using Game.Blueprint;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftTree;
@@ -41,6 +42,7 @@ namespace Game.SaveLoad.Json
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly TrainDockingStateRestorer _trainDockingStateRestorer;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
 
@@ -48,7 +50,7 @@ namespace Game.SaveLoad.Json
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
-            IPlayerRidingDatastore playerRidingDatastore, ItemStackLevelDataStore itemStackLevelDataStore, IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
+            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, ItemStackLevelDataStore itemStackLevelDataStore, IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -66,6 +68,7 @@ namespace Game.SaveLoad.Json
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _trainDockingStateRestorer = trainDockingStateRestorer;
             _playerRidingDatastore = playerRidingDatastore;
+            _blueprintDatastore = blueprintDatastore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
         }
@@ -144,6 +147,10 @@ namespace Game.SaveLoad.Json
             _trainDockingStateRestorer.RestoreDockingState();
 
             _playerRidingDatastore.LoadSaveData(load.PlayerRidingStates);
+
+            // 旧セーブはblueprints欠落のためnull時は空リスト復元
+            // Old saves lack blueprints, so restore an empty list on null
+            _blueprintDatastore.LoadBlueprints(load.Blueprints ?? new List<BlueprintJsonObject>());
         }
         
         public void WorldInitialize()

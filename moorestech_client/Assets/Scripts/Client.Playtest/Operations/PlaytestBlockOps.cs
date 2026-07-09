@@ -63,7 +63,7 @@ namespace Client.Playtest.Operations
                 {
                     return blockGameObject;
                 }
-                if (Time.realtimeSinceStartup - startTime > timeoutSeconds)
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
                 {
                     throw new TimeoutException($"client BlockGameObject not spawned at {position} within {timeoutSeconds}s");
                 }

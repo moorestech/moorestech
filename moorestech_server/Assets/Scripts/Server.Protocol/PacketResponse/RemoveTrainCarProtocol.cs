@@ -123,17 +123,12 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
 
-                // 建設コスト全額を返却する。コスト未定義マスタは旧仕様の車両アイテム1個を返す(プラン5で削除予定のフォールバック)
-                // Refund the full construction cost; masters without cost fall back to one car item (removed in plan 5)
+                // 建設コスト全額を返却する（コスト未定義マスタは本体返却なし）
+                // Refund the full construction cost; masters without cost refund nothing for the body
                 var costItemCounts = ConstructionCostService.ToItemCounts(car.TrainCarMasterElement.RequiredItems);
                 if (costItemCounts.Length > 0)
                 {
                     result.AddRange(ConstructionCostService.CreateRefundItems(costItemCounts));
-                }
-                else
-                {
-                    var carItemId = MasterHolder.ItemMaster.GetItemId(car.TrainCarMasterElement.ItemGuid);
-                    result.Add(ServerContext.ItemStackFactory.Create(carItemId, 1));
                 }
 
                 // アイテムコンテナを積んでいる場合は中身も返却対象に加える(液体コンテナはアイテム化不可のため対象外)

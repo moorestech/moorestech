@@ -79,6 +79,7 @@ namespace Client.Input
                 KeyCode.R => Key.R,
                 KeyCode.T => Key.T,
                 KeyCode.U => Key.U,
+                KeyCode.V => Key.V,
                 KeyCode.Tab => Key.Tab,
                 KeyCode.F3 => Key.F3,
                 KeyCode.LeftShift => Key.LeftShift,

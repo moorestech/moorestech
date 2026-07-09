@@ -1,4 +1,5 @@
 using Core.Item;
+using Game.Blueprint;
 using Game.Challenge;
 using Game.Context;
 using Game.CraftTree;
@@ -26,6 +27,7 @@ namespace Game.SaveLoad.Json
         private readonly TrainSaveLoadService _trainSaveLoadService;
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
 
@@ -40,6 +42,7 @@ namespace Game.SaveLoad.Json
             TrainSaveLoadService trainSaveLoadService,
             RailGraphSaveLoadService railGraphSaveLoadService,
             IPlayerRidingDatastore playerRidingDatastore,
+            IBlueprintDatastore blueprintDatastore,
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
         {
@@ -53,6 +56,7 @@ namespace Game.SaveLoad.Json
             _trainSaveLoadService = trainSaveLoadService;
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _playerRidingDatastore = playerRidingDatastore;
+            _blueprintDatastore = blueprintDatastore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
         }
@@ -75,6 +79,7 @@ namespace Game.SaveLoad.Json
                 _trainSaveLoadService.GetSaveJsonObject(),
                 _railGraphSaveLoadService.GetSaveData(),
                 _playerRidingDatastore.GetSaveData(),
+                _blueprintDatastore.GetSaveJsonObject(),
                 _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel()
             );

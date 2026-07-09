@@ -34,7 +34,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
-        private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
         private BlockId? _previousSelectedBlockId;
 
@@ -65,18 +64,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // 連続設置状態をリセット
             _clickStartPosition = null;
-            _isStartZDirection = null;
             _currentPlaceInfos.Clear();
         }
         
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
+            ApplyPickedDirection();
             UpdateHeightOffset();
             BlockDirectionControl();
             GroundClickControl(context);
-            
+
             #region Internal
-            
+
+            void ApplyPickedDirection()
+            {
+                // スポイトでピックした向きを選択変化時に反映する
+                // Apply the eyedropped block direction when the selection changes
+                if (context.IsSelectionChanged && context.SelectedBlockDirection.HasValue) _currentBlockDirection = context.SelectedBlockDirection.Value;
+            }
+
             void UpdateHeightOffset()
             {
                 if (HybridInput.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
@@ -175,24 +181,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             void SetCurrentPlaceInfo()
             {
-                if (_clickStartPosition.HasValue)
-                {
-                    if (_clickStartPosition.Value == placePoint)
-                    {
-                        _isStartZDirection = null;
-                    }
-                    else if (!_isStartZDirection.HasValue)
-                    {
-                        _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
-                    }
-                    
-                    _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
-                }
-                else
-                {
-                    _isStartZDirection = null;
-                    _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
-                }
+                var startPoint = _clickStartPosition ?? placePoint;
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(startPoint, placePoint, _currentBlockDirection, holdingBlockMaster);
             }
             
             void PlaceBlock()

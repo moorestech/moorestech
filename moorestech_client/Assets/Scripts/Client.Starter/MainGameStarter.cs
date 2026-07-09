@@ -8,6 +8,7 @@ using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
@@ -17,6 +18,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
@@ -37,6 +39,7 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -50,6 +53,7 @@ using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.BlockPick;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
@@ -97,6 +101,7 @@ namespace Client.Starter
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BuildMenuView buildMenuView;
+        [SerializeField] private BlueprintNameInputView blueprintNameInputView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private MachineRecipeView machineRecipeView;
@@ -196,8 +201,16 @@ namespace Client.Starter
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<PlacementSelection>(Lifetime.Singleton);
-            
-            
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
+            builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
+
+            // 建設系視点モード
+            // register build view mode
+            builder.Register<IBuildViewApplier, BuildViewApplier>(Lifetime.Singleton);
+            builder.Register<BuildViewModeController>(Lifetime.Singleton);
+
+
             //UIコントロール
             // register UI control
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
@@ -215,6 +228,7 @@ namespace Client.Starter
             builder.Register<BuildMenuState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
+            builder.Register<BlockPickService>(Lifetime.Singleton);
             builder.Register<RideVehicleInputService>(Lifetime.Singleton);
             builder.Register<PauseMenuStateService>(Lifetime.Singleton);
 
@@ -263,6 +277,7 @@ namespace Client.Starter
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
             builder.RegisterComponent(buildMenuView);
+            builder.RegisterComponent(blueprintNameInputView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);

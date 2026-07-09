@@ -1,7 +1,8 @@
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.Control.BuildView;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Client.Game.InGame.Control
 {
@@ -42,16 +43,28 @@ namespace Client.Game.InGame.Control
             var camera = Camera.main;
             if (camera == null) return false;
             
-            // TODO InputSystemのリファクタ対象
-            // InputSystemのマウス座標を使う（実機と入力注入の双方を同一経路で扱う）
-            // Use the Input System mouse position so real and injected input share one path
-            var mousePosition = Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : UnityEngine.Input.mousePosition;
-            var ray = camera.ScreenPointToRay(mousePosition);
+            // 照準座標はAimPointProviderで視点モードに応じて一元解決する
+            // The aim point is resolved centrally by AimPointProvider per view mode
+            var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
-            if (!Physics.Raycast(ray, out var hit, 100, LayerConst.BlockOnlyLayerMask)) return false;
-            component = hit.collider.gameObject.GetComponentInChildren<T>();
+            var hits = Physics.RaycastAll(ray, 100, LayerConst.BlockOnlyLayerMask);
+            if (hits.Length == 0) return false;
             
-            return component is not null;
+            // 手前のプレビューゴーストだけを貫通対象にする
+            // Only nearby preview ghosts are allowed to be penetrated
+            System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+            
+            foreach (var hit in hits)
+            {
+                if (hit.collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
+                
+                component = hit.collider.gameObject.GetComponentInChildren<T>();
+                if (component is not null) return true;
+                
+                return false;
+            }
+            
+            return false;
         }
     }
 }
