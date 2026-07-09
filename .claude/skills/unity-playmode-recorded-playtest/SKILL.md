@@ -43,9 +43,10 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 
 ## 絶対規則（全ユースケース共通・違反すると必ず死ぬ）
 
-1. **masterデータはピン留めworktree**（`/Users/katsumi/moorestech-worktrees/playtest-master/server_v8`）。
-   共有moorestech_masterのHEADは別ブランチ用スキーマに進んでいることがあり、使うと`MooresmasterLoaderException`で初期化が**無言死**する。互換コミットは`.moorestech-external-revisions.json`の`commitHash`で特定。worktree作成:
-   `git -C /Users/katsumi/moorestech_master worktree add <path> <互換コミット>`
+1. **masterデータは作業中ブランチの互換コミットにピン留めしたworktreeを使う**（スキル固定のパスは持たない）。
+   共有moorestech_masterのHEADや他ブランチ用の既存worktreeは別スキーマに進んでいることがあり、使うと`MooresmasterLoaderException`で初期化が**無言死**する。互換コミットは作業中プロジェクトの`.moorestech-external-revisions.json`の`moorestech_master.commitHash`で、Unityが作業ツリー版を実チェックアウト値へ常時書き戻すため**コミット済み(`git show HEAD:`)の値が正**。
+   `run-scenario.sh`/`preflight.sh`はこのコミット済みcommitHashにHEADが一致するmoorestech_master worktreeを**自動解決**する（第3/第2引数省略時）。未作成なら自動解決が失敗しエラーになるので、作業中ブランチ用に1つ作る:
+   `git -C ../moorestech_master worktree add <path> <互換コミット>`（作成後は第3引数で明示してもよい）
 2. **OSレベル入力シミュレート禁止**（simulate-keyboard/simulate-mouse-input）。Editorを前面化させ実OSマウスが毎フレーム注入を上書きし、PlayMode再起動まで回復しない。注入は`SemanticInput`（QueueStateEvent）一択。**スニペットから`InputSystem.Update()`も呼ばない**
 3. **固定sleepで待たない**。`p.Until(条件, timeout, ラベル)`かファイル出現ポーリング（result.json / ready.marker）で待つ
 4. **サーバーポート11564は固定・全worktree共通**。プレイテストは同時に1つ。他worktreeのPlayModeが占有していると起動不能（PlayMode停止後のソケットリークも起きる→troubleshooting.md）

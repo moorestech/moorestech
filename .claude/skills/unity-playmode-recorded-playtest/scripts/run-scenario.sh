@@ -11,7 +11,33 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_PATH="${1:?usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]}"
 SCENARIO_FILE="${2:?scenario .cs file required}"
-MASTER_DIR="${3:-/Users/katsumi/moorestech-worktrees/playtest-master/server_v8}"
+
+# masterピンworktreeを作業中プロジェクトの互換コミットから自動解決する（固定パスを持たない）
+# Resolve the pinned master worktree from the working project's own compat commit (no hardcoded path)
+resolve_master_dir() {
+    local repo_root commit master_repo wt json
+    repo_root="$(cd "$PROJECT_PATH/.." 2>/dev/null && pwd)" || return 1
+    # Unityが作業ツリーのピンファイルを実チェックアウト値へ常時書き戻すため、コミット済みの値を正とする
+    # Unity keeps rewriting the working-tree pin file to the resolved checkout, so trust the committed value
+    json=$(git -C "$repo_root" show HEAD:.moorestech-external-revisions.json 2>/dev/null)
+    [[ -n "$json" ]] || json=$(cat "$repo_root/.moorestech-external-revisions.json" 2>/dev/null)
+    [[ -n "$json" ]] || return 1
+    commit=$(printf '%s' "$json" | python3 -c "import json,sys; d=json.load(sys.stdin); print(next((r['commitHash'] for r in d.get('repositories',[]) if r.get('key')=='moorestech_master'),''))" 2>/dev/null)
+    [[ -n "$commit" ]] || return 1
+    master_repo="$(cd "$repo_root/../moorestech_master" 2>/dev/null && pwd)" || return 1
+    wt=$(git -C "$master_repo" worktree list --porcelain 2>/dev/null | awk -v c="$commit" '/^worktree /{p=substr($0,10)} /^HEAD /{if($2==c){print p; exit}}')
+    [[ -n "$wt" && -d "$wt/server_v8" ]] || return 1
+    echo "$wt/server_v8"
+}
+
+MASTER_DIR="${3:-}"
+if [[ -z "$MASTER_DIR" ]]; then
+    MASTER_DIR=$(resolve_master_dir) || {
+        echo "ERROR: masterピンworktreeを自動解決できません。作業中ブランチの互換コミット(.moorestech-external-revisions.jsonのmoorestech_master.commitHash)にHEADを合わせたmoorestech_master worktreeを用意し、第3引数で明示してください:" >&2
+        echo "  git -C ../moorestech_master worktree add <path> <互換コミット>" >&2
+        exit 1
+    }
+fi
 READY_TIMEOUT=300
 RESULT_TIMEOUT=420
 
