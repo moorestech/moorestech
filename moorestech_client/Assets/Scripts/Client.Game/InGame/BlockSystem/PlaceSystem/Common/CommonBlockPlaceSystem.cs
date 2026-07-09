@@ -69,12 +69,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         public void ManualUpdate(PlaceSystemUpdateContext context)
         {
+            ApplyPickedDirection();
             UpdateHeightOffset();
             BlockDirectionControl();
             GroundClickControl(context);
-            
+
             #region Internal
-            
+
+            void ApplyPickedDirection()
+            {
+                // スポイトでピックした向きを選択変化時に反映する
+                // Apply the eyedropped block direction when the selection changes
+                if (context.IsSelectionChanged && context.SelectedBlockDirection.HasValue) _currentBlockDirection = context.SelectedBlockDirection.Value;
+            }
+
             void UpdateHeightOffset()
             {
                 if (HybridInput.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す

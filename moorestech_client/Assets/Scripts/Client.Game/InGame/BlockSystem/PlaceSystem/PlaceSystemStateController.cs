@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Game.Block.Interface;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -14,6 +15,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // Previous frame's selection (used to detect selection changes)
         private PlacementSelectionType _lastSelectionType;
         private BlockId? _lastSelectedBlockId;
+        private BlockDirection? _lastSelectedBlockDirection;
         private Guid _lastSelectedTrainCarGuid;
         private string _lastSelectedConnectPlaceMode;
         private string _lastSelectedBlueprintName;
@@ -36,6 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             // Reset previous selection values so the first frame after re-enable reports IsSelectionChanged=true
             _lastSelectionType = PlacementSelectionType.None;
             _lastSelectedBlockId = null;
+            _lastSelectedBlockDirection = null;
             _lastSelectedTrainCarGuid = Guid.Empty;
             _lastSelectedConnectPlaceMode = null;
             _lastSelectedBlueprintName = null;
@@ -64,6 +67,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 // Detect selection changes (used to reset previews such as the train car preview)
                 var isSelectionChanged = _lastSelectionType != _placementSelection.SelectionType
                                          || _lastSelectedBlockId != _placementSelection.SelectedBlockId
+                                         || _lastSelectedBlockDirection != _placementSelection.SelectedBlockDirection
                                          || _lastSelectedTrainCarGuid != _placementSelection.SelectedTrainCarGuid
                                          || _lastSelectedConnectPlaceMode != _placementSelection.SelectedConnectPlaceMode
                                          || _lastSelectedBlueprintName != _placementSelection.SelectedBlueprintName;
@@ -71,6 +75,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 var context = new PlaceSystemUpdateContext(
                     _placementSelection.SelectionType,
                     _placementSelection.SelectedBlockId,
+                    _placementSelection.SelectedBlockDirection,
                     _placementSelection.SelectedTrainCarGuid,
                     _placementSelection.SelectedConnectPlaceMode,
                     _placementSelection.SelectedBlueprintName,
@@ -79,6 +84,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
                 _lastSelectionType = _placementSelection.SelectionType;
                 _lastSelectedBlockId = _placementSelection.SelectedBlockId;
+                _lastSelectedBlockDirection = _placementSelection.SelectedBlockDirection;
                 _lastSelectedTrainCarGuid = _placementSelection.SelectedTrainCarGuid;
                 _lastSelectedConnectPlaceMode = _placementSelection.SelectedConnectPlaceMode;
                 _lastSelectedBlueprintName = _placementSelection.SelectedBlueprintName;
