@@ -1,5 +1,6 @@
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control.BuildView;
 using UnityEngine;
 
@@ -49,14 +50,18 @@ namespace Client.Game.InGame.Control
             var hits = Physics.RaycastAll(ray, 100, LayerConst.BlockOnlyLayerMask);
             if (hits.Length == 0) return false;
             
-            // プレビューゴーストを自然に飛ばすため、手前から順に対象コンポーネントを探す
-            // Search target components from nearest hits so preview ghosts are skipped naturally
+            // 手前のプレビューゴーストだけを貫通対象にする
+            // Only nearby preview ghosts are allowed to be penetrated
             System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
             
             foreach (var hit in hits)
             {
+                if (hit.collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
+                
                 component = hit.collider.gameObject.GetComponentInChildren<T>();
                 if (component is not null) return true;
+                
+                return false;
             }
             
             return false;
