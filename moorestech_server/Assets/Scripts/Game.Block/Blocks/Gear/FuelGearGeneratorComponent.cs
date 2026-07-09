@@ -103,7 +103,7 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
             
-            GearNetworkDatastore.TryGetGearNetwork(BlockInstanceId, out var network);
+            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
             var fuelGearGeneratorDetail = CreateFuelGearGeneratorStateDetail();
             var powerGeneratorDetail = CreatePowerGeneratorStateDetail();
             
@@ -126,7 +126,7 @@ namespace Game.Block.Blocks.Gear
             
             BlockStateDetail CreatePowerGeneratorStateDetail()
             {
-                var operatingRate = network?.CurrentGearNetworkInfo.OperatingRate ?? 0f;
+                var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
                 var powerGeneratorStateDetail = new PowerGeneratorStateDetail(_fuelService, operatingRate);
                 return new BlockStateDetail(PowerGeneratorStateDetail.StateDetailKey, MessagePackSerializer.Serialize(powerGeneratorStateDetail));
             }

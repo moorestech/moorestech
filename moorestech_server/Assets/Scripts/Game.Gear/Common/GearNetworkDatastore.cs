@@ -84,6 +84,13 @@ namespace Game.Gear.Common
             return _instance._topologyMap.TryGetNetwork(blockInstanceId, out network);
         }
 
+        // 適用済みtopologyから所属networkを取得する。呼び出し側はtick後の所属確定を前提にする
+        // Read the owning network from applied topology; callers assume tick-settled membership
+        public static GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
+        {
+            return _instance._topologyMap.GetNetwork(blockInstanceId);
+        }
+
         // tick開始時に未適用topology変更をFIFOで一括適用する
         // Apply pending topology mutations in FIFO order at tick start
         internal void FlushPendingMutations()
