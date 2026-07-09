@@ -24,16 +24,9 @@ namespace Game.Gear.Topology
             _onNetworkDiscarded = onNetworkDiscarded;
         }
 
-        public IReadOnlyDictionary<GearNetworkId, GearNetwork> GearNetworks => _gearNetworks;
-
         public bool TryGetNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)
         {
             return _blockEntityToGearNetwork.TryGetValue(blockInstanceId, out network);
-        }
-
-        public GearNetwork GetNetwork(BlockInstanceId blockInstanceId)
-        {
-            return _blockEntityToGearNetwork[blockInstanceId];
         }
 
         public void AddGear(IGearEnergyTransformer gear)

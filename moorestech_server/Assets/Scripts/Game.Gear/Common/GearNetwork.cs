@@ -95,8 +95,8 @@ namespace Game.Gear.Common
         }
 
         // 1tick分の需給計算。traversal cacheを再構築した場合trueを返す（診断カウンタ用）
-        // Run one tick of supply-demand; returns true when the traversal cache was rebuilt (for diagnostics)
-        public bool RunTick(GearDemandSnapshot demandSnapshot, GearRuntimeStateStore store)
+        // Run one tick of supply-demand and refresh the traversal cache when needed
+        public void RunTick(GearDemandSnapshot demandSnapshot, GearRuntimeStateStore store)
         {
             // 最も速いgeneratorを原点として選定する
             // Pick the fastest generator as the traversal origin
@@ -112,16 +112,14 @@ namespace Game.Gear.Common
             {
                 _rotationCache = null;
                 store.SetNetworkState(NetworkId, new GearNetworkRuntimeState(false, GearNetworkStopReason.None, 0f, 0f, 0f));
-                return false;
+                return;
             }
 
             // topology変更または原点交代時のみtraversalを再構築する
             // Rebuild the traversal only when topology changed or the origin generator switched
-            var rebuilt = false;
             if (_rotationCache == null || _rotationCache.OriginBlockInstanceId != originGenerator.BlockInstanceId)
             {
                 _rotationCache = GearRotationTraversalBuilder.Build(originGenerator);
-                rebuilt = true;
             }
 
             // 符号衝突（逆回転）または現在RPMでの歯車比矛盾があればロック停止する
@@ -129,11 +127,10 @@ namespace Game.Gear.Common
             if (_rotationCache.HasDirectionConflict || _rotationCache.IsRpmConflicted(originGenerator.GenerateRpm.AsPrimitive()))
             {
                 GearNetworkPowerCalculator.StopNetwork(this, store, GearNetworkStopReason.Rocked, 0f, 0f);
-                return rebuilt;
+                return;
             }
 
             GearNetworkPowerCalculator.CalculateAndDistribute(this, _rotationCache, demandSnapshot, store);
-            return rebuilt;
         }
 
         // 毎tick駆動が必要なgeneratorの燃料消費・出力更新。確定済みの負荷率を渡す
@@ -150,11 +147,5 @@ namespace Game.Gear.Common
             }
         }
 
-        // テスト互換用の即時再計算。本番経路はGearTickUpdaterのみが入口となる
-        // Immediate recalculation kept for test compatibility; production flows only through GearTickUpdater
-        public void ManualUpdate()
-        {
-            RunTick(GearDemandSnapshotUpdater.SharedSnapshot, GearRuntimeStateStore.Instance);
-        }
     }
 }

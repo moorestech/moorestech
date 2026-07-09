@@ -13,8 +13,8 @@ namespace Game.Gear.Common
 
         private readonly GearNetworkTopologyMap _topologyMap;
 
-        // 未適用のtopology変更コマンド。tick開始時または読み取り時にFIFOで一括適用される
-        // Pending topology mutations, applied FIFO at tick start or on first read
+        // 未適用のtopology変更コマンド。tick開始時にFIFOで一括適用される
+        // Pending topology mutations, applied FIFO at tick start
         private readonly List<GearTopologyMutation> _pendingMutations = new();
 
         // 今tick再計算が必要なnetwork（topology変更またはgenerator出力変化）
@@ -41,15 +41,6 @@ namespace Game.Gear.Common
 
         public GearRuntimeStateStore RuntimeStateStore => _runtimeStateStore;
         public IReadOnlyCollection<GearNetwork> ContinuousTickNetworks => _continuousTickNetworks;
-
-        public IReadOnlyDictionary<GearNetworkId, GearNetwork> GearNetworks
-        {
-            get
-            {
-                FlushPendingMutations();
-                return _topologyMap.GearNetworks;
-            }
-        }
 
         public static void AddGear(IGearEnergyTransformer gear)
         {
@@ -86,31 +77,16 @@ namespace Game.Gear.Common
                 _instance._networksRequiringRecalc.Add(network);
         }
 
-        // consumerが要求トルク変化時（稼働/idle切替等）に自ら呼び、所属networkを次の再計算対象に加える
-        // Called by a consumer itself when its required torque changes (e.g. active/idle switch), scheduling its network for recalculation
-        public static void NotifyRequiredTorqueChanged(IGearEnergyTransformer gear)
-        {
-            if (_instance._topologyMap.TryGetNetwork(gear.BlockInstanceId, out var network))
-                _instance._networksRequiringRecalc.Add(network);
-        }
-
-        public static GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
-        {
-            _instance.FlushPendingMutations();
-            return _instance._topologyMap.GetNetwork(blockInstanceId);
-        }
-
-        // 未登録IDに対して例外を投げずに失敗を返す。プロトコル呼び出し側は存在しないブロックIDを送ってくる可能性があるため
-        // Return a failure instead of throwing when the id is not registered; protocol callers may send ids for blocks that no longer exist
+        // 未登録IDでは例外を投げず、適用済みtopologyから失敗を返す
+        // Return a failure from the applied topology instead of throwing when the id is not registered
         public static bool TryGetGearNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)
         {
-            _instance.FlushPendingMutations();
             return _instance._topologyMap.TryGetNetwork(blockInstanceId, out network);
         }
 
-        // 溜まったコマンドをFIFOで一括適用する。ロード中の読み取りでも正しいnetworkが見えるよう読み取り時にも呼ばれる
-        // Apply pending mutations in FIFO order; also invoked on reads so loads that never tick still observe correct networks
-        public void FlushPendingMutations()
+        // tick開始時に未適用topology変更をFIFOで一括適用する
+        // Apply pending topology mutations in FIFO order at tick start
+        internal void FlushPendingMutations()
         {
             if (_isFlushing || _pendingMutations.Count == 0) return;
 
