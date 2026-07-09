@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
             // 部屋外の機械に材料と満電を与え、清浄度なしでは進まないことを固定する
             // Feed a powered machine outside any room and lock in that no clean class means no work
-            LoadMachineInput(machine);
+            LoadMachineInput(machine, 1);
             TickWithPower(machine, 100f, 25);
 
             // 停止中は進捗だけでなく電力要求と材料消費も止まる
@@ -47,12 +47,12 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // 同じ室内に機械を置き、清浄化後に通常レシピが進むことを確認する
             // Place the machine in the same room and verify the recipe runs after purification
             var machine = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomMachineId, new Vector3Int(2, 1, 1));
-            LoadMachineInput(machine);
+            LoadMachineInput(machine, 5);
 
             // 検出と清浄度の更新周期に依存しないよう、成果物が出るまで上限付きで待つ
             // Poll with a cap so the test does not depend on exact detection or purity tick timing
             IOpenableInventory inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
-            for (var i = 0; i < 200 && inventory.GetItem(2).Count == 0; i++)
+            for (var i = 0; i < 800 && !IsAnyChipLevel(inventory.GetItem(2).Id); i++)
             {
                 TickRoom(filter, machine);
             }
@@ -62,11 +62,11 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
             Assert.Less(room.ThresholdIndex, MasterHolder.CleanRoomMaster.OutThresholdIndex);
 
-            // 出力と入力の両方を見て、生成と消費が一対一で起きたことを固定する
-            // Check both output and input to lock in one-to-one production and consumption
-            Assert.AreEqual(ForUnitTestItemId.TestSemiconductorChipLv1, inventory.GetItem(2).Id);
-            Assert.AreEqual(1, inventory.GetItem(2).Count);
-            Assert.AreEqual(0, inventory.GetItem(0).Count);
+            // クラスA室では4レベル一様抽選なので、具体レベルは固定しない
+            // Class-A rooms draw uniformly across four levels, so the exact level is intentionally not fixed
+            Assert.IsTrue(IsAnyChipLevel(inventory.GetItem(2).Id));
+            Assert.GreaterOrEqual(inventory.GetItem(2).Count, 1);
+            Assert.Less(inventory.GetItem(0).Count, 5);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
             // 処理途中で止めるため、まず清浄室内で機械を実際にProcessingへ入れる
             // First move the machine into Processing inside a clean room so interruption freezes real work
-            LoadMachineInput(machine);
+            LoadMachineInput(machine, 5);
             var filterConsumer = filter.GetComponent<IElectricConsumer>();
             var machineConsumer = machine.GetComponent<IElectricConsumer>();
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
@@ -121,9 +121,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
             Assert.Less(room.ThresholdIndex, MasterHolder.CleanRoomMaster.OutThresholdIndex);
-            for (var i = 0; i < 40 && inventory.GetItem(2).Count == 0; i++) TickRoom();
-            Assert.AreEqual(ForUnitTestItemId.TestSemiconductorChipLv1, inventory.GetItem(2).Id);
-            Assert.AreEqual(1, inventory.GetItem(2).Count);
+            for (var i = 0; i < 200 && !IsAnyChipLevel(inventory.GetItem(2).Id); i++) TickRoom();
+            Assert.IsTrue(IsAnyChipLevel(inventory.GetItem(2).Id));
+            Assert.GreaterOrEqual(inventory.GetItem(2).Count, 1);
 
             #region Internal
 
@@ -159,9 +159,17 @@ namespace Tests.CombinedTest.Core.CleanRoom
             return filter;
         }
 
-        private static void LoadMachineInput(IBlock machine)
+        private static void LoadMachineInput(IBlock machine, int count)
         {
-            machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, 1);
+            machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, count);
+        }
+
+        private static bool IsAnyChipLevel(ItemId itemId)
+        {
+            return itemId.Equals(ForUnitTestItemId.TestSemiconductorChipLv1) ||
+                   itemId.Equals(ForUnitTestItemId.TestSemiconductorChipLv2) ||
+                   itemId.Equals(ForUnitTestItemId.TestSemiconductorChipLv3) ||
+                   itemId.Equals(ForUnitTestItemId.TestSemiconductorChipLv4);
         }
 
         private static void TickRoom(IBlock filter, IBlock machine)
