@@ -19,8 +19,8 @@ namespace Client.Tests.PlaceSystem
             var blockMasterElement = MakeBlock(Vector3Int.one);
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
-                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
-                blockMasterElement, (_, _) => true, _ => false);
+                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), BlockDirection.East,
+                blockMasterElement, (_, _) => true);
 
             Assert.AreEqual(3, actual.Count);
             foreach (var info in actual)
@@ -39,8 +39,8 @@ namespace Client.Tests.PlaceSystem
             var blockMasterElement = MakeBlock(new Vector3Int(2, 1, 1));
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
-                new Vector3Int(0, 0, 0), new Vector3Int(4, 0, 0), false, BlockDirection.North,
-                blockMasterElement, (_, _) => true, _ => false);
+                new Vector3Int(0, 0, 0), new Vector3Int(4, 0, 0), BlockDirection.North,
+                blockMasterElement, (_, _) => true);
 
             Assert.AreEqual(3, actual.Count);
             Assert.AreEqual(new Vector3Int(0, 0, 0), actual[0].Position);
@@ -57,8 +57,8 @@ namespace Client.Tests.PlaceSystem
             var occupied = new Vector3Int(1, 0, 0);
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
-                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
-                blockMasterElement, (info, _) => info.Position != occupied, _ => false);
+                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), BlockDirection.East,
+                blockMasterElement, (info, _) => info.Position != occupied);
 
             Assert.IsTrue(actual[0].Placeable);
             Assert.IsFalse(actual[1].Placeable);
@@ -72,8 +72,7 @@ namespace Client.Tests.PlaceSystem
                 Guid.Empty,
                 "TestBlock",
                 "TestBlockType",
-                Guid.Empty,
-                null,
+                                null,
                 null,
                 null,
                 0,

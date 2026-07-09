@@ -158,12 +158,6 @@ properties:
       - GearToElectricGenerator
       - ElectricToGearGenerator
       - FilterSplitter
-    - key: itemGuid
-      type: uuid
-      foreignKey:
-        schemaId: items
-        foreignKeyIdPath: /data/[*]/itemGuid
-        displayElementPath: /data/[*]/name
     - key: requiredItems
       type: array
       optional: true

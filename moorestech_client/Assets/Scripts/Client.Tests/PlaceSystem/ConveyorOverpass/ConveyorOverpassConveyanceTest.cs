@@ -88,8 +88,8 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
 
             List<(VanillaBeltConveyorComponent belt, GearBeltConveyorComponent gear)> PlaceComputedBelts()
             {
-                // 本番(PlaceBlockFromHotBarProtocol)のうち縦方向override→TryAddBlock部分を再現する（inventory/hotbar経由ではない）
-                // Reproduce production's (PlaceBlockFromHotBarProtocol) vertical-override -> TryAddBlock step (not the full inventory/hotbar protocol).
+                // 本番(PlaceBlockProtocol)のうち縦方向override→TryAddBlock部分を再現する（プロトコル全体は経由しない）
+                // Reproduce production's (PlaceBlockProtocol) vertical-override -> TryAddBlock step (not the full protocol).
                 var result = new List<(VanillaBeltConveyorComponent, GearBeltConveyorComponent)>();
                 foreach (var info in placeInfos)
                 {

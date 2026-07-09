@@ -15,10 +15,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     {
         public static void MarkInsufficientEntitiesAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, IEnumerable<IItemStack> inventoryItems)
         {
-            var entityCosts = new ConstructionRequiredItemElement[currentPlaceInfos.Count][];
+            // 地面埋没等の設置不可エンティティはコストを消費しないため予算計算から除外する
+            // Exclude already-unplaceable entities (e.g. buried in ground) since they consume no cost
+            var entityCosts = new List<ConstructionRequiredItemElement[]>(currentPlaceInfos.Count);
             for (var i = 0; i < currentPlaceInfos.Count; i++)
             {
-                entityCosts[i] = MasterHolder.BlockMaster.GetBlockMaster(currentPlaceInfos[i].BlockId).RequiredItems;
+                if (!currentPlaceInfos[i].Placeable) continue;
+                entityCosts.Add(MasterHolder.BlockMaster.GetBlockMaster(currentPlaceInfos[i].BlockId).RequiredItems);
             }
 
             // 建設コストで賄えるエンティティ数まで設置可にする

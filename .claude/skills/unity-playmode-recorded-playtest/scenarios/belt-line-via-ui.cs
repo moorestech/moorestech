@@ -77,9 +77,9 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
 
     // 到着を条件待機で検証（固定sleepなし）: 最初の1個→全10個
     // Verify arrival via condition waits (no fixed sleeps): first item, then all ten
-    await p.Until(() => countInChest() >= 1, 90f, "最初のアイテムがチェストに到着");
+    await p.Until(() => 1 <= countInChest(), 90f, "最初のアイテムがチェストに到着");
     await p.Screenshot("03-first-arrived");
-    await p.Until(() => countInChest() >= 10, 120f, "全10個がチェストに到着");
+    await p.Until(() => 10 <= countInChest(), 120f, "全10個がチェストに到着");
     p.Assert(countInChest() == 10, "チェスト内の鉄インゴットがちょうど10個（紛失・重複なし）");
     await p.Screenshot("04-all-arrived");
 });

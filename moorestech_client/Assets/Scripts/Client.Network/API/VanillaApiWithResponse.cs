@@ -326,6 +326,13 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }
 
+        // BP Create/GetAll/Deleteを1メソッドで統合
+        // Blueprint request (single endpoint for Create / GetAll / Delete)
+        public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)
+        {
+            return await _packetExchangeManager.GetPacketResponse<BlueprintResponse>(request, ct);
+        }
+
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
             int playerId,
             int fromNodeId,

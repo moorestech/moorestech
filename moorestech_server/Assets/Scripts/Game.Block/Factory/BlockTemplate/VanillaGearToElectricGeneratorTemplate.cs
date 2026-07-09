@@ -32,7 +32,6 @@ namespace Game.Block.Factory.BlockTemplate
             // Gear-to-electric passes the generator role to the wire endpoint
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, generatorComponent, componentStates);
 
-
             var components = new List<IBlockComponent>
             {
                 generatorComponent,

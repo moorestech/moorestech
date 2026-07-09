@@ -11,7 +11,6 @@ namespace Core.Master.Validator
         public static bool Validate(Blocks blocks, out string errorLogs)
         {
             errorLogs = "";
-            errorLogs += BlockItemGuidValidation();
             errorLogs += BlockParamValidation();
             errorLogs += BlockRequiredItemsValidation();
             errorLogs += GearChainItemsValidation();
@@ -24,21 +23,6 @@ namespace Core.Master.Validator
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
-
-            string BlockItemGuidValidation()
-            {
-                var logs = "";
-                foreach (var blockElement in blocks.Data)
-                {
-                    var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(blockElement.ItemGuid);
-                    if (itemId == null)
-                    {
-                        logs += $"[BlockMaster] Name:{blockElement.Name} has invalid ItemGuid:{blockElement.ItemGuid}\n";
-                    }
-                }
-
-                return logs;
-            }
 
             string BlockParamValidation()
             {
@@ -430,9 +414,7 @@ namespace Core.Master.Validator
         public static void Initialize(
             Blocks blocks,
             out Dictionary<BlockId, BlockMasterElement> blockElementTableById,
-            out Dictionary<Guid, BlockId> blockGuidToBlockId,
-            out Dictionary<ItemId, BlockId> itemIdToBlockId,
-            Func<BlockId, BlockMasterElement> getBlockMaster)
+            out Dictionary<Guid, BlockId> blockGuidToBlockId)
         {
             // GUIDの順番にint型のBlockIdを割り当てる
             // Assign int BlockId in order of GUID
@@ -447,21 +429,6 @@ namespace Core.Master.Validator
                 var blockId = new BlockId(i + 1);
                 blockElementTableById.Add(blockId, sortedBlockElements[i]);
                 blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, blockId);
-            }
-
-            // ItemIdからBlockIdへのマッピングを構築
-            // Build mapping from ItemId to BlockId
-            itemIdToBlockId = new Dictionary<ItemId, BlockId>();
-            foreach (var blockElement in blocks.Data)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(blockElement.ItemGuid);
-                if (itemIdToBlockId.TryGetValue(itemId, out var existingBlockId))
-                {
-                    var existingBlockElement = getBlockMaster(existingBlockId);
-                    throw new InvalidOperationException($"Duplicate itemId. Name1: {blockElement.Name}  Name2: {existingBlockElement.Name} ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
-                }
-
-                itemIdToBlockId.Add(itemId, blockGuidToBlockId[blockElement.BlockGuid]);
             }
         }
     }
