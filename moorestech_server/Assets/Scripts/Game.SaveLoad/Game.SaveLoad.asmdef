@@ -10,6 +10,7 @@
     "Game.World.Interface",
     "Game.SaveLoad.Interface",
     "Game.Block.Interface",
+    "Game.CleanRoom",
     "Game.Context",
     "Game.Challenge",
     "Game.UnlockState",

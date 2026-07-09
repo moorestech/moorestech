@@ -54,19 +54,15 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _blockInstanceId = blockInstanceId;
             _context = new MachineProcessContext(input, output, effect, requestPower);
             _idlePowerRate = idlePowerRate;
-            CurrentState = ProcessState.Idle;
-            _processingState = new ProcessingMachineProcessState(_context, 0, null, null);
+            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out _cycleCount);
+            CurrentState = restoredState;
+            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs);
             _stateHandlers = new IMachineProcessState[]
                 {
                     new IdleMachineProcessState(_context, _processingState),
                     _processingState,
                     new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate),
                 }.ToDictionary(handler => handler.State);
-            if (componentStates != null && componentStates.TryGetValue(SaveKey, out var stateRaw))
-            {
-                var saveData = JsonConvert.DeserializeObject<CleanRoomChipDrawSaveJsonObject>(stateRaw);
-                _cycleCount = saveData.CycleCount;
-            }
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -98,7 +94,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var saveData = new CleanRoomChipDrawSaveJsonObject { CycleCount = _cycleCount };
+            var saveData = CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, CurrentState, _processingState, _cycleCount);
             return JsonConvert.SerializeObject(saveData);
         }
 
