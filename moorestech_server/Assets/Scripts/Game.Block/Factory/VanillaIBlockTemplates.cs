@@ -56,8 +56,8 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomItemHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.ItemHatch));
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomPipeHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.PipeHatch));
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomMachine, new VanillaCleanRoomMachineTemplate(blockInventoryEvent));
         }
     }
 }
-
 
