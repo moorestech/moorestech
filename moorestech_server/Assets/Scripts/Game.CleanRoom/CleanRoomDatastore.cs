@@ -5,6 +5,7 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.CleanRoom.Save;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using UniRx;
@@ -94,6 +95,18 @@ namespace Game.CleanRoom
         public void RebuildAll()
         {
             _detectionService.RebuildAll();
+        }
+
+        // クリーンルーム保存復元は専用ヘルパーへ委譲する
+        // Delegate clean-room save and restore to the dedicated helper
+        public List<CleanRoomSaveData> GetSaveData()
+        {
+            return CleanRoomSaveRestore.BuildSaveData(_detectionService.Rooms);
+        }
+
+        public void Restore(List<CleanRoomSaveData> saveData)
+        {
+            CleanRoomSaveRestore.Restore(saveData, _detectionService.Rooms);
         }
 
         private void UpdatePurity()
