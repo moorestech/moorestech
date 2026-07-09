@@ -15,5 +15,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         [JsonProperty("pendingOutputs")] public List<ItemStackSaveJsonObject> PendingOutputs;
         [JsonProperty("inputSlot")] public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")] public List<ItemStackSaveJsonObject> OutputSlot;
+        [JsonProperty("moduleSlot")] public List<ItemStackSaveJsonObject> ModuleSlot;
     }
 }

@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 {
     internal static class CleanRoomMachineProcessorSaveState
     {
-        public static CleanRoomMachineProcessorSaveJsonObject Build(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, ProcessingMachineProcessState processingState, uint cycleCount)
+        public static CleanRoomMachineProcessorSaveJsonObject Build(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, ProcessState currentState, ProcessingMachineProcessState processingState, uint cycleCount)
         {
             // 通常機械の加工状態にクリーンルーム固有の抽選カウンタを加えて保存する
             // Save normal machine processing state plus the clean-room draw counter
@@ -28,10 +28,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 PendingOutputs = processingState.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 InputSlot = input.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 OutputSlot = output.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                ModuleSlot = module.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
         }
 
-        public static void Restore(Dictionary<string, string> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount)
+        public static void Restore(Dictionary<string, string> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount)
         {
             state = ProcessState.Idle;
             remainingTicks = 0;
@@ -71,6 +72,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 if (data.OutputSlot != null)
                 {
                     for (var i = 0; i < data.OutputSlot.Count && i < output.OutputSlot.Count; i++) output.SetItemWithoutEvent(i, data.OutputSlot[i].ToItemStack());
+                }
+
+                if (data.ModuleSlot != null)
+                {
+                    for (var i = 0; i < data.ModuleSlot.Count && i < module.ModuleSlot.Count; i++) module.SetItemWithoutEvent(i, data.ModuleSlot[i].ToItemStack());
                 }
             }
 
