@@ -43,7 +43,7 @@ namespace Game.Block.Factory.BlockTemplate
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, blockInventoryUpdateEvent);
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = new CleanRoomMachineProcessorComponent(componentStates, blockInstanceId, input, output, machineParam.RequiredPower, machineParam.IdlePowerRate, effectComponent);
+            var processor = new CleanRoomMachineProcessorComponent(componentStates, blockInstanceId, input, output, module, machineParam.RequiredPower, machineParam.IdlePowerRate, effectComponent);
 
             // CleanRoomMachineComponentは汚染判定と電力Consumerを兼ねる
             // CleanRoomMachineComponent serves both pollution reporting and the electric consumer role
