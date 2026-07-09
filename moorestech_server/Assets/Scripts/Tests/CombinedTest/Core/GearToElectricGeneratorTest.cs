@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Core
             driveComponent.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
             driveComponent.SetGenerateTorque((float)param.GearConsumption.BaseTorque * 0.5f);
             AdvanceTime(0.5f);
-            var gearNetwork = GearNetworkDatastore.GetGearNetwork(generatorComponent.BlockInstanceId);
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(generatorComponent.BlockInstanceId);
             Assert.AreEqual(GearNetworkStopReason.OverRequirePower, gearNetwork.CurrentGearNetworkInfo.StopReason);
             Assert.AreEqual(0f, generatorComponent.OutputEnergy().AsPrimitive(), 0.01f);
             Assert.AreEqual(0f, generatorComponent.EnergyFulfillmentRate, 0.05f);

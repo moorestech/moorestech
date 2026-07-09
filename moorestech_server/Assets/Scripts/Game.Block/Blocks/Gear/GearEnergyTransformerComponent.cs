@@ -7,7 +7,6 @@ using Game.Gear.Common;
 using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.GearConsumptionModule;
 using UniRx;
-using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -18,8 +17,8 @@ namespace Game.Block.Blocks.Gear
 
         public BlockInstanceId BlockInstanceId { get; }
 
-        // 現在値は保持せず、所属networkの符号付き原点RPM比×原点RPMから毎回導出する
-        // Current values are not stored; they are derived each time from the owning network's signed ratio × origin RPM
+        // 現在値は保持せず、所属networkの符号付き原点RPM比から毎回導出する
+        // Current values are derived each time from the owning network's signed origin RPM ratio
         public RPM CurrentRpm
         {
             get
@@ -36,8 +35,8 @@ namespace Game.Block.Blocks.Gear
                 if (!TryResolveRotation(out var rpm, out var isClockwise)) return new Torque(0);
                 if (rpm.AsPrimitive() <= 0f) return new Torque(0);
 
-                // generatorは自身の発電トルク、消費側は現在RPMでの要求トルクを現在トルクとみなす（供給十分＝要求満額のため）
-                // A generator reports its generated torque; a consumer's current torque is its required torque at the current RPM (supply is full when running)
+                // generatorは自身の発電トルク、消費側は現在RPMでの要求トルクを現在トルクとみなす
+                // A generator reports generated torque; a consumer reports required torque at the current RPM
                 if (this is IGearGenerator generator) return generator.GenerateTorque;
                 return GetRequiredTorque(rpm, isClockwise);
             }
@@ -55,13 +54,8 @@ namespace Game.Block.Blocks.Gear
         public bool IsDestroy { get; private set; }
 
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
-
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
-
-        // 具体コンポーネントから変更要求される要求トルク倍率。稼働状況に応じた低消費（idle時等）に使う
-        // Torque request rate pushed by concrete components; used for operation-based low consumption (e.g. idle)
-        private float _torqueRequestRate = 1f;
 
         public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
@@ -73,19 +67,6 @@ namespace Game.Block.Blocks.Gear
             GearNetworkDatastore.AddGear(this);
         }
 
-        public void SetTorqueRequestRate(float rate)
-        {
-            // 同値なら何もしない。毎tick呼ぶcallerがいても安定tick（再計算0）を保つため
-            // No-op on the same value so per-tick callers keep stable ticks free of recalculation
-            if (Mathf.Approximately(_torqueRequestRate, rate)) return;
-
-            _torqueRequestRate = rate;
-
-            // 要求トルクが変わるため、所属networkを次tickの再計算対象へ加える
-            // The required torque changes, so schedule the owning network for recalculation next tick
-            GearNetworkDatastore.NotifyRequiredTorqueChanged(this);
-        }
-
         public BlockStateDetail[] GetBlockStateDetails()
         {
             return new[] { _simpleGearService.GetBlockStateDetail(CurrentRpm, CurrentTorque, IsCurrentClockwise) };
@@ -93,21 +74,21 @@ namespace Game.Block.Blocks.Gear
 
         public virtual Torque GetRequiredTorque(RPM rpm, bool isClockwise)
         {
-            // 生成側（Generator）はConsumption=nullで常にトルク消費0
+            // 生成側はConsumption=nullで常にトルク消費0
             // Generators pass null Consumption and always consume zero torque
             if (_consumption == null) return new Torque(0);
-            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm) * _torqueRequestRate;
+            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
         }
 
-        // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
-        // Output scaling rate for the current RPM/torque. Referenced by output-side components.
+        // 現在のRPMとトルクに対する出力倍率を計算する
+        // Calculate output scaling for the current RPM and torque
         public virtual float GetCurrentOperatingRate()
         {
             return _consumption == null ? 0f : GearConsumptionCalculator.CalcOperatingRate(_consumption, CurrentRpm, CurrentTorque);
         }
 
-        // 基準電力（baseTorque × baseRpm）に稼働率を乗じた現在の供給電力。Machine/Miner系へ渡す共通計算
-        // Current supplied power = basePower × operatingRate. Shared calc for Machine/Miner components.
+        // 基準電力に稼働率を乗じた現在供給電力を返す
+        // Return current supplied power as base power multiplied by operating rate
         public virtual ElectricPower GetCurrentSuppliedPower()
         {
             return _consumption == null ? new ElectricPower(0) : GearConsumptionCalculator.CalcCurrentPower(_consumption, GetCurrentOperatingRate());
