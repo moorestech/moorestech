@@ -29,6 +29,13 @@ namespace Game.Gear.Topology
             return _blockEntityToGearNetwork.TryGetValue(blockInstanceId, out network);
         }
 
+        // 適用済みtopologyから所属networkを取得する。未所属なら呼び出し側の前提違反として例外に任せる
+        // Read the owning network from applied topology; missing ownership is a caller invariant violation
+        internal GearNetwork GetNetwork(BlockInstanceId blockInstanceId)
+        {
+            return _blockEntityToGearNetwork[blockInstanceId];
+        }
+
         public void AddGear(IGearEnergyTransformer gear)
         {
             // 接続先gearの所属networkを重複なく集める

@@ -288,6 +288,10 @@ namespace Tests.CombinedTest.Core
             try
             {
                 // 初期状態のBlockStateDetailsを確認
+                // topologyをtickで確定してから初回状態を読む
+                // Read initial state after tick-settled topology
+                GameUpdater.UpdateOneTick();
+
                 var initialDetails = stateObservable.GetBlockStateDetails();
                 ValidateBlockStateDetails(initialDetails, FuelGearGeneratorState.Idle, 0f, 0f, 0f, 0d, FluidMaster.EmptyFluidId.AsPrimitive());
                 

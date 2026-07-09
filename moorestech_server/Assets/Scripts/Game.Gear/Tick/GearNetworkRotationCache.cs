@@ -5,9 +5,9 @@ using Game.Gear.Common;
 namespace Game.Gear.Tick
 {
     // 原点generatorに対する各gearの符号付き原点RPM比。原点=+1、噛み合い反転で符号反転、逆向きは負。
-    // 実RPM = |比| × 原点RPM、回転方向 = 比の符号（原点の向き基準）。用語は GearGlossary 参照。
+    // 実RPM = |比| × 原点RPM、回転方向 = 比の符号（原点の向き基準）
     // Signed origin RPM ratio of a gear. Origin = +1, sign flips on meshing reversal, reverse is negative.
-    // Actual RPM = |ratio| × origin RPM, direction = sign (relative to the origin). See GearGlossary.
+    // Actual RPM = |ratio| × origin RPM, direction = sign relative to the origin
     public readonly struct GearRotationRatio
     {
         public readonly float SignedRpmRatio;
