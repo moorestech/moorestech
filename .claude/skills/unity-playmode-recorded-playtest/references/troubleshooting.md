@@ -33,8 +33,8 @@ uloop execute-dynamic-code --project-path <保持側client> --code 'UnityEditor.
 ※他セッションのEditorを止める前にユーザーへ確認する。preflight [5/5]が事前検出する。
 
 **(b) `MooresmasterLoaderException`（例: PropertyPath: data[0].priority）** — masterスキーマ不整合。
-ピン留めmaster（`/Users/katsumi/moorestech-worktrees/playtest-master/server_v8`）を使っているか確認。
-互換コミットは`.moorestech-external-revisions.json`の`moorestech_master.commitHash`が正。preflight [4/5]が検出する。
+作業中ブランチの互換コミットにピン留めしたmaster worktreeを使っているか確認（スキル固定パスは無い。既存の別ブランチ用worktreeがドリフトしていることがある）。
+互換コミットは作業中プロジェクトの`.moorestech-external-revisions.json`の`moorestech_master.commitHash`が正で、`run-scenario.sh`はこれにHEADが一致するworktreeを自動解決する。該当worktree未作成なら自動解決失敗のエラーになるので`git -C ../moorestech_master worktree add <path> <互換コミット>`で作る。preflight [4/5]が不整合を検出する。
 なお本番マスタは`IMasterValidator.Validate`が走るため、ロジックテストで出なかったmaster不整合を
 このスキルが最初に検出することが多い（それ自体がバグ検出の成果になる）。
 
