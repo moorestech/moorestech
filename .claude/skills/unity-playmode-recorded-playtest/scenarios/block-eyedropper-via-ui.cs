@@ -7,12 +7,13 @@ using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Starter;
 using Game.UnlockState;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using System.Linq;
 using UnityEngine;
 using VContainer;
 
@@ -23,11 +24,15 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     p.WarpPlayer(new Vector3(0f, 33.5f, 0f));
     await p.WaitSeconds(0.5f);
 
-    // クライアント側DIシングルトンをMainGameStarterのLifetimeScopeから取得する
-    // Resolve client-side DI singletons from MainGameStarter's LifetimeScope
-    var container = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>().Container;
-    var placementSelection = container.Resolve<PlacementSelection>();
-    var gameUnlockStateData = container.Resolve<IGameUnlockStateData>();
+    // クライアント側DIシングルトンはClientDIContext経由で取得する（MainGameStarter.Containerは
+    // ルートスコープでゲームプレイ系登録を持たないため不可。StartGame()内で別ビルドされた
+    // resolverがClientDIContext.DIContainer.DIContainerResolverへ保持される）
+    // Resolve client-side DI singletons via ClientDIContext (MainGameStarter.Container is the root
+    // scope and lacks gameplay registrations; the resolver built inside StartGame() is what's
+    // exposed through ClientDIContext.DIContainer.DIContainerResolver)
+    var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+    var placementSelection = resolver.Resolve<PlacementSelection>();
+    var gameUnlockStateData = resolver.Resolve<IGameUnlockStateData>();
     var chestBlockId = PlaytestBlockOps.ResolveBlockId("木のチェスト");
     var beltBlockId = PlaytestBlockOps.ResolveBlockId("ベルトコンベア");
 
@@ -41,12 +46,18 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
         await UniTask.DelayFrame(2);
     }
 
-    // 指定座標のBlockGameObject中心を照準し、BlockレイヤーへのRaycastに当てる
-    // Aim at the BlockGameObject center at the given coordinate so the Block-layer raycast hits it
+    // 指定座標のBlockGameObjectの"ClickCollider"を照準し、BlockレイヤーへのRaycastに当てる
+    // GetComponentInChildren<Collider>()は子階層先頭のコライダーを返すため、ベルト等では
+    // 装飾用サブメッシュ（例: Cube_2）を拾ってしまい実際の判定面から外れる。
+    // "ClickCollider"という名前のコライダーが全ブロック共通の本来の判定対象。
+    // Aim at the block's "ClickCollider" so the Block-layer raycast hits it.
+    // GetComponentInChildren<Collider>() returns the first child in hierarchy order, which for
+    // belts picks up a decorative sub-mesh (e.g. Cube_2) offset from the real hit surface.
+    // The collider named "ClickCollider" is the actual intended hit target across all blocks.
     async UniTask PickBlockAtAsync(Vector3Int blockPos)
     {
         var blockGo = await p.WaitBlockGameObject(blockPos);
-        var collider = blockGo.GetComponentInChildren<Collider>();
+        var collider = blockGo.GetComponentsInChildren<Collider>().First(c => c.name == "ClickCollider");
         await p.AimAt(collider.bounds.center);
         await MiddleClickAsync();
         await UniTask.DelayFrame(3);
