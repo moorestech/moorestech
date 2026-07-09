@@ -23,6 +23,7 @@ namespace Game.CleanRoom
         public IReadOnlyList<CleanRoom> Rooms => _detectionService.Rooms;
 
         private readonly CleanRoomDetectionService _detectionService;
+        private readonly CleanRoomMachineEffectService _machineEffectService = new();
         private readonly IWorldBlockDatastore _world;
         private readonly List<CleanRoomThresholdRow> _thresholdRows;
         private readonly List<IDisposable> _subscriptions = new();
@@ -33,15 +34,24 @@ namespace Game.CleanRoom
             _detectionService = new CleanRoomDetectionService(worldBlockDatastore, DirtyCellBudgetPerTick);
             _thresholdRows = BuildThresholdRows();
 
-            // tick毎に「①差分再検出 ②純度シミュレーション」の順で処理する
-            // Each tick runs incremental re-detection first, then the purity simulation
+            // tick毎に「①差分再検出 ②純度シミュレーション ③機械効果反映」の順で処理する
+            // Each tick runs detection, purity simulation, then machine effect pushes
             _subscriptions.Add(GameUpdater.UpdateObservable.Subscribe(_ =>
             {
                 _detectionService.ProcessDirtySeeds();
                 UpdatePurity();
+                _machineEffectService.PushEffects(TryGetCleanRoom);
             }));
-            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties => _detectionService.OnBlockChanged(properties.BlockData)));
-            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => _detectionService.OnBlockChanged(properties.BlockData)));
+            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties =>
+            {
+                _detectionService.OnBlockChanged(properties.BlockData);
+                _machineEffectService.OnBlockPlaced(properties.BlockData);
+            }));
+            _subscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties =>
+            {
+                _detectionService.OnBlockChanged(properties.BlockData);
+                _machineEffectService.OnBlockRemoved(properties.BlockData);
+            }));
         }
 
         public bool TryGetCleanRoomAt(Vector3Int cell, out CleanRoom room)
