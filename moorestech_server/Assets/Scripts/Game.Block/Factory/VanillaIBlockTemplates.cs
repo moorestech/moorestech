@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Train.RailGraph;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
@@ -49,8 +50,14 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.GearPump, new VanillaGearPumpTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.ElectricPump, new VanillaElectricPumpTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.FilterSplitter, new VanillaFilterSplitterTemplate());
+
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomWall, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.Wall));
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomDoor, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.Door));
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomItemHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.ItemHatch));
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomPipeHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.PipeHatch));
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.CleanRoomMachine, new VanillaCleanRoomMachineTemplate(blockInventoryEvent));
         }
     }
 }
-
 

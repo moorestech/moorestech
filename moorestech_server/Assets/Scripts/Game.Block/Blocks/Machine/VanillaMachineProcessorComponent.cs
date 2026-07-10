@@ -168,6 +168,7 @@ namespace Game.Block.Blocks.Machine
             {
                 ProcessState.Idle => VanillaMachineBlockStateConst.IdleState,
                 ProcessState.Processing => VanillaMachineBlockStateConst.ProcessingState,
+                ProcessState.Halted => VanillaMachineBlockStateConst.HaltedState,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
@@ -177,6 +178,7 @@ namespace Game.Block.Blocks.Machine
     {
         Idle,
         Processing,
+        Halted,
     }
 
     public class VanillaMachineProcessorSaveJsonObject

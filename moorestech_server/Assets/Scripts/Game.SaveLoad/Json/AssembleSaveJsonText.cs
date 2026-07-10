@@ -1,6 +1,7 @@
 using Core.Item;
 using Game.Blueprint;
 using Game.Challenge;
+using Game.CleanRoom;
 using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
@@ -30,6 +31,7 @@ namespace Game.SaveLoad.Json
         private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
+        private readonly CleanRoomDatastore _cleanRoomDatastore;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -44,7 +46,8 @@ namespace Game.SaveLoad.Json
             IPlayerRidingDatastore playerRidingDatastore,
             IBlueprintDatastore blueprintDatastore,
             ItemStackLevelDataStore itemStackLevelDataStore,
-            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
+            CleanRoomDatastore cleanRoomDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -59,6 +62,7 @@ namespace Game.SaveLoad.Json
             _blueprintDatastore = blueprintDatastore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
+            _cleanRoomDatastore = cleanRoomDatastore;
         }
 
         public string AssembleSaveJson()
@@ -81,7 +85,8 @@ namespace Game.SaveLoad.Json
                 _playerRidingDatastore.GetSaveData(),
                 _blueprintDatastore.GetSaveJsonObject(),
                 _itemStackLevelDataStore.GetSaveJsonObject(),
-                _playerInventorySlotLevelDataStore.GetSaveLevel()
+                _playerInventorySlotLevelDataStore.GetSaveLevel(),
+                _cleanRoomDatastore.GetSaveData()
             );
 
             return JsonConvert.SerializeObject(saveData);
