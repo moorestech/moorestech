@@ -9,7 +9,7 @@ vi.mock("../transport/webSocketClient", () => ({ sendAction: vi.fn() }));
 import { validateTopicPayload } from "./validators";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { Topics } from "../transport/protocol";
-import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData } from "./payloadTypes";
+import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData } from "./payloadTypes";
 
 // C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
 // Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
@@ -68,6 +68,21 @@ describe("wire contract fixtures (shared with C#)", () => {
     expect(validateTopicPayload(Topics.modal, none)).toBe(true);
     expect((open as ModalData).modal?.id).toBe("m1");
     expect((none as ModalData).modal).toBeUndefined();
+  });
+
+  it("build_menu_snapshot が受理され型消費できる", () => {
+    const d = loadFixture("build_menu_snapshot.json");
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
+    const typed = d as BuildMenuData;
+    expect(typed.entries[0].entryType).toBe("block");
+    expect(typed.entries[3].iconUrl).toBeUndefined();
+  });
+
+  it("modal_input が受理され input フラグを型消費できる", () => {
+    const d = loadFixture("modal_input.json");
+    expect(validateTopicPayload(Topics.modal, d)).toBe(true);
+    const typed = d as ModalData;
+    expect(typed.modal?.input).toBe(true);
   });
 
   it("ui_state が受理され型消費できる", () => {
