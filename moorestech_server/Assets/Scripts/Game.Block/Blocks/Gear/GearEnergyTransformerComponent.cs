@@ -25,7 +25,6 @@ namespace Game.Block.Blocks.Gear
 
         public bool IsDestroy { get; private set; }
 
-        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
 
@@ -33,8 +32,7 @@ namespace Game.Block.Blocks.Gear
         {
             _consumption = consumption;
             BlockInstanceId = blockInstanceId;
-            _connectorComponent = connectorComponent;
-            _simpleGearService = new SimpleGearService(this);
+            _simpleGearService = new SimpleGearService(this, connectorComponent);
 
             GearNetworkDatastore.AddGear(this);
         }
@@ -73,12 +71,7 @@ namespace Game.Block.Blocks.Gear
 
         public List<GearConnect> GetGearConnects()
         {
-            var result = new List<GearConnect>();
-            foreach (var target in _connectorComponent.ConnectedTargets)
-            {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
-            }
-            return result;
+            return _simpleGearService.GetGearConnects();
         }
 
         public void Destroy()

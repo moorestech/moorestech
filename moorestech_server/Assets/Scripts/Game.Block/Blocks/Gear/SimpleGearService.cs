@@ -1,13 +1,15 @@
 using System;
+using System.Collections.Generic;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using MessagePack;
+using Mooresmaster.Model.BlockConnectInfoModule;
 using UniRx;
 
 namespace Game.Block.Blocks.Gear
 {
-    // gearの現在値導出・状態変化通知・ステート詳細シリアライズを担うサービス。現在値は保持せず、毎回所属networkから導出する。
-    // Service for deriving gear current values, state-change notifications, and state-detail serialization. Holds no current values; derives them from the owning network each call.
+    // gearの現在値導出・接続列挙・状態変化通知・ステート詳細シリアライズを担うサービス。現在値は保持せず、毎回所属networkから導出する。
+    // Service for deriving gear current values, enumerating connections, state-change notifications, and state-detail serialization. Holds no current values; derives them from the owning network each call.
     public class SimpleGearService
     {
         public IObservable<Unit> BlockStateChange => _onBlockStateChange;
@@ -19,10 +21,24 @@ namespace Game.Block.Blocks.Gear
         // 現在値導出に必要なIDと要求トルク計算をownerへ委譲する
         // Delegate the id and required-torque calculation needed for derivation to the owner
         private readonly IGearEnergyTransformer _owner;
+        private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
 
-        public SimpleGearService(IGearEnergyTransformer owner)
+        public SimpleGearService(IGearEnergyTransformer owner, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             _owner = owner;
+            _connectorComponent = connectorComponent;
+        }
+
+        // コネクタ経由の隣接gear接続を列挙する
+        // Enumerate adjacent gear connections via the connector
+        public List<GearConnect> GetGearConnects()
+        {
+            var result = new List<GearConnect>();
+            foreach (var target in _connectorComponent.ConnectedTargets)
+            {
+                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
+            }
+            return result;
         }
 
         public RPM CurrentRpm
