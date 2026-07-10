@@ -130,6 +130,7 @@ namespace Client.WebUiHost.Boot
             {
                 Game.ItemIconEndpoint.ClearCache();
                 Game.BlockIconEndpoint.ClearCache();
+                Game.TrainCarIconEndpoint.ClearCache();
             }
             catch (Exception e) { Debug.LogWarning($"[WebUiHost] icon cache clear failed: {e.GetBaseException().Message}"); }
 
