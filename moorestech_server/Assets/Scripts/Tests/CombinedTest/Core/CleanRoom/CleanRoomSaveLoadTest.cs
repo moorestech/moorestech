@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json.Nodes;
 using Core.Master;
@@ -74,6 +75,16 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.IsTrue(datastore2.TryGetCleanRoomAt(RoomCell, out var room2));
             Assert.AreEqual(0, room2.ImpurityCount);
             Assert.AreEqual(MasterHolder.CleanRoomMaster.OutThresholdIndex, room2.ThresholdIndex);
+        }
+
+        [Test]
+        public void RoomCellsUseNamedCoordinatesInSaveJsonTest()
+        {
+            var (_, datastore, assembleSaveJsonText, _) = CreateBlockTestModule();
+            BuildSmallCleanRoomWithFilter();
+            datastore.RebuildAll();
+            var cell = JsonNode.Parse(assembleSaveJsonText.AssembleSaveJson())["cleanRoomRooms"][0]["cells"][0];
+            CollectionAssert.AreEquivalent(new[] { "x", "y", "z" }, cell.AsObject().Select(pair => pair.Key));
         }
 
         [Test]

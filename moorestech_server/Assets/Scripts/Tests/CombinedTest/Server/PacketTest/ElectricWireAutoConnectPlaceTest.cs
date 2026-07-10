@@ -14,19 +14,16 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Game.UnlockState;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.PlaceBlockFromHotBarProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
     public class ElectricWireAutoConnectPlaceTest
     {
         private const int PlayerId = 5;
-        private const int HotBarSlot = 2;
 
-        private static readonly Guid PoleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
-        private static readonly Guid MachineItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
 
         [Test]
@@ -40,8 +37,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var nearPole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var farPole);
 
-            var inventory = SetupInventory(serviceProvider, MachineItemGuid, 1, 5);
-            PlaceBlock(packet, new Vector3Int(0, 0, 0));
+            var inventory = SetupWire(serviceProvider, 5);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
+            PlaceBlock(packet, ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0));
 
             var machine = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, 0));
             var nearConnector = nearPole.GetComponent<IElectricWireConnector>();
@@ -71,8 +69,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, new Vector3Int(100, 0, 100), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ElectricWireTestUtil.Connect(new Vector3Int(-1, 0, 0), new Vector3Int(100, 0, 100));
 
-            SetupInventory(serviceProvider, PoleItemGuid, 1, 5);
-            PlaceBlock(packet, new Vector3Int(0, 0, 0));
+            SetupWire(serviceProvider, 5);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
+            PlaceBlock(packet, ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0, 0));
 
             var pole = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, 0));
             var poleConnector = pole.GetComponent<IElectricWireConnector>();
@@ -93,14 +92,14 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole);
 
-            var inventory = SetupInventory(serviceProvider, MachineItemGuid, 1, 0);
+            SetupWire(serviceProvider, 0);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
             var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
             var segmentCountBefore = segmentDatastore.SegmentCount;
 
-            PlaceBlock(packet, new Vector3Int(0, 0, 0));
+            PlaceBlock(packet, ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0));
 
             Assert.IsFalse(worldBlockDatastore.Exists(new Vector3Int(0, 0, 0)));
-            Assert.AreEqual(1, GetItemCount(inventory, MachineItemGuid));
             Assert.AreEqual(0, pole.GetComponent<IElectricWireConnector>().WireConnections.Count);
             Assert.AreEqual(segmentCountBefore, segmentDatastore.SegmentCount);
         }
@@ -113,11 +112,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = CreateServer();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
-            var inventory = SetupInventory(serviceProvider, MachineItemGuid, 1, 0);
-            PlaceBlock(packet, new Vector3Int(50, 0, 50));
+            SetupWire(serviceProvider, 0);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
+            PlaceBlock(packet, ForUnitTestModBlockId.MachineId, new Vector3Int(50, 0, 50));
 
             Assert.IsTrue(worldBlockDatastore.Exists(new Vector3Int(50, 0, 50)));
-            Assert.AreEqual(0, GetItemCount(inventory, MachineItemGuid));
 
             var machine = worldBlockDatastore.GetBlock(new Vector3Int(50, 0, 50));
             Assert.AreEqual(0, machine.GetComponent<IElectricWireConnector>().WireConnections.Count);
@@ -130,20 +129,34 @@ namespace Tests.CombinedTest.Server.PacketTest
             return new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
 
-        private static IOpenableInventory SetupInventory(ServiceProvider serviceProvider, Guid hotBarItemGuid, int hotBarItemCount, int wireCount)
+        private static IOpenableInventory SetupWire(ServiceProvider serviceProvider, int wireCount)
         {
-            // ホットバーに設置ブロック、別スロットに電線を置く
-            // Put the block item on the hot bar and wire items into another slot
-            var itemStackFactory = ServerContext.ItemStackFactory;
+            // 電線アイテムだけをインベントリへ置く（設置ブロックは建設コスト方式のため所持不要）
+            // Put only wire items into the inventory (placement no longer consumes a block item)
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-
-            inventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot, inventory.GetSlotSize()), itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(hotBarItemGuid), hotBarItemCount));
-            if (0 < wireCount) inventory.SetItem(10, itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(WireItemGuid), wireCount));
+            if (0 < wireCount) inventory.SetItem(10, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(WireItemGuid), wireCount));
 
             return inventory;
         }
 
-        private static void PlaceBlock(PacketResponseCreator packet, Vector3Int position)
+        private static void GrantRequiredItems(ServiceProvider serviceProvider, BlockId blockId)
+        {
+            // 建設コスト1セット分をインベントリへ投入する
+            // Insert one construction-cost set into the inventory
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            foreach (var requiredItem in MasterHolder.BlockMaster.GetBlockMaster(blockId).RequiredItems)
+            {
+                inventory.InsertItem(MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid), (int)requiredItem.Count);
+            }
+        }
+
+        private static void UnlockBlock(ServiceProvider serviceProvider, BlockId blockId)
+        {
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
+        }
+
+        private static void PlaceBlock(PacketResponseCreator packet, BlockId blockId, Vector3Int position)
         {
             var placeInfo = new List<PlaceInfo>
             {
@@ -152,10 +165,11 @@ namespace Tests.CombinedTest.Server.PacketTest
                     Position = position,
                     Direction = BlockDirection.North,
                     VerticalDirection = BlockVerticalDirection.Horizontal,
+                    BlockId = blockId,
                 },
             };
 
-            var payload = MessagePackSerializer.Serialize(new SendPlaceHotBarBlockProtocolMessagePack(PlayerId, HotBarSlot, placeInfo));
+            var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfo));
             packet.GetPacketResponse(payload, new PacketResponseContext());
         }
 

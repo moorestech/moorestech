@@ -112,7 +112,7 @@ namespace Client.Playtest
             var startTime = Time.realtimeSinceStartup;
             while (!condition())
             {
-                if (Time.realtimeSinceStartup - startTime > timeoutSeconds)
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
                 {
                     _result.Asserts.Add(new PlaytestAssertResult { Label = label, Passed = false, Message = $"Until timeout after {timeoutSeconds}s" });
                     throw new TimeoutException($"Until '{label}' timed out after {timeoutSeconds}s");

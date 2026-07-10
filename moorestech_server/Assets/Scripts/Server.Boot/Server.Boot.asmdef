@@ -41,6 +41,7 @@
         "Game.PlayerRiding",
         "Game.PlayerRiding.Interface",
         "Game.PlayerConnection",
+        "Game.Blueprint",
         "UniRx"
     ],
     "includePlatforms": [],

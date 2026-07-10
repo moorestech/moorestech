@@ -44,7 +44,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
             blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7), InsertItemContext.Empty);
-            var blockElement = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
 
             // プロトコルを使ってブロックを削除
             // Remove block using protocol
@@ -56,18 +55,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Verify removed block no longer exists in world
             Assert.False(worldBlock.Exists(new Vector3Int(0, 0)));
 
-            // アイテムの挿入順序はブロック自体→ブロックインベントリの順
-            // Insertion order is block item first, then block inventory items
-            // スロット0にブロック自体のアイテムが入る
-            // Block item goes to slot 0
-            var blockItemId = MasterHolder.ItemMaster.GetItemId(blockElement.ItemGuid);
-            Assert.AreEqual(blockItemId, playerInventoryData.MainOpenableInventory.GetItem(0).Id);
-            Assert.AreEqual(1, playerInventoryData.MainOpenableInventory.GetItem(0).Count);
+            // requiredItems未定義ブロックは本体の返却なし。ブロックインベントリ内のアイテムのみ返る
+            // Blocks without requiredItems refund nothing for the body; only block-inventory items return
+            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(0).Id.AsPrimitive());
+            Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(0).Count);
 
-            // スロット1にブロックインベントリ内のアイテムが入る
-            // Block inventory items go to slot 1
-            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(1).Id.AsPrimitive());
-            Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(1).Count);
+            // スロット1は空のまま
+            // Slot 1 stays empty
+            Assert.AreEqual(ItemMaster.EmptyItemId, playerInventoryData.MainOpenableInventory.GetItem(1).Id);
         }
         
         
@@ -142,9 +137,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             //インベントリを満杯にする
             for (var i = 0; i < mainInventory.GetSlotSize(); i++)
                 mainInventory.SetItem(i, itemStackFactory.Create(new ItemId(10), 1));
-            
-            //ブロックを設置
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            //ブロックを設置し、返却対象となるアイテムを1つ入れておく（本体返却なし仕様のため）
+            //Place a block and put one item inside so there is something to refund (no body refund anymore)
+            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            block.GetComponent<IBlockInventory>().InsertItem(itemStackFactory.Create(new ItemId(3), 1), InsertItemContext.Empty);
             
             
             //プロトコルを使ってブロックを削除

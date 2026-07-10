@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using ClassLibrary;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
@@ -32,7 +33,7 @@ namespace Client.Playtest.Operations
             var startTime = Time.realtimeSinceStartup;
             while (CurrentUiState() != expected)
             {
-                if (Time.realtimeSinceStartup - startTime > timeoutSeconds) throw new TimeoutException($"UI state did not reach {expected} (current: {CurrentUiState()})");
+                if (timeoutSeconds < Time.realtimeSinceStartup - startTime) throw new TimeoutException($"UI state did not reach {expected} (current: {CurrentUiState()})");
                 await UniTask.Yield();
             }
         }
@@ -43,19 +44,25 @@ namespace Client.Playtest.Operations
             // Open the build menu, then click the target block's slot through the EventSystem
             // PlaceBlock中はBだとGameScreenへ抜けてしまうためTabで開き直す（実プレイと同じキー割当）
             // While in PlaceBlock, B exits to GameScreen, so reopen with Tab (same binding as real play)
-            if (CurrentUiState() == UIStateEnum.PlaceBlock)
+            // キー1回のタップ取りこぼしに備え、開くまでタップを繰り返す
+            // Retry the open key in case a single tap is dropped
+            var openKey = CurrentUiState() == UIStateEnum.PlaceBlock ? UnityEngine.InputSystem.Key.Tab : UnityEngine.InputSystem.Key.B;
+            for (var attempt = 0; attempt < 3 && CurrentUiState() != UIStateEnum.BuildMenu; attempt++)
             {
-                await SemanticInput.TapKey(UnityEngine.InputSystem.Key.Tab);
-                await WaitUiState(UIStateEnum.BuildMenu, 10f);
+                await SemanticInput.TapKey(openKey);
+                if (await PollUiState(UIStateEnum.BuildMenu, 4f)) break;
             }
-            else if (CurrentUiState() != UIStateEnum.BuildMenu)
-            {
-                await SemanticInput.TapKey(UnityEngine.InputSystem.Key.B);
-                await WaitUiState(UIStateEnum.BuildMenu, 10f);
-            }
+            if (CurrentUiState() != UIStateEnum.BuildMenu) throw new TimeoutException($"Build menu did not open (current: {CurrentUiState()})");
 
-            ClickBuildMenuSlot(blockName);
-            await WaitUiState(UIStateEnum.PlaceBlock, 10f);
+            // 非同期BPライブラリ更新の再構築がクリック済み選択を破棄するレースがあるため、遷移するまでクリックを繰り返す
+            // The async blueprint-library rebuild can wipe a clicked selection, so retry clicking until the transition happens
+            var deadline = Time.realtimeSinceStartup + 15f;
+            while (CurrentUiState() != UIStateEnum.PlaceBlock)
+            {
+                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException($"Build menu selection did not reach PlaceBlock: {blockName}");
+                TryClickBuildMenuSlot(blockName);
+                await UniTask.DelayFrame(10);
+            }
 
             // PlaceBlock遷移直後のカメラtween（トップダウン化）が落ち着くまで待つ
             // Wait for the camera tween (to top-down) right after entering PlaceBlock to settle
@@ -105,26 +112,40 @@ namespace Client.Playtest.Operations
             await UniTask.DelayFrame(3);
         }
 
-        #region Internal
 
-        private static void ClickBuildMenuSlot(string blockName)
+        private static async UniTask<bool> PollUiState(UIStateEnum expected, float seconds)
         {
-            // 対象ブロックのアイテムIDでスロットを特定し、PointerDown/Upを直接実行する
-            // Locate the slot by the block's item id and execute PointerDown/Up directly
-            var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
-            var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
+            // 例外を投げないUIState待ち（リトライループ用）
+            // Non-throwing UI-state wait for retry loops
+            var deadline = Time.realtimeSinceStartup + seconds;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                if (CurrentUiState() == expected) return true;
+                await UniTask.DelayFrame(5);
+            }
+            return false;
+        }
 
+        private static bool TryClickBuildMenuSlot(string blockName)
+        {
+            // 対象ブロックのアイコンViewData（BlockIdごとにキャッシュされた同一インスタンス）でスロットを特定する
+            // Locate the slot by the block's cached icon ItemViewData instance (one per BlockId)
+            var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
+            var iconView = ClientContext.BlockImageContainer.GetBlockView(blockId);
+
+            // 再構築中はスロットが一時的に存在しないため、見つからなければ失敗を返しリトライに任せる
+            // Slots vanish transiently during a rebuild, so return false and let the caller retry
             var buildMenuView = Object.FindFirstObjectByType<BuildMenuView>(FindObjectsInactive.Include);
             var slot = buildMenuView.GetComponentsInChildren<ItemSlotView>(true)
-                .FirstOrDefault(s => s.ItemViewData != null && s.ItemViewData.ItemId == itemId);
-            if (slot == null) throw new InvalidOperationException($"Build menu slot not found for block: {blockName} (unlocked?)");
+                .FirstOrDefault(s => s.ItemViewData != null && ReferenceEquals(s.ItemViewData, iconView));
+            if (slot == null) return false;
 
             var clickTarget = slot.GetComponentInChildren<CommonSlotView>(true).gameObject;
             var eventData = new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left };
             ExecuteEvents.Execute(clickTarget, eventData, ExecuteEvents.pointerDownHandler);
             ExecuteEvents.Execute(clickTarget, eventData, ExecuteEvents.pointerUpHandler);
+            return true;
         }
 
-        #endregion
     }
 }

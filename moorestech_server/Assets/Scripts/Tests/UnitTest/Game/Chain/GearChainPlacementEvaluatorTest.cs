@@ -26,7 +26,7 @@ namespace Tests.UnitTest.Game.Chain
             // Initialize DI container to load master data
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
-            _poleItemId = MasterHolder.BlockMaster.GetItemId(ForUnitTestModBlockId.GearChainPole);
+            _poleItemId = ForUnitTestItemId.ItemId4;
         }
 
         [Test]

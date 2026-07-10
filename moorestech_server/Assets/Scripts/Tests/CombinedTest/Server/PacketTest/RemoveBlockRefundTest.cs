@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void requiredItems未定義ブロックは従来どおりブロックアイテムを返す()
+        public void requiredItems未定義ブロックは何も返却されない()
         {
             var (packet, serviceProvider) = CreateServer();
             var world = ServerContext.WorldBlockDatastore;
@@ -81,10 +81,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var inventory = GetInventory(serviceProvider);
             packet.GetPacketResponse(CreateRemovePayload(4, 4), new PacketResponseContext());
 
-            // TestBeltConveyorのitemGuidはTest3。従来どおり1個返る
-            // TestBeltConveyor's itemGuid is Test3; one item is refunded as before
+            // フォールバック廃止により、コスト未定義ブロックは破壊しても本体アイテムを返さない
+            // With the fallback removed, destroying a cost-less block refunds no body item
             Assert.IsFalse(world.Exists(new Vector3Int(4, 4)));
-            Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
+            Assert.AreEqual(0, GetItemCount(inventory, Material1Guid));
         }
 
         #region TestUtil

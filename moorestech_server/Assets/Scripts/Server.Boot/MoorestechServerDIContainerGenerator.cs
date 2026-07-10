@@ -8,6 +8,7 @@ using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
+using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
 using Game.Context;
@@ -172,6 +173,7 @@ namespace Server.Boot
             services.AddSingleton<IItemStackLevelLookup>(itemStackLevelDataStore);
             services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
+            services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
             services.AddSingleton<ResearchEvent>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
