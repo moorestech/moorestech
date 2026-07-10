@@ -54,16 +54,15 @@ namespace Client.WebUiHost.Game.Topics
                 if (!unlockInfos.TryGetValue(recipe.MachineRecipeGuid, out var unlockInfo)) continue;
                 if (!unlockInfo.IsUnlocked) continue;
 
-                // 機械ブロックのアイテムIDと名前を取得
-                // Resolve the machine block's item id and name
+                // 機械ブロックの BlockId と名前を取得
+                // Resolve the machine block's BlockId and name
                 var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-                var blockItemId = MasterHolder.BlockMaster.GetItemId(blockId);
                 var blockName = MasterHolder.BlockMaster.GetBlockMaster(blockId).Name;
 
                 dto.Recipes.Add(new MachineRecipeDto
                 {
                     RecipeGuid = recipe.MachineRecipeGuid.ToString(),
-                    BlockItemId = blockItemId.AsPrimitive(),
+                    BlockId = blockId.AsPrimitive(),
                     BlockName = blockName,
                     Time = recipe.Time,
                     InputItems = BuildInputItems(recipe),
@@ -118,7 +117,7 @@ namespace Client.WebUiHost.Game.Topics
     public class MachineRecipeDto
     {
         public string RecipeGuid;
-        public int BlockItemId;
+        public int BlockId;
         public string BlockName;
         public double Time;
         public List<RecipeItemDto> InputItems;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Stack, Tabs, Text } from "@mantine/core";
-import { ItemIcon } from "@/shared/ui";
+import { BlockIcon } from "@/shared/ui";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import styles from "../RecipeViewer.module.css";
 import type {
@@ -84,7 +84,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
               <Tabs.Tab
                 key={t.key}
                 value={t.key}
-                leftSection={t.blockItemId !== null ? <ItemIcon itemId={t.blockItemId} className={styles.tabIcon} /> : undefined}
+                leftSection={t.blockId !== null ? <BlockIcon blockId={t.blockId} className={styles.tabIcon} /> : undefined}
               >
                 {t.label}
               </Tabs.Tab>
@@ -92,7 +92,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
           </Tabs.List>
         </Tabs>
       ) : null}
-      {activeTab.blockItemId === null ? (
+      {activeTab.blockId === null ? (
         <CraftRecipeView
           recipes={craftRecipes}
           recipeIndex={recipeIndex}
@@ -103,7 +103,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
         />
       ) : (
         <MachineRecipeView
-          recipes={machineGroups.get(activeTab.blockItemId)!}
+          recipes={machineGroups.get(activeTab.blockId)!}
           recipeIndex={recipeIndex}
           setRecipeIndex={setRecipeIndex}
           itemMaster={itemMaster}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Common.Asset;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Mod.Texture;
 using Core.Master;
@@ -17,15 +18,13 @@ namespace Client.Starter.Initialization
     public class ModAssetIconLoader
     {
         private readonly BlockGameObjectPrefabContainer _blockContainer;
-        private readonly ItemImageContainer _itemImageContainer;
         private readonly BlockIconImagePhotographer _photographer;
         private readonly TMP_Text _loadingLog;
         private readonly System.Diagnostics.Stopwatch _loadingStopwatch;
 
-        public ModAssetIconLoader(BlockGameObjectPrefabContainer blockContainer, ItemImageContainer itemImageContainer, BlockIconImagePhotographer photographer, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
+        public ModAssetIconLoader(BlockGameObjectPrefabContainer blockContainer, BlockIconImagePhotographer photographer, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
         {
             _blockContainer = blockContainer;
-            _itemImageContainer = itemImageContainer;
             _photographer = photographer;
             _loadingLog = loadingLog;
             _loadingStopwatch = loadingStopwatch;
@@ -33,8 +32,8 @@ namespace Client.Starter.Initialization
 
         public async UniTask<ModAssetIconLoadResult> RunAsync()
         {
-            // ブロック撮影結果をBlockId表示と不足中のItemId表示で共有する
-            // Share block captures between BlockId views and missing ItemId views
+            // ブロック撮影結果は BlockId 専用画像として保持する
+            // Keep block captures as BlockId-specific images
             var blockImageContainer = await TakeBlockImagesAsync();
             var trainCarImageContainer = await TakeTrainCarImagesAsync();
             return new ModAssetIconLoadResult(blockImageContainer, trainCarImageContainer);
@@ -53,8 +52,8 @@ namespace Client.Starter.Initialization
                 targets.Add(blockObjectInfo);
             }
 
-            // BlockId画像は全件登録し、ItemId画像は未設定時だけ補完する
-            // Register every BlockId image and fill ItemId images only when absent
+            // 撮影した画像を BlockId ごとに登録する
+            // Register each captured image by BlockId
             var blockImageContainer = new BlockImageContainer();
             var textures = await _photographer.TakeBlockIconImages(targets);
             for (var i = 0; i < blockIds.Count; i++)
@@ -62,10 +61,6 @@ namespace Client.Starter.Initialization
                 var blockId = blockIds[i];
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
                 blockImageContainer.AddBlockView(blockId, new ItemViewData(textures[i], blockMaster.Name));
-
-                var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
-                if (_itemImageContainer.GetItemView(itemId).ItemImage == null)
-                    _itemImageContainer.AddItemView(itemId, new ItemViewData(textures[i], MasterHolder.ItemMaster.GetItemMaster(itemId)));
             }
 
             _loadingLog.text += $"\nブロックスクリーンショット完了  {_loadingStopwatch.Elapsed}";

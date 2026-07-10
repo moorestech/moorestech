@@ -124,11 +124,12 @@ namespace Client.WebUiHost.Boot
             // Move Kestrel/WS shutdown off the main thread via UniTask.SwitchToTaskPool
             await UniTask.SwitchToTaskPool();
 
-            // セーブデータ/Mod 切り替えに備えてアイコンキャッシュを破棄する
-            // Drop the icon cache in case the save data / mod set changes
+            // セーブデータ/Mod 切替に備えてアイコンキャッシュを破棄する
+            // Drop icon caches in case the save data / mod set changes
             try
             {
                 Game.ItemIconEndpoint.ClearCache();
+                Game.BlockIconEndpoint.ClearCache();
             }
             catch (Exception e) { Debug.LogWarning($"[WebUiHost] icon cache clear failed: {e.GetBaseException().Message}"); }
 
