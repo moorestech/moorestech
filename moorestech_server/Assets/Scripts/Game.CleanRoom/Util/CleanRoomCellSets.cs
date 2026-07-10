@@ -4,7 +4,7 @@ using Game.Block.Interface.Component;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace Game.CleanRoom
+namespace Game.CleanRoom.Util
 {
     /// <summary>
     ///     密閉検出が使うセル集合の構築と、fill 予算計算のユーティリティ

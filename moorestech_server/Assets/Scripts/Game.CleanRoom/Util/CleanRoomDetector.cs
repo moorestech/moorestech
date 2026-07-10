@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
-namespace Game.CleanRoom
+namespace Game.CleanRoom.Util
 {
     /// <summary>
     ///     境界セルに囲まれた密閉領域を flood-fill で検出する
