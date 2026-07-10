@@ -28,8 +28,9 @@ namespace Client.WebUiHost.Game.Actions
             if (countToken is not JValue { Value: long countLong } || countLong <= 0 || int.MaxValue < countLong) return UniTask.FromResult(ActionResult.Fail("invalid_count"));
             var count = (int)countLong;
 
-            if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
-            if (!InventoryAreaMapper.TryParseSlotRef(payload["to"], out var toType, out var toSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            var mainSlotCount = _controller.LocalPlayerInventory.MainSlotCount;
+            if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], mainSlotCount, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (!InventoryAreaMapper.TryParseSlotRef(payload["to"], mainSlotCount, out var toType, out var toSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
             // 同一スロットへの移動はMoveItem内部でアイテムが消失するため no-op にする
             // Same-slot moves corrupt the stack inside MoveItem, so treat them as a no-op
@@ -61,7 +62,7 @@ namespace Client.WebUiHost.Game.Actions
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
-            if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (!InventoryAreaMapper.TryParseSlotRef(payload["from"], _controller.LocalPlayerInventory.MainSlotCount, out var fromType, out var fromSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (fromType != LocalMoveInventoryType.MainOrSub) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (_controller.GrabInventory.Id != ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("grab_not_empty"));
 
@@ -104,7 +105,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 入力はクリック可能スロット（main/hotbar）のみ。grab はクライアントから来ない
             // Input is a clickable slot only (main/hotbar); grab never arrives from the client
-            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["slot"], out var clickedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            if (!InventoryAreaMapper.TryParseClickableSlotRef(payload["slot"], _controller.LocalPlayerInventory.MainSlotCount, out var clickedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
             // 収集先決定は uGUI の DoubleClick と同一。空手×空スロットは CollectItems が no-op（成功扱い）
             // Target choice mirrors uGUI DoubleClick; empty-handed on an empty slot is a CollectItems no-op (success)

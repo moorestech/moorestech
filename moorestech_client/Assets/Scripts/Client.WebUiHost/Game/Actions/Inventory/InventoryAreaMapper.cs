@@ -10,21 +10,20 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public static class InventoryAreaMapper
     {
-        // メイン部 = ホットバー行を除いた 36 スロット
-        // Main section = 36 slots excluding the hotbar row
-        public static readonly int MainAreaSize = PlayerInventoryConst.MainInventorySize - PlayerInventoryConst.MainInventoryColumns;
-
-        public static bool TryGetLocalSlot(string area, int slot, out LocalMoveInventoryType type, out int localSlot)
+        public static bool TryGetLocalSlot(string area, int slot, int mainSlotCount, out LocalMoveInventoryType type, out int localSlot)
         {
+            // メイン部 = 現在のスロット数からホットバー行を除いた領域
+            // Main section = the current slot count minus the hotbar row
+            var mainAreaSize = mainSlotCount - PlayerInventoryConst.HotBarSlotCount;
             switch (area)
             {
-                case "main" when 0 <= slot && slot < MainAreaSize:
+                case "main" when 0 <= slot && slot < mainAreaSize:
                     type = LocalMoveInventoryType.MainOrSub;
                     localSlot = slot;
                     return true;
-                case "hotbar" when 0 <= slot && slot < PlayerInventoryConst.MainInventoryColumns:
+                case "hotbar" when 0 <= slot && slot < PlayerInventoryConst.HotBarSlotCount:
                     type = LocalMoveInventoryType.MainOrSub;
-                    localSlot = MainAreaSize + slot;
+                    localSlot = mainAreaSize + slot;
                     return true;
                 case "grab":
                     type = LocalMoveInventoryType.Grab;
@@ -39,10 +38,10 @@ namespace Client.WebUiHost.Game.Actions
 
         // クリック可能スロット（main/hotbar）のみ許可。grab は collect 入力として不正
         // Accept only clickable slots (main/hotbar); grab is invalid as a collect input
-        public static bool TryParseClickableSlotRef(JToken token, out int localSlot)
+        public static bool TryParseClickableSlotRef(JToken token, int mainSlotCount, out int localSlot)
         {
             localSlot = -1;
-            if (!TryParseSlotRef(token, out var type, out var slot)) return false;
+            if (!TryParseSlotRef(token, mainSlotCount, out var type, out var slot)) return false;
             if (type != LocalMoveInventoryType.MainOrSub) return false;
             localSlot = slot;
             return true;
@@ -50,7 +49,7 @@ namespace Client.WebUiHost.Game.Actions
 
         // area/slot 形式の JToken を変換
         // Parse an area/slot-shaped JToken
-        public static bool TryParseSlotRef(JToken token, out LocalMoveInventoryType type, out int localSlot)
+        public static bool TryParseSlotRef(JToken token, int mainSlotCount, out LocalMoveInventoryType type, out int localSlot)
         {
             type = LocalMoveInventoryType.MainOrSub;
             localSlot = -1;
@@ -78,7 +77,7 @@ namespace Client.WebUiHost.Game.Actions
                 slot = (int)slotLong;
             }
 
-            return TryGetLocalSlot(area, slot, out type, out localSlot);
+            return TryGetLocalSlot(area, slot, mainSlotCount, out type, out localSlot);
         }
     }
 }

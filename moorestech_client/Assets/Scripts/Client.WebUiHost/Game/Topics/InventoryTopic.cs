@@ -4,7 +4,6 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Client.WebUiHost.Game.Actions;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
@@ -88,15 +87,20 @@ namespace Client.WebUiHost.Game.Topics
         private string BuildJson()
         {
             var inv = _controller.LocalPlayerInventory;
+
+            // ホットバーは常に現在の MainSlotCount 末尾の HotBarSlotCount 個
+            // The hotbar is always the final HotBarSlotCount slots of the current MainSlotCount
+            var mainSlotCount = inv.MainSlotCount;
+            var mainAreaSize = mainSlotCount - PlayerInventoryConst.HotBarSlotCount;
             var dto = new PlayerInventoryDto
             {
-                MainSlots = new List<SlotDto>(InventoryAreaMapper.MainAreaSize),
-                HotbarSlots = new List<SlotDto>(PlayerInventoryConst.MainInventoryColumns),
+                MainSlots = new List<SlotDto>(mainAreaSize),
+                HotbarSlots = new List<SlotDto>(PlayerInventoryConst.HotBarSlotCount),
                 Grab = ToDto(_controller.GrabInventory),
                 SelectedHotbar = _hotBarView.SelectIndex,
             };
-            for (var i = 0; i < InventoryAreaMapper.MainAreaSize; i++) dto.MainSlots.Add(ToDto(inv[i]));
-            for (var i = InventoryAreaMapper.MainAreaSize; i < PlayerInventoryConst.MainInventorySize; i++) dto.HotbarSlots.Add(ToDto(inv[i]));
+            for (var i = 0; i < mainAreaSize; i++) dto.MainSlots.Add(ToDto(inv[i]));
+            for (var i = mainAreaSize; i < mainSlotCount; i++) dto.HotbarSlots.Add(ToDto(inv[i]));
             return WebUiJson.Serialize(dto);
 
             #region Internal
