@@ -188,8 +188,7 @@ namespace Tests.CombinedTest.Core
             // スプリッター本体とチェストを配置する
             // Place splitter and chests
             var splitterPosition = Vector3Int.zero;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyorSplitter, splitterPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var splitterBlock);
-            var gearBeltConveyorComponent = splitterBlock.GetComponent<GearBeltConveyorComponent>();
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyorSplitter, splitterPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var sourceChestPosition = new Vector3Int(0, 0, -1);
             var outputChestPositionA = new Vector3Int(0, 0, 1);
             var outputChestPositionB = new Vector3Int(-1, 0, 0);
@@ -216,16 +215,12 @@ namespace Tests.CombinedTest.Core
 
             // 両チェストへの分配完了を待つ
             // Wait for distribution to both chests
-            var splitterParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyorSplitter).BlockParam as GearBeltConveyorBlockParam;
             var startTime = DateTime.Now;
             var timeoutTime = startTime.AddSeconds(20);
             while (DateTime.Now <= timeoutTime && !IsDistributed(outputChestA, outputChestB, itemId, itemCount))
             {
-                // スプリッターに歯車エネルギーを供給する
-                // Supply gear energy to splitter
-                var consumption = splitterParam.GearConsumption;
-                var requiredTorqueAt20 = GearConsumptionCalculator.CalcRequiredTorque(consumption, new RPM(20));
-                gearBeltConveyorComponent.SupplyPower(new RPM(20), requiredTorqueAt20, true);
+                // 接続したgeneratorにより歯車ネットワークがスプリッターを駆動する（直接供給は行わない）
+                // The gear network (via the connected generator) drives the splitter; no direct supply
                 GameUpdater.UpdateOneTick();
             }
             

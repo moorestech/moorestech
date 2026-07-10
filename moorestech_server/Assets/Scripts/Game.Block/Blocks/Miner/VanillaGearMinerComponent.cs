@@ -1,10 +1,10 @@
 using Game.Block.Blocks.Gear;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using UniRx;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaGearMinerComponent : IBlockComponent
+    public class VanillaGearMinerComponent : IUpdatableBlockComponent
     {
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly VanillaMinerProcessorComponent _vanillaMinerProcessorComponent;
@@ -13,11 +13,13 @@ namespace Game.Block.Blocks.Miner
         {
             _vanillaMinerProcessorComponent = vanillaMinerProcessorComponent;
             _gearEnergyTransformer = gearEnergyTransformer;
-            _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
         }
 
-        private void OnGearUpdate(GearUpdateType gearUpdateType)
+        // GearRuntimeStateStore由来の現在供給値を毎tick取り直し、採掘処理より前にprocessorへ渡す
+        // Re-read the current supply from GearRuntimeStateStore each tick and feed the processor before it mines
+        public void Update()
         {
+            BlockException.CheckDestroy(this);
             _vanillaMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
 

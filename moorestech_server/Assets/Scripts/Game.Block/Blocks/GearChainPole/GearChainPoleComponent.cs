@@ -27,9 +27,8 @@ namespace Game.Block.Blocks.GearChainPole
         public float MaxConnectionDistance => _param.MaxConnectionDistance;
         public bool IsConnectionFull => _chainTargets.Count >= _param.MaxConnectionCount;
 
-        // チェーン接続と周辺ギアのコネクターを保持する
-        // Hold chain connection and adjacent gear connectors
-        private readonly BlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
+        // チェーン接続と、周辺ギア接続の列挙を担うserviceを保持する
+        // Hold chain connections and the service that enumerates adjacent gear connections
         private readonly SimpleGearService _gearService;
         private readonly GearConnectOption _chainOption = new(false);
 
@@ -46,8 +45,7 @@ namespace Game.Block.Blocks.GearChainPole
             // Initialize base state
             _param = param;
             BlockInstanceId = blockInstanceId;
-            _connectorComponent = connectorComponent;
-            _gearService = new SimpleGearService();
+            _gearService = new SimpleGearService(this, connectorComponent);
             _gearService.OnGearUpdate.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
             
             _componentStates = componentStates;
@@ -57,16 +55,9 @@ namespace Game.Block.Blocks.GearChainPole
 
         public List<GearConnect> GetGearConnects()
         {
-            // ギアコネクター経由の接続を列挙する
-            // Enumerate adjacent gear connections
-            var result = new List<GearConnect>();
-            foreach (var target in _connectorComponent.ConnectedTargets)
-            {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
-            }
-
-            // チェーン接続があれば追加する
-            // Append chain connection when present
+            // コネクタ経由の隣接接続にチェーン接続を加えて返す
+            // Return adjacent connections via the connector plus chain connections
+            var result = _gearService.GetGearConnects();
             foreach (var chainTarget in _chainTargets.Values) result.Add(new GearConnect(chainTarget.Transformer, _chainOption, _chainOption));
 
             return result;
@@ -208,23 +199,16 @@ namespace Game.Block.Blocks.GearChainPole
         }
 
         public BlockInstanceId BlockInstanceId { get; }
+
+        // 現在値の導出はserviceへ委譲。serviceも値を保持せず毎回networkから導出する
+        // Current-value derivation is delegated to the service, which also holds nothing and derives from the network each call
         public RPM CurrentRpm => _gearService.CurrentRpm;
         public Torque CurrentTorque => _gearService.CurrentTorque;
         public bool IsCurrentClockwise => _gearService.IsCurrentClockwise;
 
-
-        public void StopNetwork()
+        public void NotifyStateChanged()
         {
-            // ネットワーク停止をサービスに委譲する
-            // Delegate network stop to service
-            _gearService.StopNetwork();
-        }
-
-        public void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
-        {
-            // 入力された回転をサービスへ転送する
-            // Forward supplied rotation to service
-            _gearService.SupplyPower(rpm, torque, isClockwise);
+            _gearService.NotifyStateChanged();
         }
 
         #endregion
@@ -242,7 +226,7 @@ namespace Game.Block.Blocks.GearChainPole
             var bytes = MessagePackSerializer.Serialize(stateDetail);
             return new[]
             {
-                new(GearChainPoleStateDetail.BlockStateDetailKey, bytes), 
+                new(GearChainPoleStateDetail.BlockStateDetailKey, bytes),
                 _gearService.GetBlockStateDetail(),
             };
         }
