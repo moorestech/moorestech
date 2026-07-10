@@ -107,6 +107,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(Game.TrainCarIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.TrainCarIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // 車両アイコンの PNG 配信
+                    // Serve train-car icon PNGs
+                    await Game.TrainCarIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
                 if (path == Game.ItemMasterEndpoint.Path)
                 {
                     // アイテムマスタの JSON 配信
