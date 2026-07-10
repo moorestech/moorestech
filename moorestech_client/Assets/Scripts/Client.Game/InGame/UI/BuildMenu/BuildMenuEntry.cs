@@ -1,46 +1,26 @@
-using System;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Mod.Texture;
-using Core.Master;
 
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    /// ビルドメニュー1エントリ（ブロック/車両/接続具/BP）
-    /// One build-menu entry: a block, a train car, a connect tool, or a blueprint
+    /// ビルドメニュー1エントリ（設置ターゲット＋表示情報）
+    /// One build-menu entry: a placement target plus its display info
     /// </summary>
     public readonly struct BuildMenuEntry
     {
-        public readonly PlacementSelectionType EntryType;
-        public readonly BlockId BlockId;
-        public readonly Guid TrainCarGuid;
-        public readonly string ConnectPlaceMode;
-        public readonly string BlueprintName;
+        public readonly IPlacementTarget Target;
+
+        // アイコン無し（BP等）はnullでテキスト表示になる
+        // Null icon (e.g. blueprints) renders as a text-only slot
         public readonly ItemViewData IconView;
         public readonly string ToolTipText;
 
-        public BuildMenuEntry(PlacementSelectionType entryType, BlockId blockId, Guid trainCarGuid, string connectPlaceMode, ItemViewData iconView, string toolTipText)
+        public BuildMenuEntry(IPlacementTarget target, ItemViewData iconView, string toolTipText)
         {
-            EntryType = entryType;
-            BlockId = blockId;
-            TrainCarGuid = trainCarGuid;
-            ConnectPlaceMode = connectPlaceMode;
-            BlueprintName = null;
+            Target = target;
             IconView = iconView;
             ToolTipText = toolTipText;
-        }
-
-        // BP用エントリ（アイコン無し・BP名をそのまま表示に使う）
-        // Blueprint entry: no icon, the blueprint name doubles as the display text
-        public BuildMenuEntry(string blueprintName)
-        {
-            EntryType = PlacementSelectionType.Blueprint;
-            BlockId = default;
-            TrainCarGuid = default;
-            ConnectPlaceMode = null;
-            BlueprintName = blueprintName;
-            IconView = null;
-            ToolTipText = blueprintName;
         }
     }
 }
