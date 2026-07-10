@@ -55,18 +55,35 @@ namespace Client.Mod.Texture
     public class ItemViewData
     {
         public readonly ItemId ItemId;
-        public string ItemName => ItemMasterElement.Name;
+        public string ItemName => ItemMasterElement != null ? ItemMasterElement.Name : _displayName;
         public readonly ItemMasterElement ItemMasterElement;
-        
+
         public readonly Sprite ItemImage;
         public readonly UnityEngine.Texture ItemTexture;
-        
+
+        // アイテムマスタ由来のビューで空アイテムを指す場合のみ空扱いにする
+        // Treat as empty only for item-master views pointing at the empty item
+        public bool IsEmpty => ItemMasterElement != null && ItemId == ItemMaster.EmptyItemId;
+
+        private readonly string _displayName;
+
         public ItemViewData(Texture2D itemTexture, ItemMasterElement itemMasterElement)
         {
             ItemImage = itemTexture.ToSprite();
             ItemTexture = itemTexture;
             ItemMasterElement = itemMasterElement;
             ItemId = MasterHolder.ItemMaster.GetItemId(itemMasterElement.ItemGuid);
+        }
+
+        // ブロック・車両などアイテムマスタに紐づかないビュー用
+        // For views not backed by an item master, such as blocks and train cars
+        public ItemViewData(Texture2D itemTexture, string displayName)
+        {
+            ItemImage = itemTexture.ToSprite();
+            ItemTexture = itemTexture;
+            ItemMasterElement = null;
+            ItemId = ItemMaster.EmptyItemId;
+            _displayName = displayName;
         }
     }
 }

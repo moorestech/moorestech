@@ -1,30 +1,47 @@
+using System;
 using Core.Master;
+using Game.Block.Interface;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public interface IPlaceSystem
     {
         public void Enable();
-        
+
         public void ManualUpdate(PlaceSystemUpdateContext context);
-        
+
         public void Disable();
     }
-    
+
     public struct PlaceSystemUpdateContext
     {
-        public readonly ItemId HoldingItemId;
-        
-        public readonly bool IsSelectSlotChanged;
-        public readonly int PreviousSelectHotbarSlotIndex;
-        public readonly int CurrentSelectHotbarSlotIndex;
-        
-        public PlaceSystemUpdateContext(ItemId holdingItemId, bool isSelectSlotChanged, int previousSelectHotbarSlotIndex, int currentSelectHotbarSlotIndex)
+        // ビルドメニューで選択中のブロック（未選択はnull）
+        // The block selected in the build menu (null when nothing is selected)
+        public readonly BlockId? SelectedBlockId;
+
+        // スポイトでピックした向き（未指定はnull）
+        // The eyedropped block direction (null when not specified)
+        public readonly BlockDirection? SelectedBlockDirection;
+
+        // ・選択種別
+        // ・車両/接続具/BPの選択値
+        // ・選択変化フラグ
+        // The build-menu selection type, train car / connect tool / blueprint value, and change flag
+        public readonly PlacementSelectionType SelectionType;
+        public readonly Guid SelectedTrainCarGuid;
+        public readonly string SelectedConnectPlaceMode;
+        public readonly string SelectedBlueprintName;
+        public readonly bool IsSelectionChanged;
+
+        public PlaceSystemUpdateContext(PlacementSelectionType selectionType, BlockId? selectedBlockId, BlockDirection? selectedBlockDirection, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, string selectedBlueprintName, bool isSelectionChanged)
         {
-            HoldingItemId = holdingItemId;
-            IsSelectSlotChanged = isSelectSlotChanged;
-            PreviousSelectHotbarSlotIndex = previousSelectHotbarSlotIndex;
-            CurrentSelectHotbarSlotIndex = currentSelectHotbarSlotIndex;
+            SelectionType = selectionType;
+            SelectedBlockId = selectedBlockId;
+            SelectedBlockDirection = selectedBlockDirection;
+            SelectedTrainCarGuid = selectedTrainCarGuid;
+            SelectedConnectPlaceMode = selectedConnectPlaceMode;
+            SelectedBlueprintName = selectedBlueprintName;
+            IsSelectionChanged = isSelectionChanged;
         }
     }
 }

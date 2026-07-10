@@ -1,3 +1,4 @@
+using Core.Item;
 using Core.Master;
 using Game.Context;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace Tests.UnitTest.Core.Other
         public void JsonStackTest(int id, int stack)
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            Assert.AreEqual(stack, MasterHolder.ItemMaster.GetItemMaster(new ItemId(id)).MaxStack);
+            Assert.AreEqual(stack, ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(id)));
         }
         
         [TestCase(1, "Test1")]

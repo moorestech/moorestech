@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.UI.UIState;
 using Core.Master;
-using Game.PlayerInventory.Interface;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
@@ -14,7 +12,8 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 namespace Client.Game.InGame.Electric
 {
     /// <summary>
-    ///     TODO 各データにアクセスしやすいようなアクセッサを作ってそっちに乗り換える
+    ///     電気系ブロック設置時に電柱の自動接続の探索範囲をボックスで表示する
+    ///     Displays the pole's auto-connect search range as a box while placing an electric block
     /// </summary>
     public class DisplayEnergizedRange : MonoBehaviour
     {
@@ -22,25 +21,17 @@ namespace Client.Game.InGame.Electric
         private readonly List<EnergizedRangeObject> rangeObjects = new();
         
         [Inject] private BlockGameObjectDataStore _blockGameObjectDataStore;
-        [Inject] private HotBarView _hotBarView;
-        [Inject] private ILocalPlayerInventory _localPlayerInventory;
-        
+        [Inject] private PlacementSelection _placementSelection;
+
         private bool isBlockPlaceState;
-        
+
         [Inject]
         public void Construct(UIStateControl uiStateControl)
         {
-            _hotBarView.OnSelectHotBar += OnSelectHotBar;
             uiStateControl.OnStateChanged += OnStateChanged;
             _blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock);
         }
-        
-        private void OnSelectHotBar(int index)
-        {
-            ResetRangeObject();
-            CreateRangeObject();
-        }
-        
+
         private void OnStateChanged(UIStateEnum state)
         {
             if (isBlockPlaceState && state != UIStateEnum.PlaceBlock)
@@ -110,17 +101,12 @@ namespace Client.Game.InGame.Electric
 
             (bool isElectricalBlock, bool isPole) IsDisplay()
             {
-                var hotBarSlot = _hotBarView.SelectIndex;
-                var id = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(hotBarSlot)].Id;
-                
-                if (id == ItemMaster.EmptyItemId) return (false, false);
-                
+                // ビルドメニューでブロックを選択中のみ表示する（旧: 手持ちアイテムのブロック判定）
+                // Show only while a block is selected in the build menu (was: held-item block check)
+                if (_placementSelection.SelectionType != PlacementSelectionType.Block) return (false, false);
 
-                if (!MasterHolder.BlockMaster.IsBlock(id)) return (false, false);
-                
-                var blockId = MasterHolder.BlockMaster.GetBlockId(id);
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(_placementSelection.SelectedBlockId.Value);
+
                 return (IsElectricalBlock(blockMaster.BlockType), IsPole(blockMaster.BlockType));
             }
             

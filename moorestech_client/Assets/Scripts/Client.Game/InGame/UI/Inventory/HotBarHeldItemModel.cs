@@ -45,7 +45,7 @@ namespace Client.Game.InGame.UI.Inventory
             _currentLoadedAsset?.Dispose();
             _currentLoadedAsset = null;
 
-            var itemId = _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(selectIndex)].Id;
+            var itemId = _localPlayerInventory[_localPlayerInventory.GetHotBarInventorySlot(selectIndex)].Id;
 
             if (itemId == ItemMaster.EmptyItemId) return;
 

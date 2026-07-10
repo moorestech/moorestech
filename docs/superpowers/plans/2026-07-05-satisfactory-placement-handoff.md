@@ -1,0 +1,158 @@
+# Satisfactory式設置システム 申し送り（プラン1完了時点）
+
+日付: 2026-07-05
+状態: プラン1（サーバー基盤）完了。全10タスク＋Fable最終レビュー＋/all-code-review（26系統）通過済み。
+ブランチ: feature/replace-place-system（`5cb50b755..d11bf476c`、19コミット）
+スペック: `docs/superpowers/specs/2026-07-03-satisfactory-style-placement-design.md`
+プラン1: `docs/superpowers/plans/2026-07-03-satisfactory-placement-plan1-server-foundation.md`
+
+## ロードマップと順序制約
+
+1. ~~プラン1: サーバー基盤~~（完了）
+2. プラン2: 本番マスタ追加移行 — **順序制約: プラン3・4完了後に実施**（下記「増殖経路」参照）
+3. プラン3: クライアント通常ブロック（ビルドメニューUI・PlacementSelection・新プロトコル切替）← 次
+4. プラン4: 特殊システム縦切り（TrainCar設置×2・橋脚付きレール接続・電柱延長・チェーンポール延長・接続ツールのメニュー統合。サーバー＋クライアント同時）
+5. プラン5: 破壊的クリーンアップ（旧PlaceBlockFromHotBarProtocol削除・ブロック/車両アイテムとレシピ削除・itemGuid/usePlaceItems削除・返却フォールバック削除）
+
+**増殖経路（プラン2を後ろに置く理由）**: 破壊返却はrequiredItems全額に変更済みだが、設置の旧経路（ホットバー・電柱延長等）はアイテム1個消費のまま。requiredItemsが定義されたブロックを旧経路で設置→破壊すると素材が無から湧く。本番マスタへのrequiredItems投入はプロトコル移行完了後が必須。
+
+## プラン1で確立した基盤（後続プランが使うAPI）
+
+- **新設置プロトコル**: `PlaceBlockProtocol`（`va:placeBlock`）。`SendPlaceBlockProtocolMessagePack(int playerId, BlockId blockId, List<PlaceInfo> placeInfos)`。未解放は全セル拒否、セルごとに足りる分だけ設置、失敗セルは非消費
+- **建設コスト**: `ConstructionCostService.HasRequiredItems(ConstructionRequiredItemElement[], IReadOnlyList<IItemStack>)` / `ConsumeRequiredItems(..., IOpenableInventory)` / `CreateRefundItems(...)`。**契約: Consume前に必ずHasで検証**（Consumeは不足時に黙って取れる分だけ取る）
+- **電線予約**: `ElectricWireAutoConnectService.EvaluateAutoConnect(..., IReadOnlyList<(ItemId itemId, int count)> reservedItems, ...)`。建設コストで消費予定の素材を電線所持数判定から除外する。**プラン4の特殊プロトコル移行時も必ずrequiredItems由来の予約リストを渡すこと**（渡し忘れるとポール=電線同一アイテムのケースで二重計上漏れが再発）。Codex提案: requiredItems→reservedItems変換helperをConstructionCostServiceへ寄せて各プロトコルで共用する
+- **アンロック**: `IGameUnlockStateDataController.BlockUnlockStateInfos/TrainCarUnlockStateInfos`（Guidキー）、`UnlockBlock/UnlockTrainCar`、`OnUnlockBlock/OnUnlockTrainCar`。gameAction `unlockBlock`/`unlockTrainCar`実行可。同期: `GetGameUnlockStateProtocol`のKey(10)-(13)、イベント`UnlockEventType.Block/TrainCar`（Key5-6）
+- **共有DTO**: `PlaceInfoMessagePack`/`BlockCreateParamMessagePack`/`PlaceInfo`は`PlacePacketDto.cs`（namespace `Server.Protocol.PacketResponse`直下）
+
+## プラン3（クライアント）の必須対応リスト
+
+- **`ClientGameUnlockStateDatastore.OnUpdateUnlock`**: 現在`case Block/TrainCar: break;`で握りつぶし中。本対応（辞書充填+通知）に差し替える
+- **`VanillaApiWithResponse.cs:220-227付近`**: `UnlockStateResponse`変換がBlock/TrainCarの4リスト（`UnlockedBlockGuids`等）を捨てている。取り込みを追加
+- **`PlaceSystemUpdateContext`のHoldingItemId/CurrentSelectHotbarSlotIndex排除** → `PlacementSelection`へ。`HoldingItemId`参照は9箇所（PlaceSystemSelector/CommonBlockPlaceSystem/TrainRail/TrainCar/TrainRailConnect/GearChainPoleConnect/ElectricWireExtendMode/PlaceSystemUtil等）— プラン3では通常ブロック経路のみ差し替え、特殊システムはプラン4
+- **`MarkInsufficientItemPreviewsAsNotPlaceable`**: 選択スロット1枠基準→インベントリ横断のrequiredItems充足判定に差し替え
+- **PlaceBlockProtocolはack無し**（旧経路と同型）。クライアントはワールドイベントで結果を知る。セル成功数のフィードバックが欲しければ応答追加の設計余地あり
+- **sortPriority型不整合**: blocksはinteger、itemsはnumber。ビルドメニューで混在ソートする場合は要注意
+
+## 技術的な罠（プラン1で実際に踏んだもの）
+
+- **スキーマの`default:`はエディタ専用でローダー非反映**。省略可能にするには`optional: true`が必須（生成プロパティはnullable化: `RequiredItems`=null許容 / `SortPriority`=int? / `InitialUnlocked`=bool?）。count等の必須値はJSONに必ず明記
+- **テストマスタの休眠キー**: スキーマにフィールドを追加すると、既存JSONにコピペ混入していた同名キーが突然「発動」する。追加時はgrepで既存キーを棚卸しすること（本番マスタにも木の歯車等にinitialUnlocked/sortPriorityが既存。プラン2で意図確認して整理）
+- **server配下の新規.cs.metaは2行形式が正規**（ローカルパッケージ参照経由のUnity出力。MonoImporter無しでも手動作成ではない）
+- **新規サーバー.csはUnity再起動が必要な場合がある** / テスト一括実行はCLI 180秒タイムアウトに注意（クラス単位分割）
+- **テストコードでの`Core.Inventory`参照は`global::`修飾が必要**（`Tests.UnitTest.Core.Inventory`等と衝突）
+- **垂直オーバーライド**: 解放判定は基底ブロック、コスト消費・返却は実体（オーバーライド後）ブロック参照。基底とオーバーライド先のrequiredItems一致はロード時バリデーションで強制される（プラン2の投入スクリプトは複製必須）
+
+## 未処理のMinor（最終棚卸し済み・対応先）
+
+- Unlockガード（LogError経路）のテスト / 未解放拒否の複数セルテスト → プラン3の統合テストと合流
+- `RemoveBlockProtocol`のGetBlockMaster二重呼び＋itemIdフォールバック → プラン5のフォールバック削除時に整理
+- 新規マスタバリデータ4種のmutationテスト（不正マスタを食わせるテスト基盤が無い）→ 任意
+- unlockTrainCarGuidsのエディタ表示がGUID生値（車両にnameフィールドが無い）→ 車両name追加は別件
+
+## プラン2完了に伴う追記（2026-07-05）
+
+プラン2（本番マスタ正式移行）完了。moorestech_master ブランチ `plan2-master-migration`（b191737）、移行スクリプトは `tools/plan2_migration/migrate.py`（非冪等・適用済み。追補時の参考実装）。
+
+### プラン4への申し送り
+- **requiredItems未投入の除外9ブロック+車両3種**: blockType TrainRail(レール橋脚)/TrainStation/TrainItemPlatform/TrainFluidPlatform/ElectricPole×3/GearChainPole×2 と train.json trainCars。5プロトコル改修と同時に requiredItems を投入し、対応する素材レシピ（存続10件のうち9件）を削除する追補スクリプトを書くこと（migrate.py は適用済みデータ上で再実行不可）
+- 除外ブロックは現状「research解放後は無償設置＋アイテムレシピも並行存在」の暫定状態
+- unlockTrainCar は投入済み（鉄道の時代×2・ディーゼル機関車研究×1）。プラン4のクライアント車両メニューはこの解放状態を参照できる
+
+### プラン5への申し送り
+- ブロックアイテム削除時: (a) 木のシャフト素材レシピ98b86740の扱い（機械レシピ「原始的な加工機→鉄のロッド」が木のシャフトを材料参照。アイテム削除なら機械レシピ側の材料置換が必要）、(b) ビルドメニューのアイコンは itemGuid→ItemImageContainer 経由のまま。item imagePath は全件空文字のため、blocks側 imagePath への画像パス整備 or 別のアイコン解決が必要、(c) category も未投入（クライアント未使用のため）
+- 木のシャフトのみ「craftコスト==建設コスト」の往復中立でアイテム経路が残存（増殖なし・ただしバランス調整でコスト乖離させると増殖経路化するので注意）
+
+### 既知の残事象
+- 既存セーブ: research完了済みでも clearedActions は再実行されないため、旧セーブではブロック未解放の可能性。新規セーブでの確認を正とする（逆に暫定解放期間中のセーブは解放済みのまま残る可能性もあり、どちらも実害は開発段階では許容）
+- moorestech_master の local master(cd5fc11) が e5e144b から先行分岐しており、plan2-master-migration（e5e144b→8beb0f2→...→b191737）とのマージ/リベース整理が未実施
+- MapObject guid e76e6b65 がマップに存在するがマスタ未定義のInfoログ多数（プラン2以前からの既存事象・変更範囲外）
+- 燃料式風車の unlockBlock が4研究ノードに重複出現（旧giveItem×3の置換由来。解放は冪等なので実害なし、データ整理は任意）
+
+## ベルト長尺バリアント移行完了に伴う追記（2026-07-06, Task 9）
+
+全10タスク完了・E2E検証実施済み（実施内容は`.superpowers/sdd/task-9-report.md`参照）。ブランチ`feature/belt-conveyor-place-system`。
+
+### プラン4への申し送り（Step 3記載事項）
+- **ベルト4種は長尺バリアント方式に移行済み**。プラン4で「除外9ブロック+車両3種」へrequiredItems投入する際、旧レシピ産出数>1のブロックがないか要チェック（今回投入時に該当したのはベルト4種のみだった。長尺バリアント12種は`requiredItems`が1連と同一＝1セットで統一済みのため、この観点では追加確認不要）
+- `PlaceBlockProtocol`の未解放判定は`BeltConveyorPlaceFamilyUtil.TryGetFamily`経由でファミリー代表（length==1の直線ブロック）のunlock状態を参照する。**プラン4の特殊プロトコル移行時、同種の「バリアント→代表」解決パターンが必要になった場合はこのユーティリティを参考にできる**
+- `PlaceBlockFromHotBarProtocol`は垂直オーバーライド呼び出しが除去済み。ベルト旧アイテム＋今回追加の隠しアイテム12個は、itemGuidフィールド削除時（プラン5）に一括削除対象
+
+### プラン5への申し送り
+- 垂直オーバーライド機構は完全削除済み（スキーマ・コード・データ）。プラン5のitemGuid/usePlaceItems削除時に参照する旧経路は残っていない
+- ベルト長尺バリアント12種の隠しアイテム（itemGuid）もプラン5の一括削除対象に含まれる（上記プラン4申し送りと同一事項）
+
+### E2E検証で判明した事実
+- **列車車両unlockテストの既存失敗**: `BlockUnlockStateTest.列車車両の解放が保存とロードで維持される`はマージ地点38a78d2c8で既に失敗する**親ブランチ由来の既存問題**（`f226731c3`がテストマスタ先頭車両に`initialUnlocked:True`を設定したが、テストコード側は初期ロック前提のまま）。ベルト作業とは無関係、対応不要
+- **基本土台をBeltConveyor対象外にした経緯**: Task 8で`placeSystem.json`のBeltConveyorエントリ（priority=180）に基本土台ブロック（blockSize[5,1,5]）が誤って`straightBlocks[0]`として登録されていることが判明。`CommonBlockPlacePointCalculator`のバリデータが大型ブロック（isLargeBlock）のコンベア設置を許容しないため、この状態ではPlay Mode起動自体が例外で失敗していた。設計ミスと判断しエントリを削除（moorestech_master `584a14e`）。旧仕様でも大型ブロックはコンベア設置無効だったため退行なし。基本土台は通常の`CommonBlockPlaceSystem`（blockSize刻み設置）のみで設置可能
+- **`PlaceBlockProtocol`の未解放判定は「ファミリー代表」基準**: `BeltConveyorPlaceFamilyUtil.TryGetFamily`で解決される代表（length==1の直線ブロック）のunlock状態のみが参照され、上り・下り・2連〜5連の個別blockGuidを直接unlockしても設置可否には反映されない。E2E検証時にこれを踏み、代表guidの再確認が必要だった（実装は意図通り、テスト手順上の注意点）
+- **moorestech-worktrees/moorestech_masterはRepositorySync管理の実クローンになった**（旧仕様のsymlinkから移行済み、旧symlinkは`_bk`へ退避）。ピンと一致していれば自己管理されるため新常態として受容してよいが、ローカル限定コミット（下記）はcanonicalリポジトリへの手動fetch+resetでのみ同期される
+- **moorestech_master側の未pushコミット群**: `f67eee8`（chore: placeSystem既存エントリにplaceParam追加）、`8919c5c`（feat: ベルト長尺バリアント12種とBeltConveyor placeSystemエントリを追加）、`584a14e`（fix: 基本土台のBeltConveyorエントリを削除）の3件は`origin/master`に存在しない（`git branch -r --contains`で確認済み）。moorestech_masterリポジトリの正式push作業が別途必要
+- ClientContext.VanillaApi.Response.BlockRemove等の実プロトコル経由の削除は、client側の可視化オブジェクトも正しく同期して破棄される（`ServerContext.WorldBlockDatastore.RemoveBlock`をテストコードから直接呼ぶ場合はネットワークブロードキャストを経由しないため、client側の可視化は同期されない点に注意。データ層の検証のみなら直接呼び出しで十分だが、見た目の同期まで検証したい場合は実プロトコル経由が必須）
+
+## プラン4完了に伴う追記（2026-07-07）
+
+プラン4（特殊システム縦切り）全13タスク完了。ブランチ `feature/replace-place-system-plan4`、moorestech_master は `plan2-master-migration` @ dce2ff9（ピン一致）。進行詳細は `.superpowers/sdd/progress.md`（gitignore下）参照。
+
+### 検証結果（Task 13）
+- 全回帰: コンパイル0エラー / 0警告、918/918テスト全PASS（Client.Tests 149 + CombinedTest 293 + UnitTest 476）
+- PlayMode実機検証: 6シナリオ中5成功（ビルドメニュー3種表示・橋脚設置・歯車ポール延長・破壊全額返却・車両設置撤去）。録画とスクショは `.superpowers/sdd/task-13-playtest-media/`
+- 唯一の失敗「電線接続ツール」は新規バグではなくTask 6既知事項の顕在化: `plan2-master-migration`に`electricWireItems`が無いため`ElectricWireConnect`エントリを意図的に非追加。**master側電線コミットとのマージ時にエントリ＋`electricWireItems`を追加し再検証すること**（コード側の電線経路はTask 3/9でテスト済み）
+
+### 最終whole-branchレビュー結果（2026-07-07、2レンズ並行）
+新規Critical/Importantなし。既知トリアージ項目は全て実コードで記載どおりを再確認。新規Minor2件を検出し、ユーザー承認のうえ**両方修正済み**（cf5a11c14）:
+- ~~レール予約ガード欠落~~: 橋脚コストとレール敷設が同一アイテムの場合の合算判定を追加（wire/chainの予約ガードと同方針）。テストマスタに`TestRailCostTrainRail`（橋脚コスト＝レールx5）を追加し合算不足/充足の2テストで担保
+- ~~Attach側の失敗経路テスト欠落~~: NotUnlocked/ItemNotFoundテストを追加しPlace側と対称化
+
+### ユーザー判断事項の解決（2026-07-07）
+- **Task 5 Important → 修正済み**（cf5a11c14）: TryConnect失敗時に橋脚をRemoveBlockでロールバックし失敗応答を返す（GearChain前例と統一、コスト消費なし）。なおこの分岐は事前検証後は実質到達不能の防御的経路のため専用テストなし（GearChainの同種分岐と同扱い）
+- Minorトリアージ残（対応不要と判断・記録のみ）: 200行超4ファイル（既存違反）、`NoPoleItem` enum未使用化、防御的nullチェック、ローカル関数名不一致、キーヘルプ文言、素材自動選択の毎フレーム走査、車両にnameフィールド無し（プラン5で再燃）
+- 修正後の全回帰: 922/922テスト全PASS（CombinedTest 297 + UnitTest 476 + Client.Tests 149、新規4テスト込み）
+
+### 残作業（2026-07-07 全て完了）
+- ~~本流マージ~~: `feature/replace-place-system-plan4`を本流へマージ（9470efb60）、plan4 worktree削除・ブランチ削除済み。gitignore下の進行台帳・プレイテスト録画は`.superpowers/sdd-plan4/`へ退避
+- ~~moorestech_master push~~: `plan2-master-migration`ブランチをoriginへpush済み（新規ブランチ、9コミット、大容量ファイルなしを確認のうえ一括push）
+- ~~stash@{0}処分~~: 内容がTask 1正準化の巻き戻し＋旧ピン（f67eee8＜現行dce2ff9）で現行より古いことを確認しdrop済み
+
+### 次のアクション
+- プラン5着手（`2026-07-05-satisfactory-placement-plan5-destructive-cleanup.md`、7タスク）。着手前にbelt側変更との整合を再確認
+- master側電線コミット（hermes）とのマージ時に`ElectricWireConnect`エントリ＋`electricWireItems`を追加し、電線シナリオを再検証（上記Task 13の唯一の未達）
+
+### プラン5への申し送り（プラン4分）
+- 旧経路`PlaceHotBarBlock`/`PlaceBlockFromHotBarProtocol`はTask 10で参照排除済み・本体はプラン5で削除
+- `NoPoleItem` enumが未使用化済み（電柱延長のBlockId化に伴う）。プラン5の削除候補
+- 車両にnameフィールドが無い問題（unlockTrainCarGuidsのエディタ表示がGUID生値）はプラン5の車両アイテム削除時に再燃する
+
+## プラン5完了に伴う追記（2026-07-07・移行プロジェクト完結）
+
+プラン5（破壊的クリーンアップ）全7タスク完了。作業ブランチ `feature/replace-palce-system-with-electric`、moorestech_master は `plan2-master-migration` @ 12e7bf0（ピン一致・push済み）。これにより「ブロック/車両アイテム」概念と旧ホットバー設置プロトコルは完全に消滅し、Satisfactory式設置システム移行プロジェクトは完結。
+
+### 電線マージ（プラン4 Task 13未達分の解消）
+- master(cd5fc11, hermes電線コミット群)を`plan2-master-migration`へマージ（f11e2ce）。コンフリクト3ファイルはplan2側を土台にmaster側の意味的追加（電線アイテム・electricWireItemsルート・blockDestructionCategories・クリーンルームデータのblocks.json統合）を再適用
+- `ElectricWireConnect`エントリは旧placeSystem形式から接続ツールエントリ形式（name/iconItemGuid/placeBlockGuid=電柱/sortPriority140）へ変換して追加
+- 電線シナリオを録画付きで再検証済み: ビルドメニューに電線接続ツール出現→実クリックで選択→電柱2本間の接続成立（電線8本消費・サーバーsegment統合確認）
+- クリーンルーム/半導体データはこのブランチのコード・スキーマに対応が無いが、ローダーは未知キーを無視するためblocks.json統合形をそのまま採用（該当機能ブランチのマージ時に有効化される）
+
+### 実施内容（コミット）
+- Task 1 返却フォールバック削除: 9894299a1（requiredItems未定義は本体返却なし。RemoveBlockRefundTestを新仕様化）
+- Task 2 旧ホットバー設置プロトコル削除: 02a4e0eda（`va:palceHotbarBlock`消滅。ElectricWireAutoConnectPlaceTestは新プロトコル＋建設コスト方式へ移行）
+- Task 3 アイコンのBlockId/車両Guidキー化: 6b19b862c（BlockImageContainer/TrainCarImageContainer新設・車両プレハブスクショ新設・BuildMenuEntryをIconView化。**ElectricWireAutoConnectPreviewのブロックアイテム仮想在庫ロジックを削除**（電線マージ後に顕在化する設置不可バグを予防）・クラフトツリーの機械本体素材ノード廃止）
+- Task 4 選択駆動化: 5ba01493a（DisplayEnergizedRangeをPlacementSelection.SelectedBlockId判定へ）
+- Task 5 スキーマitemGuid削除: 95a3c6fdc（blocks.yml/train.yml・IsBlock/GetBlockId(ItemId)/GetItemId(BlockId)/TryGetTrainCarMaster(ItemId)等のAPI・テストマスタJSON・テストコードのItemGuid依存を一括削除）
+- Task 6 本番マスタ削除: moorestech_master 12e7bf0（**81アイテム削除**=ブロック79＋車両3−木のシャフト1。ドリフト読み替えどおりベルト長尺バリアント12種込み。dangling参照ゼロ検証つきmigrate_plan5.py）＋ピン更新073bece8c
+
+### 検証結果（Task 7）
+- 全回帰: コンパイル0エラー、920/920 PASS（UnitTest 476 + CombinedTest 295 + Client.Tests 149。EditModeInPlayingTestの一括実行タイムアウト2件は単独再実行でPASS＝既知フレーク）
+- PlayMode実機検証（新規セーブ・録画 plan5-final-verification.mp4）:
+  1. 起動: エラー0・例外0、アイテム78件（159−81）、木のシャフト/電線/レール素材は存続
+  2. アイコン: ビルドメニューにブロック（石窯スクショアイコン）＋接続ツール3種が表示（車両アイコンは前段検証でBuildMenu表示確認済み）
+  3. 設置・破壊の往復: 石窯設置（砕いた石材20+レンガ5を全消費）→破壊（全額返却）で往復一致
+  4. クラフトUI: レシピ一覧は素材系のみ（ブロック/車両アイテムはマスタから消滅済み）
+  5. 鉄のロッド: 機械レシピ存続を実行時マスタで確認（原始的な加工機・鉄インゴット1＋木のシャフト1）
+  6. ホットバー: 木のシャフト所持状態でクリックしても設置モードに入らず、ブロック設置ゼロ（旧経路消滅）
+- 制約: ブロック設置のマウス操作（ゴーストプレビュー）は`PlaceSystemUtil`がlegacy `Input.mousePosition`を読むため入力注入では駆動不可。設置・破壊は実プロトコル（VanillaApi）経由で検証した。`feature/playtest-stabilization`のHybridInput対応で解消予定
+
+### 残件（プラン5スコープ外）
+- 車両nameフィールド追加（ビルドメニュー表示名はaddressablePath末尾で代替中。ツールチップ・unlockTrainCarGuidsエディタ表示の改善に必要）
+- moorestech_masterブランチ整理: local master(cd5fc11)は今回のマージでplan2-master-migrationに包含済み。masterブランチをplan2-master-migration(12e7bf0)へfast-forwardして一本化するかはユーザー判断（origin/masterへのpushを伴うため未実施）
+- `NoPoleItem` enum未使用化の削除、Responses.cs/CommonBlockPlaceSystem等の200行超ファイル棚卸し（既存違反）
+- EditModeInPlayingTestの一括実行フレーク（GameInitializerSceneLoader 60秒タイムアウト）はplaytest-stabilization側の課題として継続

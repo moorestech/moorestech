@@ -33,26 +33,26 @@ namespace Client.Starter
 
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
-        
+
         [SerializeField] private TMP_Text loadingLog;
         [SerializeField] private Button backToMainMenuButton;
-        
+
         private InitializeProprieties _proprieties = InitializeProprieties.CreateDefault();
         public void SetProperty(InitializeProprieties proprieties)
         {
             _proprieties = proprieties;
         }
-        
+
         private void Awake()
         {
             backToMainMenuButton.onClick.AddListener(() => SceneManager.LoadScene(SceneConstant.MainMenuSceneName));
         }
-        
+
         private void Start()
         {
             Initialize().Forget();
         }
-        
+
         private async UniTask Initialize()
         {
             // ---- Web UI サーバーの起動（最序盤）----
@@ -71,8 +71,8 @@ namespace Client.Starter
             }
             catch (Exception e)
             {
-                // WebUI 無しでゲーム続行。フィールドは StartAsync 側で null に巻き戻り再試行可能
-                // Continue without WebUI; StartAsync already rolled fields back to null for retry
+                // WebUI 無しでゲーム続行。外部プロセス境界の起動失敗を隔離して再試行可能にする
+                // Continue without WebUI; isolate external-process startup failures and keep retries possible
                 Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(false);
                 Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
             }
@@ -89,12 +89,10 @@ namespace Client.Starter
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
 
-            // Addressablesのロード
+            // Addressablesを初期化し、並列ロードでハングするアセットを先に読む
+            // Initialize Addressables and pre-load assets that hang during parallel loading
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
-
-            // 並列ロードでハングするアセットを初期化直後にここで事前ロードする（詳細は ModAssetLoader 参照）
-            // Pre-load assets that hang under parallel loading, right after init (see ModAssetLoader for details)
             await ModAssetLoader.PreloadCriticalAssetsAsync();
 
             _proprieties ??= InitializeProprieties.CreateDefault();
@@ -106,7 +104,6 @@ namespace Client.Starter
                 new MoorestechServerDIContainerGenerator().Create(options);
             }
 
-            //Vanilla APIのロードに必要なものを作成
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
             var modalManager = new ModalManager();
 
@@ -126,24 +123,20 @@ namespace Client.Starter
             catch (Exception e)
             {
                 Debug.LogError($"初期化処理中にエラーが発生しました: {e.GetType()} {e.Message}\n{e.StackTrace}");
-                // 初期化に失敗した場合はメインメニューへ戻る
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
             }
 
-            //messagepackformatterの初期化
+            // 取得結果から通信フォーマッタと静的コンテキストを初期化する
+            // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
 
-            //staticアクセスできるコンテキストの作成
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
-
-            //シーンに遷移し、初期データを渡す
             SceneManager.sceneLoaded += MainGameSceneLoaded;
             sceneLoadTask.allowSceneActivation = true;
 
             #region Internal
 
-            //初期データを渡す処理
             void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
@@ -151,12 +144,9 @@ namespace Client.Starter
                 var resolver = starter.StartGame(serverResult.HandshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
 
-                // Web UI を Hub にバインド
-                // Bind the Web UI to the hub
+                // Web UIをHubへバインドしてゲーム初期化完了を通知する
+                // Bind the Web UI to the hub and announce game initialization completion
                 WebUiHost.Game.WebUiGameBinder.Bind();
-
-                // ゲーム初期化完了イベントを発火
-                // Fire game initialization complete event
                 GameInitializedEvent.FireGameInitialized();
             }
 

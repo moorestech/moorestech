@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
@@ -33,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             var alreadyConnected = fromInfo.PartnerInstanceIds.Contains(toInfo.InstanceId.AsPrimitive());
 
             var distance = Vector3Int.Distance(fromPos, toPos);
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, chainItemId, playerInventory, ItemMaster.EmptyItemId);
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, chainItemId, playerInventory, Array.Empty<(ItemId itemId, int count)>());
             return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(toPos), judgement.IsPlaceable);
         }
 
@@ -41,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         /// 起点ポールから新規設置位置への延長プレビューを計算する（ポールアイテムモード）
         /// Calculate preview for extending from a pole to a new placement position (pole item mode)
         /// </summary>
-        public static GearChainPoleExtendPreviewData CalculateExtend(Vector3Int fromPos, Vector3Int placePos, GearChainPoleBlockParam placingPoleParam, ItemId poleItemId, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, ItemId chainItemId)
+        public static GearChainPoleExtendPreviewData CalculateExtend(Vector3Int fromPos, Vector3Int placePos, GearChainPoleBlockParam placingPoleParam, IReadOnlyList<(ItemId itemId, int count)> reservedItemCounts, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, ItemId chainItemId)
         {
             if (!TryGetPoleInfo(fromPos, blockGameObjectDataStore, out var fromInfo)) return GearChainPoleExtendPreviewData.Invalid;
 
@@ -49,7 +51,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             // Treat the new pole as full only when its connection capacity is zero
             var anyConnectionFull = fromInfo.IsConnectionFull || placingPoleParam.MaxConnectionCount < 1;
             var distance = Vector3Int.Distance(fromPos, placePos);
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, chainItemId, playerInventory, poleItemId);
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, chainItemId, playerInventory, reservedItemCounts);
             return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement.IsPlaceable);
         }
 

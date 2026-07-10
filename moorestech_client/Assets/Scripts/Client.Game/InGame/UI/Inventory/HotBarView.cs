@@ -21,7 +21,7 @@ namespace Client.Game.InGame.UI.Inventory
         // Non-MonoBehaviour helper that loads/disposes the held 3D model
         private HotBarHeldItemModel _heldItemModel;
 
-        public IItemStack CurrentItem => _localPlayerInventory[PlayerInventoryConst.HotBarSlotToInventorySlot(SelectIndex)];
+        public IItemStack CurrentItem => _localPlayerInventory[_localPlayerInventory.GetHotBarInventorySlot(SelectIndex)];
         
         /// <summary>
         /// 0〜8のインデックス　インベントリ上のどのアイテムかは <see cref="PlayerInventoryConst.HotBarSlotToInventorySlot"/> を参照
@@ -64,13 +64,9 @@ namespace Client.Game.InGame.UI.Inventory
             void UpdateHotBarElement(int slot, IItemStack item)
             {
                 //スロットが一番下の段もしくはメインインベントリの範囲外の時はスルー
-                var c = PlayerInventoryConst.MainInventoryColumns;
-                var r = PlayerInventoryConst.MainInventoryRows;
-                var startHotBarSlot = c * (r - 1);
-                
-                if (slot < startHotBarSlot || PlayerInventoryConst.MainInventorySize <= slot) return;
-                
-                slot -= startHotBarSlot;
+                if (!_localPlayerInventory.IsHotBarSlot(slot)) return;
+
+                slot -= _localPlayerInventory.GetHotBarInventorySlot(0);
                 // 同じアイテムなら更新しない
                 if (hotBarItems[slot].ItemId == item.Id) return;
                 
@@ -110,7 +106,6 @@ namespace Client.Game.InGame.UI.Inventory
                     return selected;
                 }
             }
-
             #endregion
         }
 

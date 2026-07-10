@@ -1,11 +1,8 @@
-using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
-using Client.Mod.Texture;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -13,8 +10,8 @@ using UnityEngine;
 namespace Client.Starter.Initialization
 {
     /// <summary>
-    /// ブロック/アイテム/液体アセットをロードし、未生成のブロックアイコンを撮影する
-    /// Loads block/item/fluid assets and photographs missing block icons
+    /// ブロック/アイテム/液体アセットをロードし、表示用アイコンを生成する
+    /// Loads block/item/fluid assets and generates display icons
     /// </summary>
     public class ModAssetLoader
     {
@@ -60,13 +57,17 @@ namespace Client.Starter.Initialization
             // Load block and item assets.
             await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadFluidAssets());
 
-            // アイテム画像がロードされていないブロックのアイテム画像をロードする
-            await TakeBlockItemImage();
+            // ブロック・列車アイコンを一括生成し、不足するアイテム画像も同じ撮影結果で補う
+            // Generate block/train icons and fill missing item images from the same captures
+            var iconLoader = new ModAssetIconLoader(_blockContainer, _itemImageContainer, _blockIconImagePhotographer, _loadingLog, _loadingStopwatch);
+            var iconResult = await iconLoader.RunAsync();
 
             return new ModAssetLoadResult
             {
                 BlockGameObjectPrefabContainer = _blockContainer,
                 ItemImageContainer = _itemImageContainer,
+                BlockImageContainer = iconResult.BlockImageContainer,
+                TrainCarImageContainer = iconResult.TrainCarImageContainer,
                 FluidImageContainer = _fluidImageContainer,
             };
 
@@ -97,35 +98,6 @@ namespace Client.Starter.Initialization
                 _loadingLog.text += $"\n液体画像ロード完了  {_loadingStopwatch.Elapsed}";
             }
 
-            async UniTask TakeBlockItemImage()
-            {
-                // スクリーンショットを取る必要があるブロックを集める
-                // Collect the blocks that need to be screenshot.
-                var takeBlockInfos = new List<BlockPrefabInfo>();
-                var itemIds = new List<ItemId>();
-                foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
-                {
-                    var itemId = MasterHolder.BlockMaster.GetItemId(blockId);
-                    var itemViewData = _itemImageContainer.GetItemView(itemId);
-
-                    if (itemViewData.ItemImage != null || !_blockContainer.BlockPrefabInfos.TryGetValue(blockId, out var blockObjectInfo)) continue;
-
-                    itemIds.Add(itemId);
-                    takeBlockInfos.Add(blockObjectInfo);
-                }
-
-                // アイコンを設定
-                // Set the icon.
-                var texture2Ds = await _blockIconImagePhotographer.TakeBlockIconImages(takeBlockInfos);
-                for (var i = 0; i < itemIds.Count; i++)
-                {
-                    var itemViewData = new ItemViewData(texture2Ds[i], MasterHolder.ItemMaster.GetItemMaster(itemIds[i]));
-                    _itemImageContainer.AddItemView(itemIds[i], itemViewData);
-                }
-
-                _loadingLog.text += $"\nブロックスクリーンショット完了  {_loadingStopwatch.Elapsed}";
-            }
-
             #endregion
         }
     }
@@ -138,6 +110,8 @@ namespace Client.Starter.Initialization
     {
         public BlockGameObjectPrefabContainer BlockGameObjectPrefabContainer;
         public ItemImageContainer ItemImageContainer;
+        public BlockImageContainer BlockImageContainer;
+        public TrainCarImageContainer TrainCarImageContainer;
         public FluidImageContainer FluidImageContainer;
     }
 }

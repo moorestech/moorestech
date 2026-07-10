@@ -17,6 +17,7 @@ namespace Client.Game.InGame.Player
         
         public void SetAnimationState(string state);
         public void SetControllable(bool enable);
+        public void SetModelVisible(bool visible);
     }
     
     public class PlayerAnimationState
@@ -104,6 +105,13 @@ namespace Client.Game.InGame.Player
         public void SetControllable(bool enable)
         {
             controller.SetControllable(enable);
+        }
+
+        public void SetModelVisible(bool visible)
+        {
+            // 手持ちアイテムの生成破棄でRendererが入れ替わるためキャッシュせず毎回取得する
+            // Grab items are created and destroyed under this hierarchy, so fetch renderers fresh each time
+            foreach (var modelRenderer in GetComponentsInChildren<Renderer>(true)) modelRenderer.enabled = visible;
         }
 
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)

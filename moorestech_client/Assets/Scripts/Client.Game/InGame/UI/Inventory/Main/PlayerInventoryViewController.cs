@@ -17,8 +17,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
     public class PlayerInventoryViewController : MonoBehaviour
     {
         [SerializeField] private GameObject mainInventoryObject;
-
-        [SerializeField] private List<ItemSlotView> mainInventorySlotObjects;
+        [SerializeField] private PlayerInventoryMainSlotsView mainSlotsView;
         [SerializeField] private ItemSlotView grabInventorySlotView;
 
         public Transform SubInventoryParent => subInventoryParent.transform;
@@ -42,7 +41,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
         private void Awake()
         {
-            foreach (var mainInventorySlotObject in mainInventorySlotObjects) mainInventorySlotObject.OnPointerEvent.Subscribe(HandleSlotPointerEvent);
+            // 動的生成されたメインスロットを共通操作ハンドラへ接続する
+            // Connect dynamically generated main slots to the shared interaction handler
+            mainSlotsView.OnSlotViewCreated.Subscribe(slotView => slotView.OnPointerEvent.Subscribe(HandleSlotPointerEvent));
 
             //整理ボタンのクリックでメイン＋開いているサブインベントリを整理する
             //Clicking the sort button tidies the main and currently open sub inventory.
@@ -51,7 +52,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
         private void Start()
         {
-            _interaction = new PlayerInventorySlotInteraction(_playerInventory, mainInventorySlotObjects);
+            _interaction = new PlayerInventorySlotInteraction(_playerInventory, mainSlotsView.SlotViews);
         }
 
         private void Update()
@@ -63,11 +64,13 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             foreach (var disposable in _subInventorySlotUIEventUnsubscriber) disposable.Dispose();
 
+            // サブインベントリの参照とUI購読をまとめて差し替える
+            // Replace the sub-inventory reference and UI subscriptions together
             _subInventorySlotUIEventUnsubscriber.Clear();
             _subInventory = subInventory;
             _interaction.SetSubInventory(subInventory);
             _playerInventory.SetSubInventory(subInventory);
-            foreach (var sub in _subInventory.SubInventorySlotObjects) _subInventorySlotUIEventUnsubscriber.Add(sub.OnPointerEvent.Subscribe(HandleSlotPointerEvent));
+            foreach (var sub in subInventory.SubInventorySlotObjects) _subInventorySlotUIEventUnsubscriber.Add(sub.OnPointerEvent.Subscribe(HandleSlotPointerEvent));
         }
 
         // スロットのポインタイベントを操作ハンドラへ橋渡しする
@@ -88,25 +91,26 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
         private void InventoryViewUpdate()
         {
+            // レベルアップ後のスロット数に合わせてビューを増やす
+            // Grow the views to match the slot count after level upgrades
+            mainSlotsView.SetSlotCount(_playerInventory.LocalPlayerInventory.MainSlotCount);
+
             for (var i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
             {
                 var item = _playerInventory.LocalPlayerInventory[i];
                 var itemView = ClientContext.ItemImageContainer.GetItemView(item.Id);
 
-                if (i < mainInventorySlotObjects.Count)
-                {
-                    mainInventorySlotObjects[i].SetItem(itemView, item.Count);
-                }
+                if (i < mainSlotsView.SlotViews.Count)
+                    mainSlotsView.SlotViews[i].SetItem(itemView, item.Count);
                 else
-                {
-                    var subIndex = i - mainInventorySlotObjects.Count;
-                    _subInventory.SubInventorySlotObjects[subIndex].SetItem(itemView, item.Count);
-                }
+                    _subInventory.SubInventorySlotObjects[i - mainSlotsView.SlotViews.Count].SetItem(itemView, item.Count);
             }
 
+            // 掴んでいるアイテムの表示を最後に同期する
+            // Synchronize the grabbed-item view last
             grabInventorySlotView.SetActive(IsGrabItem);
-            var garbItemView = ClientContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
-            grabInventorySlotView.SetItem(garbItemView, _playerInventory.GrabInventory.Count);
+            var grabItemView = ClientContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
+            grabInventorySlotView.SetItem(grabItemView, _playerInventory.GrabInventory.Count);
         }
     }
 }

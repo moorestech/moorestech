@@ -22,13 +22,15 @@ namespace Client.Tests.PlaceSystem
                 Guid.Empty,
                 "TestBlock",
                 "TestBlockType",
-                Guid.Empty,
+                                null,
+                null,
+                null,
+                0,
+                false,
                 new Vector3Int(1, 1, 1),
                 null,
                 null,
-                null,
-                null,
-                true
+                null
             );
         }
 

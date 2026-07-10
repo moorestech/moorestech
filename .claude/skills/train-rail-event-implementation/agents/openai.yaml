@@ -1,3 +1,0 @@
-interface:
-  display_name: "Train/Rail Event Impl"
-  short_description: "Decide tick + pre/post phase for new train/rail events"

@@ -17,7 +17,7 @@ uloop run-tests [options]
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `--test-mode` | string | `EditMode` | Test mode: `EditMode`, `PlayMode` |
+| `--test-mode` | string | `PlayMode` | Test mode: `EditMode`, `PlayMode` (CLI default is PlayMode — pass `--test-mode EditMode` explicitly for EditMode runs) |
 | `--filter-type` | string | `all` | Filter type: `all`, `exact`, `regex`, `assembly` |
 | `--filter-value` | string | - | Filter value (test name, pattern, or assembly) |
 
@@ -31,11 +31,11 @@ uloop run-tests [options]
 ## Examples
 
 ```bash
-# Run all EditMode tests
+# Run all PlayMode tests (default mode)
 uloop run-tests
 
-# Run PlayMode tests
-uloop run-tests --test-mode PlayMode
+# Run EditMode tests
+uloop run-tests --test-mode EditMode
 
 # Run specific test
 uloop run-tests --filter-type exact --filter-value "MyTest.TestMethod"

@@ -1,18 +1,39 @@
 {
   "data": [
     {
-      "placeMode": "TrainCar",
-      "priority": 200,
-      "usePlaceItems": [
-        "20000000-0000-0000-0000-000000000000"
-      ]
+      "placeMode": "TrainRailConnect",
+      "name": "レール敷設",
+      "iconItemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+      "placeBlockGuid": "00000000-0000-0000-0000-000000000024",
+      "sortPriority": 100,
+      "placeParam": {}
+    },
+    {
+      "placeMode": "ElectricWireConnect",
+      "name": "電線接続",
+      "iconItemGuid": "00000000-0000-0000-4649-000000000001",
+      "placeBlockGuid": "00000000-0000-0000-0000-000000000004",
+      "sortPriority": 110,
+      "placeParam": {}
     },
     {
       "placeMode": "GearChainPoleConnect",
-      "priority": 300,
-      "usePlaceItems": [
-        "b15c8f72-df53-4f3a-810f-55a76f65d2ce"
-      ]
+      "name": "歯車チェーン接続",
+      "iconItemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
+      "sortPriority": 120,
+      "placeParam": {}
+    },
+    {
+      "placeMode": "BeltConveyor",
+      "placeParam": {
+        "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
+        "downBlockGuid": "00000000-0000-0000-0000-0000000000a2",
+        "straightBlocks": [
+          { "length": 1, "blockGuid": "00000000-0000-0000-0000-000000000015" },
+          { "length": 2, "blockGuid": "00000000-0000-0000-0000-0000000000a3" },
+          { "length": 3, "blockGuid": "00000000-0000-0000-0000-0000000000a4" }
+        ]
+      }
     }
   ]
 }

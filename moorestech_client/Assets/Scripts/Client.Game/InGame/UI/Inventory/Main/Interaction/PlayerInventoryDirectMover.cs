@@ -1,6 +1,7 @@
 using Core.Master;
 using Game.PlayerInventory.Interface;
 using Core.Item.Interface;
+using Core.Item;
 
 namespace Client.Game.InGame.UI.Inventory.Main
 {
@@ -39,11 +40,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
             InventoryType GetInventoryType(int index, bool hasSub)
             {
-                if (hasSub && index >= PlayerInventoryConst.MainInventorySize)
+                var mainSlotCount = _playerInventory.LocalPlayerInventory.MainSlotCount;
+                if (hasSub && index >= mainSlotCount)
                     return InventoryType.SubInventory;
 
                 // ホットバーの判定
-                if (PlayerInventoryConst.IsHotBarSlot(index))
+                if (_playerInventory.LocalPlayerInventory.IsHotBarSlot(index))
                     return InventoryType.HotBar;
 
                 return InventoryType.MainInventory;
@@ -51,25 +53,21 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
             (int start, int end) GetTargetRange(InventoryType source, bool hasSub)
             {
+                var mainSlotCount = _playerInventory.LocalPlayerInventory.MainSlotCount;
+                var hotBarStart = PlayerInventoryConst.HotBarSlotToInventorySlot(0, mainSlotCount);
                 switch (source)
                 {
                     case InventoryType.MainInventory:
                         // メインインベントリから：サブがあればサブへ、なければホットバーへ
-                        if (hasSub)
-                            return (PlayerInventoryConst.MainInventorySize, PlayerInventoryConst.MainInventorySize + subInventory.Count);
-                        else
-                            return ((PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns, PlayerInventoryConst.MainInventorySize);
+                        return hasSub ? (mainSlotCount, mainSlotCount + subInventory.Count) : (hotBarStart, mainSlotCount);
 
                     case InventoryType.HotBar:
                         // ホットバーから：サブがあればサブへ、なければメインインベントリへ
-                        if (hasSub)
-                            return (PlayerInventoryConst.MainInventorySize, PlayerInventoryConst.MainInventorySize + subInventory.Count);
-                        else
-                            return (0, (PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns);
+                        return hasSub ? (mainSlotCount, mainSlotCount + subInventory.Count) : (0, hotBarStart);
 
                     case InventoryType.SubInventory:
                         // サブインベントリから：メインインベントリへ（ホットバーを除く）
-                        return (0, (PlayerInventoryConst.MainInventoryRows - 1) * PlayerInventoryConst.MainInventoryColumns);
+                        return (0, hotBarStart);
 
                     default:
                         return (0, 0);
@@ -99,7 +97,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 if (targetItem.Id == ItemMaster.EmptyItemId || targetItem.Id != sourceItemStack.Id)
                     return false;
 
-                var maxStack = MasterHolder.ItemMaster.GetItemMaster(targetItem.Id).MaxStack;
+                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(targetItem.Id);
                 if (targetItem.Count >= maxStack)
                     return false;
 

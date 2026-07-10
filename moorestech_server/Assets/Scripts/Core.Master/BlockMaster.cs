@@ -26,8 +26,8 @@ namespace Core.Master
 
         private Dictionary<BlockId, BlockMasterElement> _blockElementTableById;
         private Dictionary<Guid, BlockId> _blockGuidToBlockId;
-        private Dictionary<ItemId, BlockId> _itemIdToBlockId;
         private Dictionary<Guid, string> _blockGuidToDestructionCategory;
+        private HashSet<(Guid, Guid)> _connectableShapePairs;
 
         public BlockMaster(JToken blockJToken)
         {
@@ -41,7 +41,7 @@ namespace Core.Master
 
         public void Initialize()
         {
-            BlockMasterUtil.Initialize(Blocks, out _blockElementTableById, out _blockGuidToBlockId, out _itemIdToBlockId, GetBlockMaster);
+            BlockMasterUtil.Initialize(Blocks, out _blockElementTableById, out _blockGuidToBlockId);
 
             // 破壊カテゴリ定義から blockGuid→カテゴリキー の逆引き表を構築する
             // Build a blockGuid→categoryKey reverse lookup from the destruction category definitions
@@ -50,6 +50,16 @@ namespace Core.Master
             foreach (var target in category.TargetBlocks)
             {
                 _blockGuidToDestructionCategory[target.BlockGuid] = category.CategoryKey;
+            }
+
+            // コネクタ形状の互換ペアを順序正規化して集合化する
+            // Normalize pair order and collect connectable connector-shape pairs into a set
+            _connectableShapePairs = new HashSet<(Guid, Guid)>();
+            var connectableShapePairs = Blocks.ConnectorSettings?.ConnectableShapePairs;
+            if (connectableShapePairs == null) return;
+            foreach (var pair in connectableShapePairs)
+            {
+                _connectableShapePairs.Add(NormalizeShapePair(pair.Shape0, pair.Shape1));
             }
         }
 
@@ -61,7 +71,20 @@ namespace Core.Master
                 ? category
                 : DefaultDestructionCategory;
         }
-        
+
+        // コネクタ形状同士が接続可能かを返す。形状未設定はワイルドカード（制約なし）
+        // Whether two connector shapes may connect; unset shapes are wildcard (no constraint)
+        public bool CanConnectConnectorShapes(Guid? selfShapeGuid, Guid? targetShapeGuid)
+        {
+            if (selfShapeGuid == null || targetShapeGuid == null) return true;
+            return _connectableShapePairs.Contains(NormalizeShapePair(selfShapeGuid.Value, targetShapeGuid.Value));
+        }
+
+        private static (Guid, Guid) NormalizeShapePair(Guid shapeA, Guid shapeB)
+        {
+            return shapeA.CompareTo(shapeB) <= 0 ? (shapeA, shapeB) : (shapeB, shapeA);
+        }
+
         public BlockMasterElement GetBlockMaster(BlockId blockId)
         {
             if (!_blockElementTableById.TryGetValue(blockId, out var element))
@@ -75,12 +98,6 @@ namespace Core.Master
         public BlockMasterElement GetBlockMaster(Guid blockGuid)
         {
             var blockId = GetBlockId(blockGuid);
-            return GetBlockMaster(blockId);
-        }
-        
-        public BlockMasterElement GetBlockMaster(ItemId itemId)
-        {
-            var blockId = GetBlockId(itemId);
             return GetBlockMaster(blockId);
         }
         
@@ -107,29 +124,6 @@ namespace Core.Master
         public List<BlockId> GetBlockAllIds()
         {
             return _blockElementTableById.Keys.ToList();
-        }
-        
-        public bool IsBlock(ItemId itemId)
-        {
-            return _itemIdToBlockId.ContainsKey(itemId);
-        }
-        
-        public BlockId GetBlockId(ItemId itemId)
-        {
-            return _itemIdToBlockId[itemId];
-        }
-        
-        public ItemId GetItemId(BlockId blockId)
-        {
-            foreach (var pair in _itemIdToBlockId)
-            {
-                if (pair.Value == blockId)
-                {
-                    return pair.Key;
-                }
-            }
-            
-            throw new InvalidOperationException($"ItemElement not found. BlockId:{blockId}");
         }
     }
 }

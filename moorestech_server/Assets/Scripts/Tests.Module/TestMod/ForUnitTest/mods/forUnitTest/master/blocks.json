@@ -29,6 +29,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 100,
+        "idlePowerRate": 0.25,
         "outputSlotCount": 3,
         "inputSlotCount": 2,
         "inputFluidSlotCount": 0,
@@ -41,7 +42,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -64,9 +64,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "8a058396-b25c-4e68-b2f9-aa8d6ee45a6c"
             }
           ],
@@ -77,7 +74,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -100,9 +96,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "080abeca-2b37-444e-87a3-d50590351ab3"
             }
           ]
@@ -116,11 +109,11 @@
         "innerTankCapacity": 0,
         "innerTankCount": 0,
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000001",
-      "blockGuid": "00000000-0000-0000-0000-000000000001",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000001"
     },
     {
       "modelTransform": {
@@ -147,10 +140,19 @@
       ],
       "name": "TestBlock",
       "blockType": "Block",
-      "itemGuid": "00000000-0000-0000-1234-000000000002",
       "blockGuid": "00000000-0000-0000-0000-000000000002",
       "blockParam": {},
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ],
+      "initialUnlocked": true
     },
     {
       "modelTransform": {
@@ -188,7 +190,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -211,9 +212,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "ad60ef62-586d-4ff4-bbb4-1edfda53a0dd"
             }
           ],
@@ -224,7 +222,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -232,18 +229,14 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "5fac6867-63ff-4f31-a62b-a6b931108303"
             }
           ]
         },
         "slopeType": "Straight"
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000003",
       "blockGuid": "00000000-0000-0000-0000-000000000003",
-      "overrideVerticalBlock": {}
+      "initialUnlocked": true
     },
     {
       "modelTransform": {
@@ -274,11 +267,59 @@
         "machineConnectionRange": 5,
         "poleConnectionRange": 7,
         "poleConnectionHeightRange": 5,
-        "machineConnectionHeightRange": 5
+        "machineConnectionHeightRange": 5,
+        "maxWireConnectionCount": 8,
+        "maxWireLength": 12
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000004",
       "blockGuid": "00000000-0000-0000-0000-000000000004",
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000005",
+          "count": 1
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        3,
+        1
+      ],
+      "name": "TestLockedElectricPole",
+      "blockType": "ElectricPole",
+      "blockParam": {
+        "machineConnectionRange": 5,
+        "poleConnectionRange": 7,
+        "poleConnectionHeightRange": 5,
+        "machineConnectionHeightRange": 5,
+        "maxWireConnectionCount": 8,
+        "maxWireLength": 12
+      },
+      "blockGuid": "00000000-0000-0000-0000-000000000101",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000005",
+          "count": 1
+        }
+      ]
     },
     {
       "modelTransform": {
@@ -321,7 +362,6 @@
         "fluidInventoryConnectors": {
           "inflowConnects": [
             {
-              "connectType": "Fluid",
               "offset": [
                 0,
                 0,
@@ -349,7 +389,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 100,
                 "connectTankIndex": 0
               },
@@ -373,11 +413,11 @@
             "time": 2,
             "power": 200
           }
-        ]
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000005",
-      "blockGuid": "00000000-0000-0000-0000-000000000005",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000005"
     },
     {
       "modelTransform": {
@@ -407,6 +447,7 @@
       "blockParam": {
         "outputItemSlotCount": 3,
         "requiredPower": 100,
+        "idlePowerRate": 0.2,
         "mineSettings": [
           {
             "time": 1,
@@ -421,7 +462,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -444,18 +484,15 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "468dc4db-04ed-48e0-9042-beb3f7da4833"
             }
           ],
           "inputConnects": []
-        }
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000006",
-      "blockGuid": "00000000-0000-0000-0000-000000000006",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000006"
     },
     {
       "modelTransform": {
@@ -492,7 +529,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -515,9 +551,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "88be548e-a716-4cf8-82b2-73b19c26e43f"
             }
           ],
@@ -528,7 +561,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -551,17 +583,12 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "1ca38023-b85e-42b2-9d3a-2a790d66e159"
             }
           ]
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000007",
-      "blockGuid": "00000000-0000-0000-0000-000000000007",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000007"
     },
     {
       "modelTransform": {
@@ -594,7 +621,7 @@
         "inputItemSlotCount": 1,
         "fuelItemSlotCount": 4,
         "isInfinityPower": true,
-        "infinityPower": 10,
+        "infinityPower": 100000,
         "inventoryConnectors": {
           "outputConnects": [
             {
@@ -603,7 +630,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -626,9 +652,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "c7abe37a-8557-4f91-8d13-dcc6fe040530"
             }
           ],
@@ -639,7 +662,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -662,9 +684,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "ec036490-8950-43ce-83ec-a187ca56b6bb"
             }
           ]
@@ -686,11 +705,11 @@
             "time": 2,
             "power": 200
           }
-        ]
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000008",
-      "blockGuid": "00000000-0000-0000-0000-000000000008",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000008"
     },
     {
       "modelTransform": {
@@ -718,7 +737,6 @@
       "maxStack": 100,
       "name": "MultiBlock1",
       "blockType": "ElectricGenerator",
-      "itemGuid": "00000000-0000-0000-1234-000000000009",
       "blockGuid": "00000000-0000-0000-0000-000000000009",
       "blockParam": {
         "fuelItemSlotCount": 0,
@@ -732,10 +750,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   0,
@@ -768,11 +782,7 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "a30723f8-2d5b-4432-aedf-796b4ed94a0a"
             }
           ]
@@ -794,9 +804,10 @@
             "time": 2,
             "power": 200
           }
-        ]
-      },
-      "overrideVerticalBlock": {}
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
+      }
     },
     {
       "modelTransform": {
@@ -822,7 +833,6 @@
         2
       ],
       "name": "MultiBlock2",
-      "itemGuid": "00000000-0000-0000-1234-000000000010",
       "blockGuid": "00000000-0000-0000-0000-00000000000a",
       "blockType": "ElectricGenerator",
       "blockParam": {
@@ -837,7 +847,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -845,9 +854,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "2a8fac1e-1754-4cab-9f42-2d5e4787674d"
             },
             {
@@ -856,7 +862,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -864,9 +869,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "4ad6a93b-25a7-4cb7-a40f-3526c0f07a5b"
             }
           ],
@@ -889,9 +891,10 @@
             "time": 2,
             "power": 200
           }
-        ]
-      },
-      "overrideVerticalBlock": {}
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
+      }
     },
     {
       "modelTransform": {
@@ -916,7 +919,6 @@
         2,
         3
       ],
-      "itemGuid": "00000000-0000-0000-1234-000000000011",
       "name": "MultiBlock3",
       "blockGuid": "00000000-0000-0000-0000-00000000000b",
       "blockType": "ElectricGenerator",
@@ -932,7 +934,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -955,9 +956,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "9b64cf43-42ad-4260-ab34-7080b34162de"
             }
           ],
@@ -968,11 +966,7 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "8239fac3-9326-434e-a599-1c72746d2dd2"
             }
           ]
@@ -994,9 +988,10 @@
             "time": 2,
             "power": 200
           }
-        ]
-      },
-      "overrideVerticalBlock": {}
+        ],
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
+      }
     },
     {
       "modelTransform": {
@@ -1037,9 +1032,13 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
+              "option": {
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1063,7 +1062,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "a0af84fd-5cc9-4a4d-b756-81521d93d77b"
+              "connectorGuid": "a0af84fd-5cc9-4a4d-b756-81521d93d77b",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1083,11 +1083,16 @@
                   1
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
+              "option": {
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "f2a52ab6-299d-4da8-a3b5-dd9877ad8a49"
+              "connectorGuid": "f2a52ab6-299d-4da8-a3b5-dd9877ad8a49",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -1096,12 +1101,11 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000014",
-      "blockGuid": "00000000-0000-0000-0000-00000000000c",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000c"
     },
     {
       "modelTransform": {
@@ -1138,9 +1142,13 @@
                 1,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
+              "option": {
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1154,7 +1162,8 @@
                   1
                 ]
               ],
-              "connectorGuid": "a9f87ea0-c370-49a6-a2a5-6f8732fcc52a"
+              "connectorGuid": "a9f87ea0-c370-49a6-a2a5-6f8732fcc52a",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             },
             {
               "offset": [
@@ -1169,11 +1178,16 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
+              "option": {
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "23a400fb-03c8-418d-94e9-a1b9c431f0ef"
+              "connectorGuid": "23a400fb-03c8-418d-94e9-a1b9c431f0ef",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1188,11 +1202,16 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
+              "option": {
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "fb63936c-5bea-4ce5-83f5-1e428e1def52"
+              "connectorGuid": "fb63936c-5bea-4ce5-83f5-1e428e1def52",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1200,9 +1219,13 @@
                 2,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
+              "option": {
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1211,7 +1234,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "9f9851a6-3c1a-49cc-bff2-223e1458af44"
+              "connectorGuid": "9f9851a6-3c1a-49cc-bff2-223e1458af44",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1226,11 +1250,16 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
+              "option": {
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "2c81aa70-b156-4812-980a-6e9c3fc15cc5"
+              "connectorGuid": "2c81aa70-b156-4812-980a-6e9c3fc15cc5",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             }
           ]
         },
@@ -1243,12 +1272,11 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "16000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000d",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000d"
     },
     {
       "modelTransform": {
@@ -1284,9 +1312,13 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
+              "option": {
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1300,7 +1332,8 @@
                   1
                 ]
               ],
-              "connectorGuid": "aa9ff63e-efb6-459f-a710-14490e1d49ed"
+              "connectorGuid": "aa9ff63e-efb6-459f-a710-14490e1d49ed",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -1313,12 +1346,11 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "17000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000e",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000e"
     },
     {
       "modelTransform": {
@@ -1356,8 +1388,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1391,12 +1422,94 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
       "blockGuid": "00000000-0000-0000-0000-00000000002c",
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestLockedGearChainPole",
+      "blockType": "GearChainPole",
+      "blockParam": {
+        "maxConnectionDistance": 10,
+        "maxConnectionCount": 2,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "a1b2c3d4-1102-4102-8102-000000000102",
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseTorque": 0,
+          "baseRpm": 5,
+          "minimumRpm": 0,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "00000000-0000-0000-0000-000000000102"
     },
     {
       "modelTransform": {
@@ -1438,8 +1551,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1466,7 +1578,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -1489,9 +1600,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "838aab51-8e04-4d78-b7ff-bdbf4739350a"
             }
           ],
@@ -1502,7 +1610,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -1525,9 +1632,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "a1f379e7-61e6-497b-b342-504536d2ddf7"
             }
           ]
@@ -1551,12 +1655,11 @@
           "minimumRpm": 0,
           "baseTorque": 0.1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "18000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000000f",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000000f"
     },
     {
       "modelTransform": {
@@ -1596,8 +1699,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1631,9 +1733,7 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "19000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000010",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000010"
     },
     {
       "modelTransform": {
@@ -1675,8 +1775,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1710,9 +1809,7 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "11100000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000011",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000011"
     },
     {
       "modelTransform": {
@@ -1737,7 +1834,6 @@
         1,
         1
       ],
-      "itemGuid": "11200000-0000-0000-0000-000000000000",
       "blockType": "Gear",
       "blockParam": {
         "teethCount": 10,
@@ -1749,9 +1845,13 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
+              "option": {
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1775,7 +1875,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "5fba294f-51ae-4ffd-8326-c89144ba3663"
+              "connectorGuid": "5fba294f-51ae-4ffd-8326-c89144ba3663",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1795,11 +1896,16 @@
                   1
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
+              "option": {
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "2ebcab1f-91b7-422a-ab02-b58cde6fa959"
+              "connectorGuid": "2ebcab1f-91b7-422a-ab02-b58cde6fa959",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -1812,12 +1918,12 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "Teeth10RequireTorqueTestGear",
-      "blockGuid": "00000000-0000-0000-0000-000000000012",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000012"
     },
     {
       "modelTransform": {
@@ -1843,7 +1949,6 @@
         1
       ],
       "name": "Teeth20RequireTorqueTestGear",
-      "itemGuid": "11300000-0000-0000-0000-000000000000",
       "blockType": "Gear",
       "blockParam": {
         "teethCount": 20,
@@ -1855,9 +1960,13 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": true
+              "option": {
+                "isReverse": true,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
               "directions": [
                 [
@@ -1881,7 +1990,8 @@
                   0
                 ]
               ],
-              "connectorGuid": "b2700339-4db0-42bf-be4c-1c8966672788"
+              "connectorGuid": "b2700339-4db0-42bf-be4c-1c8966672788",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
             },
             {
               "offset": [
@@ -1901,11 +2011,16 @@
                   1
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
-                "isReverse": false
+              "option": {
+                "isReverse": false,
+                "meshingAxis": [
+                  0,
+                  0,
+                  1
+                ]
               },
-              "connectorGuid": "42474ad9-bf31-4977-a775-0749b9c88ea0"
+              "connectorGuid": "42474ad9-bf31-4977-a775-0749b9c88ea0",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
             }
           ]
         },
@@ -1918,11 +2033,11 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000013",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000013"
     },
     {
       "modelTransform": {
@@ -1962,8 +2077,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1997,9 +2111,7 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "11400000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000014",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000014"
     },
     {
       "blockSize": [
@@ -2020,7 +2132,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "5ae77921-ab7e-4eda-91a0-81dd09ec131b",
               "offset": [
                 0,
@@ -2033,15 +2144,11 @@
                   0,
                   -1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "e52edf59-03f1-4beb-a77f-7d47bfb224c2",
               "offset": [
                 0,
@@ -2054,17 +2161,13 @@
                   0,
                   1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ]
         },
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "connectorGuid": "79243017-2300-4b39-b145-ab024c959800",
               "offset": [
                 0,
@@ -2093,7 +2196,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             }
@@ -2103,13 +2206,12 @@
           "baseRpm": 10,
           "minimumRpm": 0,
           "baseTorque": 0.02,
+          "idlePowerRate": 0.3,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
         }
       },
-      "itemGuid": "30000000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000030",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000030"
     },
     {
       "blockSize": [
@@ -2130,7 +2232,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "4ae77921-ab7e-4eda-91a0-81dd09ec131b",
               "offset": [
                 0,
@@ -2168,15 +2269,11 @@
                   -1,
                   0
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "d52edf59-03f1-4beb-a77f-7d47bfb224c2",
               "offset": [
                 0,
@@ -2194,17 +2291,13 @@
                   -1,
                   1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ]
         },
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "connectorGuid": "69243017-2300-4b39-b145-ab024c959800",
               "offset": [
                 0,
@@ -2253,7 +2346,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             }
@@ -2264,17 +2357,21 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
-        "horizontalBlockGuid": "00000000-0000-0000-0000-000000000015",
-        "downBlockGuid": "00000000-0000-0000-0000-0000000000a2"
-      },
-      "enableConveyorPlacement": true
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "maxStack": 100,
@@ -2305,6 +2402,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2317,7 +2415,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -2340,9 +2437,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "7e023c0f-3e8e-4f91-934f-1377865c6ae2"
             }
           ],
@@ -2353,7 +2447,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -2376,9 +2469,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "0f85d76f-8103-4501-914a-280479d8092a"
             }
           ]
@@ -2392,11 +2482,11 @@
         "innerTankCapacity": 0,
         "innerTankCount": 0,
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "11900000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-000000000019",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000019"
     },
     {
       "maxStack": 100,
@@ -2427,6 +2517,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2439,7 +2530,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -2462,9 +2552,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "c8f6c4bd-56b9-4b36-ac79-9b5fcb0c5c01"
             }
           ],
@@ -2475,7 +2562,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -2498,9 +2584,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "80a0ed8f-2875-47c9-91cb-6f4dab019436"
             }
           ]
@@ -2514,11 +2597,11 @@
         "innerTankCount": 0,
         "innerTankCapacity": 0,
         "outputTankCount": 0,
-        "inputTankCount": 0
+        "inputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "12010000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000001a",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000001a"
     },
     {
       "maxStack": 100,
@@ -2549,6 +2632,7 @@
       "blockParam": {
         "moduleSlotCount": 0,
         "requiredPower": 101,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 100,
         "inputSlotCount": 100,
         "inputFluidSlotCount": 0,
@@ -2561,7 +2645,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -2584,9 +2667,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "630500a0-8082-4f6d-9837-2f548d4906df"
             }
           ],
@@ -2597,7 +2677,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -2620,9 +2699,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "2cb6986f-99dd-44ee-b6b4-c5bbee6f57ad"
             }
           ]
@@ -2636,11 +2712,11 @@
         "innerTankCount": 0,
         "innerTankCapacity": 0,
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "12102000-0000-0000-0000-000000000000",
-      "blockGuid": "00000000-0000-0000-0000-00000000001b",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-00000000001b"
     },
     {
       "name": "GearMiner",
@@ -2656,8 +2732,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -2684,7 +2759,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -2707,9 +2781,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "4427b154-c69e-4a64-b1d6-b549cd0b0415"
             }
           ],
@@ -2731,16 +2802,15 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockSize": [
         1,
         1,
         1
-      ],
-      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f",
-      "overrideVerticalBlock": {}
+      ]
     },
     {
       "maxStack": 100,
@@ -2750,7 +2820,6 @@
         1
       ],
       "blockType": "TrainRail",
-      "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2762,7 +2831,66 @@
       },
       "name": "TestTrainRail",
       "blockGuid": "00000000-0000-0000-0000-000000000024",
-      "overrideVerticalBlock": {}
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ],
+      "initialUnlocked": true
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestLockedTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000103",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "maxStack": 100,
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockType": "TrainRail",
+      "blockParam": {
+        "railPosition": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "controlPointLength": 0.5,
+        "maxConnectableRailLength": 100
+      },
+      "name": "TestRailCostTrainRail",
+      "blockGuid": "00000000-0000-0000-0000-000000000104",
+      "requiredItems": [
+        {
+          "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+          "count": 5
+        }
+      ],
+      "initialUnlocked": true
     },
     {
       "blockSize": [
@@ -2770,7 +2898,6 @@
         1,
         8
       ],
-      "itemGuid": "9bdfa843-d4ee-4033-a61c-538bb9aaa21d",
       "blockType": "TrainStation",
       "blockParam": {
         "inventoryConnectors": {
@@ -2781,7 +2908,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   -1,
@@ -2789,9 +2915,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "22a9b566-22f7-49fc-b109-266b29eb857e"
             }
           ],
@@ -2802,7 +2925,6 @@
                 0,
                 5
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   -1,
@@ -2810,9 +2932,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "97ce2996-5357-4728-be3b-b9181ddcbfad"
             }
           ]
@@ -2834,8 +2953,7 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainStation",
-      "blockGuid": "00000000-0000-0000-0000-000000000025",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000025"
     },
     {
       "blockSize": [
@@ -2843,7 +2961,6 @@
         1,
         8
       ],
-      "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
       "blockType": "TrainItemPlatform",
       "blockParam": {
         "inventoryConnectors": {
@@ -2854,7 +2971,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   -1,
@@ -2862,9 +2978,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "e30dff89-02d3-49fb-84db-5a326195953e"
             }
           ],
@@ -2875,7 +2988,6 @@
                 0,
                 5
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   -1,
@@ -2883,9 +2995,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "2fdecf93-e281-481b-9d21-457cc1fc67d1"
             }
           ]
@@ -2907,18 +3016,15 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainItemPlatform",
-      "blockGuid": "00000000-0000-0000-0000-000000000026",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000026"
     },
     {
-      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
         1,
         1
       ],
-      "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
       "blockType": "GearMapObjectMiner",
       "blockParam": {
         "itemSlotCount": 3,
@@ -2952,8 +3058,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "directions": [
@@ -2991,15 +3096,14 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "TestGearMapObjectMiner",
-      "blockGuid": "00000000-0000-0000-0000-000000000027",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000027"
     },
     {
-      "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
       "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
       "blockType": "FluidPipe",
       "name": "FluidPipe",
@@ -3012,7 +3116,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   1,
@@ -3045,7 +3148,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3059,7 +3162,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   1,
@@ -3092,7 +3194,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3107,11 +3209,9 @@
         1,
         1,
         1
-      ],
-      "overrideVerticalBlock": {}
+      ]
     },
     {
-      "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
       "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
       "blockType": "FluidPipe",
       "name": "OneWayFluidPipe",
@@ -3124,7 +3224,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   -1,
@@ -3132,7 +3231,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3146,7 +3245,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   1,
@@ -3154,7 +3252,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3169,14 +3267,11 @@
         1,
         1,
         1
-      ],
-      "overrideVerticalBlock": {}
+      ]
     },
     {
       "time": 1,
       "recipeViewType": 100,
-      "initialUnlocked": true,
-      "sortPriority": 100,
       "maxStack": 100,
       "blockSize": [
         1,
@@ -3191,6 +3286,7 @@
         "poleConnectionRange": 5,
         "innerTankCapacity": 100,
         "requiredPower": 5,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 1,
         "inventoryConnectors": {
@@ -3205,7 +3301,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   0,
@@ -3213,7 +3308,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3225,7 +3320,6 @@
                 0,
                 2
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   1,
@@ -3233,7 +3327,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 1
               },
@@ -3252,8 +3346,7 @@
                   1
                 ]
               ],
-              "connectType": "Fluid",
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 2
               },
@@ -3267,7 +3360,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   -1,
@@ -3275,7 +3367,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3287,7 +3379,6 @@
                 0,
                 2
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   -1,
@@ -3295,7 +3386,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 1
               },
@@ -3304,11 +3395,11 @@
           ]
         },
         "outputTankCount": 2,
-        "inputTankCount": 3
+        "inputTankCount": 3,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
-      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
-      "overrideVerticalBlock": {}
+      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0"
     },
     {
       "blockSize": [
@@ -3343,7 +3434,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   1,
@@ -3376,7 +3466,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3390,7 +3480,6 @@
                 0,
                 0
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   1,
@@ -3423,7 +3512,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -3448,15 +3537,12 @@
         "baseDestructionProbability": 0
       },
       "name": "FuelGearGenerator",
-      "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
-      "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
-      "overrideVerticalBlock": {}
+      "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471"
     },
     {
       "blockGuid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
       "name": "BaseCamp1",
       "blockType": "BaseCamp",
-      "itemGuid": "913fc0e2-2de2-4597-b6c5-e8912994372b",
       "blockSize": [
         1,
         1,
@@ -3464,11 +3550,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "requiredItems": [
           {
@@ -3488,7 +3569,6 @@
       "blockGuid": "9e18bb3d-b821-4f19-a47e-e3718c39eafa",
       "name": "BaseCamp2",
       "blockType": "BaseCamp",
-      "itemGuid": "344879fd-ee1b-4ff4-93ce-a606016eae61",
       "blockSize": [
         1,
         1,
@@ -3496,11 +3576,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [
@@ -3528,7 +3603,6 @@
       "blockGuid": "cda19f55-adef-41f4-9212-3ed5f4f926b9",
       "name": "BaseTransformedBlock",
       "blockType": "BaseCamp",
-      "itemGuid": "cac50667-3c2b-4641-a481-1545b265a108",
       "blockSize": [
         1,
         1,
@@ -3536,11 +3610,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [],
@@ -3555,7 +3624,6 @@
       "blockGuid": "13806455-551c-4399-a7e7-b45a95709a6b",
       "name": "GearPump",
       "blockType": "GearPump",
-      "itemGuid": "c9715726-11d8-4e3f-a925-f460956f3505",
       "blockSize": [
         1,
         1,
@@ -3563,12 +3631,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
-      "enableConveyorPlacement": false,
       "blockParam": {
         "generateFluid": [
           {
@@ -3581,7 +3643,6 @@
         "fluidInventoryConnectors": {
           "outflowConnects": [
             {
-              "connectType": "Fluid",
               "offset": [
                 0,
                 0,
@@ -3609,7 +3670,7 @@
                   1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 100,
                 "connectTankIndex": 0
               },
@@ -3626,8 +3687,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -3665,7 +3725,8 @@
           "minimumRpm": 0,
           "baseTorque": 5,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       }
     },
@@ -3673,7 +3734,6 @@
       "blockGuid": "3829088a-5a78-43d7-8c3c-d3e4bb91b90a",
       "name": "ElectricPump",
       "blockType": "ElectricPump",
-      "itemGuid": "0393ee28-cec8-4a37-94bd-15d79e027721",
       "blockSize": [
         1,
         1,
@@ -3681,12 +3741,6 @@
       ],
       "blockPrefabAddressablesPath": "",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
-      "enableConveyorPlacement": false,
       "blockParam": {
         "generateFluid": [
           {
@@ -3697,10 +3751,10 @@
         ],
         "innerTankCapacity": 100,
         "requiredPower": 50,
+        "idlePowerRate": 0.4,
         "fluidInventoryConnectors": {
           "outflowConnects": [
             {
-              "connectType": "Fluid",
               "offset": [
                 0,
                 0,
@@ -3728,7 +3782,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 100,
                 "connectTankIndex": 0
               },
@@ -3736,12 +3790,13 @@
             }
           ],
           "inflowConnects": []
-        }
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       }
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000028",
-      "itemGuid": "11110000-0000-0000-0000-000000000000",
       "name": "TestGearToElectricGenerator",
       "blockType": "GearToElectricGenerator",
       "blockSize": [
@@ -3762,8 +3817,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -3801,10 +3855,12 @@
           "minimumRpm": 0,
           "baseTorque": 100,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
-        }
-      },
-      "overrideVerticalBlock": {}
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
+      }
     },
     {
       "blockSize": [
@@ -3829,8 +3885,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -3852,7 +3907,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "70feded1-8116-44a3-9e47-5de749ed42d0",
               "offset": [
                 0,
@@ -3870,15 +3924,11 @@
                   -1,
                   -1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "14d6e747-ea5b-4791-bd7c-7fdcca100832",
               "offset": [
                 0,
@@ -3896,13 +3946,9 @@
                   -1,
                   1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             },
             {
-              "connectType": "Inventory",
               "connectorGuid": "455ab40e-0fae-4e1d-bbc8-7b5802fcddaa",
               "offset": [
                 0,
@@ -3920,13 +3966,9 @@
                   -1,
                   0
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             },
             {
-              "connectType": "Inventory",
               "connectorGuid": "7c7aead7-1fbc-4a6e-a35b-06094d7bdbee",
               "offset": [
                 0,
@@ -3944,10 +3986,7 @@
                   -1,
                   0
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ]
         },
@@ -3957,12 +3996,11 @@
           "minimumRpm": 0,
           "baseTorque": 1.0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
-      "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040",
-      "overrideVerticalBlock": {}
+      "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
     },
     {
       "blockSize": [
@@ -3970,7 +4008,6 @@
         1,
         8
       ],
-      "itemGuid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
       "blockType": "TrainFluidPlatform",
       "blockParam": {
         "fluidInventoryConnectors": {
@@ -3981,7 +4018,6 @@
                 0,
                 2
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   -1,
@@ -3989,7 +4025,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -4003,7 +4039,6 @@
                 0,
                 5
               ],
-              "connectType": "Fluid",
               "directions": [
                 [
                   -1,
@@ -4011,7 +4046,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "flowCapacity": 10,
                 "connectTankIndex": 0
               },
@@ -4036,8 +4071,7 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainFluidPlatform",
-      "blockGuid": "00000000-0000-0000-0000-000000000029",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000029"
     },
     {
       "blockSize": [
@@ -4057,7 +4091,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -4065,9 +4098,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000010"
             }
           ],
@@ -4078,7 +4108,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -4086,9 +4115,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000001"
             },
             {
@@ -4097,7 +4123,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   -1,
@@ -4105,9 +4130,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000002"
             },
             {
@@ -4116,7 +4138,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -4124,21 +4145,146 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "f1110000-0000-0000-0000-000000000003"
             }
           ]
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000031",
-      "blockGuid": "00000000-0000-0000-0000-000000000031",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000031"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestShapeOrderSourceChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "f2220000-0000-0000-0000-000000000001",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            }
+          ]
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000032",
+      "blockGuid": "00000000-0000-0000-0000-000000000032"
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestShapeOrderTargetChest",
+      "blockType": "Chest",
+      "blockParam": {
+        "itemSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "f2220000-0000-0000-0000-000000000002",
+              "shapeGuid": "22222222-2222-2222-2222-222222222222"
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "f2220000-0000-0000-0000-000000000003",
+              "shapeGuid": "11111111-1111-1111-1111-111111111111"
+            }
+          ],
+          "outputConnects": []
+        }
+      },
+      "itemGuid": "00000000-0000-0000-1234-000000000033",
+      "blockGuid": "00000000-0000-0000-0000-000000000033"
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
-      "itemGuid": "11110009-0000-0000-0000-000000000000",
       "name": "TestElectricToGearGenerator",
       "blockType": "ElectricToGearGenerator",
       "blockSize": [
@@ -4180,8 +4326,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -4209,9 +4354,10 @@
               "connectorGuid": "72231375-1dcb-4af7-8314-9eaa783116e9"
             }
           ]
-        }
-      },
-      "overrideVerticalBlock": {}
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
+      }
     },
     {
       "blockSize": [
@@ -4232,7 +4378,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000001",
               "offset": [
                 0,
@@ -4250,15 +4395,11 @@
                   -1,
                   -1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000002",
               "offset": [
                 0,
@@ -4271,17 +4412,13 @@
                   1,
                   1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ]
         },
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000003",
               "offset": [
                 0,
@@ -4305,7 +4442,7 @@
                   -1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             }
@@ -4316,13 +4453,21 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-0000000000a1",
       "blockGuid": "00000000-0000-0000-0000-0000000000a1",
-      "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     },
     {
       "blockSize": [
@@ -4343,7 +4488,6 @@
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000001",
               "offset": [
                 0,
@@ -4356,15 +4500,11 @@
                   1,
                   -1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000002",
               "offset": [
                 0,
@@ -4382,17 +4522,13 @@
                   -1,
                   1
                 ]
-              ],
-              "connectOption": {
-                "inventoryOptions": []
-              }
+              ]
             }
           ]
         },
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "connectorGuid": "a2a2a2a2-0000-0000-0000-000000000003",
               "offset": [
                 0,
@@ -4421,7 +4557,7 @@
                   1
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               }
             }
@@ -4432,15 +4568,524 @@
           "minimumRpm": 0,
           "baseTorque": 0.02,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-0000000000a2",
       "blockGuid": "00000000-0000-0000-0000-0000000000a2",
-      "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        2
+      ],
+      "name": "GearBeltConveyor2",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltConveyorItemCount": 8,
+        "timeOfItemEnterToExit": 0.8,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectorGuid": "3a1a659d-bcbc-4776-aa12-5ef08e0ca5d1",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectorGuid": "acb993d1-a6ca-441a-bd03-99fe497f46b6",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "connectorGuid": "f80e621b-174a-404d-b9a8-8c9eda12e52d",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "connectorGuid": "04da4a4c-4256-4de0-ad81-c1f958a7a760",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.02,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000a3",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "blockSize": [
+        1,
+        1,
+        3
+      ],
+      "name": "GearBeltConveyor3",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "beltConveyorItemCount": 12,
+        "timeOfItemEnterToExit": 1.2,
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "slopeType": "Straight",
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectorGuid": "30f69258-8caf-4823-9678-396e618c3c80",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectorGuid": "28f0a9a8-947d-4dd8-bc2f-5394407064a8",
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "gear": {
+          "gearConnects": [
+            {
+              "connectorGuid": "7ebfde75-f1e2-471e-8dac-3f5143efd0e0",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "connectorGuid": "5a4a1b4d-2253-4fc0-a474-44489e998256",
+              "offset": [
+                0,
+                0,
+                1
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            },
+            {
+              "connectorGuid": "d35c313f-f8d2-4287-a6ea-4a5dd5abf6ae",
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ],
+              "option": {
+                "isReverse": false
+              }
+            }
+          ]
+        },
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 0.02,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "00000000-0000-0000-0000-0000000000a4",
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 1
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 1
+        }
+      ]
     }
   ],
+  "connectorSettings": {
+    "connectorShapes": [
+      {
+        "shapeGuid": "11111111-1111-1111-1111-111111111111",
+        "name": "gearTeeth"
+      },
+      {
+        "shapeGuid": "22222222-2222-2222-2222-222222222222",
+        "name": "gearShaft"
+      }
+    ],
+    "connectableShapePairs": [
+      {
+        "shape0": "11111111-1111-1111-1111-111111111111",
+        "shape1": "11111111-1111-1111-1111-111111111111"
+      },
+      {
+        "shape0": "22222222-2222-2222-2222-222222222222",
+        "shape1": "22222222-2222-2222-2222-222222222222"
+      }
+    ]
+  },
   "gearChainItems": [
     {
       "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
@@ -4458,6 +5103,12 @@
           "blockGuid": "00000000-0000-0000-0000-000000000004"
         }
       ]
+    }
+  ],
+  "electricWireItems": [
+    {
+      "itemGuid": "00000000-0000-0000-4649-000000000001",
+      "consumptionPerLength": 1
     }
   ]
 }
