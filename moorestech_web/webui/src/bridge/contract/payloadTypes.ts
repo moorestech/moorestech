@@ -113,7 +113,7 @@ export type CraftRecipesData = { recipes: CraftRecipe[] };
 export type MachineRecipeItem = { itemId: number; count: number };
 export type MachineRecipe = {
   recipeGuid: string;
-  blockItemId: number;
+  blockId: number;
   blockName: string;
   time: number;
   inputItems: MachineRecipeItem[];

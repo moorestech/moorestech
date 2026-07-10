@@ -21,9 +21,9 @@ const craftRecipe = (resultItemId: number, guid: string): CraftRecipe => ({
   requiredItems: [],
 });
 
-const machineRecipe = (blockItemId: number, blockName: string, outputItemId: number, guid: string): MachineRecipe => ({
+const machineRecipe = (blockId: number, blockName: string, outputItemId: number, guid: string): MachineRecipe => ({
   recipeGuid: guid,
-  blockItemId,
+  blockId,
   blockName,
   time: 1,
   inputItems: [],
@@ -77,7 +77,7 @@ describe("groupMachineRecipesByBlock", () => {
       machineRecipe(20, "Assembler", 7, "m4"),
     ],
   };
-  it("出力アイテム一致を blockItemId 毎に集約する", () => {
+  it("出力アイテム一致を blockId 毎に集約する", () => {
     const groups = groupMachineRecipesByBlock(data, 9);
     expect([...groups.keys()]).toEqual([10, 20]);
     expect(groups.get(10)!.map((r) => r.recipeGuid)).toEqual(["m1", "m2"]);
@@ -96,8 +96,8 @@ describe("buildRecipeTabs", () => {
     );
     const tabs = buildRecipeTabs([craftRecipe(9, "a")], groups);
     expect(tabs).toEqual([
-      { key: "craft", label: "クラフト", blockItemId: null },
-      { key: "m10", label: "Furnace", blockItemId: 10 },
+      { key: "craft", label: "クラフト", blockId: null },
+      { key: "m10", label: "Furnace", blockId: 10 },
     ]);
   });
   it("クラフト無し→機械タブのみ", () => {
@@ -106,7 +106,7 @@ describe("buildRecipeTabs", () => {
       9,
     );
     const tabs = buildRecipeTabs([], groups);
-    expect(tabs).toEqual([{ key: "m20", label: "Assembler", blockItemId: 20 }]);
+    expect(tabs).toEqual([{ key: "m20", label: "Assembler", blockId: 20 }]);
   });
   it("両方無し→空配列", () => {
     expect(buildRecipeTabs([], new Map())).toEqual([]);

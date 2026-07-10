@@ -55,3 +55,17 @@ describe("validResearchTree", () => {
     expect(validateTopicPayload(Topics.researchTree, {})).toBe(false);
   });
 });
+
+describe("validMachineRecipes", () => {
+  const recipe = {
+    recipeGuid: "recipe-guid", blockId: 12, blockName: "炉", time: 1,
+    inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
+  };
+
+  it("accepts BlockId and rejects the removed blockItemId contract", () => {
+    expect(validateTopicPayload(Topics.machineRecipes, { recipes: [recipe] })).toBe(true);
+    expect(validateTopicPayload(Topics.machineRecipes, {
+      recipes: [{ ...recipe, blockId: undefined, blockItemId: 12 }],
+    })).toBe(false);
+  });
+});

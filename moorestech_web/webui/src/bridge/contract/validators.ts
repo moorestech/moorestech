@@ -106,8 +106,17 @@ function validUiState(d: unknown): boolean {
 function validCraftRecipes(d: unknown): boolean {
   return isObject(d) && Array.isArray(d.recipes);
 }
+function isMachineRecipeItem(v: unknown): boolean {
+  return isObject(v) && isNumber(v.itemId) && isNumber(v.count);
+}
+function isMachineRecipe(v: unknown): boolean {
+  return (
+    isObject(v) && isString(v.recipeGuid) && isNumber(v.blockId) && isString(v.blockName) &&
+    isNumber(v.time) && isArrayOf(v.inputItems, isMachineRecipeItem) && isArrayOf(v.outputItems, isMachineRecipeItem)
+  );
+}
 function validMachineRecipes(d: unknown): boolean {
-  return isObject(d) && Array.isArray(d.recipes);
+  return isObject(d) && isArrayOf(d.recipes, isMachineRecipe);
 }
 function validItemList(d: unknown): boolean {
   return isObject(d) && isArrayOf(d.itemIds, isNumber);

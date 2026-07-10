@@ -99,6 +99,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(Game.BlockIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.BlockIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // ブロックアイコンの PNG 配信
+                    // Serve block icon PNGs
+                    await Game.BlockIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
                 if (path == Game.ItemMasterEndpoint.Path)
                 {
                     // アイテムマスタの JSON 配信

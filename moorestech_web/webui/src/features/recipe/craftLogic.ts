@@ -5,9 +5,9 @@ import type {
   MachineRecipesData,
 } from "@/bridge/contract/payloadTypes";
 
-// タブ定義。blockItemId が null ならクラフトレシピのタブ
-// Tab descriptor; blockItemId null means the craft recipe tab
-export type RecipeTab = { key: string; label: string; blockItemId: number | null };
+// タブ定義。blockId が null ならクラフトレシピのタブ
+// Tab descriptor; blockId null means the craft recipe tab
+export type RecipeTab = { key: string; label: string; blockId: number | null };
 
 // 選択アイテムを生産するクラフトレシピを抽出する純関数。
 // Pure selector for craft recipes that produce the selected item.
@@ -15,8 +15,8 @@ export function selectCraftRecipes(recipes: CraftRecipesData, itemId: number): C
   return recipes.recipes.filter((r) => r.resultItemId === itemId);
 }
 
-// 選択アイテムを出力する機械レシピを blockItemId 毎に集約する純関数。
-// Pure grouping of machine recipes producing the item, keyed by blockItemId.
+// 選択アイテムを出力する機械レシピを blockId 毎に集約する純関数。
+// Pure grouping of machine recipes producing the item, keyed by blockId.
 export function groupMachineRecipesByBlock(
   machineRecipes: MachineRecipesData,
   itemId: number,
@@ -25,9 +25,9 @@ export function groupMachineRecipesByBlock(
   machineRecipes.recipes
     .filter((r) => r.outputItems.some((o) => o.itemId === itemId))
     .forEach((r) => {
-      const group = groups.get(r.blockItemId) ?? [];
+      const group = groups.get(r.blockId) ?? [];
       group.push(r);
-      groups.set(r.blockItemId, group);
+      groups.set(r.blockId, group);
     });
   return groups;
 }
@@ -39,9 +39,9 @@ export function buildRecipeTabs(
   machineGroups: Map<number, MachineRecipe[]>,
 ): RecipeTab[] {
   const tabs: RecipeTab[] = [];
-  if (craftRecipes.length > 0) tabs.push({ key: "craft", label: "クラフト", blockItemId: null });
-  machineGroups.forEach((group, blockItemId) =>
-    tabs.push({ key: `m${blockItemId}`, label: group[0].blockName, blockItemId }),
+  if (craftRecipes.length > 0) tabs.push({ key: "craft", label: "クラフト", blockId: null });
+  machineGroups.forEach((group, blockId) =>
+    tabs.push({ key: `m${blockId}`, label: group[0].blockName, blockId }),
   );
   return tabs;
 }
