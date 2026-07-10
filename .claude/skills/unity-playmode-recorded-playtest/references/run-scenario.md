@@ -33,7 +33,7 @@ SKILL=.claude/skills/unity-playmode-recorded-playtest
 
 成果物: `moorestech_client/PlaytestResults/<セッション>/<ラン名>/`（git管理外）
 
-- `result.json` — `Success` / `Error`(スタックトレース) / `Asserts`配列(Label・Passed・Message) / `Screenshots` / `RecordingPath`
+- `result.json` — `Success` / `Error`(スタックトレース) / `Asserts`配列(Label・Passed・Message) / `Timeline`(操作・ナレーション・待機の時系列ログ) / `Screenshots` / `RecordingPath`
 - `recording.mp4` — 全編録画（`PlaytestRunOptions { Record = true }` のとき）
 - `*.png` — シナリオ内 `p.Screenshot(name)` の出力
 

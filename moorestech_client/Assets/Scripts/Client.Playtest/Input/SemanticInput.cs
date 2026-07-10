@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Playtest.Overlay;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,6 +37,7 @@ namespace Client.Playtest.Input
             EnsureDevices();
             PressedKeys.Add(key);
             QueueKeyboardState();
+            PlaytestOverlay.NotifyKey(key, true);
         }
 
         public static void KeyUp(Key key)
@@ -43,6 +45,7 @@ namespace Client.Playtest.Input
             EnsureDevices();
             PressedKeys.Remove(key);
             QueueKeyboardState();
+            PlaytestOverlay.NotifyKey(key, false);
         }
 
         public static async UniTask TapKey(Key key)
@@ -58,6 +61,7 @@ namespace Client.Playtest.Input
         public static void ReleaseAllKeys()
         {
             PressedKeys.Clear();
+            PlaytestOverlay.NotifyAllKeysReleased();
             if (Keyboard.current != null) InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
         }
 
@@ -80,12 +84,14 @@ namespace Client.Playtest.Input
         {
             EnsureDevices();
             QueueMouseButtons((ushort)(CurrentButtons() | ButtonBit(button)));
+            PlaytestOverlay.NotifyMouseButton(button, true);
         }
 
         public static void MouseButtonUp(int button)
         {
             EnsureDevices();
             QueueMouseButtons((ushort)(CurrentButtons() & ~ButtonBit(button)));
+            PlaytestOverlay.NotifyMouseButton(button, false);
         }
 
         public static async UniTask Click()

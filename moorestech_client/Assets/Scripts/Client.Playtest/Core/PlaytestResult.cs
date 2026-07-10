@@ -18,6 +18,7 @@ namespace Client.Playtest.Core
         public string StartedAt;
         public string FinishedAt;
         public List<PlaytestAssertResult> Asserts = new();
+        public List<string> Timeline = new();
         public List<string> ErrorLogs = new();
         public List<string> Screenshots = new();
         public string RecordingPath;
