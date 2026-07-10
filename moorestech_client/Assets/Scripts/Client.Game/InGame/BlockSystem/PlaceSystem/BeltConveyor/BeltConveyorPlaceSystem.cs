@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -23,7 +24,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
     /// ベルトコンベアファミリー専用の設置システム（1マス刻みの経路を長尺バリアントへ分解して設置する）
     /// Dedicated placement system for belt-conveyor families (decomposes the grid-step path into length variants)
     /// </summary>
-    public class BeltConveyorPlaceSystem : IPlaceSystem
+    public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
@@ -48,9 +49,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
         }
 
-        public void Enable() => _clickStartHeightOffset = -1;
+        public override void Enable() => _clickStartHeightOffset = -1;
 
-        public void Disable()
+        public override void Disable()
         {
             // デバッグモード時はプレビューを維持
             // Keep preview in debug mode
@@ -62,34 +63,30 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _currentPlaceInfos.Clear();
         }
 
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged)
         {
             _heightOffset = BeltConveyorInputControl.AdjustHeightOffset(_heightOffset);
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
-            GroundClickControl(context);
+            GroundClickControl(target);
         }
 
-        private void GroundClickControl(PlaceSystemUpdateContext context)
+        private void GroundClickControl(BlockPlacementTarget target)
         {
-            // ビルドメニューでブロック以外を選択中はSelectedBlockIdが無いことがある
-            // SelectedBlockId can be absent when the build-menu selection is not a block
-            if (!context.SelectedBlockId.HasValue) return;
-
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
-            if (_previousSelectedBlockId != context.SelectedBlockId)
+            if (_previousSelectedBlockId != target.BlockId)
             {
                 _clickStartPosition = null;
                 _clickStartHeightOffset = _heightOffset;
             }
-            _previousSelectedBlockId = context.SelectedBlockId;
+            _previousSelectedBlockId = target.BlockId;
 
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
             // ファミリー定義を解決（代表・斜面・長尺バリアント）。非ファミリーブロックは対象外
             // Resolve the family definition (representative, slopes, length variants); bail out for non-family blocks
-            if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(context.SelectedBlockId.Value, out var beltParam)) return;
+            if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(target.BlockId, out var beltParam)) return;
             var representativeBlockId = BeltConveyorPlaceFamilyUtil.GetRepresentativeBlockId(beltParam);
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(representativeBlockId);
             var variants = BeltConveyorPlaceFamilyUtil.GetStraightVariantsDesc(beltParam);
