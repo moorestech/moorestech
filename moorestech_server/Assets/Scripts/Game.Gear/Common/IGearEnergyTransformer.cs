@@ -19,9 +19,10 @@ namespace Game.Gear.Common
 
         public Torque GetRequiredTorque(RPM rpm, bool isClockwise);
 
-        public void StopNetwork();
-        public void SupplyPower(RPM rpm, Torque torque, bool isClockwise);
-        
+        // tick計算後、再計算されたnetworkのgearに対しGearTickUpdaterが呼ぶ。クライアントへ状態変化を通知する
+        // Called by GearTickUpdater after tick calculation for gears in recalculated networks; notifies clients of the state change
+        public void NotifyStateChanged();
+
         public List<GearConnect> GetGearConnects();
     }
     

@@ -15,6 +15,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using System.Reflection;
+using Tests.Util;
 using UniRx;
 using UnityEngine;
 
@@ -56,17 +57,23 @@ namespace Tests.CombinedTest.Core
             // Ensure gear stays when within allowed thresholds
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
-            var pos = new Vector3Int(1, 0, 0);
-            world.TryAddBlock(ForUnitTestModBlockId.SmallGear, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            var gearPos = new Vector3Int(1, 0, 0);
+            var generatorPos = new Vector3Int(1, 0, 1);
+            world.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
 
-            var transformer = block.GetComponent<GearEnergyTransformer>();
+            // 過負荷閾値（RPM/トルク10）を十分下回る低RPMで駆動し、破壊されないことを確認する
+            // Drive at a low RPM well under the overload thresholds (RPM/torque 10) to confirm the gear is not broken
+            var generator = generatorBlock.GetComponent<SimpleGearGeneratorComponent>();
+            generator.SetGenerateRpm(1f);
+            generator.SetGenerateTorque(1000f);
+
             for (var i = 0; i < 160; i++)
             {
-                transformer.SupplyPower(new RPM(5), new Torque(5), true);
                 GameUpdater.UpdateOneTick();
             }
 
-            Assert.IsTrue(world.Exists(pos));
+            Assert.IsTrue(world.Exists(gearPos));
         }
     }
 }
