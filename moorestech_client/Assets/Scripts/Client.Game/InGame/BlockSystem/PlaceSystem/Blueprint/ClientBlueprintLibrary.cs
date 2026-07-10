@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
@@ -13,6 +15,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     /// </summary>
     public class ClientBlueprintLibrary
     {
+        // キャッシュが最新全件に置き換わったら発火する（BuildMenuTopic の再配信トリガ）
+        // Fires when the cache is replaced with a fresh full list (republish trigger for BuildMenuTopic)
+        public IObservable<Unit> OnChanged => _onChanged;
+        private readonly Subject<Unit> _onChanged = new();
+
         private readonly List<BlueprintMessagePack> _blueprints = new();
 
         public IReadOnlyList<BlueprintMessagePack> Blueprints => _blueprints;
@@ -50,6 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
             _blueprints.Clear();
             _blueprints.AddRange(response.Blueprints);
+            _onChanged.OnNext(Unit.Default);
         }
     }
 }
