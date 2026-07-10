@@ -60,6 +60,8 @@ namespace Game.Block.Blocks.Gear
             float CalculateDestructionProbability()
             {
                 var rpmRatio = _overloadParam.OverloadMaxRpm > 0 ? _gearEnergyTransformer.CurrentRpm.AsPrimitive() / (float)_overloadParam.OverloadMaxRpm : 0f;
+                // CurrentTorqueは要求トルク倍率（アイドル低消費）込みであり、アイドル中のgearが破断しにくくなるのは意図した仕様
+                // CurrentTorque includes the requested-torque rate (idle reduction), intentionally making idle gears less likely to break
                 var torqueRatio = _overloadParam.OverloadMaxTorque > 0 ? _gearEnergyTransformer.CurrentTorque.AsPrimitive() / (float)_overloadParam.OverloadMaxTorque : 0f;
                 var rpmExcess = rpmRatio > 1f ? rpmRatio : 0f;
                 var torqueExcess = torqueRatio > 1f ? torqueRatio : 0f;
@@ -90,4 +92,3 @@ namespace Game.Block.Blocks.Gear
         }
     }
 }
-

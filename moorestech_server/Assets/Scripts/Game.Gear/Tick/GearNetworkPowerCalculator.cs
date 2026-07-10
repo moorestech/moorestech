@@ -27,6 +27,8 @@ namespace Game.Gear.Tick
                 var demand = demandSnapshot.GetDemand(transformer.BlockInstanceId);
                 if (!demand.DemandEnabled) continue;
 
+                // GetRequiredTorqueは既に要求倍率を含むため、DemandRateを動的化する場合は二重掛けを避けて倍率の責務を片方へ統一する
+                // GetRequiredTorque already includes the request rate; if DemandRate becomes dynamic, keep rate ownership in one place to avoid double application
                 var requiredTorque = transformer.GetRequiredTorque(rpm, isClockwise).AsPrimitive() * demand.DemandRate;
                 demandPower += requiredTorque * rpm.AsPrimitive();
             }
