@@ -1,4 +1,7 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.UI.Blueprint;
+using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
@@ -7,6 +10,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
+using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.UnlockState;
 using VContainer;
 
@@ -94,6 +98,15 @@ namespace Client.WebUiHost.Game
             var researchTopic = new ResearchTopic(hub, uiStateControl);
             hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
 
+            // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
+            // Register the build-menu topic (also wires the blueprint-name input bridge)
+            var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
+            var buildMenuView = resolver.Resolve<BuildMenuView>();
+            var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, unlockStateData, blueprintLibrary);
+            hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
+            new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
+
             // action ハンドラ登録
             // Register action handlers
             // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
@@ -115,6 +128,8 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
+            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, unlockStateData, blueprintLibrary, buildMenuView));
+            hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
         }
     }
 }
