@@ -22,6 +22,7 @@
     "research_failed",
     "block_not_open",
     "invalid_direction",
-    "filter_request_failed"
+    "filter_request_failed",
+    "unknown_entry"
   ]
 }

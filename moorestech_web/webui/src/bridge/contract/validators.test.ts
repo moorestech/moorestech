@@ -69,3 +69,28 @@ describe("validMachineRecipes", () => {
     })).toBe(false);
   });
 });
+
+describe("validBuildMenu", () => {
+  const entry = { entryType: "block", entryKey: "1", label: "鉄の機械", tooltip: "鉄の機械\n鉄インゴット x5", iconUrl: "/api/block-icons/1.png" };
+  it("accepts icon and text entries", () => {
+    const d = { entries: [entry, { entryType: "blueprint", entryKey: "家", label: "家", tooltip: "家" }] };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
+  });
+  it("rejects a non-string entryKey", () => {
+    const d = { entries: [{ ...entry, entryKey: 1 }] };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
+  });
+  it("rejects a missing entries array", () => {
+    expect(validateTopicPayload(Topics.buildMenu, {})).toBe(false);
+  });
+});
+
+describe("validModal input flag", () => {
+  const base = { id: "m1", title: "t", message: "m", buttonText: "OK", variant: "confirm" };
+  it("accepts input:true", () => {
+    expect(validateTopicPayload(Topics.modal, { modal: { ...base, input: true } })).toBe(true);
+  });
+  it("rejects a non-bool input", () => {
+    expect(validateTopicPayload(Topics.modal, { modal: { ...base, input: "yes" } })).toBe(false);
+  });
+});

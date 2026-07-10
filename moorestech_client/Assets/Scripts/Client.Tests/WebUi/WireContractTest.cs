@@ -109,7 +109,7 @@ namespace Client.Tests.WebUi
                 "invalid_id", "invalid_result", "no_pending_modal",
                 "invalid_state", "unsupported_state",
                 "invalid_guid", "research_failed", "block_not_open",
-                "invalid_direction", "filter_request_failed",
+                "invalid_direction", "filter_request_failed", "unknown_entry",
             };
 
             var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();
