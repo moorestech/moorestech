@@ -11,6 +11,8 @@ namespace Client.Playtest.Overlay
     {
         public PlaytestOverlayLogKind Kind;
         public string Text;
+        public string BaseText;
+        public int RepeatCount;
         public float ElapsedSeconds;
     }
 
@@ -51,9 +53,19 @@ namespace Client.Playtest.Overlay
 
         public PlaytestOverlayLogEntry PushLog(PlaytestOverlayLogKind kind, string text)
         {
+            // 同一テキストの連続pushは1行に畳み込み「×N」表示する（短い待機の連打でログが流れるのを防ぐ）
+            // Collapse consecutive identical pushes into one "xN" row (keeps repeated short waits from flooding the log)
+            var last = LogEntries.Count == 0 ? null : LogEntries[^1];
+            if (last != null && last.Kind == kind && last.BaseText == text)
+            {
+                last.RepeatCount++;
+                last.Text = $"{text} ×{last.RepeatCount}";
+                return last;
+            }
+
             // スタック式: 末尾が最新、上限を超えたら最古を落とす
             // Stack style: newest at the tail; drop the oldest beyond the cap
-            var entry = new PlaytestOverlayLogEntry { Kind = kind, Text = text, ElapsedSeconds = Time.realtimeSinceStartup - RunStartRealtime };
+            var entry = new PlaytestOverlayLogEntry { Kind = kind, Text = text, BaseText = text, RepeatCount = 1, ElapsedSeconds = Time.realtimeSinceStartup - RunStartRealtime };
             LogEntries.Add(entry);
             if (MaxLogEntries < LogEntries.Count) LogEntries.RemoveAt(0);
             return entry;

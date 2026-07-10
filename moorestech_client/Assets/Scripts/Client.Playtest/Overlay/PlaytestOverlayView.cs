@@ -6,8 +6,8 @@ using UnityEngine.InputSystem;
 namespace Client.Playtest.Overlay
 {
     /// <summary>
-    ///     録画に焼き込まれるIMGUIオーバーレイ。左上=アクションログ、左下=入力状態、画面上=注入カーソル
-    ///     IMGUI overlay baked into recordings: action log (top-left), input state (bottom-left), injected cursor
+    ///     録画に焼き込まれるIMGUIオーバーレイ。左上=アクションログ、右上=入力状態、画面上=注入カーソル
+    ///     IMGUI overlay baked into recordings: action log (top-left), input state (top-right), injected cursor
     /// </summary>
     public class PlaytestOverlayView : MonoBehaviour
     {
