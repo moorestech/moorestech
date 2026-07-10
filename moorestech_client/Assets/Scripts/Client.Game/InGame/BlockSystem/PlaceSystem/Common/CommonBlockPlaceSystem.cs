@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -22,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     /// <summary>
     ///     マウスで地面をクリックしたときに発生するイベント
     /// </summary>
-    public class CommonBlockPlaceSystem : IPlaceSystem
+    public class CommonBlockPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
@@ -48,11 +49,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore);
         }
         
-        public void Enable()
+        public override void Enable()
         {
             _clickStartHeightOffset = -1;
         }
-        public void Disable()
+        public override void Disable()
         {
             // デバッグモード時はプレビューを維持
             // Keep preview in debug mode
@@ -67,12 +68,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _currentPlaceInfos.Clear();
         }
         
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged)
         {
             ApplyPickedDirection();
             UpdateHeightOffset();
             BlockDirectionControl();
-            GroundClickControl(context);
+            GroundClickControl(target);
 
             #region Internal
 
@@ -80,7 +81,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 // スポイトでピックした向きを選択変化時に反映する
                 // Apply the eyedropped block direction when the selection changes
-                if (context.IsSelectionChanged && context.SelectedBlockDirection.HasValue) _currentBlockDirection = context.SelectedBlockDirection.Value;
+                if (isSelectionChanged && target.PickedDirection.HasValue) _currentBlockDirection = target.PickedDirection.Value;
             }
 
             void UpdateHeightOffset()
@@ -105,22 +106,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         }
         
         
-        private void GroundClickControl(PlaceSystemUpdateContext context)
+        private void GroundClickControl(BlockPlacementTarget target)
         {
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
-            if (_previousSelectedBlockId != context.SelectedBlockId)
+            if (_previousSelectedBlockId != target.BlockId)
             {
                 _clickStartPosition = null;
                 _clickStartHeightOffset = _heightOffset;
             }
-            _previousSelectedBlockId = context.SelectedBlockId;
+            _previousSelectedBlockId = target.BlockId;
 
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.SelectedBlockId.Value);
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
             if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) { _autoConnectPreview.Hide(); return; }
 
             // 設置可能な距離かどうか
@@ -159,7 +160,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // 各セルの自動接続を評価し表示更新
             // Evaluate auto-connect per cell and update the preview
-            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, context.SelectedBlockId.Value, _currentBlockDirection, _localPlayerInventory, placePoint);
+            var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, placePoint);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -213,7 +214,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 // 建設コストで賄えるセル数まで設置可にする
                 // Allow placement up to the affordable cell count
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.SelectedBlockId.Value);
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
                 var affordableCellCount = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(blockMaster.RequiredItems, _localPlayerInventory);
 
                 var placeableCount = 0;
