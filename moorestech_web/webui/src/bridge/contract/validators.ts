@@ -90,7 +90,8 @@ function validModal(d: unknown): boolean {
   if (!isObject(d)) return false;
   if (d.modal === undefined) return true;
   const m = d.modal;
-  return isObject(m) && isString(m.id) && isString(m.title) && isString(m.message) && isString(m.buttonText) && isString(m.variant);
+  return isObject(m) && isString(m.id) && isString(m.title) && isString(m.message) && isString(m.buttonText) && isString(m.variant) &&
+    (m.input === undefined || isBool(m.input));
 }
 
 function validProgress(d: unknown): boolean {
@@ -135,6 +136,14 @@ function validResearchTree(d: unknown): boolean {
   return isObject(d) && isArrayOf(d.nodes, validResearchNode);
 }
 
+function validBuildMenuEntry(v: unknown): boolean {
+  return isObject(v) && isString(v.entryType) && isString(v.entryKey) && isString(v.label) && isString(v.tooltip) &&
+    (v.iconUrl === undefined || isString(v.iconUrl));
+}
+function validBuildMenu(d: unknown): boolean {
+  return isObject(d) && isArrayOf(d.entries, validBuildMenuEntry);
+}
+
 const validators: Record<string, (d: unknown) => boolean> = {
   [Topics.inventory]: validInventory,
   [Topics.blockInventory]: validBlockInventory,
@@ -145,6 +154,7 @@ const validators: Record<string, (d: unknown) => boolean> = {
   [Topics.itemList]: validItemList,
   [Topics.uiState]: validUiState,
   [Topics.researchTree]: validResearchTree,
+  [Topics.buildMenu]: validBuildMenu,
 };
 
 // 既知 topic は検証、未知 topic は購読されず到達しないため素通しする

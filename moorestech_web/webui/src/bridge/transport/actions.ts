@@ -11,6 +11,9 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   "inventory.split": new Set(["grab_not_empty", "empty_slot"]),
   "block_inventory.move_item": new Set(["empty_slot", "insufficient_count"]),
   "ui.modal.respond": new Set(["no_pending_modal"]),
+  // メニューが先に閉じた/BPが先に消えた stale クリックはトースト不要
+  // Stale clicks (menu already closed / BP already deleted) need no error toast
+  "build_menu.select": new Set(["invalid_state", "unknown_entry"]),
 };
 
 export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {

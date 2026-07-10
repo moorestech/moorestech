@@ -10,6 +10,8 @@ import type {
   BlockInventoryData,
   UiStateData,
   ResearchTreeData,
+  BuildMenuData,
+  BuildMenuEntryType,
 } from "../contract/payloadTypes";
 
 // 通信の op レベルのメッセージ型（webSocketClient が使用）
@@ -39,6 +41,7 @@ export const Topics = {
   progress: "ui.progress",
   uiState: "ui_state.current",
   researchTree: "research.tree",
+  buildMenu: "build_menu.entries",
 } as const;
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
@@ -48,6 +51,7 @@ export const UiStateNames = {
   playerInventory: "PlayerInventory",
   subInventory: "SubInventory",
   researchTree: "ResearchTree",
+  buildMenu: "BuildMenu",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -62,6 +66,7 @@ export type TopicPayloads = {
   [Topics.progress]: ProgressData;
   [Topics.uiState]: UiStateData;
   [Topics.researchTree]: ResearchTreeData;
+  [Topics.buildMenu]: BuildMenuData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
@@ -73,7 +78,11 @@ export type ActionPayloads = {
   "inventory.sort": Record<string, never>;
   "inventory.select_hotbar": { index: number };
   "craft.execute": { recipeGuid: string };
-  "ui.modal.respond": { id: string; result: "confirm" | "cancel" };
+  // text は input モーダルの確定時のみ付与する
+  // text accompanies only the confirm of an input modal
+  "ui.modal.respond": { id: string; result: "confirm" | "cancel"; text?: string };
+  "build_menu.select": { entryType: BuildMenuEntryType; entryKey: string };
+  "blueprint.delete": { name: string };
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
   "block_inventory.split": { from: BlockSlotRef };
   "block_inventory.collect": { slot: BlockSlotRef };
@@ -96,6 +105,8 @@ export const ACTION_TYPES = [
   "inventory.select_hotbar",
   "craft.execute",
   "ui.modal.respond",
+  "build_menu.select",
+  "blueprint.delete",
   "block_inventory.move_item",
   "block_inventory.split",
   "block_inventory.collect",

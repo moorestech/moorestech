@@ -29,6 +29,9 @@ export type ModalRequest = {
   message: string;
   buttonText: string;
   variant: "confirm" | "error";
+  // 入力必須モーダル（BP名入力等）。false時はC#側でキー省略されるため optional
+  // Input-required modal (e.g. blueprint naming); omitted when false, so it is optional
+  input?: boolean;
 };
 // modal は C# 側 NullValueHandling.Ignore で null 時にキーごと省略される（無し時は {}）
 // modal is dropped key-and-all when null by the C# NullValueHandling.Ignore (absent → {})
@@ -145,3 +148,19 @@ export type ResearchNodeData = {
   unlockItemIds: number[];
 };
 export type ResearchTreeData = { nodes: ResearchNodeData[] };
+
+// BM-1 ビルドメニューエントリ。uGUI BuildMenuEntryCatalog の合成結果をそのまま運ぶ
+// BM-1 build-menu entries; carries the composed result of the uGUI BuildMenuEntryCatalog
+export type BuildMenuEntryType = "block" | "trainCar" | "connectTool" | "blueprintCopy" | "blueprint";
+export type BuildMenuEntryData = {
+  entryType: BuildMenuEntryType;
+  // 種別ごとの安定キー: block=BlockId / trainCar=Guid / connectTool=PlaceMode / blueprint=BP名 / blueprintCopy=""
+  // Stable key per type: block=BlockId, trainCar=Guid, connectTool=PlaceMode, blueprint=BP name, blueprintCopy=""
+  entryKey: string;
+  label: string;
+  tooltip: string;
+  // アイコン無し（BP・BPコピー）はキー省略されるため optional
+  // Icon-less entries (blueprints, copy tool) omit the key, so it is optional
+  iconUrl?: string;
+};
+export type BuildMenuData = { entries: BuildMenuEntryData[] };
