@@ -3,7 +3,6 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.PlayerInventory.Interface;
 using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Game.Actions
@@ -14,14 +13,14 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public static class BlockAreaSlotParser
     {
-        public static bool TryParseBlockSlot(JToken token, SubInventoryState subInventoryState, out int combinedSlot)
+        public static bool TryParseBlockSlot(JToken token, SubInventoryState subInventoryState, int mainSlotCount, out int combinedSlot)
         {
             combinedSlot = -1;
             if (token is not JObject obj) return false;
             if (obj["area"] is not JValue { Type: JTokenType.String } areaValue || (string)areaValue != "block") return false;
 
-            // block の slot は必須。サブインベントリは結合インベントリの MainInventorySize 以降に並ぶ
-            // block requires a slot; the sub-inventory lives after MainInventorySize in the combined inventory
+            // block の slot は必須。サブインベントリは結合インベントリの現在の mainSlotCount 以降に並ぶ
+            // block requires a slot; the sub-inventory lives after the current mainSlotCount in the combined inventory
             if (obj["slot"] is not JValue { Value: long slotLong }) return false;
 
             // 発生元がブロックのときだけ許可する。列車等の非ブロックサブは block action で操作させない
@@ -34,7 +33,7 @@ namespace Client.WebUiHost.Game.Actions
             if (sub == null) return false;
             if (slotLong < 0 || sub.Count <= slotLong) return false;
 
-            combinedSlot = PlayerInventoryConst.MainInventorySize + (int)slotLong;
+            combinedSlot = mainSlotCount + (int)slotLong;
             return true;
         }
     }
@@ -91,9 +90,10 @@ namespace Client.WebUiHost.Game.Actions
 
                 // block 以外は area/slot の共通パースに委譲する
                 // Delegate non-block areas to the shared area/slot parser
-                if (area != "block") return InventoryAreaMapper.TryParseSlotRef(token, out type, out localSlot);
+                var mainSlotCount = _controller.LocalPlayerInventory.MainSlotCount;
+                if (area != "block") return InventoryAreaMapper.TryParseSlotRef(token, mainSlotCount, out type, out localSlot);
 
-                if (!BlockAreaSlotParser.TryParseBlockSlot(token, _subInventoryState, out var combinedSlot)) return false;
+                if (!BlockAreaSlotParser.TryParseBlockSlot(token, _subInventoryState, mainSlotCount, out var combinedSlot)) return false;
                 type = LocalMoveInventoryType.MainOrSub;
                 localSlot = combinedSlot;
                 return true;
@@ -126,7 +126,8 @@ namespace Client.WebUiHost.Game.Actions
 
             // 入力は block スロットのみ。player 側スロットは既存 inventory.split の責務
             // Input is a block slot only; player-side slots stay with the existing inventory.split
-            if (!BlockAreaSlotParser.TryParseBlockSlot(payload["from"], _subInventoryState, out var combinedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            var mainSlotCount = _controller.LocalPlayerInventory.MainSlotCount;
+            if (!BlockAreaSlotParser.TryParseBlockSlot(payload["from"], _subInventoryState, mainSlotCount, out var combinedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
             if (_controller.GrabInventory.Id != ItemMaster.EmptyItemId) return UniTask.FromResult(ActionResult.Fail("grab_not_empty"));
 
             var item = _controller.LocalPlayerInventory[combinedSlot];
@@ -163,7 +164,8 @@ namespace Client.WebUiHost.Game.Actions
 
             // 入力は block スロットのみ。player 側スロットは既存 inventory.collect の責務
             // Input is a block slot only; player-side slots stay with the existing inventory.collect
-            if (!BlockAreaSlotParser.TryParseBlockSlot(payload["slot"], _subInventoryState, out var combinedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+            var mainSlotCount = _controller.LocalPlayerInventory.MainSlotCount;
+            if (!BlockAreaSlotParser.TryParseBlockSlot(payload["slot"], _subInventoryState, mainSlotCount, out var combinedSlot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
 
             // 収集先決定は inventory.collect と同一（host 自身の grab 状態で決める）。空手×空スロットは no-op
             // Target choice matches inventory.collect (decided by the host's own grab); empty-handed on empty is a no-op
