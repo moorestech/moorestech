@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Update;
@@ -12,8 +11,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.Gear.Common;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -31,10 +28,9 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void GearMiningTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
             
             // 鉱石を採掘するための鉱脈を探す
             // Locate a map vein (resource deposit) to mine.
@@ -63,8 +59,7 @@ namespace Tests.CombinedTest.Core
             
             // 歯車エネルギーを受け取るために歯車ネットワークを更新
             // Ensure the gear network is updated so that the miner receives power.
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
             
             // アイテムがアウトプットされていることを確認するためのチェストを採掘機の隣に設置する
             // Place a chest adjacent to the gear miner to verify that items are output.
