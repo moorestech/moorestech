@@ -75,5 +75,12 @@ namespace Tests.Module.TestMod
         public static BlockId FilterSplitter => GetBlock("00000000-0000-0000-0000-000000000031");
         public static BlockId TestShapeOrderSourceChest => GetBlock("00000000-0000-0000-0000-000000000032");
         public static BlockId TestShapeOrderTargetChest => GetBlock("00000000-0000-0000-0000-000000000033");
+
+        public static BlockId CleanRoomWallId => GetBlock("2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8");
+        public static BlockId CleanRoomDoorId => GetBlock("07d7e1a2-b1fd-412f-819c-af098e79e4d4");
+        public static BlockId CleanRoomItemHatchId => GetBlock("d6268837-5326-480b-960a-ffdce4b5478e");
+        public static BlockId CleanRoomPipeHatchId => GetBlock("8e425510-aa34-4a1b-9f40-5f8079183ab2");
+        public static BlockId CleanRoomAirFilterId => GetBlock("21e760d0-54b2-41a5-8cef-d78e1efb8fb8");
+        public static BlockId CleanRoomMachineId => GetBlock("e08acf92-9d43-4db0-b43a-bcec773f22dc");
     }
 }

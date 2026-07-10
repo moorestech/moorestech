@@ -1,0 +1,21 @@
+{
+  "name": "Game.CleanRoom",
+  "rootNamespace": "",
+  "references": [
+    "Game.Block.Interface",
+    "Game.World.Interface",
+    "Core.Master",
+    "Core.Update",
+    "Game.Context",
+    "UniRx"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

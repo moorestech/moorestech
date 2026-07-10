@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Game.Blueprint;
 using Game.Challenge;
+using Game.CleanRoom.Save;
 using Game.CraftTree;
 using Game.CraftTree.Json;
 using Game.Entity.Interface;
@@ -35,7 +36,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<PlayerRidingSaveData> playerRidingStates,
             List<BlueprintJsonObject> blueprints,
             Dictionary<string, int> itemStackLevels,
-            int inventorySlotLevel)
+            int inventorySlotLevel,
+            List<CleanRoomSaveData> cleanRoomRooms)
         {
             World = world;
             Inventory = inventory;
@@ -52,6 +54,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             Blueprints = blueprints ?? new List<BlueprintJsonObject>();
             ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
+            CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -70,5 +73,6 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("blueprints")] public List<BlueprintJsonObject> Blueprints { get; set; }
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
+        [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }
     }
 }
