@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.WebUiHost.Game
 {
     /// <summary>
-    /// GET /api/block-icons/{blockId}.png でブロックアイコンを PNG 配信する
-    /// Serves block icons as PNG at GET /api/block-icons/{blockId}.png
+    /// BlockId画像をPNG配信する
+    /// Serves BlockId images as PNG
     /// </summary>
     public static class BlockIconEndpoint
     {
@@ -42,8 +42,6 @@ namespace Client.WebUiHost.Game
 
         public static async Task HandleAsync(HttpContext context, string path)
         {
-            // パスから blockId を取り出す。不正なら 404
-            // Extract blockId from the path; 404 if malformed
             var idText = path.Substring(PathPrefix.Length, path.Length - PathPrefix.Length - PathSuffix.Length);
             if (!int.TryParse(idText, out var blockIdValue))
             {

@@ -32,8 +32,8 @@ namespace Client.Starter.Initialization
 
         public async UniTask<ModAssetIconLoadResult> RunAsync()
         {
-            // ブロック撮影結果は BlockId 専用画像として保持する
-            // Keep block captures as BlockId-specific images
+            // 撮影画像は BlockId 専用
+            // Captured images are BlockId-specific
             var blockImageContainer = await TakeBlockImagesAsync();
             var trainCarImageContainer = await TakeTrainCarImagesAsync();
             return new ModAssetIconLoadResult(blockImageContainer, trainCarImageContainer);
@@ -52,8 +52,8 @@ namespace Client.Starter.Initialization
                 targets.Add(blockObjectInfo);
             }
 
-            // 撮影した画像を BlockId ごとに登録する
-            // Register each captured image by BlockId
+            // BlockId ごとに画像登録
+            // Register images by BlockId
             var blockImageContainer = new BlockImageContainer();
             var textures = await _photographer.TakeBlockIconImages(targets);
             for (var i = 0; i < blockIds.Count; i++)

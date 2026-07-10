@@ -39,8 +39,8 @@ namespace Client.WebUiHost.Game
 
         public static ItemMasterListDto BuildResponse(IItemStackLevelLookup stackLevelLookup)
         {
-            // 各リクエスト時点の解放レベルからスタック上限を導出する
-            // Derive stack limits from the unlocked levels at the time of each request
+            // 現在の解放レベルを反映
+            // Reflect current unlocked levels
             var dto = new ItemMasterListDto { Items = new List<ItemMasterDto>() };
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {

@@ -54,8 +54,6 @@ namespace Client.WebUiHost.Game.Topics
                 if (!unlockInfos.TryGetValue(recipe.MachineRecipeGuid, out var unlockInfo)) continue;
                 if (!unlockInfo.IsUnlocked) continue;
 
-                // 機械ブロックの BlockId と名前を取得
-                // Resolve the machine block's BlockId and name
                 var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
                 var blockName = MasterHolder.BlockMaster.GetBlockMaster(blockId).Name;
 

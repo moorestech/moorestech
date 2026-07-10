@@ -37,8 +37,6 @@ describe("ensureItemMasterLoaded", () => {
     const firstMaster = useItemMasterStore.getState().master;
     expect(firstMaster?.get(1)?.maxStack).toBe(100);
 
-    // 成功後も同じ間隔で再取得し、Map 自体を置き換える
-    // Refresh after the same interval even on success and replace the Map itself
     await vi.advanceTimersByTimeAsync(3000);
     const secondMaster = useItemMasterStore.getState().master;
     expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -86,8 +84,6 @@ describe("ensureItemMasterLoaded", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(useItemMasterStore.getState().master).toBeNull();
 
-    // JSON 解析失敗でも3秒後の取得を継続する
-    // Continue fetching after three seconds even when JSON parsing fails
     await vi.advanceTimersByTimeAsync(3000);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Wood");
