@@ -6,9 +6,8 @@ namespace Game.EnergySystem
     /// <summary>
     ///     エネルギーを消費するモノ
     /// </summary>
-    public interface IElectricConsumer : IBlockComponent
+    public interface IElectricConsumer : IElectricEnergyRole
     {
-        public BlockInstanceId BlockInstanceId { get; }
         public ElectricPower RequestEnergy { get; }
         void SupplyEnergy(ElectricPower power);
     }

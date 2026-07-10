@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Core.Item;
 using Core.Master;
 using Game.Block.Blocks.Chest;
 using Game.Block.Blocks.Machine.Inventory;
@@ -40,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // ホットバー（最下段）にアイテムを置き、整理で動かないことを確認する
             // Put an item on the hotbar (bottom row) to verify it is left untouched.
-            var hotBarSlot = PlayerInventoryConst.HotBarSlots[0];
+            var hotBarSlot = PlayerInventoryConst.GetHotBarSlots(mainInventory.GetSlotSize())[0];
             mainInventory.SetItem(hotBarSlot, new ItemId(5), 9);
 
             // メインインベントリを整理
@@ -74,7 +75,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 合計が最大スタックを超える同種アイテムを2スロットに分割配置する
             // Place a same item split across two slots so the total exceeds the max stack.
             var itemId = new ItemId(2);
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(itemId).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
             mainInventory.SetItem(0, itemId, maxStack - 5);
             mainInventory.SetItem(3, itemId, 10);
 

@@ -15,7 +15,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
     public class PlayerInventorySlotInteraction
     {
         private readonly LocalPlayerInventoryController _playerInventory;
-        private readonly List<ItemSlotView> _mainInventorySlotObjects;
+        private readonly IReadOnlyList<ItemSlotView> _mainInventorySlotObjects;
         private readonly PlayerInventorySplitDragHandler _splitHandler;
         private readonly PlayerInventoryDirectMover _directMover;
 
@@ -25,7 +25,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
         private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemMaster.EmptyItemId;
 
-        public PlayerInventorySlotInteraction(LocalPlayerInventoryController playerInventory, List<ItemSlotView> mainInventorySlotObjects)
+        public PlayerInventorySlotInteraction(LocalPlayerInventoryController playerInventory, IReadOnlyList<ItemSlotView> mainInventorySlotObjects)
         {
             _playerInventory = playerInventory;
             _mainInventorySlotObjects = mainInventorySlotObjects;
@@ -41,7 +41,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public void HandleSlotEvent((ItemSlotView slotObject, ItemUIEventType itemUIEvent) eventProperty)
         {
             var (slotObject, itemUIEvent) = eventProperty;
-            var index = _mainInventorySlotObjects.IndexOf(slotObject);
+            var index = IndexOfMainSlotView();
             if (index == -1)
                 index = _mainInventorySlotObjects.Count + _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
 
@@ -70,6 +70,22 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 case ItemUIEventType.CursorMove: break;
                 default: throw new ArgumentOutOfRangeException(nameof(itemUIEvent), itemUIEvent, null);
             }
+
+            #region Internal
+
+            int IndexOfMainSlotView()
+            {
+                // IReadOnlyListにIndexOfがないため参照一致で探索する
+                // Search by reference because IReadOnlyList has no IndexOf
+                for (var i = 0; i < _mainInventorySlotObjects.Count; i++)
+                {
+                    if (_mainInventorySlotObjects[i] == slotObject) return i;
+                }
+
+                return -1;
+            }
+
+            #endregion
         }
 
         private void DoubleClick(int slotIndex)

@@ -47,7 +47,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
 
             // サーバー送信は結合スロット→サーバースロット変換を担う専用クラスへ委譲する
             // Delegate server dispatch (combined-slot to server-slot conversion) to a dedicated class
-            if (isMoveSendData) InventoryMoveServerDispatcher.SendMoveItemData(_subInventory, from, fromSlot, to, toSlot, count);
+            if (isMoveSendData) InventoryMoveServerDispatcher.SendMoveItemData(_subInventory, _localPlayerInventory.MainSlotCount, from, fromSlot, to, toSlot, count);
 
             #region Internal
 
@@ -88,7 +88,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         break;
                 }
             }
-
             #endregion
         }
         
@@ -168,6 +167,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
         
         public void SetMainItem(int slot, IItemStack itemStack)
         {
+            // 範囲外スロットの通知はレベルアップによる拡張なので末尾まで成長させる
+            // An out-of-range slot notification means a level-up expansion, so grow to that slot
+            if (_localPlayerInventory.MainSlotCount <= slot) _localPlayerInventory.EnsureMainSlotCount(slot + 1);
             _localPlayerInventory[slot] = itemStack;
         }
         

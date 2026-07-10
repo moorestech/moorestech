@@ -20,6 +20,27 @@
 | 派生状態の永続化 | 冪等再実行で復元可能でも、ロード順の制約があれば GameUnlockState 同様に永続化して先頭でロード | WorldLoaderFromJson はインベントリ復元(103行)が研究ロード(107行)より先 |
 | 研究/アンロック由来の派生値のクライアント同期に新プロトコルが要るか | 原則不要。クライアントは共有マスタ＋同期済み状態から導出する | 研究完了・アンロック状態は既に同期済み（InitialHandshake, GetResearchInfo, ResearchCompleteEventPacket, GetGameUnlockState, UnlockedEventPacket）。新設は既存同期情報から導出できないことを示してから |
 
+## プロトコル設計
+
+| 問い | 答え | 根拠 |
+|---|---|---|
+| 同一ドメインの複数操作（create/get/delete 等）を操作ごとに別プロトコルにするか | しない。1プロトコル＝1ドメインで、リクエスト内の Mode/Operation enum で switch 分岐する | ElectricWireConnectionEditProtocol（WireEditMode）、FilterSplitterStateProtocol（Operation）が先行例。2026-07-07 BP設計でCRUD3本案を提示しユーザーに1本化へ修正された実績 |
+| 新プロトコルを含む設計を書く前にやること | creating-server-protocol スキル本文を必ず読む（「スキルの型に従う」と書くだけでは不足） | 同スキルに粒度・命名・Request構築の規約が明記済み。読まずに設計書を書いてCRUD分割を通した事故が実際に起きた |
+
+## 契約・インターフェース設計
+
+| 問い | 答え | 根拠 |
+|---|---|---|
+| 空間範囲を受けるプロトコル/サービスの引数はUXに合わせて絞ってよいか（XZ矩形のみ等） | 絞らない。契約は一般形（min/maxのXYZ AABB、Vector3Int対）で受け、UX簡略化はクライアント側の初期値で行う | 2026-07-07 BP設計で「XZ矩形＋高さ全域」を契約に焼き込み、「上空の建造物を除外できず範囲を一意に絞れない」とユーザーに修正された実績。柱状選択は反例（高架レール巻き込み）を1つ構築すれば設計段階で弾けた |
+| ブロックの設定コピー等、状態の抽出interfaceに適用側は要るか | 要る。Get/Applyを同一interfaceに対で定義し、適用はBlockFactory.Create直後の中央1箇所でinterface列挙して汎用実行（テンプレート個別改修に分散させない） | 2026-07-07 BP設計でGetのみのinterface＋テンプレート個別消費案を提示し、ユーザーに適用側の欠落を指摘された実績。中央適用は同コストで改修点が減り対応ブロック追加もコンポーネント実装だけで済む（無料の上位互換） |
+
+## UI入力・選択モデル（クライアント）
+
+| 問い | 答え | 根拠 |
+|---|---|---|
+| ワールド内の対象を選ぶ入力機能（スポイト等）のサービス形状 | UIステート（GameScreen / PlaceBlock等）から毎フレーム`ManualUpdate()`型で駆動し、入力検知（ミドルクリック等）も対象検知（レイキャスト・解決）もサービス内部で行う。`TryXxx()` bool戻り値でステート側にクリック判定・分岐を書く形にしない | データフロー一貫。駆動同族: `PlaceSystemStateController.ManualUpdate()` / `BuildViewModeController.ManualUpdate()`。2026-07-08スポイト設計でTry-bool型を提示し、ユーザーに毎フレーム駆動サービスへ修正された実績。`TryGet`型前例（`GameScreenSubInventoryInteractService`）は共有状態を書かない遷移判定サービス限定 |
+| ピック・選択結果（向き等の付帯情報を含む）の反映経路 | `PlacementSelection`（共有選択モデル）への書き込み一本。付帯情報はフィールドを追加し変化検知（`IsSelectionChanged`比較）にも含める。選択モデルを迂回して各PlaceSystemへ直接セッターを呼ばない | SSOT（導出可能テスト・新設ゲートと同型）。「同一対象の再選択で変化検知が発火しない」は比較フィールド追加で解決できるため、直接セッター新設の理由にならない |
+
 ## マスタデータ・スキーマ
 
 | 問い | 答え | 根拠 |

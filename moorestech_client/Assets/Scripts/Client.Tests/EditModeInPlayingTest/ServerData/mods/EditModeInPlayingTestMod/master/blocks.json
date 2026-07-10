@@ -14,6 +14,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 0,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
         "inventoryConnectors": {
@@ -30,13 +31,13 @@
           "outflowConnects": []
         },
         "inputTankCount": 0,
-        "outputTankCount": 0
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "8b67462b-227a-465b-8d86-de683b5e98a1",
       "blockGuid": "3d3fdac0-4dce-4bd0-adda-827a3b67feb9",
       "blockPrefabAddressablesPath": "Vanilla/Block/campfier",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "initialUnlocked": true,
@@ -59,8 +60,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "directions": [
@@ -105,8 +105,7 @@
                   1
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "c410d96a-1ec2-4f3e-aa20-6623f917f778"
@@ -122,14 +121,13 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "19fb4202-de45-49f1-a480-3d154309dd99",
       "blockGuid": "ce060607-996d-4270-87ec-204073f6e3f7",
       "blockPrefabAddressablesPath": "Vanilla/Block/SmallGear",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -152,8 +150,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -178,8 +175,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "39e1bb67-982e-407e-9d7e-81b591b55b2a"
@@ -191,11 +187,9 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "370b1996-237e-475e-a5e3-a3f4f2a88587",
       "blockGuid": "f07acb35-f9c2-4905-b1dd-88c6723707b6",
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -218,11 +212,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -255,7 +244,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -278,10 +266,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "279abd08-6d4c-485a-8de0-98fa372a92f1"
             }
           ]
@@ -294,8 +278,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -344,14 +327,13 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "8b7a77d9-bda9-4eb5-85f3-8eefc6f90a84",
       "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
       "blockPrefabAddressablesPath": "Vanilla/Block/Sieve",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
@@ -374,11 +356,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -411,7 +388,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   1,
@@ -434,10 +410,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "c24a7a4d-8ce0-40c7-b7a4-6c55e65fc51a"
             }
           ]
@@ -450,8 +422,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -500,14 +471,13 @@
           "minimumRpm": 0,
           "baseTorque": 0.01,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "1da13d89-8aa1-42f7-8d7f-96ef0d216c2b",
       "blockGuid": "47afbbce-ca2c-4470-8348-3d8c1d887506",
       "blockPrefabAddressablesPath": "Vanilla/Block/Primitive Centrifuge",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
@@ -520,6 +490,7 @@
       "blockParam": {
         "moduleSlotCount": 4,
         "requiredPower": 0,
+        "idlePowerRate": 0.2,
         "outputSlotCount": 1,
         "inputSlotCount": 3,
         "inventoryConnectors": {
@@ -536,13 +507,13 @@
         },
         "innerTankCapacity": 0,
         "outputTankCount": 0,
-        "inputTankCount": 0
+        "inputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "3acc3fa4-44c9-44ff-bf45-3f01a8acf4c3",
       "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
       "blockPrefabAddressablesPath": "Vanilla/Block/Charcoal_Kiln",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory"
     },
     {
       "initialUnlocked": true,
@@ -564,8 +535,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -598,14 +568,13 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "96b45ab2-3345-4fcd-99af-f3dc06605e73",
       "blockGuid": "3dda0801-b12a-4624-b759-2ac3c62969a6",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -628,8 +597,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -654,8 +622,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "46aed99a-3bc2-4725-87b0-129112e7c0a7"
@@ -667,10 +634,8 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "02dda87e-01f3-41dd-b76a-27fbc17b43c0",
       "blockGuid": "6fc49eb9-d2d7-4ab9-ba0e-17a210719a28",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill blue",
-      "overrideVerticalBlock": {}
+      "blockPrefabAddressablesPath": "Vanilla/Block/Primitive_Windmill blue"
     },
     {
       "blockSize": [
@@ -678,7 +643,6 @@
         1,
         1
       ],
-      "itemGuid": "4abdae31-6e3b-42c5-a097-4cf6021751ca",
       "blockType": "GearMachine",
       "blockParam": {
         "moduleSlotCount": 4,
@@ -693,11 +657,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [],
               "connectorGuid": "45c4977a-ca9f-45d4-9eeb-829a1f0d4230"
             }
@@ -709,7 +668,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -717,10 +675,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "f2276bf2-4c08-4921-a12d-8d214739809a"
             }
           ]
@@ -733,8 +687,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -783,14 +736,14 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "name": "プレス機",
       "blockGuid": "20ebdedb-da4e-4cee-b9ba-772e6394653c",
       "blockPrefabAddressablesPath": "Vanilla/Block/press machine",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
@@ -799,7 +752,6 @@
         1
       ],
       "name": "石の粉砕機",
-      "itemGuid": "2895b52f-8285-41a8-82d2-4fbd43786a65",
       "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
       "blockType": "GearMachine",
       "blockParam": {
@@ -815,11 +767,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -852,11 +799,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   1,
@@ -891,8 +833,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -941,12 +882,12 @@
           "minimumRpm": 0,
           "baseTorque": 2,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/stone crasher",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
       "blockSize": [
@@ -967,8 +908,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1025,7 +965,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1058,9 +997,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "e771a995-1ae5-4236-aa27-2b6d76ec8e34"
             }
           ],
@@ -1071,7 +1007,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1084,9 +1019,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "85f96224-0514-49b0-814c-858f558e4972"
             }
           ]
@@ -1101,19 +1033,13 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "52f09be4-e12b-4674-afec-d183cebed28f",
       "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
-        "downBlockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
-        "horizontalBlockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
-      },
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "enableConveyorPlacement": true
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -1134,8 +1060,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1167,7 +1092,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1175,9 +1099,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "e0416e02-890d-45b6-b653-28748f467552"
             }
           ],
@@ -1188,7 +1109,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1201,9 +1121,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "4eaf23de-8243-4910-beb5-acf8d80f1eff"
             }
           ]
@@ -1218,15 +1135,13 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "b3b2cbce-94fb-493a-97b9-a0dbc88d4a41",
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -1247,8 +1162,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1285,7 +1199,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1298,9 +1211,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "9ffa7bcb-0930-4dde-883b-4e47d52e45e8"
             }
           ],
@@ -1311,7 +1221,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1319,9 +1228,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "1b283493-d7ec-4051-8d9e-d42247369a27"
             }
           ]
@@ -1336,15 +1242,13 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "de18ccf5-7560-4733-8416-676a4cdf52ec",
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "overrideVerticalBlock": {},
-      "enableConveyorPlacement": true
+      "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI"
     },
     {
       "blockSize": [
@@ -1364,8 +1268,7 @@
                 1,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1395,8 +1298,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "connectorGuid": "883dd7a6-24b9-4881-990e-1533726a1998"
@@ -1414,8 +1316,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "connectorGuid": "95741460-fd60-4517-9932-4b4a5e8a8e50"
@@ -1426,8 +1327,7 @@
                 2,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "directions": [
@@ -1452,8 +1352,7 @@
                   0
                 ]
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "connectorGuid": "33940bdf-65e9-41bd-bf5b-fb4a4868776e"
@@ -1469,15 +1368,14 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "initialUnlocked": true,
-      "itemGuid": "ba3cf978-dc21-47f9-810e-50f1c26015ed",
       "blockGuid": "7c8e82c2-cdb5-421a-8ce4-6f58104141b5",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "blockPrefabAddressablesPath": "Vanilla/Block/BigGear",
-      "overrideVerticalBlock": {}
+      "blockPrefabAddressablesPath": "Vanilla/Block/BigGear"
     },
     {
       "sortPriority": 100,
@@ -1487,7 +1385,6 @@
         1,
         2
       ],
-      "itemGuid": "c7c08b65-254f-40e8-9779-87a77739fc56",
       "blockType": "GearMiner",
       "blockParam": {
         "inputItemSlotCount": 1,
@@ -1502,7 +1399,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1510,9 +1406,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "b68ede1b-7d4a-4db9-9a3c-e46ae7bb60f4"
             }
           ]
@@ -1532,8 +1425,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1551,8 +1443,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": true
               },
               "directions": [
@@ -1575,14 +1466,14 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMinerBlockInventory",
       "blockGuid": "af2cd6cf-7e39-4411-be31-06ab32cea073",
-      "name": "原始的な採掘機",
-      "overrideVerticalBlock": {}
+      "name": "原始的な採掘機"
     },
     {
       "initialUnlocked": true,
@@ -1608,11 +1499,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [],
               "connectorGuid": "5f90c920-a95e-4d05-bce3-2c4a3ec6df19"
             }
@@ -1624,7 +1510,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1632,10 +1517,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "7cfc2bc9-5e18-4830-8d91-df9f9ee47dd2"
             }
           ]
@@ -1648,8 +1529,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1698,14 +1578,13 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "2df8862b-dfd1-4e64-b688-952b69212902",
       "name": "圧延機",
       "blockPrefabAddressablesPath": "Vanilla/Block/rolling mill",
-      "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676",
-      "overrideVerticalBlock": {}
+      "blockGuid": "bc45f10a-9f12-4514-affc-45229bd62676"
     },
     {
       "blockSize": [
@@ -1713,7 +1592,6 @@
         2,
         3
       ],
-      "itemGuid": "741bbdde-ea03-4eff-83bd-0a8e860c6e36",
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_sawmill",
       "name": "原木加工機",
       "blockGuid": "4b1808f2-0a5b-41bf-aced-645e4a76b870",
@@ -1731,11 +1609,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "directions": [
                 [
                   0,
@@ -1753,7 +1626,6 @@
                 0,
                 2
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -1761,10 +1633,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "isReverse": true,
-                "inventoryOptions": []
-              },
               "connectorGuid": "1d792219-31a9-4ce3-8309-51ff9f3a6cff"
             }
           ]
@@ -1777,8 +1645,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1827,10 +1694,10 @@
           "minimumRpm": 0,
           "baseTorque": 4,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "overrideVerticalBlock": {},
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMachineBlockInventory"
     },
     {
@@ -1873,14 +1740,13 @@
           "minimumRpm": 0,
           "baseTorque": 1,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "3fbc5f0e-e39d-4753-9757-e5464284850d",
       "blockGuid": "4ff330a1-ecf4-4687-b782-423f25bd9dbf",
       "blockUIAddressablesPath": "Vanilla/UI/Block/MachineBlockInventory",
-      "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows",
-      "overrideVerticalBlock": {}
+      "blockPrefabAddressablesPath": "Vanilla/Block/iron furnace with bellows"
     },
     {
       "initialUnlocked": true,
@@ -1901,8 +1767,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -1930,15 +1795,14 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "855ec61a-a6c1-4a37-a885-1c5994ce573b",
       "name": "縦シャフト",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Vertical",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "blockGuid": "0ab4b8c3-6f23-47bc-9b58-bb90def565fe",
-      "overrideVerticalBlock": {}
+      "blockGuid": "0ab4b8c3-6f23-47bc-9b58-bb90def565fe"
     },
     {
       "blockSize": [
@@ -1947,7 +1811,6 @@
         1
       ],
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearEnergyTransformerUI",
-      "itemGuid": "6713e841-9756-497c-a60d-327ed1e1edc8",
       "name": "シャフトボックス",
       "blockType": "Shaft",
       "blockParam": {
@@ -1959,8 +1822,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -2008,18 +1870,17 @@
           "baseRpm": 5,
           "minimumRpm": 0,
           "torqueExponentUnder": 2,
-          "torqueExponentOver": 1.585
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
         }
       },
       "blockGuid": "b1bddbd5-85c7-4c09-a539-646c34ce9afd",
-      "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
-      "overrideVerticalBlock": {}
+      "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box"
     },
     {
       "blockGuid": "3a3804bb-30d8-4864-a798-ca67f0057a6c",
       "name": "核融合炉",
       "blockType": "Block",
-      "itemGuid": "43497878-788b-40e7-987c-4064b1a2642a",
       "blockSize": [
         1,
         1,
@@ -2033,7 +1894,6 @@
       "blockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
       "name": "直進高速ベルトコンベア",
       "blockType": "BeltConveyor",
-      "itemGuid": "8bbac63f-a589-4c92-a8d1-b6268cf8ade5",
       "blockSize": [
         1,
         1,
@@ -2041,11 +1901,6 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Straight",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
-        "horizontalBlockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
-        "downBlockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f"
-      },
       "blockParam": {
         "slopeType": "Straight",
         "timeOfItemEnterToExit": 0.75,
@@ -2058,7 +1913,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2091,9 +1945,6 @@
                   0
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "5710cfa0-f296-4d31-89f2-ba5825ebe152"
             }
           ],
@@ -2104,7 +1955,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2117,21 +1967,16 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "c5c48153-533e-42c6-85c2-c70f850b8b22"
             }
           ]
         }
-      },
-      "enableConveyorPlacement": true
+      }
     },
     {
       "blockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
       "name": "上り高速ベルトコンベア",
       "blockType": "BeltConveyor",
-      "itemGuid": "ec0fddf7-e8de-48aa-8cbd-f20dd1b57506",
       "blockSize": [
         1,
         1,
@@ -2139,11 +1984,6 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Up",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
-        "horizontalBlockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
-        "downBlockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f"
-      },
       "blockParam": {
         "slopeType": "Up",
         "timeOfItemEnterToExit": 0.75,
@@ -2156,7 +1996,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2164,9 +2003,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "37bb6aa7-b7c8-4761-8707-7891d7a42810"
             }
           ],
@@ -2177,7 +2013,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2190,21 +2025,16 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "ab2d1437-3dd5-4632-883f-7ce3b594e32b"
             }
           ]
         }
-      },
-      "enableConveyorPlacement": true
+      }
     },
     {
       "blockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f",
       "name": "下り高速ベルトコンベア",
       "blockType": "BeltConveyor",
-      "itemGuid": "47ba2417-5968-472c-8cdf-6125f855909b",
       "blockSize": [
         1,
         1,
@@ -2212,11 +2042,6 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Fast_BeltConveyor_Down",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
-        "horizontalBlockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0",
-        "downBlockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f"
-      },
       "blockParam": {
         "beltConveyorItemCount": 6,
         "timeOfItemEnterToExit": 0.75,
@@ -2229,7 +2054,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2242,9 +2066,6 @@
                   1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "2062d5ed-b5d1-48bf-bb1e-2ac1b994fc9c"
             }
           ],
@@ -2255,7 +2076,6 @@
                 0,
                 0
               ],
-              "connectType": "Inventory",
               "directions": [
                 [
                   0,
@@ -2263,21 +2083,16 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "39f21d26-dcab-4e97-974a-128b5e535de2"
             }
           ]
         }
-      },
-      "enableConveyorPlacement": true
+      }
     },
     {
       "blockGuid": "1438c454-8951-422b-9257-e6d7f129ae32",
       "name": "量子チェスト",
       "blockType": "Chest",
-      "itemGuid": "0c5396c1-b7b2-4cc6-a406-18433f58de56",
       "blockSize": [
         1,
         1,
@@ -2285,17 +2100,11 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/Old/iron chest",
       "blockUIAddressablesPath": "Vanilla/UI/Block/ChestBlockInventory",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "itemSlotCount": 20,
         "inventoryConnectors": {
           "inputConnects": [
             {
-              "connectType": "Inventory",
               "offset": [
                 0,
                 0,
@@ -2323,15 +2132,11 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "d4b9a8c9-2936-4fb0-a97e-d576926a10a2"
             }
           ],
           "outputConnects": [
             {
-              "connectType": "Inventory",
               "offset": [
                 0,
                 0,
@@ -2359,9 +2164,6 @@
                   -1
                 ]
               ],
-              "connectOption": {
-                "inventoryOptions": []
-              },
               "connectorGuid": "1b72b75b-5576-4e47-bb0f-093b38bd14c7"
             }
           ]
@@ -2372,7 +2174,6 @@
       "blockGuid": "a770e482-6336-431a-ba13-98558fa56276",
       "name": "無限歯車ジェネレーター",
       "blockType": "SimpleGearGenerator",
-      "itemGuid": "0d033e0e-537a-4cc1-b7c6-a183ed33f73d",
       "blockSize": [
         1,
         1,
@@ -2380,11 +2181,6 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/SmallSimpleGeneretor",
       "blockUIAddressablesPath": "",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "teethCount": 10,
         "generateRpm": 60,
@@ -2392,7 +2188,6 @@
         "gear": {
           "gearConnects": [
             {
-              "connectType": "Gear",
               "offset": [
                 0,
                 0,
@@ -2430,7 +2225,7 @@
                   0
                 ]
               ],
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "connectorGuid": "fd5a0906-34d1-4324-9e5e-3b7bd58c2bce"
@@ -2447,7 +2242,6 @@
       "blockGuid": "3cfe932a-668b-4191-b864-0e5d8cd60da2",
       "name": "ベースキャンプ1",
       "blockType": "BaseCamp",
-      "itemGuid": "b1101477-9a08-4c9e-8751-43577d1a45a2",
       "blockSize": [
         1,
         1,
@@ -2455,11 +2249,6 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/BaseCamp1",
       "blockUIAddressablesPath": "Vanilla/UI/Block/BaseCampInventory",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "inventorySlot": 3,
         "upgradBlockGuid": "30ae60be-6dfa-4a6d-9e3e-32bc70bc2e11",
@@ -2479,7 +2268,6 @@
       "blockGuid": "30ae60be-6dfa-4a6d-9e3e-32bc70bc2e11",
       "name": "ベースキャンプ2",
       "blockType": "BaseCamp",
-      "itemGuid": "7d0b5ea8-fb7d-4209-a3c7-2089a70e323e",
       "blockSize": [
         1,
         1,
@@ -2487,11 +2275,6 @@
       ],
       "blockPrefabAddressablesPath": "Vanilla/Block/BaseCamp2",
       "blockUIAddressablesPath": "Vanilla/UI/Block/BaseCampInventory",
-      "overrideVerticalBlock": {
-        "upBlockGuid": "",
-        "horizontalBlockGuid": "",
-        "downBlockGuid": ""
-      },
       "blockParam": {
         "inventorySlot": 3,
         "upgradBlockGuid": "3cfe932a-668b-4191-b864-0e5d8cd60da2",
@@ -2521,9 +2304,21 @@
       "blockParam": {
         "teethCount": 10,
         "outputModes": [
-          { "rpm": 60, "torque": 50, "requiredPower": 30 },
-          { "rpm": 120, "torque": 100, "requiredPower": 100 },
-          { "rpm": 240, "torque": 150, "requiredPower": 300 }
+          {
+            "rpm": 60,
+            "torque": 50,
+            "requiredPower": 30
+          },
+          {
+            "rpm": 120,
+            "torque": 100,
+            "requiredPower": 100
+          },
+          {
+            "rpm": 240,
+            "torque": 150,
+            "requiredPower": 300
+          }
         ],
         "gear": {
           "gearConnects": [
@@ -2533,8 +2328,7 @@
                 0,
                 0
               ],
-              "connectType": "Gear",
-              "connectOption": {
+              "option": {
                 "isReverse": false
               },
               "directions": [
@@ -2572,15 +2366,16 @@
               "connectorGuid": "a1a1a1a1-0000-0000-0000-000000000001"
             }
           ]
-        }
+        },
+        "maxWireConnectionCount": 2,
+        "maxWireLength": 8
       },
-      "itemGuid": "11110a01-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-0000000000a1",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
-      "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricToGearBlockInventory",
-      "overrideVerticalBlock": {}
+      "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricToGearBlockInventory"
     }
   ],
   "gearChainItems": [],
-  "blockDestructionCategories": []
+  "blockDestructionCategories": [],
+  "electricWireItems": []
 }

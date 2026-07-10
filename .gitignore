@@ -117,3 +117,8 @@ moorestech_server/UserSettings/UnityMcpSettings.json
 **/terraform/*.pem
 **/terraform/build.log
 **/terraform/.terraform.lock.hcl
+
+# プレイテスト成果物 / playtest artifacts
+moorestech_client/PlaytestResults/
+.idea/
+.mso/**/recording.mp4

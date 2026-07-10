@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Blocks.TrainRail.ContainerComponents;
@@ -86,10 +87,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNotNull(trainPlatformDockingComponentStationB, "trainPlatformDockingComponentの取得に失敗しました。");
             Assert.IsNotNull(trainPlatformTransferComponentStationB, "trainPlatformDockingComponentの取得に失敗しました。");
 
-            var item1 = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1);
-            var maxStack1 = item1.MaxStack;
-            var item2 = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId2);
-            var maxStack2 = item2.MaxStack;
+            var maxStack1 = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
+            var maxStack2 = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId2);
 
             inventoryA!.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack1));
             inventoryA.SetItem(1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack1));

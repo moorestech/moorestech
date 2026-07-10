@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
-import { asmColor, asmLayer } from '../lib/asm';
+import { asmColor, superGroup } from '../lib/asm';
 import { statusColor } from '../lib/status';
 import { members } from '../lib/members';
 import type { FileRec } from '../lib/types';
-import { Chevron, ArrowDown, ArrowUp } from '../components/icons';
+import { Chevron, ArrowDown, ArrowUp, Check } from '../components/icons';
 
 const NODE_W = 344;       // カード幅は一定。深さはleftインデントのみ(名前を折り返さず収める)
 const INDENT = 15;
@@ -50,7 +50,7 @@ function buildColTree(files: FileRec[], strip: string): DirNode {
 }
 
 export function DepMap() {
-  const { data, selected, selectFile, jumpToFile, expanded, toggleFold } = useStore();
+  const { data, selected, selectFile, jumpToFile, expanded, toggleFold, reviewed, toggleReviewed } = useStore();
   const [hover, setHover] = useState<string | null>(null);
 
   const layout = useMemo(() => {
@@ -59,7 +59,7 @@ export function DepMap() {
       if (!byAsm.has(f.asmdef)) byAsm.set(f.asmdef, []);
       byAsm.get(f.asmdef)!.push(f);
     }
-    const cols = [...byAsm.entries()].sort((a, b) => asmLayer(a[0]) - asmLayer(b[0]) || a[0].localeCompare(b[0]));
+    const cols = [...byAsm.entries()].sort((a, b) => superGroup(a[0]) - superGroup(b[0]) || a[0].localeCompare(b[0]));
     const items: Item[] = [];
     const pos = new Map<string, { x: number; y: number; w: number; colX: number }>();
     const colHeads: { asm: string; x: number }[] = [];
@@ -142,7 +142,7 @@ export function DepMap() {
   return (
     <div className="depmap">
       <div className="depmap-legend">
-        <span>列 = asmdef / TSスライス（左ほど基盤）／列内 = ディレクトリ階層</span>
+        <span>列 = Server → Client → TS（各群内はアセンブリ名アルファベット順）／列内 = ディレクトリ階層</span>
         <span className="lg"><i className="sw" style={{ background: statusColor('A') }} />A 追加</span>
         <span className="lg"><i className="sw" style={{ background: statusColor('M') }} />M 変更</span>
         <span className="ehint out">▸ 依存先</span>
@@ -185,11 +185,12 @@ export function DepMap() {
             const litO = litOut.has(f.path);  // active が import する先 → 青エッジ → 青ハイライト
             const litI = litIn.has(f.path);   // active を使う側 → 橙エッジ → 橙ハイライト
             const dim = !!active && !isActive && !litO && !litI;
+            const isReviewed = reviewed.has(f.path);
             const mem = members(f);
             return (
               <div
                 key={f.path}
-                className={`node${isActive ? ' active' : ''}${litO ? ' lit-out' : litI ? ' lit-in' : ''}${dim ? ' dim' : ''}${f.path === selected ? ' selected' : ''}`}
+                className={`node${isActive ? ' active' : ''}${litO ? ' lit-out' : litI ? ' lit-in' : ''}${dim ? ' dim' : ''}${isReviewed ? ' reviewed' : ''}${f.path === selected ? ' selected' : ''}`}
                 style={{ left: it.x, top: it.y + shift(it.colX, it.y), width: it.w, borderLeftColor: statusColor(f.status) }}
                 onMouseEnter={() => setHover(f.path)}
                 onMouseLeave={() => setHover((h) => (h === f.path ? null : h))}
@@ -199,6 +200,13 @@ export function DepMap() {
                 <div className="node-head" style={{ minHeight: HEAD_H, height: HEAD_H }}>
                   <span className="node-name">{f.name}</span>
                   <span className="node-num"><span className="add">+{f.add}</span>{f.del > 0 && <span className="del">−{f.del}</span>}</span>
+                  <button
+                    className={`node-reviewed-toggle${isReviewed ? ' on' : ''}`}
+                    title={isReviewed ? '既読（クリックで未読へ）' : '未読（クリックで既読へ）'}
+                    onClick={(e) => { e.stopPropagation(); toggleReviewed(f.path); }}
+                  >
+                    {isReviewed ? <Check /> : <span className="node-unread-dot" />}
+                  </button>
                 </div>
                 <div className={`node-body${isActive ? ' open' : ''}`} style={isActive ? { maxHeight: activeExtra } : undefined}>
                   <div className="node-deps">

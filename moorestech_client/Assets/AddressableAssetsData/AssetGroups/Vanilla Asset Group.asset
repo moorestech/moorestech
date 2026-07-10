@@ -265,6 +265,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 380ac153f8d814cd583469b3d32f1f61
+    m_Address: Vanilla/Block/BeltConveyor_Straight 3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 39c0bfeb5142544ae82d4dca6c07c1c9
     m_Address: Vanilla/Block/ElectricPump
     m_ReadOnly: 0
@@ -445,6 +450,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5f667daa8c3b74973a529669eb7d25f2
+    m_Address: Vanilla/Block/BeltConveyor_Straight 2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5f6c0d705933140bdb8d4f3388a6bd82
     m_Address: Vanilla/Block/Rotary_generator
     m_ReadOnly: 0
@@ -507,6 +517,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6cf497b4abc9242a9abec5053e4e76a9
     m_Address: Vanilla/Block/Old/3x3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e6cf1cb664284bd98ce777ce834b146
+    m_Address: Vanilla/Block/metal_gear belt conveyor 3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -577,6 +592,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ab89c4d500216c4f837a2fe7be439af
     m_Address: Vanilla/Block/Old/pole
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7aee8b5230f4e4f43b96f1f498ee7f44
+    m_Address: Vanilla/Block/Util/ElectricWireLine
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -682,6 +702,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 936de12a568ce4c6ca2d50711007f371
     m_Address: Vanilla/UI/Block/TrainItemPlatformBlockInventory
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 93dd8bf9a34874c879d318552def3faa
+    m_Address: Vanilla/Block/gear belt conveyor 2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -802,6 +827,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a9ec6a2b0adb44ff3934771ef5d2c77a
     m_Address: Vanilla/Block/Oxygen_generator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa3d8ab2830b244ddac8833f718fb8a3
+    m_Address: Vanilla/Block/metal_gear belt conveyor 2
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -970,6 +1000,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d3e73ec1bd0d242149930ad97581d9c8
+    m_Address: Vanilla/Block/BeltConveyor_Straight 5
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d46b688521ba3496f9859d5df798b011
     m_Address: Vanilla/Block/metal_gear belt conveyor
     m_ReadOnly: 0
@@ -1060,6 +1095,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e812b85fe33f440aa9e73741e1cee9ff
+    m_Address: Vanilla/Block/BeltConveyor_Straight 4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e83f622eeba41ae4b9696601b8bc61a4
     m_Address: Vanilla/Block/Fast_BeltConveyor_Cross
     m_ReadOnly: 0
@@ -1107,6 +1147,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f148ee4b0ebd54839ad8213503691341
     m_Address: Vanilla/Block/GearBeltConveyor Shaft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f317a800434be4c4691ca0c65e92f8d8
+    m_Address: Vanilla/Block/gear belt conveyor 3
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

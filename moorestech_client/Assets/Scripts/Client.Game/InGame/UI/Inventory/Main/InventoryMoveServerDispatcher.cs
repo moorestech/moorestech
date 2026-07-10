@@ -14,7 +14,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
     /// </summary>
     public static class InventoryMoveServerDispatcher
     {
-        public static void SendMoveItemData(ISubInventory subInventory, LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count)
+        public static void SendMoveItemData(ISubInventory subInventory, int mainSlotCount, LocalMoveInventoryType from, int fromSlot, LocalMoveInventoryType to, int toSlot, int count)
         {
             // 結合スロットをサーバーの識別子とスロットへ変換して送信する
             // Convert combined slots into server identifiers/slots, then send
@@ -30,7 +30,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 return localType switch
                 {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
+                    LocalMoveInventoryType.MainOrSub => localSlot < mainSlotCount
                         ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
                         : subInventory.ISubInventoryIdentifier.ToMessagePack(),
                     LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
@@ -42,9 +42,9 @@ namespace Client.Game.InGame.UI.Inventory.Main
             {
                 return localType switch
                 {
-                    LocalMoveInventoryType.MainOrSub => localSlot < PlayerInventoryConst.MainInventorySize
+                    LocalMoveInventoryType.MainOrSub => localSlot < mainSlotCount
                         ? localSlot
-                        : localSlot - PlayerInventoryConst.MainInventorySize,
+                        : localSlot - mainSlotCount,
                     LocalMoveInventoryType.Grab => 0,
                     _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
                 };

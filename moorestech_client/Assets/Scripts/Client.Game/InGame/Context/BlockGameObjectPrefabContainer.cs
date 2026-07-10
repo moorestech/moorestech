@@ -4,14 +4,18 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 using Object = UnityEngine.Object;
 
+
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 
 namespace Client.Game.InGame.Context
 {
@@ -130,6 +134,9 @@ namespace Client.Game.InGame.Context
                 // 機械の場合はそのプロセッサを付与する
                 // If it's a machine, add the corresponding processor
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();
+                // 電気系に描画プロセッサを付与
+                // Add the electric wire drawing processor to electric blocks
+                if (IsElectricWireConnectable(blockMasterElement.BlockParam)) block.gameObject.AddComponent<ElectricWireStateChangeProcessor>();
 
                 // 初期化
                 // Initialize
@@ -147,6 +154,13 @@ namespace Client.Game.InGame.Context
                     BlockTypeConst.ElectricMachine or
                     BlockTypeConst.GearMachine or
                     BlockTypeConst.GearMiner;
+            }
+
+            // 電力ワイヤーコネクターを持つブロックパラメータか判定する（サーバー共有Resolverに委譲）
+            // Determine whether the block param has an electric wire connector (delegates to the server-shared resolver)
+            bool IsElectricWireConnectable(IBlockParam blockParam)
+            {
+                return ElectricWireBlockParamResolver.TryGetWireParam(blockParam, out _, out _);
             }
 
             #endregion

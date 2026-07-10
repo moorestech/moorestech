@@ -5,12 +5,22 @@
       "tractionForce": 222400400,
       "inventorySlots": 10,
       "length": 8,
-      "itemGuid": "20000000-0000-0000-0000-000000000000",
       "addressablePath": "",
       "trainCarGuid": "dc82cf3f-709d-49eb-bdb2-67ffcaff561b",
       "defaultContainerType": "None",
       "fluidCapacity": 0,
       "ridableSeatCount": 0,
+      "initialUnlocked": true,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 3
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 2
+        }
+      ],
       "trainFuelItems": [
         {
           "itemGuid": "00000000-0000-0000-1234-000000000001",
@@ -23,7 +33,6 @@
       "tractionForce": 0,
       "inventorySlots": 1,
       "length": 1,
-      "itemGuid": "00000000-0000-0000-1234-000000000010",
       "addressablePath": "",
       "trainCarGuid": "22222222-2222-2222-2222-222222222222",
       "defaultContainerType": "None",

@@ -244,6 +244,62 @@ namespace Core.Master.Validator
                             }
                             break;
                         }
+                        case UnlockItemStackLevelGameActionParam unlockItemStackLevel:
+                        {
+                            // TargetItemGuidsがnullだと実行側が無ガードで走査し実行時NREになるため検証で弾く
+                            // Null TargetItemGuids would NRE the unguarded runtime foreach, so reject it in validation
+                            if (unlockItemStackLevel.TargetItemGuids == null)
+                            {
+                                logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} has invalid (null) TargetItemGuids\n";
+                                break;
+                            }
+                            foreach (var itemGuid in unlockItemStackLevel.TargetItemGuids)
+                            {
+                                // 対象アイテムの実在を検証
+                                // Validate that the target item exists
+                                var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid);
+                                if (itemId == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} has invalid TargetItemGuid:{itemGuid}\n";
+                                    continue;
+                                }
+
+                                // 解放レベルがテーブル長範囲内か検証
+                                // Validate the unlock level is within the table range
+                                var element = MasterHolder.ItemMaster.GetItemMaster(itemId.Value);
+                                var table = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid);
+                                if (unlockItemStackLevel.Level < 1 || table.StackCounts.Length < unlockItemStackLevel.Level)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} unlockItemStackLevel Level:{unlockItemStackLevel.Level} out of range [1,{table.StackCounts.Length}] for ItemGuid:{itemGuid}\n";
+                                }
+                            }
+                            break;
+                        }
+                        case UnlockBlockGameActionParam unlockBlock:
+                        {
+                            if (unlockBlock.UnlockBlockGuids == null) break;
+                            foreach (var blockGuid in unlockBlock.UnlockBlockGuids)
+                            {
+                                var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+                                if (blockId == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} has invalid UnlockBlockGuid:{blockGuid}\n";
+                                }
+                            }
+                            break;
+                        }
+                        case UnlockTrainCarGameActionParam unlockTrainCar:
+                        {
+                            if (unlockTrainCar.UnlockTrainCarGuids == null) break;
+                            foreach (var trainCarGuid in unlockTrainCar.UnlockTrainCarGuids)
+                            {
+                                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainCarGuid, out _))
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challengeTitle} {actionType} has invalid UnlockTrainCarGuid:{trainCarGuid}\n";
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
                 return logs;
