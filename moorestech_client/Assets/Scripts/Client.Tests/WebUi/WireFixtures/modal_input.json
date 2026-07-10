@@ -1,0 +1,10 @@
+{
+  "modal": {
+    "id": "m2",
+    "title": "ブループリント名",
+    "message": "保存するブループリントの名前を入力してください",
+    "buttonText": "保存",
+    "variant": "confirm",
+    "input": true
+  }
+}
