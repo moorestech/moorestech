@@ -44,9 +44,16 @@ namespace Client.Playtest.Overlay
             }
         }
 
+        private const float InputPanelWidth = 640f;
+
         private void DrawInputPanel(PlaytestOverlayState state)
         {
-            DrawRect(new Rect(8, Screen.height - 44, 640, 36), new Color(0f, 0f, 0f, 0.55f));
+            // 画面下部はゲーム自身の操作ヒント一覧（左）とホットバー（中央）が常設で占有するため、
+            // 衝突しない右上に配置する
+            // The bottom of the screen is permanently occupied by the game's own control hints (left)
+            // and hotbar (center), so anchor this panel top-right where nothing else draws
+            var panelX = Screen.width - InputPanelWidth - 8;
+            DrawRect(new Rect(panelX, 8, InputPanelWidth, 36), new Color(0f, 0f, 0f, 0.55f));
 
             // 押下中のキー・マウスボタンを常時表示する
             // Always show currently held keys and mouse buttons
@@ -54,18 +61,18 @@ namespace Client.Playtest.Overlay
             if (state.LeftMouseHeld) held.Add("LMB");
             if (state.RightMouseHeld) held.Add("RMB");
             var heldText = held.Count == 0 ? "-" : string.Join(" + ", held);
-            DrawShadowLabel(new Rect(16, Screen.height - 40, 300, 28), $"押下中: {heldText}", Color.white);
+            DrawShadowLabel(new Rect(panelX + 8, 12, 300, 28), $"押下中: {heldText}", Color.white);
 
             // 直近入力をフェードアウト付きで右側に並べる
             // Lay out recent inputs to the right with a fade-out
-            var x = 330f;
+            var x = panelX + 322f;
             foreach (var input in state.RecentInputs)
             {
                 var age = Time.realtimeSinceStartup - input.PushedRealtime;
                 if (PlaytestOverlayState.RecentInputLifetime < age) continue;
                 var alpha = 1f - age / PlaytestOverlayState.RecentInputLifetime;
                 var width = _labelStyle.CalcSize(new GUIContent(input.Label)).x + 8f;
-                DrawShadowLabel(new Rect(x, Screen.height - 40, width, 28), input.Label, new Color(1f, 0.85f, 0.3f, alpha));
+                DrawShadowLabel(new Rect(x, 12, width, 28), input.Label, new Color(1f, 0.85f, 0.3f, alpha));
                 x += width;
             }
         }
