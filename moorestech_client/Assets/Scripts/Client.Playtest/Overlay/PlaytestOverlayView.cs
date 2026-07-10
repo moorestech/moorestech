@@ -13,6 +13,9 @@ namespace Client.Playtest.Overlay
     {
         private const float LineHeight = 24f;
         private const float ClickRippleDuration = 0.4f;
+        // パネル上端。画面最上部に張り付くと見づらいため少し下げる
+        // Top edge of the panels; nudged down so they don't hug the very top of the screen
+        private const float PanelTop = 48f;
         private GUIStyle _labelStyle;
 
         private void OnGUI()
@@ -33,14 +36,14 @@ namespace Client.Playtest.Overlay
 
             // 半透明黒地にスタック式ログを描く（下が最新・古い行ほど薄く）
             // Stack log on a translucent black panel: newest at the bottom, older rows fade out
-            DrawRect(new Rect(8, 8, 640, entries.Count * LineHeight + 12), new Color(0f, 0f, 0f, 0.55f));
+            DrawRect(new Rect(8, PanelTop, 640, entries.Count * LineHeight + 12), new Color(0f, 0f, 0f, 0.55f));
             for (var i = 0; i < entries.Count; i++)
             {
                 var entry = entries[i];
                 var alpha = entries.Count <= 1 ? 1f : Mathf.Lerp(0.45f, 1f, (float)i / (entries.Count - 1));
                 var time = TimeSpan.FromSeconds(entry.ElapsedSeconds);
                 var text = $"[{(int)time.TotalMinutes}:{time.Seconds:00}] {entry.Text}";
-                DrawShadowLabel(new Rect(16, 14 + i * LineHeight, 660, LineHeight), text, KindColor(entry.Kind, alpha));
+                DrawShadowLabel(new Rect(16, PanelTop + 6 + i * LineHeight, 660, LineHeight), text, KindColor(entry.Kind, alpha));
             }
         }
 
@@ -53,7 +56,7 @@ namespace Client.Playtest.Overlay
             // The bottom of the screen is permanently occupied by the game's own control hints (left)
             // and hotbar (center), so anchor this panel top-right where nothing else draws
             var panelX = Screen.width - InputPanelWidth - 8;
-            DrawRect(new Rect(panelX, 8, InputPanelWidth, 36), new Color(0f, 0f, 0f, 0.55f));
+            DrawRect(new Rect(panelX, PanelTop, InputPanelWidth, 36), new Color(0f, 0f, 0f, 0.55f));
 
             // 押下中のキー・マウスボタンを常時表示する
             // Always show currently held keys and mouse buttons
@@ -61,7 +64,7 @@ namespace Client.Playtest.Overlay
             if (state.LeftMouseHeld) held.Add("LMB");
             if (state.RightMouseHeld) held.Add("RMB");
             var heldText = held.Count == 0 ? "-" : string.Join(" + ", held);
-            DrawShadowLabel(new Rect(panelX + 8, 12, 300, 28), $"押下中: {heldText}", Color.white);
+            DrawShadowLabel(new Rect(panelX + 8, PanelTop + 4, 300, 28), $"押下中: {heldText}", Color.white);
 
             // 直近入力をフェードアウト付きで右側に並べる
             // Lay out recent inputs to the right with a fade-out
@@ -72,7 +75,7 @@ namespace Client.Playtest.Overlay
                 if (PlaytestOverlayState.RecentInputLifetime < age) continue;
                 var alpha = 1f - age / PlaytestOverlayState.RecentInputLifetime;
                 var width = _labelStyle.CalcSize(new GUIContent(input.Label)).x + 8f;
-                DrawShadowLabel(new Rect(x, 12, width, 28), input.Label, new Color(1f, 0.85f, 0.3f, alpha));
+                DrawShadowLabel(new Rect(x, PanelTop + 4, width, 28), input.Label, new Color(1f, 0.85f, 0.3f, alpha));
                 x += width;
             }
         }
