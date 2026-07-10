@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
+using Client.WebUiHost.Game.Topics.BuildMenu;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -135,6 +136,25 @@ namespace Client.Tests.WebUi
         public void UiStateMatchesFixture()
         {
             AssertMatchesFixture(new UiStateDto { State = "PlayerInventory" }, "ui_state.json");
+        }
+
+        // ビルドメニュー: 全エントリ種別とアイコンURL省略の正準形
+        // Build menu: the canonical form covering every entry type and icon-url omission
+        [Test]
+        public void BuildMenuMatchesFixture()
+        {
+            var dto = new BuildMenuTopicDto
+            {
+                Entries = new List<BuildMenuEntryDto>
+                {
+                    new() { EntryType = "block", EntryKey = "1", Label = "鉄の機械", Tooltip = "鉄の機械\n鉄インゴット x5", IconUrl = "/api/block-icons/1.png" },
+                    new() { EntryType = "trainCar", EntryKey = "11111111-2222-3333-4444-555555555555", Label = "貨物車", Tooltip = "貨物車", IconUrl = "/api/train-car-icons/11111111-2222-3333-4444-555555555555.png" },
+                    new() { EntryType = "connectTool", EntryKey = "BeltConveyor", Label = "ベルトコンベア", Tooltip = "ベルトコンベア", IconUrl = "/api/icons/3.png" },
+                    new() { EntryType = "blueprintCopy", EntryKey = "", Label = "ブループリントコピー", Tooltip = "ブループリントコピー" },
+                    new() { EntryType = "blueprint", EntryKey = "家", Label = "家", Tooltip = "家" },
+                },
+            };
+            AssertMatchesFixture(dto, "build_menu_snapshot.json");
         }
 
         // DTO を WebUiJson でシリアライズし、キー順序差を無視して JToken.DeepEquals で照合する
