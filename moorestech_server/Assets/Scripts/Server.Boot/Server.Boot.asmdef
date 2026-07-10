@@ -29,6 +29,7 @@
         "Game.Context",
         "Core.Item",
         "Game.Gear",
+        "Game.CleanRoom",
         "Game.Challenge",
         "Core.Master",
         "Game.Train",

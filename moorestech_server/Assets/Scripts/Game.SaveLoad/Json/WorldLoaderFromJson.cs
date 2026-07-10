@@ -4,6 +4,7 @@ using System.IO;
 using Core.Item;
 using Game.Blueprint;
 using Game.Challenge;
+using Game.CleanRoom;
 using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
@@ -45,12 +46,14 @@ namespace Game.SaveLoad.Json
         private readonly IBlueprintDatastore _blueprintDatastore;
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
+        private readonly CleanRoomDatastore _cleanRoomDatastore;
 
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
-            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, ItemStackLevelDataStore itemStackLevelDataStore, IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
+            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, ItemStackLevelDataStore itemStackLevelDataStore,
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -71,6 +74,7 @@ namespace Game.SaveLoad.Json
             _blueprintDatastore = blueprintDatastore;
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
+            _cleanRoomDatastore = cleanRoomDatastore;
         }
         
         public void LoadOrInitialize()
@@ -110,6 +114,10 @@ namespace Game.SaveLoad.Json
             // Load the slot level before player inventories
             _playerInventorySlotLevelDataStore.LoadLevel(load.InventorySlotLevel);
             _worldBlockDatastore.LoadBlockDataList(load.World);
+            // クリーンルームを再検出し、セーブされた純度と行を照合復元する
+            // Re-detect clean rooms then restore saved purity and class rows by matching
+            _cleanRoomDatastore.RebuildAll();
+            _cleanRoomDatastore.Restore(load.CleanRoomRooms);
             // レールセグメントを復元する
             // Restore rail segments
             var segments = load.RailSegments ?? new List<RailSegmentSaveData>();
@@ -160,5 +168,3 @@ namespace Game.SaveLoad.Json
         }
     }
 }
-
-
