@@ -617,6 +617,114 @@
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestSemiconductorChipLv1",
+            "itemGuid": "fa7bf6df-efc2-421d-b7bc-87be7b229345",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestSemiconductorChipLv2",
+            "itemGuid": "d08f4a3b-50d5-4228-8ef2-9b479b79375b",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestSemiconductorChipLv3",
+            "itemGuid": "868fc884-c0d1-48d7-b6e6-83b0517d381e",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestSemiconductorChipLv4",
+            "itemGuid": "3d2b7bda-0f4d-4887-979f-9f37506fda25",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestCleanRoomFilter",
+            "itemGuid": "6e355e23-8e9e-46d2-9405-b0e6bb612890",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestChipRawWafer",
+            "itemGuid": "78274378-9a98-4826-8dea-80f7eb52a5ed",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestCleanRoomWall",
+            "itemGuid": "c3c16652-0ddd-4dd4-ab85-035d602246a3",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestCleanRoomDoor",
+            "itemGuid": "f458559d-5c3d-4606-8cc2-6b33f694c2c3",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestCleanRoomItemHatch",
+            "itemGuid": "c74d50c4-f35f-4863-81ae-bd0b7b62e4f7",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestCleanRoomPipeHatch",
+            "itemGuid": "6488f3bc-ed15-49df-acbb-1738edd13b99",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestCleanRoomAirFilter",
+            "itemGuid": "40e4307b-a5f8-4374-95bc-440131022863",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestCleanRoomMachine",
+            "itemGuid": "ed649456-fc6a-4b33-9ad0-ae9af40fe66e",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         }
     ],
     "itemStackLevelTables": [

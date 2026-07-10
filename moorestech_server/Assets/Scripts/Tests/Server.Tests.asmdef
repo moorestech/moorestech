@@ -54,6 +54,7 @@
         "Game.PlayerRiding.Interface",
         "Game.PlayerRiding",
         "Game.PlayerConnection",
+        "Game.CleanRoom",
         "Game.Blueprint"
     ],
     "includePlatforms": [
