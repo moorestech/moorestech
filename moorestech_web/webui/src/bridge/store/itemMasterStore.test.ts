@@ -7,6 +7,7 @@ beforeEach(() => {
   vi.resetModules();
 });
 afterEach(() => {
+  vi.clearAllTimers();
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -70,6 +71,25 @@ describe("ensureItemMasterLoaded", () => {
     const { ensureItemMasterLoaded, useItemMasterStore } = await import("./itemMasterStore");
     ensureItemMasterLoaded();
     await vi.advanceTimersByTimeAsync(3000);
+    expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Wood");
+  });
+
+  it("JSON 解析失敗の後も自動再試行して反映される", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => Promise.reject(new Error("invalid json")) })
+      .mockResolvedValueOnce({ ok: true, json: async () => masterJson });
+    vi.stubGlobal("fetch", fetchMock);
+    const { ensureItemMasterLoaded, useItemMasterStore } = await import("./itemMasterStore");
+
+    ensureItemMasterLoaded();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(useItemMasterStore.getState().master).toBeNull();
+
+    // JSON 解析失敗でも3秒後の取得を継続する
+    // Continue fetching after three seconds even when JSON parsing fails
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Wood");
   });
 

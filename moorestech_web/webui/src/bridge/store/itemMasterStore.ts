@@ -28,8 +28,10 @@ async function loadWithRetry(): Promise<void> {
   for (;;) {
     const res = await fetch("/api/master/items").catch(() => null);
     if (res?.ok) {
-      const data: ItemMasterData = await res.json();
-      useItemMasterStore.getState().setMaster(new Map(data.items.map((i) => [i.itemId, i])));
+      const data: ItemMasterData | null = await res.json().catch(() => null);
+      if (data) {
+        useItemMasterStore.getState().setMaster(new Map(data.items.map((i) => [i.itemId, i])));
+      }
     }
     await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL_MS));
   }
