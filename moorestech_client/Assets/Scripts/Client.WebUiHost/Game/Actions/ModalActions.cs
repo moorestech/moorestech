@@ -30,9 +30,13 @@ namespace Client.WebUiHost.Game.Actions
             var result = (string)resultValue;
             if (result != "confirm" && result != "cancel") return UniTask.FromResult(ActionResult.Fail("invalid_result"));
 
+            // 入力モーダルの text は任意（無ければ null）
+            // The input modal's text is optional (null when absent)
+            var text = payload["text"] is JValue { Type: JTokenType.String } textValue ? (string)textValue : null;
+
             // id 不一致・保留なしは古い応答なので no_pending_modal で返す
             // id mismatch or no pending request is a stale reply; report no_pending_modal
-            if (!_service.Respond((string)idValue, result)) return UniTask.FromResult(ActionResult.Fail("no_pending_modal"));
+            if (!_service.Respond((string)idValue, result, text)) return UniTask.FromResult(ActionResult.Fail("no_pending_modal"));
             return UniTask.FromResult(ActionResult.Success());
         }
     }

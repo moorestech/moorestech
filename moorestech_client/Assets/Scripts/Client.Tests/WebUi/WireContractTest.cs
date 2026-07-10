@@ -85,6 +85,18 @@ namespace Client.Tests.WebUi
             AssertMatchesFixture(dto, "modal_open.json");
         }
 
+        // 入力モーダル: input:true が配信される（BP名入力等）
+        // Input modal: input:true is delivered (e.g. blueprint naming)
+        [Test]
+        public void ModalInputMatchesFixture()
+        {
+            var dto = new ModalTopicDto
+            {
+                Modal = new ModalDto { Id = "m2", Title = "ブループリント名", Message = "保存するブループリントの名前を入力してください", ButtonText = "保存", Variant = "confirm", Input = true },
+            };
+            AssertMatchesFixture(dto, "modal_input.json");
+        }
+
         // modal なし: null の modal キーが省略され {} になる（omission 側）
         // Without modal: the null modal key is omitted, yielding {} (the omission variant)
         [Test]

@@ -78,6 +78,9 @@ namespace Client.WebUiHost.Game.Topics
                         // enum を web の文字列契約（"confirm" | "error"）へ境界で変換する
                         // Convert the enum to the web string contract ("confirm" | "error") at the boundary
                         Variant = pending.Variant == ModalVariant.Error ? "error" : "confirm",
+                        // 入力モーダルのみ true を配信し、通常モーダルはキー省略する（既存フィクスチャ互換）
+                        // Deliver true only for input modals; plain modals omit the key (keeps existing fixtures)
+                        Input = pending.RequiresInput ? true : (bool?)null,
                     },
             };
             return WebUiJson.Serialize(dto);
@@ -100,5 +103,6 @@ namespace Client.WebUiHost.Game.Topics
         public string Message;
         public string ButtonText;
         public string Variant;
+        public bool? Input;
     }
 }
