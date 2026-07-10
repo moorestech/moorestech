@@ -18,7 +18,7 @@ SKILL=.claude/skills/unity-playmode-recorded-playtest
 "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/<シナリオ名>.cs"
 ```
 
-- 第3引数でmasterデータを差し替え可能。省略時 `/Users/katsumi/moorestech-worktrees/playtest-master/server_v8`（通常は省略）
+- 第3引数でmasterデータを差し替え可能。省略時は作業中プロジェクトの`.moorestech-external-revisions.json`の互換コミットにHEADが一致するmoorestech_master worktreeを自動解決する（スキル固定パスは無い）。該当worktree未作成なら自動解決が失敗しエラーになるので、`git -C ../moorestech_master worktree add <path> <互換コミット>`で作るか第3引数で明示する
 - 所要: preflight ~30秒 + ready ~15〜30秒 + シナリオ本体。**バックグラウンド実行してresult.json出現を待つ**（固定sleepの多段待ちをしない）
 
 ## ランナー内部の流れ（すべて自動・リトライ内蔵）

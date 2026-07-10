@@ -37,7 +37,6 @@ namespace Server.Protocol.PacketResponse
             
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
-            var itemId = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).ItemGuid;
             if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
                 
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
@@ -91,16 +90,12 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
                 
-                // requiredItems定義ブロックは建設コストを全額返却し、未定義は従来どおりアイテム1個返す（プラン5でフォールバック削除予定）
-                // Refund the full construction cost when requiredItems is defined; otherwise fall back to one block item (fallback removed in plan 5)
+                // requiredItems定義ブロックのみ建設コストを全額返却する（未定義は本体返却なし）
+                // Refund the full construction cost only when requiredItems is defined; otherwise no body refund
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
                 if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0)
                 {
                     result.AddRange(ConstructionCostService.CreateRefundItems(ConstructionCostService.ToItemCounts(blockMaster.RequiredItems)));
-                }
-                else
-                {
-                    result.Add(ServerContext.ItemStackFactory.Create(itemId, 1));
                 }
                 
                 // インベントリのアイテムを取得

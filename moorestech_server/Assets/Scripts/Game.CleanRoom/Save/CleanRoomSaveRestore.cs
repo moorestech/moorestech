@@ -15,7 +15,7 @@ namespace Game.CleanRoom.Save
             {
                 ImpurityCount = room.ImpurityCount,
                 ClassName = room.ThresholdIndex < MasterHolder.CleanRoomMaster.Thresholds.Count ? MasterHolder.CleanRoomMaster.Thresholds[room.ThresholdIndex].ClassName : null,
-                Cells = room.Cells.Select(cell => new[] { cell.x, cell.y, cell.z }).ToList(),
+                Cells = room.Cells.Select(cell => new CleanRoomCellSaveJsonObject { X = cell.x, Y = cell.y, Z = cell.z }).ToList(),
             }).ToList();
         }
 
@@ -67,7 +67,7 @@ namespace Game.CleanRoom.Save
                     var overlap = 0;
                     foreach (var cell in record.Cells)
                     {
-                        if (room.Contains(new Vector3Int(cell[0], cell[1], cell[2]))) overlap++;
+                        if (room.Contains(new Vector3Int(cell.X, cell.Y, cell.Z))) overlap++;
                     }
 
                     if (overlap <= bestOverlap) continue;

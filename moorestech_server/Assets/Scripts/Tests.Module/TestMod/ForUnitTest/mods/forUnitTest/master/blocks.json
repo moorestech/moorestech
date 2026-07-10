@@ -113,7 +113,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000001",
       "blockGuid": "00000000-0000-0000-0000-000000000001"
     },
     {
@@ -141,7 +140,6 @@
       ],
       "name": "TestBlock",
       "blockType": "Block",
-      "itemGuid": "00000000-0000-0000-1234-000000000002",
       "blockGuid": "00000000-0000-0000-0000-000000000002",
       "blockParam": {},
       "requiredItems": [
@@ -237,7 +235,6 @@
         },
         "slopeType": "Straight"
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000003",
       "blockGuid": "00000000-0000-0000-0000-000000000003",
       "initialUnlocked": true
     },
@@ -274,7 +271,6 @@
         "maxWireConnectionCount": 8,
         "maxWireLength": 12
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000004",
       "blockGuid": "00000000-0000-0000-0000-000000000004",
       "requiredItems": [
         {
@@ -317,7 +313,6 @@
         "maxWireConnectionCount": 8,
         "maxWireLength": 12
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000101",
       "blockGuid": "00000000-0000-0000-0000-000000000101",
       "requiredItems": [
         {
@@ -422,7 +417,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000005",
       "blockGuid": "00000000-0000-0000-0000-000000000005"
     },
     {
@@ -498,7 +492,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000006",
       "blockGuid": "00000000-0000-0000-0000-000000000006"
     },
     {
@@ -595,7 +588,6 @@
           ]
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000007",
       "blockGuid": "00000000-0000-0000-0000-000000000007"
     },
     {
@@ -717,7 +709,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000008",
       "blockGuid": "00000000-0000-0000-0000-000000000008"
     },
     {
@@ -746,7 +737,6 @@
       "maxStack": 100,
       "name": "MultiBlock1",
       "blockType": "ElectricGenerator",
-      "itemGuid": "00000000-0000-0000-1234-000000000009",
       "blockGuid": "00000000-0000-0000-0000-000000000009",
       "blockParam": {
         "fuelItemSlotCount": 0,
@@ -843,7 +833,6 @@
         2
       ],
       "name": "MultiBlock2",
-      "itemGuid": "00000000-0000-0000-1234-000000000010",
       "blockGuid": "00000000-0000-0000-0000-00000000000a",
       "blockType": "ElectricGenerator",
       "blockParam": {
@@ -930,7 +919,6 @@
         2,
         3
       ],
-      "itemGuid": "00000000-0000-0000-1234-000000000011",
       "name": "MultiBlock3",
       "blockGuid": "00000000-0000-0000-0000-00000000000b",
       "blockType": "ElectricGenerator",
@@ -1117,7 +1105,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000014",
       "blockGuid": "00000000-0000-0000-0000-00000000000c"
     },
     {
@@ -1289,7 +1276,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "16000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000d"
     },
     {
@@ -1364,7 +1350,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "17000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000e"
     },
     {
@@ -1441,7 +1426,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
       "blockGuid": "00000000-0000-0000-0000-00000000002c",
       "requiredItems": [
         {
@@ -1525,7 +1509,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000102",
       "blockGuid": "00000000-0000-0000-0000-000000000102"
     },
     {
@@ -1676,7 +1659,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "18000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000000f"
     },
     {
@@ -1751,7 +1733,6 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "19000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000010"
     },
     {
@@ -1828,7 +1809,6 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "11100000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000011"
     },
     {
@@ -1854,7 +1834,6 @@
         1,
         1
       ],
-      "itemGuid": "11200000-0000-0000-0000-000000000000",
       "blockType": "Gear",
       "blockParam": {
         "teethCount": 10,
@@ -1970,7 +1949,6 @@
         1
       ],
       "name": "Teeth20RequireTorqueTestGear",
-      "itemGuid": "11300000-0000-0000-0000-000000000000",
       "blockType": "Gear",
       "blockParam": {
         "teethCount": 20,
@@ -2133,7 +2111,6 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "itemGuid": "11400000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000014"
     },
     {
@@ -2234,7 +2211,6 @@
           "torqueExponentOver": 1.585
         }
       },
-      "itemGuid": "30000000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000030"
     },
     {
@@ -2385,7 +2361,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000015",
       "requiredItems": [
         {
@@ -2511,7 +2486,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "11900000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-000000000019"
     },
     {
@@ -2627,7 +2601,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "12010000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001a"
     },
     {
@@ -2743,7 +2716,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "12102000-0000-0000-0000-000000000000",
       "blockGuid": "00000000-0000-0000-0000-00000000001b"
     },
     {
@@ -2838,8 +2810,7 @@
         1,
         1,
         1
-      ],
-      "itemGuid": "ca6225bf-41ea-466d-89ef-98334f8c628f"
+      ]
     },
     {
       "maxStack": 100,
@@ -2849,7 +2820,6 @@
         1
       ],
       "blockType": "TrainRail",
-      "itemGuid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2877,7 +2847,6 @@
         1
       ],
       "blockType": "TrainRail",
-      "itemGuid": "00000000-0000-0000-1234-000000000103",
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2904,7 +2873,6 @@
         1
       ],
       "blockType": "TrainRail",
-      "itemGuid": "00000000-0000-0000-1234-000000000104",
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2930,7 +2898,6 @@
         1,
         8
       ],
-      "itemGuid": "9bdfa843-d4ee-4033-a61c-538bb9aaa21d",
       "blockType": "TrainStation",
       "blockParam": {
         "inventoryConnectors": {
@@ -2994,7 +2961,6 @@
         1,
         8
       ],
-      "itemGuid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
       "blockType": "TrainItemPlatform",
       "blockParam": {
         "inventoryConnectors": {
@@ -3059,7 +3025,6 @@
         1,
         1
       ],
-      "itemGuid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
       "blockType": "GearMapObjectMiner",
       "blockParam": {
         "itemSlotCount": 3,
@@ -3139,7 +3104,6 @@
       "blockGuid": "00000000-0000-0000-0000-000000000027"
     },
     {
-      "itemGuid": "7868F6D6-6874-4DAD-96A5-EA6BD35F57CF",
       "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
       "blockType": "FluidPipe",
       "name": "FluidPipe",
@@ -3248,7 +3212,6 @@
       ]
     },
     {
-      "itemGuid": "FC8FEBDB-15E4-4E81-AA4A-0132FEB29A45",
       "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
       "blockType": "FluidPipe",
       "name": "OneWayFluidPipe",
@@ -3436,7 +3399,6 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "itemGuid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0"
     },
     {
@@ -3575,14 +3537,12 @@
         "baseDestructionProbability": 0
       },
       "name": "FuelGearGenerator",
-      "itemGuid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
       "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471"
     },
     {
       "blockGuid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
       "name": "BaseCamp1",
       "blockType": "BaseCamp",
-      "itemGuid": "913fc0e2-2de2-4597-b6c5-e8912994372b",
       "blockSize": [
         1,
         1,
@@ -3609,7 +3569,6 @@
       "blockGuid": "9e18bb3d-b821-4f19-a47e-e3718c39eafa",
       "name": "BaseCamp2",
       "blockType": "BaseCamp",
-      "itemGuid": "344879fd-ee1b-4ff4-93ce-a606016eae61",
       "blockSize": [
         1,
         1,
@@ -3644,7 +3603,6 @@
       "blockGuid": "cda19f55-adef-41f4-9212-3ed5f4f926b9",
       "name": "BaseTransformedBlock",
       "blockType": "BaseCamp",
-      "itemGuid": "cac50667-3c2b-4641-a481-1545b265a108",
       "blockSize": [
         1,
         1,
@@ -3666,7 +3624,6 @@
       "blockGuid": "13806455-551c-4399-a7e7-b45a95709a6b",
       "name": "GearPump",
       "blockType": "GearPump",
-      "itemGuid": "c9715726-11d8-4e3f-a925-f460956f3505",
       "blockSize": [
         1,
         1,
@@ -3777,7 +3734,6 @@
       "blockGuid": "3829088a-5a78-43d7-8c3c-d3e4bb91b90a",
       "name": "ElectricPump",
       "blockType": "ElectricPump",
-      "itemGuid": "0393ee28-cec8-4a37-94bd-15d79e027721",
       "blockSize": [
         1,
         1,
@@ -3841,7 +3797,6 @@
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000028",
-      "itemGuid": "11110000-0000-0000-0000-000000000000",
       "name": "TestGearToElectricGenerator",
       "blockType": "GearToElectricGenerator",
       "blockSize": [
@@ -4045,7 +4000,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
       "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
     },
     {
@@ -4054,7 +4008,6 @@
         1,
         8
       ],
-      "itemGuid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
       "blockType": "TrainFluidPlatform",
       "blockParam": {
         "fluidInventoryConnectors": {
@@ -4197,7 +4150,6 @@
           ]
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000031",
       "blockGuid": "00000000-0000-0000-0000-000000000031"
     },
     {
@@ -4247,9 +4199,7 @@
           ]
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000032",
-      "blockGuid": "00000000-0000-0000-0000-000000000032",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000032"
     },
     {
       "blockSize": [
@@ -4329,13 +4279,10 @@
           "outputConnects": []
         }
       },
-      "itemGuid": "00000000-0000-0000-1234-000000000033",
-      "blockGuid": "00000000-0000-0000-0000-000000000033",
-      "overrideVerticalBlock": {}
+      "blockGuid": "00000000-0000-0000-0000-000000000033"
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
-      "itemGuid": "11110009-0000-0000-0000-000000000000",
       "name": "TestElectricToGearGenerator",
       "blockType": "ElectricToGearGenerator",
       "blockSize": [
@@ -4508,7 +4455,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-0000000000a1",
       "blockGuid": "00000000-0000-0000-0000-0000000000a1",
       "requiredItems": [
         {
@@ -4624,7 +4570,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-0000000000a2",
       "blockGuid": "00000000-0000-0000-0000-0000000000a2",
       "requiredItems": [
         {
@@ -4838,7 +4783,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-0000000000a3",
       "blockGuid": "00000000-0000-0000-0000-0000000000a3",
       "requiredItems": [
         {
@@ -5105,7 +5049,6 @@
           "idlePowerRate": 0.2
         }
       },
-      "itemGuid": "11800000-0000-0000-0000-0000000000a4",
       "blockGuid": "00000000-0000-0000-0000-0000000000a4",
       "requiredItems": [
         {
@@ -5127,7 +5070,6 @@
         1,
         1
       ],
-      "itemGuid": "c3c16652-0ddd-4dd4-ab85-035d602246a3",
       "blockGuid": "2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8"
     },
     {
@@ -5139,7 +5081,6 @@
         1,
         1
       ],
-      "itemGuid": "f458559d-5c3d-4606-8cc2-6b33f694c2c3",
       "blockGuid": "07d7e1a2-b1fd-412f-819c-af098e79e4d4"
     },
     {
@@ -5188,7 +5129,6 @@
         1,
         1
       ],
-      "itemGuid": "c74d50c4-f35f-4863-81ae-bd0b7b62e4f7",
       "blockGuid": "d6268837-5326-480b-960a-ffdce4b5478e"
     },
     {
@@ -5245,7 +5185,6 @@
         1,
         1
       ],
-      "itemGuid": "6488f3bc-ed15-49df-acbb-1738edd13b99",
       "blockGuid": "8e425510-aa34-4a1b-9f40-5f8079183ab2"
     },
     {
@@ -5264,7 +5203,6 @@
         1,
         1
       ],
-      "itemGuid": "40e4307b-a5f8-4374-95bc-440131022863",
       "blockGuid": "21e760d0-54b2-41a5-8cef-d78e1efb8fb8"
     },
     {
@@ -5357,7 +5295,6 @@
         1,
         1
       ],
-      "itemGuid": "ed649456-fc6a-4b33-9ad0-ae9af40fe66e",
       "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc"
     }
   ],

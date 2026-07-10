@@ -43,12 +43,6 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceHotBarBlock(List<PlaceInfo> placePositions, int hotBarSlot)
-        {
-            var request = new PlaceBlockFromHotBarProtocol.SendPlaceHotBarBlockProtocolMessagePack(_playerId, hotBarSlot, placePositions);
-            _packetSender.Send(request);
-        }
-
         public void PlaceBlock(List<PlaceInfo> placePositions)
         {
             var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(_playerId, placePositions);
