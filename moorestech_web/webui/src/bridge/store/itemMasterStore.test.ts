@@ -22,6 +22,29 @@ describe("ensureItemMasterLoaded", () => {
     expect(useItemMasterStore.getState().master?.get(1)?.maxStack).toBe(100);
   });
 
+  it("成功後も再取得し、現在の MaxStack で Map を置き換える", async () => {
+    const updatedMasterJson = { items: [{ itemId: 1, name: "Wood", maxStack: 200 }] };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => masterJson })
+      .mockResolvedValueOnce({ ok: true, json: async () => updatedMasterJson });
+    vi.stubGlobal("fetch", fetchMock);
+    const { ensureItemMasterLoaded, useItemMasterStore } = await import("./itemMasterStore");
+
+    ensureItemMasterLoaded();
+    await vi.advanceTimersByTimeAsync(0);
+    const firstMaster = useItemMasterStore.getState().master;
+    expect(firstMaster?.get(1)?.maxStack).toBe(100);
+
+    // 成功後も同じ間隔で再取得し、Map 自体を置き換える
+    // Refresh after the same interval even on success and replace the Map itself
+    await vi.advanceTimersByTimeAsync(3000);
+    const secondMaster = useItemMasterStore.getState().master;
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(secondMaster).not.toBe(firstMaster);
+    expect(secondMaster?.get(1)?.maxStack).toBe(200);
+  });
+
   it("503 の後もマウントに依存せず自動再試行して反映される", async () => {
     const fetchMock = vi
       .fn()

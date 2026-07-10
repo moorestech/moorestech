@@ -6,6 +6,7 @@
         "Client.Game",
         "Client.Mod",
         "Client.Network",
+        "Core.Item",
         "Core.Item.Interface",
         "Core.Master",
         "Game.Block",

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.WebUiHost.Common;
+using Core.Item;
+using Core.Item.Interface;
 using Core.Master;
 using Microsoft.AspNetCore.Http;
 
@@ -15,13 +17,6 @@ namespace Client.WebUiHost.Game
     {
         public const string Path = "/api/master/items";
 
-        private static string _cachedJson;
-
-        public static void ClearCache()
-        {
-            _cachedJson = null;
-        }
-
         public static async Task HandleAsync(HttpContext context)
         {
             // マスタロード完了前のリクエストは 503 を返す
@@ -32,33 +27,32 @@ namespace Client.WebUiHost.Game
                 return;
             }
 
-            _cachedJson ??= BuildJson();
+            IItemStackLevelLookup itemStackLevelLookup = ItemStackLevelDataStore.Instance;
+            var json = WebUiJson.Serialize(BuildResponse(itemStackLevelLookup));
 
             // ItemId は非永続のためブラウザにキャッシュさせない
             // ItemIds are not persistent, so tell the browser not to cache this
             context.Response.Headers["Cache-Control"] = "no-store";
             context.Response.ContentType = "application/json; charset=utf-8";
-            await context.Response.WriteAsync(_cachedJson, CancellationToken.None);
+            await context.Response.WriteAsync(json, CancellationToken.None);
+        }
 
-            #region Internal
-
-            string BuildJson()
+        public static ItemMasterListDto BuildResponse(IItemStackLevelLookup stackLevelLookup)
+        {
+            // 各リクエスト時点の解放レベルからスタック上限を導出する
+            // Derive stack limits from the unlocked levels at the time of each request
+            var dto = new ItemMasterListDto { Items = new List<ItemMasterDto>() };
+            foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {
-                var dto = new ItemMasterListDto { Items = new List<ItemMasterDto>() };
-                foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
+                var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                dto.Items.Add(new ItemMasterDto
                 {
-                    var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                    dto.Items.Add(new ItemMasterDto
-                    {
-                        ItemId = itemId.AsPrimitive(),
-                        Name = master.Name,
-                        MaxStack = master.MaxStack,
-                    });
-                }
-                return WebUiJson.Serialize(dto);
+                    ItemId = itemId.AsPrimitive(),
+                    Name = master.Name,
+                    MaxStack = stackLevelLookup.GetMaxStack(itemId),
+                });
             }
-
-            #endregion
+            return dto;
         }
     }
 
