@@ -21,6 +21,14 @@ namespace Game.Block.Blocks.ElectricToGear
         // Torque droops by electric fulfillment.
         public Torque GenerateTorque => new(CurrentMode.Torque * _electricFulfillmentRate);
 
+        // 出力は電力側のSupplyEnergyで駆動されるため、gear側の毎tick処理は不要
+        // Output is driven by the electric side's SupplyEnergy, so no gear-side per-tick processing is needed
+        public bool RequiresContinuousTick => false;
+
+        public void ConsumeGeneratorTick(float networkLoadRate)
+        {
+        }
+
         public string SaveKey => "electricToGearGenerator";
 
         // モード選択・電力充足率の変化をクライアントへ通知する状態変化ストリーム
@@ -108,15 +116,21 @@ namespace Game.Block.Blocks.ElectricToGear
             // Calculate fulfillment rate
             var newRate = required > 0f ? Math.Min(power.AsPrimitive() / required, 1f) : 0f;
 
-            // 充足率が変化したらクライアントへ状態変化を通知
-            // Notify the client of a state change when the fulfillment rate changes
+            // 充足率が変化したら出力再配分を自己通知し、クライアントへも状態変化を通知
+            // On fulfillment change, self-notify for redistribution and notify the client of the state change
             var changed = Math.Abs(newRate - _electricFulfillmentRate) > 0.0001f;
             _electricFulfillmentRate = newRate;
-            if (changed) _onChangeBlockState.OnNext(Unit.Default);
+            if (changed)
+            {
+                GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
+                _onChangeBlockState.OnNext(Unit.Default);
+            }
         }
 
         #endregion
 
+        // 電力network側の未リファクタ都合で残すIUpdatableBlockComponent。電力供給の途絶検知のみでgear動力計算はしない
+        // IUpdatableBlockComponent kept due to the unrefactored electric network; it only detects lost electric supply, no gear power calc
         public void Update()
         {
             BlockException.CheckDestroy(this);
@@ -140,9 +154,13 @@ namespace Game.Block.Blocks.ElectricToGear
             // Re-evaluate and update fulfillment against the new mode's requiredPower
             UpdateFulfillment(_suppliedPower);
 
-            // モード自体が変わったらクライアントへ状態変化を通知
-            // Notify the client of a state change when the mode index itself changes
-            if (changed) _onChangeBlockState.OnNext(Unit.Default);
+            // モード変更は充足率が同じでも出力RPM/トルクが変わるため、クライアント通知に加えnetwork再配分を要求する
+            // A mode change alters output RPM/torque even at the same fulfillment rate, so notify the client and request the network's recalculation
+            if (changed)
+            {
+                GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
+                _onChangeBlockState.OnNext(Unit.Default);
+            }
             return true;
         }
 
