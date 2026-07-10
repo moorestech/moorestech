@@ -7,11 +7,9 @@ type Props = {
   className?: string;
 };
 
-// ブロックアイコン画像と読み込み失敗時の #id フォールバックを共通化する
-// Shared block icon with the #id fallback for load failures
+// 失敗時は #id 表示
+// Falls back to #id on failure
 export default function BlockIcon({ blockId, alt, className }: Props) {
-  // アイコン読み込み失敗を blockId 単位で記録し、ID ラベル表示に切り替える
-  // Track icon load failures per blockId and fall back to the id label
   const [erroredBlockId, setErroredBlockId] = useState<number | null>(null);
 
   if (erroredBlockId === blockId) {

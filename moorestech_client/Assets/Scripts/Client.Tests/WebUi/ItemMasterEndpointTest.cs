@@ -21,8 +21,8 @@ namespace Client.Tests.WebUi
             var stackLevelLookup = serviceProvider.GetRequiredService<IItemStackLevelLookup>();
             var stackLevelUnlocker = serviceProvider.GetRequiredService<IItemStackLevelUnlocker>();
 
-            // 同じ取得インターフェースから連続構築し、中間のレベル変更を検証する
-            // Build twice through the same lookup and verify the intervening level change
+            // レベル変更を連続取得で検証
+            // Verify a level change across reads
             var firstResponse = ItemMasterEndpoint.BuildResponse(stackLevelLookup);
             stackLevelUnlocker.UnlockStackLevel(TestItemGuid, 2);
             var secondResponse = ItemMasterEndpoint.BuildResponse(stackLevelLookup);

@@ -5,8 +5,8 @@ import type {
   MachineRecipesData,
 } from "@/bridge/contract/payloadTypes";
 
-// タブ定義。blockId が null ならクラフトレシピのタブ
-// Tab descriptor; blockId null means the craft recipe tab
+// null はクラフトタブ
+// null denotes the craft tab
 export type RecipeTab = { key: string; label: string; blockId: number | null };
 
 // 選択アイテムを生産するクラフトレシピを抽出する純関数。
@@ -15,8 +15,6 @@ export function selectCraftRecipes(recipes: CraftRecipesData, itemId: number): C
   return recipes.recipes.filter((r) => r.resultItemId === itemId);
 }
 
-// 選択アイテムを出力する機械レシピを blockId 毎に集約する純関数。
-// Pure grouping of machine recipes producing the item, keyed by blockId.
 export function groupMachineRecipesByBlock(
   machineRecipes: MachineRecipesData,
   itemId: number,

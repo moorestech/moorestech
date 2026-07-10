@@ -57,8 +57,8 @@ namespace Client.Starter.Initialization
             // Load block and item assets.
             await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadFluidAssets());
 
-            // ブロック・列車の専用アイコンを一括生成する
-            // Generate dedicated block and train icons in one pass
+            // ブロック・列車画像を生成
+            // Generate block and train icons
             var iconLoader = new ModAssetIconLoader(_blockContainer, _blockIconImagePhotographer, _loadingLog, _loadingStopwatch);
             var iconResult = await iconLoader.RunAsync();
 
