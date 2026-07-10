@@ -129,7 +129,6 @@ namespace Client.WebUiHost.Boot
             try
             {
                 Game.ItemIconEndpoint.ClearCache();
-                Game.ItemMasterEndpoint.ClearCache();
             }
             catch (Exception e) { Debug.LogWarning($"[WebUiHost] icon cache clear failed: {e.GetBaseException().Message}"); }
 
