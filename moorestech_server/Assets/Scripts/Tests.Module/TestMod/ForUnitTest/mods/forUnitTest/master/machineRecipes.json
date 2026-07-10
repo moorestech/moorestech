@@ -248,6 +248,27 @@
           "amount": 4
         }
       ]
+    },
+    {
+      "time": 1,
+      "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "78274378-9a98-4826-8dea-80f7eb52a5ed"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "fa7bf6df-efc2-421d-b7bc-87be7b229345"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "19b0d248-0ce5-4e5f-b59c-5897177b6268"
     }
   ]
 }

@@ -18,6 +18,7 @@ namespace Core.Master
         public static ResearchMaster ResearchMaster { get; private set; }
         public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
+        public static CleanRoomMaster CleanRoomMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -59,6 +60,13 @@ namespace Core.Master
             MachineRecipesMaster = new MachineRecipesMaster(GetJson(masterJsonFileContainer, new JsonFileName("machineRecipes")));
             InitializeMaster(MachineRecipesMaster);
 
+            // cleanRoom.json を持たない Mod でも起動できるよう、欠損時は空マスタで代替する
+            // Fall back to an empty master when the mod ships no cleanRoom.json, so such mods still boot
+            CleanRoomMaster = TryGetJson(masterJsonFileContainer, new JsonFileName("cleanRoom"), out var cleanRoomJson)
+                ? new CleanRoomMaster(cleanRoomJson)
+                : CleanRoomMaster.CreateEmpty();
+            InitializeMaster(CleanRoomMaster);
+
             // 複数依存
             // Multiple dependencies
             ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
@@ -92,6 +100,21 @@ namespace Core.Master
             var jsonContent = masterJsonFileContainer.ConfigJsons[index].JsonContents[jsonFileName];
 
             return (JToken)JsonConvert.DeserializeObject(jsonContent);
+        }
+
+        // 任意ファイル用。存在しないjsonは呼び出し側でフォールバックする
+        // For optional files; callers fall back when the json is absent
+        private static bool TryGetJson(MasterJsonFileContainer masterJsonFileContainer, JsonFileName jsonFileName, out JToken jToken)
+        {
+            var index = 0; // TODO 現状はとりあえず一つのmodのみロードする。今後は複数のjsonファイルをロードできるようにする。
+            if (!masterJsonFileContainer.ConfigJsons[index].JsonContents.TryGetValue(jsonFileName, out var jsonContent))
+            {
+                jToken = null;
+                return false;
+            }
+
+            jToken = (JToken)JsonConvert.DeserializeObject(jsonContent);
+            return true;
         }
     }
 }

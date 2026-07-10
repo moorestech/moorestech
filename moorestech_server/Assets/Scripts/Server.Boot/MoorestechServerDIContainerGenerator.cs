@@ -10,6 +10,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Event;
 using Game.Blueprint;
 using Game.Challenge;
+using Game.CleanRoom;
 using Game.Context;
 using Game.Crafting.Interface;
 using Game.CraftTree;
@@ -111,6 +112,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
+            initializerCollection.AddSingleton<CleanRoomDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());
             initializerCollection.AddSingleton<TrainUnitDatastore>();
@@ -151,6 +153,7 @@ namespace Server.Boot
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
+            services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
             services.AddSingleton(railGraphDatastore);
             services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);
             services.AddSingleton<IRailGraphProvider>(railGraphDatastore);
@@ -256,6 +259,7 @@ namespace Server.Boot
             serviceProvider.GetService<CompletedChallengeEventPacket>();
 
             serviceProvider.GetService<GearNetworkDatastore>();
+            serviceProvider.GetService<CleanRoomDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<TrainDiagramManager>();
             serviceProvider.GetService<TrainRailPositionManager>();

@@ -26,7 +26,6 @@
       "maxStack": 100,
       "name": "MultiBlock1",
       "blockType": "ElectricGenerator",
-      "itemGuid": "00000000-0000-0000-1234-000000000009",
       "blockGuid": "00000000-0000-0000-0000-000000000009",
       "blockParam": {
         "fuelItemSlotCount": 0,
