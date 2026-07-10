@@ -47,7 +47,7 @@ namespace Game.Block.Blocks.GearChainPole
             _param = param;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
-            _gearService = new SimpleGearService();
+            _gearService = new SimpleGearService(this);
             _gearService.OnGearUpdate.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
             
             _componentStates = componentStates;
@@ -209,49 +209,15 @@ namespace Game.Block.Blocks.GearChainPole
 
         public BlockInstanceId BlockInstanceId { get; }
 
-        // 現在値は保持せず、所属networkの符号付き原点RPM比×原点RPMから導出する
-        // Current values are not stored; they are derived from the owning network's signed ratio × origin RPM
-        public RPM CurrentRpm
-        {
-            get
-            {
-                TryResolveRotation(out var rpm, out _);
-                return rpm;
-            }
-        }
-
-        public Torque CurrentTorque
-        {
-            get
-            {
-                if (!TryResolveRotation(out var rpm, out var isClockwise)) return new Torque(0);
-                if (rpm.AsPrimitive() <= 0f) return new Torque(0);
-                return GetRequiredTorque(rpm, isClockwise);
-            }
-        }
-
-        public bool IsCurrentClockwise
-        {
-            get
-            {
-                TryResolveRotation(out _, out var isClockwise);
-                return isClockwise;
-            }
-        }
+        // 現在値の導出はserviceへ委譲。serviceも値を保持せず毎回networkから導出する
+        // Current-value derivation is delegated to the service, which also holds nothing and derives from the network each call
+        public RPM CurrentRpm => _gearService.CurrentRpm;
+        public Torque CurrentTorque => _gearService.CurrentTorque;
+        public bool IsCurrentClockwise => _gearService.IsCurrentClockwise;
 
         public void NotifyStateChanged()
         {
             _gearService.NotifyStateChanged();
-        }
-
-        // 所属networkを引き、符号付き原点RPM比から実RPMと絶対回転方向を導出する
-        // Look up the owning network and derive actual RPM and absolute direction from the signed origin RPM ratio
-        private bool TryResolveRotation(out RPM rpm, out bool isClockwise)
-        {
-            rpm = new RPM(0);
-            isClockwise = true;
-            if (!GearNetworkDatastore.TryGetGearNetwork(BlockInstanceId, out var network)) return false;
-            return network.TryResolveRotation(BlockInstanceId, out rpm, out isClockwise);
         }
 
         #endregion
@@ -270,7 +236,7 @@ namespace Game.Block.Blocks.GearChainPole
             return new[]
             {
                 new(GearChainPoleStateDetail.BlockStateDetailKey, bytes),
-                _gearService.GetBlockStateDetail(CurrentRpm, CurrentTorque, IsCurrentClockwise),
+                _gearService.GetBlockStateDetail(),
             };
         }
 
