@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
@@ -31,28 +32,9 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // 選択が確定したら種別に応じて選択状態を設定し設置モードへ遷移する
-            // On selection, set the placement selection by entry type and transition to placement mode
             if (_buildMenuView.TryConsumeSelectedEntry(out var entry))
             {
-                switch (entry.EntryType)
-                {
-                    case PlacementSelectionType.Block:
-                        _placementSelection.SetSelectedBlock(entry.BlockId, null);
-                        break;
-                    case PlacementSelectionType.TrainCar:
-                        _placementSelection.SetSelectedTrainCar(entry.TrainCarGuid);
-                        break;
-                    case PlacementSelectionType.ConnectTool:
-                        _placementSelection.SetSelectedConnectTool(entry.ConnectPlaceMode);
-                        break;
-                    case PlacementSelectionType.Blueprint:
-                        _placementSelection.SetSelectedBlueprint(entry.BlueprintName);
-                        break;
-                    case PlacementSelectionType.BlueprintCopy:
-                        _placementSelection.SetSelectedBlueprintCopyTool();
-                        break;
-                }
+                ApplySelection(entry.Target);
                 return Leave(UIStateEnum.PlaceBlock);
             }
 
@@ -60,6 +42,30 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
 
             return null;
+        }
+
+        // 暫定: 旧共有インスタンスへ橋渡し（Task 5で遷移payloadに置換して削除）
+        // Transitional bridge to the legacy shared selection (replaced by transition payload in Task 5)
+        private void ApplySelection(IPlacementTarget target)
+        {
+            switch (target)
+            {
+                case BlockPlacementTarget block:
+                    _placementSelection.SetSelectedBlock(block.BlockId, block.PickedDirection);
+                    break;
+                case TrainCarPlacementTarget trainCar:
+                    _placementSelection.SetSelectedTrainCar(trainCar.TrainCarGuid);
+                    break;
+                case ConnectToolPlacementTarget connectTool:
+                    _placementSelection.SetSelectedConnectTool(connectTool.PlaceMode);
+                    break;
+                case BlueprintPlacementTarget blueprint:
+                    _placementSelection.SetSelectedBlueprint(blueprint.BlueprintName);
+                    break;
+                case BlueprintCopyToolPlacementTarget:
+                    _placementSelection.SetSelectedBlueprintCopyTool();
+                    break;
+            }
         }
 
         // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
