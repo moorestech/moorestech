@@ -56,13 +56,14 @@ namespace Client.WebUiHost.Game
 
         private UniTask<(string result, string text)> RequestCore(string title, string message, string buttonText, ModalVariant variant, bool requiresInput)
         {
-            // 既存の保留要求があれば cancel 扱いで解決し、最新要求のみを保持する
-            // Resolve any existing pending request as cancel so only the latest request is kept
-            _pendingSource?.TrySetResult(("cancel", null));
+            // 最新要求の状態を先に確定し、既存要求は再入しても上書きしない順序で cancel 解決する
+            // Commit the latest request state first, then cancel the previous request without reentrant overwrites
+            var previousSource = _pendingSource;
 
             _nextId++;
             _pendingId = _nextId.ToString();
-            _pendingSource = new UniTaskCompletionSource<(string result, string text)>();
+            var source = new UniTaskCompletionSource<(string result, string text)>();
+            _pendingSource = source;
 
             Pending = new ModalRequest
             {
@@ -75,7 +76,8 @@ namespace Client.WebUiHost.Game
             };
             _onPendingChanged.OnNext(Unit.Default);
 
-            return _pendingSource.Task;
+            previousSource?.TrySetResult(("cancel", null));
+            return source.Task;
         }
 
         // 保留中の要求だけを cancel 解決する（Instance は維持。ビュー側クローズ等の要求単位キャンセル用）
