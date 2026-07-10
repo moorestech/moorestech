@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
@@ -21,7 +22,7 @@ namespace Client.Game.InGame.Electric
         private readonly List<EnergizedRangeObject> rangeObjects = new();
         
         [Inject] private BlockGameObjectDataStore _blockGameObjectDataStore;
-        [Inject] private PlacementSelection _placementSelection;
+        [Inject] private PlaceSystemStateController _placeSystemStateController;
 
         private bool isBlockPlaceState;
 
@@ -103,9 +104,8 @@ namespace Client.Game.InGame.Electric
             {
                 // ビルドメニューでブロックを選択中のみ表示する（旧: 手持ちアイテムのブロック判定）
                 // Show only while a block is selected in the build menu (was: held-item block check)
-                if (_placementSelection.SelectionType != PlacementSelectionType.Block) return (false, false);
-
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(_placementSelection.SelectedBlockId.Value);
+                if (_placeSystemStateController.CurrentTarget is not BlockPlacementTarget blockTarget) return (false, false);
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockTarget.BlockId);
 
                 return (IsElectricalBlock(blockMaster.BlockType), IsPole(blockMaster.BlockType));
             }
