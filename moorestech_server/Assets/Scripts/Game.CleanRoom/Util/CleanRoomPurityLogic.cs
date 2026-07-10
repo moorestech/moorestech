@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Game.CleanRoom
+namespace Game.CleanRoom.Util
 {
     /// <summary>
     ///     純度シミュレーションの純関数群（1tick積分と閾値行判定）

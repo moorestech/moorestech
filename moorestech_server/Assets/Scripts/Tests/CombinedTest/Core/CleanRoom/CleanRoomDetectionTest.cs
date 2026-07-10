@@ -2,6 +2,7 @@ using System;
 using Core.Master;
 using Game.Block.Interface;
 using Game.CleanRoom;
+using Game.CleanRoom.Util;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;

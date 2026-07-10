@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.CleanRoom;
+using Game.CleanRoom.Util;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Game

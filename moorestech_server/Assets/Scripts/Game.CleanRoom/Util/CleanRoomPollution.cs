@@ -5,7 +5,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.World.Interface.DataStore;
 
-namespace Game.CleanRoom
+namespace Game.CleanRoom.Util
 {
     /// <summary>
     ///     部屋の幾何・接続点・稼働機械・搬送から毎秒の汚染流入 A_total を求める

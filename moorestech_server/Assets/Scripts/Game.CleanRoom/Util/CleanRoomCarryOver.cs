@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace Game.CleanRoom
+namespace Game.CleanRoom.Util
 {
     /// <summary>
     ///     再検出で得た新部屋群へ旧部屋群の不純物と閾値行を引き継ぐ
