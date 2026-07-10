@@ -13,6 +13,9 @@ describe("screenForUiState", () => {
   it("SubInventory はブロック画面", () => {
     expect(screenForUiState("SubInventory")).toBe("subInventory");
   });
+  it("BuildMenu は buildMenu 画面に解決される", () => {
+    expect(screenForUiState("BuildMenu")).toBe("buildMenu");
+  });
   it("GameScreen・未受信・未知state はパネル無し", () => {
     expect(screenForUiState("GameScreen")).toBe("none");
     expect(screenForUiState(null)).toBe("none");
