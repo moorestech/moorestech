@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using Game.UnlockState;
 using UniRx;
@@ -28,12 +29,19 @@ namespace Client.Game.InGame.UI.BuildMenu
 
         public void SetActive(bool active)
         {
-            gameObject.SetActive(active);
+            // webモード中は置換済みビューとしてuGUI表示を抑止する（PlayerInventoryViewControllerと同型）
+            // In web mode this is a replaced view, so suppress the uGUI visual (same as PlayerInventoryViewController)
+            var visible = active && !WebUiScreenGate.IsWebUiMode;
+            gameObject.SetActive(visible);
             if (!active) return;
 
             // 前回セッションの未消費クリックを破棄
             // Discard an unconsumed click from the previous session before showing
             _clickedEntry = null;
+
+            // 非表示時はuGUIスロット構築とBP更新をスキップする（web側の更新はBuildMenuTopicが担う）
+            // Skip uGUI slot building and the BP refresh while hidden (BuildMenuTopic handles the web-side refresh)
+            if (!visible) return;
 
             // キャッシュで即表示後、BP更新時に再構築
             // Show the cached list immediately, then rebuild after the BP library refresh only if needed
@@ -58,6 +66,13 @@ namespace Client.Game.InGame.UI.BuildMenu
             }
 
             #endregion
+        }
+
+        // webからの選択をuGUIクリックと同じ消費キューへ投入する
+        // Feed a web selection into the same consume queue as uGUI clicks
+        public void SetSelectedEntry(BuildMenuEntry entry)
+        {
+            _clickedEntry = entry;
         }
 
         public bool TryConsumeSelectedEntry(out BuildMenuEntry entry)
