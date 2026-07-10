@@ -36,20 +36,33 @@ namespace Client.WebUiHost.Game
         private readonly Subject<Unit> _onPendingChanged = new();
 
         private string _pendingId;
-        private UniTaskCompletionSource<string> _pendingSource;
+        private UniTaskCompletionSource<(string result, string text)> _pendingSource;
         private int _nextId;
 
         // モーダルを Web に出して結果文字列（"confirm" | "cancel"）を待つ
         // Show a modal on the web and await the result string ("confirm" | "cancel")
-        public UniTask<string> RequestModal(string title, string message, string buttonText, ModalVariant variant)
+        public async UniTask<string> RequestModal(string title, string message, string buttonText, ModalVariant variant)
+        {
+            var (result, _) = await RequestCore(title, message, buttonText, variant, false);
+            return result;
+        }
+
+        // 入力付きモーダルを出して (結果, 入力テキスト) を待つ（キャンセル時 text は null）
+        // Show an input modal and await (result, entered text); text is null on cancel
+        public UniTask<(string result, string text)> RequestInputModal(string title, string message, string buttonText)
+        {
+            return RequestCore(title, message, buttonText, ModalVariant.Confirm, true);
+        }
+
+        private UniTask<(string result, string text)> RequestCore(string title, string message, string buttonText, ModalVariant variant, bool requiresInput)
         {
             // 既存の保留要求があれば cancel 扱いで解決し、最新要求のみを保持する
             // Resolve any existing pending request as cancel so only the latest request is kept
-            _pendingSource?.TrySetResult("cancel");
+            _pendingSource?.TrySetResult(("cancel", null));
 
             _nextId++;
             _pendingId = _nextId.ToString();
-            _pendingSource = new UniTaskCompletionSource<string>();
+            _pendingSource = new UniTaskCompletionSource<(string result, string text)>();
 
             Pending = new ModalRequest
             {
@@ -58,21 +71,31 @@ namespace Client.WebUiHost.Game
                 Message = message,
                 ButtonText = buttonText,
                 Variant = variant,
+                RequiresInput = requiresInput,
             };
             _onPendingChanged.OnNext(Unit.Default);
 
             return _pendingSource.Task;
         }
 
-        // バインド解除時に保留要求を cancel で解決し状態を初期化する（await リーク防止）
-        // On unbind, resolve the pending request as cancel and reset state (prevents leaked awaits)
-        public void CancelPending()
+        // 保留中の要求だけを cancel 解決する（Instance は維持。ビュー側クローズ等の要求単位キャンセル用）
+        // Cancel-resolve only the pending request, keeping Instance (per-request cancel, e.g. view closed)
+        public void CancelPendingRequest()
         {
-            _pendingSource?.TrySetResult("cancel");
+            if (_pendingSource == null && Pending == null) return;
+            var source = _pendingSource;
             _pendingSource = null;
             _pendingId = null;
             Pending = null;
             _onPendingChanged.OnNext(Unit.Default);
+            source?.TrySetResult(("cancel", null));
+        }
+
+        // バインド解除時に保留要求を cancel で解決し解決口を閉じる（await リーク防止）
+        // On unbind, cancel-resolve the pending request and close the resolution point (prevents leaked awaits)
+        public void CancelPending()
+        {
+            CancelPendingRequest();
 
             // 自分が現行 Instance なら破棄扱いにして解決口を閉じる
             // If this is the current Instance, treat it as disposed and close the resolution point
@@ -81,7 +104,7 @@ namespace Client.WebUiHost.Game
 
         // Web からの応答。id 不一致は古い応答なので無視する
         // Reply from the web; ignore id mismatches as stale responses
-        public bool Respond(string id, string result)
+        public bool Respond(string id, string result, string text)
         {
             if (_pendingSource == null || id == null || id != _pendingId) return false;
 
@@ -91,7 +114,7 @@ namespace Client.WebUiHost.Game
             Pending = null;
             _onPendingChanged.OnNext(Unit.Default);
 
-            source.TrySetResult(result);
+            source.TrySetResult((result, text));
             return true;
         }
     }
@@ -107,6 +130,7 @@ namespace Client.WebUiHost.Game
         public string Message;
         public string ButtonText;
         public ModalVariant Variant;
+        public bool RequiresInput;
     }
 
     /// <summary>
