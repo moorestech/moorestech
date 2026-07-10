@@ -80,6 +80,30 @@ namespace Client.Playtest.Input
             });
         }
 
+        public static async UniTask MouseGlideTo(Vector2 targetScreenPosition, float durationSeconds)
+        {
+            EnsureDevices();
+            // 現在位置から目標へsmoothstep補間で毎フレーム移動する
+            // Interpolate from the current position to the target each frame with smoothstep easing
+            var startPosition = Mouse.current.position.ReadValue();
+            var startTime = Time.realtimeSinceStartup;
+
+            while (true)
+            {
+                var elapsed = Time.realtimeSinceStartup - startTime;
+                if (durationSeconds <= elapsed)
+                {
+                    MouseMoveTo(targetScreenPosition);
+                    return;
+                }
+
+                var t = elapsed / durationSeconds;
+                var easedT = t * t * (3f - 2f * t);
+                MouseMoveTo(Vector2.Lerp(startPosition, targetScreenPosition, easedT));
+                await UniTask.Yield();
+            }
+        }
+
         public static void MouseButtonDown(int button)
         {
             EnsureDevices();
