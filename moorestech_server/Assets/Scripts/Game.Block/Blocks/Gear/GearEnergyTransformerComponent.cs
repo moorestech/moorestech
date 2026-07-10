@@ -17,39 +17,11 @@ namespace Game.Block.Blocks.Gear
 
         public BlockInstanceId BlockInstanceId { get; }
 
-        // 現在値は保持せず、所属networkの符号付き原点RPM比から毎回導出する
-        // Current values are derived each time from the owning network's signed origin RPM ratio
-        public RPM CurrentRpm
-        {
-            get
-            {
-                TryResolveRotation(out var rpm, out _);
-                return rpm;
-            }
-        }
-
-        public Torque CurrentTorque
-        {
-            get
-            {
-                if (!TryResolveRotation(out var rpm, out var isClockwise)) return new Torque(0);
-                if (rpm.AsPrimitive() <= 0f) return new Torque(0);
-
-                // generatorは自身の発電トルク、消費側は現在RPMでの要求トルクを現在トルクとみなす
-                // A generator reports generated torque; a consumer reports required torque at the current RPM
-                if (this is IGearGenerator generator) return generator.GenerateTorque;
-                return GetRequiredTorque(rpm, isClockwise);
-            }
-        }
-
-        public bool IsCurrentClockwise
-        {
-            get
-            {
-                TryResolveRotation(out _, out var isClockwise);
-                return isClockwise;
-            }
-        }
+        // 現在値の導出はserviceへ委譲。serviceも値を保持せず毎回networkから導出する
+        // Current-value derivation is delegated to the service, which also holds nothing and derives from the network each call
+        public RPM CurrentRpm => _simpleGearService.CurrentRpm;
+        public Torque CurrentTorque => _simpleGearService.CurrentTorque;
+        public bool IsCurrentClockwise => _simpleGearService.IsCurrentClockwise;
 
         public bool IsDestroy { get; private set; }
 
@@ -62,14 +34,14 @@ namespace Game.Block.Blocks.Gear
             _consumption = consumption;
             BlockInstanceId = blockInstanceId;
             _connectorComponent = connectorComponent;
-            _simpleGearService = new SimpleGearService();
+            _simpleGearService = new SimpleGearService(this);
 
             GearNetworkDatastore.AddGear(this);
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
         {
-            return new[] { _simpleGearService.GetBlockStateDetail(CurrentRpm, CurrentTorque, IsCurrentClockwise) };
+            return new[] { _simpleGearService.GetBlockStateDetail() };
         }
 
         public virtual Torque GetRequiredTorque(RPM rpm, bool isClockwise)
@@ -114,16 +86,6 @@ namespace Game.Block.Blocks.Gear
             IsDestroy = true;
             GearNetworkDatastore.RemoveGear(this);
             _simpleGearService.Destroy();
-        }
-
-        // 所属networkを引き、符号付き原点RPM比から実RPMと絶対回転方向を導出する
-        // Look up the owning network and derive actual RPM and absolute direction from the signed origin RPM ratio
-        private bool TryResolveRotation(out RPM rpm, out bool isClockwise)
-        {
-            rpm = new RPM(0);
-            isClockwise = true;
-            if (!GearNetworkDatastore.TryGetGearNetwork(BlockInstanceId, out var network)) return false;
-            return network.TryResolveRotation(BlockInstanceId, out rpm, out isClockwise);
         }
     }
 }
