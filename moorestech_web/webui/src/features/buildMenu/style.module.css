@@ -1,3 +1,5 @@
+/* buildMenu レイヤーは blockInventory/research(30) より下位、modal はPortalで最前面 */
+/* The buildMenu layer sits below blockInventory/research (30); the modal wins via its portal */
 .panel {
   position: fixed;
   inset: 8% 12%;
@@ -7,7 +9,7 @@
   padding: 16px;
   background: rgba(30, 30, 30, 0.92);
   border-radius: 8px;
-  z-index: 100;
+  z-index: 20;
 }
 
 .scroll {
