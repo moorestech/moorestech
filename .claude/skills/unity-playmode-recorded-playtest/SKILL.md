@@ -59,7 +59,7 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 
 ## 動画の可読性ルール（オーバーレイ・ナレーション・0.5秒インターバル）
 
-録画には操作オーバーレイが自動で焼き込まれる: 左上=スタック式アクションログ（Step/Note/待機/Assert成否）、左下=押下中キーと直近入力、画面上=注入マウスカーソル（クリックでリップル）。実装は`Client.Playtest/Overlay/`。
+録画には操作オーバーレイが自動で焼き込まれる: 左上=スタック式アクションログ（Step/Note/待機/Assert成否）、右上=押下中キーと直近入力（ゲーム自身の操作ヒント一覧・ホットバーと衝突しない位置）、画面上=注入マウスカーソル（クリックでリップル）。実装は`Client.Playtest/Overlay/`。
 
 - **シナリオには`p.Note("...")`で「今から何をするか・何が起きたか」を書く**（AIナレーション）。動画左上とresult.jsonの`Timeline`に残る。フェーズの区切り（設置開始・検証開始等）ごとに1行が目安
 - **1アクションごとに0.5秒のインターバルを必ず置く**（人間が動画で操作を認知できるテンポにするため）。Driverの非同期アクションAPI（PressKey/ClickPlace/PlaceBlockViaUi等）は自動で0.5秒空く。`SemanticInput`直叩きや`PlaceBlockDirect`等の同期APIを連続させる場合は`await p.WaitSeconds(0.5f)`を自分で挟む

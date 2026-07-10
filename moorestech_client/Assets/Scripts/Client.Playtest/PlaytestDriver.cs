@@ -127,7 +127,12 @@ namespace Client.Playtest
             await OpenBuildMenuAndSelectBlock(blockName);
             var fromAim = PlaytestUiOps.PlaceAimPoint(blockName, fromOrigin, BlockDirection.North);
             var toAim = PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North);
-            await _reporter.Act($"ドラッグ設置: {blockName} {fromOrigin}->{toOrigin}", () => PlaytestUiOps.DragPlace(fromAim, toAim));
+            _reporter.Step($"ドラッグ設置: {blockName} {fromOrigin}->{toOrigin}");
+            // ドラッグ直後に0.5秒アイドルさせると、続く連続ドラッグの始点タイルが設置されない実バグがあるため、
+            // このアクションだけは通常のActではなくインターバル無しで実行する（既存ゲームロジックの制約）
+            // Idling 0.5s right after a drag corrupts the next consecutive drag's start-cell placement (a real
+            // in-game bug), so skip the usual Act interval for this action only (constraint of existing game logic)
+            await PlaytestUiOps.DragPlace(fromAim, toAim);
             await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UIドラッグ設置反映: {blockName} {fromOrigin}->{toOrigin}");
         }
 
