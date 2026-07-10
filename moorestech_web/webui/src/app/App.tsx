@@ -7,6 +7,7 @@ import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryPanel } from "@/features/blockInventory";
 import { ResearchTreePanel } from "@/features/research";
+import { BuildMenuPanel } from "@/features/buildMenu";
 import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
 import { screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
 import styles from "./App.module.css";
@@ -55,6 +56,7 @@ export default function App() {
       {/* オーバーレイ系（grid セルでなく fixed/center 配置） */}
       {/* Overlays (fixed/centered, not grid cells) */}
       {screen === "researchTree" && <ResearchTreePanel />}
+      {screen === "buildMenu" && <BuildMenuPanel />}
       <BlockInventoryPanel />
       <ModalHost />
       <ProgressBar />
