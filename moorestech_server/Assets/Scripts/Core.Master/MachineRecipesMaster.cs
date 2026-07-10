@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Master.Validator;
 using Mooresmaster.Loader.MachineRecipesModule;
 using Mooresmaster.Model.MachineRecipesModule;
@@ -11,7 +10,7 @@ namespace Core.Master
     public class MachineRecipesMaster : IMasterValidator
     {
         public readonly MachineRecipes MachineRecipes;
-        private Dictionary<string, MachineRecipeMasterElement> _machineRecipesByRecipeKey;
+        private Dictionary<Guid, MachineRecipeMasterElement> _machineRecipesByGuid;
 
         public MachineRecipesMaster(JToken jToken)
         {
@@ -25,18 +24,13 @@ namespace Core.Master
 
         public void Initialize()
         {
-            MachineRecipesMasterUtil.Initialize(MachineRecipes, out _machineRecipesByRecipeKey);
-        }
-
-        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, List<FluidId> inputFluids, out MachineRecipeMasterElement recipe)
-        {
-            var key = MachineRecipesMasterUtil.GetRecipeElementKey(blockId, inputItemIds, inputFluids);
-            return _machineRecipesByRecipeKey.TryGetValue(key, out recipe);
+            MachineRecipesMasterUtil.Initialize(MachineRecipes, out _machineRecipesByGuid);
         }
 
         public MachineRecipeMasterElement GetRecipeElement(Guid machineRecipeGuid)
         {
-            return MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid == machineRecipeGuid);
+            _machineRecipesByGuid.TryGetValue(machineRecipeGuid, out var recipe);
+            return recipe;
         }
     }
 }

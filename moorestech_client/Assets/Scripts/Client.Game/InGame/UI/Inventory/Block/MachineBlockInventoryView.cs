@@ -1,19 +1,21 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
+using Client.Game.InGame.UI.Inventory.Block.RecipeSelection;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.MachineRecipesModule;
 using TMPro;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.UI.Inventory.Block
 {
+    [RequireComponent(typeof(MachineRecipeSelectionView))]
     public class MachineBlockInventoryView : CommonBlockInventoryViewBase
     {
         [SerializeField] private RectTransform machineInputItemParent;
@@ -35,6 +37,8 @@ namespace Client.Game.InGame.UI.Inventory.Block
         protected BlockGameObject BlockGameObject;
         
         private readonly List<FluidSlotView> _fluidSlotViews = new();
+        private MachineRecipeSelectionView _machineRecipeSelectionView;
+        [Inject] private IGameUnlockStateData _gameUnlockStateData;
         
         public override void Initialize(BlockGameObject blockGameObject)
         {
@@ -54,6 +58,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
             // 電力機械プレハブでのみ電力ネットワーク情報を表示(歯車機械では未配線)
             // Show electric network info only on electric-machine prefabs (unwired on gear machines)
             if (electricNetworkInfoView != null) electricNetworkInfoView.Initialize(BlockGameObject.BlockInstanceId);
+
+            // 移行用レシピ選択Viewを既存表示へ接続
+            // Attach the transitional recipe selector to the existing label
+            _machineRecipeSelectionView = GetComponent<MachineRecipeSelectionView>();
+            _machineRecipeSelectionView.Initialize(machineRecipeCount, blockGameObject, _gameUnlockStateData);
 
             #region Internal
             
@@ -105,34 +114,11 @@ namespace Client.Game.InGame.UI.Inventory.Block
         
         protected void Update()
         {
-            UpdateMachineRecipeView();
+            _machineRecipeSelectionView.Refresh();
             UpdateMachineProgressArrow();
             UpdateFluidInventory();
             
             #region Internal
-            
-            void UpdateMachineRecipeView()
-            {
-                var state = BlockGameObject.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
-                if (state == null)
-                {
-                    return;
-                }
-                
-                var machineRecipeCountText = string.Empty;
-                if (state.MachineRecipeGuid != Guid.Empty.ToString())
-                {
-                    var recipeMaster = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(state.MachineRecipeGuid));
-                    var minutesCount =  60.0f / recipeMaster.Time;
-                    foreach (var item in recipeMaster.OutputItems)
-                    {
-                        var resultCount = item.Count * minutesCount;
-                        var itemName = MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name;
-                        machineRecipeCountText += $"{itemName} : {resultCount:F1}/分 ";
-                    }
-                }
-                machineRecipeCount.text = machineRecipeCountText;
-            }
             
             void UpdateMachineProgressArrow()
             {

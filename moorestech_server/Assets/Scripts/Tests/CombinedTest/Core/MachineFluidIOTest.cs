@@ -21,6 +21,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util.MachineRecipe;
 using UniRx;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
@@ -168,13 +169,14 @@ namespace Tests.CombinedTest.Core
             var blockFactory = ServerContext.BlockFactory;
             var itemStackFactory = ServerContext.ItemStackFactory;
             
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[7];
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(ForUnitTestMachineRecipeId.UnlockedMachineRecipe);
 
             // マシンブロックの配置
             // Place the machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(block, recipe.MachineRecipeGuid);
             
             
             // 必要素材を入れる
@@ -360,6 +362,7 @@ namespace Tests.CombinedTest.Core
             }
             
             var recipe = recipes.First();
+            MachineRecipeSelectionTestUtil.SelectRecipe(machineBlock, recipe.MachineRecipeGuid);
             Debug.Log($"Using recipe: Block={blockMaster.BlockGuid}, Input={recipe.InputItems[0].ItemGuid}, Output={recipe.OutputItems[0].ItemGuid}");
             
             // 材料を投入（レシピに必要なアイテムをすべて投入）

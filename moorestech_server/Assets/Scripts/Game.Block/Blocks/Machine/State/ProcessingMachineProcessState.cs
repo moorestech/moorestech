@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
+using Core.Inventory;
 using Core.Item.Interface;
-using Core.Update;
-using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Blocks.Util;
-using Mooresmaster.Model.MachineRecipesModule;
+using Game.Block.Blocks.Machine.State.Util;
+using Game.Fluid;
 
 namespace Game.Block.Blocks.Machine.State
 {
@@ -15,13 +14,17 @@ namespace Game.Block.Blocks.Machine.State
         
         public ProcessState State => ProcessState.Processing;
         private readonly MachineProcessContext _context;
-        public Guid RecipeGuid => _recipe?.MachineRecipeGuid ?? Guid.Empty;
-        
+
         public uint TotalTicks { get; private set; }
         public uint RemainingTicks  { get; private set; }
-        
+
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
+        public IReadOnlyList<FluidStack> PendingFluidOutputs => _pendingFluidOutputs;
+        public IReadOnlyList<IItemStack> ConsumedItems => _consumedItems;
+        public bool HasProcessing => _consumedItems != null;
         private List<IItemStack> _pendingOutputs;
+        private List<FluidStack> _pendingFluidOutputs;
+        private List<IItemStack> _consumedItems;
         
         // 完了直前に産出リストを差し替えるフック（清浄室のチップ抽選など、OnExit挿入前の置き換え用）
         // Hook to replace the pending output list just before completion (e.g. clean-room chip draw swaps items before OnExit inserts them)
@@ -30,43 +33,34 @@ namespace Game.Block.Blocks.Machine.State
             _pendingOutputs = outputs;
         }
         
-        private MachineRecipeMasterElement _recipe;
-        
-        public ProcessingMachineProcessState(MachineProcessContext context, uint remainingTicks, MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
+        public ProcessingMachineProcessState(
+            MachineProcessContext context,
+            uint totalTicks,
+            uint remainingTicks,
+            List<IItemStack> pendingOutputs,
+            List<FluidStack> pendingFluidOutputs,
+            List<IItemStack> consumedItems)
         {
             _context = context;
-            RemainingTicks = remainingTicks;
-
-            // レシピがあれば加工を復元する。産出予定nullの旧セーブは完了時に再抽選する
-            // Restore processing whenever a recipe exists; old saves with null pending outputs re-roll on completion
-            if (recipe != null)
-            {
-                SetProcessing(recipe, pendingOutputs);
-            }
-        }
-
-
-        // 加工するジョブをIdle、ロードから設定
-        // Set the processing job from Idle or on load
-        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
-        {
-            _recipe = recipe;
-            _pendingOutputs = pendingOutputs;
-            
-            var effect = _context.EffectComponent.AggregateCurrent();
-            
-            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
-            var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
             TotalTicks = totalTicks;
+            RemainingTicks = remainingTicks;
+            _pendingOutputs = pendingOutputs;
+            _pendingFluidOutputs = pendingFluidOutputs;
+            _consumedItems = consumedItems;
         }
 
-        // 開始時に入力を消費し残りtickを設定する
-        // Consume inputs and set remaining ticks on start
-        public void OnEnter()
+        // 選択レシピから確定した加工スナップショットを設定する
+        // Set the processing snapshot realized from the selected recipe
+        public void SetProcessing(uint totalTicks, List<IItemStack> pendingOutputs, List<FluidStack> pendingFluidOutputs, List<IItemStack> consumedItems)
         {
-            _context.InputInventory.ReduceInputSlot(_recipe);
-            RemainingTicks = TotalTicks;
+            TotalTicks = totalTicks;
+            RemainingTicks = totalTicks;
+            _pendingOutputs = pendingOutputs;
+            _pendingFluidOutputs = pendingFluidOutputs;
+            _consumedItems = consumedItems;
         }
+
+        public void OnEnter() { }
 
         public ProcessState GetNextUpdate()
         {
@@ -87,17 +81,30 @@ namespace Game.Block.Blocks.Machine.State
             return ProcessState.Processing;
         }
 
-        // 完了時に産出物を払い出す（旧セーブは産出予定が無いため再抽選）
-        // Output the produced items on completion (re-roll for old saves that lack pending outputs)
+        // 完了時だけ確定済み産出物を払い出す
+        // Emit the realized outputs only on normal completion
         public void OnExit()
         {
-            var outputs = _pendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(_recipe, _context.EffectComponent.AggregateCurrent());
-            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(_recipe));
+            _context.OutputInventory.InsertOutputSlot(_pendingOutputs, _pendingFluidOutputs);
+            ClearProcessing();
+        }
 
-            // 加工情報をクリアしてIdleが古いレシピ/進捗を報告・保存しないようにする
-            // Clear the processing snapshot so idle does not report or serialize stale recipe/progress
+        public bool TryCancel(IOpenableInventory playerMainInventory)
+        {
+            // アイテムを全量返却できるときだけ加工を破棄する
+            // Discard processing only when every consumed item can be refunded
+            if (!_context.InputInventory.TryRefundConsumedItems(_consumedItems, playerMainInventory)) return false;
+            ClearProcessing();
+            return true;
+        }
+
+        private void ClearProcessing()
+        {
+            // 完了済み加工の再返却・再保存を防ぐため全情報を消去する
+            // Clear all data to prevent a completed job from being refunded or saved again
             _pendingOutputs = null;
-            _recipe = null;
+            _pendingFluidOutputs = null;
+            _consumedItems = null;
             TotalTicks = 0;
             RemainingTicks = 0;
         }

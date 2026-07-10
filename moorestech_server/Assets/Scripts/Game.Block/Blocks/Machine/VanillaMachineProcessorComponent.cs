@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Inventory;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
@@ -9,16 +11,15 @@ using Game.Block.Blocks.Machine.State;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
-using Mooresmaster.Model.MachineRecipesModule;
-using Newtonsoft.Json;
+using Game.Fluid;
 using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent
+    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IMachineRecipeSelectable
     {
-        public Guid RecipeGuid => _processingState.RecipeGuid;
+        public Guid? RecipeGuid => _context.RecipeGuid;
         public float RequestPower => _context.RequestPower;
         public float CurrentPower => _context.CurrentPower;
         public ProcessState CurrentState { get; private set; }
@@ -41,32 +42,29 @@ namespace Game.Block.Blocks.Machine
         // 新規作成
         // For new creation
         public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
-            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, 0, null, null)
+            : this(input, output, null, ProcessState.Idle, 0, 0, requestPower, idlePowerRate, effect, null, null, null)
         {
         }
 
         // セーブからの復元
         // For restoration from save
-        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs)
-            : this(input, output, effect, requestPower, idlePowerRate, currentState, remainingTicks, processingRecipe, pendingOutputs)
+        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, Guid? recipeGuid,
+            ProcessState currentState, uint totalTicks, uint remainingTicks, float requestPower, float idlePowerRate,
+            MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs, List<FluidStack> pendingFluidOutputs, List<IItemStack> consumedItems)
         {
-        }
-
-        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
-        {
-            _context = new MachineProcessContext(input, output, effect, requestPower);
+            _context = new MachineProcessContext(input, output, effect, requestPower, recipeGuid);
             _idlePowerRate = idlePowerRate;
 
             // 加工状態を復元
             // Restore processing state
             CurrentState = currentState;
-            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs);
+            _processingState = new ProcessingMachineProcessState(_context, totalTicks, remainingTicks, pendingOutputs, pendingFluidOutputs, consumedItems);
 
-            // レシピを復元できないProcessingセーブは破損データのためIdleへ戻す
-            // A Processing save without a restorable recipe is corrupt, so fall back to Idle
-            if (CurrentState == ProcessState.Processing && processingRecipe == null)
+            // 加工中の欠損データを資源消失として黙認しない
+            // Reject incomplete processing data instead of silently losing consumed resources
+            if (CurrentState == ProcessState.Processing && (pendingOutputs == null || pendingFluidOutputs == null || consumedItems == null))
             {
-                CurrentState = ProcessState.Idle;
+                throw new InvalidOperationException("Processing machine save is missing its processing snapshot.");
             }
 
             _stateHandlers = new IMachineProcessState[]
@@ -74,6 +72,17 @@ namespace Game.Block.Blocks.Machine
                     new IdleMachineProcessState(_context, _processingState),
                     _processingState,
                 }.ToDictionary(handler => handler.State);
+        }
+
+        public MachineRecipeChangeResult TrySetRecipe(Guid? recipeGuid, IOpenableInventory playerMainInventory)
+        {
+            BlockException.CheckDestroy(this);
+            var isChanged = recipeGuid != RecipeGuid;
+            var result = _context.TrySetRecipe(recipeGuid, playerMainInventory, _processingState);
+            if (result != MachineRecipeChangeResult.Success || !isChanged) return result;
+            CurrentState = ProcessState.Idle;
+            _changeState.OnNext(Unit.Default);
+            return MachineRecipeChangeResult.Success;
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -149,57 +158,14 @@ namespace Game.Block.Blocks.Machine
             return new VanillaMachineProcessorSaveJsonObject
             {
                 State = (int)CurrentState,
+                TotalSeconds = GameUpdater.TicksToSeconds(_processingState.TotalTicks),
                 RemainingSeconds = GameUpdater.TicksToSeconds(_processingState.RemainingTicks),
-                RecipeGuidStr = RecipeGuid.ToString(),
+                RecipeGuidStr = RecipeGuid?.ToString(),
                 PendingOutputs = _processingState.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                PendingFluidOutputs = _processingState.PendingFluidOutputs?.Select(fluid => new MachineFluidStackSaveJsonObject(fluid)).ToList(),
+                ConsumedItems = _processingState.ConsumedItems?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
         }
-    }
 
-    public static class ProcessStateExtension
-    {
-        /// <summary>
-        ///     <see cref="ProcessState" />をStringに変換します。
-        ///     EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
-        /// </summary>
-        public static string ToStr(this ProcessState state)
-        {
-            return state switch
-            {
-                ProcessState.Idle => VanillaMachineBlockStateConst.IdleState,
-                ProcessState.Processing => VanillaMachineBlockStateConst.ProcessingState,
-                ProcessState.Halted => VanillaMachineBlockStateConst.HaltedState,
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
-            };
-        }
-    }
-
-    public enum ProcessState
-    {
-        Idle,
-        Processing,
-        Halted,
-    }
-
-    public class VanillaMachineProcessorSaveJsonObject
-    {
-        [JsonProperty("state")]
-        public int State;
-
-        // 秒数として保存（tick数の変動に対応）
-        // Save as seconds (to handle tick rate changes)
-        [JsonProperty("remainingSeconds")]
-        public double RemainingSeconds;
-
-        [JsonProperty("recipeGuid")]
-        public string RecipeGuidStr;
-
-        [JsonIgnore]
-        public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
-
-        // 産出予定。Idle時や過去セーブではnull
-        // Pending outputs; null while idle or in old saves
-        [JsonProperty("pendingOutputs")]
-        public List<ItemStackSaveJsonObject> PendingOutputs;
     }
 }

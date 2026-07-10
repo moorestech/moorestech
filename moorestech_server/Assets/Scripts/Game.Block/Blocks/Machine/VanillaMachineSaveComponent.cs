@@ -80,4 +80,40 @@ namespace Game.Block.Blocks.Machine
         [JsonProperty("processor")]
         public VanillaMachineProcessorSaveJsonObject Processor;
     }
+
+    public class VanillaMachineProcessorSaveJsonObject
+    {
+        [JsonProperty("state")] public int State;
+        [JsonProperty("totalSeconds")] public double TotalSeconds;
+        [JsonProperty("remainingSeconds")] public double RemainingSeconds;
+        [JsonProperty("recipeGuid")] public string RecipeGuidStr;
+        [JsonProperty("pendingOutputs")] public List<ItemStackSaveJsonObject> PendingOutputs;
+        [JsonProperty("pendingFluidOutputs")] public List<MachineFluidStackSaveJsonObject> PendingFluidOutputs;
+        [JsonProperty("consumedItems")] public List<ItemStackSaveJsonObject> ConsumedItems;
+
+        public Guid? GetRecipeGuid()
+        {
+            return RecipeGuidStr == null ? null : Guid.Parse(RecipeGuidStr);
+        }
+    }
+
+    public class MachineFluidStackSaveJsonObject
+    {
+        [JsonProperty("fluidGuid")] public string FluidGuidStr;
+        [JsonProperty("amount")] public double Amount;
+
+        public MachineFluidStackSaveJsonObject() { }
+
+        public MachineFluidStackSaveJsonObject(FluidStack fluidStack)
+        {
+            FluidGuidStr = MasterHolder.FluidMaster.GetFluidMaster(fluidStack.FluidId).FluidGuid.ToString();
+            Amount = fluidStack.Amount;
+        }
+
+        public FluidStack ToFluidStack()
+        {
+            var fluidGuid = Guid.Parse(FluidGuidStr);
+            return new FluidStack(Amount, MasterHolder.FluidMaster.GetFluidId(fluidGuid));
+        }
+    }
 }

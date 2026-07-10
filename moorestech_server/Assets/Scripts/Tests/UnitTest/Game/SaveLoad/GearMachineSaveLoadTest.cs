@@ -20,6 +20,7 @@ using UnityEngine;
 using System;
 
 using Tests.Util;
+using Tests.Util.MachineRecipe;
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class GearMachineSaveLoadTest
@@ -35,6 +36,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearMachineBlock);
             var machineInventory = gearMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(gearMachineBlock, ForUnitTestMachineRecipeId.GearMachineIdRecipe);
             
             
             //レシピ用のアイテムを追加

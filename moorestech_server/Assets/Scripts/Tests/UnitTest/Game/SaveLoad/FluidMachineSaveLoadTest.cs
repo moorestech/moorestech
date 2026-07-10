@@ -21,6 +21,7 @@ using UnityEngine;
 using System;
 
 using Tests.Util;
+using Tests.Util.MachineRecipe;
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class FluidMachineSaveLoadTest
@@ -41,6 +42,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(machineBlock, ForUnitTestMachineRecipeId.LockedMachineRecipe);
             
             //レシピ用のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 3));

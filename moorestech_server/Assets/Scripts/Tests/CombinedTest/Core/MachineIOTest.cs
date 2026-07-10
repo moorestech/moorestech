@@ -14,6 +14,7 @@ using Game.EnergySystem;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util.MachineRecipe;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -39,6 +40,7 @@ namespace Tests.CombinedTest.Core
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(block, recipe.MachineRecipeGuid);
             // すべての入力アイテムをインベントリにセットアップ
             foreach (var inputItem in recipe.InputItems)
             {
@@ -92,6 +94,7 @@ namespace Tests.CombinedTest.Core
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(block, recipe.MachineRecipeGuid);
             // レシピ通りにインプットへ投入する（isRemainアイテムも投入）
             foreach (var inputItem in recipe.InputItems)
             {

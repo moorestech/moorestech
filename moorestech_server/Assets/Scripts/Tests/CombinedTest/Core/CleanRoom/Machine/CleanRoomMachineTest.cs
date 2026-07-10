@@ -11,6 +11,7 @@ using Game.Context;
 using Game.EnergySystem;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using Tests.Util.MachineRecipe;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core.CleanRoom
@@ -161,6 +162,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
         private static void LoadMachineInput(IBlock machine, int count)
         {
+            MachineRecipeSelectionTestUtil.SelectRecipe(machine, ForUnitTestMachineRecipeId.CleanRoomMachineRecipe);
             machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, count);
         }
 

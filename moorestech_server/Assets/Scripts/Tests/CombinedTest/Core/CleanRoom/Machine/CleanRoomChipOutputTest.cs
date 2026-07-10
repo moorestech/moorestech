@@ -10,6 +10,7 @@ using Game.Context;
 using Game.EnergySystem;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using Tests.Util.MachineRecipe;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core.CleanRoom
@@ -22,6 +23,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             CleanRoomHatchTest.CreateServer();
             var filter = BuildSmallCleanRoomWithFilter();
             var machine = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomMachineId, new Vector3Int(2, 1, 1));
+            MachineRecipeSelectionTestUtil.SelectRecipe(machine, ForUnitTestMachineRecipeId.CleanRoomMachineRecipe);
 
             // EUV失敗を許容するため複数枚を投入し、成功したチップ出力だけを待つ
             // Insert several wafers to tolerate EUV failures and wait only for successful chip output
@@ -46,6 +48,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             CleanRoomHatchTest.CreateServer();
             var filter = BuildSmallCleanRoomWithFilter();
             var machine = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomMachineId, new Vector3Int(2, 1, 1));
+            MachineRecipeSelectionTestUtil.SelectRecipe(machine, ForUnitTestMachineRecipeId.CleanRoomMachineRecipe);
 
             // 出力の有無ではなく状態遷移で1サイクル完了を観測し、EUV失敗に依存しない
             // Observe one full cycle via state transitions rather than output so EUV failure is harmless

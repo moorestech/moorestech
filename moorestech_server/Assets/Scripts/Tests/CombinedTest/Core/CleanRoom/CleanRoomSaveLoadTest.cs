@@ -19,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util.MachineRecipe;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core.CleanRoom
@@ -93,6 +94,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var (_, _, assembleSaveJsonText1, _) = CreateBlockTestModule();
             var filter = BuildSmallCleanRoomWithFilter();
             var machine1 = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomMachineId, MachinePosition);
+            MachineRecipeSelectionTestUtil.SelectRecipe(machine1, ForUnitTestMachineRecipeId.CleanRoomMachineRecipe);
 
             // 入力を入れ、清浄室内で実際にProcessingへ入るまで満電で進める
             // Load inputs and power the room until the machine really enters Processing

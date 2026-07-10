@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Threading;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
@@ -8,6 +9,7 @@ using Client.Tests.EditModeInPlayingTest.Util;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Game.Block.Interface.State;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
@@ -16,6 +18,7 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
@@ -78,8 +81,25 @@ namespace Client.Tests.EditModeInPlayingTest
                 using var loaded = await AddressableLoader.LoadAsync<GameObject>(UiAddress, CancellationToken.None);
                 var instance = ClientDIContext.DIContainer.Instantiate(loaded.Asset);
                 var view = instance.GetComponent<MachineBlockInventoryView>();
+                var existingButtons = instance.GetComponentsInChildren<Button>(true);
                 view.Initialize(blockGameObject);
                 Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, view.SubInventorySlotObjects.Count, "unified slot count mismatch");
+
+                // 選択ボタンから通信し状態と表示へ反映する
+                // Select through the button and verify both networked state and display
+                var recipeButton = instance.GetComponentsInChildren<Button>(true)
+                    .Single(button => !existingButtons.Contains(button));
+                recipeButton.onClick.Invoke();
+                MachineBlockStateDetail recipeState = null;
+                for (var i = 0; i < 30 && recipeState?.MachineRecipeGuid == null; i++)
+                {
+                    await UniTask.Delay(100);
+                    recipeState = blockGameObject.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
+                }
+                Assert.IsNotNull(recipeState?.MachineRecipeGuid, "recipe selection was not applied");
+                var textComponent = recipeButton.GetComponent("TextMeshProUGUI");
+                var displayedText = (string)textComponent.GetType().GetProperty("text").GetValue(textComponent);
+                Assert.AreNotEqual("レシピ未選択", displayedText);
 
                 // モジュールスロットコンテナの下に4スロットが並んでいることを確認
                 // Verify four slots are laid out under the module slot container.

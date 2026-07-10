@@ -17,6 +17,7 @@ using Mooresmaster.Model.MachineRecipesModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util.MachineRecipe;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -41,6 +42,7 @@ namespace Tests.CombinedTest.Core
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(block, recipe.MachineRecipeGuid);
             foreach (var inputItem in recipe.InputItems)
             {
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
@@ -91,6 +93,8 @@ namespace Tests.CombinedTest.Core
 
             var lackRpmInventory = lackRpmBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             var lackTorqueInventory = lackTorqueBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(lackRpmBlock, recipe.MachineRecipeGuid);
+            MachineRecipeSelectionTestUtil.SelectRecipe(lackTorqueBlock, recipe.MachineRecipeGuid);
 
             foreach (var inputItem in recipe.InputItems)
             {

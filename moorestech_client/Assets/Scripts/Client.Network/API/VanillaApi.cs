@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Client.Network.API.MachineRecipe;
 using Client.Network.Settings;
 using UniRx;
 using VContainer.Unity;
@@ -14,6 +15,7 @@ namespace Client.Network.API
         public readonly VanillaApiEvent Event;
         public readonly VanillaApiWithResponse Response;
         public readonly VanillaApiSendOnly SendOnly;
+        public readonly MachineRecipeSelectionApi MachineRecipeSelection;
         
         public VanillaApi(PacketExchangeManager packetExchangeManager, PacketSender packetSender, ServerCommunicator serverCommunicator, PlayerConnectionSetting playerConnectionSetting, Process localServerProcess)
         {
@@ -23,6 +25,7 @@ namespace Client.Network.API
             Event = new VanillaApiEvent(packetExchangeManager, playerConnectionSetting);
             Response = new VanillaApiWithResponse(packetExchangeManager, playerConnectionSetting);
             SendOnly = new VanillaApiSendOnly(packetSender, playerConnectionSetting);
+            MachineRecipeSelection = new MachineRecipeSelectionApi(packetExchangeManager);
         }
         
         public IObservable<Unit> OnDisconnect => _serverCommunicator.OnDisconnect;

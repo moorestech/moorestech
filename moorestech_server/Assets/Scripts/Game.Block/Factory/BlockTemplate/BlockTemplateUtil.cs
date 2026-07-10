@@ -146,26 +146,28 @@ namespace Game.Block.Factory.BlockTemplate
             // 加工状態はProcessorのサブオブジェクトから復元する
             // Restore processing state from the Processor sub-object
             var processorJson = jsonObject.Processor;
-            var recipe = processorJson.RecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(processorJson.RecipeGuid);
 
-            // 秒数からtickに変換して復元
-            // Convert seconds back to ticks for restoration
+            // 保存した加工情報を実行時型へ戻す
+            // Restore seconds and GUID-backed processing snapshots to runtime types
+            var totalTicks = GameUpdater.SecondsToTicks(processorJson.TotalSeconds);
             var remainingTicks = GameUpdater.SecondsToTicks(processorJson.RemainingSeconds);
-
-            // 産出予定を復元（旧セーブはnull→完了時再抽選）
-            // Restore pending outputs (old saves: null, re-rolled later)
             var pendingOutputs = processorJson.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
+            var pendingFluidOutputs = processorJson.PendingFluidOutputs?.Select(fluid => fluid.ToFluidStack()).ToList();
+            var consumedItems = processorJson.ConsumedItems?.Select(item => item.ToItemStack()).ToList();
 
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
+                processorJson.GetRecipeGuid(),
                 (ProcessState)processorJson.State,
+                totalTicks,
                 remainingTicks,
-                recipe,
                 requestPower,
                 idlePowerRate,
                 machineModuleEffectComponent,
-                pendingOutputs);
+                pendingOutputs,
+                pendingFluidOutputs,
+                consumedItems);
 
             return processor;
         }

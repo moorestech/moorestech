@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine.State.Util;
 
@@ -23,19 +24,18 @@ namespace Game.Block.Blocks.Machine.State
 
         public ProcessState GetNextUpdate()
         {
-            // レシピの有無と開始可否を確認
-            // Check the recipe presence and whether processing may start
-            var isGetRecipe = _context.InputInventory.TryGetRecipeElement(out var recipe);
-            if (!isGetRecipe || !_context.InputInventory.IsAllowedToStartProcess())
-            {
-                return ProcessState.Idle;
-            }
+            // 未選択・使用不能なら待機
+            // Stay idle when unselected or unusable
+            if (!_context.RecipeGuid.HasValue) return ProcessState.Idle;
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(_context.RecipeGuid.Value);
+            if (recipe == null || !_context.InputInventory.IsRecipeUnlocked(recipe) || !_context.InputInventory.IsAllowedToStartProcess(recipe)) return ProcessState.Idle;
 
             // 抽選を開始時に確定し実スタックで容量確認
             // Fix rolls at start and check capacity with realized stacks
             var effect = _context.EffectComponent.AggregateCurrent();
             var realizedOutputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect);
-            if (!_context.OutputInventory.CanStoreOutputs(realizedOutputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe)))
+            var fluidOutputs = MachineOutputFactoryUtil.CreateFluidOutputs(recipe);
+            if (!_context.OutputInventory.CanStoreOutputs(realizedOutputs, fluidOutputs))
             {
                 return ProcessState.Idle;
             }
@@ -44,7 +44,8 @@ namespace Game.Block.Blocks.Machine.State
             // Fix the outputs and the scaled time, hand the job to ProcessingState, then transition
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
-            _processingState.SetProcessing(recipe, realizedOutputs);
+            var consumedItems = _context.InputInventory.ConsumeInputs(recipe);
+            _processingState.SetProcessing(totalTicks, realizedOutputs, fluidOutputs, consumedItems);
 
             return ProcessState.Processing;
         }

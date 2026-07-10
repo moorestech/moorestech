@@ -1,3 +1,25 @@
 {
-  "data": []
+  "data": [
+    {
+      "time": 1,
+      "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "6afafbc9-5a2c-4444-b8c8-9ea047da9ffa"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "5aeef93d-e7a7-44ed-a41d-914f91689798"
+    }
+  ]
 }

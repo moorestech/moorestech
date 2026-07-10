@@ -24,7 +24,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public ProcessState GetNextUpdate()
         {
             if (!_canOperate()) return ProcessState.Halted;
-            return _processingState.RecipeGuid != Guid.Empty ? ProcessState.Processing : ProcessState.Idle;
+            return _processingState.HasProcessing ? ProcessState.Processing : ProcessState.Idle;
         }
     }
 }

@@ -18,6 +18,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using Tests.Util;
+using Tests.Util.MachineRecipe;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -297,6 +298,7 @@ namespace Tests.CombinedTest.Core
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             var processor = block.GetComponent<VanillaMachineProcessorComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(block, ForUnitTestMachineRecipeId.MachineIdRecipe);
             return (block, inventory, processor);
         }
 

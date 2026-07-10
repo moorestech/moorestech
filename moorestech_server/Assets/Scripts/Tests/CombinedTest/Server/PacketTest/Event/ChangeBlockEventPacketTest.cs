@@ -18,6 +18,7 @@ using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
 using Server.Protocol;
+using Tests.Util.MachineRecipe;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -39,6 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var item2 = itemStackFactory.Create(new ItemId(2), 1);
             
             var blockInventory = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(machine, ForUnitTestMachineRecipeId.MachineIdRecipe);
             
             blockInventory.InsertItem(item1);
             blockInventory.InsertItem(item2);

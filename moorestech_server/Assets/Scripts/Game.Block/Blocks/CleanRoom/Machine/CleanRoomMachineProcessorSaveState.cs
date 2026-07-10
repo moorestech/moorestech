@@ -8,14 +8,14 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.State;
 using Game.Context;
-using Mooresmaster.Model.MachineRecipesModule;
+using Game.Fluid;
 using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
     internal static class CleanRoomMachineProcessorSaveState
     {
-        public static CleanRoomMachineProcessorSaveJsonObject Build(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, ProcessState currentState, ProcessingMachineProcessState processingState, uint cycleCount)
+        public static CleanRoomMachineProcessorSaveJsonObject Build(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, Guid? recipeGuid, ProcessState currentState, ProcessingMachineProcessState processingState, uint cycleCount)
         {
             // 通常機械の加工状態にクリーンルーム固有の抽選カウンタを加えて保存する
             // Save normal machine processing state plus the clean-room draw counter
@@ -23,21 +23,29 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             {
                 CycleCount = cycleCount,
                 State = (int)currentState,
+                TotalSeconds = GameUpdater.TicksToSeconds(processingState.TotalTicks),
                 RemainingSeconds = GameUpdater.TicksToSeconds(processingState.RemainingTicks),
-                RecipeGuidStr = processingState.RecipeGuid.ToString(),
+                RecipeGuidStr = recipeGuid?.ToString(),
                 PendingOutputs = processingState.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                PendingFluidOutputs = processingState.PendingFluidOutputs?.Select(fluid => new MachineFluidStackSaveJsonObject(fluid)).ToList(),
+                ConsumedItems = processingState.ConsumedItems?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 InputSlot = input.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 OutputSlot = output.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 ModuleSlot = module.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
         }
 
-        public static void Restore(Dictionary<string, string> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount)
+        public static void Restore(Dictionary<string, string> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module,
+            out Guid? recipeGuid, out ProcessState state, out uint totalTicks, out uint remainingTicks, out List<IItemStack> pendingOutputs,
+            out List<FluidStack> pendingFluidOutputs, out List<IItemStack> consumedItems, out uint cycleCount)
         {
+            recipeGuid = null;
             state = ProcessState.Idle;
+            totalTicks = 0;
             remainingTicks = 0;
-            recipe = null;
             pendingOutputs = null;
+            pendingFluidOutputs = null;
+            consumedItems = null;
             cycleCount = 0;
             if (componentStates == null || !componentStates.TryGetValue(saveKey, out var stateRaw)) return;
 
@@ -47,18 +55,18 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             cycleCount = saveData.CycleCount;
             RestoreSlots(saveData);
 
-            if (saveData.RecipeGuidStr != null && saveData.RecipeGuid != Guid.Empty)
-            {
-                recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(saveData.RecipeGuid);
-            }
-
+            if (saveData.RecipeGuidStr != null) recipeGuid = saveData.GetRecipeGuid();
+            totalTicks = GameUpdater.SecondsToTicks(saveData.TotalSeconds);
             remainingTicks = GameUpdater.SecondsToTicks(saveData.RemainingSeconds);
             pendingOutputs = saveData.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
+            pendingFluidOutputs = saveData.PendingFluidOutputs?.Select(fluid => fluid.ToFluidStack()).ToList();
+            consumedItems = saveData.ConsumedItems?.Select(item => item.ToItemStack()).ToList();
             state = (ProcessState)saveData.State;
 
-            // Processingでレシピを復元できない場合だけ破損扱いでIdleへ戻す
-            // Only Processing without a restorable recipe is corrupt and falls back to Idle
-            if (state == ProcessState.Processing && recipe == null) state = ProcessState.Idle;
+            // 加工中の欠損データを資源消失として黙認しない
+            // Reject incomplete processing data instead of silently losing consumed resources
+            if (state == ProcessState.Processing && (pendingOutputs == null || pendingFluidOutputs == null || consumedItems == null))
+                throw new InvalidOperationException("Clean-room machine save is missing its processing snapshot.");
 
             #region Internal
 

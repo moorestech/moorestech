@@ -23,7 +23,7 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "10000000-0000-0000-0000-000000000001"
     },
     {
       "time": 1.5,
@@ -48,7 +48,7 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "10000000-0000-0000-0000-000000000002"
     },
     {
       "time": 1.5,
@@ -77,7 +77,7 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "10000000-0000-0000-0000-000000000003"
     },
     {
       "time": 1.5,
@@ -102,7 +102,7 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "10000000-0000-0000-0000-00000000000f"
     },
     {
       "time": 1.5,
@@ -127,7 +127,7 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "10000000-0000-0000-0000-000000000019"
     },
     {
       "time": 1.5,
@@ -152,7 +152,7 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "10000000-0000-0000-0000-00000000001a"
     },
     {
       "time": 1.5,
@@ -186,7 +186,36 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "10000000-0000-0000-0000-00000000001b"
+    },
+    {
+      "time": 1.5,
+      "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "initialUnlocked": true,
+      "inputItems": [
+        { "count": 3, "itemGuid": "00000000-0000-0000-1234-000000000001" },
+        { "count": 1, "itemGuid": "00000000-0000-0000-1234-000000000002" }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        { "percent": 1, "count": 1, "itemGuid": "00000000-0000-0000-1234-000000000005" }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "10000000-0000-0000-0000-000000000101"
+    },
+    {
+      "time": 1.5,
+      "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "initialUnlocked": false,
+      "inputItems": [
+        { "count": 1, "itemGuid": "00000000-0000-0000-1234-000000000001" }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        { "percent": 1, "count": 1, "itemGuid": "00000000-0000-0000-1234-000000000002" }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "10000000-0000-0000-0000-000000000102"
     },
     {
       "time": 1,

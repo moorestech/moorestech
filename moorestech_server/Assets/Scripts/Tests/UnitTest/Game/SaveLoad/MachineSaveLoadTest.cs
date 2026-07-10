@@ -19,6 +19,7 @@ using Assert = UnityEngine.Assertions.Assert;
 using System;
 
 using Tests.Util;
+using Tests.Util.MachineRecipe;
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class MachineSaveLoadTest
@@ -34,6 +35,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId , new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectionTestUtil.SelectRecipe(machineBlock, ForUnitTestMachineRecipeId.MachineIdRecipe);
             
             
             //レシピ用のアイテムを追加
