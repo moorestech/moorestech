@@ -23,6 +23,12 @@ namespace Game.Block.Blocks.Machine.State
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
         private List<IItemStack> _pendingOutputs;
         
+        // 完了直前に産出リストを差し替えるフック（清浄室のチップ抽選など、OnExit挿入前の置き換え用）
+        // Hook to replace the pending output list just before completion (e.g. clean-room chip draw swaps items before OnExit inserts them)
+        public void ReplacePendingOutputs(List<IItemStack> outputs)
+        {
+            _pendingOutputs = outputs;
+        }
         
         private MachineRecipeMasterElement _recipe;
         
