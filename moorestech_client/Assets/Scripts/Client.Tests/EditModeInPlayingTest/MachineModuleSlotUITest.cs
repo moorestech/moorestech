@@ -87,8 +87,11 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // 選択ボタンから通信し状態と表示へ反映する
                 // Select through the button and verify both networked state and display
+                // アイテムスロットもButtonを持つため、ラベル自身にTextMeshProUGUIを持つ新規Buttonでレシピボタンを一意特定する
+                // Item slots also carry Buttons, so pick the new Button whose own GameObject holds a TextMeshProUGUI as the recipe button
                 var recipeButton = instance.GetComponentsInChildren<Button>(true)
-                    .Single(button => !existingButtons.Contains(button));
+                    .Where(button => !existingButtons.Contains(button))
+                    .Single(button => button.GetComponent("TextMeshProUGUI") != null);
                 recipeButton.onClick.Invoke();
                 MachineBlockStateDetail recipeState = null;
                 for (var i = 0; i < 30 && recipeState?.MachineRecipeGuid == null; i++)
