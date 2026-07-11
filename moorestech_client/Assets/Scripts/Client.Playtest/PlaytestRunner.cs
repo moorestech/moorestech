@@ -1,5 +1,6 @@
 using System;
 using Client.Playtest.Core;
+using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -40,6 +41,11 @@ namespace Client.Playtest
             try
             {
                 await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
+
+                // 録画に焼き込むオーバーレイを初期化し、開始ナレーションを流す
+                // Initialize the overlay baked into the recording and post the opening narration
+                PlaytestOverlay.EnsureCreatedAndReset();
+                PlaytestOverlay.PushNote($"シナリオ開始: {runName}");
                 if (options.Record) recorder = PlaytestRecorder.StartRecording(runDirectory);
                 await scenario(driver).Timeout(TimeSpan.FromSeconds(options.ScenarioTimeoutSeconds));
                 result.Success = result.Asserts.TrueForAll(assert => assert.Passed);
