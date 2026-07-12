@@ -11,7 +11,15 @@ namespace Game.Block.Blocks.Gear
         public RPM GenerateRpm { get; }
         public Torque GenerateTorque { get; }
         public bool GenerateIsClockwise { get; }
-        
+
+        // 定数出力のため毎tick処理は不要
+        // Constant output, so no per-tick processing is required
+        public bool RequiresContinuousTick => false;
+
+        public void ConsumeGeneratorTick(float networkLoadRate)
+        {
+        }
+
         public SimpleGearGeneratorComponent(SimpleGearGeneratorBlockParam simpleGearGeneratorBlockParam, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
             base(null, blockInstanceId, connectorComponent)
         {

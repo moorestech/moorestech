@@ -51,14 +51,16 @@ namespace Game.Block.Factory.BlockTemplate
             
             var gearMinerComponent = new VanillaGearMapObjectMinerComponent(gearEnergyTransformer, gearMapObjectMinerProcessorComponent);
             
+            // 供給読み取り(gearMinerComponent)を採掘処理(processor)より先に更新させるため、この並び順を維持すること
+            // Keep this order: the supply reader (gearMinerComponent) must update before the miner processor
             var components = new List<IBlockComponent>
             {
                 chestComponent,
                 inputConnectorComponent,
+                gearMinerComponent,
                 gearMapObjectMinerProcessorComponent,
                 gearConnector,
                 gearEnergyTransformer,
-                gearMinerComponent,
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

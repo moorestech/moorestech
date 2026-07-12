@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Gear.Common;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Game
@@ -26,10 +28,11 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _);
 
-            // 接続されなければ歯車ネットワークは2つに分かれたまま
-            // If not connected, the gear networks remain split in two
+            // 接続されなければ歯車ネットワークは2つに分かれたまま（tickで遅延適用をflushしてから数える）
+            // If not connected, the gear networks remain split in two (tick first to flush pending mutations)
+            GameUpdater.UpdateOneTick();
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            Assert.AreEqual(2, gearNetworkDatastore.GearNetworks.Count);
+            Assert.AreEqual(2, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDatastore));
         }
 
         [Test]
@@ -45,8 +48,9 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(1, 0, 0), BlockDirection.UpNorth, Array.Empty<BlockCreateParam>(), out _);
 
+            GameUpdater.UpdateOneTick();
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            Assert.AreEqual(2, gearNetworkDatastore.GearNetworks.Count);
+            Assert.AreEqual(2, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDatastore));
         }
 
         [Test]
@@ -60,8 +64,9 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
+            GameUpdater.UpdateOneTick();
             var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            Assert.AreEqual(1, gearNetworkDatastore.GearNetworks.Count);
+            Assert.AreEqual(1, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDatastore));
         }
     }
 }
