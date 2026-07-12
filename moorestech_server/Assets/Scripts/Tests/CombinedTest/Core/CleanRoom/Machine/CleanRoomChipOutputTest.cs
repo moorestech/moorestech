@@ -10,6 +10,7 @@ using Game.Context;
 using Game.EnergySystem;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core.CleanRoom
@@ -25,6 +26,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
             // EUV失敗を許容するため複数枚を投入し、成功したチップ出力だけを待つ
             // Insert several wafers to tolerate EUV failures and wait only for successful chip output
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(System.Guid.Parse("19b0d248-0ce5-4e5f-b59c-5897177b6268"));
+            MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
             machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, 5);
             IOpenableInventory inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
 
@@ -49,6 +52,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
             // 出力の有無ではなく状態遷移で1サイクル完了を観測し、EUV失敗に依存しない
             // Observe one full cycle via state transitions rather than output so EUV failure is harmless
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(System.Guid.Parse("19b0d248-0ce5-4e5f-b59c-5897177b6268"));
+            MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
             machine.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, 1);
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
             var enteredProcessing = false;
