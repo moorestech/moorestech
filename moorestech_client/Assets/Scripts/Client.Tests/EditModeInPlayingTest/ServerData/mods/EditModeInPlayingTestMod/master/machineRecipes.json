@@ -1,3 +1,48 @@
 {
-  "data": []
+  "data": [
+    {
+      "machineRecipeGuid": "aa69cdbb-174f-4f24-b7e7-dbd81316644b",
+      "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
+      "time": 3,
+      "inputItems": [
+        {
+          "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063",
+          "count": 2,
+          "isRemain": false
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "dfd0ae76-ae7d-46cd-8abc-0c69407645a2",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": [],
+      "initialUnlocked": true
+    },
+    {
+      "machineRecipeGuid": "472d206c-e7ec-4e0f-a723-1912ed594ec5",
+      "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
+      "time": 2,
+      "inputItems": [
+        {
+          "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44",
+          "count": 1,
+          "isRemain": false
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "792e5527-7678-40ab-8c0d-ef2f516200db",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": [],
+      "initialUnlocked": true
+    }
+  ]
 }
