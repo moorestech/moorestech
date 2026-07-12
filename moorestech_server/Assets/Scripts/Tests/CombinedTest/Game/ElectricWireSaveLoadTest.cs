@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Core.Inventory;
+using Core.Update;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -53,16 +54,24 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, PlayerId, wireItemId, out var errorA), errorA.ToString());
             Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posGenerator, posMachine, PlayerId, wireItemId, out var errorB), errorB.ToString());
 
+            // トポロジ反映と統計確定のため1tick進める
+            // Advance one tick for the topology flush and statistics settlement
+            GameUpdater.UpdateOneTick();
+
             var networkDatastore = saveServiceProvider.GetService<IElectricWireNetworkDatastore>();
             Assert.AreEqual(1, networkDatastore.SegmentCount);
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var savedSegment));
-            var savedStatistics = savedSegment.GetCurrentStatistics();
+            var savedStatistics = savedSegment.Statistics;
             var savedCost = pole.GetComponent<IElectricWireConnector>().WireConnections[generator.BlockInstanceId].Cost;
 
             var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            // ロード直後のトポロジ反映と統計確定のため1tick進める
+            // Advance one tick after load for the topology flush and statistics settlement
+            GameUpdater.UpdateOneTick();
 
             var loadedPole = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
             var loadedGenerator = ServerContext.WorldBlockDatastore.GetBlock(posGenerator).GetComponent<IElectricWireConnector>();
@@ -85,7 +94,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(1, loadedSegment.Generators.Count);
             Assert.AreEqual(1, loadedSegment.Consumers.Count);
 
-            var loadedStatistics = loadedSegment.GetCurrentStatistics();
+            var loadedStatistics = loadedSegment.Statistics;
             Assert.AreEqual(savedStatistics.TotalGeneratePower, loadedStatistics.TotalGeneratePower);
             Assert.AreEqual(savedStatistics.TotalRequiredPower, loadedStatistics.TotalRequiredPower);
             Assert.AreEqual(savedStatistics.PowerRate, loadedStatistics.PowerRate);
@@ -130,6 +139,10 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, wireItemId, out var errorA), errorA.ToString());
             Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posB, posC, PlayerId, wireItemId, out var errorB), errorB.ToString());
 
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
+
             var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
             Assert.AreEqual(1, networkDatastore.SegmentCount);
 
@@ -150,6 +163,10 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(6, refundItems.Sum(item => item.Count));
 
             ServerContext.WorldBlockDatastore.RemoveBlock(posB, BlockRemoveReason.ManualRemove);
+
+            // 撤去に伴うトポロジ反映のため1tick進める
+            // Advance one tick so the removal's topology flush is applied
+            GameUpdater.UpdateOneTick();
 
             // 相手側のWireConnectionsから中央ブロックが消えていること
             // The middle block is gone from both partners' WireConnections

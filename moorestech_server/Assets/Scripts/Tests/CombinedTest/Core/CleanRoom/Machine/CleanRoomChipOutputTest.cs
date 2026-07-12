@@ -1,6 +1,7 @@
 using Core.Inventory;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -93,8 +94,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // フィルターと機械を同じtickで給電し、室内加工の通常経路を進める
             // Power the filter and machine in the same tick to exercise normal in-room processing
-            filter.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
-            machine.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
+            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
+            machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
             GameUpdater.UpdateOneTick();
         }
 

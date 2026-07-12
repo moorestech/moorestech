@@ -189,9 +189,11 @@ namespace Server.Boot
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
 
-            // gearのtick更新をDIから登録する
-            // Register gear tick updates through DI.
+            // 電力・gearのtick更新とtick中破壊予約をDIから登録する
+            // Register electric/gear tick updates and the in-tick removal reservation through DI.
+            services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
+            services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
@@ -243,9 +245,24 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick更新処理を登録する
-            // Register tick update handlers.
+            // tick更新処理を登録する。順序は固定: ①電力トポロジ反映 ②gearトポロジ反映 ③電力tick ④gear tick
+            // Register tick update handlers in fixed order: 1) electric topology flush 2) gear topology flush 3) electric tick 4) gear tick
+            var electricWireNetworkDatastore = serviceProvider.GetRequiredService<IElectricWireNetworkDatastore>();
+            var gearNetworkDatastoreInstance = serviceProvider.GetRequiredService<GearNetworkDatastore>();
+            var blockRemovalReservationService = serviceProvider.GetRequiredService<IBlockRemovalReservationService>();
+            GameUpdater.AdditionalUpdates.Add(electricWireNetworkDatastore.FlushPendingCommands);
+            GameUpdater.AdditionalUpdates.Add(gearNetworkDatastoreInstance.FlushPendingMutations);
+            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
+
+            // tick末尾: 予約された破壊の一括反映と、それに伴う電力・gearトポロジ変更の反映
+            // Tick end: apply reserved removals in batch, then flush the electric and gear topology changes they caused
+            GameUpdater.TickEndUpdates.Add(() =>
+            {
+                blockRemovalReservationService.ApplyReservedRemovals();
+                electricWireNetworkDatastore.FlushPendingCommands();
+                gearNetworkDatastoreInstance.FlushPendingMutations();
+            });
 
             //イベントレシーバーをインスタンス化する
             // Materialize event receivers eagerly.

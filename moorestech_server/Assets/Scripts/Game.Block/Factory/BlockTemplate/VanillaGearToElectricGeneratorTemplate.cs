@@ -27,7 +27,9 @@ namespace Game.Block.Factory.BlockTemplate
             var param = blockMasterElement.BlockParam as GearToElectricGeneratorBlockParam;
             var gearConnects = param.Gear.GearConnects;
             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(gearConnects, gearConnects, blockPositionInfo);
-            var generatorComponent = new GearToElectricGeneratorComponent(param, blockInstanceId, gearConnector);
+            // バッテリー残量をセーブから復元するためcomponentStatesを渡す
+            // Pass componentStates so the battery remainder is restored from the save
+            var generatorComponent = new GearToElectricGeneratorComponent(componentStates, param, blockInstanceId, gearConnector);
             // 歯車→電気変換はGenerator役をワイヤー端点に渡す
             // Gear-to-electric passes the generator role to the wire endpoint
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, generatorComponent, componentStates);

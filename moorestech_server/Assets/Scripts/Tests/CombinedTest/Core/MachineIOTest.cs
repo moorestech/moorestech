@@ -47,14 +47,14 @@ namespace Tests.CombinedTest.Core
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
             
-            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
+            var blockMachineComponent = block.GetComponent<VanillaMachineProcessorComponent>();
             
             // レシピが完了するまで十分な時間エネルギー供給＋アップデートを継続
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);
             //最大クラフト時間を超過するまでクラフトする
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
-                blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
+                blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();
             }
             
@@ -101,13 +101,13 @@ namespace Tests.CombinedTest.Core
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
             
-            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
+            var blockMachineComponent = block.GetComponent<VanillaMachineProcessorComponent>();
             
             // 処理完了まで十分な時間エネルギー供給＋アップデートを回す
             var craftTime = DateTime.Now.AddSeconds(recipe.Time);
             while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
             {
-                blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
+                blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();
             }
             

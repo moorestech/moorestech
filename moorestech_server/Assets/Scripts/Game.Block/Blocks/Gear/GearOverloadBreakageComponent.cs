@@ -74,8 +74,10 @@ namespace Game.Block.Blocks.Gear
 
             void RequestRemove()
             {
+                // 破壊はその場で行わず予約する。このtickの計算には最後まで参加し、tick末尾に一括反映される
+                // Reserve the destruction instead of applying it in place; the block participates in this tick fully and is removed at tick end
                 _isDestroyed = true;
-                ServerContext.WorldBlockDatastore.RemoveBlock(_blockInstanceId, BlockRemoveReason.Broken);
+                ServerContext.GetService<IBlockRemovalReservationService>().ReserveRemoval(_blockInstanceId, BlockRemoveReason.Broken);
             }
 
             #endregion

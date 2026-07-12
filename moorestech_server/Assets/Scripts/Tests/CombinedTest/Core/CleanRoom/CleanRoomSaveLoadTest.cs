@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json.Nodes;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -170,7 +171,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // 清浄機だけに毎tick満電を供給し、室内純度を進める
             // Supply full power to the filter each tick to advance room purity
-            filter.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
+            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
             GameUpdater.UpdateOneTick();
         }
 
@@ -178,8 +179,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // 清浄機と機械を同じtickで満電にし、通常の室内加工経路を通す
             // Fully power the filter and machine in the same tick for normal in-room processing
-            filter.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
-            machine.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
+            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
+            machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
             GameUpdater.UpdateOneTick();
         }
 

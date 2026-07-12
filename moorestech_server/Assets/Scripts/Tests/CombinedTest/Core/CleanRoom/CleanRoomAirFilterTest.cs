@@ -179,10 +179,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // 既存の電力系テストと同様にConsumerへ毎tick直接供給する
             // Supply the consumer directly each tick, as existing electric tests do
-            var consumer = block.GetComponent<IElectricConsumer>();
+            var consumer = block.GetComponent<CleanRoomAirFilterComponent>();
             for (var i = 0; i < ticks; i++)
             {
-                consumer.SupplyEnergy(new ElectricPower(power));
+                consumer.SupplyExternalPower(power);
                 GameUpdater.UpdateOneTick();
             }
         }

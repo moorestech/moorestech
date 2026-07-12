@@ -32,7 +32,9 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseGetElectricNetworkInfoMessagePack(null);
             }
 
-            var statistics = segment.GetCurrentStatistics();
+            // tick毎に確定済みの統計をそのまま公開する（要求時の再計算はしない）
+            // Expose the per-tick settled statistics as-is (no recomputation on request)
+            var statistics = segment.Statistics;
             var snapshot = new ElectricNetworkInfoSnapshot(statistics.TotalGeneratePower, statistics.TotalRequiredPower, statistics.PowerRate, statistics.ConsumerCount);
             return new ResponseGetElectricNetworkInfoMessagePack(snapshot);
         }

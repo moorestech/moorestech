@@ -33,10 +33,12 @@ namespace Game.Block.Factory.BlockTemplate
             // 採掘機はConsumer役をワイヤー端点に渡す
             // Miner passes the consumer role to the wire endpoint
             var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, null);
+            // 供給読み取り(electricMinerComponent)を採掘判定(minerProcessorComponent)より先に更新させるため、この並び順を維持すること
+            // Keep this order: the supply reader (electricMinerComponent) must update before the miner processor
             var components = new List<IBlockComponent>
             {
-                minerProcessorComponent,
                 electricMinerComponent,
+                minerProcessorComponent,
                 inputConnectorComponent,
                 wireConnector,
             };
@@ -57,10 +59,12 @@ namespace Game.Block.Factory.BlockTemplate
             // 採掘機はConsumer役をワイヤー端点に渡す
             // Miner passes the consumer role to the wire endpoint
             var wireConnector = new ElectricWireConnectorComponent(minerParam.MaxWireConnectionCount, minerParam.MaxWireLength, blockInstanceId, electricMinerComponent, componentStates);
+            // 供給読み取り(electricMinerComponent)を採掘判定(minerProcessorComponent)より先に更新させるため、この並び順を維持すること
+            // Keep this order: the supply reader (electricMinerComponent) must update before the miner processor
             var components = new List<IBlockComponent>
             {
-                minerProcessorComponent,
                 electricMinerComponent,
+                minerProcessorComponent,
                 inputConnectorComponent,
                 wireConnector,
             };

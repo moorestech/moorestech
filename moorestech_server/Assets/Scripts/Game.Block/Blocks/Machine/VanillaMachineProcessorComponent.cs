@@ -127,20 +127,14 @@ namespace Game.Block.Blocks.Machine
             return MachineRecipeSelectionResult.Success;
         }
 
-        public void SupplyPower(float power)
+        public void SupplyExternalPower(float power)
         {
             BlockException.CheckDestroy(this);
 
-            // 複数の電力セグメントから供給され得るため加算する（発電機なしセグメントの0供給で打ち消されない）
-            // Accumulate since multiple energy segments may supply power (a generator-less segment's zero must not cancel it)
+            // 複数の電力セグメントから供給され得るため加算する
+            // Accumulate power because multiple electric segments may supply this machine
             _context.SuppliedPower += power;
-
-            // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
-            // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
-            if (CurrentState == ProcessState.Idle)
-            {
-                _changeState.OnNext(Unit.Default);
-            }
+            if (CurrentState == ProcessState.Idle) _changeState.OnNext(Unit.Default);
         }
 
         public void Update()
