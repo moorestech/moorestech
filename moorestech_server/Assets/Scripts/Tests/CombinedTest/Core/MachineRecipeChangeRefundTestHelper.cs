@@ -77,14 +77,6 @@ namespace Tests.CombinedTest.Core
                 .GetValue(inventory);
         }
 
-        public static uint GetRemainingTicks(VanillaMachineProcessorComponent processor)
-        {
-            var state = typeof(VanillaMachineProcessorComponent)
-                .GetField("_processingState", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(processor);
-            return (uint)state.GetType().GetProperty("RemainingTicks").GetValue(state);
-        }
-
         public static int CountItem(IEnumerable<IItemStack> slots, ItemId itemId)
         {
             return slots.Where(s => s.Id == itemId).Sum(s => s.Count);
@@ -110,15 +102,6 @@ namespace Tests.CombinedTest.Core
             }
         }
 
-        public static void FillFluidTanksToCapacity(IReadOnlyList<FluidContainer> tanks, FluidId fluidId)
-        {
-            foreach (var tank in tanks)
-            {
-                tank.FluidId = fluidId;
-                tank.Amount = tank.Capacity;
-            }
-        }
-
         public static MachineRecipeMasterElement FindAlternateRecipe(MachineRecipeMasterElement current)
         {
             foreach (var recipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
@@ -129,6 +112,37 @@ namespace Tests.CombinedTest.Core
                 return recipe;
             }
             return null;
+        }
+
+        public static void InsertRecipeFluids(IReadOnlyList<FluidContainer> tanks, MachineRecipeMasterElement recipe)
+        {
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
+            {
+                var fluidId = MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid);
+                tanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, fluidId), FluidContainer.Empty);
+            }
+        }
+
+        // 返却量より小さい空きを残し、余剰吸収を防ぐため第3タンクを別流体で満杯にする
+        // Leave free space smaller than refunds; fill the 3rd tank with another fluid to block overflow absorption
+        public static (double before0, double before1, double before2, double expected0, double expected1) PreparePartialFluidTanksForOverflowRefund(IReadOnlyList<FluidContainer> tanks, MachineRecipeMasterElement recipe, FluidId blockerFluidId)
+        {
+            var fluidId0 = MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[0].FluidGuid);
+            var fluidId1 = MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[1].FluidGuid);
+            const double freeSpace0 = 0.3;
+            const double freeSpace1 = 0.5;
+            tanks[0].FluidId = fluidId0;
+            tanks[0].Amount = tanks[0].Capacity - freeSpace0;
+            tanks[1].FluidId = fluidId1;
+            tanks[1].Amount = tanks[1].Capacity - freeSpace1;
+            tanks[2].FluidId = blockerFluidId;
+            tanks[2].Amount = tanks[2].Capacity;
+            var before0 = tanks[0].Amount;
+            var before1 = tanks[1].Amount;
+            var before2 = tanks[2].Amount;
+            var expected0 = Math.Min(before0 + recipe.InputFluids[0].Amount, tanks[0].Capacity);
+            var expected1 = Math.Min(before1 + recipe.InputFluids[1].Amount, tanks[1].Capacity);
+            return (before0, before1, before2, expected0, expected1);
         }
     }
 }

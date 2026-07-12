@@ -7,8 +7,10 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Game.Fluid;
+using Game.UnlockState;
 using NUnit.Framework;
+using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -123,10 +125,10 @@ namespace Tests.CombinedTest.Core
             var (_, selector, processor, inventory) = MachineRecipeChangeRefundTestHelper.PlaceMachine(recipe);
 
             MachineRecipeChangeRefundTestHelper.StartProcessing(selector, processor, inventory, recipe, overflow);
-            var remainingBefore = MachineRecipeChangeRefundTestHelper.GetRemainingTicks(processor);
+            var remainingBefore = processor.GetRemainingTicks();
             Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(recipe, overflow));
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            Assert.AreEqual(remainingBefore, MachineRecipeChangeRefundTestHelper.GetRemainingTicks(processor));
+            Assert.AreEqual(remainingBefore, processor.GetRemainingTicks());
             Assert.AreEqual(recipe.MachineRecipeGuid, processor.RecipeGuid);
         }
 
@@ -154,31 +156,36 @@ namespace Tests.CombinedTest.Core
         public void FluidRefundBestEffortTest()
         {
             MachineRecipeChangeRefundTestHelper.InitDi();
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
-                .First(r => r.InputFluids != null && r.InputFluids.Length > 0 && r.InitialUnlocked);
+            // LockedMachineRecipeフィクスチャを明示アンロックしてから選択する
+            // Explicitly unlock the LockedMachineRecipe fixture before selecting it
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockMachineRecipe(ForUnitTestMachineRecipeId.LockedMachineRecipe);
+
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(ForUnitTestMachineRecipeId.LockedMachineRecipe);
+            Assert.IsTrue(recipe.InputFluids.Length >= 2, "流体返却テストには2種類以上の入力液体が必要");
             var next = MachineRecipeChangeRefundTestHelper.FindAlternateRecipe(recipe);
             Assert.IsNotNull(next);
             var overflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(10);
             var (_, selector, processor, inventory) = MachineRecipeChangeRefundTestHelper.PlaceMachine(recipe);
 
-            selector.SetSelectedRecipe(recipe, overflow);
+            Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(recipe, overflow));
             MachineRecipeChangeRefundTestHelper.InsertRecipeInputs(inventory, recipe);
             var tanks = MachineRecipeChangeRefundTestHelper.GetInputInventory(inventory).FluidInputSlot;
-            for (var i = 0; i < recipe.InputFluids.Length; i++)
-            {
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid);
-                tanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, fluidId), FluidContainer.Empty);
-            }
+            MachineRecipeChangeRefundTestHelper.InsertRecipeFluids(tanks, recipe);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
-            MachineRecipeChangeRefundTestHelper.FillFluidTanksToCapacity(tanks, MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[0].FluidGuid));
+            Assert.IsTrue(tanks.Count >= 3);
+            var (before0, before1, before2, expected0, expected1) = MachineRecipeChangeRefundTestHelper.PreparePartialFluidTanksForOverflowRefund(tanks, recipe, MachineFluidIOTest.FluidId3);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(next, overflow));
             Assert.AreEqual(next.MachineRecipeGuid, selector.SelectedRecipeGuid);
-            foreach (var tank in tanks)
-            {
-                Assert.LessOrEqual(tank.Amount, tank.Capacity);
-            }
+            Assert.AreEqual(expected0, tanks[0].Amount, 0.0001);
+            Assert.AreEqual(expected1, tanks[1].Amount, 0.0001);
+            Assert.AreEqual(before2, tanks[2].Amount, 0.0001);
+            Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[0].FluidGuid), tanks[0].FluidId);
+            Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[1].FluidGuid), tanks[1].FluidId);
+            // 返却合計が容量に収まらず溢れた分は消失していること
+            // Overflow beyond tank capacity is discarded and not preserved in total
+            Assert.Less(expected0 + expected1, before0 + before1 + recipe.InputFluids[0].Amount + recipe.InputFluids[1].Amount);
         }
     }
 }
