@@ -21,6 +21,9 @@ namespace Client.Playtest.Operations
     /// </summary>
     public static class PlaytestUiOps
     {
+        private const float AimGlideSeconds = 0.3f;
+        private const float DragGlideSeconds = 0.5f;
+
         public static UIStateEnum CurrentUiState()
         {
             return Object.FindFirstObjectByType<UIStateControl>().CurrentState;
@@ -81,7 +84,7 @@ namespace Client.Playtest.Operations
             // ワールド座標をスクリーン座標へ変換しマウス絶対座標を注入、プレビュー更新を1フレーム以上待つ
             // Convert world position to screen space, inject the absolute mouse position, wait for the preview to update
             var screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
-            SemanticInput.MouseMoveTo(screenPosition);
+            await SemanticInput.MouseGlideTo(screenPosition, AimGlideSeconds);
             await UniTask.DelayFrame(3);
         }
 
@@ -107,7 +110,9 @@ namespace Client.Playtest.Operations
             await AimAtWorldPosition(fromWorldPosition);
             SemanticInput.MouseButtonDown(0);
             await UniTask.DelayFrame(3);
-            await AimAtWorldPosition(toWorldPosition);
+            var endScreenPosition = Camera.main.WorldToScreenPoint(toWorldPosition);
+            await SemanticInput.MouseGlideTo(endScreenPosition, DragGlideSeconds);
+            await UniTask.DelayFrame(3);
             SemanticInput.MouseButtonUp(0);
             await UniTask.DelayFrame(3);
         }

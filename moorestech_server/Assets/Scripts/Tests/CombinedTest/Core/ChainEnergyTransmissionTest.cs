@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -50,8 +50,7 @@ namespace Tests.CombinedTest.Core
 
             // ギアネットワークを更新する
             // Update gear networks
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            foreach (var network in gearNetworkDatastore.GearNetworks.Values) network.ManualUpdate();
+            GameUpdater.UpdateOneTick();
 
             // 発電機とターゲットギアの回転が一致することを確認する
             // Ensure generator and target gear share rpm and direction
@@ -103,10 +102,7 @@ namespace Tests.CombinedTest.Core
 
             // 残ったネットワークの更新でも例外が出ないことを確認する
             // Updating the surviving networks must not throw either
-            Assert.DoesNotThrow(() =>
-            {
-                foreach (var network in serviceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) network.ManualUpdate();
-            });
+            Assert.DoesNotThrow(GameUpdater.UpdateOneTick);
         }
 
         [Test]
@@ -141,10 +137,7 @@ namespace Tests.CombinedTest.Core
 
             // 削除後のネットワーク更新でも例外が出ないことを確認する
             // Updating networks after removal must not throw either
-            Assert.DoesNotThrow(() =>
-            {
-                foreach (var network in serviceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) network.ManualUpdate();
-            });
+            Assert.DoesNotThrow(GameUpdater.UpdateOneTick);
         }
 
         [Test]
@@ -180,6 +173,7 @@ namespace Tests.CombinedTest.Core
             // Load into another DI container and verify network membership after restore
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             SaveLoadJsonTestHelper.LoadFromJson(loadServiceProvider, saveJson);
+            GameUpdater.UpdateOneTick();
 
             worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var loadedPoleA = worldBlockDatastore.GetBlock(poleAId).GetComponent<IGearChainPole>();
@@ -199,7 +193,6 @@ namespace Tests.CombinedTest.Core
 
             // ロード後の更新で発電機の回転がチェーン先へ届くことを確認する
             // Verify generator rotation reaches the far side after load update
-            foreach (var network in loadServiceProvider.GetService<GearNetworkDatastore>().GearNetworks.Values) network.ManualUpdate();
             var generator = worldBlockDatastore.GetBlock(generatorId).GetComponent<IGearGenerator>();
             var gear = worldBlockDatastore.GetBlock(targetGearId).GetComponent<IGear>();
             Assert.AreEqual(generator.CurrentRpm.AsPrimitive(), gear.CurrentRpm.AsPrimitive(), 0.001f);

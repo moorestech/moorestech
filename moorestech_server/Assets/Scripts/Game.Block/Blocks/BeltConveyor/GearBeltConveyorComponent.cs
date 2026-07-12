@@ -27,33 +27,14 @@ namespace Game.Block.Blocks.BeltConveyor
             UpdateTorqueRequestRate();
         }
 
+        // 毎tick、導出した稼働率（RPM比 × torqueRate）で搬送時間を更新する。GearTickUpdaterがnetwork状態を先に書くため導出値は最新
+        // Update transit time each tick from the derived operating rate; GearTickUpdater writes network state first, so the derived value is current
         public void Update()
         {
             BlockException.CheckDestroy(this);
-        }
 
-        private void UpdateTorqueRequestRate()
-        {
-            // ベルト上のアイテム有無で要求トルク倍率を変更要求する
-            // Push the torque request rate based on whether items are on the belt
-            var hasItem = _beltConveyorComponent.BeltConveyorItems.Any(item => item != null);
-            SetTorqueRequestRate(hasItem ? 1f : _idleTorqueRate);
-        }
-
-        public override void StopNetwork()
-        {
-            base.StopNetwork();
-            // ネットワーク停止時はアイテムを搬送しない
-            // Prevent item transport when network is stopped
-            _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
-        }
-
-        public override void SupplyPower(RPM rpm, Torque torque, bool isClockwise)
-        {
-            base.SupplyPower(rpm, torque, isClockwise);
-
-            // 稼働率（RPM比 × torqueRate、下限未満で0）で搬送時間を割って実搬送時間を求める
-            // Divide the base transit time by the operating rate (rpmRatio × torqueRate, zero below minimum)
+            // 稼働率0（停止・RPM不足）なら搬送を止める
+            // Stop transport when the operating rate is zero (stopped or insufficient RPM)
             var operatingRate = GetCurrentOperatingRate();
             if (operatingRate <= 0f)
             {
@@ -70,6 +51,14 @@ namespace Game.Block.Blocks.BeltConveyor
 
             var ticks = GameUpdater.SecondsToTicks(transitSeconds);
             _beltConveyorComponent.SetTicksOfItemEnterToExit(ticks);
+        }
+
+        private void UpdateTorqueRequestRate()
+        {
+            // ベルト上のアイテム有無で要求トルク倍率を変更要求する
+            // Push the torque request rate based on whether items are on the belt
+            var hasItem = _beltConveyorComponent.BeltConveyorItems.Any(item => item != null);
+            SetTorqueRequestRate(hasItem ? 1f : _idleTorqueRate);
         }
     }
 }
