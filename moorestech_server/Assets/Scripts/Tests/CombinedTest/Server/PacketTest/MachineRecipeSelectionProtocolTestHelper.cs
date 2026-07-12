@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    // MachineRecipeSelectionProtocolTest 共通のセットアップ・送信ヘルパー
+    // ProtocolTest共通のセットアップ/送信ヘルパー
     // Shared setup and send helpers for MachineRecipeSelectionProtocolTest
     internal static class MachineRecipeSelectionProtocolTestHelper
     {

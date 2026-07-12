@@ -8,7 +8,7 @@ using Mooresmaster.Model.MachineRecipesModule;
 namespace Game.Block.Blocks.Machine.RecipeSelection
 {
     /// <summary>
-    ///     レシピ選択の検証と、進行中ジョブの中断・返却の共通フロー（通常機械/クリーンルーム機械で共用）
+    ///     レシピ選択検証と中断・返却の共通処理
     ///     Shared validation and cancel-with-refund flow for recipe selection (vanilla and clean-room machines)
     /// </summary>
     internal static class MachineRecipeSelectionUtil

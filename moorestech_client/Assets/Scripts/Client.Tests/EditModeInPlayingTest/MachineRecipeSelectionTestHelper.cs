@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
-    /// MachineRecipeSelectionUITest / MachineRecipeSelectionGearUITest で共有する検証ヘルパー
+    /// Electric/Gear共有の検証ヘルパー
     /// Shared verification helpers for the Electric/Gear machine recipe selection UI tests.
     /// </summary>
     internal static class MachineRecipeSelectionTestHelper
@@ -23,7 +23,7 @@ namespace Client.Tests.EditModeInPlayingTest
             return null;
         }
 
-        // privateフィールドをリフレクションで辿りハイライト表示状態を取得する
+        // privateフィールドをリフレクションで取得
         // Walk private fields via reflection to read the highlight display state.
         public static bool IsHotBarSelected(ItemSlotView slot)
         {

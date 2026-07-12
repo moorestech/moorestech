@@ -23,9 +23,9 @@ using static Client.Tests.EditModeInPlayingTest.MachineRecipeSelectionTestHelper
 namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
-    /// GearMachineBlockInventoryプレハブを実際にインスタンス化し、レシピ選択パネルの配線が
-    /// 生きていること（スロット生成）を検証する。ハイライト検証は継承元のElectric側
-    /// (MachineRecipeSelectionUITest)で担保済みのため、ここではスロット数のみ確認する。
+    /// - Gearプレハブを実体化し配線確認
+    /// - スロット生成のみ検証
+    /// - ハイライトはElectric側で担保済み
     /// Instantiates the GearMachineBlockInventory prefab to verify the recipe panel wiring
     /// survives (slot generation); highlight behavior is already covered by the Electric-side test.
     /// </summary>
@@ -51,7 +51,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
             yield return new ExitPlayMode();
 
-            // テスト終了後にデバッグオブジェクト無効化フラグをクリア
+            // デバッグ無効化フラグをクリア
             // Clear debug objects disabled flag after test.
 #if UNITY_EDITOR
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
@@ -63,13 +63,13 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 await LoadMainGame();
 
-                // 歯車機械を設置し、クライアント側のBlockGameObjectがスポーンするまで待機
+                // 歯車機械設置、スポーン待機
                 // Place the gear machine and wait until the client-side BlockGameObject spawns.
                 var pos = new Vector3Int(0, 0, 0);
                 PlaceBlock(GearBlockName, pos, BlockDirection.North);
                 var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
-                // GearMachineBlockInventoryのUIをDI経由で生成し、配線が生きていることを確認
+                // UIをDI生成、配線を確認
                 // Instantiate the GearMachineBlockInventory UI via DI and verify the wiring survives.
                 using var loaded = await AddressableLoader.LoadAsync<GameObject>(GearUiAddress, CancellationToken.None);
                 var instance = ClientDIContext.DIContainer.Instantiate(loaded.Asset);
@@ -79,7 +79,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 var recipeSlotsParent = FindChildRecursive(instance.transform, "RecipeSlots");
                 Assert.IsNotNull(recipeSlotsParent, "RecipeSlots container not found in Gear prefab");
 
-                // マスタから対象ブロックのレシピ一覧を導出し、アンロック済みレシピ数とスロット数が一致することを確認
+                // レシピ数とスロット数の一致を確認
                 // Derive the block's recipe list from the master and verify slot count matches the unlocked recipe count.
                 var blockGuid = blockGameObject.BlockMasterElement.BlockGuid;
                 var blockRecipes = new List<MachineRecipeMasterElement>();

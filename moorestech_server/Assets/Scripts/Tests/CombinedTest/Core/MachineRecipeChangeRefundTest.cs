@@ -156,12 +156,12 @@ namespace Tests.CombinedTest.Core
         public void FluidRefundBestEffortTest()
         {
             MachineRecipeChangeRefundTestHelper.InitDi();
-            // LockedMachineRecipeフィクスチャを明示アンロックしてから選択する
+            // 対象レシピを明示アンロック
             // Explicitly unlock the LockedMachineRecipe fixture before selecting it
             ServerContext.GetService<IGameUnlockStateDataController>().UnlockMachineRecipe(ForUnitTestMachineRecipeId.LockedMachineRecipe);
 
             var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(ForUnitTestMachineRecipeId.LockedMachineRecipe);
-            Assert.IsTrue(recipe.InputFluids.Length >= 2, "流体返却テストには2種類以上の入力液体が必要");
+            Assert.IsTrue(2 <= recipe.InputFluids.Length, "流体返却テストには2種類以上の入力液体が必要");
             var next = MachineRecipeChangeRefundTestHelper.FindAlternateRecipe(recipe);
             Assert.IsNotNull(next);
             var overflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(10);
@@ -174,7 +174,7 @@ namespace Tests.CombinedTest.Core
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
-            Assert.IsTrue(tanks.Count >= 3);
+            Assert.IsTrue(3 <= tanks.Count);
             var (before0, before1, before2, expected0, expected1) = MachineRecipeChangeRefundTestHelper.PreparePartialFluidTanksForOverflowRefund(tanks, recipe, MachineFluidIOTest.FluidId3);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(next, overflow));
             Assert.AreEqual(next.MachineRecipeGuid, selector.SelectedRecipeGuid);
@@ -183,7 +183,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(before2, tanks[2].Amount, 0.0001);
             Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[0].FluidGuid), tanks[0].FluidId);
             Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[1].FluidGuid), tanks[1].FluidId);
-            // 返却合計が容量に収まらず溢れた分は消失していること
+            // 溢れた分は消失すること
             // Overflow beyond tank capacity is discarded and not preserved in total
             Assert.Less(expected0 + expected1, before0 + before1 + recipe.InputFluids[0].Amount + recipe.InputFluids[1].Amount);
         }

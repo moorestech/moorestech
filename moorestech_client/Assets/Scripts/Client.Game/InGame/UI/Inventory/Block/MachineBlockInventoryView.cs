@@ -107,7 +107,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
             {
                 var state = BlockGameObject.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
                 if (state == null) return;
-                // 未選択の機械は加工しないため、明示的にその旨を表示する
+                // 未選択→加工しない旨を表示
                 // An unselected machine never processes, so state it explicitly
                 if (state.SelectedRecipeGuid == Guid.Empty.ToString())
                 {

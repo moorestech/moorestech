@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 電気機械のレシピを1つ選び、材料だけを投入する（選択はしない）
+            // レシピ材料のみ投入(選択せず)
             // Pick an electric machine recipe and insert only its inputs without selecting it
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // ブロックAを設置し、別ブロックB用のレシピを設定しようとする
+            // 他ブロック用レシピを設定試行
             // Place block A and try to set a recipe that belongs to block B
             var recipeA = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             MachineRecipeMasterElement recipeB = null;
@@ -101,7 +101,7 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // Task 1でテストモッドに追加したinitialUnlocked:falseのレシピを対象にする
+            // 未アンロックのレシピを対象にする
             // Target the initialUnlocked:false recipe added to the test mod in Task 1
             MachineRecipeMasterElement lockedRecipe = null;
             foreach (var r in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // Task 1で追加した「同一入力・別出力」ペアを検出し、選択した方のレシピで加工されることを確認
+            // 同一入力・別出力ペアで選択優先を確認
             // Find the duplicate-input pair added in Task 1 and verify the selected one is used
             MachineRecipeMasterElement first = null, second = null;
             var data = MasterHolder.MachineRecipesMaster.MachineRecipes.Data;

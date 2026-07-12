@@ -19,7 +19,7 @@ using static Tests.CombinedTest.Server.PacketTest.MachineRecipeSelectionProtocol
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    // MachineRecipeSelectionProtocol の SetRecipe/Clear 各 Operation と失敗系統を検証する
+    // SetRecipe/Clearと失敗系統を検証
     // Verifies the SetRecipe/Clear operations and failure paths of MachineRecipeSelectionProtocol
     public class MachineRecipeSelectionProtocolTest
     {
@@ -158,7 +158,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var processor = block.GetComponent<VanillaMachineProcessorComponent>();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
-            // 機械側インベントリを別アイテムで満杯にし、返却先を塞ぐ
+            // 機械側を別アイテムで満杯にし塞ぐ
             // Fill the machine's own inventory with a different item so refunds have nowhere to land
             var machineFillerId = ForUnitTestItemId.ItemId3;
             var machineFillerMaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(machineFillerId);
@@ -167,7 +167,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 blockInventory.SetItem(i, machineFillerId, machineFillerMaxStack);
             }
 
-            // プレイヤーのメインインベントリも満杯にし、返却先を完全に塞ぐ
+            // プレイヤー側も満杯にし完全に塞ぐ
             // Fill the player's main inventory too, so there is no overflow destination left
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             var playerFillerId = ForUnitTestItemId.ItemId4;

@@ -20,6 +20,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             var recipeGuid = processingState.RecipeGuid;
             if (recipeGuid == Guid.Empty) return;
             if (!MasterHolder.CleanRoomMaster.TryGetChipDraw(recipeGuid, out var chipDraw)) return;
+            // 旧セーブ復元では産出予定がnullのまま完了し得るため、その周回は完了時再抽選に任せる
+            // Old-save restores can complete with null pending outputs; leave that cycle to the completion re-roll
+            if (processingState.PendingOutputs == null) return;
             // サイクル完了ごとにカウンタを進め、ブロック固有で再現可能なシードにする
             // Advance the counter each completed cycle and create a per-block reproducible seed
             cycleCount++;
@@ -50,7 +53,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                         ? ServerContext.ItemStackFactory.Create(itemId, output.Count)
                         : ServerContext.ItemStackFactory.CreatEmpty();
                 }
-                // このレシピ出力に対応する抽選テーブルが無ければ素の出力のまま
+                // 抽選テーブル無ければ素の出力
                 // If no distribution matches this recipe output, leave it unchanged
                 return output;
             }

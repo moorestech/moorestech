@@ -25,7 +25,7 @@ using static Client.Tests.EditModeInPlayingTest.MachineRecipeSelectionTestHelper
 namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
-    /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
+    /// EditMode実行中にPlayModeへ切替
     /// This test is executed in EditMode, but it switches to PlayMode during execution.
     /// </summary>
     public class MachineRecipeSelectionUITest
@@ -50,7 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
             yield return new ExitPlayMode();
 
-            // テスト終了後にデバッグオブジェクト無効化フラグをクリア
+            // デバッグ無効化フラグをクリア
             // Clear debug objects disabled flag after test.
 #if UNITY_EDITOR
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
@@ -62,13 +62,13 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 await LoadMainGame();
 
-                // 機械を設置し、クライアント側のBlockGameObjectがスポーンするまで待機
+                // 機械設置、スポーン待機
                 // Place the machine and wait until the client-side BlockGameObject spawns.
                 var pos = new Vector3Int(0, 0, 0);
                 PlaceBlock(MachineBlockName, pos, BlockDirection.North);
                 var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
-                // 機械インベントリUIをDI経由で生成し、レシピスロット列が描画されることを確認
+                // UIをDI生成、スロット列描画を確認
                 // Instantiate the machine inventory UI via DI and verify the recipe slot row is rendered.
                 using var loaded = await AddressableLoader.LoadAsync<GameObject>(UiAddress, CancellationToken.None);
                 var instance = ClientDIContext.DIContainer.Instantiate(loaded.Asset);
@@ -78,7 +78,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 var recipeSlotsParent = FindChildRecursive(instance.transform, "RecipeSlots");
                 Assert.IsNotNull(recipeSlotsParent, "RecipeSlots container not found in prefab");
 
-                // マスタから対象ブロックのレシピ一覧を導出し、アンロック済みレシピ数とスロット数が一致することを確認
+                // レシピ数とスロット数の一致を確認
                 // Derive the block's recipe list from the master and verify slot count matches the unlocked recipe count.
                 var blockGuid = blockGameObject.BlockMasterElement.BlockGuid;
                 var blockRecipes = new List<MachineRecipeMasterElement>();
@@ -96,7 +96,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 await UniTask.DelayFrame(2);
                 foreach (var slot in slotViews) Assert.IsFalse(IsHotBarSelected(slot), "slot highlighted before any recipe is selected");
 
-                // サーバー側で1件目のレシピを選択し、対応するスロットのみハイライトされることを確認
+                // 1件目選択、対応スロットのみ確認
                 // Select the first recipe on the server and verify only its slot gets highlighted.
                 var targetRecipe = blockRecipes[0];
                 var playerId = ClientContext.PlayerConnectionSetting.PlayerId;

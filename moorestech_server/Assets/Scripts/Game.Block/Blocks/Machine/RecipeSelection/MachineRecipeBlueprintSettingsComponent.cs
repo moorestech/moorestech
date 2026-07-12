@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace Game.Block.Blocks.Machine.RecipeSelection
 {
     /// <summary>
-    ///     機械のレシピ選択をBlueprintでコピーするための設定コンポーネント（Vanilla/CleanRoom共用）
+    ///     レシピ選択をBPコピーする設定(共用)
     ///     Blueprint settings component copying the machine recipe selection (shared by vanilla and clean-room)
     /// </summary>
     public class MachineRecipeBlueprintSettingsComponent : IBlockBlueprintSettings

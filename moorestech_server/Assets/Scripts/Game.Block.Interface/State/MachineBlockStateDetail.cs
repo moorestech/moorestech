@@ -21,7 +21,7 @@ namespace Game.Block.Interface.State
         [Key(1)] public string MachineRecipeGuid;
 
         /// <summary>
-        ///    選択中のレシピのGUID（未選択はGuid.Empty）
+        ///    選択レシピGUID(未選択=Empty)
         /// </summary>
         [Key(2)] public string SelectedRecipeGuid;
 

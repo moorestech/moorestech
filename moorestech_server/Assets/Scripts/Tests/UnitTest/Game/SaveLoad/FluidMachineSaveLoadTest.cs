@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
 
-            // 選択→材料投入→自然にProcessing化する経路でセーブ対象状態を作る
+            // 選択→投入→自然遷移でセーブ状態作成
             // Build save state via select → insert materials → naturally enter Processing
             var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(ForUnitTestMachineRecipeId.LockedMachineRecipe);
             MachineRecipeSelectTestUtil.SelectRecipe(machineBlock, recipe);
