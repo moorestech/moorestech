@@ -37,14 +37,14 @@ namespace Tests.CombinedTest.Game
             var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, sourceSelector.SetSelectedRecipe(recipe, overflow));
 
-            // 範囲抽出でBP作成、設定JSON存在を確認
+            // 範囲抽出でBP作成、JSON存在確認
             // Extract a blueprint and verify settings JSON is captured
             var created = BlueprintCreateService.TryCreateFromArea("machine", new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 0), out var blueprint);
             Assert.IsTrue(created);
             var settingsJson = blueprint.Blocks[0].Settings[MachineRecipeBlueprintSettingsComponent.SettingsKey];
             Assert.IsNotNull(settingsJson);
 
-            // 設定JSONを載せ別座標に設置し再現を確認
+            // JSON付きで別座標へ設置し再現確認
             // Place a new machine with the settings param and verify reproduction
             var createParams = new[] { new BlockCreateParam(MachineRecipeBlueprintSettingsComponent.SettingsKey, Encoding.UTF8.GetBytes(settingsJson)) };
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, new Vector3Int(10, 0, 10), BlockDirection.North, createParams, out var pasted);
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // ブロックAを設置し、別ブロックB用のレシピGuidを含む設定JSONを直接適用する
+            // 他ブロック用レシピGuidのJSONを適用
             // Place block A and directly apply a settings JSON referencing block B's recipe
             var recipeA = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             MachineRecipeMasterElement recipeB = null;

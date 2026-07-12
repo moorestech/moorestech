@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Machine.State
                 return ProcessState.Idle;
             }
 
-            // 加工ジョブをProcessingStateへ渡して遷移
+            // ProcessingStateへ遷移
             // Hand the job to ProcessingState and transition
             _processingState.SetProcessing(recipe, realizedOutputs);
             return ProcessState.Processing;

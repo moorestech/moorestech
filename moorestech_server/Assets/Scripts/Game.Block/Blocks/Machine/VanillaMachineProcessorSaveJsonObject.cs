@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.Machine
         [JsonIgnore]
         public Guid RecipeGuid => Guid.Parse(RecipeGuidStr);
 
-        // 産出予定。Idle時や過去セーブではnull
+        // 産出予定。Idle/旧セーブはnull
         // Pending outputs; null while idle or in old saves
         [JsonProperty("pendingOutputs")]
         public List<ItemStackSaveJsonObject> PendingOutputs;

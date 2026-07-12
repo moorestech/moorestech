@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace Tests.Util
 {
-    // 自動判定前提だった既存テストを最小変更で移行するためのレシピ選択ヘルパー
+    // 自動判定→明示選択への移行ヘルパー
     // Helper to migrate auto-detection-era tests to explicit recipe selection with minimal edits
     public static class MachineRecipeSelectTestUtil
     {

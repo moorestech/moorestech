@@ -30,11 +30,11 @@ namespace Game.Block.Blocks.Machine.State
             _pendingOutputs = outputs;
         }
 
-        // 進行中ジョブのレシピ（返却計算用）。ジョブが無ければnull
+        // 進行中レシピ(返却用)。無ければnull
         // Recipe of the running job (for refund calculation); null when no job exists
         public MachineRecipeMasterElement CurrentRecipe => _recipe;
 
-        // 出力を払い出さずにジョブを破棄する（レシピ変更の返却フロー用）
+        // 出力を払い出さずジョブを破棄(返却用)
         // Discard the job without paying outputs (used by the recipe-change refund flow)
         public void CancelProcessing()
         {

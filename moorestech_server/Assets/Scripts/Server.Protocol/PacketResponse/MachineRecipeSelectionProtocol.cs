@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    /// 機械のレシピ選択を設定・解除するプロトコル。Operation により SetRecipe / Clear を切り替える。
+    /// レシピ選択の設定・解除プロトコル
     /// 選択状態の取得は既存のブロック状態同期（MachineBlockStateDetail）で行うため Get は持たない。
     /// Protocol to set/clear the machine recipe selection; reads go through the existing block state sync.
     /// </summary>
@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
                 return Fail(MachineRecipeSelectionFailureReason.NotMachine);
             }
 
-            // 加工中変更の返却先としてリクエスト元プレイヤーのメインインベントリを渡す
+            // 返却先にリクエスト元インベントリを渡す
             // Pass the requesting player's main inventory as the refund overflow target
             var playerInventory = _playerInventoryDataStore.GetInventoryData(request.PlayerId).MainOpenableInventory;
 
@@ -96,7 +96,7 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public MachineRecipeSelectionRequest() { Tag = ProtocolTag; }
 
-            // Operation ごとに必要なフィールドだけを設定する private コンストラクタ
+            // Operationごとに必要フィールドのみ設定
             // Private constructor; static factories below set only the fields each Operation needs
             private MachineRecipeSelectionRequest(Vector3Int position, MachineRecipeSelectionOperation operation, string machineRecipeGuidStr, int playerId)
             {

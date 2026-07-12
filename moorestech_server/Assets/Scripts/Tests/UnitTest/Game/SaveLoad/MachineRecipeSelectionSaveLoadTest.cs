@@ -25,7 +25,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var (worldBlockDatastore, assembleSaveJsonText, _) = CreateBlockTestModule();
 
-            // 機械を設置してレシピだけ選択する（加工はさせない）
+            // 機械設置、レシピのみ選択(未加工)
             // Place the machine and select a recipe without letting it process
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var json = assembleSaveJsonText.AssembleSaveJson();
             worldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
 
-            // セーブJSON中のselectedRecipeGuidをマスタに存在しないGUIDへ書き換える
+            // GUIDを存在しない値へ書換
             // componentStatesはネストしたJSON文字列のため引用符はエスケープされている
             // Rewrite selectedRecipeGuid in the save JSON to a GUID absent from the master
             // componentStates is a nested JSON string, so quotes appear escaped

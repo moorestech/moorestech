@@ -326,7 +326,7 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }
 
-        // 機械のレシピ選択設定・解除 (SetRecipe/Clear を 1 メソッドで扱う)
+        // SetRecipe/Clearを1メソッドで送信
         // Machine recipe selection request (single endpoint for SetRecipe / Clear)
         public async UniTask<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse> SendMachineRecipeSelectionRequest(
             MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest request, CancellationToken ct)

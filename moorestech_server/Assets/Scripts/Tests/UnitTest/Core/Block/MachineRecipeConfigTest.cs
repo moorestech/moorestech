@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Core.Block
         [Test]
         public void DuplicateInputRecipesAreAllowedTest()
         {
-            // Step 1で追加した同一入力レシピが存在してもマスタロードが例外を投げないこと
+            // 同一入力でも例外なくロード
             // Master load must not throw even when two recipes share the same block and inputs
             Assert.DoesNotThrow(() => new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)));
         }

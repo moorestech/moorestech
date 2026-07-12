@@ -5,7 +5,7 @@ namespace Game.Block.Blocks.Machine
     public static class ProcessStateExtension
     {
         /// <summary>
-        ///     <see cref="ProcessState" />をStringに変換します。
+        ///     ProcessStateを文字列に変換
         ///     EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
         /// </summary>
         public static string ToStr(this ProcessState state)
