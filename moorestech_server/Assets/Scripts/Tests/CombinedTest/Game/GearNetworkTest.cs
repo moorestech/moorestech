@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
@@ -14,6 +13,7 @@ using Mooresmaster.Model.GearModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using System;
 using Core.Update;
@@ -27,19 +27,17 @@ namespace Tests.CombinedTest.Game
         //Install a simple generator, make a simple gear NW, and test if RPM and direction of rotation are correct.
         public void SimpleGeneratorAndGearRpmTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generator);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generator);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var shaft);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BigGear, new Vector3Int(-1, -1, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var bigGear);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, new Vector3Int(2, 0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var smallGear);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Teeth10RequireTorqueTestGear, new Vector3Int(2, 0, 2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var smallGear);
             
             //ネットワークをアップデート
             //Update the network
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
             
             //ジェネレーターの供給が正しいか
             //Is the generator supply correct?
@@ -71,7 +69,7 @@ namespace Tests.CombinedTest.Game
         // Create a looped gear NW and test if RPM and direction of rotation are correct.
         public void LoopGearNetworkTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             // C - D
@@ -102,9 +100,7 @@ namespace Tests.CombinedTest.Game
             var smallGearD = smallGearDBlock.GetComponent<GearComponent>();
             
             
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
             
             // Generatorの回転方向とRPMのテスト
             AreEqual(rpm, generator.CurrentRpm);
@@ -132,7 +128,7 @@ namespace Tests.CombinedTest.Game
         // Using BigGear, forcibly connect SmallGear with a different RPM and SmallGear with an unchanged RPM, and test that it locks.
         public void DifferentRpmGearNetworkToRockTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPos = new Vector3Int(1, 1, 0); // 大歯車を使ってRPMを変化させた側の歯車
@@ -153,14 +149,13 @@ namespace Tests.CombinedTest.Game
             ForceConnectGear(smallGear1, smallGear2);
             
             // find the network
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(smallGear1.BlockInstanceId);
             
             Assert.NotNull(gearNetwork);
             
             //ネットワークをアップデート
             //Update the network
-            gearNetwork.ManualUpdate();
 
             // ネットワークがロックされているかどうかを確認する
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
@@ -169,7 +164,7 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void DifferentDirectionGearNetworkToRockTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -187,9 +182,8 @@ namespace Tests.CombinedTest.Game
             //Forced connection of gears with different directions of rotation
             ForceConnectGear(gear2, gear3);
             
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(gear2.BlockInstanceId);
 
             // ネットワークがロックされているかどうかを確認する
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
@@ -199,7 +193,7 @@ namespace Tests.CombinedTest.Game
         public void MultiGeneratorOverrideRpmTest()
         {
             // 複数のジェネレーターのRPMがオーバーライドされるテスト
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var fastGeneratorPosition = new Vector3Int(0, 0, 0);
@@ -224,10 +218,7 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var smallGearBBlock);
             var smallGearB = smallGearBBlock.GetComponent<GearComponent>();
             
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
             
             Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
             Assert.AreEqual(smallGearA.CurrentRpm, 20f);
@@ -242,7 +233,7 @@ namespace Tests.CombinedTest.Game
             // Gen1 - Gear1 このような構成になっている
             //        Gear2
             // Gen2 - Gear3
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             
             var generator1Position = new Vector3Int(0, 0, 0);
@@ -260,10 +251,8 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gear2Block);
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
             
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(generator1Block.BlockInstanceId);
 
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
         }
@@ -275,7 +264,7 @@ namespace Tests.CombinedTest.Game
             // 新formula: Teeth10 at rpm=10, baseRpm=5 -> requiredTorque = 1*(10/5)^2 = 4, power = 40
             // Test that torque is consumed by gears correctly.
             // New formula: Teeth10 at rpm=10, baseRpm=5 -> requiredTorque = 1*(10/5)^2 = 4, power = 40
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             // InfinityTorqueGeneratorを使用してエネルギー不足を防ぐ（reqTorque≈3 * 3 gears = 9 > SimpleGenerator torque=3）
@@ -297,10 +286,7 @@ namespace Tests.CombinedTest.Game
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
             var gear3 = gear3Block.GetComponent<IGearEnergyTransformer>();
 
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
 
             // 新formula: rpm=10 > baseRpm=5 なのでexpOverを使用
             // New formula: rpm=10 > baseRpm=5, so use expOver=1.585
@@ -320,7 +306,7 @@ namespace Tests.CombinedTest.Game
             // The generator generates 3 torque, but since it is connected to 6 gears, the required torque becomes 6
             // Since required GP > generated GP, the network halts completely (new specification)
 
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -349,9 +335,8 @@ namespace Tests.CombinedTest.Game
             var gear5 = gear5Block.GetComponent<IGearEnergyTransformer>();
             var gear6 = gear6Block.GetComponent<IGearEnergyTransformer>();
 
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(generatorBlock.BlockInstanceId);
 
             // エネルギー不足により、すべてのコンポーネントのRPMが0になる
             AreEqual(0f, gear1.CurrentRpm);
@@ -374,7 +359,7 @@ namespace Tests.CombinedTest.Game
         // Test that the network halts completely when energy is insufficient (case with gear ratio)
         public void TorqueHalfTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -394,9 +379,8 @@ namespace Tests.CombinedTest.Game
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
 
-            var gearNetworkDataStore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDataStore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(generatorBlock.BlockInstanceId);
 
             // ジェネレーターのトルクが1、gear1とgear2の要求トルクの合計が1を超えるため、エネルギー不足で停止
             // Generator torque is 1, total required torque exceeds 1, so the network halts due to energy deficit
@@ -438,15 +422,18 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition3, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+            GameUpdater.UpdateOneTick();
+            AreEqual(2, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDataStore));
             
             // ネットワークをマージ
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
+            GameUpdater.UpdateOneTick();
+            AreEqual(1, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDataStore));
             
             // ネットワークの分離のテスト
             ServerContext.WorldBlockDatastore.RemoveBlock(gearPosition2, BlockRemoveReason.ManualRemove);
-            AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+            GameUpdater.UpdateOneTick();
+            AreEqual(2, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDataStore));
         }
 
         [Test]
@@ -467,7 +454,8 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, generatorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, machinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, gearPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            AreEqual(1, gearNetworkDataStore.GearNetworks.Count);
+            GameUpdater.UpdateOneTick();
+            AreEqual(1, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDataStore));
 
             // 橋渡し点のギア機械を破壊する。コネクタが先に破棄されるため、削除ギア自身のGetGearConnectsは信頼できない
             // Destroy the bridging gear machine. Its connector is destroyed first, so the removed gear's own GetGearConnects is unreliable
@@ -475,7 +463,8 @@ namespace Tests.CombinedTest.Game
 
             // 残存網は {ジェネレーター} と {歯車} の2つに分割されていなければならない
             // The surviving network must split into {generator} and {gear}
-            AreEqual(2, gearNetworkDataStore.GearNetworks.Count);
+            GameUpdater.UpdateOneTick();
+            AreEqual(2, GearNetworkDatastoreReflectionTestUtil.GetNetworkCountWithoutFlush(gearNetworkDataStore));
 
             // 分割後にネットワーク更新を回してもKeyNotFoundExceptionが発生しないことを確認する
             // Confirm that running the network update after the split does not throw KeyNotFoundException
@@ -531,7 +520,7 @@ namespace Tests.CombinedTest.Game
         public void EnergyDeficitHaltTest()
         {
             // セットアップ: SimpleGearGenerator（トルク3）と高負荷歯車（要求トルク計4）を配置
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -554,9 +543,8 @@ namespace Tests.CombinedTest.Game
             var gear4 = gear4Block.GetComponent<IGearEnergyTransformer>();
 
             // 実行: ネットワーク更新
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(gear1Block.BlockInstanceId);
 
             // 検証: すべてのコンポーネントのRPMが0であること
             AreEqual(0f, gear1.CurrentRpm);
@@ -583,7 +571,7 @@ namespace Tests.CombinedTest.Game
             // New formula: even 1 Teeth10 gear causes deficit (power=40 > generator=30)
             // SmallGearを観察ギアとし（baseTorque=0, 消費なし）、Teeth10をdeficitトリガーとして使う
             // Use SmallGear as observation gears (baseTorque=0, no consumption), Teeth10 as deficit triggers
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPosition = new Vector3Int(0, 0, 0);
@@ -606,12 +594,11 @@ namespace Tests.CombinedTest.Game
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
 
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(gear1Block.BlockInstanceId);
 
             // 最初の更新でエネルギー不足状態になることを確認（Teeth10が合計80GP消費 > 30GP生成）
             // First update should result in energy deficit (Teeth10 total 80GP > generator 30GP)
-            gearNetwork.ManualUpdate();
             AreEqual(0f, gear1.CurrentRpm);
 
             // 実行: deficitトリガーのTeeth10ギアを削除してエネルギー充足状態にする
@@ -621,8 +608,8 @@ namespace Tests.CombinedTest.Game
 
             // ネットワークが再構築されるので、最新のネットワークを取得
             // Network is rebuilt, get the latest network instance
-            gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
+            gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(gear1Block.BlockInstanceId);
 
             // 検証: GearTransformerのCurrentRpmが0より大きいこと（SmallGearはrpm=10を受け取る）
             // Verify: GearTransformer CurrentRpm > 0 (SmallGear receives rpm=10 from generator)
@@ -642,7 +629,7 @@ namespace Tests.CombinedTest.Game
         public void RockTakesPriorityOverEnergyDeficitTest()
         {
             // セットアップ: RPM矛盾を含み、かつエネルギー不足も発生するネットワークを構築
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var generatorPos = new Vector3Int(1, 1, 0);
@@ -659,11 +646,10 @@ namespace Tests.CombinedTest.Game
             // RPMが違う歯車同士を強制的に接続してロック状態を作成
             ForceConnectGear(smallGear1, smallGear2);
 
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(smallGear1.BlockInstanceId);
 
             // 実行: ネットワーク更新
-            gearNetwork.ManualUpdate();
 
             // 検証: すべてのコンポーネントがロック状態であること
             Assert.AreEqual(GearNetworkStopReason.Rocked, gearNetwork.CurrentGearNetworkInfo.StopReason);
@@ -678,7 +664,7 @@ namespace Tests.CombinedTest.Game
         public void NoGeneratorBehaviorUnchangedTest()
         {
             // セットアップ: ジェネレーターなしでGearTransformerのみ配置
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             var gearPosition1 = new Vector3Int(0, 0, 0);
@@ -690,11 +676,10 @@ namespace Tests.CombinedTest.Game
             var gear1 = gear1Block.GetComponent<IGearEnergyTransformer>();
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
 
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(gear1Block.BlockInstanceId);
 
             // 実行: ネットワーク更新
-            gearNetwork.ManualUpdate();
 
             // 検証: すべてのGearTransformerのCurrentRpmが0であること（既存動作）
             AreEqual(0f, gear1.CurrentRpm);
@@ -719,7 +704,7 @@ namespace Tests.CombinedTest.Game
             //
             // InfinityTorqueGeneratorを使って常に充足状態を保証し、GPが正確に計算されることを検証
             // Use InfinityTorqueGenerator to guarantee sufficiency; verify GP calculation is correct
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             // InfinityTorqueGeneratorを使用（トルク=1M、rpm=10、power=10M）
@@ -740,12 +725,11 @@ namespace Tests.CombinedTest.Game
             var gear2 = gear2Block.GetComponent<IGearEnergyTransformer>();
             var gear3 = gear3Block.GetComponent<IGearEnergyTransformer>();
 
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(gear1Block.BlockInstanceId);
 
             // 実行: ネットワーク更新
             // Execute: network update
-            gearNetwork.ManualUpdate();
 
             // 検証: GearTransformerのCurrentRpmが0より大きいこと（生成GP >> 必要GP のため充足）
             // Verify: CurrentRpm > 0 (sufficient energy: generated GP >> required GP)

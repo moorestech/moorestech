@@ -23,7 +23,8 @@
         "UniRx",
         "VContainer",
         "Unity.InputSystem",
-        "Unity.Recorder.Editor"
+        "Unity.Recorder.Editor",
+        "Client.Playtest.Overlay"
     ],
     "includePlatforms": [
         "Editor"

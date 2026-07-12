@@ -43,11 +43,11 @@
 
 新プロトコル1本 `MachineRecipeSelectionProtocol`（タグ `va:machineRecipeSelection`）。creating-server-protocol スキルの規約に従う。
 
-- リクエスト: Operation enum（`Get` / `SetRecipe` / `Clear`）＋ private コンストラクタ＋ static factory
-  - `CreateGetRequest(pos)`
+- リクエスト: Operation enum（`SetRecipe` / `Clear`）＋ private コンストラクタ＋ static factory
   - `CreateSetRecipeRequest(pos, machineRecipeGuid, playerId)`
   - `CreateClearRequest(pos, playerId)`
   - playerId は加工中変更時の材料返却先の特定に使う
+  - Get操作は持たない。選択状態の読み取りは既存のブロック状態同期（`MachineBlockStateDetail` に `SelectedRecipeGuid` を追加）で行う（同じ情報の第2経路を作らない）
 - レスポンス: 成否理由 enum ＋ 現在の選択スナップショット（選択中レシピ GUID）。クライアントはこれで再描画する。
 - サーバー側検証（SetRecipe 時）:
   1. 対象座標にブロックが存在し Processor コンポーネントを持つ
@@ -65,7 +65,7 @@
 
 ## クライアント同期・UI
 
-- 選択状態の取得は UI オープン時の Get リクエスト（FilterSplitter と同じ経路）。常時同期の `MachineBlockStateDetail` は現状のまま（加工中レシピ表示の既存用途のみ）。
+- 選択状態は常時同期の `MachineBlockStateDetail` に `SelectedRecipeGuid` を追加して届ける（機械状態の既存同期チャネル拡張。UIオープン時のGetリクエストは作らない）。
 - `MachineBlockInventoryView` にレシピ一覧パネルを追加:
   - 対象ブロックのアンロック済みレシピを `ItemRecipeViewerDataContainer` の列挙から導出してグリッド表示（一覧取得プロトコルは新設しない）
   - クリックで SetRecipe 送信、レスポンスのスナップショットで選択中ハイライトを更新
