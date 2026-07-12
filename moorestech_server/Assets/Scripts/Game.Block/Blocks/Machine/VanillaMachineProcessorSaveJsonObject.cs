@@ -25,5 +25,10 @@ namespace Game.Block.Blocks.Machine
         // Pending outputs; null while idle or in old saves
         [JsonProperty("pendingOutputs")]
         public List<ItemStackSaveJsonObject> PendingOutputs;
+
+        // 選択中レシピ。未選択はnull（旧セーブもキー無し=null）
+        // Selected recipe; null when unselected (older saves lack the key)
+        [JsonProperty("selectedRecipeGuid")]
+        public string SelectedRecipeGuidStr;
     }
 }

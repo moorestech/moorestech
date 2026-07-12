@@ -42,20 +42,21 @@ namespace Game.Block.Blocks.Machine
         // 新規作成
         // For new creation
         public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
-            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, 0, null, null)
+            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, 0, null, null, null)
         {
         }
 
         // セーブからの復元
         // For restoration from save
-        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs)
-            : this(input, output, effect, requestPower, idlePowerRate, currentState, remainingTicks, processingRecipe, pendingOutputs)
+        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs, MachineRecipeMasterElement selectedRecipe)
+            : this(input, output, effect, requestPower, idlePowerRate, currentState, remainingTicks, processingRecipe, pendingOutputs, selectedRecipe)
         {
         }
 
-        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
+        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs, MachineRecipeMasterElement selectedRecipe)
         {
             _context = new MachineProcessContext(input, output, effect, requestPower);
+            _context.SelectedRecipe = selectedRecipe;
             _idlePowerRate = idlePowerRate;
 
             // 加工状態を復元
@@ -191,6 +192,7 @@ namespace Game.Block.Blocks.Machine
                 RemainingSeconds = GameUpdater.TicksToSeconds(_processingState.RemainingTicks),
                 RecipeGuidStr = RecipeGuid.ToString(),
                 PendingOutputs = _processingState.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                SelectedRecipeGuidStr = _context.SelectedRecipe?.MachineRecipeGuid.ToString(),
             };
         }
     }
