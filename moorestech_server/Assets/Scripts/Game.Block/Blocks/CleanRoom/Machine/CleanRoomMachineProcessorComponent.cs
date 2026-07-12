@@ -1,24 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item.Interface;
-using Core.Master;
+using Core.Inventory;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
+using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Blocks.Machine.State;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
-using Game.Context;
+using Mooresmaster.Model.MachineRecipesModule;
 using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
-    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IBlockSaveState
+    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IBlockSaveState, IMachineRecipeSelectorComponent
     {
         public Guid RecipeGuid => _processingState.RecipeGuid;
         public float RequestPower => _context.RequestPower;
@@ -72,10 +72,31 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             BlockException.CheckDestroy(this);
             var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
-            // クリーンルーム機械のレシピ選択はTask 3で対応するため暫定でGuid.Emptyを渡す
-            // Clean-room recipe selection lands in Task 3, so pass Guid.Empty as a placeholder
-            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, Guid.Empty);
+            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, SelectedRecipeGuid);
             return new[] { commonMachineBlock, machineBlock };
+        }
+
+        public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
+
+        public MachineRecipeSelectionResult SetSelectedRecipe(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
+        {
+            BlockException.CheckDestroy(this);
+
+            var validation = MachineRecipeSelectionUtil.ValidateSelection(_context.InputInventory, recipe);
+            if (validation != MachineRecipeSelectionResult.Success) return validation;
+
+            // 同一レシピの再設定はジョブを中断しないno-op
+            // Re-selecting the same recipe is a no-op that never cancels the job
+            if (recipe.MachineRecipeGuid == SelectedRecipeGuid) return MachineRecipeSelectionResult.Success;
+
+            return ChangeSelection(recipe, refundOverflowInventory);
+        }
+
+        public MachineRecipeSelectionResult ClearSelectedRecipe(IOpenableInventory refundOverflowInventory)
+        {
+            BlockException.CheckDestroy(this);
+            if (_context.SelectedRecipe == null) return MachineRecipeSelectionResult.Success;
+            return ChangeSelection(null, refundOverflowInventory);
         }
 
         public void SetCleanRoomEffect(CleanRoomEffect effect)
@@ -139,7 +160,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 if (nextState == current) return;
                 if (current == ProcessState.Processing && nextState == ProcessState.Idle)
                 {
-                    ApplyChipDrawOnCompletion();
+                    CleanRoomChipDrawApplyUtil.ApplyChipDrawOnCompletion(_processingState, _cleanRoomEffect, _blockInstanceId, ref _cycleCount);
                 }
                 _stateHandlers[current].OnExit();
                 CurrentState = nextState;
@@ -148,46 +169,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 if (current == ProcessState.Halted && nextState == ProcessState.Processing) return;
                 _stateHandlers[nextState].OnEnter();
             }
-            void ApplyChipDrawOnCompletion()
-            {
-                // チップはレシピ出力の置き換えで個数は増えないため、開始時の容量判定は素の出力のままで有効
-                // Chips only swap recipe outputs in place without increasing counts, so start-time capacity checks stay valid
-                var recipeGuid = _processingState.RecipeGuid;
-                if (recipeGuid == Guid.Empty) return;
-                if (!MasterHolder.CleanRoomMaster.TryGetChipDraw(recipeGuid, out var chipDraw)) return;
-                // サイクル完了ごとにカウンタを進め、ブロック固有で再現可能なシードにする
-                // Advance the counter each completed cycle and create a per-block reproducible seed
-                _cycleCount++;
-                var seed = ((long)_blockInstanceId.AsPrimitive() << 20) ^ _cycleCount;
-                var pendingOutputs = _processingState.PendingOutputs;
-                var replaced = new List<IItemStack>(pendingOutputs.Count);
-                for (var i = 0; i < pendingOutputs.Count; i++)
-                {
-                    replaced.Add(DrawSlot(pendingOutputs[i], i));
-                }
-                _processingState.ReplacePendingOutputs(replaced);
-
-                IItemStack DrawSlot(IItemStack output, int outputIndex)
-                {
-                    foreach (var distribution in chipDraw.OutputDistributions)
-                    {
-                        if (MasterHolder.ItemMaster.GetItemId(distribution.OutputItemGuid) != output.Id) continue;
-                        var levels = new List<(int level, double weight, ItemId chipItemId)>();
-                        foreach (var level in distribution.Levels)
-                        {
-                            levels.Add((level.Level, level.Weight, MasterHolder.ItemMaster.GetItemId(level.ChipItemGuid)));
-                        }
-                        levels.Sort((a, b) => a.level.CompareTo(b.level));
-                        var result = CleanRoomChipDraw.TryDraw(levels, _cleanRoomEffect.MaxChipLevel, _cleanRoomEffect.DownBinRate, chipDraw.EuvSuccessRate, seed, outputIndex, out var itemId);
-                        return result == CleanRoomChipDraw.Result.Drawn
-                            ? ServerContext.ItemStackFactory.Create(itemId, output.Count)
-                            : ServerContext.ItemStackFactory.CreatEmpty();
-                    }
-                    // このレシピ出力に対応する抽選テーブルが無ければ素の出力のまま
-                    // If no distribution matches this recipe output, leave it unchanged
-                    return output;
-                }
-            }
             #endregion
         }
 
@@ -195,6 +176,23 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public void Destroy()
         {
             IsDestroy = true;
+        }
+
+        private MachineRecipeSelectionResult ChangeSelection(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
+        {
+            // 進行中ジョブは返却して中断する。返却しきれなければ変更自体を中止する
+            // Cancel the running job with refund; abort the whole change when the refund does not fit
+            if (!MachineRecipeSelectionUtil.TryCancelRunningJobWithRefund(_context.InputInventory, _processingState, refundOverflowInventory))
+            {
+                return MachineRecipeSelectionResult.RefundFailed;
+            }
+
+            // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される
+            // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions
+            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
+            _context.SelectedRecipe = recipe;
+            _changeState.OnNext(Unit.Default);
+            return MachineRecipeSelectionResult.Success;
         }
     }
 }

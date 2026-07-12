@@ -116,6 +116,7 @@ namespace Tests.CombinedTest.Core
 
             var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);
             Assert.AreEqual(MachineRecipeSelectionResult.RecipeLocked, selector.SetSelectedRecipe(lockedRecipe, overflow));
+            Assert.AreEqual(Guid.Empty, selector.SelectedRecipeGuid);
         }
 
         [Test]
