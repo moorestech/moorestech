@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
@@ -12,7 +13,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
-    public class TrainCarPlaceSystem : IPlaceSystem
+    public class TrainCarPlaceSystem : PlaceSystemBase<TrainCarPlacementTarget>
     {
         private readonly ITrainCarPlacementDetector _detector;
         private readonly TrainCarPreviewController _previewController;
@@ -31,17 +32,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _trainUnitClientCache = trainUnitClientCache;
         }
 
-        public void Enable()
+        public override void Enable()
         {
             _detector.ResetSelection();
             _previewController.SetActive(true);
         }
 
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        protected override void ManualUpdate(TrainCarPlacementTarget target, bool isSelectionChanged)
         {
             // 選択変更時は候補選択を初期化する
             // Reset route selection when the build-menu selection changes
-            if (context.IsSelectionChanged)
+            if (isSelectionChanged)
             {
                 _detector.ResetSelection();
             }
@@ -55,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // レール上の設置候補を検出する
             // Detect the placement candidate on the rail
-            if (!_detector.TryDetect(context.SelectedTrainCarGuid, out var hit))
+            if (!_detector.TryDetect(target.TrainCarGuid, out var hit))
             {
                 _previewController.SetActive(false);
                 return;
@@ -68,7 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // railpositionからpreviewを描画する
             // Render the preview directly from railposition
             var railPosition = hit.RailPosition;
-            var hasPreview = railPosition != null && _previewController.ShowPreview(context.SelectedTrainCarGuid, railPosition, hit.IsPlaceable);
+            var hasPreview = railPosition != null && _previewController.ShowPreview(target.TrainCarGuid, railPosition, hit.IsPlaceable);
             _previewController.SetActive(hasPreview);
             if (!hit.IsPlaceable)
             {
@@ -79,7 +80,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // Send the placement request with the selected car guid on click
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                RequestPlacementAsync(hit, context.SelectedTrainCarGuid).Forget();
+                RequestPlacementAsync(hit, target.TrainCarGuid).Forget();
             }
 
             #region Internal
@@ -122,7 +123,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             #endregion
         }
 
-        public void Disable()
+        public override void Disable()
         {
             _detector.ResetSelection();
             _previewController.SetActive(false);

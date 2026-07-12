@@ -1,5 +1,6 @@
 ﻿using Client.Game.Common;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.BlockPick;
@@ -46,7 +47,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // ミドルクリックでブロックをスポイトし配置モードへ入る
             // Middle-click eyedrops a block and enters placement mode
-            if (_blockPickService.TryPickBlockUnderCursor()) return new UITransitContext(UIStateEnum.PlaceBlock);
+            if (_blockPickService.TryPickBlockUnderCursor(out var pickedTarget))
+                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(pickedTarget));
 
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
