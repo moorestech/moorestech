@@ -1,176 +1,83 @@
 using System.Collections.Generic;
-using System.Linq;
 using Game.Block.Interface;
 
 namespace Game.EnergySystem
 {
     /// <summary>
-    /// ワイヤーグラフの連結成分としてEnergySegmentを管理する。GearNetworkDatastoreと同方式
-    /// Manage EnergySegments as connected components of the wire graph, mirroring GearNetworkDatastore
+    /// トポロジ変更をその場で適用せずコマンドとして保留し、tick先頭・tick末尾のflushでFIFO一括反映するデータストア。
+    /// これによりtick途中でセグメントの所属や列挙内容が変化しないことを保証する。
+    /// Datastore that queues topology mutations as commands instead of applying them in place,
+    /// flushing them FIFO at tick head and tick end so segment membership never changes mid-tick.
     /// </summary>
     public class ElectricWireNetworkDatastore : IElectricWireNetworkDatastore
     {
-        private readonly Dictionary<BlockInstanceId, EnergySegment> _connectorToSegment = new();
-        private readonly Dictionary<EnergySegment, HashSet<IElectricWireConnector>> _segmentMembers = new();
+        private readonly ElectricWireTopologyMap _topologyMap = new();
+        private readonly List<ElectricWireTopologyCommand> _pendingCommands = new();
+        private bool _isFlushing;
 
-        public int SegmentCount => _segmentMembers.Count;
+        public int SegmentCount => _topologyMap.SegmentCount;
 
         public void AddConnector(IElectricWireConnector connector)
         {
-            if (_connectorToSegment.ContainsKey(connector.BlockInstanceId)) return;
-
-            // 接続先が所属するセグメントを重複なく集める
-            // Collect owning segments of connected partners without duplicates
-            var connectedSegments = new HashSet<EnergySegment>();
-            foreach (var connection in connector.WireConnections.Values)
-                if (_connectorToSegment.TryGetValue(connection.Connector.BlockInstanceId, out var s))
-                    connectedSegments.Add(s);
-
-            switch (connectedSegments.Count)
-            {
-                case 0: CreateSegment(); break;
-                case 1: JoinSegment(); break;
-                default: MergeSegments(); break;
-            }
-
-            #region Internal
-
-            void CreateSegment()
-            {
-                RegisterMember(new EnergySegment(), connector);
-            }
-
-            void JoinSegment()
-            {
-                RegisterMember(connectedSegments.First(), connector);
-            }
-
-            void MergeSegments()
-            {
-                // Union-by-size: メンバー数最大のセグメントへ他の全メンバーを移し替え、空セグメントはDestroyする
-                // Union-by-size: fold all members into the largest segment and destroy the emptied ones
-                EnergySegment largest = null;
-                var largestSize = 0;
-                foreach (var s in connectedSegments)
-                {
-                    var size = _segmentMembers[s].Count;
-                    if (largest == null || largestSize < size)
-                    {
-                        largestSize = size;
-                        largest = s;
-                    }
-                }
-
-                // 非最大セグメントの全メンバーを最大セグメントへ移し、参照マップも張り替える
-                // Move every member from the non-largest segments into the largest one and repoint the owner map
-                foreach (var s in connectedSegments)
-                {
-                    if (s == largest) continue;
-                    // ToList: RegisterMemberが_segmentMembersへ触るため元集合のスナップショットを走査する
-                    // ToList: iterate a snapshot since RegisterMember touches _segmentMembers
-                    foreach (var member in _segmentMembers[s].ToList()) RegisterMember(largest, member);
-                    _segmentMembers.Remove(s);
-                    s.Destroy();
-                }
-
-                RegisterMember(largest, connector);
-            }
-
-            #endregion
+            _pendingCommands.Add(new ElectricWireTopologyCommand(ElectricWireTopologyCommandType.Add, new[] { connector }));
         }
 
         public void RemoveConnector(IElectricWireConnector connector)
         {
-            if (!_connectorToSegment.TryGetValue(connector.BlockInstanceId, out var segment)) return;
+            _pendingCommands.Add(new ElectricWireTopologyCommand(ElectricWireTopologyCommandType.Remove, new[] { connector }));
+        }
 
-            // 所属セグメントから役割とメンバーを除去
-            // Strip roles and membership from the owning segment
-            RemoveRoles();
-            var members = _segmentMembers[segment];
-            members.Remove(connector);
-            _connectorToSegment.Remove(connector.BlockInstanceId);
+        public void RebuildAround(params IElectricWireConnector[] connectors)
+        {
+            _pendingCommands.Add(new ElectricWireTopologyCommand(ElectricWireTopologyCommandType.Rebuild, connectors));
+        }
 
-            // メンバー0なら丸ごとDestroyしてマップから外す。GameUpdater購読リークを防ぐ
-            // No members left: destroy the segment entirely and drop it from the maps to avoid a GameUpdater subscription leak
-            if (members.Count == 0)
+        // 保留コマンドをFIFOで一括適用する。tick先頭とtick末尾からのみ呼ばれる
+        // Apply pending commands in FIFO order; called only at tick head and tick end
+        public void FlushPendingCommands()
+        {
+            if (_isFlushing || _pendingCommands.Count == 0) return;
+
+            _isFlushing = true;
+            for (var i = 0; i < _pendingCommands.Count; i++)
             {
-                _segmentMembers.Remove(segment);
-                segment.Destroy();
-                return;
+                ApplyCommand(_pendingCommands[i]);
             }
-
-            var components = ElectricWireSegmentSplitService.FindComponents(members);
-
-            // 分断なし → 既存セグメントをそのまま維持
-            // No split: keep the existing segment as-is
-            if (components.Count == 1) return;
-
-            // 複数成分へ分断 → 既存セグメントを破棄し、成分ごとに新セグメントを生成
-            // Split into multiple components: discard the old segment and create one per component
-            _segmentMembers.Remove(segment);
-            segment.Destroy();
-            foreach (var component in components)
-            {
-                var newSegment = new EnergySegment();
-                var newMembers = new HashSet<IElectricWireConnector>();
-                foreach (var member in component)
-                {
-                    AddRoles(newSegment, member);
-                    newMembers.Add(member);
-                    _connectorToSegment[member.BlockInstanceId] = newSegment;
-                }
-                _segmentMembers.Add(newSegment, newMembers);
-            }
+            _pendingCommands.Clear();
+            _isFlushing = false;
 
             #region Internal
 
-            // 所属セグメントから各エネルギー役割を取り除く
-            // Strip each energy role from the owning segment
-            void RemoveRoles()
+            void ApplyCommand(ElectricWireTopologyCommand command)
             {
-                if (connector.EnergyRole is IElectricConsumer consumer) segment.RemoveEnergyConsumer(consumer);
-                if (connector.EnergyRole is IElectricGenerator generator) segment.RemoveGenerator(generator);
-                if (connector.EnergyRole is IElectricTransformer transformer) segment.RemoveEnergyTransformer(transformer);
+                switch (command.CommandType)
+                {
+                    case ElectricWireTopologyCommandType.Add:
+                        foreach (var connector in command.Connectors) _topologyMap.AddConnector(connector);
+                        break;
+                    case ElectricWireTopologyCommandType.Remove:
+                        foreach (var connector in command.Connectors) _topologyMap.RemoveConnector(connector);
+                        break;
+                    case ElectricWireTopologyCommandType.Rebuild:
+                        // 両端点を除去→再追加して連結成分を再計算する
+                        // Remove then re-add both endpoints to recompute connected components
+                        foreach (var connector in command.Connectors) _topologyMap.RemoveConnector(connector);
+                        foreach (var connector in command.Connectors) _topologyMap.AddConnector(connector);
+                        break;
+                }
             }
 
             #endregion
         }
 
-        public void RebuildAround(params IElectricWireConnector[] connectors)
-        {
-            // ワイヤーの追加・削除後に両端点を除去→再追加して連結成分を再計算する
-            // Recompute components after wire edits by removing then re-adding both endpoints
-            foreach (var c in connectors) RemoveConnector(c);
-            foreach (var c in connectors) AddConnector(c);
-        }
-
         public bool TryGetEnergySegment(BlockInstanceId blockInstanceId, out EnergySegment segment)
         {
-            return _connectorToSegment.TryGetValue(blockInstanceId, out segment);
+            return _topologyMap.TryGetEnergySegment(blockInstanceId, out segment);
         }
 
         public IReadOnlyList<EnergySegment> GetSegments()
         {
-            return _segmentMembers.Keys.ToList();
-        }
-
-        private void RegisterMember(EnergySegment segment, IElectricWireConnector connector)
-        {
-            if (!_segmentMembers.TryGetValue(segment, out var members))
-            {
-                members = new HashSet<IElectricWireConnector>();
-                _segmentMembers.Add(segment, members);
-            }
-            members.Add(connector);
-            _connectorToSegment[connector.BlockInstanceId] = segment;
-            AddRoles(segment, connector);
-        }
-
-        private static void AddRoles(EnergySegment segment, IElectricWireConnector connector)
-        {
-            if (connector.EnergyRole is IElectricConsumer consumer) segment.AddEnergyConsumer(consumer);
-            if (connector.EnergyRole is IElectricGenerator generator) segment.AddGenerator(generator);
-            if (connector.EnergyRole is IElectricTransformer transformer) segment.AddEnergyTransformer(transformer);
+            return _topologyMap.GetSegments();
         }
     }
 }

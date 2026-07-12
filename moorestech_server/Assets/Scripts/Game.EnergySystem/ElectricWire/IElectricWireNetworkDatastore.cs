@@ -4,8 +4,10 @@ using Game.Block.Interface;
 namespace Game.EnergySystem
 {
     /// <summary>
-    /// ワイヤーグラフの連結成分としてEnergySegmentを管理するデータストア
-    /// Datastore managing EnergySegments as connected components of the wire graph
+    /// ワイヤーグラフの連結成分としてEnergySegmentを管理するデータストア。
+    /// トポロジ変更はコマンドとして保留され、tick先頭・tick末尾のFlushPendingCommandsで一括反映される。
+    /// Datastore managing EnergySegments as connected components of the wire graph.
+    /// Topology changes are queued as commands and applied in batch by FlushPendingCommands at tick head and tick end.
     /// </summary>
     public interface IElectricWireNetworkDatastore
     {
@@ -14,6 +16,7 @@ namespace Game.EnergySystem
         void AddConnector(IElectricWireConnector connector);
         void RemoveConnector(IElectricWireConnector connector);
         void RebuildAround(params IElectricWireConnector[] connectors);
+        void FlushPendingCommands();
         bool TryGetEnergySegment(BlockInstanceId blockInstanceId, out EnergySegment segment);
         IReadOnlyList<EnergySegment> GetSegments();
     }
