@@ -17,6 +17,7 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using Assert = UnityEngine.Assertions.Assert;
 using System;
+using System.Linq;
 
 using Tests.Util;
 namespace Tests.UnitTest.Game.SaveLoad
@@ -34,6 +35,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId , new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+
+            // レシピを明示選択してから材料を投入する
+            // Explicitly select the recipe before inserting materials
+            var machineGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == machineGuid);
+            MachineRecipeSelectTestUtil.SelectRecipe(machineBlock, recipe);
             
             
             //レシピ用のアイテムを追加
@@ -48,11 +55,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Utilで機械の加工状態を設定
             // Set the machine processing state via the util
             var vanillaMachineProcessor = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
+            Assert.AreEqual(ProcessState.Processing, vanillaMachineProcessor.CurrentState);
 
             // 残りtick数を設定（0.3秒 = 6tick）
             // Set remaining ticks (0.3 seconds = 6 ticks)
             vanillaMachineProcessor.SetRemainingTicks(6u);
-            vanillaMachineProcessor.SetCurrentState(ProcessState.Processing);
             
             //機械のアウトプットスロットの設定
             var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)

@@ -19,8 +19,8 @@ using Tests.CombinedTest.Core;
 using Tests.Module.TestMod;
 using UnityEngine;
 using System;
-
 using Tests.Util;
+
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class FluidMachineSaveLoadTest
@@ -38,73 +38,76 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Unlock the locked test recipe before starting machine processing
             var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
             unlockState.UnlockMachineRecipe(ForUnitTestMachineRecipeId.LockedMachineRecipe);
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineInventory = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
-            
+
+            // 選択→材料投入→自然にProcessing化する経路でセーブ対象状態を作る
+            // Build save state via select → insert materials → naturally enter Processing
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(ForUnitTestMachineRecipeId.LockedMachineRecipe);
+            MachineRecipeSelectTestUtil.SelectRecipe(machineBlock, recipe);
+
             //レシピ用のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 3));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 1));
-            
+
             //液体をインプットタンクに追加
             var inputFluidContainers = GetInputFluidContainers(machineInventory);
             var fluidId1 = MachineFluidIOTest.FluidId1;
             var fluidId2 = MachineFluidIOTest.FluidId2;
             var fluidId3 = MachineFluidIOTest.FluidId3;
-            
+
             inputFluidContainers[0].FluidId = fluidId1;
             inputFluidContainers[0].Amount = 25.5;
             inputFluidContainers[1].FluidId = fluidId2;
             inputFluidContainers[1].Amount = 30.0;
-            
+
             //液体をアウトプットタンクに追加
             var outputFluidContainers = GetOutputFluidContainers(machineInventory);
             outputFluidContainers[0].FluidId = fluidId3;
             outputFluidContainers[0].Amount = 15.0;
             outputFluidContainers[1].FluidId = fluidId1;
             outputFluidContainers[1].Amount = 20.0;
-            
+
             //処理を開始
             GameUpdater.UpdateOneTick();
             //別のアイテムを追加（機械は1スロットしかないので、追加のアイテムは既存のアイテムとマージされるか無視される）
-            
-            // Utilで機械の加工状態を設定
-            // Set the machine processing state via the util
+
             var vanillaMachineProcessor = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
+            Assert.AreEqual(ProcessState.Processing, vanillaMachineProcessor.CurrentState);
 
             // 残りtick数を設定（0.3秒 = 6tick）
             // Set remaining ticks (0.3 seconds = 6 ticks)
             vanillaMachineProcessor.SetRemainingTicks(6u);
-            vanillaMachineProcessor.SetCurrentState(ProcessState.Processing);
-            
+
             //機械のアウトプットスロットの設定
             var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(machineInventory);
-            
+
             outputInventory.SetItem(0, itemStackFactory.Create(new ItemId(1), 1));
-            
+
             //レシピIDを取得
             var recipeId = vanillaMachineProcessor.RecipeGuid;
-            
+
             var json = assembleSaveJsonText.AssembleSaveJson();
             Debug.Log(json);
             //配置したブロックを削除
             worldBlockDatastore.RemoveBlock(new Vector3Int(0, 0), BlockRemoveReason.ManualRemove);
-            
-            
+
+
             //ロードした時に機械の状態が正しいことを確認
             var (_, loadWorldBlockDatastore, _, _, loadJsonFile) = CreateBlockTestModule();
-            
+
             loadJsonFile.Load(json);
-            
+
             var loadMachineBlock = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));
-            
+
             //ブロックID、intIDが同じであることを確認
             Assert.AreEqual(machineBlock.BlockId, loadMachineBlock.BlockId);
             Assert.AreEqual(machineBlock.BlockInstanceId, loadMachineBlock.BlockInstanceId);
-            
-            
+
+
             // 機械のレシピの残りtick数のチェック（0.3秒 = 6tick）
             // Check the remaining ticks of the machine recipe (0.3 seconds = 6 ticks)
             var machineProcessor = loadMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
@@ -113,21 +116,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(recipeId, machineProcessor.RecipeGuid);
             //機械のステータスのチェック
             Assert.AreEqual(ProcessState.Processing, machineProcessor.CurrentState);
-            
-            
+
+
             var loadMachineInventory = loadMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             //インプットスロットのチェック
             var inputInventoryField = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 2), inputInventoryField.InputSlot[0]);
-            
+
             //アウトプットスロットのチェック
             var outputInventoryField = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 1), outputInventoryField.OutputSlot[0]);
-            
+
             //インプット液体タンクのチェック
             var loadedInputFluidContainers = inputInventoryField.FluidInputSlot;
             Assert.AreEqual(fluidId1, loadedInputFluidContainers[0].FluidId);
@@ -136,7 +139,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(28.0, loadedInputFluidContainers[1].Amount, 0.01);  // 30.0 - 2 = 28.0
             Assert.AreEqual(FluidMaster.EmptyFluidId, loadedInputFluidContainers[2].FluidId);
             Assert.AreEqual(0, loadedInputFluidContainers[2].Amount);
-            
+
             //アウトプット液体タンクのチェック
             var loadedOutputFluidContainers = outputInventoryField.FluidOutputSlot;
             Assert.AreEqual(fluidId3, loadedOutputFluidContainers[0].FluidId);
@@ -144,36 +147,36 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(fluidId1, loadedOutputFluidContainers[1].FluidId);
             Assert.AreEqual(20.0, loadedOutputFluidContainers[1].Amount, 0.01);
         }
-        
+
         private (IBlockFactory, IWorldBlockDatastore, PlayerInventoryDataStore, AssembleSaveJsonText, WorldLoaderFromJson)
             CreateBlockTestModule()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var blockFactory = ServerContext.BlockFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var playerInventoryDataStore = serviceProvider.GetService<PlayerInventoryDataStore>();
             var loadJsonFile = serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-            
+
             return (blockFactory, worldBlockDatastore, playerInventoryDataStore, assembleSaveJsonText, loadJsonFile);
         }
-        
+
         private System.Collections.Generic.IReadOnlyList<FluidContainer> GetInputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
         {
             var vanillaMachineInputInventory = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(blockInventory);
-            
+
             return vanillaMachineInputInventory.FluidInputSlot;
         }
-        
+
         private System.Collections.Generic.IReadOnlyList<FluidContainer> GetOutputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
         {
             var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(blockInventory);
-            
+
             return vanillaMachineOutputInventory.FluidOutputSlot;
         }
     }

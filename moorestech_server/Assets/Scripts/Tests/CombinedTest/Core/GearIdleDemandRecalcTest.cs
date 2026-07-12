@@ -68,6 +68,7 @@ namespace Tests.CombinedTest.Core
 
         private static void InsertRecipeInputs(IBlock block, MachineRecipeMasterElement recipe)
         {
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
             var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)
             {
