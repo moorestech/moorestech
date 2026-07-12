@@ -43,7 +43,13 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             // シミュレーションと同じ順で実挿入する（入力→溢れ先）
             // Insert for real in the same order as the simulation (input first, then overflow)
             var remainder = input.InsertItem(refunds);
-            overflow.InsertItem(FilterNonEmpty(remainder));
+            var overflowRemainder = overflow.InsertItem(FilterNonEmpty(remainder));
+            // シミュレーション通過後の残余は実装乖離による消失なのでloudに出す（挙動は変えない）
+            // Non-empty remainder after a passed simulation is silent loss from implementation drift; log loudly without changing behavior
+            if (FilterNonEmpty(overflowRemainder).Count > 0)
+            {
+                UnityEngine.Debug.LogError("返却シミュレーションと実挿入の乖離でアイテムが消失した");
+            }
             RefundFluidsBestEffort(input, recipe);
         }
 

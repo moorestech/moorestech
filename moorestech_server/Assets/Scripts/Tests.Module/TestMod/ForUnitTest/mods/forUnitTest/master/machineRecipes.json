@@ -216,7 +216,7 @@
     },
     {
       "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
-      "initialUnlocked": false,
+      "initialUnlocked": true,
       "time": 1,
       "inputItems": [
         {
@@ -248,6 +248,27 @@
           "amount": 4
         }
       ]
+    },
+    {
+      "machineRecipeGuid": "c8e4a1f0-2b7d-4c9e-a6f1-5d3e8b0a9142",
+      "initialUnlocked": true,
+      "time": 1,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "inputFluids": [],
+      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
+      "outputFluids": []
     },
     {
       "time": 1,
