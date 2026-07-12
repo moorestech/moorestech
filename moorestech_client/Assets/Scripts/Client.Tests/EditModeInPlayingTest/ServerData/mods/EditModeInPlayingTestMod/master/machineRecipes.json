@@ -43,6 +43,28 @@
       ],
       "outputFluids": [],
       "initialUnlocked": true
+    },
+    {
+      "machineRecipeGuid": "4a1e6198-e7e2-46cf-8219-7a83f07e672e",
+      "blockGuid": "db586a13-e960-4414-9d63-85fa07fded7f",
+      "time": 2,
+      "inputItems": [
+        {
+          "itemGuid": "98383d78-6da1-47ca-bc94-f5e12f50c140",
+          "count": 1,
+          "isRemain": false
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "itemGuid": "fa4e84ee-482d-414f-ad0e-8f167d178342",
+          "count": 1,
+          "percent": 1
+        }
+      ],
+      "outputFluids": [],
+      "initialUnlocked": true
     }
   ]
 }
