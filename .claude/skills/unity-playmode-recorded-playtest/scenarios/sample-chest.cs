@@ -13,11 +13,13 @@ var options = new PlaytestRunOptions { Record = false };
 return PlaytestRunner.Run("sample-chest", options, async p =>
 {
     await p.SetupFlatGround();
+    p.Note("チェストを直設置して鉄インゴットを付与する");
     p.PlaceBlockDirect("木のチェスト", chestPosition, BlockDirection.North);
     await p.WaitBlockGameObject(chestPosition);
 
     await p.GiveItem("鉄インゴット", 16);
 
+    p.Note("検証フェーズ");
     p.Assert(p.GetBlock(chestPosition) != null, "チェストがサーバーに存在する");
     p.Assert(16 <= p.CountItem("鉄インゴット"), "鉄インゴットが16個以上付与された");
     await p.Screenshot("final");

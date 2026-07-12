@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Playtest.Overlay;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,6 +37,7 @@ namespace Client.Playtest.Input
             EnsureDevices();
             PressedKeys.Add(key);
             QueueKeyboardState();
+            PlaytestOverlay.NotifyKey(key, true);
         }
 
         public static void KeyUp(Key key)
@@ -43,6 +45,7 @@ namespace Client.Playtest.Input
             EnsureDevices();
             PressedKeys.Remove(key);
             QueueKeyboardState();
+            PlaytestOverlay.NotifyKey(key, false);
         }
 
         public static async UniTask TapKey(Key key)
@@ -58,6 +61,7 @@ namespace Client.Playtest.Input
         public static void ReleaseAllKeys()
         {
             PressedKeys.Clear();
+            PlaytestOverlay.NotifyAllKeysReleased();
             if (Keyboard.current != null) InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
         }
 
@@ -76,16 +80,42 @@ namespace Client.Playtest.Input
             });
         }
 
+        public static async UniTask MouseGlideTo(Vector2 targetScreenPosition, float durationSeconds)
+        {
+            EnsureDevices();
+            // 現在位置から目標へsmoothstep補間で毎フレーム移動する
+            // Interpolate from the current position to the target each frame with smoothstep easing
+            var startPosition = Mouse.current.position.ReadValue();
+            var startTime = Time.realtimeSinceStartup;
+
+            while (true)
+            {
+                var elapsed = Time.realtimeSinceStartup - startTime;
+                if (durationSeconds <= elapsed)
+                {
+                    MouseMoveTo(targetScreenPosition);
+                    return;
+                }
+
+                var t = elapsed / durationSeconds;
+                var easedT = t * t * (3f - 2f * t);
+                MouseMoveTo(Vector2.Lerp(startPosition, targetScreenPosition, easedT));
+                await UniTask.Yield();
+            }
+        }
+
         public static void MouseButtonDown(int button)
         {
             EnsureDevices();
             QueueMouseButtons((ushort)(CurrentButtons() | ButtonBit(button)));
+            PlaytestOverlay.NotifyMouseButton(button, true);
         }
 
         public static void MouseButtonUp(int button)
         {
             EnsureDevices();
             QueueMouseButtons((ushort)(CurrentButtons() & ~ButtonBit(button)));
+            PlaytestOverlay.NotifyMouseButton(button, false);
         }
 
         public static async UniTask Click()
