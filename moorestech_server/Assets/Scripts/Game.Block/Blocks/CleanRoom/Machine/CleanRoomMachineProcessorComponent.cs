@@ -56,7 +56,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _context = new MachineProcessContext(input, output, effect, requestPower);
             _moduleInventory = module;
             _idlePowerRate = idlePowerRate;
-            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out _cycleCount);
+            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out _cycleCount, out var selectedRecipe);
+            _context.SelectedRecipe = selectedRecipe;
             CurrentState = restoredState;
             _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs);
             _stateHandlers = new IMachineProcessState[]
@@ -119,7 +120,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var saveData = CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _cycleCount);
+            var saveData = CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _cycleCount, _context.SelectedRecipe);
             return JsonConvert.SerializeObject(saveData);
         }
 
