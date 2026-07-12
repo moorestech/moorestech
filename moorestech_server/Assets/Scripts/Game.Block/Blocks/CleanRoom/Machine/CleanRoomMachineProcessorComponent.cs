@@ -72,7 +72,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             BlockException.CheckDestroy(this);
             var processingRate = Mathf.Clamp01(_processingState.TotalTicks > 0 ? 1f - (float)_processingState.RemainingTicks / _processingState.TotalTicks : 0f);
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(_context.CurrentPower, _context.RequestPower, processingRate, CurrentState.ToStr(), _lastState.ToStr());
-            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid);
+            // クリーンルーム機械のレシピ選択はTask 3で対応するため暫定でGuid.Emptyを渡す
+            // Clean-room recipe selection lands in Task 3, so pass Guid.Empty as a placeholder
+            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, RecipeGuid, Guid.Empty);
             return new[] { commonMachineBlock, machineBlock };
         }
 

@@ -22,14 +22,28 @@ namespace Game.Block.Blocks.Machine.State
         
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
         private List<IItemStack> _pendingOutputs;
-        
+
         // 完了直前に産出リストを差し替えるフック（清浄室のチップ抽選など、OnExit挿入前の置き換え用）
         // Hook to replace the pending output list just before completion (e.g. clean-room chip draw swaps items before OnExit inserts them)
         public void ReplacePendingOutputs(List<IItemStack> outputs)
         {
             _pendingOutputs = outputs;
         }
-        
+
+        // 進行中ジョブのレシピ（返却計算用）。ジョブが無ければnull
+        // Recipe of the running job (for refund calculation); null when no job exists
+        public MachineRecipeMasterElement CurrentRecipe => _recipe;
+
+        // 出力を払い出さずにジョブを破棄する（レシピ変更の返却フロー用）
+        // Discard the job without paying outputs (used by the recipe-change refund flow)
+        public void CancelProcessing()
+        {
+            _pendingOutputs = null;
+            _recipe = null;
+            TotalTicks = 0;
+            RemainingTicks = 0;
+        }
+
         private MachineRecipeMasterElement _recipe;
         
         public ProcessingMachineProcessState(MachineProcessContext context, uint remainingTicks, MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
