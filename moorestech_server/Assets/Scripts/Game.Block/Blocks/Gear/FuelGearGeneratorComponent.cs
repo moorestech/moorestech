@@ -11,14 +11,18 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
-    public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
+    public class FuelGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IBlockSaveState, IBlockStateObservable
     {
         public string SaveKey => "fuelGearGenerator";
-        
+
         public int TeethCount { get; }
         public RPM GenerateRpm { get; private set; }
         public Torque GenerateTorque { get; private set; }
         public bool GenerateIsClockwise => true;
+
+        // 燃料が時間で減り枯渇検知が要るため毎tick駆動が必要
+        // Needs per-tick driving because fuel depletes over time and exhaustion must be detected
+        public bool RequiresContinuousTick => true;
         public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
         // ギア生成に必要な子コンポーネントとサービスを集約して保持する
@@ -68,18 +72,19 @@ namespace Game.Block.Blocks.Gear
             GenerateTorque = _stateService.CurrentGeneratedTorque;
         }
 
-        // フレーム更新で燃料と状態を処理し、出力がある限り観測者へ通知する
-        // Process fuel and state each frame, notifying observers while power is produced
-        public void Update()
+        // GearTickUpdaterから毎tick呼ばれ、確定済み負荷率で燃料と状態を進める。出力が変化したら再配分を自己通知する
+        // Called by GearTickUpdater each tick to advance fuel and state with the settled load rate, self-notifying on output change
+        public void ConsumeGeneratorTick(float networkLoadRate)
         {
             BlockException.CheckDestroy(this);
 
-            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
-            var operatingRate = network.CurrentGearNetworkInfo.OperatingRate;
-            
-            var changed = _stateService.TryUpdate(operatingRate, out var newRpm, out var newTorque);
+            var changed = _stateService.TryUpdate(networkLoadRate, out var newRpm, out var newTorque);
             GenerateRpm = newRpm;
             GenerateTorque = newTorque;
+
+            // 出力が実際に変化したtickだけ所属networkへ再配分を要求する
+            // Request redistribution for the owning network only on ticks where output actually changed
+            if (changed) GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
 
             if (changed || newRpm.AsPrimitive() > 0f)
             {
