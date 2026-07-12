@@ -7,6 +7,7 @@ description: |
   2. 新しいイベントパケット（EventPacket）を実装する時
   3. 「プロトコルを作って」「パケットを追加して」と依頼された時
   4. クライアント-サーバー間の通信を新規追加する時
+  5. サーバー側に新しい可変状態（DataStore等）を追加し、それをクライアントに反映したい時（specを書く段階を含む。プロトコル不要と思っていても読むこと）
 ---
 
 # サーバープロトコル作成ガイド
@@ -19,6 +20,20 @@ description: |
 | サーバー側の状態変化をクライアントに通知 | **Event型** |
 
 詳細パターンとコード例: [references/protocol-patterns.md](references/protocol-patterns.md) を参照。
+
+## サーバー可変状態の同期チェックリスト（3点セット・CRITICAL）
+
+サーバー側に新しい可変状態（DataStore・プレイヤー横断の動的データ）を追加してクライアントに見せる場合、以下3点を**すべて**実装する。1つでも欠けると再接続時の欠損・追従漏れが起きる:
+
+| # | 実装物 | 場所 |
+|---|---|---|
+| 1 | イベントパケット（DataStoreの`IObservable`購読→`va:event:*`broadcast） | `Server.Event/EventReceive/*EventPacket.cs` + `MoorestechServerDIContainerGenerator`にAddSingleton+eager init |
+| 2 | 初期データ（ログイン/再接続時の全量復元） | `InitialHandshakeProtocol`のResponseに同梱 or `va:get*`プロトコル |
+| 3 | クライアント購読（受信→クライアント側DataStore反映） | `SubscribeEventResponse(XxxEventPacket.EventTag, ...)`する`*EventHandler`（`IInitializable`/`RegisterEntryPoint`） |
+
+**禁止**: 他プロトコル（研究完了・チャレンジ等）の応答をパースして別状態を間接導出する`*Applier`。「新規プロトコル・イベントは作らない」とspecに書くのは新規パターンでありユーザー裁定が必要（PR988でApplier 2種が全廃され3点セットに作り直された）。
+**前例**: `UnlockedEventPacket`+`GetGameUnlockStateProtocol`+`ClientGameUnlockStateDatastore`、`ItemStackLevelUnlockEventPacket`+`InitialHandshakeProtocol.ItemStackLevels`+`ItemStackLevelEventHandler`。
+**順序**: 初期適用はそれに依存するデータ（インベントリ等）の取得より**先**に行う（`VanillaApiWithResponse.InitialHandShake`参照）。
 
 ## Request-Response型の作成手順
 
