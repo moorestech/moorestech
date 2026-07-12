@@ -1,5 +1,3 @@
-using System;
-using Core.Update;
 using Game.Block.Blocks.Machine.State.Util;
 
 namespace Game.Block.Blocks.Machine.State
@@ -23,10 +21,10 @@ namespace Game.Block.Blocks.Machine.State
 
         public ProcessState GetNextUpdate()
         {
-            // レシピの有無と開始可否を確認
-            // Check the recipe presence and whether processing may start
-            var isGetRecipe = _context.InputInventory.TryGetRecipeElement(out var recipe);
-            if (!isGetRecipe || !_context.InputInventory.IsAllowedToStartProcess())
+            // 選択レシピが無ければ加工しない（レシピ選択必須）
+            // Never process without a selected recipe (selection is mandatory)
+            var recipe = _context.SelectedRecipe;
+            if (recipe == null || !_context.InputInventory.IsAllowedToStartProcess(recipe))
             {
                 return ProcessState.Idle;
             }
@@ -40,12 +38,9 @@ namespace Game.Block.Blocks.Machine.State
                 return ProcessState.Idle;
             }
 
-            // 産出物と短縮済み時間を確定し、加工ジョブをProcessingStateへ渡して遷移
-            // Fix the outputs and the scaled time, hand the job to ProcessingState, then transition
-            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
-            var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
+            // 加工ジョブをProcessingStateへ渡して遷移
+            // Hand the job to ProcessingState and transition
             _processingState.SetProcessing(recipe, realizedOutputs);
-
             return ProcessState.Processing;
         }
     }
