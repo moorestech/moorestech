@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
@@ -22,7 +23,7 @@ using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRa
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
-    public class TrainRailConnectSystem : IPlaceSystem
+    public class TrainRailConnectSystem : PlaceSystemBase<ConnectToolPlacementTarget>
     {
         private readonly RailConnectPreviewObject _previewObject;
         private readonly Camera _mainCamera;
@@ -42,11 +43,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
-        public void Enable()
+        public override void Enable()
         {
             _connectFromArea = null;
         }
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged)
         {
             _trainRailPlaceSystemService.Disable();
             
@@ -211,7 +212,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             
             #endregion
         }
-        public void Disable()
+        public override void Disable()
         {
             _previewObject.SetActive(false);
             _trainRailPlaceSystemService.Disable();
