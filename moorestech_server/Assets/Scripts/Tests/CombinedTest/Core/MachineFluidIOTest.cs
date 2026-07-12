@@ -202,12 +202,12 @@ namespace Tests.CombinedTest.Core
             
             // クラフト実行
             // Perform the crafting
-            var blockMachineComponent = block.GetComponent<VanillaElectricMachineComponent>();
+            var blockMachineComponent = block.GetComponent<VanillaMachineProcessorComponent>();
             var startTime = DateTime.Now;
             var endTime = startTime.AddSeconds(recipe.Time + 0.2); // レシピ時間 + 余裕時間
             while (DateTime.Now < endTime)
             {
-                blockMachineComponent.SupplyEnergy(new ElectricPower(10000));
+                blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();
             }
             
@@ -295,7 +295,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             
             // コンポーネントを取得
-            var machineComponent = machineBlock.GetComponent<VanillaElectricMachineComponent>();
+            var machineComponent = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
             var inventoryComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             var stateObservable = machineBlock.GetComponent<IBlockStateObservable>();
             
@@ -319,7 +319,7 @@ namespace Tests.CombinedTest.Core
             var previousCount = stateChangeCount;
             for (int i = 0; i < 5; i++)
             {
-                machineComponent.SupplyEnergy(new ElectricPower(100));
+                machineComponent.SupplyExternalPower(100);
                 GameUpdater.UpdateOneTick();
             }
             
@@ -339,7 +339,7 @@ namespace Tests.CombinedTest.Core
                 worldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
                 worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineRecipeTest1, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out machineBlock);
                 blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineRecipeTest1);
-                machineComponent = machineBlock.GetComponent<VanillaElectricMachineComponent>();
+                machineComponent = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
                 inventoryComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
                 stateObservable = machineBlock.GetComponent<IBlockStateObservable>();
                 
@@ -389,7 +389,7 @@ namespace Tests.CombinedTest.Core
             Debug.Log("Starting processing...");
             for (int i = 0; i < 10; i++)
             {
-                machineComponent.SupplyEnergy(new ElectricPower(1000));
+                machineComponent.SupplyExternalPower(1000);
                 GameUpdater.UpdateOneTick();
                 
                 var details = stateObservable.GetBlockStateDetails();
@@ -421,7 +421,7 @@ namespace Tests.CombinedTest.Core
             var recipeTime = recipe.Time;
             for (int i = 0; i < recipeTime * 10 + 20; i++) // 余裕を持って待つ
             {
-                machineComponent.SupplyEnergy(new ElectricPower(1000));
+                machineComponent.SupplyExternalPower(1000);
                 GameUpdater.UpdateOneTick();
                 
                 if (i % 10 == 0)
@@ -500,7 +500,7 @@ namespace Tests.CombinedTest.Core
             Debug.Log("Testing with partial power supply...");
             for (int i = 0; i < 20; i++)
             {
-                machineComponent.SupplyEnergy(new ElectricPower(requiredPower / 2)); // 半分の電力
+                machineComponent.SupplyExternalPower(requiredPower / 2); // 半分の電力
                 GameUpdater.UpdateOneTick();
                 
                 var details = stateObservable.GetBlockStateDetails();

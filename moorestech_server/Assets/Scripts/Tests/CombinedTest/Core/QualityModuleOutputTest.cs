@@ -343,7 +343,7 @@ namespace Tests.CombinedTest.Core
         {
             for (var i = 0; i < ticks; i++)
             {
-                foreach (var processor in processors) processor.SupplyPower(processor.EffectiveRequestPower);
+                foreach (var processor in processors) processor.SupplyExternalPower(processor.EffectiveRequestPower);
                 GameUpdater.UpdateOneTick();
             }
         }

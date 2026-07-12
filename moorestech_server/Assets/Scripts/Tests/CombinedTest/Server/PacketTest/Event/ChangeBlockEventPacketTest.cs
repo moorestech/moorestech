@@ -50,9 +50,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ElectricWireTestUtil.Connect(pos, generatorPos);
 
-            //セグメント供給は機械Update後に走るため、遷移tickで満充電を観測できるよう電力をプリロードする
-            //The segment supplies after the machine's update, so preload power to observe a full charge on the transition tick
-            machine.GetComponent<VanillaElectricMachineComponent>().SupplyEnergy(new ElectricPower(100));
+            //電力tickは機械Updateより先に確定するため、プリロード不要で同tick内に満充電が観測できる
+            //The electric tick settles before machine updates, so no preload is needed to observe a full charge within the tick
 
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
@@ -65,23 +64,33 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ステートが実行中になっているかをチェック
             List<byte[]> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            // ブロックステート変更イベントを明示的に選択する
-            // Select the change block state event explicitly
+            // アイドル給電イベントも並ぶため、idle→processingの遷移イベントを明示的に選択する
+            // Idle supply events are also queued, so pick the idle-to-processing transition event explicitly
             var expectedTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(machine.BlockPositionInfo);
-            var changeStateEvent = eventMessagePack.Events.Find(eventMessage => eventMessage.Tag == expectedTag);
-            Assert.IsNotNull(changeStateEvent, "ChangeBlockStateイベントが取得できません。");
-            var payLoad = changeStateEvent!.Payload;
-            
-            var changeStateData = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payLoad);
-            var stateDetail = changeStateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
-            
-            Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, stateDetail.PreviousStateType);
-            Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, stateDetail.CurrentStateType);
-            Assert.AreEqual(0, changeStateData.Position.X);
-            Assert.AreEqual(0, changeStateData.Position.Y);
-            
-            var detailChangeData = changeStateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
-            Assert.AreEqual(1.0f, detailChangeData.PowerRate);
+            BlockStateMessagePack transitionStateData = null;
+            BlockStateMessagePack latestStateData = null;
+            foreach (var eventMessage in eventMessagePack.Events)
+            {
+                if (eventMessage.Tag != expectedTag) continue;
+                var stateData = MessagePackSerializer.Deserialize<BlockStateMessagePack>(eventMessage.Payload);
+                latestStateData = stateData;
+                var detail = stateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+                if (transitionStateData == null &&
+                    detail.PreviousStateType == VanillaMachineBlockStateConst.IdleState &&
+                    detail.CurrentStateType == VanillaMachineBlockStateConst.ProcessingState)
+                {
+                    transitionStateData = stateData;
+                }
+            }
+            Assert.IsNotNull(transitionStateData, "idle→processingのChangeBlockStateイベントが取得できません。");
+            Assert.AreEqual(0, transitionStateData.Position.X);
+            Assert.AreEqual(0, transitionStateData.Position.Y);
+
+            // 加工中の最新イベントでは供給率1の実効電力が反映されている
+            // The latest processing event reflects the effective power at supply rate 1
+            var latestDetail = latestStateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
+            Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, latestDetail.CurrentStateType);
+            Assert.AreEqual(1.0f, latestDetail.PowerRate);
         }
     }
 }

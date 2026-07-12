@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Core
                 // Set tick count before processing
                 GameUpdater.RunFrames(1);
 
-                machineProcessor.SupplyPower(suppliedPower);
+                machineProcessor.SupplyExternalPower(suppliedPower);
                 machineProcessor.Update();
             }
 
@@ -118,8 +118,8 @@ namespace Tests.CombinedTest.Core
                 // Set tick count before processing
                 GameUpdater.RunFrames(1);
 
-                lackRpmProcessor.SupplyPower(halfPower);
-                lackTorqueProcessor.SupplyPower(halfPower);
+                lackRpmProcessor.SupplyExternalPower(halfPower);
+                lackTorqueProcessor.SupplyExternalPower(halfPower);
 
                 lackRpmProcessor.Update();
                 lackTorqueProcessor.Update();

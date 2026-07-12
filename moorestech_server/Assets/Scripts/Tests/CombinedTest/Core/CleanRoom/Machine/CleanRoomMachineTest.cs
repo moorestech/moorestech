@@ -1,6 +1,7 @@
 using Core.Inventory;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -79,8 +80,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // 処理途中で止めるため、まず清浄室内で機械を実際にProcessingへ入れる
             // First move the machine into Processing inside a clean room so interruption freezes real work
             LoadMachineInput(machine, 5);
-            var filterConsumer = filter.GetComponent<IElectricConsumer>();
-            var machineConsumer = machine.GetComponent<IElectricConsumer>();
+            var filterConsumer = filter.GetComponent<CleanRoomAirFilterComponent>();
+            var machineConsumer = machine.GetComponent<CleanRoomMachineProcessorComponent>();
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
             IOpenableInventory inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
 
@@ -99,7 +100,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             ServerContext.WorldBlockDatastore.RemoveBlock(new Vector3Int(0, 1, 1), BlockRemoveReason.ManualRemove);
             for (var i = 0; i < 50 && processor.CurrentState != ProcessState.Halted; i++) TickRoom();
             Assert.AreEqual(ProcessState.Halted, processor.CurrentState);
-            Assert.AreEqual(0, machineConsumer.RequestEnergy.AsPrimitive());
+            Assert.AreEqual(0, machineConsumer.EffectiveRequestPower);
 
             // 長い停止中も出力が生えず、処理が勝手に完了しないことを確認する
             // During a long outage, output must not appear and processing must not complete silently
@@ -131,8 +132,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
             {
                 // 中断中も両方へ満電を供給し、停止判定が電力不足と混ざらないようにする
                 // Keep both blocks fully powered during interruption so halted state is not confused with low power
-                filterConsumer.SupplyEnergy(new ElectricPower(100f));
-                machineConsumer.SupplyEnergy(new ElectricPower(100f));
+                filterConsumer.SupplyExternalPower(100f);
+                machineConsumer.SupplyExternalPower(100f);
                 GameUpdater.UpdateOneTick();
             }
 
@@ -140,7 +141,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             {
                 // フィルターを止めたまま機械だけ給電し、Out判定のゲートだけを検証する
                 // Power only the machine while the filter is stopped to isolate the Out-class gate
-                machineConsumer.SupplyEnergy(new ElectricPower(100f));
+                machineConsumer.SupplyExternalPower(100f);
                 GameUpdater.UpdateOneTick();
             }
 
@@ -176,8 +177,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // フィルターと機械を同じtickで給電し、室内加工の通常経路を進める
             // Power the filter and machine in the same tick to exercise normal in-room processing
-            filter.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
-            machine.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
+            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
+            machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
             GameUpdater.UpdateOneTick();
         }
 
@@ -185,10 +186,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // 既存の電力系テストと同じくConsumerへ毎tick直接供給する
             // Supply the consumer directly every tick, matching existing powered block tests
-            var consumer = block.GetComponent<IElectricConsumer>();
+            var consumer = block.GetComponent<CleanRoomMachineProcessorComponent>();
             for (var i = 0; i < ticks; i++)
             {
-                consumer.SupplyEnergy(new ElectricPower(power));
+                consumer.SupplyExternalPower(power);
                 GameUpdater.UpdateOneTick();
             }
         }

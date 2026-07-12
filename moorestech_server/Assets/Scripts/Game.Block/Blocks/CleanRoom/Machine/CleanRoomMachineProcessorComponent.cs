@@ -82,11 +82,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _cleanRoomEffect = effect;
         }
 
-        public void SupplyPower(float power)
+        // tick内限定の内部経路。供給率から導出済みの実効電力を受け取る
+        // Tick-scoped internal path receiving the effective power already derived from the supply rate
+        public void SupplyExternalPower(float power)
         {
             BlockException.CheckDestroy(this);
-            // 複数の電力セグメントから供給され得るため加算する
-            // Accumulate because multiple energy segments may supply this machine
             _context.SuppliedPower += power;
             if (CurrentState == ProcessState.Idle) _changeState.OnNext(Unit.Default);
         }
