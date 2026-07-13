@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 

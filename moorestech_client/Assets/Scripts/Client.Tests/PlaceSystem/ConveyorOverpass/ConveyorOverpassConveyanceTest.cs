@@ -93,7 +93,7 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             BlockId ResolveVerticalBlockId(BlockVerticalDirection verticalDirection)
             {
                 var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(holding.BlockGuid);
-                if (!MasterHolder.BlockMaster.TryGetBeltConveyorFamily(holdingBlockId, out var family)) return holdingBlockId;
+                if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(holdingBlockId, out var family)) return holdingBlockId;
 
                 return verticalDirection switch
                 {

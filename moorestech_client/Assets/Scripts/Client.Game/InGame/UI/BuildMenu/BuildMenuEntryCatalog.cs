@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
+using Game.Block.Interface.Extension;
 using Client.Mod.Texture;
 using Core.Master;
 using Game.UnlockState;
@@ -81,7 +82,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             bool IsHiddenBeltConveyorVariant(Guid blockGuid)
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockGuid);
-                return MasterHolder.BlockMaster.TryGetBeltConveyorFamily(blockId, out var family) && family.IsHiddenVariant(blockId);
+                return BeltConveyorPlaceFamilyUtil.TryGetFamilyByGuid(blockGuid, out var family) && family.IsHiddenVariant(blockId);
             }
 
             string CreateBlockToolTip(BlockMasterElement blockMaster)

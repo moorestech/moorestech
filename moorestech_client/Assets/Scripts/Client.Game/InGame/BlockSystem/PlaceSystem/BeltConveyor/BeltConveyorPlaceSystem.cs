@@ -11,6 +11,7 @@ using Client.Input;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -85,7 +86,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // ファミリー定義を解決（代表・斜面・長尺バリアント）。非ファミリーブロックは対象外
             // Resolve the family definition (representative, slopes, length variants); bail out for non-family blocks
-            if (!MasterHolder.BlockMaster.TryGetBeltConveyorFamily(target.BlockId, out var family)) return;
+            if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(target.BlockId, out var family)) return;
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.RepresentativeBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する

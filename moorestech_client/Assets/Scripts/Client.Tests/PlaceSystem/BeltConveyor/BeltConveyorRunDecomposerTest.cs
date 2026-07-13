@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
