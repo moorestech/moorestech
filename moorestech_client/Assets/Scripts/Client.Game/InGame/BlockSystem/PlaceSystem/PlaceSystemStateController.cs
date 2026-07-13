@@ -1,32 +1,29 @@
-using System;
-using Core.Master;
-using Game.Block.Interface;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public class PlaceSystemStateController
     {
         private readonly PlaceSystemSelector _placeSystemSelector;
-        private readonly PlacementSelection _placementSelection;
 
         private IPlaceSystem _currentPlaceSystem;
+        private IPlacementTarget _lastTarget;
 
-        // 前回フレームの選択内容（選択変化検知に使う）
-        // Previous frame's selection (used to detect selection changes)
-        private PlacementSelectionType _lastSelectionType;
-        private BlockId? _lastSelectedBlockId;
-        private BlockDirection? _lastSelectedBlockDirection;
-        private Guid _lastSelectedTrainCarGuid;
-        private string _lastSelectedConnectPlaceMode;
-        private string _lastSelectedBlueprintName;
+        // 「今何を設置しようとしているか」の唯一の所有者。書き込みはSetTargetのみ
+        // The single owner of "what is being placed now"; writes go through SetTarget only
+        public IPlacementTarget CurrentTarget { get; private set; }
 
-        public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector, PlacementSelection placementSelection)
+        public PlaceSystemStateController(PlaceSystemSelector placeSystemSelector)
         {
             _placeSystemSelector = placeSystemSelector;
-            _placementSelection = placementSelection;
 
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
             Disable();
+        }
+
+        public void SetTarget(IPlacementTarget target)
+        {
+            CurrentTarget = target;
         }
 
         public void Disable()
@@ -34,19 +31,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _currentPlaceSystem.Disable();
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
 
-            // 選択の前回値も初期化し、再Enable直後の最初のフレームでIsSelectionChanged=trueにする
-            // Reset previous selection values so the first frame after re-enable reports IsSelectionChanged=true
-            _lastSelectionType = PlacementSelectionType.None;
-            _lastSelectedBlockId = null;
-            _lastSelectedBlockDirection = null;
-            _lastSelectedTrainCarGuid = Guid.Empty;
-            _lastSelectedConnectPlaceMode = null;
-            _lastSelectedBlueprintName = null;
+            // 選択の寿命はPlaceBlock滞在中のみ。離脱時にターゲットも破棄する
+            // Selection lives only while in PlaceBlock; drop the target on leave
+            CurrentTarget = null;
+            _lastTarget = null;
         }
 
         public void ManualUpdate()
         {
-            var updateContext = CreateContext();
+            var isSelectionChanged = !Equals(_lastTarget, CurrentTarget);
+            _lastTarget = CurrentTarget;
+
+            var updateContext = new PlaceSystemUpdateContext(CurrentTarget, isSelectionChanged);
             var nextPlaceSystem = _placeSystemSelector.GetCurrentPlaceSystem(updateContext);
 
             if (_currentPlaceSystem != nextPlaceSystem)
@@ -57,41 +53,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             }
 
             _currentPlaceSystem.ManualUpdate(updateContext);
-
-
-            #region Internal
-
-            PlaceSystemUpdateContext CreateContext()
-            {
-                // 選択内容の変化を検知する（車両プレビューのリセット等に使う）
-                // Detect selection changes (used to reset previews such as the train car preview)
-                var isSelectionChanged = _lastSelectionType != _placementSelection.SelectionType
-                                         || _lastSelectedBlockId != _placementSelection.SelectedBlockId
-                                         || _lastSelectedBlockDirection != _placementSelection.SelectedBlockDirection
-                                         || _lastSelectedTrainCarGuid != _placementSelection.SelectedTrainCarGuid
-                                         || _lastSelectedConnectPlaceMode != _placementSelection.SelectedConnectPlaceMode
-                                         || _lastSelectedBlueprintName != _placementSelection.SelectedBlueprintName;
-
-                var context = new PlaceSystemUpdateContext(
-                    _placementSelection.SelectionType,
-                    _placementSelection.SelectedBlockId,
-                    _placementSelection.SelectedBlockDirection,
-                    _placementSelection.SelectedTrainCarGuid,
-                    _placementSelection.SelectedConnectPlaceMode,
-                    _placementSelection.SelectedBlueprintName,
-                    isSelectionChanged
-                );
-
-                _lastSelectionType = _placementSelection.SelectionType;
-                _lastSelectedBlockId = _placementSelection.SelectedBlockId;
-                _lastSelectedBlockDirection = _placementSelection.SelectedBlockDirection;
-                _lastSelectedTrainCarGuid = _placementSelection.SelectedTrainCarGuid;
-                _lastSelectedConnectPlaceMode = _placementSelection.SelectedConnectPlaceMode;
-                _lastSelectedBlueprintName = _placementSelection.SelectedBlueprintName;
-                return context;
-            }
-
-             #endregion
         }
     }
 }
