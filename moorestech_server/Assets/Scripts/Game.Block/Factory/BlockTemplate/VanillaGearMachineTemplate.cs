@@ -5,6 +5,7 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
+using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -62,16 +63,19 @@ namespace Game.Block.Factory.BlockTemplate
 
             var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer, gearConsumption.IdlePowerRate);
 
+            // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること
+            // Keep this order: the supply reader (machineComponent) must update before the processor
             var components = new List<IBlockComponent>
             {
                 blockInventory,
                 machineSave,
                 effectComponent,
-                processor,
                 machineComponent,
+                processor,
                 inventoryConnectorComponent,
                 gearConnector,
                 gearEnergyTransformer,
+                new MachineRecipeBlueprintSettingsComponent(processor),
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

@@ -17,6 +17,7 @@ using Mooresmaster.Model.MachineRecipesModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -40,15 +41,19 @@ namespace Tests.CombinedTest.Core
             // Place the gear machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)
             {
                 blockInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
 
-            var gearEnergyTransformer = block.GetComponent<GearEnergyTransformer>();
             var gearMachineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearMachine).BlockParam as GearMachineBlockParam;
             var machineProcessor = block.GetComponent<VanillaMachineProcessorComponent>();
+
+            // 満額の歯車電力（baseTorque×baseRpm）を機械へ直接供給する。gearの現在値は導出のみで外部注入できないため機械の電力経路を使う
+            // Supply full gear power (baseTorque×baseRpm) directly to the machine; gear values are derived-only, so use the machine's power path
+            var suppliedPower = (float)(gearMachineParam.GearConsumption.BaseTorque * gearMachineParam.GearConsumption.BaseRpm);
 
             // クラフト時間をtick単位で計算（マージン付き）
             // Calculate craft time in ticks with margin
@@ -60,9 +65,7 @@ namespace Tests.CombinedTest.Core
                 // Set tick count before processing
                 GameUpdater.RunFrames(1);
 
-                var requiredRpm = new RPM((float)gearMachineParam.GearConsumption.BaseRpm);
-                var requiredTorque = new Torque((float)gearMachineParam.GearConsumption.BaseTorque);
-                gearEnergyTransformer.SupplyPower(requiredRpm, requiredTorque, true);
+                machineProcessor.SupplyPower(suppliedPower);
                 machineProcessor.Update();
             }
 
@@ -88,6 +91,8 @@ namespace Tests.CombinedTest.Core
             var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackRpmBlock);
             ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackTorqueBlock);
+            MachineRecipeSelectTestUtil.SelectRecipe(lackRpmBlock, recipe);
+            MachineRecipeSelectTestUtil.SelectRecipe(lackTorqueBlock, recipe);
 
             var lackRpmInventory = lackRpmBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             var lackTorqueInventory = lackTorqueBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
@@ -98,15 +103,17 @@ namespace Tests.CombinedTest.Core
                 lackTorqueInventory.InsertItem(itemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
             }
 
-            var lackRpmGearMachine = lackRpmBlock.GetComponent<GearEnergyTransformer>();
-            var lackTorqueGearMachine = lackTorqueBlock.GetComponent<GearEnergyTransformer>();
             var gearMachineParam = lackRpmBlock.BlockMasterElement.BlockParam as GearMachineBlockParam;
 
             var lackRpmProcessor = lackRpmBlock.GetComponent<VanillaMachineProcessorComponent>();
             var lackTorqueProcessor = lackTorqueBlock.GetComponent<VanillaMachineProcessorComponent>();
 
-            // 半分のRPM/トルクなので2倍の時間が必要（確率的丸めによる変動を考慮した大きめのマージン）
-            // Half RPM/torque means 2x time needed (large margin to account for probabilistic rounding variance)
+            // 満額の半分の電力を供給し、加工に約2倍の時間がかかることを検証する。gear networkはall-or-nothing（不足は全停止）で部分供給しないため機械へ直接供給する
+            // Supply half the full power to verify ~2x processing time; gear network is all-or-nothing (deficit stops entirely), so feed the machine directly
+            var halfPower = (float)(gearMachineParam.GearConsumption.BaseTorque * gearMachineParam.GearConsumption.BaseRpm) * 0.5f;
+
+            // 半分電力なので2倍の時間が必要（確率的丸めによる変動を考慮した大きめのマージン）
+            // Half power means 2x time needed (large margin to account for probabilistic rounding variance)
             var craftTicks = GameUpdater.SecondsToTicks(recipe.Time * 3);
 
             for (uint tick = 0; tick < craftTicks; tick++)
@@ -115,9 +122,8 @@ namespace Tests.CombinedTest.Core
                 // Set tick count before processing
                 GameUpdater.RunFrames(1);
 
-                var rpm = new RPM((float)gearMachineParam.GearConsumption.BaseRpm / 2f);
-                lackRpmGearMachine.SupplyPower(rpm, new Torque((float)gearMachineParam.GearConsumption.BaseTorque), true);
-                lackTorqueGearMachine.SupplyPower(new RPM((float)gearMachineParam.GearConsumption.BaseRpm), new Torque((float)gearMachineParam.GearConsumption.BaseTorque) / 2f, true);
+                lackRpmProcessor.SupplyPower(halfPower);
+                lackTorqueProcessor.SupplyPower(halfPower);
 
                 lackRpmProcessor.Update();
                 lackTorqueProcessor.Update();

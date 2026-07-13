@@ -1,16 +1,15 @@
 using System;
-using System.Linq;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.Gear.Common;
 using MessagePack;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -22,15 +21,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 歯車ネットワークを構築し、1 tick 進めた直後にプロトコルを叩いて集約値が一致するか確認
             // Build a gear network, advance one tick, then invoke the protocol and assert aggregate values match
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generator);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var shaft);
 
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            var gearNetwork = gearNetworkDatastore.GearNetworks.First().Value;
-            gearNetwork.ManualUpdate();
+            GameUpdater.UpdateOneTick();
+            var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(generator.BlockInstanceId);
 
             var expected = gearNetwork.CurrentGearNetworkInfo;
 

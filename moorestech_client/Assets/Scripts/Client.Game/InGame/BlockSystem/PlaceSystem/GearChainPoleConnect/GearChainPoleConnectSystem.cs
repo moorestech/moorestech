@@ -2,6 +2,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
@@ -50,9 +51,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             // ブロック選択（歯車ポール）なら設置延長、接続ツール選択ならチェーン接続モード
             // Pole-block selection runs place-extend; connect-tool selection runs chain-connect
             GearChainPoleFrameResult result;
-            if (context.SelectionType == PlacementSelectionType.Block)
+            if (context.Target is BlockPlacementTarget blockTarget)
             {
-                var poleBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(context.SelectedBlockId.Value);
+                var poleBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockTarget.BlockId);
                 var input = _inputCollector.CollectPlaceExtend(_sourcePole, poleBlockMaster, _requestSender.IsAwaitingResponse);
                 result = GearChainPolePlaceExtendMode.Decide(input);
             }

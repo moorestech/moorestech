@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.BlockPick;
@@ -33,6 +34,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 遷移payloadから設置ターゲットを受け取り所有者へ渡す（無ければEmptyに落ちる）
+            // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
+            if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
+
             // カメラ・カーソルはBuildViewModeControllerへ委譲
             // Camera and cursor handling is delegated to BuildViewModeController
             _buildViewModeController.OnEnterBuildState(UIStateEnum.PlaceBlock);
@@ -74,9 +79,9 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 _buildViewModeController.ManualUpdate();
 
-                // ミドルクリックで選択ブロックをスポイトで切り替える
-                // Middle-click switches the selected block via the eyedropper
-                _blockPickService.TryPickBlockUnderCursor();
+                // ミドルクリックのスポイトで設置対象を持ち替える
+                // Middle-click eyedropper swaps the current placement target
+                if (_blockPickService.TryPickBlockUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
             }
 
             _placeSystemStateController.ManualUpdate();
