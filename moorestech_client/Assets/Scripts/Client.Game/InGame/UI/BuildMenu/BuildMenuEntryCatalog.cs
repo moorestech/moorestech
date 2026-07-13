@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Mod.Texture;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.PlaceSystemModule;
 using Mooresmaster.Model.TrainModule;
 
 namespace Client.Game.InGame.UI.BuildMenu
@@ -29,7 +28,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             // Enumerate unlocked blocks in sort order (exclude hidden belt variants)
             var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
                 .Where(b => IsBlockUnlocked(unlockState, b))
-                .Where(b => !BeltConveyorPlaceFamilyUtil.IsHiddenVariant(b.BlockGuid))
+                .Where(b => !IsHiddenBeltConveyorVariant(b.BlockGuid))
                 .OrderBy(b => b.SortPriority ?? 0)
                 .ThenBy(b => b.Name);
             foreach (var blockMaster in unlockedBlocks)
@@ -48,15 +47,13 @@ namespace Client.Game.InGame.UI.BuildMenu
                 entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
             }
 
-            // 接続ツールは常時表示する（ビルドメニュー対象外のBeltConveyorは除外。敷設素材アイテムのアイコンを使う）
-            // Connect tools are always visible (skip BeltConveyor; use the laying-material item icon)
-            var connectTools = MasterHolder.PlaceSystemMaster.PlaceSystem.Data
-                .Where(e => e.PlaceMode != PlaceSystemMasterElement.PlaceModeConst.BeltConveyor)
-                .OrderBy(e => e.SortPriority ?? 0);
-            foreach (var tool in connectTools)
+            // 接続ツールはコード定義のカタログから常時表示する（アイコンは敷設素材アイテム）
+            // Connect tools always come from the code-defined catalog (the icon is the laying-material item)
+            foreach (var tool in ConnectToolCatalog.GetDefinitionsInDisplayOrder())
             {
-                var iconView = ClientContext.ItemImageContainer.GetItemView(tool.IconItemGuid.Value);
-                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(tool.PlaceMode), iconView, tool.Name));
+                var iconItemGuid = tool.SelectIconItemGuid();
+                var iconView = iconItemGuid == null ? null : ClientContext.ItemImageContainer.GetItemView(iconItemGuid.Value);
+                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(tool.ToolType), iconView, tool.DisplayName));
             }
 
             // 接続ツール群にBPコピーツール追加（テキスト表示）
@@ -77,6 +74,14 @@ namespace Client.Game.InGame.UI.BuildMenu
             bool IsBlockUnlocked(IGameUnlockStateData state, BlockMasterElement blockMaster)
             {
                 return state.BlockUnlockStateInfos.TryGetValue(blockMaster.BlockGuid, out var info) && info.IsUnlocked;
+            }
+
+            // ベルトの長尺・斜面バリアントはメニューに出さず、代表ブロックだけを見せる
+            // Hide belt length/slope variants from the menu and show only the representative block
+            bool IsHiddenBeltConveyorVariant(Guid blockGuid)
+            {
+                var blockId = MasterHolder.BlockMaster.GetBlockId(blockGuid);
+                return MasterHolder.BlockMaster.TryGetBeltConveyorFamily(blockId, out var family) && family.IsHiddenVariant(blockId);
             }
 
             string CreateBlockToolTip(BlockMasterElement blockMaster)

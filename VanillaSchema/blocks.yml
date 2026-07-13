@@ -49,6 +49,18 @@ defineInterface:
   - key: maxConnectableRailLength
     type: number
     default: 100
+# ベルトコンベアの設置ファミリー。同じbeltConveyorFamilyのブロックが1つの敷設グループを構成し、役割はslopeTypeとblockSizeから決まる。
+# Belt conveyor placement family. Blocks sharing beltConveyorFamily form one laying group; roles come from slopeType and blockSize.
+- interfaceName: IBeltConveyorFamilyParam
+  properties:
+  - key: slopeType
+    type: enum
+    options:
+    - Straight
+    - Up
+    - Down
+  - key: beltConveyorFamily
+    type: string
 - interfaceName: IMinerParam
   properties:
   - key: outputItemSlotCount
@@ -216,6 +228,7 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
+        - IBeltConveyorFamilyParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -231,6 +244,8 @@ properties:
           - Down
         - key: inventoryConnectors
           ref: inventoryConnects
+        - key: beltConveyorFamily
+          type: string
       - when: Chest
         type: object
         implementationInterface:
@@ -594,6 +609,7 @@ properties:
         - IInventoryConnectors
         - IGearConnectors
         - IGearOverloadParam
+        - IBeltConveyorFamilyParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -625,6 +641,8 @@ properties:
           ref: inventoryConnects
         - key: gear
           ref: gear
+        - key: beltConveyorFamily
+          type: string
       - when: GearMiner
         type: object
         implementationInterface:

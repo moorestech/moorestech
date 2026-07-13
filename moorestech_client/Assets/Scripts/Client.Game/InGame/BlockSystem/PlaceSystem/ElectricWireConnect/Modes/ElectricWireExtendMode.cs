@@ -1,12 +1,12 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
-using Mooresmaster.Model.PlaceSystemModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
@@ -82,9 +82,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
             bool ExtendToEmptySpace()
             {
-                // 延長用電柱ブロックを接続ツールマスタから解決する（選択駆動）
-                // Resolve the extension pole block from the connect tool master (selection-driven)
-                if (!ConnectToolMasterUtil.TryGetPlaceBlock(PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect, out var poleBlockId, out var poleMaster))
+                // 延長用電柱ブロックを接続ツールカタログのセレクタから解決する
+                // Resolve the extension pole block from the connect tool catalog's selector
+                if (!ConnectToolCatalog.GetDefinition(ConnectToolType.ElectricWireConnect).TryGetPlaceBlock(out var poleBlockId, out var poleMaster))
                 {
                     HidePreview();
                     return false;

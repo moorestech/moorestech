@@ -20,6 +20,7 @@ namespace Core.Master.Validator
             errorLogs += ConnectorSettingsValidation();
             errorLogs += ConnectorShapeGuidValidation();
             errorLogs += MeshingAxisValidation();
+            errorLogs += BeltConveyorFamilyValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
