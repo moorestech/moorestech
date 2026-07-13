@@ -28,8 +28,8 @@ namespace Server.Event.EventReceive
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
 
-        // 購読経路用。前回ブロードキャストしたペイロードとバイト列一致なら送信をスキップする
-        // Subscription path: skip the broadcast when the payload byte-matches the last one sent
+        // 購読経路用。前回と同一ペイロードなら送信スキップ
+        // Subscription path: skip when the payload matches the last sent
         public void ChangeState((BlockState state, WorldBlockData blockData) state)
         {
             var pos = state.blockData.BlockPositionInfo.OriginalPos;
@@ -41,8 +41,8 @@ namespace Server.Event.EventReceive
             Broadcast(state.blockData.BlockPositionInfo, payload);
         }
 
-        // InvokeBlockStateEventProtocol専用。初期状態pull経路のため差分判定なしで必ず送信する
-        // For InvokeBlockStateEventProtocol only: always broadcasts without diffing, for the initial-state pull path
+        // 初期pull経路専用。差分スキップ禁止
+        // Initial-pull path only: diff-skip is forbidden
         public void ForceChangeState((BlockState state, WorldBlockData blockData) state)
         {
             var pos = state.blockData.BlockPositionInfo.OriginalPos;
