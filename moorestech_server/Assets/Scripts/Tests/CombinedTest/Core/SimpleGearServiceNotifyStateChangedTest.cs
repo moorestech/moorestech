@@ -38,8 +38,8 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // 値が変化していないのに所属networkが再計算された場合、対象歯車の通知は発火しない
-        // When the owning network recalculates without this gear's values actually changing, notification must not fire
+        // network再計算されても値不変なら発火しない
+        // No firing when values are unchanged despite a recalc
         public void StableNetworkDoesNotRenotifyOnForcedRecalcTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -54,8 +54,8 @@ namespace Tests.CombinedTest.Core
             GameUpdater.UpdateOneTick();
             var firedAfterFirstTick = fired;
 
-            // generatorの出力は変化していないが、他メンバー起因のnetwork再計算を模して強制的に再計算対象へ登録する
-            // Generator output has not changed, but force the network onto the recalculation set to simulate a recalc triggered by another member
+            // generator不変でも再計算を模擬
+            // Simulate a recalc without generator change
             var generator = generatorBlock.GetComponent<IGearEnergyTransformer>();
             GearNetworkDatastore.NotifyGeneratorOutputChanged(generator);
             GameUpdater.UpdateOneTick();
@@ -82,8 +82,8 @@ namespace Tests.CombinedTest.Core
             var firedAfterFirstTick = fired;
             var torqueBeforeChange = gear.CurrentTorque.AsPrimitive();
 
-            // 要求トルク倍率を半減させ、実際のトルク値を変化させる
-            // Halve the torque request rate, actually changing the reported torque value
+            // 要求トルク倍率を半減させる
+            // Halve the torque request rate
             gear.SetTorqueRequestRate(0.5f);
             GameUpdater.UpdateOneTick();
 

@@ -23,8 +23,8 @@ namespace Game.Block.Blocks.Gear
         private readonly IGearEnergyTransformer _owner;
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
 
-        // 最後に通知したクライアント可視状態。差分がなければ再通知しない
-        // Last notified client-visible state; skip re-notifying when nothing changed
+        // 前回通知した可視状態（差分検知用）
+        // Last notified visible state, for diff detection
         private bool _hasNotifiedOnce;
         private bool _lastIsClockwise;
         private float _lastRpm;
@@ -80,8 +80,8 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
-        // tick計算後に呼ばれ、クライアントへ状態変化を通知する。所属networkの再計算とは独立に、この歯車自身の可視状態が変化した時のみ発火する
-        // Called after tick calculation to notify clients. Fires only when this gear's own visible state changed, independent of whether the owning network recalculated
+        // network再計算と独立に可視状態変化時のみ発火
+        // Fires only on visible-state change, independent of network recalcs
         public void NotifyStateChanged()
         {
             var isClockwise = IsCurrentClockwise;
