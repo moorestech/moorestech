@@ -2,7 +2,7 @@ using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
-using Client.Game.InGame.Control.BuildView;
+using Client.Game.InGame.Control.ViewMode;
 using UnityEngine;
 
 namespace Client.Game.InGame.Control
