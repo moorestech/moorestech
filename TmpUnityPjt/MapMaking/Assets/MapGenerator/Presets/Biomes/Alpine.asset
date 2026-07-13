@@ -1,0 +1,145 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f9b69cf26040487283da1b6c23ad759, type: 3}
+  m_Name: Alpine
+  m_EditorClassIdentifier: MapGenerator::MapGenerator.Pipeline.Biomes.AlpineBiomeConfig
+  elevationThreshold: 0.58
+  baseHeight: 0.06
+  amplitude: 0.6
+  frequency: 0.001
+  octaves: 3
+  warpStrength: 4
+  warpIterations: 3
+  ridgeBlend: 0.64
+  ridgeOctaves: 5
+  exponent: 1.72
+  ceilHeight: 0.682
+  ceilStrength: 0.858
+  floorHeight: 0.58
+  floorStrength: 0.4
+  enablePlateau: 1
+  prominenceThreshold: 0.06
+  minProminentDirections: 6
+  minRegionSize: 390
+  minPlateauCoverage: 0.6
+  coverageTolerance: 0.01
+  plateauBaseTransition: 3
+  plateauTransitionScale: 300
+  smoothRadius: 2
+  smoothIterations: 1
+  boundaryInnerBand: 6
+  boundaryOuterBand: 8
+  boundaryGaussSigma: 3
+  boundaryNoiseFrequency: 0.008
+  boundaryNoiseAmplitude: 0.002
+  boundaryNoiseOctaves: 2
+  boundaryRefineIterations: 3
+  debugPlateauOverlay: 1
+  debugTerrainLayers:
+  - {fileID: 8574412962073106934, guid: 46a27b9c3aeb4aa1821a1055e9b48831, type: 2}
+  - {fileID: 8574412962073106934, guid: 5b04212e737edf348b9e740425a33787, type: 2}
+  - {fileID: 8574412962073106934, guid: 34eda41d29317ae418f8dcff1e83e633, type: 2}
+  - {fileID: 8574412962073106934, guid: f33efd44298e42059c6f5b467700e172, type: 2}
+  - {fileID: 8574412962073106934, guid: 4085435386ddb064696f7df74be366ef, type: 2}
+  terrainLayer: {fileID: 8574412962073106934, guid: 1918a41aedf6663478b382e1f0186793, type: 2}
+  treePlacement:
+    prototypes: []
+    treeCount: 0
+    density: 1
+    heightFilter:
+      enabled: 1
+      range: {x: 0.04, y: 1}
+      smoothness: {x: 0, y: 0}
+      noise:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      curve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+    slopeFilter:
+      enabled: 1
+      range: {x: 0, y: 20}
+      smoothness: {x: 0, y: 0}
+      noise:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      curve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+    curvatureFilter:
+      enabled: 0
+      range: {x: 0, y: 0}
+      smoothness: {x: 0, y: 0}
+      noise:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      curve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+    clusterNoise:
+      noiseType: 0
+      frequency: 0
+      amplitude: 0
+      offset: 0
+      balance: 0
+      texture: {fileID: 0}
+      channel: 0
+    clusterNoiseThreshold: 0.3
+    clusterNoise2:
+      noiseType: 0
+      frequency: 0
+      amplitude: 0
+      offset: 0
+      balance: 0
+      texture: {fileID: 0}
+      channel: 0
+    noise2Op: 2
+    minDistanceFromTree: 0
+    maxDistanceFromTree: 0
+    heightModAmount: 0
+    heightModWidth: 2
+    surroundLayer: {fileID: 0}
+    surroundLayerWeight: 0
+    surroundLayerWidth: 2
+    boundaryScaleMultiplier: 1
+    oldGrowthScale: 1
+    oldGrowthRatio: 0
+  textureConfig:
+    entries: []
+  detailConfig:
+    entries: []
+  objectConfig:
+    entries: []
