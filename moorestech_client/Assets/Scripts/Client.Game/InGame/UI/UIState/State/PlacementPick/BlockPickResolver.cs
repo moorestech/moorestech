@@ -2,7 +2,7 @@ using Core.Master;
 using Game.Block.Interface.Extension;
 using Game.UnlockState;
 
-namespace Client.Game.InGame.UI.UIState.State.BlockPick
+namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 {
     /// <summary>
     /// スポイトでピックしたブロックの選択可否と最終ブロックIDを解決する

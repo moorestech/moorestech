@@ -43,6 +43,12 @@ FAIL=0
 extract_json() { sed -n '/^{/,$p'; }
 json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
 
+# GNU timeoutが無い環境（素のmacOS）では秒数指定を無視して直接実行するフォールバックを使う
+# Fall back to direct execution on systems without GNU timeout (stock macOS); uloop has its own internal timeouts
+if ! command -v timeout >/dev/null 2>&1; then
+    timeout() { shift; "$@"; }
+fi
+
 # ドメインリロード直後のEDC失敗に備えて成功までリトライする
 # Retry EDC until it succeeds, covering failures right after a domain reload
 edc_retry() {
