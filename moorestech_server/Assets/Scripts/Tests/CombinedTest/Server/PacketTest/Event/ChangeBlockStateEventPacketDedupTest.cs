@@ -136,5 +136,56 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var events = eventProtocolProvider.GetEventBytesList(playerId);
             Assert.AreEqual(1, events.Count, "変化がなくてもpull経路では必ず1件積まれるべき");
         }
+
+        [Test]
+        // Destroy中発火によるstale再登録を経ても再設置後の初回送信は必ず積まれる
+        // The first send after re-placement always queues, even through a stale re-registration during Destroy()
+        public void RePlacedBlockBroadcastsAfterStaleReRegistrationTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
+            var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
+
+            // 再設置後も同一に見える状態（既定状態が偶然一致するケースを模す固定ペイロード）
+            // A fixed state that looks identical after re-placement, mirroring a coincidentally-matching default state
+            var sharedState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } });
+
+            var pos = new Vector3Int(9, 0, 9);
+            world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var firstBlockData = world.GetOriginPosBlock(pos);
+
+            // (1) 設置＋ChangeStateでペイロード記録
+            // (1) Place, then ChangeState records the payload
+            changeBlockStateEventPacket.ChangeState((sharedState, firstBlockData));
+
+            // (2) 削除（削除イベント発火→Block.Destroy()の順）
+            // (2) Remove (fires remove event, then Block.Destroy())
+            world.RemoveBlock(pos, BlockRemoveReason.ManualRemove);
+
+            // (3) Destroy中発火を模し、削除直後に同一(state, blockData)でChangeStateを呼びstale再登録を再現
+            // (3) Simulate a Destroy()-time event: re-register the stale entry right after removal
+            changeBlockStateEventPacket.ChangeState((sharedState, firstBlockData));
+
+            var playerId = 0;
+            // (4) キューをクリア
+            // (4) Clear the event queue
+            eventProtocolProvider.GetEventBytesList(playerId);
+
+            // (5) 同座標に再設置。設置イベント自体のブロードキャストは対象外なので直後に取り除く
+            // (5) Re-place at the same position; drain the unrelated placement broadcast right after
+            world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var secondBlockData = world.GetOriginPosBlock(pos);
+            eventProtocolProvider.GetEventBytesList(playerId);
+
+            // (6) 再設置ブロックのstateでChangeState（既定状態がstale値と一致するケースを模す）
+            // (6) ChangeState with the re-placed block's state (mirrors a default state matching the stale value)
+            changeBlockStateEventPacket.ChangeState((sharedState, secondBlockData));
+
+            // (7) staleエントリの掃除により必ず1件積まれるべき
+            // (7) Must queue exactly once thanks to the stale-entry cleanup
+            var events = eventProtocolProvider.GetEventBytesList(playerId);
+            Assert.AreEqual(1, events.Count, "再設置後の初回送信は必ず積まれるべき");
+        }
     }
 }
