@@ -9,6 +9,18 @@
 # 起動方法
 mooresech_clientをUnityで開きMainGameシーンを再生してください
 
+## 初回セットアップ（Git LFS 必須）
+
+Unityで開く**前に**、一度だけ `git lfs install` を実行してください（マシンごとに1回）。
+
+```bash
+git lfs install
+```
+
+Web UI を描画する CEF プラグイン（`jp.juha.cefunity`）は UPM の git 依存として取り込まれ、ネイティブバイナリ（`libcef_unity_rust.dylib` / Chromium Embedded Framework 等）を **Git LFS** で配布しています。git-lfs のグローバル smudge フィルタが未登録だと、UPM の clone がバイナリをポインタファイルのまま展開し、再生時に `DllNotFoundException: dlopen(...) slice is not valid mach-o file` で CEF が起動しません。
+
+すでにポインタ状態で取り込んでしまった場合は、`git lfs install` 後に `Library/PackageCache/jp.juha.cefunity@*` を削除して Unity に再解決させれば実体が取得されます。
+
 # コーディングエージェントの使用について
 
 ## セキュリティに関する注意事項
