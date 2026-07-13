@@ -9,20 +9,21 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    public class InvokeBlockStateEventProtocol : IPacketResponse
+    // ブロックのステートをリクエストする。返答は直接返すのではなく、通常と同様のイベントを経由して返す
+    public class RequestBlockStateProtocol : IPacketResponse
     {
-        public const string ProtocolTag = "va:invokeBlockState";
+        public const string ProtocolTag = "va:requestBlockState";
         
         private readonly ChangeBlockStateEventPacket _changeBlockStateEventPacket;
         
-        public InvokeBlockStateEventProtocol(ServiceProvider serviceProvider)
+        public RequestBlockStateProtocol(ServiceProvider serviceProvider)
         {
             _changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
-            var request = MessagePackSerializer.Deserialize<RequestInvokeBlockStateProtocolMessagePack>(payload);
+            var request = MessagePackSerializer.Deserialize<RequestBlockStateProtocolMessagePack>(payload);
             
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             Vector3Int position = request.Position;
@@ -44,16 +45,16 @@ namespace Server.Protocol.PacketResponse
         #region MessagePack Classes
         
         [MessagePackObject]
-        public class RequestInvokeBlockStateProtocolMessagePack : ProtocolMessagePackBase
+        public class RequestBlockStateProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public Vector3IntMessagePack Position { get; set; }
             
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RequestInvokeBlockStateProtocolMessagePack()
+            public RequestBlockStateProtocolMessagePack()
             {
             }
             
-            public RequestInvokeBlockStateProtocolMessagePack(Vector3Int position)
+            public RequestBlockStateProtocolMessagePack(Vector3Int position)
             {
                 Tag = ProtocolTag;
                 Position = new Vector3IntMessagePack(position);

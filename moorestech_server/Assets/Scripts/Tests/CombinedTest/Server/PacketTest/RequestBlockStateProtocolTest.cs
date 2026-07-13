@@ -11,13 +11,13 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.InvokeBlockStateEventProtocol;
+using static Server.Protocol.PacketResponse.RequestBlockStateProtocol;
 using System;
 using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    public class InvokeBlockStateEventProtocolTest
+    public class RequestBlockStateProtocolTest
     {
         [Test]
         public void InvokeTest()
@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             eventProtocolProvider.GetEventBytesList(playerId);
             
             // Act
-            var request = new RequestInvokeBlockStateProtocolMessagePack(blockPosition);
+            var request = new RequestBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
             var response = packet.GetPacketResponse(payload, new PacketResponseContext());
             
@@ -68,7 +68,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             eventProtocolProvider.GetEventBytesList(playerId);
             
             // Act
-            var request = new RequestInvokeBlockStateProtocolMessagePack(blockPosition);
+            var request = new RequestBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
             var response = packet.GetPacketResponse(payload, new PacketResponseContext());
             
