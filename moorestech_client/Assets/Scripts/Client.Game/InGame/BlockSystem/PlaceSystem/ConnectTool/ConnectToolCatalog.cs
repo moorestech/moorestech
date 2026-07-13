@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
 {
     /// <summary>
-    /// 接続ツール3種のカタログ。旧placeSystemマスタのエントリ表をコード定義へ置き換えたもの
-    /// Catalog of the three connect tools; replaces the entry table of the old placeSystem master
+    /// 接続ツール3種のコード定義カタログ（旧placeSystemマスタの置換）
+    /// Code-defined catalog of the three connect tools (replaces the placeSystem master)
     /// </summary>
     public static class ConnectToolCatalog
     {

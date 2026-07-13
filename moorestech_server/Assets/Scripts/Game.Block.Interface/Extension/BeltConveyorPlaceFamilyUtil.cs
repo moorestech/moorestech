@@ -6,8 +6,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Game.Block.Interface.Extension
 {
     /// <summary>
-    /// blocks.jsonのbeltConveyorFamilies定義からファミリー（代表・斜面・長尺）を解決するドメイン層util
-    /// Domain-layer util resolving belt families (representative, slopes, length variants) from blocks.json's beltConveyorFamilies
+    /// beltConveyorFamilies定義からファミリーを解決するドメイン層util
+    /// Domain-layer util resolving belt families from beltConveyorFamilies
     /// </summary>
     public static class BeltConveyorPlaceFamilyUtil
     {
@@ -32,7 +32,12 @@ namespace Game.Block.Interface.Extension
             return false;
         }
 
-        #region Internal
+        // 非代表バリアント（長尺・斜面）かを判定。非ベルトはfalse
+        // Whether a block is a non-representative variant; non-belt returns false
+        public static bool IsHiddenVariant(Guid blockGuid)
+        {
+            return TryGetFamilyByGuid(blockGuid, out var family) && family.IsHiddenVariant(MasterHolder.BlockMaster.GetBlockId(blockGuid));
+        }
 
         private static bool IsMember(BeltConveyorFamiliesElement element, Guid blockGuid)
         {
@@ -45,16 +50,14 @@ namespace Game.Block.Interface.Extension
             return false;
         }
 
-        // ファミリーエントリを解決済みBlockIdの集合体へ変換する。長さはblockSize.zから導出する
-        // Resolve a family entry into a bundle of resolved BlockIds; length is derived from blockSize.z
+        // ファミリーエントリを解決する。長さはblockSize.zから導出
+        // Resolve a family entry; length is derived from blockSize.z
         private static BeltConveyorFamily BuildFamily(BeltConveyorFamiliesElement element)
         {
-            var memberBlockIds = new HashSet<BlockId>();
             var straightVariants = new List<(int length, BlockId blockId)>();
             foreach (var straight in element.StraightBlocks)
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(straight.BlockGuid);
-                memberBlockIds.Add(blockId);
                 straightVariants.Add((MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize.z, blockId));
             }
 
@@ -62,17 +65,15 @@ namespace Game.Block.Interface.Extension
             // Sort descending so greedy assignment can pick the longest variant first
             straightVariants.Sort((a, b) => b.length.CompareTo(a.length));
 
-            var upBlockId = ResolveSlope(element.UpBlockGuid, memberBlockIds);
-            var downBlockId = ResolveSlope(element.DownBlockGuid, memberBlockIds);
-            return new BeltConveyorFamily(FindRepresentativeBlockId(straightVariants), straightVariants, upBlockId, downBlockId, memberBlockIds);
+            var upBlockId = ResolveSlope(element.UpBlockGuid);
+            var downBlockId = ResolveSlope(element.DownBlockGuid);
+            return new BeltConveyorFamily(FindRepresentativeBlockId(straightVariants), straightVariants, upBlockId, downBlockId);
         }
 
-        private static BlockId? ResolveSlope(Guid? slopeBlockGuid, HashSet<BlockId> memberBlockIds)
+        private static BlockId? ResolveSlope(Guid? slopeBlockGuid)
         {
             if (slopeBlockGuid == null) return null;
-            var blockId = MasterHolder.BlockMaster.GetBlockId(slopeBlockGuid.Value);
-            memberBlockIds.Add(blockId);
-            return blockId;
+            return MasterHolder.BlockMaster.GetBlockId(slopeBlockGuid.Value);
         }
 
         // 代表は長さ1の直線ブロック（BeltConveyorFamilyValidatorがちょうど1件を保証する）
@@ -86,7 +87,5 @@ namespace Game.Block.Interface.Extension
 
             throw new InvalidOperationException("BeltConveyorFamily has no length-1 straight block");
         }
-
-        #endregion
     }
 }

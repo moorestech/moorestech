@@ -5,8 +5,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Core.Master.Validator
 {
     /// <summary>
-    /// beltConveyorFamilies定義（上り/下り/直線群）がコード側の解決規則を満たすか検証する
-    /// Validates that beltConveyorFamilies (up/down/straight) satisfy the code-side resolution rules
+    /// beltConveyorFamilies定義がコード側の解決規則を満たすか検証する
+    /// Validates that beltConveyorFamilies satisfy the code-side resolution rules
     /// </summary>
     public static class BeltConveyorFamilyValidator
     {
@@ -20,6 +20,17 @@ namespace Core.Master.Validator
             var logs = "";
             var seenMemberGuids = new HashSet<Guid>();
             foreach (var family in blocks.BeltConveyorFamilies) logs += ValidateFamily(family);
+
+            // 全ベルト型ブロックのファミリー所属を保証する（未登録はロード時検出）
+            // Ensure every belt block belongs to a family (unregistered caught at load)
+            foreach (var block in blocks.Data)
+            {
+                if (block.BlockType != BlockMasterElement.BlockTypeConst.BeltConveyor &&
+                    block.BlockType != BlockMasterElement.BlockTypeConst.GearBeltConveyor) continue;
+                if (!seenMemberGuids.Contains(block.BlockGuid))
+                    logs += $"[BlockMaster] BeltConveyor block {block.Name} belongs to no beltConveyorFamily\n";
+            }
+
             return logs;
 
             #region Internal
@@ -28,8 +39,8 @@ namespace Core.Master.Validator
             {
                 var familyLogs = "";
 
-                // 直線群は必須。長さ1（blockSize.z==1）の代表がちょうど1件必要
-                // Straight blocks are required; exactly one length-1 (blockSize.z==1) representative must exist
+                // 直線群は必須。長さ1（blockSize.z==1）の代表がちょうど1件
+                // Straight blocks required; exactly one length-1 (blockSize.z==1) representative
                 var lengthOneCount = 0;
                 var seenLengths = new HashSet<int>();
                 foreach (var straight in family.StraightBlocks)
@@ -74,8 +85,8 @@ namespace Core.Master.Validator
                 return false;
             }
 
-            // ベルト系ブロックのみをメンバーに許可し、同一ブロックの多重所属を禁止する
-            // Only belt-type blocks may be members, and a block must not belong to more than one family
+            // ベルト系のみをメンバーに許可し、多重所属を禁止する
+            // Only belt-type members are allowed; forbid multi-family membership
             bool ValidateMembership(Guid blockGuid, BlockMasterElement block, ref string outLogs)
             {
                 var ok = true;

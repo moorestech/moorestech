@@ -29,7 +29,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             // Enumerate unlocked blocks in sort order (exclude hidden belt variants)
             var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
                 .Where(b => IsBlockUnlocked(unlockState, b))
-                .Where(b => !IsHiddenBeltConveyorVariant(b.BlockGuid))
+                .Where(b => !BeltConveyorPlaceFamilyUtil.IsHiddenVariant(b.BlockGuid))
                 .OrderBy(b => b.SortPriority ?? 0)
                 .ThenBy(b => b.Name);
             foreach (var blockMaster in unlockedBlocks)
@@ -48,8 +48,8 @@ namespace Client.Game.InGame.UI.BuildMenu
                 entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
             }
 
-            // 接続ツールはコード定義のカタログから常時表示する（アイコンは敷設素材アイテム）
-            // Connect tools always come from the code-defined catalog (the icon is the laying-material item)
+            // 接続ツールはカタログから常時表示（アイコンは敷設素材アイテム）
+            // Connect tools always shown from the catalog (icon is the laying material)
             foreach (var tool in ConnectToolCatalog.GetDefinitionsInDisplayOrder())
             {
                 var iconItemGuid = tool.SelectIconItemGuid();
@@ -75,14 +75,6 @@ namespace Client.Game.InGame.UI.BuildMenu
             bool IsBlockUnlocked(IGameUnlockStateData state, BlockMasterElement blockMaster)
             {
                 return state.BlockUnlockStateInfos.TryGetValue(blockMaster.BlockGuid, out var info) && info.IsUnlocked;
-            }
-
-            // ベルトの長尺・斜面バリアントはメニューに出さず、代表ブロックだけを見せる
-            // Hide belt length/slope variants from the menu and show only the representative block
-            bool IsHiddenBeltConveyorVariant(Guid blockGuid)
-            {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(blockGuid);
-                return BeltConveyorPlaceFamilyUtil.TryGetFamilyByGuid(blockGuid, out var family) && family.IsHiddenVariant(blockId);
             }
 
             string CreateBlockToolTip(BlockMasterElement blockMaster)

@@ -94,8 +94,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
             PlaceInfo CreateSlope(PlaceInfo cell, BlockId? slopeBlockId)
             {
-                // 斜面バリアントを持たないファミリー（分岐器など）では傾斜セルを設置不可にする
-                // Families without slope variants (e.g. splitters) cannot place sloped cells
+                // 斜面のないファミリー（分岐器）は傾斜セルを設置不可にする
+                // Slope-less families (splitters) mark sloped cells unplaceable
                 if (slopeBlockId == null)
                 {
                     var unplaceableCell = CreateSingle(cell, GetLengthOneBlockId());

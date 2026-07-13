@@ -88,8 +88,8 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
                 return result;
             }
 
-            // ファミリーの斜面ブロックからセル毎の向き別BlockIdを解決する（水平は元のBlockGuidのまま）
-            // Resolve the per-cell BlockId from the family's slope blocks (horizontal keeps the original BlockGuid)
+            // 斜面ブロックから向き別BlockIdを解決（水平は元のまま）
+            // Resolve per-cell BlockId from slope blocks (horizontal keeps original)
             BlockId ResolveVerticalBlockId(BlockVerticalDirection verticalDirection)
             {
                 var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(holding.BlockGuid);
