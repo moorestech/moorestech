@@ -2,42 +2,26 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Input;
 
-namespace Client.Game.InGame.Control.BuildView
+namespace Client.Game.InGame.Control.ViewMode
 {
     /// <summary>
     ///     視点モードの副作用を実機へ適用する
     ///     Applies view-mode side effects to the camera, cursor, crosshair, and player model
     /// </summary>
-    public class BuildViewApplier : IBuildViewApplier
+    public class PlayerViewApplier : IPlayerViewApplier
     {
         private readonly InGameCameraController _inGameCameraController;
 
-        public BuildViewApplier(InGameCameraController inGameCameraController)
+        public PlayerViewApplier(InGameCameraController inGameCameraController)
         {
             _inGameCameraController = inGameCameraController;
         }
 
-        public TweenCameraInfo CaptureCurrentCamera()
-        {
-            return _inGameCameraController.CreateCurrentCameraTweenCameraInfo();
-        }
-
-        public void ApplyTopDownCamera()
-        {
-            _inGameCameraController.StartTweenCamera(_inGameCameraController.CreateTopDownTweenCameraInfo());
-        }
-
-        public void RestoreCamera(TweenCameraInfo saved)
-        {
-            _inGameCameraController.StartTweenCamera(saved);
-        }
-
         public void SetFirstPersonCamera(bool enabled)
         {
-            // FPS化・視点回転・自機非表示を一括切替
-            // Toggle FPS camera, always-on look rotation, and player model visibility together
+            // FPS化と自機モデルの非表示を一括切替する（視点回転はSetCameraRotatableが担当）
+            // Toggle the FPS camera together with player model visibility (look rotation is owned by SetCameraRotatable)
             _inGameCameraController.SetFirstPersonMode(enabled);
-            _inGameCameraController.SetControllable(enabled);
             PlayerSystemContainer.Instance.PlayerObjectController.SetModelVisible(!enabled);
         }
 

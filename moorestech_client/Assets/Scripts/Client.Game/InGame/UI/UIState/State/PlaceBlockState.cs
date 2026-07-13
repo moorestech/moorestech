@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control.BuildView;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
@@ -17,16 +17,16 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
-        private readonly BuildViewModeController _buildViewModeController;
+        private readonly PlayerViewModeController _playerViewModeController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
         private bool _wasTextInputFocused;
 
-        public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService)
+        public PlaceBlockState(SkitManager skitManager, PlayerViewModeController playerViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService)
         {
             _skitManager = skitManager;
-            _buildViewModeController = buildViewModeController;
+            _playerViewModeController = playerViewModeController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
             _placementTargetPickService = placementTargetPickService;
@@ -38,9 +38,9 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
             if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
 
-            // カメラ・カーソルはBuildViewModeControllerへ委譲
-            // Camera and cursor handling is delegated to BuildViewModeController
-            _buildViewModeController.OnEnterBuildState(UIStateEnum.PlaceBlock);
+            // カメラ・カーソルはPlayerViewModeControllerへ委譲
+            // Camera and cursor handling is delegated to PlayerViewModeController
+            _playerViewModeController.OnEnterViewState(UIStateEnum.PlaceBlock);
             _wasTextInputFocused = false;
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
@@ -55,7 +55,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
+            if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
 
             // フォーカス変化を視点コントローラへ通知（FPS中のダイアログでカーソルを解放するため）
             // Notify focus changes to the view controller so FPS dialogs can free the cursor
@@ -63,7 +63,7 @@ namespace Client.Game.InGame.UI.UIState.State
             if (isTextInputFocused != _wasTextInputFocused)
             {
                 _wasTextInputFocused = isTextInputFocused;
-                _buildViewModeController.SetTextInputFocused(isTextInputFocused);
+                _playerViewModeController.SetTextInputFocused(isTextInputFocused);
             }
 
             // 入力フィールド編集中はキー遷移と視点操作を止める（BP名入力中のB/Tab/V等の誤爆防止）
@@ -72,12 +72,12 @@ namespace Client.Game.InGame.UI.UIState.State
             {
                 // TabはOpenInventoryと同キーだが、配置モード中はビルドメニュー再表示を優先する
                 // Tab shares the OpenInventory binding, but reopening the build menu takes precedence while placing
-                if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
-                if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
+                if (HybridInput.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
+                if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
                 //TODO InputSystem対応
-                if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
+                if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
-                _buildViewModeController.ManualUpdate();
+                _playerViewModeController.ManualUpdate();
 
                 // ミドルクリックのスポイトで設置対象を持ち替える
                 // Middle-click eyedropper swaps the current placement target
@@ -101,14 +101,6 @@ namespace Client.Game.InGame.UI.UIState.State
             #endregion
         }
 
-        // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
-        // Notify the controller before transiting; it decides whether the session ends
-        private UITransitContext Leave(UIStateEnum next)
-        {
-            _buildViewModeController.OnLeaveBuildState(next);
-            return new UITransitContext(next);
-        }
-
         private void OnPlaceBlock(BlockGameObject blockGameObject)
         {
             blockGameObject.EnablePreviewOnlyObjects(true, false);
@@ -121,6 +113,9 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
+            // クロスヘアと視点回転を落とす。カーソル方針は次ステートのOnEnterが適用する
+            // Drop the crosshair and look rotation; the next state's OnEnter applies its own cursor policy
+            _playerViewModeController.OnExitViewState();
             _placeSystemStateController.Disable();
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)

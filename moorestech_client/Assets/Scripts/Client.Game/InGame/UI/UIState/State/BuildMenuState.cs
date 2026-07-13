@@ -1,5 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control.BuildView;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
@@ -10,19 +10,19 @@ namespace Client.Game.InGame.UI.UIState.State
     public class BuildMenuState : IUIState
     {
         private readonly BuildMenuView _buildMenuView;
-        private readonly BuildViewModeController _buildViewModeController;
+        private readonly PlayerViewModeController _playerViewModeController;
 
-        public BuildMenuState(BuildMenuView buildMenuView, BuildViewModeController buildViewModeController)
+        public BuildMenuState(BuildMenuView buildMenuView, PlayerViewModeController playerViewModeController)
         {
             _buildMenuView = buildMenuView;
-            _buildViewModeController = buildViewModeController;
+            _playerViewModeController = playerViewModeController;
         }
 
         public void OnEnter(UITransitContext context)
         {
-            // カーソル適用はBuildViewModeController委譲（FPS中も解放）
-            // Cursor visibility is applied by BuildViewModeController (freed in the menu even during FPS)
-            _buildViewModeController.OnEnterBuildState(UIStateEnum.BuildMenu);
+            // カーソル適用はPlayerViewModeController委譲（FPS中も解放）
+            // Cursor visibility is applied by PlayerViewModeController (freed in the menu even during FPS)
+            _playerViewModeController.OnEnterViewState(UIStateEnum.BuildMenu);
             _buildMenuView.SetActive(true);
             KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
         }
@@ -30,24 +30,19 @@ namespace Client.Game.InGame.UI.UIState.State
         public UITransitContext GetNextUpdate()
         {
             if (_buildMenuView.TryConsumeSelectedEntry(out var entry))
-                return Leave(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(entry.Target));
+                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(entry.Target));
 
-            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen, null);
-            if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory, null);
+            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen, null);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory, null);
 
             return null;
         }
 
-        // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
-        // Notify the controller before transiting; it decides whether the session ends
-        private UITransitContext Leave(UIStateEnum next, UITransitContextContainer container)
-        {
-            _buildViewModeController.OnLeaveBuildState(next);
-            return new UITransitContext(next, container);
-        }
-
         public void OnExit()
         {
+            // 視点回転を落とす。カーソル方針は次ステートのOnEnterが適用する
+            // Drop the look rotation; the next state's OnEnter applies its own cursor policy
+            _playerViewModeController.OnExitViewState();
             _buildMenuView.SetActive(false);
         }
     }

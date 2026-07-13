@@ -18,7 +18,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Control.BuildView;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
@@ -204,10 +204,10 @@ namespace Client.Starter
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
 
-            // 建設系視点モード
-            // register build view mode
-            builder.Register<IBuildViewApplier, BuildViewApplier>(Lifetime.Singleton);
-            builder.Register<BuildViewModeController>(Lifetime.Singleton);
+            // 視点モード（FPS/TPS）
+            // register player view mode
+            builder.Register<IPlayerViewApplier, PlayerViewApplier>(Lifetime.Singleton);
+            builder.Register<PlayerViewModeController>(Lifetime.Singleton);
 
 
             //UIコントロール
