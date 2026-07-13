@@ -91,9 +91,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void InvokeBlockState(Vector3Int position)
+        public void RequestBlockState(Vector3Int position)
         {
-            var request = new InvokeBlockStateEventProtocol.RequestInvokeBlockStateProtocolMessagePack(position);
+            var request = new RequestBlockStateProtocol.RequestBlockStateProtocolMessagePack(position);
             _packetSender.Send(request);
         }
         

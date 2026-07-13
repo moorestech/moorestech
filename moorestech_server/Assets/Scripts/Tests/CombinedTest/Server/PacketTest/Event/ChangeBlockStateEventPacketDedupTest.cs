@@ -12,7 +12,7 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.InvokeBlockStateEventProtocol;
+using static Server.Protocol.PacketResponse.RequestBlockStateProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -129,7 +129,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 実パケット経路で発行
             // Fire through the real packet path
-            var request = new RequestInvokeBlockStateProtocolMessagePack(pos);
+            var request = new RequestBlockStateProtocolMessagePack(pos);
             var payload = MessagePackSerializer.Serialize(request);
             packet.GetPacketResponse(payload, new PacketResponseContext());
 
