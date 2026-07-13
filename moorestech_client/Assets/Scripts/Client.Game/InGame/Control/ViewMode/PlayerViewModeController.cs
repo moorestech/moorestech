@@ -22,8 +22,8 @@ namespace Client.Game.InGame.Control.ViewMode
         {
             _applier = applier;
 
-            // 静的な照準プロバイダはドメインリロードを跨いで残るため初期モードを明示同期する
-            // The static aim provider survives domain reloads, so sync the initial mode explicitly
+            // 照準プロバイダはstaticで前回プレイの値が残りうるため初期モードを明示同期する
+            // The aim provider is static and can hold a value from a previous play, so sync the initial mode explicitly
             AimPointProvider.SetMode(CurrentMode);
         }
 
@@ -41,6 +41,10 @@ namespace Client.Game.InGame.Control.ViewMode
         {
             _applier.SetCameraRotatable(false);
             _applier.SetCrosshairVisible(false);
+
+            // 視点管理外のステート（インベントリ・デバッグ等）はカーソルを解放するため照準もマウスへ戻す
+            // States outside the view management (inventory, debug, ...) free the cursor, so the aim returns to the mouse
+            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
         }
 
         // 視点ステート中に毎フレーム呼ぶ（Vトグルと、三人称の照準ステートでの右ドラッグ回転）
@@ -78,6 +82,7 @@ namespace Client.Game.InGame.Control.ViewMode
                 _applier.SetCameraRotatable(false);
                 _applier.SetCursorVisible(true);
                 _applier.SetCrosshairVisible(false);
+                AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
             }
             else
             {
@@ -88,7 +93,6 @@ namespace Client.Game.InGame.Control.ViewMode
         public void ToggleViewMode()
         {
             CurrentMode = CurrentMode == PlayerViewMode.ThirdPerson ? PlayerViewMode.FirstPerson : PlayerViewMode.ThirdPerson;
-            AimPointProvider.SetMode(CurrentMode);
 
             ApplyForState(_currentViewState);
         }
@@ -104,6 +108,10 @@ namespace Client.Game.InGame.Control.ViewMode
             _applier.SetCameraRotatable(!isCursorFree);
             _applier.SetCursorVisible(isCursorFree);
             _applier.SetCrosshairVisible(isFirstPerson && !isCursorFree);
+
+            // 画面中央照準はカーソルをロックしている間だけ成立する（解放中はマウス位置が照準）
+            // The center aim only holds while the cursor is locked; a freed cursor aims with the mouse
+            AimPointProvider.SetMode(isFirstPerson && !isCursorFree ? PlayerViewMode.FirstPerson : PlayerViewMode.ThirdPerson);
         }
 
         // マウスカーソルで照準するステート（設置・破壊）かどうか

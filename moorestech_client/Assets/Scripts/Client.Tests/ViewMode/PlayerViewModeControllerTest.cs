@@ -121,6 +121,24 @@ namespace Client.Tests.ViewMode
             // メニュー中はマウス移動で視点が回らないこと
             // The view must not rotate with mouse movement while the menu is open
             Assert.AreEqual(false, _applier.LastCameraRotatable);
+
+            // カーソル解放中は画面中央ではなくマウス位置が照準になること
+            // A freed cursor aims with the mouse, not the screen center
+            Assert.AreEqual(PlayerViewMode.ThirdPerson, AimPointProvider.CurrentMode);
+        }
+
+        [Test]
+        public void ExitViewStateReturnsAimToMouse()
+        {
+            _controller.OnEnterViewState(UIStateEnum.PlaceBlock);
+            _controller.ToggleViewMode();
+            Assert.AreEqual(PlayerViewMode.FirstPerson, AimPointProvider.CurrentMode);
+
+            // 視点管理外のステート（インベントリ・F3デバッグ等）はカーソルを解放するため照準をマウスへ戻す
+            // States outside the view management (inventory, F3 debug, ...) free the cursor, so the aim returns to the mouse
+            _controller.OnExitViewState();
+            Assert.AreEqual(PlayerViewMode.ThirdPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(PlayerViewMode.FirstPerson, _controller.CurrentMode);
         }
 
         [Test]
@@ -145,19 +163,21 @@ namespace Client.Tests.ViewMode
             _controller.OnEnterViewState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
 
-            // フォーカス中はカーソル解放・回転停止・クロスヘア非表示になること
-            // While focused the cursor is freed, rotation stops, and the crosshair hides
+            // フォーカス中はカーソル解放・回転停止・クロスヘア非表示になり、照準もマウスへ戻ること
+            // While focused the cursor is freed, rotation stops, the crosshair hides, and the aim returns to the mouse
             _controller.SetTextInputFocused(true);
             Assert.AreEqual(true, _applier.LastCursorVisible);
             Assert.AreEqual(false, _applier.LastCameraRotatable);
             Assert.AreEqual(false, _applier.LastCrosshairVisible);
+            Assert.AreEqual(PlayerViewMode.ThirdPerson, AimPointProvider.CurrentMode);
 
-            // フォーカス解除でFPSのカーソルロック・回転・クロスヘアへ戻ること
-            // On unfocus the FPS cursor lock, rotation, and crosshair are restored
+            // フォーカス解除でFPSのカーソルロック・回転・クロスヘア・中央照準へ戻ること
+            // On unfocus the FPS cursor lock, rotation, crosshair, and center aim are restored
             _controller.SetTextInputFocused(false);
             Assert.AreEqual(false, _applier.LastCursorVisible);
             Assert.AreEqual(true, _applier.LastCameraRotatable);
             Assert.AreEqual(true, _applier.LastCrosshairVisible);
+            Assert.AreEqual(PlayerViewMode.FirstPerson, AimPointProvider.CurrentMode);
         }
 
         [Test]

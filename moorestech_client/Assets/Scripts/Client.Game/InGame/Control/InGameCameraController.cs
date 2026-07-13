@@ -26,12 +26,15 @@ namespace Client.Game.InGame.Control
 
         private const float FirstPersonCameraDistance = 0.15f;
         private const float FirstPersonTweenDuration = 0.25f;
-        private const float DefaultThirdPersonCameraDistance = 5f;
         private static readonly Vector3 FirstPersonTrackedOffset = new(0f, 1.6f, 0f);
 
         private bool _isFirstPerson;
-        private Vector3 _storedTrackedObjectOffset;
-        private float _storedThirdPersonCameraDistance = DefaultThirdPersonCameraDistance;
+
+        // プレイヤーが選んだ三人称の距離・追従オフセット。表示中の値はFPSのTween中間値になりうるため別に持つ
+        // The player's chosen third-person distance and tracked offset; the live values can be mid-FPS-tween, so keep them apart
+        private Vector3 _thirdPersonTrackedObjectOffset;
+        private float _thirdPersonCameraDistance;
+
         private Tweener _offsetTweener;
         private Tweener _distanceTweener;
 
@@ -44,18 +47,23 @@ namespace Client.Game.InGame.Control
         {
             _cinemachineFraming = virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
             _targetRotation = transform.rotation; // Initialize target rotation to current rotation
+
+            _thirdPersonTrackedObjectOffset = _cinemachineFraming.m_TrackedObjectOffset;
+            _thirdPersonCameraDistance = _cinemachineFraming.m_CameraDistance;
         }
 
         private void Update()
         {
-            // FPS中と視点モード切替Tween中は距離クランプが目標距離を上書きするためズーム処理ごと止める
-            // Skip zoom during FPS and while the view-mode tween runs, because the clamp would override the target distance
-            if (!_isFirstPerson && !IsDistanceTweening())
+            // FPS中はズームを止め、切替Tween中は表示距離をTweenに任せる（選択距離自体はここが唯一の書き手）
+            // Zoom is off during FPS, and the tween owns the live distance while it runs (this is the sole writer of the chosen distance)
+            if (!_isFirstPerson)
             {
-                var distance = _cinemachineFraming.m_CameraDistance;
+                var distance = _thirdPersonCameraDistance;
                 if (UnityEngine.Input.GetKey(KeyCode.F1)) distance -= Time.deltaTime * 3f; // TODO InputManagerに移動
                 if (UnityEngine.Input.GetKey(KeyCode.F2)) distance += Time.deltaTime * 3f; // TODO InputManagerに移動
-                _cinemachineFraming.m_CameraDistance = Mathf.Clamp(distance, 0.6f, 10);
+                _thirdPersonCameraDistance = Mathf.Clamp(distance, 0.6f, 10);
+
+                if (!IsDistanceTweening()) _cinemachineFraming.m_CameraDistance = _thirdPersonCameraDistance;
             }
 
             if (!_isControllable) return;
@@ -88,6 +96,11 @@ namespace Client.Game.InGame.Control
                 transform.rotation = resultRotation;
             }
 
+            bool IsDistanceTweening()
+            {
+                return _distanceTweener != null && _distanceTweener.IsActive() && _distanceTweener.IsPlaying();
+            }
+
             #endregion
         }
 
@@ -113,24 +126,13 @@ namespace Client.Game.InGame.Control
             _offsetTweener?.Kill();
             _distanceTweener?.Kill();
 
-            // 三人称の追従オフセットと距離を保存し、頭部高さ・最小距離へ寄せる（TPS復帰時はそれを戻す）
-            // Store the third-person tracked offset and distance, then move to head height and the minimum distance (restored when returning to TPS)
-            if (enabled)
-            {
-                _storedTrackedObjectOffset = _cinemachineFraming.m_TrackedObjectOffset;
-                _storedThirdPersonCameraDistance = _cinemachineFraming.m_CameraDistance;
-            }
-
-            var targetOffset = enabled ? FirstPersonTrackedOffset : _storedTrackedObjectOffset;
-            var targetDistance = enabled ? FirstPersonCameraDistance : _storedThirdPersonCameraDistance;
+            // 目標は常にプレイヤーの選択値から取る（表示中の値を読むと連打時にTween中間値が記憶される）
+            // Targets always come from the chosen values; reading the live ones would memorize a mid-tween value on rapid toggles
+            var targetOffset = enabled ? FirstPersonTrackedOffset : _thirdPersonTrackedObjectOffset;
+            var targetDistance = enabled ? FirstPersonCameraDistance : _thirdPersonCameraDistance;
 
             _offsetTweener = DOTween.To(() => _cinemachineFraming.m_TrackedObjectOffset, x => _cinemachineFraming.m_TrackedObjectOffset = x, targetOffset, FirstPersonTweenDuration);
             _distanceTweener = DOTween.To(() => _cinemachineFraming.m_CameraDistance, x => _cinemachineFraming.m_CameraDistance = x, targetDistance, FirstPersonTweenDuration).SetEase(Ease.InOutQuad);
-        }
-
-        private bool IsDistanceTweening()
-        {
-            return _distanceTweener != null && _distanceTweener.IsActive() && _distanceTweener.IsPlaying();
         }
     }
 }

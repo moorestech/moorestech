@@ -1,4 +1,5 @@
 using Client.Game.Common;
+using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.Skit;
@@ -21,6 +22,10 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             // スキット中はカーソルを表示してUIを操作できるようにする
             InputManager.MouseCursorVisible(true);
+
+            // FPS中は自機モデルが非表示のため、専用カメラで自機を映すスキットに備えて表示へ戻す
+            // The player model is hidden during FPS, so restore it for skits filming the player with their own camera
+            PlayerSystemContainer.Instance.PlayerObjectController.SetModelVisible(true);
 
             // インベントリが開いている場合は閉じる
             if (context.LastStateEnum == UIStateEnum.PlayerInventory || context.LastStateEnum == UIStateEnum.SubInventory)

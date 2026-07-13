@@ -58,7 +58,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     p.Note("ゲーム画面でVを再度押し、三人称と元のカメラ距離へ戻ることを確認する");
     await p.PressKey(Key.V);
     await p.Until(() => AimPointProvider.CurrentMode == PlayerViewMode.ThirdPerson, 5f, "ThirdPersonへ復帰");
-    await p.Until(() => 0.05f > Mathf.Abs(camera.CameraDistance - thirdPersonDistance), 5f, "元の三人称カメラ距離へ復元");
+    await p.Until(() => Mathf.Abs(camera.CameraDistance - thirdPersonDistance) < 0.05f, 5f, "元の三人称カメラ距離へ復元");
     p.Assert(!crosshairDot.activeInHierarchy, "クロスヘアが非表示に戻る");
     p.Assert(playerRenderers.All(r => r.enabled), "自機Rendererが再表示");
     await p.Screenshot("03-gamescreen-tps-restored");
@@ -71,8 +71,8 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.OpenBuildMenuAndSelectBlock("木のチェスト");
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "PlaceBlockステートに遷移");
     await p.WaitSeconds(0.8f);
-    p.Assert(0.05f > Mathf.Abs(camera.CameraDistance - distanceBeforeBuild), "建設モード突入でカメラ距離が変化しない");
-    p.Assert(2f > Mathf.Abs(Mathf.DeltaAngle(camera.transform.eulerAngles.x, pitchBeforeBuild)), "建設モード突入でカメラピッチが変化しない（俯瞰化しない）");
+    p.Assert(Mathf.Abs(camera.CameraDistance - distanceBeforeBuild) < 0.05f, "建設モード突入でカメラ距離が変化しない");
+    p.Assert(Mathf.Abs(Mathf.DeltaAngle(camera.transform.eulerAngles.x, pitchBeforeBuild)) < 2f, "建設モード突入でカメラピッチが変化しない（俯瞰化しない）");
     p.Assert(AimPointProvider.CurrentMode == PlayerViewMode.ThirdPerson, "建設モードでも三人称のまま");
     p.Assert(Cursor.lockState != CursorLockMode.Locked, "三人称の建設モードはカーソル解放");
     await p.Screenshot("04-placeblock-tps-camera-unchanged");
@@ -118,13 +118,22 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     p.Assert(playerRenderers.All(r => !r.enabled), "自機Rendererは非表示のまま");
     await p.Screenshot("08-gamescreen-fps-kept");
 
-    // 9: Vで三人称へ戻して終了する
-    // 9: Toggle back to third-person to finish
+    // 9: FPS中にホットバーを持ち替えても、新しく生えた手持ちRendererが表示されない
+    // 9: Swapping the hotbar during FPS must not leave the newly spawned grab-item renderers visible
+    p.Note("FPS中にホットバーを持ち替え、手持ちアイテムが浮いて見えないことを確認する");
+    await p.SelectHotbar(1);
+    await p.WaitSeconds(0.5f);
+    var renderersAfterHotbarSwap = UnityEngine.Object.FindFirstObjectByType<PlayerObjectController>().GetComponentsInChildren<Renderer>(true);
+    p.Assert(renderersAfterHotbarSwap.All(r => !r.enabled), "持ち替え後も自機Rendererが全て非表示");
+    await p.Screenshot("09-fps-hotbar-swap");
+
+    // 10: Vで三人称へ戻して終了する
+    // 10: Toggle back to third-person to finish
     p.Note("Vで三人称へ戻して終了する");
     await p.PressKey(Key.V);
     await p.Until(() => AimPointProvider.CurrentMode == PlayerViewMode.ThirdPerson, 5f, "三人称へ復帰");
     await p.Until(() => 0.5f < camera.CameraDistance, 5f, "三人称カメラ距離へ復帰");
     p.Assert(playerRenderers.All(r => r.enabled), "自機Rendererが復帰");
     p.Assert(!crosshairDot.activeInHierarchy, "クロスヘアが非表示");
-    await p.Screenshot("09-gamescreen-tps-final");
+    await p.Screenshot("10-gamescreen-tps-final");
 });
