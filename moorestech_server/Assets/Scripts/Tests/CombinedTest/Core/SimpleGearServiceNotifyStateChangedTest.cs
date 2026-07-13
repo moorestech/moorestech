@@ -14,13 +14,13 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Core
 {
-    // SimpleGearService.NotifyStateChangedが値変化時のみ発火することを検証する
-    // Verify that SimpleGearService.NotifyStateChanged fires only when the visible state actually changed
+    // 値変化時のみ発火することを検証
+    // Verify firing only on visible-state change
     public class SimpleGearServiceNotifyStateChangedTest
     {
         [Test]
-        // 初回の計算tickでは、値の前回履歴が無いため必ず1回発火する
-        // The first calculation tick always fires once, since there is no prior notified state yet
+        // 初回tickは前回履歴が無いため必ず発火
+        // First tick always fires; no prior notified state
         public void FirstTickAlwaysNotifiesTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -64,8 +64,8 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // 要求トルク倍率が変化し、実際にトルク値が変わったtickでは発火する
-        // A tick where the torque request rate changes and the torque value actually changes must fire
+        // 要求トルク倍率変化でトルク値が変わったら発火
+        // Fires when a torque request rate change alters torque
         public void TorqueChangeNotifiesTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
