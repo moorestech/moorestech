@@ -18,8 +18,9 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using System;
-
+using System.Linq;
 using Tests.Util;
+
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class GearMachineSaveLoadTest
@@ -35,14 +36,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearMachineBlock);
             var machineInventory = gearMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
+
+            // レシピを明示選択してから材料を投入する
+            // Explicitly select the recipe before inserting materials
+            var machineGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearMachine).BlockGuid;
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == machineGuid);
+            MachineRecipeSelectTestUtil.SelectRecipe(gearMachineBlock, recipe);
             
             
             //レシピ用のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 3));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 1));
             
-            //処理を開始
-            gearMachineBlock.GetComponent<GearEnergyTransformer>().SupplyPower(new RPM(1000), new Torque(1000), true);
+            //処理を開始（gearの現在値は導出のみのため、機械の電力経路へ直接供給して加工を開始させる）
+            //Start processing: gear values are derived-only, so feed the machine's power path directly to begin crafting
+            gearMachineBlock.GetComponent<VanillaMachineProcessorComponent>().SupplyPower(1_000_000f);
             GameUpdater.UpdateOneTick();
             //別のアイテムを追加
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(5), 6));
@@ -51,11 +59,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Utilで機械の加工状態を設定
             // Set the machine processing state via the util
             var vanillaMachineProcessor = gearMachineBlock.GetComponent<VanillaMachineProcessorComponent>();
+            Assert.AreEqual(ProcessState.Processing, vanillaMachineProcessor.CurrentState);
 
             // 残りtick数を設定（0.3秒 = 6tick）
             // Set remaining ticks (0.3 seconds = 6 ticks)
             vanillaMachineProcessor.SetRemainingTicks(6u);
-            vanillaMachineProcessor.SetCurrentState(ProcessState.Processing);
             
             //機械のアウトプットスロットの設定
             var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)

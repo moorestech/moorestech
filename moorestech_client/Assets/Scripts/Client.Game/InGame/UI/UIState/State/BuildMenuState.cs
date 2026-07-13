@@ -1,4 +1,4 @@
-using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
@@ -10,13 +10,11 @@ namespace Client.Game.InGame.UI.UIState.State
     public class BuildMenuState : IUIState
     {
         private readonly BuildMenuView _buildMenuView;
-        private readonly PlacementSelection _placementSelection;
         private readonly BuildViewModeController _buildViewModeController;
 
-        public BuildMenuState(BuildMenuView buildMenuView, PlacementSelection placementSelection, BuildViewModeController buildViewModeController)
+        public BuildMenuState(BuildMenuView buildMenuView, BuildViewModeController buildViewModeController)
         {
             _buildMenuView = buildMenuView;
-            _placementSelection = placementSelection;
             _buildViewModeController = buildViewModeController;
         }
 
@@ -31,43 +29,21 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            // 選択が確定したら種別に応じて選択状態を設定し設置モードへ遷移する
-            // On selection, set the placement selection by entry type and transition to placement mode
             if (_buildMenuView.TryConsumeSelectedEntry(out var entry))
-            {
-                switch (entry.EntryType)
-                {
-                    case PlacementSelectionType.Block:
-                        _placementSelection.SetSelectedBlock(entry.BlockId, null);
-                        break;
-                    case PlacementSelectionType.TrainCar:
-                        _placementSelection.SetSelectedTrainCar(entry.TrainCarGuid);
-                        break;
-                    case PlacementSelectionType.ConnectTool:
-                        _placementSelection.SetSelectedConnectTool(entry.ConnectPlaceMode);
-                        break;
-                    case PlacementSelectionType.Blueprint:
-                        _placementSelection.SetSelectedBlueprint(entry.BlueprintName);
-                        break;
-                    case PlacementSelectionType.BlueprintCopy:
-                        _placementSelection.SetSelectedBlueprintCopyTool();
-                        break;
-                }
-                return Leave(UIStateEnum.PlaceBlock);
-            }
+                return Leave(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(entry.Target));
 
-            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
-            if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory);
+            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen, null);
+            if (InputManager.UI.OpenInventory.GetKeyDown) return Leave(UIStateEnum.PlayerInventory, null);
 
             return null;
         }
 
         // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
         // Notify the controller before transiting; it decides whether the session ends
-        private UITransitContext Leave(UIStateEnum next)
+        private UITransitContext Leave(UIStateEnum next, UITransitContextContainer container)
         {
             _buildViewModeController.OnLeaveBuildState(next);
-            return new UITransitContext(next);
+            return new UITransitContext(next, container);
         }
 
         public void OnExit()

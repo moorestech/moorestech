@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 {
     internal static class CleanRoomMachineProcessorSaveState
     {
-        public static CleanRoomMachineProcessorSaveJsonObject Build(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, ProcessState currentState, ProcessingMachineProcessState processingState, uint cycleCount)
+        public static CleanRoomMachineProcessorSaveJsonObject Build(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, ProcessState currentState, ProcessingMachineProcessState processingState, uint cycleCount, MachineRecipeMasterElement selectedRecipe)
         {
             // 通常機械の加工状態にクリーンルーム固有の抽選カウンタを加えて保存する
             // Save normal machine processing state plus the clean-room draw counter
@@ -29,16 +29,18 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 InputSlot = input.InputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 OutputSlot = output.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 ModuleSlot = module.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                SelectedRecipeGuidStr = selectedRecipe?.MachineRecipeGuid.ToString(),
             };
         }
 
-        public static void Restore(Dictionary<string, string> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount)
+        public static void Restore(Dictionary<string, string> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)
         {
             state = ProcessState.Idle;
             remainingTicks = 0;
             recipe = null;
             pendingOutputs = null;
             cycleCount = 0;
+            selectedRecipe = null;
             if (componentStates == null || !componentStates.TryGetValue(saveKey, out var stateRaw)) return;
 
             // 旧セーブではサイクル数以外が欠けるため、各値は個別に復元する
@@ -50,6 +52,13 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             if (saveData.RecipeGuidStr != null && saveData.RecipeGuid != Guid.Empty)
             {
                 recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(saveData.RecipeGuid);
+            }
+
+            // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
+            // Restore the selected recipe; a GUID missing from the master falls back to unselected
+            if (!string.IsNullOrEmpty(saveData.SelectedRecipeGuidStr) && Guid.TryParse(saveData.SelectedRecipeGuidStr, out var selectedGuid))
+            {
+                selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedGuid);
             }
 
             remainingTicks = GameUpdater.SecondsToTicks(saveData.RemainingSeconds);

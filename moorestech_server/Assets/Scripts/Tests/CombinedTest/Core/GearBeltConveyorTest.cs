@@ -9,8 +9,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.Gear.Common;
-using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -28,7 +26,7 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void OutputTestWhenTorqueSuppliedRateIs100()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var itemStackFactory = ServerContext.ItemStackFactory;
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
@@ -63,9 +61,6 @@ namespace Tests.CombinedTest.Core
             // testGearブロックを作成
             var testGearPosition = new Vector3Int(2, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, testGearPosition, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var testGear);
-
-            var gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
-            IReadOnlyDictionary<GearNetworkId, GearNetwork> gearNetwork = gearNetworkDatastore.GearNetworks;
 
             // ギアネットワークを確立するための更新サイクルを実行
             // Run update cycle to establish gear network

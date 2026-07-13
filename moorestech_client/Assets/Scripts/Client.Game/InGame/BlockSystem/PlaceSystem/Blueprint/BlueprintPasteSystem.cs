@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
@@ -17,7 +18,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     ///     BPを回転・プレビュー付きで貼り付ける設置系
     ///     Placement system that pastes a saved blueprint with rotation and ghost preview
     /// </summary>
-    public class BlueprintPasteSystem : IPlaceSystem
+    public class BlueprintPasteSystem : PlaceSystemBase<BlueprintPlacementTarget>
     {
         private readonly ClientBlueprintLibrary _library;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
@@ -38,17 +39,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
 
-        public void Enable()
+        public override void Enable()
         {
             _rotationStep = 0;
             _previewController ??= new BlueprintPastePreviewController(new GameObject("BlueprintPastePreview").transform);
         }
 
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        protected override void ManualUpdate(BlueprintPlacementTarget target, bool isSelectionChanged)
         {
             // 選択変更時にBP実データを解決する
             // Resolve blueprint data when the selection changes
-            if (context.IsSelectionChanged) ResolveBlueprint(context.SelectedBlueprintName);
+            if (isSelectionChanged) ResolveBlueprint(target.BlueprintName);
             if (_currentBlueprint == null)
             {
                 // 未解決BP（キャッシュに無い等）は前回のゴーストを残さない
@@ -131,7 +132,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             #endregion
         }
 
-        public void Disable()
+        public override void Disable()
         {
             _previewController?.Hide();
             _currentBlueprint = null;

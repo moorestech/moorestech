@@ -1,0 +1,1336 @@
+diff --git a/VanillaSchema/blocks.yml b/VanillaSchema/blocks.yml
+index 7354fd6fc..5b737c473 100644
+--- a/VanillaSchema/blocks.yml
++++ b/VanillaSchema/blocks.yml
+@@ -173,6 +173,10 @@ properties:
+         - key: requiredPower
+           type: number
+           default: 5
++        - key: idlePowerRate
++          type: number
++          default: 0.2
++          optional: true
+         - key: inputSlotCount
+           type: integer
+           default: 1
+@@ -280,6 +284,10 @@ properties:
+         - key: requiredPower
+           type: number
+           default: 5
++        - key: idlePowerRate
++          type: number
++          default: 0.2
++          optional: true
+         - key: outputItemSlotCount
+           type: integer
+           default: 3
+@@ -750,6 +758,10 @@ properties:
+         - key: requiredPower
+           type: number
+           default: 5
++        - key: idlePowerRate
++          type: number
++          default: 0.2
++          optional: true
+         - key: fluidInventoryConnectors
+           ref: fluidInventoryConnects
+       - when: GearToElectricGenerator
+diff --git a/VanillaSchema/ref/gearConsumption.yml b/VanillaSchema/ref/gearConsumption.yml
+index 453401b15..1f4d1caa4 100644
+--- a/VanillaSchema/ref/gearConsumption.yml
++++ b/VanillaSchema/ref/gearConsumption.yml
+@@ -44,6 +44,10 @@ properties:
+ - key: baseTorque
+   type: number
+   default: 1
++- key: idlePowerRate
++  type: number
++  default: 0.2
++  optional: true
+ - key: torqueExponentUnder
+   type: number
+   default: 2
+diff --git a/docs/superpowers/specs/2026-07-03-idle-power-rate-design.md b/docs/superpowers/specs/2026-07-03-idle-power-rate-design.md
+new file mode 100644
+index 000000000..a08dc1cb4
+--- /dev/null
++++ b/docs/superpowers/specs/2026-07-03-idle-power-rate-design.md
+@@ -0,0 +1,86 @@
++# アイドル時要求エネルギー低減（idlePowerRate）設計書
++
++作成日: 2026-07-03
++
++## 概要
++
++電力・トルクを消費するブロックが、稼働中とアイドル状態で要求エネルギーを変える機能。
++アイドル時はマスタデータの比率 `idlePowerRate` を要求値に乗算する。
++
++## 決定事項
++
++| 論点 | 決定 |
++|---|---|
++| 指定方法 | 比率（`idlePowerRate`）を各ブロックのマスタデータに持たせる |
++| スキーマデフォルト値 | **0.2**（既存 JSON はキー無し → 全既存機械が自動でアイドル省エネ化） |
++| 歯車ネットワークのハードストップ | **維持**。アイドル中は回るが、加工開始で需要超過になれば停止する。発電追加等で供給が需要を上回れば毎tick再計算により自動復帰。過負荷対策はプレイヤーの電源設計の責務とする |
++| 適用範囲 | 消費ブロック全般（電気: 機械・採掘機・ポンプ / 歯車: 機械・採掘機・MapObject採掘機・ポンプ・ベルトコンベア） |
++| スコープ | サーバーロジックのみ。クライアント表示は既存の BlockState 同期に自然に追従する範囲でよい |
++| 実装方式 | **具体→抽象の一方向依存**。稼働判定と倍率決定は各具体コンポーネント（機械プロセス・採掘機プロセス等）が行い、汎用部品（`GearEnergyTransformer`）へは `SetTorqueRequestRate` で変更要求を叩く。汎用部品は「アイドルかどうか」を知らない |
++
++## マスタデータ（スキーマ）変更
++
++新キー `idlePowerRate`（number、デフォルト 0.2、0〜1想定）を追加する。
++
++- 歯車系: `VanillaSchema/ref/gearConsumption.yml` に追加。`gearConsumption` は歯車消費5ブロック（GearMachine / GearMiner / GearMapObjectMiner / GearPump / GearBeltConveyor）が共有する ref のため、1箇所で全てに行き渡る
++- 電気系: `VanillaSchema/blocks.yml` の ElectricMachine / ElectricMiner / ElectricPump の properties に追加（`requiredPower` の隣）
++- スキーマ編集時は edit-schema スキルに従い、SourceGenerator を再生成する
++
++意味論:
++- 電気: アイドル時要求電力 = `requiredPower × idlePowerRate`
++- 歯車: アイドル時要求トルク = `CalcRequiredTorque(rpm) × idlePowerRate`（RPM 側は変えずトルクのみ縮む）
++
++## 実装方式
++
++### 電気側（各 `IElectricConsumer.RequestEnergy` の算出箇所）
++
++- 機械: `VanillaMachineProcessorComponent.EffectiveRequestPower` を変更。
++  現在の `RequestPower × (Processing ? PowerMultiplier : 1f)` の Idle 側を `idlePowerRate` に差し替える
++- 採掘機: `VanillaMinerProcessorComponent` の要求電力算出に `Mining ? 1f : idlePowerRate` を乗算し、
++  `VanillaElectricMinerComponent.RequestEnergy`（現在コンストラクタ固定値）はプロセッサ参照の動的プロパティに変更
++- ポンプ: `ElectricPumpComponent.RequestEnergy` で内部タンクの受入可否を判定して乗算
++
++### 歯車側（具体コンポーネントから `GearEnergyTransformer` へ変更要求を叩く）
++
++- `GearEnergyTransformer` は要求トルク倍率 `_torqueRequestRate`（初期値1）と `SetTorqueRequestRate(float)` だけを持ち、`GetRequiredTorque` は計算結果に倍率を乗算するのみ。稼働状態・idlePowerRate の語彙を持たない
++- 稼働判定と `idlePowerRate ?? 0.2` の解決は各具体側が行い、状態変化時に倍率を叩く
++  - GearMachine: `VanillaGearMachineComponent` が processor の `OnChangeBlockState` 購読＋初期化時に叩く
++  - GearMiner: `VanillaGearMinerComponent` が同様に `IsMining` で叩く
++  - GearMapObjectMiner: `VanillaGearMapObjectMinerProcessorComponent` が自身の `Update` で採掘対象の有無により叩く
++  - GearPump: `GearPumpComponent` が `Update` で生成可否により叩く
++  - GearBeltConveyor: `GearBeltConveyorComponent` 自身が `Update` でアイテム有無により叩く
++- 発電機・シャフト・歯車等の非消費ブロックは一切変更しない（倍率1のまま）
++- ロード直後の初回tickのみ倍率1で要求する可能性があるが、遷移1tickラグとして許容範囲
++
++## ブロック別の稼働（フル要求）判定
++
++| ブロック | エネルギー | 稼働の条件 | 判定元（既存状態） |
++|---|---|---|---|
++| ElectricMachine / GearMachine | 電気 / 歯車 | `ProcessState.Processing` | `VanillaMachineProcessorComponent.CurrentState` |
++| ElectricMiner / GearMiner | 電気 / 歯車 | `VanillaMinerState.Mining` | `VanillaMinerProcessorComponent` |
++| GearMapObjectMiner | 歯車 | 採掘対象の MapObject が範囲内に1つ以上存在 | `VanillaGearMapObjectMinerProcessorComponent` の採掘対象リスト |
++| ElectricPump / GearPump | 電気 / 歯車 | 内部タンクに空きがある（`Amount < Capacity`） | `PumpFluidOutputComponent` のタンク |
++| GearBeltConveyor | 歯車 | ベルト上にアイテムが1つ以上ある | `VanillaBeltConveyorComponent.BeltConveyorItems` |
++
++## 変更不要と確認済みの箇所
++
++- `EnergySegment`: 毎tick `RequestEnergy` を合計し直すため要求変動に自動追従
++- `GearNetwork`: 毎tick再計算。ハードストップ仕様は維持
++- 加工速度の分母（`MachineCurrentPowerToSubSecond`）: Processing 中しか意味を持たず、Processing 中はフル要求のため影響なし
++- セーブデータ・プロトコル: 変更なし（倍率は実行時状態から都度導出）
++
++## 既知の挙動（仕様として受容）
++
++- 歯車ネットワークが「全員アイドルなら回るが全員稼働は賄えない」規模の場合、加工開始時に需要超過で停止し、
++  加工中ブロックはフル要求を出し続けるため停止が継続する。プレイヤーが発電を増強すれば自動復帰する
++- アイドル→稼働の遷移直後の1tickは、直前のアイドル水準の供給で加工が始まるため初tickのみわずかに遅い（許容）
++
++## テスト計画
++
++creating-server-tests スキルに従い作成する。
++
++1. 電気機械: レシピ材料なし（Idle）で `RequestEnergy == requiredPower × idlePowerRate`、材料投入で Processing → フル要求、完了後 Idle に戻り再び低減
++2. 歯車機械: アイドル時の要求トルクが低減され供給不足だったネットワークが回ること／加工開始で需要超過 → 既存ハードストップが発動すること
++3. 電気採掘機・ポンプ・ベルトコンベア: 各アイドル条件（鉱石なし・タンク満杯・ベルト空）で要求が低減されること
++4. EnergySegment 結合: アイドル機械が要求を下げた分、同一ネットワークの稼働中機械への配分が増えること
++5. マスタデータ: テスト用 blocks.json に `idlePowerRate` 明示指定ブロックを追加し、明示値とデフォルト値（キー省略時 0.2）の両方を検証
+diff --git a/moorestech_server/Assets/Scripts/Core.Master/BlockMaster.cs b/moorestech_server/Assets/Scripts/Core.Master/BlockMaster.cs
+index a77e1c6af..24140f71f 100644
+--- a/moorestech_server/Assets/Scripts/Core.Master/BlockMaster.cs
++++ b/moorestech_server/Assets/Scripts/Core.Master/BlockMaster.cs
+@@ -21,6 +21,7 @@ namespace Core.Master
+         // カテゴリー未設定ブロックの破壊カテゴリー。デフォルト同士は従来どおり複数選択可能
+         // Destruction category for blocks not listed in any definition; defaults can still be multi-selected together
+         public const string DefaultDestructionCategory = "default";
++        public const float DefaultIdlePowerRate = 0.2f;
+ 
+         public readonly Blocks Blocks;
+ 
+@@ -132,4 +133,4 @@ namespace Core.Master
+             throw new InvalidOperationException($"ItemElement not found. BlockId:{blockId}");
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs b/moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
+index a1cbeadf3..6baeae40d 100644
+--- a/moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
++++ b/moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
+@@ -5,5 +5,5 @@ public class CompileRequester
+ {
+ // スキーマを更新したら、こちらの更新もコミットしてください。
+ // If you update the schema, please also commit this update.
+-    private const string dummyText = "2026/07/03 13:18:54";
++    private const string dummyText = "2026/07/03 17:13:05";
+ }
+\ No newline at end of file
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/GearBeltConveyorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/GearBeltConveyorComponent.cs
+index 6778e5a56..dcf1bb688 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/GearBeltConveyorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/GearBeltConveyorComponent.cs
+@@ -1,4 +1,6 @@
++using Core.Master;
+ using Core.Update;
++using System.Linq;
+ using Game.Block.Blocks.Gear;
+ using Game.Block.Component;
+ using Game.Block.Interface;
+@@ -12,17 +14,31 @@ namespace Game.Block.Blocks.BeltConveyor
+     {
+         private readonly VanillaBeltConveyorComponent _beltConveyorComponent;
+         private readonly double _timeOfItemEnterToExit;
++        private readonly float _idleTorqueRate;
+ 
+         public GearBeltConveyorComponent(VanillaBeltConveyorComponent beltConveyorComponent, BlockInstanceId entityId, double timeOfItemEnterToExit, GearConsumption gearConsumption, BlockConnectorComponent<IGearEnergyTransformer> blockConnectorComponent)
+             : base(gearConsumption, entityId, blockConnectorComponent)
+         {
+             _beltConveyorComponent = beltConveyorComponent;
+             _timeOfItemEnterToExit = timeOfItemEnterToExit;
++            _idleTorqueRate = gearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
++
++            UpdateTorqueRequestRate();
+         }
+ 
+         public void Update()
+         {
+             BlockException.CheckDestroy(this);
++
++            UpdateTorqueRequestRate();
++        }
++
++        private void UpdateTorqueRequestRate()
++        {
++            // ベルト上のアイテム有無で要求トルク倍率を変更要求する
++            // Push the torque request rate based on whether items are on the belt
++            var hasItem = _beltConveyorComponent.BeltConveyorItems.Any(item => item != null);
++            SetTorqueRequestRate(hasItem ? 1f : _idleTorqueRate);
+         }
+ 
+         public override void StopNetwork()
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorComponent.cs
+index 90a8baae4..cdc12d007 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorComponent.cs
+@@ -273,7 +273,7 @@ namespace Game.Block.Blocks.BeltConveyor
+             {
+                 foreach (var item in _inventoryItems)
+                 {
+-                    item?.ResetTicksOnSpeedRecovery(ticks);
++                    item?.UpdateTicksForSpeedChange(ticks);
+                 }
+             }
+         }
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorInventoryItem.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorInventoryItem.cs
+index 297bf6d6f..d721e080b 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorInventoryItem.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/VanillaBeltConveyorInventoryItem.cs
+@@ -65,6 +65,24 @@ namespace Game.Block.Blocks.BeltConveyor
+             }
+         }
+ 
++        public void UpdateTicksForSpeedChange(uint newTotalTicks)
++        {
++            if (TotalTicks == newTotalTicks) return;
++
++            // 既存進捗率を保ったまま、新しい搬送時間へ再計算する
++            // Recalculate against the new transit time while preserving existing progress
++            if (TotalTicks == 0 || TotalTicks == uint.MaxValue)
++            {
++                ResetTicksOnSpeedRecovery(newTotalTicks);
++                return;
++            }
++
++            var elapsedTicks = TotalTicks > RemainingTicks ? TotalTicks - RemainingTicks : 0;
++            var remainingRate = 1d - elapsedTicks / (double)TotalTicks;
++            TotalTicks = newTotalTicks;
++            RemainingTicks = (uint)Math.Ceiling(newTotalTicks * remainingRate);
++        }
++
+         public string GetSaveJsonString()
+         {
+             return JsonConvert.SerializeObject(new VanillaBeltConveyorInventoryItemJsonObject(this));
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearEnergyTransformerComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearEnergyTransformerComponent.cs
+index c305390e5..283c8842c 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearEnergyTransformerComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearEnergyTransformerComponent.cs
+@@ -27,6 +27,10 @@ namespace Game.Block.Blocks.Gear
+         private readonly GearConsumption _consumption;
+         private readonly SimpleGearService _simpleGearService;
+ 
++        // 具体コンポーネントから変更要求される要求トルク倍率
++        // Torque request rate pushed by concrete components
++        private float _torqueRequestRate = 1f;
++
+         public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
+         {
+             _consumption = consumption;
+@@ -37,6 +41,11 @@ namespace Game.Block.Blocks.Gear
+             GearNetworkDatastore.AddGear(this);
+         }
+ 
++        public void SetTorqueRequestRate(float rate)
++        {
++            _torqueRequestRate = rate;
++        }
++
+         public BlockStateDetail[] GetBlockStateDetails()
+         {
+             return new[] { _simpleGearService.GetBlockStateDetail() };
+@@ -47,7 +56,7 @@ namespace Game.Block.Blocks.Gear
+             // 生成側（Generator）はConsumption=nullで常にトルク消費0
+             // Generators pass null Consumption and always consume zero torque
+             if (_consumption == null) return new Torque(0);
+-            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
++            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm) * _torqueRequestRate;
+         }
+ 
+         // 現在のRPM/トルクに対する出力倍率。出力系コンポーネント（Machine/Miner/Pump/Conveyor/ElectricGen）から参照される
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs
+index 5a928cdf5..80661fcda 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs
+@@ -1,4 +1,5 @@
+ using System.Collections.Generic;
++using Core.Master;
+ using Game.Block.Interface;
+ using Game.Block.Interface.Component;
+ using Game.Block.Blocks.Pump;
+@@ -14,12 +15,16 @@ namespace Game.Block.Blocks.Gear
+         private readonly GearEnergyTransformer _gearEnergyTransformer;
+         private readonly PumpFluidOutputComponent _output;
+         private readonly List<FluidGenerationEntry> _entries;
++        private readonly float _idleTorqueRate;
+ 
+         public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
+         {
+             _gearEnergyTransformer = gearEnergyTransformer;
+             _output = output;
+             _entries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid.items, blockPositionInfo.OriginalPos);
++            _idleTorqueRate = param.GearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
++
++            UpdateTorqueRequestRate();
+         }
+ 
+         public void Update()
+@@ -29,6 +34,16 @@ namespace Game.Block.Blocks.Gear
+             // 稼働率（RPM比 × torqueRate、下限未満で0）を排出量に乗じる
+             // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to fluid generation
+             PumpFluidGenerationUtility.GenerateFluids(_entries, _gearEnergyTransformer.GetCurrentOperatingRate(), _output);
++
++            UpdateTorqueRequestRate();
++        }
++
++        private void UpdateTorqueRequestRate()
++        {
++            // 流体を生成できるかどうかで要求トルク倍率を変更要求する
++            // Push the torque request rate based on whether fluid can be generated
++            var canGenerateFluid = _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
++            _gearEnergyTransformer.SetTorqueRequestRate(canGenerateFluid ? 1f : _idleTorqueRate);
+         }
+ 
+         public bool IsDestroy { get; private set; }
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/SimpleGearGeneratorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/SimpleGearGeneratorComponent.cs
+index a07cb94a9..ec505741c 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/SimpleGearGeneratorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/SimpleGearGeneratorComponent.cs
+@@ -21,4 +21,4 @@ namespace Game.Block.Blocks.Gear
+             GenerateIsClockwise = true;
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs
+index 38869851f..3c840ecc4 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaGearMachineComponent.cs
+@@ -13,13 +13,20 @@ namespace Game.Block.Blocks.Machine
+     {
+         private readonly GearEnergyTransformer _gearEnergyTransformer;
+         private readonly VanillaMachineProcessorComponent _vanillaMachineProcessorComponent;
++        private readonly float _idleTorqueRate;
+ 
+-        public VanillaGearMachineComponent(VanillaMachineProcessorComponent vanillaMachineProcessorComponent, GearEnergyTransformer gearEnergyTransformer)
++        public VanillaGearMachineComponent(VanillaMachineProcessorComponent vanillaMachineProcessorComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate)
+         {
+             _vanillaMachineProcessorComponent = vanillaMachineProcessorComponent;
+             _gearEnergyTransformer = gearEnergyTransformer;
++            _idleTorqueRate = idleTorqueRate;
+ 
+             _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
++
++            // 加工状態の変化に応じて要求トルク倍率を変更要求する
++            // Push the torque request rate whenever the processing state changes
++            _vanillaMachineProcessorComponent.OnChangeBlockState.Subscribe(_ => UpdateTorqueRequestRate());
++            UpdateTorqueRequestRate();
+         }
+ 
+         private void OnGearUpdate(GearUpdateType gearUpdateType)
+@@ -27,6 +34,12 @@ namespace Game.Block.Blocks.Machine
+             _vanillaMachineProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
+         }
+ 
++        private void UpdateTorqueRequestRate()
++        {
++            var isProcessing = _vanillaMachineProcessorComponent.CurrentState == ProcessState.Processing;
++            _gearEnergyTransformer.SetTorqueRequestRate(isProcessing ? 1f : _idleTorqueRate);
++        }
++
+         public bool IsDestroy { get; private set; }
+         public void Destroy()
+         {
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs
+index 3e5783f15..72236b623 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs
+@@ -23,10 +23,10 @@ namespace Game.Block.Blocks.Machine
+         public float CurrentPower => _context.CurrentPower;
+         public ProcessState CurrentState { get; private set; }
+ 
+-        // 加工中のみモジュールの電力倍率を適用した要求電力
+-        // Requested power applying the module power multiplier only while processing
++        // 稼働状態に応じてアイドル倍率かモジュール倍率を適用した要求電力
++        // Requested power applies the idle rate or module multiplier based on the active state
+         public float EffectiveRequestPower => _context.RequestPower *
+-                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : 1f);
++                                              (CurrentState == ProcessState.Processing ? _context.EffectComponent.AggregateCurrent().PowerMultiplier : _idlePowerRate);
+ 
+         public IObservable<Unit> OnChangeBlockState => _changeState;
+         private readonly Subject<Unit> _changeState = new();
+@@ -34,26 +34,28 @@ namespace Game.Block.Blocks.Machine
+         private readonly MachineProcessContext _context;
+         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
+         private readonly ProcessingMachineProcessState _processingState;
++        private readonly float _idlePowerRate;
+         
+         private ProcessState _lastState = ProcessState.Idle;
+ 
+         // 新規作成
+         // For new creation
+-        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, MachineModuleEffectComponent effect)
+-            : this(input, output, effect, requestPower, ProcessState.Idle, 0, null, null)
++        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
++            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, 0, null, null)
+         {
+         }
+ 
+         // セーブからの復元
+         // For restoration from save
+-        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs)
+-            : this(input, output, effect, requestPower, currentState, remainingTicks, processingRecipe, pendingOutputs)
++        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs)
++            : this(input, output, effect, requestPower, idlePowerRate, currentState, remainingTicks, processingRecipe, pendingOutputs)
+         {
+         }
+ 
+-        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
++        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs)
+         {
+             _context = new MachineProcessContext(input, output, effect, requestPower);
++            _idlePowerRate = idlePowerRate;
+ 
+             // 加工状態を復元
+             // Restore processing state
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/MapObjectMiner/VanillaGearMapObjectMinerProcessorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/MapObjectMiner/VanillaGearMapObjectMinerProcessorComponent.cs
+index 947ea5d00..d6ccb6752 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/MapObjectMiner/VanillaGearMapObjectMinerProcessorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/MapObjectMiner/VanillaGearMapObjectMinerProcessorComponent.cs
+@@ -3,6 +3,7 @@ using System.Collections.Generic;
+ using System.Linq;
+ using Core.Update;
+ using Game.Block.Blocks.Chest;
++using Game.Block.Blocks.Gear;
+ using Game.Block.Blocks.Util;
+ using Game.Block.Interface;
+ using Game.Block.Interface.Component;
+@@ -18,18 +19,22 @@ namespace Game.Block.Blocks.MapObjectMiner
+     {
+         private readonly float _requestEnergy;
+         private readonly VanillaChestComponent _vanillaChestComponent;
+-        
++        private readonly GearEnergyTransformer _gearEnergyTransformer;
++        private readonly float _idleTorqueRate;
++
+         // 採掘対象
+         // Mining target
+         private readonly List<Guid> _miningTargetGuids;
+         private readonly Dictionary<Guid, MiningTargetInfo> _miningTargetInfos;
+-        
++
+         private float _currentPower;
+-        
+-        public VanillaGearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent)
++
++        public VanillaGearMapObjectMinerProcessorComponent(BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate)
+         {
+             _requestEnergy = (float)(blockParam.GearConsumption.BaseTorque * blockParam.GearConsumption.BaseRpm);
+             _vanillaChestComponent = vanillaChestComponent;
++            _gearEnergyTransformer = gearEnergyTransformer;
++            _idleTorqueRate = idleTorqueRate;
+             
+             var minPos = blockPositionInfo.MinPos - blockParam.MiningAreaRange;
+             var maxPos = blockPositionInfo.MaxPos + blockParam.MiningAreaRange;
+@@ -59,11 +64,13 @@ namespace Game.Block.Blocks.MapObjectMiner
+             
+             _miningTargetGuids = new List<Guid>();
+             _miningTargetGuids.AddRange(_miningTargetInfos.Keys);
++
++            UpdateTorqueRequestRate();
+         }
+-        
+-        
+-        public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent) :
+-            this(blockPositionInfo, blockParam, vanillaChestComponent)
++
++
++        public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate) :
++            this(blockPositionInfo, blockParam, vanillaChestComponent, gearEnergyTransformer, idleTorqueRate)
+         {
+             // 秒数からtickに変換して復元
+             // Convert seconds back to ticks for restoration
+@@ -123,9 +130,19 @@ namespace Game.Block.Blocks.MapObjectMiner
+                     info.RemainingMiningTicks -= subTicks;
+                 }
+             }
++
++            UpdateTorqueRequestRate();
+         }
+-        
+-        
++
++        private void UpdateTorqueRequestRate()
++        {
++            // 採掘対象の有無に応じて要求トルク倍率を変更要求する
++            // Push the torque request rate based on remaining mining targets
++            var hasMiningTargets = _miningTargetInfos.Values.Any(info => info.MapObjects.Count > 0);
++            _gearEnergyTransformer.SetTorqueRequestRate(hasMiningTargets ? 1f : _idleTorqueRate);
++        }
++
++
+         public string SaveKey { get; } = typeof(VanillaGearMapObjectMinerProcessorComponent).FullName;
+         public string GetSaveState()
+         {
+@@ -163,4 +180,4 @@ namespace Game.Block.Blocks.MapObjectMiner
+             RemainingMiningTicks = DefaultMiningTicks;
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaElectricMinerComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaElectricMinerComponent.cs
+index 6f185a1c2..dcd76dda0 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaElectricMinerComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaElectricMinerComponent.cs
+@@ -6,15 +6,14 @@ namespace Game.Block.Blocks.Miner
+     public class VanillaElectricMinerComponent : IElectricConsumer
+     {
+         public BlockInstanceId BlockInstanceId { get; }
+-        public ElectricPower RequestEnergy { get; }
++        public ElectricPower RequestEnergy => new(_vanillaMinerProcessorComponent.RequestEnergy);
+         
+         private readonly VanillaMinerProcessorComponent _vanillaMinerProcessorComponent;
+         
+-        public VanillaElectricMinerComponent(BlockInstanceId blockInstanceId, ElectricPower requestEnergy, VanillaMinerProcessorComponent vanillaMinerProcessorComponent)
++        public VanillaElectricMinerComponent(BlockInstanceId blockInstanceId, VanillaMinerProcessorComponent vanillaMinerProcessorComponent)
+         {
+             _vanillaMinerProcessorComponent = vanillaMinerProcessorComponent;
+             BlockInstanceId = blockInstanceId;
+-            RequestEnergy = requestEnergy;
+         }
+         
+         public void SupplyEnergy(ElectricPower power)
+@@ -28,4 +27,4 @@ namespace Game.Block.Blocks.Miner
+             IsDestroy = true;
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaGearMinerComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaGearMinerComponent.cs
+index b9b656d82..b3c1c77c1 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaGearMinerComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaGearMinerComponent.cs
+@@ -8,12 +8,19 @@ namespace Game.Block.Blocks.Miner
+     {
+         private readonly GearEnergyTransformer _gearEnergyTransformer;
+         private readonly VanillaMinerProcessorComponent _vanillaMinerProcessorComponent;
++        private readonly float _idleTorqueRate;
+ 
+-        public VanillaGearMinerComponent(VanillaMinerProcessorComponent vanillaMinerProcessorComponent, GearEnergyTransformer gearEnergyTransformer)
++        public VanillaGearMinerComponent(VanillaMinerProcessorComponent vanillaMinerProcessorComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate)
+         {
+             _vanillaMinerProcessorComponent = vanillaMinerProcessorComponent;
+             _gearEnergyTransformer = gearEnergyTransformer;
++            _idleTorqueRate = idleTorqueRate;
+             _gearEnergyTransformer.OnGearUpdate.Subscribe(OnGearUpdate);
++
++            // 採掘状態の変化に応じて要求トルク倍率を変更要求する
++            // Push the torque request rate whenever the mining state changes
++            _vanillaMinerProcessorComponent.OnChangeBlockState.Subscribe(_ => UpdateTorqueRequestRate());
++            UpdateTorqueRequestRate();
+         }
+ 
+         private void OnGearUpdate(GearUpdateType gearUpdateType)
+@@ -21,6 +28,11 @@ namespace Game.Block.Blocks.Miner
+             _vanillaMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
+         }
+ 
++        private void UpdateTorqueRequestRate()
++        {
++            _gearEnergyTransformer.SetTorqueRequestRate(_vanillaMinerProcessorComponent.IsMining ? 1f : _idleTorqueRate);
++        }
++
+         public bool IsDestroy { get; private set; }
+         public void Destroy()
+         {
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaMinerProcessorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaMinerProcessorComponent.cs
+index 77d3c93ed..e5ea78bd3 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaMinerProcessorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Miner/VanillaMinerProcessorComponent.cs
+@@ -26,7 +26,8 @@ namespace Game.Block.Blocks.Miner
+     public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IUpdatableBlockComponent
+     {
+         public bool IsDestroy { get; private set; }
+-        public float RequestEnergy { get; }
++        public float RequestEnergy => _baseRequestEnergy * (_currentState == VanillaMinerState.Mining ? 1f : _idlePowerRate);
++        public bool IsMining => _currentState == VanillaMinerState.Mining;
+         public IObservable<Unit> OnChangeBlockState => _blockStateChangeSubject;
+         private Subject<Unit> _blockStateChangeSubject = new();
+         
+@@ -36,6 +37,8 @@ namespace Game.Block.Blocks.Miner
+         
+         private readonly OpenableInventoryItemDataStoreService _openableInventoryItemDataStoreService;
+         private readonly BlockInstanceId _blockInstanceId;
++        private readonly float _baseRequestEnergy;
++        private readonly float _idlePowerRate;
+         
+         // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
+         // Use this flag because you want to keep _currentPower until the next energy supply or update
+@@ -48,10 +51,11 @@ namespace Game.Block.Blocks.Miner
+         private VanillaMinerState _lastMinerState;
+         private VanillaMinerState _currentState = VanillaMinerState.Idle;
+         
+-        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
++        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+         {
+             _blockInstanceId = blockInstanceId;
+-            RequestEnergy = requestPower;
++            _baseRequestEnergy = requestPower;
++            _idlePowerRate = idlePowerRate;
+             
+             _blockInventoryUpdate = openableInventoryUpdateEvent;
+             
+@@ -82,8 +86,8 @@ namespace Game.Block.Blocks.Miner
+             #endregion
+         }
+         
+-        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+-            : this(blockInstanceId, requestPower, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
++        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
++            : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
+         {
+             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
+ 
+@@ -149,11 +153,10 @@ namespace Game.Block.Blocks.Miner
+ 
+             void MinerProgressUpdate()
+             {
+-                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, RequestEnergy);
+-                if (subTicks == 0)
++                // 採掘可能性を先に判定し、進行計算はフル要求電力を基準にする
++                // Check mining feasibility first, then calculate progress against full demand
++                if (_miningItems.Count == 0)
+                 {
+-                    // 電力の都合で処理を進められないのでreturn
+-                    // Cannot proceed due to power constraints
+                     _currentState = VanillaMinerState.Idle;
+                     return;
+                 }
+@@ -169,6 +172,13 @@ namespace Game.Block.Blocks.Miner
+                 }
+ 
+                 _currentState = VanillaMinerState.Mining;
++                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, _baseRequestEnergy);
++                if (subTicks == 0)
++                {
++                    // 電力の都合で処理を進められないのでreturn
++                    // Cannot proceed due to power constraints
++                    return;
++                }
+ 
+                 if (subTicks >= _remainingTicks)
+                 {
+@@ -393,4 +403,4 @@ namespace Game.Block.Blocks.Miner
+         [JsonProperty("remainingSeconds")]
+         public double RemainingSeconds;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpComponent.cs
+index c9937edb7..2e2aedbb0 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpComponent.cs
+@@ -9,14 +9,17 @@ namespace Game.Block.Blocks.Pump
+     public class ElectricPumpComponent : IElectricConsumer
+     {
+         public BlockInstanceId BlockInstanceId { get; }
+-        public ElectricPower RequestEnergy { get; }
++        public ElectricPower RequestEnergy => new(_requestEnergy.AsPrimitive() * (_processor.CanGenerateFluid ? 1f : _idlePowerRate));
+         
+         private readonly ElectricPumpProcessorComponent _processor;
++        private readonly ElectricPower _requestEnergy;
++        private readonly float _idlePowerRate;
+ 
+-        public ElectricPumpComponent(BlockInstanceId blockInstanceId, ElectricPower requestEnergy, ElectricPumpProcessorComponent processor)
++        public ElectricPumpComponent(BlockInstanceId blockInstanceId, ElectricPower requestEnergy, float idlePowerRate, ElectricPumpProcessorComponent processor)
+         {
+             BlockInstanceId = blockInstanceId;
+-            RequestEnergy = requestEnergy;
++            _requestEnergy = requestEnergy;
++            _idlePowerRate = idlePowerRate;
+             _processor = processor;
+         }
+ 
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpProcessorComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpProcessorComponent.cs
+index 7507cc688..402df4263 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpProcessorComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/ElectricPumpProcessorComponent.cs
+@@ -17,6 +17,7 @@ namespace Game.Block.Blocks.Pump
+         private readonly ElectricPower _requiredPower;
+         private readonly List<FluidGenerationEntry> _entries;
+         private ElectricPower _currentPower;
++        public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
+ 
+         public ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
+         {
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpFluidOutputComponent.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpFluidOutputComponent.cs
+index 2e58f20e3..25bb7c554 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpFluidOutputComponent.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpFluidOutputComponent.cs
+@@ -19,6 +19,7 @@ namespace Game.Block.Blocks.Pump
+     public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
+     {
+         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
++        public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
+         
+         private readonly FluidContainer _tank;
+         private readonly BlockConnectorComponent<IFluidInventory> _fluidConnector;
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs
+index 6ed706619..40a44500f 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs
+@@ -76,7 +76,7 @@ namespace Game.Block.Factory.BlockTemplate
+             VanillaMachineOutputInventory vanillaMachineOutputInventory,
+             VanillaMachineModuleInventory vanillaMachineModuleInventory,
+             MachineModuleEffectComponent machineModuleEffectComponent,
+-            float requestPower, BlockMasterElement blockMasterElement)
++            float requestPower, float idlePowerRate, BlockMasterElement blockMasterElement)
+         {
+             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
+             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
+@@ -162,6 +162,7 @@ namespace Game.Block.Factory.BlockTemplate
+                 remainingTicks,
+                 recipe,
+                 requestPower,
++                idlePowerRate,
+                 machineModuleEffectComponent,
+                 pendingOutputs);
+ 
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs
+index 99cc84a5c..52e0b2f7f 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs
+@@ -1,4 +1,5 @@
+ using System.Collections.Generic;
++using Core.Master;
+ using Game.Block.Blocks;
+ using Game.Block.Blocks.Pump;
+ using Game.Block.Blocks.Fluid;
+@@ -31,7 +32,8 @@ namespace Game.Block.Factory.BlockTemplate
+                 ? new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector)
+                 : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
+             var processorComponent = new ElectricPumpProcessorComponent(param, outputComponent, blockPositionInfo);
+-            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), processorComponent);
++            var idlePowerRate = param.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
++            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), idlePowerRate, processorComponent);
+ 
+             var components = new List<IBlockComponent>
+             {
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMachineTemplate.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMachineTemplate.cs
+index 223d1cca3..134cbecbd 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMachineTemplate.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMachineTemplate.cs
+@@ -44,22 +44,23 @@ namespace Game.Block.Factory.BlockTemplate
+             var connectSetting = machineParam.Gear.GearConnects;
+             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+             var gearConsumption = machineParam.GearConsumption;
+-            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
+ 
+             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
++            var idlePowerRate = gearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+             
+             var effectComponent = new MachineModuleEffectComponent(module);
+ 
+             // パラメーターをロードするか、新規作成する
+             // Load the parameters or create new ones
+             var processor = componentStates == null
+-                ? new VanillaMachineProcessorComponent(input, output, requirePower, effectComponent)
+-                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
++                ? new VanillaMachineProcessorComponent(input, output, requirePower, idlePowerRate, effectComponent)
++                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, idlePowerRate, blockMasterElement);
++            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
+ 
+             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
+ 
+-            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer);
++            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer, idlePowerRate);
+ 
+             var components = new List<IBlockComponent>
+             {
+@@ -76,4 +77,4 @@ namespace Game.Block.Factory.BlockTemplate
+             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMapObjectMinerTemplate.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMapObjectMinerTemplate.cs
+index fc40caa6f..0353467b1 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMapObjectMinerTemplate.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMapObjectMinerTemplate.cs
+@@ -1,4 +1,5 @@
+ using System.Collections.Generic;
++using Core.Master;
+ using Game.Block.Blocks;
+ using Game.Block.Blocks.Chest;
+ using Game.Block.Blocks.Gear;
+@@ -40,13 +41,15 @@ namespace Game.Block.Factory.BlockTemplate
+             // Components required for gear connection
+             var gearConnectSetting = minerParam.Gear.GearConnects;
+             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
+-            var gearEnergyTransformer = new GearEnergyTransformer(minerParam.GearConsumption, blockInstanceId, gearConnector);
+             
++            var gearEnergyTransformer = new GearEnergyTransformer(minerParam.GearConsumption, blockInstanceId, gearConnector);
++
+             // MapObject採掘機
+             // MapObject Miner
++            var idleTorqueRate = minerParam.GearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+             var gearMapObjectMinerProcessorComponent = componentStates == null ?
+-                new VanillaGearMapObjectMinerProcessorComponent(blockPositionInfo, minerParam, chestComponent) :
+-                new VanillaGearMapObjectMinerProcessorComponent(componentStates, blockPositionInfo, minerParam, chestComponent);
++                new VanillaGearMapObjectMinerProcessorComponent(blockPositionInfo, minerParam, chestComponent, gearEnergyTransformer, idleTorqueRate) :
++                new VanillaGearMapObjectMinerProcessorComponent(componentStates, blockPositionInfo, minerParam, chestComponent, gearEnergyTransformer, idleTorqueRate);
+             
+             var gearMinerComponent = new VanillaGearMapObjectMinerComponent(gearEnergyTransformer, gearMapObjectMinerProcessorComponent);
+             
+@@ -63,4 +66,4 @@ namespace Game.Block.Factory.BlockTemplate
+             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMinerTemplate.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMinerTemplate.cs
+index 4d37eed51..72ac6d3ae 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMinerTemplate.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearMinerTemplate.cs
+@@ -1,4 +1,5 @@
+ using System.Collections.Generic;
++using Core.Master;
+ using Game.Block.Blocks;
+ using Game.Block.Blocks.Gear;
+ using Game.Block.Blocks.Miner;
+@@ -37,16 +38,17 @@ namespace Game.Block.Factory.BlockTemplate
+             var connectSetting = minerParam.Gear.GearConnects;
+             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+             var gearConsumption = minerParam.GearConsumption;
+-            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
+ 
+             var requestPower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
++            var idlePowerRate = gearConsumption.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+             var outputSlot = minerParam.OutputItemSlotCount;
+             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
+-            var minerProcessorComponent = componentStates == null ? 
+-                new VanillaMinerProcessorComponent(blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings) : 
+-                new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
+-                
+-            var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer);
++            var minerProcessorComponent = componentStates == null ?
++                new VanillaMinerProcessorComponent(blockInstanceId, requestPower, idlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings) :
++                new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, idlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
++            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
++
++            var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer, idlePowerRate);
+             
+             var components = new List<IBlockComponent>
+             {
+@@ -61,4 +63,4 @@ namespace Game.Block.Factory.BlockTemplate
+             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs
+index 2285e6006..c0623ac4a 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs
+@@ -31,13 +31,13 @@ namespace Game.Block.Factory.BlockTemplate
+             // Gear connector and transformer
+             var gearConnectSetting = param.Gear.GearConnects;
+             var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
+-            var gearEnergyTransformer = new GearEnergyTransformer(param.GearConsumption, blockInstanceId, gearConnector);
+ 
+             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
+             var outputComponent = componentStates == null
+                 ? new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector)
+                 : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
+-            
++            var gearEnergyTransformer = new GearEnergyTransformer(param.GearConsumption, blockInstanceId, gearConnector);
++
+             var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent, blockPositionInfo);
+ 
+             var components = new List<IBlockComponent>
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMachineTemplate.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMachineTemplate.cs
+index 3b4f2ff76..522711220 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMachineTemplate.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMachineTemplate.cs
+@@ -33,7 +33,8 @@ namespace Game.Block.Factory.BlockTemplate
+             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+ 
+             var effectComponent = new MachineModuleEffectComponent(module);
+-            var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, effectComponent);
++            var idlePowerRate = machineParam.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
++            var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, idlePowerRate, effectComponent);
+ 
+             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
+@@ -75,7 +76,8 @@ namespace Game.Block.Factory.BlockTemplate
+             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
+ 
+             var effectComponent = new MachineModuleEffectComponent(module);
+-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, blockMasterElement);
++            var idlePowerRate = machineParam.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
++            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, idlePowerRate, blockMasterElement);
+ 
+             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
+@@ -109,4 +111,4 @@ namespace Game.Block.Factory.BlockTemplate
+         }
+         
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMinerTemplate.cs b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMinerTemplate.cs
+index 89a6d648a..e82522141 100644
+--- a/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMinerTemplate.cs
++++ b/moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaMinerTemplate.cs
+@@ -26,9 +26,10 @@ namespace Game.Block.Factory.BlockTemplate
+             var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
+             var miningSettings = minerParam.MineSettings;
+             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
++            var idlePowerRate = minerParam.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+             
+-            var minerProcessorComponent = new VanillaMinerProcessorComponent(blockInstanceId, requestPower.AsPrimitive(), outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
+-            var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
++            var minerProcessorComponent = new VanillaMinerProcessorComponent(blockInstanceId, requestPower.AsPrimitive(), idlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
++            var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, minerProcessorComponent);
+             var components = new List<IBlockComponent>
+             {
+                 minerProcessorComponent,
+@@ -46,9 +47,10 @@ namespace Game.Block.Factory.BlockTemplate
+             var minerParam = blockMasterElement.BlockParam as ElectricMinerBlockParam;
+             var miningSettings = minerParam.MineSettings;
+             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
++            var idlePowerRate = minerParam.IdlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
+             
+-            var minerProcessorComponent = new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower.AsPrimitive(), outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
+-            var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, requestPower, minerProcessorComponent);
++            var minerProcessorComponent = new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower.AsPrimitive(), idlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, miningSettings);
++            var electricMinerComponent = new VanillaElectricMinerComponent(blockInstanceId, minerProcessorComponent);
+             var components = new List<IBlockComponent>
+             {
+                 minerProcessorComponent,
+@@ -68,4 +70,4 @@ namespace Game.Block.Factory.BlockTemplate
+             return (new ElectricPower(requestPower), minerParam.OutputItemSlotCount);
+         }
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json b/moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json
+index bdf802559..f2acfa096 100644
+--- a/moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json
++++ b/moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json
+@@ -29,6 +29,7 @@
+       "blockParam": {
+         "moduleSlotCount": 4,
+         "requiredPower": 100,
++        "idlePowerRate": 0.25,
+         "outputSlotCount": 3,
+         "inputSlotCount": 2,
+         "inputFluidSlotCount": 0,
+@@ -2103,6 +2104,7 @@
+           "baseRpm": 10,
+           "minimumRpm": 0,
+           "baseTorque": 0.02,
++          "idlePowerRate": 0.3,
+           "torqueExponentUnder": 2,
+           "torqueExponentOver": 1.585
+         }
+@@ -3697,6 +3699,7 @@
+         ],
+         "innerTankCapacity": 100,
+         "requiredPower": 50,
++        "idlePowerRate": 0.4,
+         "fluidInventoryConnectors": {
+           "outflowConnects": [
+             {
+diff --git a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/IdlePowerRateTest.cs b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/IdlePowerRateTest.cs
+new file mode 100644
+index 000000000..a95603d1c
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/IdlePowerRateTest.cs
+@@ -0,0 +1,198 @@
++using System;
++using System.Linq;
++using Core.Master;
++using Core.Update;
++using Game.Block.Blocks.BeltConveyor;
++using Game.Block.Blocks.Gear;
++using Game.Block.Blocks.Machine;
++using Game.Block.Blocks.Machine.Inventory;
++using Game.Block.Blocks.Miner;
++using Game.Block.Blocks.Pump;
++using Game.Block.Interface;
++using Game.Block.Interface.Component;
++using Game.Block.Interface.Extension;
++using Game.Context;
++using Game.EnergySystem;
++using Game.Fluid;
++using Game.Gear.Common;
++using Mooresmaster.Model.BlocksModule;
++using Mooresmaster.Model.MachineRecipesModule;
++using NUnit.Framework;
++using Server.Boot;
++using Tests.Module.TestMod;
++using UnityEngine;
++
++namespace Tests.CombinedTest.Core
++{
++    public class IdlePowerRateTest
++    {
++        [Test]
++        public void ElectricMachineUsesIdleRateUntilProcessingStartsTest()
++        {
++            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
++
++            // 対象機械を配置し、明示倍率が読み込まれていることを確認する
++            // Place the target machine and verify the explicit rate is loaded
++            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
++            var param = (ElectricMachineBlockParam)block.BlockMasterElement.BlockParam;
++            var electric = block.GetComponent<VanillaElectricMachineComponent>();
++            var processor = block.GetComponent<VanillaMachineProcessorComponent>();
++            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
++            Assert.AreEqual(0.25f, idlePowerRate, 0.0001f);
++
++            // 入力が無いIdle状態では要求電力がidlePowerRate分だけ下がる
++            // In Idle without inputs, requested power is reduced by idlePowerRate
++            Assert.AreEqual(param.RequiredPower * idlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++
++            // レシピ入力を投入して加工が始まるとフル要求へ戻る
++            // Once recipe inputs start processing, demand returns to full power
++            InsertRecipeInputs(block, GetMachineRecipe());
++            processor.SupplyPower(processor.RequestPower);
++            GameUpdater.UpdateOneTick();
++            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
++            Assert.AreEqual(param.RequiredPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++        }
++
++        [Test]
++        public void ElectricPumpUsesIdleRateWhenInnerTankIsFullTest()
++        {
++            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
++
++            // 空きタンクのポンプは生成可能なのでフル要求になる
++            // A pump with free tank space can generate, so it requests full power
++            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
++            var param = (ElectricPumpBlockParam)block.BlockMasterElement.BlockParam;
++            var electric = block.GetComponent<ElectricPumpComponent>();
++            var output = block.GetComponent<PumpFluidOutputComponent>();
++            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
++            Assert.AreEqual(param.RequiredPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++
++            // 内部タンクを満杯にすると生成不可のIdle扱いになり要求電力が下がる
++            // Filling the inner tank makes generation idle and reduces requested power
++            var fluidId = MasterHolder.FluidMaster.GetFluidId(param.GenerateFluid.items[0].FluidGuid);
++            output.EnqueueGeneratedFluid(new FluidStack(param.InnerTankCapacity, fluidId));
++            Assert.AreEqual(param.RequiredPower * idlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++        }
++
++        [Test]
++        public void ElectricPumpUsesIdleRateWhenFluidCannotBeGeneratedTest()
++        {
++            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
++
++            // 不一致鉱脈ではIdle要求
++            // On a mismatched vein there are no generation entries, so demand stays idle
++            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, new Vector3Int(20, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
++            var param = (ElectricPumpBlockParam)block.BlockMasterElement.BlockParam;
++            var electric = block.GetComponent<ElectricPumpComponent>();
++            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
++            Assert.AreEqual(param.RequiredPower * idlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++        }
++
++        [Test]
++        public void ElectricMinerUsesIdleRateUntilMiningStartsTest()
++        {
++            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
++
++            // 配置直後はIdle、更新後は採掘
++            // Immediately after placement demand is idle, then becomes full once mining is possible
++            var (_, pos) = MinerMiningTest.GetItemMapVein();
++            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
++            var param = (ElectricMinerBlockParam)block.BlockMasterElement.BlockParam;
++            var electric = block.GetComponent<VanillaElectricMinerComponent>();
++            var processor = block.GetComponent<VanillaMinerProcessorComponent>();
++            var idlePowerRate = ResolveIdlePowerRate(param.IdlePowerRate);
++            Assert.AreEqual(param.RequiredPower * idlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++
++            processor.Update();
++            Assert.IsTrue(processor.IsMining);
++            Assert.AreEqual(param.RequiredPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++        }
++
++        [Test]
++        public void GearBeltConveyorUsesIdleRateOnlyWhenEmptyTest()
++        {
++            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
++
++            // 空のベルトはIdle扱いで要求トルクが低減される
++            // An empty belt is idle, so required torque is reduced
++            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
++            var param = (GearBeltConveyorBlockParam)block.BlockMasterElement.BlockParam;
++            var gear = block.GetComponent<GearBeltConveyorComponent>();
++            var belt = block.GetComponent<VanillaBeltConveyorComponent>();
++            var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
++            var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
++            var idlePowerRate = ResolveIdlePowerRate(param.GearConsumption.IdlePowerRate);
++            Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
++
++            // アイテムが載ると次のUpdateで搬送中としてフル要求に戻る
++            // Once an item is on the belt, the next update makes it active and requests full torque
++            var item = ServerContext.ItemStackFactory.Create(new ItemId(1), 1);
++            belt.InsertItem(item, InsertItemContext.Empty);
++            GameUpdater.UpdateOneTick();
++            Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
++        }
++
++        [Test]
++        public void GearMachineUsesIdleRateUntilProcessingStartsTest()
++        {
++            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
++
++            // 加工中だけフル要求
++            // Gear machines also request full torque only while processing
++            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMachine, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
++            var param = (GearMachineBlockParam)block.BlockMasterElement.BlockParam;
++            var gear = block.GetComponent<GearEnergyTransformer>();
++            var processor = block.GetComponent<VanillaMachineProcessorComponent>();
++            var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
++            var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
++            var idlePowerRate = ResolveIdlePowerRate(param.GearConsumption.IdlePowerRate);
++            Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
++
++            InsertRecipeInputs(block, GetMachineRecipe(ForUnitTestModBlockId.GearMachine));
++            processor.Update();
++            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
++            Assert.AreEqual(fullTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
++        }
++
++        [Test]
++        public void GearPumpUsesIdleRateWhenFluidCannotBeGeneratedTest()
++        {
++            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
++
++            // 不一致鉱脈の歯車ポンプはIdle
++            // A gear pump on a mismatched vein has no target fluid, so demand stays idle
++            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearPump, new Vector3Int(20, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
++            var param = (GearPumpBlockParam)block.BlockMasterElement.BlockParam;
++            var gear = block.GetComponent<GearEnergyTransformer>();
++            var baseRpm = new RPM((float)param.GearConsumption.BaseRpm);
++            var fullTorque = GearConsumptionCalculator.CalcRequiredTorque(param.GearConsumption, baseRpm).AsPrimitive();
++            var idlePowerRate = ResolveIdlePowerRate(param.GearConsumption.IdlePowerRate);
++            Assert.AreEqual(fullTorque * idlePowerRate, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), 0.0001f);
++        }
++
++        private static MachineRecipeMasterElement GetMachineRecipe()
++        {
++            return GetMachineRecipe(ForUnitTestModBlockId.MachineId);
++        }
++
++        private static MachineRecipeMasterElement GetMachineRecipe(BlockId blockId)
++        {
++            var machineGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
++            return MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(recipe => recipe.BlockGuid == machineGuid);
++        }
++
++        private static float ResolveIdlePowerRate(float? idlePowerRate)
++        {
++            return idlePowerRate ?? BlockMaster.DefaultIdlePowerRate;
++        }
++
++        private static void InsertRecipeInputs(IBlock block, MachineRecipeMasterElement recipe)
++        {
++            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
++            foreach (var inputItem in recipe.InputItems)
++            {
++                inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
++            }
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/IdlePowerRateTest.cs.meta b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/IdlePowerRateTest.cs.meta
+new file mode 100644
+index 000000000..a4bedd11e
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/IdlePowerRateTest.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: 744289fc7de744184b36443151404d30
+\ No newline at end of file
+diff --git a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs
+index a740ea7a2..f13e7aa68 100644
+--- a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs
++++ b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineModuleSlotTest.cs
+@@ -238,10 +238,10 @@ namespace Tests.CombinedTest.Core
+             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
+             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Efficiency, 1));
+ 
+-            // Idle中はモジュールがあっても要求電力は変わらない
+-            // While idle, the requested power is unchanged even with the module equipped
++            // Idle中はモジュールではなくidlePowerRate分だけ要求電力が下がる
++            // While idle, idlePowerRate reduces demand instead of the module
+             var electric = block.GetComponent<VanillaElectricMachineComponent>();
+-            Assert.AreEqual(processor.RequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
++            Assert.AreEqual(processor.EffectiveRequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
+ 
+             // プロセス開始後は省エネ倍率分だけ要求電力が下がる
+             // After processing starts, the requested power drops by the efficiency multiplier
+diff --git a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Energy/MachineMultiSegmentPowerSupplyTest.cs b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Energy/MachineMultiSegmentPowerSupplyTest.cs
+index 59973a3e0..822ba01d4 100644
+--- a/moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Energy/MachineMultiSegmentPowerSupplyTest.cs
++++ b/moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Energy/MachineMultiSegmentPowerSupplyTest.cs
+@@ -58,9 +58,9 @@ namespace Tests.CombinedTest.Game.Energy
+             // Advance several ticks to stabilize the supply
+             for (var i = 0; i < 3; i++) GameUpdater.UpdateOneTick();
+ 
+-            // 発電機なしセグメントに打ち消されず、要求電力を受け取れている
+-            // The machine receives its requested power without being zeroed by the generator-less segment
+-            Assert.AreEqual(processor.RequestPower, processor.CurrentPower, 0.001f);
++            // 発電機なしセグメントに打ち消されず、現在の要求電力を受け取れている
++            // The machine receives its current requested power without being zeroed by the generator-less segment
++            Assert.AreEqual(processor.EffectiveRequestPower, processor.CurrentPower, 0.001f);
+         }
+     }
+ }
+diff --git a/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltConveyorSpeedChangeTest.cs b/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltConveyorSpeedChangeTest.cs
+new file mode 100644
+index 000000000..f810a8777
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltConveyorSpeedChangeTest.cs
+@@ -0,0 +1,56 @@
++using Core.Item.Interface;
++using Core.Master;
++using Game.Block.Blocks.BeltConveyor;
++using NUnit.Framework;
++
++namespace Tests.UnitTest.Game
++{
++    public class BeltConveyorSpeedChangeTest
++    {
++        [Test]
++        public void ProgressIsPreservedWhenSpeedChangesTest()
++        {
++            // 60%進行済みのアイテムを用意する
++            // Prepare an item that has progressed 60 percent
++            var item = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(1), null, null, 100)
++            {
++                RemainingTicks = 40,
++            };
++
++            // 速度変更後も進捗率60%が維持される
++            // The 60 percent progress is preserved after the speed change
++            item.UpdateTicksForSpeedChange(50);
++            Assert.AreEqual(50u, item.TotalTicks);
++            Assert.AreEqual(20u, item.RemainingTicks);
++        }
++
++        [Test]
++        public void StoppedItemIsInitializedOnSpeedRecoveryTest()
++        {
++            // 停止中（TotalTicks=uint.MaxValue）に投入されたアイテムを用意する
++            // Prepare an item inserted while the belt was stopped
++            var item = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(1), null, null, uint.MaxValue);
++
++            // 復帰時は新しい搬送時間で進捗0から開始する
++            // On recovery the item starts from zero progress with the new transit time
++            item.UpdateTicksForSpeedChange(80);
++            Assert.AreEqual(80u, item.TotalTicks);
++            Assert.AreEqual(80u, item.RemainingTicks);
++        }
++
++        [Test]
++        public void SameSpeedDoesNotChangeTicksTest()
++        {
++            // 同一速度なら進捗はそのまま維持される
++            // Identical speed keeps the current progress untouched
++            var item = new VanillaBeltConveyorInventoryItem(new ItemId(1), new ItemInstanceId(1), null, null, 100)
++            {
++                RemainingTicks = 70,
++            };
++
++            item.UpdateTicksForSpeedChange(100);
++            Assert.AreEqual(100u, item.TotalTicks);
++            Assert.AreEqual(70u, item.RemainingTicks);
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltConveyorSpeedChangeTest.cs.meta b/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltConveyorSpeedChangeTest.cs.meta
+new file mode 100644
+index 000000000..481c7c715
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/BeltConveyorSpeedChangeTest.cs.meta
+@@ -0,0 +1,2 @@
++fileFormatVersion: 2
++guid: 8a74cfa2180bf40a2ab71b5602a266d9
+\ No newline at end of file
+diff --git a/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/GearConsumptionTestFactory.cs b/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/GearConsumptionTestFactory.cs
+index 9b3bb3f2c..d9c439869 100644
+--- a/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/GearConsumptionTestFactory.cs
++++ b/moorestech_server/Assets/Scripts/Tests/UnitTest/Game/GearConsumptionTestFactory.cs
+@@ -1,3 +1,4 @@
++using Core.Master;
+ using Mooresmaster.Model.GearConsumptionModule;
+ 
+ namespace Tests.UnitTest.Game
+@@ -17,6 +18,7 @@ namespace Tests.UnitTest.Game
+                 (float)baseRpm,
+                 (float)minimumRpm,
+                 (float)baseTorque,
++                BlockMaster.DefaultIdlePowerRate,
+                 (float)torqueExponentUnder,
+                 (float)torqueExponentOver);
+         }

@@ -1,6 +1,4 @@
-using System;
-using Core.Master;
-using Game.Block.Interface;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -13,34 +11,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void Disable();
     }
 
-    public struct PlaceSystemUpdateContext
+    public readonly struct PlaceSystemUpdateContext
     {
-        // ビルドメニューで選択中のブロック（未選択はnull）
-        // The block selected in the build menu (null when nothing is selected)
-        public readonly BlockId? SelectedBlockId;
-
-        // スポイトでピックした向き（未指定はnull）
-        // The eyedropped block direction (null when not specified)
-        public readonly BlockDirection? SelectedBlockDirection;
-
-        // ・選択種別
-        // ・車両/接続具/BPの選択値
-        // ・選択変化フラグ
-        // The build-menu selection type, train car / connect tool / blueprint value, and change flag
-        public readonly PlacementSelectionType SelectionType;
-        public readonly Guid SelectedTrainCarGuid;
-        public readonly string SelectedConnectPlaceMode;
-        public readonly string SelectedBlueprintName;
+        // 設置対象（null = 未選択）。具体型を知るのはSelectorと各システムのみ
+        // The placement target (null = nothing selected); only the selector and each system know concrete types
+        public readonly IPlacementTarget Target;
         public readonly bool IsSelectionChanged;
 
-        public PlaceSystemUpdateContext(PlacementSelectionType selectionType, BlockId? selectedBlockId, BlockDirection? selectedBlockDirection, Guid selectedTrainCarGuid, string selectedConnectPlaceMode, string selectedBlueprintName, bool isSelectionChanged)
+        public PlaceSystemUpdateContext(IPlacementTarget target, bool isSelectionChanged)
         {
-            SelectionType = selectionType;
-            SelectedBlockId = selectedBlockId;
-            SelectedBlockDirection = selectedBlockDirection;
-            SelectedTrainCarGuid = selectedTrainCarGuid;
-            SelectedConnectPlaceMode = selectedConnectPlaceMode;
-            SelectedBlueprintName = selectedBlueprintName;
+            Target = target;
             IsSelectionChanged = isSelectionChanged;
         }
     }

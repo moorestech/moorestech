@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Mod.Texture;
 using Core.Master;
@@ -36,7 +36,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
                 var iconView = ClientContext.BlockImageContainer.GetBlockView(blockId);
-                entries.Add(new BuildMenuEntry(PlacementSelectionType.Block, blockId, default, null, iconView, CreateBlockToolTip(blockMaster)));
+                entries.Add(new BuildMenuEntry(new BlockPlacementTarget(blockId, null), iconView, CreateBlockToolTip(blockMaster)));
             }
 
             // 解放済み車両を列挙する
@@ -45,7 +45,7 @@ namespace Client.Game.InGame.UI.BuildMenu
             {
                 if (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked) continue;
                 var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
-                entries.Add(new BuildMenuEntry(PlacementSelectionType.TrainCar, default, trainCar.TrainCarGuid, null, iconView, CreateTrainCarToolTip(trainCar, iconView)));
+                entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
             }
 
             // 接続ツールは常時表示する（ビルドメニュー対象外のBeltConveyorは除外。敷設素材アイテムのアイコンを使う）
@@ -56,18 +56,18 @@ namespace Client.Game.InGame.UI.BuildMenu
             foreach (var tool in connectTools)
             {
                 var iconView = ClientContext.ItemImageContainer.GetItemView(tool.IconItemGuid.Value);
-                entries.Add(new BuildMenuEntry(PlacementSelectionType.ConnectTool, default, default, tool.PlaceMode, iconView, tool.Name));
+                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(tool.PlaceMode), iconView, tool.Name));
             }
 
             // 接続ツール群にBPコピーツール追加（テキスト表示）
             // Append the blueprint copy tool alongside the connect tools (icon-less text slot)
-            entries.Add(new BuildMenuEntry(PlacementSelectionType.BlueprintCopy, default, default, null, null, "ブループリントコピー"));
+            entries.Add(new BuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, "ブループリントコピー"));
 
             // 保存済みBPのエントリを追加
             // Append entries for saved blueprints
             foreach (var blueprint in blueprintLibrary.Blueprints)
             {
-                entries.Add(new BuildMenuEntry(blueprint.Name));
+                entries.Add(new BuildMenuEntry(new BlueprintPlacementTarget(blueprint.Name), null, blueprint.Name));
             }
 
             return entries;

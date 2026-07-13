@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
@@ -112,10 +112,10 @@ namespace Client.Game.InGame.UI.BuildMenu
 
                 // BPエントリのみ右クリックで即削除
                 // Only blueprint entries are deletable: right-click deletes immediately (no confirm dialog in v1)
-                if (entry.EntryType == PlacementSelectionType.Blueprint)
+                if (entry.Target is BlueprintPlacementTarget blueprintTarget)
                 {
-                    _displayedBlueprintNames.Add(entry.BlueprintName);
-                    slotView.OnRightClickUp.Subscribe(_ => DeleteBlueprintAndRebuild(entry.BlueprintName).Forget()).AddTo(slotView);
+                    _displayedBlueprintNames.Add(blueprintTarget.BlueprintName);
+                    slotView.OnRightClickUp.Subscribe(_ => DeleteBlueprintAndRebuild(blueprintTarget.BlueprintName).Forget()).AddTo(slotView);
                 }
 
                 _slotViews.Add(slotView);
@@ -136,11 +136,11 @@ namespace Client.Game.InGame.UI.BuildMenu
                 if (gameObject.activeSelf) RebuildEntryList();
             }
 
-            // ID系フィールドで同一性判定（アイコン参照は比較しない）
-            // Judge selection identity by the ID fields (icon references are excluded)
+            // ターゲットの値等値で同一性判定（アイコン参照は比較しない）
+            // Judge identity by target value equality (icon references are excluded)
             static bool IsSameEntry(BuildMenuEntry a, BuildMenuEntry b)
             {
-                return a.EntryType == b.EntryType && a.BlockId == b.BlockId && a.TrainCarGuid == b.TrainCarGuid && a.ConnectPlaceMode == b.ConnectPlaceMode && a.BlueprintName == b.BlueprintName;
+                return a.Target.Equals(b.Target);
             }
 
             #endregion
