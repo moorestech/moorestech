@@ -46,7 +46,7 @@ namespace Client.WebUiHost.Game.Actions
             var entryType = (string)typeValue;
             var entryKey = (string)keyValue;
             var entries = BuildMenuEntryCatalog.CreateEntries(_unlockState, _blueprintLibrary);
-            var matched = entries.Where(e => BuildMenuEntryDtoFactory.GetEntryTypeName(e.EntryType) == entryType && BuildMenuEntryDtoFactory.GetEntryKey(e) == entryKey).ToList();
+            var matched = entries.Where(e => BuildMenuEntryDtoFactory.GetEntryTypeName(e.Target) == entryType && BuildMenuEntryDtoFactory.GetEntryKey(e.Target) == entryKey).ToList();
             if (matched.Count == 0) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
             _buildMenuView.SetSelectedEntry(matched[0]);
