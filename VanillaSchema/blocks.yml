@@ -49,18 +49,6 @@ defineInterface:
   - key: maxConnectableRailLength
     type: number
     default: 100
-# ベルトコンベアの設置ファミリー。同じbeltConveyorFamilyのブロックが1つの敷設グループを構成し、役割はslopeTypeとblockSizeから決まる。
-# Belt conveyor placement family. Blocks sharing beltConveyorFamily form one laying group; roles come from slopeType and blockSize.
-- interfaceName: IBeltConveyorFamilyParam
-  properties:
-  - key: slopeType
-    type: enum
-    options:
-    - Straight
-    - Up
-    - Down
-  - key: beltConveyorFamily
-    type: string
 - interfaceName: IMinerParam
   properties:
   - key: outputItemSlotCount
@@ -228,7 +216,6 @@ properties:
         type: object
         implementationInterface:
         - IInventoryConnectors
-        - IBeltConveyorFamilyParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -244,8 +231,6 @@ properties:
           - Down
         - key: inventoryConnectors
           ref: inventoryConnects
-        - key: beltConveyorFamily
-          type: string
       - when: Chest
         type: object
         implementationInterface:
@@ -609,7 +594,6 @@ properties:
         - IInventoryConnectors
         - IGearConnectors
         - IGearOverloadParam
-        - IBeltConveyorFamilyParam
         properties:
         - key: beltConveyorItemCount
           type: integer
@@ -641,8 +625,6 @@ properties:
           ref: inventoryConnects
         - key: gear
           ref: gear
-        - key: beltConveyorFamily
-          type: string
       - when: GearMiner
         type: object
         implementationInterface:
@@ -1046,6 +1028,43 @@ properties:
     - key: consumptionPerLength
       type: number
       default: 1
+
+# ベルトコンベアの設置ファミリー定義。1エントリが上り/下り/直線群からなる1つの敷設グループを表す。
+# Belt conveyor placement family definitions; each entry is one laying group of up/down/straight blocks.
+- key: beltConveyorFamilies
+  type: array
+  items:
+    type: object
+    properties:
+    # 斜面を持たないファミリー（分岐器など）では上り/下りを持たない
+    # Families without slopes (e.g. splitters) omit up/down
+    - key: upBlockGuid
+      type: uuid
+      optional: true
+      foreignKey:
+        schemaId: blocks
+        foreignKeyIdPath: /data/[*]/blockGuid
+        displayElementPath: /data/[*]/name
+    - key: downBlockGuid
+      type: uuid
+      optional: true
+      foreignKey:
+        schemaId: blocks
+        foreignKeyIdPath: /data/[*]/blockGuid
+        displayElementPath: /data/[*]/name
+    # 直線コンベア群。長さはblockSize.zから導出し、代表はblockSize.z==1のブロック
+    # Straight conveyors; length is derived from blockSize.z, the representative is the blockSize.z==1 block
+    - key: straightBlocks
+      type: array
+      items:
+        type: object
+        properties:
+        - key: blockGuid
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
 
 # ブロック破壊カテゴリ定義。カテゴリキーと、それに属するブロックを外部キーで一元管理する
 # Block destruction category definitions; each maps a category key to its member blocks via foreign key

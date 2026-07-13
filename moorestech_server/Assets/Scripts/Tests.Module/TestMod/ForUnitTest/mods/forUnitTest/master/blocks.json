@@ -233,8 +233,7 @@
             }
           ]
         },
-        "slopeType": "Straight",
-        "beltConveyorFamily": "TestBeltConveyor"
+        "slopeType": "Straight"
       },
       "blockGuid": "00000000-0000-0000-0000-000000000003",
       "initialUnlocked": true
@@ -2210,8 +2209,7 @@
           "idlePowerRate": 0.3,
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585
-        },
-        "beltConveyorFamily": "SmallGearBeltConveyor"
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000030"
     },
@@ -2361,8 +2359,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "GearBeltConveyor"
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-000000000015",
       "requiredItems": [
@@ -4001,8 +3998,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "GearBeltConveyorSplitter"
+        }
       },
       "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
     },
@@ -4457,8 +4453,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "GearBeltConveyor"
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-0000000000a1",
       "requiredItems": [
@@ -4573,8 +4568,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "GearBeltConveyor"
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-0000000000a2",
       "requiredItems": [
@@ -4787,8 +4781,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "GearBeltConveyor"
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-0000000000a3",
       "requiredItems": [
@@ -5054,8 +5047,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "GearBeltConveyor"
+        }
       },
       "blockGuid": "00000000-0000-0000-0000-0000000000a4",
       "requiredItems": [
@@ -5332,6 +5324,44 @@
     {
       "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
       "consumptionPerLength": 1
+    }
+  ],
+  "beltConveyorFamilies": [
+    {
+      "straightBlocks": [
+        {
+          "blockGuid": "00000000-0000-0000-0000-000000000003"
+        }
+      ]
+    },
+    {
+      "straightBlocks": [
+        {
+          "blockGuid": "00000000-0000-0000-0000-000000000030"
+        }
+      ]
+    },
+    {
+      "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
+      "downBlockGuid": "00000000-0000-0000-0000-0000000000a2",
+      "straightBlocks": [
+        {
+          "blockGuid": "00000000-0000-0000-0000-000000000015"
+        },
+        {
+          "blockGuid": "00000000-0000-0000-0000-0000000000a3"
+        },
+        {
+          "blockGuid": "00000000-0000-0000-0000-0000000000a4"
+        }
+      ]
+    },
+    {
+      "straightBlocks": [
+        {
+          "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
+        }
+      ]
     }
   ],
   "blockDestructionCategories": [
