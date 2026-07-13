@@ -1,0 +1,2571 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93d75162abe814ec59408cfe2bcd70d1, type: 3}
+  m_Name: Savanna
+  m_EditorClassIdentifier: MapGenerator::MapGenerator.Pipeline.Biomes.SavannaBiomeConfig
+  temperatureThreshold: 0.55
+  frequency: 0.0015
+  plateauFrequency: 0.0015
+  hillThreshold: 0.552
+  plateauSharpness: 4
+  undulationAmplitude: 0.02
+  baseHeight: 0.01
+  amplitude: 0.2
+  terrainLayer: {fileID: 8574412962073106934, guid: 790006da74584633a40af728520a4809, type: 2}
+  textureConfig:
+    entries:
+    - layer: {fileID: 8574412962073106934, guid: be033c2879064b8880ae459781cf4538, type: 2}
+      weight: 20
+      useSlopeFilter: 1
+      slopeMin: 30
+      slopeMax: 90
+      slopeSmoothness: 8
+      useHeightFilter: 0
+      heightMin: 0
+      heightMax: 1
+      heightSmoothness: 0.02
+      useCurvatureFilter: 0
+      curvatureMin: -1
+      curvatureMax: 1
+      curvatureSmoothness: 0.2
+      noiseType: 0
+      noiseFrequency: 10
+      noiseAmplitude: 1
+  treePlacement:
+    prototypes:
+    - prefabs:
+      - {fileID: 456189670860434411, guid: b153b743398f43478620654abc08a2ab, type: 3}
+      - {fileID: 3880250350639974807, guid: 5170f5d0335342a598eb069ce1acda2e, type: 3}
+      - {fileID: 6534073553343302000, guid: 97410097c000449b9880248421004b33, type: 3}
+      - {fileID: 2702379332324601159, guid: a6302282f14d4042b3e429d3d92b51d1, type: 3}
+      - {fileID: 158181880203941217, guid: 010da76c64d24f739f08b90e2f32d610, type: 3}
+      - {fileID: 7102154714737460232, guid: b37dc20f6ce44ad6a9c9a28f01567aac, type: 3}
+      - {fileID: 1884125826891573810, guid: bd26aacfed664fe28c74aa844da3a833, type: 3}
+      - {fileID: 4646286716930092439, guid: 75c95e3d44a44a829a1e1694f935a575, type: 3}
+      scaleHeightRange: {x: 1.8, y: 2.3}
+      scaleWidthRange: {x: 1.8, y: 2.3}
+      lockWidthHeight: 1
+      sink: 0.2
+      bendFactor: 0.06
+      randomRotation: 1
+      disabled: 0
+      densityConfig:
+        denseMinThreshold: 0.35
+        transitionMinThreshold: 0.2
+        densePassMinDistance: 38
+        transitionPassMinDistance: 18
+        sparsePassMinDistance: 32
+        scatterPassMinDistance: 36
+        transitionBaseProb: 0.05
+        transitionPeakProb: 0.64
+        transitionProbPower: 1.5
+        sparseOpenRejectFactor: 0.4
+        scatterBaseProb: 0.02
+        scatterDensityFactor: 0.25
+        slopeHardReject: 30
+        slopeSoftReject: 20
+        rockRejectDistance: 5
+        rockRejectProb: 0.9
+        rockBoostNearDistance: 15
+        rockBoostFarDistance: 25
+        rockFarRejectProb: 0.5
+        densityLargeFrequency: 0.007
+        densityMidFrequency: 0.013
+        densitySmallFrequency: 0.028
+        densityLargeWeight: 0.4
+        densityMidWeight: 0.4
+        densitySmallWeight: 0.2
+        densityFloor: 0
+        islandModulationFrequency: 0.02
+        islandModulationMin: 0.78
+        islandModulationMax: 1
+        canopyScaleThreshold: 1
+        densePassMultiplier: 1.5
+        transitionPassMultiplier: 1.05
+        sparsePassMultiplier: 0.3
+        densityModMin: 0.3
+        densityModMax: 1
+        densityModScale: 1.5
+        keepProbNear: 0.95
+        keepProbFar: 0.15
+        localDensityCapRadius: 35
+        localDensityCapCount: 3
+      understoryConfig:
+        understoryScaleThreshold: 0.8
+        understoryNeighborRadius: 2
+        densePatches: 3
+        densePatchesRandom: 2
+        transitionPatches: 2
+        transitionPatchesRandom: 2
+        denseTreesPerCanopy: 4
+        denseTreesRandom: 3
+        transitionTreesPerCanopy: 6
+        transitionTreesRandom: 3
+        patchDistanceMin: 5
+        patchDistanceMax: 14
+        densePatchRadiusMin: 4
+        densePatchRadiusMax: 6
+        transitionPatchRadiusMin: 3.5
+        transitionPatchRadiusMax: 5
+        denseMaskThreshold: 0.3
+        transitionMaskThreshold: 0.38
+        understorySlopeLimit: 24
+        scatterMinDistance: 18
+        scatterDensityMultiplier: 0.8
+        scatterProbMin: 0.3
+        scatterProbMax: 0.65
+        scatterSlopeLimit: 25
+        scatterClusterSize: 5
+        scatterClusterSizeRandom: 5
+        scatterClusterRadiusMin: 7
+        scatterClusterRadiusRandom: 6
+        scatterNeighborRadius: 1.5
+        patchAspectMin: 0.7
+        patchAspectMax: 1.15
+        scatterAspectMin: 0.6
+        scatterAspectMax: 1
+        patchMaskFrequency: 0.18
+        patchMaskWeight: 0.75
+        patchMaskEllipseOffset: 0.18
+        patchTargetDense: 4
+        patchTargetDenseRandom: 3
+        patchTargetTransition: 3
+        patchTargetTransitionRandom: 3
+        edgeScaleMax: 1.1
+        edgeScaleMin: 0.95
+        scatterMaskFrequency: 0.12
+        scatterMaskBlendMin: 0.5
+        scatterMaskBlendMax: 1
+      rockProximityConfig:
+        enabled: 1
+        patchCountMin: 1
+        patchCountRandom: 2
+        patchDistanceMin: 8
+        patchDistanceRandom: 6
+        patchSizeMin: 12
+        patchSizeRandom: 6
+        maskThresholdMin: 0.32
+        maskThresholdRandom: 0.1
+        attemptsMin: 40
+        attemptsRandom: 21
+        scaleLowBase: 0.5
+        scaleLowRange: 0.3
+        scaleHighBase: 0.8
+        scaleHighRange: 0.4
+        maskCoarseFrequency: 0.06
+        maskFineFrequency: 0.18
+        maskCoarseWeight: 0.65
+        distancePenaltyFactor: 0.5
+      borderMargin: 0
+      sharedGridMinDistance: 2
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 25}
+        smoothness: {x: 0, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      clusterNoise:
+        noiseType: 1
+        frequency: 1
+        amplitude: 1
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.42
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      heightModAmount: 0
+      heightModWidth: 2
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      boundaryScaleMultiplier: 1
+      oldGrowthScale: 2
+      oldGrowthRatio: 0.08
+    - prefabs:
+      - {fileID: 8039092187226599197, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      - {fileID: 8484283624882670569, guid: f18c1c9cdfe640198b8ed1e9ebfbc5b3, type: 3}
+      - {fileID: 2128390439891600526, guid: 6d05800f44be40caae56a6c3adef63de, type: 3}
+      - {fileID: 8741225032414040482, guid: 2128583d2b4a4ffcbf1ccd9030b974fc, type: 3}
+      - {fileID: 4114958557477398430, guid: eea0f7aed7d64d61864fe43b14c9b31f, type: 3}
+      - {fileID: 4706090267403599498, guid: 943c551f5ec44d6c9acd0cc937afcdc7, type: 3}
+      - {fileID: 8974338221069616546, guid: 5dffccbf77134a77ab9bf4b2cf17fee2, type: 3}
+      - {fileID: 7068969567735084021, guid: 71ea2536b0c14ca7a83365f267d8e0fc, type: 3}
+      scaleHeightRange: {x: 1, y: 1.6}
+      scaleWidthRange: {x: 1, y: 1.6}
+      lockWidthHeight: 1
+      sink: 0.3
+      bendFactor: 0
+      randomRotation: 1
+      disabled: 0
+      densityConfig:
+        denseMinThreshold: 0.35
+        transitionMinThreshold: 0.2
+        densePassMinDistance: 38
+        transitionPassMinDistance: 18
+        sparsePassMinDistance: 32
+        scatterPassMinDistance: 36
+        transitionBaseProb: 0.05
+        transitionPeakProb: 0.64
+        transitionProbPower: 1.5
+        sparseOpenRejectFactor: 0.4
+        scatterBaseProb: 0.02
+        scatterDensityFactor: 0.25
+        slopeHardReject: 30
+        slopeSoftReject: 20
+        rockRejectDistance: 5
+        rockRejectProb: 0.9
+        rockBoostNearDistance: 15
+        rockBoostFarDistance: 25
+        rockFarRejectProb: 0.5
+        densityLargeFrequency: 0.007
+        densityMidFrequency: 0.013
+        densitySmallFrequency: 0.028
+        densityLargeWeight: 0.4
+        densityMidWeight: 0.4
+        densitySmallWeight: 0.2
+        densityFloor: 0
+        islandModulationFrequency: 0.02
+        islandModulationMin: 0.78
+        islandModulationMax: 1
+        canopyScaleThreshold: 1
+        densePassMultiplier: 1.5
+        transitionPassMultiplier: 1.05
+        sparsePassMultiplier: 0.3
+        densityModMin: 0.3
+        densityModMax: 1
+        densityModScale: 1.5
+        keepProbNear: 0.95
+        keepProbFar: 0.15
+        localDensityCapRadius: 35
+        localDensityCapCount: 3
+      understoryConfig:
+        understoryScaleThreshold: 0.8
+        understoryNeighborRadius: 2
+        densePatches: 3
+        densePatchesRandom: 2
+        transitionPatches: 2
+        transitionPatchesRandom: 2
+        denseTreesPerCanopy: 4
+        denseTreesRandom: 3
+        transitionTreesPerCanopy: 6
+        transitionTreesRandom: 3
+        patchDistanceMin: 5
+        patchDistanceMax: 14
+        densePatchRadiusMin: 4
+        densePatchRadiusMax: 6
+        transitionPatchRadiusMin: 3.5
+        transitionPatchRadiusMax: 5
+        denseMaskThreshold: 0.3
+        transitionMaskThreshold: 0.38
+        understorySlopeLimit: 24
+        scatterMinDistance: 18
+        scatterDensityMultiplier: 0.8
+        scatterProbMin: 0.3
+        scatterProbMax: 0.65
+        scatterSlopeLimit: 25
+        scatterClusterSize: 5
+        scatterClusterSizeRandom: 5
+        scatterClusterRadiusMin: 7
+        scatterClusterRadiusRandom: 6
+        scatterNeighborRadius: 1.5
+        patchAspectMin: 0.7
+        patchAspectMax: 1.15
+        scatterAspectMin: 0.6
+        scatterAspectMax: 1
+        patchMaskFrequency: 0.18
+        patchMaskWeight: 0.75
+        patchMaskEllipseOffset: 0.18
+        patchTargetDense: 4
+        patchTargetDenseRandom: 3
+        patchTargetTransition: 3
+        patchTargetTransitionRandom: 3
+        edgeScaleMax: 1.1
+        edgeScaleMin: 0.95
+        scatterMaskFrequency: 0.12
+        scatterMaskBlendMin: 0.5
+        scatterMaskBlendMax: 1
+      rockProximityConfig:
+        enabled: 1
+        patchCountMin: 1
+        patchCountRandom: 2
+        patchDistanceMin: 8
+        patchDistanceRandom: 6
+        patchSizeMin: 12
+        patchSizeRandom: 6
+        maskThresholdMin: 0.32
+        maskThresholdRandom: 0.1
+        attemptsMin: 40
+        attemptsRandom: 21
+        scaleLowBase: 0.5
+        scaleLowRange: 0.3
+        scaleHighBase: 0.8
+        scaleHighRange: 0.4
+        maskCoarseFrequency: 0.06
+        maskFineFrequency: 0.18
+        maskCoarseWeight: 0.65
+        distancePenaltyFactor: 0.5
+      borderMargin: 0
+      sharedGridMinDistance: 2
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 20}
+        smoothness: {x: 0, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      clusterNoise:
+        noiseType: 4
+        frequency: 0.6
+        amplitude: 1
+        offset: 0.15
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.79
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      heightModAmount: 0
+      heightModWidth: 2
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      boundaryScaleMultiplier: 1
+      oldGrowthScale: 3
+      oldGrowthRatio: 0.25
+    - prefabs:
+      - {fileID: 3076760232845015929, guid: 89514bac55c44267a89cc83379421d56, type: 3}
+      - {fileID: 459708278923358966, guid: de918523754041c3b93ab7d9e71f6f24, type: 3}
+      - {fileID: 7699218175217125046, guid: c306aaaa08df4139b0b149e3f75d0561, type: 3}
+      scaleHeightRange: {x: 0.6, y: 1.2}
+      scaleWidthRange: {x: 0.6, y: 1.2}
+      lockWidthHeight: 1
+      sink: 0.1
+      bendFactor: 0.08
+      randomRotation: 1
+      disabled: 1
+      densityConfig:
+        denseMinThreshold: 0.35
+        transitionMinThreshold: 0.2
+        densePassMinDistance: 38
+        transitionPassMinDistance: 18
+        sparsePassMinDistance: 32
+        scatterPassMinDistance: 36
+        transitionBaseProb: 0.05
+        transitionPeakProb: 0.64
+        transitionProbPower: 1.5
+        sparseOpenRejectFactor: 0.4
+        scatterBaseProb: 0.02
+        scatterDensityFactor: 0.25
+        slopeHardReject: 30
+        slopeSoftReject: 20
+        rockRejectDistance: 5
+        rockRejectProb: 0.9
+        rockBoostNearDistance: 15
+        rockBoostFarDistance: 25
+        rockFarRejectProb: 0.5
+        densityLargeFrequency: 0.007
+        densityMidFrequency: 0.013
+        densitySmallFrequency: 0.028
+        densityLargeWeight: 0.4
+        densityMidWeight: 0.4
+        densitySmallWeight: 0.2
+        densityFloor: 0
+        islandModulationFrequency: 0.02
+        islandModulationMin: 0.78
+        islandModulationMax: 1
+        canopyScaleThreshold: 1
+        densePassMultiplier: 1.5
+        transitionPassMultiplier: 1.05
+        sparsePassMultiplier: 0.3
+        densityModMin: 0.3
+        densityModMax: 1
+        densityModScale: 1.5
+        keepProbNear: 0.95
+        keepProbFar: 0.15
+        localDensityCapRadius: 35
+        localDensityCapCount: 3
+      understoryConfig:
+        understoryScaleThreshold: 0.8
+        understoryNeighborRadius: 2
+        densePatches: 3
+        densePatchesRandom: 2
+        transitionPatches: 2
+        transitionPatchesRandom: 2
+        denseTreesPerCanopy: 4
+        denseTreesRandom: 3
+        transitionTreesPerCanopy: 6
+        transitionTreesRandom: 3
+        patchDistanceMin: 5
+        patchDistanceMax: 14
+        densePatchRadiusMin: 4
+        densePatchRadiusMax: 6
+        transitionPatchRadiusMin: 3.5
+        transitionPatchRadiusMax: 5
+        denseMaskThreshold: 0.3
+        transitionMaskThreshold: 0.38
+        understorySlopeLimit: 24
+        scatterMinDistance: 18
+        scatterDensityMultiplier: 0.8
+        scatterProbMin: 0.3
+        scatterProbMax: 0.65
+        scatterSlopeLimit: 25
+        scatterClusterSize: 5
+        scatterClusterSizeRandom: 5
+        scatterClusterRadiusMin: 7
+        scatterClusterRadiusRandom: 6
+        scatterNeighborRadius: 1.5
+        patchAspectMin: 0.7
+        patchAspectMax: 1.15
+        scatterAspectMin: 0.6
+        scatterAspectMax: 1
+        patchMaskFrequency: 0.18
+        patchMaskWeight: 0.75
+        patchMaskEllipseOffset: 0.18
+        patchTargetDense: 4
+        patchTargetDenseRandom: 3
+        patchTargetTransition: 3
+        patchTargetTransitionRandom: 3
+        edgeScaleMax: 1.1
+        edgeScaleMin: 0.95
+        scatterMaskFrequency: 0.12
+        scatterMaskBlendMin: 0.5
+        scatterMaskBlendMax: 1
+      rockProximityConfig:
+        enabled: 1
+        patchCountMin: 1
+        patchCountRandom: 2
+        patchDistanceMin: 8
+        patchDistanceRandom: 6
+        patchSizeMin: 12
+        patchSizeRandom: 6
+        maskThresholdMin: 0.32
+        maskThresholdRandom: 0.1
+        attemptsMin: 40
+        attemptsRandom: 21
+        scaleLowBase: 0.5
+        scaleLowRange: 0.3
+        scaleHighBase: 0.8
+        scaleHighRange: 0.4
+        maskCoarseFrequency: 0.06
+        maskFineFrequency: 0.18
+        maskCoarseWeight: 0.65
+        distancePenaltyFactor: 0.5
+      borderMargin: 0
+      sharedGridMinDistance: 2
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 25}
+        smoothness: {x: 0, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      clusterNoise:
+        noiseType: 4
+        frequency: 6
+        amplitude: 1
+        offset: 0.05
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.55
+      clusterNoise2:
+        noiseType: 1
+        frequency: 1.5
+        amplitude: 0.6
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      heightModAmount: 0
+      heightModWidth: 2
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      boundaryScaleMultiplier: 1
+      oldGrowthScale: 3
+      oldGrowthRatio: 0.35
+  objectConfig:
+    clusterEntries: []
+    entries: []
+    algorithmConfig:
+      heroOffsetFactor: 0.3
+      heroScaleMinRatio: 0.7
+      heroScaleRange: 0.3
+      heroYScaleMin: 0.7
+      heroYScaleRange: 0.15
+      subordinateDistMin: 0.35
+      subordinateDistRange: 0.65
+      subordinateAngleReject: 55
+      subordinateScaleMaxRatio: 0.6
+      subordinateYScaleMin: 0.5
+      subordinateYScaleRange: 0.3
+      saddleProbability: 0.65
+      saddleJitter: 3
+      biasSectorAngle: 0.67
+      rubbleSizeMin: 0.5
+      rubbleSizeRange: 1
+      rubbleDensityMultiplier: 5
+      clusterSpacingFactor: 0.6
+    surroundTextureConfig:
+      enabled: 1
+      surroundLayer: {fileID: 0}
+      coreRadius: 5
+      coreBlendMin: 0.8
+      coreBlendMax: 0.95
+      transitionRadius: 15
+      transitionBlendMin: 0.15
+      transitionBlendMax: 0.5
+      noiseLowFrequency: 0.03
+      noiseHighFrequency: 0.15
+      noiseLowWeight: 0.6
+      rockMeshBaseSize: 15
+      singleRockRadius: 8
+      singleRockBlend: 0.6
+    borderMargin: 0
+  detailConfig:
+    entries:
+    - prototypeConfig:
+        prototypeMesh: {fileID: 5075383630114245240, guid: d815455da8ee44d4a3aa3913f41903de, type: 3}
+        prototypeTexture: {fileID: 0}
+        usePrototypeMesh: 1
+        renderMode: 1
+        minWidth: 2.2
+        maxWidth: 3.5
+        minHeight: 1.8
+        maxHeight: 2.2
+        alignToGround: 0
+        positionJitter: 1
+        targetCoverage: 1
+        holeEdgePadding: 0
+        noiseSeed: 0
+        noiseSpread: 0.1
+        dryColor: {r: 0.8, g: 0.7, b: 0.3, a: 1}
+        healthyColor: {r: 0.26, g: 0.97, b: 0.16, a: 1}
+        useInstancing: 1
+        useDensityScaling: 0
+      weight: 0.1
+      weightRange: {x: 0, y: 1}
+      maxDensity: 8
+      occludedByOthers: 0
+      noiseStack:
+        primary:
+          noiseType: 3
+          frequency: 1
+          amplitude: 1.5
+          offset: -0.21
+          balance: 0
+        secondary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        secondaryOp: 2
+        tertiary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        tertiaryOp: 2
+      slopeFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 90}
+        smoothness: {x: 4, y: 4}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 1}
+        smoothness: {x: 0.1, y: 0.1}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      angleFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 360}
+        smoothness: {x: 12, y: 12}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      treeDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      objectDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      textureFilter:
+        enabled: 0
+        otherTextureWeight: 1
+        entries: []
+    - prototypeConfig:
+        prototypeMesh: {fileID: 7334353136658952075, guid: 3a37a614adc64b4991130292d2df84ba, type: 3}
+        prototypeTexture: {fileID: 0}
+        usePrototypeMesh: 1
+        renderMode: 1
+        minWidth: 1.8
+        maxWidth: 3
+        minHeight: 1.25
+        maxHeight: 1.5
+        alignToGround: 0
+        positionJitter: 1
+        targetCoverage: 1
+        holeEdgePadding: 0
+        noiseSeed: 0
+        noiseSpread: 0.1
+        dryColor: {r: 0.8, g: 0.7, b: 0.3, a: 1}
+        healthyColor: {r: 0.26, g: 0.97, b: 0.16, a: 1}
+        useInstancing: 1
+        useDensityScaling: 0
+      weight: 0.080000006
+      weightRange: {x: 0, y: 1}
+      maxDensity: 6
+      occludedByOthers: 0
+      noiseStack:
+        primary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        secondary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        secondaryOp: 2
+        tertiary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        tertiaryOp: 2
+      slopeFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 90}
+        smoothness: {x: 4, y: 4}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 1}
+        smoothness: {x: 0.1, y: 0.1}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      angleFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 360}
+        smoothness: {x: 12, y: 12}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      treeDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      objectDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      textureFilter:
+        enabled: 0
+        otherTextureWeight: 1
+        entries: []
+    - prototypeConfig:
+        prototypeMesh: {fileID: 3987863668785023380, guid: 50bb62a3499445c5bec44055ad1a377b, type: 3}
+        prototypeTexture: {fileID: 0}
+        usePrototypeMesh: 1
+        renderMode: 1
+        minWidth: 2.2
+        maxWidth: 3.8
+        minHeight: 1.7
+        maxHeight: 2
+        alignToGround: 0
+        positionJitter: 1
+        targetCoverage: 1
+        holeEdgePadding: 0
+        noiseSeed: 0
+        noiseSpread: 0.1
+        dryColor: {r: 0.8, g: 0.7, b: 0.3, a: 1}
+        healthyColor: {r: 0.26, g: 0.97, b: 0.16, a: 1}
+        useInstancing: 1
+        useDensityScaling: 0
+      weight: 0.055000003
+      weightRange: {x: 0, y: 1}
+      maxDensity: 6
+      occludedByOthers: 0
+      noiseStack:
+        primary:
+          noiseType: 4
+          frequency: 0.026
+          amplitude: 2.2
+          offset: -0.92
+          balance: 0
+        secondary:
+          noiseType: 3
+          frequency: 1.5
+          amplitude: 1
+          offset: -0.3
+          balance: 0
+        secondaryOp: 2
+        tertiary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        tertiaryOp: 2
+      slopeFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 90}
+        smoothness: {x: 4, y: 4}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 1}
+        smoothness: {x: 0.1, y: 0.1}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      angleFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 360}
+        smoothness: {x: 12, y: 12}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      treeDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      objectDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      textureFilter:
+        enabled: 0
+        otherTextureWeight: 1
+        entries: []
+    - prototypeConfig:
+        prototypeMesh: {fileID: 8965810518336862289, guid: 3d91fe5ab3ea459d99de18be39eccace, type: 3}
+        prototypeTexture: {fileID: 0}
+        usePrototypeMesh: 1
+        renderMode: 1
+        minWidth: 2.5
+        maxWidth: 3.8
+        minHeight: 1.8
+        maxHeight: 2.2
+        alignToGround: 0
+        positionJitter: 1
+        targetCoverage: 1
+        holeEdgePadding: 0
+        noiseSeed: 0
+        noiseSpread: 0.1
+        dryColor: {r: 0.8, g: 0.7, b: 0.3, a: 1}
+        healthyColor: {r: 0.26, g: 0.97, b: 0.16, a: 1}
+        useInstancing: 1
+        useDensityScaling: 0
+      weight: 0.063
+      weightRange: {x: 0, y: 1}
+      maxDensity: 10
+      occludedByOthers: 0
+      noiseStack:
+        primary:
+          noiseType: 4
+          frequency: 0.025
+          amplitude: 3.2
+          offset: -1.65
+          balance: 0
+        secondary:
+          noiseType: 3
+          frequency: 1.5
+          amplitude: 1
+          offset: -0.3
+          balance: 0
+        secondaryOp: 2
+        tertiary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        tertiaryOp: 2
+      slopeFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 90}
+        smoothness: {x: 4, y: 4}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 1}
+        smoothness: {x: 0.1, y: 0.1}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      angleFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 360}
+        smoothness: {x: 12, y: 12}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      treeDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      objectDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      textureFilter:
+        enabled: 0
+        otherTextureWeight: 1
+        entries: []
+    - prototypeConfig:
+        prototypeMesh: {fileID: 8965810518336862289, guid: 3d91fe5ab3ea459d99de18be39eccace, type: 3}
+        prototypeTexture: {fileID: 0}
+        usePrototypeMesh: 1
+        renderMode: 1
+        minWidth: 2.2
+        maxWidth: 3.5
+        minHeight: 1.8
+        maxHeight: 2.2
+        alignToGround: 0
+        positionJitter: 1
+        targetCoverage: 1
+        holeEdgePadding: 0
+        noiseSeed: 0
+        noiseSpread: 0.1
+        dryColor: {r: 0.8, g: 0.7, b: 0.3, a: 1}
+        healthyColor: {r: 0.26, g: 0.97, b: 0.16, a: 1}
+        useInstancing: 1
+        useDensityScaling: 0
+      weight: 0.065
+      weightRange: {x: 0, y: 1}
+      maxDensity: 6
+      occludedByOthers: 0
+      noiseStack:
+        primary:
+          noiseType: 4
+          frequency: 0.03
+          amplitude: 2.1
+          offset: -0.95
+          balance: 0
+        secondary:
+          noiseType: 3
+          frequency: 1.5
+          amplitude: 1
+          offset: -0.3
+          balance: 0
+        secondaryOp: 2
+        tertiary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        tertiaryOp: 2
+      slopeFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 90}
+        smoothness: {x: 4, y: 4}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 1}
+        smoothness: {x: 0.1, y: 0.1}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      angleFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 360}
+        smoothness: {x: 12, y: 12}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      treeDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      objectDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      textureFilter:
+        enabled: 0
+        otherTextureWeight: 1
+        entries: []
+    - prototypeConfig:
+        prototypeMesh: {fileID: 3704277907362666530, guid: 12e3031d3808468694c86091f8ac98f5, type: 3}
+        prototypeTexture: {fileID: 0}
+        usePrototypeMesh: 1
+        renderMode: 1
+        minWidth: 2.8
+        maxWidth: 4.5
+        minHeight: 5
+        maxHeight: 7
+        alignToGround: 0
+        positionJitter: 1
+        targetCoverage: 1
+        holeEdgePadding: 0
+        noiseSeed: 0
+        noiseSpread: 0.1
+        dryColor: {r: 0.8, g: 0.7, b: 0.3, a: 1}
+        healthyColor: {r: 0.26, g: 0.97, b: 0.16, a: 1}
+        useInstancing: 1
+        useDensityScaling: 0
+      weight: 0.016
+      weightRange: {x: 0, y: 1}
+      maxDensity: 2
+      occludedByOthers: 0
+      noiseStack:
+        primary:
+          noiseType: 4
+          frequency: 0.025
+          amplitude: 3.5
+          offset: -2.15
+          balance: 0
+        secondary:
+          noiseType: 3
+          frequency: 1.5
+          amplitude: 1
+          offset: -0.3
+          balance: 0
+        secondaryOp: 2
+        tertiary:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        tertiaryOp: 2
+      slopeFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 90}
+        smoothness: {x: 4, y: 4}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 1}
+        smoothness: {x: 0.1, y: 0.1}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      angleFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 360}
+        smoothness: {x: 12, y: 12}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      treeDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      objectDistanceFilter:
+        enabled: 0
+        mode: 0
+        weight: 1
+        range: {x: 0, y: 50}
+        smoothness: {x: 2, y: 5}
+        noise:
+          noiseType: 0
+          frequency: 10
+          amplitude: 1
+          offset: 0
+          balance: 0
+        curve:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.25
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.75
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 0
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      textureFilter:
+        enabled: 0
+        otherTextureWeight: 1
+        entries: []
+    filterRejectThreshold: 0.01
+    borderMargin: 0
+  shoreConfig:
+    waterMargin: 0.03
+    beachElevation: 0.0058
+    beachLandTextureRadius: 16
+    beachLandTerrainRadius: 10
+    beachSeaTextureRadius: 14
+    beachSeaTerrainRadius: 11
+    beachLayer: {fileID: 0}
+    beachThreshold: 0.01
+    deepSeaThreshold: 0.005
+    sandBlendThreshold: 0.01
+    rockFallbackLayerIndex: 1
+    minSeaRegionSize: 3672
+  boundaryConfig:
+    textureBlendStrength: 0.6
+    heightBlendFastPathThreshold: 0.95
+    heightBlendMinWeight: 0.01
+    blurRadiusDivisor: 2
+    boundaryNoiseSmoothstepWidth: 15
+    boundaryNoiseMidWeight: 0.7
+    boundaryNoiseHighWeight: 0.3

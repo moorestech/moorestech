@@ -1,0 +1,992 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c7313fa3c47d47b699d761d1a3985dd, type: 3}
+  m_Name: Mesa
+  m_EditorClassIdentifier: MapGenerator::MapGenerator.Pipeline.Biomes.MesaBiomeConfig
+  elevationThreshold: 0.42
+  humidityThreshold: 0.38
+  warpStrength: 60
+  warpIterations: 1
+  frequency: 0.002
+  octaves: 2
+  persistence: 0.5
+  isolationFreqMult: 2
+  canyonDepth: 0.12
+  canyonFreqMult: 0.5
+  canyonOctaves: 3
+  boundaryNoiseStrength: 0.1
+  boundaryNoiseFreqMult: 3
+  boundaryNoiseOctaves: 2
+  butteThreshold: 0.4
+  cliffSteepness: 4
+  plateauFlatten: 0
+  terraceSteps: 0
+  terraceSharpness: 0.99
+  floorVariation: 0.2
+  topNoiseStrength: 0
+  topNoiseFreqMult: 5
+  baseHeight: 0.04
+  amplitude: 0.1
+  terrainLayer: {fileID: 8574412962073106934, guid: 782c444c94fe43ee8e4e31e3d7fc7e20, type: 2}
+  textureConfig:
+    entries:
+    - layer: {fileID: 8574412962073106934, guid: a6db41f89c274de588cf67efd1b015c6, type: 2}
+      weight: 0.9
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 0
+      slopeSmoothness: 0
+      useHeightFilter: 0
+      heightMin: 0
+      heightMax: 0
+      heightSmoothness: 0
+      useCurvatureFilter: 1
+      curvatureMin: -1
+      curvatureMax: -0.1
+      curvatureSmoothness: 0.3
+      noiseType: 3
+      noiseFrequency: 3
+      noiseAmplitude: 1.2
+    - layer: {fileID: 8574412962073106934, guid: fdd6c98468d1462a8d336aae22e4cc89, type: 2}
+      weight: 0.7
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 0
+      slopeSmoothness: 0
+      useHeightFilter: 0
+      heightMin: 0
+      heightMax: 0
+      heightSmoothness: 0
+      useCurvatureFilter: 0
+      curvatureMin: 0
+      curvatureMax: 0
+      curvatureSmoothness: 0
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+  treePlacement:
+    prototypes:
+    - prefabs:
+      - {fileID: 2802775999766711171, guid: ecc24efc2b7c48bdb9d8bd45c0dc1588, type: 3}
+      - {fileID: 953443790981995178, guid: d4fab9cfe1fc43e3b024f79b8f8cb549, type: 3}
+      - {fileID: 102159001895988427, guid: aedc90e6706942c2a1a65477043cd25b, type: 3}
+      - {fileID: 1450601610762715920, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      - {fileID: 2850855826122793436, guid: 1d5e314fe20c4f5c8cef8014925edadd, type: 3}
+      scaleHeightRange: {x: 0.6, y: 1.2}
+      scaleWidthRange: {x: 0.6, y: 1.2}
+      lockWidthHeight: 1
+      sink: 0.1
+      bendFactor: 0
+      randomRotation: 1
+      disabled: 0
+      poolId: 
+      heightWeightCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      heightFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 5}
+        smoothness: {x: 0, y: 3}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      overrideClustering: 0
+      clusterNoise:
+        noiseType: 3
+        frequency: 2.5
+        amplitude: 1
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.35
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      overrideHeightMod: 0
+      heightModAmount: 0
+      heightModWidth: 2
+      overrideSurroundLayer: 0
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      overrideBoundaryScale: 0
+      boundaryScaleMultiplier: 1
+      overrideOldGrowth: 0
+      oldGrowthScale: 1
+      oldGrowthRatio: 0
+    - prefabs:
+      - {fileID: 7269869280496826074, guid: 48b00c6a2ca54b4baad0e1ad6e09aa36, type: 3}
+      - {fileID: 5983725642628845180, guid: a69a1a7bd1fa442a88949103d573e19f, type: 3}
+      - {fileID: 8226652041114686716, guid: f4d38a4d61394913bba58efff1efbbd3, type: 3}
+      - {fileID: 4987272705614400844, guid: 67ed5ded13924f0fa9bba9a6a95cfd26, type: 3}
+      - {fileID: 7399869750424876373, guid: b8dfc299e9d244259a10fd89c681a716, type: 3}
+      - {fileID: 8341638659809408044, guid: 083549b1ea294690a770da0ca4eda221, type: 3}
+      - {fileID: 6035279864116490451, guid: 6e8f38cae8b1443daa00fa32ac7faf16, type: 3}
+      - {fileID: 1189538166487972041, guid: ab0bafed7d674ebca0da259b4b0df9d3, type: 3}
+      scaleHeightRange: {x: 0.5, y: 1}
+      scaleWidthRange: {x: 0.5, y: 1}
+      lockWidthHeight: 1
+      sink: 0.05
+      bendFactor: 0
+      randomRotation: 1
+      disabled: 0
+      poolId: 
+      heightWeightCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      heightFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 3}
+        smoothness: {x: 0, y: 3}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      overrideClustering: 0
+      clusterNoise:
+        noiseType: 3
+        frequency: 3
+        amplitude: 1
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.3
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      overrideHeightMod: 0
+      heightModAmount: 0
+      heightModWidth: 2
+      overrideSurroundLayer: 0
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      overrideBoundaryScale: 0
+      boundaryScaleMultiplier: 1
+      overrideOldGrowth: 0
+      oldGrowthScale: 1
+      oldGrowthRatio: 0
+    - prefabs:
+      - {fileID: 2670151875172559506, guid: 01b03368c1934480b2b553348dc0ceaf, type: 3}
+      - {fileID: 4396655145329152681, guid: 95c347b8de7e4e3eb4aea14dd6508414, type: 3}
+      - {fileID: 927150615750821076, guid: 108ad32e5bf54ce3ba41ff52ed49f838, type: 3}
+      - {fileID: 3195636844391667869, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      - {fileID: 281924365962292902, guid: c6e843c5787b442ca43b996a175c110c, type: 3}
+      - {fileID: 3615219801192816554, guid: e54a4d15f35244dba9898a535074d407, type: 3}
+      - {fileID: 4753487721183244077, guid: 9007f2c7ed8845a4bc615d399d330840, type: 3}
+      - {fileID: 8750115642430506611, guid: 5d146b3974e54e4994f6067d96d9af8f, type: 3}
+      scaleHeightRange: {x: 0.8, y: 1.4}
+      scaleWidthRange: {x: 0.8, y: 1.4}
+      lockWidthHeight: 1
+      sink: 0.03
+      bendFactor: 0
+      randomRotation: 1
+      disabled: 1
+      poolId: 
+      heightWeightCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      heightFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 3}
+        smoothness: {x: 0, y: 3}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      overrideClustering: 0
+      clusterNoise:
+        noiseType: 2
+        frequency: 4
+        amplitude: 1
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.3
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      overrideHeightMod: 0
+      heightModAmount: 0
+      heightModWidth: 2
+      overrideSurroundLayer: 0
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      overrideBoundaryScale: 0
+      boundaryScaleMultiplier: 1
+      overrideOldGrowth: 0
+      oldGrowthScale: 1
+      oldGrowthRatio: 0
+    - prefabs:
+      - {fileID: 9017663890764246416, guid: 70aa126de0774271902e13a4bbbcb49a, type: 3}
+      - {fileID: 1083679183771734633, guid: 0a1fadb22c664f9db6c4c9c19c1052b9, type: 3}
+      - {fileID: 6592866283595382948, guid: 5c152e808d594848965b38145b7855cc, type: 3}
+      - {fileID: 1596028344922960829, guid: 9afb59f936ae4033b79d75d54ee65dba, type: 3}
+      scaleHeightRange: {x: 1, y: 1.6}
+      scaleWidthRange: {x: 1, y: 1.6}
+      lockWidthHeight: 1
+      sink: 0.05
+      bendFactor: 0
+      randomRotation: 1
+      disabled: 1
+      poolId: 
+      heightWeightCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      heightFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 3}
+        smoothness: {x: 0, y: 3}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      overrideClustering: 0
+      clusterNoise:
+        noiseType: 3
+        frequency: 3.5
+        amplitude: 1
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.3
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      overrideHeightMod: 0
+      heightModAmount: 0
+      heightModWidth: 2
+      overrideSurroundLayer: 0
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      overrideBoundaryScale: 0
+      boundaryScaleMultiplier: 1
+      overrideOldGrowth: 0
+      oldGrowthScale: 1
+      oldGrowthRatio: 0
+    - prefabs:
+      - {fileID: 4324850386385766431, guid: a5af5400ddd3486e966279fc40b8515f, type: 3}
+      - {fileID: 9191801726618264243, guid: 68228e7f9a8c4139bc2a190ea6b15082, type: 3}
+      - {fileID: 4767240815061397639, guid: 762ead08976e4c60a70a0ae75e5101ed, type: 3}
+      - {fileID: 6103333730783410710, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      scaleHeightRange: {x: 0.8, y: 1.3}
+      scaleWidthRange: {x: 0.8, y: 1.3}
+      lockWidthHeight: 1
+      sink: 0.02
+      bendFactor: 0
+      randomRotation: 1
+      disabled: 1
+      poolId: 
+      heightWeightCurve:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      heightFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      slopeFilter:
+        enabled: 1
+        range: {x: 0, y: 3}
+        smoothness: {x: 0, y: 3}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      overrideClustering: 0
+      clusterNoise:
+        noiseType: 3
+        frequency: 3
+        amplitude: 1
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.25
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      overrideHeightMod: 0
+      heightModAmount: 0
+      heightModWidth: 2
+      overrideSurroundLayer: 0
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      overrideBoundaryScale: 0
+      boundaryScaleMultiplier: 1
+      overrideOldGrowth: 0
+      oldGrowthScale: 1
+      oldGrowthRatio: 0
+  objectConfig:
+    entries:
+    - role: 0
+      prefabs:
+      - {fileID: 1743409247872131337, guid: 5c15f1474f9f4cd1bfd0f260a4da9ba9, type: 3}
+      - {fileID: 1934474088497972812, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      - {fileID: 658168921507297682, guid: 4f32b576b915470e92d65ae46e8de6a0, type: 3}
+      - {fileID: 3096396358309991480, guid: 3ef262ab46f54e31886d059e143328c3, type: 3}
+      - {fileID: 1160068955939370484, guid: 05c23296ff3f474ba61bc2834243fa59, type: 3}
+      - {fileID: 5461630180457776592, guid: da2296f2ea9a40d9bbb0fd57cd821c21, type: 3}
+      density: 0.2
+      scaleRange: {x: 2.5, y: 5.5}
+      slopeAlignment: 0
+      sinkRange: {x: 2, y: 5}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.4
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 20
+      slopeSmoothness: 3
+      useClusterMode: 1
+      clusterCount: 8
+      objectsPerCluster: 2
+      clusterRadius: 15
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 6895103089000004699, guid: 9bb6d31734594fd1894fcb5f4491af91, type: 3}
+      - {fileID: 1885970674236684932, guid: a41653975b7440bd9e47b8f8a51f5afd, type: 3}
+      - {fileID: 8959399852338167606, guid: d969e63d90c44190b0860a718b495c50, type: 3}
+      - {fileID: 3853888576469351421, guid: acb39a0c504447bbb25475c0b6c2651f, type: 3}
+      - {fileID: 8028446217807392353, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      - {fileID: 3365980374994671589, guid: 87812b2935f342fb99a0f71b9e51e6e2, type: 3}
+      density: 2
+      scaleRange: {x: 2, y: 4}
+      slopeAlignment: 0
+      sinkRange: {x: 0, y: 0.4}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.25
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 25
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 25
+      objectsPerCluster: 6
+      clusterRadius: 8
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 25
+      minParentDistance: 14
+      maxParentDistance: 25
+    - role: 2
+      prefabs:
+      - {fileID: 8393773038410138007, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
+      - {fileID: 5794293447191204501, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
+      - {fileID: 16561402746102457, guid: deefacc241c2404bb39a606c84ea8298, type: 3}
+      density: 8
+      scaleRange: {x: 0.6, y: 1.8}
+      slopeAlignment: 0
+      sinkRange: {x: 0, y: 0.15}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.2
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 30
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 35
+      objectsPerCluster: 8
+      clusterRadius: 6
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 50
+      minParentDistance: 2
+      maxParentDistance: 55
+    - role: 3
+      prefabs:
+      - {fileID: 6173607324716113631, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
+      - {fileID: 7525241570940789246, guid: 27bb68f91d9f4e9ebaac23aae9f25171, type: 3}
+      - {fileID: 7215337404701960990, guid: 382ba92a54924694b93a9f4609ce98af, type: 3}
+      density: 2
+      scaleRange: {x: 0.5, y: 1.5}
+      slopeAlignment: 0
+      sinkRange: {x: 0, y: 0.15}
+      noiseType: 2
+      noiseFrequency: 5
+      noiseAmplitude: 1
+      noiseThreshold: 0.1
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 25
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 15
+      objectsPerCluster: 4
+      clusterRadius: 10
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 8375756686687416647, guid: 1cce6ce183eb4340b496e8f70a43a3ae, type: 3}
+      - {fileID: 7025750830873506775, guid: cc27bddb82124ee783a76aacfdbe6f07, type: 3}
+      - {fileID: 6158363634084353667, guid: 05fbefd7f3c2429ea589e20f68e67197, type: 3}
+      - {fileID: 6752054155247310302, guid: 477fdc018a4f4061953894da442dc1a8, type: 3}
+      - {fileID: 2273973418620613737, guid: 7abe288657f545b0bc248d4874990519, type: 3}
+      - {fileID: 8377895932510799398, guid: ad2d5c10266a472582aa387f1eaa6766, type: 3}
+      density: 0
+      scaleRange: {x: 1.5, y: 3}
+      slopeAlignment: 0
+      sinkRange: {x: 5, y: 12}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.3
+      useSlopeFilter: 0
+      slopeMin: 45
+      slopeMax: 70
+      slopeSmoothness: 2
+      useClusterMode: 0
+      clusterCount: 12
+      objectsPerCluster: 3
+      clusterRadius: 15
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 902404011088394616, guid: 8a1a498946464a63acc31247b089f6fa, type: 3}
+      - {fileID: 3412553564781205632, guid: b47b6e0caa5040c6a729dbb0f7665c3c, type: 3}
+      - {fileID: 8449315253462981520, guid: 4a1542c6c1774f7582335781c8f4c836, type: 3}
+      density: 0
+      scaleRange: {x: 3.5, y: 7}
+      slopeAlignment: 0
+      sinkRange: {x: 1.5, y: 4}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 0
+      noiseThreshold: 0.45
+      useSlopeFilter: 0
+      slopeMin: 50
+      slopeMax: 80
+      slopeSmoothness: 2
+      useClusterMode: 0
+      clusterCount: 0
+      objectsPerCluster: 0
+      clusterRadius: 0
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 954419790409425757, guid: e881b80170174f448bab6e8c28c888d9, type: 3}
+      - {fileID: 6776819019574770278, guid: 29a5acca975f46afbbca66fda61a7d75, type: 3}
+      - {fileID: 5332072277517354110, guid: cc17a2cb49f8469fb8a0529816112292, type: 3}
+      - {fileID: 3511490903837650935, guid: dcf3be14166f45c0801b6f14633d84ac, type: 3}
+      - {fileID: 3783211596720882567, guid: e948f463467e4df79d8863bfcde19806, type: 3}
+      density: 0.3
+      scaleRange: {x: 1.5, y: 4}
+      slopeAlignment: 0
+      sinkRange: {x: 1, y: 3}
+      noiseType: 2
+      noiseFrequency: 4
+      noiseAmplitude: 1
+      noiseThreshold: 0.25
+      useSlopeFilter: 0
+      slopeMin: 40
+      slopeMax: 65
+      slopeSmoothness: 2
+      useClusterMode: 0
+      clusterCount: 10
+      objectsPerCluster: 3
+      clusterRadius: 12
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 7390490530438359347, guid: 99821a44784f4f3d9b56033ec4b82a11, type: 3}
+      - {fileID: 6589931484619411195, guid: 94cce27468164109a31909c943e9aa53, type: 3}
+      - {fileID: 7948725736024420982, guid: 6ea42058eeda4f9aa79716e3a78c6fc8, type: 3}
+      - {fileID: 1221722926655535152, guid: 9b00301e0f11461288e9d89eb6251096, type: 3}
+      - {fileID: 5790643958789047771, guid: a04f2e08ee7a4d33acd918dc7e20ec76, type: 3}
+      - {fileID: 5122601923027490971, guid: dfe6f739cbfa48c58235c1bd279abb71, type: 3}
+      density: 0.4
+      scaleRange: {x: 2, y: 5}
+      slopeAlignment: 0
+      sinkRange: {x: 1.5, y: 4}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.3
+      useSlopeFilter: 0
+      slopeMin: 20
+      slopeMax: 55
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 10
+      objectsPerCluster: 3
+      clusterRadius: 14
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 908275968440724370, guid: 98d8513cf3fc4b599207fdab276c3b12, type: 3}
+      - {fileID: 6619234435204678481, guid: 83cb3c417ff9432a881a8d0872697bd8, type: 3}
+      - {fileID: 6896089177287879951, guid: fe8739e2704d498d83eb36edb2851f92, type: 3}
+      - {fileID: 5605763720398506000, guid: 99359e2190b64517b164c68da2333203, type: 3}
+      density: 0
+      scaleRange: {x: 0.8, y: 1.5}
+      slopeAlignment: 0
+      sinkRange: {x: 0.02, y: 0.08}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.2
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 10
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 0
+      objectsPerCluster: 0
+      clusterRadius: 0
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 5450897638891195147, guid: 049b15d0af004c4983b40cd58cd4c29f, type: 3}
+      - {fileID: 7453444095136225052, guid: e366a239a99345d6b427a1447cbc8db8, type: 3}
+      - {fileID: 5638892243523029839, guid: c536b97c88a14856bfa4fe8c32d97fc7, type: 3}
+      - {fileID: 6300834620782906198, guid: 6b6fb14176d74fef92b69d68ca0c3fbe, type: 3}
+      density: 0
+      scaleRange: {x: 0.5, y: 1}
+      slopeAlignment: 0
+      sinkRange: {x: 0.01, y: 0.05}
+      noiseType: 2
+      noiseFrequency: 4
+      noiseAmplitude: 1
+      noiseThreshold: 0.25
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 12
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 0
+      objectsPerCluster: 0
+      clusterRadius: 0
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 2222078140045590490, guid: c032d2fd9f7749d5ae06397ab7948937, type: 3}
+      density: 0
+      scaleRange: {x: 0.8, y: 1.2}
+      slopeAlignment: 0
+      sinkRange: {x: 0.02, y: 0.05}
+      noiseType: 3
+      noiseFrequency: 5
+      noiseAmplitude: 1
+      noiseThreshold: 0.7
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 0
+      slopeSmoothness: 0
+      useClusterMode: 0
+      clusterCount: 0
+      objectsPerCluster: 0
+      clusterRadius: 0
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 1269462721189869992, guid: dedd5a53acbc486a8edcbc6f34a8d28f, type: 3}
+      - {fileID: 4989413303795259201, guid: d98d297ee64c4343bc29631637252ad1, type: 3}
+      - {fileID: 7233515778106127616, guid: 20816c3f6f23452694dc8dbd0daff981, type: 3}
+      - {fileID: 931989779528469154, guid: 4fe2de63e9d84828b641931dca3e61bb, type: 3}
+      density: 0
+      scaleRange: {x: 0.6, y: 1.1}
+      slopeAlignment: 0
+      sinkRange: {x: 0.01, y: 0.04}
+      noiseType: 2
+      noiseFrequency: 8
+      noiseAmplitude: 1
+      noiseThreshold: 0.35
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 10
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 0
+      objectsPerCluster: 0
+      clusterRadius: 0
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 1230239415165752346, guid: de38b4c7c3664a38a4afec257c7f043d, type: 3}
+      - {fileID: 4456927592469454373, guid: ccfb06a25a274d49ac71567285e15514, type: 3}
+      - {fileID: 5205705406474960654, guid: 89d3c26ea05b4a63aadc626d377c7561, type: 3}
+      density: 0
+      scaleRange: {x: 0.6, y: 1.2}
+      slopeAlignment: 0
+      sinkRange: {x: 0.01, y: 0.03}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.3
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 12
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 0
+      objectsPerCluster: 0
+      clusterRadius: 0
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 0
+      minParentDistance: 0
+      maxParentDistance: 0
+    - role: 3
+      prefabs:
+      - {fileID: 6895103089000004699, guid: 9bb6d31734594fd1894fcb5f4491af91, type: 3}
+      - {fileID: 1885970674236684932, guid: a41653975b7440bd9e47b8f8a51f5afd, type: 3}
+      - {fileID: 8959399852338167606, guid: d969e63d90c44190b0860a718b495c50, type: 3}
+      - {fileID: 3853888576469351421, guid: acb39a0c504447bbb25475c0b6c2651f, type: 3}
+      - {fileID: 8028446217807392353, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      - {fileID: 3365980374994671589, guid: 87812b2935f342fb99a0f71b9e51e6e2, type: 3}
+      density: 0
+      scaleRange: {x: 1, y: 2.2}
+      slopeAlignment: 0
+      sinkRange: {x: 0, y: 0.2}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1
+      noiseThreshold: 0.3
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 12
+      slopeSmoothness: 3
+      useClusterMode: 0
+      clusterCount: 15
+      objectsPerCluster: 4
+      clusterRadius: 10
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+      countPerCluster: 14
+      minParentDistance: 24
+      maxParentDistance: 42
+  detailConfig:
+    entries: []
