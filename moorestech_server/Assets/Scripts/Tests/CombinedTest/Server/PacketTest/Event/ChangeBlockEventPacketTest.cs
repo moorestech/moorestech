@@ -14,9 +14,11 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
+using System.Linq;
 using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -32,6 +34,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //機械のブロックを作る
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+
+            // レシピを明示選択してから材料を投入する
+            // Explicitly select the recipe before inserting materials
+            var machineGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == machineGuid);
+            MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
+
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = ServerContext.ItemStackFactory;
             
