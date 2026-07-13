@@ -1,4 +1,5 @@
 using Core.Master;
+using Game.Block.Interface.Extension;
 using Game.UnlockState;
 
 namespace Client.Game.InGame.UI.UIState.State.PlacementPick
@@ -15,7 +16,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 
             // ベルトファミリーは代表ブロックへ変換（ビルドメニューの隠しバリアント除外と整合）
             // Belt family members resolve to the representative block, matching the menu's hidden-variant exclusion
-            if (MasterHolder.BlockMaster.TryGetBeltConveyorFamily(rawBlockId, out var family))
+            if (BeltConveyorPlaceFamilyUtil.TryGetFamily(rawBlockId, out var family))
             {
                 resolvedBlockId = family.RepresentativeBlockId;
             }

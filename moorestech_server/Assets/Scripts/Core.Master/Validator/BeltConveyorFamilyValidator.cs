@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Mooresmaster.Model.BlocksModule;
 
-namespace Core.Master
+namespace Core.Master.Validator
 {
     /// <summary>
     /// ベルトコンベアファミリーの構成（代表・長尺・斜面）がコード側の解決規則を満たすか検証する

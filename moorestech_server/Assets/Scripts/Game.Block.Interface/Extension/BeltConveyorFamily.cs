@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Core.Master;
 
-namespace Core.Master
+namespace Game.Block.Interface.Extension
 {
     /// <summary>
     /// 同じbeltConveyorFamilyを持つベルトコンベア群。代表・長尺バリアント・斜面ブロックで構成される

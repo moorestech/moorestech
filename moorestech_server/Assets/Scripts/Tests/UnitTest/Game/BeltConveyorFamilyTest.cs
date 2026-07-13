@@ -1,4 +1,5 @@
 using Core.Master;
+using Game.Block.Interface.Extension;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -12,14 +13,14 @@ namespace Tests.UnitTest.Game
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            Assert.IsTrue(MasterHolder.BlockMaster.TryGetBeltConveyorFamily(ForUnitTestModBlockId.GearBeltConveyor, out _));
-            Assert.IsTrue(MasterHolder.BlockMaster.TryGetBeltConveyorFamily(ForUnitTestModBlockId.GearBeltConveyor3, out _));
+            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor, out _));
+            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor3, out _));
             // up/downバリアントもファミリー所属
             // Up/down slope variants also belong to the family
-            Assert.IsTrue(MasterHolder.BlockMaster.TryGetBeltConveyorFamily(ForUnitTestModBlockId.TestGearBeltConveyorUp, out _));
+            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.TestGearBeltConveyorUp, out _));
             // 非ベルトブロックは解決されない
             // Non-belt blocks are not resolved
-            Assert.IsFalse(MasterHolder.BlockMaster.TryGetBeltConveyorFamily(ForUnitTestModBlockId.MachineId, out _));
+            Assert.IsFalse(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.MachineId, out _));
         }
 
         [Test]
@@ -27,7 +28,7 @@ namespace Tests.UnitTest.Game
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            MasterHolder.BlockMaster.TryGetBeltConveyorFamily(ForUnitTestModBlockId.GearBeltConveyor3, out var family);
+            BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor3, out var family);
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, family.RepresentativeBlockId);
 
             // 長さはblockSize.zから導出され、長い順に並ぶ
@@ -48,7 +49,7 @@ namespace Tests.UnitTest.Game
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            MasterHolder.BlockMaster.TryGetBeltConveyorFamily(ForUnitTestModBlockId.GearBeltConveyor, out var family);
+            BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor, out var family);
 
             Assert.IsTrue(family.IsHiddenVariant(ForUnitTestModBlockId.TestGearBeltConveyorUp));
             Assert.IsTrue(family.IsHiddenVariant(ForUnitTestModBlockId.GearBeltConveyor3));
