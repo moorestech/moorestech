@@ -1035,8 +1035,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "直線歯車ベルトコンベア"
+        }
       },
       "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor",
@@ -1138,8 +1137,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "直線歯車ベルトコンベア"
+        }
       },
       "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor up",
@@ -1246,8 +1244,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "beltConveyorFamily": "直線歯車ベルトコンベア"
+        }
       },
       "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
       "blockPrefabAddressablesPath": "Vanilla/Block/gear belt conveyor down",
@@ -1973,8 +1970,7 @@
               "connectorGuid": "c5c48153-533e-42c6-85c2-c70f850b8b22"
             }
           ]
-        },
-        "beltConveyorFamily": "直進高速ベルトコンベア"
+        }
       }
     },
     {
@@ -2032,8 +2028,7 @@
               "connectorGuid": "ab2d1437-3dd5-4632-883f-7ce3b594e32b"
             }
           ]
-        },
-        "beltConveyorFamily": "直進高速ベルトコンベア"
+        }
       }
     },
     {
@@ -2091,8 +2086,7 @@
               "connectorGuid": "39f21d26-dcab-4e97-974a-128b5e535de2"
             }
           ]
-        },
-        "beltConveyorFamily": "直進高速ベルトコンベア"
+        }
       }
     },
     {
@@ -2382,6 +2376,26 @@
     }
   ],
   "gearChainItems": [],
+  "beltConveyorFamilies": [
+    {
+      "upBlockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
+      "downBlockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2",
+      "straightBlocks": [
+        {
+          "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
+        }
+      ]
+    },
+    {
+      "upBlockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0",
+      "downBlockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f",
+      "straightBlocks": [
+        {
+          "blockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0"
+        }
+      ]
+    }
+  ],
   "blockDestructionCategories": [],
   "electricWireItems": []
 }

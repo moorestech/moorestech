@@ -9,8 +9,6 @@ namespace Game.Block.Interface.Extension
     /// </summary>
     public class BeltConveyorFamily
     {
-        public readonly string FamilyName;
-
         // 代表は1マスの直線ブロック。ビルドメニューにはこれだけが並ぶ
         // The representative is the one-cell straight block; only it appears in the build menu
         public readonly BlockId RepresentativeBlockId;
@@ -26,9 +24,8 @@ namespace Game.Block.Interface.Extension
 
         private readonly HashSet<BlockId> _memberBlockIds;
 
-        public BeltConveyorFamily(string familyName, BlockId representativeBlockId, IReadOnlyList<(int length, BlockId blockId)> straightVariantsDesc, BlockId? upBlockId, BlockId? downBlockId, HashSet<BlockId> memberBlockIds)
+        public BeltConveyorFamily(BlockId representativeBlockId, IReadOnlyList<(int length, BlockId blockId)> straightVariantsDesc, BlockId? upBlockId, BlockId? downBlockId, HashSet<BlockId> memberBlockIds)
         {
-            FamilyName = familyName;
             RepresentativeBlockId = representativeBlockId;
             StraightVariantsDesc = straightVariantsDesc;
             UpBlockId = upBlockId;
