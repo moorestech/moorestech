@@ -4,6 +4,7 @@ using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using MessagePack;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -21,6 +22,13 @@ namespace Game.Block.Blocks.Gear
         // Delegate the id and required-torque calculation needed for derivation to the owner
         private readonly IGearEnergyTransformer _owner;
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
+
+        // 最後に通知したクライアント可視状態。差分がなければ再通知しない
+        // Last notified client-visible state; skip re-notifying when nothing changed
+        private bool _hasNotifiedOnce;
+        private bool _lastIsClockwise;
+        private float _lastRpm;
+        private float _lastTorque;
 
         public SimpleGearService(IGearEnergyTransformer owner, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
@@ -72,10 +80,23 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
-        // tick計算後に呼ばれ、クライアントへ状態変化を通知する
-        // Called after tick calculation to notify clients of the state change
+        // tick計算後に呼ばれ、クライアントへ状態変化を通知する。所属networkの再計算とは独立に、この歯車自身の可視状態が変化した時のみ発火する
+        // Called after tick calculation to notify clients. Fires only when this gear's own visible state changed, independent of whether the owning network recalculated
         public void NotifyStateChanged()
         {
+            var isClockwise = IsCurrentClockwise;
+            var rpm = CurrentRpm.AsPrimitive();
+            var torque = CurrentTorque.AsPrimitive();
+
+            // 初回通知後、3値すべてが前回と一致するなら発火をスキップする
+            // After the first notification, skip firing when all three values match the last notified state
+            if (_hasNotifiedOnce && _lastIsClockwise == isClockwise && Mathf.Approximately(_lastRpm, rpm) && Mathf.Approximately(_lastTorque, torque)) return;
+
+            _hasNotifiedOnce = true;
+            _lastIsClockwise = isClockwise;
+            _lastRpm = rpm;
+            _lastTorque = torque;
+
             _onBlockStateChange.OnNext(Unit.Default);
             _onGearUpdate.OnNext(GearUpdateType.SupplyPower);
         }
