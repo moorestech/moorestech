@@ -21,8 +21,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     public class ChangeBlockStateEventPacketDedupTest
     {
         [Test]
-        // 同一ペイロードで2回ChangeStateを呼んでも、キューに積まれるのは1回のみ
-        // Calling ChangeState twice with an identical payload queues only one event
+        // 同一ペイロードは2回呼んでも1回のみ積まれる
+        // An identical payload queues only once across two calls
         public void SamePayloadIsBroadcastOnceTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -104,8 +104,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
-        // 既にブロードキャスト済みの同一ペイロードでも、InvokeBlockStateEventProtocol経由のpullは必ず積まれる
-        // A pull via InvokeBlockStateEventProtocol always queues, even if the same payload was already broadcast
+        // 同一ペイロードでもpull経由は必ず積まれる
+        // A pull always queues, even for an identical payload
         public void InvokeBlockStateEventProtocolAlwaysBroadcastsEvenWhenUnchangedTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
