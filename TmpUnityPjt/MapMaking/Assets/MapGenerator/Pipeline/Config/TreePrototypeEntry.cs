@@ -19,7 +19,7 @@ namespace MapGenerator.Pipeline.Config
         public Vector2 scaleHeightRange = new Vector2(0.8f, 1.2f);
         [Label("幅スケール範囲")]
         public Vector2 scaleWidthRange = new Vector2(0.8f, 1.2f);
-        // trueなら幅スケールを高さスケ��ルに連動させ、プロポーション維持
+        // trueなら幅スケールを高さスケールに連動させ、プロポーション維持
         [Label("幅高さロック")]
         public bool lockWidthHeight = true;
         // 地面に沈める量（メートル単位、正規化座標ではない）
@@ -61,7 +61,7 @@ namespace MapGenerator.Pipeline.Config
         [Range(1f, 30f)] public float sharedGridMinDistance = 2f;
 
         // =====================================================
-        // プロ���タイプ別フィルタ・ノイズ
+        // プロトタイプ別フィルタ・ノイズ
         // =====================================================
 
         // PlacementFilter.enabled=true で個別フィルタが有効になり、
