@@ -26,6 +26,7 @@ namespace Server.Event.EventReceive
             _eventProtocolProvider = eventProtocolProvider;
             ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
+            ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
         // 購読経路用。前回と同一ペイロードなら送信スキップ
@@ -60,6 +61,13 @@ namespace Server.Event.EventReceive
         // ブロック削除時に差分記録を掃除する。放置すると同座標に再設置された別ブロックが旧ペイロードと誤って比較されうる
         // Clean up the diff record on removal; otherwise a block re-placed at the same position could be wrongly diffed against stale state
         private void OnBlockRemove(BlockRemoveProperties properties)
+        {
+            _lastBroadcastPayloads.Remove(properties.BlockData.BlockPositionInfo.OriginalPos);
+        }
+
+        // Destroy中発火でstale再登録された場合に備え、設置時にも同座標の記録を掃除する
+        // Also clear on placement in case Destroy() re-registers a stale entry at this position
+        private void OnBlockPlace(BlockPlaceProperties properties)
         {
             _lastBroadcastPayloads.Remove(properties.BlockData.BlockPositionInfo.OriginalPos);
         }
