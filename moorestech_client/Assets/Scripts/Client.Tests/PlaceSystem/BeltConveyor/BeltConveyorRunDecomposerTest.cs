@@ -20,11 +20,11 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 
         private static readonly List<(int length, BlockId blockId)> Variants = new() { (3, Straight3), (2, Straight2), (1, Straight1) };
 
-        private static readonly BeltConveyorFamily Family = new(Straight1, Variants, UpBlock, DownBlock, new HashSet<BlockId> { Straight1, Straight2, Straight3, UpBlock, DownBlock });
+        private static readonly BeltConveyorFamily Family = new(Straight1, Variants, UpBlock, DownBlock);
 
         // 斜面バリアントを持たないファミリー（分岐器相当）
         // A family without slope variants (equivalent to a splitter)
-        private static readonly BeltConveyorFamily SlopelessFamily = new(Straight1, new List<(int length, BlockId blockId)> { (1, Straight1) }, null, null, new HashSet<BlockId> { Straight1 });
+        private static readonly BeltConveyorFamily SlopelessFamily = new(Straight1, new List<(int length, BlockId blockId)> { (1, Straight1) }, null, null);
 
         private static PlaceInfo Cell(int x, int y, int z, BlockDirection dir, BlockVerticalDirection vertical, bool placeable)
         {

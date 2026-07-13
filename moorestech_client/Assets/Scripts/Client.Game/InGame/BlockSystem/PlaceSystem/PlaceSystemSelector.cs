@@ -56,8 +56,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 case BlockPlacementTarget block:
                 {
-                    // ブロック種別で専用システムへ振り分け、残りは通常ブロック
-                    // Route to the dedicated systems by block type; everything else falls back to common blocks
+                    // ブロック種別で専用システムへ、残りは通常ブロック
+                    // Route by block type; the rest fall back to common blocks
                     var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
                     return blockMaster.BlockType switch
                     {
@@ -75,8 +75,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 case BlueprintCopyToolPlacementTarget:
                     return _blueprintCopySystem;
                 case ConnectToolPlacementTarget connectTool:
-                    // 接続ツールはツール種別で3系統へ振り分ける
-                    // Route connect tools to the three connect systems by tool type
+                    // ツール種別で3系統へ振り分ける
+                    // Route by tool type to the three connect systems
                     return connectTool.ToolType switch
                     {
                         ConnectToolType.TrainRailConnect => _trainRailConnectSystem,

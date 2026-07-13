@@ -31,16 +31,16 @@ namespace Tests.UnitTest.Game
             BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor3, out var family);
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, family.RepresentativeBlockId);
 
-            // 長さはblockSize.zから導出され、長い順に並ぶ
-            // Lengths come from blockSize.z and are sorted in descending order
+            // 長さはblockSize.z導出・降順に並ぶ
+            // Lengths derive from blockSize.z, sorted descending
             var variants = family.StraightVariantsDesc;
             Assert.AreEqual(3, variants.Count);
             Assert.AreEqual(3, variants[0].length);
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor3, variants[0].blockId);
             Assert.AreEqual(1, variants[2].length);
 
-            // 斜面はslopeTypeから解決される
-            // Slope blocks are resolved from slopeType
+            // 斜面はUp/DownBlockGuidから解決される
+            // Slopes resolve from Up/DownBlockGuid
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp, family.UpBlockId);
         }
 
