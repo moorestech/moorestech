@@ -34,8 +34,9 @@ namespace Server.Protocol.PacketResponse
             var blockState = blockData?.Block.GetBlockState();
             if (blockState == null) return null;
             
-            // イベントを発行
-            _changeBlockStateEventPacket.ChangeState((blockState, blockData));
+            // 初期状態pullのため、差分スキップせず必ずイベントを発行する
+            // Initial-state pull: always fire the event, never diff-skipped
+            _changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
             
             return null;
         }
