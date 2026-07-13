@@ -34,7 +34,7 @@ namespace Client.Tests.ViewMode
         [Test]
         public void VKeyTogglesViewModeOnGameScreen()
         {
-            _controller.OnEnterViewState(UIStateEnum.GameScreen);
+            _controller.SetUIState(UIStateEnum.GameScreen);
 
             // ゲーム画面でVを押すとFPSへ切り替わる（建設モード外でもトグルが効く結線の検証）
             // Pressing V on the game screen switches to FPS (covers the toggle wiring outside build states)
@@ -54,7 +54,7 @@ namespace Client.Tests.ViewMode
         [Test]
         public void RightDragRotatesCameraInThirdPersonPlaceBlock()
         {
-            _controller.OnEnterViewState(UIStateEnum.PlaceBlock);
+            _controller.SetUIState(UIStateEnum.PlaceBlock);
             _applier.Calls.Clear();
 
             // 三人称の設置モードは右ドラッグ中だけカーソルを隠して視点を回す
@@ -73,7 +73,7 @@ namespace Client.Tests.ViewMode
         [Test]
         public void RightDragDoesNotTouchCursorOnGameScreen()
         {
-            _controller.OnEnterViewState(UIStateEnum.GameScreen);
+            _controller.SetUIState(UIStateEnum.GameScreen);
             _applier.Calls.Clear();
 
             // ゲーム画面はカーソルロック済みで常時回転可のため、右ドラッグで何も適用しない
@@ -88,7 +88,7 @@ namespace Client.Tests.ViewMode
         [Test]
         public void RightDragDoesNotTouchCursorInFirstPerson()
         {
-            _controller.OnEnterViewState(UIStateEnum.PlaceBlock);
+            _controller.SetUIState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
             _applier.Calls.Clear();
 

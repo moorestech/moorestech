@@ -1,5 +1,4 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
@@ -10,19 +9,14 @@ namespace Client.Game.InGame.UI.UIState.State
     public class BuildMenuState : IUIState
     {
         private readonly BuildMenuView _buildMenuView;
-        private readonly PlayerViewModeController _playerViewModeController;
 
-        public BuildMenuState(BuildMenuView buildMenuView, PlayerViewModeController playerViewModeController)
+        public BuildMenuState(BuildMenuView buildMenuView)
         {
             _buildMenuView = buildMenuView;
-            _playerViewModeController = playerViewModeController;
         }
 
         public void OnEnter(UITransitContext context)
         {
-            // カーソル適用はPlayerViewModeController委譲（FPS中も解放）
-            // Cursor visibility is applied by PlayerViewModeController (freed in the menu even during FPS)
-            _playerViewModeController.OnEnterViewState(UIStateEnum.BuildMenu);
             _buildMenuView.SetActive(true);
             KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
         }
@@ -40,9 +34,6 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
-            // 視点回転を落とす。カーソル方針は次ステートのOnEnterが適用する
-            // Drop the look rotation; the next state's OnEnter applies its own cursor policy
-            _playerViewModeController.OnExitViewState();
             _buildMenuView.SetActive(false);
         }
     }

@@ -1,4 +1,3 @@
-using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -12,21 +11,16 @@ namespace Client.Game.InGame.UI.UIState.State
     {
         private readonly DeleteBarObject _deleteBarObject;
 
-        private readonly PlayerViewModeController _playerViewModeController;
         private readonly DeleteObjectService _deleteObjectService = new();
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, PlayerViewModeController playerViewModeController, RailGraphClientCache cache)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache)
         {
-            _playerViewModeController = playerViewModeController;
             _deleteBarObject = deleteBarObject;
             deleteBarObject.gameObject.SetActive(false);
         }
 
         public void OnEnter(UITransitContext context)
         {
-            // カメラ・カーソルの適用はPlayerViewModeControllerに委譲する
-            // Camera and cursor handling is delegated to PlayerViewModeController
-            _playerViewModeController.OnEnterViewState(UIStateEnum.DeleteBar);
             _deleteBarObject.gameObject.SetActive(true);
             KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
         }
@@ -42,7 +36,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // Delegate the delete interaction to the service
             _deleteObjectService.Update();
 
-            _playerViewModeController.ManualUpdate();
             return null;
 
             #region Internal
@@ -69,9 +62,6 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
-            // クロスヘアと視点回転を落とす。カーソル方針は次ステートのOnEnterが適用する
-            // Drop the crosshair and look rotation; the next state's OnEnter applies its own cursor policy
-            _playerViewModeController.OnExitViewState();
             _deleteObjectService.CancelSelection();
             _deleteBarObject.gameObject.SetActive(false);
         }

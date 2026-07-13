@@ -1,5 +1,4 @@
 ﻿using Client.Game.Common;
-using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
@@ -13,7 +12,6 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class GameScreenState : IUIState
     {
-        private readonly PlayerViewModeController _playerViewModeController;
         private readonly SkitManager _skitManager;
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
         private readonly RideVehicleInputService _rideVehicleInputService;
@@ -21,13 +19,11 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public GameScreenState(
             SkitManager skitManager,
-            PlayerViewModeController playerViewModeController,
             GameScreenSubInventoryInteractService subInventoryInteractService,
             RideVehicleInputService rideVehicleInputService,
             PlacementTargetPickService placementTargetPickService)
         {
             _skitManager = skitManager;
-            _playerViewModeController = playerViewModeController;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
             _placementTargetPickService = placementTargetPickService;
@@ -59,10 +55,6 @@ namespace Client.Game.InGame.UI.UIState.State
             if (HybridInput.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
             if (HybridInput.GetKeyDown(KeyCode.F3)) return new UITransitContext(UIStateEnum.Debug);
 
-            // 視点切替(V)はゲーム画面でも常に受け付ける
-            // The view toggle (V) is always accepted on the game screen too
-            _playerViewModeController.ManualUpdate();
-
             return null;
         }
 
@@ -72,16 +64,11 @@ namespace Client.Game.InGame.UI.UIState.State
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
             GameStateController.ChangeState(GameStateType.InGame);
 
-            // カメラ・カーソル・クロスヘアはPlayerViewModeControllerへ委譲
-            // Camera, cursor, and crosshair handling is delegated to PlayerViewModeController
-            _playerViewModeController.OnEnterViewState(UIStateEnum.GameScreen);
-
             KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nV: 視点切替\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
 
         public void OnExit()
         {
-            _playerViewModeController.OnExitViewState();
         }
     }
 }
