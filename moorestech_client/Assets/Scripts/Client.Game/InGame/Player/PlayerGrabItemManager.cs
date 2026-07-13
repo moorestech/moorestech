@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Player
         [SerializeField] private Transform leftHandParent;
         [SerializeField] private Transform rightHandParent;
 
-        public void SetItem(GameObject item, bool isLeft, Vector3 position = default, Quaternion rotation = default)
+        public void SetItem(GameObject item, bool isLeft, Vector3 position, Quaternion rotation)
         {
             var parent = isLeft ? leftHandParent : rightHandParent;
             item.transform.SetParent(parent);

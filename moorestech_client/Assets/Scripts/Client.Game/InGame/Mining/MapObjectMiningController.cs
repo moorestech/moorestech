@@ -1,4 +1,5 @@
 ﻿using Client.Common;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory;
@@ -35,26 +36,24 @@ namespace Client.Game.InGame.Mining
             
             // update state
             _currentState = _currentState.GetNextUpdate(_context, Time.deltaTime);
-            
-            #region Internal
-            
-            MapObjectGameObject GetCurrentMapObject()
-            {
-                if (Camera.main == null) return null;
-                
-                var ray = Camera.main.ScreenPointToRay(new Vector2(Screen.width / 2.0f, Screen.height / 2.0f));
-                if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
-                if (EventSystem.current.IsPointerOverGameObject()) return null;
-                if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
-                
-                var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObjectPos = mapObjectRayTarget.MapObjectGameObject.GetPosition();
-                if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
-                
-                return mapObjectRayTarget.MapObjectGameObject;
-            }
-            
-            #endregion
+        }
+
+        private MapObjectGameObject GetCurrentMapObject()
+        {
+            if (Camera.main == null) return null;
+
+            // 共通照準から採掘Rayを作る
+            // Build the mining ray from the shared aim point for the current view and cursor mode
+            var ray = Camera.main.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
+            if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
+            if (EventSystem.current.IsPointerOverGameObject()) return null;
+            if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
+
+            var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+            var mapObjectPos = mapObjectRayTarget.MapObjectGameObject.GetPosition();
+            if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
+
+            return mapObjectRayTarget.MapObjectGameObject;
         }
     }
 }

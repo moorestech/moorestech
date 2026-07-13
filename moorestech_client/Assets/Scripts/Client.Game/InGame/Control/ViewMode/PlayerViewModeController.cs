@@ -4,11 +4,43 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Control.ViewMode
 {
+    public class ThirdPersonCameraDistance
+    {
+        public const float MinimumDistance = 0.6f;
+        public const float MaximumDistance = 10f;
+
+        private float _distance;
+        private bool _isTransitioning;
+
+        public ThirdPersonCameraDistance(float initialDistance)
+        {
+            _distance = initialDistance;
+        }
+
+        public void SetTransitioning(bool transitioning)
+        {
+            _isTransitioning = transitioning;
+        }
+
+        public bool TryAddZoom(float delta)
+        {
+            if (_isTransitioning) return false;
+
+            _distance = Mathf.Clamp(_distance + delta, MinimumDistance, MaximumDistance);
+            return true;
+        }
+
+        public float GetDistance()
+        {
+            return _distance;
+        }
+    }
+
     /// <summary>
     ///     視点モード（FPS/TPS）の保持とトグル、UIステートごとのカーソル・視点回転・クロスヘア適用を担う
     ///     Owns the FPS/TPS view mode, its toggle, and the per-UI-state cursor, look-rotation, and crosshair policy
-    ///     視点を扱うステートがOnEnterViewState/OnExitViewState/ManualUpdateで駆動する（UIStateControlへの依存なし）
-    ///     Driven by view-aware states via OnEnterViewState/OnExitViewState/ManualUpdate (no UIStateControl dependency)
+    ///     UIステートごとの視点方針を一元管理する
+    ///     Receives every state transition and update centrally from UIStateControl and applies policy only to view states
     /// </summary>
     public class PlayerViewModeController
     {
@@ -16,7 +48,8 @@ namespace Client.Game.InGame.Control.ViewMode
 
         private readonly IPlayerViewApplier _applier;
 
-        private UIStateEnum _currentViewState = UIStateEnum.GameScreen;
+        private UIStateEnum _currentUIState = UIStateEnum.GameScreen;
+        private bool _isTextInputFocused;
 
         public PlayerViewModeController(IPlayerViewApplier applier)
         {
@@ -27,36 +60,33 @@ namespace Client.Game.InGame.Control.ViewMode
             AimPointProvider.SetMode(CurrentMode);
         }
 
-        // 視点を扱うステート（ゲーム画面・設置・破壊・ビルドメニュー）のOnEnterで呼ぶ
-        // Call from OnEnter of the view-aware states (game screen, place, delete, build menu)
-        public void OnEnterViewState(UIStateEnum state)
+        public void SetUIState(UIStateEnum state)
         {
-            _currentViewState = state;
-            ApplyForState(state);
+            _currentUIState = state;
+            _isTextInputFocused = false;
+            ApplyCurrentState();
         }
 
-        // 同じステートのOnExitで呼ぶ。カーソルは次ステートのOnEnterが自前の方針で適用する
-        // Call from the same state's OnExit; the next state's OnEnter applies its own cursor policy
-        public void OnExitViewState()
+        // アプリ復帰時に視点方針を復元する
+        // Restore cursor lock and view policy from the current state after the OS releases focus
+        public void RestoreAfterApplicationFocus()
         {
-            _applier.SetCameraRotatable(false);
-            _applier.SetCrosshairVisible(false);
-
-            // 視点管理外のステート（インベントリ・デバッグ等）はカーソルを解放するため照準もマウスへ戻す
-            // States outside the view management (inventory, debug, ...) free the cursor, so the aim returns to the mouse
-            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+            if (!IsViewState(_currentUIState)) return;
+            ApplyCurrentState();
         }
 
         // 視点ステート中に毎フレーム呼ぶ（Vトグルと、三人称の照準ステートでの右ドラッグ回転）
         // Called every frame during view states (V toggle, and right-drag rotation in third-person aim states)
         public void ManualUpdate()
         {
+            if (!IsViewState(_currentUIState) || _isTextInputFocused) return;
+
             //TODO InputSystem対応
             if (HybridInput.GetKeyDown(KeyCode.V)) ToggleViewMode();
 
             // カーソルを解放しているのは三人称の照準ステートだけで、そこでは右ドラッグ中のみ回転する
             // Only third-person aim states free the cursor, and there the view rotates only while right-dragging
-            if (CurrentMode != PlayerViewMode.ThirdPerson || !IsMouseAimState(_currentViewState)) return;
+            if (CurrentMode != PlayerViewMode.ThirdPerson || !IsMouseAimState(_currentUIState)) return;
 
             //TODO InputSystem対応
             if (HybridInput.GetMouseButtonDown(1))
@@ -75,34 +105,36 @@ namespace Client.Game.InGame.Control.ViewMode
         // While a text field is focused, release the FPS cursor lock, look rotation, and crosshair; reapply the state on unfocus
         public void SetTextInputFocused(bool focused)
         {
+            if (_isTextInputFocused == focused) return;
+            _isTextInputFocused = focused;
             if (CurrentMode != PlayerViewMode.FirstPerson) return;
-
-            if (focused)
-            {
-                _applier.SetCameraRotatable(false);
-                _applier.SetCursorVisible(true);
-                _applier.SetCrosshairVisible(false);
-                AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
-            }
-            else
-            {
-                ApplyForState(_currentViewState);
-            }
+            ApplyCurrentState();
         }
 
         public void ToggleViewMode()
         {
             CurrentMode = CurrentMode == PlayerViewMode.ThirdPerson ? PlayerViewMode.FirstPerson : PlayerViewMode.ThirdPerson;
 
-            ApplyForState(_currentViewState);
+            ApplyCurrentState();
         }
 
-        private void ApplyForState(UIStateEnum state)
+        private void ApplyCurrentState()
         {
-            // カーソルを解放するのはビルドメニューと、三人称でマウス照準するステートのみ
-            // The cursor is freed only in the build menu and in third-person mouse-aim states
+            // 視点外ではFPS表示だけ解除する
+            // Outside view states, retain the mode while reliably disabling FPS camera, rotation, and crosshair
+            if (!IsViewState(_currentUIState))
+            {
+                _applier.SetFirstPersonCamera(false);
+                _applier.SetCameraRotatable(false);
+                _applier.SetCrosshairVisible(false);
+                AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+                return;
+            }
+
+            // 操作中のカーソル解放を判定する
+            // Free the cursor for text input, build menu, and third-person mouse aiming
             var isFirstPerson = CurrentMode == PlayerViewMode.FirstPerson;
-            var isCursorFree = state == UIStateEnum.BuildMenu || (!isFirstPerson && IsMouseAimState(state));
+            var isCursorFree = _isTextInputFocused || _currentUIState == UIStateEnum.BuildMenu || (!isFirstPerson && IsMouseAimState(_currentUIState));
 
             _applier.SetFirstPersonCamera(isFirstPerson);
             _applier.SetCameraRotatable(!isCursorFree);
@@ -119,6 +151,11 @@ namespace Client.Game.InGame.Control.ViewMode
         private static bool IsMouseAimState(UIStateEnum state)
         {
             return state is UIStateEnum.PlaceBlock or UIStateEnum.DeleteBar;
+        }
+
+        private static bool IsViewState(UIStateEnum state)
+        {
+            return state is UIStateEnum.GameScreen or UIStateEnum.PlaceBlock or UIStateEnum.DeleteBar or UIStateEnum.BuildMenu;
         }
     }
 }
