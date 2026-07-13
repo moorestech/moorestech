@@ -17,6 +17,7 @@ using Mooresmaster.Model.MachineRecipesModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core
@@ -40,6 +41,7 @@ namespace Tests.CombinedTest.Core
             // Place the gear machine block
             var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
             var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             foreach (var inputItem in recipe.InputItems)
             {
@@ -89,6 +91,8 @@ namespace Tests.CombinedTest.Core
             var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackRpmBlock);
             ServerContext.WorldBlockDatastore.TryAddBlock(recipeBlockId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lackTorqueBlock);
+            MachineRecipeSelectTestUtil.SelectRecipe(lackRpmBlock, recipe);
+            MachineRecipeSelectTestUtil.SelectRecipe(lackTorqueBlock, recipe);
 
             var lackRpmInventory = lackRpmBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
             var lackTorqueInventory = lackTorqueBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
