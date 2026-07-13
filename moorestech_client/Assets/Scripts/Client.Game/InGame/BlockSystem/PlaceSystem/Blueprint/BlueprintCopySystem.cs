@@ -1,5 +1,6 @@
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Input;
 using Cysharp.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     ///     ・名前入力後にCreate送信
     ///     Selects the blueprint box via XZ drag plus scroll height, then sends Create after name input
     /// </summary>
-    public class BlueprintCopySystem : IPlaceSystem
+    public class BlueprintCopySystem : PlaceSystemBase<BlueprintCopyToolPlacementTarget>
     {
         private readonly ClientBlueprintLibrary _library;
         private readonly BlueprintNameInputView _nameInputView;
@@ -67,12 +68,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             #endregion
         }
 
-        public void Enable()
+        public override void Enable()
         {
             _visualizer ??= new BlueprintAreaVisualizer();
         }
 
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        protected override void ManualUpdate(BlueprintCopyToolPlacementTarget target, bool isSelectionChanged)
         {
             // 名前入力中はドラッグを停止
             // Freeze drag interaction while the name dialog is open
@@ -144,7 +145,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             #endregion
         }
 
-        public void Disable()
+        public override void Disable()
         {
             ResetSelection();
             _nameInputView.Close();
