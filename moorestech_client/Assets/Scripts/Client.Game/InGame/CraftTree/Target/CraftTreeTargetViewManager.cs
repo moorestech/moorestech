@@ -1,6 +1,5 @@
 using Client.Game.InGame.CraftTree.TreeView;
 using Game.CraftTree.Models;
-using Game.CraftTree.Models;
 using UniRx;
 using UnityEngine;
 
