@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.CraftTree.Models;
-using Game.CraftTree.Models;
 using UnityEngine;
 
 namespace Client.Game.InGame.CraftTree.Target

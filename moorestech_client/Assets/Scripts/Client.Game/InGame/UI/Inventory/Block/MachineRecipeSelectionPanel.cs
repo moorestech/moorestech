@@ -94,7 +94,7 @@ namespace Client.Game.InGame.UI.Inventory.Block
                 }
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(recipe.OutputFluids[0].FluidGuid);
                 var fluidView = ClientContext.FluidImageContainer.GetItemView(fluidId);
-                slotView.SetItem(fluidView, 0, BuildToolTip(recipe));
+                slotView.SetFluid(fluidView, BuildToolTip(recipe));
             }
 
             string BuildToolTip(MachineRecipeMasterElement recipe)
