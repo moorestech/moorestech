@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.Context;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event;
 using Server.Event.EventReceive;
+using Server.Protocol;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Server.Protocol.PacketResponse.InvokeBlockStateEventProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -33,7 +36,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockState = blockData.Block.GetBlockState();
 
             var playerId = 0;
-            eventProtocolProvider.GetEventBytesList(playerId); // キューをクリア / clear the queue
+            // キューをクリア
+            // Clear the event queue
+            eventProtocolProvider.GetEventBytesList(playerId);
 
             changeBlockStateEventPacket.ChangeState((blockState, blockData));
             changeBlockStateEventPacket.ChangeState((blockState, blockData));
@@ -57,7 +62,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockData = world.GetOriginPosBlock(pos);
 
             var playerId = 0;
-            eventProtocolProvider.GetEventBytesList(playerId); // キューをクリア / clear the queue
+            // キューをクリア
+            // Clear the event queue
+            eventProtocolProvider.GetEventBytesList(playerId);
 
             var firstState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } });
             var secondState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 2 } });
@@ -85,13 +92,49 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var blockState = blockData.Block.GetBlockState();
 
             var playerId = 0;
-            eventProtocolProvider.GetEventBytesList(playerId); // キューをクリア / clear the queue
+            // キューをクリア
+            // Clear the event queue
+            eventProtocolProvider.GetEventBytesList(playerId);
 
             changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
             changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
 
             var events = eventProtocolProvider.GetEventBytesList(playerId);
             Assert.AreEqual(2, events.Count, "強制送信経路は同一ペイロードでも必ず積まれるべき");
+        }
+
+        [Test]
+        // 既にブロードキャスト済みの同一ペイロードでも、InvokeBlockStateEventProtocol経由のpullは必ず積まれる
+        // A pull via InvokeBlockStateEventProtocol always queues, even if the same payload was already broadcast
+        public void InvokeBlockStateEventProtocolAlwaysBroadcastsEvenWhenUnchangedTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
+            var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
+
+            var pos = new Vector3Int(8, 0, 8);
+            world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var blockData = world.GetOriginPosBlock(pos);
+            var blockState = blockData.Block.GetBlockState();
+
+            // 前回ペイロードとして記録させる
+            // Record the payload as the previously broadcast one
+            changeBlockStateEventPacket.ChangeState((blockState, blockData));
+
+            var playerId = 0;
+            // キューをクリア
+            // Clear the event queue
+            eventProtocolProvider.GetEventBytesList(playerId);
+
+            // 実際のパケット経路でInvokeBlockStateEventProtocolを発行
+            // Fire InvokeBlockStateEventProtocol through the real packet path
+            var request = new RequestInvokeBlockStateProtocolMessagePack(pos);
+            var payload = MessagePackSerializer.Serialize(request);
+            packet.GetPacketResponse(payload, new PacketResponseContext());
+
+            var events = eventProtocolProvider.GetEventBytesList(playerId);
+            Assert.AreEqual(1, events.Count, "変化がなくてもpull経路では必ず1件積まれるべき");
         }
     }
 }
