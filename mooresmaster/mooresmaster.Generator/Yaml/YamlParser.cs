@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using mooresmaster.Generator.Common;
 using mooresmaster.Generator.Json;
 using YamlDotNet.RepresentationModel;
 
@@ -11,7 +12,7 @@ public static class YamlParser
     public static JsonObject Parse(string filePath, string yamlText)
     {
         var document = ParseYamlDocument(yamlText);
-        foreach (var node in ((YamlMappingNode)document.RootNode).Children) Console.WriteLine($"{node.GetType()} {node}");
+        foreach (var node in ((YamlMappingNode)document.RootNode).Children) GeneratorLog.WriteLine($"{node.GetType()} {node}");
         
         return ParseYamlNode(filePath, document);
     }

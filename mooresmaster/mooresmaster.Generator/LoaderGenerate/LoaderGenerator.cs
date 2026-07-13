@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using mooresmaster.Generator.Common;
 using mooresmaster.Generator.Definitions;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.NameResolve;
@@ -58,7 +59,7 @@ public static class LoaderGenerator
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            GeneratorLog.WriteLine(e);
             throw;
         }
         
