@@ -1,0 +1,412 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0addbced5b00447eb988c5792c3e4d1, type: 3}
+  m_Name: Desert
+  m_EditorClassIdentifier: MapGenerator::MapGenerator.Pipeline.Biomes.DesertBiomeConfig
+  temperatureThreshold: 0.42
+  duneNoiseFrequency: 0.003
+  duneAmplitude: 0.025
+  canyonDepth: 0
+  canyonFrequency: 0.001
+  canyonOctaves: 4
+  cliffAmplitude: 0
+  cliffFrequency: 0.0012
+  cliffOctaves: 4
+  absSmoothing: 0.25
+  baseHeight: 0.0075
+  terrainLayer: {fileID: 8574412962073106934, guid: 54a5614b669e4c6bae99669238088195, type: 2}
+  textureConfig:
+    entries:
+    - layer: {fileID: 8574412962073106934, guid: b036a4ae246f4c53acac0a3c254f7e1f, type: 2}
+      weight: 10
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 90
+      slopeSmoothness: 4
+      useHeightFilter: 0
+      heightMin: 0
+      heightMax: 1
+      heightSmoothness: 0.02
+      useCurvatureFilter: 0
+      curvatureMin: -1
+      curvatureMax: 1
+      curvatureSmoothness: 0.2
+      noiseType: 1
+      noiseFrequency: 0.005
+      noiseAmplitude: 0.85
+    - layer: {fileID: 8574412962073106934, guid: 4cf9582b60a549a4ba44f2c7bc0750f8, type: 2}
+      weight: 12
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 90
+      slopeSmoothness: 4
+      useHeightFilter: 0
+      heightMin: 0
+      heightMax: 1
+      heightSmoothness: 0.02
+      useCurvatureFilter: 1
+      curvatureMin: -1
+      curvatureMax: 0.05
+      curvatureSmoothness: 0.2
+      noiseType: 1
+      noiseFrequency: 0.007
+      noiseAmplitude: 0.7
+    - layer: {fileID: 8574412962073106934, guid: c49bc870b5c94923b9d512364c0cc3d9, type: 2}
+      weight: 5
+      useSlopeFilter: 1
+      slopeMin: 1
+      slopeMax: 90
+      slopeSmoothness: 1
+      useHeightFilter: 0
+      heightMin: 0
+      heightMax: 1
+      heightSmoothness: 0.02
+      useCurvatureFilter: 0
+      curvatureMin: -1
+      curvatureMax: 1
+      curvatureSmoothness: 0.2
+      noiseType: 4
+      noiseFrequency: 0.03
+      noiseAmplitude: 0.4
+  treePlacement:
+    prototypes:
+    - prefabs:
+      - {fileID: 6244422567661042610, guid: 4db60b76f414415cb38e593814b833dd, type: 3}
+      - {fileID: 7865413847991648932, guid: 1daccfd274f9439bb7b537354fc0495b, type: 3}
+      - {fileID: 4443743228138257195, guid: 9cf5e545a3ce472aac31ad93cfba71dd, type: 3}
+      scaleHeightRange: {x: 0.4, y: 0.8}
+      scaleWidthRange: {x: 0.5, y: 0.9}
+      lockWidthHeight: 0
+      sink: 0
+      bendFactor: 0.05
+      randomRotation: 1
+      disabled: 1
+      densityConfig:
+        denseMinThreshold: 0.45
+        transitionMinThreshold: 0.26
+        densePassMinDistance: 15
+        transitionPassMinDistance: 8
+        sparsePassMinDistance: 20
+        scatterPassMinDistance: 22
+        transitionBaseProb: 0.06
+        transitionPeakProb: 0.74
+        transitionProbPower: 1.5
+        sparseOpenRejectFactor: 0.6
+        scatterBaseProb: 0.02
+        scatterDensityFactor: 0.25
+        slopeHardReject: 30
+        slopeSoftReject: 20
+        rockRejectDistance: 5
+        rockRejectProb: 0.9
+        rockBoostNearDistance: 15
+        rockBoostFarDistance: 25
+        rockFarRejectProb: 0.5
+        densityLargeFrequency: 0.007
+        densityMidFrequency: 0.013
+        densitySmallFrequency: 0.028
+        densityLargeWeight: 0.4
+        densityMidWeight: 0.4
+        densitySmallWeight: 0.2
+        densityFloor: 0
+        islandModulationFrequency: 0.02
+        islandModulationMin: 0.78
+        islandModulationMax: 1
+        canopyScaleThreshold: 1
+        densePassMultiplier: 4
+        transitionPassMultiplier: 1.05
+        sparsePassMultiplier: 0.06
+        densityModMin: 0.3
+        densityModMax: 1
+        densityModScale: 1.5
+        keepProbNear: 0.95
+        keepProbFar: 0.15
+        localDensityCapRadius: 20
+        localDensityCapCount: 8
+      understoryConfig:
+        understoryScaleThreshold: 0.8
+        understoryNeighborRadius: 2
+        densePatches: 2
+        densePatchesRandom: 2
+        transitionPatches: 1
+        transitionPatchesRandom: 2
+        denseTreesPerCanopy: 6
+        denseTreesRandom: 5
+        transitionTreesPerCanopy: 4
+        transitionTreesRandom: 3
+        patchDistanceMin: 5
+        patchDistanceMax: 12
+        densePatchRadiusMin: 3
+        densePatchRadiusMax: 4.5
+        transitionPatchRadiusMin: 2.5
+        transitionPatchRadiusMax: 3.8
+        denseMaskThreshold: 0.34
+        transitionMaskThreshold: 0.41
+        understorySlopeLimit: 24
+        scatterMinDistance: 20
+        scatterDensityMultiplier: 0.7
+        scatterProbMin: 0.25
+        scatterProbMax: 0.6
+        scatterSlopeLimit: 25
+        scatterClusterSize: 6
+        scatterClusterSizeRandom: 10
+        scatterClusterRadiusMin: 5
+        scatterClusterRadiusRandom: 5
+        scatterNeighborRadius: 1.5
+        patchAspectMin: 0.7
+        patchAspectMax: 1.15
+        scatterAspectMin: 0.6
+        scatterAspectMax: 1
+        patchMaskFrequency: 0.18
+        patchMaskWeight: 0.75
+        patchMaskEllipseOffset: 0.18
+        patchTargetDense: 4
+        patchTargetDenseRandom: 3
+        patchTargetTransition: 3
+        patchTargetTransitionRandom: 3
+        edgeScaleMax: 1.1
+        edgeScaleMin: 0.95
+        scatterMaskFrequency: 0.12
+        scatterMaskBlendMin: 0.5
+        scatterMaskBlendMax: 1
+      rockProximityConfig:
+        enabled: 1
+        patchCountMin: 1
+        patchCountRandom: 2
+        patchDistanceMin: 8
+        patchDistanceRandom: 6
+        patchSizeMin: 12
+        patchSizeRandom: 6
+        maskThresholdMin: 0.32
+        maskThresholdRandom: 0.1
+        attemptsMin: 40
+        attemptsRandom: 21
+        scaleLowBase: 0.5
+        scaleLowRange: 0.3
+        scaleHighBase: 0.8
+        scaleHighRange: 0.4
+        maskCoarseFrequency: 0.06
+        maskFineFrequency: 0.18
+        maskCoarseWeight: 0.65
+        distancePenaltyFactor: 0.5
+      borderMargin: 0
+      sharedGridMinDistance: 2
+      slopeFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      curvatureFilter:
+        enabled: 0
+        range: {x: 0, y: 0}
+        smoothness: {x: 0, y: 0}
+        noise:
+          noiseType: 0
+          frequency: 0
+          amplitude: 0
+          offset: 0
+          balance: 0
+          texture: {fileID: 0}
+          channel: 0
+        curve:
+          serializedVersion: 2
+          m_Curve: []
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+      clusterNoise:
+        noiseType: 4
+        frequency: 1.5
+        amplitude: 1
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      clusterNoiseThreshold: 0.78
+      clusterNoise2:
+        noiseType: 0
+        frequency: 0
+        amplitude: 0
+        offset: 0
+        balance: 0
+        texture: {fileID: 0}
+        channel: 0
+      noise2Op: 2
+      heightModAmount: 0
+      heightModWidth: 2
+      surroundLayer: {fileID: 0}
+      surroundLayerWeight: 0
+      surroundLayerWidth: 2
+      boundaryScaleMultiplier: 1
+      oldGrowthScale: 1
+      oldGrowthRatio: 0
+  objectConfig:
+    clusterEntries:
+    - primary:
+      - {fileID: 7382857988686033389, guid: b8fba5c5c3b64437b26c8caf112e0b3e, type: 3}
+      - {fileID: 3655575204992600520, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      - {fileID: 5236015630531848917, guid: 39effe264c2d4377a8cc17f909c1427e, type: 3}
+      - {fileID: 1587374033758381882, guid: f82028de2f6a4db5a68d1d3342ec8b6a, type: 3}
+      - {fileID: 5362372042584422485, guid: 6d18958519d84ab4a00accd99f02dcee, type: 3}
+      - {fileID: 4671958595853854400, guid: b9bbc5fb85264b76a0415e5ec42d7547, type: 3}
+      - {fileID: 7656285121913899657, guid: b2fcf2bfc95e4715ba44946810acd352, type: 3}
+      - {fileID: 851944984218041950, guid: 7737cbf84634435f9ea5f8b1aec72c0a, type: 3}
+      - {fileID: 5885377026503307483, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      - {fileID: 4446913876419300549, guid: f7416b42274e40898692ddb95c603046, type: 3}
+      density: 1
+      scaleRange: {x: 0.12, y: 0.35}
+      slopeAlignment: 0.25
+      sinkRange: {x: -1.5, y: -0.5}
+      noiseType: 2
+      noiseFrequency: 1.8
+      noiseAmplitude: 2
+      noiseThreshold: 0.25
+      clusterCount: 18
+      objectsPerCluster: 4
+      clusterRadius: 13
+      minDistanceFromTree: 0
+      secondaries:
+      - mode: 0
+        prefabs:
+        - {fileID: 14963779438477741, guid: d60c9d2e82cf4114a7b75b977e74e7a2, type: 3}
+        - {fileID: 2324761946523954390, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+        - {fileID: 520065509455020024, guid: c862511698cd46e8b262e504a9e3af3b, type: 3}
+        - {fileID: 1774456228872585419, guid: c76137bbe9e7457e8f837c4a61f782fd, type: 3}
+        - {fileID: 7335465068584378703, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+        - {fileID: 1435112969269915027, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+        - {fileID: 1568932738690432039, guid: 6caef0526b064c59a5b3956ae1de5b4e, type: 3}
+        - {fileID: 3710704705371756740, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+        - {fileID: 2895062654731002711, guid: 90f6704ffce642a5aab60ce85fc4fa48, type: 3}
+        scaleRange: {x: 0.45, y: 1.3}
+        slopeAlignment: 0.15
+        sinkRange: {x: -0.3, y: -0.05}
+        countPerCluster: 7
+        minDistanceFromTree: 0
+        minDistance: 2.5
+        maxDistance: 8
+        density: 1
+        clusterRadius: 12
+      - mode: 1
+        prefabs:
+        - {fileID: 211340075216382320, guid: 4d7d03ab6b9b4495bd39daff91139388, type: 3}
+        - {fileID: 1600011016679556909, guid: 92ba7f1887ba4e09966ed33e06b5e2ce, type: 3}
+        - {fileID: 3925144872683212182, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
+        scaleRange: {x: 0.25, y: 0.7}
+        slopeAlignment: 0
+        sinkRange: {x: -0.1, y: 0}
+        countPerCluster: 3
+        minDistanceFromTree: 0
+        minDistance: 1.5
+        maxDistance: 7
+        density: 4.2
+        clusterRadius: 4
+    entries:
+    - prefabs:
+      - {fileID: 14963779438477741, guid: d60c9d2e82cf4114a7b75b977e74e7a2, type: 3}
+      - {fileID: 2324761946523954390, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+      - {fileID: 520065509455020024, guid: c862511698cd46e8b262e504a9e3af3b, type: 3}
+      - {fileID: 1774456228872585419, guid: c76137bbe9e7457e8f837c4a61f782fd, type: 3}
+      - {fileID: 7335465068584378703, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+      - {fileID: 1435112969269915027, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+      - {fileID: 1568932738690432039, guid: 6caef0526b064c59a5b3956ae1de5b4e, type: 3}
+      - {fileID: 3710704705371756740, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+      - {fileID: 2895062654731002711, guid: 90f6704ffce642a5aab60ce85fc4fa48, type: 3}
+      density: 3
+      scaleRange: {x: 0.4, y: 1.2}
+      slopeAlignment: 0.1
+      sinkRange: {x: -0.2, y: 0}
+      noiseType: 2
+      noiseFrequency: 3
+      noiseAmplitude: 1.5
+      noiseThreshold: 0.4
+      useSlopeFilter: 0
+      slopeMin: 0
+      slopeMax: 90
+      slopeSmoothness: 4
+      useClusterMode: 0
+      clusterCount: 8
+      objectsPerCluster: 4
+      clusterRadius: 12
+      minDistanceFromTree: 0
+      maxDistanceFromTree: 0
+    algorithmConfig:
+      heroOffsetFactor: 0.3
+      heroScaleMinRatio: 0.7
+      heroScaleRange: 0.3
+      heroYScaleMin: 0.7
+      heroYScaleRange: 0.15
+      subordinateDistMin: 0.35
+      subordinateDistRange: 0.65
+      subordinateAngleReject: 55
+      subordinateScaleMaxRatio: 0.6
+      subordinateYScaleMin: 0.5
+      subordinateYScaleRange: 0.3
+      saddleProbability: 0.65
+      saddleJitter: 3
+      biasSectorAngle: 0.67
+      rubbleSizeMin: 0.5
+      rubbleSizeRange: 1
+      rubbleDensityMultiplier: 5
+      clusterSpacingFactor: 0.6
+    surroundTextureConfig:
+      enabled: 1
+      surroundLayer: {fileID: 0}
+      coreRadius: 5
+      coreBlendMin: 0.8
+      coreBlendMax: 0.95
+      transitionRadius: 15
+      transitionBlendMin: 0.15
+      transitionBlendMax: 0.5
+      noiseLowFrequency: 0.03
+      noiseHighFrequency: 0.15
+      noiseLowWeight: 0.6
+      rockMeshBaseSize: 15
+      singleRockRadius: 8
+      singleRockBlend: 0.6
+    borderMargin: 0
+  detailConfig:
+    entries: []
+    filterRejectThreshold: 0.01
+    borderMargin: 0
+  shoreConfig:
+    waterMargin: 0.03
+    beachElevation: 0.0058
+    beachLandTextureRadius: 16
+    beachLandTerrainRadius: 10
+    beachSeaTextureRadius: 14
+    beachSeaTerrainRadius: 11
+    beachLayer: {fileID: 0}
+    beachThreshold: 0.01
+    deepSeaThreshold: 0.005
+    sandBlendThreshold: 0.01
+    rockFallbackLayerIndex: 1
+    minSeaRegionSize: 3672
+  boundaryConfig:
+    textureBlendStrength: 0.6
+    heightBlendFastPathThreshold: 0.95
+    heightBlendMinWeight: 0.01
+    blurRadiusDivisor: 2
+    boundaryNoiseSmoothstepWidth: 15
+    boundaryNoiseMidWeight: 0.7
+    boundaryNoiseHighWeight: 0.3
