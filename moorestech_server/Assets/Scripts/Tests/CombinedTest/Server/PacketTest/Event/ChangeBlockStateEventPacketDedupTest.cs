@@ -16,8 +16,8 @@ using static Server.Protocol.PacketResponse.InvokeBlockStateEventProtocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
-    // ChangeBlockStateEventPacketのペイロード差分ブロードキャストを検証する
-    // Verifies payload-diff broadcasting in ChangeBlockStateEventPacket
+    // ペイロード差分ブロードキャストを検証
+    // Verifies payload-diff broadcasting
     public class ChangeBlockStateEventPacketDedupTest
     {
         [Test]
@@ -77,8 +77,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
-        // 強制送信経路(ForceChangeState)は同一ペイロードでも必ず積まれる
-        // The force-broadcast path (ForceChangeState) always queues, even for an identical payload
+        // 強制送信経路は同一ペイロードでも必ず積まれる
+        // The force path always queues, even for an identical payload
         public void ForceChangeStateAlwaysBroadcastsTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -127,8 +127,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Clear the event queue
             eventProtocolProvider.GetEventBytesList(playerId);
 
-            // 実際のパケット経路でInvokeBlockStateEventProtocolを発行
-            // Fire InvokeBlockStateEventProtocol through the real packet path
+            // 実パケット経路で発行
+            // Fire through the real packet path
             var request = new RequestInvokeBlockStateProtocolMessagePack(pos);
             var payload = MessagePackSerializer.Serialize(request);
             packet.GetPacketResponse(payload, new PacketResponseContext());

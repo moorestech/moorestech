@@ -88,8 +88,8 @@ namespace Game.Block.Blocks.Gear
             var rpm = CurrentRpm.AsPrimitive();
             var torque = CurrentTorque.AsPrimitive();
 
-            // 初回通知後、3値すべてが前回と一致するなら発火をスキップする
-            // After the first notification, skip firing when all three values match the last notified state
+            // 3値が前回と一致ならスキップ
+            // Skip when all three values match the last notified state
             if (_hasNotifiedOnce && _lastIsClockwise == isClockwise && Mathf.Approximately(_lastRpm, rpm) && Mathf.Approximately(_lastTorque, torque)) return;
 
             _hasNotifiedOnce = true;

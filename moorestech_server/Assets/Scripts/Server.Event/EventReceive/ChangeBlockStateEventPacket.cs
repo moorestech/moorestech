@@ -17,8 +17,8 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        // ブロック位置ごとの最終ブロードキャストペイロード。差分検知に使う
-        // Last broadcast payload keyed by block position, used for diff detection
+        // 位置ごとの最終送信ペイロード（差分検知用）
+        // Last sent payload per position, for diff detection
         private readonly Dictionary<Vector3Int, byte[]> _lastBroadcastPayloads = new();
 
         public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider)
