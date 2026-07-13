@@ -38,6 +38,7 @@ namespace Client.Game.InGame.Player
         [SerializeField] private Animator animator;
         private CharacterController characterController;
         private Transform rideFollowTarget;
+        private bool _isModelVisible = true;
         private Vector3 rideFollowLocalPosition;
         private Quaternion rideFollowLocalRotation;
         private bool rideFollowStoredControllerEnabled;
@@ -111,7 +112,15 @@ namespace Client.Game.InGame.Player
         {
             // 手持ちアイテムの生成破棄でRendererが入れ替わるためキャッシュせず毎回取得する
             // Grab items are created and destroyed under this hierarchy, so fetch renderers fresh each time
+            _isModelVisible = visible;
             foreach (var modelRenderer in GetComponentsInChildren<Renderer>(true)) modelRenderer.enabled = visible;
+        }
+
+        // 手持ちアイテムの差し替え直後に呼ぶ。新Rendererは既定で表示のためFPSの非表示が漏れる
+        // Called right after a grab item swap; new renderers default to visible and would leak through the FPS hide
+        public void RefreshModelVisible()
+        {
+            SetModelVisible(_isModelVisible);
         }
 
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)
