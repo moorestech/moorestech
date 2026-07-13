@@ -5,7 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control.BuildView;
 using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.UIState.State.BlockPick;
+using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
 using Client.Input;
 using UniRx;
@@ -20,16 +20,16 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly BuildViewModeController _buildViewModeController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
-        private readonly BlockPickService _blockPickService;
+        private readonly PlacementTargetPickService _placementTargetPickService;
         private bool _wasTextInputFocused;
 
-        public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, BlockPickService blockPickService)
+        public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService)
         {
             _skitManager = skitManager;
             _buildViewModeController = buildViewModeController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
-            _blockPickService = blockPickService;
+            _placementTargetPickService = placementTargetPickService;
         }
 
         public void OnEnter(UITransitContext context)
@@ -50,7 +50,7 @@ namespace Client.Game.InGame.UI.UIState.State
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
-            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除\nミドルクリック: ブロックをスポイト");
+            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト");
         }
 
         public UITransitContext GetNextUpdate()
@@ -81,7 +81,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
                 // ミドルクリックのスポイトで設置対象を持ち替える
                 // Middle-click eyedropper swaps the current placement target
-                if (_blockPickService.TryPickBlockUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
+                if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
             }
 
             _placeSystemStateController.ManualUpdate();
