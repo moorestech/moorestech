@@ -3,7 +3,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.UIState.State.BlockPick;
+using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Input;
@@ -17,20 +17,20 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly SkitManager _skitManager;
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
         private readonly RideVehicleInputService _rideVehicleInputService;
-        private readonly BlockPickService _blockPickService;
+        private readonly PlacementTargetPickService _placementTargetPickService;
 
         public GameScreenState(
             SkitManager skitManager,
             InGameCameraController inGameCameraController,
             GameScreenSubInventoryInteractService subInventoryInteractService,
             RideVehicleInputService rideVehicleInputService,
-            BlockPickService blockPickService)
+            PlacementTargetPickService placementTargetPickService)
         {
             _skitManager = skitManager;
             _inGameCameraController = inGameCameraController;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
-            _blockPickService = blockPickService;
+            _placementTargetPickService = placementTargetPickService;
         }
 
         public UITransitContext GetNextUpdate()
@@ -45,9 +45,9 @@ namespace Client.Game.InGame.UI.UIState.State
             // ブロックや列車とインタラクトしたか
             if (_subInventoryInteractService.TryGetSubInventoryInteractObject(out var context)) return context;
 
-            // ミドルクリックでブロックをスポイトし配置モードへ入る
-            // Middle-click eyedrops a block and enters placement mode
-            if (_blockPickService.TryPickBlockUnderCursor(out var pickedTarget))
+            // ミドルクリックで設置物をスポイトし配置モードへ入る
+            // Middle-click eyedrops a placed object and enters placement mode
+            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget))
                 return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create<IPlacementTarget>(pickedTarget));
 
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
@@ -71,7 +71,7 @@ namespace Client.Game.InGame.UI.UIState.State
             InputManager.MouseCursorVisible(false);
             _inGameCameraController.SetControllable(true);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nミドルクリック: ブロックをスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
         
         public void OnExit()
