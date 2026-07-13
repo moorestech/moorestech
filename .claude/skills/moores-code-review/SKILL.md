@@ -87,6 +87,7 @@ python3 .claude/skills/moores-code-review/scripts/select_lenses.py "<PATCH_PATH>
 | datastore-access-separation | Lookup/Mutation分離・static変更露出（988） | DataStore系キーワード |
 | master-data-defense | optional濫用・??フォールバック・ローダープリフィル（978） | VanillaSchema/Core.Master/BlockTemplate |
 | type-driven-structure | 共用体struct・god-context・N択1役割の型排除・DTO配置（987/996/997） | struct/Context/interface系キーワード |
+| redundant-member-duplication | バッキングフィールド＋素通しプロパティの二重保持・同値別名メンバーの排除（sonnet） | プロパティ/フィールド宣言を含む.cs |
 | precedent-alignment | 前例一致（全PR横断・役割で前例を選ぶ） | 常時 |
 
 ## 有効性の測定（eval/）

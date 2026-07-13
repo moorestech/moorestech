@@ -12,10 +12,13 @@ namespace Game.Block.Blocks.Machine.State
     // Processing state: advances with power and returns to idle on completion
     internal class ProcessingMachineProcessState : IMachineProcessState
     {
+        // 進行中レシピ(返却用)。無ければnull
+        // Recipe of the running job (for refund calculation); null when no job exists
+        public MachineRecipeMasterElement CurrentRecipe { get; private set; }
         
         public ProcessState State => ProcessState.Processing;
         private readonly MachineProcessContext _context;
-        public Guid RecipeGuid => _recipe?.MachineRecipeGuid ?? Guid.Empty;
+        public Guid RecipeGuid => CurrentRecipe?.MachineRecipeGuid ?? Guid.Empty;
         
         public uint TotalTicks { get; private set; }
         public uint RemainingTicks  { get; private set; }
@@ -30,21 +33,16 @@ namespace Game.Block.Blocks.Machine.State
             _pendingOutputs = outputs;
         }
 
-        // 進行中レシピ(返却用)。無ければnull
-        // Recipe of the running job (for refund calculation); null when no job exists
-        public MachineRecipeMasterElement CurrentRecipe => _recipe;
-
+        
         // 出力を払い出さずジョブを破棄(返却用)
         // Discard the job without paying outputs (used by the recipe-change refund flow)
         public void CancelProcessing()
         {
             _pendingOutputs = null;
-            _recipe = null;
+            CurrentRecipe = null;
             TotalTicks = 0;
             RemainingTicks = 0;
         }
-
-        private MachineRecipeMasterElement _recipe;
         
         public ProcessingMachineProcessState(MachineProcessContext context, uint remainingTicks, MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
         {
@@ -64,7 +62,7 @@ namespace Game.Block.Blocks.Machine.State
         // Set the processing job from Idle or on load
         public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
         {
-            _recipe = recipe;
+            CurrentRecipe = recipe;
             _pendingOutputs = pendingOutputs;
             
             var effect = _context.EffectComponent.AggregateCurrent();
@@ -78,7 +76,7 @@ namespace Game.Block.Blocks.Machine.State
         // Consume inputs and set remaining ticks on start
         public void OnEnter()
         {
-            _context.InputInventory.ReduceInputSlot(_recipe);
+            _context.InputInventory.ReduceInputSlot(CurrentRecipe);
             RemainingTicks = TotalTicks;
         }
 
@@ -105,13 +103,13 @@ namespace Game.Block.Blocks.Machine.State
         // Output the produced items on completion (re-roll for old saves that lack pending outputs)
         public void OnExit()
         {
-            var outputs = _pendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(_recipe, _context.EffectComponent.AggregateCurrent());
-            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(_recipe));
+            var outputs = _pendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(CurrentRecipe, _context.EffectComponent.AggregateCurrent());
+            _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(CurrentRecipe));
 
             // 加工情報をクリアしてIdleが古いレシピ/進捗を報告・保存しないようにする
             // Clear the processing snapshot so idle does not report or serialize stale recipe/progress
             _pendingOutputs = null;
-            _recipe = null;
+            CurrentRecipe = null;
             TotalTicks = 0;
             RemainingTicks = 0;
         }

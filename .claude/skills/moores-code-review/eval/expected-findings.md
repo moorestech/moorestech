@@ -63,3 +63,9 @@
 | # | 指摘 | 対象 | 検出器 |
 |---|---|---|---|
 | 24 | _gearServiceへ委譲し重複解消 | GearChainPoleComponent.cs:239 | domain-boundary（観点3）/ precedent-alignment |
+
+## machine-recipe-selection（ProcessingMachineProcessState）
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 25 | バッキングフィールド＋素通しプロパティの二重保持を自動プロパティに畳む | ProcessingMachineProcessState.cs | redundant-member-duplication（観点1） |
