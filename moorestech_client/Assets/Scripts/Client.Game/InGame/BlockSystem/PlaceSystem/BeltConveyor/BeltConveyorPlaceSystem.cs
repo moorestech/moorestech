@@ -11,7 +11,6 @@ using Client.Input;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -86,12 +85,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // ファミリー定義を解決（代表・斜面・長尺バリアント）。非ファミリーブロックは対象外
             // Resolve the family definition (representative, slopes, length variants); bail out for non-family blocks
-            if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(target.BlockId, out var beltParam)) return;
-            var representativeBlockId = BeltConveyorPlaceFamilyUtil.GetRepresentativeBlockId(beltParam);
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(representativeBlockId);
-            var variants = BeltConveyorPlaceFamilyUtil.GetStraightVariantsDesc(beltParam);
-            var upBlockId = MasterHolder.BlockMaster.GetBlockId(beltParam.UpBlockGuid);
-            var downBlockId = MasterHolder.BlockMaster.GetBlockId(beltParam.DownBlockGuid);
+            if (!MasterHolder.BlockMaster.TryGetBeltConveyorFamily(target.BlockId, out var family)) return;
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.RepresentativeBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
@@ -172,7 +167,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
                 // セル列を長尺バリアント・斜面エンティティ列へ分解
                 // Decompose cells into length-variant and slope entities
-                _currentPlaceInfos = BeltConveyorRunDecomposer.Decompose(cellInfos, variants, upBlockId, downBlockId);
+                _currentPlaceInfos = BeltConveyorRunDecomposer.Decompose(cellInfos, family);
             }
 
             void PlaceBlock()

@@ -7,8 +7,8 @@ using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Gear;
 using Game.Block.Interface;
-using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Gear.Common;
 using Game.World.Interface.DataStore;
@@ -88,17 +88,18 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
                 return result;
             }
 
-            // ファミリーのUp/DownBlockGuidからセル毎の向き別BlockIdを解決する（水平は元のBlockGuidのまま）
-            // Resolve the per-cell BlockId from the family's Up/DownBlockGuid (horizontal keeps the original BlockGuid)
+            // ファミリーの斜面ブロックからセル毎の向き別BlockIdを解決する（水平は元のBlockGuidのまま）
+            // Resolve the per-cell BlockId from the family's slope blocks (horizontal keeps the original BlockGuid)
             BlockId ResolveVerticalBlockId(BlockVerticalDirection verticalDirection)
             {
-                if (!BeltConveyorPlaceFamilyUtil.TryGetFamilyByGuid(holding.BlockGuid, out var beltParam)) return MasterHolder.BlockMaster.GetBlockId(holding.BlockGuid);
+                var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(holding.BlockGuid);
+                if (!MasterHolder.BlockMaster.TryGetBeltConveyorFamily(holdingBlockId, out var family)) return holdingBlockId;
 
                 return verticalDirection switch
                 {
-                    BlockVerticalDirection.Up => MasterHolder.BlockMaster.GetBlockId(beltParam.UpBlockGuid),
-                    BlockVerticalDirection.Down => MasterHolder.BlockMaster.GetBlockId(beltParam.DownBlockGuid),
-                    _ => MasterHolder.BlockMaster.GetBlockId(holding.BlockGuid),
+                    BlockVerticalDirection.Up => family.UpBlockId.Value,
+                    BlockVerticalDirection.Down => family.DownBlockId.Value,
+                    _ => holdingBlockId,
                 };
             }
 

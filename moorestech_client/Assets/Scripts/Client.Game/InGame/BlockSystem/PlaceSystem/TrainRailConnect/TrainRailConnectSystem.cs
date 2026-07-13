@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -15,7 +16,6 @@ using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.PlaceSystemModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Common.LayerConst;
@@ -85,7 +85,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
                     // 橋脚ブロックを接続ツールマスタから解決する（選択駆動）
                     // Resolve the pier block from the connect tool master (selection-driven)
-                    if (!ConnectToolMasterUtil.TryGetPlaceBlock(PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect, out var pierBlockId, out var pierBlockMaster))
+                    if (!ConnectToolCatalog.GetDefinition(ConnectToolType.TrainRailConnect).TryGetPlaceBlock(out var pierBlockId, out var pierBlockMaster))
                     {
                         // 橋脚未定義の場合は設置不可。仮にデフォルトの最大長で判定する
                         // No pier defined: still preview with default max length

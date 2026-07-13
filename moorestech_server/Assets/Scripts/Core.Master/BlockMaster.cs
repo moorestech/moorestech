@@ -28,6 +28,7 @@ namespace Core.Master
         private Dictionary<Guid, BlockId> _blockGuidToBlockId;
         private Dictionary<Guid, string> _blockGuidToDestructionCategory;
         private HashSet<(Guid, Guid)> _connectableShapePairs;
+        private BeltConveyorFamilyIndex _beltConveyorFamilyIndex;
 
         public BlockMaster(JToken blockJToken)
         {
@@ -42,6 +43,10 @@ namespace Core.Master
         public void Initialize()
         {
             BlockMasterUtil.Initialize(Blocks, out _blockElementTableById, out _blockGuidToBlockId);
+
+            // ベルトコンベアのファミリー（代表・長尺・斜面）をブロックマスタから索引化する
+            // Index belt conveyor families (representative/length/slope) from the block master
+            _beltConveyorFamilyIndex = new BeltConveyorFamilyIndex(Blocks, _blockGuidToBlockId);
 
             // 破壊カテゴリ定義から blockGuid→カテゴリキー の逆引き表を構築する
             // Build a blockGuid→categoryKey reverse lookup from the destruction category definitions
@@ -124,6 +129,18 @@ namespace Core.Master
         public List<BlockId> GetBlockAllIds()
         {
             return _blockElementTableById.Keys.ToList();
+        }
+
+        // ベルトコンベアのファミリーを取得する。ベルト系以外のブロックはfalse
+        // Get the belt conveyor family; non-belt blocks return false
+        public bool TryGetBeltConveyorFamily(BlockId blockId, out BeltConveyorFamily family)
+        {
+            return _beltConveyorFamilyIndex.TryGetFamily(blockId, out family);
+        }
+
+        public bool TryGetBeltConveyorFamily(Guid blockGuid, out BeltConveyorFamily family)
+        {
+            return TryGetBeltConveyorFamily(GetBlockId(blockGuid), out family);
         }
     }
 }

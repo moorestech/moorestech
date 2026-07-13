@@ -1,5 +1,4 @@
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Game.UnlockState;
 
 namespace Client.Game.InGame.UI.UIState.State.PlacementPick
@@ -16,9 +15,9 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 
             // ベルトファミリーは代表ブロックへ変換（ビルドメニューの隠しバリアント除外と整合）
             // Belt family members resolve to the representative block, matching the menu's hidden-variant exclusion
-            if (BeltConveyorPlaceFamilyUtil.TryGetFamily(rawBlockId, out var beltParam))
+            if (MasterHolder.BlockMaster.TryGetBeltConveyorFamily(rawBlockId, out var family))
             {
-                resolvedBlockId = BeltConveyorPlaceFamilyUtil.GetRepresentativeBlockId(beltParam);
+                resolvedBlockId = family.RepresentativeBlockId;
             }
 
             // 未解放ブロックはピック不可（スポイトで解放システムを迂回させない）

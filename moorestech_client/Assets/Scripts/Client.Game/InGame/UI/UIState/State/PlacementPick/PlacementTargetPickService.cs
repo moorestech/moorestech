@@ -3,7 +3,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Input;
 using Game.UnlockState;
-using Mooresmaster.Model.PlaceSystemModule;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 
 namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 {
@@ -40,7 +40,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 
                 // 接続ツールは常時解放のため解放判定なしで電線接続ツールへ解決する
                 // Connect tools are always unlocked, so resolve to the wire connect tool without an unlock check
-                target = new ConnectToolPlacementTarget(PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect);
+                target = new ConnectToolPlacementTarget(ConnectToolType.ElectricWireConnect);
                 return true;
             }
 
