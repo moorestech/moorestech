@@ -21,13 +21,6 @@ namespace Tests.Util
             SetPropertyValue(GetProcessingState(processor), "RemainingTicks", ticks);
         }
 
-        // 加工ステートのsetterは非公開のため、セーブ復元テスト用にリフレクションで設定する
-        // The process-state setter is non-public, so set it via reflection for save-restore tests
-        public static void SetCurrentState(this VanillaMachineProcessorComponent processor, ProcessState state)
-        {
-            SetPropertyValue(processor, "CurrentState", state);
-        }
-
         private static object GetProcessingState(VanillaMachineProcessorComponent processor)
         {
             return typeof(VanillaMachineProcessorComponent)

@@ -326,6 +326,14 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }
 
+        // SetRecipe/Clearを1メソッドで送信
+        // Machine recipe selection request (single endpoint for SetRecipe / Clear)
+        public async UniTask<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse> SendMachineRecipeSelectionRequest(
+            MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest request, CancellationToken ct)
+        {
+            return await _packetExchangeManager.GetPacketResponse<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(request, ct);
+        }
+
         // BP Create/GetAll/Deleteを1メソッドで統合
         // Blueprint request (single endpoint for Create / GetAll / Delete)
         public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)
