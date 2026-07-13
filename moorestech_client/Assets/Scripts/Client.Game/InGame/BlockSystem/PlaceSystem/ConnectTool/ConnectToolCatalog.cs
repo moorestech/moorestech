@@ -1,48 +1,111 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core.Master;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
 {
     /// <summary>
-    /// 接続ツール3種のコード定義カタログ（旧placeSystemマスタの置換）
-    /// Code-defined catalog of the three connect tools (replaces the placeSystem master)
+    /// 接続ツール3種の表示情報とマスタ選択規則を定義する
+    /// Defines display information and master-selection rules for the three connect tools
     /// </summary>
     public static class ConnectToolCatalog
     {
-        // 定義順がそのままビルドメニューの表示順になる
-        // The definition order is the build-menu display order
-        private static readonly List<ConnectToolDefinition> Definitions = new()
+        private static readonly IReadOnlyList<ConnectToolType> DisplayOrder = Array.AsReadOnly(new[]
         {
-            new ConnectToolDefinition(
-                ConnectToolType.TrainRailConnect,
-                "レール敷設",
-                ConnectToolMasterSelector.SelectRailItemGuid,
-                ConnectToolMasterSelector.SelectRailPierBlockId),
-            new ConnectToolDefinition(
-                ConnectToolType.GearChainPoleConnect,
-                "歯車チェーン接続",
-                ConnectToolMasterSelector.SelectGearChainItemGuid,
-                ConnectToolMasterSelector.SelectNoPlaceBlock),
-            new ConnectToolDefinition(
-                ConnectToolType.ElectricWireConnect,
-                "電線接続",
-                ConnectToolMasterSelector.SelectElectricWireItemGuid,
-                ConnectToolMasterSelector.SelectElectricPoleBlockId),
-        };
+            ConnectToolType.TrainRailConnect,
+            ConnectToolType.GearChainPoleConnect,
+            ConnectToolType.ElectricWireConnect,
+        });
 
-        public static IReadOnlyList<ConnectToolDefinition> GetDefinitionsInDisplayOrder()
+        public static IReadOnlyList<ConnectToolType> GetDisplayOrder()
         {
-            return Definitions;
+            return DisplayOrder;
         }
 
-        public static ConnectToolDefinition GetDefinition(ConnectToolType toolType)
+        public static string GetDisplayName(ConnectToolType toolType)
         {
-            foreach (var definition in Definitions)
+            return toolType switch
             {
-                if (definition.ToolType == toolType) return definition;
+                ConnectToolType.TrainRailConnect => "レール敷設",
+                ConnectToolType.GearChainPoleConnect => "歯車チェーン接続",
+                ConnectToolType.ElectricWireConnect => "電線接続",
+                _ => throw new ArgumentOutOfRangeException(nameof(toolType), toolType, null),
+            };
+        }
+
+        public static Guid? SelectIconItemGuid(ConnectToolType toolType)
+        {
+            return toolType switch
+            {
+                ConnectToolType.TrainRailConnect => SelectRailItemGuid(),
+                ConnectToolType.GearChainPoleConnect => SelectGearChainItemGuid(),
+                ConnectToolType.ElectricWireConnect => SelectElectricWireItemGuid(),
+                _ => throw new ArgumentOutOfRangeException(nameof(toolType), toolType, null),
+            };
+
+            #region Internal
+
+            Guid? SelectRailItemGuid()
+            {
+                var railItems = MasterHolder.TrainUnitMaster.GetRailItems();
+                return railItems.Length == 0 ? null : railItems[0].ItemGuid;
             }
 
-            throw new InvalidOperationException($"ConnectToolDefinition not found. ToolType:{toolType}");
+            Guid? SelectGearChainItemGuid()
+            {
+                var chainItems = MasterHolder.BlockMaster.Blocks.GearChainItems;
+                return chainItems.Length == 0 ? null : chainItems[0].ItemGuid;
+            }
+
+            Guid? SelectElectricWireItemGuid()
+            {
+                var wireItems = MasterHolder.BlockMaster.Blocks.ElectricWireItems;
+                return wireItems.Length == 0 ? null : wireItems[0].ItemGuid;
+            }
+
+            #endregion
+        }
+
+        // 空きスペース延長時の自動設置ブロックを解決する
+        // Resolve the block auto-placed when extending into empty space
+        public static bool TryGetPlaceBlock(ConnectToolType toolType, out BlockId blockId, out BlockMasterElement blockMaster)
+        {
+            var selectedBlockId = toolType switch
+            {
+                ConnectToolType.TrainRailConnect => SelectFirstBlockIdOfType(BlockMasterElement.BlockTypeConst.TrainRail),
+                // 歯車チェーン接続は空きスペースへブロックを建てない
+                // Gear chain connect does not place a block into empty space
+                ConnectToolType.GearChainPoleConnect => null,
+                ConnectToolType.ElectricWireConnect => SelectFirstBlockIdOfType(BlockMasterElement.BlockTypeConst.ElectricPole),
+                _ => throw new ArgumentOutOfRangeException(nameof(toolType), toolType, null),
+            };
+            if (selectedBlockId == null)
+            {
+                blockId = default;
+                blockMaster = null;
+                return false;
+            }
+
+            blockId = selectedBlockId.Value;
+            blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            return true;
+
+            #region Internal
+
+            BlockId? SelectFirstBlockIdOfType(string blockType)
+            {
+                var blockMaster = MasterHolder.BlockMaster.Blocks.Data
+                    .Where(block => block.BlockType == blockType)
+                    .OrderBy(block => block.SortPriority ?? 0)
+                    .ThenBy(block => block.Name)
+                    .FirstOrDefault();
+
+                return blockMaster == null ? null : MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
+            }
+
+            #endregion
         }
     }
 }
