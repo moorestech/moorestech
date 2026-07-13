@@ -186,6 +186,8 @@ properties:
     - key: category
       type: string
       optional: true
+    # ElectricPoleとTrainRailはsortPriority最小（同値はname昇順）をコネクトツールで自動設置する
+    # Connect tools auto-place the lowest-sortPriority ElectricPole or TrainRail block, breaking ties by name ascending
     - key: sortPriority
       type: integer
       optional: true

@@ -82,9 +82,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
             bool ExtendToEmptySpace()
             {
-                // 延長用電柱をカタログのセレクタから解決する
-                // Resolve the extension pole from the catalog selector
-                if (!ConnectToolCatalog.GetDefinition(ConnectToolType.ElectricWireConnect).TryGetPlaceBlock(out var poleBlockId, out var poleMaster))
+                if (!ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.ElectricWireConnect, out var poleBlockId, out var poleMaster))
                 {
                     HidePreview();
                     return false;

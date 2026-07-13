@@ -263,6 +263,7 @@
       ],
       "name": "TestElectricPole",
       "blockType": "ElectricPole",
+      "sortPriority": 10,
       "blockParam": {
         "machineConnectionRange": 5,
         "poleConnectionRange": 7,
@@ -305,6 +306,7 @@
       ],
       "name": "TestLockedElectricPole",
       "blockType": "ElectricPole",
+      "sortPriority": 10,
       "blockParam": {
         "machineConnectionRange": 5,
         "poleConnectionRange": 7,
@@ -2820,6 +2822,7 @@
         1
       ],
       "blockType": "TrainRail",
+      "sortPriority": 10,
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2847,6 +2850,7 @@
         1
       ],
       "blockType": "TrainRail",
+      "sortPriority": 20,
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2873,6 +2877,7 @@
         1
       ],
       "blockType": "TrainRail",
+      "sortPriority": 30,
       "blockParam": {
         "railPosition": [
           0.5,

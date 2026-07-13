@@ -89,21 +89,20 @@ namespace Core.Master.Validator
             // Only belt-type members are allowed; forbid multi-family membership
             bool ValidateMembership(Guid blockGuid, BlockMasterElement block, ref string outLogs)
             {
-                var ok = true;
+                var isBeltBlock = true;
                 if (block.BlockType != BlockMasterElement.BlockTypeConst.BeltConveyor &&
                     block.BlockType != BlockMasterElement.BlockTypeConst.GearBeltConveyor)
                 {
                     outLogs += $"[BlockMaster] BeltConveyorFamily member {block.Name} is not a belt block (blockType:{block.BlockType})\n";
-                    ok = false;
+                    isBeltBlock = false;
                 }
 
                 if (!seenMemberGuids.Add(blockGuid))
                 {
                     outLogs += $"[BlockMaster] BeltConveyor block {block.Name} belongs to more than one family\n";
-                    ok = false;
                 }
 
-                return ok;
+                return isBeltBlock;
             }
 
             #endregion

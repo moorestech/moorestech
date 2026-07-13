@@ -50,11 +50,11 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             // 接続ツールはカタログから常時表示（アイコンは敷設素材アイテム）
             // Connect tools always shown from the catalog (icon is the laying material)
-            foreach (var tool in ConnectToolCatalog.GetDefinitionsInDisplayOrder())
+            foreach (var toolType in ConnectToolCatalog.GetDisplayOrder())
             {
-                var iconItemGuid = tool.SelectIconItemGuid();
+                var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(toolType);
                 var iconView = iconItemGuid == null ? null : ClientContext.ItemImageContainer.GetItemView(iconItemGuid.Value);
-                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(tool.ToolType), iconView, tool.DisplayName));
+                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(toolType), iconView, ConnectToolCatalog.GetDisplayName(toolType)));
             }
 
             // 接続ツール群にBPコピーツール追加（テキスト表示）
