@@ -1,0 +1,16 @@
+{
+  "_comment": "reviewer 名(stem) → Agent model の割り当て。未記載は default(opus)。reviewers/ には『採用実績あり』23本のみ在る。ゆえに disabled/replaced_by_script は空でよい(除外対象のファイル自体が無い)。採録から外した理由は _excluded_from_port を参照。",
+  "_excluded_from_port": "2026-07-06 の全数調査(63セッション/1029起動)で『N走/採用0』または『unique0(他観点と完全冗長)』と判定された reviewer は採録しない。除外20本 — cs: rename-generalization(30走/0), redundant-state-typed-payload(29/0), construction-ownership(30/0), member-placement(20/0), test-effectiveness(10/0・any版が上位互換), dev-production-separation(8/0), ai-recurring-mistakes(24/0・冗長), single-source-of-truth(20/unique0・centralizationに相乗り), save-restore-guard(31/0), unitask-pattern(9/0)。ts: bug-fix-intent(34/0), architecture-lifecycle(15/0), construction-ownership(13/0), test-effectiveness(13/不採用), rename-generalization(12/0), member-placement(12/0), redundant-state-typed-payload(12/0), redundant-cast(8/0), schema-design(33/unique0), bundle-hygiene(発火0)。replaced_by_script 1本 — cs-comparison-operator は決定論スクリプト(checks_comparison)+ verifiers/comparison-operator-verifier.md が代替するため reviewer 本体は不要。",
+  "default": "opus",
+  "replaced_by_script": [],
+  "disabled": [],
+  "sonnet": [
+    "core-cs-region-internal",
+    "core-cs-redundant-cast",
+    "core-cs-dead-code-and-scope",
+    "core-cs-unity-convention",
+    "core-ts_tsx-dead-code-and-scope",
+    "core-ts_tsx-dev-production-separation",
+    "core-ts_tsx-component-colocation"
+  ]
+}
