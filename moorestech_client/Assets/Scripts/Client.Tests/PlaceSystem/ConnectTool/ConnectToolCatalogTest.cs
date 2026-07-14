@@ -72,11 +72,17 @@ namespace Client.Tests.PlaceSystem.ConnectTool
         [Test]
         public void 空きスペース延長用ブロックをツール種別ごとに取得する()
         {
-            Assert.IsTrue(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.TrainRailConnect, out var railBlockId, out _));
-            Assert.AreEqual(ForUnitTestModBlockId.TestTrainRail, railBlockId);
+            // 元配列を逆順にし、優先度と名前の整列を必須にする
+            // Reverse source order so priority and name sorting are required
+            Array.Reverse(MasterHolder.BlockMaster.Blocks.Data);
 
-            Assert.IsTrue(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.ElectricWireConnect, out var poleBlockId, out _));
+            Assert.IsTrue(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.TrainRailConnect, out var railBlockId, out var railBlockMaster));
+            Assert.AreEqual(ForUnitTestModBlockId.TestTrainRail, railBlockId);
+            Assert.AreEqual(MasterHolder.BlockMaster.GetBlockMaster(railBlockId).BlockGuid, railBlockMaster.BlockGuid);
+
+            Assert.IsTrue(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.ElectricWireConnect, out var poleBlockId, out var poleBlockMaster));
             Assert.AreEqual(ForUnitTestModBlockId.ElectricPoleId, poleBlockId);
+            Assert.AreEqual(MasterHolder.BlockMaster.GetBlockMaster(poleBlockId).BlockGuid, poleBlockMaster.BlockGuid);
 
             Assert.IsFalse(ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.GearChainPoleConnect, out _, out var gearBlockMaster));
             Assert.IsNull(gearBlockMaster);
