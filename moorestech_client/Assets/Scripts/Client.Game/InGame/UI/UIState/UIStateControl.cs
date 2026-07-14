@@ -34,8 +34,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             // 具体ステートの操作より先に共通視点入力を反映する
             // Apply shared view input before the concrete state performs its gameplay operation
-            _playerViewModeController.SetTextInputFocused(TextInputFocusProvider.IsFocused());
-            _playerViewModeController.ManualUpdate();
+            _playerViewModeController.ManualUpdate(TextInputFocusProvider.IsFocused());
 
             // 更新チェック
             // Check for updates

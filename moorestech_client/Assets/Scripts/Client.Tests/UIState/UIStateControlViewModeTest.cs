@@ -3,11 +3,11 @@ using System.Reflection;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Tests.ViewMode;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
-namespace Client.Tests.ViewMode
+namespace Client.Tests.UIState
 {
     public class UIStateControlViewModeTest : InputTestFixture
     {
@@ -23,7 +23,7 @@ namespace Client.Tests.ViewMode
 
         public override void TearDown()
         {
-            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetMode(AimPointMode.Mouse);
             Object.DestroyImmediate(_gameObject);
             base.TearDown();
         }
@@ -74,6 +74,23 @@ namespace Client.Tests.ViewMode
         }
 
         [Test]
+        public void StateAndViewModePushTheExpectedAimPolicy()
+        {
+            var gameState = new StubUIState();
+            var placeState = new StubUIState();
+            var (control, controller, _) = CreateControl((UIStateEnum.GameScreen, gameState), (UIStateEnum.PlaceBlock, placeState));
+            control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.CurrentMode);
+
+            gameState.SetNextState(UIStateEnum.PlaceBlock);
+            InvokeUnityMessage(control, "Update");
+            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.CurrentMode);
+
+            controller.ToggleViewMode();
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.CurrentMode);
+        }
+
+        [Test]
         public void FocusRestoreDoesNotOverrideTrainCameraPolicy()
         {
             var trainState = new FocusRestoringStubUIState();
@@ -87,6 +104,22 @@ namespace Client.Tests.ViewMode
             Assert.AreEqual(1, trainState.RestoreCount);
         }
 
+        [Test]
+        public void FocusRestoreReappliesFirstPersonGameScreenPolicy()
+        {
+            var gameState = new StubUIState();
+            var (control, controller, applier) = CreateControl((UIStateEnum.GameScreen, gameState));
+            control.Initialize(UIStateEnum.GameScreen, new UITransitContext(UIStateEnum.GameScreen));
+            controller.ToggleViewMode();
+            applier.Calls.Clear();
+
+            InvokeUnityMessage(control, "OnApplicationFocus", true);
+
+            Assert.Contains("Fps:True", applier.Calls);
+            Assert.AreEqual(false, applier.LastCursorVisible);
+            Assert.AreEqual(true, applier.LastCrosshairVisible);
+        }
+
         private (UIStateControl, PlayerViewModeController, FakePlayerViewApplier) CreateControl(params (UIStateEnum, IUIState)[] states)
         {
             var dictionary = CreateDictionary();
@@ -98,17 +131,21 @@ namespace Client.Tests.ViewMode
             var control = _gameObject.AddComponent<UIStateControl>();
             control.Construct(dictionary, controller);
             return (control, controller, applier);
-        }
 
-        private static UIStateDictionary CreateDictionary()
-        {
-            return new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
-        }
+            #region Internal
 
-        private static Dictionary<UIStateEnum, IUIState> GetStateDictionary(UIStateDictionary dictionary)
-        {
-            var field = typeof(UIStateDictionary).GetField("_stateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
-            return (Dictionary<UIStateEnum, IUIState>)field.GetValue(dictionary);
+            static UIStateDictionary CreateDictionary()
+            {
+                return new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
+            }
+
+            static Dictionary<UIStateEnum, IUIState> GetStateDictionary(UIStateDictionary dictionary)
+            {
+                var field = typeof(UIStateDictionary).GetField("_stateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
+                return (Dictionary<UIStateEnum, IUIState>)field.GetValue(dictionary);
+            }
+
+            #endregion
         }
 
         private static void InvokeUnityMessage(object target, string methodName, params object[] arguments)

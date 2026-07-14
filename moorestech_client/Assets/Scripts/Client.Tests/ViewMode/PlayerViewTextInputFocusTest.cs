@@ -19,7 +19,7 @@ namespace Client.Tests.ViewMode
         [TearDown]
         public void TearDown()
         {
-            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetMode(AimPointMode.Mouse);
         }
 
         [Test]
@@ -28,17 +28,17 @@ namespace Client.Tests.ViewMode
             _controller.SetUIState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
 
-            _controller.SetTextInputFocused(true);
+            _controller.ManualUpdate(true);
             Assert.AreEqual(true, _applier.LastCursorVisible);
             Assert.AreEqual(false, _applier.LastCameraRotatable);
             Assert.AreEqual(false, _applier.LastCrosshairVisible);
-            Assert.AreEqual(PlayerViewMode.ThirdPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.CurrentMode);
 
-            _controller.SetTextInputFocused(false);
+            _controller.ManualUpdate(false);
             Assert.AreEqual(false, _applier.LastCursorVisible);
             Assert.AreEqual(true, _applier.LastCameraRotatable);
             Assert.AreEqual(true, _applier.LastCrosshairVisible);
-            Assert.AreEqual(PlayerViewMode.FirstPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.CurrentMode);
         }
 
         [Test]
@@ -47,8 +47,8 @@ namespace Client.Tests.ViewMode
             _controller.SetUIState(UIStateEnum.PlaceBlock);
             var callCount = _applier.Calls.Count;
 
-            _controller.SetTextInputFocused(true);
-            _controller.SetTextInputFocused(false);
+            _controller.ManualUpdate(true);
+            _controller.ManualUpdate(false);
             Assert.AreEqual(callCount, _applier.Calls.Count);
         }
     }

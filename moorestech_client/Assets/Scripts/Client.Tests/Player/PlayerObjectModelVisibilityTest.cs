@@ -2,7 +2,7 @@ using Client.Game.InGame.Player;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Client.Tests.ViewMode
+namespace Client.Tests.Player
 {
     public class PlayerObjectModelVisibilityTest
     {
@@ -57,6 +57,17 @@ namespace Client.Tests.ViewMode
             Object.DestroyImmediate(renderer.gameObject);
 
             Assert.DoesNotThrow(() => _controller.SetModelVisible(true));
+        }
+
+        [Test]
+        public void RepeatedHiddenStateDoesNotRescanRenderers()
+        {
+            _controller.SetModelVisible(false);
+            var addedRenderer = CreateRenderer("AddedRenderer", true);
+
+            _controller.SetModelVisible(false);
+
+            Assert.IsTrue(addedRenderer.enabled);
         }
 
         private MeshRenderer CreateRenderer(string objectName, bool enabled)

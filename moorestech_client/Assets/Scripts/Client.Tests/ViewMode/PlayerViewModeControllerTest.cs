@@ -23,7 +23,7 @@ namespace Client.Tests.ViewMode
         [TearDown]
         public void TearDown()
         {
-            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetMode(AimPointMode.Mouse);
         }
 
         [Test]
@@ -59,7 +59,7 @@ namespace Client.Tests.ViewMode
             _controller.ToggleViewMode();
 
             Assert.AreEqual(PlayerViewMode.FirstPerson, _controller.CurrentMode);
-            Assert.AreEqual(PlayerViewMode.FirstPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.CurrentMode);
             Assert.AreEqual(true, _applier.LastFirstPersonCamera);
             Assert.AreEqual(false, _applier.LastCursorVisible);
             Assert.AreEqual(true, _applier.LastCameraRotatable);
@@ -96,7 +96,7 @@ namespace Client.Tests.ViewMode
 
             _controller.ToggleViewMode();
             Assert.AreEqual(PlayerViewMode.ThirdPerson, _controller.CurrentMode);
-            Assert.AreEqual(PlayerViewMode.ThirdPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.CurrentMode);
             Assert.Contains("Fps:False", _applier.Calls);
             Assert.AreEqual(true, _applier.LastCursorVisible);
             Assert.AreEqual(false, _applier.LastCameraRotatable);
@@ -121,7 +121,7 @@ namespace Client.Tests.ViewMode
 
             // カーソル解放中は画面中央ではなくマウス位置が照準になること
             // A freed cursor aims with the mouse, not the screen center
-            Assert.AreEqual(PlayerViewMode.ThirdPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.CurrentMode);
         }
 
         [Test]
@@ -129,12 +129,12 @@ namespace Client.Tests.ViewMode
         {
             _controller.SetUIState(UIStateEnum.PlaceBlock);
             _controller.ToggleViewMode();
-            Assert.AreEqual(PlayerViewMode.FirstPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.CurrentMode);
 
             // 視点管理外のステート（インベントリ・F3デバッグ等）はカーソルを解放するため照準をマウスへ戻す
             // States outside the view management (inventory, F3 debug, ...) free the cursor, so the aim returns to the mouse
             _controller.SetUIState(UIStateEnum.PlayerInventory);
-            Assert.AreEqual(PlayerViewMode.ThirdPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.Mouse, AimPointProvider.CurrentMode);
             Assert.AreEqual(PlayerViewMode.FirstPerson, _controller.CurrentMode);
         }
 

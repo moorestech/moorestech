@@ -34,6 +34,14 @@ namespace Client.Tests.ViewMode
         }
 
         [Test]
+        public void InitialDistanceIsClamped()
+        {
+            var distance = new ThirdPersonCameraDistance(ThirdPersonCameraDistance.MaximumDistance + 1f);
+
+            Assert.AreEqual(ThirdPersonCameraDistance.MaximumDistance, distance.GetDistance());
+        }
+
+        [Test]
         public void CameraControllerIgnoresZoomDuringThirdPersonReturnTween()
         {
             var gameObject = new GameObject("InGameCameraController");
@@ -48,6 +56,11 @@ namespace Client.Tests.ViewMode
             SetField(controller, "virtualCamera", virtualCamera);
             InvokeMethod(controller, "Awake");
 
+            framingType.GetField("m_CameraDistance").SetValue(framing, 7f);
+            InvokeMethod(controller, "Update");
+            var distanceWithoutZoomInput = (float)framingType.GetField("m_CameraDistance").GetValue(framing);
+            framingType.GetField("m_CameraDistance").SetValue(framing, 5f);
+
             controller.SetFirstPersonMode(true);
             controller.SetFirstPersonMode(false);
             controller.AddThirdPersonZoom(0.75f);
@@ -59,6 +72,7 @@ namespace Client.Tests.ViewMode
             KillTween(GetField(controller, "_offsetTweener"));
             KillTween(GetField(controller, "_distanceTweener"));
             UnityEngine.Object.DestroyImmediate(gameObject);
+            Assert.AreEqual(7f, distanceWithoutZoomInput);
             Assert.AreEqual(5.75f, actualDistance);
 
             #region Internal
