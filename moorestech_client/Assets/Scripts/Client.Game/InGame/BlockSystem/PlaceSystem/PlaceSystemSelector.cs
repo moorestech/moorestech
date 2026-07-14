@@ -1,6 +1,7 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
@@ -9,9 +10,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.PlaceSystemModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -57,14 +56,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             {
                 case BlockPlacementTarget block:
                 {
-                    // ベルトファミリー→レール→歯車ポールの順に専用システムへ振り分け、残りは通常ブロック
-                    // Route by belt family, then rail, then gear chain pole; fall back to common blocks
-                    if (BeltConveyorPlaceFamilyUtil.TryGetFamily(block.BlockId, out _)) return _beltConveyorPlaceSystem;
-
+                    // ブロック種別で専用システムへ、残りは通常ブロック
+                    // Route by block type; the rest fall back to common blocks
                     var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
-                    if (blockMaster.BlockType == BlockMasterElement.BlockTypeConst.TrainRail) return _trainRailPlaceSystem;
-                    if (blockMaster.BlockType == BlockMasterElement.BlockTypeConst.GearChainPole) return _gearChainPoleConnectSystem;
-                    return _commonBlockPlaceSystem;
+                    return blockMaster.BlockType switch
+                    {
+                        BlockMasterElement.BlockTypeConst.BeltConveyor => _beltConveyorPlaceSystem,
+                        BlockMasterElement.BlockTypeConst.GearBeltConveyor => _beltConveyorPlaceSystem,
+                        BlockMasterElement.BlockTypeConst.TrainRail => _trainRailPlaceSystem,
+                        BlockMasterElement.BlockTypeConst.GearChainPole => _gearChainPoleConnectSystem,
+                        _ => _commonBlockPlaceSystem,
+                    };
                 }
                 case TrainCarPlacementTarget:
                     return _trainCarPlaceSystem;
@@ -73,13 +75,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 case BlueprintCopyToolPlacementTarget:
                     return _blueprintCopySystem;
                 case ConnectToolPlacementTarget connectTool:
-                    // 接続ツールは接続モードで3系統へ振り分ける
-                    // Route connect tools to the three connect systems by place mode
-                    return connectTool.PlaceMode switch
+                    // ツール種別で3系統へ振り分ける
+                    // Route by tool type to the three connect systems
+                    return connectTool.ToolType switch
                     {
-                        PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
-                        PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
-                        PlaceSystemMasterElement.PlaceModeConst.ElectricWireConnect => _electricWireConnectSystem,
+                        ConnectToolType.TrainRailConnect => _trainRailConnectSystem,
+                        ConnectToolType.GearChainPoleConnect => _gearChainPoleConnectSystem,
+                        ConnectToolType.ElectricWireConnect => _electricWireConnectSystem,
                         _ => EmptyPlaceSystem,
                     };
                 default:
