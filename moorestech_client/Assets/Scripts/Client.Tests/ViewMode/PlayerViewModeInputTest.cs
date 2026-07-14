@@ -27,7 +27,7 @@ namespace Client.Tests.ViewMode
 
         public override void TearDown()
         {
-            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetMode(AimPointMode.Mouse);
             base.TearDown();
         }
 
@@ -39,14 +39,14 @@ namespace Client.Tests.ViewMode
             // ゲーム画面でVを押すとFPSへ切り替わる（建設モード外でもトグルが効く結線の検証）
             // Pressing V on the game screen switches to FPS (covers the toggle wiring outside build states)
             Press(_keyboard.vKey);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Assert.AreEqual(PlayerViewMode.FirstPerson, _controller.CurrentMode);
-            Assert.AreEqual(PlayerViewMode.FirstPerson, AimPointProvider.CurrentMode);
+            Assert.AreEqual(AimPointMode.ScreenCenter, AimPointProvider.CurrentMode);
             Assert.AreEqual(true, _applier.LastFirstPersonCamera);
 
             Release(_keyboard.vKey);
             Press(_keyboard.vKey);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Assert.AreEqual(PlayerViewMode.ThirdPerson, _controller.CurrentMode);
             Assert.AreEqual(false, _applier.LastFirstPersonCamera);
         }
@@ -60,12 +60,12 @@ namespace Client.Tests.ViewMode
             // 三人称の設置モードは右ドラッグ中だけカーソルを隠して視点を回す
             // The third-person placement mode hides the cursor and rotates the view only while right-dragging
             Press(_mouse.rightButton);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Assert.AreEqual(false, _applier.LastCursorVisible);
             Assert.AreEqual(true, _applier.LastCameraRotatable);
 
             Release(_mouse.rightButton);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Assert.AreEqual(true, _applier.LastCursorVisible);
             Assert.AreEqual(false, _applier.LastCameraRotatable);
         }
@@ -79,9 +79,9 @@ namespace Client.Tests.ViewMode
             // ゲーム画面はカーソルロック済みで常時回転可のため、右ドラッグで何も適用しない
             // The game screen already locks the cursor and always rotates, so right-drag must apply nothing
             Press(_mouse.rightButton);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Release(_mouse.rightButton);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Assert.IsEmpty(_applier.Calls);
         }
 
@@ -95,9 +95,9 @@ namespace Client.Tests.ViewMode
             // FPSはカーソルロック・常時回転のため、右ドラッグでカーソルを解放してはいけない
             // FPS keeps the cursor locked and always rotates, so right-drag must not free the cursor
             Press(_mouse.rightButton);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Release(_mouse.rightButton);
-            _controller.ManualUpdate();
+            _controller.ManualUpdate(false);
             Assert.IsEmpty(_applier.Calls);
         }
     }

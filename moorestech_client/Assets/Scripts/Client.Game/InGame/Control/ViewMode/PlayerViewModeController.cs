@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Control.ViewMode
 
         public ThirdPersonCameraDistance(float initialDistance)
         {
-            _distance = initialDistance;
+            _distance = Mathf.Clamp(initialDistance, MinimumDistance, MaximumDistance);
         }
 
         public void SetTransitioning(bool transitioning)
@@ -57,7 +57,7 @@ namespace Client.Game.InGame.Control.ViewMode
 
             // 照準プロバイダはstaticで前回プレイの値が残りうるため初期モードを明示同期する
             // The aim provider is static and can hold a value from a previous play, so sync the initial mode explicitly
-            AimPointProvider.SetMode(CurrentMode);
+            AimPointProvider.SetMode(AimPointMode.ScreenCenter);
         }
 
         public void SetUIState(UIStateEnum state)
@@ -67,8 +67,6 @@ namespace Client.Game.InGame.Control.ViewMode
             ApplyCurrentState();
         }
 
-        // アプリ復帰時に視点方針を復元する
-        // Restore cursor lock and view policy from the current state after the OS releases focus
         public void RestoreAfterApplicationFocus()
         {
             if (!IsViewState(_currentUIState)) return;
@@ -77,8 +75,9 @@ namespace Client.Game.InGame.Control.ViewMode
 
         // 視点ステート中に毎フレーム呼ぶ（Vトグルと、三人称の照準ステートでの右ドラッグ回転）
         // Called every frame during view states (V toggle, and right-drag rotation in third-person aim states)
-        public void ManualUpdate()
+        public void ManualUpdate(bool isTextInputFocused)
         {
+            SetTextInputFocused(isTextInputFocused);
             if (!IsViewState(_currentUIState) || _isTextInputFocused) return;
 
             //TODO InputSystem対応
@@ -103,7 +102,7 @@ namespace Client.Game.InGame.Control.ViewMode
 
         // テキスト入力中はFPSのカーソルロック・視点回転・クロスヘアを解除し、解除時は現ステート適用へ戻す
         // While a text field is focused, release the FPS cursor lock, look rotation, and crosshair; reapply the state on unfocus
-        public void SetTextInputFocused(bool focused)
+        private void SetTextInputFocused(bool focused)
         {
             if (_isTextInputFocused == focused) return;
             _isTextInputFocused = focused;
@@ -127,12 +126,10 @@ namespace Client.Game.InGame.Control.ViewMode
                 _applier.SetFirstPersonCamera(false);
                 _applier.SetCameraRotatable(false);
                 _applier.SetCrosshairVisible(false);
-                AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+                AimPointProvider.SetMode(AimPointMode.Mouse);
                 return;
             }
 
-            // 操作中のカーソル解放を判定する
-            // Free the cursor for text input, build menu, and third-person mouse aiming
             var isFirstPerson = CurrentMode == PlayerViewMode.FirstPerson;
             var isCursorFree = _isTextInputFocused || _currentUIState == UIStateEnum.BuildMenu || (!isFirstPerson && IsMouseAimState(_currentUIState));
 
@@ -143,7 +140,7 @@ namespace Client.Game.InGame.Control.ViewMode
 
             // 画面中央照準はカーソルをロックしている間だけ成立する（解放中はマウス位置が照準）
             // The center aim only holds while the cursor is locked; a freed cursor aims with the mouse
-            AimPointProvider.SetMode(isFirstPerson && !isCursorFree ? PlayerViewMode.FirstPerson : PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetMode(isCursorFree ? AimPointMode.Mouse : AimPointMode.ScreenCenter);
         }
 
         // マウスカーソルで照準するステート（設置・破壊）かどうか

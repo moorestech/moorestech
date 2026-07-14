@@ -36,24 +36,26 @@ namespace Client.Game.InGame.Mining
             
             // update state
             _currentState = _currentState.GetNextUpdate(_context, Time.deltaTime);
-        }
 
-        private MapObjectGameObject GetCurrentMapObject()
-        {
-            if (Camera.main == null) return null;
+            #region Internal
 
-            // 共通照準から採掘Rayを作る
-            // Build the mining ray from the shared aim point for the current view and cursor mode
-            var ray = Camera.main.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-            if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
-            if (EventSystem.current.IsPointerOverGameObject()) return null;
-            if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
+            MapObjectGameObject GetCurrentMapObject()
+            {
+                if (Camera.main == null) return null;
 
-            var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-            var mapObjectPos = mapObjectRayTarget.MapObjectGameObject.GetPosition();
-            if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
+                var ray = Camera.main.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
+                if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
+                if (EventSystem.current.IsPointerOverGameObject()) return null;
+                if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
 
-            return mapObjectRayTarget.MapObjectGameObject;
+                var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+                var mapObjectPos = mapObjectRayTarget.MapObjectGameObject.GetPosition();
+                if (miningDistance < Vector3.Distance(playerPos, mapObjectPos)) return null;
+
+                return mapObjectRayTarget.MapObjectGameObject;
+            }
+
+            #endregion
         }
     }
 }

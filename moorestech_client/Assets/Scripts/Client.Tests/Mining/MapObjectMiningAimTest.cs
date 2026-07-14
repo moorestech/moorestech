@@ -31,11 +31,52 @@ namespace Client.Tests.Mining
             CreateCamera();
             CreateEventSystem();
             CreatePlayerSystem();
+
+            #region Internal
+
+            void DetachExistingMainCameras()
+            {
+                // テストカメラをMainに固定
+                // Make the test camera the sole Camera.main
+                foreach (var cameraObject in GameObject.FindGameObjectsWithTag("MainCamera"))
+                {
+                    _previousMainCameraObjects.Add(cameraObject);
+                    cameraObject.tag = "Untagged";
+                }
+            }
+
+            void CreateCamera()
+            {
+                _cameraObject = new GameObject("MainCamera");
+                _cameraObject.tag = "MainCamera";
+                _cameraObject.AddComponent<Camera>();
+            }
+
+            void CreateEventSystem()
+            {
+                _eventSystemObject = new GameObject("EventSystem");
+                var eventSystem = _eventSystemObject.AddComponent<EventSystem>();
+                _eventSystemObject.AddComponent<InputSystemUIInputModule>();
+                InvokePrivate(eventSystem, "OnEnable");
+            }
+
+            void CreatePlayerSystem()
+            {
+                _playerObject = new GameObject("PlayerSystem");
+                var grabItemManager = _playerObject.AddComponent<PlayerGrabItemManager>();
+                var playerController = _playerObject.AddComponent<PlayerObjectController>();
+                var container = _playerObject.AddComponent<PlayerSystemContainer>();
+                SetField(container, "playerGrabItemManager", grabItemManager);
+                SetField(container, "playerObjectController", playerController);
+                InvokePrivate(container, "Awake");
+            }
+
+            #endregion
         }
 
         public override void TearDown()
         {
-            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetMode(AimPointMode.Mouse);
             SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             Object.DestroyImmediate(_miningObject);
             Object.DestroyImmediate(_targetObject);
@@ -46,10 +87,20 @@ namespace Client.Tests.Mining
                 if (cameraObject != null) cameraObject.tag = "MainCamera";
             _previousMainCameraObjects.Clear();
             base.TearDown();
+
+            #region Internal
+
+            static void SetStaticProperty(System.Type targetType, string propertyName, object value)
+            {
+                var field = targetType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
+                field.SetValue(null, value);
+            }
+
+            #endregion
         }
 
         [Test]
-        public void MiningTargetUsesMouseAimInThirdPersonAndCenterAimInFirstPerson()
+        public void MiningUpdateUsesConfiguredMouseAndCenterAim()
         {
             var camera = _cameraObject.GetComponent<Camera>();
             var mousePoint = new Vector2(Screen.width / 2f + 200f, Screen.height / 2f + 100f);
@@ -57,75 +108,40 @@ namespace Client.Tests.Mining
             var expectedMapObject = CreateTarget(camera.ScreenPointToRay(mousePoint));
             _playerObject.transform.position = expectedMapObject.GetPosition();
             var controller = CreateMiningController();
+            var context = new MapObjectMiningControllerContext(null, null);
+            SetField(controller, "_context", context);
+            SetField(controller, "_currentState", new StableMiningState());
 
-            AimPointProvider.SetMode(PlayerViewMode.ThirdPerson);
+            AimPointProvider.SetMode(AimPointMode.Mouse);
             Assert.AreEqual(mousePoint, (Vector2)AimPointProvider.GetAimScreenPoint());
-            Assert.AreSame(expectedMapObject, InvokeGetCurrentMapObject(controller));
+            InvokePrivate(controller, "Update");
+            Assert.AreSame(expectedMapObject, context.CurrentFocusMapObjectGameObject);
 
-            AimPointProvider.SetMode(PlayerViewMode.FirstPerson);
-            Assert.IsNull(InvokeGetCurrentMapObject(controller));
-        }
+            AimPointProvider.SetMode(AimPointMode.ScreenCenter);
+            InvokePrivate(controller, "Update");
+            Assert.IsNull(context.CurrentFocusMapObjectGameObject);
 
-        private void DetachExistingMainCameras()
-        {
-            // テストカメラをMainに固定
-            // Make the test camera the sole Camera.main
-            foreach (var cameraObject in GameObject.FindGameObjectsWithTag("MainCamera"))
+            #region Internal
+
+            MapObjectGameObject CreateTarget(Ray ray)
             {
-                _previousMainCameraObjects.Add(cameraObject);
-                cameraObject.tag = "Untagged";
+                _targetObject = new GameObject("MapObjectTarget");
+                _targetObject.layer = LayerConst.MapObjectLayer;
+                _targetObject.transform.position = ray.GetPoint(1f);
+                _targetObject.AddComponent<SphereCollider>().radius = 0.05f;
+                var mapObject = _targetObject.AddComponent<MapObjectGameObject>();
+                _targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
+                Physics.SyncTransforms();
+                return mapObject;
             }
-        }
 
-        private void CreateCamera()
-        {
-            _cameraObject = new GameObject("MainCamera");
-            _cameraObject.tag = "MainCamera";
-            _cameraObject.AddComponent<Camera>();
-        }
+            MapObjectMiningController CreateMiningController()
+            {
+                _miningObject = new GameObject("MapObjectMiningController");
+                return _miningObject.AddComponent<MapObjectMiningController>();
+            }
 
-        private void CreateEventSystem()
-        {
-            _eventSystemObject = new GameObject("EventSystem");
-            var eventSystem = _eventSystemObject.AddComponent<EventSystem>();
-            _eventSystemObject.AddComponent<InputSystemUIInputModule>();
-            InvokePrivate(eventSystem, "OnEnable");
-        }
-
-        private void CreatePlayerSystem()
-        {
-            _playerObject = new GameObject("PlayerSystem");
-            var grabItemManager = _playerObject.AddComponent<PlayerGrabItemManager>();
-            var playerController = _playerObject.AddComponent<PlayerObjectController>();
-            var container = _playerObject.AddComponent<PlayerSystemContainer>();
-            SetField(container, "playerGrabItemManager", grabItemManager);
-            SetField(container, "playerObjectController", playerController);
-            InvokePrivate(container, "Awake");
-        }
-
-        private MapObjectGameObject CreateTarget(Ray ray)
-        {
-            _targetObject = new GameObject("MapObjectTarget");
-            _targetObject.layer = LayerConst.MapObjectLayer;
-            _targetObject.transform.position = ray.GetPoint(1f);
-            _targetObject.AddComponent<SphereCollider>().radius = 0.05f;
-            var mapObject = _targetObject.AddComponent<MapObjectGameObject>();
-            _targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
-            Physics.SyncTransforms();
-            return mapObject;
-        }
-
-        private MapObjectMiningController CreateMiningController()
-        {
-            _miningObject = new GameObject("MapObjectMiningController");
-            return _miningObject.AddComponent<MapObjectMiningController>();
-        }
-
-        private static MapObjectGameObject InvokeGetCurrentMapObject(MapObjectMiningController controller)
-        {
-            var method = typeof(MapObjectMiningController).GetMethod("GetCurrentMapObject", BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.IsNotNull(method);
-            return (MapObjectGameObject)method.Invoke(controller, null);
+            #endregion
         }
 
         private static void InvokePrivate(object target, string methodName)
@@ -140,10 +156,12 @@ namespace Client.Tests.Mining
             field.SetValue(target, value);
         }
 
-        private static void SetStaticProperty(System.Type targetType, string propertyName, object value)
+        private class StableMiningState : IMapObjectMiningState
         {
-            var field = targetType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
-            field.SetValue(null, value);
+            public IMapObjectMiningState GetNextUpdate(MapObjectMiningControllerContext context, float dt)
+            {
+                return this;
+            }
         }
     }
 }

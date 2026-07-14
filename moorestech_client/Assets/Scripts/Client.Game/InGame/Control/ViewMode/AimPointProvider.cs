@@ -3,24 +3,28 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Control.ViewMode
 {
+    public enum AimPointMode
+    {
+        Mouse,
+        ScreenCenter,
+    }
+
     /// <summary>
-    ///     設置・削除・インタラクトの照準スクリーン座標を視点モードに応じて提供する
-    ///     Provides the aim screen point for placement, deletion, and interaction based on the view mode
+    ///     設置・削除・操作用の照準座標を方式別に返す
+    ///     Provides aim points for placement, deletion, and interaction by aim mode
     /// </summary>
     public static class AimPointProvider
     {
-        public static PlayerViewMode CurrentMode { get; private set; } = PlayerViewMode.ThirdPerson;
+        public static AimPointMode CurrentMode { get; private set; } = AimPointMode.Mouse;
 
-        public static void SetMode(PlayerViewMode mode)
+        public static void SetMode(AimPointMode mode)
         {
             CurrentMode = mode;
         }
 
         public static Vector3 GetAimScreenPoint()
         {
-            // FPSはカーソルロックのため画面中央を照準にする
-            // FPS locks the cursor, so aim at the screen center
-            if (CurrentMode == PlayerViewMode.FirstPerson) return new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            if (CurrentMode == AimPointMode.ScreenCenter) return new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
 
             return HybridInput.GetMousePosition();
         }
