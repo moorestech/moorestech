@@ -64,8 +64,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
-            // 通常操作用にカーソルをロックし、視点回転を有効にする
-            // Lock the cursor and enable look rotation for normal gameplay
+            // 通常時はカーソル固定・回転有効
+            // Lock cursor and enable rotation in gameplay
             _cameraInteractionApplier.SetCursorVisible(false);
             _cameraInteractionApplier.SetCameraRotatable(true);
 

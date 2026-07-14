@@ -34,3 +34,9 @@
 - No `partial`, `try-catch`, default argument, manually-created `.meta`, or Unity YAML edit was introduced.
 - `.moorestech-external-revisions.json` was left untouched and excluded from the commit.
 - Save/persistence code was not changed, so GUID/JSON persistence checks are not applicable.
+
+## Final comment guard
+
+- Restored the FPS zoom guard's causal comment in `InGameCameraController`.
+- Shortened the specified Japanese/English comment pairs without changing behavior.
+- Preserved scenario headers and the camera-direction contract comment as requested.

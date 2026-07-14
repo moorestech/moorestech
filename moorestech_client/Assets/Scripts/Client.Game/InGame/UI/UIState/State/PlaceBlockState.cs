@@ -37,8 +37,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
             if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
 
-            // 設置操作ではカーソルを解放し、右ドラッグ開始まで回転を止める
-            // Placement releases the cursor and stops rotation until right-drag begins
+            // 設置中は右ドラッグまで回転停止
+            // Stop rotation until right-drag while placing
             _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
 
@@ -76,8 +76,8 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
-            // 右ドラッグ中だけ設置位置を維持したまま視点回転を有効にする
-            // Enable look rotation only during right-drag while preserving placement aiming
+            // 右ドラッグ中のみ設置照準回転
+            // Rotate placement aim only during right-drag
             UpdateRightDragRotation();
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
 

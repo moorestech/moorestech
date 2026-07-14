@@ -204,8 +204,8 @@ namespace Client.Starter
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
 
-            // 視点モード（UIステートと独立して毎フレーム入力を処理）
-            // Player view mode (ticks independently from UI states)
+            // UI非依存の視点モード処理
+            // UI-independent view-mode processing
             builder.Register<IPlayerViewApplier, PlayerViewApplier>(Lifetime.Singleton);
             builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();

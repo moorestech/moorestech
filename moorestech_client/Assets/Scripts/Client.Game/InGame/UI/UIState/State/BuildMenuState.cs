@@ -20,8 +20,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
-            // メニュー操作用にカーソルを解放し、視点回転を停止する
-            // Release the cursor and stop look rotation for menu interaction
+            // メニュー中はカーソル解放・回転停止
+            // Release cursor and stop rotation in menus
             _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
 
