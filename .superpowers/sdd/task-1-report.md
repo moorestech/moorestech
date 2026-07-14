@@ -137,3 +137,21 @@ Success: true, TestCount: 11, PassedCount: 11, FailedCount: 0, SkippedCount: 0
 uloop compile --project-path ./moorestech_client
 Success: true, ErrorCount: 0, WarningCount: 0
 ```
+
+## Final Re-review Fix
+
+### 修正内容
+
+- PlaceBlockとDeleteObjectのOnExitで、MouseUp取り逃し時にカーソル表示と回転停止を必ず同時にpushするようにした。
+- `Assert.Catch`と例外期待を全廃し、実オブジェクトと最小fakeでOnEnter・GetNextUpdate・OnExitが正常完了する具体状態テストへ置換した。
+- BuildMenuの表示境界を`IBuildMenuView`として注入可能にし、重い実表示構築を本番の上位判断へ持ち上げずにOnEnter結線を検証した。
+
+### 実行コマンドと結果
+
+```text
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "UIStateCameraInteractionTest|UIStateControlTest|PlayerViewModeControllerTest|PlayerViewModeInputTest|AimPointProviderTest|ThirdPersonCameraDistanceTest"
+Success: true, TestCount: 15, PassedCount: 15, FailedCount: 0, SkippedCount: 0
+
+uloop compile --project-path ./moorestech_client
+Success: true, ErrorCount: 0, WarningCount: 0
+```

@@ -87,6 +87,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
+            _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
             _deleteObjectService.CancelSelection();
             _deleteBarObject.gameObject.SetActive(false);
