@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class BuildMenuState : IUIState
+    public class BuildMenuState : IUIState, IApplicationFocusRestorer
     {
         private readonly IBuildMenuView _buildMenuView;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
@@ -43,6 +43,12 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnExit()
         {
             _buildMenuView.SetActive(false);
+        }
+
+        public void RestoreAfterApplicationFocus()
+        {
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
         }
     }
 }
