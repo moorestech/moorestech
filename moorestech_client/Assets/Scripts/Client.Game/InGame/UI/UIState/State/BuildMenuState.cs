@@ -9,10 +9,10 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class BuildMenuState : IUIState
     {
-        private readonly BuildMenuView _buildMenuView;
+        private readonly IBuildMenuView _buildMenuView;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
-        public BuildMenuState(BuildMenuView buildMenuView, IPlayerCameraInteractionApplier cameraInteractionApplier)
+        public BuildMenuState(IBuildMenuView buildMenuView, IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
             _buildMenuView = buildMenuView;
             _cameraInteractionApplier = cameraInteractionApplier;
