@@ -1,5 +1,6 @@
 ﻿using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -16,17 +17,20 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
         private readonly RideVehicleInputService _rideVehicleInputService;
         private readonly PlacementTargetPickService _placementTargetPickService;
+        private readonly InGameCameraController _inGameCameraController;
 
         public GameScreenState(
             SkitManager skitManager,
             GameScreenSubInventoryInteractService subInventoryInteractService,
             RideVehicleInputService rideVehicleInputService,
-            PlacementTargetPickService placementTargetPickService)
+            PlacementTargetPickService placementTargetPickService,
+            InGameCameraController inGameCameraController)
         {
             _skitManager = skitManager;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
             _placementTargetPickService = placementTargetPickService;
+            _inGameCameraController = inGameCameraController;
         }
 
         public UITransitContext GetNextUpdate()
@@ -63,6 +67,11 @@ namespace Client.Game.InGame.UI.UIState.State
             // 旧uGUIのHUD表示をGameScreen復帰時に同期する
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
             GameStateController.ChangeState(GameStateType.InGame);
+
+            // 通常操作用にカーソルをロックし、視点回転を有効にする
+            // Lock the cursor and enable look rotation for normal gameplay
+            InputManager.MouseCursorVisible(false);
+            _inGameCameraController.SetControllable(true);
 
             KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nV: 視点切替\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }

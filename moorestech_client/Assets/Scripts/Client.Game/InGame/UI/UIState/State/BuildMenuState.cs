@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
@@ -9,15 +10,22 @@ namespace Client.Game.InGame.UI.UIState.State
     public class BuildMenuState : IUIState
     {
         private readonly BuildMenuView _buildMenuView;
+        private readonly InGameCameraController _inGameCameraController;
 
-        public BuildMenuState(BuildMenuView buildMenuView)
+        public BuildMenuState(BuildMenuView buildMenuView, InGameCameraController inGameCameraController)
         {
             _buildMenuView = buildMenuView;
+            _inGameCameraController = inGameCameraController;
         }
 
         public void OnEnter(UITransitContext context)
         {
             _buildMenuView.SetActive(true);
+
+            // メニュー操作用にカーソルを解放し、視点回転を停止する
+            // Release the cursor and stop look rotation for menu interaction
+            InputManager.MouseCursorVisible(true);
+            _inGameCameraController.SetControllable(false);
             KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
         }
 
