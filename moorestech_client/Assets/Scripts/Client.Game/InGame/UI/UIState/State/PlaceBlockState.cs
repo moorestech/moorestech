@@ -20,15 +20,15 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
-        private readonly PlayerCameraInteractionController _cameraInteractionController;
+        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
-        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, InGameCameraController inGameCameraController)
+        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
             _placementTargetPickService = placementTargetPickService;
-            _cameraInteractionController = new PlayerCameraInteractionController(inGameCameraController);
+            _cameraInteractionApplier = cameraInteractionApplier;
         }
 
         public void OnEnter(UITransitContext context)
@@ -39,7 +39,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 設置操作ではカーソルを解放し、右ドラッグ開始まで回転を止める
             // Placement releases the cursor and stops rotation until right-drag begins
-            _cameraInteractionController.EnterCursorInteraction();
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -83,8 +84,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
+            _cameraInteractionApplier.SetCameraRotatable(false);
             _placeSystemStateController.Disable();
-            _cameraInteractionController.ExitCursorInteraction();
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
@@ -97,7 +98,15 @@ namespace Client.Game.InGame.UI.UIState.State
 
         private void UpdateRightDragRotation()
         {
-            _cameraInteractionController.UpdateRightDrag();
+            if (HybridInput.GetMouseButtonDown(1))
+            {
+                _cameraInteractionApplier.SetCursorVisible(false);
+                _cameraInteractionApplier.SetCameraRotatable(true);
+            }
+
+            if (!HybridInput.GetMouseButtonUp(1)) return;
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
         }
     }
 }

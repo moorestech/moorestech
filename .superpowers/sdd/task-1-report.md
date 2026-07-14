@@ -118,3 +118,22 @@ Save、Master、ID/GUID、永続化形式には変更を加えていないため
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlayerCameraInteractionControllerTest|UIStateControlTest|PlayerViewModeControllerTest|PlayerViewModeInputTest"
 Success: true, TestCount: 9, PassedCount: 9, FailedCount: 0, SkippedCount: 0
 ```
+
+## Re-review Architecture Fix
+
+### 修正内容
+
+- 上位操作名と右ドラッグ入力を持っていた`PlayerCameraInteractionController`を削除した。
+- Control層にはbool値を実機へ反映するだけの`IPlayerCameraInteractionApplier`と`PlayerCameraInteractionApplier`を配置した。
+- GameScreen、BuildMenu、PlaceBlock、DeleteObjectの具体状態が、OnEnter・GetNextUpdate・OnExitでカーソル表示と回転可否を直接pushする形へ戻した。
+- 旧共通Controller単体テストを削除し、4状態のOnEnter結線、PlaceBlock・DeleteObjectの右ドラッグDown/UpとOnExit復元を具体状態メソッド経由で検証した。
+
+### 実行コマンドと結果
+
+```text
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "UIStateCameraInteractionOnEnterTest|UIStateRightDragCameraInteractionTest|UIStateControlTest|PlayerViewModeControllerTest|PlayerViewModeInputTest"
+Success: true, TestCount: 11, PassedCount: 11, FailedCount: 0, SkippedCount: 0
+
+uloop compile --project-path ./moorestech_client
+Success: true, ErrorCount: 0, WarningCount: 0
+```

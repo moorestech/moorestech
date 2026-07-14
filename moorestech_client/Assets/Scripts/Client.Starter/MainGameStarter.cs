@@ -207,6 +207,7 @@ namespace Client.Starter
             // 視点モード（UIステートと独立して毎フレーム入力を処理）
             // Player view mode (ticks independently from UI states)
             builder.Register<IPlayerViewApplier, PlayerViewApplier>(Lifetime.Singleton);
+            builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
             builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
 
 
