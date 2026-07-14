@@ -50,7 +50,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetChallengeInfoProtocol.ProtocolTag, new GetChallengeInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(AllBlockStateProtocol.ProtocolTag, new AllBlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlockStateProtocol.ProtocolTag, new BlockStateProtocol(serviceProvider));
-            _packetResponseDictionary.Add(InvokeBlockStateEventProtocol.ProtocolTag, new InvokeBlockStateEventProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RequestBlockStateProtocol.ProtocolTag, new RequestBlockStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.ProtocolTag, new DebugBlockInfoRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetGearNetworkInfoProtocol.ProtocolTag, new GetGearNetworkInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetElectricNetworkInfoProtocol.ProtocolTag, new GetElectricNetworkInfoProtocol(serviceProvider));
