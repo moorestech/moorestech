@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class GameScreenState : IUIState
+    public class GameScreenState : IUIState, IApplicationFocusRestorer
     {
         private readonly SkitManager _skitManager;
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
@@ -78,6 +78,15 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
+            // 次のUIが背後のカメラ回転を継承しないよう停止する
+            // Stop look rotation so the next UI does not inherit background camera movement
+            _cameraInteractionApplier.SetCameraRotatable(false);
+        }
+
+        public void RestoreAfterApplicationFocus()
+        {
+            _cameraInteractionApplier.SetCursorVisible(false);
+            _cameraInteractionApplier.SetCameraRotatable(true);
         }
     }
 }

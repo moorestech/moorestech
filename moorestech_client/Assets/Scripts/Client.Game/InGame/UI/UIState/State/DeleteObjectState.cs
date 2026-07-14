@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class DeleteObjectState : IUIState
+    public class DeleteObjectState : IUIState, IApplicationFocusRestorer
     {
         private readonly DeleteBarObject _deleteBarObject;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
@@ -91,6 +91,12 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraInteractionApplier.SetCameraRotatable(false);
             _deleteObjectService.CancelSelection();
             _deleteBarObject.gameObject.SetActive(false);
+        }
+
+        public void RestoreAfterApplicationFocus()
+        {
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
         }
     }
 }

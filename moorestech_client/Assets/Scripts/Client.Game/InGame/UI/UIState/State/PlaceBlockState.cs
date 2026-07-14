@@ -13,7 +13,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class PlaceBlockState : IUIState
+    public class PlaceBlockState : IUIState, IApplicationFocusRestorer
     {
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
@@ -50,6 +50,20 @@ namespace Client.Game.InGame.UI.UIState.State
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
             KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト");
+
+            #region Internal
+
+            void OnPlaceBlock(BlockGameObject blockGameObject)
+            {
+                blockGameObject.EnablePreviewOnlyObjects(true, false);
+
+                _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
+                {
+                    blockGameObject.EnablePreviewOnlyObjects(true, true);
+                }));
+            }
+
+            #endregion
         }
 
         public UITransitContext GetNextUpdate()
@@ -70,16 +84,23 @@ namespace Client.Game.InGame.UI.UIState.State
             _placeSystemStateController.ManualUpdate();
 
             return null;
-        }
 
-        private void OnPlaceBlock(BlockGameObject blockGameObject)
-        {
-            blockGameObject.EnablePreviewOnlyObjects(true, false);
+            #region Internal
 
-            _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
+            void UpdateRightDragRotation()
             {
-                blockGameObject.EnablePreviewOnlyObjects(true, true);
-            }));
+                if (HybridInput.GetMouseButtonDown(1))
+                {
+                    _cameraInteractionApplier.SetCursorVisible(false);
+                    _cameraInteractionApplier.SetCameraRotatable(true);
+                }
+
+                if (!HybridInput.GetMouseButtonUp(1)) return;
+                _cameraInteractionApplier.SetCursorVisible(true);
+                _cameraInteractionApplier.SetCameraRotatable(false);
+            }
+
+            #endregion
         }
 
         public void OnExit()
@@ -97,15 +118,8 @@ namespace Client.Game.InGame.UI.UIState.State
             _blockPlacedDisposable.Clear();
         }
 
-        private void UpdateRightDragRotation()
+        public void RestoreAfterApplicationFocus()
         {
-            if (HybridInput.GetMouseButtonDown(1))
-            {
-                _cameraInteractionApplier.SetCursorVisible(false);
-                _cameraInteractionApplier.SetCameraRotatable(true);
-            }
-
-            if (!HybridInput.GetMouseButtonUp(1)) return;
             _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
         }

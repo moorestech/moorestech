@@ -38,22 +38,26 @@ namespace Client.Tests.UIState
             Assert.AreEqual(UIStateEnum.BuildMenu, control.CurrentState);
             Assert.AreEqual(1, firstState.ExitCount);
             Assert.AreEqual(1, secondState.EnterCount);
-        }
 
-        private static UIStateDictionary CreateDictionary(IUIState firstState, IUIState secondState)
-        {
-            var dictionary = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
-            var field = typeof(UIStateDictionary).GetField("_stateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
-            var states = (Dictionary<UIStateEnum, IUIState>)field.GetValue(dictionary);
-            states[UIStateEnum.GameScreen] = firstState;
-            states[UIStateEnum.BuildMenu] = secondState;
-            return dictionary;
-        }
+            #region Internal
 
-        private static void InvokeUpdate(UIStateControl control)
-        {
-            var method = typeof(UIStateControl).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
-            method.Invoke(control, null);
+            UIStateDictionary CreateDictionary(IUIState first, IUIState second)
+            {
+                var result = new UIStateDictionary(null, null, null, null, null, null, null, null, null, null, null, null);
+                var field = typeof(UIStateDictionary).GetField("_stateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
+                var states = (Dictionary<UIStateEnum, IUIState>)field.GetValue(result);
+                states[UIStateEnum.GameScreen] = first;
+                states[UIStateEnum.BuildMenu] = second;
+                return result;
+            }
+
+            void InvokeUpdate(UIStateControl target)
+            {
+                var method = typeof(UIStateControl).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
+                method.Invoke(target, null);
+            }
+
+            #endregion
         }
 
         private class StubUIState : IUIState
