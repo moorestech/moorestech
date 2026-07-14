@@ -69,3 +69,9 @@
 | # | 指摘 | 対象 | 検出器 |
 |---|---|---|---|
 | 25 | バッキングフィールド＋素通しプロパティの二重保持を自動プロパティに畳む | ProcessingMachineProcessState.cs | redundant-member-duplication（観点1） |
+
+## pr1017（review 4686520443）
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 26 | レール/チェーン/電線の`[0]`決め打ちが「1種類しか無い」を暗黙に規定 | ConnectToolCatalog.cs:53,59,65（SelectIconItemGuid） | implicit-cardinality-assumption |
