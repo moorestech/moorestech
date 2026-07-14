@@ -24,8 +24,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
-            // 削除操作ではカーソルを解放し、右ドラッグ開始まで回転を止める
-            // Deletion releases the cursor and stops rotation until right-drag begins
+            // 削除中は右ドラッグまで回転停止
+            // Stop rotation until right-drag while deleting
             _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
 
@@ -40,8 +40,8 @@ namespace Client.Game.InGame.UI.UIState.State
             var transit = HandleTransition();
             if (transit != null) return transit;
 
-            // 右ドラッグ中だけ削除照準を維持したまま視点回転を有効にする
-            // Enable look rotation only during right-drag while preserving deletion aiming
+            // 右ドラッグ中のみ削除照準回転
+            // Rotate deletion aim only during right-drag
             UpdateRightDragRotation();
 
             // 削除インタラクションはサービスに委譲する

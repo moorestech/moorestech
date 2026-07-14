@@ -56,8 +56,8 @@ namespace Client.Game.InGame.Control
 
         private void Update()
         {
-            // ズーム入力時だけ距離を更新する
-            // Update the selected and live third-person distance only when zoom input occurs
+            // FPS中のズーム更新が表示中の一人称距離を上書きするのを防ぐ
+            // Prevent zoom updates in FPS from overwriting the displayed first-person distance
             if (!_isFirstPerson)
             {
                 var zoomDelta = 0f;
