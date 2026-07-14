@@ -15,16 +15,23 @@ namespace Client.Game.InGame.Control.ViewMode
     /// </summary>
     public static class AimPointProvider
     {
-        public static AimPointMode CurrentMode { get; private set; } = AimPointMode.Mouse;
+        private static AimPointMode _currentMode = AimPointMode.Mouse;
 
-        public static void SetMode(AimPointMode mode)
+        public static void SetViewMode(PlayerViewMode viewMode)
         {
-            CurrentMode = mode;
+            _currentMode = viewMode == PlayerViewMode.FirstPerson
+                ? AimPointMode.ScreenCenter
+                : AimPointMode.Mouse;
+        }
+
+        public static AimPointMode GetCurrentMode()
+        {
+            return _currentMode;
         }
 
         public static Vector3 GetAimScreenPoint()
         {
-            if (CurrentMode == AimPointMode.ScreenCenter) return new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
+            if (_currentMode == AimPointMode.ScreenCenter) return new Vector3(Screen.width / 2f, Screen.height / 2f, 0f);
 
             return HybridInput.GetMousePosition();
         }

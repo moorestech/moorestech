@@ -76,7 +76,7 @@ namespace Client.Tests.Mining
 
         public override void TearDown()
         {
-            AimPointProvider.SetMode(AimPointMode.Mouse);
+            AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             Object.DestroyImmediate(_miningObject);
             Object.DestroyImmediate(_targetObject);
@@ -112,12 +112,12 @@ namespace Client.Tests.Mining
             SetField(controller, "_context", context);
             SetField(controller, "_currentState", new StableMiningState());
 
-            AimPointProvider.SetMode(AimPointMode.Mouse);
+            AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
             Assert.AreEqual(mousePoint, (Vector2)AimPointProvider.GetAimScreenPoint());
             InvokePrivate(controller, "Update");
             Assert.AreSame(expectedMapObject, context.CurrentFocusMapObjectGameObject);
 
-            AimPointProvider.SetMode(AimPointMode.ScreenCenter);
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
             InvokePrivate(controller, "Update");
             Assert.IsNull(context.CurrentFocusMapObjectGameObject);
 

@@ -1,6 +1,5 @@
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Crosshair;
-using Client.Input;
 
 namespace Client.Game.InGame.Control.ViewMode
 {
@@ -17,27 +16,16 @@ namespace Client.Game.InGame.Control.ViewMode
             _inGameCameraController = inGameCameraController;
         }
 
-        public void SetFirstPersonCamera(bool enabled)
+        public void SetViewMode(PlayerViewMode mode)
         {
-            // FPS化と自機モデルの非表示を一括切替する（視点回転はSetCameraRotatableが担当）
-            // Toggle the FPS camera together with player model visibility (look rotation is owned by SetCameraRotatable)
-            _inGameCameraController.SetFirstPersonMode(enabled);
-            PlayerSystemContainer.Instance.PlayerObjectController.SetModelVisible(!enabled);
-        }
+            var isFirstPerson = mode == PlayerViewMode.FirstPerson;
 
-        public void SetCursorVisible(bool visible)
-        {
-            InputManager.MouseCursorVisible(visible);
-        }
-
-        public void SetCrosshairVisible(bool visible)
-        {
-            CrosshairView.Instance.SetVisible(visible);
-        }
-
-        public void SetCameraRotatable(bool rotatable)
-        {
-            _inGameCameraController.SetControllable(rotatable);
+            // 視点そのものに属する表示だけを同期する
+            // Synchronize only presentation that belongs to the selected view mode
+            _inGameCameraController.SetFirstPersonMode(isFirstPerson);
+            PlayerSystemContainer.Instance.PlayerObjectController.SetModelVisible(!isFirstPerson);
+            CrosshairView.Instance.SetVisible(isFirstPerson);
+            AimPointProvider.SetViewMode(mode);
         }
     }
 }

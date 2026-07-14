@@ -1,4 +1,5 @@
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -10,18 +11,25 @@ namespace Client.Game.InGame.UI.UIState.State
     public class DeleteObjectState : IUIState
     {
         private readonly DeleteBarObject _deleteBarObject;
+        private readonly InGameCameraController _inGameCameraController;
 
         private readonly DeleteObjectService _deleteObjectService = new();
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, InGameCameraController inGameCameraController)
         {
             _deleteBarObject = deleteBarObject;
+            _inGameCameraController = inGameCameraController;
             deleteBarObject.gameObject.SetActive(false);
         }
 
         public void OnEnter(UITransitContext context)
         {
             _deleteBarObject.gameObject.SetActive(true);
+
+            // 削除操作ではカーソルを解放し、右ドラッグ開始まで回転を止める
+            // Deletion releases the cursor and stops rotation until right-drag begins
+            InputManager.MouseCursorVisible(true);
+            _inGameCameraController.SetControllable(false);
             KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
         }
 
@@ -31,6 +39,10 @@ namespace Client.Game.InGame.UI.UIState.State
             // Handle mode transitions (ESC stays in the mode and is used as selection cancel by the delete service)
             var transit = HandleTransition();
             if (transit != null) return transit;
+
+            // 右ドラッグ中だけ削除照準を維持したまま視点回転を有効にする
+            // Enable look rotation only during right-drag while preserving deletion aiming
+            UpdateRightDragRotation();
 
             // 削除インタラクションはサービスに委譲する
             // Delegate the delete interaction to the service
@@ -57,12 +69,26 @@ namespace Client.Game.InGame.UI.UIState.State
                 return null;
             }
 
+            void UpdateRightDragRotation()
+            {
+                if (HybridInput.GetMouseButtonDown(1))
+                {
+                    InputManager.MouseCursorVisible(false);
+                    _inGameCameraController.SetControllable(true);
+                }
+
+                if (!HybridInput.GetMouseButtonUp(1)) return;
+                InputManager.MouseCursorVisible(true);
+                _inGameCameraController.SetControllable(false);
+            }
+
             #endregion
         }
 
         public void OnExit()
         {
             _deleteObjectService.CancelSelection();
+            _inGameCameraController.SetControllable(false);
             _deleteBarObject.gameObject.SetActive(false);
         }
     }
