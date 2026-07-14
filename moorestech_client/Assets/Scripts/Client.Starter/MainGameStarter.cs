@@ -18,7 +18,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Control.BuildView;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
@@ -204,10 +204,11 @@ namespace Client.Starter
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
 
-            // 建設系視点モード
-            // register build view mode
-            builder.Register<IBuildViewApplier, BuildViewApplier>(Lifetime.Singleton);
-            builder.Register<BuildViewModeController>(Lifetime.Singleton);
+            // UI非依存の視点モード処理
+            // UI-independent view-mode processing
+            builder.Register<IPlayerViewApplier, PlayerViewApplier>(Lifetime.Singleton);
+            builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
+            builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
 
 
             //UIコントロール
@@ -275,7 +276,7 @@ namespace Client.Starter
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
-            builder.RegisterComponent(buildMenuView);
+            builder.RegisterComponent(buildMenuView).AsSelf().As<IBuildMenuView>();
             builder.RegisterComponent(blueprintNameInputView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);

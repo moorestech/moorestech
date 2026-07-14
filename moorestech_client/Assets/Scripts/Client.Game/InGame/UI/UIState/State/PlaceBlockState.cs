@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control.BuildView;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
@@ -13,23 +13,22 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class PlaceBlockState : IUIState
+    public class PlaceBlockState : IUIState, IApplicationFocusRestorer
     {
         private readonly SkitManager _skitManager;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
-        private readonly BuildViewModeController _buildViewModeController;
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
-        private bool _wasTextInputFocused;
+        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
-        public PlaceBlockState(SkitManager skitManager, BuildViewModeController buildViewModeController, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService)
+        public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
             _skitManager = skitManager;
-            _buildViewModeController = buildViewModeController;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
             _placementTargetPickService = placementTargetPickService;
+            _cameraInteractionApplier = cameraInteractionApplier;
         }
 
         public void OnEnter(UITransitContext context)
@@ -38,10 +37,10 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
             if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
 
-            // カメラ・カーソルはBuildViewModeControllerへ委譲
-            // Camera and cursor handling is delegated to BuildViewModeController
-            _buildViewModeController.OnEnterBuildState(UIStateEnum.PlaceBlock);
-            _wasTextInputFocused = false;
+            // 設置中は右ドラッグまで回転停止
+            // Stop rotation until right-drag while placing
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -51,38 +50,36 @@ namespace Client.Game.InGame.UI.UIState.State
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
             KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト");
+
+            #region Internal
+
+            void OnPlaceBlock(BlockGameObject blockGameObject)
+            {
+                blockGameObject.EnablePreviewOnlyObjects(true, false);
+
+                _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
+                {
+                    blockGameObject.EnablePreviewOnlyObjects(true, true);
+                }));
+            }
+
+            #endregion
         }
 
         public UITransitContext GetNextUpdate()
         {
-            if (_skitManager.IsPlayingSkit) return Leave(UIStateEnum.Story);
+            if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
 
-            // フォーカス変化を視点コントローラへ通知（FPS中のダイアログでカーソルを解放するため）
-            // Notify focus changes to the view controller so FPS dialogs can free the cursor
-            var isTextInputFocused = IsTextInputFocused();
-            if (isTextInputFocused != _wasTextInputFocused)
-            {
-                _wasTextInputFocused = isTextInputFocused;
-                _buildViewModeController.SetTextInputFocused(isTextInputFocused);
-            }
+            // TabはOpenInventoryと同キーだが、配置モード中はビルドメニュー再表示を優先する
+            // Tab shares the OpenInventory binding, but reopening the build menu takes precedence while placing
+            if (HybridInput.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
+            if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
+            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
-            // 入力フィールド編集中はキー遷移と視点操作を止める（BP名入力中のB/Tab/V等の誤爆防止）
-            // While a text field is edited, suppress key transitions and view input so BP naming (B/Tab/V etc.) can't trigger them
-            if (!isTextInputFocused)
-            {
-                // TabはOpenInventoryと同キーだが、配置モード中はビルドメニュー再表示を優先する
-                // Tab shares the OpenInventory binding, but reopening the build menu takes precedence while placing
-                if (HybridInput.GetKeyDown(KeyCode.Tab)) return Leave(UIStateEnum.BuildMenu);
-                if (InputManager.UI.BlockDelete.GetKeyDown) return Leave(UIStateEnum.DeleteBar);
-                //TODO InputSystem対応
-                if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return Leave(UIStateEnum.GameScreen);
-
-                _buildViewModeController.ManualUpdate();
-
-                // ミドルクリックのスポイトで設置対象を持ち替える
-                // Middle-click eyedropper swaps the current placement target
-                if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
-            }
+            // 右ドラッグ中のみ設置照準回転
+            // Rotate placement aim only during right-drag
+            UpdateRightDragRotation();
+            if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
 
             _placeSystemStateController.ManualUpdate();
 
@@ -90,37 +87,26 @@ namespace Client.Game.InGame.UI.UIState.State
 
             #region Internal
 
-            // 選択中のTMP_InputFieldが編集中かを判定する
-            // Whether the currently selected TMP_InputField is being edited
-            static bool IsTextInputFocused()
+            void UpdateRightDragRotation()
             {
-                var selected = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
-                return selected != null && selected.TryGetComponent<TMPro.TMP_InputField>(out var inputField) && inputField.isFocused;
+                if (HybridInput.GetMouseButtonDown(1))
+                {
+                    _cameraInteractionApplier.SetCursorVisible(false);
+                    _cameraInteractionApplier.SetCameraRotatable(true);
+                }
+
+                if (!HybridInput.GetMouseButtonUp(1)) return;
+                _cameraInteractionApplier.SetCursorVisible(true);
+                _cameraInteractionApplier.SetCameraRotatable(false);
             }
 
             #endregion
         }
 
-        // 遷移確定をコントローラへ通知してから遷移する（セッション終了判定はコントローラ側）
-        // Notify the controller before transiting; it decides whether the session ends
-        private UITransitContext Leave(UIStateEnum next)
-        {
-            _buildViewModeController.OnLeaveBuildState(next);
-            return new UITransitContext(next);
-        }
-
-        private void OnPlaceBlock(BlockGameObject blockGameObject)
-        {
-            blockGameObject.EnablePreviewOnlyObjects(true, false);
-
-            _blockPlacedDisposable.Add(blockGameObject.OnFinishedPlaceAnimation.Subscribe(_ =>
-            {
-                blockGameObject.EnablePreviewOnlyObjects(true, true);
-            }));
-        }
-
         public void OnExit()
         {
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
             _placeSystemStateController.Disable();
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -130,6 +116,12 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _blockPlacedDisposable.ForEach(d => d.Dispose());
             _blockPlacedDisposable.Clear();
+        }
+
+        public void RestoreAfterApplicationFocus()
+        {
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
         }
     }
 }
