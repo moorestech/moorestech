@@ -17,20 +17,20 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
         private readonly RideVehicleInputService _rideVehicleInputService;
         private readonly PlacementTargetPickService _placementTargetPickService;
-        private readonly PlayerCameraInteractionController _cameraInteractionController;
+        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
         public GameScreenState(
             SkitManager skitManager,
             GameScreenSubInventoryInteractService subInventoryInteractService,
             RideVehicleInputService rideVehicleInputService,
             PlacementTargetPickService placementTargetPickService,
-            InGameCameraController inGameCameraController)
+            IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
             _skitManager = skitManager;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
             _placementTargetPickService = placementTargetPickService;
-            _cameraInteractionController = new PlayerCameraInteractionController(inGameCameraController);
+            _cameraInteractionApplier = cameraInteractionApplier;
         }
 
         public UITransitContext GetNextUpdate()
@@ -64,13 +64,14 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 通常操作用にカーソルをロックし、視点回転を有効にする
+            // Lock the cursor and enable look rotation for normal gameplay
+            _cameraInteractionApplier.SetCursorVisible(false);
+            _cameraInteractionApplier.SetCameraRotatable(true);
+
             // 旧uGUIのHUD表示をGameScreen復帰時に同期する
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
             GameStateController.ChangeState(GameStateType.InGame);
-
-            // 通常操作用にカーソルをロックし、視点回転を有効にする
-            // Lock the cursor and enable look rotation for normal gameplay
-            _cameraInteractionController.EnterGameplay();
 
             KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nV: 視点切替\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }

@@ -10,21 +10,22 @@ namespace Client.Game.InGame.UI.UIState.State
     public class BuildMenuState : IUIState
     {
         private readonly BuildMenuView _buildMenuView;
-        private readonly PlayerCameraInteractionController _cameraInteractionController;
+        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
-        public BuildMenuState(BuildMenuView buildMenuView, InGameCameraController inGameCameraController)
+        public BuildMenuState(BuildMenuView buildMenuView, IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
             _buildMenuView = buildMenuView;
-            _cameraInteractionController = new PlayerCameraInteractionController(inGameCameraController);
+            _cameraInteractionApplier = cameraInteractionApplier;
         }
 
         public void OnEnter(UITransitContext context)
         {
-            _buildMenuView.SetActive(true);
-
             // メニュー操作用にカーソルを解放し、視点回転を停止する
             // Release the cursor and stop look rotation for menu interaction
-            _cameraInteractionController.EnterCursorInteraction();
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
+
+            _buildMenuView.SetActive(true);
             KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
         }
 
