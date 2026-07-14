@@ -1,6 +1,6 @@
 ﻿using Client.Game.Common;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -11,26 +11,26 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class GameScreenState : IUIState
+    public class GameScreenState : IUIState, IApplicationFocusRestorer
     {
-        private readonly InGameCameraController _inGameCameraController;
         private readonly SkitManager _skitManager;
         private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
         private readonly RideVehicleInputService _rideVehicleInputService;
         private readonly PlacementTargetPickService _placementTargetPickService;
+        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
         public GameScreenState(
             SkitManager skitManager,
-            InGameCameraController inGameCameraController,
             GameScreenSubInventoryInteractService subInventoryInteractService,
             RideVehicleInputService rideVehicleInputService,
-            PlacementTargetPickService placementTargetPickService)
+            PlacementTargetPickService placementTargetPickService,
+            IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
             _skitManager = skitManager;
-            _inGameCameraController = inGameCameraController;
             _subInventoryInteractService = subInventoryInteractService;
             _rideVehicleInputService = rideVehicleInputService;
             _placementTargetPickService = placementTargetPickService;
+            _cameraInteractionApplier = cameraInteractionApplier;
         }
 
         public UITransitContext GetNextUpdate()
@@ -64,19 +64,29 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 通常時はカーソル固定・回転有効
+            // Lock cursor and enable rotation in gameplay
+            _cameraInteractionApplier.SetCursorVisible(false);
+            _cameraInteractionApplier.SetCameraRotatable(true);
+
             // 旧uGUIのHUD表示をGameScreen復帰時に同期する
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
             GameStateController.ChangeState(GameStateType.InGame);
 
-            InputManager.MouseCursorVisible(false);
-            _inGameCameraController.SetControllable(true);
-
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
+            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: アイテム持ち替え\nV: 視点切替\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
-        
+
         public void OnExit()
         {
-            _inGameCameraController.SetControllable(false);
+            // 次のUIが背後のカメラ回転を継承しないよう停止する
+            // Stop look rotation so the next UI does not inherit background camera movement
+            _cameraInteractionApplier.SetCameraRotatable(false);
+        }
+
+        public void RestoreAfterApplicationFocus()
+        {
+            _cameraInteractionApplier.SetCursorVisible(false);
+            _cameraInteractionApplier.SetCameraRotatable(true);
         }
     }
 }

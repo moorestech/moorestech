@@ -19,7 +19,7 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     // 列車に乗車中の HUD ステート。状態遷移と列車系UI処理の呼び出しを担当する
     // Train HUD state, responsible for state transitions and dispatching train UI work while riding.
-    public class TrainHUDScreenState : IUIState
+    public class TrainHUDScreenState : IUIState, IApplicationFocusRestorer
     {
         private readonly PlayerStateController _playerStateController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
@@ -200,6 +200,11 @@ namespace Client.Game.InGame.UI.UIState.State
             _playerStateController.SetState(PlayerStateEnum.Normal, null);
             _branchRoutePreviewController.Destroy();
 
+        }
+        
+        public void RestoreAfterApplicationFocus()
+        {
+            _subStateController.RestoreAfterApplicationFocus();
         }
 
         // fire-and-forget RPC の例外を UnobservedTaskException 経由 log のみに頼らず明示的に拾う。

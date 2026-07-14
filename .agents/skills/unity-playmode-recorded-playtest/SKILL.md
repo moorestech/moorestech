@@ -124,6 +124,7 @@ queue 後に自前で `InputSystem.Update()` を呼ぶと、それは editor-upd
 10. uloop execute-dynamic-code で Recorder 停止 ← アクション直後に即OFF
 11. uloop control-play-mode --action Stop      # PlayMode 終了
 12. 動画ファイル確認 (`/tmp/<name>.mp4`) + 必要なら ffmpeg -ss -t -c copy で切り出し
+13. 成功条件を確認した動画を `open <video-path>` で開く
 ```
 
 ## 確立された録画ワークフロー（実プレイ視点・決定版 / 検証済み）
@@ -502,6 +503,18 @@ uloop control-play-mode --action Stop
 2. 期待する内部 state (出力 chest の item count 等) が達成された (`execute-dynamic-code` で読み取り)
 3. 検証スクショに期待する UI 要素 (item アイコン等) が映っている
 4. **絵が実プレイ視点であること** — 動画/スクショに **プレイヤーアバター・地面・通常の HUD** が映り、実際にプレイヤーが見る画面になっている（カメラを孤立俯瞰に切り離した「対象だけが空に浮く」絵は、内部 state が正しくても**不合格**。「カメラframing は実プレイ視点を壊すな」節参照）。スクショを Read して目視確認し、前任/既存の正式動画があれば構図を照合する。
+
+### 成功動画を必ず開く
+
+4つの成功条件をすべて確認したら、最終成果物をmacOSの既定プレイヤーで必ず開く。
+
+```bash
+open "/absolute/path/to/recording.mp4"
+```
+
+- `ffprobe`と目視確認より前に開かない。失敗・0 byte・未検証の動画は開かず、原因とパスを報告する。
+- 切り出し版を正式成果物にした場合は、元動画ではなく切り出し版を開く。
+- `open`が失敗した場合は録画成功と混同せず、コマンドのエラーをユーザーへ報告する。
 
 **失敗パターン → 切り分け**:
 | 症状 | 原因候補 | 確認方法 |
