@@ -11,6 +11,8 @@ namespace Tests.UnitTest.Game
 {
     public class BeltConveyorFamilyTest
     {
+        private const string NonBeltBlockGuid = "00000000-0000-0000-0000-000000000002";
+
         [Test]
         public void 歯車ベルト系ブロックはファミリー解決できる()
         {
@@ -67,12 +69,15 @@ namespace Tests.UnitTest.Game
             var blocksJsonPath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
             var blocksJToken = JToken.Parse(File.ReadAllText(blocksJsonPath));
             var firstBlockGuid = blocksJToken["beltConveyorFamilies"][0]["straightBlocks"][0]["blockGuid"].Value<string>();
+            var displacedBlockGuid = blocksJToken["beltConveyorFamilies"][1]["straightBlocks"][0]["blockGuid"].Value<string>();
             blocksJToken["beltConveyorFamilies"][1]["straightBlocks"][0]["blockGuid"] = firstBlockGuid;
+            AddSingleBlockFamily(blocksJToken, displacedBlockGuid);
 
             var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
 
             StringAssert.Contains("belongs to more than one family", logs);
             StringAssert.DoesNotContain("must contain exactly one length-1 straight block", logs);
+            StringAssert.DoesNotContain("belongs to no beltConveyorFamily", logs);
         }
 
         [Test]
@@ -82,12 +87,24 @@ namespace Tests.UnitTest.Game
             // Replace family one's length-1 block with a non-belt block
             var blocksJsonPath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
             var blocksJToken = JToken.Parse(File.ReadAllText(blocksJsonPath));
-            blocksJToken["beltConveyorFamilies"][0]["straightBlocks"][0]["blockGuid"] = "00000000-0000-0000-0000-000000000002";
+            var displacedBlockGuid = blocksJToken["beltConveyorFamilies"][0]["straightBlocks"][0]["blockGuid"].Value<string>();
+            blocksJToken["beltConveyorFamilies"][0]["straightBlocks"][0]["blockGuid"] = NonBeltBlockGuid;
+            AddSingleBlockFamily(blocksJToken, displacedBlockGuid);
 
             var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
 
             StringAssert.Contains("is not a belt block", logs);
             StringAssert.Contains("must contain exactly one length-1 straight block", logs);
+            StringAssert.DoesNotContain("belongs to no beltConveyorFamily", logs);
+        }
+
+        private static void AddSingleBlockFamily(JToken blocksJToken, string blockGuid)
+        {
+            var family = new JObject
+            {
+                ["straightBlocks"] = new JArray(new JObject { ["blockGuid"] = blockGuid }),
+            };
+            ((JArray)blocksJToken["beltConveyorFamilies"]).Add(family);
         }
     }
 }
