@@ -11,14 +11,14 @@ namespace Client.Game.InGame.UI.UIState.State
     public class DeleteObjectState : IUIState
     {
         private readonly DeleteBarObject _deleteBarObject;
-        private readonly InGameCameraController _inGameCameraController;
+        private readonly PlayerCameraInteractionController _cameraInteractionController;
 
         private readonly DeleteObjectService _deleteObjectService = new();
 
         public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, InGameCameraController inGameCameraController)
         {
             _deleteBarObject = deleteBarObject;
-            _inGameCameraController = inGameCameraController;
+            _cameraInteractionController = new PlayerCameraInteractionController(inGameCameraController);
             deleteBarObject.gameObject.SetActive(false);
         }
 
@@ -28,8 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 削除操作ではカーソルを解放し、右ドラッグ開始まで回転を止める
             // Deletion releases the cursor and stops rotation until right-drag begins
-            InputManager.MouseCursorVisible(true);
-            _inGameCameraController.SetControllable(false);
+            _cameraInteractionController.EnterCursorInteraction();
             KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
         }
 
@@ -71,15 +70,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             void UpdateRightDragRotation()
             {
-                if (HybridInput.GetMouseButtonDown(1))
-                {
-                    InputManager.MouseCursorVisible(false);
-                    _inGameCameraController.SetControllable(true);
-                }
-
-                if (!HybridInput.GetMouseButtonUp(1)) return;
-                InputManager.MouseCursorVisible(true);
-                _inGameCameraController.SetControllable(false);
+                _cameraInteractionController.UpdateRightDrag();
             }
 
             #endregion
@@ -88,7 +79,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnExit()
         {
             _deleteObjectService.CancelSelection();
-            _inGameCameraController.SetControllable(false);
+            _cameraInteractionController.ExitCursorInteraction();
             _deleteBarObject.gameObject.SetActive(false);
         }
     }
