@@ -8,6 +8,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
 {
     /// <summary>
     /// 接続ツール3種の表示情報とマスタ選択規則を定義する
+    /// このあたりはこれらが非アイテムになったら一緒ん全部消し去る
     /// Defines display information and master-selection rules for the three connect tools
     /// </summary>
     public static class ConnectToolCatalog
