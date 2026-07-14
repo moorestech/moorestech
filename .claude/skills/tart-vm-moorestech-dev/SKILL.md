@@ -77,32 +77,27 @@ skill を探す時は repo 配下 grep だけで判断せず、`~/.claude/skills
 - `master` への直 push / merge / deploy / release はしない。worktree cleanup もしない。
 - 最終報告に「変更ファイル」「実行した検証コマンドと結果」「moores-code-review 結果」「evidence パス」「残課題」を含める。
 
-## 6. 終了時の差分公開（difit + Cloudflare Tunnel・必須）
+## 6. 終了時の evidence 公開（プレビューページ + Cloudflare Tunnel・必須）
 
-無人前提なので、終了時は **差分を difit で起動し Cloudflare Tunnel で外部公開** し、開発者が手元のブラウザからレビューできる URL を最終報告に載せる。difit の起動・差分範囲指定・常駐管理は **`difit-diff-viewer` skill を使用する**。
+無人前提なので、終了時は **録画/スクリーンショットをブラウザでプレビューできる簡易 HTML ページにまとめ、ローカル静的配信 + Cloudflare Tunnel で外部公開**し、開発者が手元のブラウザで確認できる URL を最終報告に載せる。
 
 手順:
-1. ブランチの差分を difit で起動（ブラウザ自動起動はしない・常駐させる）:
-   ```bash
-   npx difit HEAD master --merge-base --port <PORT> --no-open --background --keep-alive
-   ```
-   **このコマンドは必ず harness の `run_in_background: true` で起動する。** `--background` は difit の挙動フラグで `npx` ラッパーは戻らないため、フォアグラウンド実行すると difit は立つのにセッションが固まる（過去に約20分スタックした。詳細は `difit-diff-viewer` skill の Gotchas）。起動後は `sleep` せず出力ファイルか `curl localhost:<PORT>` で応答確認。
-2. その port を Cloudflare Tunnel で公開（認証不要の quick tunnel）:
+1. evidence（動画・画像）を1ディレクトリに集約し、一覧プレビュー用の `index.html` を生成する。動画は `<video controls>`、画像は `<img>` で埋め込み、ファイル名・確認観点を1行ずつ添える。
+2. そのディレクトリを静的サーバーで配信する（例: `python3 -m http.server <PORT> --directory <evidence-dir>`）。
+   **必ず harness の `run_in_background: true` で起動する。** 起動後は `sleep` せず `curl localhost:<PORT>` で応答確認。
+3. その port を Cloudflare Tunnel で公開（認証不要の quick tunnel）:
    ```bash
    cloudflared tunnel --url http://localhost:<PORT>
    ```
    **これも常駐プロセスなので `run_in_background: true` で起動する。** 出力される `https://<ランダム>.trycloudflare.com` が公開 URL（出力ファイルを読んで取得）。
-3. 公開 URL を最終報告に必ず記載する。difit / cloudflared プロセスは開発者が見終わるまで常駐させたままにする（勝手に kill しない）。
+4. 公開 URL を最終報告に必ず記載する。静的サーバー / cloudflared プロセスは開発者が見終わるまで常駐させたままにする（勝手に kill しない）。
 
 > **VM 内 DNS は `*.trycloudflare.com` を解決できない（誤検知に注意）。** トンネル起動直後に VM 内から `curl https://<host>.trycloudflare.com` すると `000`／exit 6（Couldn't resolve host）になるが、これは VM のリゾルバの問題であってトンネルは生きている（cloudflared ログに `Registered tunnel connection ... location=...` が出ていれば OK）。**外部ブラウザ（ユーザー側）は公開 DNS で解決でき到達する。** VM 内から到達確認したいときは公開 DNS で名前解決してから叩く:
 > ```bash
 > IP=$(nslookup <host>.trycloudflare.com 1.1.1.1 | awk '/^Address: /{print $2; exit}')
 > curl -s -o /dev/null -w '%{http_code}\n' --resolve <host>.trycloudflare.com:443:$IP https://<host>.trycloudflare.com/
 > ```
-> 内部 `000` を見てトンネルが壊れたと誤判断しないこと。ローカル difit（`curl localhost:<PORT>` が 200）とエッジ登録ログの2点で生存確認する。
+> 内部 `000` を見てトンネルが壊れたと誤判断しないこと。ローカル静的サーバー（`curl localhost:<PORT>` が 200）とエッジ登録ログの2点で生存確認する。
 
 前提ツール（この VM では導入済み。未導入環境では先に入れる）:
-- `difit` は `npx difit`（グローバル導入不要）。
 - `cloudflared` は `brew install cloudflared`。
-
-> difit の詳細手順（差分範囲指定・バックグラウンド常駐・ポート確認・Gotchas）は `difit-diff-viewer` skill に集約。本節はそれに Cloudflare Tunnel 公開を重ねた終了時の運用ルール。
