@@ -88,6 +88,7 @@ python3 .claude/skills/moores-code-review/scripts/select_lenses.py "<PATCH_PATH>
 | master-data-defense | optional濫用・??フォールバック・ローダープリフィル（978） | VanillaSchema/Core.Master/BlockTemplate |
 | type-driven-structure | 共用体struct・god-context・N択1役割の型排除・DTO配置（987/996/997） | struct/Context/interface系キーワード |
 | redundant-member-duplication | バッキングフィールド＋素通しプロパティの二重保持・同値別名メンバーの排除（sonnet） | プロパティ/フィールド宣言を含む.cs |
+| implicit-cardinality-assumption | マスタ/ドメイン集合の単一要素決め打ち（`[0]`/`First`）で暗黙に単数を仮定（1017） | MasterHolderを読む.cs |
 | precedent-alignment | 前例一致（全PR横断・役割で前例を選ぶ） | 常時 |
 
 ## 有効性の測定（eval/）
