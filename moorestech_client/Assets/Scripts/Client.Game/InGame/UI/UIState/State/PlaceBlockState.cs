@@ -20,7 +20,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly List<IDisposable> _blockPlacedDisposable = new();
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
-        private readonly InGameCameraController _inGameCameraController;
+        private readonly PlayerCameraInteractionController _cameraInteractionController;
 
         public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, InGameCameraController inGameCameraController)
         {
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeSystemStateController = placeSystemStateController;
             _placementTargetPickService = placementTargetPickService;
-            _inGameCameraController = inGameCameraController;
+            _cameraInteractionController = new PlayerCameraInteractionController(inGameCameraController);
         }
 
         public void OnEnter(UITransitContext context)
@@ -39,8 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 設置操作ではカーソルを解放し、右ドラッグ開始まで回転を止める
             // Placement releases the cursor and stops rotation until right-drag begins
-            InputManager.MouseCursorVisible(true);
-            _inGameCameraController.SetControllable(false);
+            _cameraInteractionController.EnterCursorInteraction();
 
             // ここが重くなったら近いブロックだけプレビューをオンにするなどする
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
@@ -85,7 +84,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnExit()
         {
             _placeSystemStateController.Disable();
-            _inGameCameraController.SetControllable(false);
+            _cameraInteractionController.ExitCursorInteraction();
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
@@ -98,15 +97,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         private void UpdateRightDragRotation()
         {
-            if (HybridInput.GetMouseButtonDown(1))
-            {
-                InputManager.MouseCursorVisible(false);
-                _inGameCameraController.SetControllable(true);
-            }
-
-            if (!HybridInput.GetMouseButtonUp(1)) return;
-            InputManager.MouseCursorVisible(true);
-            _inGameCameraController.SetControllable(false);
+            _cameraInteractionController.UpdateRightDrag();
         }
     }
 }

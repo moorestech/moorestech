@@ -2,7 +2,7 @@
 
 ## Status
 
-Task 1「UI非依存な視点モードController」の実装と対象テスト更新を完了した。後続タスクが変更する `PlayerViewApplier` と `InGameCameraController` が旧契約を参照しているため、共有ブランチ全体のコンパイルおよびGREEN確認は現時点では未完了。
+Task 1と統合修正を完了した。`PlayerViewApplier`、`ThirdPersonCameraDistance`、UI状態の操作責務、DI登録まで新契約へ追随し、対象テストとUnityコンパイルはGREENである。
 
 ## 実装内容
 
@@ -31,7 +31,7 @@ FakePlayerViewApplier.cs(6,42): error CS0535: 'FakePlayerViewApplier' does not i
 
 ### GREEN確認
 
-Task 1の本体実装後に強制コンパイルを実行した。Task 1で変更したController/Fake/テスト自身のエラーは解消したが、後続タスク対象の旧契約参照によりAssembly全体は未GREEN。
+Task 1単体コミット時点では後続タスク対象の旧契約参照によりAssembly全体が未GREENだったが、Integration Fixで参照先をすべて追随させ、最終的に対象テスト17件PASS、コンパイルエラー0件を確認した。
 
 ```text
 InGameCameraController.cs(38,17): error CS0246: The type or namespace name 'ThirdPersonCameraDistance' could not be found
@@ -68,8 +68,7 @@ PlayerViewApplier.cs(11,38): error CS0535: 'PlayerViewApplier' does not implemen
 
 ## 懸念
 
-- `PlayerViewApplier` の新契約実装と `ThirdPersonCameraDistance` の移設/置換が入るまで、プロジェクト全体のコンパイルと対象テストGREENは確認できない。
-- 共有worktreeで後続タスクが追随変更を完了した時点で、同じ対象テストと全体コンパイルを再実行する必要がある。
+- Task 1と統合修正の範囲に未解消のコンパイル・対象テスト失敗はない。
 
 ## Integration Fix
 
@@ -104,3 +103,18 @@ git diff --check
 ### Save/永続化再チェック
 
 Save、Master、ID/GUID、永続化形式には変更を加えていないため、永続化観点への影響はない。
+
+## Re-review Fix
+
+### 操作状態のfocused test
+
+- 4 UI状態が共有する実操作を`PlayerCameraInteractionController`へ集約し、GameScreenは通常操作、BuildMenu・PlaceBlock・DeleteObjectはカーソル操作を明示的に選択する構成にした。
+- Unity Input Systemの実Mouse入力、実際の`Cursor.lockState`、実`InGameCameraController`の可操作状態を使って、通常操作・カーソル操作・右ドラッグDown/Up・MouseUp取り逃し後のExit復元を検証した。
+- テスト専用mockや本番インターフェースは追加していない。
+
+### 実行コマンドと結果
+
+```text
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlayerCameraInteractionControllerTest|UIStateControlTest|PlayerViewModeControllerTest|PlayerViewModeInputTest"
+Success: true, TestCount: 9, PassedCount: 9, FailedCount: 0, SkippedCount: 0
+```
