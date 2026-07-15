@@ -1,4 +1,4 @@
-import { Box, Button, Group, Stack } from "@mantine/core";
+import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
@@ -30,7 +30,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
   };
 
   return (
-    <Stack gap="xs">
+    <Stack className={styles.craftRecipe} gap="xs">
       <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
       <Group className={styles.recipeBox} gap={4} align="center" wrap="wrap">
         {recipe.requiredItems.map((r, i) => (
@@ -47,6 +47,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         </svg>
         <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
       </Group>
+      <Text className={styles.craftTime} size="sm">{recipe.craftTime}秒</Text>
       <Button className={styles.craftButton} fullWidth disabled={!isCraftable} onClick={onCraft}>
         Craft
       </Button>

@@ -1,19 +1,20 @@
-import { Group, Text } from "@mantine/core";
-import { ItemSlot } from "@/shared/ui";
+import { Button, Text } from "@mantine/core";
 import styles from "../RecipeViewer.module.css";
 
-// 選択アイテムのアイコン+名前ヘッダ
-// Icon + name header for the selected item
-export default function ItemHeader({ itemId, name }: { itemId: number; name: string }) {
+// 選択アイテムのハンマータブ+品名ヘッダ
+// Hammer-tab + name header for the selected item
+export default function ItemHeader({ name }: { name: string }) {
   return (
     <div className={styles.itemHeader}>
-      {/* 道具タブと選択アイテムをカード中央へまとめる */}
-      {/* Center the tool tab and selected item within the card */}
-      <span className={styles.toolTab} aria-hidden="true">🔨</span>
-      <Group gap="xs" justify="center">
-        <ItemSlot itemId={itemId} name={name} />
-        <Text>{name}</Text>
-      </Group>
+      {/* ハンマータブと主役の品名を縦にまとめる */}
+      {/* Stack the hammer tab above the prominent item name */}
+      <div className={styles.toolTab} aria-hidden="true">🔨</div>
+      <Text className={styles.itemName}>{name}</Text>
+      {/* レシピツリー連携前の見た目確認用プレースホルダ */}
+      {/* Visual placeholder until recipe-tree integration is implemented */}
+      <Button className={styles.recipeTreeButton} size="compact-sm" onClick={() => {}}>
+        レシピツリーで表示
+      </Button>
       <div className={styles.itemHeaderRule} aria-hidden="true" />
     </div>
   );
