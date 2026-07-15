@@ -3,7 +3,7 @@
 /* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
 /* Overrides Mantine's global body background (--mantine-color-body) via import order */
 :root {
-  --slot-size: 3rem;
+  --slot-size: 3.2rem;
 }
 
 body {

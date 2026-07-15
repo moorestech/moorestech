@@ -6,13 +6,13 @@
   position: relative;
   width: var(--slot-size, 3rem);
   height: var(--slot-size, 3rem);
-  border: 1px solid #8f929c;
+  border: 1px solid #9a9ea9;
   border-radius: 2px;
   background-color: rgba(20, 23, 30, 0.72);
   box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.14),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.5),
-    inset 0 1px 3px rgba(0, 0, 0, 0.55);
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.18),
+    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.55),
+    inset 0 1px 3px rgba(0, 0, 0, 0.5);
   user-select: none;
 }
 
