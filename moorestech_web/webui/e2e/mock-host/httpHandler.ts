@@ -23,12 +23,12 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 
-// DEMO(採点用): 密度の高いデータとプレースホルダアイコンを配信するモード
-// DEMO (scoring only): serve dense data and placeholder icons
+// DEMO(採点用): 高密度データとプレースホルダアイコンを配信
+// DEMO (scoring): serve dense data and placeholder icons
 const DEMO = process.env.MOCK_DEMO === "1";
 
-// itemId から安定した色相を導き、丸角の色付きアイコンSVGを生成する
-// Derive a stable hue from itemId and generate a rounded colored icon SVG
+// itemIdから色相を導き丸角の色付きSVGアイコンを生成
+// Derive a hue from itemId and build a rounded colored SVG icon
 function placeholderIcon(itemId: number): string {
   const hue = (itemId * 47) % 360;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="10" width="44" height="44" rx="2" fill="hsl(${hue} 40% 52%)" stroke="hsl(${hue} 35% 34%)" stroke-width="2"/><rect x="18" y="20" width="28" height="9" fill="hsl(${hue} 42% 62%)"/><rect x="18" y="34" width="28" height="9" fill="hsl(${hue} 38% 44%)"/></svg>`;
@@ -94,8 +94,8 @@ export function createMockHttpServer(): Server {
       return;
     }
     if (url.startsWith("/api/icons/")) {
-      // DEMO 時は色付きプレースホルダを返し、通常時は 404 で #id フォールバックに任せる
-      // In DEMO serve a colored placeholder; otherwise 404 and let the UI fall back to #id
+      // DEMO時は色付きプレースホルダ、通常時は404で#idフォールバック
+      // DEMO serves a colored placeholder; otherwise 404 for the #id fallback
       if (DEMO) {
         const id = Number(url.split("/api/icons/")[1]?.replace(".png", "")) || 0;
         res.setHeader("content-type", "image/svg+xml");

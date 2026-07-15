@@ -114,12 +114,12 @@ export const itemMaster = {
   ],
 } satisfies ItemMasterData;
 
-// DEMO(採点用): グリッドを埋めて target 画面の密度へ近づける。既定 fixtures は変えず追加のみ
-// DEMO (scoring only): fill the grids to approach the target screen density; additive, defaults untouched
+// DEMO(採点用): グリッドを埋める高密度一覧。既定は不変・追加のみ
+// DEMO (scoring): dense item list to fill the grid; additive, defaults intact
 export const demoItemList = { itemIds: [100, ...Array.from({ length: 41 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
 
-// 先頭3スロットは既定と同じ内容にし、残りをアイテムで埋める(空6スロット残す)
-// Keep the first 3 slots identical to the default, then fill the rest with items (leaving 6 empty)
+// 先頭3枠は既定のまま、残りを埋める(空6枠残す)
+// First 3 slots stay default, fill the rest (6 left empty)
 export const demoInventory = {
   mainSlots: [
     { itemId: 1, count: 10 },
@@ -141,6 +141,6 @@ export const demoItemMaster = {
   items: Array.from({ length: 120 }, (_, i) => ({ itemId: i + 1, name: `Item ${i + 1}`, maxStack: 100 })),
 } satisfies ItemMasterData;
 
-// DEMO: 進捗バーは非表示にしてホットバーを target 同様すっきり見せる
-// DEMO: hide the progress bar so the hotbar reads clean like the target
+// DEMO: 進捗バー非表示でホットバーをすっきり見せる
+// DEMO: hide the progress bar to keep the hotbar clean
 export const demoProgress = { visible: false, progress: 0 } satisfies ProgressData;
