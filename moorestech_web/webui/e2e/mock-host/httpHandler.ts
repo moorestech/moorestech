@@ -23,6 +23,17 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 
+// DEMO(採点用): 密度の高いデータとプレースホルダアイコンを配信するモード
+// DEMO (scoring only): serve dense data and placeholder icons
+const DEMO = process.env.MOCK_DEMO === "1";
+
+// itemId から安定した色相を導き、丸角の色付きアイコンSVGを生成する
+// Derive a stable hue from itemId and generate a rounded colored icon SVG
+function placeholderIcon(itemId: number): string {
+  const hue = (itemId * 47) % 360;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="8" fill="hsl(${hue} 55% 58%)" stroke="hsl(${hue} 45% 38%)" stroke-width="3"/><circle cx="32" cy="26" r="12" fill="hsl(${hue} 60% 72%)"/><rect x="18" y="40" width="28" height="12" rx="3" fill="hsl(${hue} 50% 46%)"/></svg>`;
+}
+
 const MIME: Record<string, string> = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -35,7 +46,7 @@ export function createMockHttpServer(): Server {
     const url = req.url ?? "/";
     if (url === "/api/master/items") {
       res.setHeader("content-type", "application/json");
-      res.end(JSON.stringify(fx.itemMaster));
+      res.end(JSON.stringify(DEMO ? fx.demoItemMaster : fx.itemMaster));
       return;
     }
     if (url === "/__actions") {
@@ -83,8 +94,14 @@ export function createMockHttpServer(): Server {
       return;
     }
     if (url.startsWith("/api/icons/")) {
-      // アイコンは 404 にして UI の #id フォールバックに任せる
-      // Return 404 for icons; the UI falls back to the #id label
+      // DEMO 時は色付きプレースホルダを返し、通常時は 404 で #id フォールバックに任せる
+      // In DEMO serve a colored placeholder; otherwise 404 and let the UI fall back to #id
+      if (DEMO) {
+        const id = Number(url.split("/api/icons/")[1]?.replace(".png", "")) || 0;
+        res.setHeader("content-type", "image/svg+xml");
+        res.end(placeholderIcon(id));
+        return;
+      }
       res.statusCode = 404;
       res.end();
       return;
