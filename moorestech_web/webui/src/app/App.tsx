@@ -1,6 +1,6 @@
 import { lazy, Suspense, useLayoutEffect, useRef } from "react";
 import { Button, Loader, Overlay, Stack, Text } from "@mantine/core";
-import { InventoryPanel, HotbarPanel } from "@/features/inventory";
+import { InventoryPanel, HotbarPanel, GrabOverlay } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, clearSelectedItem } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
 import { ModalHost } from "@/features/modal";
@@ -26,7 +26,7 @@ function useUiScale() {
       const stage = stageRef.current;
       if (!stage) return;
       const scale = Math.min(window.innerWidth / stage.offsetWidth, window.innerHeight / stage.offsetHeight);
-      stage.style.setProperty("--ui-scale", String(scale));
+      document.documentElement.style.setProperty("--ui-scale", String(scale));
     };
 
     updateScale();
@@ -96,6 +96,7 @@ export default function App() {
         <ProgressBar />
         <ToastHost />
       </div>
+      {screen !== "none" && <GrabOverlay />}
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}
       {disconnected && (
