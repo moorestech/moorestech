@@ -7,8 +7,8 @@
   align-items: flex-end;
 }
 
-/* 斜めストライプ地のホットバー枠（hotbar_frame_base 相当） */
-/* Hotbar frame with a diagonal-stripe ground (mirrors hotbar_frame_base) */
+/* 交差する織り目を持つチャコール地のホットバー枠 */
+/* Hotbar frame with a crossed weave over a charcoal ground */
 .hotbarFrame {
   display: flex;
   gap: 6px;
@@ -16,8 +16,9 @@
   border: 2px solid #a7a9b3;
   border-radius: 3px;
   background-image:
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.05) 0 6px, rgba(0, 0, 0, 0.05) 6px 12px),
-    linear-gradient(rgba(70, 74, 88, 0.85), rgba(52, 55, 68, 0.85));
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.025) 0 4px, rgba(0, 0, 0, 0.025) 4px 8px),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 4px, rgba(0, 0, 0, 0.02) 4px 8px),
+    linear-gradient(#363c46, #2e333c);
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.55),
     0 6px 20px rgba(0, 0, 0, 0.5);

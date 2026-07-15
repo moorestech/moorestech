@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Loader, Overlay, Stack, Text } from "@mantine/core";
+import { Button, Loader, Overlay, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, clearSelectedItem } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
@@ -8,7 +8,7 @@ import { ProgressBar } from "@/features/progress";
 import { BlockInventoryPanel } from "@/features/blockInventory";
 import { ResearchTreePanel } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
-import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
+import { dispatchAction, useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
 import { screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
 import styles from "./App.module.css";
 
@@ -37,15 +37,20 @@ export default function App() {
   return (
     <div className={styles.layout}>
       {screen !== "none" && <div className={styles.backdrop} data-testid="screen-backdrop" />}
-      {/* dev 専用のデバッグボタンは右上に浮かせる（本番バンドルには残らない） */}
-      {/* The dev-only debug button floats at the top-right (absent from the prod bundle) */}
-      {screen !== "none" && DebugActionButton ? (
-        <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10 }}>
-          <Suspense fallback={null}>
-            <DebugActionButton />
-          </Suspense>
+      {/* 整理操作と開発用操作を画面右上へ独立配置する */}
+      {/* Float sorting and development controls independently at the top-right */}
+      {screen !== "none" && (
+        <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", gap: 8 }}>
+          <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
+            整理
+          </Button>
+          {DebugActionButton ? (
+            <Suspense fallback={null}>
+              <DebugActionButton />
+            </Suspense>
+          ) : null}
         </div>
-      ) : null}
+      )}
       {/* 左下の常時キーヒント */}
       {/* Always-on key hints at the bottom-left */}
       {screen !== "none" && (

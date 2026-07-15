@@ -9,9 +9,9 @@
   /* 紺のグラデ背景に薄い三角パターンSVGを重ねる（invebtory_bg_base 相当） */
   /* Navy gradient with a faint SVG triangle pattern on top (mirrors invebtory_bg_base) */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='42' viewBox='0 0 48 42'%3E%3Cpath d='M24 0L48 42H0z' fill='%23ffffff' fill-opacity='0.025'/%3E%3Cpath d='M0 0L24 42L48 0' fill='none' stroke='%23ffffff' stroke-opacity='0.02'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='56' viewBox='0 0 64 56'%3E%3Cpath d='M32 0L64 56H0z' fill='%23ffffff' fill-opacity='0.012'/%3E%3Cpath d='M0 0L32 56L64 0' fill='none' stroke='%23ffffff' stroke-opacity='0.008'/%3E%3C/svg%3E"),
     linear-gradient(160deg, rgba(46, 50, 64, 0.94), rgba(34, 37, 48, 0.94));
-  background-size: 48px 42px, cover;
+  background-size: 64px 56px, cover;
   /* ライトグレーの金属枠：外側明＋内側の陰影をボーダー＋二重box-shadowで表現 */
   /* Light-gray metal frame: outer highlight + inner shadow via border and layered box-shadow */
   border: 2px solid #a7a9b3;

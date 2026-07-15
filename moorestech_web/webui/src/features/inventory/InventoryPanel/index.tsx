@@ -1,12 +1,12 @@
-import { Button, Text } from "@mantine/core";
-import { useTopic, dispatchAction, Topics, useItemMaster } from "@/bridge";
+import { Text } from "@mantine/core";
+import { useTopic, Topics, useItemMaster } from "@/bridge";
 import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { createSlotActions } from "../slotActions";
 import GrabOverlay from "./GrabOverlay";
 
-// プレイヤーインベントリ（メイン4行+Sort+grab）の表示と操作。ホットバーは常時表示の HotbarPanel が担う
-// Player inventory view & interactions: 4 main rows, Sort, and the grab stack; the hotbar lives in the always-on HotbarPanel
+// メイン4行とgrabを操作。ホットバーは常時別表示
+// Handle four main rows and grab; the hotbar stays separate
 export default function InventoryPanel() {
   const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
@@ -19,15 +19,9 @@ export default function InventoryPanel() {
   // Click interactions come from the factory shared with HotbarPanel
   const actions = createSlotActions(inventory, itemMaster);
 
-  const sortButton = (
-    <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
-      整理
-    </Button>
-  );
-
   return (
     <>
-      <GamePanel gridArea="inv" title="持ち物" headerRight={sortButton}>
+      <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start" }}>
         <SlotGrid testId="main-grid" cols={6}>
           {inventory.mainSlots.map((slot, i) => {
             const ref: SlotRef = { area: "main", slot: i };

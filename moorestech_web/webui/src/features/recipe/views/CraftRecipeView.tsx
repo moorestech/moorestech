@@ -1,8 +1,9 @@
-import { Box, Button, Group, Stack, Text } from "@mantine/core";
+import { Box, Button, Group, Stack } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
 import { clampIndex, craftable } from "../craftLogic";
+import styles from "../RecipeViewer.module.css";
 import RecipePager from "./RecipePager";
 
 type Props = {
@@ -31,7 +32,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
   return (
     <Stack gap="xs">
       <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
-      <Group gap={4} align="center" wrap="wrap">
+      <Group className={styles.recipeBox} gap={4} align="center" wrap="wrap">
         {recipe.requiredItems.map((r, i) => (
           // 所持数不足の素材は 40% 透過で強調を落とす（uGUI 準拠）
           // Dim insufficient materials to 40% opacity, matching uGUI
@@ -39,12 +40,16 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
             <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
           </Box>
         ))}
-        <Text c="dimmed" mx="xs">→</Text>
+        {/* 素材と完成品の流れを太い白矢印で明示する */}
+        {/* Show the material-to-result flow with a bold white arrow */}
+        <svg className={styles.arrow} viewBox="0 0 32 24" aria-hidden="true">
+          <path d="M18 2 30 12 18 22v-6H2V8h16V2Z" />
+        </svg>
         <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
-        <Button color="blue" size="sm" ml="sm" disabled={!isCraftable} onClick={onCraft}>
-          Craft
-        </Button>
       </Group>
+      <Button className={styles.craftButton} fullWidth disabled={!isCraftable} onClick={onCraft}>
+        Craft
+      </Button>
     </Stack>
   );
 }
