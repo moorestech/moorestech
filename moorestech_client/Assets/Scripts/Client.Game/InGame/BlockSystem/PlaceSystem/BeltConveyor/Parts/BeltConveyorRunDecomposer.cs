@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
@@ -12,12 +13,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     /// </summary>
     public static class BeltConveyorRunDecomposer
     {
-        public static List<PlaceInfo> Decompose(
-            IReadOnlyList<PlaceInfo> cells,
-            IReadOnlyList<(int length, BlockId blockId)> straightVariantsDesc,
-            BlockId upBlockId,
-            BlockId downBlockId)
+        public static List<PlaceInfo> Decompose(IReadOnlyList<PlaceInfo> cells, BeltConveyorFamily family)
         {
+            var straightVariantsDesc = family.StraightVariantsDesc;
             var result = new List<PlaceInfo>();
             var index = 0;
             while (index < cells.Count)
@@ -26,8 +24,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
                 // 斜面・設置不可セルは1マスエンティティとして確定
                 // Slope cells and unplaceable cells become single-cell entities
-                if (cell.VerticalDirection == BlockVerticalDirection.Up) { result.Add(CreateSingle(cell, upBlockId)); index++; continue; }
-                if (cell.VerticalDirection == BlockVerticalDirection.Down) { result.Add(CreateSingle(cell, downBlockId)); index++; continue; }
+                if (cell.VerticalDirection == BlockVerticalDirection.Up) { result.Add(CreateSlope(cell, family.UpBlockId)); index++; continue; }
+                if (cell.VerticalDirection == BlockVerticalDirection.Down) { result.Add(CreateSlope(cell, family.DownBlockId)); index++; continue; }
                 if (!cell.Placeable) { result.Add(CreateSingle(cell, GetLengthOneBlockId())); index++; continue; }
 
                 // 水平ランの長さを検出し、長い順の貪欲割当で最小ブロック数に分解
@@ -92,6 +90,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                     Placeable = true,
                     BlockId = blockId,
                 };
+            }
+
+            PlaceInfo CreateSlope(PlaceInfo cell, BlockId? slopeBlockId)
+            {
+                // 斜面のないファミリー（分岐器）は傾斜セルを設置不可にする
+                // Slope-less families (splitters) mark sloped cells unplaceable
+                if (slopeBlockId == null)
+                {
+                    var unplaceableCell = CreateSingle(cell, GetLengthOneBlockId());
+                    unplaceableCell.Placeable = false;
+                    return unplaceableCell;
+                }
+
+                return CreateSingle(cell, slopeBlockId.Value);
             }
 
             PlaceInfo CreateSingle(PlaceInfo cell, BlockId blockId)

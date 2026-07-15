@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
+using Game.Block.Interface.Extension;
 using Client.Mod.Texture;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.PlaceSystemModule;
 using Mooresmaster.Model.TrainModule;
 
 namespace Client.Game.InGame.UI.BuildMenu
@@ -48,15 +48,13 @@ namespace Client.Game.InGame.UI.BuildMenu
                 entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
             }
 
-            // 接続ツールは常時表示する（ビルドメニュー対象外のBeltConveyorは除外。敷設素材アイテムのアイコンを使う）
-            // Connect tools are always visible (skip BeltConveyor; use the laying-material item icon)
-            var connectTools = MasterHolder.PlaceSystemMaster.PlaceSystem.Data
-                .Where(e => e.PlaceMode != PlaceSystemMasterElement.PlaceModeConst.BeltConveyor)
-                .OrderBy(e => e.SortPriority ?? 0);
-            foreach (var tool in connectTools)
+            // 接続ツールはカタログから常時表示（アイコンは敷設素材アイテム）
+            // Connect tools always shown from the catalog (icon is the laying material)
+            foreach (var toolType in ConnectToolCatalog.GetDisplayOrder())
             {
-                var iconView = ClientContext.ItemImageContainer.GetItemView(tool.IconItemGuid.Value);
-                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(tool.PlaceMode), iconView, tool.Name));
+                var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(toolType);
+                var iconView = iconItemGuid == null ? null : ClientContext.ItemImageContainer.GetItemView(iconItemGuid.Value);
+                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(toolType), iconView, ConnectToolCatalog.GetDisplayName(toolType)));
             }
 
             // 接続ツール群にBPコピーツール追加（テキスト表示）
