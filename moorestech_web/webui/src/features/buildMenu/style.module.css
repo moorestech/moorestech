@@ -1,5 +1,5 @@
-/* buildMenuはblockInventory/researchより下位で、modalのz-indexが最前面になる */
-/* BuildMenu sits below blockInventory/research, while the modal z-index stays on top */
+/* buildMenuはblockInventory/researchより下位で、modalはPortalで最前面になる */
+/* BuildMenu sits below blockInventory/research, while the modal portal stays on top */
 .panel {
   position: fixed;
   inset: 8% 12%;
