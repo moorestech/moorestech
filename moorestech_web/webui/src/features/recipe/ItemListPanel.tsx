@@ -1,6 +1,6 @@
-import { ScrollArea, Stack, Text, Title } from "@mantine/core";
+import { ScrollArea, Text } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
-import { ItemSlot, SlotGrid } from "@/shared/ui";
+import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import { useItemSelectionStore } from "./selectionStore";
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
@@ -12,11 +12,10 @@ export default function ItemListPanel() {
   const itemMaster = useItemMaster();
 
   return (
-    <Stack gap="sm" style={{ gridArea: "items" }}>
-      <Title order={2} size="h4">Items</Title>
+    <GamePanel gridArea="items" title="CRAFT RECIPE">
       {itemList ? (
-        <ScrollArea.Autosize mah="70vh" type="auto" offsetScrollbars>
-          <SlotGrid cols={5} testId="item-list-grid">
+        <ScrollArea.Autosize mah="60vh" type="auto" offsetScrollbars>
+          <SlotGrid cols={6} testId="item-list-grid">
             {itemList.itemIds.map((id) => (
               <ItemSlot
                 key={id}
@@ -31,6 +30,6 @@ export default function ItemListPanel() {
       ) : (
         <Text size="sm" c="dimmed">connecting...</Text>
       )}
-    </Stack>
+    </GamePanel>
   );
 }

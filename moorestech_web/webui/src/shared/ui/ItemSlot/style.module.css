@@ -1,17 +1,27 @@
 /* 48px 固定のアイテムスロット。選択状態は data-selected 属性で表現（e2e 契約） */
 /* Fixed 48px item slot; selection is expressed via the data-selected attribute (e2e contract) */
+/* ゲームのベベル枠スロット（frame_base 相当）。グレーの縁＋内側の陰影 */
+/* Game beveled slot (frame_base): gray edge with an inner shadow */
 .slot {
   position: relative;
   width: 3rem;
   height: 3rem;
-  border: 1px solid var(--mantine-color-dark-4);
-  border-radius: var(--mantine-radius-sm);
-  background-color: var(--mantine-color-dark-8);
+  border: 1px solid #8f929c;
+  border-radius: 2px;
+  background-color: rgba(20, 23, 30, 0.72);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 3px rgba(0, 0, 0, 0.6);
   user-select: none;
 }
 
+/* 選択枠はシアン（ホットバー選択・リスト選択の強調, frame_select 相当） */
+/* Selection uses cyan (hotbar/list highlight, mirrors frame_select) */
 .slot[data-selected="true"] {
-  border-color: var(--mantine-color-yellow-4);
+  border-color: #56d6ea;
+  box-shadow:
+    0 0 6px rgba(86, 214, 234, 0.7),
+    inset 0 0 0 1px rgba(86, 214, 234, 0.5);
 }
 
 .icon {

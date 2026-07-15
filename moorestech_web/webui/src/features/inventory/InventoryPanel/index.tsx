@@ -1,6 +1,6 @@
-import { Button, Group, Stack, Text, Title } from "@mantine/core";
+import { Button, Text } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, useItemMaster } from "@/bridge";
-import { ItemSlot, SlotGrid } from "@/shared/ui";
+import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { createSlotActions } from "../slotActions";
 import GrabOverlay from "./GrabOverlay";
@@ -19,16 +19,16 @@ export default function InventoryPanel() {
   // Click interactions come from the factory shared with HotbarPanel
   const actions = createSlotActions(inventory, itemMaster);
 
+  const sortButton = (
+    <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
+      整理
+    </Button>
+  );
+
   return (
     <>
-      <Stack gap="sm" style={{ gridArea: "inv" }}>
-        <Group gap="sm">
-          <Title order={2} size="h4">Inventory</Title>
-          <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
-            Sort
-          </Button>
-        </Group>
-        <SlotGrid testId="main-grid">
+      <GamePanel gridArea="inv" title="持ち物" headerRight={sortButton}>
+        <SlotGrid testId="main-grid" cols={6}>
           {inventory.mainSlots.map((slot, i) => {
             const ref: SlotRef = { area: "main", slot: i };
             return (
@@ -44,7 +44,7 @@ export default function InventoryPanel() {
             );
           })}
         </SlotGrid>
-      </Stack>
+      </GamePanel>
       <GrabOverlay grab={inventory.grab} />
     </>
   );
