@@ -30,7 +30,7 @@ function ModalBody({ modal }: { modal: ModalRequest }) {
   // e2e が同期検証できるようトランジションは無効化する。
   // Disable transitions so e2e can assert synchronously.
   return (
-    <Modal.Root opened onClose={() => void cancel()} centered withinPortal={false} transitionProps={{ duration: 0 }}>
+    <Modal.Root opened onClose={() => void cancel()} centered transitionProps={{ duration: 0 }}>
       <Modal.Overlay data-testid="modal-backdrop" backgroundOpacity={0.6} />
       <Modal.Content data-testid="modal" w={320}>
         {/* Header+Title で Content に aria-labelledby を自動配線（uGUI titleText 相当） */}

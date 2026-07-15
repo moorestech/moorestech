@@ -1,5 +1,5 @@
 import { lazy, Suspense, useLayoutEffect, useRef } from "react";
-import { Button, Loader, Overlay, Stack, Text } from "@mantine/core";
+import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel, GrabOverlay } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, clearSelectedItem } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
@@ -87,25 +87,29 @@ export default function App() {
         <HotbarPanel />
         {screen === "playerInventory" && <RecipeViewer />}
         {screen === "playerInventory" && <ItemListPanel />}
-        {/* オーバーレイ系は基準stage内で一様に拡縮する */}
-        {/* Scale overlay systems uniformly within the reference stage */}
+        {/* stage内オーバーレイを一様拡縮し、ModalはPortalでviewportへ描画する */}
+        {/* Scale stage overlays uniformly while the Modal renders into the viewport via its portal */}
         {screen === "researchTree" && <ResearchTreePanel />}
         {screen === "buildMenu" && <BuildMenuPanel />}
         <BlockInventoryPanel />
         <ModalHost />
         <ProgressBar />
-        <ToastHost />
       </div>
       {screen !== "none" && <GrabOverlay />}
+      <Portal>
+        <ToastHost />
+      </Portal>
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}
       {disconnected && (
-        <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex={2000} data-testid="reconnect-overlay">
-          <Stack align="center" gap="sm">
-            <Loader color="gray" />
-            <Text c="white" fw={500}>再接続中...</Text>
-          </Stack>
-        </Overlay>
+        <Portal>
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex={2000} data-testid="reconnect-overlay">
+            <Stack align="center" gap="sm">
+              <Loader color="gray" />
+              <Text c="white" fw={500}>再接続中...</Text>
+            </Stack>
+          </Overlay>
+        </Portal>
       )}
     </div>
   );
