@@ -2,8 +2,6 @@ import type { CSSProperties, ReactNode } from "react";
 import styles from "./style.module.css";
 
 type Props = {
-  // grid-template-areas 上の配置先
-  // Placement target on the grid-template-areas
   gridArea?: string;
   title?: ReactNode;
   headerRight?: ReactNode;
@@ -15,8 +13,8 @@ type Props = {
   children: ReactNode;
 };
 
-// uGUI 風の額縁パネル。タイトル＋装飾罫線＋本文を紺の枠で囲う共通ラッパ
-// uGUI-style framed panel: a shared wrapper enclosing title + deco rule + body in a navy frame
+// uGUI風の額縁パネル。タイトル+罫線+本文を囲う共通ラッパ
+// uGUI-style framed panel wrapping title + deco rule + body
 export default function GamePanel({ gridArea, title, headerRight, variant = "default", style, testId, children }: Props) {
   const className = variant === "craft" ? `${styles.panel} ${styles.craft}` : styles.panel;
   return (
