@@ -9,9 +9,9 @@
   /* 紺のグラデ背景に薄い三角パターンSVGを重ねる（invebtory_bg_base 相当） */
   /* Navy gradient with a faint SVG triangle pattern on top (mirrors invebtory_bg_base) */
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='56' viewBox='0 0 64 56'%3E%3Cpath d='M32 0L64 56H0z' fill='%23ffffff' fill-opacity='0.012'/%3E%3Cpath d='M0 0L32 56L64 0' fill='none' stroke='%23ffffff' stroke-opacity='0.008'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='56' viewBox='0 0 64 56'%3E%3Cpath d='M32 0L64 56H0z' fill='%23ffffff' fill-opacity='0.03'/%3E%3Cpath d='M0 0L32 56L64 0' fill='none' stroke='%23ffffff' stroke-opacity='0.02'/%3E%3C/svg%3E"),
     linear-gradient(160deg, rgba(46, 50, 64, 0.94), rgba(34, 37, 48, 0.94));
-  background-size: 64px 56px, cover;
+  background-size: 56px 48px, cover;
   /* 9-slice SVGで上左が明るく下右が暗い隆起金属枠を描く */
   /* Draw a raised metal frame with bright top-left and dark bottom-right via a 9-slice SVG */
   border: 6px solid transparent;
@@ -51,17 +51,17 @@
   margin-left: auto;
 }
 
-/* タイトル下の二重装飾罫線（deco_line 相当）。SVGで中央ダイヤ付きの細線を描く */
-/* Double decorative rule under the title (deco_line); an SVG thin line with a center diamond */
+/* タイトル下の二重装飾罫線（deco_line 相当） */
+/* Double decorative rule under the title (mirrors deco_line) */
 .decoLine {
   height: 8px;
   margin: 6px 0 10px;
   background-image:
-    linear-gradient(rgba(200, 205, 218, 0.7), rgba(200, 205, 218, 0.7)),
+    linear-gradient(rgba(200, 205, 218, 0.6), rgba(200, 205, 218, 0.6)),
     linear-gradient(rgba(150, 155, 170, 0.45), rgba(150, 155, 170, 0.45));
   background-repeat: no-repeat;
   background-size: 100% 1px, 100% 1px;
-  background-position: 0 2px, 0 6px;
+  background-position: 0 1px, 0 5px;
 }
 
 .body {
