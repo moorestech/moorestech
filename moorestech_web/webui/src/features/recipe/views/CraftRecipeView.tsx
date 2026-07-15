@@ -1,8 +1,10 @@
-import { Box, Button, Group, Stack, Text } from "@mantine/core";
+import { useEffect } from "react";
+import { Box, Button, Group, Stack } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
-import { ItemSlot } from "@/shared/ui";
+import { ItemSlot, ProgressArrow } from "@/shared/ui";
 import type { CraftRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
 import { clampIndex, craftable } from "../craftLogic";
+import { useHoldCraft } from "../useHoldCraft";
 import RecipePager from "./RecipePager";
 
 type Props = {
@@ -14,8 +16,8 @@ type Props = {
   onSelect: (itemId: number) => void;
 };
 
-// クラフトタブ: 素材列 → 結果と Craft ボタン。素材クリックでそのアイテムへジャンプ
-// Craft tab: material row → result with a Craft button; clicking a material jumps to that item
+// クラフトタブ: 素材列 → 進捗矢印 → 結果。ボタン長押しで craftTime ごとに連続クラフト（uGUI CraftButton 準拠）
+// Craft tab: material row → progress arrow → result; hold the button to continuously craft every craftTime (mirrors uGUI CraftButton)
 export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, itemMaster, onSelect }: Props) {
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
@@ -23,10 +25,15 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
   const recipe = recipes[index];
   const isCraftable = craftable(recipe, counts);
 
-  const onCraft = () => {
-    if (!isCraftable) return;
+  // 長押し1周ごとに1回クラフト要求を送る。素材チェックはサーバー側で行われる
+  // Send one craft request per completed hold cycle; material checks happen server-side
+  const { progress, isHolding, start, stop } = useHoldCraft(recipe.craftTime, isCraftable, () => {
     void dispatchAction("craft.execute", { recipeGuid: recipe.recipeGuid });
-  };
+  });
+
+  // 表示レシピが切り替わったら進行中の長押しを打ち切る
+  // Abort any in-progress hold when the displayed recipe changes
+  useEffect(() => stop, [recipe.recipeGuid, stop]);
 
   return (
     <Stack gap="xs">
@@ -39,9 +46,23 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
             <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
           </Box>
         ))}
-        <Text c="dimmed" mx="xs">→</Text>
+        <Box mx="xs">
+          <ProgressArrow value={isHolding ? progress : 0} />
+        </Box>
         <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
-        <Button color="blue" size="sm" ml="sm" disabled={!isCraftable} onClick={onCraft}>
+        <Button
+          color="blue"
+          size="sm"
+          ml="sm"
+          disabled={!isCraftable}
+          title="長押しでクラフト（押し続けで連続クラフト）"
+          onPointerDown={start}
+          // 離す・ボタンから外れる・キャンセルのいずれでもクラフトを止め、経過時間をリセットする
+          // Release, leaving the button, or cancel all stop the craft and reset the elapsed time
+          onPointerUp={stop}
+          onPointerLeave={stop}
+          onPointerCancel={stop}
+        >
           Craft
         </Button>
       </Group>

@@ -5,6 +5,7 @@ import type {
   SlotRef,
   BlockInventoryData,
   BlockSlotRef,
+  CraftRecipe,
 } from "../../src/bridge/contract/payloadTypes";
 
 export function slotOf(inv: PlayerInventoryData, ref: SlotRef): SlotData {
@@ -66,6 +67,44 @@ export function applyBlockSplit(
 // Minimal move model; a non-block move is exactly applyBlockMove against a closed block
 export function applyMove(inv: PlayerInventoryData, p: ActionPayloads["inventory.move_item"]): string | null {
   return applyBlockMove(inv, { open: false }, p);
+}
+
+// クラフト1回分: main+hotbar から必要素材を消費し結果を追加する。素材不足なら false で no-op
+// One craft: consume required materials from main+hotbar and add the result; returns false (no-op) if short
+// 実 host の OneClickCraft は main+hotbar のみ参照するため grab は対象外
+// The real host's OneClickCraft only consults main+hotbar, so grab is excluded
+export function applyCraft(inv: PlayerInventoryData, recipe: CraftRecipe): boolean {
+  const pool = [...inv.mainSlots, ...inv.hotbarSlots];
+
+  const owned = new Map<number, number>();
+  for (const s of pool) if (s.count > 0) owned.set(s.itemId, (owned.get(s.itemId) ?? 0) + s.count);
+  for (const req of recipe.requiredItems) if ((owned.get(req.itemId) ?? 0) < req.count) return false;
+
+  // 必要素材を前方スロットから順に差し引く
+  // Deduct each required material from the front-most matching slots
+  for (const req of recipe.requiredItems) {
+    let remaining = req.count;
+    for (const s of pool) {
+      if (remaining <= 0) break;
+      if (s.itemId !== req.itemId || s.count === 0) continue;
+      const take = Math.min(s.count, remaining);
+      s.count -= take;
+      remaining -= take;
+      if (s.count <= 0) { s.count = 0; s.itemId = 0; }
+    }
+  }
+
+  addItem(inv, recipe.resultItemId, recipe.resultCount);
+  return true;
+}
+
+// 結果アイテムを同種スタックへ、無ければ最初の空 main スロットへ積む
+// Stack the result onto a same-type slot, else the first empty main slot
+function addItem(inv: PlayerInventoryData, itemId: number, count: number) {
+  const same = [...inv.mainSlots, ...inv.hotbarSlots].find((s) => s.itemId === itemId && s.count > 0);
+  if (same) { same.count += count; return; }
+  const empty = inv.mainSlots.find((s) => s.count === 0);
+  if (empty) { empty.itemId = itemId; empty.count = count; }
 }
 
 // host と同じく mock 自身の現在 grab 状態で集積先を決め、同種スタックを集約する
