@@ -4,7 +4,7 @@
   display: grid;
   column-gap: 2rem;
   row-gap: 1rem;
-  padding: 4vh 2.5vw 1.5vh;
+  padding: 10vh 2.5vw 1.5vh;
   min-height: 100vh;
   box-sizing: border-box;
   /* 上段を画面幅へ展開し、ホットバーは下段全体の中央に置く */
@@ -54,4 +54,23 @@
 .keyHints kbd {
   font: inherit;
   color: #cdd2df;
+}
+
+/* 4:3付近ではスロットと余白を縮めて3パネルを画面内に保つ */
+/* Near 4:3, shrink slots and spacing to keep all three panels on-screen */
+@media (max-width: 1200px) {
+  .layout {
+    --slot-size: 2.4rem;
+    column-gap: 1rem;
+    padding: 10vh 1vw 1vh;
+  }
+}
+
+/* 縦長寄りの狭幅ではさらにスロットと列間隔を圧縮する */
+/* On narrower portrait-like widths, compress slots and column spacing further */
+@media (max-width: 1000px) {
+  .layout {
+    --slot-size: 2rem;
+    column-gap: 0.5rem;
+  }
 }

@@ -19,13 +19,27 @@
   align-self: center;
   margin-top: -2.25rem;
   margin-bottom: 0.2rem;
-  padding: 0.1rem 0.6rem;
+  padding: 0.2rem 0.45rem;
   border: 2px solid #a7a9b3;
   border-bottom: 0;
   border-radius: 0.25rem 0.25rem 0 0;
   background: #303542;
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.4;
+}
+
+.itemName {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.recipeTreeButton {
+  align-self: center;
+  margin-top: 0.35rem;
+  background: #3d82ef;
+  font-weight: 700;
 }
 
 /* 中央ダイヤ付きの細線でアイテム名の下端を飾る */
@@ -60,9 +74,22 @@
   filter: drop-shadow(0 0 0.25rem rgb(255 255 255 / 75%));
 }
 
+.craftTime {
+  color: #d7dbe5;
+  text-align: center;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+}
+
+.recipeContent,
+.craftRecipe {
+  flex: 1;
+  min-height: 0;
+}
+
 /* クラフト操作をカード幅いっぱいの青いバーとして示す */
 /* Present the craft action as a full-width blue bar */
 .craftButton {
+  margin-top: auto;
   background: #3d82ef;
   color: #fff;
   font-weight: 700;

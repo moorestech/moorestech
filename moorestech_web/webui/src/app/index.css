@@ -2,6 +2,10 @@
 /* The body is fully transparent since CEF is an always-on overlay; dimming is done by App's screen backdrop */
 /* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
 /* Overrides Mantine's global body background (--mantine-color-body) via import order */
+:root {
+  --slot-size: 3rem;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;

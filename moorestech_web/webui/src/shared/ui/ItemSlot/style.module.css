@@ -1,11 +1,11 @@
-/* 48px 固定のアイテムスロット。選択状態は data-selected 属性で表現（e2e 契約） */
-/* Fixed 48px item slot; selection is expressed via the data-selected attribute (e2e contract) */
+/* 画面幅に応じて縮むスロット。data-selected は選択状態を参照する e2e 契約として維持する */
+/* Slot scales with viewport width; data-selected remains the e2e contract for selection */
 /* ゲームのベベル枠スロット（frame_base 相当）。グレーの縁＋内側の陰影 */
 /* Game beveled slot (frame_base): gray edge with an inner shadow */
 .slot {
   position: relative;
-  width: 3rem;
-  height: 3rem;
+  width: var(--slot-size, 3rem);
+  height: var(--slot-size, 3rem);
   border: 1px solid #8f929c;
   border-radius: 2px;
   background-color: rgba(20, 23, 30, 0.72);

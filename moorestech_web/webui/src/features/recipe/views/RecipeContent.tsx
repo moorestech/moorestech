@@ -60,15 +60,15 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   if (activeTab === null) {
     return (
       <Stack gap="sm">
-        <ItemHeader itemId={itemId} name={itemName} />
+        <ItemHeader name={itemName} />
         <Text size="sm" c="dimmed">このアイテムのレシピはありません</Text>
       </Stack>
     );
   }
 
   return (
-    <Stack gap="sm">
-      <ItemHeader itemId={itemId} name={itemName} />
+    <Stack className={styles.recipeContent} gap="sm">
+      <ItemHeader name={itemName} />
       {tabs.length > 1 ? (
         <Tabs
           variant="pills"
