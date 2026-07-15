@@ -4,7 +4,9 @@ using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.SoundEffect;
+using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -31,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             surface = null;
             pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, LayerConst.Without_Player_MapObject_Block_LayerMask)) return false;
@@ -45,14 +47,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             }
             
             pos = hit.point;
-            
+
             return true;
         }
-        
+
+        public static Vector3Int SnapHitPointToCell(Vector3 hitPoint)
+        {
+            // BPコピーと貼り付けで共通のセル化規約（XZは床スナップ、Yは整数グリッド面の丸め）
+            // Shared cell-snap convention for BP copy and paste: floor XZ, round Y on the integer grid face
+            return new Vector3Int(Mathf.FloorToInt(hitPoint.x), Mathf.RoundToInt(hitPoint.y), Mathf.FloorToInt(hitPoint.z));
+        }
+
         public static bool TryGetRaySpecifiedComponentHit<T>(Camera mainCamera, out T component, int layerMask) where T : class
         {
             component = null;
-            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
@@ -69,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             component = null;
             pos = Vector3Int.zero;
-            var ray = mainCamera.ScreenPointToRay(UnityEngine.Input.mousePosition);
+            var ray = mainCamera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
             
             //画面からのrayが何かにヒットしているか
             if (!Physics.Raycast(ray, out var hit, float.PositiveInfinity, layerMask)) return false;
@@ -134,11 +143,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return snapped + new Vector3Int(0, heightOffset, 0);
         }
         
-        public static void SendPlaceProtocol(List<PlaceInfo> currentPlaceInfos, PlaceSystemUpdateContext context)
+        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
         {
-            // PlaceInfoをサーバーに送信
-            // Send PlaceInfo to server
-            ClientContext.VanillaApi.SendOnly.PlaceHotBarBlock(currentPlaceInfos, context.CurrentSelectHotbarSlotIndex);
+            // セル毎BlockId付きでPlaceInfoをサーバーに送信
+            // Send PlaceInfo to server; each cell already carries its own BlockId
+            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
     }

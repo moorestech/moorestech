@@ -14,23 +14,25 @@ using Game.Context;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
+using Mooresmaster.Model.MachineRecipesModule;
 using Newtonsoft.Json;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Factory.BlockTemplate
 {
     public class BlockTemplateUtil
     {
-        public static BlockConnectorComponent<IBlockInventory> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
+        public static BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> CreateInventoryConnector(InventoryConnects inventoryConnects, BlockPositionInfo blockPositionInfo)
         {
-            return new BlockConnectorComponent<IBlockInventory>(inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
+            return new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(inventoryConnects.InputConnects, inventoryConnects.OutputConnects, blockPositionInfo);
         }
         
         // TODO 保存ステートを誰でも持てるようになったので、このあたりも各自でセーブ、ロードできるように簡略化したい
         public static (VanillaMachineInputInventory, VanillaMachineOutputInventory, VanillaMachineModuleInventory) GetMachineIOInventory(
             BlockId blockId, BlockInstanceId blockInstanceId,
             IMachineParam machineParam,
-            BlockConnectorComponent<IBlockInventory> blockConnectorComponent,
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             var inputSlotCount = machineParam.InputSlotCount;
@@ -76,7 +78,7 @@ namespace Game.Block.Factory.BlockTemplate
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             VanillaMachineModuleInventory vanillaMachineModuleInventory,
             MachineModuleEffectComponent machineModuleEffectComponent,
-            float requestPower, BlockMasterElement blockMasterElement)
+            float requestPower, float idlePowerRate, BlockMasterElement blockMasterElement)
         {
             var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
             var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
@@ -155,6 +157,14 @@ namespace Game.Block.Factory.BlockTemplate
             // Restore pending outputs (old saves: null, re-rolled later)
             var pendingOutputs = processorJson.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
 
+            // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
+            // Restore the selected recipe; a GUID missing from the master falls back to unselected
+            MachineRecipeMasterElement selectedRecipe = null;
+            if (!string.IsNullOrEmpty(processorJson.SelectedRecipeGuidStr) && Guid.TryParse(processorJson.SelectedRecipeGuidStr, out var selectedGuid))
+            {
+                selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedGuid);
+            }
+
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
@@ -162,8 +172,10 @@ namespace Game.Block.Factory.BlockTemplate
                 remainingTicks,
                 recipe,
                 requestPower,
+                idlePowerRate,
                 machineModuleEffectComponent,
-                pendingOutputs);
+                pendingOutputs,
+                selectedRecipe);
 
             return processor;
         }

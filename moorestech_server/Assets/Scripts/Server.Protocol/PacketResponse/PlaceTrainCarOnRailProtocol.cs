@@ -7,8 +7,11 @@ using Game.Train.Event;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Game.Train.RailGraph;
+using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.TrainModule;
+using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
@@ -22,7 +25,8 @@ namespace Server.Protocol.PacketResponse
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly TrainDiagramManager _diagramManager;
         private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
-        
+        private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+
         public PlaceTrainCarOnRailProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
@@ -31,6 +35,7 @@ namespace Server.Protocol.PacketResponse
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _diagramManager = serviceProvider.GetService<TrainDiagramManager>();
             _trainUnitSnapshotNotifyEvent = serviceProvider.GetService<ITrainUnitSnapshotNotifyEvent>();
+            _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -52,26 +57,37 @@ namespace Server.Protocol.PacketResponse
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InvalidRailPosition);
                 }
                 
-                // 手持ちアイテムを取得し検証する
-                // Resolve and validate inventory item
-                var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
-                var mainInventory = inventoryData.MainOpenableInventory;
-                var item = mainInventory.GetItem(data.InventorySlot);
-                if (item == null || item.Count <= 0)
+                // 車両マスタとアンロック状態を検証する
+                // Validate the train car master and its unlock state
+                if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(data.TrainCarGuid, out var trainCarMaster))
                 {
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.ItemNotFound);
                 }
-                
+                if (!_gameUnlockStateDataController.TrainCarUnlockStateInfos[data.TrainCarGuid].IsUnlocked)
+                {
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.NotUnlocked);
+                }
+
+                // 建設コストの充足をインベントリ横断で検証する
+                // Validate construction cost across the whole inventory
+                var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
+                var mainInventory = inventoryData.MainOpenableInventory;
+                var costItemCounts = ConstructionCostService.ToItemCounts(trainCarMaster.RequiredItems);
+                if (!ConstructionCostService.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))
+                {
+                    return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InsufficientItems);
+                }
+
                 // 列車ユニットを生成して検証する
                 // Create and validate the train unit
-                if (!TryCreateTrainUnit(item.Id, data.RailPosition, out var createdTrain, out var failureType))
+                if (!TryCreateTrainUnit(trainCarMaster, data.RailPosition, out var createdTrain, out var failureType))
                 {
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(failureType);
                 }
-                
-                // アイテムを消費する
-                // Consume the train item from inventory
-                mainInventory.SetItem(data.InventorySlot, item.Id, item.Count - 1);
+
+                // 建設コストを消費する
+                // Consume the construction cost
+                ConstructionCostService.ConsumeRequiredItems(costItemCounts, mainInventory);
 
                 // 新規編成の単機スナップショットを通知する
                 // Broadcast a per-unit snapshot for the newly created train.
@@ -80,17 +96,11 @@ namespace Server.Protocol.PacketResponse
                 
                 return PlaceTrainOnRailResponseMessagePack.CreateSuccess();
                 
-                bool TryCreateTrainUnit(ItemId trainItemId, RailPositionSnapshotMessagePack railPositionSnapshot, out TrainUnit trainUnit, out PlaceTrainCarFailureType failureType)
+                bool TryCreateTrainUnit(TrainCarMasterElement trainCarMaster, RailPositionSnapshotMessagePack railPositionSnapshot, out TrainUnit trainUnit, out PlaceTrainCarFailureType failureType)
                 {
                     trainUnit = null;
                     failureType = PlaceTrainCarFailureType.InvalidRailPosition;
-                    // アイテムIDに対応する車両マスターを検索する
-                    // Resolve train car master by item id
-                    if (!MasterHolder.TrainUnitMaster.TryGetTrainCarMaster(trainItemId, out var trainCarMaster))
-                    {
-                        return false;
-                    }
-                    
+
                     // 期待する列車長とレール位置を検証する
                     // Validate expected train length and rail position
                     var expectedLength = TrainLengthConverter.ToRailUnits(trainCarMaster.Length);
@@ -202,10 +212,9 @@ namespace Server.Protocol.PacketResponse
         public class PlaceTrainOnRailRequestMessagePack : ProtocolMessagePackBase
         {
             [Key(2)] public RailPositionSnapshotMessagePack RailPosition { get; set; }
-            [Key(3)] public int HotBarSlot { get; set; }
-            [IgnoreMember] public int InventorySlot => PlayerInventoryConst.HotBarSlotToInventorySlot(HotBarSlot);
+            [Key(3)] public Guid TrainCarGuid { get; set; }
             [Key(4)] public int PlayerId { get; set; }
-            
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public PlaceTrainOnRailRequestMessagePack()
             {
@@ -213,17 +222,17 @@ namespace Server.Protocol.PacketResponse
                 // Initialize tag with default value
                 Tag = ProtocolTag;
             }
-            
+
             public PlaceTrainOnRailRequestMessagePack(
                 RailPositionSnapshotMessagePack railPosition,
-                int hotBarSlot,
+                Guid trainCarGuid,
                 int playerId)
             {
                 // 必須情報を格納
                 // Store required request information
                 Tag = ProtocolTag;
                 RailPosition = railPosition;
-                HotBarSlot = hotBarSlot;
+                TrainCarGuid = trainCarGuid;
                 PlayerId = playerId;
             }
         }
@@ -268,6 +277,8 @@ namespace Server.Protocol.PacketResponse
             RailNotFound = 2,
             ItemNotFound = 3,
             InvalidRailPosition = 4,
+            NotUnlocked = 5,
+            InsufficientItems = 6,
         }
         
         #endregion

@@ -75,6 +75,16 @@ namespace Client.Game.InGame.UI.Inventory.Common
             countText.text = count;
         }
         
+        public void SetViewTextOnly(string text, string toolTipText)
+        {
+            // アイコン非表示時はカウント欄をラベル流用
+            // Hide the icon image and reuse the count text field as a label
+            countText.text = text;
+            itemImage.gameObject.SetActive(false);
+            uGuiTooltipTarget.SetText(toolTipText, false);
+            uGuiTooltipTarget.DisplayEnable(true);
+        }
+
         public void SetViewClear()
         {
             countText.text = string.Empty;

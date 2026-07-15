@@ -13,6 +13,7 @@ using Game.Block.Interface.Event;
 using Game.Context;
 using Game.Fluid;
 using UniRx;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
@@ -31,7 +32,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly FluidContainer[] _fluidContainers;
         
         public VanillaMachineOutputInventory(int outputSlot, int outputTankCount, float innerTankCapacity, IItemStackFactory itemStackFactory,
-            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory> blockConnectorComponent)
+            BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
         {
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;

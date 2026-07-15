@@ -1,0 +1,76 @@
+{
+  "data": [
+    {
+      "pollution": {
+        "aVolume": 0.1,
+        "aSurface": 0.05,
+        "aConnector": 0.5,
+        "aMachine": 2.0,
+        "kHatch": 0.3
+      },
+      "thresholds": [
+        {
+          "className": "A",
+          "maxConcentration": 10,
+          "requiredAirChangeRate": 0.017,
+          "maxChipLevel": 4,
+          "downBinRate": 0.0
+        },
+        {
+          "className": "B",
+          "maxConcentration": 50,
+          "requiredAirChangeRate": 0.0083,
+          "maxChipLevel": 3,
+          "downBinRate": 0.05
+        },
+        {
+          "className": "C",
+          "maxConcentration": 200,
+          "requiredAirChangeRate": 0.0042,
+          "maxChipLevel": 2,
+          "downBinRate": 0.15
+        },
+        {
+          "className": "D",
+          "maxConcentration": 1000,
+          "requiredAirChangeRate": 0.0014,
+          "maxChipLevel": 1,
+          "downBinRate": 0.35
+        }
+      ],
+      "chipDraws": [
+        {
+          "machineRecipeGuid": "19b0d248-0ce5-4e5f-b59c-5897177b6268",
+          "euvSuccessRate": 0.8,
+          "outputDistributions": [
+            {
+              "outputItemGuid": "fa7bf6df-efc2-421d-b7bc-87be7b229345",
+              "levels": [
+                {
+                  "level": 1,
+                  "weight": 0.25,
+                  "chipItemGuid": "fa7bf6df-efc2-421d-b7bc-87be7b229345"
+                },
+                {
+                  "level": 2,
+                  "weight": 0.25,
+                  "chipItemGuid": "d08f4a3b-50d5-4228-8ef2-9b479b79375b"
+                },
+                {
+                  "level": 3,
+                  "weight": 0.25,
+                  "chipItemGuid": "868fc884-c0d1-48d7-b6e6-83b0517d381e"
+                },
+                {
+                  "level": 4,
+                  "weight": 0.25,
+                  "chipItemGuid": "3d2b7bda-0f4d-4887-979f-9f37506fda25"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -3,13 +3,14 @@ using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
-using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Train.RailGraph;
@@ -22,7 +23,7 @@ using static Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.TrainRa
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 {
-    public class TrainRailConnectSystem : IPlaceSystem
+    public class TrainRailConnectSystem : PlaceSystemBase<ConnectToolPlacementTarget>
     {
         private readonly RailConnectPreviewObject _previewObject;
         private readonly Camera _mainCamera;
@@ -30,7 +31,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly ILocalPlayerInventory _playerInventory;
         private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
-        
         private IRailComponentConnectAreaCollider _connectFromArea;
         public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
         {
@@ -41,15 +41,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
-        
-        public void Enable()
-        {
-            _connectFromArea = null;
-        }
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        public override void Enable() { _connectFromArea = null; }
+        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged)
         {
             _trainRailPlaceSystemService.Disable();
-            
             // 接続元が未選択なら接続元を選択する
             // If the connection source is not selected, select the connection source.
             if (_connectFromArea == null)
@@ -66,10 +61,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 return;
             }
-            
             // Compute ConnectionDestination for both endpoints
             var fromDestination = _connectFromArea.CreateConnectionDestination();
-            
+
+            // 敷設に使うレールアイテムをマスタ定義順で自動選択する（手持ち非依存）
+            // Auto-select the rail item in master definition order, independent of the held item
+            var railItemId = TrainRailItemAutoSelector.FindOwnedRailItemId(_playerInventory);
+
             // If the connection point is not under the cursor, return.
             var connectToArea = GetTrainRailConnectAreaCollider();
             if (connectToArea == null)
@@ -77,38 +75,27 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 if (PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var position, out _))
                 {
                     _trainRailPlaceSystemService.Enable();
-                    
-                    (IItemStack stack, int i)[] pierSlots = _playerInventory.Select((stack, i) => (stack, i)).Where(itemStack =>
+
+                    if (!ConnectToolCatalog.TryGetPlaceBlock(ConnectToolType.TrainRailConnect, out var pierBlockId, out var pierBlockMaster))
                     {
-                        if (!MasterHolder.BlockMaster.IsBlock(itemStack.stack.Id)) return false;
-                        var blockId = MasterHolder.BlockMaster.GetBlockId(itemStack.stack.Id);
-                        var blockMasterElement = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                        return blockMasterElement.BlockType == BlockMasterElement.BlockTypeConst.TrainRail;
-                    }).ToArray();
-                    
-                    if (!pierSlots.Any())
-                    {
-                        // pierがない場合は設置不可。仮にデフォルトの最大長で判定する
-                        // No pier in inventory: still preview with default max length
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, context.HoldingItemId);
+                        // 橋脚未定義の場合は設置不可。仮にデフォルトの最大長で判定する
+                        // No pier defined: still preview with default max length
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, railItemId);
                         ShowPreview(previewData);
                     }
                     else
                     {
-                        // pierがある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
+                        // 橋脚がある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
                         // Pier available: pass the placing TrainRail block's max length
-                        var (itemStack, pierInventorySlot) = pierSlots.First();
-                        var pierBlockId = MasterHolder.BlockMaster.GetBlockId(itemStack.Id);
-                        var pierBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(pierBlockId);
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
-                        var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemStack.Id);
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, context.HoldingItemId);
+                        var placeInfo = _trainRailPlaceSystemService.ManualUpdate(pierBlockId);
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, railItemId);
                         ShowPreview(previewData);
 
                         if (!previewData.IsPlaceable) return;
 
                         // 設置
-                        SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierInventorySlot);
+                        SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierBlockId);
                     }
                 }
             }
@@ -122,7 +109,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     _previewObject.SetActive(false);
                     return;
                 }
-                
                 if (!TryResolveNode(fromDestination, out var fromNode) ||
                     !TryResolveNode(toDestination, out var toNode))
                 {
@@ -130,17 +116,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     _connectFromArea = null;
                     return;
                 }
-                
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, context.HoldingItemId);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, railItemId);
                 ShowPreview(previewData);
 
                 if (!previewData.IsPlaceable) return;
 
                 SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);
             }
-            
             #region Internal
-            
             void ShowPreview(TrainRailConnectPreviewData previewData)
             {
                 if (!previewData.IsValid)
@@ -151,37 +134,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
             }
-            
             void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
-                
                 _previewObject.SetActive(false);
-                
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railTypeGuid);
                 _connectFromArea = null;
             }
-            
-            void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, int pierInventorySlot)
+            void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, BlockId pierBlockId)
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
                 if (!TryResolveNode(fromDestination, out var fromNode)) return;
-                
+
                 _previewObject.SetActive(false);
-                
+
                 _connectFromArea = null;
-                
+
                 UniTask.Create(async () =>
                 {
-                    var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierInventorySlot, placeInfo, railTypeGuid, CancellationToken.None);
+                    var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierBlockId, placeInfo, railTypeGuid, CancellationToken.None);
                     if (!response.Success) return;
-                    
                     await UniTask.WhenAny(
                         UniTask.WaitForSeconds(1f),
                         UniTask.WaitUntil(() => _cache.TryGetNode(response.ToNodeId, out _))
                     );
-                    
                     if (_cache.TryGetNode(response.ToNodeId, out var node))
                     {
                         var pierBlock = _blockGameObjectDataStore.GetBlockGameObject(node.ConnectionDestination.blockPosition);
@@ -192,31 +169,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                             {
                                 return clientNode.NodeId == node.NodeId && clientNode.NodeGuid == node.NodeGuid;
                             }
-                            
                             return false;
                         });
-                        
                         _connectFromArea = area;
                         Debug.Log("PierBlock", pierBlock);
                     }
                 });
             }
-            
             IRailComponentConnectAreaCollider GetTrainRailConnectAreaCollider()
             {
                 PlaceSystemUtil.TryGetRaySpecifiedComponentHit<IRailComponentConnectAreaCollider>(_mainCamera, out var connectArea, Without_Player_MapObject_BlockBoundingBox_LayerMask);
                 return connectArea;
             }
-            
             bool TryResolveNode(ConnectionDestination destination, out IRailNode railNode)
             {
                 railNode = null;
                 return _cache.TryGetNodeId(destination, out var nodeId) && _cache.TryGetNode(nodeId, out railNode);
             }
-            
             #endregion
         }
-        public void Disable()
+        public override void Disable()
         {
             _previewObject.SetActive(false);
             _trainRailPlaceSystemService.Disable();

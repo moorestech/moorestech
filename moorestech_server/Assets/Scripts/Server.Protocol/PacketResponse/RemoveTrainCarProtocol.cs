@@ -10,6 +10,7 @@ using Game.Train.Unit;
 using Game.Train.Unit.Containers;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
@@ -122,10 +123,13 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
 
-                // 車両ブロック自体のアイテムを追加する
-                // Add the item of the car block itself.
-                var carItemId = MasterHolder.ItemMaster.GetItemId(car.TrainCarMasterElement.ItemGuid);
-                result.Add(ServerContext.ItemStackFactory.Create(carItemId, 1));
+                // 建設コスト全額を返却する（コスト未定義マスタは本体返却なし）
+                // Refund the full construction cost; masters without cost refund nothing for the body
+                var costItemCounts = ConstructionCostService.ToItemCounts(car.TrainCarMasterElement.RequiredItems);
+                if (costItemCounts.Length > 0)
+                {
+                    result.AddRange(ConstructionCostService.CreateRefundItems(costItemCounts));
+                }
 
                 // アイテムコンテナを積んでいる場合は中身も返却対象に加える(液体コンテナはアイテム化不可のため対象外)
                 // Include loaded items when the car carries an item container (fluid containers cannot be itemized).

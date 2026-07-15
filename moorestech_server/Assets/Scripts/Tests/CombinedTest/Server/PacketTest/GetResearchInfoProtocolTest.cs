@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var emptyResponse = SendGetResearchInfoRequest(packet);
             Assert.IsNotNull(emptyResponse);
-            Assert.AreEqual(4, emptyResponse.ResearchNodeStates.Count);
+            Assert.AreEqual(6, emptyResponse.ResearchNodeStates.Count);
             Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, GetNodeState(emptyResponse, Research1Guid));
             Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, GetNodeState(emptyResponse, Research2Guid));
             Assert.AreEqual(ResearchNodeState.UnresearchableAllReasons, GetNodeState(emptyResponse, Research3Guid));

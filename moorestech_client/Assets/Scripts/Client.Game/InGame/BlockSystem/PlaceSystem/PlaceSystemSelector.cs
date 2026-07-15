@@ -1,13 +1,16 @@
-using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Empty;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
-using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Core.Master;
-using Mooresmaster.Model.PlaceSystemModule;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
@@ -15,92 +18,77 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         public readonly EmptyPlaceSystem EmptyPlaceSystem;
         private readonly CommonBlockPlaceSystem _commonBlockPlaceSystem;
+        private readonly BeltConveyorPlaceSystem _beltConveyorPlaceSystem;
         private readonly TrainRailPlaceSystem _trainRailPlaceSystem;
         private readonly TrainCarPlaceSystem _trainCarPlaceSystem;
         private readonly TrainRailConnectSystem _trainRailConnectSystem;
         private readonly GearChainPoleConnectSystem _gearChainPoleConnectSystem;
-        
+        private readonly ElectricWireConnectSystem _electricWireConnectSystem;
+        private readonly BlueprintPasteSystem _blueprintPasteSystem;
+        private readonly BlueprintCopySystem _blueprintCopySystem;
+
         public PlaceSystemSelector(
             CommonBlockPlaceSystem commonBlockPlaceSystem,
+            BeltConveyorPlaceSystem beltConveyorPlaceSystem,
             TrainCarPlaceSystem trainCarPlaceSystem,
             TrainRailPlaceSystem trainRailPlaceSystem,
             TrainRailConnectSystem trainRailConnectSystem,
-            GearChainPoleConnectSystem gearChainPoleConnectSystem)
+            GearChainPoleConnectSystem gearChainPoleConnectSystem,
+            ElectricWireConnectSystem electricWireConnectSystem,
+            BlueprintPasteSystem blueprintPasteSystem,
+            BlueprintCopySystem blueprintCopySystem)
         {
             EmptyPlaceSystem = new EmptyPlaceSystem();
             _commonBlockPlaceSystem = commonBlockPlaceSystem;
+            _beltConveyorPlaceSystem = beltConveyorPlaceSystem;
             _trainCarPlaceSystem = trainCarPlaceSystem;
             _trainRailPlaceSystem = trainRailPlaceSystem;
             _trainRailConnectSystem = trainRailConnectSystem;
             _gearChainPoleConnectSystem = gearChainPoleConnectSystem;
+            _electricWireConnectSystem = electricWireConnectSystem;
+            _blueprintPasteSystem = blueprintPasteSystem;
+            _blueprintCopySystem = blueprintCopySystem;
         }
-        
+
         public IPlaceSystem GetCurrentPlaceSystem(PlaceSystemUpdateContext context)
         {
-            // マスターデータからPlaceSystemを検索
-            // Search PlaceSystem from master data
-            var placeSystemElement = GetPlaceSystemElement(context.HoldingItemId);
-            if (placeSystemElement != null)
+            switch (context.Target)
             {
-                // PlaceModeに基づいて適切なシステムを返す
-                // Return appropriate system based on PlaceMode
-                return placeSystemElement.PlaceMode switch
+                case BlockPlacementTarget block:
                 {
-                    PlaceSystemMasterElement.PlaceModeConst.TrainRail => _trainRailPlaceSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.TrainCar => _trainCarPlaceSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.TrainRailConnect => _trainRailConnectSystem,
-                    PlaceSystemMasterElement.PlaceModeConst.GearChainPoleConnect => _gearChainPoleConnectSystem,
-                    _ => throw new System.Exception($"Unsupported PlaceMode: {placeSystemElement.PlaceMode}"),
-                };
-            }
-            
-            // 歯車チェーンポールのブロックアイテムは専用の接続システムで設置する
-            // Gear chain pole block items are placed via the dedicated connection system
-            if (GearChainPoleItemFinder.TryGetPoleBlockMaster(context.HoldingItemId, out _))
-            {
-                return _gearChainPoleConnectSystem;
-            }
-
-            // ブロックアイテムの場合は共通ブロック設置システムを返す
-            // For block items, return common block place system
-            if (MasterHolder.BlockMaster.IsBlock(context.HoldingItemId))
-            {
-                return _commonBlockPlaceSystem;
-            }
-            
-            return EmptyPlaceSystem;
-            
-            #region Internal
-            
-            PlaceSystemMasterElement GetPlaceSystemElement(ItemId itemId)
-            {
-                if (itemId == ItemMaster.EmptyItemId)
-                {
-                    return null;
+                    // ブロック種別で専用システムへ、残りは通常ブロック
+                    // Route by block type; the rest fall back to common blocks
+                    var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
+                    return blockMaster.BlockType switch
+                    {
+                        BlockMasterElement.BlockTypeConst.BeltConveyor => _beltConveyorPlaceSystem,
+                        BlockMasterElement.BlockTypeConst.GearBeltConveyor => _beltConveyorPlaceSystem,
+                        BlockMasterElement.BlockTypeConst.TrainRail => _trainRailPlaceSystem,
+                        BlockMasterElement.BlockTypeConst.GearChainPole => _gearChainPoleConnectSystem,
+                        _ => _commonBlockPlaceSystem,
+                    };
                 }
-                
-                // アイテムIDからGuidを取得
-                // Get Guid from ItemId
-                var itemMaster = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                var itemGuid = itemMaster.ItemGuid;
-                
-                // UsePlaceItemsに現在のアイテムGuidが含まれている要素を検索
-                // Search elements that contain current item Guid in UsePlaceItems
-                var matchingElements = MasterHolder.PlaceSystemMaster.PlaceSystem.Data
-                    .Where(element => element.UsePlaceItems.Contains(itemGuid))
-                    .ToList();
-                
-                if (matchingElements.Count == 0)
-                {
-                    return null;
-                }
-                
-                // Priorityが最も高いものを返す（Priorityは大きいほど優先度が高い）
-                // Return the one with highest Priority (larger Priority value means higher priority)
-                return matchingElements.OrderByDescending(element => element.Priority).First();
+                case TrainCarPlacementTarget:
+                    return _trainCarPlaceSystem;
+                case BlueprintPlacementTarget:
+                    return _blueprintPasteSystem;
+                case BlueprintCopyToolPlacementTarget:
+                    return _blueprintCopySystem;
+                case ConnectToolPlacementTarget connectTool:
+                    // ツール種別で3系統へ振り分ける
+                    // Route by tool type to the three connect systems
+                    return connectTool.ToolType switch
+                    {
+                        ConnectToolType.TrainRailConnect => _trainRailConnectSystem,
+                        ConnectToolType.GearChainPoleConnect => _gearChainPoleConnectSystem,
+                        ConnectToolType.ElectricWireConnect => _electricWireConnectSystem,
+                        _ => EmptyPlaceSystem,
+                    };
+                default:
+                    // null（未選択）や未知の型はEmptyへ
+                    // Route null (nothing selected) and unknown types to Empty
+                    return EmptyPlaceSystem;
             }
-            
-            #endregion
         }
     }
 }

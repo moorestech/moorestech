@@ -1,43 +1,39 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
-using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 {
-    public class TrainRailPlaceSystem : IPlaceSystem
+    public class TrainRailPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
         private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
-        private readonly ILocalPlayerInventory _localPlayerInventory;
-            
-        public TrainRailPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory localPlayerInventory)
+
+        public TrainRailPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController)
         {
             _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, previewBlockController);
-            _localPlayerInventory = localPlayerInventory;
         }
-        
-        public void Enable()
+
+        public override void Enable()
         {
             _trainRailPlaceSystemService.Enable();
         }
-        
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+
+        protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged)
         {
-            var slotIndex = context.CurrentSelectHotbarSlotIndex;
-            var inventorySlot = PlayerInventoryConst.HotBarSlotToInventorySlot(slotIndex);
-            var itemStack = _localPlayerInventory[inventorySlot];
-            var itemId = itemStack.Id;
-            var placeInfo = _trainRailPlaceSystemService.ManualUpdate(itemId);
+            // ビルドメニュー選択のBlockIdでプレビュー・設置を駆動する
+            // Drive preview and placement from the build-menu selected BlockId
+            var blockId = target.BlockId;
+            var placeInfo = _trainRailPlaceSystemService.ManualUpdate(blockId);
             if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
-            
-            PlaceSystemUtil.SendPlaceProtocol(new List<PlaceInfo> { placeInfo }, context);
+
+            PlaceSystemUtil.SendPlaceBlockProtocol(new List<PlaceInfo> { placeInfo });
         }
         
-        public void Disable()
+        public override void Disable()
         {
             _trainRailPlaceSystemService.Disable();
         }

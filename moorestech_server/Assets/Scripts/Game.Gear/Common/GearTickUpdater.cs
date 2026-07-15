@@ -35,8 +35,8 @@ namespace Game.Gear.Common
 
             // 再計算が必要なnetworkのみ列挙し、需給計算とstore書き込みを行う
             // Enumerate only networks needing recalculation, then calculate supply-demand and write the store
-            // Future仕様注意: consumer需要の変化だけではnetworkは再計算されない。動的需要導入時は需要変化通知も追加する
-            // Future-spec note: consumer-demand changes alone do not recalculate networks; add demand-change notification with dynamic demand
+            // consumer需要（要求トルク倍率）の変化はNotifyConsumerDemandChanged経由でここの再計算対象に入る
+            // Consumer-demand (torque request rate) changes enter this recalculation set via NotifyConsumerDemandChanged
             var store = _gearNetworkDatastore.RuntimeStateStore;
             _recalcBuffer.Clear();
             _gearNetworkDatastore.CollectNetworksRequiringRecalc(_recalcBuffer);

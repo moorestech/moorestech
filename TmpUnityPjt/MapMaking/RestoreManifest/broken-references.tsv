@@ -1,0 +1,12 @@
+source_file	missing_target	guid	note
+Assets/Asset/Common/Prefab/Environment/MapVein/v5_Test/VeinSet_Stone.prefab	Assets/Dependencies/Font/NotoSans-Regular SDF.asset	75338526785cbac4e8f0f85c9c635e75	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Common/Prefab/Environment/MapVein/v5_Test/VeinSet_Water.prefab	Assets/Dependencies/Font/NotoSans-Regular SDF.asset	75338526785cbac4e8f0f85c9c635e75	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/MapObjectHpBar.prefab	Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset	8f586378b4e144a9851e7b34d9b748ee	TMP Essentials再インポートで同一GUID復元可
+Assets/Asset/Environment/Prefab/Tree.prefab	Assets/Dependencies/Stylised Nature/Materials/Tree Rock.mat	dd5ce1a7353044bc58f9c05e82186cbf	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/Tree.prefab	Assets/Dependencies/Stylised Nature/Models/Rock2.fbx	921e13cde7c2ccb4f8d9a6218d0d35ae	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/Vein Coal.prefab	Assets/Dependencies/Stylised Nature/Materials/Coal Rock.mat	c56dffbb9e860a349b785ca12762bb3b	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/Vein Coal.prefab	Assets/Dependencies/Stylised Nature/Models/Rock2.fbx	921e13cde7c2ccb4f8d9a6218d0d35ae	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/Vein Iron.prefab	Assets/Dependencies/Stylised Nature/Materials/Coal Rock.mat	c56dffbb9e860a349b785ca12762bb3b	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/Vein Iron.prefab	Assets/Dependencies/Stylised Nature/Models/Rock2.fbx	921e13cde7c2ccb4f8d9a6218d0d35ae	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/Vein Stone.prefab	Assets/Dependencies/Stylised Nature/Materials/Bronze Rock.mat	2e3488f91c446414da07c7c31f747ebb	Assets/Dependencies削除により欠損(承認済み2026-07-13)
+Assets/Asset/Environment/Prefab/Vein Stone.prefab	Assets/Dependencies/Stylised Nature/Models/Rock2.fbx	921e13cde7c2ccb4f8d9a6218d0d35ae	Assets/Dependencies削除により欠損(承認済み2026-07-13)

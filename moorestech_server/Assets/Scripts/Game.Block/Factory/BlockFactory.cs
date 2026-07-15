@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Core.Master;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 
 namespace Game.Block.Factory
 {
@@ -24,8 +26,32 @@ namespace Game.Block.Factory
             
             var effectiveCreateParams = createParams ?? Array.Empty<BlockCreateParam>();
             var block = value.New(blockElement, blockInstanceId, blockPositionInfo, effectiveCreateParams);
-            
+
+            // BP設定(UTF8 JSON)を対応コンポーネントへ適用
+            // Generically apply blueprint settings (UTF8 JSON) to supporting components
+            ApplyBlueprintSettings();
+
             return block;
+
+            #region Internal
+
+            void ApplyBlueprintSettings()
+            {
+                if (effectiveCreateParams.Length == 0) return;
+
+                // キー一致するCreateParamを各設定コンポーネントへ適用
+                // Apply key-matched create params to each IBlockBlueprintSettings component
+                foreach (var component in block.ComponentManager.GetComponents<IBlockBlueprintSettings>())
+                {
+                    foreach (var param in effectiveCreateParams)
+                    {
+                        if (param.Key != component.BlueprintSettingsKey) continue;
+                        component.ApplyBlueprintSettingsJson(Encoding.UTF8.GetString(param.Value));
+                    }
+                }
+            }
+
+            #endregion
         }
         
         public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string, string> state, BlockPositionInfo blockPositionInfo)

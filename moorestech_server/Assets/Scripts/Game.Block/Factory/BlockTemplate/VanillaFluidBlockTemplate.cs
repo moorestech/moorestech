@@ -6,6 +6,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Mooresmaster.Model.BlocksModule;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -26,7 +27,7 @@ namespace Game.Block.Factory.BlockTemplate
             var fluidPipeParam = (blockMasterElement.BlockParam as FluidPipeBlockParam)!;
             
             var inventoryConnects = fluidPipeParam.FluidInventoryConnectors;
-            BlockConnectorComponent<IFluidInventory> connectorComponent = IFluidInventory.CreateFluidInventoryConnector(inventoryConnects, blockPositionInfo);
+            BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent = IFluidInventory.CreateFluidInventoryConnector(inventoryConnects, blockPositionInfo);
             
             var fluidPipeComponent = new FluidPipeComponent(blockPositionInfo, connectorComponent, fluidPipeParam.Capacity, fluidPipeParam.BlockedRetryTicks, componentStates);
             var saveComponent = new FluidPipeSaveComponent(fluidPipeComponent);

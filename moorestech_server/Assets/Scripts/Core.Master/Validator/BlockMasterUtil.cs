@@ -11,30 +11,19 @@ namespace Core.Master.Validator
         public static bool Validate(Blocks blocks, out string errorLogs)
         {
             errorLogs = "";
-            errorLogs += BlockItemGuidValidation();
             errorLogs += BlockParamValidation();
-            errorLogs += OverrideVerticalBlockValidation();
+            errorLogs += BlockRequiredItemsValidation();
             errorLogs += GearChainItemsValidation();
+            errorLogs += ElectricWireItemsValidation();
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
+            errorLogs += ConnectorSettingsValidation();
+            errorLogs += ConnectorShapeGuidValidation();
+            errorLogs += MeshingAxisValidation();
+            errorLogs += BeltConveyorFamilyValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
-
-            string BlockItemGuidValidation()
-            {
-                var logs = "";
-                foreach (var blockElement in blocks.Data)
-                {
-                    var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(blockElement.ItemGuid);
-                    if (itemId == null)
-                    {
-                        logs += $"[BlockMaster] Name:{blockElement.Name} has invalid ItemGuid:{blockElement.ItemGuid}\n";
-                    }
-                }
-
-                return logs;
-            }
 
             string BlockParamValidation()
             {
@@ -170,41 +159,52 @@ namespace Core.Master.Validator
                             }
                         }
                     }
+
+                    // CleanRoomAirFilter: filterItemGuid
+                    // CleanRoomAirFilter: filterItemGuid
+                    if (block.BlockParam is CleanRoomAirFilterBlockParam cleanRoomAirFilter)
+                    {
+                        var id = MasterHolder.ItemMaster.GetItemIdOrNull(cleanRoomAirFilter.FilterItemGuid);
+                        if (id == null)
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid FilterItemGuid:{cleanRoomAirFilter.FilterItemGuid}\n";
+                        }
+                    }
                 }
 
                 return logs;
             }
 
-            string OverrideVerticalBlockValidation()
+            string BlockRequiredItemsValidation()
             {
+                // itemGuid実在性+重複を検証
+                // Validate itemGuid existence and reject duplicates within a block's requiredItems
                 var logs = "";
                 foreach (var block in blocks.Data)
                 {
-                    if (block.OverrideVerticalBlock == null) continue;
+                    if (block.RequiredItems == null) continue;
 
-                    var overrideVertical = block.OverrideVerticalBlock;
+                    var seenItemGuids = new HashSet<Guid>();
+                    foreach (var requiredItem in block.RequiredItems)
+                    {
+                        var id = MasterHolder.ItemMaster.GetItemIdOrNull(requiredItem.ItemGuid);
+                        if (id == null)
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
+                        }
 
-                    // 空のGUIDは「オーバーライドなし」を意味するためスキップ
-                    // Empty GUID means no override, so skip
-                    if (overrideVertical.UpBlockGuid.HasValue && overrideVertical.UpBlockGuid.Value != Guid.Empty)
-                    {
-                        if (!ExistsBlockGuid(overrideVertical.UpBlockGuid.Value))
+                        // ConstructionCostServiceは重複を合算しないため、重複定義はマスタエラーとする
+                        // ConstructionCostService does not sum duplicates, so a duplicate definition is a master error
+                        if (!seenItemGuids.Add(requiredItem.ItemGuid))
                         {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.UpBlockGuid:{overrideVertical.UpBlockGuid}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has duplicate RequiredItem.ItemGuid:{requiredItem.ItemGuid}\n";
                         }
-                    }
-                    if (overrideVertical.HorizontalBlockGuid.HasValue && overrideVertical.HorizontalBlockGuid.Value != Guid.Empty)
-                    {
-                        if (!ExistsBlockGuid(overrideVertical.HorizontalBlockGuid.Value))
+
+                        // count 0以下は無償設置と0個返却を生むためマスタエラー
+                        // Non-positive counts allow free placement and zero-stack refunds, so treat them as master errors
+                        if (requiredItem.Count <= 0)
                         {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.HorizontalBlockGuid:{overrideVertical.HorizontalBlockGuid}\n";
-                        }
-                    }
-                    if (overrideVertical.DownBlockGuid.HasValue && overrideVertical.DownBlockGuid.Value != Guid.Empty)
-                    {
-                        if (!ExistsBlockGuid(overrideVertical.DownBlockGuid.Value))
-                        {
-                            logs += $"[BlockMaster] Name:{block.Name} has invalid OverrideVerticalBlock.DownBlockGuid:{overrideVertical.DownBlockGuid}\n";
+                            logs += $"[BlockMaster] Name:{block.Name} has invalid RequiredItem.Count:{requiredItem.Count}\n";
                         }
                     }
                 }
@@ -221,6 +221,28 @@ namespace Core.Master.Validator
                     if (id == null)
                     {
                         logs += $"[BlockMaster] GearChainItem has invalid ItemGuid:{gearChainItem.ItemGuid}\n";
+                    }
+                }
+
+                return logs;
+            }
+
+            string ElectricWireItemsValidation()
+            {
+                var logs = "";
+                foreach (var electricWireItem in blocks.ElectricWireItems)
+                {
+                    var id = MasterHolder.ItemMaster.GetItemIdOrNull(electricWireItem.ItemGuid);
+                    if (id == null)
+                    {
+                        logs += $"[BlockMaster] ElectricWireItem has invalid ItemGuid:{electricWireItem.ItemGuid}\n";
+                    }
+
+                    // 0以下はコスト計算が発散するため弾く
+                    // Reject non-positive values; the cost calculation diverges
+                    if (electricWireItem.ConsumptionPerLength <= 0)
+                    {
+                        logs += $"[BlockMaster] ElectricWireItem ConsumptionPerLength must be > 0. ItemGuid:{electricWireItem.ItemGuid}\n";
                     }
                 }
 
@@ -294,6 +316,86 @@ namespace Core.Master.Validator
                 return logs;
             }
 
+            string ConnectorSettingsValidation()
+            {
+                // 互換ペアの参照先形状の実在を検証（foreignKeyは自動生成されないため手動確認）
+                // Validate pair references exist (foreignKey validation is not auto-generated)
+                var logs = "";
+                var connectableShapePairs = blocks.ConnectorSettings?.ConnectableShapePairs;
+                if (connectableShapePairs == null) return logs;
+                foreach (var pair in connectableShapePairs)
+                {
+                    if (!ExistsConnectorShape(pair.Shape0)) logs += $"[BlockMaster] ConnectableShapePair has invalid Shape0:{pair.Shape0}\n";
+                    if (!ExistsConnectorShape(pair.Shape1)) logs += $"[BlockMaster] ConnectableShapePair has invalid Shape1:{pair.Shape1}\n";
+                }
+                return logs;
+            }
+
+            string ConnectorShapeGuidValidation()
+            {
+                // コネクタに設定されたshapeGuidの実在を検証（fluid側は形状運用開始時に追加する）
+                // Validate shapeGuid on connectors (fluid-side check to be added when fluids adopt shapes)
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.BlockParam is IGearConnectors gearConnectors)
+                        foreach (var connector in gearConnectors.Gear.GearConnects)
+                            logs += ValidateConnectorShapeGuid(block.Name, connector.ShapeGuid);
+
+                    if (block.BlockParam is IInventoryConnectors inventoryConnectors)
+                    {
+                        var connects = inventoryConnectors.InventoryConnectors;
+                        if (connects.InputConnects != null)
+                            foreach (var connector in connects.InputConnects)
+                                logs += ValidateConnectorShapeGuid(block.Name, connector.ShapeGuid);
+                        if (connects.OutputConnects != null)
+                            foreach (var connector in connects.OutputConnects)
+                                logs += ValidateConnectorShapeGuid(block.Name, connector.ShapeGuid);
+                    }
+                }
+                return logs;
+
+                string ValidateConnectorShapeGuid(string blockName, Guid? shapeGuid)
+                {
+                    if (shapeGuid == null || ExistsConnectorShape(shapeGuid.Value)) return "";
+                    return $"[BlockMaster] Name:{blockName} has invalid connector ShapeGuid:{shapeGuid}\n";
+                }
+            }
+
+            string MeshingAxisValidation()
+            {
+                // 歯車コネクタの噛み合い軸が軸整列単位ベクトルであることを検証する
+                // Validate that gear connector meshing axes are axis-aligned unit vectors
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.BlockParam is not IGearConnectors gearConnectors) continue;
+                    foreach (var connector in gearConnectors.Gear.GearConnects)
+                    {
+                        if (!connector.Option.MeshingAxis.HasValue) continue;
+                        var axis = connector.Option.MeshingAxis.Value;
+                        if (IsAxisAlignedUnitVector(axis)) continue;
+                        logs += $"[BlockMaster] Name:{block.Name} has invalid meshingAxis:{axis} (must be an axis-aligned unit vector, e.g. (0,0,1))\n";
+                    }
+                }
+                return logs;
+
+                bool IsAxisAlignedUnitVector(UnityEngine.Vector3Int axis)
+                {
+                    var unitComponentCount = 0;
+                    if (Math.Abs(axis.x) == 1) unitComponentCount++;
+                    if (Math.Abs(axis.y) == 1) unitComponentCount++;
+                    if (Math.Abs(axis.z) == 1) unitComponentCount++;
+                    return unitComponentCount == 1 && Math.Abs(axis.x) <= 1 && Math.Abs(axis.y) <= 1 && Math.Abs(axis.z) <= 1;
+                }
+            }
+
+            bool ExistsConnectorShape(Guid shapeGuid)
+            {
+                var connectorShapes = blocks.ConnectorSettings?.ConnectorShapes;
+                return connectorShapes != null && Array.Exists(connectorShapes, s => s.ShapeGuid == shapeGuid);
+            }
+
             bool ExistsBlockGuid(Guid blockGuid)
             {
                 return Array.Exists(blocks.Data, b => b.BlockGuid == blockGuid);
@@ -324,9 +426,7 @@ namespace Core.Master.Validator
         public static void Initialize(
             Blocks blocks,
             out Dictionary<BlockId, BlockMasterElement> blockElementTableById,
-            out Dictionary<Guid, BlockId> blockGuidToBlockId,
-            out Dictionary<ItemId, BlockId> itemIdToBlockId,
-            Func<BlockId, BlockMasterElement> getBlockMaster)
+            out Dictionary<Guid, BlockId> blockGuidToBlockId)
         {
             // GUIDの順番にint型のBlockIdを割り当てる
             // Assign int BlockId in order of GUID
@@ -341,21 +441,6 @@ namespace Core.Master.Validator
                 var blockId = new BlockId(i + 1);
                 blockElementTableById.Add(blockId, sortedBlockElements[i]);
                 blockGuidToBlockId.Add(sortedBlockElements[i].BlockGuid, blockId);
-            }
-
-            // ItemIdからBlockIdへのマッピングを構築
-            // Build mapping from ItemId to BlockId
-            itemIdToBlockId = new Dictionary<ItemId, BlockId>();
-            foreach (var blockElement in blocks.Data)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(blockElement.ItemGuid);
-                if (itemIdToBlockId.TryGetValue(itemId, out var existingBlockId))
-                {
-                    var existingBlockElement = getBlockMaster(existingBlockId);
-                    throw new InvalidOperationException($"Duplicate itemId. Name1: {blockElement.Name}  Name2: {existingBlockElement.Name} ItemId:{blockElement.ItemGuid} BlockId:{blockElement.BlockGuid}");
-                }
-
-                itemIdToBlockId.Add(itemId, blockGuidToBlockId[blockElement.BlockGuid]);
             }
         }
     }

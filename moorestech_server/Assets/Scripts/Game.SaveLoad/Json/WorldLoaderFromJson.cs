@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Core.Item;
+using Game.Blueprint;
 using Game.Challenge;
+using Game.CleanRoom;
 using Game.Context;
 using Game.CraftTree;
 using Game.Entity.Interface;
@@ -40,12 +43,17 @@ namespace Game.SaveLoad.Json
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
         private readonly TrainDockingStateRestorer _trainDockingStateRestorer;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private readonly IBlueprintDatastore _blueprintDatastore;
+        private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
+        private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
+        private readonly CleanRoomDatastore _cleanRoomDatastore;
 
         public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
-            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore, 
+            IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, CraftTreeManager craftTreeManager, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
-            IPlayerRidingDatastore playerRidingDatastore)
+            IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, ItemStackLevelDataStore itemStackLevelDataStore,
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -63,6 +71,10 @@ namespace Game.SaveLoad.Json
             _railGraphSaveLoadService = railGraphSaveLoadService;
             _trainDockingStateRestorer = trainDockingStateRestorer;
             _playerRidingDatastore = playerRidingDatastore;
+            _blueprintDatastore = blueprintDatastore;
+            _itemStackLevelDataStore = itemStackLevelDataStore;
+            _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
+            _cleanRoomDatastore = cleanRoomDatastore;
         }
         
         public void LoadOrInitialize()
@@ -95,7 +107,17 @@ namespace Game.SaveLoad.Json
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
             
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
+            // ブロック・インベントリ復元前にスタックレベルを復元する（上限超過例外の防止）
+            // Restore stack levels before blocks/inventories to avoid over-limit exceptions
+            _itemStackLevelDataStore.LoadUnlockedLevels(load.ItemStackLevels);
+            // スロットレベルはプレイヤーインベントリより先にロードする
+            // Load the slot level before player inventories
+            _playerInventorySlotLevelDataStore.LoadLevel(load.InventorySlotLevel);
             _worldBlockDatastore.LoadBlockDataList(load.World);
+            // クリーンルームを再検出し、セーブされた純度と行を照合復元する
+            // Re-detect clean rooms then restore saved purity and class rows by matching
+            _cleanRoomDatastore.RebuildAll();
+            _cleanRoomDatastore.Restore(load.CleanRoomRooms);
             // レールセグメントを復元する
             // Restore rail segments
             var segments = load.RailSegments ?? new List<RailSegmentSaveData>();
@@ -133,6 +155,10 @@ namespace Game.SaveLoad.Json
             _trainDockingStateRestorer.RestoreDockingState();
 
             _playerRidingDatastore.LoadSaveData(load.PlayerRidingStates);
+
+            // 旧セーブはblueprints欠落のためnull時は空リスト復元
+            // Old saves lack blueprints, so restore an empty list on null
+            _blueprintDatastore.LoadBlueprints(load.Blueprints ?? new List<BlueprintJsonObject>());
         }
         
         public void WorldInitialize()
@@ -142,5 +168,3 @@ namespace Game.SaveLoad.Json
         }
     }
 }
-
-

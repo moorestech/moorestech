@@ -4,9 +4,9 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Game.Gear.Common;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.GearConsumptionModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -28,6 +28,10 @@ namespace Game.Block.Blocks.Gear
         private readonly GearConsumption _consumption;
         private readonly SimpleGearService _simpleGearService;
 
+        // 具体コンポーネントから変更要求される要求トルク倍率
+        // Torque request rate pushed by concrete components
+        private float _torqueRequestRate = 1f;
+
         public GearEnergyTransformer(GearConsumption consumption, BlockInstanceId blockInstanceId, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             _consumption = consumption;
@@ -35,6 +39,15 @@ namespace Game.Block.Blocks.Gear
             _simpleGearService = new SimpleGearService(this, connectorComponent);
 
             GearNetworkDatastore.AddGear(this);
+        }
+
+        public void SetTorqueRequestRate(float rate)
+        {
+            // 倍率が変わったときのみ所属networkへ需要変化を通知し再計算をスケジュールする
+            // Notify the owning network of the demand change only when the rate actually changes, scheduling recalculation
+            if (Mathf.Approximately(_torqueRequestRate, rate)) return;
+            _torqueRequestRate = rate;
+            GearNetworkDatastore.NotifyConsumerDemandChanged(this);
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -47,7 +60,7 @@ namespace Game.Block.Blocks.Gear
             // 生成側はConsumption=nullで常にトルク消費0
             // Generators pass null Consumption and always consume zero torque
             if (_consumption == null) return new Torque(0);
-            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm);
+            return GearConsumptionCalculator.CalcRequiredTorque(_consumption, rpm) * _torqueRequestRate;
         }
 
         // 現在のRPMとトルクに対する出力倍率を計算する

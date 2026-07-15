@@ -9,7 +9,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -17,6 +16,7 @@ using Tests.Module;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
             var beltConveyorComponent = gearBeltConveyor.GetComponent<VanillaBeltConveyorComponent>();
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             connectInventory.Add(dummy, new ConnectedInfo());
 
             // generatorブロックを作成（baseRpmに合わせたrpmを設定してoperatingRate=1にする）
@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Core
             // Prepare the gear belt conveyor and its output
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             var dummy = new DummyBlockInventory();
             connectInventory.Add(dummy, new ConnectedInfo());
             
@@ -173,7 +173,7 @@ namespace Tests.CombinedTest.Core
             // Prepare the gear belt conveyor and its output
             var gearBeltConveyorPosition = new Vector3Int(0, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, gearBeltConveyorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var gearBeltConveyor);
-            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory>>().ConnectedTargets;
+            var connectInventory = (Dictionary<IBlockInventory, ConnectedInfo>)gearBeltConveyor.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>().ConnectedTargets;
             var dummy = new DummyBlockInventory();
             connectInventory.Add(dummy, new ConnectedInfo());
 

@@ -77,6 +77,14 @@ namespace Game.Gear.Common
                 _instance._networksRequiringRecalc.Add(network);
         }
 
+        // consumerが要求トルク倍率の変化時に自ら呼び、所属networkを次の再計算対象に加える
+        // Called by a consumer itself when its torque request rate changes, scheduling its network for recalculation
+        public static void NotifyConsumerDemandChanged(IGearEnergyTransformer consumer)
+        {
+            if (_instance._topologyMap.TryGetNetwork(consumer.BlockInstanceId, out var network))
+                _instance._networksRequiringRecalc.Add(network);
+        }
+
         // 未登録IDでは例外を投げず、適用済みtopologyから失敗を返す
         // Return a failure from the applied topology instead of throwing when the id is not registered
         public static bool TryGetGearNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)

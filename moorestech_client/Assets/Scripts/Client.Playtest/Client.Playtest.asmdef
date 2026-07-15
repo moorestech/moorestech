@@ -1,0 +1,40 @@
+{
+    "name": "Client.Playtest",
+    "rootNamespace": "",
+    "references": [
+        "Client.Game",
+        "Client.Starter",
+        "Client.Common",
+        "Client.Network",
+        "Client.Mod",
+        "Server.Boot",
+        "Server.Protocol",
+        "Core.Master",
+        "Core.Inventory",
+        "Core.Item.Interface",
+        "Game.Context",
+        "Game.World.Interface",
+        "Game.UnlockState",
+        "Game.Block.Interface",
+        "Game.PlayerInventory.Interface",
+        "Common.Debug",
+        "ClassLibrary",
+        "UniTask",
+        "UniRx",
+        "VContainer",
+        "Unity.InputSystem",
+        "Unity.Recorder.Editor",
+        "Client.Playtest.Overlay"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -99,7 +99,7 @@ namespace Game.Block.Blocks.ElectricToGear
 
         #region IElectricConsumer
 
-        public ElectricPower RequestEnergy => new ElectricPower((float)CurrentMode.RequiredPower);
+        public ElectricPower RequestEnergy => new ElectricPower(CurrentMode.RequiredPower);
 
         public void SupplyEnergy(ElectricPower power)
         {
@@ -111,7 +111,7 @@ namespace Game.Block.Blocks.ElectricToGear
         private void UpdateFulfillment(ElectricPower power)
         {
             _suppliedPower = power;
-            var required = (float)CurrentMode.RequiredPower;
+            var required = CurrentMode.RequiredPower;
             // 充足率を計算
             // Calculate fulfillment rate
             var newRate = required > 0f ? Math.Min(power.AsPrimitive() / required, 1f) : 0f;

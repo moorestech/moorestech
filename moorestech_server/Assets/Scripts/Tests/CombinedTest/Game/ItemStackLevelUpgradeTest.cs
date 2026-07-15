@@ -1,0 +1,124 @@
+using System;
+using System.Linq;
+using Core.Item;
+using Game.Context;
+using Game.PlayerInventory.Interface;
+using Game.Research;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+
+namespace Tests.CombinedTest.Game
+{
+    public class ItemStackLevelUpgradeTest
+    {
+        public const int PlayerId = 0;
+        public static readonly Guid StackUpgradeResearchGuid = Guid.Parse("a5b6c7d8-0000-4000-8000-000000000001");
+        public static readonly Guid Test1ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+
+        // 研究完了でスタック上限が上がる
+        // Completing the research raises the stack limit
+        [Test]
+        public void CompleteResearchUnlocksStackLevelTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
+
+            Assert.AreEqual(100, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1));
+
+            var result = researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+            Assert.IsTrue(result);
+            Assert.AreEqual(200, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1));
+        }
+
+        // 上限超えても挿入・合算できる
+        // Items can be inserted and merged beyond the base limit
+        [Test]
+        public void UpgradedItemCanStackBeyondBaseLimitTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
+            researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var item150 = ServerContext.ItemStackFactory.Create(Test1ItemGuid, 150);
+            inventory.MainOpenableInventory.InsertItem(item150);
+
+            // 強化後は150個が1スロットに収まりあふれない（メインInvはホットバー優先挿入）
+            // After the upgrade 150 fits in a single slot without overflow (main inv inserts hotbar-first)
+            var occupiedSlots = inventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).ToList();
+            Assert.AreEqual(1, occupiedSlots.Count);
+            Assert.AreEqual(150, occupiedSlots[0].Count);
+        }
+
+        // 従来通り100であふれる
+        // Stacks still overflow at 100
+        [Test]
+        public void NonUpgradedItemStillOverflowsAtBaseLimitTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var item100A = ServerContext.ItemStackFactory.Create(Test1ItemGuid, 100);
+            var item50 = ServerContext.ItemStackFactory.Create(Test1ItemGuid, 50);
+            inventory.MainOpenableInventory.InsertItem(item100A);
+            inventory.MainOpenableInventory.InsertItem(item50);
+
+            // 強化前は100と50の2スタックに分かれる
+            // Before the upgrade it splits into stacks of 100 and 50
+            var occupiedCounts = inventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).Select(item => item.Count).ToList();
+            Assert.AreEqual(2, occupiedCounts.Count);
+            Assert.AreEqual(100, occupiedCounts[0]);
+            Assert.AreEqual(50, occupiedCounts[1]);
+        }
+
+        // 強化後のセーブが正常にロードできる
+        // A save with upgraded counts loads without errors
+        [Test]
+        public void SaveWithUpgradedStackLoadsSuccessfullyTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var researchDataStore = serviceProvider.GetService<IResearchDataStore>();
+            researchDataStore.CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+
+            // 上限超える150個を保持しセーブ
+            // Save with a slot holding 150 items beyond the base limit
+            var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            inventory.MainOpenableInventory.InsertItem(ServerContext.ItemStackFactory.Create(Test1ItemGuid, 150));
+            var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            // 新しいコンテナでロード。レベル復元がインベントリ復元より先でなければ例外死する
+            // Load in a fresh container; this throws unless levels are restored before the inventory
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            // 150個が1スタックで復元される（メインInvはホットバー優先挿入のため非空スロットで検証）
+            // 150 items are restored as a single stack (verified by non-empty slot due to hotbar-first insert)
+            var loadedInventory = loadServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var occupiedSlots = loadedInventory.MainOpenableInventory.InventoryItems.Where(item => 0 < item.Count).ToList();
+            Assert.AreEqual(1, occupiedSlots.Count);
+            Assert.AreEqual(150, occupiedSlots[0].Count);
+            Assert.AreEqual(2, ItemStackLevelDataStore.Instance.GetUnlockedLevel(Test1ItemGuid));
+        }
+
+        // 研究再実行で二重適用されない
+        // Research re-execution does not double-apply
+        [Test]
+        public void LoadDoesNotDoubleApplyLevelsTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, PlayerId);
+            var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            // 冪等 unlock（max適用）なのでレベルは2のまま
+            // Idempotent unlock (max-based) keeps the level at exactly 2
+            Assert.AreEqual(2, ItemStackLevelDataStore.Instance.GetUnlockedLevel(Test1ItemGuid));
+        }
+    }
+}
