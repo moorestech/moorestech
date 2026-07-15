@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
@@ -11,7 +13,7 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 {
-    public class TrainCarPlaceSystem : IPlaceSystem
+    public class TrainCarPlaceSystem : PlaceSystemBase<TrainCarPlacementTarget>
     {
         private readonly ITrainCarPlacementDetector _detector;
         private readonly TrainCarPreviewController _previewController;
@@ -30,17 +32,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _trainUnitClientCache = trainUnitClientCache;
         }
 
-        public void Enable()
+        public override void Enable()
         {
             _detector.ResetSelection();
             _previewController.SetActive(true);
         }
 
-        public void ManualUpdate(PlaceSystemUpdateContext context)
+        protected override void ManualUpdate(TrainCarPlacementTarget target, bool isSelectionChanged)
         {
-            // スロット変更時は候補選択を初期化する
-            // Reset route selection when slot selection changes
-            if (context.IsSelectSlotChanged)
+            // 選択変更時は候補選択を初期化する
+            // Reset route selection when the build-menu selection changes
+            if (isSelectionChanged)
             {
                 _detector.ResetSelection();
             }
@@ -54,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // レール上の設置候補を検出する
             // Detect the placement candidate on the rail
-            if (!_detector.TryDetect(context.HoldingItemId, out var hit))
+            if (!_detector.TryDetect(target.TrainCarGuid, out var hit))
             {
                 _previewController.SetActive(false);
                 return;
@@ -67,23 +69,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // railpositionからpreviewを描画する
             // Render the preview directly from railposition
             var railPosition = hit.RailPosition;
-            var hasPreview = railPosition != null && _previewController.ShowPreview(context.HoldingItemId, railPosition, hit.IsPlaceable);
+            var hasPreview = railPosition != null && _previewController.ShowPreview(target.TrainCarGuid, railPosition, hit.IsPlaceable);
             _previewController.SetActive(hasPreview);
             if (!hit.IsPlaceable)
             {
                 return;
             }
 
-            // クリック時に設置リクエストを送る
-            // Send the placement request on click
+            // クリック時に選択中の車両Guidで設置リクエストを送る
+            // Send the placement request with the selected car guid on click
             if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
             {
-                RequestPlacementAsync(hit, context.CurrentSelectHotbarSlotIndex).Forget();
+                RequestPlacementAsync(hit, target.TrainCarGuid).Forget();
             }
 
             #region Internal
 
-            async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, int hotBarSlot)
+            async UniTaskVoid RequestPlacementAsync(TrainCarPlacementHit placementHit, Guid trainCarGuid)
             {
                 // 既存編成への連結modeでは対象unitを明示して送る
                 // In attach mode, send the target unit explicitly
@@ -98,7 +100,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                     var attachResponse = await ClientContext.VanillaApi.Response.AttachTrainCarToUnit(
                         placementHit.TargetTrainUnitInstanceId,
                         placementHit.RailPosition,
-                        hotBarSlot,
+                        trainCarGuid,
                         placementHit.AttachCarFacingForward,
                         placementHit.AttachTargetEndpoint == TrainCarAttachTargetEndpoint.Head,
                         CancellationToken.None);
@@ -111,7 +113,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
                 // 新規編成modeではRailPositionのみで設置を依頼する
                 // In new-unit mode, request placement with only the RailPosition
-                var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, hotBarSlot, CancellationToken.None);
+                var placeResponse = await ClientContext.VanillaApi.Response.PlaceTrainOnRail(placementHit.RailPosition, trainCarGuid, CancellationToken.None);
                 if (placeResponse == null || !placeResponse.Success)
                 {
                     Debug.LogWarning($"[TrainCarPlaceSystem] PlaceTrain failed. reason={placeResponse?.FailureType}");
@@ -121,7 +123,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             #endregion
         }
 
-        public void Disable()
+        public override void Disable()
         {
             _detector.ResetSelection();
             _previewController.SetActive(false);

@@ -1,7 +1,6 @@
-using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
-using Client.Game.InGame.UI.UIState.Input;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
@@ -9,25 +8,29 @@ using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class DeleteObjectState : IUIState
+    public class DeleteObjectState : IUIState, IApplicationFocusRestorer
     {
         private readonly DeleteBarObject _deleteBarObject;
+        private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
-        private readonly ScreenClickableCameraController _screenClickableCameraController;
         private readonly DeleteObjectService _deleteObjectService = new();
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, InGameCameraController inGameCameraController, RailGraphClientCache cache)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
-            _screenClickableCameraController = new ScreenClickableCameraController(inGameCameraController);
             _deleteBarObject = deleteBarObject;
+            _cameraInteractionApplier = cameraInteractionApplier;
             deleteBarObject.gameObject.SetActive(false);
         }
 
         public void OnEnter(UITransitContext context)
         {
-            _screenClickableCameraController.OnEnter(false);
+            // 削除中は右ドラッグまで回転停止
+            // Stop rotation until right-drag while deleting
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
+
             _deleteBarObject.gameObject.SetActive(true);
-            KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
+            KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
         }
 
         public UITransitContext GetNextUpdate()
@@ -37,11 +40,14 @@ namespace Client.Game.InGame.UI.UIState.State
             var transit = HandleTransition();
             if (transit != null) return transit;
 
+            // 右ドラッグ中のみ削除照準回転
+            // Rotate deletion aim only during right-drag
+            UpdateRightDragRotation();
+
             // 削除インタラクションはサービスに委譲する
             // Delegate the delete interaction to the service
             _deleteObjectService.Update();
 
-            _screenClickableCameraController.GetNextUpdate();
             return null;
 
             #region Internal
@@ -51,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 // OpenMenu(ポーズ)もESCにbindされ、ここで拾うとESCの選択キャンセル/モード終了が死ぬため破壊モードでは扱わない
                 // OpenMenu(pause) is also bound to ESC; handling it here would shadow ESC's cancel/exit, so skip it in destroy mode
                 if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
-                if (UnityEngine.Input.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.PlaceBlock);
+                if (HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.BuildMenu);
                 if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
 
                 // ESCはまず削除選択のキャンセルに使い、キャンセルする選択が無ければ破壊モードを抜ける
@@ -63,15 +69,34 @@ namespace Client.Game.InGame.UI.UIState.State
                 return null;
             }
 
+            void UpdateRightDragRotation()
+            {
+                if (HybridInput.GetMouseButtonDown(1))
+                {
+                    _cameraInteractionApplier.SetCursorVisible(false);
+                    _cameraInteractionApplier.SetCameraRotatable(true);
+                }
+
+                if (!HybridInput.GetMouseButtonUp(1)) return;
+                _cameraInteractionApplier.SetCursorVisible(true);
+                _cameraInteractionApplier.SetCameraRotatable(false);
+            }
+
             #endregion
         }
 
         public void OnExit()
         {
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
             _deleteObjectService.CancelSelection();
             _deleteBarObject.gameObject.SetActive(false);
+        }
 
-            _screenClickableCameraController.OnExit();
+        public void RestoreAfterApplicationFocus()
+        {
+            _cameraInteractionApplier.SetCursorVisible(true);
+            _cameraInteractionApplier.SetCameraRotatable(false);
         }
     }
 }

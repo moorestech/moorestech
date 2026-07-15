@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Core.Item.Interface;
 using Game.Entity.Interface;
 using Game.PlayerConnection;
 using Game.PlayerRiding.Interface;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
 using Server.Util.MessagePack;
 using UnityEngine;
+using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -22,9 +25,11 @@ namespace Server.Protocol.PacketResponse
         private readonly PlayerConnectionRegistry _connectionRegistry;
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
         private readonly EventProtocolProvider _eventProtocolProvider;
-        
+        private readonly IItemStackLevelLookup _itemStackLevelLookup;
+
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
+            _itemStackLevelLookup = serviceProvider.GetService<IItemStackLevelLookup>();
             _entitiesDatastore = serviceProvider.GetService<IEntitiesDatastore>();
             _entityFactory = serviceProvider.GetService<IEntityFactory>();
             _worldSettingsDatastore = serviceProvider.GetService<IWorldSettingsDatastore>();
@@ -61,7 +66,13 @@ namespace Server.Protocol.PacketResponse
                 
                 var playerPos = GetPlayerPosition(new EntityInstanceId(data.PlayerId));
 
-                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex);
+                // 解放済みスタックレベルを初期データとして同梱する
+                // Bundle unlocked stack levels as part of the initial data
+                var itemStackLevels = _itemStackLevelLookup.UnlockedLevels
+                    .Select(level => new ItemStackLevelMessagePack(level.Key, level.Value))
+                    .ToArray();
+
+                return new ResponseInitialHandshakeMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels);
             }
             
             Vector3MessagePack GetPlayerPosition(EntityInstanceId playerId)
@@ -108,20 +119,23 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public InitialHandshakeRidingStateType RidingStateType { get; set; }
             [Key(4)] public RidableIdentifierMessagePack RidingTarget { get; set; }
             [Key(5)] public int RidingSeatIndex { get; set; }
-            
+            [Key(6)] public ItemStackLevelMessagePack[] ItemStackLevels { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseInitialHandshakeMessagePack() { }
-            
+
             public ResponseInitialHandshakeMessagePack(
                 Vector3MessagePack playerPos,
                 RidableIdentifierMessagePack ridingTarget,
-                int ridingSeatIndex)
+                int ridingSeatIndex,
+                ItemStackLevelMessagePack[] itemStackLevels)
             {
                 Tag = ProtocolTag;
                 PlayerPos = playerPos;
                 RidingStateType = ridingTarget == null ? InitialHandshakeRidingStateType.None : InitialHandshakeRidingStateType.Restored;
                 RidingTarget = ridingTarget;
                 RidingSeatIndex = ridingSeatIndex;
+                ItemStackLevels = itemStackLevels;
             }
 
             [IgnoreMember] public bool HasRidingState => RidingStateType == InitialHandshakeRidingStateType.Restored;

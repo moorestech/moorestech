@@ -1,3 +1,4 @@
+using Core.Item;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -23,13 +24,13 @@ namespace Tests.CombinedTest.Game
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             
             //インベントリの設定
-            mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0), new ItemId(1), 10);
+            mainInventory.SetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0, mainInventory.GetSlotSize()), new ItemId(1), 10);
             grabInventory.SetItem(0, new ItemId(1), 10);
             
             //グラブからメインにid 1のアイテムを移す
             InventoryItemInsertService.Insert(grabInventory, 0, mainInventory, 5);
             
-            Assert.AreEqual(15, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0)).Count);
+            Assert.AreEqual(15, mainInventory.GetItem(PlayerInventoryConst.HotBarSlotToInventorySlot(0, mainInventory.GetSlotSize())).Count);
             Assert.AreEqual(5, grabInventory.GetItem(0).Count);
         }
         
@@ -46,10 +47,10 @@ namespace Tests.CombinedTest.Game
             var mainInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).MainOpenableInventory;
             var grabInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(0).GrabInventory;
             
-            var id1MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(1)).MaxStack;
+            var id1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(1));
             
             //インベントリをアイテムで満たす
-            for (var i = 0; i < PlayerInventoryConst.MainInventorySize; i++) mainInventory.SetItem(i, new ItemId(1), id1MaxStack);
+            for (var i = 0; i < mainInventory.GetSlotSize(); i++) mainInventory.SetItem(i, new ItemId(1), id1MaxStack);
             //グラブインベントリの設定
             grabInventory.SetItem(0, new ItemId(1), 10);
             

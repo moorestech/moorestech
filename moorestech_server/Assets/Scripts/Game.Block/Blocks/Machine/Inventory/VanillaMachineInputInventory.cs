@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
@@ -57,42 +58,28 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
         
-        public bool IsAllowedToStartProcess()
+        public BlockId BlockId => _blockId;
+
+        public bool IsAllowedToStartProcess(MachineRecipeMasterElement recipe)
         {
-            //ブロックIDと現在のインプットスロットからレシピを検索する
-            if (TryGetRecipeElement(out var recipe))
-            {
-                //実行できるレシピかどうか
-                return recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot);
-            }
-            return false;
+            // 選択済みレシピの材料充足のみを確認する（レシピ探索は行わない）
+            // Only verify the selected recipe's inputs are satisfied (no recipe search)
+            return recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot);
         }
-        
+
+        public bool IsRecipeUnlocked(Guid machineRecipeGuid)
+        {
+            return _gameUnlockStateData.MachineRecipeUnlockStateInfos.TryGetValue(machineRecipeGuid, out var info) && info.IsUnlocked;
+        }
+
         public IItemStack InsertItem(IItemStack itemStack)
         {
             return _itemDataStoreService.InsertItem(itemStack);
         }
-        
+
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
             return _itemDataStoreService.InsertItem(itemStacks);
-        }
-        
-        public bool TryGetRecipeElement(out MachineRecipeMasterElement recipe)
-        {
-            if (!MachineRecipeMasterUtil.TryGetRecipeElement(_blockId, InputSlot, FluidInputSlot, out recipe)) return false;
-
-            // アンロックされていないレシピは機械で使用不可にする
-            // Locked recipes cannot be used by machines
-            if (!_gameUnlockStateData.MachineRecipeUnlockStateInfos.TryGetValue(recipe.MachineRecipeGuid, out var unlockInfo))
-            {
-                recipe = null;
-                return false;
-            }
-            if (unlockInfo.IsUnlocked) return true;
-
-            recipe = null;
-            return false;
         }
         
         public void ReduceInputSlot(MachineRecipeMasterElement recipe)

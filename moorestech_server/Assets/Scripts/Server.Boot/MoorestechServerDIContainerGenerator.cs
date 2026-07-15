@@ -8,7 +8,9 @@ using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
+using Game.Blueprint;
 using Game.Challenge;
+using Game.CleanRoom;
 using Game.Context;
 using Game.Crafting.Interface;
 using Game.CraftTree;
@@ -43,8 +45,7 @@ using Game.UnlockState;
 using Game.World;
 using Game.World.DataStore;
 using Game.World.DataStore.WorldSettings;
-using Game.World.EventHandler.EnergyEvent;
-using Game.World.EventHandler.EnergyEvent.EnergyService;
+using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using MessagePack.Resolvers;
@@ -58,6 +59,8 @@ using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Util.MessagePack;
+
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 
 namespace Server.Boot
 {
@@ -93,6 +96,10 @@ namespace Server.Boot
             var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             MasterHolder.Load(masterJsonFileContainer);
 
+            // スタックレベルストアを生成（ItemStack生成前に必須。ctorでstatic Instanceが設定される）
+            // Create the stack level store before any ItemStack creation (ctor sets the static Instance)
+            var itemStackLevelDataStore = new ItemStackLevelDataStore();
+
             // ServerContext用のインスタンスを登録
             // Register instances used by ServerContext.
             var initializerCollection = new ServiceCollection();
@@ -105,6 +112,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
+            initializerCollection.AddSingleton<CleanRoomDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());
             initializerCollection.AddSingleton<TrainUnitDatastore>();
@@ -134,16 +142,18 @@ namespace Server.Boot
             // Register gameplay services.
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
+            services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            services.AddSingleton<IWorldEnergySegmentDatastore<EnergySegment>, WorldEnergySegmentDatastore<EnergySegment>>();
+            services.AddSingleton<IElectricWireNetworkDatastore, ElectricWireNetworkDatastore>();
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
+            services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
             services.AddSingleton(railGraphDatastore);
             services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);
             services.AddSingleton<IRailGraphProvider>(railGraphDatastore);
@@ -159,7 +169,11 @@ namespace Server.Boot
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
             services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
+            services.AddSingleton(itemStackLevelDataStore);
+            services.AddSingleton<IItemStackLevelLookup>(itemStackLevelDataStore);
+            services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
+            services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
             services.AddSingleton<ResearchEvent>();
             
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
@@ -209,8 +223,7 @@ namespace Server.Boot
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<CompletedChallengeEventPacket>();
             services.AddSingleton<ResearchCompleteEventPacket>();
-
-            services.AddSingleton<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
+            services.AddSingleton<ItemStackLevelUnlockEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
@@ -246,15 +259,16 @@ namespace Server.Boot
             serviceProvider.GetService<CompletedChallengeEventPacket>();
 
             serviceProvider.GetService<GearNetworkDatastore>();
+            serviceProvider.GetService<CleanRoomDatastore>();
             serviceProvider.GetService<RailGraphDatastore>();
             serviceProvider.GetService<TrainDiagramManager>();
             serviceProvider.GetService<TrainRailPositionManager>();
-            serviceProvider.GetService<EnergyConnectUpdaterContainer<EnergySegment, IElectricConsumer, IElectricGenerator, IElectricTransformer>>();
 
             serviceProvider.GetService<ChangeBlockStateEventPacket>();
             serviceProvider.GetService<MapObjectUpdateEventPacket>();
             serviceProvider.GetService<UnlockedEventPacket>();
             serviceProvider.GetService<ResearchCompleteEventPacket>();
+            serviceProvider.GetService<ItemStackLevelUnlockEventPacket>();
             serviceProvider.GetService<RailNodeCreatedEventPacket>();
             serviceProvider.GetService<RailConnectionCreatedEventPacket>();
             serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();

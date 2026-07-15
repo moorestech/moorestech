@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using mooresmaster.Generator.Common;
 using mooresmaster.Generator.JsonSchema;
 using mooresmaster.Generator.Semantic;
 
@@ -29,7 +30,7 @@ public static class NameResolver
         {
             var id = kvp.Key;
             var typeSemantics = kvp.Value!;
-            Console.WriteLine(id);
+            GeneratorLog.WriteLine(id);
             
             if (typeSemantics.Schema.IsInterfaceProperty)
             {
@@ -40,7 +41,7 @@ public static class NameResolver
             {
                 if (typeSemantics.Schema.Parent is null)
                 {
-                    Console.WriteLine($"isRoot: {id}");
+                    GeneratorLog.WriteLine($"isRoot: {id}");
                     continue;
                 }
                 
@@ -53,7 +54,7 @@ public static class NameResolver
                 };
                 
                 if (name is not null) typeNames[id] = name.ToCamelCase();
-                else Console.WriteLine($"is null: {id}");
+                else GeneratorLog.WriteLine($"is null: {id}");
             }
         }
         

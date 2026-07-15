@@ -17,6 +17,7 @@ namespace Client.Game.InGame.Player
         
         public void SetAnimationState(string state);
         public void SetControllable(bool enable);
+        public void SetModelVisible(bool visible);
     }
     
     public class PlayerAnimationState
@@ -37,6 +38,8 @@ namespace Client.Game.InGame.Player
         [SerializeField] private Animator animator;
         private CharacterController characterController;
         private Transform rideFollowTarget;
+        private readonly PlayerModelVisibility _modelVisibility = new();
+        private bool _isModelVisible = true;
         private Vector3 rideFollowLocalPosition;
         private Quaternion rideFollowLocalRotation;
         private bool rideFollowStoredControllerEnabled;
@@ -104,6 +107,27 @@ namespace Client.Game.InGame.Player
         public void SetControllable(bool enable)
         {
             controller.SetControllable(enable);
+        }
+
+        public void SetModelVisible(bool visible)
+        {
+            if (_isModelVisible == visible) return;
+            _isModelVisible = visible;
+
+            // Rendererの元状態を保存・復元する
+            // Preserve each renderer state before hiding and restore only that state when showing
+            if (visible) _modelVisibility.Restore();
+            else _modelVisibility.Hide(GetComponentsInChildren<Renderer>(true));
+        }
+
+        // 手持ちアイテムの差し替え直後に呼ぶ。新Rendererは既定で表示のためFPSの非表示が漏れる
+        // Called right after a grab item swap; new renderers default to visible and would leak through the FPS hide
+        public void RefreshModelVisible()
+        {
+            // 非表示中の新Rendererを隠す
+            // New renderers keep prefab state while visible and are hidden only while the model is hidden
+            if (_isModelVisible) return;
+            _modelVisibility.Hide(GetComponentsInChildren<Renderer>(true));
         }
 
         public void SetRideFollowTarget(Transform target, Vector3 localPosition, Quaternion localRotation)

@@ -12,7 +12,6 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Map.Interface.Vein;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -47,9 +46,10 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chestBlock);
             var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
-            //電力の設定
-            var segment = new EnergySegment();
-            segment.AddEnergyConsumer(miner.GetComponent<IElectricConsumer>());
+            //電力の設定。採掘機が属するワイヤーセグメントへテスト発電機を登録する
+            //Power setup: register a test generator into the wire segment the miner belongs to
+            var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(miner.BlockInstanceId, out var segment));
             segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
             
             // tick数で採掘時間を計算（+2 tickのマージン）

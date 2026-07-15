@@ -1,0 +1,1 @@
+{"status": "PASS", "deterministic_confirmed": 11, "lenses_fired": ["domain-boundary", "master-data-defense", "type-driven-structure", "precedent-alignment"], "criticals_reported": 10, "discarded_as_stale": 15}

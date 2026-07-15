@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.TrainRail;
@@ -45,7 +46,7 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory), "駅ブロックのインベントリコンポーネントが見つかりません。");
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
 
             stationInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
@@ -110,7 +111,7 @@ namespace Tests.UnitTest.Game
 
             Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory), "貨物プラットフォームのインベントリコンポーネントが見つかりません。");
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
 
             cargoInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
@@ -165,7 +166,7 @@ namespace Tests.UnitTest.Game
             var trainPlatformDockingComponent = cargoPlatformBlock.GetComponent<TrainPlatformDockingComponent>();
             Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory));
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             cargoInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             var entryNode = railComponents[0].FrontNode;
@@ -232,7 +233,7 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(cargoPlatformBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var cargoInventory),
                 "貨物プラットフォームのインベントリコンポーネントが見つかりません。");
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
 
             cargoInventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
 
@@ -309,7 +310,7 @@ namespace Tests.UnitTest.Game
             var stationSegmentLength = stationBlock!.BlockPositionInfo.BlockSize.z;
             Assert.Greater(stationSegmentLength, 0, "駅セグメントの長さが0以下になっています。");
 
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.ItemId1).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
             stationInventory.SetItem(0, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, maxStack));
 
             TrainUnit CreateTrain(out TrainCar car, out ItemTrainCarContainer itemContainer)

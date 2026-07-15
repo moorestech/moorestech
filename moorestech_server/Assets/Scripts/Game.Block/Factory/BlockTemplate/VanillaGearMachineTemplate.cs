@@ -5,12 +5,14 @@ using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
+using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
+using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -36,15 +38,14 @@ namespace Game.Block.Factory.BlockTemplate
         private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
-            BlockConnectorComponent<IBlockInventory> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
             
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
             
             var connectSetting = machineParam.Gear.GearConnects;
-            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer>(connectSetting, connectSetting, blockPositionInfo);
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(connectSetting, connectSetting, blockPositionInfo);
             var gearConsumption = machineParam.GearConsumption;
-            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
             
@@ -53,13 +54,14 @@ namespace Game.Block.Factory.BlockTemplate
             // パラメーターをロードするか、新規作成する
             // Load the parameters or create new ones
             var processor = componentStates == null
-                ? new VanillaMachineProcessorComponent(input, output, requirePower, effectComponent)
-                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, blockMasterElement);
+                ? new VanillaMachineProcessorComponent(input, output, requirePower, gearConsumption.IdlePowerRate, effectComponent)
+                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, gearConsumption.IdlePowerRate, blockMasterElement);
+            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
 
-            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer);
+            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer, gearConsumption.IdlePowerRate);
 
             // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること
             // Keep this order: the supply reader (machineComponent) must update before the processor
@@ -73,6 +75,7 @@ namespace Game.Block.Factory.BlockTemplate
                 inventoryConnectorComponent,
                 gearConnector,
                 gearEnergyTransformer,
+                new MachineRecipeBlueprintSettingsComponent(processor),
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

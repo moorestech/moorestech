@@ -7,14 +7,18 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
@@ -35,6 +39,8 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.Blueprint;
+using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.UnlockState;
@@ -47,12 +53,15 @@ using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
+using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -91,6 +100,8 @@ namespace Client.Starter
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
+        [SerializeField] private BuildMenuView buildMenuView;
+        [SerializeField] private BlueprintNameInputView blueprintNameInputView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private MachineRecipeView machineRecipeView;
@@ -157,6 +168,10 @@ namespace Client.Starter
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
+            // スタックレベルの変更系はDI注入のみで公開する
+            // Expose stack level mutation only through DI injection
+            builder.RegisterInstance(ServerContext.GetService<IItemStackLevelUnlocker>());
+            builder.RegisterEntryPoint<ItemStackLevelEventHandler>();
             
             //プレゼンターアセンブリ
             // register presenter assembly
@@ -176,15 +191,26 @@ namespace Client.Starter
             // 設置システム
             // register placement system
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
+            builder.Register<BeltConveyorPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
             builder.Register<TrainCarPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailPlaceSystem>(Lifetime.Singleton);
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
             builder.Register<GearChainPoleConnectSystem>(Lifetime.Singleton);
+            builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
-            
-            
+            builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
+            builder.Register<BlueprintCopySystem>(Lifetime.Singleton);
+
+            // UI非依存の視点モード処理
+            // UI-independent view-mode processing
+            builder.Register<IPlayerViewApplier, PlayerViewApplier>(Lifetime.Singleton);
+            builder.Register<IPlayerCameraInteractionApplier, PlayerCameraInteractionApplier>(Lifetime.Singleton);
+            builder.Register<PlayerViewModeController>(Lifetime.Singleton).AsSelf().As<IStartable>().As<ITickable>();
+
+
             //UIコントロール
             // register UI control
             builder.Register<UIStateDictionary>(Lifetime.Singleton);
@@ -199,8 +225,10 @@ namespace Client.Starter
             builder.Register<ResearchTreeState>(Lifetime.Singleton);
             builder.Register<DebugBlockInfoState>(Lifetime.Singleton);
             builder.Register<TrainHUDScreenState>(Lifetime.Singleton);
+            builder.Register<BuildMenuState>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
+            builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
             builder.Register<RideVehicleInputService>(Lifetime.Singleton);
             builder.Register<PauseMenuStateService>(Lifetime.Singleton);
 
@@ -248,6 +276,8 @@ namespace Client.Starter
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
+            builder.RegisterComponent(buildMenuView).AsSelf().As<IBuildMenuView>();
+            builder.RegisterComponent(blueprintNameInputView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(backToMainMenu);
             builder.RegisterComponent(networkDisconnectPresenter);

@@ -53,7 +53,9 @@
         "Game.Research",
         "Game.PlayerRiding.Interface",
         "Game.PlayerRiding",
-        "Game.PlayerConnection"
+        "Game.PlayerConnection",
+        "Game.CleanRoom",
+        "Game.Blueprint"
     ],
     "includePlatforms": [
         "Editor"

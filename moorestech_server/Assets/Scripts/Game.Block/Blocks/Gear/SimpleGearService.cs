@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using Game.Block.Interface.Component;
 using Game.Gear.Common;
 using MessagePack;
-using Mooresmaster.Model.BlockConnectInfoModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -23,6 +23,13 @@ namespace Game.Block.Blocks.Gear
         private readonly IGearEnergyTransformer _owner;
         private readonly IBlockConnectorComponent<IGearEnergyTransformer> _connectorComponent;
 
+        // 前回通知した可視状態（差分検知用）
+        // Last notified visible state, for diff detection
+        private bool _hasNotifiedOnce;
+        private bool _lastIsClockwise;
+        private float _lastRpm;
+        private float _lastTorque;
+
         public SimpleGearService(IGearEnergyTransformer owner, IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent)
         {
             _owner = owner;
@@ -36,7 +43,7 @@ namespace Game.Block.Blocks.Gear
             var result = new List<GearConnect>();
             foreach (var target in _connectorComponent.ConnectedTargets)
             {
-                result.Add(new GearConnect(target.Key, (GearConnectOption)target.Value.SelfConnector?.ConnectOption, (GearConnectOption)target.Value.TargetConnector?.ConnectOption));
+                result.Add(GearConnect.FromConnectedInfo(target.Key, target.Value));
             }
             return result;
         }
@@ -73,10 +80,23 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
-        // tick計算後に呼ばれ、クライアントへ状態変化を通知する
-        // Called after tick calculation to notify clients of the state change
+        // network再計算と独立に可視状態変化時のみ発火
+        // Fires only on visible-state change, independent of network recalcs
         public void NotifyStateChanged()
         {
+            var isClockwise = IsCurrentClockwise;
+            var rpm = CurrentRpm.AsPrimitive();
+            var torque = CurrentTorque.AsPrimitive();
+
+            // 3値が前回と一致ならスキップ
+            // Skip when all three values match the last notified state
+            if (_hasNotifiedOnce && _lastIsClockwise == isClockwise && Mathf.Approximately(_lastRpm, rpm) && Mathf.Approximately(_lastTorque, torque)) return;
+
+            _hasNotifiedOnce = true;
+            _lastIsClockwise = isClockwise;
+            _lastRpm = rpm;
+            _lastTorque = torque;
+
             _onBlockStateChange.OnNext(Unit.Default);
             _onGearUpdate.OnNext(GearUpdateType.SupplyPower);
         }

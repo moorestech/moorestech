@@ -26,7 +26,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
             ItemViewData = itemView;
             Count = count;
             
-            if (itemView == null || itemView.ItemId == ItemMaster.EmptyItemId)
+            if (itemView == null || itemView.IsEmpty)
             {
                 commonSlotView.SetViewClear();
             }
@@ -39,6 +39,24 @@ namespace Client.Game.InGame.UI.Inventory.Common
                 
                 commonSlotView.SetView(itemView.ItemImage, GetCountText(count), toolTipText);
             }
+        }
+
+        // 液体出力のみのレシピ表示用に液体アイコンを表示
+        // Display a fluid icon for recipes whose output is fluid only
+        public void SetFluid(FluidViewData fluidView, string toolTipText)
+        {
+            ItemViewData = null;
+            Count = 0;
+            commonSlotView.SetView(fluidView.FluidImage, string.Empty, toolTipText);
+        }
+
+        // アイコン無しエントリはテキストのみ表示（BP等）
+        // Display an icon-less entry as text only (e.g. blueprint entries)
+        public void SetTextOnly(string text, string toolTipText)
+        {
+            ItemViewData = null;
+            Count = 0;
+            commonSlotView.SetViewTextOnly(text, toolTipText);
         }
 
         // クラフト数の表示のみを更新

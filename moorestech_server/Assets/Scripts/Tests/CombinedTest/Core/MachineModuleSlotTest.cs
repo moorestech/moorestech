@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
@@ -103,8 +104,8 @@ namespace Tests.CombinedTest.Core
 
             // インプットを満杯にしてさらに挿入しても、モジュールスロットへ溢れないことを確認
             // Fill the input range completely; further inserts must not overflow into module slots
-            var item1MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(1)).MaxStack;
-            var item2MaxStack = MasterHolder.ItemMaster.GetItemMaster(new ItemId(2)).MaxStack;
+            var item1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(1));
+            var item2MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(2));
             inventory.SetItem(0, itemStackFactory.Create(new ItemId(1), item1MaxStack));
             inventory.SetItem(1, itemStackFactory.Create(new ItemId(2), item2MaxStack));
 
@@ -200,8 +201,8 @@ namespace Tests.CombinedTest.Core
             var (boostedBlock, boostedInventory, boostedProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (plainBlock, plainInventory, plainProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
             boostedInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
-            InsertRecipeInputs(boostedInventory, recipe);
-            InsertRecipeInputs(plainInventory, recipe);
+            InsertRecipeInputs(boostedBlock, boostedInventory, recipe);
+            InsertRecipeInputs(plainBlock, plainInventory, recipe);
 
             // 開始tickでは進行しないため、開始直後の残りtickが短縮済み加工時間と一致することを確認
             // No progress occurs on the start tick, so the remaining ticks right after start equal the scaled processing time
@@ -238,14 +239,14 @@ namespace Tests.CombinedTest.Core
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Efficiency, 1));
 
-            // Idle中はモジュールがあっても要求電力は変わらない
-            // While idle, the requested power is unchanged even with the module equipped
+            // Idle中はモジュールではなくidlePowerRate分だけ要求電力が下がる
+            // While idle, idlePowerRate reduces demand instead of the module
             var electric = block.GetComponent<VanillaElectricMachineComponent>();
-            Assert.AreEqual(processor.RequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
+            Assert.AreEqual(processor.EffectiveRequestPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
 
             // プロセス開始後は省エネ倍率分だけ要求電力が下がる
             // After processing starts, the requested power drops by the efficiency multiplier
-            InsertRecipeInputs(inventory, recipe);
+            InsertRecipeInputs(block, inventory, recipe);
             AdvanceTicksWithFullPower(1, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
@@ -265,7 +266,7 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
-            InsertRecipeInputs(inventory, recipe);
+            InsertRecipeInputs(block, inventory, recipe);
 
             // 前提: 追加出力が確定（確率1.0）になるeffectValueであること。データ変更時はここで失敗させる
             // Precondition: effectValue must guarantee the extra output (chance 1.0); fail loudly on data drift
@@ -301,15 +302,15 @@ namespace Tests.CombinedTest.Core
             // アウトプットを「ベース1セットは入るが追加セットは入らない」量まで埋める
             // Fill outputs so one base set fits but the extra set does not
             var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
-            var maxStack = MasterHolder.ItemMaster.GetItemMaster(outputItemId).MaxStack;
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(outputItemId);
             foreach (var inventory in new[] { modInventory, ctrlInventory })
             {
                 inventory.SetItem(InputSlotCount, itemStackFactory.Create(outputItemId, maxStack));
                 inventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(outputItemId, maxStack));
                 inventory.SetItem(InputSlotCount + 2, itemStackFactory.Create(outputItemId, maxStack - recipe.OutputItems[0].Count));
             }
-            InsertRecipeInputs(modInventory, recipe);
-            InsertRecipeInputs(ctrlInventory, recipe);
+            InsertRecipeInputs(modBlock, modInventory, recipe);
+            InsertRecipeInputs(ctrlBlock, ctrlInventory, recipe);
 
             AdvanceTicksWithFullPower(2, modProcessor, ctrlProcessor);
 
@@ -330,7 +331,7 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
-            InsertRecipeInputs(inventory, recipe);
+            InsertRecipeInputs(block, inventory, recipe);
 
             // 開始＋数tick進めたプロセス途中の状態を作ってセーブする
             // Start the process, advance a few ticks mid-process, then save
@@ -363,7 +364,7 @@ namespace Tests.CombinedTest.Core
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Speed, 1));
-            InsertRecipeInputs(inventory, recipe);
+            InsertRecipeInputs(block, inventory, recipe);
 
             // プロセス開始後にモジュールを取り外す（開始tickでは進行しないため残りtick＝短縮済み加工時間）
             // Remove the module after the process has started (no progress on the start tick, so remaining ticks = scaled time)
@@ -405,8 +406,9 @@ namespace Tests.CombinedTest.Core
 
         // レシピの入力アイテム1セットをインプットへ投入する
         // Insert one set of the recipe's input items into the input range
-        private static void InsertRecipeInputs(VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
+        private static void InsertRecipeInputs(IBlock block, VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
         {
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
             foreach (var inputItem in recipe.InputItems)
             {
                 inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));

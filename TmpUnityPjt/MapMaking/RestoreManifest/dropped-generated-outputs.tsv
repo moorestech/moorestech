@@ -1,0 +1,14 @@
+path	bytes	note
+Assets/Scenes/Other/ExportMap.unity	91529276	生成出力(プリセット+Pipelineから再生成可能)
+Assets/Scenes/Other/MapGenerator_Objects.prefab	27342876	生成出力(プリセット+Pipelineから再生成可能)
+Assets/Scenes/Other/MapGenerator_Ores.prefab	7132683	生成出力(プリセット+Pipelineから再生成可能)
+Assets/MapGenerator/Scenes/MapGeneratorTest.unity	90312156	生成出力(プリセット+Pipelineから再生成可能)
+Assets/Asset/Terrain_0_0-20251118 - 151437.asset	79469084	生成出力(プリセット+Pipelineから再生成可能)
+Assets/MapGenerator/TerrainData/New Terrain.asset	6160940	生成TerrainData
+Assets/MapGenerator/TerrainData/TerrainData_166bcb5f-583f-4206-9a5e-855712c8aacc.asset	6160588	生成TerrainData
+Assets/MapGenerator/TerrainData/TerrainData_d6df0c9d-5903-426d-a606-3feaf022bc4c.asset	6160588	生成TerrainData
+Assets/MapGenerator/TerrainData/TerrainData_e257f918-4054-426f-a222-581b9130e6f2.asset	557396	生成TerrainData
+Assets/MapGenerator/TerrainData/TerrainData_f9df7395-6b86-424e-ab64-d6468afb85d3.asset	6160732	生成TerrainData
+Assets/MapGenerator/Tests/EditMode/DetailReference	402653184	テスト用ゴールデン画像(テスト再実行で再生成)
+Assets/MapGenerator/Tests/EditMode/SdfReference	50331648	テスト用ゴールデン画像(テスト再実行で再生成)
+ExportTest/	2147483648	FBXエクスポート出力(Export機能で再生成)

@@ -25,12 +25,14 @@ namespace Client.Network.API
     public class VanillaApiWithResponse
     {
         private readonly IItemStackFactory _itemStackFactory;
+        private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
         private readonly PacketExchangeManager _packetExchangeManager;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
 
         public VanillaApiWithResponse(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
         {
             _itemStackFactory = ServerContext.ItemStackFactory;
+            _itemStackLevelUnlocker = ServerContext.GetService<IItemStackLevelUnlocker>();
             _packetExchangeManager = packetExchangeManager;
             _playerConnectionSetting = playerConnectionSetting;
         }
@@ -41,8 +43,15 @@ namespace Client.Network.API
             var request = new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(playerId, $"Player {playerId}");
             var initialHandShake = await _packetExchangeManager.GetPacketResponse<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(request, ct);
 
+            // ハンドシェイクに同梱されたスタックレベルを先に適用（インベントリ等のItemStack生成前に上限を正すため）
+            // Apply stack levels bundled in the handshake first so ItemStacks built from later responses use correct limits
+            foreach (var itemStackLevel in initialHandShake.ItemStackLevels)
+            {
+                _itemStackLevelUnlocker.UnlockStackLevel(itemStackLevel.ItemGuid, itemStackLevel.Level);
+            }
+
             //必要なデータを取得する
-            // Fetch all required resources including research node states
+            // Fetch all required resources
             var responses = await UniTask.WhenAll(
                 GetMapObjectInfo(ct),
                 GetWorldData(ct),
@@ -96,19 +105,19 @@ namespace Client.Network.API
             return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash, tickSequenceId);
         }
 
-        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot, CancellationToken ct)
+        public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
         {
             // 列車設置のレスポンスを取得する
             // Get response for train placement
             var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerConnectionSetting.PlayerId);
+            var request = new PlaceTrainCarOnRailProtocol.PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, trainCarGuid, _playerConnectionSetting.PlayerId);
             return await _packetExchangeManager.GetPacketResponse<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack>(request, ct);
         }
 
         public async UniTask<AttachTrainCarToUnitProtocol.AttachTrainCarToUnitResponseMessagePack> AttachTrainCarToUnit(
             TrainUnitInstanceId targetTrainUnitInstanceId,
             RailPosition railPosition,
-            int hotBarSlot,
+            Guid trainCarGuid,
             bool attachCarFacingForward,
             bool attachToTargetTrainHead,
             CancellationToken ct)
@@ -119,7 +128,7 @@ namespace Client.Network.API
             var request = new AttachTrainCarToUnitProtocol.AttachTrainCarToUnitRequestMessagePack(
                 targetTrainUnitInstanceId,
                 railPositionSnapshot,
-                hotBarSlot,
+                trainCarGuid,
                 _playerConnectionSetting.PlayerId,
                 attachCarFacingForward,
                 attachToTargetTrainHead);
@@ -224,7 +233,9 @@ namespace Client.Network.API
                 response.LockedCraftRecipeGuids, response.UnlockedCraftRecipeGuids,
                 response.LockedItemIds, response.UnlockedItemIds,
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
-                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids);
+                response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids,
+                response.LockedBlockGuids, response.UnlockedBlockGuids,
+                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
@@ -315,6 +326,21 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<FilterSplitterStateProtocol.FilterSplitterStateResponse>(request, ct);
         }
 
+        // SetRecipe/Clearを1メソッドで送信
+        // Machine recipe selection request (single endpoint for SetRecipe / Clear)
+        public async UniTask<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse> SendMachineRecipeSelectionRequest(
+            MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest request, CancellationToken ct)
+        {
+            return await _packetExchangeManager.GetPacketResponse<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(request, ct);
+        }
+
+        // BP Create/GetAll/Deleteを1メソッドで統合
+        // Blueprint request (single endpoint for Create / GetAll / Delete)
+        public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)
+        {
+            return await _packetExchangeManager.GetPacketResponse<BlueprintResponse>(request, ct);
+        }
+
         public async UniTask<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack> DisconnectRailAsync(
             int playerId,
             int fromNodeId,
@@ -330,36 +356,49 @@ namespace Client.Network.API
         public async UniTask<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse> PlaceRailWithPier(
             int fromNodeId,
             Guid fromGuid,
-            int pierInventorySlot,
+            BlockId pierBlockId,
             PlaceInfo pierPlaceInfo,
             Guid railTypeGuid,
             CancellationToken ct)
         {
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerConnectionSetting.PlayerId, fromNodeId, fromGuid, pierInventorySlot, pierPlaceInfo, railTypeGuid);
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerConnectionSetting.PlayerId, fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
             return await _packetExchangeManager.GetPacketResponse<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(request, ct);
+        }
+
+        public async UniTask<ElectricWireExtendProtocol.ElectricWireExtendResponse> ExtendElectricWire(
+            Vector3Int fromPos,
+            BlockId poleBlockId,
+            PlaceInfo polePlaceInfo,
+            ItemId wireItemId,
+            CancellationToken ct)
+        {
+            // 起点あり延長として電柱設置＋接続要求を送り、設置電柱情報を受け取る
+            // Send a with-origin extend request (place pole + wire) and receive the placed pole info
+            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleBlockId, polePlaceInfo, wireItemId);
+            return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
         }
 
         // 起点ポールから新規ポールを自動設置しつつチェーン接続する
         // Place a new pole from the source pole and connect the chain
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> ExtendGearChainPole(
             Vector3Int fromPolePos,
-            int poleInventorySlot,
+            BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
             ItemId chainItemId,
             CancellationToken ct)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleInventorySlot, polePlaceInfo, chainItemId);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleBlockId, polePlaceInfo, chainItemId);
             return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
         }
 
         // 接続なしの孤立ポールを設置する
         // Place an isolated pole without any connection
         public async UniTask<GearChainPoleExtendProtocol.GearChainPoleExtendResponse> PlaceIsolatedGearChainPole(
-            int poleInventorySlot,
+            BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
             CancellationToken ct)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleInventorySlot, polePlaceInfo);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateIsolatedPlaceRequest(_playerConnectionSetting.PlayerId, poleBlockId, polePlaceInfo);
             return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
         }
 

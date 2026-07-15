@@ -14,9 +14,11 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
+using System.Linq;
 using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -32,6 +34,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //機械のブロックを作る
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+
+            // レシピを明示選択してから材料を投入する
+            // Explicitly select the recipe before inserting materials
+            var machineGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid;
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == machineGuid);
+            MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
+
             //機械ブロックにアイテムを挿入するのでそのアイテムを挿入する
             var itemStackFactory = ServerContext.ItemStackFactory;
             
@@ -44,15 +53,22 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             blockInventory.InsertItem(item2);
             
             
-            //稼働用の電気を供給する
-            var electricMachineComponent = machine.GetComponent<VanillaElectricMachineComponent>();
-            electricMachineComponent.SupplyEnergy(new ElectricPower(100));
-            
+            //稼働用の電気を無限発電機からワイヤー経由で供給する
+            //Supply operating power from an infinite generator through a wire
+            Vector3Int generatorPos = new(0, 0, 2);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityGeneratorId, generatorPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ElectricWireTestUtil.Connect(pos, generatorPos);
+
+            //セグメント供給は機械Update後に走るため、遷移tickで満充電を観測できるよう電力をプリロードする
+            //The segment supplies after the machine's update, so preload power to observe a full charge on the transition tick
+            machine.GetComponent<VanillaElectricMachineComponent>().SupplyEnergy(new ElectricPower(100));
+
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
             packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
-            
-            //アップデートしてステートを更新する
-            GameUpdater.UpdateOneTick();
+
+            //電力がセグメント経由で機械へ行き渡り稼働状態になるまで数tick進める
+            //Advance several ticks until power propagates through the segment and the machine starts processing
+            for (var i = 0; i < 3; i++) GameUpdater.UpdateOneTick();
             
             
             //ステートが実行中になっているかをチェック

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Master.Validator;
 using Mooresmaster.Loader.MachineRecipesModule;
 using Mooresmaster.Model.MachineRecipesModule;
@@ -11,7 +10,7 @@ namespace Core.Master
     public class MachineRecipesMaster : IMasterValidator
     {
         public readonly MachineRecipes MachineRecipes;
-        private Dictionary<string, MachineRecipeMasterElement> _machineRecipesByRecipeKey;
+        private Dictionary<Guid, MachineRecipeMasterElement> _machineRecipesByGuid;
 
         public MachineRecipesMaster(JToken jToken)
         {
@@ -25,27 +24,18 @@ namespace Core.Master
 
         public void Initialize()
         {
-            MachineRecipesMasterUtil.Initialize(MachineRecipes, out _machineRecipesByRecipeKey);
-        }
-
-        public bool TryGetRecipeElement(BlockId blockId, List<ItemId> inputItemIds, List<FluidId> inputFluids, out MachineRecipeMasterElement recipe)
-        {
-            var key = MachineRecipesMasterUtil.GetRecipeElementKey(blockId, inputItemIds, inputFluids);
-            return _machineRecipesByRecipeKey.TryGetValue(key, out recipe);
+            // レシピ選択はGUID指定のため、GUID→レシピの辞書のみ構築する
+            // Recipe selection is GUID-based, so build only the GUID-to-recipe dictionary
+            _machineRecipesByGuid = new Dictionary<Guid, MachineRecipeMasterElement>();
+            foreach (var recipe in MachineRecipes.Data)
+            {
+                _machineRecipesByGuid.Add(recipe.MachineRecipeGuid, recipe);
+            }
         }
 
         public MachineRecipeMasterElement GetRecipeElement(Guid machineRecipeGuid)
         {
-            return MachineRecipes.Data.ToList().Find(x => x.MachineRecipeGuid == machineRecipeGuid);
-        }
-    }
-    
-    public static class MachineRecipeMasterExtension
-    {
-        public static ItemId GetBlockItemId(this MachineRecipeMasterElement recipe)
-        {
-            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
-            return MasterHolder.BlockMaster.GetItemId(blockId);
+            return _machineRecipesByGuid.GetValueOrDefault(machineRecipeGuid);
         }
     }
 }

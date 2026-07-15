@@ -2,6 +2,7 @@
   "name": "Game.SaveLoad",
   "rootNamespace": "",
   "references": [
+    "Core.Item",
     "Game.Paths",
     "Game.Map.Interface",
     "Game.Entity.Interface",
@@ -9,13 +10,15 @@
     "Game.World.Interface",
     "Game.SaveLoad.Interface",
     "Game.Block.Interface",
+    "Game.CleanRoom",
     "Game.Context",
     "Game.Challenge",
     "Game.UnlockState",
     "Game.CraftTree",
     "Game.Research",
     "Game.Train",
-    "Game.PlayerRiding.Interface"
+    "Game.PlayerRiding.Interface",
+    "Game.Blueprint"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -1,30 +1,27 @@
-using Core.Master;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
     public interface IPlaceSystem
     {
         public void Enable();
-        
+
         public void ManualUpdate(PlaceSystemUpdateContext context);
-        
+
         public void Disable();
     }
-    
-    public struct PlaceSystemUpdateContext
+
+    public readonly struct PlaceSystemUpdateContext
     {
-        public readonly ItemId HoldingItemId;
-        
-        public readonly bool IsSelectSlotChanged;
-        public readonly int PreviousSelectHotbarSlotIndex;
-        public readonly int CurrentSelectHotbarSlotIndex;
-        
-        public PlaceSystemUpdateContext(ItemId holdingItemId, bool isSelectSlotChanged, int previousSelectHotbarSlotIndex, int currentSelectHotbarSlotIndex)
+        // 設置対象（null = 未選択）。具体型を知るのはSelectorと各システムのみ
+        // The placement target (null = nothing selected); only the selector and each system know concrete types
+        public readonly IPlacementTarget Target;
+        public readonly bool IsSelectionChanged;
+
+        public PlaceSystemUpdateContext(IPlacementTarget target, bool isSelectionChanged)
         {
-            HoldingItemId = holdingItemId;
-            IsSelectSlotChanged = isSelectSlotChanged;
-            PreviousSelectHotbarSlotIndex = previousSelectHotbarSlotIndex;
-            CurrentSelectHotbarSlotIndex = currentSelectHotbarSlotIndex;
+            Target = target;
+            IsSelectionChanged = isSelectionChanged;
         }
     }
 }

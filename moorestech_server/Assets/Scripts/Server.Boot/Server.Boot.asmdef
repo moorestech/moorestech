@@ -29,6 +29,7 @@
         "Game.Context",
         "Core.Item",
         "Game.Gear",
+        "Game.CleanRoom",
         "Game.Challenge",
         "Core.Master",
         "Game.Train",
@@ -40,6 +41,7 @@
         "Game.PlayerRiding",
         "Game.PlayerRiding.Interface",
         "Game.PlayerConnection",
+        "Game.Blueprint",
         "UniRx"
     ],
     "includePlatforms": [],

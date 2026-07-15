@@ -1,7 +1,6 @@
 using System;
 using Game.Block.Interface;
 using Game.EnergySystem;
-using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,13 +12,13 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:getElectricNetInfo";
 
-        private readonly IWorldEnergySegmentDatastore<EnergySegment> _energySegmentDatastore;
+        private readonly IElectricWireNetworkDatastore _energySegmentDatastore;
 
         public GetElectricNetworkInfoProtocol(ServiceProvider serviceProvider)
         {
             // 電力はGearのstaticと異なりDIインスタンスから取得して保持
             // Unlike the gear static datastore, resolve and hold the energy datastore from DI
-            _energySegmentDatastore = serviceProvider.GetService<IWorldEnergySegmentDatastore<EnergySegment>>();
+            _energySegmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)

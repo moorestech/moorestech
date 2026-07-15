@@ -11,7 +11,6 @@ using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RailConnectionEditProtocol;
-using static Server.Protocol.PacketResponse.PlaceTrainCarOnRailProtocol;
 using static Server.Protocol.PacketResponse.SubscribeInventoryProtocol;
 using static Server.Protocol.PacketResponse.GearChainConnectionEditProtocol;
 using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
@@ -44,12 +43,12 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceHotBarBlock(List<PlaceInfo> placePositions, int hotBarSlot)
+        public void PlaceBlock(List<PlaceInfo> placePositions)
         {
-            var request = new PlaceBlockFromHotBarProtocol.SendPlaceHotBarBlockProtocolMessagePack(_playerId, hotBarSlot, placePositions);
+            var request = new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(_playerId, placePositions);
             _packetSender.Send(request);
         }
-        
+
         public void SendPlayerPosition(Vector3 pos)
         {
             var request = new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(_playerId, pos);
@@ -92,9 +91,9 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void InvokeBlockState(Vector3Int position)
+        public void RequestBlockState(Vector3Int position)
         {
-            var request = new InvokeBlockStateEventProtocol.RequestInvokeBlockStateProtocolMessagePack(position);
+            var request = new RequestBlockStateProtocol.RequestBlockStateProtocolMessagePack(position);
             _packetSender.Send(request);
         }
         
@@ -122,19 +121,12 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, int pierInventorySlot, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
+        public void PlaceRailWithPier(int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo pierPlaceInfo, Guid railTypeGuid)
         {
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerId, fromNodeId, fromGuid, pierInventorySlot, pierPlaceInfo, railTypeGuid);
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(_playerId, fromNodeId, fromGuid, pierBlockId, pierPlaceInfo, railTypeGuid);
             _packetSender.Send(request);
         }
         
-        public void PlaceTrainOnRail(RailPosition railPosition, int hotBarSlot)
-        {
-            var railPositionSnapshot = new RailPositionSnapshotMessagePack(railPosition?.CreateSaveSnapshot());
-            var request = new PlaceTrainOnRailRequestMessagePack(railPositionSnapshot, hotBarSlot, _playerId);
-            _packetSender.Send(request);
-        }
-
         public void SendTrainCarRidingInput(bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
         {
             var request = new TrainCarRidingInputMessagePack(_playerId, moveForward, moveBackward, selectPreviousBranch, selectNextBranch);
@@ -167,5 +159,24 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
 
+        /// <summary>
+        /// 電気系ブロック間に電線を接続する
+        /// Connect an electric wire between electric blocks
+        /// </summary>
+        public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, ItemId wireItemId)
+        {
+            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, wireItemId);
+            _packetSender.Send(request);
+        }
+
+        /// <summary>
+        /// 電気系ブロック間の電線を切断する
+        /// Disconnect an electric wire between electric blocks
+        /// </summary>
+        public void DisconnectElectricWire(Vector3Int posA, Vector3Int posB)
+        {
+            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateDisconnectRequest(posA, posB, _playerId);
+            _packetSender.Send(request);
+        }
     }
 }

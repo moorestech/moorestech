@@ -15,8 +15,12 @@ items:
     - unlockItemRecipeView
     - unlockChallengeCategory
     - unlockMachineRecipe
+    - unlockBlock
+    - unlockTrainCar
     - playSkit
     - playBackgroundSkit
+    - unlockItemStackLevel
+    - unlockPlayerInventorySlotLevel
   - key: gameActionParam
     switch: ./gameActionType
     cases:
@@ -60,6 +64,30 @@ items:
             schemaId: machineRecipes
             foreignKeyIdPath: /data/[*]/machineRecipeGuid
             displayElementPath: /data/[*]/machineRecipeGuid
+    - when: unlockBlock
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: unlockBlockGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
+    - when: unlockTrainCar
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: unlockTrainCarGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: train
+            foreignKeyIdPath: /trainCars/[*]/trainCarGuid
+            displayElementPath: /trainCars/[*]/trainCarGuid
     - when: unlockChallengeCategory
       type: object
       isDefaultOpen: true
@@ -112,4 +140,25 @@ items:
         type: enum
         options:
           - normal
-          - background 
+          - background
+    - when: unlockItemStackLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: targetItemGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+      - key: level
+        type: integer
+        default: 2 
+    - when: unlockPlayerInventorySlotLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: level
+        type: integer

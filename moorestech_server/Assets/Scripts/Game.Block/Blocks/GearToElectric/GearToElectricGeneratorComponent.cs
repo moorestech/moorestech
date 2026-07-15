@@ -47,7 +47,7 @@ namespace Game.Block.Blocks.GearToElectric
                 return;
             }
 
-            SetState((float)_param.MaxGeneratedPower * fulfillment, fulfillment);
+            SetState(_param.MaxGeneratedPower * fulfillment, fulfillment);
 
             #region Internal
 
