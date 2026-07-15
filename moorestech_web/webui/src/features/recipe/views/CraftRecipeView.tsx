@@ -56,13 +56,11 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
           ml="sm"
           disabled={!isCraftable}
           title="長押しでクラフト（押し続けで連続クラフト）"
-          onPointerDown={(e) => {
-            // ボタン外へドラッグしても pointerup を受け取れるよう捕捉する
-            // Capture the pointer so pointerup fires even if dragged off the button
-            e.currentTarget.setPointerCapture(e.pointerId);
-            start();
-          }}
+          onPointerDown={start}
+          // 離す・ボタンから外れる・キャンセルのいずれでもクラフトを止め、経過時間をリセットする
+          // Release, leaving the button, or cancel all stop the craft and reset the elapsed time
           onPointerUp={stop}
+          onPointerLeave={stop}
           onPointerCancel={stop}
         >
           Craft
