@@ -154,8 +154,8 @@ export type ResearchTreeData = { nodes: ResearchNodeData[] };
 export type BuildMenuEntryType = "block" | "trainCar" | "connectTool" | "blueprintCopy" | "blueprint";
 export type BuildMenuEntryData = {
   entryType: BuildMenuEntryType;
-  // 種別ごとの安定キー: block=BlockId / trainCar=Guid / connectTool=PlaceMode / blueprint=BP名 / blueprintCopy=""
-  // Stable key per type: block=BlockId, trainCar=Guid, connectTool=PlaceMode, blueprint=BP name, blueprintCopy=""
+  // 種別ごとの安定キー: block=BlockId / trainCar=Guid / connectTool=ToolType / blueprint=BP名 / blueprintCopy=""
+  // Stable key per type: block=BlockId, trainCar=Guid, connectTool=ToolType, blueprint=BP name, blueprintCopy=""
   entryKey: string;
   label: string;
   tooltip: string;
