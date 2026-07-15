@@ -1,5 +1,6 @@
-import { Stack, Text, Title } from "@mantine/core";
+import { Text } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
+import { GamePanel } from "@/shared/ui";
 import { useItemSelectionStore } from "./selectionStore";
 import RecipeContent from "./views/RecipeContent";
 
@@ -16,12 +17,11 @@ export default function RecipeViewer() {
   const loaded = recipes !== null && machineRecipes !== null && inventory !== null;
 
   return (
-    <Stack gap="sm" style={{ gridArea: "viewer", minWidth: 0 }}>
-      <Title order={2} size="h4">Recipe</Title>
+    <GamePanel gridArea="viewer" variant="craft" style={{ alignSelf: "start", width: 340, minWidth: 0 }}>
       {!loaded ? (
         <Text size="sm" c="dimmed">connecting...</Text>
       ) : selectedItemId === null ? (
-        <Text size="sm" c="dimmed">右のアイテムリストからアイテムを選択してください</Text>
+        <Text size="sm" c="dimmed" ta="center" py="xl">右のリストからアイテムを選択してください</Text>
       ) : (
         // key={selectedItemId} の再マウントで tabKey/recipeIndex をリセットする契約は維持
         // Keep the contract: remount via key={selectedItemId} resets tabKey/recipeIndex
@@ -35,6 +35,6 @@ export default function RecipeViewer() {
           onSelect={onSelect}
         />
       )}
-    </Stack>
+    </GamePanel>
   );
 }

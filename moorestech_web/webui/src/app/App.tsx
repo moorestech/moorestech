@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Group, Loader, Overlay, Stack, Text, Title } from "@mantine/core";
+import { Loader, Overlay, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, clearSelectedItem } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
@@ -37,15 +37,22 @@ export default function App() {
   return (
     <div className={styles.layout}>
       {screen !== "none" && <div className={styles.backdrop} data-testid="screen-backdrop" />}
+      {/* dev 専用のデバッグボタンは右上に浮かせる（本番バンドルには残らない） */}
+      {/* The dev-only debug button floats at the top-right (absent from the prod bundle) */}
+      {screen !== "none" && DebugActionButton ? (
+        <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10 }}>
+          <Suspense fallback={null}>
+            <DebugActionButton />
+          </Suspense>
+        </div>
+      ) : null}
+      {/* 左下の常時キーヒント */}
+      {/* Always-on key hints at the bottom-left */}
       {screen !== "none" && (
-        <Group gap="md" style={{ gridArea: "header" }}>
-          <Title order={1} size="h3">moorestech Web UI</Title>
-          {DebugActionButton ? (
-            <Suspense fallback={null}>
-              <DebugActionButton />
-            </Suspense>
-          ) : null}
-        </Group>
+        <div className={styles.keyHints} data-testid="key-hints">
+          <div><kbd>Tab/ESC</kbd>: インベントリを閉じる</div>
+          <div><kbd>R</kbd>: リサーチツリー</div>
+        </div>
       )}
       {screen !== "none" && <InventoryPanel />}
       {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}

@@ -1,6 +1,6 @@
 import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics, useItemMaster } from "@/bridge";
 import { readActiveLayer, screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
-import { ItemSlot, SlotGrid } from "@/shared/ui";
+import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
 import { createSlotActions } from "../slotActions";
@@ -48,23 +48,25 @@ export default function HotbarPanel() {
 
   return (
     <div className={styles.hotbarArea}>
-      <SlotGrid testId="hotbar-grid" className={styles.hotbarFrame} onWheel={onHotbarWheel}>
+      <div className={styles.hotbarFrame} data-testid="hotbar-grid" onWheel={onHotbarWheel}>
         {inventory.hotbarSlots.map((slot, i) => {
           const ref: SlotRef = { area: "hotbar", slot: i };
           return (
-            <ItemSlot
-              key={`hotbar-${i}`}
-              itemId={slot.itemId}
-              count={slot.count}
-              name={itemMaster?.get(slot.itemId)?.name}
-              selected={i === inventory.selectedHotbar}
-              onLeftDown={actions ? (shiftKey) => actions.onLeftDown(ref, slot, shiftKey) : undefined}
-              onRightDown={actions ? () => actions.onRightDown(ref, slot) : undefined}
-              onDoubleClick={actions ? () => actions.onDoubleClick(ref) : undefined}
-            />
+            <div key={`hotbar-${i}`} className={styles.cell}>
+              <span className={styles.num}>{i + 1}</span>
+              <ItemSlot
+                itemId={slot.itemId}
+                count={slot.count}
+                name={itemMaster?.get(slot.itemId)?.name}
+                selected={i === inventory.selectedHotbar}
+                onLeftDown={actions ? (shiftKey) => actions.onLeftDown(ref, slot, shiftKey) : undefined}
+                onRightDown={actions ? () => actions.onRightDown(ref, slot) : undefined}
+                onDoubleClick={actions ? () => actions.onDoubleClick(ref) : undefined}
+              />
+            </div>
           );
         })}
-      </SlotGrid>
+      </div>
     </div>
   );
 }

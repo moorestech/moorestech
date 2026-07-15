@@ -1,16 +1,27 @@
-/* uGUI 準拠の3カラム+下段ホットバー。grid-template-areas が複雑なため module 化 */
-/* uGUI-style 3 columns + bottom hotbar; module-ized for the complex grid-template-areas */
+/* uGUI 準拠の3カラム+下段ホットバー。パネルは固定サイズで中央寄せ（リフローせずゲーム同様に配置） */
+/* uGUI-style 3 columns + bottom hotbar; panels are fixed-size and centered (no reflow, placed like the game) */
 .layout {
   display: grid;
-  gap: 1.5rem;
-  padding: 1rem;
+  gap: 2.5rem;
+  padding: 2.5rem 1.5rem 1.5rem;
   min-height: 100vh;
+  box-sizing: border-box;
+  /* 3パネルを中央の帯に寄せ、上下にゆとりを持たせる */
+  /* Cluster the 3 panels in a centered band with vertical breathing room */
   grid-template-areas:
-    "header header header"
-    "inv viewer items"
-    "hotbar hotbar hotbar";
-  grid-template-columns: auto 1fr auto;
-  grid-template-rows: auto 1fr auto;
+    ". inv viewer items ."
+    ". hotbar hotbar hotbar .";
+  grid-template-columns: 1fr auto auto auto 1fr;
+  grid-template-rows: 1fr auto;
+  align-content: center;
+  justify-items: center;
+}
+
+/* 中央のクラフト詳細カラムは上寄せ（uGUI 同様に持ち物・レシピと天面を揃える） */
+/* The center craft column aligns to the top, matching the game's panel tops */
+.viewerCol {
+  grid-area: viewer;
+  align-self: start;
 }
 
 /* 画面表示中のみの全面 dim。z-index:-1 で背景のみを覆い、パネルは上に描画される */
@@ -18,7 +29,29 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(17, 17, 17, 0.6);
+  background: rgba(17, 17, 17, 0.35);
   pointer-events: none;
   z-index: -1;
+}
+
+/* 左下のキー操作ヒント（uGUI の GameStateController 準拠の常時ガイド） */
+/* Bottom-left key hints (always-on guide mirroring uGUI's GameStateController) */
+.keyHints {
+  position: fixed;
+  left: 24px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 22px;
+  font-weight: 500;
+  color: #f2f3f7;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.keyHints kbd {
+  font: inherit;
+  color: #cdd2df;
 }
