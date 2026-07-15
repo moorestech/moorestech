@@ -7,21 +7,11 @@
   align-items: flex-end;
 }
 
-/* 交差する織り目を持つチャコール地のホットバー枠 */
-/* Hotbar frame with a crossed weave over a charcoal ground */
+/* 外周枠を持たず各スロットを地面へ直接並べる */
+/* Place slots directly over the scene without an outer frame */
 .hotbarFrame {
   display: flex;
   gap: 6px;
-  padding: 8px;
-  border: 2px solid #a7a9b3;
-  border-radius: 3px;
-  background-image:
-    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.025) 0 4px, rgba(0, 0, 0, 0.025) 4px 8px),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0 4px, rgba(0, 0, 0, 0.02) 4px 8px),
-    linear-gradient(#363c46, #2e333c);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.55),
-    0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* 各セル: 上に番号ラベル、下にスロット */
@@ -34,6 +24,10 @@
 }
 
 .num {
+  padding: 1px 5px;
+  border: 1px solid rgba(200, 205, 215, 0.5);
+  border-radius: 2px;
+  background: rgba(20, 24, 32, 0.55);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
