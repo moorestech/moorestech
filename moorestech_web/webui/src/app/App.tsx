@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useLayoutEffect, useRef } from "react";
 import { Button, Loader, Overlay, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, clearSelectedItem } from "@/features/recipe";
@@ -16,9 +16,32 @@ import styles from "./App.module.css";
 // Dev-only; a static import would ship to prod, so lazy-load it inside the import.meta.env.DEV guard
 const DebugActionButton = import.meta.env.DEV ? lazy(() => import("./DebugActionButton")) : null;
 
+// 基準stageをviewportへ収める一様拡縮を同期する
+// Synchronize uniform scaling that fits the reference stage in the viewport
+function useUiScale() {
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const updateScale = () => {
+      const stage = stageRef.current;
+      if (!stage) return;
+      const scale = Math.min(window.innerWidth / stage.offsetWidth, window.innerHeight / stage.offsetHeight);
+      stage.style.setProperty("--ui-scale", String(scale));
+    };
+
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, []);
+
+  return stageRef;
+}
+
 // uGUI のインベントリ画面準拠の3カラム+下段ホットバーレイアウト
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
+  const stageRef = useUiScale();
+
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
   // Show the overlay only when disconnected after a prior connect (before first connect, panels show connecting...)
   const disconnected = useConnectionStatus() === "reconnecting";
@@ -35,44 +58,44 @@ export default function App() {
   });
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.viewport}>
       {screen !== "none" && <div className={styles.backdrop} data-testid="screen-backdrop" />}
-      {/* 整理操作と開発用操作を画面右上へ独立配置する */}
-      {/* Float sorting and development controls independently at the top-right */}
-      {screen !== "none" && (
-        <div style={{ position: "fixed", top: 12, right: 12, zIndex: 10, display: "flex", gap: 8 }}>
-          <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
-            整理
-          </Button>
-          {DebugActionButton ? (
-            <Suspense fallback={null}>
-              <DebugActionButton />
-            </Suspense>
-          ) : null}
-        </div>
-      )}
-      {/* 左下の常時キーヒント */}
-      {/* Always-on key hints at the bottom-left */}
-      {screen !== "none" && (
-        <div className={styles.keyHints} data-testid="key-hints">
-          <div><kbd>Tab/ESC</kbd>: インベントリを閉じる</div>
-          <div><kbd>R</kbd>: リサーチツリー</div>
-        </div>
-      )}
-      {screen !== "none" && <InventoryPanel />}
-      {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
-      {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
-      <HotbarPanel />
-      {screen === "playerInventory" && <RecipeViewer />}
-      {screen === "playerInventory" && <ItemListPanel />}
-      {/* オーバーレイ系（grid セルでなく fixed/center 配置） */}
-      {/* Overlays (fixed/centered, not grid cells) */}
-      {screen === "researchTree" && <ResearchTreePanel />}
-      {screen === "buildMenu" && <BuildMenuPanel />}
-      <BlockInventoryPanel />
-      <ModalHost />
-      <ProgressBar />
-      <ToastHost />
+      <div ref={stageRef} className={styles.stage}>
+        {/* 整理操作と開発用操作を基準stageの右上へ配置する */}
+        {/* Place sorting and development controls at the reference stage top-right */}
+        {screen !== "none" && (
+          <div className={styles.topControls}>
+            <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
+              整理
+            </Button>
+            {DebugActionButton ? (
+              <Suspense fallback={null}>
+                <DebugActionButton />
+              </Suspense>
+            ) : null}
+          </div>
+        )}
+        {screen !== "none" && (
+          <div className={styles.keyHints} data-testid="key-hints">
+            <div><kbd>Tab/ESC</kbd>: インベントリを閉じる</div>
+            <div><kbd>R</kbd>: リサーチツリー</div>
+          </div>
+        )}
+        {screen !== "none" && <InventoryPanel />}
+        {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
+        {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
+        <HotbarPanel />
+        {screen === "playerInventory" && <RecipeViewer />}
+        {screen === "playerInventory" && <ItemListPanel />}
+        {/* オーバーレイ系は基準stage内で一様に拡縮する */}
+        {/* Scale overlay systems uniformly within the reference stage */}
+        {screen === "researchTree" && <ResearchTreePanel />}
+        {screen === "buildMenu" && <BuildMenuPanel />}
+        <BlockInventoryPanel />
+        <ModalHost />
+        <ProgressBar />
+        <ToastHost />
+      </div>
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}
       {disconnected && (

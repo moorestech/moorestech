@@ -1,5 +1,5 @@
-/* buildMenu レイヤーは blockInventory/research(30) より下位、modal はPortalで最前面 */
-/* The buildMenu layer sits below blockInventory/research (30); the modal wins via its portal */
+/* buildMenuはblockInventory/researchより下位で、modalのz-indexが最前面になる */
+/* BuildMenu sits below blockInventory/research, while the modal z-index stays on top */
 .panel {
   position: fixed;
   inset: 8% 12%;
