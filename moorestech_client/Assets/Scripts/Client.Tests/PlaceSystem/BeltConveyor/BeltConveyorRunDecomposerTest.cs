@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -19,6 +20,12 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 
         private static readonly List<(int length, BlockId blockId)> Variants = new() { (3, Straight3), (2, Straight2), (1, Straight1) };
 
+        private static readonly BeltConveyorFamily Family = new(Straight1, Variants, UpBlock, DownBlock);
+
+        // 斜面バリアントを持たないファミリー（分岐器相当）
+        // A family without slope variants (equivalent to a splitter)
+        private static readonly BeltConveyorFamily SlopelessFamily = new(Straight1, new List<(int length, BlockId blockId)> { (1, Straight1) }, null, null);
+
         private static PlaceInfo Cell(int x, int y, int z, BlockDirection dir, BlockVerticalDirection vertical, bool placeable)
         {
             return new PlaceInfo { Position = new Vector3Int(x, y, z), Direction = dir, VerticalDirection = vertical, Placeable = placeable };
@@ -28,7 +35,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void 直線9マスは3連x3に分解される()
         {
             var cells = Enumerable.Range(0, 9).Select(i => Cell(0, 0, i, BlockDirection.North, BlockVerticalDirection.Horizontal, true)).ToList();
-            var result = BeltConveyorRunDecomposer.Decompose(cells, Variants, UpBlock, DownBlock);
+            var result = BeltConveyorRunDecomposer.Decompose(cells, Family);
 
             Assert.AreEqual(3, result.Count);
             Assert.IsTrue(result.All(r => r.BlockId == Straight3));
@@ -41,7 +48,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void 直線7マスは3連x2と1連x1()
         {
             var cells = Enumerable.Range(0, 7).Select(i => Cell(0, 0, i, BlockDirection.North, BlockVerticalDirection.Horizontal, true)).ToList();
-            var result = BeltConveyorRunDecomposer.Decompose(cells, Variants, UpBlock, DownBlock);
+            var result = BeltConveyorRunDecomposer.Decompose(cells, Family);
 
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(Straight3, result[0].BlockId);
@@ -60,7 +67,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(4, 0, 0, BlockDirection.West, BlockVerticalDirection.Horizontal, true),
                 Cell(3, 0, 0, BlockDirection.West, BlockVerticalDirection.Horizontal, true),
             };
-            var result = BeltConveyorRunDecomposer.Decompose(cells, Variants, UpBlock, DownBlock);
+            var result = BeltConveyorRunDecomposer.Decompose(cells, Family);
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(Straight3, result[0].BlockId);
@@ -80,7 +87,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(1, 0, 1, BlockDirection.East, BlockVerticalDirection.Horizontal, true),
                 Cell(2, 0, 1, BlockDirection.East, BlockVerticalDirection.Horizontal, true),
             };
-            var result = BeltConveyorRunDecomposer.Decompose(cells, Variants, UpBlock, DownBlock);
+            var result = BeltConveyorRunDecomposer.Decompose(cells, Family);
 
             // 先頭セルは方向が異なるため1連、続く東向き3マスは3連
             // The corner cell stays 1-length; the following 3 east cells merge into one 3-length
@@ -99,7 +106,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 0, 1, BlockDirection.North, BlockVerticalDirection.Up, true),
                 Cell(0, 1, 2, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
             };
-            var result = BeltConveyorRunDecomposer.Decompose(cells, Variants, UpBlock, DownBlock);
+            var result = BeltConveyorRunDecomposer.Decompose(cells, Family);
 
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(Straight1, result[0].BlockId);
@@ -118,7 +125,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 0, 2, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
                 Cell(0, 0, 3, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
             };
-            var result = BeltConveyorRunDecomposer.Decompose(cells, Variants, UpBlock, DownBlock);
+            var result = BeltConveyorRunDecomposer.Decompose(cells, Family);
 
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(Straight1, result[0].BlockId);
@@ -126,6 +133,22 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             Assert.AreEqual(Straight1, result[1].BlockId);
             Assert.AreEqual(Straight2, result[2].BlockId);
             Assert.AreEqual(new Vector3Int(0, 0, 2), result[2].Position);
+        }
+
+        [Test]
+        public void 斜面バリアントを持たないファミリーは傾斜セルが設置不可になる()
+        {
+            var cells = new List<PlaceInfo>
+            {
+                Cell(0, 0, 0, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
+                Cell(0, 0, 1, BlockDirection.North, BlockVerticalDirection.Up, true),
+            };
+            var result = BeltConveyorRunDecomposer.Decompose(cells, SlopelessFamily);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result[0].Placeable);
+            Assert.IsFalse(result[1].Placeable);
+            Assert.AreEqual(Straight1, result[1].BlockId);
         }
 
         [Test]
@@ -138,7 +161,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 0, 0, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
                 Cell(0, 1, 1, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
             };
-            var result = BeltConveyorRunDecomposer.Decompose(cells, Variants, UpBlock, DownBlock);
+            var result = BeltConveyorRunDecomposer.Decompose(cells, Family);
 
             Assert.AreEqual(2, result.Count);
             Assert.IsTrue(result.All(r => r.BlockId == Straight1));

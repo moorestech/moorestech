@@ -6,13 +6,19 @@ namespace Client.Game.InGame.UI.UIState
 {
     public class UIStateControl : MonoBehaviour
     {
-        [Inject] private UIStateDictionary _uiStateDictionary;
+        private UIStateDictionary _uiStateDictionary;
 
         public event Action<UIStateEnum> OnStateChanged;
         public UIStateEnum CurrentState { get; private set; }
 
         private UIStateEnum? _webTransitionRequest;
         private bool? _lastWebUiMode;
+
+        [Inject]
+        public void Construct(UIStateDictionary uiStateDictionary)
+        {
+            _uiStateDictionary = uiStateDictionary;
+        }
 
         public void Initialize(UIStateEnum initialState, UITransitContext initialContext)
         {
@@ -54,11 +60,11 @@ namespace Client.Game.InGame.UI.UIState
 
             var lastState = CurrentState;
             nextContext.SetLastState(lastState);
-            CurrentState = nextContext.NextStateEnum;
 
             //現在のUIステートを終了し、次のステートを呼び出す
             // Exit current UI state and call next state
             _uiStateDictionary.GetState(lastState).OnExit();
+            CurrentState = nextContext.NextStateEnum;
             _uiStateDictionary.GetState(CurrentState).OnEnter(nextContext);
 
             OnStateChanged?.Invoke(CurrentState);
@@ -93,6 +99,14 @@ namespace Client.Game.InGame.UI.UIState
             }
 
             #endregion
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus) return;
+
+            if (_uiStateDictionary.GetState(CurrentState) is IApplicationFocusRestorer focusRestorer)
+                focusRestorer.RestoreAfterApplicationFocus();
         }
     }
 }

@@ -1,22 +1,22 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
+
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
     public sealed class ConnectToolPlacementTarget : IPlacementTarget
     {
-        // PlaceSystemMasterElement.PlaceModeConst のいずれか
-        // One of PlaceSystemMasterElement.PlaceModeConst values
-        public readonly string PlaceMode;
+        public readonly ConnectToolType ToolType;
 
-        public ConnectToolPlacementTarget(string placeMode)
+        public ConnectToolPlacementTarget(ConnectToolType toolType)
         {
-            PlaceMode = placeMode;
+            ToolType = toolType;
         }
 
         public bool Equals(IPlacementTarget other)
         {
-            return other is ConnectToolPlacementTarget target && PlaceMode == target.PlaceMode;
+            return other is ConnectToolPlacementTarget target && ToolType == target.ToolType;
         }
 
         public override bool Equals(object obj) => obj is IPlacementTarget target && Equals(target);
-        public override int GetHashCode() => PlaceMode.GetHashCode();
+        public override int GetHashCode() => ToolType.GetHashCode();
     }
 }

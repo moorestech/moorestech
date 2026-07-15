@@ -114,7 +114,7 @@ namespace Client.Game.InGame.Block
                 
                 // ブロックの初期状態を取得するためにサーバーに問い合わせる
                 // Request the server for the initial block state
-                ClientContext.VanillaApi.SendOnly.InvokeBlockState(BlockPosInfo.OriginalPos);
+                ClientContext.VanillaApi.SendOnly.RequestBlockState(BlockPosInfo.OriginalPos);
             }
             
             async UniTask LoadBoundingBox()

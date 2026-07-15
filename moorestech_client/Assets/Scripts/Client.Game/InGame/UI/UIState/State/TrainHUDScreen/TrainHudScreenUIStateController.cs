@@ -41,6 +41,12 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         {
             _states[CurrentState].OnExit();
         }
+
+        public void RestoreAfterApplicationFocus()
+        {
+            if (CurrentState != TrainHudScreenUIStateEnum.GameScreen) return;
+            _states[CurrentState].OnEnter();
+        }
     }
 
     public enum TrainHudScreenUIStateEnum

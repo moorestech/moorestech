@@ -63,17 +63,6 @@
   box-shadow: 0 0 0.45rem rgb(79 154 232 / 55%), inset 0 0 1rem rgb(16 51 76 / 65%);
 }
 
-/* 白い太矢印を素材列と完成品の間で固定表示する */
-/* Keep the bold white arrow visible between materials and result */
-.arrow {
-  width: 2rem;
-  height: 1.5rem;
-  margin-inline: 0.5rem;
-  flex: 0 0 auto;
-  fill: #fff;
-  filter: drop-shadow(0 0 0.25rem rgb(255 255 255 / 75%));
-}
-
 .craftTime {
   color: #d7dbe5;
   text-align: center;
