@@ -12,7 +12,7 @@ export default function ItemListPanel() {
   const itemMaster = useItemMaster();
 
   return (
-    <GamePanel gridArea="items" title="CRAFT RECIPE">
+    <GamePanel gridArea="items" title="CRAFT RECIPE" style={{ justifySelf: "end" }}>
       {itemList ? (
         <ScrollArea.Autosize mah="60vh" type="auto" offsetScrollbars>
           <SlotGrid cols={6} testId="item-list-grid">
