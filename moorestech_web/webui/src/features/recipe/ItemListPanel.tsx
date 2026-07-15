@@ -14,7 +14,7 @@ export default function ItemListPanel() {
   return (
     <GamePanel gridArea="items" title="CRAFT RECIPE" style={{ justifySelf: "end" }}>
       {itemList ? (
-        <ScrollArea.Autosize mah="60vh" type="auto" offsetScrollbars>
+        <ScrollArea.Autosize mah={432} type="auto" offsetScrollbars>
           <SlotGrid cols={6} testId="item-list-grid">
             {itemList.itemIds.map((id) => (
               <ItemSlot

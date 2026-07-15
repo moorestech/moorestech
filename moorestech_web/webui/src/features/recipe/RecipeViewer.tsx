@@ -17,7 +17,7 @@ export default function RecipeViewer() {
   const loaded = recipes !== null && machineRecipes !== null && inventory !== null;
 
   return (
-    <GamePanel gridArea="viewer" variant="craft" style={{ alignSelf: "start", justifySelf: "center", width: "min(372px, 32vw)", minWidth: 0, minHeight: "46vh" }}>
+    <GamePanel gridArea="viewer" variant="craft" style={{ alignSelf: "start", justifySelf: "center", width: 372, minWidth: 0, minHeight: 470 }}>
       {!loaded ? (
         <Text size="sm" c="dimmed">connecting...</Text>
       ) : selectedItemId === null ? (
