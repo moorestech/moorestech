@@ -1,6 +1,7 @@
 # Playwright
 test-results/
 playwright-report/
+.playwright-cli/
 
 # tsc -b artifacts for config files (composite project)
 *.tsbuildinfo
