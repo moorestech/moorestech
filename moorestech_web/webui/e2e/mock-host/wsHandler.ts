@@ -5,7 +5,7 @@ import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers } from "./state";
-import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect } from "./inventoryModel";
+import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft } from "./inventoryModel";
 import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 
 // 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
@@ -78,6 +78,14 @@ export function attachWsHandlers(wss: WebSocketServer) {
         } else if (msg.type === "inventory.collect") {
           applyCollect(inv, msg.payload as ActionPayloads["inventory.collect"]);
           setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+        } else if (msg.type === "craft.execute") {
+          // 素材が足りる場合のみ消費・生産して inventory topic を再配信する。不足時は実 host のクラフト不成立に相当する no-op（ok:true・トースト回避）
+          // Consume+produce and republish the inventory topic only when materials suffice; a shortfall is a no-op (ok:true) mirroring the real host's failed craft
+          const guid = (msg.payload as ActionPayloads["craft.execute"]).recipeGuid;
+          const recipe = fx.craftRecipes.recipes.find((r) => r.recipeGuid === guid);
+          if (recipe && applyCraft(inv, recipe)) {
+            setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
+          }
         } else if (msg.type === "inventory.select_hotbar") {
           // 選択 index を更新して inventory topic を再配信
           // Update the selected index and republish the inventory topic
@@ -162,8 +170,8 @@ export function attachWsHandlers(wss: WebSocketServer) {
             for (const sub of researchTreeSubscribers) send(sub, { op: "event", topic: Topics.researchTree, data: state.researchTree });
           }, 30);
         } else if (msg.type !== "fail.always" && !KNOWN_ACTIONS.has(msg.type)) {
-          // 未知 action type は本番 dispatcher と同じく unknown_action で拒否する（既知だが未実装の split/sort/craft は no-op で ok:true）
-          // Unknown action types are rejected with unknown_action like the real dispatcher (known-but-unimplemented split/sort/craft stay no-op ok:true)
+          // 未知 action type は本番 dispatcher と同じく unknown_action で拒否する（既知だが未実装の split/sort は no-op で ok:true）
+          // Unknown action types are rejected with unknown_action like the real dispatcher (known-but-unimplemented split/sort stay no-op ok:true)
           error = "unknown_action";
         }
         send(ws, { op: "result", requestId: msg.requestId, ok: error === undefined, error });
