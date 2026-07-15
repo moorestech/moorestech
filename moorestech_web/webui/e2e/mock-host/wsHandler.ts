@@ -29,7 +29,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
       if (topic === Topics.itemList) return DEMO ? fx.demoItemList : fx.itemList;
       if (topic === Topics.blockInventory) return state.currentBlock;
       if (topic === Topics.modal) return { modal: state.currentModal };
-      if (topic === Topics.progress) return fx.progressSample;
+      if (topic === Topics.progress) return DEMO ? fx.demoProgress : fx.progressSample;
       if (topic === Topics.uiState) return state.currentUiState;
       if (topic === Topics.researchTree) return state.researchTree;
       return undefined;

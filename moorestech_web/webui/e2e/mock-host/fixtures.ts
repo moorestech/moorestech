@@ -140,3 +140,7 @@ export const demoInventory = {
 export const demoItemMaster = {
   items: Array.from({ length: 120 }, (_, i) => ({ itemId: i + 1, name: `Item ${i + 1}`, maxStack: 100 })),
 } satisfies ItemMasterData;
+
+// DEMO: 進捗バーは非表示にしてホットバーを target 同様すっきり見せる
+// DEMO: hide the progress bar so the hotbar reads clean like the target
+export const demoProgress = { visible: false, progress: 0 } satisfies ProgressData;
