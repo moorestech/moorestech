@@ -89,7 +89,7 @@ export const craftRecipes = {
       recipeGuid: "g-craft-1",
       resultItemId: 100,
       resultCount: 1,
-      craftTime: 1,
+      craftTime: 0.2,
       requiredItems: [
         { itemId: 1, count: 2 },
         { itemId: 2, count: 1 },
