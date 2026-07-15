@@ -16,7 +16,6 @@ namespace Core.Master
         public static FluidMaster FluidMaster { get; private set; }
         public static CharacterMaster CharacterMaster { get; private set; }
         public static ResearchMaster ResearchMaster { get; private set; }
-        public static PlaceSystemMaster PlaceSystemMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
         public static CleanRoomMaster CleanRoomMaster { get; private set; }
 
@@ -48,9 +47,6 @@ namespace Core.Master
 
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
             InitializeMaster(MapObjectMaster);
-
-            PlaceSystemMaster = new PlaceSystemMaster(GetJson(masterJsonFileContainer, new JsonFileName("placeSystem")));
-            InitializeMaster(PlaceSystemMaster);
 
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")));
             InitializeMaster(TrainUnitMaster);

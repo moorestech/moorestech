@@ -186,6 +186,8 @@ properties:
     - key: category
       type: string
       optional: true
+    # ElectricPoleとTrainRailはsortPriority最小（同値はname昇順）をコネクトツールで自動設置する
+    # Connect tools auto-place the lowest-sortPriority ElectricPole or TrainRail block, breaking ties by name ascending
     - key: sortPriority
       type: integer
       optional: true
@@ -1028,6 +1030,43 @@ properties:
     - key: consumptionPerLength
       type: number
       default: 1
+
+# ベルトコンベアの設置ファミリー定義。1エントリが上り/下り/直線群からなる1つの敷設グループを表す。
+# Belt conveyor placement family definitions; each entry is one laying group of up/down/straight blocks.
+- key: beltConveyorFamilies
+  type: array
+  items:
+    type: object
+    properties:
+    # 斜面を持たないファミリー（分岐器など）では上り/下りを持たない
+    # Families without slopes (e.g. splitters) omit up/down
+    - key: upBlockGuid
+      type: uuid
+      optional: true
+      foreignKey:
+        schemaId: blocks
+        foreignKeyIdPath: /data/[*]/blockGuid
+        displayElementPath: /data/[*]/name
+    - key: downBlockGuid
+      type: uuid
+      optional: true
+      foreignKey:
+        schemaId: blocks
+        foreignKeyIdPath: /data/[*]/blockGuid
+        displayElementPath: /data/[*]/name
+    # 直線コンベア群。長さはblockSize.zから導出し、代表はblockSize.z==1のブロック
+    # Straight conveyors; length is derived from blockSize.z, the representative is the blockSize.z==1 block
+    - key: straightBlocks
+      type: array
+      items:
+        type: object
+        properties:
+        - key: blockGuid
+          type: uuid
+          foreignKey:
+            schemaId: blocks
+            foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
 
 # ブロック破壊カテゴリ定義。カテゴリキーと、それに属するブロックを外部キーで一元管理する
 # Block destruction category definitions; each maps a category key to its member blocks via foreign key
