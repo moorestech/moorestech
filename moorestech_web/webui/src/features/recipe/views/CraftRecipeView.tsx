@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
-import { ItemSlot } from "@/shared/ui";
+import { ItemSlot, ProgressArrow } from "@/shared/ui";
 import type { CraftRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
 import { clampIndex, craftable } from "../craftLogic";
+import { useHoldCraft } from "../useHoldCraft";
 import styles from "../RecipeViewer.module.css";
 import RecipePager from "./RecipePager";
 
@@ -15,8 +17,8 @@ type Props = {
   onSelect: (itemId: number) => void;
 };
 
-// クラフトタブ: 素材列 → 結果と Craft ボタン。素材クリックでそのアイテムへジャンプ
-// Craft tab: material row → result with a Craft button; clicking a material jumps to that item
+// クラフトタブ: 素材列 → 進捗矢印 → 結果。下端ボタン長押しで craftTime ごとに連続クラフト（uGUI CraftButton 準拠）
+// Craft tab: material row → progress arrow → result; hold the bottom button to continuously craft every craftTime (mirrors uGUI CraftButton)
 export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, itemMaster, onSelect }: Props) {
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
@@ -24,10 +26,15 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
   const recipe = recipes[index];
   const isCraftable = craftable(recipe, counts);
 
-  const onCraft = () => {
-    if (!isCraftable) return;
+  // 長押し1周ごとに1回クラフト要求を送る。素材チェックはサーバー側で行われる
+  // Send one craft request per completed hold cycle; material checks happen server-side
+  const { progress, isHolding, start, stop } = useHoldCraft(recipe.craftTime, isCraftable, () => {
     void dispatchAction("craft.execute", { recipeGuid: recipe.recipeGuid });
-  };
+  });
+
+  // 表示レシピが切り替わったら進行中の長押しを打ち切る
+  // Abort any in-progress hold when the displayed recipe changes
+  useEffect(() => stop, [recipe.recipeGuid, stop]);
 
   return (
     <Stack className={styles.craftRecipe} gap="xs">
@@ -40,15 +47,33 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
             <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
           </Box>
         ))}
-        {/* 素材と完成品の流れを太い白矢印で明示する */}
-        {/* Show the material-to-result flow with a bold white arrow */}
-        <svg className={styles.arrow} viewBox="0 0 32 24" aria-hidden="true">
-          <path d="M18 2 30 12 18 22v-6H2V8h16V2Z" />
-        </svg>
+        {/* 素材と完成品の間に長押し進捗を矢印で表示する */}
+        {/* Show hold progress as an arrow between materials and result */}
+        <Box mx="xs">
+          <ProgressArrow value={isHolding ? progress : 0} />
+        </Box>
         <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
       </Group>
       <Text className={styles.craftTime} size="sm">{recipe.craftTime}秒</Text>
-      <Button className={styles.craftButton} fullWidth disabled={!isCraftable} onClick={onCraft}>
+      <Button
+        className={styles.craftButton}
+        fullWidth
+        disabled={!isCraftable}
+        title="長押しでクラフト（押し続けで連続クラフト）"
+        // 主ボタン（左クリック/主タッチ）以外では長押しを開始しない
+        // Only the primary button/touch starts the hold; ignore right/middle clicks
+        onPointerDown={(e) => { if (e.button === 0) start(); }}
+        // 離す・ボタンから外れる・キャンセルのいずれでもクラフトを止め、経過時間をリセットする
+        // Release, leaving the button, or cancel all stop the craft and reset the elapsed time
+        onPointerUp={stop}
+        onPointerLeave={stop}
+        onPointerCancel={stop}
+        // キーボード（Enter/Space）長押しでも連続クラフトできるようにする（ネイティブ onClick 喪失分の回復）
+        // Keep keyboard (Enter/Space) hold working, restoring the craft path lost when native onClick was removed
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); start(); } }}
+        onKeyUp={(e) => { if (e.key === "Enter" || e.key === " ") stop(); }}
+        onBlur={stop}
+      >
         Craft
       </Button>
     </Stack>

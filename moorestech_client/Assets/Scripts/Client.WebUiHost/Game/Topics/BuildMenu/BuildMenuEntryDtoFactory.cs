@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
 using Core.Master;
@@ -56,7 +56,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 BlockPlacementTarget block => block.BlockId.AsPrimitive().ToString(),
                 TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString(),
-                ConnectToolPlacementTarget connectTool => connectTool.PlaceMode,
+                ConnectToolPlacementTarget connectTool => connectTool.ToolType.ToString(),
                 BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
                 _ => string.Empty,
             };
@@ -72,10 +72,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
                 case ConnectToolPlacementTarget connectTool:
                 {
-                    // 接続ツールはマスタの IconItemGuid からアイテムアイコンを引く
-                    // Connect tools resolve their icon from the master's IconItemGuid
-                    var tool = MasterHolder.PlaceSystemMaster.PlaceSystem.Data.First(t => t.PlaceMode == connectTool.PlaceMode);
-                    var itemId = MasterHolder.ItemMaster.GetItemId(tool.IconItemGuid.Value);
+                    // 接続ツールのアイコンは敷設素材アイテムから引く（カタログが解決）
+                    // The connect tool icon comes from its laying-material item (resolved by the catalog)
+                    var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(connectTool.ToolType);
+                    if (iconItemGuid == null) return null;
+                    var itemId = MasterHolder.ItemMaster.GetItemId(iconItemGuid.Value);
                     return $"{ItemIconEndpoint.PathPrefix}{itemId.AsPrimitive()}{ItemIconEndpoint.PathSuffix}";
                 }
                 default:

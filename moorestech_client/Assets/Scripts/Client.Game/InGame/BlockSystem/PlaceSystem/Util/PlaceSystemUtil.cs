@@ -4,7 +4,7 @@ using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Control.BuildView;
+using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
 using Game.Block.Interface;
