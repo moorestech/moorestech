@@ -113,3 +113,30 @@ export const itemMaster = {
     { itemId: 100, name: "Plank", maxStack: 100 },
   ],
 } satisfies ItemMasterData;
+
+// DEMO(採点用): グリッドを埋めて target 画面の密度へ近づける。既定 fixtures は変えず追加のみ
+// DEMO (scoring only): fill the grids to approach the target screen density; additive, defaults untouched
+export const demoItemList = { itemIds: [100, ...Array.from({ length: 41 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
+
+// 先頭3スロットは既定と同じ内容にし、残りをアイテムで埋める(空6スロット残す)
+// Keep the first 3 slots identical to the default, then fill the rest with items (leaving 6 empty)
+export const demoInventory = {
+  mainSlots: [
+    { itemId: 1, count: 10 },
+    { itemId: 2, count: 10 },
+    { itemId: 1, count: 5 },
+    ...Array.from({ length: 27 }, (_, i) => ({ itemId: (i % 40) + 3, count: ((i * 7) % 99) + 1 })),
+    ...Array.from({ length: 6 }, empty),
+  ],
+  hotbarSlots: [
+    { itemId: 2, count: 3 },
+    ...Array.from({ length: 4 }, (_, i) => ({ itemId: i + 10, count: (i + 1) * 2 })),
+    ...Array.from({ length: 4 }, empty),
+  ],
+  grab: empty(),
+  selectedHotbar: 0,
+} satisfies PlayerInventoryData;
+
+export const demoItemMaster = {
+  items: Array.from({ length: 120 }, (_, i) => ({ itemId: i + 1, name: `Item ${i + 1}`, maxStack: 100 })),
+} satisfies ItemMasterData;

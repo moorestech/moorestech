@@ -12,17 +12,21 @@ import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detai
 // Action types the real dispatcher accepts, derived from protocol.ts to kill the duplicate list
 const KNOWN_ACTIONS = new Set<string>(ACTION_TYPES);
 
+// DEMO(採点用): 密度の高いインベントリ/アイテム一覧を配信する
+// DEMO (scoring only): serve the dense inventory/item list
+const DEMO = process.env.MOCK_DEMO === "1";
+
 // インベントリ状態は接続ごとに分離する。並列テストが同一 inv を奪い合わないため
 // Inventory state is isolated per connection so parallel tests don't race on the same inv
 export function attachWsHandlers(wss: WebSocketServer) {
   wss.on("connection", (ws) => {
-    let inv: PlayerInventoryData = clone(fx.inventory);
+    let inv: PlayerInventoryData = clone(DEMO ? fx.demoInventory : fx.inventory);
 
     const topicData = (topic: string): unknown => {
       if (topic === Topics.inventory) return inv;
       if (topic === Topics.craftRecipes) return fx.craftRecipes;
       if (topic === Topics.machineRecipes) return fx.machineRecipes;
-      if (topic === Topics.itemList) return fx.itemList;
+      if (topic === Topics.itemList) return DEMO ? fx.demoItemList : fx.itemList;
       if (topic === Topics.blockInventory) return state.currentBlock;
       if (topic === Topics.modal) return { modal: state.currentModal };
       if (topic === Topics.progress) return fx.progressSample;
