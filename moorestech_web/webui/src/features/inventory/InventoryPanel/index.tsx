@@ -3,10 +3,9 @@ import { useTopic, Topics, useItemMaster } from "@/bridge";
 import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { createSlotActions } from "../slotActions";
-import GrabOverlay from "./GrabOverlay";
 
-// メイン4行とgrabを操作。ホットバーは常時別表示
-// Handle four main rows and grab; the hotbar stays separate
+// メイン4行を操作する。grab追従とホットバーは常時別表示
+// Handle four main rows; grab tracking and the hotbar render separately
 export default function InventoryPanel() {
   const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
@@ -20,26 +19,23 @@ export default function InventoryPanel() {
   const actions = createSlotActions(inventory, itemMaster);
 
   return (
-    <>
-      <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", minHeight: 470 }}>
-        <SlotGrid testId="main-grid" cols={6}>
-          {inventory.mainSlots.map((slot, i) => {
-            const ref: SlotRef = { area: "main", slot: i };
-            return (
-              <ItemSlot
-                key={`main-${i}`}
-                itemId={slot.itemId}
-                count={slot.count}
-                name={itemMaster?.get(slot.itemId)?.name}
-                onLeftDown={(shiftKey) => actions.onLeftDown(ref, slot, shiftKey)}
-                onRightDown={() => actions.onRightDown(ref, slot)}
-                onDoubleClick={() => actions.onDoubleClick(ref)}
-              />
-            );
-          })}
-        </SlotGrid>
-      </GamePanel>
-      <GrabOverlay grab={inventory.grab} />
-    </>
+    <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", minHeight: 470 }}>
+      <SlotGrid testId="main-grid" cols={6}>
+        {inventory.mainSlots.map((slot, i) => {
+          const ref: SlotRef = { area: "main", slot: i };
+          return (
+            <ItemSlot
+              key={`main-${i}`}
+              itemId={slot.itemId}
+              count={slot.count}
+              name={itemMaster?.get(slot.itemId)?.name}
+              onLeftDown={(shiftKey) => actions.onLeftDown(ref, slot, shiftKey)}
+              onRightDown={() => actions.onRightDown(ref, slot)}
+              onDoubleClick={() => actions.onDoubleClick(ref)}
+            />
+          );
+        })}
+      </SlotGrid>
+    </GamePanel>
   );
 }
