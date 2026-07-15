@@ -24,7 +24,7 @@ export default function GamePanel({ gridArea, title, headerRight, variant = "def
       {title !== undefined ? (
         <>
           <div className={styles.header}>
-            <span className={styles.title}>{title}</span>
+            <h2 className={styles.title}>{title}</h2>
             {headerRight ? <span className={styles.headerRight}>{headerRight}</span> : null}
           </div>
           <div className={styles.decoLine} />

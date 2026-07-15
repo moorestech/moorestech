@@ -3,7 +3,7 @@ import { payloadsOf } from "../support/actions";
 
 test("接続後にインベントリが描画される", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
   // Wood(itemId=1,count=10) の count バッジが出る
   // The count badge for Wood (itemId=1, count=10) appears
   await expect(page.getByText("10").first()).toBeVisible();
@@ -11,7 +11,7 @@ test("接続後にインベントリが描画される", async ({ page }) => {
 
 test("左クリックで grab オーバーレイが追従する", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
   const firstSlot = page.getByTestId("main-grid").locator("> div").first();
   await firstSlot.click();
   // move_item→grab を mock がシミュレートし、grab オーバーレイが出現する
@@ -21,7 +21,7 @@ test("左クリックで grab オーバーレイが追従する", async ({ page 
 
 test("ダブルクリックで同種を集約し、collect はクリックされたスロットを送る", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
   // Wood は main[0]=10 と main[2]=5 に分かれている。先頭をダブルクリックすると 15 へ集約される
   // Wood is split across main[0]=10 and main[2]=5; double-clicking the first slot consolidates to 15
   const firstSlot = page.getByTestId("main-grid").locator("> div").first();
@@ -46,7 +46,7 @@ test("ダブルクリックで同種を集約し、collect はクリックされ
 
 test("右クリックで inventory.split を送る", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Inventory" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
   const firstSlot = page.getByTestId("main-grid").locator("> div").first();
   await firstSlot.click({ button: "right" });
   await expect

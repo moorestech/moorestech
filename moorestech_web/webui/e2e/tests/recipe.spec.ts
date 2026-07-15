@@ -3,7 +3,7 @@ import { payloadsOf } from "../support/actions";
 
 test("アイテム選択でレシピ表示、craft 可能なら送信できる", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Items" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
   // 右リストの先頭 Plank(100) を選択
   // Select the first item Plank(100) in the right list
   await page.getByTestId("item-list-grid").locator("> div").first().click();
