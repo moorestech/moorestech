@@ -12,15 +12,12 @@
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='56' viewBox='0 0 64 56'%3E%3Cpath d='M32 0L64 56H0z' fill='%23ffffff' fill-opacity='0.012'/%3E%3Cpath d='M0 0L32 56L64 0' fill='none' stroke='%23ffffff' stroke-opacity='0.008'/%3E%3C/svg%3E"),
     linear-gradient(160deg, rgba(46, 50, 64, 0.94), rgba(34, 37, 48, 0.94));
   background-size: 64px 56px, cover;
-  /* ライトグレーの金属枠：外側明＋内側の陰影をボーダー＋二重box-shadowで表現 */
-  /* Light-gray metal frame: outer highlight + inner shadow via border and layered box-shadow */
-  border: 3px solid #c2c7d0;
+  /* 9-slice SVGで上左が明るく下右が暗い隆起金属枠を描く */
+  /* Draw a raised metal frame with bright top-left and dark bottom-right via a 9-slice SVG */
+  border: 6px solid transparent;
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='.5' y='.5' width='63' height='63' fill='none' stroke='%234b505b'/%3E%3Cpath d='M1 1H63L57 7H7Z' fill='%23d4d8e0'/%3E%3Cpath d='M1 1L7 7V57L1 63Z' fill='%23b8bdc7'/%3E%3Cpath d='M1 63H63L57 57H7Z' fill='%23767b88'/%3E%3Cpath d='M63 1V63L57 57V7Z' fill='%23696e7a'/%3E%3Crect x='6.5' y='6.5' width='51' height='51' fill='none' stroke='%23474b55'/%3E%3Cpath d='M2 11V3H11M53 3H61V11' fill='none' stroke='%23f0f2f6' stroke-opacity='.72'/%3E%3Cpath d='M2 53V61H11M53 61H61V53' fill='none' stroke='%23585d69' stroke-opacity='.9'/%3E%3C/svg%3E") 8 / 6px / 0 stretch;
   border-radius: 3px;
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 1px rgba(90, 95, 110, 0.9),
-    0 6px 22px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
 }
 
 /* 中央のクラフト詳細は細めの額縁 */
