@@ -21,7 +21,7 @@ export default function InventoryPanel() {
 
   return (
     <>
-      <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start" }}>
+      <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", minHeight: 470 }}>
         <SlotGrid testId="main-grid" cols={6}>
           {inventory.mainSlots.map((slot, i) => {
             const ref: SlotRef = { area: "main", slot: i };

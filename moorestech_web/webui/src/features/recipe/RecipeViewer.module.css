@@ -55,7 +55,7 @@
 /* Unify materials and result inside a softly glowing blue frame */
 .recipeBox {
   width: 100%;
-  min-height: 5.5rem;
+  min-height: 4.5rem;
   padding: 0.75rem 1rem;
   border: 2px solid #4f9ae8;
   border-radius: 0.3rem;
