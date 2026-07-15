@@ -10,7 +10,7 @@
   /* Navy gradient with a faint SVG triangle pattern on top (mirrors invebtory_bg_base) */
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='56' viewBox='0 0 64 56'%3E%3Cpath d='M32 0L64 56H0z' fill='%23ffffff' fill-opacity='0.03'/%3E%3Cpath d='M0 0L32 56L64 0' fill='none' stroke='%23ffffff' stroke-opacity='0.02'/%3E%3C/svg%3E"),
-    linear-gradient(160deg, rgba(52, 58, 80, 0.94), rgba(38, 43, 60, 0.94));
+    linear-gradient(160deg, rgba(52, 58, 80, 0.86), rgba(38, 43, 60, 0.86));
   background-size: 56px 48px, cover;
   /* 9-slice SVGで上左が明るく下右が暗い隆起金属枠を描く */
   /* Draw a raised metal frame with bright top-left and dark bottom-right via a 9-slice SVG */
@@ -23,12 +23,8 @@
 /* 中央のクラフト詳細は細めの額縁 */
 /* The center craft detail uses a narrower frame */
 .craft {
-  padding: 12px 14px 16px;
+  padding: 12px 14px 4px;
   background: linear-gradient(160deg, rgba(46, 50, 64, 0.42), rgba(34, 37, 48, 0.42));
-}
-
-.craft .body {
-  flex: 1;
 }
 
 .header {
@@ -66,6 +62,7 @@
 
 .body {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
 }
