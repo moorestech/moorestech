@@ -8,12 +8,12 @@ namespace Server.Boot.Loop
     public class AutoSaveSystem
     {
         
-        public static async Task AutoSave(IWorldSaveDataSaver worldSaveDataSaver, CancellationToken token)
+        public static async Task AutoSave(IWorldSaveRequest worldSaveRequest, CancellationToken token)
         {
             while (true)
             {
                 await Task.Delay(TimeSpan.FromSeconds(30), token);
-                worldSaveDataSaver.Save();
+                worldSaveRequest.RequestSave();
                 
                 if (token.IsCancellationRequested) return;
             }

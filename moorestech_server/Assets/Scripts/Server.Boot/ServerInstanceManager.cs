@@ -75,7 +75,7 @@ namespace Server.Boot
             
             if (settings.AutoSave)
             {
-                Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetService<IWorldSaveDataSaver>(), token), cancellationToken.Token);
+                Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetRequiredService<IWorldSaveRequest>(), token), cancellationToken.Token);
             }
             // アップデートのタスク名を設定
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
