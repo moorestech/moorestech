@@ -198,6 +198,7 @@ namespace Server.Boot
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
             services.AddSingleton<ServerTickUpdater>();
+            services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
@@ -252,6 +253,10 @@ namespace Server.Boot
             // tick順序（仕様2.1）はServerTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
             // The tick order (spec 2.1) lives in ServerTickUpdater; register just that one entry here
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ServerTickUpdater>().Update);
+
+            // tick末尾: 予約された破壊を一括確定する。派生する網の再構築は次tick先頭のRebuildIfDirtyに委ねる
+            // Tick end: commit reserved removals in batch; derived network rebuilding is deferred to RebuildIfDirty at the next tick head
+            GameUpdater.TickEndUpdates.Add(serviceProvider.GetRequiredService<IBlockRemovalReservationService>().ApplyReservedRemovals);
 
             //イベントレシーバーをインスタンス化する
             // Materialize event receivers eagerly.
