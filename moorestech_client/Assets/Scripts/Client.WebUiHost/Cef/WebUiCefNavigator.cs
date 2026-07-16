@@ -10,6 +10,10 @@ namespace Client.WebUiHost.Cef
     /// </summary>
     public class WebUiCefNavigator : MonoBehaviour
     {
+        // 再発行の上限と間隔（attempt 回数×1 秒のバックオフ。合計 ~15 秒で諦めて警告）
+        // Retry cap and backoff (attempt × 1s intervals; gives up with a warning after ~15s total)
+        private const int MaxNavigateAttempts = 5;
+
         private void Start()
         {
             NavigateWhenReady().Forget();
@@ -27,7 +31,19 @@ namespace Client.WebUiHost.Cef
                 var url = Boot.WebUiHost.ViteUrl;
                 if (string.IsNullOrEmpty(url)) return;
 
-                GetComponent<CefUnityBrowserSample>().LoadUrl(url);
+                var browser = GetComponent<CefUnityBrowserSample>();
+
+                // 初期ナビゲーションと競合すると LoadUrl が無言で負けるため、ページの WS 接続が確立するまで再発行する
+                // LoadUrl can silently lose against the in-flight initial navigation; re-issue until the page's WS connection is up
+                for (var attempt = 1; attempt <= MaxNavigateAttempts; attempt++)
+                {
+                    Debug.Log($"[WebUiHost] CEF LoadUrl attempt {attempt}: {url}");
+                    browser.LoadUrl(url);
+
+                    await UniTask.Delay(attempt * 1000);
+                    if (Boot.WebUiHost.Hub is { HasConnections: true }) return;
+                }
+                Debug.LogWarning($"[WebUiHost] CEF navigation unconfirmed after {MaxNavigateAttempts} attempts (no WS connection)");
             }
 
             #endregion
