@@ -14,9 +14,29 @@ namespace Tests.Util
     {
         private const BindingFlags InstanceFlags = BindingFlags.NonPublic | BindingFlags.Instance;
 
+        public static object GetTopologyMap(GearNetworkDatastore datastore)
+        {
+            return GetRequiredField<object>(datastore, "_topologyMap");
+        }
+
+        public static object GetRuntimeStateStore(GearNetworkDatastore datastore)
+        {
+            return GetRequiredField<object>(datastore, "_runtimeStateStore");
+        }
+
+        public static object GetRecalculationSet(GearNetworkDatastore datastore)
+        {
+            return GetRequiredField<object>(datastore, "_networksRequiringRecalc");
+        }
+
+        public static object GetContinuousTickSet(GearNetworkDatastore datastore)
+        {
+            return GetRequiredField<object>(datastore, "_continuousTickNetworks");
+        }
+
         public static IReadOnlyDictionary<GearNetworkId, GearNetwork> GetNetworksWithoutFlush(GearNetworkDatastore datastore)
         {
-            var topologyMap = GetRequiredField<object>(datastore, "_topologyMap");
+            var topologyMap = GetTopologyMap(datastore);
             return GetRequiredField<Dictionary<GearNetworkId, GearNetwork>>(topologyMap, "_gearNetworks");
         }
 

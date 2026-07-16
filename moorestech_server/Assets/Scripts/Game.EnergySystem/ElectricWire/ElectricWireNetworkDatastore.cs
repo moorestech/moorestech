@@ -3,71 +3,44 @@ using Game.Block.Interface;
 
 namespace Game.EnergySystem
 {
-    /// <summary>
-    /// トポロジ変更をその場で適用せずコマンドとして保留し、電力tick先頭のflushでFIFO一括反映するデータストア。
-    /// これによりtick途中でセグメントの所属や列挙内容が変化しないことを保証する。
-    /// Datastore that queues topology mutations as commands instead of applying them in place,
-    /// flushing them FIFO at the head of the electric tick so segment membership never changes mid-tick.
-    /// </summary>
+    // dirty時に電力mapを原子交換する
+    // Atomically swaps in a newly built applied map only when the live registration graph is dirty
     public class ElectricWireNetworkDatastore : IElectricWireNetworkDatastore
     {
-        private readonly ElectricWireTopologyMap _topologyMap = new();
-        private readonly List<ElectricWireTopologyCommand> _pendingCommands = new();
-        private bool _isFlushing;
+        private readonly Dictionary<BlockInstanceId, IElectricWireConnector> _registeredConnectors = new();
+        private ElectricWireTopologyMap _topologyMap = ElectricWireTopologyMap.CreateEmpty();
+        private bool _isTopologyDirty = true;
 
-        public int SegmentCount => _topologyMap.SegmentCount;
+        public bool IsTopologyDirty => _isTopologyDirty;
 
         public void AddConnector(IElectricWireConnector connector)
         {
-            _pendingCommands.Add(new ElectricWireTopologyCommand(ElectricWireTopologyCommandType.Add, new[] { connector }));
+            _registeredConnectors[connector.BlockInstanceId] = connector;
+            _isTopologyDirty = true;
         }
 
         public void RemoveConnector(IElectricWireConnector connector)
         {
-            _pendingCommands.Add(new ElectricWireTopologyCommand(ElectricWireTopologyCommandType.Remove, new[] { connector }));
+            _registeredConnectors.Remove(connector.BlockInstanceId);
+            _isTopologyDirty = true;
         }
 
-        public void RebuildAround(params IElectricWireConnector[] connectors)
+        public void MarkTopologyDirty()
         {
-            _pendingCommands.Add(new ElectricWireTopologyCommand(ElectricWireTopologyCommandType.Rebuild, connectors));
+            _isTopologyDirty = true;
         }
 
-        // 保留コマンドをFIFOで一括適用する。電力tick先頭からのみ呼ばれる
-        // Apply pending commands in FIFO order; called only at the head of the electric tick
-        internal void FlushPendingCommands()
+        public void RebuildIfDirty()
         {
-            if (_isFlushing || _pendingCommands.Count == 0) return;
+            if (!_isTopologyDirty) return;
 
-            _isFlushing = true;
-            for (var i = 0; i < _pendingCommands.Count; i++)
-            {
-                ApplyCommand(_pendingCommands[i]);
-            }
-            _pendingCommands.Clear();
-            _isFlushing = false;
-
-            #region Internal
-
-            void ApplyCommand(ElectricWireTopologyCommand command)
-            {
-                switch (command.CommandType)
-                {
-                    case ElectricWireTopologyCommandType.Add:
-                        foreach (var connector in command.Connectors) _topologyMap.AddConnector(connector);
-                        break;
-                    case ElectricWireTopologyCommandType.Remove:
-                        foreach (var connector in command.Connectors) _topologyMap.RemoveConnector(connector);
-                        break;
-                    case ElectricWireTopologyCommandType.Rebuild:
-                        // 両端点を除去→再追加して連結成分を再計算する
-                        // Remove then re-add both endpoints to recompute connected components
-                        foreach (var connector in command.Connectors) _topologyMap.RemoveConnector(connector);
-                        foreach (var connector in command.Connectors) _topologyMap.AddConnector(connector);
-                        break;
-                }
-            }
-
-            #endregion
+            // 完成後にだけ電力mapを交換する
+            // Leave the applied map untouched until construction succeeds, then swap its reference
+            var rebuilt = ElectricWireTopologyMap.Build(_registeredConnectors.Values);
+            var previous = _topologyMap;
+            _topologyMap = rebuilt;
+            previous.Destroy();
+            _isTopologyDirty = false;
         }
 
         public bool TryGetEnergySegment(BlockInstanceId blockInstanceId, out EnergySegment segment)

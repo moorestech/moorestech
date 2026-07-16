@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.ElectricWire
     ///     電気機械が所属セグメントの確定済み電力供給率を導出するための共通窓口。
     ///     セグメント未所属、または全電線切断でトポロジ反映待ちの機械は供給率0として自然に停止する。
     ///     Shared entry for electric machines to derive the settled supply rate of their segment.
-    ///     Machines with no segment, or with all wires cut and awaiting the topology flush, get rate 0 and naturally stop.
+    ///     Machines with no segment, or with all wires cut and awaiting topology rebuild, get rate 0 and naturally stop.
     /// </summary>
     public static class ElectricSegmentPowerRateResolver
     {
@@ -21,7 +21,7 @@ namespace Game.Block.Blocks.ElectricWire
             if (!datastore.TryGetEnergySegment(blockInstanceId, out var segment)) return 0f;
 
             // 全電線が切断されトポロジ反映待ちの場合も供給率0として扱う
-            // All wires already cut but the topology flush is still pending: also treated as rate 0
+            // All wires already cut but the topology rebuild is still pending: also treated as rate 0
             var block = ServerContext.WorldBlockDatastore.GetBlock(blockInstanceId);
             var connector = block?.GetComponent<IElectricWireConnector>();
             if (connector == null || connector.WireConnections.Count == 0) return 0f;

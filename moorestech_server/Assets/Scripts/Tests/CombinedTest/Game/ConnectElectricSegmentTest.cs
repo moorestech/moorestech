@@ -11,6 +11,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Game
 {
@@ -37,7 +38,7 @@ namespace Tests.CombinedTest.Game
 
             // 未接続なので3ブロックがそれぞれ独立セグメントを持つ
             // With no wires yet, all three poles are separate segments
-            Assert.AreEqual(3, networkDatastore.SegmentCount);
+            Assert.AreEqual(3, GetSegmentCount(networkDatastore));
 
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
@@ -48,14 +49,13 @@ namespace Tests.CombinedTest.Game
 
             // 鎖状に繋いだので1セグメントに統合される
             // Chained wiring collapses them into one segment
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
 
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment));
-            var transformers = segment.EnergyTransformers;
-            Assert.AreEqual(3, transformers.Count);
-            Assert.IsTrue(transformers.ContainsKey(pole1.BlockInstanceId));
-            Assert.IsTrue(transformers.ContainsKey(pole2.BlockInstanceId));
-            Assert.IsTrue(transformers.ContainsKey(pole3.BlockInstanceId));
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole2.BlockInstanceId, out var segment2));
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole3.BlockInstanceId, out var segment3));
+            Assert.AreSame(segment, segment2);
+            Assert.AreSame(segment, segment3);
         }
 
         // 電柱に機械・発電機を繋ぐと同一セグメントに登録
@@ -78,12 +78,10 @@ namespace Tests.CombinedTest.Game
             // Advance one tick for the topology flush
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var segment));
-            Assert.AreEqual(1, segment.Consumers.Count);
-            Assert.AreEqual(1, segment.Generators.Count);
-            Assert.IsTrue(segment.Consumers.ContainsKey(machine.BlockInstanceId));
-            Assert.IsTrue(segment.Generators.ContainsKey(generator.BlockInstanceId));
+            Assert.IsTrue(GetConsumers(segment).ContainsKey(machine.BlockInstanceId));
+            Assert.IsTrue(GetGenerators(segment).ContainsKey(generator.BlockInstanceId));
         }
 
         // 2セグメントを電柱で橋渡しすると1つにマージされる
@@ -115,7 +113,7 @@ namespace Tests.CombinedTest.Game
             // Advance one tick for the topology flush
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(2, networkDatastore.SegmentCount);
+            Assert.AreEqual(2, GetSegmentCount(networkDatastore));
 
             // 2つの電柱を橋渡し
             // Bridge the two poles
@@ -125,10 +123,10 @@ namespace Tests.CombinedTest.Game
             // Advance one tick for the topology flush
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole2.BlockInstanceId, out var segment));
-            Assert.AreEqual(2, segment.Consumers.Count);
-            Assert.AreEqual(2, segment.Generators.Count);
+            Assert.AreEqual(2, GetConsumers(segment).Count);
+            Assert.AreEqual(2, GetGenerators(segment).Count);
         }
 
         // ロード後にワイヤー接続が復元されセグメント再形成
@@ -159,11 +157,16 @@ namespace Tests.CombinedTest.Game
             GameUpdater.UpdateOneTick();
 
             var networkDatastore = loadServiceProvider.GetService<IElectricWireNetworkDatastore>();
-            var loadedPole = ServerContext.WorldBlockDatastore.GetBlock(Pos(0, 0));
+            var loadedPole1 = ServerContext.WorldBlockDatastore.GetBlock(Pos(0, 0));
+            var loadedPole2 = ServerContext.WorldBlockDatastore.GetBlock(Pos(2, 0));
+            var loadedPole3 = ServerContext.WorldBlockDatastore.GetBlock(Pos(4, 0));
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(loadedPole.BlockInstanceId, out var segment));
-            Assert.AreEqual(3, segment.EnergyTransformers.Count);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(loadedPole1.BlockInstanceId, out var segment));
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(loadedPole2.BlockInstanceId, out var segment2));
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(loadedPole3.BlockInstanceId, out var segment3));
+            Assert.AreSame(segment, segment2);
+            Assert.AreSame(segment, segment3);
         }
 
         private static Vector3Int Pos(int x, int z)

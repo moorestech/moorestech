@@ -3,37 +3,33 @@ using Game.Gear.Common;
 
 namespace Game.Gear.Tick
 {
-    // gearのtick計算結果のうち、network単位でしか意味を持たない状態を集約する唯一の置き場。
-    // gear単位の現在値(RPM/トルク/向き)は保持せず、符号付き原点RPM比×原点RPMから都度導出する。
-    // Single home for per-network tick results. Per-gear values (RPM/torque/direction) are not stored; they are derived on demand
-    // from the signed origin RPM ratio × the origin RPM.
-    public class GearRuntimeStateStore
+    // gear網単位のtick結果を保持する
+    // Holds tick calculation results for each applied gear network
+    internal class GearRuntimeStateStore
     {
         private static GearRuntimeStateStore _instance;
-        public static GearRuntimeStateStore Instance => _instance;
-
         private readonly Dictionary<GearNetworkId, GearNetworkRuntimeState> _networkStates = new();
 
-        public GearRuntimeStateStore()
+        internal static GearRuntimeStateStore Instance => _instance;
+
+        internal static void Activate(GearRuntimeStateStore runtimeStateStore)
         {
-            _instance = this;
+            _instance = runtimeStateStore;
         }
 
-        // 未計算のnetworkは空状態（需給0・非停止）として扱う
-        // A network never calculated yet is treated as the empty state (zero powers, not stopped)
-        public GearNetworkRuntimeState GetNetworkState(GearNetworkId networkId)
+        internal GearNetworkRuntimeState GetNetworkState(GearNetworkId networkId)
         {
             return _networkStates.TryGetValue(networkId, out var state) ? state : default;
         }
 
-        public void SetNetworkState(GearNetworkId networkId, GearNetworkRuntimeState state)
+        internal void SetNetworkState(GearNetworkId networkId, GearNetworkRuntimeState state)
         {
             _networkStates[networkId] = state;
         }
 
-        public void RemoveNetworkState(GearNetworkId networkId)
+        internal void Destroy()
         {
-            _networkStates.Remove(networkId);
+            _networkStates.Clear();
         }
     }
 }

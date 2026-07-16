@@ -9,7 +9,9 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.Gear.Common;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -25,6 +27,24 @@ namespace Tests.CombinedTest.Game
     /// </summary>
     public class ElectricTickUnificationTest
     {
+        [Test]
+        public void 両topology再構築は両需給計算より先に登録される()
+        {
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var electricDatastore = provider.GetRequiredService<IElectricWireNetworkDatastore>();
+            var gearDatastore = provider.GetRequiredService<GearNetworkDatastore>();
+            var electricUpdater = provider.GetRequiredService<ElectricTickUpdater>();
+            var gearUpdater = provider.GetRequiredService<GearTickUpdater>();
+
+            // 登録delegateをtest側で照合する
+            // Match delegate targets and methods from the test side without production diagnostics
+            Assert.AreEqual(4, GameUpdater.AdditionalUpdates.Count);
+            Assert.AreEqual((Action)electricDatastore.RebuildIfDirty, GameUpdater.AdditionalUpdates[0]);
+            Assert.AreEqual((Action)gearDatastore.RebuildIfDirty, GameUpdater.AdditionalUpdates[1]);
+            Assert.AreEqual((Action)electricUpdater.Update, GameUpdater.AdditionalUpdates[2]);
+            Assert.AreEqual((Action)gearUpdater.Update, GameUpdater.AdditionalUpdates[3]);
+        }
+
         // 発電機を撤去された機械は、供給率0の導出により自然に停止する
         // A machine whose generator is removed derives supply rate 0 and naturally stops
         [Test]
