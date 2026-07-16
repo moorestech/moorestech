@@ -347,15 +347,28 @@ internal static class MoorestechServerTickRegistration
 {
     public static void Register(ServiceProvider provider)
     {
+        var electricWireNetworkDatastore =
+            provider.GetRequiredService<IElectricWireNetworkDatastore>();
+        var gearNetworkDatastore =
+            provider.GetRequiredService<GearNetworkDatastore>();
+        var blockRemovalReservationService =
+            provider.GetRequiredService<IBlockRemovalReservationService>();
+
+        GameUpdater.AdditionalUpdates.Add(electricWireNetworkDatastore.FlushPendingCommands);
+        GameUpdater.AdditionalUpdates.Add(gearNetworkDatastore.FlushPendingMutations);
         GameUpdater.AdditionalUpdates.Add(provider.GetRequiredService<ElectricTickUpdater>().Update);
         GameUpdater.AdditionalUpdates.Add(provider.GetRequiredService<GearTickUpdater>().Update);
-        GameUpdater.TickEndUpdates.Add(
-            provider.GetRequiredService<IBlockRemovalReservationService>().ApplyReservedRemovals);
+        GameUpdater.TickEndUpdates.Add(() =>
+        {
+            blockRemovalReservationService.ApplyReservedRemovals();
+            electricWireNetworkDatastore.FlushPendingCommands();
+            gearNetworkDatastore.FlushPendingMutations();
+        });
     }
 }
 ```
 
-Later tasks replace the last handler with the shared packet coordinator and add the final save phase.
+This task is mechanical and preserves the current duplicate tick-head/tick-end flushes. Task 3 replaces the four tick-head delegates with rebuild/rebuild/calculate/calculate, and Task 5 replaces the tick-end closure with the shared packet coordinator before Task 6 adds the final save phase.
 
 - [ ] **Step 5: Reduce the generator to orchestration**
 
