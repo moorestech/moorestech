@@ -1,11 +1,14 @@
 using System;
-using System.Collections.Generic;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.World.Interface.DataStore;
+using Game.Gear.Common;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -16,70 +19,55 @@ namespace Tests.UnitTest.Game.SaveLoad
     public class GearChainPoleSaveLoadTest
     {
         [Test]
-        public void SaveLoadTest()
+        public void ロード後の最初のtickで保存済みチェーンから歯車網を再構築する()
         {
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearChainPole).BlockGuid;
-            
-            // 複数のチェーンポールブロックを作成してWorldBlockDatastoreに登録する
-            // Create multiple chain pole blocks and register them in WorldBlockDatastore
+            var (_, saveProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
             var pos1 = new Vector3Int(0, 0, 0);
             var pos2 = new Vector3Int(10, 0, 0);
             var pos3 = new Vector3Int(20, 0, 0);
-            
-            var block1Created = worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, pos1, BlockDirection.North, out var block1);
-            var block2Created = worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, pos2, BlockDirection.North, out var block2);
-            var block3Created = worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, pos3, BlockDirection.North, out var block3);
-            
-            Assert.IsTrue(block1Created);
-            Assert.IsTrue(block2Created);
-            Assert.IsTrue(block3Created);
-            
-            var chainPole1 = block1.GetComponent<IGearChainPole>();
-            var chainPole2 = block2.GetComponent<IGearChainPole>();
-            var chainPole3 = block3.GetComponent<IGearChainPole>();
-            
-            // チェーン接続を追加する
-            // Add chain connections
-            var connection1to2 = chainPole1.TryAddChainConnection(chainPole2.BlockInstanceId, new GearChainConnectionCost(Array.Empty<ConnectToolMaterialCost>()));
-            var connection1to3 = chainPole1.TryAddChainConnection(chainPole3.BlockInstanceId, new GearChainConnectionCost(Array.Empty<ConnectToolMaterialCost>()));
-            
-            Assert.IsTrue(connection1to2);
-            Assert.IsTrue(connection1to3);
-            
-            // 接続が正しく追加されたことを確認する
-            // Verify connections are correctly added
-            Assert.IsTrue(chainPole1.ContainsChainConnection(chainPole2.BlockInstanceId));
-            Assert.IsTrue(chainPole1.ContainsChainConnection(chainPole3.BlockInstanceId));
-            
-            // セーブデータを取得する
-            // Get save data
-            var saveState = block1.GetComponent<IBlockSaveState>();
-            var save = saveState.GetSaveState();
-            var states = new Dictionary<string, string>() { { saveState.SaveKey, save } };
-            var blockInstanceId1 = block1.BlockInstanceId;
-            Debug.Log(save);
-            
-            // 元のブロックを削除する
-            // Remove original block
-            var removed = worldBlockDatastore.RemoveBlock(blockInstanceId1, BlockRemoveReason.ManualRemove);
-            Assert.IsTrue(removed);
-            
-            // ブロックをロードする
-            // Load block
-            var loadList = new List<BlockJsonObject> { new(pos1, blockGuid.ToString(), blockInstanceId1.AsPrimitive(), states, (int)BlockDirection.North) };
-            worldBlockDatastore.LoadBlockDataList(loadList);
-            var block1Reloaded = worldBlockDatastore.GetBlock(blockInstanceId1);
-            Assert.IsNotNull(block1Reloaded);
-            
-            var chainPole1Reloaded = block1Reloaded.GetComponent<IGearChainPole>();
-            
-            // 接続が正しく復元されたことを確認する
-            // Verify connections are correctly restored
-            Assert.IsTrue(chainPole1Reloaded.ContainsChainConnection(chainPole2.BlockInstanceId));
-            Assert.IsTrue(chainPole1Reloaded.ContainsChainConnection(chainPole3.BlockInstanceId));
+
+            // 三本の支柱を設置し、一番目から残り二本へチェーンを張る
+            // Place three poles and connect the first pole to the other two by chains
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.GearChainPole, pos1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block1));
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.GearChainPole, pos2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block2));
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.GearChainPole, pos3, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block3));
+            var pole1 = block1.GetComponent<IGearChainPole>();
+            var pole2 = block2.GetComponent<IGearChainPole>();
+            var pole3 = block3.GetComponent<IGearChainPole>();
+            var noCost = new GearChainConnectionCost(Array.Empty<ConnectToolMaterialCost>());
+            Assert.IsTrue(pole1.TryAddChainConnection(pole2.BlockInstanceId, noCost));
+            Assert.IsTrue(pole1.TryAddChainConnection(pole3.BlockInstanceId, noCost));
+            GearNetworkDatastore.MarkTopologyDirty();
+            GameUpdater.UpdateOneTick();
+
+            var saveJson = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
+            var (_, loadProvider) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var loader = (WorldLoaderFromJson)loadProvider.GetRequiredService<IWorldSaveDataLoader>();
+            loader.Load(saveJson);
+
+            // ロード直後は接続だけを復元し、歯車網は未構築のままdirtyにする
+            // Restore only connections during load and leave the gear network dirty and unbuilt
+            var loadedDatastore = loadProvider.GetRequiredService<GearNetworkDatastore>();
+            var loadedPole1 = ServerContext.WorldBlockDatastore.GetBlock(pos1).GetComponent<IGearChainPole>();
+            var loadedPole2 = ServerContext.WorldBlockDatastore.GetBlock(pos2).GetComponent<IGearChainPole>();
+            var loadedPole3 = ServerContext.WorldBlockDatastore.GetBlock(pos3).GetComponent<IGearChainPole>();
+            Assert.IsTrue(loadedDatastore.IsTopologyDirty);
+            Assert.IsFalse(GearNetworkDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out _));
+            Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole2.BlockInstanceId));
+            Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole3.BlockInstanceId));
+
+            // 最初のtick先頭で三本を同じ歯車網へまとめ、その後はdirtyを解除する
+            // Build one shared gear network at the first tick head and then clear the dirty state
+            GameUpdater.UpdateOneTick();
+            Assert.IsFalse(loadedDatastore.IsTopologyDirty);
+            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out var network1));
+            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole2.BlockInstanceId, out var network2));
+            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole3.BlockInstanceId, out var network3));
+            Assert.AreSame(network1, network2);
+            Assert.AreSame(network1, network3);
         }
     }
 }
