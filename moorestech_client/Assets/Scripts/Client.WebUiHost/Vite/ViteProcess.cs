@@ -38,6 +38,10 @@ namespace Client.WebUiHost.Vite
             ViteProcessKiller.KillOrphansOfThisWorkspace(webuiRoot);
 #endif
 
+            // 過去の tsc -b が生成した vite.config.js は vite.config.ts より優先ロードされ旧ポート設定を焼き込むため、spawn 前に削除する
+            // Stale vite.config.js emitted by past tsc -b shadows vite.config.ts with baked-in old ports; delete it before spawning
+            DeleteStaleViteConfigArtifacts();
+
             // node_modules が無ければ pnpm install を先に走らせる
             // Run pnpm install first if node_modules is missing
             await PnpmInstaller.RunIfNeeded(nodePath, pnpmPath, webuiRoot);
@@ -57,6 +61,19 @@ namespace Client.WebUiHost.Vite
             return ready;
 
             #region Internal
+
+            void DeleteStaleViteConfigArtifacts()
+            {
+                // どちらも .gitignore 登録済みの純生成物（tsconfig.node.json は emitDeclarationOnly 化済みで今後は生成されない）
+                // Both are pure build artifacts already in .gitignore (tsconfig.node.json now uses emitDeclarationOnly, so no new ones)
+                foreach (var name in new[] { "vite.config.js", "vite.config.d.ts" })
+                {
+                    var stale = Path.Combine(webuiRoot, name);
+                    if (!File.Exists(stale)) continue;
+                    File.Delete(stale);
+                    Debug.Log($"[WebUiHost] deleted stale config artifact: {name}");
+                }
+            }
 
             bool IsEnvironmentReady()
             {
