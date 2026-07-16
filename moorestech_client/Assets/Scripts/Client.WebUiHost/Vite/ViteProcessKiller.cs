@@ -49,9 +49,12 @@ namespace Client.WebUiHost.Vite
         private const string SessionKeyVitePid = "WebUiHost.VitePid";
         private const string SessionKeyVitePort = "WebUiHost.VitePort";
 
-        public static void RecordSpawned(int pid, int port)
+        public static void RecordSpawned(int spawnedPid, int port)
         {
-            UnityEditor.SessionState.SetInt(SessionKeyVitePid, pid);
+            // pnpm 親 pid ではなく、実際にポートを LISTEN している node 子 pid を優先して記録する
+            // Prefer the node child pid actually listening on the port over the spawned pnpm parent pid
+            var listenPid = FindPidOnPort(port);
+            UnityEditor.SessionState.SetInt(SessionKeyVitePid, listenPid != 0 ? listenPid : spawnedPid);
             UnityEditor.SessionState.SetInt(SessionKeyVitePort, port);
         }
 
