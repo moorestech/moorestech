@@ -134,7 +134,7 @@ namespace Game.Block.Blocks.Gear
         // 現在のスロット内容をまとめて復元するためのユーティリティ
         // セーブデータからアイテムを復元する
         // Restore items from save data
-        internal void RestoreItems(List<ItemStackSaveJsonObject> items)
+        private void RestoreItems(List<ItemStackSaveJsonObject> items)
         {
             if (items == null) return;
             var slotSize = _inventoryService.GetSlotSize();

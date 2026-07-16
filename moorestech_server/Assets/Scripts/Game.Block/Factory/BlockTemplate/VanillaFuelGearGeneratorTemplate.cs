@@ -47,17 +47,11 @@ namespace Game.Block.Factory.BlockTemplate
             // 流体接続の設定
             var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(configParam.FluidInventoryConnectors, blockPositionInfo);
             
-            // FuelGearGeneratorFluidComponentの作成（fluidConnectorを渡す）
+            // FuelGearGeneratorFluidComponentの作成
+            // Create the FuelGearGeneratorFluidComponent
             var fluidComponent = componentStates == null
-                ? new FuelGearGeneratorFluidComponent(
-                    configParam.FluidCapacity,
-                    fluidConnector
-                )
-                : new FuelGearGeneratorFluidComponent(
-                    componentStates,
-                    configParam.FluidCapacity,
-                    fluidConnector
-                );
+                ? new FuelGearGeneratorFluidComponent(configParam.FluidCapacity)
+                : new FuelGearGeneratorFluidComponent(componentStates, configParam.FluidCapacity);
             
             // 燃料ギアジェネレータコンポーネント
             // Configure the fuel gear generator aggregate component

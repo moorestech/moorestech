@@ -9,12 +9,8 @@ namespace Game.Gear.Common
 {
     public interface IGearEnergyTransformer : IBlockComponent
     {
-        public const string WorkingStateName = "Working";
-        public const string RockedStateName = "Rocked";
-        
         public BlockInstanceId BlockInstanceId { get; }
-        
-        public GearPower CurrentPower => new(CurrentRpm.AsPrimitive() * CurrentTorque.AsPrimitive());
+
         public RPM CurrentRpm { get; }
         public Torque CurrentTorque { get; }
         public bool IsCurrentClockwise { get; }

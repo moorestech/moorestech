@@ -291,9 +291,9 @@ namespace Tests.CombinedTest.Game
             // 新formula: rpm=10 > baseRpm=5 なのでexpOverを使用
             // New formula: rpm=10 > baseRpm=5, so use expOver=1.585
             // requiredTorque = 1 * (10/5)^1.585 = 1 * 2^1.585 ≈ 3.0, power = 3.0 * 10 = 30
-            AreEqual(30, gear1.CurrentPower);
-            AreEqual(30, gear2.CurrentPower);
-            AreEqual(30, gear3.CurrentPower);
+            AreEqual(30, gear1.CurrentRpm.AsPrimitive() * gear1.CurrentTorque.AsPrimitive());
+            AreEqual(30, gear2.CurrentRpm.AsPrimitive() * gear2.CurrentTorque.AsPrimitive());
+            AreEqual(30, gear3.CurrentRpm.AsPrimitive() * gear3.CurrentTorque.AsPrimitive());
         }
         
         [Test]
@@ -498,11 +498,6 @@ namespace Tests.CombinedTest.Game
         }
         
         private void AreEqual(float expected, Torque actual)
-        {
-            AreEqual(expected, actual.AsPrimitive());
-        }
-        
-        private void AreEqual(float expected, GearPower actual)
         {
             AreEqual(expected, actual.AsPrimitive());
         }
