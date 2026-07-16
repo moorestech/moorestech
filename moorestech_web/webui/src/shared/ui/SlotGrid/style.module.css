@@ -1,8 +1,8 @@
-/* スロットセルを詰めて並べる。列数は inline style の repeat で可変 */
-/* Packs slot cells tightly; the column count varies via the inline repeat style */
+/* 行間・列間を等値にして均一なタイトグリッドにする */
+/* Keep row and column gaps equal for a uniform, tight grid */
 .grid {
   display: grid;
   column-gap: 0.125rem;
-  row-gap: 0.55rem;
+  row-gap: 0.125rem;
   width: fit-content;
 }
