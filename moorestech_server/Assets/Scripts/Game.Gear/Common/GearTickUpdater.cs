@@ -39,6 +39,8 @@ namespace Game.Gear.Common
                 network.ConsumeGeneratorTicks(store);
             foreach (var network in _recalcBuffer)
             {
+                // 同tickの過負荷sweepで破壊済みのgearは通知Subjectがdispose済みのためスキップする
+                // Skip gears destroyed by this tick's overload sweep; their notify subjects are already disposed
                 foreach (var transformer in network.GearTransformers)
                     if (!transformer.IsDestroy) transformer.NotifyStateChanged();
                 foreach (var generator in network.GearGenerators)
