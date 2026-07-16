@@ -2,7 +2,6 @@
 using Game.SaveLoad.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -10,18 +9,16 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:save";
         
-        private readonly IWorldSaveDataSaver _worldSaveDataSaver;
+        private readonly IWorldSaveRequest _worldSaveRequest;
         
         public SaveProtocol(ServiceProvider serviceProvider)
         {
-            _worldSaveDataSaver = serviceProvider.GetService<IWorldSaveDataSaver>();
+            _worldSaveRequest = serviceProvider.GetRequiredService<IWorldSaveRequest>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
-            Debug.Log("セーブ開始");
-            _worldSaveDataSaver.Save();
-            Debug.Log("セーブ完了");
+            _worldSaveRequest.RequestSave();
             return null;
         }
         
