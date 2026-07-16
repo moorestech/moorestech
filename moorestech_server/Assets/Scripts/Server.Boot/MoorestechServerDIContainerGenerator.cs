@@ -254,7 +254,8 @@ namespace Server.Boot
             serviceProvider.GetService<MainInventoryUpdateEventPacket>();
             serviceProvider.GetService<UnifiedInventoryEventPacket>();
             serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
-            serviceProvider.GetService<PlaceBlockEventPacket>();
+            // PlaceBlockEventPacketは初期ロード完了後に購読させるため、ここではインスタンス化しない（ServerInstanceManagerがロード後に生成する）
+            // PlaceBlockEventPacket is instantiated after initial load by ServerInstanceManager, so it must not be materialized here
             serviceProvider.GetService<RemoveBlockToSetEventPacket>();
             serviceProvider.GetService<CompletedChallengeEventPacket>();
 

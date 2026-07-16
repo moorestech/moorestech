@@ -15,18 +15,16 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:blockPlace";
         private readonly EventProtocolProvider _eventProtocolProvider;
         
+        // 生成タイミングでOnBlockPlaceEventを購読する。初期ロード完了後に生成されるため、ロード中の設置は配信されない
+        // Subscribes on construction; it is created after initial load completes, so load-time placements are not broadcast
         public PlaceBlockEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnPlaceBlock);
         }
-        
+
         private void OnPlaceBlock(BlockPlaceProperties updateProperties)
         {
-            // 初期ロード分は接続クライアントが初期同期で取得するため配信しない
-            // Skip initial-load placements; connected clients get them via initial sync
-            if (updateProperties.IsInitialLoad) return;
-
             var pos = updateProperties.Pos;
             var direction = updateProperties.BlockData.BlockPositionInfo.BlockDirection;
             var blockId = updateProperties.BlockData.Block.BlockId;

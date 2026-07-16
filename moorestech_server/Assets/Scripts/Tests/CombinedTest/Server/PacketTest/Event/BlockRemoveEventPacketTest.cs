@@ -5,6 +5,7 @@ using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
@@ -26,6 +27,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void RemoveBlockEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            //初期ロード後に購読する設計のため、テストでは明示的に設置イベント購読を開始する
+            //Placement broadcasts subscribe post-load by design, so start the subscription explicitly in the test
+            serviceProvider.GetService<PlaceBlockEventPacket>();
+
             //イベントキューにIDを登録する
             List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);

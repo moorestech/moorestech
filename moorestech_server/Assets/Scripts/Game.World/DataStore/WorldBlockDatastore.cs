@@ -93,10 +93,10 @@ namespace Game.World.DataStore
                 return false;
             }
             block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo, createParams);
-            return TryAddBlock(block, false);
+            return TryAddBlock(block);
         }
 
-        private bool TryAddBlock(IBlock block, bool isInitialLoad)
+        private bool TryAddBlock(IBlock block)
         {
             var pos = block.BlockPositionInfo.OriginalPos;
             var blockDirection = block.BlockPositionInfo.BlockDirection;
@@ -115,7 +115,7 @@ namespace Game.World.DataStore
             foreach (var position in block.BlockPositionInfo.EnumeratePositions())
                 _coordinateDictionary.Add(position, block.BlockInstanceId);
             _originCoordinateDictionary.Add(pos, block.BlockInstanceId);
-            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data, isInitialLoad);
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
             
             block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });
             foreach (var component in block.ComponentManager.GetComponents<IBlockComponent>())
@@ -179,9 +179,7 @@ namespace Game.World.DataStore
                 var blockData = new BlockPositionInfo(pos, direction, size);
                 var block = _blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.InstanceId), blockSave.ComponentStates, blockData);
 
-                // 初期ロードはクライアント向け設置ブロードキャストを抑制する
-                // Initial load suppresses client-facing placement broadcasts
-                TryAddBlock(block, true);
+                TryAddBlock(block);
             }
             
             // 全てのブロックがロードされた後にIPostBlockLoadを実行する
