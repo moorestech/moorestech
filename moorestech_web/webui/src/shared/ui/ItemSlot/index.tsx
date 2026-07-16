@@ -35,6 +35,7 @@ export default function ItemSlot({ itemId, count, name, selected, onLeftDown, on
         className={styles.slot}
         data-testid={testId}
         data-selected={selected ? "true" : undefined}
+        data-filled={hasItem ? "true" : undefined}
         onMouseDown={onMouseDown}
         onDoubleClick={onDoubleClick}
         onContextMenu={(e) => e.preventDefault()}
