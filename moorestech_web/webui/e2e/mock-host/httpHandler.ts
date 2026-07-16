@@ -31,7 +31,7 @@ const DEMO = process.env.MOCK_DEMO === "1";
 // Derive a hue from itemId and build a rounded colored SVG icon
 function placeholderIcon(itemId: number): string {
   const hue = (itemId * 47) % 360;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="10" width="44" height="44" rx="2" fill="hsl(${hue} 40% 52%)" stroke="hsl(${hue} 35% 34%)" stroke-width="2"/><rect x="18" y="20" width="28" height="9" fill="hsl(${hue} 42% 62%)"/><rect x="18" y="34" width="28" height="9" fill="hsl(${hue} 38% 44%)"/></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="10" width="44" height="44" rx="2" fill="hsl(${hue} 40% 52%)" stroke="hsl(${hue} 35% 34%)" stroke-width="2"/><path d="M12 52V12H52" fill="none" stroke="hsl(${hue} 45% 68%)" stroke-width="1"/><path d="M12 52H52V12" fill="none" stroke="hsl(${hue} 35% 38%)" stroke-width="1"/><rect x="18" y="20" width="28" height="9" fill="hsl(${hue} 42% 62%)"/><rect x="18" y="34" width="28" height="9" fill="hsl(${hue} 38% 44%)"/></svg>`;
 }
 
 const MIME: Record<string, string> = {
