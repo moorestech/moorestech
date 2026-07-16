@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
+using Client.WebUiHost.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,29 +10,51 @@ using UnityEngine;
 namespace Client.WebUiHost.Boot
 {
     /// <summary>
-    /// Kestrel IWebHost の起動/停止を包むラッパ
-    /// Wrapper around Kestrel IWebHost lifecycle
+    /// Kestrel IWebHost の起動/停止を包むラッパ。ベースポートから空きを探索して bind する
+    /// Wrapper around Kestrel IWebHost lifecycle; probes upward from the base port for a free one
     /// </summary>
     public class KestrelServer
     {
-        private const int Port = 5050;
         private IWebHost _webHost;
+
+        // 起動時に確定した実ポート。未起動時は 0
+        // Actual port resolved at startup; 0 before start
+        public int ActualPort { get; private set; }
 
         public async Task StartAsync(WebSocketHub hub)
         {
-            var url = $"http://127.0.0.1:{Port}";
+            // 1つずつ上げてbind試行、成功で採用
+            // Probe upward from the base port and adopt the first successful bind
+            for (var port = WebUiPortConfig.KestrelBasePort; port < WebUiPortConfig.KestrelBasePort + WebUiPortConfig.PortSearchRange; port++)
+            {
+                var url = $"http://127.0.0.1:{port}";
+                var webHost = new WebHostBuilder()
+                    .UseKestrel()
+                    .UseUrls(url)
+                    .ConfigureServices(services => services.AddRouting())
+                    .Configure(app => WebUiEndpoints.Configure(app, hub))
+                    .Build();
 
-            // WebHostBuilder でルーティングと WebSocket エンドポイントを構成
-            // Configure routing and WebSocket endpoints via WebHostBuilder
-            _webHost = new WebHostBuilder()
-                .UseKestrel()
-                .UseUrls(url)
-                .ConfigureServices(services => services.AddRouting())
-                .Configure(app => WebUiEndpoints.Configure(app, hub))
-                .Build();
+                // ポート使用中の bind 失敗は IOException で通知される。OS ネットワーク境界の隔離のためここに限り try-catch を使用
+                // A bind on an occupied port surfaces as IOException; try-catch here only isolates the OS network boundary
+                try
+                {
+                    await webHost.StartAsync();
+                }
+                catch (IOException)
+                {
+                    webHost.Dispose();
+                    continue;
+                }
 
-            await _webHost.StartAsync();
-            Debug.Log($"[WebUiHost] Kestrel started at {url}");
+                _webHost = webHost;
+                ActualPort = port;
+                Debug.Log($"[WebUiHost] Kestrel started at {url}");
+                return;
+            }
+
+            throw new InvalidOperationException(
+                $"[WebUiHost] no free port in {WebUiPortConfig.KestrelBasePort}..{WebUiPortConfig.KestrelBasePort + WebUiPortConfig.PortSearchRange - 1}");
         }
 
         public async Task StopAsync()
@@ -42,6 +66,7 @@ namespace Client.WebUiHost.Boot
             await _webHost.StopAsync(TimeSpan.FromSeconds(2));
             _webHost.Dispose();
             _webHost = null;
+            ActualPort = 0;
             Debug.Log("[WebUiHost] Kestrel stopped");
         }
     }

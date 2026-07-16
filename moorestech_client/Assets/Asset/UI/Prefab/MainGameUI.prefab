@@ -376,6 +376,7 @@ GameObject:
   - component: {fileID: 3075819609404643392}
   - component: {fileID: 4882653979629314944}
   - component: {fileID: 2163236473520197029}
+  - component: {fileID: 2515843366969340831}
   m_Layer: 5
   m_Name: CefUnity
   m_TagString: Untagged
@@ -449,10 +450,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b266723374a144d27989f433d8f34cea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CefUnity.Runtime::CefUnity.Runtime.CefUnityBrowserSample
-  _url: http://localhost:5173/
+  _url: about:blank
   _rawImage: {fileID: 4882653979629314944}
   _resolutionScale: 1
   _enableLog: 0
+  _enableAudio: 1
+  _audioDspBufferSize: 256
+  _zeroFrameWaitMs: 10
+--- !u!114 &2515843366969340831
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1360136767314304250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 592d2edb173e04ee4a91f67a25b875f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.WebUiHost::Client.WebUiHost.Cef.WebUiCefNavigator
 --- !u!1 &1385292037753341582
 GameObject:
   m_ObjectHideFlags: 0
