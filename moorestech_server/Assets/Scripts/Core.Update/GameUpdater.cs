@@ -19,6 +19,10 @@ namespace Core.Update
         private static Subject<Unit> _lateUpdateSubject = new();
         public static List<Action> AdditionalUpdates = new();
 
+        // tick末尾処理（予約された破壊の一括確定等）。ブロック更新後・LateUpdate前に実行される
+        // Tick-end handlers (batch-applying reserved removals etc.), run after block updates and before LateUpdate
+        public static List<Action> TickEndUpdates = new();
+
         public static void Update()
         {
             // AdditionalUpdatesのやつ。テストでも呼ぶので関数化
@@ -28,6 +32,10 @@ namespace Core.Update
             // Updateの実行
             // Execute Update
             ExecuteUpdate();
+
+            // tick末尾処理の実行
+            // Execute tick-end handlers
+            ExecuteTickEndUpdates();
 
             // LateUpdateの実行
             // Execute LateUpdate
@@ -59,9 +67,10 @@ namespace Core.Update
             _updateSubject = new Subject<Unit>();
             _lateUpdateSubject = new Subject<Unit>();
 
-            // 追加tick更新も初期化する
-            // Reset additional tick updates as well.
+            // 追加tick更新とtick末尾処理も初期化する
+            // Reset additional tick updates and tick-end handlers as well.
             AdditionalUpdates.Clear();
+            TickEndUpdates.Clear();
         }
 
         public static void Dispose()
@@ -108,6 +117,14 @@ namespace Core.Update
             }
         }
 
+        private static void ExecuteTickEndUpdates()
+        {
+            foreach (var tickEndUpdate in TickEndUpdates)
+            {
+                tickEndUpdate();
+            }
+        }
+
 #if UNITY_EDITOR
         public static void UpdateOneTick()
         {
@@ -124,6 +141,7 @@ namespace Core.Update
             {
                 ExecuteAdditionalUpdates();
                 _updateSubject.OnNext(Unit.Default);
+                ExecuteTickEndUpdates();
                 _lateUpdateSubject.OnNext(Unit.Default);
             }
         }
