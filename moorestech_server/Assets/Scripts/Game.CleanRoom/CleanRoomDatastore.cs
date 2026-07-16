@@ -98,6 +98,13 @@ namespace Game.CleanRoom
             _detectionService.RebuildAll();
         }
 
+        public void ApplyPendingStructureChangesForSave()
+        {
+            // 保存する部屋形状だけを確定し、純度計算や機械効果は進めない
+            // Finalize only room geometry for saving without advancing purity or machine effects
+            _detectionService.ProcessAllDirtySeeds();
+        }
+
         // クリーンルーム保存復元は専用ヘルパーへ委譲する
         // Delegate clean-room save and restore to the dedicated helper
         public List<CleanRoomSaveData> GetSaveData()

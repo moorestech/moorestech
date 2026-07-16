@@ -67,6 +67,8 @@ namespace Game.SaveLoad.Json
 
         public string AssembleSaveJson()
         {
+            _cleanRoomDatastore.ApplyPendingStructureChangesForSave();
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var mapObjectDatastore = ServerContext.MapObjectDatastore;
 
