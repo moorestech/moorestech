@@ -146,8 +146,8 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            // 具象はElectricTickUpdaterのflush用、interfaceは参照系向け。同一インスタンスを共有する
-            // The concrete type serves ElectricTickUpdater's flush; the interface serves readers. Both share one instance
+            // 具象はServerTickUpdaterの再構築用、interfaceは参照系向け。同一インスタンスを共有する
+            // The concrete type serves ServerTickUpdater's rebuild; the interface serves readers. Both share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
             services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
@@ -196,6 +196,7 @@ namespace Server.Boot
             // Register electric and gear tick updates through DI.
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
+            services.AddSingleton<ServerTickUpdater>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
@@ -247,10 +248,9 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick更新処理を登録する。順序は固定: ①電力tick（先頭でワイヤートポロジ反映） ②gear tick（先頭でgearトポロジ反映）
-            // Register tick update handlers in fixed order: 1) electric tick (wire topology flush at its head) 2) gear tick (gear topology flush at its head)
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
+            // tick順序（仕様2.1）はServerTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
+            // The tick order (spec 2.1) lives in ServerTickUpdater; register just that one entry here
+            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ServerTickUpdater>().Update);
 
             //イベントレシーバーをインスタンス化する
             // Materialize event receivers eagerly.

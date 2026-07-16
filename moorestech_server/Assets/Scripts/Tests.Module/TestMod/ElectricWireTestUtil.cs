@@ -44,9 +44,9 @@ namespace Tests.Module.TestMod
                 world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             Connect(consumerPos, polePos);
 
-            // 保留トポロジを本番入口経由で反映し、セグメントを確定させる
-            // Apply the pending topology through the production entry so the segment settles
-            new ElectricTickUpdater(ServerContext.GetService<ElectricWireNetworkDatastore>()).Update();
+            // dirtyな登録グラフを再構築してセグメントを確定させる
+            // Rebuild the dirty live graph so the segment is applied immediately
+            ServerContext.GetService<ElectricWireNetworkDatastore>().RebuildIfDirty();
 
             var consumerId = world.GetBlock(consumerPos).BlockInstanceId;
             ServerContext.GetService<IElectricWireNetworkDatastore>().TryGetEnergySegment(consumerId, out var segment);

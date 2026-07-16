@@ -28,21 +28,15 @@ namespace Tests.CombinedTest.Game
     public class ElectricTickUnificationTest
     {
         [Test]
-        public void 両topology再構築は両需給計算より先に登録される()
+        public void tick順序はServerTickUpdaterに集約される()
         {
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var electricDatastore = provider.GetRequiredService<IElectricWireNetworkDatastore>();
-            var gearDatastore = provider.GetRequiredService<GearNetworkDatastore>();
-            var electricUpdater = provider.GetRequiredService<ElectricTickUpdater>();
-            var gearUpdater = provider.GetRequiredService<GearTickUpdater>();
+            var serverTickUpdater = provider.GetRequiredService<ServerTickUpdater>();
 
-            // 登録delegateをtest側で照合する
-            // Match delegate targets and methods from the test side without production diagnostics
-            Assert.AreEqual(4, GameUpdater.AdditionalUpdates.Count);
-            Assert.AreEqual((Action)electricDatastore.RebuildIfDirty, GameUpdater.AdditionalUpdates[0]);
-            Assert.AreEqual((Action)gearDatastore.RebuildIfDirty, GameUpdater.AdditionalUpdates[1]);
-            Assert.AreEqual((Action)electricUpdater.Update, GameUpdater.AdditionalUpdates[2]);
-            Assert.AreEqual((Action)gearUpdater.Update, GameUpdater.AdditionalUpdates[3]);
+            // AdditionalUpdatesへの登録はServerTickUpdater1本だけ（内部順序は仕様2.1）
+            // ServerTickUpdater is the only AdditionalUpdates entry; its body carries the spec 2.1 order
+            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.Count);
+            Assert.AreEqual((Action)serverTickUpdater.Update, GameUpdater.AdditionalUpdates[0]);
         }
 
         // 発電機を撤去された機械は、供給率0の導出により自然に停止する
