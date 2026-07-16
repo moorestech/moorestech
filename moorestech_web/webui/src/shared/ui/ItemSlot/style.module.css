@@ -12,6 +12,12 @@
   user-select: none;
 }
 
+/* アイテム入りセルは明色塗りで空セルと二層のコントラストを付ける */
+/* Occupied cells use a light fill to contrast against dark empty cells */
+.slot[data-filled="true"] {
+  background-color: rgba(202, 207, 216, 0.82);
+}
+
 /* 選択状態はシアンの塗りと細枠で強調する */
 /* Highlight selection with cyan fill and a thin border */
 .slot[data-selected="true"] {
@@ -36,4 +42,11 @@
   line-height: 1;
   color: #fff;
   text-shadow: 0 0 2px #000, 1px 1px 1px #000, -1px 0 1px #000;
+}
+
+/* 明色塗りのセル上では個数を黒文字にして視認性を確保する */
+/* Use black count text on the light-filled cell for legibility */
+.slot[data-filled="true"] .count {
+  color: #111;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.85);
 }
