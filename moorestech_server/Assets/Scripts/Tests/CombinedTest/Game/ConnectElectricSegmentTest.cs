@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
 using static Tests.Util.ElectricNetworkReflectionTestUtil;

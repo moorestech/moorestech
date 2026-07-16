@@ -10,6 +10,7 @@ using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest

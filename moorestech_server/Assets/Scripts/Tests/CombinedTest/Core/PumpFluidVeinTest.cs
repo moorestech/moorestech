@@ -11,6 +11,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using static Tests.Util.ElectricNetworkReflectionTestUtil;
 

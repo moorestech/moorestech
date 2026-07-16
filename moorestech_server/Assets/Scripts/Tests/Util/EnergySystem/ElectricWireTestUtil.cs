@@ -5,9 +5,11 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.Interface.DataStore;
+using Tests.Module;
+using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Tests.Module.TestMod
+namespace Tests.Util
 {
     /// <summary>
     /// テストで2つのブロックをワイヤー接続するユーティリティ。範囲スキャンの代わりに明示接続を張る
@@ -51,7 +53,7 @@ namespace Tests.Module.TestMod
             var consumerId = world.GetBlock(consumerPos).BlockInstanceId;
             ServerContext.GetService<IElectricWireNetworkDatastore>().TryGetEnergySegment(consumerId, out var segment);
             var generator = new TestElectricGenerator(new ElectricPower(generatePower), new BlockInstanceId(_nextTestGeneratorId++));
-            segment.AddGenerator(generator);
+            ElectricNetworkReflectionTestUtil.AddGenerator(segment, generator);
             return generator;
         }
 
