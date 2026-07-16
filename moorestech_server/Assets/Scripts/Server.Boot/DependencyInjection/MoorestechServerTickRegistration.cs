@@ -1,6 +1,7 @@
 using Core.Update;
 using Game.EnergySystem;
 using Game.Gear.Common;
+using Game.SaveLoad;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot.Loop.PacketProcessing;
 
@@ -25,6 +26,11 @@ namespace Server.Boot.DependencyInjection
             // Commit frozen input and reserved removals through one tick-end updater
             GameUpdater.TickEndUpdates.Add(
                 provider.GetRequiredService<WorldMutationTickEndUpdater>().Update);
+
+            // 世界変更をすべて確定した後で、要求済みの保存を一度だけ実行する
+            // Execute a requested save once after every world mutation has been committed
+            GameUpdater.FinalTickEndUpdates.Add(
+                provider.GetRequiredService<WorldSaveCoordinator>().SaveIfRequested);
         }
     }
 }

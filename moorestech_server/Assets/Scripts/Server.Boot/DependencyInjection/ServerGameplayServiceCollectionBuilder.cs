@@ -23,6 +23,7 @@ using Game.PlayerInventory.Interface.Subscription;
 using Game.PlayerRiding;
 using Game.PlayerRiding.Interface;
 using Game.Research;
+using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Diagram;
@@ -138,6 +139,8 @@ namespace Server.Boot.DependencyInjection
             // Register JSON save services and inventory events.
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
+            services.AddSingleton<WorldSaveCoordinator>();
+            services.AddSingleton<IWorldSaveRequest>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(options.saveJsonFilePath);
             services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
