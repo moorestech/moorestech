@@ -2,6 +2,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 
+// Unity から注入される実ポート。単体 `pnpm dev` 時はベース値へフォールバックする
+// Actual ports injected by Unity; standalone `pnpm dev` falls back to the base values
+const vitePort = Number(process.env.MOORESTECH_VITE_PORT ?? 25173);
+const backendPort = Number(process.env.MOORESTECH_BACKEND_PORT ?? 25050);
+
 // Vite dev server の設定
 // Vite dev server configuration
 export default defineConfig({
@@ -13,8 +18,7 @@ export default defineConfig({
   },
   server: {
     host: "127.0.0.1",
-    port: 5173,
-    strictPort: true,
+    port: vitePort,
     fs: {
       // Vite は allow リストに node_modules を含むエントリを拒否するため、
       // プロジェクトルート自体を許可してデフォルト挙動(リポジトリ外は元々アクセス不可)に委ねる
@@ -27,11 +31,11 @@ export default defineConfig({
       // Kestrel への HTTP + WebSocket プロキシ
       // Proxy HTTP and WebSocket to Kestrel
       "/api": {
-        target: "http://127.0.0.1:5050",
+        target: `http://127.0.0.1:${backendPort}`,
         changeOrigin: false,
       },
       "/ws": {
-        target: "ws://127.0.0.1:5050",
+        target: `ws://127.0.0.1:${backendPort}`,
         ws: true,
         changeOrigin: false,
       },
