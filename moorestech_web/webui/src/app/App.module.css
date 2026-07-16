@@ -14,24 +14,28 @@
 .stage {
   position: relative;
   display: grid;
-  column-gap: 2rem;
+  column-gap: 2.5rem;
   row-gap: 1rem;
   width: 1280px;
   height: 720px;
-  padding: 96px 60px 24px;
+  padding: 100px 48px 30px;
   box-sizing: border-box;
   flex: 0 0 auto;
   transform: scale(var(--ui-scale, 1));
   transform-origin: center center;
   z-index: 1;
+  /* 半透明ヴィネットで縁を落とし、半透明パネルを地に浮かせる（中心は透過し実ワールドを遮らない） */
+  /* A translucent vignette darkens edges so translucent panels float; the center stays clear over the real world */
+  background: radial-gradient(ellipse 78% 82% at 50% 44%, rgb(18 21 27 / 0%) 52%, rgb(4 5 8 / 55%) 100%);
   /* 上段を画面幅へ展開し、ホットバーは下段全体の中央に置く */
   /* Spread the upper row across the viewport and center the hotbar across the lower row */
   grid-template-areas:
     "inv viewer items"
     "hotbar hotbar hotbar";
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: auto auto auto;
   grid-template-rows: 1fr auto;
   align-items: start;
+  justify-content: center;
 }
 
 /* 中央のクラフト詳細カラムは上寄せ（uGUI 同様に持ち物・レシピと天面を揃える） */
@@ -70,8 +74,8 @@
   bottom: 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 22px;
+  gap: 3px;
+  font-size: 13px;
   font-weight: 500;
   color: #f2f3f7;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);

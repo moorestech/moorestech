@@ -2,6 +2,7 @@
 /* Packs slot cells tightly; the column count varies via the inline repeat style */
 .grid {
   display: grid;
-  gap: 0.25rem;
+  column-gap: 0.125rem;
+  row-gap: 0.55rem;
   width: fit-content;
 }
