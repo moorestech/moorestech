@@ -106,8 +106,14 @@ namespace Tests.CombinedTest.Core
             idleBreakage.TickOverloadCheck();
 
             Assert.IsTrue(fullBreakage.IsDestroy);
-            Assert.IsFalse(world.Exists(fullPosition));
+            Assert.IsTrue(world.Exists(fullPosition));
             Assert.IsFalse(idleBreakage.IsDestroy);
+            Assert.IsTrue(world.Exists(idlePosition));
+
+            // 破断予約は同じtickの末尾でブロックへ反映される
+            // Apply the reserved break at the end of the same tick
+            GameUpdater.UpdateOneTick();
+            Assert.IsFalse(world.Exists(fullPosition));
             Assert.IsTrue(world.Exists(idlePosition));
             fullBreakage.Destroy();
             idleBreakage.Destroy();
