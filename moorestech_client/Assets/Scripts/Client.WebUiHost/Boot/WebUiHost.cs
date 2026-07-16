@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Client.Game.Common;
+using Client.WebUiHost.Vite;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
