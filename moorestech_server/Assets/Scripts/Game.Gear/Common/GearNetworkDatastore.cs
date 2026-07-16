@@ -99,9 +99,9 @@ namespace Game.Gear.Common
             return _instance._topologyMap.GetNetwork(blockInstanceId);
         }
 
-        // tick開始時とtick末尾に未適用topology変更をFIFOで一括適用する
-        // Apply pending topology mutations in FIFO order at tick start and tick end
-        public void FlushPendingMutations()
+        // tick開始時に未適用topology変更をFIFOで一括適用する
+        // Apply pending topology mutations in FIFO order at tick start
+        internal void FlushPendingMutations()
         {
             if (_isFlushing || _pendingMutations.Count == 0) return;
 

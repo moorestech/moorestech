@@ -35,9 +35,9 @@ namespace Game.Block.Blocks.ElectricToGear
 
         public string SaveKey => "electricToGearGenerator";
 
-        // 一定電力を常時消費する
-        // Constantly demands a fixed power
-        public ElectricPower RequestEnergy => new(CurrentMode.RequiredPower);
+        // 満充電までに不足している電力だけを要求する
+        // Demand only the power still missing from the one-tick battery
+        public ElectricPower RequestEnergy => new(Mathf.Max(0f, BatteryCapacity - _batteryRemaining));
 
         public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         public int SelectedIndex => _selectedIndex;

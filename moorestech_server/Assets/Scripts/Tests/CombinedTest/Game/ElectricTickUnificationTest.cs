@@ -114,10 +114,10 @@ namespace Tests.CombinedTest.Game
             var loadedBlock = ServerContext.BlockFactory.Load(blockMaster.BlockGuid, new BlockInstanceId(998), saveState, positionInfo);
             var loadedComponent = loadedBlock.GetComponent<ElectricToGearGeneratorComponent>();
 
-            // 残量が維持されるため、供給率0.5の1tickで満充電になり脈動位相も保たれる
-            // The remainder is kept, so one more rate-0.5 tick reaches full charge, preserving the pulse phase
+            // 残量分だけを要求するため、全量供給の1tickで満充電になり駆動を再開する
+            // Since only the remainder is requested, one fully supplied tick completes the charge and resumes output
             Assert.AreEqual(savedRemaining, ReadBatteryRemaining(loadedComponent), 0.001f);
-            loadedComponent.OnElectricTickPostProcess(new ElectricNetworkStatistics((float)mode0.RequiredPower * 0.5f, (float)mode0.RequiredPower, 0.5f, 1));
+            loadedComponent.OnElectricTickPostProcess(new ElectricNetworkStatistics(savedRemaining, savedRemaining, 1f, 1));
             Assert.AreEqual((float)mode0.Torque, loadedComponent.GenerateTorque.AsPrimitive(), 0.01f);
 
             #region Internal
