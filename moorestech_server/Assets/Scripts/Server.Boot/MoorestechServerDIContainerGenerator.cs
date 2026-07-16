@@ -1,83 +1,53 @@
-﻿using System.IO;
+using System.IO;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
-using Game.Action;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
-using Game.Blueprint;
-using Game.Challenge;
 using Game.CleanRoom;
 using Game.Context;
-using Game.Crafting.Interface;
-using Game.CraftTree;
-using Game.EnergySystem;
-using Game.Entity;
-using Game.Entity.Interface;
 using Game.Gear.Common;
 using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
 using Game.Paths;
-using Game.PlayerConnection;
-using Game.PlayerInventory;
-using Game.PlayerInventory.Event;
-using Game.PlayerInventory.Interface;
-using Game.PlayerInventory.Interface.Event;
-using Game.PlayerInventory.Interface.Subscription;
-using Game.PlayerRiding;
-using Game.PlayerRiding.Interface;
-using Game.Research;
-using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Diagram;
-using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
-using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
-using Game.UnlockState;
 using Game.World;
 using Game.World.DataStore;
-using Game.World.DataStore.WorldSettings;
-using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Game.World.Interface.DataStore;
-using MessagePack;
-using MessagePack.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
 using Mod.Loader;
 using Newtonsoft.Json;
-using Server.Event;
-using Server.Event.EventReceive;
-using Server.Event.EventReceive.UnifiedInventoryEvent;
+using Server.Boot.DependencyInjection;
 using Server.Protocol;
-using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Util.MessagePack;
-
-using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 
 namespace Server.Boot
 {
     public class MoorestechServerDIContainerOptions
     {
         public readonly string ServerDataDirectory;
-        
-        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json"); 
+
+        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json");
         public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
-        
+
         public MoorestechServerDIContainerOptions(string serverDataDirectory)
         {
             ServerDataDirectory = serverDataDirectory;
         }
     }
-    
-    
+
+
     public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
@@ -133,170 +103,19 @@ namespace Server.Boot
             var initializerProvider = initializerCollection.BuildServiceProvider();
             var serverContext = new ServerContext(initializerProvider);
 
-
-            //コンフィグ、ファクトリーのインスタンスを登録
-            // Register config and factory instances.
-            var services = new ServiceCollection();
-
-            //ゲームプレイに必要なクラスのインスタンスを生成
-            // Register gameplay services.
-            services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
-            services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
-            services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
-            services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
-            services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
-            services.AddSingleton<OpenableInventoryResolver>();
-            services.AddSingleton<IElectricWireNetworkDatastore, ElectricWireNetworkDatastore>();
-            services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
-            services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
-            services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
-            var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
-            var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
-            services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
-            services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
-            services.AddSingleton(railGraphDatastore);
-            services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);
-            services.AddSingleton<IRailGraphProvider>(railGraphDatastore);
-            services.AddSingleton(trainUnitDatastore);
-            services.AddSingleton<ITrainUnitMutationDatastore>(trainUnitDatastore);
-            services.AddSingleton<ITrainUnitLookupDatastore>(trainUnitDatastore);
-            services.AddSingleton<RailConnectionCommandHandler>();
-            services.AddSingleton(initializerProvider.GetService<TrainDiagramManager>());
-            services.AddSingleton(initializerProvider.GetService<TrainRailPositionManager>());
-            services.AddSingleton<IRailGraphNodeRemovalListener>(initializerProvider.GetService<TrainDiagramManager>());
-            services.AddSingleton<IRailGraphNodeRemovalListener>(initializerProvider.GetService<TrainRailPositionManager>());
-
-            services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
-            services.AddSingleton<CraftTreeManager>();
-            services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
-            services.AddSingleton(itemStackLevelDataStore);
-            services.AddSingleton<IItemStackLevelLookup>(itemStackLevelDataStore);
-            services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
-            services.AddSingleton<IResearchDataStore, ResearchDataStore>();
-            services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
-            services.AddSingleton<ResearchEvent>();
-            
-            services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
-            services.AddSingleton(masterJsonFileContainer);
-            services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
-            services.AddSingleton<ChallengeEvent, ChallengeEvent>();
-            services.AddSingleton<TrainSaveLoadService, TrainSaveLoadService>();
-            services.AddSingleton<RailGraphSaveLoadService, RailGraphSaveLoadService>();
-            services.AddSingleton<TrainDockingStateRestorer>();
-            services.AddSingleton<ITrainUpdateEvent, TrainUpdateEvent>();
-            services.AddSingleton<ITrainUnitSnapshotNotifyEvent, TrainUnitSnapshotNotifyEvent>();
-            services.AddSingleton<TrainCarRidingInputBuffer>();
-            services.AddSingleton<TrainCarRidingManualCommandResolver>();
-            services.AddSingleton<TrainUpdateService>();
-
-            // 電力・gearのtick更新とtick中破壊予約をDIから登録する
-            // Register electric/gear tick updates and the in-tick removal reservation through DI.
-            services.AddSingleton<ElectricTickUpdater>();
-            services.AddSingleton<GearTickUpdater>();
-            services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
-
-            // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
-            // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
-            services.AddSingleton<IPlayerConnectionChecker, PlayerConnectionRegistry>();
-            services.AddSingleton<RidableResolver>();
-            services.AddSingleton<IPlayerRidingDatastore, PlayerRidingDatastore>();
-            services.AddSingleton<RemovedRidableRidingHandler>();
-
-            //JSONファイルのセーブシステムの読み込み
-            // Register JSON save system services.
-            services.AddSingleton(modResource);
-            services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
-            services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(options.saveJsonFilePath);
-
-            //イベントを登録
-            // Register events.
-            services.AddSingleton<IMainInventoryUpdateEvent, MainInventoryUpdateEvent>();
-            services.AddSingleton<IGrabInventoryUpdateEvent, GrabInventoryUpdateEvent>();
-            services.AddSingleton<CraftEvent, CraftEvent>();
-
-            //イベントレシーバーを登録
-            // Register event receivers.
-            services.AddSingleton<ChangeBlockStateEventPacket>();
-            services.AddSingleton<MainInventoryUpdateEventPacket>();
-            services.AddSingleton<UnifiedInventoryEventPacket>();
-            services.AddSingleton<GrabInventoryUpdateEventPacket>();
-            services.AddSingleton<PlaceBlockEventPacket>();
-            services.AddSingleton<RemoveBlockToSetEventPacket>();
-            services.AddSingleton<CompletedChallengeEventPacket>();
-            services.AddSingleton<ResearchCompleteEventPacket>();
-            services.AddSingleton<ItemStackLevelUnlockEventPacket>();
-
-            services.AddSingleton<MapObjectUpdateEventPacket>();
-            services.AddSingleton<UnlockedEventPacket>();
-            services.AddSingleton<RailNodeCreatedEventPacket>();
-            services.AddSingleton<RailConnectionCreatedEventPacket>();
-            services.AddSingleton<TrainUnitTickDiffBundleEventPacket>();
-            services.AddSingleton<TrainUnitSnapshotEventPacket>();
-            services.AddSingleton<RailNodeRemovedEventPacket>();
-            services.AddSingleton<RailConnectionRemovedEventPacket>();
-            services.AddSingleton<RidingStateEventPacket>();
-            
-            //データのセーブシステム
-            // Register data save helpers.
-            services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
-
-
+            // ゲームプレイ登録を構築して主サービスプロバイダーを生成する
+            // Build gameplay registrations and create the main service provider.
+            var services = ServerGameplayServiceCollectionBuilder.Build(
+                options, modResource, masterJsonFileContainer, initializerProvider, itemStackLevelDataStore);
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick更新処理を登録する。順序は固定: ①電力トポロジ反映 ②gearトポロジ反映 ③電力tick ④gear tick
-            // Register tick update handlers in fixed order: 1) electric topology flush 2) gear topology flush 3) electric tick 4) gear tick
-            var electricWireNetworkDatastore = serviceProvider.GetRequiredService<IElectricWireNetworkDatastore>();
-            var gearNetworkDatastoreInstance = serviceProvider.GetRequiredService<GearNetworkDatastore>();
-            var blockRemovalReservationService = serviceProvider.GetRequiredService<IBlockRemovalReservationService>();
-            GameUpdater.AdditionalUpdates.Add(electricWireNetworkDatastore.FlushPendingCommands);
-            GameUpdater.AdditionalUpdates.Add(gearNetworkDatastoreInstance.FlushPendingMutations);
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
-
-            // tick末尾: 予約された破壊の一括反映と、それに伴う電力・gearトポロジ変更の反映
-            // Tick end: apply reserved removals in batch, then flush the electric and gear topology changes they caused
-            GameUpdater.TickEndUpdates.Add(() =>
-            {
-                blockRemovalReservationService.ApplyReservedRemovals();
-                electricWireNetworkDatastore.FlushPendingCommands();
-                gearNetworkDatastoreInstance.FlushPendingMutations();
-            });
-
-            //イベントレシーバーをインスタンス化する
-            // Materialize event receivers eagerly.
-            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            // TODO find a DI pattern similar to VContainer RegisterEntryPoint for this area.
-            serviceProvider.GetService<MainInventoryUpdateEventPacket>();
-            serviceProvider.GetService<UnifiedInventoryEventPacket>();
-            serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
-            serviceProvider.GetService<PlaceBlockEventPacket>();
-            serviceProvider.GetService<RemoveBlockToSetEventPacket>();
-            serviceProvider.GetService<CompletedChallengeEventPacket>();
-
-            serviceProvider.GetService<GearNetworkDatastore>();
-            serviceProvider.GetService<CleanRoomDatastore>();
-            serviceProvider.GetService<RailGraphDatastore>();
-            serviceProvider.GetService<TrainDiagramManager>();
-            serviceProvider.GetService<TrainRailPositionManager>();
-
-            serviceProvider.GetService<ChangeBlockStateEventPacket>();
-            serviceProvider.GetService<MapObjectUpdateEventPacket>();
-            serviceProvider.GetService<UnlockedEventPacket>();
-            serviceProvider.GetService<ResearchCompleteEventPacket>();
-            serviceProvider.GetService<ItemStackLevelUnlockEventPacket>();
-            serviceProvider.GetService<RailNodeCreatedEventPacket>();
-            serviceProvider.GetService<RailConnectionCreatedEventPacket>();
-            serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();
-            serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
-            serviceProvider.GetService<RailNodeRemovedEventPacket>();
-            serviceProvider.GetService<RailConnectionRemovedEventPacket>();
-            serviceProvider.GetService<RidingStateEventPacket>();
-            serviceProvider.GetService<RemovedRidableRidingHandler>();
-            
+            // tick更新登録後にイベント受信口を既存順で生成する
+            // Register tick updates, then materialize event receivers in the existing order.
+            MoorestechServerTickRegistration.Register(serviceProvider);
+            ServerEntryPointMaterializer.Materialize(serviceProvider);
             serverContext.SetMainServiceProvider(serviceProvider);
-            
+
             // MessagePackResolverを登録
             // Register the MessagePack resolver.
             MessagePackInitializer.Initialize();
@@ -305,4 +124,3 @@ namespace Server.Boot
         }
     }
 }
-
