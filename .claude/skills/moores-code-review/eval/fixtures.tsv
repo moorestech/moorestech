@@ -1,0 +1,9 @@
+# label	review_commit	merge_commit	note
+pr978-r1	d9e57aade	0e74cef67	PR978 第1ラウンド（ドメイン越境・BlockMaster挿入・UpdateTicks質問）review 4642535092
+pr978-r2	73586377a	0e74cef67	PR978 第2ラウンド（optional:true・毎フレーム判定・Default排除・一時変数）review 4642994960
+pr987	33975adb6	c50a23617	PR987 BuildMenuEntry共用体struct comment r3537879954
+pr988	44428c01e	c2477b556	PR988 プロトコル3点セット・DataStore分離 review 4644402652
+pr996	8e56e402d	379350219	PR996 god-context・Selector・DTO配置 review 4661573483
+pr997	ce3465853	154bec765	PR997 複合interface・ディレクトリ整理 review 4645972495
+pr1000	081704ebc	df594e403	PR1000 GearChainPole重複・_gearService委譲 comment r3556923781
+# pr1017	<review_commit>	<merge_commit>	PR1017 [0]決め打ちの暗黙単数前提 review 4686520443（マージ後にコミット埋めて有効化）

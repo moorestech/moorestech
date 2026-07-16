@@ -95,8 +95,8 @@ namespace Server.Protocol.PacketResponse
             {
                 // ベルトファミリーは代表ブロックのunlock状態を参照する
                 // Belt families resolve unlock state through the representative block
-                var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var beltParam)
-                    ? MasterHolder.BlockMaster.GetBlockMaster(BeltConveyorPlaceFamilyUtil.GetRepresentativeBlockId(beltParam)).BlockGuid
+                var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)
+                    ? MasterHolder.BlockMaster.GetBlockMaster(family.RepresentativeBlockId).BlockGuid
                     : blockGuid;
                 return _gameUnlockStateDataController.BlockUnlockStateInfos[unlockGuid].IsUnlocked;
             }

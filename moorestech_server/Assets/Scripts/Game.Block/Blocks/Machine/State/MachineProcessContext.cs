@@ -1,5 +1,6 @@
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
+using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
 {
@@ -11,6 +12,10 @@ namespace Game.Block.Blocks.Machine.State
         public readonly VanillaMachineOutputInventory OutputInventory;
         public readonly MachineModuleEffectComponent EffectComponent;
         public readonly float RequestPower;
+
+        // プレイヤーが選択したレシピ。未選択はnullで、その間は加工しない
+        // Recipe selected by the player; null means unselected and the machine never processes
+        public MachineRecipeMasterElement SelectedRecipe;
 
         // このtickで各電力セグメントから供給された電力の加算器（次のUpdateでCurrentPowerへ確定）
         // Accumulator of power supplied by each energy segment this tick (latched into CurrentPower on the next Update)

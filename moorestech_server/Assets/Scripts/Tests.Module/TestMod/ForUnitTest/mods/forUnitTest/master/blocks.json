@@ -263,6 +263,7 @@
       ],
       "name": "TestElectricPole",
       "blockType": "ElectricPole",
+      "sortPriority": 10,
       "blockParam": {
         "machineConnectionRange": 5,
         "poleConnectionRange": 7,
@@ -305,6 +306,7 @@
       ],
       "name": "TestLockedElectricPole",
       "blockType": "ElectricPole",
+      "sortPriority": 10,
       "blockParam": {
         "machineConnectionRange": 5,
         "poleConnectionRange": 7,
@@ -2820,6 +2822,7 @@
         1
       ],
       "blockType": "TrainRail",
+      "sortPriority": 10,
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2847,6 +2850,7 @@
         1
       ],
       "blockType": "TrainRail",
+      "sortPriority": 20,
       "blockParam": {
         "railPosition": [
           0.5,
@@ -2873,6 +2877,7 @@
         1
       ],
       "blockType": "TrainRail",
+      "sortPriority": 30,
       "blockParam": {
         "railPosition": [
           0.5,
@@ -5324,6 +5329,44 @@
     {
       "itemGuid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
       "consumptionPerLength": 1
+    }
+  ],
+  "beltConveyorFamilies": [
+    {
+      "straightBlocks": [
+        {
+          "blockGuid": "00000000-0000-0000-0000-000000000003"
+        }
+      ]
+    },
+    {
+      "straightBlocks": [
+        {
+          "blockGuid": "00000000-0000-0000-0000-000000000030"
+        }
+      ]
+    },
+    {
+      "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
+      "downBlockGuid": "00000000-0000-0000-0000-0000000000a2",
+      "straightBlocks": [
+        {
+          "blockGuid": "00000000-0000-0000-0000-000000000015"
+        },
+        {
+          "blockGuid": "00000000-0000-0000-0000-0000000000a3"
+        },
+        {
+          "blockGuid": "00000000-0000-0000-0000-0000000000a4"
+        }
+      ]
+    },
+    {
+      "straightBlocks": [
+        {
+          "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
+        }
+      ]
     }
   ],
   "blockDestructionCategories": [

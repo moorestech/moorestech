@@ -14,6 +14,7 @@ using Game.Context;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
+using Mooresmaster.Model.MachineRecipesModule;
 using Newtonsoft.Json;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
@@ -156,6 +157,14 @@ namespace Game.Block.Factory.BlockTemplate
             // Restore pending outputs (old saves: null, re-rolled later)
             var pendingOutputs = processorJson.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
 
+            // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
+            // Restore the selected recipe; a GUID missing from the master falls back to unselected
+            MachineRecipeMasterElement selectedRecipe = null;
+            if (!string.IsNullOrEmpty(processorJson.SelectedRecipeGuidStr) && Guid.TryParse(processorJson.SelectedRecipeGuidStr, out var selectedGuid))
+            {
+                selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedGuid);
+            }
+
             var processor = new VanillaMachineProcessorComponent(
                 vanillaMachineInputInventory,
                 vanillaMachineOutputInventory,
@@ -165,7 +174,8 @@ namespace Game.Block.Factory.BlockTemplate
                 requestPower,
                 idlePowerRate,
                 machineModuleEffectComponent,
-                pendingOutputs);
+                pendingOutputs,
+                selectedRecipe);
 
             return processor;
         }

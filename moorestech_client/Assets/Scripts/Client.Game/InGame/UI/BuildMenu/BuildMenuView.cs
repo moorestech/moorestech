@@ -15,7 +15,7 @@ namespace Client.Game.InGame.UI.BuildMenu
     /// 解放済みブロック/車両/接続具/BPのグリッド表示メニュー
     /// Build menu grid showing unlocked blocks, train cars, connect tools, and blueprints
     /// </summary>
-    public class BuildMenuView : MonoBehaviour
+    public class BuildMenuView : MonoBehaviour, IBuildMenuView
     {
         [SerializeField] private RectTransform blockListContainer;
 

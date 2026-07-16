@@ -155,7 +155,7 @@ namespace Client.Game.InGame.UI.Inventory
                         if (_currentLoadedAsset?.Asset != null)
                         {
                             _currentGrabItem = Instantiate(_currentLoadedAsset.Asset);
-                            PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false);
+                            PlayerSystemContainer.Instance.PlayerGrabItemManager.SetItem(_currentGrabItem, false, Vector3.zero, Quaternion.identity);
                             return;
                         }
                     }

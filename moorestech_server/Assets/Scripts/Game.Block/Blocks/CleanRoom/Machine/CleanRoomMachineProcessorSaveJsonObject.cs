@@ -16,5 +16,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         [JsonProperty("inputSlot")] public List<ItemStackSaveJsonObject> InputSlot;
         [JsonProperty("outputSlot")] public List<ItemStackSaveJsonObject> OutputSlot;
         [JsonProperty("moduleSlot")] public List<ItemStackSaveJsonObject> ModuleSlot;
+
+        // 選択中レシピ。未選択はnull（旧セーブもキー無し=null）
+        // Selected recipe; null when unselected (older saves lack the key)
+        [JsonProperty("selectedRecipeGuid")] public string SelectedRecipeGuidStr;
     }
 }

@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
-            InsertRecipeInputs(inventory, recipe);
+            InsertRecipeInputs(block, inventory, recipe);
 
             // 前提: 整数部1段が確定（effectValue=1.0）であること。データ変更時はここで失敗させる
             // Precondition: one guaranteed level-up (effectValue = 1.0); fail loudly on data drift
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Core
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
             inventory.SetItem(ModuleRangeStart + 1, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity));
-            InsertRecipeInputs(inventory, recipe);
+            InsertRecipeInputs(block, inventory, recipe);
 
             // 前提: 追加出力が確定（確率1.0）であること
             // Precondition: the extra output is guaranteed (chance 1.0)
@@ -129,9 +129,9 @@ namespace Tests.CombinedTest.Core
             variantFitInventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(baseItemId, maxStack));
             variantFitInventory.SetItem(InputSlotCount + 2, itemStackFactory.Create(lv2ItemId, 1));
 
-            InsertRecipeInputs(qualityInventory, recipe);
-            InsertRecipeInputs(plainInventory, recipe);
-            InsertRecipeInputs(variantFitInventory, recipe);
+            InsertRecipeInputs(qualityBlock, qualityInventory, recipe);
+            InsertRecipeInputs(plainBlock, plainInventory, recipe);
+            InsertRecipeInputs(variantFitBlock, variantFitInventory, recipe);
 
             AdvanceTicksWithFullPower(2, qualityProcessor, plainProcessor, variantFitProcessor);
 
@@ -183,7 +183,7 @@ namespace Tests.CombinedTest.Core
                 // Two full base-item slots plus one free slot (two same-level items fit one slot; a mixed pair needs two)
                 inventory.SetItem(InputSlotCount, itemStackFactory.Create(baseItemId, maxStack));
                 inventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(baseItemId, maxStack));
-                InsertRecipeInputs(inventory, recipe);
+                InsertRecipeInputs(block, inventory, recipe);
                 machines[i] = (inventory, processor);
             }
 
@@ -234,7 +234,7 @@ namespace Tests.CombinedTest.Core
             var position = new Vector3Int(1, 1, 1);
             var (block, inventory, processor) = PlaceMachine(position);
             inventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
-            InsertRecipeInputs(inventory, recipe);
+            InsertRecipeInputs(block, inventory, recipe);
 
             // 数tick進めたプロセス途中の状態を作り、ワールド全体をセーブする
             // Advance a few ticks into the process, then save the entire world
@@ -321,8 +321,9 @@ namespace Tests.CombinedTest.Core
 
         // レシピの入力アイテム1セットをインプットへ投入する
         // Insert one set of the recipe's input items into the input range
-        private static void InsertRecipeInputs(VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
+        private static void InsertRecipeInputs(IBlock block, VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
         {
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
             foreach (var inputItem in recipe.InputItems)
             {
                 inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));

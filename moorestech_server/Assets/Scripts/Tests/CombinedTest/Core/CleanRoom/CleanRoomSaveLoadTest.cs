@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core.CleanRoom
@@ -97,6 +98,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
             // 入力を入れ、清浄室内で実際にProcessingへ入るまで満電で進める
             // Load inputs and power the room until the machine really enters Processing
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse("19b0d248-0ce5-4e5f-b59c-5897177b6268"));
+            MachineRecipeSelectTestUtil.SelectRecipe(machine1, recipe);
             machine1.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestChipRawWafer, 5);
             var processor1 = machine1.GetComponent<CleanRoomMachineProcessorComponent>();
             TickUntilProcessing(filter, machine1, processor1, 200);

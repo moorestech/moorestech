@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Game.InGame.UI.Crosshair
 {
     /// <summary>
-    ///     FPS建設モードの画面中央クロスヘア
-    ///     Center-screen crosshair for the FPS build mode
+    ///     FPS視点の画面中央クロスヘア
+    ///     Center-screen crosshair for the first-person view
     /// </summary>
     public class CrosshairView : MonoBehaviour
     {
