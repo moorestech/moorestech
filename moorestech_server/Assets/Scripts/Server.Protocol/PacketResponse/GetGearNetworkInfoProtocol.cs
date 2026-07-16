@@ -12,8 +12,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:getGearNetInfo";
 
+        private readonly IGearNetworkDatastore _gearNetworkDatastore;
+
         public GetGearNetworkInfoProtocol(ServiceProvider serviceProvider)
         {
+            _gearNetworkDatastore = serviceProvider.GetService<IGearNetworkDatastore>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -22,7 +25,7 @@ namespace Server.Protocol.PacketResponse
 
             // 対象ブロックがギアネットワーク未登録なら Info=null を返す
             // Return Info=null when the target block is not registered in any gear network
-            if (!GearNetworkDatastore.TryGetGearNetwork(request.BlockInstanceId, out var network))
+            if (!_gearNetworkDatastore.TryGetGearNetwork(request.BlockInstanceId, out var network))
             {
                 return new ResponseGetGearNetworkInfoMessagePack(null);
             }

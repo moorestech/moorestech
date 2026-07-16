@@ -1,6 +1,7 @@
 using System.Reflection;
 using Game.Block.Blocks.Gear;
 using Game.Gear.Common;
+using Game.Context;
 
 namespace Tests.Util
 {
@@ -18,7 +19,7 @@ namespace Tests.Util
 
             // 出力変化を本番と同じ経路で通知し、所属networkの再計算を要求する
             // Notify the output change through the production path so the owning network is recalculated
-            GearNetworkDatastore.NotifyGeneratorOutputChanged(simpleGearGeneratorComponent);
+            ServerContext.GetService<IGearNetworkDatastore>().NotifyGeneratorOutputChanged(simpleGearGeneratorComponent);
         }
 
         public static void SetGenerateTorque(this SimpleGearGeneratorComponent component, float torque)
@@ -33,7 +34,7 @@ namespace Tests.Util
 
             // 出力変化を本番と同じ経路で通知し、所属networkの再計算を要求する
             // Notify the output change through the production path so the owning network is recalculated
-            GearNetworkDatastore.NotifyGeneratorOutputChanged(component);
+            ServerContext.GetService<IGearNetworkDatastore>().NotifyGeneratorOutputChanged(component);
         }
     }
 }
