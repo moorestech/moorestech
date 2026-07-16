@@ -9,6 +9,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Game
 {
@@ -37,11 +38,11 @@ namespace Tests.CombinedTest.Game
 
             // 1セグメントに2つの発電機が登録されている
             // One segment holds both generators
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(poleBlock.BlockInstanceId, out var segment));
-            Assert.AreEqual(2, segment.Generators.Count);
-            Assert.IsTrue(segment.Generators.ContainsKey(generator1Block.BlockInstanceId));
-            Assert.IsTrue(segment.Generators.ContainsKey(generator2Block.BlockInstanceId));
+            Assert.AreEqual(2, GetGenerators(segment).Count);
+            Assert.IsTrue(GetGenerators(segment).ContainsKey(generator1Block.BlockInstanceId));
+            Assert.IsTrue(GetGenerators(segment).ContainsKey(generator2Block.BlockInstanceId));
 
             // 左の発電機を削除
             // Remove the left generator
@@ -50,11 +51,11 @@ namespace Tests.CombinedTest.Game
 
             // 電柱と右発電機は繋がったままなのでセグメント数は1
             // The pole and right generator remain wired, so the segment count stays 1
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(poleBlock.BlockInstanceId, out segment));
-            Assert.AreEqual(1, segment.Generators.Count);
-            Assert.IsFalse(segment.Generators.ContainsKey(generator1Block.BlockInstanceId));
-            Assert.IsTrue(segment.Generators.ContainsKey(generator2Block.BlockInstanceId));
+            Assert.AreEqual(1, GetGenerators(segment).Count);
+            Assert.IsFalse(GetGenerators(segment).ContainsKey(generator1Block.BlockInstanceId));
+            Assert.IsTrue(GetGenerators(segment).ContainsKey(generator2Block.BlockInstanceId));
 
             // 右の発電機も削除
             // Remove the right generator too
@@ -63,9 +64,9 @@ namespace Tests.CombinedTest.Game
 
             // 電柱単独のセグメントが残り、発電機は0
             // Only the pole-only segment remains with zero generators
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(poleBlock.BlockInstanceId, out segment));
-            Assert.AreEqual(0, segment.Generators.Count);
+            Assert.AreEqual(0, GetGenerators(segment).Count);
         }
 
         // 2つの機械を順に削除し残る消費者が減るか確認
@@ -85,31 +86,31 @@ namespace Tests.CombinedTest.Game
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(poleBlock.BlockInstanceId, out var segment));
-            Assert.AreEqual(2, segment.Consumers.Count);
-            Assert.IsTrue(segment.Consumers.ContainsKey(machine1Block.BlockInstanceId));
-            Assert.IsTrue(segment.Consumers.ContainsKey(machine2Block.BlockInstanceId));
+            Assert.AreEqual(2, GetConsumers(segment).Count);
+            Assert.IsTrue(GetConsumers(segment).ContainsKey(machine1Block.BlockInstanceId));
+            Assert.IsTrue(GetConsumers(segment).ContainsKey(machine2Block.BlockInstanceId));
 
             // 左の機械を削除
             // Remove the left machine
             worldBlockDatastore.RemoveBlock(Pos(0, 0), BlockRemoveReason.ManualRemove);
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(poleBlock.BlockInstanceId, out segment));
-            Assert.AreEqual(1, segment.Consumers.Count);
-            Assert.IsFalse(segment.Consumers.ContainsKey(machine1Block.BlockInstanceId));
-            Assert.IsTrue(segment.Consumers.ContainsKey(machine2Block.BlockInstanceId));
+            Assert.AreEqual(1, GetConsumers(segment).Count);
+            Assert.IsFalse(GetConsumers(segment).ContainsKey(machine1Block.BlockInstanceId));
+            Assert.IsTrue(GetConsumers(segment).ContainsKey(machine2Block.BlockInstanceId));
 
             // 右の機械も削除
             // Remove the right machine too
             worldBlockDatastore.RemoveBlock(Pos(4, 0), BlockRemoveReason.ManualRemove);
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(poleBlock.BlockInstanceId, out segment));
-            Assert.AreEqual(0, segment.Consumers.Count);
+            Assert.AreEqual(0, GetConsumers(segment).Count);
         }
 
         private static Vector3Int Pos(int x, int z)

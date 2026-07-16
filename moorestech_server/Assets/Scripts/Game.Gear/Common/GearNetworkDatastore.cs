@@ -5,51 +5,72 @@ using Game.Gear.Topology;
 
 namespace Game.Gear.Common
 {
-    // 全gear networkの保持と、追加/削除コマンドの遅延適用・再計算対象の管理を担うデータストア
-    // Datastore holding every gear network, applying add/remove commands lazily and tracking recalculation targets
+    // live gearと適用済み状態を分離する
+    // Separates live gear registration from all derived state applied at the tick boundary
     public class GearNetworkDatastore
     {
         private static GearNetworkDatastore _instance;
 
-        private readonly GearNetworkTopologyMap _topologyMap;
-
-        // 未適用のtopology変更コマンド。tick開始時にFIFOで一括適用される
-        // Pending topology mutations, applied FIFO at tick start
-        private readonly List<GearTopologyMutation> _pendingMutations = new();
-
-        // 今tick再計算が必要なnetwork（topology変更またはgenerator出力変化）
-        // Networks needing recalculation this tick (topology change or generator output change)
-        private readonly HashSet<GearNetwork> _networksRequiringRecalc = new();
-
-        // 毎tickの燃料更新が必要なgeneratorを含むnetwork。再計算対象とは別集合で管理する
-        // Networks containing continuous-tick generators, tracked separately from the recalculation set
-        private readonly HashSet<GearNetwork> _continuousTickNetworks = new();
-
-        // 毎tickの過負荷破断チェック対象。GearTickUpdaterが全なめする（対象は過負荷設定を持つgearのみ）
-        // Overload breakage targets swept every tick by GearTickUpdater (only gears with overload params register)
+        private readonly Dictionary<BlockInstanceId, IGearEnergyTransformer> _registeredGears = new();
         private readonly HashSet<IGearOverloadTickTarget> _overloadTickTargets = new();
+        private GearNetworkTopologyMap _topologyMap;
+        private GearRuntimeStateStore _runtimeStateStore;
+        private HashSet<GearNetwork> _networksRequiringRecalc;
+        private HashSet<GearNetwork> _continuousTickNetworks;
+        private bool _isTopologyDirty = true;
 
-        private readonly GearRuntimeStateStore _runtimeStateStore;
-        private bool _isFlushing;
+        public bool IsTopologyDirty => _isTopologyDirty;
 
         public GearNetworkDatastore()
         {
             _instance = this;
+            _topologyMap = GearNetworkTopologyMap.CreateEmpty();
             _runtimeStateStore = new GearRuntimeStateStore();
-            _topologyMap = new GearNetworkTopologyMap(MarkNetworkChanged, OnNetworkDiscarded);
+            _networksRequiringRecalc = new HashSet<GearNetwork>();
+            _continuousTickNetworks = new HashSet<GearNetwork>();
+            GearRuntimeStateStore.Activate(_runtimeStateStore);
         }
 
-        public GearRuntimeStateStore RuntimeStateStore => _runtimeStateStore;
-        public IReadOnlyCollection<GearNetwork> ContinuousTickNetworks => _continuousTickNetworks;
+        internal GearRuntimeStateStore RuntimeStateStore => _runtimeStateStore;
+        internal IReadOnlyCollection<GearNetwork> ContinuousTickNetworks => _continuousTickNetworks;
 
         public static void AddGear(IGearEnergyTransformer gear)
         {
-            _instance._pendingMutations.Add(new GearTopologyMutation(GearTopologyMutationType.Add, gear));
+            _instance._registeredGears[gear.BlockInstanceId] = gear;
+            _instance._isTopologyDirty = true;
         }
 
         public static void RemoveGear(IGearEnergyTransformer gear)
         {
-            _instance._pendingMutations.Add(new GearTopologyMutation(GearTopologyMutationType.Remove, gear));
+            _instance._registeredGears.Remove(gear.BlockInstanceId);
+            _instance._isTopologyDirty = true;
+        }
+
+        public void RebuildIfDirty()
+        {
+            if (!_isTopologyDirty) return;
+
+            // 完成まで旧gear状態を維持する
+            // Retain every currently applied object until all replacement state is built and validated
+            var rebuilt = GearNetworkTopologyMap.Build(_registeredGears.Values);
+            var previousTopologyMap = _topologyMap;
+            var previousRuntimeStateStore = _runtimeStateStore;
+            var previousRecalcNetworks = _networksRequiringRecalc;
+            var previousContinuousNetworks = _continuousTickNetworks;
+
+            // 全参照交換後にruntimeを有効化する
+            // Point the static runtime reference at the same new state after exception-free reference swaps
+            _topologyMap = rebuilt.TopologyMap;
+            _runtimeStateStore = rebuilt.RuntimeStateStore;
+            _networksRequiringRecalc = rebuilt.NetworksRequiringRecalc;
+            _continuousTickNetworks = rebuilt.ContinuousTickNetworks;
+            GearRuntimeStateStore.Activate(_runtimeStateStore);
+
+            previousTopologyMap.Destroy();
+            previousRuntimeStateStore.Destroy();
+            previousRecalcNetworks.Clear();
+            previousContinuousNetworks.Clear();
+            _isTopologyDirty = false;
         }
 
         public static void RegisterOverloadTickTarget(IGearOverloadTickTarget target)
@@ -62,92 +83,41 @@ namespace Game.Gear.Common
             _instance._overloadTickTargets.Remove(target);
         }
 
-        // 破断チェック対象をbufferへコピーする。sweep中の破断→登録解除で集合が変化しても安全に走査できるようにする
-        // Copy overload targets into the buffer so breakage-triggered unregistration during the sweep cannot invalidate iteration
-        public void CollectOverloadTickTargets(List<IGearOverloadTickTarget> buffer)
+        internal void CollectOverloadTickTargets(List<IGearOverloadTickTarget> buffer)
         {
             buffer.AddRange(_overloadTickTargets);
         }
 
-        // generatorが出力変化時に自ら呼び、所属networkを次の再計算対象に加える
-        // Called by a generator itself when its output changes, scheduling its network for recalculation
         public static void NotifyGeneratorOutputChanged(IGearEnergyTransformer generator)
         {
-            if (_instance._topologyMap.TryGetNetwork(generator.BlockInstanceId, out var network))
-                _instance._networksRequiringRecalc.Add(network);
+            AddAppliedNetworkToRecalculation(generator);
         }
 
-        // consumerが要求トルク倍率の変化時に自ら呼び、所属networkを次の再計算対象に加える
-        // Called by a consumer itself when its torque request rate changes, scheduling its network for recalculation
         public static void NotifyConsumerDemandChanged(IGearEnergyTransformer consumer)
         {
-            if (_instance._topologyMap.TryGetNetwork(consumer.BlockInstanceId, out var network))
-                _instance._networksRequiringRecalc.Add(network);
+            AddAppliedNetworkToRecalculation(consumer);
         }
 
-        // 未登録IDでは例外を投げず、適用済みtopologyから失敗を返す
-        // Return a failure from the applied topology instead of throwing when the id is not registered
         public static bool TryGetGearNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)
         {
             return _instance._topologyMap.TryGetNetwork(blockInstanceId, out network);
         }
 
-        // 適用済みtopologyから所属networkを取得する。呼び出し側はtick後の所属確定を前提にする
-        // Read the owning network from applied topology; callers assume tick-settled membership
         public static GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
         {
             return _instance._topologyMap.GetNetwork(blockInstanceId);
         }
 
-        // tick開始時とtick末尾に未適用topology変更をFIFOで一括適用する
-        // Apply pending topology mutations in FIFO order at tick start and tick end
-        public void FlushPendingMutations()
+        internal void CollectNetworksRequiringRecalc(List<GearNetwork> buffer)
         {
-            if (_isFlushing || _pendingMutations.Count == 0) return;
-
-            _isFlushing = true;
-            for (var i = 0; i < _pendingMutations.Count; i++)
-            {
-                var mutation = _pendingMutations[i];
-                if (mutation.MutationType == GearTopologyMutationType.Add) _topologyMap.AddGear(mutation.Gear);
-                else RemoveGearInternal(mutation.Gear);
-            }
-
-            _pendingMutations.Clear();
-            _isFlushing = false;
-        }
-
-        // 再計算対象networkをbufferへ移して内部集合をクリアする（安定tickでは空のまま）
-        // Move networks requiring recalculation into the buffer and clear the internal set (stays empty on stable ticks)
-        public void CollectNetworksRequiringRecalc(List<GearNetwork> buffer)
-        {
-            if (_networksRequiringRecalc.Count == 0) return;
             buffer.AddRange(_networksRequiringRecalc);
             _networksRequiringRecalc.Clear();
         }
 
-        private void RemoveGearInternal(IGearEnergyTransformer gear)
+        private static void AddAppliedNetworkToRecalculation(IGearEnergyTransformer gear)
         {
-            // gear単位のruntime stateは保持していないため、topologyから外すだけでよい
-            // No per-gear runtime state is kept, so removing it from the topology is sufficient
-            _topologyMap.RemoveGear(gear);
-        }
-
-        // topology変化したnetworkのcacheを無効化し、再計算対象と燃料更新集合を更新する
-        // Invalidate the changed network's cache and refresh the recalc / continuous-tick sets
-        private void MarkNetworkChanged(GearNetwork network)
-        {
-            network.MarkTopologyDirty();
-            _networksRequiringRecalc.Add(network);
-            if (network.HasContinuousTickGenerator) _continuousTickNetworks.Add(network);
-            else _continuousTickNetworks.Remove(network);
-        }
-
-        private void OnNetworkDiscarded(GearNetwork network)
-        {
-            _networksRequiringRecalc.Remove(network);
-            _continuousTickNetworks.Remove(network);
-            _runtimeStateStore.RemoveNetworkState(network.NetworkId);
+            if (_instance._topologyMap.TryGetNetwork(gear.BlockInstanceId, out var network))
+                _instance._networksRequiringRecalc.Add(network);
         }
     }
 }

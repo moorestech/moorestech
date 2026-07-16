@@ -11,6 +11,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Game.Energy
 {
@@ -46,11 +47,11 @@ namespace Tests.CombinedTest.Game.Energy
 
             // 機械は電柱と同じ単一セグメントにのみ所属する（多重所属は構造的に発生しない）
             // The machine belongs only to the same single segment as the pole (multi-membership cannot occur)
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(machineBlock.BlockInstanceId, out var machineSegment));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(poleBlock.BlockInstanceId, out var poleSegment));
             Assert.AreSame(poleSegment, machineSegment);
-            Assert.AreEqual(1, machineSegment.Consumers.Count);
+            Assert.AreEqual(1, GetConsumers(machineSegment).Count);
 
             // 数tick進めて供給を安定させる
             // Advance several ticks to stabilize the supply

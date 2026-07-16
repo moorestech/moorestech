@@ -9,6 +9,7 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Game
 {
@@ -33,14 +34,14 @@ namespace Tests.CombinedTest.Game
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
 
             // 中間電柱を削除して鎖を断つ
             // Remove the middle pole to break the chain
             worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(2, networkDatastore.SegmentCount);
+            Assert.AreEqual(2, GetSegmentCount(networkDatastore));
 
             // 両端の電柱が別セグメントに属することを確認
             // Confirm the two end poles now belong to different segments
@@ -68,10 +69,10 @@ namespace Tests.CombinedTest.Game
 
             // 機械・発電機・電柱が1セグメントに集約されている
             // The machine, generator, and pole are consolidated into one segment
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(machineBlock.BlockInstanceId, out var joined));
-            Assert.AreEqual(1, joined.Consumers.Count);
-            Assert.AreEqual(1, joined.Generators.Count);
+            Assert.AreEqual(1, GetConsumers(joined).Count);
+            Assert.AreEqual(1, GetGenerators(joined).Count);
 
             // 電柱を削除
             // Remove the pole
@@ -80,12 +81,12 @@ namespace Tests.CombinedTest.Game
 
             // 機械・発電機は繋がりを失い各自単独セグメント化
             // The machine and generator lose their link and each becomes a standalone segment
-            Assert.AreEqual(2, networkDatastore.SegmentCount);
+            Assert.AreEqual(2, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(machineBlock.BlockInstanceId, out var machineSegment));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(generatorBlock.BlockInstanceId, out var generatorSegment));
             Assert.AreNotSame(machineSegment, generatorSegment);
-            Assert.AreEqual(1, machineSegment.Consumers.Count);
-            Assert.AreEqual(1, generatorSegment.Generators.Count);
+            Assert.AreEqual(1, GetConsumers(machineSegment).Count);
+            Assert.AreEqual(1, GetGenerators(generatorSegment).Count);
 
             // 破壊後にtickしてもクラッシュしないこと
             // Ticking after removal must not crash
@@ -117,16 +118,21 @@ namespace Tests.CombinedTest.Game
             ElectricWireTestUtil.Connect(Pos(0, 2), Pos(0, 0));
             GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
 
             // ループ上の1本を削除しても残りは別経路で繋がったまま
             // Removing one pole on the loop still leaves the rest connected via the alternate path
             worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
 
+            var pole3 = worldBlockDatastore.GetBlock(Pos(2, 2));
+            var pole4 = worldBlockDatastore.GetBlock(Pos(0, 2));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment));
-            Assert.AreEqual(3, segment.EnergyTransformers.Count);
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole3.BlockInstanceId, out var segment3));
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole4.BlockInstanceId, out var segment4));
+            Assert.AreSame(segment, segment3);
+            Assert.AreSame(segment, segment4);
         }
 
         private static Vector3Int Pos(int x, int z)

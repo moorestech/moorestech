@@ -23,7 +23,7 @@ namespace Tests.Module.TestMod
             connectorA.TryAddWireConnection(connectorB.BlockInstanceId, cost);
             connectorB.TryAddWireConnection(connectorA.BlockInstanceId, cost);
 
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
         }
 
         private static IElectricWireConnector ResolveConnector(Vector3Int pos)

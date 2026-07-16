@@ -3,20 +3,16 @@ using Game.Block.Interface;
 
 namespace Game.EnergySystem
 {
-    /// <summary>
-    /// ワイヤーグラフの連結成分としてEnergySegmentを管理するデータストア。
-    /// トポロジ変更はコマンドとして保留され、tick先頭・tick末尾のFlushPendingCommandsで一括反映される。
-    /// Datastore managing EnergySegments as connected components of the wire graph.
-    /// Topology changes are queued as commands and applied in batch by FlushPendingCommands at tick head and tick end.
-    /// </summary>
+    // live電線と適用済みsegmentを分離する
+    // Separates live wire-graph registration from derived segments applied at the tick boundary
     public interface IElectricWireNetworkDatastore
     {
-        int SegmentCount { get; }
+        bool IsTopologyDirty { get; }
 
         void AddConnector(IElectricWireConnector connector);
         void RemoveConnector(IElectricWireConnector connector);
-        void RebuildAround(params IElectricWireConnector[] connectors);
-        void FlushPendingCommands();
+        void MarkTopologyDirty();
+        void RebuildIfDirty();
         bool TryGetEnergySegment(BlockInstanceId blockInstanceId, out EnergySegment segment);
         IReadOnlyList<EnergySegment> GetSegments();
     }

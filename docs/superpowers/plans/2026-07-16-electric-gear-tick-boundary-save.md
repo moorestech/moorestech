@@ -571,7 +571,6 @@ public static object GetTopologyMap(IElectricWireNetworkDatastore datastore);
 public static int GetSegmentCount(IElectricWireNetworkDatastore datastore);
 public static IReadOnlyDictionary<BlockInstanceId, IElectricConsumer> GetConsumers(EnergySegment segment);
 public static IReadOnlyDictionary<BlockInstanceId, IElectricGenerator> GetGenerators(EnergySegment segment);
-public static IReadOnlyDictionary<BlockInstanceId, IElectricTransformer> GetTransformers(EnergySegment segment);
 public static EnergySegment CreateSegment();
 public static void AddGenerator(EnergySegment segment, IElectricGenerator generator);
 public static ElectricNetworkStatistics SettleTick(EnergySegment segment);

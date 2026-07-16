@@ -16,6 +16,7 @@ using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
@@ -52,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // トポロジ反映のため1tick進める
             // Advance one tick for the topology flush
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(2, networkDatastore.SegmentCount);
+            Assert.AreEqual(2, GetSegmentCount(networkDatastore));
 
             // 接続プロトコルを送信する
             // Send the connect protocol
@@ -65,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 接続反映のため1tick進める
             // Advance one tick so the connection is applied
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
         }
 
         [Test]

@@ -16,6 +16,7 @@ using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Core
 {
@@ -95,8 +96,8 @@ namespace Tests.CombinedTest.Core
                 PlacePumpWithPipes(out pumpComponentRef, out pipeNegXRef, out pipePosZRef, out pipeNegZRef);
             }
 
-            // 指定秒数分、ポンプのワイヤーセグメントへ指定出力のテスト発電機を一時登録して稼働させる（tick数で制御）
-            // Helper to run for the given seconds with a test generator of the given output temporarily registered in the pump's wire segment
+            // 指定秒数分、ポンプのワイヤーセグメントへ指定出力のテスト発電機を登録して稼働させる
+            // Run for the given seconds with a test generator registered in the pump's wire segment
             void RunForSeconds(ElectricPumpComponent component, ElectricPower supply, float seconds)
             {
                 // トポロジ反映のため1tick進めてからセグメントを取得する
@@ -105,12 +106,10 @@ namespace Tests.CombinedTest.Core
                 var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
                 Assert.IsTrue(networkDatastore.TryGetEnergySegment(component.BlockInstanceId, out var segment));
                 var generator = new TestElectricGenerator(supply, BlockInstanceId.Create());
-                segment.AddGenerator(generator);
+                AddGenerator(segment, generator);
 
                 var ticks = (int)(seconds * GameUpdater.TicksPerSecond);
                 for (var i = 0; i < ticks; i++) GameUpdater.RunFrames(1);
-
-                segment.RemoveGenerator(generator);
             }
             
             // すべてのパイプの液体量を合計するヘルパー
