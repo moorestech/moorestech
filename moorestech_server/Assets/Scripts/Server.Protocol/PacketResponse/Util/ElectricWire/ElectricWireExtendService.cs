@@ -129,7 +129,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // Consume construction and wire costs, then mark topology for the next tick rebuild
             ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
             ElectricWireSystemUtil.ConsumeItem(inventory, wireItemId, consumedWire);
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
 
             return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
         }

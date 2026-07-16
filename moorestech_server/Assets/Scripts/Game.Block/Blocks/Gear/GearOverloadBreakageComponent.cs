@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.Gear
 
             // 過負荷設定を持つ場合のみsweep対象として登録する
             // Register into the sweep only when overload params are effective
-            if (_overloadEnabled) GearNetworkDatastore.RegisterOverloadTickTarget(this);
+            if (_overloadEnabled) ServerContext.GetService<IGearNetworkDatastore>().RegisterOverloadTickTarget(this);
         }
 
         public void TickOverloadCheck()
@@ -88,7 +88,7 @@ namespace Game.Block.Blocks.Gear
             // 破断経由(RequestRemoveで_isDestroyed済み)でも必ず登録解除する。HashSetのRemoveなので重複解除は無害
             // Always unregister, including the breakage path (where RequestRemove already set _isDestroyed); duplicate removal from the HashSet is harmless
             _isDestroyed = true;
-            if (_overloadEnabled) GearNetworkDatastore.UnregisterOverloadTickTarget(this);
+            if (_overloadEnabled) ServerContext.GetService<IGearNetworkDatastore>().UnregisterOverloadTickTarget(this);
         }
     }
 }

@@ -17,8 +17,8 @@ namespace Tests.Util
     /// </summary>
     public static class ElectricWireTestUtil
     {
-        // 両端のIElectricWireConnectorを解決し、コスト0で双方向接続してから連結成分を再計算する
-        // Resolve the connectors on both ends, add a cost-0 connection both ways, then recompute components
+        // 両端のIElectricWireConnectorを解決し、コスト0で双方向接続する（dirty化は接続メソッド内で行われる）
+        // Resolve the connectors on both ends and add a cost-0 connection both ways; the mutation itself marks the topology dirty
         public static void Connect(Vector3Int posA, Vector3Int posB)
         {
             var connectorA = ResolveConnector(posA);
@@ -27,8 +27,6 @@ namespace Tests.Util
             var cost = new ElectricWireConnectionCost(ItemMaster.EmptyItemId, 0);
             connectorA.TryAddWireConnection(connectorB.BlockInstanceId, cost);
             connectorB.TryAddWireConnection(connectorA.BlockInstanceId, cost);
-
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
         }
 
         private static IElectricWireConnector ResolveConnector(Vector3Int pos)

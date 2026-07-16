@@ -22,6 +22,8 @@ PR1（電力tick一元化）で導入したコマンドバッファ方式（FIFO
 - コマンドバッファ（ElectricWireTopologyCommand とキュー処理）を削除する。
 - 保持するのは「登録集合（BlockInstanceId→IElectricWireConnector の辞書）＋dirtyフラグ」のみ。
 - AddConnector / RemoveConnector / MarkTopologyDirty は登録集合を即時更新してdirtyを立てるだけ。
+- 接続集合を変更するcomponentメソッド（TryAddWireConnection等）自身がMarkTopologyDirtyを呼ぶ。
+  呼び出し元utilにdirty化責務を残さない（レビュー裁定 2026-07-17）。
 - RebuildIfDirty(): dirtyなら登録集合の最終状態から ElectricWireTopologyMap.Build で全再構築し、
   完成後に適用mapを原子交換（構築成功まで旧mapに触らない）。旧mapは Destroy する。
 - tick中の参照（TryGetEnergySegment / GetSegments）は常に適用map経由。
@@ -30,6 +32,9 @@ PR1（電力tick一元化）で導入したコマンドバッファ方式（FIFO
 ### 2. 歯車データストア（GearNetworkDatastore）
 
 - 電力と同じ「登録集合＋dirty→一括再構築→原子交換」へ移行する。
+- staticメソッド（_instance経由）は全廃し、IGearNetworkDatastore interfaceを新設して
+  電力側と同じDI注入（ServerContext.GetService経由）へ統一する（レビュー裁定 2026-07-17）。
+  RebuildIfDirtyは電力側と同様interfaceに載せず具象のみ。
 - GearConnectedComponentFinder によるO(V+E)連結成分探索、GearNetworkTopologyBuildResult を導入。
 - GearTopologyMutation（増分ミューテーションのコマンド）は削除する。
 - 歯車チェーン（GearChainPole）の接続変更も MarkTopologyDirty への通知に一本化する（a2a0d3e8d0）。

@@ -183,10 +183,10 @@ namespace Tests.CombinedTest.Core
 
             // チェーン接続先を含めた単一ネットワークへ統合されていることを確認する
             // Ensure the chain-connected endpoints are merged into one network
-            Assert.True(GearNetworkDatastore.TryGetGearNetwork(generatorId, out var generatorNetwork));
-            Assert.True(GearNetworkDatastore.TryGetGearNetwork(poleAId, out var poleANetwork));
-            Assert.True(GearNetworkDatastore.TryGetGearNetwork(poleBId, out var poleBNetwork));
-            Assert.True(GearNetworkDatastore.TryGetGearNetwork(targetGearId, out var targetGearNetwork));
+            Assert.True(ServerContext.GetService<IGearNetworkDatastore>().TryGetGearNetwork(generatorId, out var generatorNetwork));
+            Assert.True(ServerContext.GetService<IGearNetworkDatastore>().TryGetGearNetwork(poleAId, out var poleANetwork));
+            Assert.True(ServerContext.GetService<IGearNetworkDatastore>().TryGetGearNetwork(poleBId, out var poleBNetwork));
+            Assert.True(ServerContext.GetService<IGearNetworkDatastore>().TryGetGearNetwork(targetGearId, out var targetGearNetwork));
             Assert.AreSame(generatorNetwork, poleANetwork);
             Assert.AreSame(generatorNetwork, poleBNetwork);
             Assert.AreSame(generatorNetwork, targetGearNetwork);

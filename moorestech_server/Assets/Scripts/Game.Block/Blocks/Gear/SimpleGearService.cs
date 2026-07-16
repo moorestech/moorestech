@@ -5,6 +5,7 @@ using Game.Gear.Common;
 using MessagePack;
 using UniRx;
 using UnityEngine;
+using Game.Context;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -116,7 +117,7 @@ namespace Game.Block.Blocks.Gear
         {
             rpm = new RPM(0);
             isClockwise = true;
-            if (!GearNetworkDatastore.TryGetGearNetwork(_owner.BlockInstanceId, out var network)) return false;
+            if (!ServerContext.GetService<IGearNetworkDatastore>().TryGetGearNetwork(_owner.BlockInstanceId, out var network)) return false;
             return network.TryResolveRotation(_owner.BlockInstanceId, out rpm, out isClockwise);
         }
     }

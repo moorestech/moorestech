@@ -60,7 +60,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             }
             
             Consume(cost);
-            GearNetworkDatastore.MarkTopologyDirty();
             
             return true;
             
