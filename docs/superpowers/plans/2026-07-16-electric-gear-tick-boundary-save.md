@@ -36,14 +36,17 @@
 | `Game.EnergySystem/ElectricWire/ElectricWireTopologyMap.cs` | 全コネクタから電線連結成分を一度だけ構築 |
 | `Game.Gear/Common/GearNetworkDatastore.cs` | 稼働中gear登録、gear dirty、再計算集合と完成済みマップの差し替え |
 | `Game.Gear/Topology/GearNetworkTopologyMap.cs` | 全gearから歯車連結成分を一度だけ構築 |
+| `Game.Gear/Topology/GearNetworkTopologyBuildResult.cs` | 新マップと再計算・継続tick・回転探索状態を交換前に一体完成 |
 | `Server.Boot/Loop/PacketProcessing/TickEndPacketQueue.cs` | 全接続共通FIFO、tick境界での固定、保留tailの先頭戻し、失敗集約 |
 | `Server.Boot/Loop/PacketProcessing/ITickEndPacketEntry.cs` | 完了・保留・失敗を区別する接続固有パケット処理契約 |
 | `Server.Boot/Loop/PacketProcessing/WorldMutationTickEndUpdater.cs` | キュー固定→過負荷予約破断→固定パケット実行とtick末尾成功状態の所有 |
 | `Server.Protocol/TickEndPacketProcessResult.cs` | Protocol層からBoot層へ逆参照を作らず完了・保留・失敗を共有する結果型 |
 | `Game.World/DataStore/WorldBlockDatastore.cs` | 複数セル置換を全占有マス検証後に一体確定 |
+| `Game.World/DataStore/WorldBlockSaveLoadConverter.cs` | WorldBlockDatastoreからJSON変換・ロード用block生成を分離して200行以下を維持 |
 | `Game.SaveLoad/WorldSaveCoordinator.cs` | 保存要求世代の集約、tick最終位相での単一保存実行 |
 | `Game.SaveLoad.Interface/IWorldSaveRequest.cs` | 自動保存・手動保存が利用する要求専用契約 |
 | `Game.CleanRoom/CleanRoomDetectionService.cs` | 通常budget処理と保存前全dirty batch処理で同じcarry-over経路を共有 |
+| `Game.CleanRoom/CleanRoomDirtyBatchProcessor.cs` | dirty batch検出・旧新room照合・状態carry-overを担当して200行以下を維持 |
 | `Server.Boot/DependencyInjection/*.cs` | 既存308行のDI生成を登録・materialize・tick配線に分割 |
 
 ### Test ownership
@@ -405,6 +408,7 @@ git commit -m "refactor: サーバー起動登録を責務別に分割"
 - Modify: `moorestech_server/Assets/Scripts/Game.Gear/Common/GearTickUpdater.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Gear/Common/GearNetwork.cs`
 - Replace: `moorestech_server/Assets/Scripts/Game.Gear/Topology/GearNetworkTopologyMap.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Gear/Topology/GearNetworkTopologyBuildResult.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Gear/Topology/GearConnectedComponentFinder.cs`
 - Delete: `moorestech_server/Assets/Scripts/Game.Gear/Topology/GearTopologyMutation.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Gear/Tick/GearRuntimeStateStore.cs`
@@ -446,7 +450,7 @@ datastore.RebuildIfDirty();
 Assert.AreSame(appliedMap, ElectricNetworkReflectionTestUtil.GetTopologyMap(datastore));
 ```
 
-Also enqueue several add/remove/edge changes before one rebuild and assert only the final graph exists. Add a registration-order regression that inspects `GameUpdater.AdditionalUpdates` from the test side and proves both `RebuildIfDirty` delegates precede both calculation delegates; do not add a production order counter or diagnostic property.
+Also enqueue several add/remove/edge changes before one rebuild and assert only the final graph exists. Use throwing fake adjacency enumerators for electric and gear to assert a failed rebuild preserves the previously applied map/runtime state and leaves dirty true. Add a registration-order regression that inspects `GameUpdater.AdditionalUpdates` from the test side and proves both `RebuildIfDirty` delegates precede both calculation delegates; do not add a production order counter or diagnostic property.
 
 - [ ] **Step 2: Run the new test and observe the API failure**
 
@@ -494,7 +498,7 @@ public void RebuildIfDirty()
 }
 ```
 
-`Build` must call connected-component BFS once, create one `EnergySegment` per component, register roles, and fill the ID map. It must not replay Add/Remove operations.
+`Build` must create the ID lookup in one `V` pass, call connected-component BFS once, enumerate every connector adjacency at most once, create one `EnergySegment` per component, register roles, and fill the ID map. It must not sort, replay Add/Remove operations, or rescan all vertices for each component. Instrument fake adjacency enumerators in the test and assert enumeration counts are bounded by `V + E`, independent of the number of queued mutations.
 
 - [ ] **Step 4: Update all electric topology mutation callers**
 
@@ -528,7 +532,7 @@ public static void RemoveGear(IGearEnergyTransformer gear)
 }
 ```
 
-`RebuildIfDirty()` clears old derived runtime/recalc/continuous sets, builds `GearNetworkTopologyMap` from one `GearConnectedComponentFinder` pass, swaps only after build completion, schedules every new network for its first calculation, then clears dirty. `GearTickUpdater.Update()` performs gear calculation only; it must not own topology rebuilding.
+`RebuildIfDirty()` must not clear or mutate any applied object while building. Construct a `GearNetworkTopologyBuildResult` containing the new topology map, runtime state, recalculation set, continuous-tick set, and rotation-search results entirely in local/new objects. Build it with one `GearConnectedComponentFinder` pass and bounded adjacency enumeration, validate it, then swap every applied reference together, destroy the detached old state, and finally clear dirty. If build/enumeration throws, the old map and all old runtime sets remain applied and dirty remains true. `GearTickUpdater.Update()` performs gear calculation only; it must not own topology rebuilding.
 
 Update `MoorestechServerTickRegistration` to register these four delegates in this exact order:
 
@@ -690,6 +694,7 @@ git commit -m "fix: 変換機の残容量要求と過負荷境界を修正"
 - Modify: `moorestech_server/Assets/Scripts/Core.Update/GameUpdater.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.World.Interface/DataStore/IWorldBlockDatastore.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.World/DataStore/WorldBlockDatastore.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.World/DataStore/WorldBlockSaveLoadConverter.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/DependencyInjection/ServerGameplayServiceCollectionBuilder.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/DependencyInjection/MoorestechServerTickRegistration.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/UnitTest/Server/TickEndPacketQueueTest.cs`
@@ -761,11 +766,11 @@ lock (_gate)
 }
 ```
 
-`FreezeCurrentPackets` swaps `_receiving` with an empty queue under that lock. `ProcessFrozenPackets` updates a private last-consumed sequence invariant, skips inactive entries, and handles the three results explicitly. `Completed` advances, `Deferred` prepends the current entry and frozen tail before the receiving queue under the same lock and stops this batch, and `Failed` records batch failure but consumes that entry and continues. Return `true` only when no active entry failed. Do not use separate `Interlocked.Increment` and `ConcurrentQueue.Enqueue` operations.
+`FreezeCurrentPackets` swaps `_receiving` with an empty queue under that lock. `ProcessFrozenPackets` updates a private last-consumed sequence invariant, skips inactive entries, and handles the three results explicitly. `Completed`, `Failed`, and inactive skip advance the consumed sequence; `Deferred` does not advance it, prepends the same-sequence current entry and frozen tail before the receiving queue under the same lock, and stops this batch. `Failed` records batch failure but consumes that entry and continues. Return `true` only when no active entry failed. Do not use separate `Interlocked.Increment` and `ConcurrentQueue.Enqueue` operations.
 
 - [ ] **Step 4: Convert the per-connection processor into an adapter**
 
-Remove its `LateUpdateObservable` subscription and local `ConcurrentQueue`. `EnqueuePacket` creates a private runtime `ITickEndPacketEntry` carrying payload/context/sender and puts it in the shared queue. `Dispose` only marks the connection inactive and does not dispose the shared queue.
+Remove its `LateUpdateObservable` subscription and local `ConcurrentQueue`. `EnqueuePacket` creates a private runtime `ITickEndPacketEntry` carrying payload/context/sender and puts it in the shared queue. The connection-active flag crosses the socket and game threads, so read and write it with `Volatile.Read`/`Volatile.Write`. `Dispose` only marks the connection inactive and does not dispose the shared queue.
 
 Its processing method must call:
 
@@ -779,7 +784,7 @@ return TickEndPacketProcessResult.Completed;
 
 - [ ] **Step 5: Gate stale electric/gear network queries inside the existing deserialize path**
 
-`GetTickEndPacketResponse` reuses `PacketResponseCreator`’s existing exception-handled deserialization. Before calling the protocol, return `Deferred` only when:
+Refactor the existing `GetPacketResponse` and new `GetTickEndPacketResponse` through one core with one existing catch boundary. That boundary must include base deserialization, tag lookup, protocol execution, `SequenceId` assignment, response type conversion, and MessagePack serialization. Before calling the protocol, return `Deferred` only when:
 
 ```csharp
 request.Tag == GetElectricNetworkInfoProtocol.ProtocolTag &&
@@ -793,7 +798,7 @@ request.Tag == GetGearNetworkInfoProtocol.ProtocolTag &&
 _gearNetworkDatastore.IsTopologyDirty
 ```
 
-Return `Completed` for a valid protocol response, including an expected protocol-level rejection represented by an empty response. In the existing deserialization/protocol exception handler, return `Failed` with an empty response list. No packet exception may escape into the game tick, and failure must remain distinguishable from topology deferral so saving can be suppressed for that tick.
+Return `Completed` for a valid protocol response, including an expected protocol-level rejection represented by an empty response. In the shared existing exception handler, return `Failed` with an empty response list for failure at any covered stage. No packet exception may escape into the game tick, and failure must remain distinguishable from topology deferral so saving can be suppressed for that tick. Preserve the existing direct `GetPacketResponse` API by returning the core response list while its callers ignore the richer result.
 
 - [ ] **Step 6: Establish tick-end ordering and a final phase**
 
@@ -822,7 +827,10 @@ Register `TickEndPacketQueue` and `WorldMutationTickEndUpdater` as singletons. R
 In test-side `ITickEndPacketEntry` adapters, call the real `GetTickEndPacketResponse` without sockets. Verify:
 
 - Two same-coordinate place requests in enqueue order yield one placement and one inventory charge.
+- Two placements at different coordinates competing for one remaining inventory item yield one placement and one charge.
+- Two multi-cell placements with different origins but overlapping footprints yield one placement and one charge.
 - `remove→place` and `place→remove` match enqueue order.
+- Two manual removes of the same block return its material exactly once.
 - An overload reservation is applied before a queued manual remove, so broken removal gives no manual refund.
 - A network-info request following a topology mutation remains queued until a later tick whose topology is clean.
 - A disconnected entry never performs its world mutation.
@@ -830,7 +838,11 @@ In test-side `ITickEndPacketEntry` adapters, call the real `GetTickEndPacketResp
 
 - [ ] **Step 9: Make BaseCamp replacement prevalidated and indivisible**
 
-Add the production-used `TryReplaceBlock` operation to `IWorldBlockDatastore`. In `WorldBlockDatastore`, calculate the replacement `BlockPositionInfo` first and reject it when any occupied coordinate belongs to a block other than `existingBlockInstanceId`. Create and validate the replacement block before mutating the dictionaries, then commit removal and insertion on the game thread as one datastore operation. `CompleteBaseCampProtocol` must call this operation instead of `RemoveBlock` followed by `TryAddBlock`.
+Before adding replacement logic, extract JSON conversion and load-time block construction from the existing 198-line `WorldBlockDatastore` into `WorldBlockSaveLoadConverter`; the datastore delegates `GetSaveJsonObject` and consumes the converter's loaded blocks through its normal internal registration path. This is a responsibility split, not a save-format change: keep `BlockGuid`, component-state JSON, instance ID, position, and direction exactly as-is.
+
+Add the production-used `TryReplaceBlock` operation to `IWorldBlockDatastore`. In `WorldBlockDatastore`, first resolve the existing instance and calculate the replacement `BlockPositionInfo` from master size without creating a block. Reject when any replacement coordinate belongs to a block other than `existingBlockInstanceId`. Generate and verify a unique replacement `BlockInstanceId` against the live instance dictionary before construction. Only after every footprint and identity condition passes may `_blockFactory.Create` run with that verified ID; do not create then destroy a collided component, because constructor registration is itself observable.
+
+After those validations, no conditional insertion path remains. Preserve the current observable ordering exactly: emit the old-block remove notification, remove its component lookup entries, destroy it, remove its instance/coordinate/origin entries; then add the replacement instance/coordinate/origin entries, emit the place notification, subscribe to block-state changes, and add component lookup entries. Put this sequence behind private unchecked commit methods and execute it on the sole-writer game thread. This deliberately prevents component-constructor registration side effects before footprint validation and prevents `TryAddBlock` from introducing a second occupancy decision after the old block is gone. `CompleteBaseCampProtocol` must call this operation instead of `RemoveBlock` followed by `TryAddBlock`.
 
 Change only the test master `BaseTransformedBlock` footprint from `1x1x1` to `2x1x1`; its successful protocol test uses empty surrounding space and remains valid. Extend `BaseCampCompleteProtocolTest` by placing a blocker in the added footprint cell before completion. Assert the protocol leaves the original BaseCamp, the blocker, and both instance identities unchanged. This makes the larger-footprint failure executable without changing production master data and also proves coordinates occupied only by the replaced block are allowed.
 
@@ -856,6 +868,7 @@ git commit -m "feat: クライアント操作を共通tick末尾FIFOへ統合"
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/DependencyInjection/ServerGameplayServiceCollectionBuilder.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/DependencyInjection/MoorestechServerTickRegistration.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDetectionService.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDirtyBatchProcessor.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/AssembleSaveJsonText.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/WorldSaveCoordinatorTest.cs`
@@ -960,7 +973,9 @@ These tests verify block and inventory data come from the same final tick bounda
 
 - [ ] **Step 6: Share normal and save-only cleanroom structural processing**
 
-Refactor `CleanRoomDetectionService.ProcessDirtySeeds()` to a private core taking a `drainAll` flag. The normal method retains its cell budget. The save method calls the same core with full drain; build boundary/occupied cell sets once and drain every batch in one invocation.
+The existing `CleanRoomDetectionService` is already 198 lines. Extract its batch flood-fill, affected-old-room selection, identity matching, and carry-over commit into the production-used `CleanRoomDirtyBatchProcessor`. Pass the live room list, pending batch queue, world, budget, and next room ID explicitly; do not duplicate the algorithm or add diagnostic accessors. Keep both changed files below 200 lines.
+
+`CleanRoomDetectionService.ProcessDirtySeeds()` delegates with a `drainAll` flag. The normal method retains its cell budget. The save method calls the same processor with full drain; build boundary/occupied cell sets once and drain every batch in one invocation.
 
 ```csharp
 public void ProcessDirtySeeds() => ProcessDirtySeeds(false);
