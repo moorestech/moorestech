@@ -134,6 +134,9 @@ namespace Game.Block.Blocks.Machine
             // 複数の電力セグメントから供給され得るため加算する
             // Accumulate power because multiple electric segments may supply this machine
             _context.SuppliedPower += power;
+
+            // アイドル中はUpdateが状態変化を出さないため、給電時に明示通知しないとidle→加工遷移がクライアントへ届かない
+            // While idle, Update emits no state change, so without this explicit notice the idle-to-processing transition never reaches the client
             if (CurrentState == ProcessState.Idle) _changeState.OnNext(Unit.Default);
         }
 
