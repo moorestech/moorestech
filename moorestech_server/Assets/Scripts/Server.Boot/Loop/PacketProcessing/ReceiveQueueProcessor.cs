@@ -1,66 +1,80 @@
-using System;
-using System.Collections.Concurrent;
-using Core.Update;
+using System.Threading;
 using Server.Protocol;
 using Server.Util;
-using UniRx;
 
 namespace Server.Boot.Loop.PacketProcessing
 {
-    /// <summary>
-    /// 受信キュープロセッサ
-    /// 受信スレッドからパケットをEnqueueし、メインスレッドでGetPacketResponseを実行
-    /// 処理結果をSendQueueProcessorに送信
-    /// ConcurrentQueueを使用してlock-freeで高速処理
-    /// </summary>
     public class ReceiveQueueProcessor
     {
         private readonly PacketResponseCreator _packetResponseCreator;
         private readonly SendQueueProcessor _sendQueueProcessor;
         private readonly PacketResponseContext _packetResponseContext;
-        private readonly IDisposable _updateSubscription;
-        private readonly ConcurrentQueue<byte[]> _receiveQueue = new();
+        private readonly TickEndPacketQueue _tickEndPacketQueue;
+        private int _isActive = 1;
 
-        public ReceiveQueueProcessor(PacketResponseCreator packetResponseCreator, SendQueueProcessor sendQueueProcessor, PacketResponseContext packetResponseContext)
+        public ReceiveQueueProcessor(
+            PacketResponseCreator packetResponseCreator,
+            SendQueueProcessor sendQueueProcessor,
+            PacketResponseContext packetResponseContext,
+            TickEndPacketQueue tickEndPacketQueue)
         {
             _packetResponseCreator = packetResponseCreator;
             _sendQueueProcessor = sendQueueProcessor;
             _packetResponseContext = packetResponseContext;
-
-            // GameUpdaterのUpdate時にキューを処理
-            _updateSubscription = GameUpdater.LateUpdateObservable.Subscribe(_ => ProcessReceiveQueue());
+            _tickEndPacketQueue = tickEndPacketQueue;
         }
 
         public void EnqueuePacket(byte[] packet)
         {
-            _receiveQueue.Enqueue(packet);
-        }
-
-        private void ProcessReceiveQueue()
-        {
-            // 受信キューからパケットを取り出してゲームロジックで処理
-            // この処理は常に一瞬で終わる（送信はSendQueueProcessorに委譲）
-            while (_receiveQueue.TryDequeue(out var packet))
-            {
-                var results = _packetResponseCreator.GetPacketResponse(packet, _packetResponseContext);
-                foreach (var result in results)
-                {
-                    // パケット長ヘッダーを付与して送信データを構築
-                    // Build send data with packet length header
-                    var header = ToByteArray.Convert(result.Length);
-                    var sendData = new byte[header.Length + result.Length];
-                    header.CopyTo(sendData, 0);
-                    result.CopyTo(sendData, header.Length);
-
-                    // 送信キューに追加（実際の送信は送信スレッドで行う）
-                    _sendQueueProcessor.EnqueueSendData(sendData);
-                }
-            }
+            // 受信スレッドでは世界を変更せず、全接続共通FIFOへ渡す
+            // Keep world mutation off the receive thread and hand the packet to the shared FIFO
+            _tickEndPacketQueue.Enqueue(new ReceivedPacketEntry(this, packet));
         }
 
         public void Dispose()
         {
-            _updateSubscription.Dispose();
+            // 固定済みキューに残る項目も実行されないよう接続状態だけを落とす
+            // Mark only connection state so already-frozen entries are skipped
+            Volatile.Write(ref _isActive, 0);
+        }
+
+        private TickEndPacketProcessResult ProcessPacket(byte[] packet)
+        {
+            var processResult = _packetResponseCreator.GetTickEndPacketResponse(
+                packet, _packetResponseContext, out var results);
+            if (processResult != TickEndPacketProcessResult.Completed) return processResult;
+
+            foreach (var result in results)
+            {
+                // 長さヘッダーを付け、既存の送信専用スレッドへ引き渡す
+                // Add the length header and hand data to the existing send-only thread
+                var header = ToByteArray.Convert(result.Length);
+                var sendData = new byte[header.Length + result.Length];
+                header.CopyTo(sendData, 0);
+                result.CopyTo(sendData, header.Length);
+                _sendQueueProcessor.EnqueueSendData(sendData);
+            }
+
+            return TickEndPacketProcessResult.Completed;
+        }
+
+        private sealed class ReceivedPacketEntry : ITickEndPacketEntry
+        {
+            private readonly ReceiveQueueProcessor _owner;
+            private readonly byte[] _packet;
+
+            public bool IsActive => Volatile.Read(ref _owner._isActive) != 0;
+
+            public ReceivedPacketEntry(ReceiveQueueProcessor owner, byte[] packet)
+            {
+                _owner = owner;
+                _packet = packet;
+            }
+
+            public TickEndPacketProcessResult Process()
+            {
+                return _owner.ProcessPacket(_packet);
+            }
         }
     }
 }

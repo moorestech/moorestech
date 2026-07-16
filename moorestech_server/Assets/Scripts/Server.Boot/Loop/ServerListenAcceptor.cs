@@ -12,7 +12,11 @@ namespace Server.Boot.Loop
     {
         private const int Port = 11564;
 
-        public void StartServer(PacketResponseCreator packetResponseCreator, PlayerConnectionRegistry connectionRegistry, CancellationToken token)
+        public void StartServer(
+            PacketResponseCreator packetResponseCreator,
+            PlayerConnectionRegistry connectionRegistry,
+            TickEndPacketQueue tickEndPacketQueue,
+            CancellationToken token)
         {
             //ソケットの作成
             var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -30,7 +34,8 @@ namespace Server.Boot.Loop
                 // 送信・受信キュープロセッサを作成
                 var packetResponseContext = new PacketResponseContext();
                 var sendQueueProcessor = new SendQueueProcessor(client);
-                var receiveQueueProcessor = new ReceiveQueueProcessor(packetResponseCreator, sendQueueProcessor, packetResponseContext);
+                var receiveQueueProcessor = new ReceiveQueueProcessor(
+                    packetResponseCreator, sendQueueProcessor, packetResponseContext, tickEndPacketQueue);
 
                 // 受信スレッドを起動
                 var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry, packetResponseContext).StartListen(token));

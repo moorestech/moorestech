@@ -1,9 +1,8 @@
 using Core.Update;
-using Game.Block.Interface;
 using Game.EnergySystem;
 using Game.Gear.Common;
-using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Boot.Loop.PacketProcessing;
 
 namespace Server.Boot.DependencyInjection
 {
@@ -22,10 +21,10 @@ namespace Server.Boot.DependencyInjection
             GameUpdater.AdditionalUpdates.Add(
                 provider.GetRequiredService<GearTickUpdater>().Update);
 
-            // tick末尾は破壊だけを確定する
-            // Commit reserved removals only at tick end and defer derived-network rebuilding to the next tick head
-            var blockRemovalReservationService = provider.GetRequiredService<IBlockRemovalReservationService>();
-            GameUpdater.TickEndUpdates.Add(blockRemovalReservationService.ApplyReservedRemovals);
+            // tick末尾は固定入力と予約破壊を一つの更新器で確定する
+            // Commit frozen input and reserved removals through one tick-end updater
+            GameUpdater.TickEndUpdates.Add(
+                provider.GetRequiredService<WorldMutationTickEndUpdater>().Update);
         }
     }
 }

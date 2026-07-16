@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Game.EnergySystem;
+using Game.Gear.Common;
 using Game.Train.Event;
 using Game.Train.RailGraph;
 using Game.Train.Unit;
@@ -14,11 +16,16 @@ namespace Server.Protocol
     public class PacketResponseCreator
     {
         private readonly Dictionary<string, IPacketResponse> _packetResponseDictionary = new();
+        private readonly IElectricWireNetworkDatastore _electricWireNetworkDatastore;
+        private readonly GearNetworkDatastore _gearNetworkDatastore;
         
         //TODO この辺もDIコンテナに載せる?こういうパケット周りめっちゃなんとかしたい
         // TODO should packet registration also be moved into the DI container?
         public PacketResponseCreator(ServiceProvider serviceProvider)
         {
+            _electricWireNetworkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            _gearNetworkDatastore = serviceProvider.GetService<GearNetworkDatastore>();
+
             // パケット生成に必要な列車系サービスを取得
             // Acquire train-related services required for packet creation
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
@@ -80,26 +87,63 @@ namespace Server.Protocol
         
         public List<byte[]> GetPacketResponse(byte[] payload, PacketResponseContext context)
         {
-            ProtocolMessagePackBase request = null;
-            ProtocolMessagePackBase response = null;
+            GetResponseCore(payload, context, false, out var responses);
+            return responses;
+        }
+
+        public TickEndPacketProcessResult GetTickEndPacketResponse(
+            byte[] payload,
+            PacketResponseContext context,
+            out List<byte[]> responses)
+        {
+            return GetResponseCore(payload, context, true, out responses);
+        }
+
+        private TickEndPacketProcessResult GetResponseCore(
+            byte[] payload,
+            PacketResponseContext context,
+            bool deferDirtyNetworkQueries,
+            out List<byte[]> responses)
+        {
+            responses = new List<byte[]>();
             try
             {
-                request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
-                response = _packetResponseDictionary[request.Tag].GetResponse(payload, context);
+                // 共通デシリアライズ直後に、古い派生網を読む問い合わせだけ保留する
+                // Defer only queries that would read stale derived networks after shared deserialization
+                var request = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload);
+                if (deferDirtyNetworkQueries && ShouldDefer(request.Tag))
+                    return TickEndPacketProcessResult.Deferred;
+
+                var response = _packetResponseDictionary[request.Tag].GetResponse(payload, context);
+                if (response == null) return TickEndPacketProcessResult.Completed;
+
+                // 応答採番と変換・直列化も既存の例外境界内で完了させる
+                // Complete response sequencing, conversion, and serialization within the existing catch boundary
+                response.SequenceId = request.SequenceId;
+                var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
+                responses.Add(responseBytes);
+                return TickEndPacketProcessResult.Completed;
             }
             catch (Exception e)
             {
                 // TODO ログ基盤
                 // TODO logging infrastructure
                 Debug.LogError($"PacketResponseCreator Error:{e.Message}\n{e.StackTrace}");
+                return TickEndPacketProcessResult.Completed;
             }
 
-            if (response == null) return new List<byte[]>();
+            #region Internal
 
-            response.SequenceId = request.SequenceId;
-            var responseBytes = MessagePackSerializer.Serialize(Convert.ChangeType(response, response.GetType()));
+            bool ShouldDefer(string tag)
+            {
+                if (tag == GetElectricNetworkInfoProtocol.ProtocolTag)
+                    return _electricWireNetworkDatastore.IsTopologyDirty;
+                if (tag == GetGearNetworkInfoProtocol.ProtocolTag)
+                    return _gearNetworkDatastore.IsTopologyDirty;
+                return false;
+            }
 
-            return new List<byte[]> { responseBytes };
+            #endregion
         }
     }
 }

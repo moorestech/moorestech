@@ -44,6 +44,7 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Boot;
+using Server.Boot.Loop.PacketProcessing;
 using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 
@@ -126,6 +127,8 @@ namespace Server.Boot.DependencyInjection
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
             services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
+            services.AddSingleton<TickEndPacketQueue>();
+            services.AddSingleton<WorldMutationTickEndUpdater>();
             services.AddSingleton<IPlayerConnectionChecker, PlayerConnectionRegistry>();
             services.AddSingleton<RidableResolver>();
             services.AddSingleton<IPlayerRidingDatastore, PlayerRidingDatastore>();
