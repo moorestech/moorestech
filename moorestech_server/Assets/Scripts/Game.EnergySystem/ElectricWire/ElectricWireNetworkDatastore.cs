@@ -11,8 +11,6 @@ namespace Game.EnergySystem
         private ElectricWireTopologyMap _topologyMap = ElectricWireTopologyMap.CreateEmpty();
         private bool _isTopologyDirty = true;
 
-        public bool IsTopologyDirty => _isTopologyDirty;
-
         public void AddConnector(IElectricWireConnector connector)
         {
             _registeredConnectors[connector.BlockInstanceId] = connector;

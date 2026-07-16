@@ -19,21 +19,6 @@ namespace Tests.Util
             return GetRequiredField<object>(datastore, "_topologyMap");
         }
 
-        public static object GetRuntimeStateStore(GearNetworkDatastore datastore)
-        {
-            return GetRequiredField<object>(datastore, "_runtimeStateStore");
-        }
-
-        public static object GetRecalculationSet(GearNetworkDatastore datastore)
-        {
-            return GetRequiredField<object>(datastore, "_networksRequiringRecalc");
-        }
-
-        public static object GetContinuousTickSet(GearNetworkDatastore datastore)
-        {
-            return GetRequiredField<object>(datastore, "_continuousTickNetworks");
-        }
-
         public static IReadOnlyDictionary<GearNetworkId, GearNetwork> GetNetworksWithoutFlush(GearNetworkDatastore datastore)
         {
             var topologyMap = GetTopologyMap(datastore);

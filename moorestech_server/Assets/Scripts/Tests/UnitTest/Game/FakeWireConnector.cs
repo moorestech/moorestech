@@ -82,12 +82,6 @@ namespace Tests.UnitTest.Game
             Registry.Clear();
         }
 
-        public void ResetAdjacencyObservation()
-        {
-            AdjacencyEnumerationCount = 0;
-            YieldedConnectionCount = 0;
-        }
-
         public bool ContainsWireConnection(BlockInstanceId partnerId)
         {
             return _wireConnections.ContainsKey(partnerId);

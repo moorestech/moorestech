@@ -7,14 +7,13 @@ namespace Game.Gear.Tick
     // Holds tick calculation results for each applied gear network
     internal class GearRuntimeStateStore
     {
-        private static GearRuntimeStateStore _instance;
         private readonly Dictionary<GearNetworkId, GearNetworkRuntimeState> _networkStates = new();
 
-        internal static GearRuntimeStateStore Instance => _instance;
+        internal static GearRuntimeStateStore Instance { get; private set; }
 
         internal static void Activate(GearRuntimeStateStore runtimeStateStore)
         {
-            _instance = runtimeStateStore;
+            Instance = runtimeStateStore;
         }
 
         internal GearNetworkRuntimeState GetNetworkState(GearNetworkId networkId)

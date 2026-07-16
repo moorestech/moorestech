@@ -52,6 +52,16 @@ namespace Game.EnergySystem
             }
 
             return new ElectricWireTopologyMap(connectorToSegment, segments);
+
+            #region Internal
+
+            void RegisterRoles(EnergySegment targetSegment, IElectricWireConnector targetConnector)
+            {
+                if (targetConnector.EnergyRole is IElectricConsumer consumer) targetSegment.AddEnergyConsumer(consumer);
+                if (targetConnector.EnergyRole is IElectricGenerator generator) targetSegment.AddGenerator(generator);
+            }
+
+            #endregion
         }
 
         public bool TryGetEnergySegment(BlockInstanceId blockInstanceId, out EnergySegment segment)
@@ -69,12 +79,6 @@ namespace Game.EnergySystem
             foreach (var segment in _segments) segment.Destroy();
             _connectorToSegment.Clear();
             _segments.Clear();
-        }
-
-        private static void RegisterRoles(EnergySegment segment, IElectricWireConnector connector)
-        {
-            if (connector.EnergyRole is IElectricConsumer consumer) segment.AddEnergyConsumer(consumer);
-            if (connector.EnergyRole is IElectricGenerator generator) segment.AddGenerator(generator);
         }
     }
 }

@@ -19,8 +19,6 @@ namespace Game.Gear.Common
         private HashSet<GearNetwork> _continuousTickNetworks;
         private bool _isTopologyDirty = true;
 
-        public bool IsTopologyDirty => _isTopologyDirty;
-
         public GearNetworkDatastore()
         {
             _instance = this;

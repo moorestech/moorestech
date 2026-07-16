@@ -7,7 +7,7 @@ namespace Tests.UnitTest.Game
 {
     // dirty境界の電力mapを検証する
     // Verifies that a dirty live graph does not leak into the applied map before the rebuild boundary
-    public class ElectricWireNetworkDatastoreFlushTest
+    public class ElectricWireNetworkDatastoreDirtyRebuildTest
     {
         [SetUp]
         public void SetUp()
@@ -25,12 +25,10 @@ namespace Tests.UnitTest.Game
 
             // 次境界まで旧mapを維持する
             // Update only the live registry and retain the applied map until the next boundary
-            Assert.IsTrue(datastore.IsTopologyDirty);
             Assert.IsFalse(datastore.TryGetEnergySegment(connector.BlockInstanceId, out _));
 
             datastore.RebuildIfDirty();
 
-            Assert.IsFalse(datastore.IsTopologyDirty);
             Assert.IsTrue(datastore.TryGetEnergySegment(connector.BlockInstanceId, out _));
             Assert.AreEqual(1, ElectricNetworkReflectionTestUtil.GetSegmentCount(datastore));
         }
