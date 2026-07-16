@@ -2,8 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 
-// Unity から注入される実ポート。単体 `pnpm dev` 時はベース値へフォールバックする
-// Actual ports injected by Unity; standalone `pnpm dev` falls back to the base values
+// backend は Unity が env で実ポートを注入。vite 側は Unity 起動時は CLI --port が優先され、この値は単体 `pnpm dev` 用フォールバック
+// Unity injects the actual backend port via env; the vite port here is a standalone `pnpm dev` fallback (Unity passes CLI --port, which wins)
 const vitePort = Number(process.env.MOORESTECH_VITE_PORT ?? 25173);
 const backendPort = Number(process.env.MOORESTECH_BACKEND_PORT ?? 25050);
 

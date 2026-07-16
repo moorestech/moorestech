@@ -26,15 +26,14 @@ namespace Client.WebUiHost.Boot
 
         public static WebSocketHub Hub => _hub;
 
-        // 起動完了後に確定する Vite の URL。未起動・停止後は null
+        // 確定後のVite URL。未起動時null
         // Vite URL resolved after startup; null while not running
-        public static string ViteUrl => _viteUrl;
-        private static string _viteUrl;
+        public static string ViteUrl { get; private set; }
 
         public static async UniTask<bool> StartAsync()
         {
-            // 前回の停止完了を待つ（連続 Start/Stop で port 5050 衝突を避ける）
-            // Wait for the previous stop to complete (avoids port 5050 collision on rapid restart)
+            // 前回の停止完了を待つ（連続 Start/Stop での自ポート衝突を避ける）
+            // Wait for the previous stop to complete (avoids colliding with our own ports on rapid restart)
             if (!_stopTask.IsCompleted)
             {
                 // 前回停止の fault は StopAsync 内でログ済み。ここでは待つだけで再 throw させない（2-B）
@@ -70,7 +69,7 @@ namespace Client.WebUiHost.Boot
                 // 確定した実ポートを公開し、CORS 検査と CEF ナビゲーションを有効化する
                 // Publish the resolved port, enabling the CORS check and CEF navigation
                 WebUiPortConfig.SetVitePort(vite.ActualPort);
-                _viteUrl = $"http://127.0.0.1:{vite.ActualPort}/";
+                ViteUrl = $"http://127.0.0.1:{vite.ActualPort}/";
 
                 _hub = hub;
                 _kestrel = kestrel;
@@ -97,7 +96,7 @@ namespace Client.WebUiHost.Boot
                 }
             }
 
-            Debug.Log($"[WebUiHost] ready. Open {_viteUrl}");
+            Debug.Log($"[WebUiHost] ready. Open {ViteUrl}");
             return true;
         }
 
@@ -124,7 +123,7 @@ namespace Client.WebUiHost.Boot
 
             // 実ポート公開を取り下げる（停止中の CORS 全拒否・CEF ナビゲーション抑止）
             // Withdraw the published port (rejects CORS and suppresses CEF navigation while stopped)
-            _viteUrl = null;
+            ViteUrl = null;
             WebUiPortConfig.SetVitePort(0);
 
             // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）

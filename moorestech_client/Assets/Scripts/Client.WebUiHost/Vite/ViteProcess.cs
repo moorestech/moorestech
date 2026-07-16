@@ -17,7 +17,7 @@ namespace Client.WebUiHost.Vite
         private Process _process;
         private ManualResetEventSlim _readySignal;
 
-        // stdout の Local 行から確定した実ポート。ready 前は 0
+        // 確定実ポート。ready前は0
         // Actual port parsed from the stdout Local line; 0 before ready
         public int ActualPort => _actualPort;
         private volatile int _actualPort;
@@ -32,11 +32,9 @@ namespace Client.WebUiHost.Vite
             // Return false when node/pnpm/webuiRoot is missing, marking startup unavailable (caller disables the host)
             if (!IsEnvironmentReady()) return false;
 
-#if UNITY_EDITOR
             // クラッシュした過去セッションの孤児 Vite を spawn 前に掃除する（自 worktree 分のみ）
             // Sweep orphaned Vite processes from crashed sessions before spawning (this worktree only)
-            ViteProcessKiller.KillOrphansOfThisWorkspace(webuiRoot);
-#endif
+            SweepOrphanVitesBeforeSpawn();
 
             // 過去の tsc -b が生成した vite.config.js は vite.config.ts より優先ロードされ旧ポート設定を焼き込むため、spawn 前に削除する
             // Stale vite.config.js emitted by past tsc -b shadows vite.config.ts with baked-in old ports; delete it before spawning
@@ -53,14 +51,26 @@ namespace Client.WebUiHost.Vite
             // Wait for the stdout Local line (actual port resolved), capped at 30 seconds; false when it does not arrive
             var ready = await WaitForReady(30);
 
-#if UNITY_EDITOR
             // 確定した (pid, port) を SessionState へ記録し、クリーンアップ時の照合 kill に使う
             // Record the resolved (pid, port) in SessionState for verified kill during cleanup
-            if (ready) ViteProcessKiller.RecordSpawned(_process.Id, _actualPort);
-#endif
+            RecordSpawnedForCleanup(ready);
             return ready;
 
             #region Internal
+
+            void SweepOrphanVitesBeforeSpawn()
+            {
+#if UNITY_EDITOR
+                ViteProcessKiller.KillOrphansOfThisWorkspace(webuiRoot);
+#endif
+            }
+
+            void RecordSpawnedForCleanup(bool isReady)
+            {
+#if UNITY_EDITOR
+                if (isReady) ViteProcessKiller.RecordSpawned(_process.Id, _actualPort, webuiRoot);
+#endif
+            }
 
             void DeleteStaleViteConfigArtifacts()
             {
@@ -113,7 +123,7 @@ namespace Client.WebUiHost.Vite
                 };
                 var nodeBinDir = Path.GetDirectoryName(nodePath);
                 psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
-                // Kestrel 実ポートを vite.config.ts の proxy target へ注入する
+                // 実ポートをvite proxy先へ注入
                 // Inject the actual Kestrel port into the vite.config.ts proxy target
                 psi.Environment["MOORESTECH_BACKEND_PORT"] = kestrelPort.ToString();
                 var p = new Process { StartInfo = psi, EnableRaisingEvents = true };
@@ -132,7 +142,7 @@ namespace Client.WebUiHost.Vite
                 if (string.IsNullOrEmpty(e.Data)) return;
                 Debug.Log($"[Vite] {e.Data}");
 
-                // Local 行から実ポートを確定できた時点で ready とする
+                // 実ポート確定時点でready
                 // Ready once the actual port is resolved from the Local line
                 if (ViteOutputParser.TryParseLocalPort(e.Data, out var port))
                 {

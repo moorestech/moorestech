@@ -142,7 +142,7 @@ namespace Client.WebUiHost.Boot
             return Convert.ToBase64String(hash);
         }
 
-        // 起動時に確定した Vite 実ポートのオリジンだけを許可する（未確定 0 の間は全拒否）
+        // Vite実ポートのみ許可。未確定(0)は全拒否
         // Allow only the origin of the Vite port resolved at startup (reject all while unresolved = 0)
         public static bool IsAllowedOrigin(string origin)
         {

@@ -19,12 +19,11 @@ namespace Client.WebUiHost.Boot
 
         // 起動時に確定した実ポート。未起動時は 0
         // Actual port resolved at startup; 0 before start
-        public int ActualPort => _actualPort;
-        private int _actualPort;
+        public int ActualPort { get; private set; }
 
         public async Task StartAsync(WebSocketHub hub)
         {
-            // ベースから 1 ずつ上げながら bind を試行し、最初に成功したポートを採用する
+            // 1つずつ上げてbind試行、成功で採用
             // Probe upward from the base port and adopt the first successful bind
             for (var port = WebUiPortConfig.KestrelBasePort; port < WebUiPortConfig.KestrelBasePort + WebUiPortConfig.PortSearchRange; port++)
             {
@@ -49,7 +48,7 @@ namespace Client.WebUiHost.Boot
                 }
 
                 _webHost = webHost;
-                _actualPort = port;
+                ActualPort = port;
                 Debug.Log($"[WebUiHost] Kestrel started at {url}");
                 return;
             }
@@ -67,7 +66,7 @@ namespace Client.WebUiHost.Boot
             await _webHost.StopAsync(TimeSpan.FromSeconds(2));
             _webHost.Dispose();
             _webHost = null;
-            _actualPort = 0;
+            ActualPort = 0;
             Debug.Log("[WebUiHost] Kestrel stopped");
         }
     }

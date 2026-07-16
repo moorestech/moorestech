@@ -22,6 +22,10 @@ namespace Client.Tests.WebUi.Ports
         {
             WebUiPortConfig.SetVitePort(0);
             Assert.IsFalse(WebUiEndpoints.IsAllowedOrigin("http://localhost:25173"));
+
+            // ガード除去時に "http://localhost:0" が素通りしないこと（変異検出用の直接ケース）
+            // Ensure "http://localhost:0" cannot slip through if the unresolved guard were removed (mutation-killing case)
+            Assert.IsFalse(WebUiEndpoints.IsAllowedOrigin("http://localhost:0"));
         }
     }
 }
