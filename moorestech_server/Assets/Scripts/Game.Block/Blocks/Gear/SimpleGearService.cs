@@ -15,9 +15,6 @@ namespace Game.Block.Blocks.Gear
         public IObservable<Unit> BlockStateChange => _onBlockStateChange;
         private readonly Subject<Unit> _onBlockStateChange = new();
 
-        public IObservable<GearUpdateType> OnGearUpdate => _onGearUpdate;
-        private readonly Subject<GearUpdateType> _onGearUpdate = new();
-
         // 現在値導出に必要なIDと要求トルク計算をownerへ委譲する
         // Delegate the id and required-torque calculation needed for derivation to the owner
         private readonly IGearEnergyTransformer _owner;
@@ -98,7 +95,6 @@ namespace Game.Block.Blocks.Gear
             _lastTorque = torque;
 
             _onBlockStateChange.OnNext(Unit.Default);
-            _onGearUpdate.OnNext(GearUpdateType.SupplyPower);
         }
 
         // 導出した現在値をクライアント送信用のステート詳細へシリアライズする
@@ -123,11 +119,5 @@ namespace Game.Block.Blocks.Gear
             if (!GearNetworkDatastore.TryGetGearNetwork(_owner.BlockInstanceId, out var network)) return false;
             return network.TryResolveRotation(_owner.BlockInstanceId, out rpm, out isClockwise);
         }
-    }
-
-    public enum GearUpdateType
-    {
-        SupplyPower,
-        Rocked,
     }
 }
