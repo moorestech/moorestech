@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Client.Game.Common;
+using Client.WebUiHost.Common;
+using Client.WebUiHost.Vite;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -24,10 +26,14 @@ namespace Client.WebUiHost.Boot
 
         public static WebSocketHub Hub => _hub;
 
+        // 確定後のVite URL。未起動時null
+        // Vite URL resolved after startup; null while not running
+        public static string ViteUrl { get; private set; }
+
         public static async UniTask<bool> StartAsync()
         {
-            // 前回の停止完了を待つ（連続 Start/Stop で port 5050 衝突を避ける）
-            // Wait for the previous stop to complete (avoids port 5050 collision on rapid restart)
+            // 前回の停止完了を待つ（連続 Start/Stop での自ポート衝突を避ける）
+            // Wait for the previous stop to complete (avoids colliding with our own ports on rapid restart)
             if (!_stopTask.IsCompleted)
             {
                 // 前回停止の fault は StopAsync 内でログ済み。ここでは待つだけで再 throw させない（2-B）
@@ -58,7 +64,12 @@ namespace Client.WebUiHost.Boot
 
                 // Vite が起動できない（node 欠如・ready 未達）と無 UI になるため、失敗扱いでロールバックする
                 // A Vite failure (missing node / not ready) leaves the UI blank, so roll back as a failure
-                if (!await vite.StartAsync()) return false;
+                if (!await vite.StartAsync(kestrel.ActualPort)) return false;
+
+                // 確定した実ポートを公開し、CORS 検査と CEF ナビゲーションを有効化する
+                // Publish the resolved port, enabling the CORS check and CEF navigation
+                WebUiPortConfig.SetVitePort(vite.ActualPort);
+                ViteUrl = $"http://127.0.0.1:{vite.ActualPort}/";
 
                 _hub = hub;
                 _kestrel = kestrel;
@@ -85,7 +96,7 @@ namespace Client.WebUiHost.Boot
                 }
             }
 
-            Debug.Log("[WebUiHost] ready. Open http://localhost:5173/");
+            Debug.Log($"[WebUiHost] ready. Open {ViteUrl}");
             return true;
         }
 
@@ -109,6 +120,11 @@ namespace Client.WebUiHost.Boot
             _vite = null;
             _hub = null;
             _kestrel = null;
+
+            // 実ポート公開を取り下げる（停止中の CORS 全拒否・CEF ナビゲーション抑止）
+            // Withdraw the published port (rejects CORS and suppresses CEF navigation while stopped)
+            ViteUrl = null;
+            WebUiPortConfig.SetVitePort(0);
 
             // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
             // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
@@ -158,44 +174,16 @@ namespace Client.WebUiHost.Boot
             Debug.Log("[WebUiHost] stopped");
         }
 
-#if UNITY_EDITOR
-        // Play mode 終了・ドメインリロード・エディタ終了のいずれでも確実にクリーンアップ
-        // Clean up on Play mode exit, domain reload, or editor quit — whichever fires first
-        //   - ExitingPlayMode: Reload Domain = off の場合に beforeAssemblyReload が来ない穴を埋める
-        //   - beforeAssemblyReload: Reload Domain = on の通常経路
-        //   - quitting: Play mode に入らずにエディタを閉じた場合
-        [UnityEditor.InitializeOnLoadMethod]
-        private static void RegisterDomainReloadHook()
-        {
-            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += CleanupAllSync;
-            UnityEditor.EditorApplication.quitting += CleanupAllSync;
-            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-        }
-
-        private static void OnPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
-        {
-            // Play mode 終了直前にクリーンアップ。Domain Reload が走る前にポート解放を完了させる
-            // Clean up just before exiting play mode so ports are released before Domain Reload
-            if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
-            {
-                CleanupAllSync();
-            }
-        }
-
-        // Editor hook は同期完了を要求するので、Stop 経路と同じ StopAsync を最大 4 秒待つ
-        // Editor hooks need synchronous completion; wait up to 4s on the shared StopAsync
-        private static void CleanupAllSync()
+        // Editor フックから呼ぶ同期停止。停止タスクの完了を最大 timeout まで待つ
+        // Synchronous stop for editor hooks; waits up to timeout for the stop task
+        public static void StopAndWaitSync(TimeSpan timeout)
         {
             Stop();
-            Task.WhenAny(_stopTask, Task.Delay(TimeSpan.FromSeconds(4))).GetAwaiter().GetResult();
+            Task.WhenAny(_stopTask, Task.Delay(timeout)).GetAwaiter().GetResult();
             if (_stopTask.IsFaulted)
             {
                 Debug.LogWarning($"[WebUiHost] stop faulted: {_stopTask.Exception?.GetBaseException().Message}");
             }
-            // セーフティネット: Vite が残っていたら port ベースで特定して kill
-            // Safety net: if any Vite is still holding the port, resolve its pid and kill
-            ViteProcessKiller.KillAnyLingering();
         }
-#endif
     }
 }

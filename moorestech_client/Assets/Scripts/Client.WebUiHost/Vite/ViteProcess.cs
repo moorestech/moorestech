@@ -6,7 +6,7 @@ using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 
-namespace Client.WebUiHost.Boot
+namespace Client.WebUiHost.Vite
 {
     /// <summary>
     /// Node を spawn して Vite dev server を起動し、終了時に kill する
@@ -17,7 +17,12 @@ namespace Client.WebUiHost.Boot
         private Process _process;
         private ManualResetEventSlim _readySignal;
 
-        public async UniTask<bool> StartAsync()
+        // 確定実ポート。ready前は0
+        // Actual port parsed from the stdout Local line; 0 before ready
+        public int ActualPort => _actualPort;
+        private volatile int _actualPort;
+
+        public async UniTask<bool> StartAsync(int kestrelPort)
         {
             var nodePath = WebUiPaths.NodeBinary;
             var pnpmPath = WebUiPaths.PnpmBinary;
@@ -27,21 +32,58 @@ namespace Client.WebUiHost.Boot
             // Return false when node/pnpm/webuiRoot is missing, marking startup unavailable (caller disables the host)
             if (!IsEnvironmentReady()) return false;
 
+            // クラッシュした過去セッションの孤児 Vite を spawn 前に掃除する（自 worktree 分のみ）
+            // Sweep orphaned Vite processes from crashed sessions before spawning (this worktree only)
+            SweepOrphanVitesBeforeSpawn();
+
+            // 過去の tsc -b が生成した vite.config.js は vite.config.ts より優先ロードされ旧ポート設定を焼き込むため、spawn 前に削除する
+            // Stale vite.config.js emitted by past tsc -b shadows vite.config.ts with baked-in old ports; delete it before spawning
+            DeleteStaleViteConfigArtifacts();
+
             // node_modules が無ければ pnpm install を先に走らせる
             // Run pnpm install first if node_modules is missing
-            if (!Directory.Exists(Path.Combine(webuiRoot, "node_modules")))
-            {
-                await RunPnpmInstall();
-            }
+            await PnpmInstaller.RunIfNeeded(nodePath, pnpmPath, webuiRoot);
 
             _readySignal = new ManualResetEventSlim(false);
             _process = SpawnViteDev();
 
-            // stdout に "ready in" が出るまで待機（最大 30 秒）。時間内に来なければ false
-            // Wait for "ready in" marker in stdout (cap 30 seconds); false when it does not arrive in time
-            return await WaitForReady(30);
+            // stdout の Local 行（実ポート確定）が出るまで待機（最大 30 秒）。時間内に来なければ false
+            // Wait for the stdout Local line (actual port resolved), capped at 30 seconds; false when it does not arrive
+            var ready = await WaitForReady(30);
+
+            // 確定した (pid, port) を SessionState へ記録し、クリーンアップ時の照合 kill に使う
+            // Record the resolved (pid, port) in SessionState for verified kill during cleanup
+            RecordSpawnedForCleanup(ready);
+            return ready;
 
             #region Internal
+
+            void SweepOrphanVitesBeforeSpawn()
+            {
+#if UNITY_EDITOR
+                ViteProcessKiller.KillOrphansOfThisWorkspace(webuiRoot);
+#endif
+            }
+
+            void RecordSpawnedForCleanup(bool isReady)
+            {
+#if UNITY_EDITOR
+                if (isReady) ViteProcessKiller.RecordSpawned(_process.Id, _actualPort, webuiRoot);
+#endif
+            }
+
+            void DeleteStaleViteConfigArtifacts()
+            {
+                // どちらも .gitignore 登録済みの純生成物（tsconfig.node.json は emitDeclarationOnly 化済みで今後は生成されない）
+                // Both are pure build artifacts already in .gitignore (tsconfig.node.json now uses emitDeclarationOnly, so no new ones)
+                foreach (var name in new[] { "vite.config.js", "vite.config.d.ts" })
+                {
+                    var stale = Path.Combine(webuiRoot, name);
+                    if (!File.Exists(stale)) continue;
+                    File.Delete(stale);
+                    Debug.Log($"[WebUiHost] deleted stale config artifact: {name}");
+                }
+            }
 
             bool IsEnvironmentReady()
             {
@@ -63,40 +105,6 @@ namespace Client.WebUiHost.Boot
                 return true;
             }
 
-            async UniTask RunPnpmInstall()
-            {
-                Debug.Log("[WebUiHost] running pnpm install...");
-                // pnpm はネイティブバイナリなので直接 FileName に指定し、node bin を PATH に追加
-                // pnpm is a native binary; set it as FileName and prepend node bin dir to PATH
-                var psi = new ProcessStartInfo
-                {
-                    FileName = pnpmPath,
-                    Arguments = "install",
-                    WorkingDirectory = webuiRoot,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                };
-                var nodeBinDir = Path.GetDirectoryName(nodePath);
-                psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
-                using var p = Process.Start(psi);
-                if (p == null)
-                {
-                    Debug.LogError("[WebUiHost] pnpm install: failed to spawn process");
-                    return;
-                }
-                await UniTask.RunOnThreadPool(() => p.WaitForExit());
-                if (p.ExitCode != 0)
-                {
-                    Debug.LogError($"[WebUiHost] pnpm install exited with code {p.ExitCode}\n{p.StandardError.ReadToEnd()}");
-                }
-                else
-                {
-                    Debug.Log("[WebUiHost] pnpm install complete");
-                }
-            }
-
             Process SpawnViteDev()
             {
                 // pnpm を直接 FileName に指定。pnpm exec が webui/node_modules 内の vite を起動する
@@ -104,7 +112,9 @@ namespace Client.WebUiHost.Boot
                 var psi = new ProcessStartInfo
                 {
                     FileName = pnpmPath,
-                    Arguments = "exec vite --port 5173 --strictPort --host 127.0.0.1",
+                    // strictPort を付けない: 占有時は Vite が自動で次のポートへインクリメントする
+                    // No strictPort: Vite auto-increments to the next port when the base is occupied
+                    Arguments = $"exec vite --port {WebUiPortConfig.ViteBasePort} --host 127.0.0.1",
                     WorkingDirectory = webuiRoot,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -113,6 +123,9 @@ namespace Client.WebUiHost.Boot
                 };
                 var nodeBinDir = Path.GetDirectoryName(nodePath);
                 psi.Environment["PATH"] = $"{nodeBinDir}{Path.PathSeparator}{Environment.GetEnvironmentVariable("PATH")}";
+                // 実ポートをvite proxy先へ注入
+                // Inject the actual Kestrel port into the vite.config.ts proxy target
+                psi.Environment["MOORESTECH_BACKEND_PORT"] = kestrelPort.ToString();
                 var p = new Process { StartInfo = psi, EnableRaisingEvents = true };
                 p.OutputDataReceived += OnViteStdout;
                 p.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) Debug.LogWarning($"[Vite] {e.Data}"); };
@@ -128,8 +141,12 @@ namespace Client.WebUiHost.Boot
             {
                 if (string.IsNullOrEmpty(e.Data)) return;
                 Debug.Log($"[Vite] {e.Data}");
-                if (e.Data.Contains("ready in") || e.Data.Contains("Local:"))
+
+                // 実ポート確定時点でready
+                // Ready once the actual port is resolved from the Local line
+                if (ViteOutputParser.TryParseLocalPort(e.Data, out var port))
                 {
+                    _actualPort = port;
                     _readySignal.Set();
                 }
             }

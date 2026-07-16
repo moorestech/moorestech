@@ -38,6 +38,10 @@ namespace Client.WebUiHost.Boot
             _dispatcher = new WebSocketMessageDispatcher(_handlers, _actionHandlers);
         }
 
+        // ページからのWS接続が1本でも確立しているか（CEFナビゲーション成否の確認に使う）
+        // Whether at least one page WS connection is established (used to confirm CEF navigation)
+        public bool HasConnections => !_connections.IsEmpty;
+
         // トピックハンドラ登録（InventoryTopic などが呼ぶ）
         // Register a topic handler (called by InventoryTopic etc.)
         public void RegisterTopic(string topic, ITopicHandler handler)
