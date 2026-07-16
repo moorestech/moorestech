@@ -21,8 +21,8 @@ namespace Tests.UnitTest.Game.SaveLoad
     // Verify block place events still fire on initial load so belt-machine connections survive save/load
     public class BlockConnectionSaveLoadTest
     {
-        // 設置イベントを丸ごと抑制すると壊れる回帰をロードで捕捉する（レビュー指摘の代替案の否定根拠）
-        // Catches the regression where suppressing the whole place event breaks connection restore on load
+        // ロード中も設置イベントは購読者へ発火する。クライアント配信だけをPlaceBlockEventPacketの購読タイミングで止める設計を守る
+        // Place events still fire to subscribers during load; only client broadcast is gated by PlaceBlockEventPacket's subscription timing
         [Test]
         public void ベルトと機械の接続が初期ロードで復元される()
         {
@@ -31,8 +31,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var beltPos = new Vector3Int(0, 0, 9);
             var machinePos = new Vector3Int(0, 0, 10);
 
-            // ベルトを先に設置する。ロード順も同じになり、接続は機械設置イベント経由でのみ張られる
-            // Place belt first; load order matches, so the connection can only form via the machine's place event
+            // ベルトを先に設置する。セーブ順=ロード順（_blockMasterDictionary挿入順）なので機械は後にロードされ、接続は設置イベント経由でのみ張られる
+            // Place belt first; save order = load order (dictionary insertion), so the machine loads later and the connection can only form via the place event
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, beltPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var belt);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 
@@ -43,8 +43,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
-            // 別ワールドへロードし、初期ロード経路（TryAddBlock isInitialLoad=true）を通す
-            // Load into a fresh world, exercising the initial-load path (TryAddBlock isInitialLoad=true)
+            // 別ワールドへロードし、初期ロード経路（LoadBlockDataList→TryAddBlock）を通す
+            // Load into a fresh world, exercising the initial-load path (LoadBlockDataList→TryAddBlock)
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 

@@ -32,16 +32,16 @@ namespace Game.World
                 false);
         }
         
-        public void OnBlockPlaceEventInvoke(Vector3Int pos, WorldBlockData worldBlockData, bool isInitialLoad)
+        public void OnBlockPlaceEventInvoke(Vector3Int pos, WorldBlockData worldBlockData)
         {
             // 全体購読者へブロック設置を通知する
             // Notify global subscribers about the block placement
-            _onBlockPlaceEvent.OnNext(new BlockPlaceProperties(pos, worldBlockData, isInitialLoad));
+            _onBlockPlaceEvent.OnNext(new BlockPlaceProperties(pos, worldBlockData));
 
             // 占有セルごとのSubjectへ座標指定イベントを配送する
             // Dispatch coordinate events to subjects keyed by occupied cell
             foreach (var occupiedPos in worldBlockData.BlockPositionInfo.EnumeratePositions())
-                PublishPlaceCoordinateEvent(occupiedPos, worldBlockData, isInitialLoad);
+                PublishPlaceCoordinateEvent(occupiedPos, worldBlockData);
         }
         
         public void OnBlockRemoveEventInvoke(Vector3Int pos, WorldBlockData worldBlockData, BlockRemoveReason removeReason)
@@ -80,10 +80,10 @@ namespace Game.World
             });
         }
 
-        private void PublishPlaceCoordinateEvent(Vector3Int position, WorldBlockData worldBlockData, bool isInitialLoad)
+        private void PublishPlaceCoordinateEvent(Vector3Int position, WorldBlockData worldBlockData)
         {
             if (!_placeSubjectsByPos.TryGetValue(position, out var subject)) return;
-            subject.OnNext(new BlockPlaceProperties(position, worldBlockData, isInitialLoad));
+            subject.OnNext(new BlockPlaceProperties(position, worldBlockData));
         }
 
         private void PublishRemoveCoordinateEvent(Vector3Int position, WorldBlockData worldBlockData, BlockRemoveReason removeReason)
