@@ -6,7 +6,7 @@ using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
 using Debug = UnityEngine.Debug;
 
-namespace Client.WebUiHost.Boot
+namespace Client.WebUiHost.Vite
 {
     /// <summary>
     /// Node を spawn して Vite dev server を起動し、終了時に kill する
