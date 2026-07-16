@@ -8,9 +8,11 @@ namespace Game.EnergySystem
     /// </summary>
     public class ElectricTickUpdater
     {
-        private readonly IElectricWireNetworkDatastore _electricWireNetworkDatastore;
+        // gear側のGearTickUpdater同様、internalなflushを呼ぶため具象datastoreを受け取る
+        // Like GearTickUpdater on the gear side, this takes the concrete datastore to call its internal flush
+        private readonly ElectricWireNetworkDatastore _electricWireNetworkDatastore;
 
-        public ElectricTickUpdater(IElectricWireNetworkDatastore electricWireNetworkDatastore)
+        public ElectricTickUpdater(ElectricWireNetworkDatastore electricWireNetworkDatastore)
         {
             _electricWireNetworkDatastore = electricWireNetworkDatastore;
         }

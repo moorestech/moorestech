@@ -50,6 +50,27 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(0f, processor.CurrentPower);
         }
 
+        // 電線経由の実tickでElectricToGear変換機が充電される（RunPostTickProcess配線の検証）
+        // Through real ticks over wires the ElectricToGear converter charges its battery (verifies the RunPostTickProcess wiring)
+        [Test]
+        public void ElectricToGearChargesThroughRealElectricTick()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+
+            world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var converterBlock);
+            var param = (ElectricToGearGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestElectricToGearGenerator).BlockParam;
+            var mode0 = param.OutputModes[0];
+
+            // 容量半分の発電しかないセグメントへ電線接続し、実tick1回で半充電になることを検証する（満充電は同tickで消費されるため半充電を観測点にする）
+            // Wire into a segment generating half the capacity and verify one real tick charges half the battery (full charge is consumed within the same tick, so half charge is the observable)
+            ElectricWireTestUtil.WirePower(Vector3Int.zero, new Vector3Int(0, 0, 5), mode0.RequiredPower * 0.5f);
+            GameUpdater.RunFrames(1);
+
+            var detail = MessagePackSerializer.Deserialize<ElectricToGearGeneratorBlockStateDetail>(converterBlock.GetComponent<ElectricToGearGeneratorComponent>().GetBlockStateDetails()[0].Value);
+            Assert.AreEqual(mode0.RequiredPower * 0.5f, detail.BatteryRemaining, 0.01f);
+        }
+
         // 歯車→電力変換機のバッテリー残量はセーブ・ロードを跨いで維持される
         // The gear-to-electric converter's battery remainder survives save and load
         [Test]
@@ -67,8 +88,8 @@ namespace Tests.CombinedTest.Game
 
             // フル回転で満充電し、利用率40%で放電して残量60%を作る
             // Fully charge at full rotation, then discharge at 40% utilization to leave a 60% remainder
-            drive.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
-            drive.SetGenerateTorque((float)param.GearConsumption.BaseTorque);
+            drive.SetGenerateRpm(param.GearConsumption.BaseRpm);
+            drive.SetGenerateTorque(param.GearConsumption.BaseTorque);
             GameUpdater.RunFrames(20);
             drive.SetGenerateRpm(0f);
             GameUpdater.RunFrames(2);
@@ -104,9 +125,9 @@ namespace Tests.CombinedTest.Game
             // 供給率0.5の電力tickで半分だけ充電された状態を作る
             // Charge exactly half of the battery with a rate-0.5 electric tick
             var mode0 = param.OutputModes[0];
-            component.OnElectricTickPostProcess(new ElectricNetworkStatistics((float)mode0.RequiredPower * 0.5f, (float)mode0.RequiredPower, 0.5f, 1));
+            component.OnElectricTickPostProcess(new ElectricNetworkStatistics(mode0.RequiredPower * 0.5f, mode0.RequiredPower, 0.5f, 1));
             var savedRemaining = ReadBatteryRemaining(component);
-            Assert.AreEqual((float)mode0.RequiredPower * 0.5f, savedRemaining, 0.001f);
+            Assert.AreEqual(mode0.RequiredPower * 0.5f, savedRemaining, 0.001f);
 
             var saveState = block.GetSaveState();
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestElectricToGearGenerator);
@@ -118,7 +139,7 @@ namespace Tests.CombinedTest.Game
             // Since only the remainder is requested, one fully supplied tick completes the charge and resumes output
             Assert.AreEqual(savedRemaining, ReadBatteryRemaining(loadedComponent), 0.001f);
             loadedComponent.OnElectricTickPostProcess(new ElectricNetworkStatistics(savedRemaining, savedRemaining, 1f, 1));
-            Assert.AreEqual((float)mode0.Torque, loadedComponent.GenerateTorque.AsPrimitive(), 0.01f);
+            Assert.AreEqual(mode0.Torque, loadedComponent.GenerateTorque.AsPrimitive(), 0.01f);
 
             #region Internal
 

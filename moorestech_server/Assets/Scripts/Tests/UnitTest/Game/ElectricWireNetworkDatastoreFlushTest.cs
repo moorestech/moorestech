@@ -5,8 +5,8 @@ using NUnit.Framework;
 namespace Tests.UnitTest.Game
 {
     /// <summary>
-    /// トポロジ変更がコマンドとして保留され、FlushPendingCommandsまで適用されないことを検証する
-    /// Verifies that topology mutations stay queued as commands and are not applied until FlushPendingCommands
+    /// トポロジ変更がコマンドとして保留され、電力tick先頭のflush（ElectricTickUpdater.Update）まで適用されないことを検証する
+    /// Verifies that topology mutations stay queued as commands and are not applied until the electric tick head flush (ElectricTickUpdater.Update)
     /// </summary>
     public class ElectricWireNetworkDatastoreFlushTest
     {
@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(0, datastore.SegmentCount);
             Assert.IsFalse(datastore.TryGetEnergySegment(new BlockInstanceId(1), out _));
 
-            datastore.FlushPendingCommands();
+            new ElectricTickUpdater(datastore).Update();
 
             Assert.AreEqual(1, datastore.SegmentCount);
             Assert.IsTrue(datastore.TryGetEnergySegment(new BlockInstanceId(1), out _));
@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game
             var datastore = new ElectricWireNetworkDatastore();
             var connector = FakeWireConnector.CreateTransformer(1);
             datastore.AddConnector(connector);
-            datastore.FlushPendingCommands();
+            new ElectricTickUpdater(datastore).Update();
             Assert.AreEqual(1, datastore.SegmentCount);
 
             datastore.RemoveConnector(connector);
@@ -51,7 +51,7 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(1, datastore.SegmentCount);
             Assert.IsTrue(datastore.TryGetEnergySegment(new BlockInstanceId(1), out _));
 
-            datastore.FlushPendingCommands();
+            new ElectricTickUpdater(datastore).Update();
 
             Assert.AreEqual(0, datastore.SegmentCount);
             Assert.IsFalse(datastore.TryGetEnergySegment(new BlockInstanceId(1), out _));
@@ -67,7 +67,7 @@ namespace Tests.UnitTest.Game
             // Queueing add then remove in one batch leaves nothing after the flush
             datastore.AddConnector(connector);
             datastore.RemoveConnector(connector);
-            datastore.FlushPendingCommands();
+            new ElectricTickUpdater(datastore).Update();
 
             Assert.AreEqual(0, datastore.SegmentCount);
             Assert.IsFalse(datastore.TryGetEnergySegment(new BlockInstanceId(1), out _));

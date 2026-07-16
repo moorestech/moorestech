@@ -34,7 +34,7 @@ namespace Game.EnergySystem
 
         // 保留コマンドをFIFOで一括適用する。電力tick先頭からのみ呼ばれる
         // Apply pending commands in FIFO order; called only at the head of the electric tick
-        public void FlushPendingCommands()
+        internal void FlushPendingCommands()
         {
             if (_isFlushing || _pendingCommands.Count == 0) return;
 
