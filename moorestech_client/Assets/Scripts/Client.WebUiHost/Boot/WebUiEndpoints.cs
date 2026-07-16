@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.WebUiHost.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -141,10 +142,16 @@ namespace Client.WebUiHost.Boot
             return Convert.ToBase64String(hash);
         }
 
-        private static bool IsAllowedOrigin(string origin)
+        // 起動時に確定した Vite 実ポートのオリジンだけを許可する（未確定 0 の間は全拒否）
+        // Allow only the origin of the Vite port resolved at startup (reject all while unresolved = 0)
+        public static bool IsAllowedOrigin(string origin)
         {
             if (string.IsNullOrEmpty(origin)) return false;
-            return origin == "http://localhost:5173" || origin == "http://127.0.0.1:5173";
+
+            var vitePort = WebUiPortConfig.VitePort;
+            if (vitePort == 0) return false;
+
+            return origin == $"http://localhost:{vitePort}" || origin == $"http://127.0.0.1:{vitePort}";
         }
     }
 }
