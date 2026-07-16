@@ -228,33 +228,42 @@ git commit -m "feat(webui): Vite stdoutから実ポートをパースするViteO
 
 ベースポートを TcpListener で占有した状態で起動し、別ポートへ逃げることを検証する。実ソケットを使う統合テスト。
 
+**重要（実障害由来）:** Unity メインスレッド上で `StartAsync(...).GetAwaiter().GetResult()` と直接同期待ちすると、`await` の継続が Unity SynchronizationContext（=ブロック中のメインスレッド）へ戻れずデッドロックする。実際に TestWatchdog の 180 秒タイムアウト → FailFast で Unity ごと落ちた。シナリオ全体を `Task.Run` でスレッドプールへ逃がしてから待つこと。
+
 ```csharp
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using NUnit.Framework;
 
-namespace Client.Tests.WebUi
+namespace Client.Tests.WebUi.Ports
 {
     public class KestrelServerPortScanTest
     {
         [Test]
         public void ベースポート占有時は次のポートで起動する()
         {
+            // メインスレッドで await 継続を同期待ちするとデッドロックするため、全体をスレッドプールで実行する
+            // Blocking the main thread on await continuations deadlocks; run the whole scenario on the thread pool
+            Task.Run(RunScenarioAsync).GetAwaiter().GetResult();
+        }
+
+        private static async Task RunScenarioAsync()
+        {
             // ベースポートをダミーで占有する（他Editorが既に占有している場合もテスト成立）
             // Occupy the base port with a dummy listener (test also holds if another Editor owns it)
-            TcpListener blocker = null;
-            var basePortWasFree = TryListen(WebUiPortConfig.KestrelBasePort, out blocker);
+            var basePortWasFree = TryListen(WebUiPortConfig.KestrelBasePort, out var blocker);
 
             var kestrel = new KestrelServer();
-            kestrel.StartAsync(new WebSocketHub()).GetAwaiter().GetResult();
+            await kestrel.StartAsync(new WebSocketHub());
 
             Assert.AreNotEqual(WebUiPortConfig.KestrelBasePort, kestrel.ActualPort);
             Assert.That(kestrel.ActualPort, Is.GreaterThan(WebUiPortConfig.KestrelBasePort));
             Assert.That(kestrel.ActualPort, Is.LessThan(WebUiPortConfig.KestrelBasePort + WebUiPortConfig.PortSearchRange));
 
-            kestrel.StopAsync().GetAwaiter().GetResult();
+            await kestrel.StopAsync();
             if (basePortWasFree) blocker.Stop();
         }
 
