@@ -23,6 +23,10 @@ namespace Server.Event.EventReceive
         
         private void OnPlaceBlock(BlockPlaceProperties updateProperties)
         {
+            // 初期ロード分は接続クライアントが初期同期で取得するため配信しない
+            // Skip initial-load placements; connected clients get them via initial sync
+            if (updateProperties.IsInitialLoad) return;
+
             var pos = updateProperties.Pos;
             var direction = updateProperties.BlockData.BlockPositionInfo.BlockDirection;
             var blockId = updateProperties.BlockData.Block.BlockId;
