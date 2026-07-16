@@ -442,7 +442,7 @@ bool TryGetEnergySegment(BlockInstanceId blockInstanceId, out EnergySegment segm
 IReadOnlyList<EnergySegment> GetSegments();
 ```
 
-- Produces `GearNetworkDatastore.IsTopologyDirty` and `GearNetworkDatastore.RebuildIfDirty()`.
+- Produces `GearNetworkDatastore.IsTopologyDirty`, `GearNetworkDatastore.MarkTopologyDirty()`, and `GearNetworkDatastore.RebuildIfDirty()`.
 - Removes: `SegmentCount`, `FlushPendingCommands`, `RebuildAround`, `FlushPendingMutations`, mutation structs, public electric role dictionaries.
 - Produces this exact `AdditionalUpdates` order: electric rebuild, gear rebuild, electric settlement, gear calculation.
 

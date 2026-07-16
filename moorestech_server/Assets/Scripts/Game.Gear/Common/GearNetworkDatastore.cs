@@ -46,6 +46,11 @@ namespace Game.Gear.Common
             _instance._isTopologyDirty = true;
         }
 
+        public static void MarkTopologyDirty()
+        {
+            _instance._isTopologyDirty = true;
+        }
+
         public void RebuildIfDirty()
         {
             if (!_isTopologyDirty) return;
