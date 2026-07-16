@@ -4,10 +4,10 @@ using Game.Block.Interface;
 namespace Game.EnergySystem
 {
     /// <summary>
-    /// トポロジ変更をその場で適用せずコマンドとして保留し、tick先頭・tick末尾のflushでFIFO一括反映するデータストア。
+    /// トポロジ変更をその場で適用せずコマンドとして保留し、電力tick先頭のflushでFIFO一括反映するデータストア。
     /// これによりtick途中でセグメントの所属や列挙内容が変化しないことを保証する。
     /// Datastore that queues topology mutations as commands instead of applying them in place,
-    /// flushing them FIFO at tick head and tick end so segment membership never changes mid-tick.
+    /// flushing them FIFO at the head of the electric tick so segment membership never changes mid-tick.
     /// </summary>
     public class ElectricWireNetworkDatastore : IElectricWireNetworkDatastore
     {
@@ -32,8 +32,8 @@ namespace Game.EnergySystem
             _pendingCommands.Add(new ElectricWireTopologyCommand(ElectricWireTopologyCommandType.Rebuild, connectors));
         }
 
-        // 保留コマンドをFIFOで一括適用する。tick先頭とtick末尾からのみ呼ばれる
-        // Apply pending commands in FIFO order; called only at tick head and tick end
+        // 保留コマンドをFIFOで一括適用する。電力tick先頭からのみ呼ばれる
+        // Apply pending commands in FIFO order; called only at the head of the electric tick
         public void FlushPendingCommands()
         {
             if (_isFlushing || _pendingCommands.Count == 0) return;
