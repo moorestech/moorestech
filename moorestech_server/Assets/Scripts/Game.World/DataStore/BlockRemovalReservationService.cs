@@ -24,10 +24,11 @@ namespace Game.World.DataStore
         {
             if (_reservedRemovals.Count == 0) return;
 
-            // FIFOで破壊を反映。既に消えているブロックはRemoveBlock側が無視する
-            // Apply removals FIFO; RemoveBlock itself ignores blocks that are already gone
-            foreach (var (blockInstanceId, reason) in _reservedRemovals)
+            // FIFOで破壊を反映。apply中の連鎖予約も同tick内で処理し、既に消えているブロックはRemoveBlock側が無視する
+            // Apply removals FIFO; reservations chained during the apply drain within the same tick, and RemoveBlock ignores blocks already gone
+            for (var i = 0; i < _reservedRemovals.Count; i++)
             {
+                var (blockInstanceId, reason) = _reservedRemovals[i];
                 ServerContext.WorldBlockDatastore.RemoveBlock(blockInstanceId, reason);
             }
             _reservedRemovals.Clear();
