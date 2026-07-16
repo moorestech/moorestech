@@ -1,46 +1,38 @@
-/* uGUI インベントリのパネル額縁を純CSS+SVGで近似（紺の三角背景＋ライトグレーのベベル枠） */
-/* Approximates the uGUI inventory panel frame in pure CSS+SVG (navy triangle bg + light-gray bevel frame) */
+/* フラットな半透明ダークパネルを使う */
+/* Use a flat, translucent dark panel */
 .panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 14px 16px 16px;
+  padding: 8px 10px 10px;
   color: #e8eaf0;
-  /* 紺のグラデ背景に薄い三角パターンSVGを重ねる（invebtory_bg_base 相当） */
-  /* Navy gradient with a faint SVG triangle pattern on top (mirrors invebtory_bg_base) */
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='56' viewBox='0 0 64 56'%3E%3Cpath d='M32 0L64 56H0z' fill='%23ffffff' fill-opacity='0.03'/%3E%3Cpath d='M0 0L32 56L64 0' fill='none' stroke='%23ffffff' stroke-opacity='0.02'/%3E%3C/svg%3E"),
-    linear-gradient(160deg, rgba(52, 58, 80, 0.86), rgba(38, 43, 60, 0.86));
-  background-size: 56px 48px, cover;
-  /* 9-slice SVGで上左が明るく下右が暗い隆起金属枠を描く */
-  /* Draw a raised metal frame with bright top-left and dark bottom-right via a 9-slice SVG */
-  border: 6px solid transparent;
-  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect x='.5' y='.5' width='63' height='63' fill='none' stroke='%234b505b'/%3E%3Cpath d='M1 1H63L57 7H7Z' fill='%23e7eaf0'/%3E%3Cpath d='M1 1L7 7V57L1 63Z' fill='%23cbd0d9'/%3E%3Cpath d='M1 63H63L57 57H7Z' fill='%23626773'/%3E%3Cpath d='M63 1V63L57 57V7Z' fill='%23555a66'/%3E%3Crect x='6.5' y='6.5' width='51' height='51' fill='none' stroke='%23474b55'/%3E%3Cpath d='M2 11V3H11M53 3H61V11' fill='none' stroke='%23f0f2f6' stroke-opacity='.72'/%3E%3Cpath d='M2 53V61H11M53 61H61V53' fill='none' stroke='%23585d69' stroke-opacity='.9'/%3E%3C/svg%3E") 8 / 6px / 0 stretch;
-  border-radius: 3px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+  background: rgba(24, 27, 33, 0.86);
+  border: 1px solid rgba(150, 156, 168, 0.5);
+  border-radius: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-/* 中央のクラフト詳細は細めの額縁 */
-/* The center craft detail uses a narrower frame */
+/* クラフト詳細も同じクロームでわずかに透過する */
+/* Craft detail uses the same chrome with slight transparency */
 .craft {
-  padding: 12px 14px 4px;
-  background: linear-gradient(160deg, rgba(46, 50, 64, 0.42), rgba(34, 37, 48, 0.42));
+  padding: 8px 10px 6px;
+  background: rgba(24, 27, 33, 0.7);
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 28px;
+  min-height: 18px;
 }
 
 .title {
   margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: #f2f3f7;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
   white-space: nowrap;
 }
 
@@ -48,17 +40,12 @@
   margin-left: auto;
 }
 
-/* タイトル下の二重装飾罫線（deco_line 相当） */
-/* Double decorative rule under the title (mirrors deco_line) */
+/* タイトル下は単一の細い罫線にする */
+/* Use a single thin rule beneath the title */
 .decoLine {
-  height: 8px;
-  margin: 6px 0 10px;
-  background-image:
-    linear-gradient(rgba(200, 205, 218, 0.6), rgba(200, 205, 218, 0.6)),
-    linear-gradient(rgba(150, 155, 170, 0.45), rgba(150, 155, 170, 0.45));
-  background-repeat: no-repeat;
-  background-size: 100% 1px, 100% 1px;
-  background-position: 0 1px, 0 5px;
+  height: 1px;
+  margin: 5px 0 8px;
+  background: rgba(150, 156, 168, 0.45);
 }
 
 .body {

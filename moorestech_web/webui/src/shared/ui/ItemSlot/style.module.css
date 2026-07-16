@@ -1,43 +1,39 @@
 /* 画面幅に応じて縮むスロット。data-selected は選択状態を参照する e2e 契約として維持する */
 /* Slot scales with viewport width; data-selected remains the e2e contract for selection */
-/* ゲームのベベル枠スロット（frame_base 相当）。グレーの縁＋内側の陰影 */
-/* Game beveled slot (frame_base): gray edge with an inner shadow */
+/* フラットな細枠スロットを使う */
+/* Use a flat slot with a thin border */
 .slot {
   position: relative;
-  width: var(--slot-size, 3rem);
-  height: var(--slot-size, 3rem);
-  border: 1px solid #9a9ea9;
-  border-radius: 2px;
-  background-color: rgba(20, 23, 30, 0.72);
-  box-shadow:
-    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.22),
-    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.6),
-    inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  width: var(--slot-size, 2rem);
+  height: var(--slot-size, 2rem);
+  border: 1px solid rgba(150, 155, 165, 0.45);
+  border-radius: 1px;
+  background-color: rgba(255, 255, 255, 0.05);
   user-select: none;
 }
 
-/* 選択枠はシアン（ホットバー選択・リスト選択の強調, frame_select 相当） */
-/* Selection uses cyan (hotbar/list highlight, mirrors frame_select) */
+/* 選択状態はシアンの塗りと細枠で強調する */
+/* Highlight selection with cyan fill and a thin border */
 .slot[data-selected="true"] {
   border-color: #56d6ea;
-  box-shadow:
-    0 0 6px rgba(86, 214, 234, 0.7),
-    inset 0 0 0 1px rgba(86, 214, 234, 0.5);
+  background-color: rgba(86, 214, 234, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(86, 214, 234, 0.5);
 }
 
 .icon {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 2px;
+  padding: 1px;
 }
 
 .count {
   position: absolute;
-  bottom: 0;
-  right: 2px;
-  font-size: 12px;
+  bottom: -1px;
+  right: 1px;
+  font-size: 10px;
   font-weight: 700;
-  color: var(--mantine-color-green-3);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 2px #000, 1px 1px 1px #000, -1px 0 1px #000;
 }
