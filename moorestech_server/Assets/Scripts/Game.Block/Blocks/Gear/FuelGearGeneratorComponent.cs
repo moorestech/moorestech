@@ -8,6 +8,7 @@ using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
+using Game.Context;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -84,7 +85,7 @@ namespace Game.Block.Blocks.Gear
 
             // 出力が実際に変化したtickだけ所属networkへ再配分を要求する
             // Request redistribution for the owning network only on ticks where output actually changed
-            if (changed) GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
+            if (changed) ServerContext.GetService<IGearNetworkDatastore>().NotifyGeneratorOutputChanged(this);
 
             if (changed || newRpm.AsPrimitive() > 0f)
             {
@@ -103,7 +104,7 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
             
-            var network = GearNetworkDatastore.GetGearNetwork(BlockInstanceId);
+            var network = ServerContext.GetService<IGearNetworkDatastore>().GetGearNetwork(BlockInstanceId);
             var fuelGearGeneratorDetail = CreateFuelGearGeneratorStateDetail();
             var powerGeneratorDetail = CreatePowerGeneratorStateDetail();
             
