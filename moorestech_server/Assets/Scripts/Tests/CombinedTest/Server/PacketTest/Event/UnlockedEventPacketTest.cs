@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントがないことを確認する
             // Make sure there are no events
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            var response = packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            response = packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
             
             // イベントがあることを確認する
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             challengeDatastore.InitializeCurrentChallenges();
             
             // EventProtocolProviderにプレイヤーIDを登録するため、一度イベントを取得
-            packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             
             // インベントリに別々にアイテムを追加
             const int itemId = 1;
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            var response = packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
             
             // レシピアンロックのイベントを取得

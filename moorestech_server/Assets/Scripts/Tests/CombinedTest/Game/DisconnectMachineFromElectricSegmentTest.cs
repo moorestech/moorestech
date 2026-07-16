@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
 
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var poleBlock);
             worldBlockDatastore.TryAddBlock(GeneratorId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generator1Block);
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
 
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var poleBlock);
             worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine1Block);

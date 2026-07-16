@@ -45,7 +45,7 @@ namespace Tests.UnitTest.PlayerRiding
         private static EventProtocol.ResponseEventProtocolMessagePack PollEvents(TrainTestEnvironment environment, int playerId)
         {
             var request = new EventProtocol.EventProtocolMessagePack(playerId);
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponseForTest(
                 MessagePackSerializer.Serialize(request),
                 new PacketResponseContext())[0];
             return MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(responseBytes);

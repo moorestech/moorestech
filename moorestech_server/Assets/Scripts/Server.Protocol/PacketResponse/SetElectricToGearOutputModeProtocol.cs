@@ -1,6 +1,7 @@
 using System;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Context;
+using Game.EnergySystem;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
@@ -12,8 +13,11 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:setElectricToGearOutputMode";
 
+        private readonly IElectricWireNetworkMutation _electricWireNetworkMutation;
+
         public SetElectricToGearOutputModeProtocol(ServiceProvider serviceProvider)
         {
+            _electricWireNetworkMutation = serviceProvider.GetRequiredService<IElectricWireNetworkMutation>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -37,10 +41,14 @@ namespace Server.Protocol.PacketResponse
 
             // モード切替を試みる。範囲外 index は適用されず false が返る。
             // Try to switch the mode; out-of-range index is not applied and returns false.
+            var previousIndex = component.SelectedIndex;
             if (!component.SetSelectedMode(request.Index))
             {
                 return new SetElectricToGearOutputModeResponse(false, component.SelectedIndex, SetElectricToGearOutputModeFailureReason.InvalidIndex);
             }
+
+            if (previousIndex != component.SelectedIndex)
+                _electricWireNetworkMutation.MarkStatisticsDirty();
 
             return new SetElectricToGearOutputModeResponse(true, component.SelectedIndex, SetElectricToGearOutputModeFailureReason.None);
         }

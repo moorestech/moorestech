@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var posB = new Vector3Int(3, 0, 0);
             var (connectorA, connectorB) = PlaceTwoPoles(posA, posB);
             var inventory = GiveWire(5);
-            var networkDatastore = _serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = _serviceProvider.GetService<IElectricWireNetworkLookup>();
             // トポロジ反映のため1tick進める
             // Advance one tick for the topology flush
             GameUpdater.UpdateOneTick();
@@ -141,14 +141,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse SendConnect(Vector3Int posA, Vector3Int posB)
         {
             var payload = MessagePackSerializer.Serialize(ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, PlayerId, _wireItemId));
-            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
+            var responses = _packet.GetPacketResponseForTest(payload, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse>(responses[0]);
         }
 
         private ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse SendDisconnect(Vector3Int posA, Vector3Int posB)
         {
             var payload = MessagePackSerializer.Serialize(ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateDisconnectRequest(posA, posB, PlayerId));
-            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
+            var responses = _packet.GetPacketResponseForTest(payload, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse>(responses[0]);
         }
 

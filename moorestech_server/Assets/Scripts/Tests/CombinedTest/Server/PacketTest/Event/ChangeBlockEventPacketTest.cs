@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //The electric tick settles before machine updates, so no preload is needed to observe a full charge within the tick
 
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
-            packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
+            packetResponse.GetPacketResponseForTest(EventTestUtil.EventRequestData(0), new PacketResponseContext());
 
             //電力がセグメント経由で機械へ行き渡り稼働状態になるまで数tick進める
             //Advance several ticks until power propagates through the segment and the machine starts processing
@@ -71,7 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //ステートが実行中になっているかをチェック
-            List<byte[]> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
+            List<byte[]> response = packetResponse.GetPacketResponseForTest(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             // アイドル給電イベントも並ぶため、idle→processingの遷移イベントを明示的に選択する
             // Idle supply events are also queued, so pick the idle-to-processing transition event explicitly

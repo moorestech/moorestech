@@ -49,7 +49,7 @@ namespace Tests.UnitTest.PlayerRiding
             RideActionProtocol.RequestRideActionMessagePack request,
             PacketResponseContext context)
         {
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponseForTest(
                 MessagePackSerializer.Serialize(request),
                 context)[0];
             return MessagePackSerializer.Deserialize<RideActionProtocol.ResponseRideActionMessagePack>(responseBytes);

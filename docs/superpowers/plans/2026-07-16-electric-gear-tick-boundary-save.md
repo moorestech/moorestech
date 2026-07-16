@@ -54,7 +54,7 @@
 | `Tests/Util/EnergySystem/ElectricNetworkReflectionTestUtil.cs` | electric内部マップ・役割集合・非公開segment操作のテスト観測 |
 | `Tests/UnitTest/Game/ElectricWireNetworkDatastoreFlushTest.cs` | dirty集約と一回再構築、安定tick no-op |
 | `Tests/UnitTest/Server/TickEndPacketQueueTest.cs` | 全体FIFO、固定境界、切断skip、dirty保留 |
-| `Tests/UnitTest/Game/SaveLoad/WorldSaveCoordinatorTest.cs` | 保存要求の集約・失敗維持・書き込み中要求維持 |
+| `Tests/UnitTest/Game/SaveLoad/WorldSaveCoordinatorTest.cs` | 保存要求の集約・保存中に届いた要求の維持 |
 | `Tests/CombinedTest/Core/CleanRoom/CleanRoomPendingSaveTest.cs` | 部屋分割直後の保存で形状と汚染量が同時点になること |
 | `Tests/CombinedTest/Server/PacketTest/TickEndWorldMutationTest.cs` | 実プロトコルの競合操作、過負荷優先、問い合わせ保留 |
 
@@ -927,7 +927,7 @@ public void SaveIfRequested()
 }
 ```
 
-The completed generation changes only after success, so an exception retains the request and a request arriving during `Save()` remains newer.
+The completed generation advances to the frozen value after `Save()`, while a request arriving during `Save()` remains newer.
 
 - [ ] **Step 4: Convert manual and automatic saving to requests**
 

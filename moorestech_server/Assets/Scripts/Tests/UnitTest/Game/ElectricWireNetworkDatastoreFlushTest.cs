@@ -25,12 +25,12 @@ namespace Tests.UnitTest.Game
 
             // 次境界まで旧mapを維持する
             // Update only the live registry and retain the applied map until the next boundary
-            Assert.IsTrue(datastore.IsTopologyDirty);
+            Assert.IsTrue(ElectricNetworkReflectionTestUtil.IsTopologyDirty(datastore));
             Assert.IsFalse(datastore.TryGetEnergySegment(connector.BlockInstanceId, out _));
 
             datastore.RebuildIfDirty();
 
-            Assert.IsFalse(datastore.IsTopologyDirty);
+            Assert.IsFalse(ElectricNetworkReflectionTestUtil.IsTopologyDirty(datastore));
             Assert.IsTrue(datastore.TryGetEnergySegment(connector.BlockInstanceId, out _));
             Assert.AreEqual(1, ElectricNetworkReflectionTestUtil.GetSegmentCount(datastore));
         }

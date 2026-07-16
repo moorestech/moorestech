@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             
             //最初のハンドシェイクを実行
-            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
+            var response = packet.GetPacketResponseForTest(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
             var handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             
@@ -44,11 +44,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext());
+            packet.GetPacketResponseForTest(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext());
             
             
             //再度ハンドシェイクを実行して座標が変更されていることを確認
-            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
+            response = packet.GetPacketResponseForTest(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             var connectionChecker = serviceProvider.GetService<IPlayerConnectionChecker>();
 
-            packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext());
+            packet.GetPacketResponseForTest(GetHandshakePacket(PlayerId), new PacketResponseContext());
 
             // ハンドシェイクプロトコルが接続登録を担当する。
             // The handshake protocol owns connection registration.
@@ -84,7 +84,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 new(PlayerId, RidableType.TrainCar.AsPrimitive(), car.TrainCarInstanceId.AsPrimitive().ToString(), 0),
             });
 
-            var response = environment.PacketResponseCreator.GetPacketResponse(
+            var response = environment.PacketResponseCreator.GetPacketResponseForTest(
                 GetHandshakePacket(PlayerId),
                 new PacketResponseContext())[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
@@ -107,11 +107,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             var car = Tests.UnitTest.PlayerRiding.RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
-            environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext());
+            environment.PacketResponseCreator.GetPacketResponseForTest(GetHandshakePacket(PlayerId), new PacketResponseContext());
 
             datastore.TryRide(PlayerId, id, out _);
 
-            var eventResponse = environment.PacketResponseCreator.GetPacketResponse(GetEventPacket(PlayerId), new PacketResponseContext())[0];
+            var eventResponse = environment.PacketResponseCreator.GetPacketResponseForTest(GetEventPacket(PlayerId), new PacketResponseContext())[0];
             var events = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(eventResponse);
             Assert.IsTrue(events.Events.Exists(e => e.Tag == RidingStateEventPacket.EventTag));
         }

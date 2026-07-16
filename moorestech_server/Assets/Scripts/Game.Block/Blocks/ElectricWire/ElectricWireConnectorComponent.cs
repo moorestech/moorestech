@@ -50,7 +50,7 @@ namespace Game.Block.Blocks.ElectricWire
             EnergyRole = energyRole;
 
             _componentStates = componentStates;
-            ServerContext.GetService<IElectricWireNetworkDatastore>().AddConnector(this);
+            ServerContext.GetService<IElectricWireNetworkMutation>().AddConnector(this);
         }
 
         public bool ContainsWireConnection(BlockInstanceId partnerId)
@@ -143,7 +143,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             // 復元接続をエネルギー網へ反映
             // Reflect restored wire connections into the energy network
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
+            ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }
 
@@ -163,7 +163,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             // エネルギーネットワークから除去する
             // Remove from the energy network
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RemoveConnector(this);
+            ServerContext.GetService<IElectricWireNetworkMutation>().RemoveConnector(this);
 
             _wireConnections.Clear();
             _onChangeBlockState.Dispose();

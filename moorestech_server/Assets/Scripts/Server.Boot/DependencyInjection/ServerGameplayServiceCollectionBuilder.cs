@@ -70,7 +70,9 @@ namespace Server.Boot.DependencyInjection
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            services.AddSingleton<IElectricWireNetworkDatastore, ElectricWireNetworkDatastore>();
+            services.AddSingleton<ElectricWireNetworkDatastore>();
+            services.AddSingleton<IElectricWireNetworkLookup>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
+            services.AddSingleton<IElectricWireNetworkMutation>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
             services.AddSingleton<MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>();

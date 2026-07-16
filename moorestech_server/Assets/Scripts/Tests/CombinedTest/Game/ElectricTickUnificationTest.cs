@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Game
         public void 両topology再構築は両需給計算より先に登録される()
         {
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var electricDatastore = provider.GetRequiredService<IElectricWireNetworkDatastore>();
+            var electricDatastore = provider.GetRequiredService<IElectricWireNetworkMutation>();
             var gearDatastore = provider.GetRequiredService<GearNetworkDatastore>();
             var electricUpdater = provider.GetRequiredService<ElectricTickUpdater>();
             var gearUpdater = provider.GetRequiredService<GearTickUpdater>();
@@ -87,8 +87,8 @@ namespace Tests.CombinedTest.Game
 
             // フル回転で満充電し、利用率40%で放電して残量60%を作る
             // Fully charge at full rotation, then discharge at 40% utilization to leave a 60% remainder
-            drive.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
-            drive.SetGenerateTorque((float)param.GearConsumption.BaseTorque);
+            drive.SetGenerateRpm(param.GearConsumption.BaseRpm);
+            drive.SetGenerateTorque(param.GearConsumption.BaseTorque);
             GameUpdater.RunFrames(20);
             drive.SetGenerateRpm(0f);
             GameUpdater.RunFrames(2);
@@ -124,9 +124,9 @@ namespace Tests.CombinedTest.Game
             // 供給率0.5の電力tickで半分だけ充電された状態を作る
             // Charge exactly half of the battery with a rate-0.5 electric tick
             var mode0 = param.OutputModes[0];
-            component.OnElectricTickPostProcess(new ElectricNetworkStatistics((float)mode0.RequiredPower * 0.5f, (float)mode0.RequiredPower, 0.5f, 1));
+            component.OnElectricTickPostProcess(new ElectricNetworkStatistics(mode0.RequiredPower * 0.5f, mode0.RequiredPower, 0.5f, 1));
             var savedRemaining = ReadBatteryRemaining(component);
-            Assert.AreEqual((float)mode0.RequiredPower * 0.5f, savedRemaining, 0.001f);
+            Assert.AreEqual(mode0.RequiredPower * 0.5f, savedRemaining, 0.001f);
 
             var saveState = block.GetSaveState();
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestElectricToGearGenerator);
@@ -138,7 +138,7 @@ namespace Tests.CombinedTest.Game
             // Since only the remainder is requested, one fully supplied tick completes the charge and resumes output
             Assert.AreEqual(savedRemaining, ReadBatteryRemaining(loadedComponent), 0.001f);
             loadedComponent.OnElectricTickPostProcess(new ElectricNetworkStatistics(savedRemaining, savedRemaining, 1f, 1));
-            Assert.AreEqual((float)mode0.Torque, loadedComponent.GenerateTorque.AsPrimitive(), 0.01f);
+            Assert.AreEqual(mode0.Torque, loadedComponent.GenerateTorque.AsPrimitive(), 0.01f);
 
             #region Internal
 

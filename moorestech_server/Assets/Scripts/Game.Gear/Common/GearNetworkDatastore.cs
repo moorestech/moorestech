@@ -19,7 +19,7 @@ namespace Game.Gear.Common
         private HashSet<GearNetwork> _continuousTickNetworks;
         private bool _isTopologyDirty = true;
 
-        public bool IsTopologyDirty => _isTopologyDirty;
+        public bool IsDerivedStateDirty => _isTopologyDirty || 0 < _networksRequiringRecalc.Count;
 
         public GearNetworkDatastore()
         {
@@ -55,16 +55,16 @@ namespace Game.Gear.Common
         {
             if (!_isTopologyDirty) return;
 
-            // 完成まで旧gear状態を維持する
-            // Retain every currently applied object until all replacement state is built and validated
+            // 新しいgear派生状態を全て作ってから一括交換する
+            // Build all derived gear state before swapping the complete set
             var rebuilt = GearNetworkTopologyMap.Build(_registeredGears.Values);
             var previousTopologyMap = _topologyMap;
             var previousRuntimeStateStore = _runtimeStateStore;
             var previousRecalcNetworks = _networksRequiringRecalc;
             var previousContinuousNetworks = _continuousTickNetworks;
 
-            // 全参照交換後にruntimeを有効化する
-            // Point the static runtime reference at the same new state after exception-free reference swaps
+            // 参照交換後に同じruntimeを有効化する
+            // Activate the same runtime state after swapping every reference
             _topologyMap = rebuilt.TopologyMap;
             _runtimeStateStore = rebuilt.RuntimeStateStore;
             _networksRequiringRecalc = rebuilt.NetworksRequiringRecalc;

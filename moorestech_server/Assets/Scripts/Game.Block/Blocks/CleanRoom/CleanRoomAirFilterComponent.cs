@@ -4,7 +4,6 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Blocks.ElectricWire;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -21,7 +20,7 @@ namespace Game.Block.Blocks.CleanRoom
     ///     電力割合とフィルター装填に応じて部屋の不純物を除去する清浄機
     ///     Air purifier removing room impurities based on power ratio and loaded filters
     /// </summary>
-    public class CleanRoomAirFilterComponent : IElectricConsumer, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter
+    public class CleanRoomAirFilterComponent : IElectricConsumer, IElectricTickPostHandler, IBlockSaveState, ICleanRoomAirFilter
     {
         // 実効除去体積 = 基本値 × 電力割合 × フィルター有無
         // Effective removal volume = base x power ratio x filter presence
@@ -34,9 +33,6 @@ namespace Game.Block.Blocks.CleanRoom
         private readonly double _filterCapacity;
         private readonly ItemId _filterItemId;
 
-        // tick内限定の外部供給の加算器と、Update冒頭で確定した現在電力
-        // Tick-scoped external supply accumulator and the current power latched at the start of Update
-        private float _suppliedPower;
         private float _currentPower;
         private double _wearAccumulation;
 
@@ -68,23 +64,13 @@ namespace Game.Block.Blocks.CleanRoom
 
         public ElectricPower RequestEnergy => new(_requiredPower);
 
-        // tick内限定の内部経路。供給率導出分に加算される
-        // Tick-scoped internal path, added on top of the rate-derived supply
-        public void SupplyExternalPower(float power)
-        {
-            CheckDestroy(this);
-            _suppliedPower += power;
-        }
-
-        public void Update()
+        public void OnElectricTickPostProcess(ElectricNetworkStatistics statistics)
         {
             CheckDestroy(this);
 
-            // 実効電力 = 要求電力 × 所属セグメントの確定済み供給率。外部供給分を合算して確定する
-            // Effective power = requested power x the segment's settled supply rate, latched together with external supply
-            var powerRate = ElectricSegmentPowerRateResolver.GetPowerRate(BlockInstanceId);
-            _currentPower = _suppliedPower + _requiredPower * powerRate;
-            _suppliedPower = 0f;
+            // 電力tickで確定した供給率を現在電力へ反映する
+            // Apply the electric tick's settled supply rate to the current power
+            _currentPower = _requiredPower * statistics.PowerRate;
         }
 
         public void ApplyRemovedImpurity(double removed)

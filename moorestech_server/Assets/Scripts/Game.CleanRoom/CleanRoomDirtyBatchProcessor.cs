@@ -25,7 +25,7 @@ namespace Game.CleanRoom
 
             // 通常時は上限内の変更を進め、保存時は未処理の変更をすべて確定する
             // Respect the normal budget, while a save drains every pending change
-            while (pendingBatches.Count > 0 &&
+            while (0 < pendingBatches.Count &&
                    (drainAll || processedBatchCount == 0 || visitedTotal < dirtyCellBudget))
             {
                 visitedTotal += ProcessBatch(pendingBatches.Dequeue());
@@ -58,7 +58,7 @@ namespace Game.CleanRoom
             List<CleanRoom> TakeAffectedOldRooms(List<Vector3Int> seeds, List<CleanRoom> newRooms)
             {
                 var oldRooms = new List<CleanRoom>();
-                for (var i = rooms.Count - 1; i >= 0; i--)
+            for (var i = rooms.Count - 1; 0 <= i; i--)
                 {
                     if (!IsAffected(rooms[i])) continue;
                     oldRooms.Add(rooms[i]);
@@ -92,7 +92,7 @@ namespace Game.CleanRoom
             {
                 // 形が変わらない部屋は既存インスタンスを維持する
                 // Keep the existing instance when room geometry is unchanged
-                for (var newIndex = newRooms.Count - 1; newIndex >= 0; newIndex--)
+            for (var newIndex = newRooms.Count - 1; 0 <= newIndex; newIndex--)
                 {
                     var identicalOldRoom = FindIdenticalRoom(newRooms[newIndex], oldRooms);
                     if (identicalOldRoom == null) continue;

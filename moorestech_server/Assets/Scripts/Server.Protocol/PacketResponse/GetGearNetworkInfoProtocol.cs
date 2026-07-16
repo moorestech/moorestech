@@ -8,12 +8,15 @@ namespace Server.Protocol.PacketResponse
 {
     // 指定ブロックが属するギアネットワークの現時点の集約情報を取得するプロトコル
     // Protocol to fetch the current aggregate info of the gear network that a block belongs to
-    public class GetGearNetworkInfoProtocol : IPacketResponse
+    public class GetGearNetworkInfoProtocol : IPacketResponse, ITickEndPacketDeferral
     {
         public const string ProtocolTag = "va:getGearNetInfo";
 
+        private readonly GearNetworkDatastore _gearNetworkDatastore;
+
         public GetGearNetworkInfoProtocol(ServiceProvider serviceProvider)
         {
+            _gearNetworkDatastore = serviceProvider.GetRequiredService<GearNetworkDatastore>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -30,6 +33,11 @@ namespace Server.Protocol.PacketResponse
             var info = network.CurrentGearNetworkInfo;
             var snapshot = new GearNetworkInfoSnapshot(info.TotalRequiredGearPower, info.TotalGenerateGearPower, info.StopReason);
             return new ResponseGetGearNetworkInfoMessagePack(snapshot);
+        }
+
+        public bool ShouldDeferAtTickEnd()
+        {
+            return _gearNetworkDatastore.IsDerivedStateDirty;
         }
 
         #region MessagePack

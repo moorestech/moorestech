@@ -108,8 +108,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, Vector3Int.zero,
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole);
             GameUpdater.UpdateOneTick();
-            var electricDatastore = provider.GetRequiredService<IElectricWireNetworkDatastore>();
-            Assert.IsFalse(electricDatastore.IsTopologyDirty);
+            var electricDatastore = provider.GetRequiredService<IElectricWireNetworkLookup>();
+            Assert.IsFalse(electricDatastore.IsDerivedStateDirty);
 
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
             queue.Enqueue(new CallbackEntry(() =>
@@ -124,12 +124,43 @@ namespace Tests.CombinedTest.Server.PacketTest
             queue.Enqueue(queryEntry);
 
             GameUpdater.UpdateOneTick();
-            Assert.IsTrue(electricDatastore.IsTopologyDirty);
+            Assert.IsTrue(electricDatastore.IsDerivedStateDirty);
             Assert.AreEqual(0, queryEntry.Responses.Count);
 
             GameUpdater.UpdateOneTick();
-            Assert.IsFalse(electricDatastore.IsTopologyDirty);
+            Assert.IsFalse(electricDatastore.IsDerivedStateDirty);
             Assert.AreEqual(1, queryEntry.Responses.Count);
+        }
+
+        [Test]
+        public void ConverterModeChangeDefersNetworkQueriesUntilNextTickSettlement()
+        {
+            var (packet, provider) = CreateServer();
+            var world = ServerContext.WorldBlockDatastore;
+            var position = new Vector3Int(14, 0, 14);
+            world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, position,
+                BlockDirection.North, Array.Empty<BlockCreateParam>(), out var converter);
+            GameUpdater.UpdateOneTick();
+
+            // 設定変更と同じ末尾処理内の問い合わせを、次tickの再計算後まで保留する
+            // Defer queries from the same tick-end batch until the next tick recalculates both networks
+            var queue = provider.GetRequiredService<TickEndPacketQueue>();
+            queue.Enqueue(new ProtocolEntry(packet, MessagePackSerializer.Serialize(
+                new SetElectricToGearOutputModeRequest(position, 1))));
+            var electricQuery = new ProtocolEntry(packet, MessagePackSerializer.Serialize(
+                new GetElectricNetworkInfoProtocol.RequestGetElectricNetworkInfoMessagePack(converter.BlockInstanceId)));
+            var gearQuery = new ProtocolEntry(packet, MessagePackSerializer.Serialize(
+                new GetGearNetworkInfoProtocol.RequestGetGearNetworkInfoMessagePack(converter.BlockInstanceId)));
+            queue.Enqueue(electricQuery);
+            queue.Enqueue(gearQuery);
+
+            GameUpdater.UpdateOneTick();
+            Assert.AreEqual(0, electricQuery.Responses.Count);
+            Assert.AreEqual(0, gearQuery.Responses.Count);
+
+            GameUpdater.UpdateOneTick();
+            Assert.AreEqual(1, electricQuery.Responses.Count);
+            Assert.AreEqual(1, gearQuery.Responses.Count);
         }
 
         private static byte[] CreateRemovePayload(Vector3Int position)

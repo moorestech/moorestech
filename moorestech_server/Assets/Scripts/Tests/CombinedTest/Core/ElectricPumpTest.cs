@@ -103,7 +103,7 @@ namespace Tests.CombinedTest.Core
                 // トポロジ反映のため1tick進めてからセグメントを取得する
                 // Advance one tick for the topology flush before fetching the segment
                 GameUpdater.UpdateOneTick();
-                var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+                var networkDatastore = ServerContext.GetService<IElectricWireNetworkLookup>();
                 Assert.IsTrue(networkDatastore.TryGetEnergySegment(component.BlockInstanceId, out var segment));
                 var generator = new TestElectricGenerator(supply, BlockInstanceId.Create());
                 AddGenerator(segment, generator);

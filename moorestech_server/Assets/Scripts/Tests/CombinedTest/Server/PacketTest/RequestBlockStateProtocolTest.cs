@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Act
             var request = new RequestBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(payload, new PacketResponseContext());
+            var response = packet.GetPacketResponseForTest(payload, new PacketResponseContext());
             
             // Assert
             // プロトコルがnullを返すため、レスポンスが空になることを確認
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Act
             var request = new RequestBlockStateProtocolMessagePack(blockPosition);
             var payload = MessagePackSerializer.Serialize(request);
-            var response = packet.GetPacketResponse(payload, new PacketResponseContext());
+            var response = packet.GetPacketResponseForTest(payload, new PacketResponseContext());
             
             // Assert
             // プロトコルがnullを返すため、レスポンスが空になることを確認

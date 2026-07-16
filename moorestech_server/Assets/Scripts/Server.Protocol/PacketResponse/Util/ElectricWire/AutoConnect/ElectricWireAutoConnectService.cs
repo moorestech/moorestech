@@ -140,7 +140,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             }
 
             ElectricWireSystemUtil.ConsumeItem(inventory, plan.WireItemId, consumedWireCount);
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
+            ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
         }
     }
 }

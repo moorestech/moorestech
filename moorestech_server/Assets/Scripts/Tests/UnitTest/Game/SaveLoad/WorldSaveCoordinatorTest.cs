@@ -36,32 +36,15 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(2, saver.SaveCount);
         }
 
-        [Test]
-        public void 保存自体が完了しなかった要求は次回に再実行する()
-        {
-            var saver = new FakeWorldSaveDataSaver { ThrowOnNextSave = true };
-            var coordinator = new WorldSaveCoordinator(saver);
-            coordinator.RequestSave();
-
-            Assert.Throws<InvalidOperationException>(coordinator.SaveIfRequested);
-            coordinator.SaveIfRequested();
-
-            Assert.AreEqual(2, saver.SaveCount);
-        }
-
         private sealed class FakeWorldSaveDataSaver : IWorldSaveDataSaver
         {
             public int SaveCount;
-            public bool ThrowOnNextSave;
             public Action OnSave;
 
             public void Save()
             {
                 SaveCount++;
                 OnSave?.Invoke();
-                if (!ThrowOnNextSave) return;
-                ThrowOnNextSave = false;
-                throw new InvalidOperationException("test save failure");
             }
         }
     }

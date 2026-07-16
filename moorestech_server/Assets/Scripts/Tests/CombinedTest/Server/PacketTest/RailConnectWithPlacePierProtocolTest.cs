@@ -156,7 +156,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 CreateParams = createParams,
             };
             var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(PlayerId, _fromNode.NodeId, _fromNode.Guid, pierBlockId, placeInfo, RailTypeGuid);
-            var responseBytes = _environment.PacketResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext()).First();
+            var responseBytes = _environment.PacketResponseCreator.GetPacketResponseForTest(MessagePackSerializer.Serialize(request), new PacketResponseContext()).First();
             return MessagePackSerializer.Deserialize<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(responseBytes.ToArray());
         }
 

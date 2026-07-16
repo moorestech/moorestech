@@ -175,7 +175,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             FilterSplitterStateProtocol.FilterSplitterStateRequest request)
         {
             var payload = MessagePackSerializer.Serialize(request);
-            var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext())[0];
+            var responseBytes = packet.GetPacketResponseForTest(payload, new PacketResponseContext())[0];
             return MessagePackSerializer.Deserialize<FilterSplitterStateProtocol.FilterSplitterStateResponse>(responseBytes);
         }
     }

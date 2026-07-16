@@ -45,19 +45,23 @@ namespace Server.Boot.Loop.PacketProcessing
                     return;
                 }
             }
-        }
 
-        private void RestoreDeferredPackets(ITickEndPacketEntry current)
-        {
-            lock (_gate)
+            #region Internal
+
+            void RestoreDeferredPackets(ITickEndPacketEntry current)
             {
-                var restored = new Queue<ITickEndPacketEntry>();
-                restored.Enqueue(current);
-                while (_frozen.Count != 0) restored.Enqueue(_frozen.Dequeue());
-                while (_receiving.Count != 0) restored.Enqueue(_receiving.Dequeue());
-                _receiving = restored;
-                _frozen = new Queue<ITickEndPacketEntry>();
+                lock (_gate)
+                {
+                    var restored = new Queue<ITickEndPacketEntry>();
+                    restored.Enqueue(current);
+                    while (_frozen.Count != 0) restored.Enqueue(_frozen.Dequeue());
+                    while (_receiving.Count != 0) restored.Enqueue(_receiving.Dequeue());
+                    _receiving = restored;
+                    _frozen = new Queue<ITickEndPacketEntry>();
+                }
             }
+
+            #endregion
         }
     }
 }

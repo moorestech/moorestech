@@ -46,14 +46,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //インベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext());
+            packetResponse.GetPacketResponseForTest(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext());
             //ブロックにアイテムを入れる
             blockInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 8));
             
             
             //パケットが送られていることをチェック
             //イベントパケットを取得
-            List<byte[]> eventPacket = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
+            List<byte[]> eventPacket = packetResponse.GetPacketResponseForTest(GetEventPacket(), new PacketResponseContext());
             
             
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0]);
@@ -72,7 +72,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //ブロックのインベントリを閉じる
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false), new PacketResponseContext());
+            packetResponse.GetPacketResponseForTest(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false), new PacketResponseContext());
             
             //ブロックにアイテムを入れる
             blockInventory.SetItem(2, itemStackFactory.Create(new ItemId(4), 8));
@@ -80,7 +80,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //パケットが送られていないことをチェック
             //イベントパケットを取得
-            eventPacket = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
+            eventPacket = packetResponse.GetPacketResponseForTest(GetEventPacket(), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
@@ -107,10 +107,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 一つ目のブロックインベントリを開く
             // Open first block inventory
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext());
+            packetResponse.GetPacketResponseForTest(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext());
             // 二つ目のブロックインベントリを開く
             // Open second block inventory
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(10, 20), true), new PacketResponseContext());
+            packetResponse.GetPacketResponseForTest(OpenCloseBlockInventoryPacket(new Vector3Int(10, 20), true), new PacketResponseContext());
 
 
             // 一つ目のブロックインベントリにアイテムを入れる
@@ -121,7 +121,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // パケットが送られていることをチェック（複数サブスクリプション対応のため）
             // Check that packet is sent (multiple subscriptions are now supported)
-            List<byte[]> response = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
+            List<byte[]> response = packetResponse.GetPacketResponseForTest(GetEventPacket(), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(1, eventMessagePack.Events.Count);
 
@@ -144,7 +144,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // パケットが送られていることをチェック
             // Check that packet is sent
-            response = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
+            response = packetResponse.GetPacketResponseForTest(GetEventPacket(), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(1, eventMessagePack.Events.Count);
 

@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             
-            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
+            List<byte[]> response = packetResponse.GetPacketResponseForTest(EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             
             //イベントキューにIDを登録する
-            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
+            List<byte[]> response = packetResponse.GetPacketResponseForTest(EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
             
@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //イベントパケットをリクエストする
-            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
+            response = packetResponse.GetPacketResponseForTest(EventRequestData(0), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //イベントのリクエストを送ったので次は何も返ってこないテスト
-            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
+            response = packetResponse.GetPacketResponseForTest(EventRequestData(0), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }

@@ -21,12 +21,14 @@ namespace Game.Block.Blocks.ElectricToGear
     /// </summary>
     public class ElectricToGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IElectricConsumer, IElectricTickPostHandler, IBlockStateDetail, IBlockSaveState, IBlockStateObservable
     {
+        private const float FullChargeToleranceRate = 1e-4f;
+
         public int TeethCount => _param.TeethCount;
         public bool GenerateIsClockwise => true;
 
         // 満充電確定時のみ定格を出力。トルクドループは行わない。トルク0モードは網の最速起点を奪わないようRPMも0
         // Output the rated values only when settled as fully charged; no torque droop. A torque-0 mode also yields RPM 0 so it never dominates the network
-        public RPM GenerateRpm => _isOutputting && CurrentMode.Torque > 0 ? new RPM(CurrentMode.Rpm) : new RPM(0);
+        public RPM GenerateRpm => _isOutputting && 0 < CurrentMode.Torque ? new RPM(CurrentMode.Rpm) : new RPM(0);
         public Torque GenerateTorque => _isOutputting ? new Torque(CurrentMode.Torque) : new Torque(0);
 
         // 出力tickでバッテリーを毎tick消費するため常時tick駆動が必要
@@ -99,9 +101,9 @@ namespace Game.Block.Blocks.ElectricToGear
 
             // 浮動小数の充電誤差を許容して満充電を判定する
             // Full charge is judged with a small tolerance for floating point charge error
-            var isFull = _batteryRemaining >= BatteryCapacity - BatteryCapacity * 1e-4f;
+            var isFull = BatteryCapacity - BatteryCapacity * FullChargeToleranceRate <= _batteryRemaining;
             SetOutputting(isFull);
-            if (_lastChargedPower > 0f) _onChangeBlockState.OnNext(Unit.Default);
+            if (0f < _lastChargedPower) _onChangeBlockState.OnNext(Unit.Default);
         }
 
         // 出力tick: 1tick分のバッテリーを全て消費して定格出力し、残量を0にする

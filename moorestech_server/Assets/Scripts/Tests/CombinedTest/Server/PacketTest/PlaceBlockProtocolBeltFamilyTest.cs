@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                     VerticalDirection = BlockVerticalDirection.Up, BlockId = ForUnitTestModBlockId.TestGearBeltConveyorUp,
                 },
             };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+            packet.GetPacketResponseForTest(CreatePlacePayload(placeInfos), new PacketResponseContext());
 
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 10)));
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(10, 0, 11)));
@@ -64,13 +64,13 @@ namespace Tests.CombinedTest.Server.PacketTest
                     VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3,
                 },
             };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+            packet.GetPacketResponseForTest(CreatePlacePayload(placeInfos), new PacketResponseContext());
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
 
             // 代表を解放すると長尺バリアントが設置できる
             // Unlocking the representative allows the variant placement
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+            packet.GetPacketResponseForTest(CreatePlacePayload(placeInfos), new PacketResponseContext());
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(20, 0, 10)));
         }
     }

@@ -4,4 +4,9 @@ namespace Server.Protocol.PacketResponse
     {
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context);
     }
+
+    public interface ITickEndPacketDeferral
+    {
+        bool ShouldDeferAtTickEnd();
+    }
 }

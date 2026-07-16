@@ -171,7 +171,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // 清浄機だけに毎tick満電を供給し、室内純度を進める
             // Supply full power to the filter each tick to advance room purity
-            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
+            ElectricConsumerTestUtil.ApplySuppliedPower(filter.GetComponent<IElectricConsumer>(), 100f);
             GameUpdater.UpdateOneTick();
         }
 
@@ -179,8 +179,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // 清浄機と機械を同じtickで満電にし、通常の室内加工経路を通す
             // Fully power the filter and machine in the same tick for normal in-room processing
-            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
-            machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
+            ElectricConsumerTestUtil.ApplySuppliedPower(filter.GetComponent<IElectricConsumer>(), 100f);
+            ElectricConsumerTestUtil.ApplySuppliedPower(machine.GetComponent<IElectricConsumer>(), 100f);
             GameUpdater.UpdateOneTick();
         }
 

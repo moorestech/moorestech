@@ -34,18 +34,18 @@ namespace Tests.CombinedTest.Core
 
             // フル回転で1tick分のバッテリーが満充電され、申告供給はmaxGeneratedPowerに一致する
             // Full rotation fully charges the one-tick battery; the declared supply equals maxGeneratedPower
-            driveComponent.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
-            driveComponent.SetGenerateTorque((float)param.GearConsumption.BaseTorque);
+            driveComponent.SetGenerateRpm(param.GearConsumption.BaseRpm);
+            driveComponent.SetGenerateTorque(param.GearConsumption.BaseTorque);
             AdvanceTime(0.5f);
             Assert.AreEqual(param.MaxGeneratedPower, generatorComponent.OutputEnergy().AsPrimitive(), 0.1f);
 
             // オーバードライブ廃止: 定格の2倍で回してもmaxGeneratedPowerを超えて発電しない
             // Overdrive abolished: spinning at twice the rated RPM never generates beyond maxGeneratedPower
             DischargeAll();
-            driveComponent.SetGenerateRpm((float)param.GearConsumption.BaseRpm * 2f);
+            driveComponent.SetGenerateRpm(param.GearConsumption.BaseRpm * 2f);
             // 2倍RPMでは消費トルクが指数的に増えるため、網が停止しないようトルク供給も引き上げる
             // Torque demand grows exponentially at double RPM, so raise the torque supply to keep the network running
-            driveComponent.SetGenerateTorque((float)param.GearConsumption.BaseTorque * 3.2f);
+            driveComponent.SetGenerateTorque(param.GearConsumption.BaseTorque * 3.2f);
             AdvanceTime(0.5f);
             Assert.LessOrEqual(generatorComponent.OutputEnergy().AsPrimitive(), param.MaxGeneratedPower + 0.01f);
             Assert.AreEqual(param.MaxGeneratedPower, generatorComponent.OutputEnergy().AsPrimitive(), 0.1f);
@@ -92,15 +92,13 @@ namespace Tests.CombinedTest.Core
 
             // トルク不足でネットワークが停止し、バッテリーは空のまま
             // Torque shortage stops the network, leaving the battery empty
-            driveComponent.SetGenerateRpm((float)param.GearConsumption.BaseRpm);
-            driveComponent.SetGenerateTorque((float)param.GearConsumption.BaseTorque * 0.5f);
+            driveComponent.SetGenerateRpm(param.GearConsumption.BaseRpm);
+            driveComponent.SetGenerateTorque(param.GearConsumption.BaseTorque * 0.5f);
             AdvanceTime(0.5f);
             var gearNetwork = GearNetworkDatastoreReflectionTestUtil.GetAppliedNetwork(generatorComponent.BlockInstanceId);
             Assert.AreEqual(GearNetworkStopReason.OverRequirePower, gearNetwork.CurrentGearNetworkInfo.StopReason);
             Assert.AreEqual(0f, generatorComponent.OutputEnergy().AsPrimitive(), 0.01f);
         }
-
-        #region Internal
 
         private static void AdvanceTime(double seconds)
         {
@@ -111,6 +109,5 @@ namespace Tests.CombinedTest.Core
             }
         }
 
-        #endregion
     }
 }

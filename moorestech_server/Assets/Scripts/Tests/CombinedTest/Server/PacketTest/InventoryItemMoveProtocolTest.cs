@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mainInventory.SetItem(0, new ItemId(1), 10);
 
             //インベントリを持っているアイテムに移す
-            packet.GetPacketResponse(GetPacket(7,
+            packet.GetPacketResponseForTest(GetPacket(7,
                 InventoryIdentifierMessagePack.CreateMainMessage(PlayerId), 0,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0), new PacketResponseContext());
 
@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //持っているアイテムをインベントリに移す
-            packet.GetPacketResponse(GetPacket(5,
+            packet.GetPacketResponseForTest(GetPacket(5,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0,
                 InventoryIdentifierMessagePack.CreateMainMessage(PlayerId), 0), new PacketResponseContext());
 
@@ -81,7 +81,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // PlayerId=1のMainからGrabへ移動する
             // Move from player 1 main inventory to player 1 grab inventory.
-            packet.GetPacketResponse(GetPacket(7,
+            packet.GetPacketResponseForTest(GetPacket(7,
                 InventoryIdentifierMessagePack.CreateMainMessage(otherPlayerId), 0,
                 InventoryIdentifierMessagePack.CreateGrabMessage(otherPlayerId), 0), new PacketResponseContext());
 
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             chestComponent.SetItem(1, new ItemId(1), 10);
 
             //インベントリを持っているアイテムに移す
-            packet.GetPacketResponse(GetPacket(7,
+            packet.GetPacketResponseForTest(GetPacket(7,
                 InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10)), 1,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0), new PacketResponseContext());
 
@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
 
             //持っているアイテムをインベントリに移す
-            packet.GetPacketResponse(GetPacket(5,
+            packet.GetPacketResponseForTest(GetPacket(5,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0,
                 InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(5, 10)), 1), new PacketResponseContext());
 
@@ -141,7 +141,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 列車から手持ちへ移動
             // Move items from train to grab inventory
-            environment.PacketResponseCreator.GetPacketResponse(GetPacket(7,
+            environment.PacketResponseCreator.GetPacketResponseForTest(GetPacket(7,
                 InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive()), 1,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0), new PacketResponseContext());
 
@@ -150,7 +150,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 手持ちから列車へ戻す
             // Move items from grab inventory back to train
-            environment.PacketResponseCreator.GetPacketResponse(GetPacket(5,
+            environment.PacketResponseCreator.GetPacketResponseForTest(GetPacket(5,
                 InventoryIdentifierMessagePack.CreateGrabMessage(PlayerId), 0,
                 InventoryIdentifierMessagePack.CreateTrainMessage(trainCar.TrainCarInstanceId.AsPrimitive()), 1), new PacketResponseContext());
 

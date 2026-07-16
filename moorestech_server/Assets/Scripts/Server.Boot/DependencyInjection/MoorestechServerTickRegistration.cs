@@ -14,7 +14,7 @@ namespace Server.Boot.DependencyInjection
             // 両網再構築後に需給計算する
             // Apply both topologies from the same world boundary before either settlement begins
             GameUpdater.AdditionalUpdates.Add(
-                provider.GetRequiredService<IElectricWireNetworkDatastore>().RebuildIfDirty);
+                provider.GetRequiredService<IElectricWireNetworkMutation>().RebuildIfDirty);
             GameUpdater.AdditionalUpdates.Add(
                 provider.GetRequiredService<GearNetworkDatastore>().RebuildIfDirty);
             GameUpdater.AdditionalUpdates.Add(

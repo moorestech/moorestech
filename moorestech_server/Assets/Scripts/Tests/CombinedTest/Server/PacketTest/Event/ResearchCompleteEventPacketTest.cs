@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             // イベントがないことを確認する
-            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            var response = packetResponse.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
 
@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             CompleteResearchForTest(serviceProvider, Research1Guid);
 
             // イベントを受け取り、テストする
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            response = packetResponse.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
 
             var researchEvents = eventMessagePack.Events
@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             CompleteResearchForTest(serviceProvider, Research2Guid);
 
             // イベントを受け取り、テストする
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            response = packetResponse.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
 
             researchEvents = eventMessagePack.Events

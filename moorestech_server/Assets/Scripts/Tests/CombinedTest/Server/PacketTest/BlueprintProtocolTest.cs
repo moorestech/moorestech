@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             BlueprintResponse Send(BlueprintRequest request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                var responses = packet.GetPacketResponse(payload, new PacketResponseContext());
+                var responses = packet.GetPacketResponseForTest(payload, new PacketResponseContext());
                 return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
             }
 
@@ -85,7 +85,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             BlueprintResponse Send(BlueprintRequest request)
             {
                 var payload = MessagePackSerializer.Serialize(request);
-                var responses = packet.GetPacketResponse(payload, new PacketResponseContext());
+                var responses = packet.GetPacketResponseForTest(payload, new PacketResponseContext());
                 return MessagePackSerializer.Deserialize<BlueprintResponse>(responses[0]);
             }
 

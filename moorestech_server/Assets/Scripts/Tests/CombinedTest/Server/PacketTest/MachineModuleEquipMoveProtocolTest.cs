@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 既存の移動プロトコル（InventoryType.Block＋スロット番号）でモジュールレンジ先頭スロットへ移動する
             // Move into the first module-range slot via the existing move protocol (InventoryType.Block + slot number)
-            packet.GetPacketResponse(MovePacket(1,
+            packet.GetPacketResponseForTest(MovePacket(1,
                 InventoryIdentifierMessagePack.CreateMainMessage(PlayerId), 0,
                 InventoryIdentifierMessagePack.CreateBlockMessage(machinePos), ModuleRangeStart), new PacketResponseContext());
 
@@ -86,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(machinePos);
                 var request = MessagePackSerializer.Serialize(new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier));
-                return MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(request, new PacketResponseContext())[0]);
+                return MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponseForTest(request, new PacketResponseContext())[0]);
             }
 
             #endregion
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // モジュールレンジ2番目のスロットへ移動する（挿入ガードは設けない設計）
             // Move into the second module-range slot (no insertion guard by design)
-            packet.GetPacketResponse(MovePacket(3,
+            packet.GetPacketResponseForTest(MovePacket(3,
                 InventoryIdentifierMessagePack.CreateMainMessage(PlayerId), 0,
                 InventoryIdentifierMessagePack.CreateBlockMessage(machinePos), ModuleRangeStart + 1), new PacketResponseContext());
 

@@ -66,7 +66,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             }
 
             ConsumeItem(inventory, wireItemId, judgement.WireCost.Count);
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
+            ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
 
             return true;
         }
@@ -135,7 +135,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
             if (hasRefund) inventory.InsertItem(refundStack);
 
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
+            ServerContext.GetService<IElectricWireNetworkMutation>().MarkTopologyDirty();
 
             return true;
         }

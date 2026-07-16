@@ -94,8 +94,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // フィルターと機械を同じtickで給電し、室内加工の通常経路を進める
             // Power the filter and machine in the same tick to exercise normal in-room processing
-            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
-            machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
+            ElectricConsumerTestUtil.ApplySuppliedPower(filter.GetComponent<IElectricConsumer>(), 100f);
+            ElectricConsumerTestUtil.ApplySuppliedPower(machine.GetComponent<IElectricConsumer>(), 100f);
             GameUpdater.UpdateOneTick();
         }
 

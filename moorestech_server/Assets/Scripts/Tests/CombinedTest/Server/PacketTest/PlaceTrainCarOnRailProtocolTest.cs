@@ -165,7 +165,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static PlaceTrainOnRailResponseMessagePack ExecutePlace(TrainTestEnvironment environment, RailPositionSnapshotMessagePack railPosition, Guid trainCarGuid)
         {
             var packet = MessagePackSerializer.Serialize(new PlaceTrainOnRailRequestMessagePack(railPosition, trainCarGuid, PlayerId));
-            var responses = environment.PacketResponseCreator.GetPacketResponse(packet, new PacketResponseContext());
+            var responses = environment.PacketResponseCreator.GetPacketResponseForTest(packet, new PacketResponseContext());
             return MessagePackSerializer.Deserialize<PlaceTrainOnRailResponseMessagePack>(responses[0]);
         }
 

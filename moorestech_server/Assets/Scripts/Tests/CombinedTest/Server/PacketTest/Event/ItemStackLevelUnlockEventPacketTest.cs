@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // イベントがないことを確認する（この呼び出しでプレイヤーがイベントキューに登録される）
             // Verify no events yet (this call also registers the player in the event queue)
-            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            var response = packetResponse.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             Assert.AreEqual(0, eventMessagePack.Events.Count);
 
@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // イベントを受け取り、内容を検証する
             // Receive the event and verify the payload
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
+            response = packetResponse.GetPacketResponseForTest(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
 
             var stackLevelEvents = eventMessagePack.Events.Where(e => e.Tag == ItemStackLevelUnlockEventPacket.EventTag).ToList();
@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, PlayerId);
 
             var handshakeRequest = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(PlayerId, "test player"));
-            var response = packetResponse.GetPacketResponse(handshakeRequest, new PacketResponseContext())[0];
+            var response = packetResponse.GetPacketResponseForTest(handshakeRequest, new PacketResponseContext())[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(response);
 
             Assert.AreEqual(1, handshakeResponse.ItemStackLevels.Length);

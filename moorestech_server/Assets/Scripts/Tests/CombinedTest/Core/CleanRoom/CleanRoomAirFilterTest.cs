@@ -12,6 +12,7 @@ using Game.EnergySystem;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core.CleanRoom
@@ -182,7 +183,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var consumer = block.GetComponent<CleanRoomAirFilterComponent>();
             for (var i = 0; i < ticks; i++)
             {
-                consumer.SupplyExternalPower(power);
+                ElectricConsumerTestUtil.ApplySuppliedPower(consumer, power);
                 GameUpdater.UpdateOneTick();
             }
         }

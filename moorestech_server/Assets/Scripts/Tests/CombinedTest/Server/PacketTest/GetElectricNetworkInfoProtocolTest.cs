@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Advance one tick so the topology flush and statistics settlement run
             GameUpdater.UpdateOneTick();
 
-            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
             Assert.IsTrue(segmentDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var segment));
 
             var expected = segment.Statistics;
@@ -101,7 +101,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack InvokeGetElectricNetworkInfo(PacketResponseCreator packet, BlockInstanceId id)
         {
             var request = new GetElectricNetworkInfoProtocol.RequestGetElectricNetworkInfoMessagePack(id);
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext());
+            var responseBytes = packet.GetPacketResponseForTest(MessagePackSerializer.Serialize(request), new PacketResponseContext());
             return MessagePackSerializer.Deserialize<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack>(responseBytes[0]);
         }
 

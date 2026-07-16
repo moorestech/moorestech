@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest request)
         {
             var payload = MessagePackSerializer.Serialize(request);
-            var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext())[0];
+            var responseBytes = packet.GetPacketResponseForTest(payload, new PacketResponseContext())[0];
             return MessagePackSerializer.Deserialize<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(responseBytes);
         }
     }

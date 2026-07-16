@@ -40,7 +40,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
+            var response = packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // クラフトを実行
             // Execute the craft
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)), new PacketResponseContext());
+            packet.GetPacketResponseForTest(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)), new PacketResponseContext());
         }
         
         [Test]
@@ -90,7 +90,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
+            var response = packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             challengeDatastore.InitializeCurrentChallenges();
             
             // EventProtocolProviderにプレイヤーIDを登録するため、一度イベントを取得
-            packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
+            packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             
             // ブロックを設置
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _);
@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
+            var response = packet.GetPacketResponseForTest(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             
             var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);

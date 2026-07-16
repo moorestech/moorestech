@@ -54,7 +54,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedPole1 = ServerContext.WorldBlockDatastore.GetBlock(pos1).GetComponent<IGearChainPole>();
             var loadedPole2 = ServerContext.WorldBlockDatastore.GetBlock(pos2).GetComponent<IGearChainPole>();
             var loadedPole3 = ServerContext.WorldBlockDatastore.GetBlock(pos3).GetComponent<IGearChainPole>();
-            Assert.IsTrue(loadedDatastore.IsTopologyDirty);
+            Assert.IsTrue(loadedDatastore.IsDerivedStateDirty);
             Assert.IsFalse(GearNetworkDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out _));
             Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole2.BlockInstanceId));
             Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole3.BlockInstanceId));
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // 最初のtick先頭で三本を同じ歯車網へまとめ、その後はdirtyを解除する
             // Build one shared gear network at the first tick head and then clear the dirty state
             GameUpdater.UpdateOneTick();
-            Assert.IsFalse(loadedDatastore.IsTopologyDirty);
+            Assert.IsFalse(loadedDatastore.IsDerivedStateDirty);
             Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out var network1));
             Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole2.BlockInstanceId, out var network2));
             Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole3.BlockInstanceId, out var network3));

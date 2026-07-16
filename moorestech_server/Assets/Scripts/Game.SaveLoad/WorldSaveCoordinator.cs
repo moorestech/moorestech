@@ -26,8 +26,8 @@ namespace Game.SaveLoad
             var targetGeneration = Volatile.Read(ref _requestedGeneration);
             if (targetGeneration == Volatile.Read(ref _completedGeneration)) return;
 
-            // 保存が完了した場合だけ、固定した要求番号までを処理済みにする
-            // Mark only the frozen generation complete after the save operation succeeds
+            // 保存した時点までの要求番号を処理済みにする
+            // Mark the generation included in this save as completed
             _worldSaveDataSaver.Save();
             Volatile.Write(ref _completedGeneration, targetGeneration);
         }
