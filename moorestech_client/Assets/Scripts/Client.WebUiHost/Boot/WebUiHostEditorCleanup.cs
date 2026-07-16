@@ -14,6 +14,9 @@ namespace Client.WebUiHost.Boot
         //   - ExitingPlayMode: Reload Domain = off の場合に beforeAssemblyReload が来ない穴を埋める
         //   - beforeAssemblyReload: Reload Domain = on の通常経路
         //   - quitting: Play mode に入らずにエディタを閉じた場合
+        //   - ExitingPlayMode: covers the gap where beforeAssemblyReload never fires with Reload Domain off
+        //   - beforeAssemblyReload: the normal path with Reload Domain on
+        //   - quitting: the editor is closed without entering play mode
         [InitializeOnLoadMethod]
         private static void RegisterDomainReloadHook()
         {

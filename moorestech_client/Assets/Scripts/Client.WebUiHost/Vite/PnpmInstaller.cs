@@ -7,7 +7,7 @@ using Debug = UnityEngine.Debug;
 namespace Client.WebUiHost.Vite
 {
     /// <summary>
-    /// node_modules が無い場合に pnpm install を実行する
+    /// node_modules 無ければ pnpm install 実行
     /// Runs pnpm install when node_modules is missing
     /// </summary>
     public static class PnpmInstaller
@@ -37,10 +37,19 @@ namespace Client.WebUiHost.Vite
                 Debug.LogError("[WebUiHost] pnpm install: failed to spawn process");
                 return;
             }
+
+            // リダイレクトした両ストリームを排水しながら待つ（読まずに WaitForExit するとパイプ 64KB 超で子プロセスが write ブロックしハングする）
+            // Drain both redirected streams while waiting (WaitForExit without reading deadlocks once the child fills the 64KB pipe)
+            var stderr = new System.Text.StringBuilder();
+            p.OutputDataReceived += (_, _) => { };
+            p.ErrorDataReceived += (_, e) => { if (!string.IsNullOrEmpty(e.Data)) stderr.AppendLine(e.Data); };
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+
             await UniTask.RunOnThreadPool(() => p.WaitForExit());
             if (p.ExitCode != 0)
             {
-                Debug.LogError($"[WebUiHost] pnpm install exited with code {p.ExitCode}\n{p.StandardError.ReadToEnd()}");
+                Debug.LogError($"[WebUiHost] pnpm install exited with code {p.ExitCode}\n{stderr}");
             }
             else
             {
