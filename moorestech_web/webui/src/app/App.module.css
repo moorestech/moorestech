@@ -18,7 +18,7 @@
   row-gap: 1rem;
   width: 1280px;
   height: 720px;
-  padding: 100px 48px 30px;
+  padding: 115px 48px 30px;
   box-sizing: border-box;
   flex: 0 0 auto;
   transform: scale(var(--ui-scale, 1));
