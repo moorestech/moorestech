@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.ElectricToGear
 
         // 満充電確定時のみ定格を出力。トルクドループは行わない。トルク0モードは網の最速起点を奪わないようRPMも0
         // Output the rated values only when settled as fully charged; no torque droop. A torque-0 mode also yields RPM 0 so it never dominates the network
-        public RPM GenerateRpm => _isOutputting && CurrentMode.Torque > 0 ? new RPM(CurrentMode.Rpm) : new RPM(0);
+        public RPM GenerateRpm => _isOutputting && 0 < CurrentMode.Torque ? new RPM(CurrentMode.Rpm) : new RPM(0);
         public Torque GenerateTorque => _isOutputting ? new Torque(CurrentMode.Torque) : new Torque(0);
 
         // 出力tickでバッテリーを毎tick消費するため常時tick駆動が必要
@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.ElectricToGear
         public ElectricPower RequestEnergy => new(Mathf.Max(0f, BatteryCapacity - _batteryRemaining));
 
         public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
-        public int SelectedIndex => _selectedIndex;
+        public int SelectedIndex { get; private set; }
 
         private readonly ElectricToGearGeneratorBlockParam _param;
         private readonly Subject<Unit> _onChangeBlockState = new();
@@ -49,12 +49,11 @@ namespace Game.Block.Blocks.ElectricToGear
         // Subscription forwarding base (gear-network) state changes into our Subject; not disposed explicitly since base Destroy has no hook
         private readonly IDisposable _baseStateForward;
 
-        private int _selectedIndex;
         private float _batteryRemaining;
         private float _lastChargedPower;
         private bool _isOutputting;
 
-        private OutputModesElement CurrentMode => _param.OutputModes[_selectedIndex];
+        private OutputModesElement CurrentMode => _param.OutputModes[SelectedIndex];
 
         // バッテリー容量は選択モードのrequiredPower 1tick分。マスターデータから再構築されセーブには残量のみ保存する
         // Battery capacity is one tick of the selected mode's requiredPower, rebuilt from master data; only the remainder is saved
@@ -67,7 +66,7 @@ namespace Game.Block.Blocks.ElectricToGear
             base(null, blockInstanceId, connectorComponent)
         {
             _param = param;
-            _selectedIndex = 0;
+            SelectedIndex = 0;
             _batteryRemaining = 0f;
             _baseStateForward = base.OnChangeBlockState.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
         }
@@ -84,7 +83,7 @@ namespace Game.Block.Blocks.ElectricToGear
             if (componentStates == null || !componentStates.TryGetValue(SaveKey, out var raw)) return;
             var saveData = JsonConvert.DeserializeObject<ElectricToGearGeneratorSaveJsonObject>(raw);
             if (saveData == null) return;
-            _selectedIndex = Mathf.Clamp(saveData.SelectedIndex, 0, _param.OutputModes.Length - 1);
+            SelectedIndex = Mathf.Clamp(saveData.SelectedIndex, 0, _param.OutputModes.Length - 1);
             _batteryRemaining = Mathf.Clamp(saveData.BatteryRemaining, 0f, BatteryCapacity);
         }
 
@@ -99,9 +98,9 @@ namespace Game.Block.Blocks.ElectricToGear
 
             // 浮動小数の充電誤差を許容して満充電を判定する
             // Full charge is judged with a small tolerance for floating point charge error
-            var isFull = _batteryRemaining >= BatteryCapacity - BatteryCapacity * 1e-4f;
+            var isFull = BatteryCapacity - BatteryCapacity * 1e-4f <= _batteryRemaining;
             SetOutputting(isFull);
-            if (_lastChargedPower > 0f) _onChangeBlockState.OnNext(Unit.Default);
+            if (0f < _lastChargedPower) _onChangeBlockState.OnNext(Unit.Default);
         }
 
         // 出力tick: 1tick分のバッテリーを全て消費して定格出力し、残量を0にする
@@ -121,8 +120,8 @@ namespace Game.Block.Blocks.ElectricToGear
         {
             BlockException.CheckDestroy(this);
             if (index < 0 || index >= _param.OutputModes.Length) return false;
-            var changed = _selectedIndex != index;
-            _selectedIndex = index;
+            var changed = SelectedIndex != index;
+            SelectedIndex = index;
             _batteryRemaining = Mathf.Clamp(_batteryRemaining, 0f, BatteryCapacity);
 
             if (changed)
@@ -138,7 +137,7 @@ namespace Game.Block.Blocks.ElectricToGear
             BlockException.CheckDestroy(this);
             return JsonConvert.SerializeObject(new ElectricToGearGeneratorSaveJsonObject
             {
-                SelectedIndex = _selectedIndex,
+                SelectedIndex = SelectedIndex,
                 BatteryRemaining = _batteryRemaining,
             });
         }
@@ -162,7 +161,7 @@ namespace Game.Block.Blocks.ElectricToGear
                     IsCurrentClockwise,
                     CurrentRpm,
                     CurrentTorque,
-                    _selectedIndex,
+                    SelectedIndex,
                     chargeRate,
                     new ElectricPower(_lastChargedPower),
                     _batteryRemaining);

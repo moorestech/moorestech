@@ -146,7 +146,10 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            services.AddSingleton<IElectricWireNetworkDatastore, ElectricWireNetworkDatastore>();
+            // 具象はElectricTickUpdaterのflush用、interfaceは参照系向け。同一インスタンスを共有する
+            // The concrete type serves ElectricTickUpdater's flush; the interface serves readers. Both share one instance
+            services.AddSingleton<ElectricWireNetworkDatastore>();
+            services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？

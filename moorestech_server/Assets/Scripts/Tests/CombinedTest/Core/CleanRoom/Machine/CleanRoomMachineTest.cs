@@ -81,7 +81,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // 処理途中で止めるため、まず清浄室内で機械を実際にProcessingへ入れる
             // First move the machine into Processing inside a clean room so interruption freezes real work
             LoadMachineInput(machine, 5);
-            var filterConsumer = filter.GetComponent<CleanRoomAirFilterComponent>();
+            // 清浄機は電線経由の出力可変発電機で給電し、停電をSetPowerで再現できるようにする
+            // Power the filter through a settable wired generator so an outage can be simulated via SetPower
+            var filterGenerator = ElectricWireTestUtil.WirePower(filter.BlockPositionInfo.OriginalPos, new Vector3Int(30, 0, 30), 100f);
             var machineConsumer = machine.GetComponent<CleanRoomMachineProcessorComponent>();
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
             IOpenableInventory inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
@@ -133,15 +135,16 @@ namespace Tests.CombinedTest.Core.CleanRoom
             {
                 // 中断中も両方へ満電を供給し、停止判定が電力不足と混ざらないようにする
                 // Keep both blocks fully powered during interruption so halted state is not confused with low power
-                filterConsumer.SupplyExternalPower(100f);
+                filterGenerator.SetPower(new ElectricPower(100f));
                 machineConsumer.SupplyExternalPower(100f);
                 GameUpdater.UpdateOneTick();
             }
 
             void TickMachineOnly()
             {
-                // フィルターを止めたまま機械だけ給電し、Out判定のゲートだけを検証する
-                // Power only the machine while the filter is stopped to isolate the Out-class gate
+                // フィルター側の発電を止めたまま機械だけ給電し、Out判定のゲートだけを検証する
+                // Stop the filter-side generation and power only the machine to isolate the Out-class gate
+                filterGenerator.SetPower(new ElectricPower(0f));
                 machineConsumer.SupplyExternalPower(100f);
                 GameUpdater.UpdateOneTick();
             }
@@ -178,11 +181,20 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
         private static void TickRoom(IBlock filter, IBlock machine)
         {
-            // フィルターと機械を同じtickで給電し、室内加工の通常経路を進める
-            // Power the filter and machine in the same tick to exercise normal in-room processing
-            filter.GetComponent<CleanRoomAirFilterComponent>().SupplyExternalPower(100f);
+            // 清浄機は電線経由で満電を維持し、機械は内部経路で満電にして同tick進める
+            // Keep the filter fully powered through wires and the machine through its internal path within the same tick
+            EnsureFilterWiredPower(filter);
             machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
             GameUpdater.UpdateOneTick();
+        }
+
+        // 清浄機が発電機付きセグメントに居なければ、部屋外の電柱経由で満電の発電機を接続する
+        // Unless the filter's segment already has a generator, wire a full-power generator through a pole outside the room
+        private static void EnsureFilterWiredPower(IBlock filter)
+        {
+            var datastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            if (datastore.TryGetEnergySegment(filter.BlockInstanceId, out var segment) && 0 < segment.Generators.Count) return;
+            ElectricWireTestUtil.WirePower(filter.BlockPositionInfo.OriginalPos, new Vector3Int(30, 0, 30), 100f);
         }
 
         private static void TickWithPower(IBlock block, float power, int ticks)

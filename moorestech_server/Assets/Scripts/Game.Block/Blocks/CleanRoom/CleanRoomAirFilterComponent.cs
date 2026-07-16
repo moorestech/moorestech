@@ -34,9 +34,8 @@ namespace Game.Block.Blocks.CleanRoom
         private readonly double _filterCapacity;
         private readonly ItemId _filterItemId;
 
-        // tick内限定の外部供給の加算器と、Update冒頭で確定した現在電力
-        // Tick-scoped external supply accumulator and the current power latched at the start of Update
-        private float _suppliedPower;
+        // Update冒頭で確定した現在電力
+        // The current power latched at the start of Update
         private float _currentPower;
         private double _wearAccumulation;
 
@@ -68,23 +67,14 @@ namespace Game.Block.Blocks.CleanRoom
 
         public ElectricPower RequestEnergy => new(_requiredPower);
 
-        // tick内限定の内部経路。供給率導出分に加算される
-        // Tick-scoped internal path, added on top of the rate-derived supply
-        public void SupplyExternalPower(float power)
-        {
-            CheckDestroy(this);
-            _suppliedPower += power;
-        }
-
         public void Update()
         {
             CheckDestroy(this);
 
-            // 実効電力 = 要求電力 × 所属セグメントの確定済み供給率。外部供給分を合算して確定する
-            // Effective power = requested power x the segment's settled supply rate, latched together with external supply
+            // 実効電力 = 要求電力 × 所属セグメントの確定済み供給率
+            // Effective power = requested power x the segment's settled supply rate
             var powerRate = ElectricSegmentPowerRateResolver.GetPowerRate(BlockInstanceId);
-            _currentPower = _suppliedPower + _requiredPower * powerRate;
-            _suppliedPower = 0f;
+            _currentPower = _requiredPower * powerRate;
         }
 
         public void ApplyRemovedImpurity(double removed)
