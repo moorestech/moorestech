@@ -13,8 +13,10 @@
   align-items: center;
   align-self: center;
   margin-top: -1px;
-  margin-left: -5.8px;
-  width: calc(100% - 18.8px);
+  /* 選択枠を正本へ寄せるため実測約2倍のグリッド反応を織り込み、左余白と幅を微調整する */
+  /* Tune the selection margin and width for the measured roughly 2x grid response toward the reference */
+  margin-left: -5.2px;
+  width: calc(100% - 19.5px);
   /* C2でスロットを2.3remへ縮小した後もmin-heightが行高を担保する(縮小前は3remスロット自身が
      3.36remを上回って高さを決めていたため、収縮後はmin-heightを底上げしないと行高が縮む) */
   /* min-height now owns the row height after C2 shrank the slots to 2.3rem — previously the 3rem slot
@@ -38,10 +40,13 @@
    不変のまま、align-items:centerで縦中央を保ちつつセルだけ縮める */
 /* The reference's input/output cells run ~94x94px (≈2.3rem), smaller than the normal 123px slot; the row's
    min-height stays fixed, and align-items:center keeps the shrunk cells vertically centered */
+/* 正本の94px角セルに近づけるため選択行だけ1pxへ縮め、アイコン占有率を高める */
+/* Tighten only the selection row to 1px for higher icon occupancy inside the reference-sized 94px cells */
 .recipeMaterials {
   justify-self: start;
   margin-left: -6px;
   --slot-size: 2.3rem;
+  --icon-pad: 1px;
 }
 
 .recipeArrowCol {
@@ -51,6 +56,7 @@
 .recipeResult {
   justify-self: end;
   --slot-size: 2.3rem;
+  --icon-pad: 1px;
 }
 
 /* 上下の疑似要素で四隅のL字ブラケットを描く。D4: 鉤20px/線3pxは肥大していたため12px/2pxへ縮小し、

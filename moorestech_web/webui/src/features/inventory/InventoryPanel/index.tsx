@@ -18,7 +18,9 @@ import { createSlotActions } from "../slotActions";
 // iter6: The default :root bevel grew from sub-pixel (0.22px) to a genuinely visible light-gray ring (1.57px),
 // which inflates the border-to-border (bevel-inclusive) detection further; trim slot-size another ~0.154rem
 // and hand it to the gap to re-converge on the 123px target
-const GRID_STYLE = { "--slot-size": "2.9rem", "--slot-grid-gap": "0.54rem", marginTop: "12px", marginLeft: "1px" } as CSSProperties;
+// 正本の占有率へ寄せるため持ち物だけ1pxへ縮め、inv-white面隅プローブの合格を維持する
+// Tighten inventory padding to 1px for the reference occupancy while preserving the inv-white corner probe
+const GRID_STYLE = { "--slot-size": "2.9rem", "--slot-grid-gap": "0.54rem", "--icon-pad": "1px", marginTop: "12px", marginLeft: "1px" } as CSSProperties;
 
 // メイン4行を操作する。grab追従とホットバーは常時別表示
 // Handle four main rows; grab tracking and the hotbar render separately
