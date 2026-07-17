@@ -42,14 +42,24 @@
   --bevel-c3: rgb(97 58 50);
   /* data-selected(シアン)はinset系なのでc1=外側/明るめ→c3=面寄り/濃いめの順(既定の外側成長系とは逆) */
   /* data-selected (cyan) is inset, so c1=outer/lighter → c3=near-face/darker (reverse of the default outward-growth order) */
-  --sel-c1: rgb(116 193 221);
-  --sel-c2: rgb(104 188 217);
-  --sel-c3: rgb(101 187 216);
+  /* iter6: 旧3色は近似値すぎて帯全体が薄い単色グラデに見え「太い角張った帯」ではなく細輪郭に読めていた。
+     3層の彩度・明度差を広げ、内側(面寄り)ほど濃い一枚岩の太帯として視認できるようにする */
+  /* iter6: The old 3 tones were too close together, reading as a thin washed-out outline rather than the
+     reference's thick, angular band. Widen the saturation/brightness spread across the 3 layers so the ring
+     reads as one bold solid band, darkening toward the face */
+  --sel-c1: rgb(140 224 245);
+  --sel-c2: rgb(94 195 227);
+  --sel-c3: rgb(58 168 204);
 }
 
 /* 正本は角張った(角丸0)・約38px角(≈14.9CSS)の半透明茶タグ+細い明枠。旧44px角は一回り大きすぎたため縮小 */
 /* The reference tag is angular (0 border-radius), roughly 38px screenshot (≈14.9 CSS) square, translucent
    brown with a thin light border; the old 44px-square version ran one size too large */
+/* iter6: タグ中心実測(x≈1058,y1660-1698)は面(101,67,62)相当。旧背景はB成分が浅く(46)黒っぽく沈んで
+   見えたためB成分を強め、数字はfont-size9→13pxへ拡大し面上でも視認できる太さにする */
+/* iter6: The tag-center measurement (x≈1058, y1660-1698) reads as a (101,67,62) face. The old background's
+   blue channel ran shallow (46), reading as too black; boost it, and grow the digit from 9px to 13px so it
+   stays legible against the face */
 .num {
   position: absolute;
   top: -16px;
@@ -60,8 +70,8 @@
   padding: 0 1px;
   border: 1px solid rgb(178 160 138 / 75%);
   border-radius: 0;
-  background: rgb(90 65 56 / 60%);
-  font-size: 9px;
+  background: rgb(90 65 82 / 60%);
+  font-size: 13px;
   font-weight: 400;
   line-height: 13px;
   color: #e2e5ee;

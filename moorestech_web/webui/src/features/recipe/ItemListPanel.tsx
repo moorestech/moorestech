@@ -8,7 +8,15 @@ import styles from "./ItemListPanel.module.css";
 
 // 正本のスロット外形123px・間隔16pxへ寄せる局所上書き（持ち物と共通、他グリッドの既定値は変えない）
 // Local override toward the reference's 123px slot face / 16px gap (shared with inventory; other grids keep their defaults)
-const GRID_STYLE = { "--slot-size": "3.08rem", "--slot-grid-gap": "0.36rem" } as CSSProperties;
+// iter6: 正本の面-間隔断面実測(y500)はギャップ計28screenshot-px(8pxリング×2+パネル色12px可視)。旧設定は
+// 面が8px screenshot分(≈3.13CSSpx)太すぎパネル色が2pxしか覗かない。ピッチ(size+gap合計)は不変のまま
+// 面を3.13px縮めgapへ同量足し、面の左端(recipe-grid-col2アンカー)を動かさず断面だけ正本へ寄せる
+// iter6: The reference's face-gap cross-section (y500) measures a 28-screenshot-px gap (8px ring ×2 +
+// 12px visible panel color). The old split ran the face ~3.13 CSS px (8 screenshot px) too wide, leaving
+// only 2px of panel color visible. Pitch (size+gap sum) stays fixed; shave 3.13px off the face and add it
+// to the gap so the cross-section matches the reference without moving the face's left edge (the
+// recipe-grid-col2 anchor)
+const GRID_STYLE = { "--slot-size": "2.884rem", "--slot-grid-gap": "0.556rem" } as CSSProperties;
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
@@ -47,7 +55,13 @@ export default function ItemListPanel() {
           type="always"
           scrollbarSize={4}
           className={styles.scrollArea}
-          style={{ marginLeft: -2, marginRight: 6, marginTop: 12 }}
+          // iter6: 中央craft-panelの幅を0.8CSSpx縮めた分、grid-template-columns:autoの列境界が
+          // 連動して左へずれ、justifySelf:end中の本グリッドも巻き込まれてrecipe-grid-col2が後退した。
+          // marginLeftを+1.57px戻して打ち消す
+          // iter6: Trimming the center craft-panel's width by 0.8 CSS px shifted the auto column boundary
+          // left, dragging this justifySelf:end grid along with it and regressing recipe-grid-col2; add
+          // back +1.57px of marginLeft to cancel it out
+          style={{ marginLeft: -0.43, marginRight: 6, marginTop: 12 }}
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (

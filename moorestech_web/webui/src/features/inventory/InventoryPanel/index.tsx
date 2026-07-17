@@ -13,7 +13,12 @@ import { createSlotActions } from "../slotActions";
 // 不変のまま、枠込みの外形検出(border-to-border)だけを正本の123pxへ戻す
 // slot-size is trimmed 0.08rem and gap grows by the same amount to offset iter4's new bevel (box-shadow ring)
 // thickness; pitch (size+gap) stays put while the border-to-border footprint detection returns to the reference's 123px
-const GRID_STYLE = { "--slot-size": "3rem", "--slot-grid-gap": "0.44rem", marginTop: "12px", marginLeft: "1px" } as CSSProperties;
+// iter6: :rootの既定ベベルをサブピクセル(0.22px)から可視な明灰リング(1.57px)へ太らせた分、border-to-border
+// 検出(bevel込み)がさらに膨らむため、slot-sizeをもう一段(約0.154rem)縮めgapへ回して123pxへ再収束させる
+// iter6: The default :root bevel grew from sub-pixel (0.22px) to a genuinely visible light-gray ring (1.57px),
+// which inflates the border-to-border (bevel-inclusive) detection further; trim slot-size another ~0.154rem
+// and hand it to the gap to re-converge on the 123px target
+const GRID_STYLE = { "--slot-size": "2.9rem", "--slot-grid-gap": "0.54rem", marginTop: "12px", marginLeft: "1px" } as CSSProperties;
 
 // メイン4行を操作する。grab追従とホットバーは常時別表示
 // Handle four main rows; grab tracking and the hotbar render separately

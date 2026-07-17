@@ -15,6 +15,11 @@
 /* The reference reads closer to a 1px border, but the craft-tab bbox (dark<120 mask) is sensitive to the
    edge's underlying fill and overshoots the ±4px tolerance by +6px at 1px. Keeping 47/47 intact wins, so
    this stays at 2px */
+/* iter6: craft-tab bbox実測の右端(1379)を正本(1375)へ4screenshot-px(≈1.57CSSpx)縮める。上線は
+   明るすぎたため個別にアルファを下げ、前面台形/暗背面/右斜面の3層分離を保つ */
+/* iter6: shrink the measured craft-tab bbox's right edge (1379) toward the reference (1375) by 4
+   screenshot px (≈1.57 CSS px). The top edge ran too bright, so its alpha eases separately while the
+   front trapezoid / dark backing / right-slope 3-layer separation stays intact */
 .toolTab {
   position: relative;
   isolation: isolate;
@@ -22,13 +27,14 @@
   align-items: center;
   justify-content: center;
   align-self: flex-start;
-  width: 70px;
+  width: 68.43px;
   height: 31px;
   margin-top: -2.47rem;
   margin-left: -0.8rem;
   margin-bottom: 0.2rem;
   clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
   border: 2px solid rgb(167 169 179 / 90%);
+  border-top-color: rgb(167 169 179 / 65%);
   border-bottom: 0;
   background: linear-gradient(155deg, #3c4152 0%, #262b38 100%);
   font-size: 18px;
@@ -42,7 +48,7 @@
 .toolTab::before {
   position: absolute;
   z-index: -1;
-  inset: 3px -1px -3px 3px;
+  inset: 3px 0.5px -3px 3px;
   clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
   background: rgb(20 23 31 / 85%);
   content: "";
@@ -89,10 +95,17 @@
 
 /* 中央境界へ左右ダガーと輪郭ダイヤを一体で描く。正本は全長707screenshot-px相当まで連続させる */
 /* Draw paired daggers and an outlined diamond into the center divider; the reference runs it out to ~707 screenshot px */
+/* iter6: 正本実測は減衰込みの全長がx≈1288-1995(707px)、明部だけでもx≈1370-1911(541px)とパネル
+   ほぼ全幅まで届く。旧92%幅+12%/74%フェードは明部が短く縁で途切れて見えていたため、幅を広げ
+   フェード区間も縁側へ伸ばして明部を長く保つ */
+/* iter6: The reference's full extent (fade included) measures x≈1288-1995 (707px), and even the bright core
+   alone runs x≈1370-1911 (541px), reaching nearly the panel's full width. The old 92% width + 12%/74% fade
+   left the bright core short and visibly cut off near the edges, so widen the box and push the fade stops
+   further out to keep the bright core long */
 .itemHeaderRule {
   position: relative;
   align-self: center;
-  width: 92%;
+  width: 97%;
   height: 9px;
   /* itemNameをC2で0.92remへ縮めた分、ボタン列の縦位置(正本y422-469)を保つよう正方向へ補正する */
   /* itemName was shrunk to 0.92rem in C2, so this compensates in the positive direction to keep the button row's vertical position (reference y422-469) */
@@ -106,8 +119,8 @@
   /* The reference shows one more small diamond node just 8-10px short of the center diamond on each side,
      distinct from the dagger; add a small diamond layer between the dagger and center (44%/56%) */
   background:
-    linear-gradient(90deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 60%, transparent 74%) left center / 50% 1px no-repeat,
-    linear-gradient(270deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 60%, transparent 74%) right center / 50% 1px no-repeat,
+    linear-gradient(90deg, transparent, rgb(132 137 151 / 78%) 4%, rgb(132 137 151 / 78%) 60%, transparent 78%) left center / 50% 1px no-repeat,
+    linear-gradient(270deg, transparent, rgb(132 137 151 / 78%) 4%, rgb(132 137 151 / 78%) 60%, transparent 78%) right center / 50% 1px no-repeat,
     linear-gradient(28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 38% center / 18px 7px no-repeat,
     linear-gradient(-28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 62% center / 18px 7px no-repeat,
     linear-gradient(45deg, transparent 30%, rgb(174 180 194 / 85%) 45% 55%, transparent 70%) 44% center / 7px 7px no-repeat,
