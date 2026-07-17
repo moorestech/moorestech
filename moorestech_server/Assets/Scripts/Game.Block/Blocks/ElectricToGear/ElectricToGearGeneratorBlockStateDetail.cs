@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.ElectricToGear
     [MessagePackObject]
     public class ElectricToGearGeneratorBlockStateDetail : GearStateDetail
     {
-        public const string BlockStateDetailKey = "ElectricToGearGenerator";
+        public new const string BlockStateDetailKey = "ElectricToGearGenerator";
 
         [Key(7)] public int SelectedIndex { get; set; }
 
