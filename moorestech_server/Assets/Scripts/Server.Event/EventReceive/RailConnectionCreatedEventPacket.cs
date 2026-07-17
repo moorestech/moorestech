@@ -12,13 +12,19 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:railConnectionCreated";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
 
         public RailConnectionCreatedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
-            railGraphDatastore.GetRailConnectionInitializedEvent().Subscribe(OnConnectionInitialized);
+        }
+
+        public void Load()
+        {
+            _railGraphDatastore.GetRailConnectionInitializedEvent().Subscribe(OnConnectionInitialized);
         }
 
         private void OnConnectionInitialized(RailConnectionInitializationData data)

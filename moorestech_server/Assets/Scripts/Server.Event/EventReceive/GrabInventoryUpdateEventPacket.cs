@@ -10,13 +10,19 @@ namespace Server.Event.EventReceive
     public class GrabInventoryUpdateEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:grabInvUpdate";
+        private readonly IGrabInventoryUpdateEvent _grabInventoryUpdateEvent;
         private readonly EventProtocolProvider _eventProtocolProvider;
-        
+
         public GrabInventoryUpdateEventPacket(IGrabInventoryUpdateEvent grabInventoryUpdateEvent,
             EventProtocolProvider eventProtocolProvider)
         {
+            _grabInventoryUpdateEvent = grabInventoryUpdateEvent;
             _eventProtocolProvider = eventProtocolProvider;
-            grabInventoryUpdateEvent.Subscribe(ReceivedEvent);
+        }
+
+        public void Load()
+        {
+            _grabInventoryUpdateEvent.Subscribe(ReceivedEvent);
         }
         
         

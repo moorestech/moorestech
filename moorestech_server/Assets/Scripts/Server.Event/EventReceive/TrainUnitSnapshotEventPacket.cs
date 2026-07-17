@@ -15,6 +15,7 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly TrainUpdateService _trainUpdateService;
+        private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
 
         public TrainUnitSnapshotEventPacket(
             EventProtocolProvider eventProtocolProvider,
@@ -23,7 +24,12 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-            trainUnitSnapshotNotifyEvent.OnTrainUnitSnapshotNotified.Subscribe(OnNotified);
+            _trainUnitSnapshotNotifyEvent = trainUnitSnapshotNotifyEvent;
+        }
+
+        public void Load()
+        {
+            _trainUnitSnapshotNotifyEvent.OnTrainUnitSnapshotNotified.Subscribe(OnNotified);
         }
 
         #region Internal

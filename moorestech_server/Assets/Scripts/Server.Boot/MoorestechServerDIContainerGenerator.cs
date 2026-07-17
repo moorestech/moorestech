@@ -251,11 +251,13 @@ namespace Server.Boot
             // Register tick update handlers.
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
 
-            //IBootInitializable実装を一括生成する（コンストラクタで購読開始）
-            // Materialize all IBootInitializable implementations (they subscribe in their constructors).
-            // IPostLoadInitializable実装は初期ロード完了後にServerInstanceManagerが生成する
-            // IPostLoadInitializable implementations are materialized by ServerInstanceManager after initial load.
-            serviceProvider.GetServices<IBootInitializable>();
+            //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
+            // Create all IBootInitializable implementations and invoke their boot-time Load.
+            foreach (var bootInitializable in serviceProvider.GetServices<IBootInitializable>()) bootInitializable.Load();
+
+            //IPostLoadInitializable実装は生成のみ行う（Loadは初期ロード完了後にServerInstanceManagerが呼ぶ）
+            // IPostLoadInitializable implementations are only created here; ServerInstanceManager invokes their Load after initial load.
+            serviceProvider.GetServices<IPostLoadInitializable>();
 
             serverContext.SetMainServiceProvider(serviceProvider);
             

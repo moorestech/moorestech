@@ -16,13 +16,19 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:railNodeCreated";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
 
         public RailNodeCreatedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
-            railGraphDatastore.GetRailNodeInitializedEvent().Subscribe(OnNodeInitialized);
+        }
+
+        public void Load()
+        {
+            _railGraphDatastore.GetRailNodeInitializedEvent().Subscribe(OnNodeInitialized);
         }
 
         private void OnNodeInitialized(RailNodeInitializationData data)

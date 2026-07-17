@@ -15,11 +15,15 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:blockPlace";
         private readonly EventProtocolProvider _eventProtocolProvider;
         
-        // 生成タイミングでOnBlockPlaceEventを購読する。初期ロード完了後に生成されるため、ロード中の設置は配信されない
-        // Subscribes on construction; it is created after initial load completes, so load-time placements are not broadcast
         public PlaceBlockEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
+        }
+
+        // Loadは初期ロード完了後に呼ばれるため、ロード中の設置は配信されない
+        // Load is invoked after initial load completes, so load-time placements are not broadcast
+        public void Load()
+        {
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnPlaceBlock);
         }
 

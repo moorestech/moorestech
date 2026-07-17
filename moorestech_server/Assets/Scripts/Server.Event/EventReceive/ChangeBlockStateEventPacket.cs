@@ -24,6 +24,10 @@ namespace Server.Event.EventReceive
         public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
+        }
+
+        public void Load()
+        {
             ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);

@@ -53,9 +53,9 @@ namespace Server.Boot
             //マップをロードする
             serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            //初期ロード完了後にIPostLoadInitializable実装を一括生成する。ロード中の設置等はクライアントへ配信しない
-            //Materialize all IPostLoadInitializable implementations after initial load, so load-time placements etc. are not sent to clients
-            serviceProvider.GetServices<IPostLoadInitializable>();
+            //初期ロード完了後にIPostLoadInitializableのLoadを一括で呼ぶ。ロード中の設置等はクライアントへ配信しない
+            //Invoke Load on all IPostLoadInitializable implementations after initial load, so load-time placements etc. are not sent to clients
+            foreach (var postLoadInitializable in serviceProvider.GetServices<IPostLoadInitializable>()) postLoadInitializable.Load();
 
             //modのOnLoadコードを実行する
             var modsResource = serviceProvider.GetService<ModsResource>();

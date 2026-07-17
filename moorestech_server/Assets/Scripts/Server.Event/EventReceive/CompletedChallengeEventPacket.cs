@@ -17,16 +17,22 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:completedChallenge";
         
         private readonly EventProtocolProvider _eventProtocolProvider;
-        
+
+        private readonly ChallengeEvent _challengeEvent;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly ChallengeDatastore _challengeDatastore;
-        
+
         public CompletedChallengeEventPacket(EventProtocolProvider eventProtocolProvider, ChallengeEvent challengeEvent, IGameUnlockStateDataController gameUnlockStateDataController, ChallengeDatastore challengeDatastore)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _challengeEvent = challengeEvent;
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _challengeDatastore = challengeDatastore;
-            challengeEvent.OnCompleteChallenge.Subscribe(OnCompletedChallenge);
+        }
+
+        public void Load()
+        {
+            _challengeEvent.OnCompleteChallenge.Subscribe(OnCompletedChallenge);
         }
         
         private void OnCompletedChallenge(ChallengeEvent.CompleteChallengeEventProperty completeProperty)

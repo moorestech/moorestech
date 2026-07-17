@@ -12,15 +12,24 @@ namespace Server.Event.EventReceive
     public class ResearchCompleteEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:researchComplete";
-        
+
+        private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly ResearchEvent _researchEvent;
+
         public ResearchCompleteEventPacket(EventProtocolProvider eventProtocolProvider, ResearchEvent researchEvent)
         {
+            _eventProtocolProvider = eventProtocolProvider;
+            _researchEvent = researchEvent;
+        }
+
+        public void Load()
+        {
             // 研究完了イベントをサブスクライブ
-            researchEvent.OnResearchCompleted.Subscribe(data =>
+            _researchEvent.OnResearchCompleted.Subscribe(data =>
             {
                 var eventData = new ResearchCompleteEventMessagePack(data.playerId, data.researchNode.ResearchNodeGuid);
                 var payload = MessagePackSerializer.Serialize(eventData);
-                eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
+                _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
             });
         }
         

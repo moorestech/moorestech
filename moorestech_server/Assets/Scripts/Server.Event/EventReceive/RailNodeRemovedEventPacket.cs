@@ -17,13 +17,19 @@ namespace Server.Event.EventReceive
         public const string EventTag = "va:event:railNodeRemoved";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
 
         public RailNodeRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
-            railGraphDatastore.GetRailNodeRemovedEvent().Subscribe(OnNodeRemoved);
+        }
+
+        public void Load()
+        {
+            _railGraphDatastore.GetRailNodeRemovedEvent().Subscribe(OnNodeRemoved);
         }
 
         private void OnNodeRemoved(RailNodeRemovedData data)

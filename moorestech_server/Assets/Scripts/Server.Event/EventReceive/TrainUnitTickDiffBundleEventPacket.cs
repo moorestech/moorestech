@@ -24,6 +24,10 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
+        }
+
+        public void Load()
+        {
             _trainUpdateService.OnHashEvent.Subscribe(OnHashTick);
             _trainUpdateService.OnPreSimulationDiffEvent.Subscribe(tuple => OnPreSimulationDiff(tuple.Item1, tuple.Item2));
         }
