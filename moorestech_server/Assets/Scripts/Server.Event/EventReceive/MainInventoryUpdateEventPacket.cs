@@ -7,7 +7,7 @@ using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public class MainInventoryUpdateEventPacket : IEventReceiver
+    public class MainInventoryUpdateEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:mainInvUpdate";
         private readonly EventProtocolProvider _eventProtocolProvider;

@@ -9,7 +9,7 @@ namespace Server.Event.EventReceive
     /// <summary>
     /// 研究状態の変化をクライアントに通知するイベントパケット
     /// </summary>
-    public class ResearchCompleteEventPacket : IEventReceiver
+    public class ResearchCompleteEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:researchComplete";
         

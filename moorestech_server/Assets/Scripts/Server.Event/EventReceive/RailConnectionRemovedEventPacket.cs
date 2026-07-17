@@ -12,7 +12,7 @@ namespace Server.Event.EventReceive
     ///     RailConnection削除をクライアントへ通知するイベントパケット
     ///     Event packet broadcasting removed rail connections
     /// </summary>
-    public sealed class RailConnectionRemovedEventPacket : IEventReceiver
+    public sealed class RailConnectionRemovedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railConnectionRemoved";
 

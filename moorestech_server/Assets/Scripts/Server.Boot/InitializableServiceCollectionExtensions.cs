@@ -5,14 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Server.Boot
 {
-    public static class EventReceiverServiceCollectionExtensions
+    public static class InitializableServiceCollectionExtensions
     {
         //登録済みサービスからマーカーinterface実装を探し、マーカー型へ同一インスタンスを転送登録する
         // Find marker-interface implementations among registered services and forward the same instances under the marker type.
-        public static void AddEventReceiverForwarding(this IServiceCollection services)
+        public static void AddInitializableForwarding(this IServiceCollection services)
         {
-            ForwardTo(typeof(IEventReceiver));
-            ForwardTo(typeof(IPostLoadEventReceiver));
+            ForwardTo(typeof(IBootInitializable));
+            ForwardTo(typeof(IPostLoadInitializable));
 
             #region Internal
 

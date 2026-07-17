@@ -240,9 +240,9 @@ namespace Server.Boot
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
 
 
-            //マーカーinterface実装をIEventReceiver / IPostLoadEventReceiverへ転送登録する
-            // Forward marker-interface implementations to IEventReceiver / IPostLoadEventReceiver registrations.
-            services.AddEventReceiverForwarding();
+            //マーカーinterface実装をIBootInitializable / IPostLoadInitializableへ転送登録する
+            // Forward marker-interface implementations to IBootInitializable / IPostLoadInitializable registrations.
+            services.AddInitializableForwarding();
 
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
@@ -251,11 +251,11 @@ namespace Server.Boot
             // Register tick update handlers.
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
 
-            //IEventReceiver実装を一括生成する（コンストラクタで購読開始）
-            // Materialize all IEventReceiver implementations (they subscribe in their constructors).
-            // IPostLoadEventReceiver実装は初期ロード完了後にServerInstanceManagerが生成する
-            // IPostLoadEventReceiver implementations are materialized by ServerInstanceManager after initial load.
-            serviceProvider.GetServices<IEventReceiver>();
+            //IBootInitializable実装を一括生成する（コンストラクタで購読開始）
+            // Materialize all IBootInitializable implementations (they subscribe in their constructors).
+            // IPostLoadInitializable実装は初期ロード完了後にServerInstanceManagerが生成する
+            // IPostLoadInitializable implementations are materialized by ServerInstanceManager after initial load.
+            serviceProvider.GetServices<IBootInitializable>();
 
             serverContext.SetMainServiceProvider(serviceProvider);
             

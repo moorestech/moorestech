@@ -13,7 +13,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     /// 統一インベントリ更新イベントパケット
     /// Unified inventory update event packet
     /// </summary>
-    public class UnifiedInventoryEventPacket : IEventReceiver
+    public class UnifiedInventoryEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:invUpdate";
         

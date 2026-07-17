@@ -9,7 +9,7 @@ namespace Server.Event.EventReceive
     /// <summary>
     /// アイテムスタックレベルの解放をクライアントに通知するイベントパケット
     /// </summary>
-    public class ItemStackLevelUnlockEventPacket : IEventReceiver
+    public class ItemStackLevelUnlockEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:itemStackLevelUnlock";
 
