@@ -1,0 +1,4 @@
+corner: /Users/katsumi/Desktop/スクショ/inventory.png box=5.3,13.8,3.5,4.5% corner=tl
+  エッジx変位: 先頭行4px → 安定0px、垂直エッジ到達まで 14行
+  判定: 角丸 (radius≈14px)
+  ※ 角セルにはこの radius 値と判定を引用する（目視の直角/角丸断定は禁止）
