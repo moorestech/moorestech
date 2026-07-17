@@ -7,6 +7,11 @@ import { WebSocketServer } from "ws";
 const PORT = Number(process.env.CAPTURE_PORT ?? 5399);
 const OUT = process.env.CAPTURE_OUT ?? "turn-shot.png";
 
+// 正本スクショと同寸で撮るためviewportをenvで可変にする
+// Make the viewport env-configurable to match reference screenshots of any size
+const VIEWPORT_W = Number(process.env.CAPTURE_VIEWPORT_W ?? 1284);
+const VIEWPORT_H = Number(process.env.CAPTURE_VIEWPORT_H ?? 725);
+
 // 明背景の注入有無を切替える（透過採点は明背景、素の見た目確認は無地）
 // Toggle the bright-background injection (bright for translucency scoring, none for a plain look-check)
 const INJECT_BG = process.env.CAPTURE_BG !== "0";
@@ -26,9 +31,9 @@ async function main() {
   await new Promise<void>((resolve) => server.listen(PORT, resolve));
 
   const browser = await chromium.launch();
-  // viewport 1284x725 × dSF2 = 2568x1450（正本と同寸）
-  // viewport 1284x725 × dSF2 = 2568x1450 (same size as the reference)
-  const context = await browser.newContext({ viewport: { width: 1284, height: 725 }, deviceScaleFactor: 2 });
+  // viewport × dSF2 が正本と同寸になるよう指定する（例: 1635x922 → 3270x1844）
+  // Pick a viewport whose ×2 dSF size equals the reference (e.g. 1635x922 → 3270x1844)
+  const context = await browser.newContext({ viewport: { width: VIEWPORT_W, height: VIEWPORT_H }, deviceScaleFactor: 2 });
   const page = await context.newPage();
 
   await page.goto(`http://127.0.0.1:${PORT}/`);
