@@ -7,7 +7,7 @@ using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public sealed class RailConnectionCreatedEventPacket : IEventReceiver
+    public sealed class RailConnectionCreatedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railConnectionCreated";
 

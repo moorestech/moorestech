@@ -12,7 +12,7 @@ using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    public class CompletedChallengeEventPacket : IEventReceiver
+    public class CompletedChallengeEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:completedChallenge";
         

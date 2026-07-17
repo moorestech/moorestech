@@ -9,7 +9,7 @@ namespace Server.Event.EventReceive
 {
     // Game層のTrainUnit通知をネットワークイベントへ変換する
     // Convert game-layer train notifications into network events.
-    public sealed class TrainUnitSnapshotEventPacket : IEventReceiver
+    public sealed class TrainUnitSnapshotEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:trainUnitSnapshot";
 

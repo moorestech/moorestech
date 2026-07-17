@@ -13,7 +13,7 @@ namespace Server.Event.EventReceive
     /// A class for sending in-game unlock events. There are multiple things that can be unlocked, but it would be tedious to prepare multiple events for that, so we will handle them together.
     /// We may split it up if there is a demand to do so.
     /// </summary>
-    public class UnlockedEventPacket : IEventReceiver
+    public class UnlockedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:unlocked";
         

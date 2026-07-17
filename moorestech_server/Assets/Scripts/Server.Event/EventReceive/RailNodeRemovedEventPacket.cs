@@ -12,7 +12,7 @@ namespace Server.Event.EventReceive
     ///     RailNode削除をクライアントへ通知するイベントパケット
     ///     Event packet that broadcasts removed rail nodes
     /// </summary>
-    public sealed class RailNodeRemovedEventPacket : IEventReceiver
+    public sealed class RailNodeRemovedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railNodeRemoved";
 

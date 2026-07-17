@@ -10,7 +10,7 @@ namespace Server.Event.EventReceive
 {
     // hash(n-1)とdiff(n)を1イベントで送る統合パケット
     // Unified packet that sends hash(n-1) and diff(n) in one event.
-    public sealed class TrainUnitTickDiffBundleEventPacket : IEventReceiver
+    public sealed class TrainUnitTickDiffBundleEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:trainUnitTickDiffBundle";
 

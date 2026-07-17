@@ -11,7 +11,7 @@ namespace Server.Event.EventReceive
     ///     RailNode生成イベントをブロードキャストするパケット
     ///     Event packet that broadcasts newly created rail nodes
     /// </summary>
-    public sealed class RailNodeCreatedEventPacket : IEventReceiver
+    public sealed class RailNodeCreatedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railNodeCreated";
 
