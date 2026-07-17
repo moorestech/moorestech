@@ -27,8 +27,8 @@ namespace Game.Train.Unit
         private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
         private bool _trainAutoRunDebugEnabled;
 
-        // 駆動はServerTickUpdaterの固定順序がUpdateTrainsを呼ぶ（購読による暗黙順序を持たない）
-        // Driven by ServerTickUpdater's fixed order calling UpdateTrains; no implicit subscription ordering
+        // 駆動はMasterTickUpdaterの固定順序がUpdateTrainsを呼ぶ（購読による暗黙順序を持たない）
+        // Driven by MasterTickUpdater's fixed order calling UpdateTrains; no implicit subscription ordering
         public TrainUpdateService(
             TrainDiagramManager diagramManager,
             IRailGraphDatastore railGraphDatastore,
