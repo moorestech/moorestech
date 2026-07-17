@@ -22,22 +22,22 @@
   --slot-size: 3.23rem;
 }
 
-/* 正本は角張った(角丸0)半透明茶色タグ+細い明色枠 */
-/* The reference tag is angular (0 border-radius), a translucent brown face with a thin light-colored border */
+/* 正本は角張った(角丸0)半透明茶色タグ+細い明色枠。正本比でやや大きく上端が高い */
+/* The reference tag is angular (0 border-radius), a translucent brown face with a thin light-colored border; slightly larger and higher than before */
 .num {
   position: absolute;
-  top: -17px;
+  top: -19px;
   left: 17px;
   z-index: 2;
-  min-width: 16px;
-  height: 16px;
+  min-width: 18px;
+  height: 18px;
   padding: 0 2px;
   border: 1px solid rgb(178 160 138 / 75%);
   border-radius: 0;
   background: rgb(63 45 35 / 70%);
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 14px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 16px;
   color: #e2e5ee;
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
