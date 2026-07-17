@@ -356,7 +356,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 {
                     trainCarGuidBytes[i] = (byte)UnityEngine.Random.Range(0, 256);
                 }
-                return new TrainCarMasterElement(index, new Guid(trainCarGuidBytes), null, false, null, 320, tractionForce, 0, length, "None", 0f, null, null, 0);
+                return new TrainCarMasterElement(index, new Guid(trainCarGuidBytes), null, false, null, 320, tractionForce, 0, length, "None", 0f, null, null, 0, $"TestCar{index}");
             }).ToArray());
         }
         
