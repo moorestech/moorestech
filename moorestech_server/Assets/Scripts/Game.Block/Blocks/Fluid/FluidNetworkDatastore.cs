@@ -27,7 +27,7 @@ namespace Game.Block.Blocks.Fluid
         private readonly List<FluidSimFace> _faces = new();
         private readonly List<FluidBoundaryPort> _boundaryPorts = new();
         private readonly Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace> _faceByPositionPair = new();
-        private bool _isTopologyDirty;
+        private bool _isTopologyDirty = true;
 
         public IReadOnlyList<FluidSimNode> Nodes => _nodes;
         public IReadOnlyList<FluidSimFace> Faces => _faces;
