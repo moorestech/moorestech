@@ -15,7 +15,7 @@ using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent
+    public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState, ISelfDrivenUpdatableBlockComponent
     {
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }

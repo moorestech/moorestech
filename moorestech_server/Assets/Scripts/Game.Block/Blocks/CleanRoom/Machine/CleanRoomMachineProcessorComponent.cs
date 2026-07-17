@@ -127,6 +127,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public void Update()
         {
             BlockException.CheckDestroy(this);
+            // 産出スロットの接続先への払い出しをここで駆動する（inventory自身のグローバル購読は廃止済み）
+            // Drive output insertion into connected inventories here (the inventory's own global subscription was removed)
+            _context.OutputInventory.InsertConnectInventory();
             // 直前tickの給電を確定してから清浄室条件で状態遷移を判断する
             // Latch the previous tick's power before evaluating clean-room gated transitions
             _context.CurrentPower = _context.SuppliedPower;

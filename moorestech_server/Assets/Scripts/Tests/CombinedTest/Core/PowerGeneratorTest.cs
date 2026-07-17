@@ -121,9 +121,9 @@ namespace Tests.CombinedTest.Core
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var blockFactory = ServerContext.BlockFactory;
-            var posInfo = new BlockPositionInfo(Vector3Int.one, BlockDirection.North, Vector3Int.one);
-            var powerGenerator = blockFactory.Create(ForUnitTestModBlockId.GeneratorId, new BlockInstanceId(11), posInfo);
+            // 中央tickループはWorldBlockDatastore登録ブロックを駆動するため、実配線の設置経路で生成する
+            // The central tick loop drives blocks registered in WorldBlockDatastore, so place through the real path
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var powerGenerator);
             var generatorComponent = powerGenerator.GetComponent<VanillaElectricGeneratorComponent>();
             var generatorConfigParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam as ElectricGeneratorBlockParam;
             var fuelService = GetFuelService(generatorComponent); // 液体燃料の状態を確認するためサービスを取得

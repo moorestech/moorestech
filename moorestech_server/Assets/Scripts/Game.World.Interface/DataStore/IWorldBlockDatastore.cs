@@ -24,6 +24,10 @@ namespace Game.World.Interface.DataStore
         public WorldBlockData GetOriginPosBlock(Vector3Int pos);
         public Vector3Int GetBlockPosition(BlockInstanceId blockInstanceId);
         public BlockDirection GetBlockDirection(Vector3Int pos);
+
+        // 中央tickループが走査する、履歴非依存の座標正準順ブロック列
+        // History-independent, coordinate-canonically ordered block sequence iterated by the central tick loop
+        public IReadOnlyList<IBlock> GetTickOrderedBlocks();
         
         public List<BlockJsonObject> GetSaveJsonObject();
         public void LoadBlockDataList(List<BlockJsonObject> saveBlockDataList);

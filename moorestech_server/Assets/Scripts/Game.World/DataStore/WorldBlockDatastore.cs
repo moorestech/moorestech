@@ -23,6 +23,11 @@ namespace Game.World.DataStore
         private readonly Dictionary<Vector3Int, BlockInstanceId> _coordinateDictionary = new();
         private readonly Dictionary<Vector3Int, BlockInstanceId> _originCoordinateDictionary = new();
         private readonly IBlockFactory _blockFactory;
+
+        // 中央tickループ用のブロック列。履歴に依存しない座標の正準順で保持する（並べ替えは増減時のみ）
+        // Block sequence for the central tick loop, kept in history-independent canonical coordinate order (re-sorted only on add/remove)
+        private readonly List<IBlock> _tickOrderedBlocks = new();
+        private bool _isTickOrderDirty;
         public WorldBlockDatastore(IBlockFactory blockFactory)
         {
             _blockFactory = blockFactory;
@@ -46,7 +51,32 @@ namespace Game.World.DataStore
                 _coordinateDictionary.Remove(position);
 
             _originCoordinateDictionary.Remove(data.BlockPositionInfo.OriginalPos);
+            _tickOrderedBlocks.Remove(data.Block);
             return true;
+        }
+
+        public IReadOnlyList<IBlock> GetTickOrderedBlocks()
+        {
+            // 設置tickと反映tickの分離により、tick計算中に増減は起きない前提（設置・破壊はtick末尾で確定）
+            // Placement and removal settle at tick end, so the list never mutates while the tick computation iterates it
+            if (!_isTickOrderDirty) return _tickOrderedBlocks;
+
+            _tickOrderedBlocks.Sort(CompareBlockPosition);
+            _isTickOrderDirty = false;
+            return _tickOrderedBlocks;
+
+            #region Internal
+
+            static int CompareBlockPosition(IBlock a, IBlock b)
+            {
+                var posA = a.BlockPositionInfo.OriginalPos;
+                var posB = b.BlockPositionInfo.OriginalPos;
+                if (posA.x != posB.x) return posA.x.CompareTo(posB.x);
+                if (posA.y != posB.y) return posA.y.CompareTo(posB.y);
+                return posA.z.CompareTo(posB.z);
+            }
+
+            #endregion
         }
         public IBlock GetBlock(Vector3Int pos)
         {
@@ -115,6 +145,8 @@ namespace Game.World.DataStore
             foreach (var position in block.BlockPositionInfo.EnumeratePositions())
                 _coordinateDictionary.Add(position, block.BlockInstanceId);
             _originCoordinateDictionary.Add(pos, block.BlockInstanceId);
+            _tickOrderedBlocks.Add(block);
+            _isTickOrderDirty = true;
             ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnBlockPlaceEventInvoke(pos, data);
             
             block.BlockStateChange.Subscribe(state => { _onBlockStateChange.OnNext((state, data)); });

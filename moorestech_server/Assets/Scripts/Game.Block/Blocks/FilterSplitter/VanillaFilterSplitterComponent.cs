@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.FilterSplitter
     /// Whitelist/Blacklist で明示マッチした方向を優先、Default は fallback として使う。
     /// Filter splitter that routes items per direction. Explicit (Whitelist/Blacklist) directions take priority, Default acts as fallback.
     /// </summary>
-    public class VanillaFilterSplitterComponent : IBlockInventory, IBlockSaveState, IUpdatableBlockComponent, IBlockBlueprintSettings
+    public class VanillaFilterSplitterComponent : IBlockInventory, IBlockSaveState, ISelfDrivenUpdatableBlockComponent, IBlockBlueprintSettings
     {
         public string SaveKey { get; } = typeof(VanillaFilterSplitterComponent).FullName;
         public bool IsDestroy { get; private set; }

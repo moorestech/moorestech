@@ -3,7 +3,6 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
-using Core.Update;
 using Game.Block.Blocks.Service;
 using Game.Block.Component;
 using Game.Block.Event;
@@ -45,15 +44,8 @@ namespace Game.Block.Blocks.Machine.Inventory
             {
                 _fluidContainers[i] = new FluidContainer(innerTankCapacity);
             }
-            
-            GameUpdater.UpdateObservable.Subscribe(_ => Update());
         }
-        
-        private void Update()
-        {
-            InsertConnectInventory();
-        }
-        
+
         /// <summary>
         ///     産出スタック列を格納できるか仮想挿入で判定する
         ///     Check via virtual insertion whether the output stacks fit
@@ -150,7 +142,9 @@ namespace Game.Block.Blocks.Machine.Inventory
             #endregion
         }
         
-        private void InsertConnectInventory()
+        // 産出スロットを接続先インベントリへ払い出す。駆動はプロセッサコンポーネントのUpdate（自前購読は持たない）
+        // Push output slots into connected inventories; driven by the processor component's Update (no self subscription)
+        public void InsertConnectInventory()
         {
             for (var i = 0; i < OutputSlot.Count; i++)
                 _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));

@@ -159,6 +159,7 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
+            services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());

@@ -23,7 +23,15 @@ namespace Game.Block.Interface
         public IObservable<BlockState> BlockStateChange { get; }
         
         public BlockState GetBlockState();
-        
+
+        /// <summary>
+        ///     共通tickループ（ServerTickUpdater）から正準順で呼ばれるブロック更新
+        ///     自走駆動を宣言したコンポーネント（ISelfDrivenUpdatableBlockComponent）はここでは更新しない
+        ///     Block update driven by the central tick loop (ServerTickUpdater) in canonical order.
+        ///     Components declaring self-driven updates (ISelfDrivenUpdatableBlockComponent) are not updated here
+        /// </summary>
+        public void TickUpdate();
+
         public Dictionary<string,string> GetSaveState();
         
         public void Destroy();

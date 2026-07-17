@@ -2,11 +2,12 @@ using Game.Block.Blocks.Fluid;
 using Game.EnergySystem;
 using Game.Gear.Common;
 using Game.Train.Unit;
+using Game.World.Interface.DataStore;
 
 namespace Server.Boot
 {
-    // tick順序を1箇所で明示する（仕様2.1①〜④＋拡張。電力網→歯車網→流体網再構築→電力→歯車→流体→鉄道tick。丸数字の⑤以降は仕様側でブロック更新・セーブを指すためここでは使わない）
-    // Declares the tick order in one place: spec 2.1 ①-④ plus extensions — rebuild electric, gear and fluid topologies, then settle electric, gear, fluid and train. Circled numbers ⑤+ are reserved by the spec for block updates and save
+    // tick順序を1箇所で明示する（仕様2.1①〜④＋拡張。電力網→歯車網→流体網再構築→電力→歯車→流体→鉄道tick→ブロック更新。丸数字の⑤以降は仕様側でブロック更新・セーブを指すためここでは使わない）
+    // Declares the tick order in one place: spec 2.1 ①-④ plus extensions — rebuild electric, gear and fluid topologies, then settle electric, gear, fluid, train, then update blocks. Circled numbers ⑤+ are reserved by the spec for block updates and save
     public class MasterTickUpdater
     {
         private readonly ElectricWireNetworkDatastore _electricWireNetworkDatastore;
@@ -16,6 +17,7 @@ namespace Server.Boot
         private readonly GearTickUpdater _gearTickUpdater;
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
+        private readonly IWorldBlockDatastore _worldBlockDatastore;
 
         public MasterTickUpdater(
             ElectricWireNetworkDatastore electricWireNetworkDatastore,
@@ -24,7 +26,8 @@ namespace Server.Boot
             ElectricTickUpdater electricTickUpdater,
             GearTickUpdater gearTickUpdater,
             FluidTickUpdater fluidTickUpdater,
-            TrainUpdateService trainUpdateService)
+            TrainUpdateService trainUpdateService,
+            IWorldBlockDatastore worldBlockDatastore)
         {
             _electricWireNetworkDatastore = electricWireNetworkDatastore;
             _gearNetworkDatastore = gearNetworkDatastore;
@@ -33,6 +36,7 @@ namespace Server.Boot
             _gearTickUpdater = gearTickUpdater;
             _fluidTickUpdater = fluidTickUpdater;
             _trainUpdateService = trainUpdateService;
+            _worldBlockDatastore = worldBlockDatastore;
         }
 
         public void Update()
@@ -46,6 +50,11 @@ namespace Server.Boot
             _gearTickUpdater.Update();
             _fluidTickUpdater.Update();
             _trainUpdateService.UpdateTrains();
+
+            // ブロック更新は座標の正準順で一括駆動する（自走宣言した搬送系コンポーネントは対象外）
+            // Drive block updates in canonical coordinate order; self-driven transport components are excluded
+            var blocks = _worldBlockDatastore.GetTickOrderedBlocks();
+            for (var i = 0; i < blocks.Count; i++) blocks[i].TickUpdate();
         }
     }
 }
