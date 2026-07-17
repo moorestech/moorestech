@@ -116,22 +116,20 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
             // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の電線だけを消費する
             // Validated ahead, but to survive runtime drift we consume wires only for connections that actually succeeded
-            var connectedConnectors = new List<IElectricWireConnector> { selfConnector };
             var consumedWire = 0;
             foreach (var (targetId, cost) in targets)
             {
                 var targetConnector = ServerContext.WorldBlockDatastore.GetBlock(targetId)?.GetComponent<IElectricWireConnector>();
                 if (targetConnector == null) continue;
                 if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, cost)) continue;
-                connectedConnectors.Add(targetConnector);
                 consumedWire += cost.Count;
             }
 
-            // 建設コストと張れた電線分を消費してから連結成分を再構築する
-            // Consume the construction cost and successfully-placed wires, then rebuild connected components
+            // 費用消費後に再構築を予約する
+            // Consume construction and wire costs, then mark topology for the next tick rebuild
             ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
             ElectricWireSystemUtil.ConsumeItem(inventory, wireItemId, consumedWire);
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
 
             return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
         }

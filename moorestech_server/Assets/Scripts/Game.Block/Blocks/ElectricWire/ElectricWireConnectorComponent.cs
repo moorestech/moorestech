@@ -143,7 +143,7 @@ namespace Game.Block.Blocks.ElectricWire
 
             // 復元接続をエネルギー網へ反映
             // Reflect restored wire connections into the energy network
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(this);
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }
 

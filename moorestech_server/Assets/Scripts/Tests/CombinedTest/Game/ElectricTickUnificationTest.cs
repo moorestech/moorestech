@@ -11,6 +11,7 @@ using Game.Context;
 using Game.EnergySystem;
 using Game.Gear.Common;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -26,6 +27,16 @@ namespace Tests.CombinedTest.Game
     /// </summary>
     public class ElectricTickUnificationTest
     {
+        [Test]
+        public void tick更新はトポロジ反映が需給計算より先に登録される()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 登録順: 電力網再構築→歯車網再構築→電力tick→歯車tick（tick途中でセグメント所属を変えないため）
+            // Registration order: electric rebuild, gear rebuild, electric tick, gear tick — segment membership never changes mid tick
+            Assert.AreEqual(4, GameUpdater.AdditionalUpdates.Count);
+        }
+
         // 発電機を撤去された機械は、供給率0の導出により自然に停止する
         // A machine whose generator is removed derives supply rate 0 and naturally stops
         [Test]

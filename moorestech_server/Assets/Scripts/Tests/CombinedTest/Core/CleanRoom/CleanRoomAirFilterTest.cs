@@ -12,6 +12,7 @@ using Game.EnergySystem;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Core.CleanRoom
@@ -184,7 +185,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // 電線経由の実経路で給電する。発電機が既に居るセグメントには追加しない
             // Power through the real wire path; skip registration when the segment already has a generator
             var datastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
-            if (!datastore.TryGetEnergySegment(block.BlockInstanceId, out var segment) || segment.Generators.Count == 0)
+            if (!datastore.TryGetEnergySegment(block.BlockInstanceId, out var segment) || ElectricNetworkReflectionTestUtil.GetGenerators(segment).Count == 0)
                 ElectricWireTestUtil.WirePower(block.BlockPositionInfo.OriginalPos, PowerPolePosition, power);
 
             for (var i = 0; i < ticks; i++) GameUpdater.UpdateOneTick();

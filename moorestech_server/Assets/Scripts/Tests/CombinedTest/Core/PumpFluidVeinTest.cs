@@ -11,7 +11,9 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Core
 {
@@ -86,15 +88,19 @@ namespace Tests.CombinedTest.Core
             var added = worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
             Assert.IsTrue(added, $"Failed to place pump at {pos}");
 
-            // 電柱とワイヤー接続してトポロジ反映後、ポンプのセグメントへテスト発電機を登録し powerRate=1.0 にする
-            // Wire a pole, flush the topology, then register a test generator into the pump's segment so powerRate = 1.0
-            var polePos = pos + new Vector3Int(2, 0, 0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            ElectricWireTestUtil.Connect(pos, polePos);
+            // ポンプを電柱へ接続して電力網を成立させる
+            // Connect the pump to a pole so it belongs to a usable electric network
+            var polePosition = pos + new Vector3Int(2, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ElectricWireTestUtil.Connect(pos, polePosition);
+
+            // ポンプが属するワイヤーセグメントへテスト発電機を登録し powerRate=1.0 にする
+            // Register a test generator into the pump's wire segment so powerRate = 1.0
             GameUpdater.UpdateOneTick();
             var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pump.BlockInstanceId, out var segment));
-            segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
+            AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
+            GameUpdater.UpdateOneTick();
 
             return pump;
         }
