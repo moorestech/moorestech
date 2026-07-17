@@ -23,8 +23,8 @@ namespace Game.CleanRoom.Util
             var visitedTotal = 0;
             var processedBatchCount = 0;
 
-            // 通常時は上限内の変更を進め、保存時は未処理の変更をすべて確定する
-            // Respect the normal budget, while a save drains every pending change
+            // 通常時は上限内の変更を進め、保存時は未処理の変更をすべて確定する。予算超過でも最低1バッチは処理しtickごとの前進を保証する
+            // Respect the normal budget while a save drains every pending change; even over budget at least one batch runs so every tick makes progress
             while (0 < pendingBatches.Count &&
                    (drainAll || processedBatchCount == 0 || visitedTotal < dirtyCellBudget))
             {
