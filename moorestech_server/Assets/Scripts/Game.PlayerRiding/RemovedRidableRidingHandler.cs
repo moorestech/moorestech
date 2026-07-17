@@ -1,4 +1,5 @@
 using System;
+using Game.Context;
 using Game.PlayerRiding.Interface;
 using Game.Train.Event;
 using Game.Train.Unit;
@@ -8,7 +9,7 @@ namespace Game.PlayerRiding
 {
     // 車両削除通知を乗車状態の降車処理へ接続する。
     // Connects train-car removal notifications to riding-state dismount handling.
-    public class RemovedRidableRidingHandler : IDisposable
+    public class RemovedRidableRidingHandler : IDisposable, IEventReceiver
     {
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
         private readonly IDisposable _trainCarRemovedSubscription;

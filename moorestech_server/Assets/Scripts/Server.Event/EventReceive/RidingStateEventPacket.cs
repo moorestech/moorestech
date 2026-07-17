@@ -1,4 +1,5 @@
 using System;
+using Game.Context;
 using Game.PlayerRiding.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -8,7 +9,7 @@ namespace Server.Event.EventReceive
 {
     // 乗車状態変化を全クライアントへ broadcast するイベントパケット。
     // Broadcasts riding-state changes to all clients.
-    public class RidingStateEventPacket : IDisposable
+    public class RidingStateEventPacket : IDisposable, IEventReceiver
     {
         public const string EventTag = "va:event:ridingState";
 

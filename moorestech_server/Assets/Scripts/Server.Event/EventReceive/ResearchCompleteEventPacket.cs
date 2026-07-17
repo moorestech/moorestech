@@ -1,4 +1,5 @@
 using System;
+using Game.Context;
 using Game.Research;
 using MessagePack;
 using UniRx;
@@ -8,7 +9,7 @@ namespace Server.Event.EventReceive
     /// <summary>
     /// 研究状態の変化をクライアントに通知するイベントパケット
     /// </summary>
-    public class ResearchCompleteEventPacket
+    public class ResearchCompleteEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:researchComplete";
         

@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
-    public class ChangeBlockStateEventPacket
+    public class ChangeBlockStateEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:changeBlockState";
 
