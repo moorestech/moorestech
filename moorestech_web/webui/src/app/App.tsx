@@ -65,7 +65,7 @@ export default function App() {
         {/* Place sorting and development controls at the reference stage top-right */}
         {screen !== "none" && (
           <div className={styles.topControls}>
-            <Button variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
+            <Button className={styles.sortButton} variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
               整理
             </Button>
             {DebugActionButton ? (

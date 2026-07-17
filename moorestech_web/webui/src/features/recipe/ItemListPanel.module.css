@@ -1,0 +1,11 @@
+/* Mantine ScrollArea を正本準拠の細い白ノブへ上書きする（静的クラス名 mantine-ScrollArea-* を対象） */
+/* Override Mantine's ScrollArea to a thin white knob matching the reference (targets the static mantine-ScrollArea-* classes) */
+.scrollArea :global(.mantine-ScrollArea-scrollbar) {
+  padding: 0;
+  background: transparent;
+}
+
+.scrollArea :global(.mantine-ScrollArea-thumb) {
+  border-radius: 0;
+  background: rgb(255 255 255 / 88%);
+}

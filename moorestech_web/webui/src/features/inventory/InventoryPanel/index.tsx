@@ -19,7 +19,7 @@ export default function InventoryPanel() {
   const actions = createSlotActions(inventory, itemMaster);
 
   return (
-    <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", width: 336 }}>
+    <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452 }}>
       <SlotGrid testId="main-grid" cols={6}>
         {inventory.mainSlots.map((slot, i) => {
           const ref: SlotRef = { area: "main", slot: i };

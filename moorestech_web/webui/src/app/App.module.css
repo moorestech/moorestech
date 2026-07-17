@@ -14,19 +14,19 @@
 .stage {
   position: relative;
   display: grid;
-  column-gap: 3.75rem;
+  column-gap: 2.1875rem;
   row-gap: 1rem;
   width: 1280px;
   height: 720px;
-  padding: 115px 48px 7px;
+  padding: 115px 48px 2px 59.7px;
   box-sizing: border-box;
   flex: 0 0 auto;
   transform: scale(var(--ui-scale, 1));
   transform-origin: center center;
   z-index: 1;
-  /* 半透明ヴィネットで縁を落とし、半透明パネルを地に浮かせる（中心は透過し実ワールドを遮らない） */
-  /* A translucent vignette darkens edges so translucent panels float; the center stays clear over the real world */
-  background: radial-gradient(ellipse 78% 82% at 50% 44%, rgb(18 21 27 / 0%) 52%, rgb(4 5 8 / 55%) 100%);
+  /* 全面dimは backdrop が担い、stage は縁をわずかに沈める控えめなヴィネットのみ持つ */
+  /* The backdrop handles the full dim; the stage keeps only a faint edge vignette */
+  background: radial-gradient(ellipse 82% 86% at 50% 46%, rgb(4 5 8 / 0%) 66%, rgb(4 5 8 / 16%) 100%);
   /* 上段を画面幅へ展開し、ホットバーは下段全体の中央に置く */
   /* Spread the upper row across the viewport and center the hotbar across the lower row */
   grid-template-areas:
@@ -35,7 +35,9 @@
   grid-template-columns: auto auto auto;
   grid-template-rows: 1fr auto;
   align-items: start;
-  justify-content: center;
+  /* 正本は左詰めの固定アンカー配置。center centeringは総幅で揺れるため使わない */
+  /* The reference uses fixed left-anchored panels; centering would drift with total width */
+  justify-content: start;
 }
 
 /* 中央のクラフト詳細カラムは上寄せ（uGUI 同様に持ち物・レシピと天面を揃える） */
@@ -45,12 +47,12 @@
   align-self: start;
 }
 
-/* 画面表示中のみの全面dim。stageより下のviewport全体を覆う */
-/* Full-screen dim shown below the stage while a screen is open */
+/* uGUI 同様、インベントリ表示中は世界全体を暗く沈める全面dim（stageより下のworldbgを覆う） */
+/* Like uGUI, a full-screen dim sinks the whole world while the inventory is open (covers the worldbg below the stage) */
 .backdrop {
   position: fixed;
   inset: 0;
-  background: transparent;
+  background: rgb(0 0 0 / 42%);
   pointer-events: none;
   z-index: 0;
 }
@@ -59,26 +61,43 @@
 /* Anchor sorting and development controls to the stage top-right */
 .topControls {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 8px;
   display: flex;
   gap: 8px;
   z-index: 10;
+}
+
+/* 整理ボタンは正本の直角・濃紺・影なしの単純面に合わせる（Mantine既定の角丸/影を打ち消す） */
+/* The sort button matches the reference's square, navy, shadowless face (overrides Mantine's default rounding/shadow) */
+.sortButton {
+  width: 87px;
+  height: 29px;
+  border: 0;
+  border-radius: 0;
+  background: rgb(46 51 66);
+  box-shadow: none;
+}
+
+.sortButton:hover {
+  background: rgb(56 61 78);
 }
 
 /* 左下のキー操作ヒント（uGUI の GameStateController 準拠の常時ガイド） */
 /* Bottom-left key hints (always-on guide mirroring uGUI's GameStateController) */
 .keyHints {
   position: absolute;
-  left: 24px;
-  bottom: 18px;
+  left: 7px;
+  bottom: 6px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 16px;
+  gap: 10px;
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: 0.066em;
   font-weight: 500;
   color: #f2f3f7;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.75);
   pointer-events: none;
   z-index: 10;
 }

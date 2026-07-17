@@ -1,11 +1,11 @@
-/* 側面パネルは縁を設けず世界背景へ溶かす */
-/* Let side panels dissolve into the world without a hard outer edge */
+/* 側面パネルは縁を設けず世界背景へ溶かす。左paddingは正本のグリッド内側インデントに合わせ広めに取る */
+/* Let side panels dissolve into the world without a hard outer edge; the left padding is wider to match the reference's grid inset */
 .panel {
   position: relative;
   isolation: isolate;
   display: flex;
   flex-direction: column;
-  padding: 8px 10px 10px;
+  padding: 8px 10px 10px 28px;
   color: #e8eaf0;
   border: 0;
   border-radius: 0;
@@ -13,15 +13,16 @@
   box-shadow: none;
 }
 
-/* 側面パネルの暗部を外側まで広げ、平坦な矩形境界を残さず減衰させる */
-/* Extend side-panel shading outward and decay it without a flat rectangular boundary */
+/* 側面パネルは不透明の焦茶面（上67,54,44→下63,38,29の緩い縦グラデ）。左右端はマスクで世界へ溶かす */
+/* Side panels are an opaque dark-brown face (gentle vertical 67,54,44→63,38,29); mask fades the L/R ends into the world */
 .panel:not(.craft)::before {
   position: absolute;
   z-index: 0;
-  inset: -8px -4px;
-  background: linear-gradient(90deg, transparent 0%, rgb(3 5 8 / 88%) 2%, rgb(8 12 16 / 79%) 5%, rgb(8 12 16 / 79%) 95%, rgb(3 5 8 / 88%) 98%, transparent 100%);
+  inset: -8px -3px;
+  background: linear-gradient(180deg, rgb(67 54 44) 0%, rgb(66 50 40) 24%, rgb(64 44 33) 62%, rgb(63 38 29) 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
   content: "";
-  filter: blur(3px);
   pointer-events: none;
 }
 
@@ -32,12 +33,12 @@
   z-index: 1;
 }
 
-/* 中央だけ外枠と内周線を持つ二層クロームにする */
-/* Give only the center panel a two-layer outer frame and inset rule */
+/* 中央だけ外枠と内周線を持つ二層クローム。面は不透明の焦茶縦グラデ（上66,51,37→下63,38,25） */
+/* Give only the center panel a two-layer frame; the face is an opaque dark-brown vertical gradient (66,51,37→63,38,25) */
 .craft {
   padding: 8px 10px 6px;
   border: 1px solid rgb(112 118 132 / 88%);
-  background: rgb(0 6 10 / 51%);
+  background: linear-gradient(180deg, rgb(66 51 37) 0%, rgb(66 48 33) 32%, rgb(65 44 28) 62%, rgb(63 38 25) 100%);
   box-shadow: inset 0 0 0 4px rgb(3 7 11 / 78%), inset 0 0 0 5px rgb(116 124 137 / 55%);
 }
 
@@ -91,9 +92,12 @@
   background: linear-gradient(90deg, transparent 0%, rgb(135 143 169 / 42%) 5%, rgb(135 143 169 / 59%) 11%, rgb(135 143 169 / 59%) 89%, rgb(135 143 169 / 38%) 95%, transparent 100%);
 }
 
+/* 下線は上線と同程度の明るさに揃え、上線を動かさずマージンだけで正本の間隔(約25design-px)へ詰める */
+/* Match the bottom rule's brightness to the top rule; tighten the gap toward the reference (~25 design px) via its own margin only, without moving the top rule */
 .decoLine:nth-child(3) {
+  margin-top: -1.9px;
   margin-bottom: 8px;
-  background: linear-gradient(90deg, transparent 0%, rgb(124 130 145 / 10%) 5%, rgb(124 130 145 / 14%) 11%, rgb(124 130 145 / 14%) 89%, rgb(124 130 145 / 9%) 95%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgb(124 130 145 / 30%) 5%, rgb(124 130 145 / 42%) 11%, rgb(124 130 145 / 42%) 89%, rgb(124 130 145 / 26%) 95%, transparent 100%);
 }
 
 .body {
