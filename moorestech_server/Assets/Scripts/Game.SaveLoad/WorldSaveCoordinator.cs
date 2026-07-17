@@ -30,6 +30,7 @@ namespace Game.SaveLoad
             // Mark only the frozen generation complete after the save operation succeeds
             _worldSaveDataSaver.Save();
             Volatile.Write(ref _completedGeneration, targetGeneration);
+            UnityEngine.Debug.Log("ワールドを保存しました");
         }
     }
 }
