@@ -18,10 +18,8 @@ namespace Game.Block.Blocks.Fluid
     ///     Any block place/remove can change fluid connections, so world update events mark the topology dirty for the next tick head.
     ///     Nodes and faces are kept position-sorted so iteration is deterministic (a prerequisite for future client-side co-simulation).
     /// </summary>
-    public class FluidNetworkDatastore
+    public class FluidNetworkDatastore : IFluidNetworkDatastore
     {
-        private static FluidNetworkDatastore _instance;
-
         private readonly HashSet<FluidPipeComponent> _pipes = new();
         private readonly List<FluidPipeComponent> _sortedPipes = new();
 
@@ -37,28 +35,27 @@ namespace Game.Block.Blocks.Fluid
 
         public FluidNetworkDatastore(IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
-            _instance = this;
             worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(_ => _isTopologyDirty = true);
             worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(_ => _isTopologyDirty = true);
         }
 
-        public static void AddPipe(FluidPipeComponent pipe)
+        public void AddPipe(FluidPipeComponent pipe)
         {
-            _instance._pipes.Add(pipe);
-            _instance._isTopologyDirty = true;
+            _pipes.Add(pipe);
+            _isTopologyDirty = true;
         }
 
-        public static void RemovePipe(FluidPipeComponent pipe)
+        public void RemovePipe(FluidPipeComponent pipe)
         {
-            _instance._pipes.Remove(pipe);
-            _instance._isTopologyDirty = true;
+            _pipes.Remove(pipe);
+            _isTopologyDirty = true;
         }
 
         // セーブ用に、指定パイプが正準側(NodeA)として所有する面の方向と速度を集める
         // Collect directions and velocities of faces the given pipe owns as the canonical NodeA side, for saving
-        public static void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, double velocity)> buffer)
+        public void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, double velocity)> buffer)
         {
-            foreach (var face in _instance._faces)
+            foreach (var face in _faces)
             {
                 if (face.NodeA != pipe.Node) continue;
                 buffer.Add((face.NodeB.Position - face.NodeA.Position, face.Velocity));

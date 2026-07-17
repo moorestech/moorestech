@@ -160,6 +160,7 @@ namespace Server.Boot
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());
+            services.AddSingleton<IFluidNetworkDatastore>(provider => provider.GetRequiredService<FluidNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
             services.AddSingleton(railGraphDatastore);
             services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);
