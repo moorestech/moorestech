@@ -39,11 +39,27 @@ export function injectDemoBackground(html: string, demo: boolean): string {
   return html.replace(/<body(\s[^>]*)?>/i, (body) => `${body}${DEMO_BACKGROUND}`);
 }
 
-// itemIdから色相を導き丸角の色付きSVGアイコンを生成
-// Derive a hue from itemId and build a rounded colored SVG icon
+// itemIdから色相を導き丸角の色付きSVGアイコンを生成（実アイコン不在時のフォールバック）
+// Derive a hue from itemId and build a rounded colored SVG icon (fallback when real icons are absent)
 function placeholderIcon(itemId: number): string {
   const hue = (itemId * 47) % 360;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="10" width="44" height="44" rx="2" fill="hsl(${hue} 40% 52%)" stroke="hsl(${hue} 35% 34%)" stroke-width="2"/><path d="M12 52V12H52" fill="none" stroke="hsl(${hue} 45% 68%)" stroke-width="1"/><path d="M12 52H52V12" fill="none" stroke="hsl(${hue} 35% 38%)" stroke-width="1"/><rect x="18" y="20" width="28" height="9" fill="hsl(${hue} 42% 62%)"/><rect x="18" y="34" width="28" height="9" fill="hsl(${hue} 38% 44%)"/></svg>`;
+}
+
+// 実ゲームアイコン(../moorestech_master)をitemIdへ決定的に割当てる。白背景写真なので正本と同じ画作りになる
+// Map real game icons (../moorestech_master) to itemIds deterministically; white-bg photos match the reference look
+import { readdirSync, readFileSync, existsSync } from "node:fs";
+import { resolve as resolvePath, join as joinPath } from "node:path";
+
+const REAL_ICON_DIR = process.env.MOCK_ICON_DIR
+  ?? resolvePath(process.cwd(), "../../../moorestech_master/server_v8/mods/moorestechAlphaMod_8/assets/item");
+const realIconFiles: string[] = existsSync(REAL_ICON_DIR)
+  ? readdirSync(REAL_ICON_DIR).filter((f) => f.endsWith(".jpeg") || f.endsWith(".jpg")).sort()
+  : [];
+
+function realIconFor(itemId: number): Buffer | null {
+  if (realIconFiles.length === 0) return null;
+  return readFileSync(joinPath(REAL_ICON_DIR, realIconFiles[itemId % realIconFiles.length]));
 }
 
 const MIME: Record<string, string> = {
@@ -107,10 +123,16 @@ export function createMockHttpServer(): Server {
       return;
     }
     if (url.startsWith("/api/icons/")) {
-      // DEMO時は色付きプレースホルダ、通常時は404で#idフォールバック
-      // DEMO serves a colored placeholder; otherwise 404 for the #id fallback
+      // DEMO時は実ゲームアイコン(無ければプレースホルダ)、通常時は404で#idフォールバック
+      // DEMO serves real game icons (placeholder if absent); otherwise 404 for the #id fallback
       if (DEMO) {
         const id = Number(url.split("/api/icons/")[1]?.replace(".png", "")) || 0;
+        const real = realIconFor(id);
+        if (real) {
+          res.setHeader("content-type", "image/jpeg");
+          res.end(real);
+          return;
+        }
         res.setHeader("content-type", "image/svg+xml");
         res.end(placeholderIcon(id));
         return;
