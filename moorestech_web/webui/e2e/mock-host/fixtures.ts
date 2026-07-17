@@ -118,20 +118,23 @@ export const itemMaster = {
 // DEMO (scoring): dense item list to fill the grid; additive, defaults intact
 export const demoItemList = { itemIds: [100, ...Array.from({ length: 41 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
 
-// 先頭3枠は既定のまま、残りを埋める(空6枠残す)
-// First 3 slots stay default, fill the rest (6 left empty)
+// 正本スクショと同じ充填パターン（1段目6・2段目3・3段目空・4段目末尾のみ・5-6段目12・ホットバー9）
+// Mirror the reference screenshot fill pattern (row1 x6, row2 x3, row3 empty, row4 last only, rows5-6 x12, hotbar x9)
 export const demoInventory = {
   mainSlots: [
-    { itemId: 1, count: 10 },
-    { itemId: 2, count: 10 },
-    { itemId: 1, count: 5 },
-    ...Array.from({ length: 27 }, (_, i) => ({ itemId: (i % 40) + 3, count: ((i * 7) % 99) + 1 })),
-    ...Array.from({ length: 6 }, empty),
+    ...[100, 100, 100, 27, 3, 62].map((count, i) => ({ itemId: i + 3, count })),
+    { itemId: 9, count: 3 },
+    { itemId: 10, count: 2 },
+    { itemId: 11, count: 52 },
+    ...Array.from({ length: 14 }, empty),
+    { itemId: 12, count: 35 },
+    ...[63, 100, 100, 100, 100, 100, 100, 100, 53, 23, 11, 100].map((count, i) => ({ itemId: (i % 8) + 13, count })),
   ],
   hotbarSlots: [
-    { itemId: 2, count: 3 },
-    ...Array.from({ length: 4 }, (_, i) => ({ itemId: i + 10, count: (i + 1) * 2 })),
-    ...Array.from({ length: 4 }, empty),
+    { itemId: 2, count: 100 },
+    // hue=(itemId*47)%360が青緑域(160-290)のIDを避ける（選択枠のシアン検出を汚染しないため）
+    // Avoid ids whose hue lands in cyan-blue (160-290) so they don't pollute cyan ring detection
+    ...[100, 100, 92, 100, 100, 32, 100, 8].map((count, i) => ({ itemId: [23, 24, 16, 22, 15, 17, 18, 14][i], count })),
   ],
   grab: empty(),
   selectedHotbar: 0,
