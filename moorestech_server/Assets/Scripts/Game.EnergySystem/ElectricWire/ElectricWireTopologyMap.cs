@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Block.Interface;
 
@@ -23,17 +24,13 @@ namespace Game.EnergySystem
 
         public static ElectricWireTopologyMap Build(ICollection<IElectricWireConnector> registeredConnectors)
         {
-            // live頂点からBFS入力を作る
-            // Walk live vertices once, building the BFS array and ID lookup together
+            // live頂点をID昇順の正準順に並べ、BFS入力を作る（生成順を登録履歴非依存にする）
+            // Sort live vertices by ID into canonical order so build results never depend on registration history
             var remaining = new IElectricWireConnector[registeredConnectors.Count];
+            registeredConnectors.CopyTo(remaining, 0);
+            Array.Sort(remaining, (a, b) => a.BlockInstanceId.CompareTo(b.BlockInstanceId));
             var idToIndex = new Dictionary<BlockInstanceId, int>(registeredConnectors.Count);
-            var index = 0;
-            foreach (var connector in registeredConnectors)
-            {
-                remaining[index] = connector;
-                idToIndex.Add(connector.BlockInstanceId, index);
-                index++;
-            }
+            for (var i = 0; i < remaining.Length; i++) idToIndex.Add(remaining[i].BlockInstanceId, i);
 
             // 連結成分ごとに新しいsegmentを作る
             // Create a fresh segment for each connected component

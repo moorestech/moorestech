@@ -41,6 +41,9 @@ namespace Game.Gear.Topology
                     }
                 }
 
+                // 成分内の並びもID昇順へ正準化する（BFS到達順は隣接リストの履歴に依存するため）
+                // Canonicalize member order by ID too; BFS visit order depends on adjacency-list history
+                component.Sort((a, b) => a.BlockInstanceId.CompareTo(b.BlockInstanceId));
                 components.Add(component);
             }
 
