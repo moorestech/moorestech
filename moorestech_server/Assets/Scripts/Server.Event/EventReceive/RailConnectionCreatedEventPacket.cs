@@ -1,4 +1,5 @@
 ﻿using Game.Train.Unit;
+using Game.Context;
 using Game.Train.RailGraph;
 using MessagePack;
 using UniRx;
@@ -6,7 +7,7 @@ using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public sealed class RailConnectionCreatedEventPacket
+    public sealed class RailConnectionCreatedEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:railConnectionCreated";
 

@@ -240,6 +240,10 @@ namespace Server.Boot
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
 
 
+            //マーカーinterface実装をIEventReceiver / IPostLoadEventReceiverへ転送登録する
+            // Forward marker-interface implementations to IEventReceiver / IPostLoadEventReceiver registrations.
+            services.AddEventReceiverForwarding();
+
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
@@ -247,38 +251,12 @@ namespace Server.Boot
             // Register tick update handlers.
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
 
-            //イベントレシーバーをインスタンス化する
-            // Materialize event receivers eagerly.
-            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            // TODO find a DI pattern similar to VContainer RegisterEntryPoint for this area.
-            serviceProvider.GetService<MainInventoryUpdateEventPacket>();
-            serviceProvider.GetService<UnifiedInventoryEventPacket>();
-            serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
-            // PlaceBlockEventPacketは初期ロード完了後に購読させるため、ここではインスタンス化しない（ServerInstanceManagerがロード後に生成する）
-            // PlaceBlockEventPacket is instantiated after initial load by ServerInstanceManager, so it must not be materialized here
-            serviceProvider.GetService<RemoveBlockToSetEventPacket>();
-            serviceProvider.GetService<CompletedChallengeEventPacket>();
+            //IEventReceiver実装を一括生成する（コンストラクタで購読開始）
+            // Materialize all IEventReceiver implementations (they subscribe in their constructors).
+            // IPostLoadEventReceiver実装は初期ロード完了後にServerInstanceManagerが生成する
+            // IPostLoadEventReceiver implementations are materialized by ServerInstanceManager after initial load.
+            serviceProvider.GetServices<IEventReceiver>();
 
-            serviceProvider.GetService<GearNetworkDatastore>();
-            serviceProvider.GetService<CleanRoomDatastore>();
-            serviceProvider.GetService<RailGraphDatastore>();
-            serviceProvider.GetService<TrainDiagramManager>();
-            serviceProvider.GetService<TrainRailPositionManager>();
-
-            serviceProvider.GetService<ChangeBlockStateEventPacket>();
-            serviceProvider.GetService<MapObjectUpdateEventPacket>();
-            serviceProvider.GetService<UnlockedEventPacket>();
-            serviceProvider.GetService<ResearchCompleteEventPacket>();
-            serviceProvider.GetService<ItemStackLevelUnlockEventPacket>();
-            serviceProvider.GetService<RailNodeCreatedEventPacket>();
-            serviceProvider.GetService<RailConnectionCreatedEventPacket>();
-            serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();
-            serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
-            serviceProvider.GetService<RailNodeRemovedEventPacket>();
-            serviceProvider.GetService<RailConnectionRemovedEventPacket>();
-            serviceProvider.GetService<RidingStateEventPacket>();
-            serviceProvider.GetService<RemovedRidableRidingHandler>();
-            
             serverContext.SetMainServiceProvider(serviceProvider);
             
             // MessagePackResolverを登録

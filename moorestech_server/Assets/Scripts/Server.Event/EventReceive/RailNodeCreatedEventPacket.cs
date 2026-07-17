@@ -1,4 +1,5 @@
 ﻿using Game.Train.Unit;
+using Game.Context;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -10,7 +11,7 @@ namespace Server.Event.EventReceive
     ///     RailNode生成イベントをブロードキャストするパケット
     ///     Event packet that broadcasts newly created rail nodes
     /// </summary>
-    public sealed class RailNodeCreatedEventPacket
+    public sealed class RailNodeCreatedEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:railNodeCreated";
 

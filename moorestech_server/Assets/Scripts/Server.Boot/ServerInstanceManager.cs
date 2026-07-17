@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Game.PlayerConnection;
 using Core.Update;
+using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,6 @@ using Mod.Base;
 using Mod.Loader;
 using Server.Boot.Args;
 using Server.Boot.Loop;
-using Server.Event.EventReceive;
 using UnityEngine;
 
 namespace Server.Boot
@@ -53,9 +53,9 @@ namespace Server.Boot
             //マップをロードする
             serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            //初期ロード完了後にブロック設置イベントを購読開始する。ロード中の設置はクライアントへ配信しない
-            //Start subscribing to block-place events only after initial load, so load-time placements are not sent to clients
-            serviceProvider.GetService<PlaceBlockEventPacket>();
+            //初期ロード完了後にIPostLoadEventReceiver実装を一括生成する。ロード中の設置等はクライアントへ配信しない
+            //Materialize all IPostLoadEventReceiver implementations after initial load, so load-time placements etc. are not sent to clients
+            serviceProvider.GetServices<IPostLoadEventReceiver>();
 
             //modのOnLoadコードを実行する
             var modsResource = serviceProvider.GetService<ModsResource>();

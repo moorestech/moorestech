@@ -1,12 +1,13 @@
 using System;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
 using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public class MainInventoryUpdateEventPacket
+    public class MainInventoryUpdateEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:mainInvUpdate";
         private readonly EventProtocolProvider _eventProtocolProvider;

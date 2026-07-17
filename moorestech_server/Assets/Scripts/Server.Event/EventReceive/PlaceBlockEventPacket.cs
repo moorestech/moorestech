@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
-    public class PlaceBlockEventPacket
+    public class PlaceBlockEventPacket : IPostLoadEventReceiver
     {
         public const string EventTag = "va:event:blockPlace";
         private readonly EventProtocolProvider _eventProtocolProvider;

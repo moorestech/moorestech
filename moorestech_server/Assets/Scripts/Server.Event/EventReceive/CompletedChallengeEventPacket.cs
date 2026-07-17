@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Master;
 using Game.Challenge;
 using Game.Challenge.Task;
+using Game.Context;
 using Game.UnlockState;
 using MessagePack;
 using Newtonsoft.Json;
@@ -11,7 +12,7 @@ using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    public class CompletedChallengeEventPacket
+    public class CompletedChallengeEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:completedChallenge";
         

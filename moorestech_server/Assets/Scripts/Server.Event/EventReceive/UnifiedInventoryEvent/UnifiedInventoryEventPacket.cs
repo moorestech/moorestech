@@ -1,5 +1,6 @@
 using System;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
 using MessagePack;
@@ -12,7 +13,7 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     /// 統一インベントリ更新イベントパケット
     /// Unified inventory update event packet
     /// </summary>
-    public class UnifiedInventoryEventPacket
+    public class UnifiedInventoryEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:invUpdate";
         

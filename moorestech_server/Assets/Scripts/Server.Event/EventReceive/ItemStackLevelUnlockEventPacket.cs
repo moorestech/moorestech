@@ -1,5 +1,6 @@
 using System;
 using Core.Item.Interface;
+using Game.Context;
 using MessagePack;
 using UniRx;
 
@@ -8,7 +9,7 @@ namespace Server.Event.EventReceive
     /// <summary>
     /// アイテムスタックレベルの解放をクライアントに通知するイベントパケット
     /// </summary>
-    public class ItemStackLevelUnlockEventPacket
+    public class ItemStackLevelUnlockEventPacket : IEventReceiver
     {
         public const string EventTag = "va:event:itemStackLevelUnlock";
 
