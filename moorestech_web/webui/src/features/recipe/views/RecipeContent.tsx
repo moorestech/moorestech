@@ -67,7 +67,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   }
 
   return (
-    <Stack className={styles.recipeContent} data-testid="recipe-content" gap="sm">
+    <Stack className={styles.recipeContent} gap="sm">
       <ItemHeader name={itemName} />
       {tabs.length > 1 ? (
         <Tabs

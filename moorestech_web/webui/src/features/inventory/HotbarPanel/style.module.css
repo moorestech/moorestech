@@ -11,36 +11,30 @@
 /* Place slots directly over the scene without an outer frame */
 .hotbarFrame {
   display: flex;
-  gap: 10px;
+  gap: 1px;
 }
 
-/* 番号容器用の空洞をスロット上側に確保する */
-/* Reserve an open gap above the slot for its number container */
+/* 番号タブをスロット左上に重ねる */
+/* Overlay the number tab on the slot's top-left */
 .cell {
   position: relative;
   display: block;
-  padding-top: 23px;
 }
 
 .num {
   position: absolute;
   top: 0;
-  left: 50%;
+  left: 0;
   z-index: 2;
-  display: grid;
-  width: 15px;
-  height: 15px;
-  border: 2px solid rgb(180 173 168 / 64%);
-  background: rgb(55 57 65 / 70%);
-  box-shadow:
-    inset 0 0 0 1px rgb(225 218 210 / 24%),
-    0 0 4px rgb(210 196 182 / 22%);
-  font-size: 10px;
+  min-width: 11px;
+  padding: 0 2px;
+  border-right: 1px solid rgba(200, 205, 215, 0.4);
+  border-bottom: 1px solid rgba(200, 205, 215, 0.4);
+  background: rgba(18, 22, 30, 0.82);
+  font-size: 9px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.35;
   color: #e2e5ee;
-  place-items: center;
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
-  transform: translateX(-50%);
 }
