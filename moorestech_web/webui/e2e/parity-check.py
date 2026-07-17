@@ -9,33 +9,7 @@ import sys
 import numpy as np
 from PIL import Image
 
-# 色ピック表（基準§2.2）: 名前, x, y, 正本RGB / Color-pick table (criteria §2.2)
-COLOR_POINTS = [
-    ("bg-top", 1635, 100, (143, 120, 96)), ("bg-left", 40, 900, (139, 95, 49)),
-    ("bg-bottom", 1600, 1550, (129, 74, 35)), ("bg-hints", 500, 1700, (127, 69, 32)),
-    ("inv-header", 600, 330, (67, 54, 44)), ("inv-bottom", 600, 1350, (63, 38, 29)),
-    ("inv-empty", 700, 790, (58, 48, 51)), ("inv-white", 238, 450, (254, 254, 254)),
-    ("craft-top", 1350, 455, (66, 51, 37)), ("craft-mid", 1650, 700, (66, 47, 32)),
-    ("craft-low1", 1650, 900, (65, 44, 27)), ("craft-low2", 1650, 1250, (63, 38, 25)),
-    ("rec-header", 2600, 330, (67, 54, 44)), ("rec-bottom", 2600, 1450, (63, 37, 29)),
-    ("rec-gray", 2232, 452, (126, 126, 126)), ("rec-white", 2820, 740, (255, 255, 255)),
-    ("hb-white", 1450, 1740, (253, 253, 253)), ("hb-bg", 1450, 1625, (128, 71, 33)),
-]
-
-# bbox目標（基準1章・[実測]値）: 名前, (l,t,r,b), 許容px / bbox targets from criteria ch.1
-BBOX_TARGETS = {
-    "inv-panel": ((160, 278, 1113, 1473), 6),
-    "craft-panel": ((1210, 300, 2071, 1405), 3),
-    "recipe-panel": ((2168, 280, 3121, 1473), 6),
-    "selection-frame": ((1250, 492, 2015, 651), 3),
-    "tree-button": ((1502, 422, 1773, 469), 3),
-    "craft-button": ((1502, 1302, 1775, 1351), 4),
-    "craft-tab": ((1210, 228, 1375, 297), 4),
-    "sort-button": ((3028, 32, 3249, 105), 3),
-    "key-hints": ((20, 1656, 993, 1811), 3),
-    "hotbar-ring": ((994, 1704, 1125, 1835), 3),
-    "scroll-knob": ((3078, 434, 3087, 1103), 4),
-}
+from parity_targets import BBOX_TARGETS, COLOR_POINTS
 
 results = []
 
@@ -128,6 +102,12 @@ def main() -> int:
     else:
         check("inv-slot-face", False, f"borders not detected (diffs={diffs})")
 
+    # 持ち物格子の上端: 1行目白面の最初の行 / Inventory grid top via first white-face row
+    toprow = (im[390:520, 240:1050].min(axis=2) > 200).mean(axis=1)
+    trows = [i + 390 for i, v in enumerate(toprow) if v > 0.10]
+    check("inv-grid-top", bool(trows) and abs(trows[0] - 438) <= 4,
+          f"target≈438 got={trows[0] if trows else None} (row-1 face top)")
+
     # レシピ格子: 白面ラン列で列2起点とピッチ / Recipe grid col-2 origin + pitch via bright-face runs
     rgrid = (im[440:1390, 2150:3120].min(axis=2) > 180).mean(axis=0)
     rcols = [(a + 2150, b + 2150) for a, b in runs_of(rgrid, 60, 0.10)]
@@ -139,6 +119,15 @@ def main() -> int:
         gapsr = [rstarts[i + 1] - rstarts[i] for i in range(len(rstarts) - 1)]
         pitchr = min(g % 140 if g % 140 <= 70 else 140 - g % 140 for g in gapsr)
         check("recipe-grid-pitch", pitchr <= 2, f"pitch mod140 dev={pitchr} starts={rstarts}")
+
+    # レシピ段数: セル面(白or中間灰)の行帯が7つあるか / Recipe row count via cell-face row bands
+    face = (im.min(axis=2) > 180) | ((abs(R - G) < 18) & (abs(G - B) < 18) & (im.max(axis=2) > 90) & (im.max(axis=2) < 150))
+    rprof = face[400:1450, 2225:3050].mean(axis=1)
+    rowbands = runs_of(rprof, 60, 0.10)
+    first_top = rowbands[0][0] + 400 if rowbands else None
+    check("recipe-rows", len(rowbands) == 7, f"target=7 rows got={len(rowbands)} bands={[(a + 400, b + 400) for a, b in rowbands]}")
+    check("recipe-grid-top", first_top is not None and abs(first_top - 438) <= 4,
+          f"target≈438 got={first_top} (row-1 face top)")
 
     # ホットバー: 非オレンジマスクのランで幅・ピッチ・起点 / Hotbar width/pitch/origin via non-orange runs
     nb = ~((R > G + 25) & (G > B + 10) & (R > 90))
@@ -176,6 +165,7 @@ def main() -> int:
     check_bbox("key-hints", bbox_of(zone_mask(im.min(axis=2) > 170, 0, 1620, 1000, 1830)))
     check_bbox("hotbar-ring", bbox_of(zone_mask((B > 150) & (G > 120) & (B > R + 30), 950, 1680, 1180, 1844)))
     check_bbox("scroll-knob", bbox_of(zone_mask(im.min(axis=2) > 150, 3060, 400, 3140, 1400)))
+    check_bbox("craft-arrow-time", bbox_of(zone_mask(im.min(axis=2) > 190, 1520, 510, 1790, 660)))
 
     ok_count = sum(1 for _, ok, _ in results if ok)
     print(f"\n== {ok_count}/{len(results)} checks passed ==")
