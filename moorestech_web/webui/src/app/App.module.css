@@ -70,6 +70,10 @@
 
 /* 整理ボタンは正本の直角・濃紺・影なしの単純面に合わせる（Mantine既定の角丸/影を打ち消す） */
 /* The sort button matches the reference's square, navy, shadowless face (overrides Mantine's default rounding/shadow) */
+/* 正本の文字(約48x39screenshot-px≈18.8x15.3CSS)はMantine既定より大きい。フォント太字合成は禁止のため
+   4方向陰影で輪郭を太らせる */
+/* The reference text (~48x39 screenshot px ≈ 18.8x15.3 CSS) runs larger than Mantine's default; synthetic
+   bold is forbidden, so a 4-direction shadow thickens the outline instead */
 .sortButton {
   width: 87px;
   height: 29px;
@@ -77,6 +81,9 @@
   border-radius: 0;
   background: rgb(46 51 66);
   box-shadow: none;
+  font-size: 16px;
+  font-weight: 500;
+  text-shadow: 1px 0 0 rgba(0, 0, 0, 0.7), -1px 0 0 rgba(0, 0, 0, 0.7), 0 1px 0 rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(0, 0, 0, 0.7);
 }
 
 .sortButton:hover {
@@ -85,6 +92,11 @@
 
 /* 左下のキー操作ヒント（uGUI の GameStateController 準拠の常時ガイド） */
 /* Bottom-left key hints (always-on guide mirroring uGUI's GameStateController) */
+/* letter-spacingを詰めてbbox右端(x996→993近似)を正本へ寄せつつ、4方向陰影で正本級の輪郭太さを出す。
+   陰影は暗色のみ(明色シャドウ不可)なので、明ピクセル判定のkey-hints bboxを膨らませない */
+/* Tighten letter-spacing to pull the bbox right edge (996→~993) toward the reference, while a 4-direction
+   dark shadow adds the reference's outline weight; the shadow stays dark-only so it never inflates the
+   bright-pixel key-hints bbox */
 .keyHints {
   position: absolute;
   left: 7px;
@@ -94,10 +106,10 @@
   gap: 10px;
   font-size: 25px;
   line-height: 1.2;
-  letter-spacing: 0.058em;
+  letter-spacing: 0.055em;
   font-weight: 500;
   color: #f2f3f7;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.75);
+  text-shadow: 1px 0 0 rgba(0, 0, 0, 0.8), -1px 0 0 rgba(0, 0, 0, 0.8), 0 1px 0 rgba(0, 0, 0, 0.8), 0 -1px 0 rgba(0, 0, 0, 0.8);
   pointer-events: none;
   z-index: 10;
 }
