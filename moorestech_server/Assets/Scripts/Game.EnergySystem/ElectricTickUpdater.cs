@@ -13,8 +13,8 @@ namespace Game.EnergySystem
 
         public void Update()
         {
-            // 再構築はtick先頭の先行登録（RebuildIfDirty）が担い、ここでは需給計算だけ行う
-            // A preceding tick-head registration (RebuildIfDirty) owns the rebuild; this updater performs settlement only
+            // 再構築はtick先頭のMasterTickUpdaterが担い、ここでは需給計算だけ行う
+            // MasterTickUpdater owns the tick-head rebuild; this updater performs settlement only
             foreach (var segment in _electricWireNetworkDatastore.GetSegments())
             {
                 segment.SettleTick();
