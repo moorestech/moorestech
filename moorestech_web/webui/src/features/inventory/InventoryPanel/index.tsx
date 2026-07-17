@@ -20,7 +20,7 @@ import { createSlotActions } from "../slotActions";
 // and hand it to the gap to re-converge on the 123px target
 // 正本の占有率へ寄せるため持ち物だけ1pxへ縮め、inv-white面隅プローブの合格を維持する
 // Tighten inventory padding to 1px for the reference occupancy while preserving the inv-white corner probe
-const GRID_STYLE = { "--slot-size": "2.9rem", "--slot-grid-gap": "0.54rem", "--icon-pad": "1px", marginTop: "12px", marginLeft: "1px" } as CSSProperties;
+const GRID_STYLE = { "--slot-size": "2.9rem", "--slot-grid-gap": "0.54rem", "--icon-pad": "1px", "--count-bottom": "-1px", "--count-font-size": "16px", "--count-letter-spacing": "0.12em", marginTop: "12px", marginLeft: "1px" } as CSSProperties;
 
 // メイン4行を操作する。grab追従とホットバーは常時別表示
 // Handle four main rows; grab tracking and the hotbar render separately

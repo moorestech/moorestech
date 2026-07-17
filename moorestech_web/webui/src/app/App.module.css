@@ -81,7 +81,7 @@
   border-radius: 0;
   background: rgb(46 51 66);
   box-shadow: none;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   text-shadow: 1px 0 0 rgba(0, 0, 0, 0.7), -1px 0 0 rgba(0, 0, 0, 0.7), 0 1px 0 rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(0, 0, 0, 0.7);
 }
@@ -92,11 +92,8 @@
 
 /* 左下のキー操作ヒント（uGUI の GameStateController 準拠の常時ガイド） */
 /* Bottom-left key hints (always-on guide mirroring uGUI's GameStateController) */
-/* letter-spacingを詰めてbbox右端(x996→993近似)を正本へ寄せつつ、4方向陰影で正本級の輪郭太さを出す。
-   陰影は暗色のみ(明色シャドウ不可)なので、明ピクセル判定のkey-hints bboxを膨らませない */
-/* Tighten letter-spacing to pull the bbox right edge (996→~993) toward the reference, while a 4-direction
-   dark shadow adds the reference's outline weight; the shadow stays dark-only so it never inflates the
-   bright-pixel key-hints bbox */
+/* 字間で右端を合わせ、正本の暗画素比へ寄せるため影を右下1方向だけに置く */
+/* Match the right edge through spacing and use one lower-right shadow to approach the reference dark-pixel ratio */
 .keyHints {
   position: absolute;
   left: 7px;
@@ -108,13 +105,13 @@
   line-height: 1.2;
   letter-spacing: 0.055em;
   font-weight: 500;
-  color: #f2f3f7;
-  text-shadow: 1px 0 0 rgba(0, 0, 0, 0.8), -1px 0 0 rgba(0, 0, 0, 0.8), 0 1px 0 rgba(0, 0, 0, 0.8), 0 -1px 0 rgba(0, 0, 0, 0.8);
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
   pointer-events: none;
   z-index: 10;
 }
 
 .keyHints kbd {
   font: inherit;
-  color: #cdd2df;
+  color: #fff;
 }

@@ -18,7 +18,7 @@ import styles from "./ItemListPanel.module.css";
 // recipe-grid-col2 anchor)
 // カタログは2.5/3/3.5/4/4.5pxでrec-whiteまたは列検出が崩れたため、両方を守る実測下限5pxを使う
 // Use the measured 5px catalog floor because 2.5/3/3.5/4/4.5px broke rec-white or column detection
-const GRID_STYLE = { "--slot-size": "2.884rem", "--slot-grid-gap": "0.556rem", "--icon-pad": "5px" } as CSSProperties;
+const GRID_STYLE = { "--slot-size": "2.884rem", "--slot-grid-gap": "0.556rem", "--icon-pad": "5px", "--count-bottom": "-1px", "--count-font-size": "16px", "--count-letter-spacing": "0.12em" } as CSSProperties;
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
@@ -57,12 +57,6 @@ export default function ItemListPanel() {
           type="always"
           scrollbarSize={4}
           className={styles.scrollArea}
-          // iter6: 中央craft-panelの幅を0.8CSSpx縮めた分、grid-template-columns:autoの列境界が
-          // 連動して左へずれ、justifySelf:end中の本グリッドも巻き込まれてrecipe-grid-col2が後退した。
-          // marginLeftを+1.57px戻して打ち消す
-          // iter6: Trimming the center craft-panel's width by 0.8 CSS px shifted the auto column boundary
-          // left, dragging this justifySelf:end grid along with it and regressing recipe-grid-col2; add
-          // back +1.57px of marginLeft to cancel it out
           style={{ marginLeft: -0.43, marginRight: 6, marginTop: 12 }}
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>

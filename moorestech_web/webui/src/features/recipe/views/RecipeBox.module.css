@@ -47,6 +47,9 @@
   margin-left: -6px;
   --slot-size: 2.3rem;
   --icon-pad: 1px;
+  --count-bottom: -1px;
+  --count-font-size: 16px;
+  --count-letter-spacing: 0.12em;
 }
 
 .recipeArrowCol {
@@ -57,6 +60,9 @@
   justify-self: end;
   --slot-size: 2.3rem;
   --icon-pad: 1px;
+  --count-bottom: -1px;
+  --count-font-size: 16px;
+  --count-letter-spacing: 0.12em;
 }
 
 /* 上下の疑似要素で四隅のL字ブラケットを描く。D4: 鉤20px/線3pxは肥大していたため12px/2pxへ縮小し、
@@ -128,6 +134,7 @@
   min-height: 19px;
   height: 19px;
   padding: 0;
+  font-size: 12px;
   border-radius: 0;
   background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
   color: #fff;
@@ -149,6 +156,6 @@
 .craftButton[data-disabled] {
   opacity: 1;
   background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
-  color: rgb(255 255 255 / 65%);
+  color: rgb(255 255 255 / 80%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%);
 }

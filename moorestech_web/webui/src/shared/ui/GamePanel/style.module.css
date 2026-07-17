@@ -87,7 +87,9 @@
   line-height: 1;
   letter-spacing: 0.02em;
   color: #f2f3f7;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  transform: scale(0.947);
+  transform-origin: left center;
   white-space: nowrap;
 }
 
