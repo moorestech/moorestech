@@ -1,5 +1,5 @@
 import { Button, Text } from "@mantine/core";
-import styles from "../RecipeViewer.module.css";
+import styles from "./ItemHeader.module.css";
 
 // 選択アイテムのハンマータブ+品名ヘッダ
 // Hammer-tab + name header for the selected item

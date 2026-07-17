@@ -1,14 +1,49 @@
+/* uGUIの実フォントを移植。JPは和文専用グリフのみ持つため、英数はNotoSans-Regularへ字形単位で自動フォールバックする */
+/* Ports the real uGUI fonts; the JP face only carries Japanese glyphs, so Latin/digits fall back to NotoSans-Regular per-glyph */
+@font-face {
+  font-family: "MooresUI";
+  src: url("/fonts/NotoSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MooresUI JP";
+  src: url("/fonts/NotoSansJP-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* CEF は常時表示の透明オーバーレイのため body は完全透過（dim は App の screen バックドロップが担う） */
 /* The body is fully transparent since CEF is an always-on overlay; dimming is done by App's screen backdrop */
 /* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
 /* Overrides Mantine's global body background (--mantine-color-body) via import order */
 :root {
   --slot-size: 3rem;
+  --font-ui: "MooresUI", "MooresUI JP", sans-serif;
+
+  /* スロット枠の既定(持ち物基準)。正本のスロット間ギャップ実測(パネル縁でなく格子中間で断面採取)は
+     中間トーン2px+明灰2pxの2層のみ(暗リングは存在しない・パネル縁で見えた濃色帯は別要素)。カタログ/
+     ホットバーは各自で上書きする */
+  /* Default slot bevel (inventory baseline). The reference's true slot-to-slot gap cross-section (sampled
+     mid-grid, not at the panel edge) is only 2 layers — mid-tone 2px + light-gray 2px, no dark ring; the
+     darker band seen at the panel's own edge is a separate element. Catalog/hotbar override locally */
+  --bevel-1: 0.15px;
+  --bevel-2: 0.22px;
+  --bevel-3: 0.22px;
+  --bevel-c1: rgb(67 60 63);
+  --bevel-c2: rgb(111 106 105 / 85%);
+  --bevel-c3: rgb(111 106 105 / 85%);
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-ui), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  /* 実フォントは単一ウェイトのみのため合成太字・斜体は禁止し、正本のシャープな輪郭に合わせる */
+  /* The real faces ship a single weight, so forbid synthetic bold/italic to match the reference's crisp edges */
+  font-synthesis: none;
   background-color: transparent;
   color: #eee;
 }

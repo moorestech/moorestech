@@ -5,7 +5,7 @@ import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
 import { clampIndex, craftable } from "../craftLogic";
 import { useHoldCraft } from "../useHoldCraft";
-import styles from "../RecipeViewer.module.css";
+import styles from "./RecipeBox.module.css";
 import RecipePager from "./RecipePager";
 import CraftProgressArrow from "./CraftProgressArrow";
 

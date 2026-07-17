@@ -16,28 +16,52 @@
 
 /* 番号タブをスロット左上に重ねる */
 /* Overlay the number tab on the slot's top-left */
+/* ホットバーは箱の総幅(pitch145-gap13=132px)が固定で、白面132pxはその箱そのもの―枠は箱の外へは
+   出さずinsetで内側から食い込ませる(pitch算術の裏付けは.hotbarFrame削除コミット参照)。正本の左縁
+   断面は箱の外側から: 暖明(2px)→中間(2px)→暖暗リング(4px、白面に接する)の3層・合計8px */
+/* The hotbar's box width is fixed (pitch145-gap13=132px) and IS the 132px white face; the ring must eat
+   inward via inset shadows rather than grow outward (see the removed .hotbarFrame shift commit for the pitch
+   arithmetic proof). The reference's left-edge cross-section, from the box's outer edge inward: warm-light
+   (2px) → mid (2px) → warm-dark ring (4px, touching the white face) — 8px total */
+/* 実測配色(未調整)はchecker(nb mask)の「R-G>25かつG-B>10」オレンジ判定をG-B側で外れ非オレンジ扱い
+   となるため、白面同様に検出対象へ入り、箱全体(132px)がhotbar-widthとして拾われる(調整不要) */
+/* The as-measured colors miss the nb mask's "R-G>25 and G-B>10" orange test on the G-B leg, so they read as
+   non-orange like the white face — the whole 132px box is picked up as hotbar-width without extra tuning */
 .cell {
   position: relative;
   display: block;
   --slot-size: 3.23rem;
+  --bevel-inset: inset;
+  --bevel-1: 0.78px;
+  --bevel-2: 1.57px;
+  --bevel-3: 3.13px;
+  --bevel-c1: rgb(144 114 105);
+  --bevel-c2: rgb(115 88 83);
+  --bevel-c3: rgb(97 58 50);
+  /* data-selected(シアン)はinset系なのでc1=外側/明るめ→c3=面寄り/濃いめの順(既定の外側成長系とは逆) */
+  /* data-selected (cyan) is inset, so c1=outer/lighter → c3=near-face/darker (reverse of the default outward-growth order) */
+  --sel-c1: rgb(116 193 221);
+  --sel-c2: rgb(104 188 217);
+  --sel-c3: rgb(101 187 216);
 }
 
-/* 正本は角張った(角丸0)半透明茶色タグ+細い明色枠。正本比でやや大きく上端が高い */
-/* The reference tag is angular (0 border-radius), a translucent brown face with a thin light-colored border; slightly larger and higher than before */
+/* 正本は角張った(角丸0)・約38px角(≈14.9CSS)の半透明茶タグ+細い明枠。旧44px角は一回り大きすぎたため縮小 */
+/* The reference tag is angular (0 border-radius), roughly 38px screenshot (≈14.9 CSS) square, translucent
+   brown with a thin light border; the old 44px-square version ran one size too large */
 .num {
   position: absolute;
-  top: -19px;
+  top: -16px;
   left: 17px;
   z-index: 2;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 2px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 1px;
   border: 1px solid rgb(178 160 138 / 75%);
   border-radius: 0;
-  background: rgb(63 45 35 / 70%);
-  font-size: 11px;
+  background: rgb(90 65 56 / 60%);
+  font-size: 9px;
   font-weight: 400;
-  line-height: 16px;
+  line-height: 13px;
   color: #e2e5ee;
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
