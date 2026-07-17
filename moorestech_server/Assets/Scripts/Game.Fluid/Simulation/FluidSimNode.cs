@@ -45,7 +45,7 @@ namespace Game.Fluid.Simulation
 
             // 異種流体は拒否（空ノードは受け入れて流体IDを引き継ぐ）
             // Reject mismatched fluids; an empty node accepts and adopts the incoming id
-            var hasFluid = Amount > FluidSimulationConstants.AmountEpsilon;
+            var hasFluid = FluidSimulationConstants.AmountEpsilon < Amount;
             if (hasFluid && FluidId != fluidStack.FluidId) return fluidStack;
             if (!hasFluid) FluidId = fluidStack.FluidId;
 
@@ -60,7 +60,7 @@ namespace Game.Fluid.Simulation
         // Release the fluid id once the node is empty
         internal void CleanupIfEmpty()
         {
-            if (Amount > FluidSimulationConstants.AmountEpsilon) return;
+            if (FluidSimulationConstants.AmountEpsilon < Amount) return;
             Amount = 0;
             FluidId = FluidMaster.EmptyFluidId;
         }

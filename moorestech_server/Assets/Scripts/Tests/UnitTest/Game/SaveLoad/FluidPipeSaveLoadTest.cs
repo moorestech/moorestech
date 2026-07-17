@@ -6,6 +6,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Fluid;
+using Game.World.Interface.DataStore;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.CombinedTest.Core;
@@ -119,6 +120,53 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Loading restores it as the face's initial velocity
             var restored = jsonObject.ToFaceVelocityDictionary();
             Assert.AreEqual(jsonObject.FaceVelocities[0].Velocity, restored[new Vector3Int(1, 0, 0)]);
+        }
+
+        [Test]
+        // 保存した面速度が、実ロード経路（LoadBlockDataList→トポロジ再構築）で実際に面へシードされることを確認
+        // Saved face velocities are actually seeded into faces through the real load path (LoadBlockDataList → topology rebuild)
+        public void FaceVelocityLoadRestoreTest()
+        {
+            // 保存側ワールドで隣接パイプ間に面速度を発生させ、両パイプのセーブ状態を取得する
+            // In the source world, develop a face velocity between adjacent pipes and capture both pipes' save states
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var pipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var pipeBlock1);
+
+            pipeBlock0.GetComponent<FluidPipeComponent>().AddLiquid(new FluidStack(30d, FluidTest.FluidId), default);
+            for (var i = 0; i < 5; i++) GameUpdater.RunFrames(1);
+
+            var savedJson = Newtonsoft.Json.JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(
+                pipeBlock0.GetComponent<FluidPipeSaveComponent>().GetSaveState());
+            var savedVelocity = savedJson.FaceVelocities[0].Velocity;
+            Assert.Greater(savedVelocity, 0);
+
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
+            var blockJsonObjects = new List<BlockJsonObject>
+            {
+                new(Vector3Int.zero, blockGuid.ToString(), 1, pipeBlock0.GetSaveState(), (int)BlockDirection.North),
+                new(Vector3Int.right, blockGuid.ToString(), 2, pipeBlock1.GetSaveState(), (int)BlockDirection.North),
+            };
+
+            // 新しいワールドへ実ロード経路で復元し、tickを回さずに再構築だけ実行する
+            // Restore into a fresh world through the real load path, then rebuild without advancing any tick
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            ServerContext.WorldBlockDatastore.LoadBlockDataList(blockJsonObjects);
+
+            var fluidNetworkDatastore = ServerContext.GetService<FluidNetworkDatastore>();
+            fluidNetworkDatastore.RebuildIfDirty();
+
+            // 正準側(pipe0)が所有する+x方向の面に、保存値どおりの初期速度が乗っている
+            // The +x face owned by the canonical side (pipe0) carries exactly the saved initial velocity
+            var loadedPipe0 = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero).GetComponent<FluidPipeComponent>();
+            var faceVelocities = new List<(Vector3Int direction, double velocity)>();
+            fluidNetworkDatastore.CollectOwnedFaceVelocities(loadedPipe0, faceVelocities);
+
+            Assert.AreEqual(1, faceVelocities.Count);
+            Assert.AreEqual(new Vector3Int(1, 0, 0), faceVelocities[0].direction);
+            Assert.AreEqual(savedVelocity, faceVelocities[0].velocity, 1e-9);
         }
     }
 }

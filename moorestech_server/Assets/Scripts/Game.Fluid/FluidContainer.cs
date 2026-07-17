@@ -29,24 +29,24 @@ namespace Game.Fluid
             FluidId = FluidMaster.EmptyFluidId;
         }
 
-        // 液体を追加し、受け入れられなかった残量を返す。異種流体は拒否し、空コンテナは流入流体のIDを引き継ぐ
-        // Add liquid and return the unaccepted remainder; mismatched fluids are rejected and an empty container adopts the incoming id
-        public FluidStack AddLiquid(FluidStack fluidStack)
+        // 液体を追加し、残量・受入量・適合可否を返す。異種流体は拒否し、空コンテナは流入流体のIDを引き継ぐ
+        // Add liquid and return the remainder, accepted amount and compatibility; mismatched fluids are rejected and an empty container adopts the incoming id
+        public FluidContainerAddResult AddLiquid(FluidStack fluidStack)
         {
-            if (fluidStack.Amount <= 0) return fluidStack;
+            if (fluidStack.Amount <= 0) return new FluidContainerAddResult(fluidStack, 0, false);
 
             if (FluidId == FluidMaster.EmptyFluidId) FluidId = fluidStack.FluidId;
-            if (fluidStack.FluidId != FluidId) return fluidStack;
+            if (fluidStack.FluidId != FluidId) return new FluidContainerAddResult(fluidStack, 0, false);
 
             var freeCapacity = Capacity - Amount;
             if (freeCapacity < fluidStack.Amount)
             {
                 Amount = Capacity;
-                return new FluidStack(fluidStack.Amount - freeCapacity, fluidStack.FluidId);
+                return new FluidContainerAddResult(new FluidStack(fluidStack.Amount - freeCapacity, fluidStack.FluidId), freeCapacity, true);
             }
 
             Amount += fluidStack.Amount;
-            return new FluidStack(0, fluidStack.FluidId);
+            return new FluidContainerAddResult(new FluidStack(0, fluidStack.FluidId), fluidStack.Amount, true);
         }
     }
 }

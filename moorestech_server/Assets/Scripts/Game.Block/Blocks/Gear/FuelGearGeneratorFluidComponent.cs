@@ -66,10 +66,9 @@ namespace Game.Block.Blocks.Gear
         {
             // タンクに液体を追加する。満タンで受け入れ0でも適合流体の供給が届いていれば補給ありとみなす（満タン時の誤切断防止）
             // Add liquid to the tank; even a zero-accepted delivery of a compatible fluid counts as a refill (prevents false disconnection while full)
-            var remain = _fuelTank.AddLiquid(fluidStack);
-            var isCompatibleSupply = _fuelTank.FluidId == FluidMaster.EmptyFluidId || _fuelTank.FluidId == fluidStack.FluidId;
-            if (fluidStack.Amount > 0 && isCompatibleSupply) _refilledThisTick = true;
-            return remain;
+            var result = _fuelTank.AddLiquid(fluidStack);
+            if (result.IsCompatibleSupply) _refilledThisTick = true;
+            return result.Remainder;
         }
         
         public bool IsDestroy { get; private set; }

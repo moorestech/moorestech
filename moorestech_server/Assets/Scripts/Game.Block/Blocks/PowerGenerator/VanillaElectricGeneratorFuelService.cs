@@ -202,7 +202,7 @@ namespace Game.Block.Blocks.PowerGenerator
             // タンク未生成（液体燃料設定なし）の場合は受け入れず全量返す
             // Without a tank (no fluid fuel configured), reject and return the full stack
             if (_fuelFluidContainer == null) return fluidStack;
-            return _fuelFluidContainer.AddLiquid(fluidStack);
+            return _fuelFluidContainer.AddLiquid(fluidStack).Remainder;
         }
 
 
