@@ -55,10 +55,10 @@ namespace Game.EnergySystem
 
             #region Internal
 
-            void RegisterRoles(EnergySegment targetSegment, IElectricWireConnector targetConnector)
+            static void RegisterRoles(EnergySegment segment, IElectricWireConnector connector)
             {
-                if (targetConnector.EnergyRole is IElectricConsumer consumer) targetSegment.AddEnergyConsumer(consumer);
-                if (targetConnector.EnergyRole is IElectricGenerator generator) targetSegment.AddGenerator(generator);
+                if (connector.EnergyRole is IElectricConsumer consumer) segment.AddEnergyConsumer(consumer);
+                if (connector.EnergyRole is IElectricGenerator generator) segment.AddGenerator(generator);
             }
 
             #endregion
@@ -80,5 +80,6 @@ namespace Game.EnergySystem
             _connectorToSegment.Clear();
             _segments.Clear();
         }
+
     }
 }

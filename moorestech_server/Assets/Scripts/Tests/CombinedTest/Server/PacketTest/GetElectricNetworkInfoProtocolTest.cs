@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Advance one tick so the topology flush and statistics settlement run
             GameUpdater.UpdateOneTick();
 
-            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
             Assert.IsTrue(segmentDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var segment));
 
             var expected = segment.Statistics;

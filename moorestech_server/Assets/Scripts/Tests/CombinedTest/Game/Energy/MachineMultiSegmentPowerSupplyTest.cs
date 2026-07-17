@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Game.Energy
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
 
             // 電柱・機械・無限発電機を設置してワイヤーで接続する
             // Place a pole, machine, and infinite generator, then wire them together

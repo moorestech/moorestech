@@ -61,7 +61,7 @@ namespace Tests.CombinedTest.Game
             // Advance one tick for the topology flush and statistics settlement
             GameUpdater.UpdateOneTick();
 
-            var networkDatastore = saveServiceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = saveServiceProvider.GetService<IElectricWireNetworkLookup>();
             Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var savedSegment));
             var savedStatistics = savedSegment.Statistics;
@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Game
 
             // ロード直後は接続情報だけがあり、派生した電力網はまだ構築されていない
             // Immediately after load, connections exist but the derived electric network is not built yet
-            var loadedNetworkDatastore = loadServiceProvider.GetService<IElectricWireNetworkDatastore>();
+            var loadedNetworkDatastore = loadServiceProvider.GetService<IElectricWireNetworkLookup>();
             var loadedPoleBeforeRebuild = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
             Assert.IsFalse(loadedNetworkDatastore.TryGetEnergySegment(loadedPoleBeforeRebuild.BlockInstanceId, out _));
 
@@ -152,7 +152,7 @@ namespace Tests.CombinedTest.Game
             // Advance one tick for the topology flush
             GameUpdater.UpdateOneTick();
 
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
             Assert.AreEqual(1, GetSegmentCount(networkDatastore));
 
             var connectorA = blockA.GetComponent<IElectricWireConnector>();

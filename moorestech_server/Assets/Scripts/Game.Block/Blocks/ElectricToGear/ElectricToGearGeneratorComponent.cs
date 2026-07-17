@@ -22,6 +22,8 @@ namespace Game.Block.Blocks.ElectricToGear
     /// </summary>
     public class ElectricToGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IElectricConsumer, IElectricTickPostHandler, IBlockStateDetail, IBlockSaveState, IBlockStateObservable
     {
+        private const float FullChargeToleranceRate = 1e-4f;
+
         public int TeethCount => _param.TeethCount;
         public bool GenerateIsClockwise => true;
 
@@ -99,7 +101,7 @@ namespace Game.Block.Blocks.ElectricToGear
 
             // 浮動小数の充電誤差を許容して満充電を判定する
             // Full charge is judged with a small tolerance for floating point charge error
-            var isFull = BatteryCapacity - BatteryCapacity * 1e-4f <= _batteryRemaining;
+            var isFull = BatteryCapacity - BatteryCapacity * FullChargeToleranceRate <= _batteryRemaining;
             SetOutputting(isFull);
             if (0f < _lastChargedPower) _onChangeBlockState.OnNext(Unit.Default);
         }

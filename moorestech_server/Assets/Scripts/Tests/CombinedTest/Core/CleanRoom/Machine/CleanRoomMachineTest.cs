@@ -192,7 +192,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         // Unless the filter's segment already has a generator, wire a full-power generator through a pole outside the room
         private static void EnsureFilterWiredPower(IBlock filter)
         {
-            var datastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            var datastore = ServerContext.GetService<IElectricWireNetworkLookup>();
             if (datastore.TryGetEnergySegment(filter.BlockInstanceId, out var segment) && 0 < ElectricNetworkReflectionTestUtil.GetGenerators(segment).Count) return;
             ElectricWireTestUtil.WirePower(filter.BlockPositionInfo.OriginalPos, new Vector3Int(30, 0, 30), 100f);
         }

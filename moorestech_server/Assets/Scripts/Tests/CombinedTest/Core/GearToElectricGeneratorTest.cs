@@ -100,8 +100,6 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0f, generatorComponent.OutputEnergy().AsPrimitive(), 0.01f);
         }
 
-        #region Internal
-
         private static void AdvanceTime(double seconds)
         {
             var start = DateTime.Now;
@@ -111,6 +109,5 @@ namespace Tests.CombinedTest.Core
             }
         }
 
-        #endregion
     }
 }

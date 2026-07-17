@@ -4,18 +4,18 @@ namespace Game.EnergySystem
     // Settles supply and demand and runs post-processing for every applied electric segment
     public class ElectricTickUpdater
     {
-        private readonly IElectricWireNetworkDatastore _electricWireNetworkDatastore;
+        private readonly IElectricWireNetworkLookup _electricWireNetworkLookup;
 
-        public ElectricTickUpdater(IElectricWireNetworkDatastore electricWireNetworkDatastore)
+        public ElectricTickUpdater(IElectricWireNetworkLookup electricWireNetworkLookup)
         {
-            _electricWireNetworkDatastore = electricWireNetworkDatastore;
+            _electricWireNetworkLookup = electricWireNetworkLookup;
         }
 
         public void Update()
         {
             // 再構築はtick先頭のMasterTickUpdaterが担い、ここでは需給計算だけ行う
             // MasterTickUpdater owns the tick-head rebuild; this updater performs settlement only
-            foreach (var segment in _electricWireNetworkDatastore.GetSegments())
+            foreach (var segment in _electricWireNetworkLookup.GetSegments())
             {
                 segment.SettleTick();
                 segment.RunPostTickProcess();

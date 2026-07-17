@@ -49,7 +49,7 @@ namespace Tests.Util
             ServerContext.GetService<ElectricWireNetworkDatastore>().RebuildIfDirty();
 
             var consumerId = world.GetBlock(consumerPos).BlockInstanceId;
-            ServerContext.GetService<IElectricWireNetworkDatastore>().TryGetEnergySegment(consumerId, out var segment);
+            ServerContext.GetService<IElectricWireNetworkLookup>().TryGetEnergySegment(consumerId, out var segment);
             var generator = new TestElectricGenerator(new ElectricPower(generatePower), new BlockInstanceId(_nextTestGeneratorId++));
             ElectricNetworkReflectionTestUtil.AddGenerator(segment, generator);
             return generator;

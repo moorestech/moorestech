@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Core
             // ポンプが属するワイヤーセグメントへテスト発電機を登録し powerRate=1.0 にする
             // Register a test generator into the pump's wire segment so powerRate = 1.0
             GameUpdater.UpdateOneTick();
-            var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = ServerContext.GetService<IElectricWireNetworkLookup>();
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pump.BlockInstanceId, out var segment));
             AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
             GameUpdater.UpdateOneTick();

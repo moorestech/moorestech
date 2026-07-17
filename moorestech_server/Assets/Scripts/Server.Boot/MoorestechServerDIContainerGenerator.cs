@@ -149,10 +149,11 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            // 具象はMasterTickUpdaterの再構築用、interfaceは参照系向け。同一インスタンスを共有する
-            // The concrete type serves MasterTickUpdater's rebuild; the interface serves readers. Both share one instance
+            // 具象はMasterTickUpdaterの再構築用、Lookup/Mutationは読み書きの契約別。全て同一インスタンスを共有する
+            // The concrete type serves MasterTickUpdater's rebuild; Lookup/Mutation split read and write contracts. All share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
-            services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
+            services.AddSingleton<IElectricWireNetworkLookup>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
+            services.AddSingleton<IElectricWireNetworkMutation>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？

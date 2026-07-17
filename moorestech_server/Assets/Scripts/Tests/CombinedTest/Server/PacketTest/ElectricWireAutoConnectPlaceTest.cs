@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             SetupWire(serviceProvider, 0);
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
-            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
             // 事前配置分のトポロジを反映してから基準値を取る
             // Flush the pre-placed topology before taking the baseline
             GameUpdater.UpdateOneTick();

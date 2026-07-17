@@ -4,7 +4,6 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Blocks.ElectricWire;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -21,7 +20,7 @@ namespace Game.Block.Blocks.CleanRoom
     ///     電力割合とフィルター装填に応じて部屋の不純物を除去する清浄機
     ///     Air purifier removing room impurities based on power ratio and loaded filters
     /// </summary>
-    public class CleanRoomAirFilterComponent : IElectricConsumer, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomAirFilter
+    public class CleanRoomAirFilterComponent : IElectricConsumer, IElectricTickPostHandler, IBlockSaveState, ICleanRoomAirFilter
     {
         // 実効除去体積 = 基本値 × 電力割合 × フィルター有無
         // Effective removal volume = base x power ratio x filter presence
@@ -34,8 +33,8 @@ namespace Game.Block.Blocks.CleanRoom
         private readonly double _filterCapacity;
         private readonly ItemId _filterItemId;
 
-        // Update冒頭で確定した現在電力
-        // The current power latched at the start of Update
+        // 電力tickの後処理で確定した現在電力
+        // The current power settled by the electric tick post-process
         private float _currentPower;
         private double _wearAccumulation;
 
@@ -67,14 +66,13 @@ namespace Game.Block.Blocks.CleanRoom
 
         public ElectricPower RequestEnergy => new(_requiredPower);
 
-        public void Update()
+        public void OnElectricTickPostProcess(ElectricNetworkStatistics statistics)
         {
             CheckDestroy(this);
 
-            // 実効電力 = 要求電力 × 所属セグメントの確定済み供給率
-            // Effective power = requested power x the segment's settled supply rate
-            var powerRate = ElectricSegmentPowerRateResolver.GetPowerRate(BlockInstanceId);
-            _currentPower = _requiredPower * powerRate;
+            // 電力tickで確定した供給率を現在電力へ反映する
+            // Apply the electric tick's settled supply rate to the current power
+            _currentPower = _requiredPower * statistics.PowerRate;
         }
 
         public void ApplyRemovedImpurity(double removed)
