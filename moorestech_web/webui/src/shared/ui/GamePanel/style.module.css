@@ -2,14 +2,34 @@
 /* Let side panels dissolve into the world without a hard outer edge */
 .panel {
   position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   padding: 8px 10px 10px;
   color: #e8eaf0;
   border: 0;
   border-radius: 0;
-  background: radial-gradient(ellipse at center, rgb(8 12 16 / 30%) 0%, rgb(8 12 16 / 30%) 72%, transparent 100%);
+  background: transparent;
   box-shadow: none;
+}
+
+/* 側面パネルの暗部を外側まで広げ、平坦な矩形境界を残さず減衰させる */
+/* Extend side-panel shading outward and decay it without a flat rectangular boundary */
+.panel:not(.craft)::before {
+  position: absolute;
+  z-index: 0;
+  inset: -8px -4px;
+  background: linear-gradient(90deg, transparent 0%, rgb(3 5 8 / 88%) 2%, rgb(8 12 16 / 79%) 5%, rgb(8 12 16 / 79%) 95%, rgb(3 5 8 / 88%) 98%, transparent 100%);
+  content: "";
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+/* 内容を暗部レイヤーの前面に固定する */
+/* Keep panel content in front of the shading layer */
+.panel:not(.craft) > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* 中央だけ外枠と内周線を持つ二層クロームにする */
@@ -63,15 +83,17 @@
 .decoLine {
   height: 2px;
   margin: 4px 0;
-  background: linear-gradient(90deg, rgb(124 130 145 / 18%) 0%, rgb(124 130 145 / 40%) 12%, rgb(124 130 145 / 70%) 35%, rgb(124 130 145 / 78%) 45%, rgb(124 130 145 / 70%) 55%, rgb(124 130 145 / 40%) 80%, rgb(124 130 145 / 16%) 90%, rgb(124 130 145 / 10%) 100%);
+  background: linear-gradient(90deg, transparent 0%, rgb(124 130 145 / 30%) 5%, rgb(124 130 145 / 42%) 11%, rgb(124 130 145 / 42%) 89%, rgb(124 130 145 / 26%) 95%, transparent 100%);
 }
 
 .decoLine:first-child {
   margin-top: 0;
+  background: linear-gradient(90deg, transparent 0%, rgb(135 143 169 / 42%) 5%, rgb(135 143 169 / 59%) 11%, rgb(135 143 169 / 59%) 89%, rgb(135 143 169 / 38%) 95%, transparent 100%);
 }
 
 .decoLine:nth-child(3) {
   margin-bottom: 8px;
+  background: linear-gradient(90deg, transparent 0%, rgb(124 130 145 / 10%) 5%, rgb(124 130 145 / 14%) 11%, rgb(124 130 145 / 14%) 89%, rgb(124 130 145 / 9%) 95%, transparent 100%);
 }
 
 .body {
