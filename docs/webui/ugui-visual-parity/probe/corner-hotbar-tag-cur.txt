@@ -1,0 +1,2 @@
+corner: /Users/katsumi/moorestech-worktrees/tree3/.mso/sessions/f2277f3f-2541-4bde-8ce2-a9e31d6cede5/turns/iter0-current.png box=32.7,85.6,1.0,1.2% corner=tl
+  エッジ検出不足 — box を角に合わせ直す（背景と本体の両方を含む小領域にする）

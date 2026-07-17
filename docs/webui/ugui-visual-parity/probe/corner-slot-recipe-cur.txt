@@ -1,0 +1,4 @@
+corner: /Users/katsumi/moorestech-worktrees/tree3/.mso/sessions/f2277f3f-2541-4bde-8ce2-a9e31d6cede5/turns/iter0-current.png box=69.3,23.2,1.8,2.4% corner=tl
+  エッジx変位: 先頭行7px → 安定4px、垂直エッジ到達まで 5行
+  判定: 角丸 (radius≈5px)
+  ※ 角セルにはこの radius 値と判定を引用する（目視の直角/角丸断定は禁止）
