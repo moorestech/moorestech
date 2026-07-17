@@ -9,12 +9,12 @@ namespace Game.Block.Blocks.Fluid
 {
     /// <summary>
     ///     全パイプの登録と、シミュレーション用トポロジ（ノード・面・境界ポート）の構築を担うデータストア。
-    ///     登録集合とdirtyフラグを持ち、tick先頭にServerTickUpdaterから呼ばれるRebuildIfDirtyでO(V+E)一括再構築する（electric・gearと同型）。
+    ///     登録集合とdirtyフラグを持ち、tick先頭にMasterTickUpdaterから呼ばれるRebuildIfDirtyでO(V+E)一括再構築する（electric・gearと同型）。
     ///     ブロックの増減は流体接続の増減なので、ワールド更新イベントでdirtyフラグを立て、次tick先頭で組み直す。
     ///     ノード・面は座標順にソートして保持し、走査順を決定論的にする（将来のクライアント同時計算の前提）。
     ///
     ///     Datastore registering every pipe and building the simulation topology (nodes, faces, boundary ports).
-    ///     It keeps a registration set plus a dirty flag; RebuildIfDirty, called by ServerTickUpdater at the tick head, rebuilds everything in O(V+E) like electric and gear.
+    ///     It keeps a registration set plus a dirty flag; RebuildIfDirty, called by MasterTickUpdater at the tick head, rebuilds everything in O(V+E) like electric and gear.
     ///     Any block place/remove can change fluid connections, so world update events mark the topology dirty for the next tick head.
     ///     Nodes and faces are kept position-sorted so iteration is deterministic (a prerequisite for future client-side co-simulation).
     /// </summary>
@@ -62,8 +62,8 @@ namespace Game.Block.Blocks.Fluid
             }
         }
 
-        // tick先頭にServerTickUpdaterから呼ばれ、登録・接続に変化があった時だけトポロジを一括再構築する
-        // Called by ServerTickUpdater at the tick head; rebuilds the whole topology only when registrations or connections changed
+        // tick先頭にMasterTickUpdaterから呼ばれ、登録・接続に変化があった時だけトポロジを一括再構築する
+        // Called by MasterTickUpdater at the tick head; rebuilds the whole topology only when registrations or connections changed
         public void RebuildIfDirty()
         {
             if (!_isTopologyDirty) return;

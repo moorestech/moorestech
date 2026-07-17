@@ -34,15 +34,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             fluidPipe.Node.FluidId = fluidId;
             fluidPipe.Node.Amount = fluidAmount;
 
-            // セーブデータ取得
-            // Fetch the save state
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
             var saveText = saveComponent.GetSaveState();
             var states = new Dictionary<string, string> { { saveComponent.SaveKey, saveText } };
             Debug.Log(saveText);
 
-            // セーブデータをロード
-            // Load from the save state
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
             var loadedFluidPipeBlock = blockFactory.Load(blockGuid, new BlockInstanceId(1), states, fluidPipePosInfo);
             var loadedFluidPipe = loadedFluidPipeBlock.GetComponent<FluidPipeComponent>();
@@ -68,15 +64,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(FluidMaster.EmptyFluidId, fluidPipe.Node.FluidId);
             Assert.AreEqual(0, fluidPipe.Node.Amount);
 
-            // セーブデータ取得
-            // Fetch the save state
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
             var saveText = saveComponent.GetSaveState();
             var states = new Dictionary<string, string> { { saveComponent.SaveKey, saveText } };
             Debug.Log(saveText);
 
-            // セーブデータをロード
-            // Load from the save state
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
             var loadedFluidPipeBlock = blockFactory.Load(blockGuid, new BlockInstanceId(1), states, fluidPipePosInfo);
             var loadedFluidPipe = loadedFluidPipeBlock.GetComponent<FluidPipeComponent>();

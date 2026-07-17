@@ -44,8 +44,6 @@ namespace Game.Block.Blocks.Machine
             // 入力: パイプからの転送はAddLiquidメソッドで受動的に処理される
             // Input: transfers from pipes arrive passively through AddLiquid
 
-            // 出力: 機械からパイプへ流体を転送
-            // Output: push fluid from the machine into connected pipes
             TransferFromMachineToPipes();
 
             // 空になったタンクの流体IDをリセットする
@@ -70,8 +68,6 @@ namespace Game.Block.Blocks.Machine
 
         private void TransferFromMachineToPipes()
         {
-            // 接続されたパイプに流体を送る
-            // Push fluid into connected pipes
             var connectedFluids = _fluidConnector.ConnectedTargets;
             foreach (var (fluidInventory, info) in connectedFluids)
             {
