@@ -14,18 +14,24 @@
   align-items: stretch;
   text-align: center;
 }
+/* 台形風フラップ。正本の外接(約64.6×27design-px)に合わせ固定寸法+中央寄せにする */
+/* Trapezoid-flavored flap sized to the reference footprint (~64.6x27 design px), centered content */
 .toolTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   align-self: flex-start;
-  margin-top: -2.25rem;
-  margin-left: 0.15rem;
+  width: 70px;
+  height: 31px;
+  margin-top: -2.47rem;
+  margin-left: -0.8rem;
   margin-bottom: 0.2rem;
-  padding: 0.2rem 0.45rem;
   border: 2px solid #a7a9b3;
   border-bottom: 0;
   border-radius: 0;
   background: #303542;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 18px;
+  line-height: 1;
 }
 .itemName {
   font-size: 1rem;
@@ -35,7 +41,8 @@
 }
 .recipeTreeButton {
   align-self: center;
-  margin-top: 0.2rem;
+  margin-top: 0.56rem;
+  margin-left: -2px;
   width: 106px;
   height: 21px;
   min-height: 21px;
@@ -79,8 +86,10 @@
 .recipeBox {
   position: relative;
   align-self: center;
-  width: calc(100% - 24px);
-  min-height: 3.9rem;
+  margin-top: -1px;
+  margin-left: -5.8px;
+  width: calc(100% - 18.8px);
+  min-height: 3.36rem;
   padding: 0.35rem 0.75rem 0.1rem;
   border: 1px solid rgb(90 160 220 / 50%);
   border-radius: 0;
@@ -145,7 +154,7 @@
   width: 106px;
   max-width: none;
   margin-top: auto;
-  margin-bottom: 30px;
+  margin-bottom: 13px;
   min-height: 21px;
   height: 21px;
   padding: 0;

@@ -19,7 +19,7 @@
 .cell {
   position: relative;
   display: block;
-  --slot-size: 3.15625rem;
+  --slot-size: 3.23rem;
 }
 
 .num {

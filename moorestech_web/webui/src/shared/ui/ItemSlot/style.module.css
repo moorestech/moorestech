@@ -6,16 +6,22 @@
   position: relative;
   width: var(--slot-size, 2rem);
   height: var(--slot-size, 2rem);
-  border: 2px solid rgb(150 153 158 / 60%);
+  border: 2px solid rgb(150 153 158 / 72%);
   border-radius: 0;
-  background-color: rgb(35 40 49 / 34%);
+  background-color: rgb(58 48 51);
   user-select: none;
 }
 
-/* アイテム入りセルは明色塗りで空セルと二層のコントラストを付ける */
-/* Occupied cells use a light fill to contrast against dark empty cells */
+/* カタログ（レシピ一覧）の未所持セルは中間グレー面。所持セルは白面で上書きする */
+/* Catalog (recipe list) unowned cells use a mid-gray face; owned cells are overridden white below */
+.slot[data-catalog="true"] {
+  background-color: rgb(126 126 126);
+}
+
+/* アイテム入り（所持）セルは白面で空・未所持セルと二層のコントラストを付ける */
+/* Occupied (owned) cells use a white face to contrast against dark empty / gray catalog cells */
 .slot[data-filled="true"] {
-  background-color: rgb(236 237 239 / 90%);
+  background-color: rgb(254 254 254);
 }
 
 /* 選択状態はシアンの塗りと細枠で強調する */
@@ -26,11 +32,13 @@
   box-shadow: 0 0 7px rgb(65 220 246 / 55%);
 }
 
+/* アイコンは内面の70-90%に収め、面色測定用の隅を空ける（正本準拠） */
+/* Keep the icon to 70-90% of the face so a color-measurable corner remains, matching the reference */
 .icon {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 1px;
+  padding: 4px;
 }
 
 .count {
