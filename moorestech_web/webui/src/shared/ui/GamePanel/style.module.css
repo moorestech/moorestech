@@ -1,29 +1,47 @@
-/* フラットな半透明ダークパネルを使う */
-/* Use a flat, translucent dark panel */
+/* 側面パネルは縁を設けず世界背景へ溶かす */
+/* Let side panels dissolve into the world without a hard outer edge */
 .panel {
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 8px 10px 10px;
   color: #e8eaf0;
-  background: rgba(24, 27, 33, 0.86);
-  border: 1px solid rgba(150, 156, 168, 0.5);
-  border-radius: 2px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  border: 0;
+  border-radius: 0;
+  background: radial-gradient(ellipse at center, rgb(8 12 16 / 30%) 0%, rgb(8 12 16 / 30%) 72%, transparent 100%);
+  box-shadow: none;
 }
 
-/* クラフト詳細も同じクロームでわずかに透過する */
-/* Craft detail uses the same chrome with slight transparency */
+/* 中央だけ外枠と内周線を持つ二層クロームにする */
+/* Give only the center panel a two-layer outer frame and inset rule */
 .craft {
   padding: 8px 10px 6px;
-  background: rgba(24, 27, 33, 0.7);
+  border: 1px solid rgb(112 118 132 / 88%);
+  background: rgb(0 6 10 / 51%);
+  box-shadow: inset 0 0 0 4px rgb(3 7 11 / 78%), inset 0 0 0 5px rgb(116 124 137 / 55%);
+}
+
+/* 右下の下向き三角グリップを正本位置へ置く */
+/* Place the downward triangular grip at the reference bottom-right position */
+.craft::after {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  width: 0;
+  height: 0;
+  border-right: 7px solid transparent;
+  border-bottom: 0;
+  border-left: 7px solid transparent;
+  border-top: 11px solid rgb(191 194 205 / 88%);
+  content: "";
+  filter: drop-shadow(0 0 2px rgb(255 255 255 / 40%));
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 18px;
+  min-height: 19px;
 }
 
 .title {
@@ -40,12 +58,20 @@
   margin-left: auto;
 }
 
-/* タイトル下は単一の細い罫線にする */
-/* Use a single thin rule beneath the title */
+/* 上下罫線は中央を保ちつつ両端を世界背景へフェードさせる */
+/* Keep the middle of both rules while fading their ends into the world */
 .decoLine {
-  height: 1px;
-  margin: 5px 0 8px;
-  background: rgba(150, 156, 168, 0.45);
+  height: 2px;
+  margin: 4px 0;
+  background: linear-gradient(90deg, transparent 0%, rgb(124 130 145 / 78%) 22%, rgb(124 130 145 / 78%) 68%, rgb(124 130 145 / 34%) 100%);
+}
+
+.decoLine:first-child {
+  margin-top: 0;
+}
+
+.decoLine:nth-child(3) {
+  margin-bottom: 8px;
 }
 
 .body {

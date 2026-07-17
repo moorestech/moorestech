@@ -21,11 +21,12 @@ export default function GamePanel({ gridArea, title, headerRight, variant = "def
     <div className={className} style={{ gridArea, ...style }} data-testid={testId}>
       {title !== undefined ? (
         <>
+          <div className={styles.decoLine} aria-hidden="true" />
           <div className={styles.header}>
             <h2 className={styles.title}>{title}</h2>
             {headerRight ? <span className={styles.headerRight}>{headerRight}</span> : null}
           </div>
-          <div className={styles.decoLine} />
+          <div className={styles.decoLine} aria-hidden="true" />
         </>
       ) : null}
       <div className={styles.body}>{children}</div>

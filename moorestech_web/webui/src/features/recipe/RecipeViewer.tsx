@@ -18,10 +18,10 @@ export default function RecipeViewer() {
 
   // 選択時は左右パネルと等高、未選択時は縦の空箱を避け低めにする
   // Match the side panels when selected; keep the empty box short when nothing is selected
-  const panelMinHeight = loaded && selectedItemId !== null ? 452 : 300;
+  const panelMinHeight = loaded && selectedItemId !== null ? 445 : 300;
 
   return (
-    <GamePanel gridArea="viewer" variant="craft" style={{ alignSelf: "start", justifySelf: "center", width: 356, minWidth: 0, minHeight: panelMinHeight }}>
+    <GamePanel gridArea="viewer" variant="craft" style={{ alignSelf: "start", justifySelf: "center", width: 336, minWidth: 0, minHeight: panelMinHeight }}>
       {!loaded ? (
         <Text size="sm" c="dimmed" m="auto">connecting...</Text>
       ) : selectedItemId === null ? (
