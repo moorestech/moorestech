@@ -79,14 +79,10 @@ namespace Game.Block.Blocks.Fluid
             return fluidStacks;
         }
 
-        public FluidPipeStateDetail GetFluidPipeStateDetail()
-        {
-            return new FluidPipeStateDetail(Node.FluidId, (float)Node.Amount, (float)Node.Capacity);
-        }
-
         public BlockStateDetail[] GetBlockStateDetails()
         {
-            var serialized = MessagePackSerializer.Serialize(GetFluidPipeStateDetail());
+            var stateDetail = new FluidPipeStateDetail(Node.FluidId, (float)Node.Amount, (float)Node.Capacity);
+            var serialized = MessagePackSerializer.Serialize(stateDetail);
             return new[] { new BlockStateDetail(FluidPipeStateDetail.BlockStateDetailKey, serialized) };
         }
 
