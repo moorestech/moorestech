@@ -109,6 +109,37 @@ def main() -> int:
     else:
         check("inv-grid-pitch", False, f"columns not detected ({len(cols)} runs)")
 
+    # 持ち物3段目(空行)の枠線ピークで面幅と間隔 / Inventory face width + gap via empty-row border peaks
+    prof = im[750:850, 180:1100].mean(axis=(0, 2))
+    base = float(np.median(prof))
+    peaks = [i + 180 for i in range(1, len(prof) - 1) if prof[i] > base + 6 and prof[i] >= prof[i - 1] and prof[i] >= prof[i + 1]]
+    merged = []
+    for p in peaks:
+        if merged and p - merged[-1][-1] <= 6: merged[-1].append(p)
+        else: merged.append([p])
+    centers = [int(np.mean(g)) for g in merged]
+    diffs = [centers[i + 1] - centers[i] for i in range(len(centers) - 1)]
+    faces = [d for d in diffs if 100 < d < 135]
+    gaps = [d for d in diffs if 8 < d < 40]
+    if faces and gaps:
+        fw, gp = float(np.median(faces)), float(np.median(gaps))
+        check("inv-slot-face", abs(fw - 123) <= 2, f"target=123 got={fw:.0f} (border-to-border)")
+        check("inv-slot-gap", abs(gp - 16) <= 2, f"target=16 got={gp:.0f}")
+    else:
+        check("inv-slot-face", False, f"borders not detected (diffs={diffs})")
+
+    # レシピ格子: 白面ラン列で列2起点とピッチ / Recipe grid col-2 origin + pitch via bright-face runs
+    rgrid = (im[440:1390, 2150:3120].min(axis=2) > 180).mean(axis=0)
+    rcols = [(a + 2150, b + 2150) for a, b in runs_of(rgrid, 60, 0.10)]
+    rstarts = [a for a, _ in rcols]
+    near_col2 = [s for s in rstarts if abs(s - 2372) <= 60]
+    check("recipe-grid-col2", bool(near_col2) and abs(near_col2[0] - 2372) <= 3,
+          f"target=2372 got={near_col2[0] if near_col2 else rstarts[:3]}")
+    if len(rstarts) > 1:
+        gapsr = [rstarts[i + 1] - rstarts[i] for i in range(len(rstarts) - 1)]
+        pitchr = min(g % 140 if g % 140 <= 70 else 140 - g % 140 for g in gapsr)
+        check("recipe-grid-pitch", pitchr <= 2, f"pitch mod140 dev={pitchr} starts={rstarts}")
+
     # ホットバー: 非オレンジマスクのランで幅・ピッチ・起点 / Hotbar width/pitch/origin via non-orange runs
     nb = ~((R > G + 25) & (G > B + 10) & (R > 90))
     hot = nb[1704:1836, 600:2600].mean(axis=0)
