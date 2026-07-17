@@ -5,9 +5,11 @@ import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { createSlotActions } from "../slotActions";
 
-// 正本のスロット外形123px・間隔16pxへ寄せる局所上書き（他グリッドの既定値は変えない）
-// Local override toward the reference's 123px slot face / 16px gap (other grids keep their defaults)
-const GRID_STYLE = { "--slot-size": "3.08rem", "--slot-grid-gap": "0.36rem" } as CSSProperties;
+// 正本のスロット外形123px・間隔16pxへ寄せる局所上書き（他グリッドの既定値は変えない）。marginTopはiter2で
+// ヘッダーを固定高(19px)にした際に格子が上へずれた分の補正（レシピ側のScrollArea marginTopと揃える）
+// Local override toward the reference's 123px slot face / 16px gap (other grids keep their defaults). marginTop
+// corrects the grid shift introduced when the header became a fixed 19px height in iter2 (matches the recipe side's ScrollArea marginTop)
+const GRID_STYLE = { "--slot-size": "3.08rem", "--slot-grid-gap": "0.36rem", marginTop: "12px" } as CSSProperties;
 
 // メイン4行を操作する。grab追従とホットバーは常時別表示
 // Handle four main rows; grab tracking and the hotbar render separately

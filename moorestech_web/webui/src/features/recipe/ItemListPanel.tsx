@@ -30,16 +30,20 @@ export default function ItemListPanel() {
   }, [inventory]);
 
   return (
-    <GamePanel gridArea="items" title="CRAFT RECIPE" style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452 }}>
+    <GamePanel
+      gridArea="items"
+      title="CRAFT RECIPE"
+      style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452 }}
+    >
       {itemList ? (
-        // mah は正本のノブ寸法(トラック比≈70%)に寄せるため7段全高より小さくする。marginLeftはグリッド内側インデント補正、
-        // marginTopはノブの縦位置合わせ。align-self:stretchだとmarginLeftだけでは右端(ノブ位置)が動かないため
-        // marginRightで右端を別途詰める
-        // mah is kept below the full 7-row height so the thumb ratio approximates the reference (~70%). marginLeft
+        // mahは7段の全高より少し余裕を持たせ、42件(=7段ちょうど)が丸ごと収まるようにする。marginLeftはグリッド内側
+        // インデント補正、marginTopはノブの縦位置合わせ。align-self:stretchだとmarginLeftだけでは右端(ノブ位置)が
+        // 動かないためmarginRightで右端を別途詰める
+        // mah has slack beyond the full 7-row height so all 42 mock items (=exactly 7 rows) fit whole. marginLeft
         // corrects the grid inset; marginTop aligns the knob vertically. Under align-self:stretch, marginLeft alone
         // doesn't move the right edge (knob position), so marginRight tucks the right edge in separately
         <ScrollArea.Autosize
-          mah={319}
+          mah={385}
           type="always"
           scrollbarSize={4}
           className={styles.scrollArea}

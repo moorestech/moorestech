@@ -37,10 +37,34 @@
   font-size: 18px;
   line-height: 1;
 }
-/* 正本のタイトルは横幅過大にならない程度に小さくレギュラー太さで表示する(約150x51screenshot-px相当) */
-/* The reference title is smaller and regular-weight so it never grows too wide (~150x51 screenshot px) */
+
+/* 背後にひと回り小さい暗色タブを覗かせ、二重フラップの奥行きを出す */
+/* A slightly smaller dark tab peeking out behind adds the reference's double-flap depth */
+.toolTab::before {
+  position: absolute;
+  z-index: -1;
+  inset: 3px 0 -3px 3px;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  background: rgb(20 23 31 / 85%);
+  content: "";
+}
+
+/* 右斜面にハイライトを足し、台形の立体感を出す */
+/* A highlight on the right slope reads as the trapezoid's beveled edge */
+.toolTab::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 22%) 55%, transparent);
+  content: "";
+}
+/* 正本は約150x51screenshot-px相当で、以前の0.86remより一回り大きい。タブ直下から少し余白を空けて下げる */
+/* The reference runs ~150x51 screenshot px, a size up from the earlier 0.86rem; add a little gap below the tab to drop it down */
 .itemName {
-  font-size: 0.86rem;
+  margin-top: 0.3rem;
+  font-size: 1.15rem;
   font-weight: 500;
   line-height: 1.25;
   text-align: center;
@@ -67,11 +91,11 @@
 .itemHeaderRule {
   position: relative;
   align-self: center;
-  width: 84%;
+  width: 92%;
   height: 9px;
-  /* itemNameを小さくした分の高さをここで補い、下のボタン列の縦位置(正本y422-469)を保つ */
-  /* Compensate here for the height itemName lost when shrunk, keeping the button row's vertical position (reference y422-469) */
-  margin-top: 0.55rem;
+  /* itemNameを正本サイズへ戻した分、ボタン列の縦位置(正本y422-469)を保つよう補正値を縮める */
+  /* itemName is back near reference size now, so shrink this compensation to keep the button row's vertical position (reference y422-469) */
+  margin-top: -0.15rem;
   background:
     linear-gradient(90deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 42%, transparent 42%) left center / 50% 1px no-repeat,
     linear-gradient(270deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 42%, transparent 42%) right center / 50% 1px no-repeat,
@@ -91,10 +115,15 @@
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
-/* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む。発光は線近傍(6px以内)に限定する */
-/* Frame materials and result with a thin border and cyan corner brackets; keep the glow within 6px of the line */
+/* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む。発光は線近傍(6px以内)に限定する。
+   3カラムgridで素材/矢印+時間/完成品を固定配置し、素材の点数で矢印列が押し出されないようにする */
+/* Frame materials and result with a thin border and cyan corner brackets; keep the glow within 6px of the line.
+   A fixed 3-column grid pins materials/arrow+time/result so the arrow column never drifts with material count */
 .recipeBox {
   position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
   align-self: center;
   margin-top: -1px;
   margin-left: -5.8px;
@@ -103,8 +132,25 @@
   padding: 0.35rem 0.75rem 0.1rem;
   border: 1px solid rgb(90 160 220 / 50%);
   border-radius: 0;
-  background: rgb(5 18 29 / 45%);
-  box-shadow: 0 0 4px 0 rgb(31 166 240 / 55%), inset 0 0 0.7rem rgb(16 51 76 / 42%);
+  /* 内面が青黒すぎたため面を薄く・insetグローを外して背面(craft面)の暖色を透けさせる */
+  /* The interior read too dark/blue, so lighten the fill and drop the inset glow to let the warm craft face show through */
+  background: rgb(5 18 29 / 15%);
+  box-shadow: 0 0 3px 0 rgb(31 166 240 / 55%);
+}
+
+/* 素材2個分の幅だと矢印検出ゾーン(x1520〜)まで白面が食い込むため、内側へ詰める */
+/* Two materials at full width would spill white face into the arrow detection zone (x1520+), so pull the cluster inward */
+.recipeMaterials {
+  justify-self: start;
+  margin-left: -6px;
+}
+
+.recipeArrowCol {
+  justify-self: center;
+}
+
+.recipeResult {
+  justify-self: end;
 }
 
 /* 上下の疑似要素で四隅のL字ブラケットを描く */
@@ -183,22 +229,27 @@
   background: linear-gradient(90deg, #2680dd, #45bcf5, #6cebfa);
 }
 
+/* 無効時も有効時と同じ横方向グラデにする（縦グラデだと正本と傾きが揃わない） */
+/* Keep the disabled gradient horizontal like the enabled one; a vertical gradient reads at the wrong angle versus the reference */
 .craftButton:disabled,
 .craftButton[data-disabled] {
   opacity: 1;
-  background: linear-gradient(180deg, #5187bd 0%, #3c6faa 100%);
+  background: linear-gradient(90deg, #3c6faa 0%, #4f7fb8 55%, #6ea3c9 100%);
   color: rgb(255 255 255 / 65%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%);
 }
 
 /* 素材→結果を示す白い矢印グリフ。長押し進捗は下の細いバーで控えめに示す。正本は121x78screenshot-px相当と大きい */
 /* White arrow glyph from materials to result; hold progress shows subtly in the thin bar below. The reference arrow is large (~121x78 screenshot px) */
+/* グリッド行のcenter揃えだと矢印の上端が正本より少し下がるため、上へ寄せる */
+/* Row-level center alignment leaves the arrow's top edge slightly low versus the reference, so nudge it upward */
 .craftArrow {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 3.6rem;
+  margin-top: -7px;
 }
 .craftArrowGlyph {
   display: inline-block;

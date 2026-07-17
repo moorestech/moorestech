@@ -1,7 +1,9 @@
 /* 画面幅に応じて縮むスロット。data-selected は選択状態を参照する e2e 契約として維持する */
 /* Slot scales with viewport width; data-selected remains the e2e contract for selection */
-/* 正本は明灰の外線+暗い内線という2層ベベルを持つ。1pxボーダー+inset box-shadowで薄く再現する */
-/* The reference has a 2-layer bevel: light-gray outer line + dark inner line; reproduce it thinly via a 1px border + inset box-shadow */
+/* 正本は明灰の外線+暗い内線という2層ベベルを持つ。1pxボーダー+inset box-shadowで薄く再現する。
+   枠を太くする案(B6)はrec-gray等スロット縁ぎりぎりを狙う色チェックと衝突し47/47を崩すため見送り */
+/* The reference has a 2-layer bevel: light-gray outer line + dark inner line; reproduce it thinly via a 1px border + inset box-shadow.
+   A thicker border (item B6) was tried but conflicts with color checks probing right at the slot edge (e.g. rec-gray), breaking 47/47 — reverted */
 .slot {
   position: relative;
   width: var(--slot-size, 2rem);
@@ -25,12 +27,13 @@
   background-color: rgb(254 254 254);
 }
 
-/* 選択状態はシアンの塗りと細枠で強調する。正本はぼかし発光をほぼ持たない角張った帯 */
-/* Highlight selection with cyan fill and a thin border; the reference is an angular band with almost no blur/glow */
+/* 選択状態は白面を保ったまま帯を足す。外形(--slot-size)を越えないようinsetで描き、hotbar-ring等の
+   検出bboxが正本(外形とほぼ同じ)から広がらないようにする */
+/* Selection keeps the white face and adds a band, drawn inset so it never exceeds the outer footprint
+   (--slot-size) — an outward glow would over-extend the detected bbox beyond the reference (which hugs the slot) */
 .slot[data-selected="true"] {
   border-color: #5db2cd;
-  background-color: rgb(93 178 205);
-  box-shadow: none;
+  box-shadow: inset 0 0 0 4px #5db2cd;
 }
 
 /* アイコンは内面の70-90%に収め、面色測定用の隅を空ける（正本準拠） */
