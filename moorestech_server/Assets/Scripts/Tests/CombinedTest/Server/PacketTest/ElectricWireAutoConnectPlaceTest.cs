@@ -1,3 +1,4 @@
+using Core.Update;
 using System;
 using System.Collections.Generic;
 using Core.Inventory;
@@ -95,12 +96,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetupWire(serviceProvider, 0);
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
             var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            // 事前配置分のトポロジを反映してから基準値を取る
+            // Flush the pre-placed topology before taking the baseline
+            GameUpdater.UpdateOneTick();
             var segmentCountBefore = segmentDatastore.SegmentCount;
 
             PlaceBlock(packet, ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0));
 
             Assert.IsFalse(worldBlockDatastore.Exists(new Vector3Int(0, 0, 0)));
             Assert.AreEqual(0, pole.GetComponent<IElectricWireConnector>().WireConnections.Count);
+            // 設置失敗後の状態確認もtick反映後に行う
+            // Verify the unchanged state after a tick so pending commands are settled
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(segmentCountBefore, segmentDatastore.SegmentCount);
         }
 

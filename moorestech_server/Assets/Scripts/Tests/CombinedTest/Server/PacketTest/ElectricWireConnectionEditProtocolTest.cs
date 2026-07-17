@@ -1,6 +1,7 @@
 using System;
 using Core.Inventory;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -48,6 +49,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (connectorA, connectorB) = PlaceTwoPoles(posA, posB);
             var inventory = GiveWire(5);
             var networkDatastore = _serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(2, networkDatastore.SegmentCount);
 
             // 接続プロトコルを送信する
@@ -58,6 +62,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(connectorA.ContainsWireConnection(connectorB.BlockInstanceId));
             Assert.IsTrue(connectorB.ContainsWireConnection(connectorA.BlockInstanceId));
             Assert.AreEqual(2, CountItem(inventory, _wireItemId));
+            // 接続反映のため1tick進める
+            // Advance one tick so the connection is applied
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, networkDatastore.SegmentCount);
         }
 

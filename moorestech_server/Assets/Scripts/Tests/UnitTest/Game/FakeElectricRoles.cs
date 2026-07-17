@@ -55,10 +55,6 @@ namespace Tests.UnitTest.Game
         public ElectricPower RequestEnergy => new(0);
         public bool IsDestroy { get; private set; }
 
-        public void SupplyEnergy(ElectricPower power)
-        {
-        }
-
         public void Destroy()
         {
             IsDestroy = true;

@@ -52,12 +52,14 @@ namespace Game.Block.Factory.BlockTemplate
             var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor);
             var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, machineParam.MaxWireLength, blockInstanceId, machineComponent, componentStates);
 
+            // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること
+            // Keep this order: the supply reader (machineComponent) must update before the processor
             var components = new List<IBlockComponent>
             {
                 blockInventory,
                 effectComponent,
-                processor,
                 machineComponent,
+                processor,
                 inputConnectorComponent,
                 wireConnector,
                 new MachineRecipeBlueprintSettingsComponent(processor),

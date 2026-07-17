@@ -36,13 +36,15 @@ namespace Tests.CombinedTest.Game.Energy
             ElectricWireTestUtil.Connect(Pos(0, 0), generatorPos);
             ElectricWireTestUtil.Connect(generatorPos, Pos(4, 0));
 
-            // 発電機が橋渡しとなり全体が1セグメント
-            // The generator bridges everything into a single segment
+            // トポロジ反映後、発電機が橋渡しとなり全体が1セグメント
+            // After the topology flush, the generator bridges everything into a single segment
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, networkDatastore.SegmentCount);
 
-            // 発電機を破壊。橋渡しが消えるので両電柱は分断される
-            // Destroy the generator; the bridge is gone so the two poles are separated
+            // 発電機を破壊。橋渡しが消えるので次のtickで両電柱は分断される
+            // Destroy the generator; the bridge is gone so the poles are separated on the next tick
             worldBlockDatastore.RemoveBlock(generatorPos, BlockRemoveReason.ManualRemove);
+            GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(2, networkDatastore.SegmentCount);
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment1));
