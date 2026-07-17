@@ -114,9 +114,9 @@ export const itemMaster = {
   ],
 } satisfies ItemMasterData;
 
-// DEMO(採点用): グリッドを埋める高密度一覧。既定は不変・追加のみ
-// DEMO (scoring): dense item list to fill the grid; additive, defaults intact
-export const demoItemList = { itemIds: [100, ...Array.from({ length: 41 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
+// DEMO(採点用): 60件=10段分。可視7段+スクロール余剰でノブ比が正本(≈70%)と揃う
+// DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%
+export const demoItemList = { itemIds: [100, ...Array.from({ length: 59 }, (_, i) => i + 1)] } satisfies RecipeViewerItemListData;
 
 // 正本スクショと同じ充填パターン（1段目6・2段目3・3段目空・4段目末尾のみ・5-6段目12・ホットバー9）
 // Mirror the reference screenshot fill pattern (row1 x6, row2 x3, row3 empty, row4 last only, rows5-6 x12, hotbar x9)

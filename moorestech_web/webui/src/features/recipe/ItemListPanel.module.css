@@ -5,10 +5,9 @@
   background: transparent;
 }
 
-/* モックの42件は7段ちょうどで実オーバーフローが無いため、正本のトラック比(≈70%)を高さ固定で再現する */
-/* The 42-item mock exactly fills 7 rows with no real overflow, so pin the thumb height to reproduce the reference's ~70% track ratio */
+/* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */
+/* Thumb size stays content-driven (DEMO's 60 items = 10 rows yield the reference's ~70% track ratio) */
 .scrollArea :global(.mantine-ScrollArea-thumb) {
-  height: 262px !important;
   border-radius: 0;
   background: rgb(255 255 255 / 88%);
 }
