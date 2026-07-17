@@ -12,6 +12,7 @@ using Mod.Base;
 using Mod.Loader;
 using Server.Boot.Args;
 using Server.Boot.Loop;
+using Server.Boot.Loop.PacketProcessing;
 using Server.Event;
 using UnityEngine;
 
@@ -74,9 +75,11 @@ namespace Server.Boot
             var token = cancellationToken.Token;
             var connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
+            var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
 
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
-            var connectionUpdateThread = new Thread(() => ServerListenAcceptor.StartServer(packet, connectionRegistry, eventProtocolProvider, token));
+            var connectionUpdateThread = new Thread(() =>
+                ServerListenAcceptor.StartServer(packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             

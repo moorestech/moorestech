@@ -23,6 +23,10 @@ namespace Core.Update
         // Tick-end handlers (batch-applying reserved removals etc.), run after block updates and before LateUpdate
         public static List<Action> TickEndUpdates = new();
 
+        // 世界変更完了後のセーブ等を実行する最終tick末尾処理
+        // Final tick-end handlers for saving after all world mutations complete
+        public static List<Action> FinalTickEndUpdates = new();
+
         public static void Update()
         {
             // AdditionalUpdatesのやつ。テストでも呼ぶので関数化
@@ -36,6 +40,10 @@ namespace Core.Update
             // tick末尾処理の実行
             // Execute tick-end handlers
             ExecuteTickEndUpdates();
+
+            // 世界変更の確定後にだけ最終処理を実行する
+            // Execute final handlers only after world mutations are committed
+            ExecuteFinalTickEndUpdates();
 
             // LateUpdateの実行
             // Execute LateUpdate
@@ -71,6 +79,7 @@ namespace Core.Update
             // Reset additional tick updates and tick-end handlers as well.
             AdditionalUpdates.Clear();
             TickEndUpdates.Clear();
+            FinalTickEndUpdates.Clear();
         }
 
         public static void Dispose()
@@ -125,6 +134,14 @@ namespace Core.Update
             }
         }
 
+        private static void ExecuteFinalTickEndUpdates()
+        {
+            foreach (var finalTickEndUpdate in FinalTickEndUpdates)
+            {
+                finalTickEndUpdate();
+            }
+        }
+
 #if UNITY_EDITOR
         public static void UpdateOneTick()
         {
@@ -142,6 +159,7 @@ namespace Core.Update
                 ExecuteAdditionalUpdates();
                 _updateSubject.OnNext(Unit.Default);
                 ExecuteTickEndUpdates();
+                ExecuteFinalTickEndUpdates();
                 _lateUpdateSubject.OnNext(Unit.Default);
             }
         }
