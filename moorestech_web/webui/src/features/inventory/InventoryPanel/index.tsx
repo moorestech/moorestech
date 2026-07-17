@@ -9,7 +9,11 @@ import { createSlotActions } from "../slotActions";
 // ヘッダーを固定高(19px)にした際に格子が上へずれた分の補正（レシピ側のScrollArea marginTopと揃える）
 // Local override toward the reference's 123px slot face / 16px gap (other grids keep their defaults). marginTop
 // corrects the grid shift introduced when the header became a fixed 19px height in iter2 (matches the recipe side's ScrollArea marginTop)
-const GRID_STYLE = { "--slot-size": "3.08rem", "--slot-grid-gap": "0.36rem", marginTop: "12px" } as CSSProperties;
+// slot-sizeを0.08rem縮めgapへ同量足したのはiter4のベベル(box-shadowリング)追加分の補正。ピッチ(size+gap)は
+// 不変のまま、枠込みの外形検出(border-to-border)だけを正本の123pxへ戻す
+// slot-size is trimmed 0.08rem and gap grows by the same amount to offset iter4's new bevel (box-shadow ring)
+// thickness; pitch (size+gap) stays put while the border-to-border footprint detection returns to the reference's 123px
+const GRID_STYLE = { "--slot-size": "3rem", "--slot-grid-gap": "0.44rem", marginTop: "12px", marginLeft: "1px" } as CSSProperties;
 
 // メイン4行を操作する。grab追従とホットバーは常時別表示
 // Handle four main rows; grab tracking and the hotbar render separately

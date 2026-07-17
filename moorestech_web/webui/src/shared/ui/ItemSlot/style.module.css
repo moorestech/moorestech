@@ -1,23 +1,48 @@
 /* 画面幅に応じて縮むスロット。data-selected は選択状態を参照する e2e 契約として維持する */
 /* Slot scales with viewport width; data-selected remains the e2e contract for selection */
-/* 正本は明灰の外線+暗い内線という2層ベベルを持つ。1pxボーダー+inset box-shadowで薄く再現する。
-   枠を太くする案(B6)はrec-gray等スロット縁ぎりぎりを狙う色チェックと衝突し47/47を崩すため見送り */
-/* The reference has a 2-layer bevel: light-gray outer line + dark inner line; reproduce it thinly via a 1px border + inset box-shadow.
-   A thicker border (item B6) was tried but conflicts with color checks probing right at the slot edge (e.g. rec-gray), breaking 47/47 — reverted */
+/* 正本の画素断面実測通り3層リングを描く。--bevel-insetは既定(持ち物/レシピ)が空文字列=外側成長、
+   ホットバーだけ"inset"を注入する。ホットバーはbox(pitch-gap)が固定でリングがその内側へ食い込む構造
+   (白面幅132pxはリング込みの箱から算出されており、外側成長だとpitch算術が破綻するため) */
+/* Draws the 3-layer ring per the reference's measured cross-section. --bevel-inset defaults to empty
+   (inventory/recipe grow outward); only the hotbar injects "inset", because its box (pitch-gap) is fixed and
+   the ring eats inward from that box's own edge (the 132px white-face width already accounts for the ring —
+   growing outward there breaks the pitch arithmetic) */
 .slot {
   position: relative;
   width: var(--slot-size, 2rem);
   height: var(--slot-size, 2rem);
-  border: 1px solid rgb(112 107 104 / 85%);
+  /* borderは0(inset box-shadowはpadding-box=border-boxの内側から描かれるため、透明1pxでも
+     ホットバーのinsetリングの前に隙間ができてしまう。border-boxサイジング下ではborder幅がbox外形へ
+     影響しないため0でもグリッド列幅は変わらない) */
+  /* No border: inset box-shadows are clipped to the padding box (inside the border box), so even a
+     transparent 1px border would leave a gap before the hotbar's inset ring. Under border-box sizing the
+     border width doesn't affect the box's outer footprint, so dropping it doesn't move the grid column width */
+  border: 0;
   border-radius: 0;
   background-color: rgb(58 48 51);
-  box-shadow: inset 0 0 0 0.5px rgb(24 20 22 / 80%);
+  /* insetの0.5pxは旧実装から維持。これが無いと面の白判定閾値(>200)が数px早期に反応し、
+     inv-grid-x0等の厳密検出がリグレッションする(縁取りリング追加だけでは面の可視開始位置は変わらない前提が崩れる) */
+  /* The inset 0.5px carries over from the prior implementation; without it the white-face threshold (>200)
+     triggers a few px too early and regresses strict-threshold checks like inv-grid-x0 (adding only outward rings isn't enough to keep the visible face start pixel-stable) */
+  box-shadow:
+    inset 0 0 0 0.5px rgb(24 20 22 / 80%),
+    var(--bevel-inset, ) 0 0 0 var(--bevel-1) var(--bevel-c1),
+    var(--bevel-inset, ) 0 0 0 var(--bevel-2) var(--bevel-c2),
+    var(--bevel-inset, ) 0 0 0 var(--bevel-3) var(--bevel-c3);
   user-select: none;
 }
 
 /* カタログ（レシピ一覧）の未所持セルは中間グレー面。所持セルは白面で上書きする */
 /* Catalog (recipe list) unowned cells use a mid-gray face; owned cells are overridden white below */
+/* 正本のレシピセルは明灰層を持たない2層(暗→黒)のみ。bevel-3をbevel-2と同値・同色にして外層を無効化する */
+/* The reference recipe cell has only 2 layers (dark→black), no light-gray layer; bevel-3 matches bevel-2 to null out the outer ring */
 .slot[data-catalog="true"] {
+  --bevel-1: 1.6px;
+  --bevel-2: 2.35px;
+  --bevel-3: 2.35px;
+  --bevel-c1: rgb(24 20 22);
+  --bevel-c2: rgb(40 38 39);
+  --bevel-c3: rgb(40 38 39);
   background-color: rgb(126 126 126);
 }
 
@@ -27,13 +52,16 @@
   background-color: rgb(254 254 254);
 }
 
-/* 選択状態は白面を保ったまま帯を足す。外形(--slot-size)を越えないようinsetで描き、hotbar-ring等の
-   検出bboxが正本(外形とほぼ同じ)から広がらないようにする */
-/* Selection keeps the white face and adds a band, drawn inset so it never exceeds the outer footprint
-   (--slot-size) — an outward glow would over-extend the detected bbox beyond the reference (which hugs the slot) */
+/* 選択状態は正本(ホットバー1枠目)の画素実測どおり、ベベルと同じ3層幅を保ったままシアン系へ着色するだけ。
+   旧来の平坦なinset 4px帯(青灰の塊)を廃した。既定(外側成長系)はc1=面寄り/濃いめ→c3=外側/明るめ。
+   ホットバー(inset系)は逆順が要るため--sel-c*経由でHotbarPanel側から上書きする */
+/* Selection recolors the same 3-layer bevel to cyan per the reference's slot-1 pixel measurement, replacing
+   the old flat inset 4px blue-gray band. Default (outward-growth contexts) is c1=near-face/darker → c3=outer/
+   lighter; the hotbar (inset-growth) needs the reverse order, overridden via --sel-c* from HotbarPanel */
 .slot[data-selected="true"] {
-  border-color: #5db2cd;
-  box-shadow: inset 0 0 0 4px #5db2cd;
+  --bevel-c1: var(--sel-c1, rgb(101 187 216));
+  --bevel-c2: var(--sel-c2, rgb(104 188 217));
+  --bevel-c3: var(--sel-c3, rgb(116 193 221));
 }
 
 /* アイコンは内面の70-90%に収め、面色測定用の隅を空ける（正本準拠） */

@@ -1,8 +1,11 @@
-/* Mantine ScrollArea を正本準拠の細い白ノブへ上書きする（静的クラス名 mantine-ScrollArea-* を対象） */
-/* Override Mantine's ScrollArea to a thin white knob matching the reference (targets the static mantine-ScrollArea-* classes) */
+/* Mantine ScrollArea を正本準拠の細い白ノブへ上書きする（静的クラス名 mantine-ScrollArea-* を対象）。
+   トラックは従来透明だったが、正本は暗色トラックが可視。ノブの位置・長さ算出には影響しない */
+/* Override Mantine's ScrollArea to a thin white knob matching the reference (targets the static
+   mantine-ScrollArea-* classes). The track used to be transparent, but the reference shows a visible dark
+   track; this doesn't affect the thumb's position/length math */
 .scrollArea :global(.mantine-ScrollArea-scrollbar) {
   padding: 0;
-  background: transparent;
+  background: rgb(31 35 39 / 70%);
 }
 
 /* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */

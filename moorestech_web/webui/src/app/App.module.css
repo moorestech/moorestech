@@ -88,13 +88,13 @@
 .keyHints {
   position: absolute;
   left: 7px;
-  bottom: 6px;
+  bottom: 8px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   font-size: 25px;
   line-height: 1.2;
-  letter-spacing: 0.066em;
+  letter-spacing: 0.058em;
   font-weight: 500;
   color: #f2f3f7;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.75);
