@@ -184,7 +184,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
         {
             // 電線経由の実経路で給電する。発電機が既に居るセグメントには追加しない
             // Power through the real wire path; skip registration when the segment already has a generator
-            var datastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            var datastore = ServerContext.GetService<IElectricWireNetworkLookup>();
             if (!datastore.TryGetEnergySegment(block.BlockInstanceId, out var segment) || ElectricNetworkReflectionTestUtil.GetGenerators(segment).Count == 0)
                 ElectricWireTestUtil.WirePower(block.BlockPositionInfo.OriginalPos, PowerPolePosition, power);
 

@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Game.Energy
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = serviceProvider.GetService<IElectricWireNetworkLookup>();
 
             // 電柱 - 発電機 - 電柱 を一直線にワイヤー接続する
             // Wire pole - generator - pole in a straight line

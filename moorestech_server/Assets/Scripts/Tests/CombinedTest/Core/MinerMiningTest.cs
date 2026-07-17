@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Core
             //電力の設定。採掘機が属するワイヤーセグメントへテスト発電機を登録する
             //Power setup: register a test generator into the wire segment the miner belongs to
             GameUpdater.UpdateOneTick();
-            var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            var networkDatastore = ServerContext.GetService<IElectricWireNetworkLookup>();
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(miner.BlockInstanceId, out var segment));
             AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
             GameUpdater.UpdateOneTick();

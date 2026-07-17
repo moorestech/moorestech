@@ -13,12 +13,12 @@ namespace Tests.Util
     {
         private const BindingFlags InstanceFlags = BindingFlags.NonPublic | BindingFlags.Instance;
 
-        public static object GetTopologyMap(IElectricWireNetworkDatastore datastore)
+        public static object GetTopologyMap(IElectricWireNetworkLookup datastore)
         {
             return GetRequiredField<object>(datastore, "_topologyMap");
         }
 
-        public static int GetSegmentCount(IElectricWireNetworkDatastore datastore)
+        public static int GetSegmentCount(IElectricWireNetworkLookup datastore)
         {
             var map = GetTopologyMap(datastore);
             return GetRequiredField<ICollection>(map, "_segments").Count;
