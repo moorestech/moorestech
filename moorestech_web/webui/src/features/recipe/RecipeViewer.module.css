@@ -38,73 +38,74 @@
 
 .recipeTreeButton {
   align-self: center;
-  margin-top: 0.35rem;
+  margin-top: 0.5rem;
   border-radius: 3px;
   background: #3e7adb;
   color: #fff;
   font-weight: 700;
 }
 
-/* 品名の下へ銀色の横線と中央のひし形を置く */
-/* Place a silver horizontal rule and centered diamond below the item name */
+/* 品名の下へ銀青色の矢尻と二重ひし形を並べる */
+/* Arrange silver-blue arrowheads and a double diamond below the item name */
 .itemHeaderRule {
   position: relative;
   width: 100%;
-  height: 1px;
-  margin-top: 0.45rem;
-  background: rgb(200 208 220 / 50%);
+  height: 12px;
+  margin-top: 0.3rem;
+  background:
+    linear-gradient(90deg, transparent, rgba(175, 182, 205, 0.7) 18%, rgba(175, 182, 205, 0.85)) left center / calc(50% - 36px) 1px no-repeat,
+    linear-gradient(90deg, rgba(175, 182, 205, 0.85), rgba(175, 182, 205, 0.7) 82%, transparent) right center / calc(50% - 36px) 1px no-repeat;
 }
 
 .itemHeaderRule::after {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 7px;
-  height: 7px;
-  border: 1px solid #b8c0cc;
-  background: rgb(34 39 48 / 90%);
+  width: 60px;
+  height: 12px;
+  background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='12' viewBox='0 0 60 12'%3E%3Cg fill='%23afb6cd' fill-opacity='.85' stroke='%23afb6cd' stroke-opacity='.85'%3E%3Cpath d='M2 6L16 1.5C13 4 13 8 16 10.5Z' stroke='none'/%3E%3Cpath d='M21 4l2 2-2 2-2-2z' stroke='none'/%3E%3Cpath d='M30 1l5 5-5 5-5-5zM30 4l2 2-2 2-2-2z' fill='none'/%3E%3Cpath d='M39 4l2 2-2 2-2-2z' stroke='none'/%3E%3Cpath d='M58 6L44 1.5C47 4 47 8 44 10.5Z' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
   content: "";
-  transform: translate(-50%, -50%) rotate(45deg);
+  transform: translate(-50%, -50%);
 }
 
-/* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む */
-/* Frame materials and result with a thin border and cyan corner brackets */
+/* 素材から完成品までを青枠と発光するシアンの四隅で囲む */
+/* Frame materials and result with a blue border and glowing cyan corners */
 .recipeBox {
   position: relative;
   width: 100%;
   min-height: 4.5rem;
-  padding: 0.55rem 1rem 0.2rem;
-  border: 1px solid rgb(90 160 220 / 50%);
+  padding: 0.45rem 1rem 0.2rem;
+  border: 2px solid #2e7cd6;
   border-radius: 0;
   background: rgb(5 18 29 / 82%);
-  box-shadow: inset 0 0 0.7rem rgb(16 51 76 / 45%);
+  box-shadow: 0 0 8px rgba(64, 150, 235, 0.55), inset 0 0 0.7rem rgb(16 51 76 / 45%);
 }
 
-/* 上下の疑似要素で四隅のL字ブラケットを描く */
-/* Draw the four L-shaped brackets with top and bottom pseudo-elements */
+/* 上下の疑似要素で枠線に重なる四隅キャップを描く */
+/* Draw four corner caps overlapping the frame with two pseudo-elements */
 .recipeBox::before,
 .recipeBox::after {
   position: absolute;
-  right: -3px;
-  left: -3px;
-  height: 20px;
+  right: -2px;
+  left: -2px;
+  height: 14px;
   background-repeat: no-repeat;
   content: "";
   pointer-events: none;
 }
 
 .recipeBox::before {
-  top: -3px;
-  background-image: linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8);
+  top: -2px;
+  background-image: linear-gradient(#5ec8f8, #5ec8f8), linear-gradient(#5ec8f8, #5ec8f8), linear-gradient(#5ec8f8, #5ec8f8), linear-gradient(#5ec8f8, #5ec8f8);
   background-position: left top, left top, right top, right top;
-  background-size: 20px 3px, 3px 20px, 20px 3px, 3px 20px;
+  background-size: 14px 4px, 4px 14px, 14px 4px, 4px 14px;
 }
 
 .recipeBox::after {
-  bottom: -3px;
-  background-image: linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8);
+  bottom: -2px;
+  background-image: linear-gradient(#5ec8f8, #5ec8f8), linear-gradient(#5ec8f8, #5ec8f8), linear-gradient(#5ec8f8, #5ec8f8), linear-gradient(#5ec8f8, #5ec8f8);
   background-position: left bottom, left bottom, right bottom, right bottom;
-  background-size: 20px 3px, 3px 20px, 20px 3px, 3px 20px;
+  background-size: 14px 4px, 4px 14px, 14px 4px, 4px 14px;
 }
 
 .recipeItems {
@@ -114,6 +115,8 @@
 
 .craftTime {
   color: #d7dbe5;
+  font-size: 11px;
+  line-height: 1;
   text-align: center;
   text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
 }
