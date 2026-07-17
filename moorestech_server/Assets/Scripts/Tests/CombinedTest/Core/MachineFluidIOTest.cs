@@ -55,19 +55,19 @@ namespace Tests.CombinedTest.Core
             // パイプに液体を設定
             const double fluidAmount1 = 50d;
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            fluidPipe1.AddLiquid(new FluidStack(fluidAmount1, FluidId1), FluidContainer.Empty);
+            fluidPipe1.AddLiquid(new FluidStack(fluidAmount1, FluidId1), default);
             Assert.AreEqual(fluidAmount1, fluidPipe1.GetAmount());
             Assert.AreEqual(FluidId1, fluidPipe1.GetFluidId());
             
             const double fluidAmount2 = 40d;
             var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
-            fluidPipe2.AddLiquid(new FluidStack(fluidAmount2, FluidId2), FluidContainer.Empty);
+            fluidPipe2.AddLiquid(new FluidStack(fluidAmount2, FluidId2), default);
             Assert.AreEqual(fluidAmount2, fluidPipe2.GetAmount());
             Assert.AreEqual(FluidId2, fluidPipe2.GetFluidId());
             
             const double fluidAmount3 = 30d;
             var fluidPipe3 = fluidPipeBlock3.GetComponent<FluidPipeComponent>();
-            fluidPipe3.AddLiquid(new FluidStack(fluidAmount3, FluidId3), FluidContainer.Empty);
+            fluidPipe3.AddLiquid(new FluidStack(fluidAmount3, FluidId3), default);
             Assert.AreEqual(fluidAmount3, fluidPipe3.GetAmount());
             Assert.AreEqual(FluidId3, fluidPipe3.GetFluidId());
             
@@ -128,8 +128,8 @@ namespace Tests.CombinedTest.Core
             
             const double fluidAmount1 = 40d;
             const double fluidAmount2 = 50d;
-            fluidContainers[0].AddLiquid(new FluidStack(fluidAmount1, FluidId1), FluidContainer.Empty);
-            fluidContainers[1].AddLiquid(new FluidStack(fluidAmount2, FluidId2), FluidContainer.Empty);
+            fluidContainers[0].AddLiquid(new FluidStack(fluidAmount1, FluidId1));
+            fluidContainers[1].AddLiquid(new FluidStack(fluidAmount2, FluidId2));
             
             // 機械の接続状態を確認
             var fluidMachineConnector = fluidMachineBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
@@ -191,7 +191,7 @@ namespace Tests.CombinedTest.Core
                 // インサートするインデックスを1個ずらす
                 var insertIndex = i + 1;
                 insertIndex = inputFluidContainers.Count == insertIndex ? 0 : insertIndex; 
-                inputFluidContainers[insertIndex].AddLiquid(fluidStack, FluidContainer.Empty);
+                inputFluidContainers[insertIndex].AddLiquid(fluidStack);
                 
                 Assert.AreEqual(fluidId, inputFluidContainers[insertIndex].FluidId, "Fluid ID should match");
                 Assert.AreEqual(inputFluid.Amount, inputFluidContainers[insertIndex].Amount, "Fluid amount should match");
@@ -383,7 +383,7 @@ namespace Tests.CombinedTest.Core
                     var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
                     var fluidStack = new FluidStack(inputFluid.Amount, fluidId);
                     
-                    inputFluidContainers[i].AddLiquid(fluidStack, FluidContainer.Empty);
+                    inputFluidContainers[i].AddLiquid(fluidStack);
                     Debug.Log($"Added fluid: {inputFluid.FluidGuid} x{inputFluid.Amount}");
                 }
             }
@@ -568,7 +568,7 @@ namespace Tests.CombinedTest.Core
             // パイプに液体を設定
             const double fluidAmount1 = 50d;
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            fluidPipe1.AddLiquid(new FluidStack(fluidAmount1, FluidId1), FluidContainer.Empty);
+            fluidPipe1.AddLiquid(new FluidStack(fluidAmount1, FluidId1), default);
             
             // VanillaMachineFluidInventoryComponentを取得
             var fluidInventoryComponent = fluidMachineBlock.GetComponent<VanillaMachineFluidInventoryComponent>();
@@ -642,7 +642,7 @@ namespace Tests.CombinedTest.Core
             // 機械の出力タンクに液体を設定
             var outputContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
             const double outputFluidAmount = 30d;
-            outputContainers[0].AddLiquid(new FluidStack(outputFluidAmount, FluidId2), FluidContainer.Empty);
+            outputContainers[0].AddLiquid(new FluidStack(outputFluidAmount, FluidId2));
             
             previousCount = stateChangeCount;
             

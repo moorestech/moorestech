@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Core
             for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid);
-                tanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, fluidId), FluidContainer.Empty);
+                tanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, fluidId));
             }
         }
 

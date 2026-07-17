@@ -195,10 +195,10 @@ namespace Game.Block.Blocks.PowerGenerator
             _fuelService.Update();
         }
 
-        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
+        public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
             BlockException.CheckDestroy(this);
-            return _fuelService.AddLiquid(fluidStack, source);
+            return _fuelService.AddLiquid(fluidStack);
         }
 
         public List<FluidStack> GetFluidInventory()

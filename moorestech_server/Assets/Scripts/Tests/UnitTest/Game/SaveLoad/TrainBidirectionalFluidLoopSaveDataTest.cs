@@ -82,8 +82,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             // 駅A,Bに水を満載（容量1000）
             // Fill stations A and B with water (capacity 1000)
             var waterFluidId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
-            fluidComponentA.AddLiquid(new FluidStack(1000.0, waterFluidId), FluidContainer.Empty);
-            fluidComponentB.AddLiquid(new FluidStack(1000.0, waterFluidId), FluidContainer.Empty);
+            fluidComponentA.AddLiquid(new FluidStack(1000.0, waterFluidId), default);
+            fluidComponentB.AddLiquid(new FluidStack(1000.0, waterFluidId), default);
 
             // 列車を2編成生成（液体コンテナ付き）
             // Create two trains with fluid containers

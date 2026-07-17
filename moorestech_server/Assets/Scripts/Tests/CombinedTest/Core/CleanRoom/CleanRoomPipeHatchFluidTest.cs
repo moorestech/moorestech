@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // ハッチへ30注入し、時間経過で全量が隣のパイプへ流れる
             // Pour 30 into the hatch; over time the full amount flows into the next pipe
             var hatchPipeComponent = hatch.GetComponent<FluidPipeComponent>();
-            var remain = hatchPipeComponent.AddLiquid(new FluidStack(30, FluidTest.FluidId), FluidContainer.Empty);
+            var remain = hatchPipeComponent.AddLiquid(new FluidStack(30, FluidTest.FluidId), default);
             Assert.AreEqual(0, remain.Amount);
 
             for (var i = 0; i < 60; i++) GameUpdater.UpdateOneTick();
