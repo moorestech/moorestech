@@ -102,6 +102,14 @@ Subagent (general-purpose):
     - Do the new and changed tests verify real behavior, not mocks?
     - Are the task's edge cases covered?
 
+    **moorestech design lenses:**
+    Read `.claude/skills/moores-code-review/references/lens-digest.md` and
+    check the diff against each of the 8 lenses (precedent alignment,
+    dependency direction, no Update() polling, server-state 3-piece set,
+    DataStore access separation, no master-data defense code, type-driven
+    structure, placement rules). A lens violation is Important or Critical —
+    these are distilled from real merge-blocking review comments.
+
     **Structure:**
     - Does each file have one clear responsibility with a well-defined interface?
     - Are units decomposed so they can be understood and tested independently?
