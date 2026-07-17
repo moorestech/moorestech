@@ -1,49 +1,29 @@
-/* 背景を透かす直角の二重フレームを描く */
-/* Draw a square double frame that preserves the world backdrop */
+/* フラットな半透明ダークパネルを使う */
+/* Use a flat, translucent dark panel */
 .panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 12px 14px 14px;
+  padding: 8px 10px 10px;
   color: #e8eaf0;
-  background: rgb(7 12 16 / 58%);
-  border: 4px solid rgb(92 99 112 / 58%);
-  border-radius: 0;
-  box-shadow:
-    inset 0 0 0 4px rgb(8 12 18 / 76%),
-    inset 0 0 0 5px rgb(156 166 180 / 28%),
-    8px 8px 0 rgb(0 0 0 / 28%);
+  background: rgba(24, 27, 33, 0.86);
+  border: 1px solid rgba(150, 156, 168, 0.5);
+  border-radius: 2px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-/* クラフト詳細は正本に合わせてさらに背景を透かす */
-/* Let more of the backdrop show through the craft detail */
+/* クラフト詳細も同じクロームでわずかに透過する */
+/* Craft detail uses the same chrome with slight transparency */
 .craft {
-  padding: 12px 14px 10px;
-  background: rgb(6 12 16 / 50%);
+  padding: 8px 10px 6px;
+  background: rgba(24, 27, 33, 0.7);
 }
 
 .header {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 28px;
-  padding-left: 6px;
-}
-
-/* 見出し上側へ端が減衰する複層線を独立配置する */
-/* Place an independent layered rule above the title with faded ends */
-.header::before {
-  position: absolute;
-  top: -8px;
-  right: -2px;
-  left: -2px;
-  height: 8px;
-  background:
-    linear-gradient(90deg, transparent 0%, rgb(48 55 66 / 40%) 8%, rgb(180 190 204 / 64%) 22%, rgb(180 190 204 / 64%) 78%, rgb(48 55 66 / 40%) 92%, transparent 100%) 0 1px / 100% 2px no-repeat,
-    linear-gradient(90deg, transparent 0%, rgb(21 27 35 / 28%) 5%, rgb(98 108 122 / 50%) 18%, rgb(98 108 122 / 50%) 82%, rgb(21 27 35 / 28%) 95%, transparent 100%) 0 4px / 100% 4px no-repeat;
-  content: "";
-  pointer-events: none;
+  min-height: 18px;
 }
 
 .title {
@@ -60,14 +40,12 @@
   margin-left: auto;
 }
 
-/* 見出し下側は明暗二帯とフェードで正本の境界を作る */
-/* Build the lower boundary from two bands and faded ends */
+/* タイトル下は単一の細い罫線にする */
+/* Use a single thin rule beneath the title */
 .decoLine {
-  height: 10px;
-  margin: 2px 0 10px;
-  background:
-    linear-gradient(90deg, transparent 0%, rgb(61 69 81 / 42%) 7%, rgb(185 195 209 / 66%) 20%, rgb(185 195 209 / 66%) 80%, rgb(61 69 81 / 42%) 93%, transparent 100%) 0 1px / 100% 3px no-repeat,
-    linear-gradient(90deg, transparent 0%, rgb(20 26 34 / 24%) 3%, rgb(88 98 113 / 54%) 17%, rgb(88 98 113 / 54%) 83%, rgb(20 26 34 / 24%) 97%, transparent 100%) 0 4px / 100% 5px no-repeat;
+  height: 1px;
+  margin: 5px 0 8px;
+  background: rgba(150, 156, 168, 0.45);
 }
 
 .body {

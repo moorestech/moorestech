@@ -1,18 +1,14 @@
 /* 画面幅に応じて縮むスロット。data-selected は選択状態を参照する e2e 契約として維持する */
 /* Slot scales with viewport width; data-selected remains the e2e contract for selection */
-/* 暖色寄りの複層線で直角スロットを描く */
-/* Draw square slots with warm translucent frame layers */
+/* フラットな細枠スロットを使う */
+/* Use a flat slot with a thin border */
 .slot {
   position: relative;
   width: var(--slot-size, 2rem);
   height: var(--slot-size, 2rem);
-  border: 2px solid rgb(153 145 139 / 66%);
-  border-radius: 0;
-  background-color: rgb(27 30 36 / 42%);
-  box-shadow:
-    inset 0 0 0 1px rgb(224 215 204 / 22%),
-    0 0 0 1px rgb(35 31 29 / 60%),
-    0 0 5px rgb(205 186 168 / 14%);
+  border: 1px solid rgba(150, 155, 165, 0.45);
+  border-radius: 1px;
+  background-color: rgba(255, 255, 255, 0.05);
   user-select: none;
 }
 
@@ -22,14 +18,12 @@
   background-color: rgba(202, 207, 216, 0.82);
 }
 
-/* アイテム選択は正本どおり控えめなシアン二層で示す */
-/* Show item selection with the reference's restrained two-layer cyan frame */
+/* 選択状態はシアンの塗りと細枠で強調する */
+/* Highlight selection with cyan fill and a thin border */
 .slot[data-selected="true"] {
-  border-color: #68efff;
-  background-color: rgb(47 190 211 / 72%);
-  box-shadow:
-    inset 0 0 0 2px rgb(8 76 99 / 64%),
-    0 0 4px rgb(42 208 235 / 34%);
+  border-color: #56d6ea;
+  background-color: rgba(86, 214, 234, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(86, 214, 234, 0.5);
 }
 
 .icon {

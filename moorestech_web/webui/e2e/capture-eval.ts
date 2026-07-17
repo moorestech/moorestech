@@ -2,13 +2,10 @@
 // Scoring screenshot harness: boot mock-host (DEMO) and capture the inventory/craft screen at the reference size (2568x1450)
 
 import { chromium } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { WebSocketServer } from "ws";
 
 const PORT = Number(process.env.CAPTURE_PORT ?? 5399);
 const OUT = process.env.CAPTURE_OUT ?? "turn-shot.png";
-const CROP_DIR = process.env.CAPTURE_CROP_DIR;
 
 // 明背景の注入有無を切替える（透過採点は明背景、素の見た目確認は無地）
 // Toggle the bright-background injection (bright for translucency scoring, none for a plain look-check)
@@ -60,25 +57,6 @@ async function main() {
   await page.mouse.move(2, 2);
   await page.waitForTimeout(400);
   await page.screenshot({ path: OUT });
-
-  // 等倍クロップで装飾を再検査する
-  // Recheck ornaments with equal-scale crops
-  if (CROP_DIR !== undefined) {
-    await mkdir(CROP_DIR, { recursive: true });
-    const recipeBox = page.getByTestId("craft-recipe-box");
-    const craftPanel = recipeBox.locator("xpath=ancestor::div[contains(@class, '_panel_')][1]");
-    const inventoryPanel = page.getByRole("heading", { name: "持ち物" }).locator("xpath=ancestor::div[contains(@class, '_panel_')][1]");
-    const recipePanel = page.getByRole("heading", { name: "CRAFT RECIPE" }).locator("xpath=ancestor::div[contains(@class, '_panel_')][1]");
-    const selectedSlot = page.getByTestId("item-list-grid").locator("[data-selected='true']");
-
-    await inventoryPanel.screenshot({ path: join(CROP_DIR, "inventory-panel.png") });
-    await recipePanel.screenshot({ path: join(CROP_DIR, "recipe-list-panel.png") });
-    await craftPanel.screenshot({ path: join(CROP_DIR, "craft-panel.png") });
-    await recipeBox.screenshot({ path: join(CROP_DIR, "recipe-selection.png") });
-    await page.getByTestId("recipe-divider-ornament").screenshot({ path: join(CROP_DIR, "divider-ornament.png") });
-    await page.getByTestId("hotbar-grid").screenshot({ path: join(CROP_DIR, "hotbar.png") });
-    await selectedSlot.screenshot({ path: join(CROP_DIR, "selected-slot.png") });
-  }
 
   await browser.close();
   wss.close();
