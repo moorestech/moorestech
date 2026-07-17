@@ -26,7 +26,8 @@
           "itemGuid": "00000000-0000-0000-1234-000000000001",
           "fuelDurationPerItem": 999999
         }
-      ]
+      ],
+      "name": "TestTrainCar"
     },
     {
       "weight": 320,
@@ -37,7 +38,8 @@
       "trainCarGuid": "22222222-2222-2222-2222-222222222222",
       "defaultContainerType": "None",
       "fluidCapacity": 0,
-      "ridableSeatCount": 2
+      "ridableSeatCount": 2,
+      "name": "TestTrainCar2"
     }
   ],
   "railItems": [

@@ -88,6 +88,8 @@ properties:
     - key: ridableSeatCount
       type: integer
       default: 0
+    - key: name
+      type: string
 - key: railItems
   type: array
   overrideCodeGeneratePropertyName: RailItemMasterElement
