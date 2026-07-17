@@ -11,11 +11,11 @@
 /* Place slots directly over the scene without an outer frame */
 .hotbarFrame {
   display: flex;
-  gap: 1px;
+  gap: 6px;
 }
 
-/* 番号タブをスロット左上に重ねる */
-/* Overlay the number tab on the slot's top-left */
+/* 番号バッジをスロット上方の中央へ浮かせる */
+/* Float the number badge above and centered on its slot */
 .cell {
   position: relative;
   display: block;
@@ -23,18 +23,19 @@
 
 .num {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: -3px;
+  left: 50%;
   z-index: 2;
   min-width: 11px;
-  padding: 0 2px;
-  border-right: 1px solid rgba(200, 205, 215, 0.4);
-  border-bottom: 1px solid rgba(200, 205, 215, 0.4);
-  background: rgba(18, 22, 30, 0.82);
-  font-size: 9px;
+  padding: 0 3px;
+  border: 1px solid rgba(210, 215, 225, 0.75);
+  border-radius: 2px;
+  background: rgba(30, 34, 44, 0.9);
+  font-size: 10px;
   font-weight: 700;
   line-height: 1.35;
-  color: #e2e5ee;
+  color: #fff;
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  transform: translate(-50%, -100%);
 }
