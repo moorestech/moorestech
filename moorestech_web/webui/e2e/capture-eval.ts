@@ -37,7 +37,7 @@ async function main() {
   // レシピを1件選択して選択枠を表示させる（状態パリティの要件）
   // Select one recipe so the selection frame is visible (state-parity requirement)
   await page.getByTestId("item-list-grid").locator("> div").first().click();
-  await page.getByTestId("craft-recipe-box").waitFor();
+  await page.locator('[class*="_recipeBox_"]').waitFor();
 
   // 明るい世界風背景を注入し、パネル越しの透過・視認性を判定可能にする
   // body は position:fixed の viewport のみで高さ0のため、背景は全画面固定 DIV を UI 背後(z-index:-1)へ挿入する
