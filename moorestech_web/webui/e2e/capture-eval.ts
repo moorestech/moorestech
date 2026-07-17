@@ -39,17 +39,10 @@ async function main() {
   await page.getByTestId("item-list-grid").locator("> div").first().click();
   await page.locator('[class*="_recipeBox_"]').waitFor();
 
-  // 明るい世界風背景を注入し、パネル越しの透過・視認性を判定可能にする
-  // body は position:fixed の viewport のみで高さ0のため、背景は全画面固定 DIV を UI 背後(z-index:-1)へ挿入する
-  // The body has zero height (only the fixed viewport lives in it), so inject a full-screen fixed DIV behind the UI (z-index:-1)
-  if (INJECT_BG) {
-    await page.evaluate(() => {
-      const bg = document.createElement("div");
-      bg.id = "__worldbg";
-      bg.style.cssText =
-        "position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,#7bb054 0%,#6fa04a 42%,#855a3f 52%,#9b6a4a 62%,#8a5c40 100%);";
-      document.body.appendChild(bg);
-    });
+  // 素の確認時だけ共用背景を除く
+  // Remove the shared mock-host background only for the plain look-check
+  if (!INJECT_BG) {
+    await page.locator("#__worldbg").evaluate((background) => background.remove());
   }
 
   // ホバー由来のツールチップを消すためカーソルを画面外へ退避する
