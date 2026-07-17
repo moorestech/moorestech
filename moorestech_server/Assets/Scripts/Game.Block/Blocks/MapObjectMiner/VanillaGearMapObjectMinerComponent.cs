@@ -20,7 +20,7 @@ namespace Game.Block.Blocks.MapObjectMiner
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            _vanillaGearMapObjectMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
+            _vanillaGearMapObjectMinerProcessorComponent.SupplyExternalPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
 
         public bool IsDestroy { get; private set; }

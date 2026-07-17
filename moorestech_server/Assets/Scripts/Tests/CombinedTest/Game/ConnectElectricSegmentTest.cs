@@ -1,4 +1,5 @@
 using System;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
@@ -30,12 +31,20 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole2);
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole3);
 
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
+
             // 未接続なので3ブロックがそれぞれ独立セグメントを持つ
             // With no wires yet, all three poles are separate segments
             Assert.AreEqual(3, networkDatastore.SegmentCount);
 
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
+
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
 
             // 鎖状に繋いだので1セグメントに統合される
             // Chained wiring collapses them into one segment
@@ -64,6 +73,10 @@ namespace Tests.CombinedTest.Game
 
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, 2));
+
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(1, networkDatastore.SegmentCount);
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var segment));
@@ -98,11 +111,19 @@ namespace Tests.CombinedTest.Game
             ElectricWireTestUtil.Connect(Pos(6, 0), Pos(6, 2));
             ElectricWireTestUtil.Connect(Pos(6, 0), Pos(6, -2));
 
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
+
             Assert.AreEqual(2, networkDatastore.SegmentCount);
 
             // 2つの電柱を橋渡し
             // Bridge the two poles
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(6, 0));
+
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(1, networkDatastore.SegmentCount);
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole2.BlockInstanceId, out var segment));
@@ -124,10 +145,18 @@ namespace Tests.CombinedTest.Game
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
 
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
+
             var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            // ロード直後のトポロジ反映のため1tick進める
+            // Advance one tick after load for the topology flush
+            GameUpdater.UpdateOneTick();
 
             var networkDatastore = loadServiceProvider.GetService<IElectricWireNetworkDatastore>();
             var loadedPole = ServerContext.WorldBlockDatastore.GetBlock(Pos(0, 0));

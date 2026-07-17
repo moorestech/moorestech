@@ -46,8 +46,12 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chestBlock);
             var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
-            //電力の設定。採掘機が属するワイヤーセグメントへテスト発電機を登録する
-            //Power setup: register a test generator into the wire segment the miner belongs to
+            //電力の設定。電柱とワイヤー接続してトポロジ反映後、採掘機のセグメントへテスト発電機を登録する
+            //Power setup: wire a pole to the miner, flush the topology, then register a test generator into its segment
+            var polePos = new Vector3Int(pos.x, pos.y, pos.z + 2);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ElectricWireTestUtil.Connect(pos, polePos);
+            GameUpdater.UpdateOneTick();
             var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(miner.BlockInstanceId, out var segment));
             segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
