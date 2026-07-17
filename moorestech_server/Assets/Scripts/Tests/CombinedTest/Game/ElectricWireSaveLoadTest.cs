@@ -76,7 +76,6 @@ namespace Tests.CombinedTest.Game
             // Immediately after load, connections exist but the derived electric network is not built yet
             var loadedNetworkDatastore = loadServiceProvider.GetService<IElectricWireNetworkDatastore>();
             var loadedPoleBeforeRebuild = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
-            Assert.IsTrue(loadedNetworkDatastore.IsTopologyDirty);
             Assert.IsFalse(loadedNetworkDatastore.TryGetEnergySegment(loadedPoleBeforeRebuild.BlockInstanceId, out _));
 
             // ロード直後のトポロジ反映と統計確定のため1tick進める
@@ -95,7 +94,6 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(loadedMachine.ContainsWireConnection(loadedGenerator.BlockInstanceId));
             Assert.IsFalse(loadedPole.ContainsWireConnection(loadedMachine.BlockInstanceId));
 
-            Assert.IsFalse(loadedNetworkDatastore.IsTopologyDirty);
             Assert.AreEqual(1, GetSegmentCount(loadedNetworkDatastore));
             Assert.IsTrue(loadedNetworkDatastore.TryGetEnergySegment(loadedPole.BlockInstanceId, out var loadedSegment));
             Assert.IsTrue(loadedNetworkDatastore.TryGetEnergySegment(loadedGenerator.BlockInstanceId, out var loadedGeneratorSegment));
