@@ -32,6 +32,7 @@ using Game.PlayerInventory.Interface.Subscription;
 using Game.PlayerRiding;
 using Game.PlayerRiding.Interface;
 using Game.Research;
+using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.Train.Diagram;
@@ -213,6 +214,10 @@ namespace Server.Boot
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(options.saveJsonFilePath);
+            // セーブ要求（オートセーブ・クライアント要求）はcoordinatorへ集約し、実行はtick末尾の安定点のみ
+            // Save requests (auto-save and client requests) funnel into the coordinator; execution happens only at the tick-end stable point
+            services.AddSingleton<WorldSaveCoordinator>();
+            services.AddSingleton<IWorldSaveRequest>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
 
             //イベントを登録
             // Register events.
@@ -257,6 +262,10 @@ namespace Server.Boot
             // tick末尾: 予約された破壊を一括確定する。派生する網の再構築は次tick先頭のRebuildIfDirtyに委ねる
             // Tick end: commit reserved removals in batch; derived network rebuilding is deferred to RebuildIfDirty at the next tick head
             GameUpdater.TickEndUpdates.Add(serviceProvider.GetRequiredService<IBlockRemovalReservationService>().ApplyReservedRemovals);
+
+            // 破壊確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。将来の初回snapshot取得もこの位置に登録する
+            // The point after removal commits is the only save-stable boundary (spec 2.1-7); future initial-snapshot capture also registers here
+            GameUpdater.TickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSaveCoordinator>().SaveIfRequested);
 
             //イベントレシーバーをインスタンス化する
             // Materialize event receivers eagerly.
