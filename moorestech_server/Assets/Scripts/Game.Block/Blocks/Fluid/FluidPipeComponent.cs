@@ -73,7 +73,7 @@ namespace Game.Block.Blocks.Fluid
         public List<FluidStack> GetFluidInventory()
         {
             var fluidStacks = new List<FluidStack>();
-            if (Node.Amount > 0)
+            if (0 < Node.Amount)
             {
                 fluidStacks.Add(new FluidStack(Node.Amount, Node.FluidId));
             }
@@ -91,7 +91,7 @@ namespace Game.Block.Blocks.Fluid
         // Called by FluidNetworkDatastore at the tick tail; fires only when the state changed since the last notification
         internal void NotifyStateIfChanged()
         {
-            var amountChanged = Math.Abs(Node.Amount - _lastNotifiedAmount) > FluidSimulationConstants.AmountEpsilon;
+            var amountChanged = FluidSimulationConstants.AmountEpsilon < Math.Abs(Node.Amount - _lastNotifiedAmount);
             if (!amountChanged && Node.FluidId == _lastNotifiedFluidId) return;
 
             _lastNotifiedAmount = Node.Amount;

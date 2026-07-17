@@ -87,7 +87,7 @@ namespace Game.Fluid.Simulation
                 foreach (var face in faces)
                 {
                     var desired = ClampByFaceCap(face);
-                    if (desired > 0) face.NodeA.OutflowSum += desired;
+                    if (0 < desired) face.NodeA.OutflowSum += desired;
                     else face.NodeB.OutflowSum += -desired;
                 }
 
@@ -98,9 +98,9 @@ namespace Game.Fluid.Simulation
 
                 foreach (var node in nodes)
                 {
-                    if (node.OutflowSum > node.Amount)
+                    if (node.Amount < node.OutflowSum)
                     {
-                        node.OutflowScale = node.OutflowSum > 0 ? node.Amount / node.OutflowSum : 0;
+                        node.OutflowScale = 0 < node.OutflowSum ? node.Amount / node.OutflowSum : 0;
                     }
                 }
             }
@@ -112,8 +112,8 @@ namespace Game.Fluid.Simulation
                 foreach (var face in faces)
                 {
                     var desired = ClampByFaceCap(face);
-                    var giver = desired > 0 ? face.NodeA : face.NodeB;
-                    var receiver = desired > 0 ? face.NodeB : face.NodeA;
+                    var giver = 0 < desired ? face.NodeA : face.NodeB;
+                    var receiver = 0 < desired ? face.NodeB : face.NodeA;
                     face.TentativeFlux = desired * giver.OutflowScale;
                     receiver.InflowSum += Math.Abs(face.TentativeFlux);
                 }
@@ -121,9 +121,9 @@ namespace Game.Fluid.Simulation
                 foreach (var node in nodes)
                 {
                     var freeCapacity = Math.Max(0, node.Capacity - node.Amount);
-                    if (node.InflowSum > freeCapacity)
+                    if (freeCapacity < node.InflowSum)
                     {
-                        node.InflowScale = node.InflowSum > 0 ? freeCapacity / node.InflowSum : 0;
+                        node.InflowScale = 0 < node.InflowSum ? freeCapacity / node.InflowSum : 0;
                     }
                 }
             }
@@ -133,13 +133,13 @@ namespace Game.Fluid.Simulation
                 foreach (var face in faces)
                 {
                     var tentative = face.TentativeFlux;
-                    var giver = tentative >= 0 ? face.NodeA : face.NodeB;
-                    var receiver = tentative >= 0 ? face.NodeB : face.NodeA;
+                    var giver = 0 <= tentative ? face.NodeA : face.NodeB;
+                    var receiver = 0 <= tentative ? face.NodeB : face.NodeA;
 
                     // 同tick内で先行する面が受け側に別流体を入れた場合は閉面扱いにする
                     // Treat as closed when an earlier face already filled the receiver with a different fluid this tick
-                    var receiverHasFluid = receiver.Amount > FluidSimulationConstants.AmountEpsilon;
-                    if (receiverHasFluid && receiver.FluidId != giver.FluidId && Math.Abs(tentative) > 0)
+                    var receiverHasFluid = FluidSimulationConstants.AmountEpsilon < receiver.Amount;
+                    if (receiverHasFluid && receiver.FluidId != giver.FluidId && 0 < Math.Abs(tentative))
                     {
                         face.Velocity = 0;
                         continue;
@@ -151,7 +151,7 @@ namespace Game.Fluid.Simulation
                     face.NodeA.Amount -= settled;
                     face.NodeB.Amount += settled;
 
-                    if (Math.Abs(settled) > FluidSimulationConstants.AmountEpsilon && !receiverHasFluid)
+                    if (FluidSimulationConstants.AmountEpsilon < Math.Abs(settled) && !receiverHasFluid)
                     {
                         receiver.FluidId = giver.FluidId;
                     }
@@ -171,7 +171,7 @@ namespace Game.Fluid.Simulation
                     var attempted = desired * node.OutflowScale;
 
                     var actual = 0.0;
-                    if (attempted > FluidSimulationConstants.AmountEpsilon && node.FluidId != FluidMaster.EmptyFluidId)
+                    if (FluidSimulationConstants.AmountEpsilon < attempted && node.FluidId != FluidMaster.EmptyFluidId)
                     {
                         // 境界が受け取らなかった残量ぶんだけ流量を縮め、ノードから確定分のみを減らす
                         // Shrink the flux by whatever the boundary rejected and subtract only the settled amount from the node
@@ -203,8 +203,8 @@ namespace Game.Fluid.Simulation
 
             bool IsClosedFace(FluidSimFace face)
             {
-                var aHasFluid = face.NodeA.Amount > FluidSimulationConstants.AmountEpsilon;
-                var bHasFluid = face.NodeB.Amount > FluidSimulationConstants.AmountEpsilon;
+                var aHasFluid = FluidSimulationConstants.AmountEpsilon < face.NodeA.Amount;
+                var bHasFluid = FluidSimulationConstants.AmountEpsilon < face.NodeB.Amount;
                 return aHasFluid && bHasFluid && face.NodeA.FluidId != face.NodeB.FluidId;
             }
 

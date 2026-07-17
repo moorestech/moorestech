@@ -136,34 +136,27 @@ namespace Game.Block.Blocks.Machine
                 ? receiverConnector.Option.ConnectTankIndex
                 : -1;
 
-            // 特定のタンクが指定されている場合は、そのタンクのみに追加を試みる
-            // When a specific tank is designated, only that tank accepts the fluid
+            // 特定のタンクが指定されている場合は、そのタンクのみに追加を試みる（互換判定はAddLiquid内で一元化）
+            // When a specific tank is designated, only that tank accepts the fluid; compatibility is judged inside AddLiquid
             if (tankIndex >= 0 && tankIndex < _inputInventory.FluidInputSlot.Count)
             {
-                var container = _inputInventory.FluidInputSlot[tankIndex];
-                if (container.FluidId == FluidMaster.EmptyFluidId || container.FluidId == fluidStack.FluidId)
+                var result = _inputInventory.FluidInputSlot[tankIndex].AddLiquid(fluidStack);
+                if (0 < result.AcceptedAmount)
                 {
-                    var remaining = container.AddLiquid(fluidStack);
-                    if (remaining.Amount < fluidStack.Amount)
-                    {
-                        _onChangeBlockState.OnNext(Unit.Default);
-                    }
-                    return remaining;
+                    _onChangeBlockState.OnNext(Unit.Default);
                 }
-                return fluidStack;
+                return result.Remainder;
             }
 
             // タンクが指定されていない場合は、全ての入力タンクに対して液体を追加を試みる
             // Without a designated tank, try every input tank in order
             foreach (var container in _inputInventory.FluidInputSlot)
             {
-                if (container.FluidId != FluidMaster.EmptyFluidId && container.FluidId != fluidStack.FluidId) continue;
-
-                var remaining = container.AddLiquid(fluidStack);
-                if (remaining.Amount < fluidStack.Amount)
+                var result = container.AddLiquid(fluidStack);
+                if (0 < result.AcceptedAmount)
                 {
                     _onChangeBlockState.OnNext(Unit.Default);
-                    return remaining;
+                    return result.Remainder;
                 }
             }
 

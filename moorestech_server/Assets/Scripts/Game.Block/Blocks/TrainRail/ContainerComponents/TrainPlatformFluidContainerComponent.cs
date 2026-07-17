@@ -100,7 +100,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         {
             if (Container == null) Container = new FluidTrainCarContainer(new FluidContainer(_capacity));
 
-            return Container.Container.AddLiquid(fluidStack);
+            return Container.Container.AddLiquid(fluidStack).Remainder;
         }
 
         public void Destroy()
@@ -171,8 +171,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             if (from.Amount < double.Epsilon) return;
 
             var fluidStack = new FluidStack(from.Amount, from.FluidId);
-            var remain = to.AddLiquid(fluidStack);
-            var transferred = from.Amount - remain.Amount;
+            var transferred = to.AddLiquid(fluidStack).AcceptedAmount;
             from.Amount -= transferred;
 
             if (from.Amount < double.Epsilon)
