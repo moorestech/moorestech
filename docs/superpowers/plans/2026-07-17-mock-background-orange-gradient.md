@@ -23,7 +23,7 @@
 - Create: `moorestech_web/webui/public/mock-orange-gradient.png`
 - Modify: `moorestech_web/webui/e2e/mock-host/httpHandler.ts`
 - Modify: `moorestech_web/webui/e2e/capture-eval.ts`
-- Test: `moorestech_web/webui/e2e/mock-host/httpHandler.test.ts`
+- Test: `moorestech_web/webui/e2e/mock-host/tests/httpHandler.test.ts`
 
 **Interfaces:**
 - Consumes: `MOCK_DEMO=1`、Viteの`public/`静的アセットコピー
@@ -35,7 +35,7 @@
 
 - [ ] **Step 2: テストを実行して失敗を確認する**
 
-Run: `pnpm vitest run e2e/mock-host/httpHandler.test.ts`
+Run: `pnpm vitest run e2e/mock-host/tests/httpHandler.test.ts`
 
 Expected: 背景要素が未実装のためFAILする。
 
@@ -55,7 +55,7 @@ Expected: 背景要素が未実装のためFAILする。
 
 - [ ] **Step 5: テストとビルドを通す**
 
-Run: `pnpm vitest run e2e/mock-host/httpHandler.test.ts && pnpm build`
+Run: `pnpm vitest run e2e/mock-host/tests/httpHandler.test.ts && pnpm build`
 
 Expected: テストがPASSし、Viteビルドが成功して`dist/mock-orange-gradient.png`が生成される。
 
@@ -66,6 +66,6 @@ Expected: テストがPASSし、Viteビルドが成功して`dist/mock-orange-gr
 - [ ] **Step 7: 変更をコミットする**
 
 ```bash
-git add moorestech_web/webui/public/mock-orange-gradient.png moorestech_web/webui/e2e/mock-host/httpHandler.ts moorestech_web/webui/e2e/mock-host/httpHandler.test.ts moorestech_web/webui/e2e/capture-eval.ts docs/superpowers/specs/2026-07-17-mock-background-orange-gradient-design.md docs/superpowers/plans/2026-07-17-mock-background-orange-gradient.md
+git add moorestech_web/webui/public/mock-orange-gradient.png moorestech_web/webui/e2e/mock-host/httpHandler.ts moorestech_web/webui/e2e/mock-host/tests/httpHandler.test.ts moorestech_web/webui/e2e/capture-eval.ts docs/superpowers/specs/2026-07-17-mock-background-orange-gradient-design.md docs/superpowers/plans/2026-07-17-mock-background-orange-gradient.md
 git commit -m "feat(webui): add reusable orange mock background"
 ```

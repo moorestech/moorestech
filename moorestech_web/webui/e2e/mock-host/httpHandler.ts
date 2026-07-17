@@ -27,6 +27,18 @@ const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 // DEMO (scoring): serve dense data and placeholder icons
 const DEMO = process.env.MOCK_DEMO === "1";
 
+// bodyは高さ0なので背景を全画面固定
+// The zero-height body needs a fixed full-screen background
+const DEMO_BACKGROUND =
+  "<div id=\"__worldbg\" style=\"position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('/mock-orange-gradient.png') center/cover no-repeat\"></div>";
+
+// デモだけ共用背景を差し込み透明HTMLを保つ
+// Insert the shared image behind demo UI only, preserving transparent production-equivalent HTML
+export function injectDemoBackground(html: string, demo: boolean): string {
+  if (!demo) return html;
+  return html.replace(/<body(\s[^>]*)?>/i, (body) => `${body}${DEMO_BACKGROUND}`);
+}
+
 // itemIdから色相を導き丸角の色付きSVGアイコンを生成
 // Derive a hue from itemId and build a rounded colored SVG icon
 function placeholderIcon(itemId: number): string {
@@ -39,6 +51,7 @@ const MIME: Record<string, string> = {
   ".js": "text/javascript",
   ".css": "text/css",
   ".json": "application/json",
+  ".png": "image/png",
 };
 
 export function createMockHttpServer(): Server {
@@ -112,12 +125,12 @@ export function createMockHttpServer(): Server {
     const path = normalize(join(DIST, rel));
     const data = await readFile(path).catch(() => null);
     if (data === null) {
-      const html = await readFile(join(DIST, "index.html"));
+      const html = await readFile(join(DIST, "index.html"), "utf8");
       res.setHeader("content-type", "text/html");
-      res.end(html);
+      res.end(injectDemoBackground(html, DEMO));
       return;
     }
     res.setHeader("content-type", MIME[extname(path)] ?? "application/octet-stream");
-    res.end(data);
+    res.end(rel === "/index.html" ? injectDemoBackground(data.toString("utf8"), DEMO) : data);
   });
 }
