@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Context;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -40,7 +41,7 @@ namespace Game.Block.Blocks.Fluid
             // 正準側として所有する面の速度を方向つきで保存する（波の状態をロード後も引き継ぐ）
             // Persist velocities of faces owned as the canonical side, keyed by direction, so wave state survives a reload
             var faceVelocities = new List<(Vector3Int direction, double velocity)>();
-            FluidNetworkDatastore.CollectOwnedFaceVelocities(_fluidPipeComponent, faceVelocities);
+            ServerContext.GetService<IFluidNetworkDatastore>().CollectOwnedFaceVelocities(_fluidPipeComponent, faceVelocities);
             foreach (var (direction, velocity) in faceVelocities)
             {
                 jsonObject.FaceVelocities.Add(new FluidPipeSaveJsonObject.FaceVelocityJsonObject

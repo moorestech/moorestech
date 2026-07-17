@@ -5,6 +5,7 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.ConnectJudge;
+using Game.Context;
 using Game.Fluid;
 using Game.Fluid.Simulation;
 using MessagePack;
@@ -59,7 +60,7 @@ namespace Game.Block.Blocks.Fluid
             _lastNotifiedAmount = Node.Amount;
             _lastNotifiedFluidId = Node.FluidId;
 
-            FluidNetworkDatastore.AddPipe(this);
+            ServerContext.GetService<IFluidNetworkDatastore>().AddPipe(this);
         }
 
         public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
@@ -113,7 +114,7 @@ namespace Game.Block.Blocks.Fluid
 
         public void Destroy()
         {
-            FluidNetworkDatastore.RemovePipe(this);
+            ServerContext.GetService<IFluidNetworkDatastore>().RemovePipe(this);
             IsDestroy = true;
         }
     }
