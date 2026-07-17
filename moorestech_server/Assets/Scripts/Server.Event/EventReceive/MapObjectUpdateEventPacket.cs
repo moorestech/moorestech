@@ -19,6 +19,10 @@ namespace Server.Event.EventReceive
             _eventProtocolProvider = eventProtocolProvider;
             
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
+        }
+
+        public void Load()
+        {
             _mapObjectDatastore.OnDestroyMapObject += OnDestroyMapObject;
         }
         

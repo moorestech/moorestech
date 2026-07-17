@@ -16,15 +16,26 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     public class UnifiedInventoryEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:invUpdate";
-        
+
+        private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IInventorySubscriptionStore _inventorySubscriptionStore;
+        private readonly ITrainUpdateEvent _trainUpdateEvent;
+
         public UnifiedInventoryEventPacket(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore, ITrainUpdateEvent trainUpdateEvent)
+        {
+            _eventProtocolProvider = eventProtocolProvider;
+            _inventorySubscriptionStore = inventorySubscriptionStore;
+            _trainUpdateEvent = trainUpdateEvent;
+        }
+
+        public void Load()
         {
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
-            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
+            new BlockInventoryUpdateService(_eventProtocolProvider, _inventorySubscriptionStore);
             // 列車インベントリの更新・削除を監視
             // Monitor train inventory updates and removals
-            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, trainUpdateEvent);
+            new TrainInventoryUpdateService(_eventProtocolProvider, _inventorySubscriptionStore, _trainUpdateEvent);
         }
     }
     

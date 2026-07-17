@@ -28,9 +28,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            //初期ロード後に購読する設計のため、テストでは明示的に設置イベント購読を開始する
-            //Placement broadcasts subscribe post-load by design, so start the subscription explicitly in the test
-            serviceProvider.GetService<PlaceBlockEventPacket>();
+            //初期ロード後にLoadで購読する設計のため、テストでは明示的にLoadを呼ぶ
+            //Placement broadcasts subscribe in post-load Load by design, so invoke Load explicitly in the test
+            serviceProvider.GetService<PlaceBlockEventPacket>().Load();
 
             //イベントキューにIDを登録する
             List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());

@@ -16,6 +16,10 @@ namespace Server.Event.EventReceive
         public RemoveBlockToSetEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
+        }
+
+        public void Load()
+        {
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
         

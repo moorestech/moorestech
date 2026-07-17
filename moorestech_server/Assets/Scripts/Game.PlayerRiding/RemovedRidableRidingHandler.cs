@@ -12,17 +12,23 @@ namespace Game.PlayerRiding
     public class RemovedRidableRidingHandler : IDisposable, IBootInitializable
     {
         private readonly IPlayerRidingDatastore _playerRidingDatastore;
-        private readonly IDisposable _trainCarRemovedSubscription;
+        private readonly ITrainUpdateEvent _trainUpdateEvent;
+        private IDisposable _trainCarRemovedSubscription;
 
         public RemovedRidableRidingHandler(ITrainUpdateEvent trainUpdateEvent, IPlayerRidingDatastore playerRidingDatastore)
         {
             _playerRidingDatastore = playerRidingDatastore;
-            _trainCarRemovedSubscription = trainUpdateEvent.OnTrainCarRemoved.Subscribe(OnTrainCarRemoved);
+            _trainUpdateEvent = trainUpdateEvent;
+        }
+
+        public void Load()
+        {
+            _trainCarRemovedSubscription = _trainUpdateEvent.OnTrainCarRemoved.Subscribe(OnTrainCarRemoved);
         }
 
         public void Dispose()
         {
-            _trainCarRemovedSubscription.Dispose();
+            _trainCarRemovedSubscription?.Dispose();
         }
 
         private void OnTrainCarRemoved(TrainCarInstanceId trainCarInstanceId)

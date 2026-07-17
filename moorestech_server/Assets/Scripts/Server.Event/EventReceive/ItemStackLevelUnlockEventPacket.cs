@@ -13,14 +13,23 @@ namespace Server.Event.EventReceive
     {
         public const string EventTag = "va:event:itemStackLevelUnlock";
 
+        private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IItemStackLevelLookup _itemStackLevelLookup;
+
         public ItemStackLevelUnlockEventPacket(EventProtocolProvider eventProtocolProvider, IItemStackLevelLookup itemStackLevelLookup)
+        {
+            _eventProtocolProvider = eventProtocolProvider;
+            _itemStackLevelLookup = itemStackLevelLookup;
+        }
+
+        public void Load()
         {
             // スタックレベル解放を購読し全プレイヤーへ配信
             // Subscribe to stack level unlocks and broadcast them to all players
-            itemStackLevelLookup.OnStackLevelUnlocked.Subscribe(data =>
+            _itemStackLevelLookup.OnStackLevelUnlocked.Subscribe(data =>
             {
                 var payload = MessagePackSerializer.Serialize(new ItemStackLevelMessagePack(data.itemGuid, data.level));
-                eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
+                _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
             });
         }
 

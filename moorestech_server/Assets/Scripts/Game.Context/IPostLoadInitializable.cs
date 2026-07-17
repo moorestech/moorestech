@@ -1,10 +1,11 @@
 namespace Game.Context
 {
     /// <summary>
-    ///     初期ロード完了後にDIコンテナから一括生成・初期化されるサービスのマーカー。ロード中のイベントをクライアントへ配信しないために初期化を遅らせる
-    ///     Marker for services created and initialized in bulk after initial world load; initialization is deferred so load-time events are not broadcast to clients
+    ///     サーバー起動時にDIコンテナから自動で一括生成され、初期ロード完了後にLoadが一括で呼ばれるサービスのマーカー。ロード中のイベントをクライアントへ配信しないため購読等の初期化はLoadで行う
+    ///     Marker for services auto-created in bulk at server boot whose Load is invoked in bulk after initial world load; subscribe in Load so load-time events are not broadcast to clients
     /// </summary>
     public interface IPostLoadInitializable
     {
+        void Load();
     }
 }
