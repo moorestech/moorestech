@@ -36,14 +36,14 @@ export default function ItemListPanel() {
       style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452 }}
     >
       {itemList ? (
-        // mahは7段の全高より少し余裕を持たせ、42件(=7段ちょうど)が丸ごと収まるようにする。marginLeftはグリッド内側
+        // mahは7段が丸ごと収まりつつDEMO60件(10段)でノブ比が正本≈70%になる高さ。marginLeftはグリッド内側
         // インデント補正、marginTopはノブの縦位置合わせ。align-self:stretchだとmarginLeftだけでは右端(ノブ位置)が
         // 動かないためmarginRightで右端を別途詰める
-        // mah has slack beyond the full 7-row height so all 42 mock items (=exactly 7 rows) fit whole. marginLeft
+        // mah fits 7 full rows while making the DEMO 60-item (10-row) thumb ratio match the reference ~70%. marginLeft
         // corrects the grid inset; marginTop aligns the knob vertically. Under align-self:stretch, marginLeft alone
         // doesn't move the right edge (knob position), so marginRight tucks the right edge in separately
         <ScrollArea.Autosize
-          mah={385}
+          mah={382}
           type="always"
           scrollbarSize={4}
           className={styles.scrollArea}
