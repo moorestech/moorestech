@@ -34,15 +34,18 @@
 
 /* カタログ（レシピ一覧）の未所持セルは中間グレー面。所持セルは白面で上書きする */
 /* Catalog (recipe list) unowned cells use a mid-gray face; owned cells are overridden white below */
-/* 正本のレシピセルは明灰層を持たない2層(暗→黒)のみ。bevel-3をbevel-2と同値・同色にして外層を無効化する */
-/* The reference recipe cell has only 2 layers (dark→black), no light-gray layer; bevel-3 matches bevel-2 to null out the outer ring */
+/* iter6: 正本のギャップ断面実測(黒4px→暗2px→中間2px→パネル色可視)は3層とも別色。旧実装はbevel-3を
+   bevel-2と同値にして外層を無効化していたが、実測では外側にもう1段(中間トーン)が存在するため独立させる */
+/* iter6: The reference's gap cross-section (black 4px → dark 2px → mid 2px → panel color) uses three
+   distinct colors. The old bevel-3 was nulled to match bevel-2, but the true measurement shows a third,
+   lighter mid-tone ring further out, so it now gets its own width/color */
 .slot[data-catalog="true"] {
-  --bevel-1: 1.6px;
-  --bevel-2: 2.35px;
-  --bevel-3: 2.35px;
+  --bevel-1: 1.2px;
+  --bevel-2: 1.7px;
+  --bevel-3: 2.2px;
   --bevel-c1: rgb(24 20 22);
   --bevel-c2: rgb(40 38 39);
-  --bevel-c3: rgb(40 38 39);
+  --bevel-c3: rgb(54 52 50);
   background-color: rgb(126 126 126);
 }
 
@@ -75,17 +78,32 @@
   padding: 5px;
 }
 
+/* iter6: レシピ面(--slot-size)を面幅是正のため縮めた分、共有.iconのpadding固定5pxだと
+   アイコン自体の絶対サイズが箱の縮小に連れて肥大し、rec-white(面色プローブ)へアイコンが
+   はみ出す。カタログだけ縮小前と同じアイコン絶対サイズを保つよう個別にpaddingを増やす */
+/* iter6: With the recipe face (--slot-size) trimmed to fix its width, the shared .icon's fixed 5px padding
+   would let the icon grow in absolute size as the box shrinks, spilling into the rec-white face-color probe;
+   bump padding for catalog cells only so the icon keeps its pre-shrink absolute footprint */
+.slot[data-catalog="true"] .icon {
+  padding: 8.4px;
+}
+
 /* 実フォントはsynthetic boldを禁止(font-synthesis:none)しているため、太さは4方向1px陰影で作る */
 /* Real fonts forbid synthetic bold (font-synthesis:none), so weight comes from a 4-direction 1px shadow instead */
+/* iter6: 正本の個数はセル右下でアイコンへ重なるほど大きい。旧10pxは正本比よりかなり小さいため
+   19pxへ拡大し、位置もアイコンへ食い込む分だけ右下へ寄せる。縁取りは過剰なぼかしを避け1pxの4方向のみ */
+/* iter6: The reference's count digits run large enough to overlap the icon at the cell's bottom-right. The old
+   10px ran far smaller than the reference's ratio, so it grows to 19px and shifts further into the corner to
+   overlap the icon; the outline stays a crisp 4-direction 1px (no heavy blur) */
 .count {
   position: absolute;
-  bottom: -1px;
-  right: 1px;
-  font-size: 10px;
+  bottom: -3px;
+  right: -1px;
+  font-size: 19px;
   font-weight: 700;
   line-height: 1;
   color: #fff;
-  text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000, 0 0 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000;
 }
 
 /* 明色塗りのセル上では個数を黒文字にして視認性を確保する */

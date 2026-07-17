@@ -30,12 +30,17 @@
   /* Default slot bevel (inventory baseline). The reference's true slot-to-slot gap cross-section (sampled
      mid-grid, not at the panel edge) is only 2 layers — mid-tone 2px + light-gray 2px, no dark ring; the
      darker band seen at the panel's own edge is a separate element. Catalog/hotbar override locally */
-  --bevel-1: 0.15px;
-  --bevel-2: 0.22px;
-  --bevel-3: 0.22px;
-  --bevel-c1: rgb(67 60 63);
-  --bevel-c2: rgb(111 106 105 / 85%);
-  --bevel-c3: rgb(111 106 105 / 85%);
+  /* iter6: 旧値(0.15/0.22px)はサブピクセルで実質不可視だった。正本断面(y800)は中間2px+明灰2pxが
+     screenshot-pxで実測できる太さのため、CSSpx換算(÷2.5547)へ引き上げて可視な2層リングにする */
+  /* iter6: The old values (0.15/0.22px) were sub-pixel and effectively invisible. The reference cross-section
+     (y800) shows a mid 2px + light-gray 2px ring at a measurable screenshot-px width, so both are scaled up
+     (÷2.5547) into CSS px to render as a genuinely visible 2-layer ring */
+  --bevel-1: 0.68px;
+  --bevel-2: 1.35px;
+  --bevel-3: 1.35px;
+  --bevel-c1: rgb(80 74 76);
+  --bevel-c2: rgb(114 108 106);
+  --bevel-c3: rgb(114 108 106);
 }
 
 body {

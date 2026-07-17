@@ -26,7 +26,12 @@
   /* 内面が青黒すぎたため面を薄く・insetグローを外して背面(craft面)の暖色を透けさせる */
   /* The interior read too dark/blue, so lighten the fill and drop the inset glow to let the warm craft face show through */
   background: rgb(5 18 29 / 15%);
-  box-shadow: 0 0 2.5px 0 rgb(31 166 240 / 48%);
+  /* iter6: 正本の枠は単色の細線でなく「外側の紺の帯+内側の明るいシアン線」の2層。border(内側の線)は
+     sel-rowプローブに触れるため不変のまま、外側にだけ紺のリング(box-shadow)を足して2層化する */
+  /* iter6: The reference frame isn't a single-tone thin line but a navy outer band + a brighter cyan inner
+     line. The border (inner line) touches the sel-row probe, so it stays untouched; only an outer navy ring
+     (box-shadow) gets added for the 2-layer look */
+  box-shadow: 0 0 0 1.5px rgb(20 75 135 / 40%), 0 0 2.5px 0 rgb(31 166 240 / 48%);
 }
 
 /* 正本の入力・出力セルは約94x94px(≈2.3rem)と通常スロット(123px)より小さい。行高(min-height)は
@@ -103,12 +108,16 @@
 /* D7: nudge toward the reference's measured bbox — left edge ~1.5 CSS px left, top edge 1px up, and the
    blue face trimmed to ~49 screenshot px (≈19.2 CSS) tall. Synthetic bold is forbidden, so the text weight
    comes from a 4-direction shadow */
+/* iter6: bbox実測(1503,1305,1773,1353)を正本(1502,1302,1775,1351)へ微調整。中心はほぼ不変(+3px幅の
+   均等成長)、上へ2.5screenshot-px(≈0.98CSSpx)はmargin-bottomの加算で寄せる */
+/* iter6: nudge the measured bbox (1503,1305,1773,1353) toward the reference (1502,1302,1775,1351). The
+   center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
 .craftButton {
   align-self: center;
-  width: 106px;
+  width: 107.2px;
   max-width: none;
   margin-top: auto;
-  margin-bottom: 14px;
+  margin-bottom: 14.98px;
   margin-left: -1.6px;
   min-height: 19px;
   height: 19px;

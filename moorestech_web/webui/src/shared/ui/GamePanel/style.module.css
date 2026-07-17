@@ -132,10 +132,14 @@
    shallower cavity where the top hides behind the last grid row) — same visual style, warm purple-brown
    rgb(78 54 55/22%) instead of the flat black tint. Height is shared across panels; the recipe side naturally
    reads shallower because its grid (z-index 1) covers the rest */
+/* iter6: 正本実測は持ち物y≈1315-1460・レシピy≈1390-1460で、旧位置(持ち物y1290-1428)より20-30
+   screenshot-px下(≈11CSSpx)。bottomをパネル下端の外側まで押し出し正本の深さへ合わせる */
+/* iter6: The reference measures inventory y≈1315-1460 / recipe y≈1390-1460, roughly 20-30 screenshot px
+   (≈11 CSS px) lower than the old position (inventory y1290-1428). Push bottom past the panel's own edge to match */
 .bottomDeco {
   position: absolute;
   right: 8%;
-  bottom: 4px;
+  bottom: -7px;
   left: 7%;
   z-index: 0;
   display: flex;

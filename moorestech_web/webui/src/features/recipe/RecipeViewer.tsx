@@ -18,7 +18,12 @@ export default function RecipeViewer() {
 
   // 選択時は左右パネルと等高、未選択時は縦の空箱を避け低めにする
   // Match the side panels when selected; keep the empty box short when nothing is selected
-  const panelMinHeight = loaded && selectedItemId !== null ? 433 : 300;
+  // iter6: craft-panel bbox実測(1209,301,2072,1407)を正本(1210,300,2071,1405)へ微調整。左右は幅を
+  // 0.78CSSpx(≈2screenshot-px)縮め中央寄せで両端を均等に内側へ、下端はminHeightを同量縮める
+  // iter6: nudge the measured craft-panel bbox (1209,301,2072,1407) toward the reference (1210,300,2071,1405).
+  // Trim width by 0.78 CSS px (≈2 screenshot px) so centering pulls both edges in evenly, and trim minHeight
+  // by the same amount for the bottom edge
+  const panelMinHeight = loaded && selectedItemId !== null ? 432.2 : 300;
 
   return (
     <GamePanel
@@ -26,7 +31,7 @@ export default function RecipeViewer() {
       variant="craft"
       // marginTopのみ: craft-tabゾーン(y<298)へパネル上端の暗色50%規則が滲むのを避けるための余白
       // marginTop only: keeps the panel's dark-50%-rule top edge out of the craft-tab detection zone (y<298)
-      style={{ alignSelf: "start", justifySelf: "center", width: 338, minWidth: 0, minHeight: panelMinHeight, marginTop: 2 }}
+      style={{ alignSelf: "start", justifySelf: "center", width: 337.2, minWidth: 0, minHeight: panelMinHeight, marginTop: 2 }}
     >
       {!loaded ? (
         <Text size="sm" c="dimmed" m="auto">connecting...</Text>

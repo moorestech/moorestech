@@ -3,9 +3,13 @@
 /* Override Mantine's ScrollArea to a thin white knob matching the reference (targets the static
    mantine-ScrollArea-* classes). The track used to be transparent, but the reference shows a visible dark
    track; this doesn't affect the thumb's position/length math */
+/* iter6: 旧トラック(31 35 39/70%)はパネル面に溶けほぼ不可視だったため、より暗く不透明度も上げて
+   常時視認できる細トラックにする */
+/* iter6: The old track (31 35 39/70%) blended into the panel face and was nearly invisible; darken it and
+   raise the opacity so the thin track stays visible at all times */
 .scrollArea :global(.mantine-ScrollArea-scrollbar) {
   padding: 0;
-  background: rgb(31 35 39 / 70%);
+  background: rgb(16 14 16 / 88%);
 }
 
 /* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */
