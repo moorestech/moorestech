@@ -96,11 +96,11 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             return result;
         }
 
-        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
+        public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
             if (Container == null) Container = new FluidTrainCarContainer(new FluidContainer(_capacity));
 
-            return Container.Container.AddLiquid(fluidStack, source);
+            return Container.Container.AddLiquid(fluidStack);
         }
 
         public void Destroy()
@@ -171,7 +171,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             if (from.Amount < double.Epsilon) return;
 
             var fluidStack = new FluidStack(from.Amount, from.FluidId);
-            var remain = to.AddLiquid(fluidStack, from);
+            var remain = to.AddLiquid(fluidStack);
             var transferred = from.Amount - remain.Amount;
             from.Amount -= transferred;
 
@@ -235,7 +235,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
                 if (transferAmount < double.Epsilon) continue;
 
                 var fluidStack = new FluidStack(transferAmount, fluidContainer.FluidId);
-                var remain = inventory.AddLiquid(fluidStack, fluidContainer);
+                var remain = inventory.AddLiquid(fluidStack, info);
                 var transferred = transferAmount - remain.Amount;
                 if (transferred > 0)
                 {
@@ -247,8 +247,6 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             {
                 fluidContainer.FluidId = FluidMaster.EmptyFluidId;
             }
-
-            fluidContainer.ClearPreviousSources();
 
             #region Internal
 

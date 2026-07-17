@@ -176,7 +176,7 @@ namespace Tests.CombinedTest.Core
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
                     var steamStack = new FluidStack(10000d, SteamFluidId); // 大量の蒸気を供給
-                    pipe.AddLiquid(steamStack, FluidContainer.Empty);
+                    pipe.AddLiquid(steamStack, default);
                 }
             }
             
@@ -472,7 +472,7 @@ namespace Tests.CombinedTest.Core
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
                     var steamStack = new FluidStack(10000d, SteamFluidId); // 大量の蒸気を供給
-                    pipe.AddLiquid(steamStack, FluidContainer.Empty);
+                    pipe.AddLiquid(steamStack, default);
                 }
             }
             

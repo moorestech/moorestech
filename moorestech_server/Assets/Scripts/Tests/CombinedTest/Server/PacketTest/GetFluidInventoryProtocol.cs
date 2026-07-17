@@ -40,12 +40,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fluidStack3 = new FluidStack(20, MachineFluidIOTest.FluidId3);
             
             // 空のFluidContainerを作成（ソース指定なし）
-            var emptyContainer = FluidContainer.Empty;
             
             // 各液体を追加
-            var remaining1 = fluidInventory.AddLiquid(fluidStack1, emptyContainer);
-            var remaining2 = fluidInventory.AddLiquid(fluidStack2, emptyContainer);
-            var remaining3 = fluidInventory.AddLiquid(fluidStack3, emptyContainer);
+            var remaining1 = fluidInventory.AddLiquid(fluidStack1, default);
+            var remaining2 = fluidInventory.AddLiquid(fluidStack2, default);
+            var remaining3 = fluidInventory.AddLiquid(fluidStack3, default);
             
             // 液体が全て追加されたことを確認
             Assert.AreEqual(0, remaining1.Amount);
@@ -87,7 +86,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // 蒸気を直接追加
             var steamStack = new FluidStack(100, FuelGearGeneratorTest.SteamFluidId);
-            var remaining = steamFluidComponent.AddLiquid(steamStack, FluidContainer.Empty);
+            var remaining = steamFluidComponent.AddLiquid(steamStack, default);
             
             // 蒸気が追加されたことを確認
             Assert.AreEqual(0, remaining.Amount);
@@ -116,7 +115,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fluidPipe = fluidPipeBlock.GetComponent<FluidPipeComponent>();
             const double addingAmount = 50;
             var addingStack = new FluidStack(addingAmount, FluidTest.FluidId);
-            var remainAmount = fluidPipe.AddLiquid(addingStack, FluidContainer.Empty);
+            var remainAmount = fluidPipe.AddLiquid(addingStack, default);
             
             // 液体が全て追加されたことを確認
             Assert.AreEqual(0, remainAmount.Amount);

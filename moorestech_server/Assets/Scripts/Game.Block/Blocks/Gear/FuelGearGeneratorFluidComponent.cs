@@ -16,6 +16,10 @@ namespace Game.Block.Blocks.Gear
         private readonly FluidContainer _fuelTank;
         private int _consecutiveUpdatesWithoutRefill;
 
+        // このtick内にAddLiquidで補給を受けたかどうか（パイプ切断検知に使う）
+        // Whether AddLiquid refilled the tank within this tick (used for pipe disconnection detection)
+        private bool _refilledThisTick;
+
         public FuelGearGeneratorFluidComponent(float tankCapacity)
         {
             _fuelTank = new FluidContainer(tankCapacity);
@@ -40,11 +44,7 @@ namespace Game.Block.Blocks.Gear
         {
             // この更新サイクルで補給があったかどうかをチェック
             // Check whether the tank was refilled during this update cycle
-            var wasRefilledThisUpdate = _fuelTank.HasPreviousSources;
-
-            // 補給状態を追跡
-            // Track the refill state
-            if (wasRefilledThisUpdate)
+            if (_refilledThisTick)
             {
                 _consecutiveUpdatesWithoutRefill = 0;
             }
@@ -52,21 +52,23 @@ namespace Game.Block.Blocks.Gear
             {
                 _consecutiveUpdatesWithoutRefill++;
             }
-            
-            // タンクの送信元記録をクリア
-            _fuelTank.ClearPreviousSources();
-            
+            _refilledThisTick = false;
+
             // タンクが空の場合はFluidIdをリセット
+            // Reset the fluid id when the tank is empty
             if (_fuelTank.Amount <= 0)
             {
                 _fuelTank.FluidId = FluidMaster.EmptyFluidId;
             }
         }
-        
-        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
+
+        public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
-            // タンクに液体を追加
-            return _fuelTank.AddLiquid(fluidStack, source);
+            // タンクに液体を追加し、受け入れがあれば補給フラグを立てる
+            // Add liquid to the tank and mark the refill flag when anything was accepted
+            var remain = _fuelTank.AddLiquid(fluidStack);
+            if (remain.Amount < fluidStack.Amount) _refilledThisTick = true;
+            return remain;
         }
         
         public bool IsDestroy { get; private set; }

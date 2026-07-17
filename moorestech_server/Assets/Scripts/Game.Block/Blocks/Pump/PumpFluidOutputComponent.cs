@@ -57,7 +57,7 @@ namespace Game.Block.Blocks.Pump
                 if (transferAmount <= 0) continue;
 
                 var stack = new FluidStack(transferAmount, _tank.FluidId);
-                var remaining = inventory.AddLiquid(stack, _tank);
+                var remaining = inventory.AddLiquid(stack, info);
                 var transferred = transferAmount - remaining.Amount;
                 if (transferred > 0)
                 {
@@ -71,7 +71,6 @@ namespace Game.Block.Blocks.Pump
             }
 
             // maintenance
-            _tank.ClearPreviousSources();
             if (_tank.Amount <= 0)
             {
                 _tank.FluidId = FluidMaster.EmptyFluidId;
@@ -93,10 +92,10 @@ namespace Game.Block.Blocks.Pump
 
         public void EnqueueGeneratedFluid(FluidStack fluidStack)
         {
-            _tank.AddLiquid(fluidStack, FluidContainer.Empty);
+            _tank.AddLiquid(fluidStack);
         }
 
-        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
+        public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
             // 外部からの注入は拒否する（供給専用）
             // Refuse external injections (supply only)

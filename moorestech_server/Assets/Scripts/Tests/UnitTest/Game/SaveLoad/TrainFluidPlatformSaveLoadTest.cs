@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Inject fluid into the platform
             var waterFluidId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
             var addAmount = 500.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(addAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(addAmount, waterFluidId), default);
 
             // マスタデータの列車カーを生成してドッキング（コンテナなし）
             // Create train car from master data and dock (no container)
@@ -181,7 +181,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Inject fluid into the platform
             var waterFluidId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
             var addAmount = 750.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(addAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(addAmount, waterFluidId), default);
 
             // セーブ & ロード
             // Save & Load

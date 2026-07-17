@@ -134,7 +134,7 @@ namespace Tests.CombinedTest.Core
             var totalAmount = fluidFuel.Amount * 2;
 
             // 一度に2サイクル分の液体を投入し、タンクが適切に受け入れるかを確認する
-            var remain = generatorComponent.AddLiquid(new FluidStack(totalAmount, fluidId), FluidContainer.Empty);
+            var remain = generatorComponent.AddLiquid(new FluidStack(totalAmount, fluidId), default);
             Assert.AreEqual(0d, remain.Amount);
 
             GameUpdater.UpdateOneTick();

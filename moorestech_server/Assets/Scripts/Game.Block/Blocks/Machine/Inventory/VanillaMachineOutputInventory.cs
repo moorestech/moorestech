@@ -129,7 +129,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             {
                 if (i >= _fluidContainers.Length) break;
 
-                _fluidContainers[i].AddLiquid(fluidOutputs[i], FluidContainer.Empty);
+                _fluidContainers[i].AddLiquid(fluidOutputs[i]);
             }
 
             #region Internal

@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Fluid;
@@ -21,96 +20,99 @@ using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Tests.CombinedTest.Core
 {
+    /// <summary>
+    ///     速度モデル（リープフロッグ）に基づく流体パイプのテスト。
+    ///     旧pushモデルと異なり、パイプ間は「水位（充填率）が釣り合う」まで流れ、一方向パイプは許可方向にのみ流れる。
+    ///
+    ///     Fluid pipe tests based on the velocity (leapfrog) model.
+    ///     Unlike the old push model, pipes flow until fill rates (water levels) balance, and one-way pipes flow only in the allowed direction.
+    /// </summary>
     public class FluidTest
     {
         public static readonly Guid FluidGuid = new("00000000-0000-0000-1234-000000000001");
         public static FluidId FluidId => MasterHolder.FluidMaster.GetFluidId(FluidGuid);
-        
+
         /// <summary>
-        ///     与えた量の流体が搬入、搬出されるかのテスト
+        ///     2本のパイプで水位が均等化されることのテスト
+        ///     Two pipes equalize their water levels
         /// </summary>
         [Test]
-        public void FluidTransportTest()
+        public void FluidEqualizationTest()
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            
-            // fluidPipeのflowCapacityは10だから3倍の量の量の液体
+
             const double addingAmount = 30;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
-            
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, default);
+
             // fluidPipeのcapacityは100だから溢れない
+            // Pipe capacity is 100, so nothing overflows
             if (remainAmount.Amount > 0) Assert.Fail();
-            
-            // tick数でループを制御（3秒 = 60 tick）
-            // Loop controlled by tick count (3 seconds = 60 ticks)
-            const int fillTicks = 60;
-            for (var i = 0; i < fillTicks; i++)
+
+            // 十分なtick数で減衰振動が静定する（3秒 = 60 tick）
+            // Damped oscillation settles within enough ticks (3 seconds = 60 ticks)
+            const int ticks = 60;
+            for (var i = 0; i < ticks; i++)
             {
                 GameUpdater.RunFrames(1);
             }
-            
-            Assert.AreEqual(0f, fluidPipe0.GetAmount(), 1f);
-            Assert.AreEqual(30f, fluidPipe1.GetAmount(), 1f);
+
+            // 水位が釣り合い、両パイプが15ずつ持つ
+            // Levels balance out at 15 in each pipe
+            Assert.AreEqual(15d, fluidPipe0.GetAmount(), 1.5d);
+            Assert.AreEqual(15d, fluidPipe1.GetAmount(), 1.5d);
+
+            // 総量は保存される
+            // Total amount is conserved
+            Assert.AreEqual(addingAmount, fluidPipe0.GetAmount() + fluidPipe1.GetAmount(), 0.0001d);
         }
-        
+
         /// <summary>
-        ///     最大流量を超えない量の流体が正しく搬入、搬出されるかのテスト
+        ///     水位差が大きい間は流量が面上限（flowCapacity×tick秒）で飽和することのテスト
+        ///     While the level difference is large, flux saturates at the face cap (flowCapacity times seconds per tick)
         /// </summary>
         [Test]
         public void RealtimeFluidTransportTest()
         {
-            const float amount = 30f; // 搬入する液体の量
-            const float pipeFlowCapacity = 10f;
-            var fillTime = amount / pipeFlowCapacity; // 全て搬入するのにかかる時間
-            
+            const double amount = 30d;
+            const double pipeFlowCapacity = 10d;
+
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            
-            // fluidPipeのflowCapacityは10だから3倍の量の量の液体
+
             var addingStack = new FluidStack(amount, FluidId);
-            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
-            
-            // fluidPipeのcapacityは100だから溢れない
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, default);
             if (remainAmount.Amount > 0) Assert.Fail();
-            
-            // tick数でループを制御（3秒 = 60 tick）
-            // Loop controlled by tick count (3 seconds = 60 ticks)
-            const int fillTicks = 60;
-            for (var tick = 0; tick < fillTicks; tick++)
+
+            // 水位差が十分大きい20tickの間は、毎tickちょうど面上限だけ流れる
+            // For the first 20 ticks the level difference stays large, so exactly the face cap flows each tick
+            const int saturatedTicks = 20;
+            var flowPerTick = pipeFlowCapacity * GameUpdater.SecondsPerTick;
+            for (var tick = 0; tick < saturatedTicks; tick++)
             {
                 GameUpdater.RunFrames(1);
 
-                // 経過秒数（tick × SecondsPerTick）
-                // Elapsed seconds (tick × SecondsPerTick)
-                var elapsedSeconds = (tick + 1) * GameUpdater.SecondsPerTick;
-
-                // 輸送済み液体量
-                // Transported fluid amount
-                var currentTransportedAmount = pipeFlowCapacity * elapsedSeconds;
-                Assert.AreEqual(amount - currentTransportedAmount, fluidPipe0.GetAmount(), 1f);
-                Assert.AreEqual(currentTransportedAmount, fluidPipe1.GetAmount(), 1f);
+                var transported = flowPerTick * (tick + 1);
+                Assert.AreEqual(amount - transported, fluidPipe0.GetAmount(), 0.01d);
+                Assert.AreEqual(transported, fluidPipe1.GetAmount(), 0.01d);
             }
-            
-            Assert.AreEqual(0f, fluidPipe0.GetAmount(), 1f);
-            Assert.AreEqual(30f, fluidPipe1.GetAmount(), 1f);
         }
-        
+
         /// <summary>
         ///     FluidPipeを設置できるかテスト
         ///     Test to set FluidPipe
@@ -119,9 +121,9 @@ namespace Tests.CombinedTest.Core
         public void SetFluidPipeTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var blockFactory = ServerContext.BlockFactory;
-            
+
             var fluidPipeBlock = blockFactory.Create(
                 ForUnitTestModBlockId.FluidPipe,
                 new BlockInstanceId(int.MaxValue),
@@ -131,33 +133,33 @@ namespace Tests.CombinedTest.Core
                     Vector3Int.one
                 )
             );
-            
+
             // FluidPipeComponentの存在を確認
             // Check the existence of FluidPipeComponent
             Assert.True(fluidPipeBlock.ExistsComponent<FluidPipeComponent>());
         }
-        
+
         [Test]
         public void FluidPipeConnectTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            
+
             BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidPipeConnector0 = fluidPipeBlock0.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
             BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidPipeConnector1 = fluidPipeBlock1.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
-            
+
             // パイプ同士が接続されているかのテスト
             // Test if the pipes are connected
             KeyValuePair<IFluidInventory, ConnectedInfo> connect0 = fluidPipeConnector0.ConnectedTargets.First();
             Assert.AreEqual(fluidPipeBlock1, connect0.Value.TargetBlock);
-            
+
             KeyValuePair<IFluidInventory, ConnectedInfo> connect1 = fluidPipeConnector1.ConnectedTargets.First();
             Assert.AreEqual(fluidPipeBlock0, connect1.Value.TargetBlock);
-            
+
             // 正しくオプションが読み込まれているかのテスト
             // Test if the options are read correctly
             var option0 = (connect0.Value.SelfConnector as IFluidConnector)?.Option;
@@ -168,28 +170,30 @@ namespace Tests.CombinedTest.Core
             Assert.IsNotNull(option1);
             Assert.AreEqual(10, option1.FlowCapacity);
         }
-        
+
         /// <summary>
-        ///     一方向のみに流れる設定が機能しているかテスト
+        ///     一方向パイプが逆方向へ流さないことのテスト
+        ///     A one-way pipe never lets fluid flow backwards
         /// </summary>
         [Test]
         public void FlowBlockTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oneWayFluidPipeBlock);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            
+
             BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> oneWayFluidPipeConnector = oneWayFluidPipeBlock.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultConnectJudge>>();
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            
+
             // oneWayFluidPipeの東（x+）方向にしか流れない設定になっていることを確認
+            // Confirm the one-way pipe only connects toward east (x+)
             {
                 // 出力
                 var connect = oneWayFluidPipeConnector.ConnectedTargets[fluidPipe1];
@@ -200,61 +204,95 @@ namespace Tests.CombinedTest.Core
                 // 入力
                 Assert.False(oneWayFluidPipeConnector.ConnectedTargets.ContainsKey(fluidPipe0));
             }
-            
-            // 10fは1秒間に流れる流体の量
+
+            // 東端のパイプに注入しても、一方向パイプを逆流して西へ流れないことを確認
+            // Inject into the eastmost pipe and confirm nothing flows west through the one-way pipe
             const double addingAmount = 10d;
-            var addingStack = new FluidStack(addingAmount, FluidId);
-            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
-            
-            Assert.AreEqual(0, remainAmount.Amount);
-            
-            // fluidPipe0からoneWayFluidPipe、fluidPipe1に流れる
-            // oneWayFluidPipeはfluidPipe1方向にしか流れないからfluidPipe0には流れない
-            // よって、ある程度時間が経つと全ての液体がfluidPipe1でとどまる
-            // tick数でループを制御（5秒 = 100 tick）
-            // Loop controlled by tick count (5 seconds = 100 ticks)
+            var remain = fluidPipe1.AddLiquid(new FluidStack(addingAmount, FluidId), default);
+            Assert.AreEqual(0, remain.Amount);
+
             const int ticks = 100;
             for (var i = 0; i < ticks; i++)
             {
                 GameUpdater.RunFrames(1);
             }
-            
-            Assert.AreEqual(0, fluidPipe0.GetAmount(), 0.01d);
-            Assert.AreEqual(0, oneWayFluidPipe.GetAmount(), 0.01d);
-            Assert.AreEqual(10, fluidPipe1.GetAmount(), 0.01d);
+
+            Assert.AreEqual(0d, fluidPipe0.GetAmount(), 0.0001d);
+            Assert.AreEqual(0d, oneWayFluidPipe.GetAmount(), 0.0001d);
+            Assert.AreEqual(10d, fluidPipe1.GetAmount(), 0.0001d);
             Assert.AreEqual(FluidMaster.EmptyFluidId, fluidPipe0.GetFluidId());
             Assert.AreEqual(FluidMaster.EmptyFluidId, oneWayFluidPipe.GetFluidId());
         }
-        
+
+        /// <summary>
+        ///     一方向パイプの順方向には流れ、最終的に全パイプの水位が均等化されることのテスト
+        ///     Fluid flows forward through a one-way pipe and all levels eventually equalize
+        /// </summary>
+        [Test]
+        public void OneWayForwardFlowTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oneWayFluidPipeBlock);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
+
+            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
+            var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
+            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+
+            const double addingAmount = 30d;
+            fluidPipe0.AddLiquid(new FluidStack(addingAmount, FluidId), default);
+
+            // 減衰振動が静定するまで進める（20秒 = 400 tick）
+            // Advance until the damped oscillation settles (20 seconds = 400 ticks)
+            const int ticks = 400;
+            for (var i = 0; i < ticks; i++)
+            {
+                GameUpdater.RunFrames(1);
+            }
+
+            // 逆流できないため「東側ほど水位が高いか等しい」状態で静定し、概ね均等（各10前後）になる
+            // Since backflow is impossible, it settles with levels non-decreasing toward east, roughly equal (around 10 each)
+            Assert.AreEqual(10d, fluidPipe0.GetAmount(), 3d);
+            Assert.AreEqual(10d, oneWayFluidPipe.GetAmount(), 3d);
+            Assert.AreEqual(10d, fluidPipe1.GetAmount(), 3d);
+            Assert.LessOrEqual(fluidPipe0.GetAmount(), oneWayFluidPipe.GetAmount() + 0.01d);
+            Assert.LessOrEqual(oneWayFluidPipe.GetAmount(), fluidPipe1.GetAmount() + 0.01d);
+            Assert.AreEqual(addingAmount, fluidPipe0.GetAmount() + oneWayFluidPipe.GetAmount() + fluidPipe1.GetAmount(), 0.0001d);
+        }
+
         /// <summary>
         ///     液体の総量が一定であることのテスト
+        ///     Total fluid amount stays constant
         /// </summary>
         [Test]
         public void FluidTotalAmountTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OneWayFluidPipe, Vector3Int.right * 2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oneWayFluidPipeBlock);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 3, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock2);
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
+            var oneWayFluidPipe = oneWayFluidPipeBlock.GetComponent<FluidPipeComponent>();
             var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
-            
-            // 10fは1秒間に流れる流体の量
+
             const double addingAmount = 10d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            var remainAmount = fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
-            
+            var remainAmount = fluidPipe0.AddLiquid(addingStack, default);
+
             Assert.AreEqual(0, remainAmount.Amount);
-            
-            var totalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
-            
-            // fluidPipe0からfluidPipe1に流れる
+
+            var totalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + oneWayFluidPipe.GetAmount() + fluidPipe2.GetAmount();
+
             // tick数でループを制御（10秒 = 200 tick）
             // Loop controlled by tick count (10 seconds = 200 ticks)
             const int ticks = 200;
@@ -262,120 +300,124 @@ namespace Tests.CombinedTest.Core
             {
                 GameUpdater.RunFrames(1);
             }
-            
-            var lastTotalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount();
-            Assert.AreEqual(totalAmount, lastTotalAmount, 0.01d);
+
+            var lastTotalAmount = fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + oneWayFluidPipe.GetAmount() + fluidPipe2.GetAmount();
+            Assert.AreEqual(totalAmount, lastTotalAmount, 0.0001d);
         }
-        
-        // 液体が複数のパイプへ正しく分割されるかのテスト
+
+        /// <summary>
+        ///     中央に注入した液体が両隣へ対称に分かれ、最終的に3本の水位が均等化されることのテスト
+        ///     Fluid injected at the center splits symmetrically and all three levels equalize
+        /// </summary>
         [Test]
         public void FluidSplitTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             // 012 という並び
-            
+            // Layout: 0-1-2 in a row
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 2, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock2);
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
             var fluidPipe2 = fluidPipeBlock2.GetComponent<FluidPipeComponent>();
-            
-            // 20fは1秒間に二つの方向へ流れる流体の量
+
             const double addingAmount = 20d;
             var addingStack = new FluidStack(addingAmount, FluidId);
-            fluidPipe1.AddLiquid(addingStack, FluidContainer.Empty);
+            fluidPipe1.AddLiquid(addingStack, default);
 
-            // tick数でループを制御（1秒 = 20 tick）
-            // Loop controlled by tick count (1 second = 20 ticks)
-            const int ticks = 20;
+            // 静定まで進める（10秒 = 200 tick）
+            // Advance until settled (10 seconds = 200 ticks)
+            const int ticks = 200;
             for (var i = 0; i < ticks; i++)
             {
                 GameUpdater.RunFrames(1);
             }
-            
-            // 0と2に流れる
-            Assert.AreEqual(10f, fluidPipe0.GetAmount(), 1d);
-            Assert.AreEqual(10f, fluidPipe2.GetAmount(), 1d);
-            
+
+            // 対称に分かれ、各パイプ約6.67で均等化する
+            // Splits symmetrically; each pipe settles around 6.67
+            Assert.AreEqual(fluidPipe0.GetAmount(), fluidPipe2.GetAmount(), 0.0001d);
+            Assert.AreEqual(addingAmount / 3d, fluidPipe0.GetAmount(), 1d);
+            Assert.AreEqual(addingAmount / 3d, fluidPipe1.GetAmount(), 1d);
+
             // 総量をテスト
-            Assert.AreEqual(20d, fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount(), 0.01d);
+            // Verify the total amount
+            Assert.AreEqual(addingAmount, fluidPipe0.GetAmount() + fluidPipe1.GetAmount() + fluidPipe2.GetAmount(), 0.0001d);
         }
-        
-        // 水が跳ね返ることの確認
+
+        /// <summary>
+        ///     スロッシング（水の揺れ戻し）が減衰して静定することの確認
+        ///     Sloshing (back-and-forth motion) damps out and settles
+        /// </summary>
         [Test]
-        public void FluidBounceTest()
+        public void FluidSloshingDampingTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            
-            // 10dは1秒間に流れる量
+
             const double amount = 10d;
-            var addingStack = new FluidStack(amount, FluidId);
-            fluidPipe0.AddLiquid(addingStack, FluidContainer.Empty);
+            fluidPipe0.AddLiquid(new FluidStack(amount, FluidId), default);
 
-            // tick数でループを制御（1秒 = 20 tick）
-            // Loop controlled by tick count (1 second = 20 ticks)
-            const int ticks = 20;
-            for (var i = 0; i < ticks; i++)
+            // 静定まで進める（10秒 = 200 tick）
+            // Advance until settled (10 seconds = 200 ticks)
+            for (var i = 0; i < 200; i++)
             {
                 GameUpdater.RunFrames(1);
             }
 
-            // fluidPipe1に全て流れたことを確認
-            Assert.AreEqual(0d, fluidPipe0.GetAmount(), 1d);
-            Assert.AreEqual(10d, fluidPipe1.GetAmount(), 1d);
+            // 半々で静定し、以降は動かない
+            // Settles at half-and-half and stays put afterwards
+            Assert.AreEqual(5d, fluidPipe0.GetAmount(), 0.5d);
+            Assert.AreEqual(5d, fluidPipe1.GetAmount(), 0.5d);
 
-            // もう1秒待つ
-            // Wait another second
-            for (var i = 0; i < ticks; i++)
+            var before0 = fluidPipe0.GetAmount();
+            for (var i = 0; i < 100; i++)
             {
                 GameUpdater.RunFrames(1);
             }
-            
-            // fluidPipe0に全て流れたことを確認
-            Assert.AreEqual(10d, fluidPipe0.GetAmount(), 1d);
-            Assert.AreEqual(0d, fluidPipe1.GetAmount(), 1d);
+            Assert.AreEqual(before0, fluidPipe0.GetAmount(), 0.1d);
         }
-        
+
         /// <summary>
         ///     異なる液体が混ざらないことのテスト
+        ///     Different fluids never mix
         /// </summary>
         [Test]
         public void FluidMixTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            
+
             var fluid0Guid = Guid.Parse("00000000-0000-0000-1234-000000000001");
             var fluid0 = MasterHolder.FluidMaster.GetFluidId(fluid0Guid);
             var fluid1Guid = Guid.Parse("00000000-0000-0000-1234-000000000002");
             var fluid1 = MasterHolder.FluidMaster.GetFluidId(fluid1Guid);
-            
+
             const double fluid0Amount = 10d;
             const double fluid1Amount = 20d;
-            
-            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid0), FluidContainer.Empty);
-            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid1), FluidContainer.Empty);
-            
+
+            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid0), default);
+            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid1), default);
+
             for (var i = 0; i < 10; i++)
             {
                 // 0.1秒 = 2tick
@@ -386,200 +428,77 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(fluid1Amount, fluidPipe1.GetAmount());
             }
         }
-        
+
         /// <summary>
         ///     液体の定義に水と蒸気があることのテスト
+        ///     The fluid master defines Water and Steam
         /// </summary>
         [Test]
         public void FluidMasterTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var fluidMaster = MasterHolder.FluidMaster;
-            
+
             var names = fluidMaster.GetAllFluidIds().Select(id => fluidMaster.GetFluidMaster(id)).ToDictionary(f => f.Name);
-            
+
             Assert.Contains("Water", names.Keys);
             Assert.Contains("Steam", names.Keys);
         }
-        
+
         /// <summary>
-        ///     FluidPipeのIBlockStateObservableの実装のテスト
+        ///     FluidPipeのIBlockStateObservableの実装のテスト。通知はtick末尾に変化したパイプへ1回ずつバッチ発火される
+        ///     IBlockStateObservable test: notifications fire batched, once per changed pipe at the tick tail
         /// </summary>
         [Test]
         public void FluidPipeNetworkTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            
+
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            
+
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-            
+
             var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
             var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-            
+
             var fluidId = Guid.Parse("00000000-0000-0000-1234-000000000001");
             var fluid = MasterHolder.FluidMaster.GetFluidId(fluidId);
-            
+
             const double fluid0Amount = 10d;
             const double fluid1Amount = 20d;
-            
-            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid), FluidContainer.Empty);
-            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid), FluidContainer.Empty);
-            
+
+            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid), default);
+            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid), default);
+
             var callCount = 0;
-            
-            fluidPipe0.OnChangeBlockState.Subscribe(_ =>
-            {
-                callCount++;
-                Debug.Log("callCount " + callCount);
-            });
+
+            fluidPipe0.OnChangeBlockState.Subscribe(_ => { callCount++; });
             fluidPipe1.OnChangeBlockState.Subscribe(_ => { callCount++; });
-            
+
             const int steps = 10;
-            
+
             // 毎フレーム1tick固定なので、1tickずつ進行
             // Each frame advances exactly 1 tick
             for (var i = 0; i < steps; i++) GameUpdater.RunFrames(1);
-            
-            // ソース別バケット導入後、毎tickで両パイプが送受信を行うため
-            // pipe0.Update→pipe1受信(1)+pipe0送信(2)、pipe1.Update→pipe0受信(3)+pipe1送信(4) の計4回
-            // After per-source bucket distribution, each pipe sends and receives every tick
-            // pipe0.Update -> pipe1 receive + pipe0 send, pipe1.Update -> pipe0 receive + pipe1 send = 4 per tick
-            // 合計: 4 * 10 = 40回の状態変更
-            // Total: 4 * 10 = 40 state changes
-            Assert.AreEqual(40, callCount);
+
+            // 水位差がある間は毎tick両パイプの内容量が変化し、それぞれ1回ずつ通知される（2回/tick × 10tick）
+            // While levels differ, both pipes change every tick and notify once each: 2 per tick over 10 ticks
+            Assert.AreEqual(20, callCount);
         }
-
-        // 入力元（ソース）として記録された隣接へは戻さず、それ以外の隣接へ均等に配分されることを確認
-        // Ensure liquid attributed to a source is not returned to that source, but is split equally among the other neighbors
-        [Test]
-        public void FluidSourceExclusionTest()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
-            // X中心の+型配置。A=西、B=東、C=上の3隣接。
-            // Plus-shaped layout: X at center with A (west), B (east), C (up).
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var xBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var aBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var bBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 1, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var cBlock);
-
-            var x = xBlock.GetComponent<FluidPipeComponent>();
-            var a = aBlock.GetComponent<FluidPipeComponent>();
-            var b = bBlock.GetComponent<FluidPipeComponent>();
-            var c = cBlock.GetComponent<FluidPipeComponent>();
-
-            // A から X へ流入したと記録させる
-            // Inject into X claiming A as the source
-            x.AddLiquid(new FluidStack(30d, FluidId), a.GetFluidContainer());
-
-            // 降格(N=3)前の範囲で動作確認するため2tickのみ進行
-            // Run only 2 ticks so the source bucket has not yet been demoted to sourceless
-            for (var i = 0; i < 2; i++) GameUpdater.RunFrames(1);
-
-            // A は除外されるため受け取らない
-            // A is excluded as the source and must not receive
-            Assert.AreEqual(0d, a.GetAmount(), 0.001d);
-            // B, C は等分で受け取る（flowCapacity=10/sec, tick=0.05s, 2tick → 1.0）
-            // B and C receive equal shares (flowCapacity 10/sec * 2 ticks at 0.05s = 1.0 each)
-            Assert.AreEqual(1d, b.GetAmount(), 0.01d);
-            Assert.AreEqual(1d, c.GetAmount(), 0.01d);
-        }
-
-        // 多入力時：A=30, B=50 を同時投入。X-A,B,C 連結。Aの分はB,Cへ、Bの分はA,Cへそれぞれ等分
-        // Multi-source: when X simultaneously receives 30 from A and 50 from B, A's share goes to B,C and B's share goes to A,C
-        [Test]
-        public void FluidMultiSourceSplitTest()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var xBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var aBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var bBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 1, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var cBlock);
-
-            var x = xBlock.GetComponent<FluidPipeComponent>();
-            var a = aBlock.GetComponent<FluidPipeComponent>();
-            var b = bBlock.GetComponent<FluidPipeComponent>();
-            var c = cBlock.GetComponent<FluidPipeComponent>();
-
-            // 同tick内で2つのソースから受信させる
-            // Receive from two sources within the same tick
-            x.AddLiquid(new FluidStack(30d, FluidId), a.GetFluidContainer());
-            x.AddLiquid(new FluidStack(50d, FluidId), b.GetFluidContainer());
-
-            // 降格前の範囲で2tick進行
-            // Run 2 ticks while no bucket has been demoted yet
-            for (var i = 0; i < 2; i++) GameUpdater.RunFrames(1);
-
-            // 各tickでA bucket→{B,C}に0.5ずつ、B bucket→{A,C}に0.5ずつ
-            // Each tick distributes 0.5 from A's bucket to {B,C} and 0.5 from B's bucket to {A,C}
-            // 2tick合計: A=1.0(Bから)、B=1.0(Aから)、C=2.0(両方から)
-            // Totals over 2 ticks: A=1.0 (from B's bucket), B=1.0 (from A's bucket), C=2.0 (from both)
-            Assert.AreEqual(1d, a.GetAmount(), 0.01d);
-            Assert.AreEqual(1d, b.GetAmount(), 0.01d);
-            Assert.AreEqual(2d, c.GetAmount(), 0.01d);
-            Assert.AreEqual(76d, x.GetAmount(), 0.01d);
-        }
-
-        // 流せる先がない場合、Nティック詰まったら入力ソースなしへ降格して元のソースへ流れ戻ることを確認
-        // After N ticks of no progress, the bucket demotes to sourceless and starts flowing back to the original source
-        [Test]
-        public void FluidBlockedRefluxTest()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
-            // 線形A-X、Xの隣接はAのみ
-            // Linear A-X layout, X has only A as neighbor
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var aBlock);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var xBlock);
-
-            var a = aBlock.GetComponent<FluidPipeComponent>();
-            var x = xBlock.GetComponent<FluidPipeComponent>();
-
-            // Aから流入したとして10をXへ投入
-            // Inject 10 into X attributed to A
-            x.AddLiquid(new FluidStack(10d, FluidId), a.GetFluidContainer());
-
-            // N=3ティック詰まりが続く間、AはX由来の液体を受け取らないこと
-            // While the bucket is blocked for the first N=3 ticks, A must not receive
-            for (var i = 0; i < 3; i++) GameUpdater.RunFrames(1);
-            Assert.AreEqual(0d, a.GetAmount(), 0.001d);
-            Assert.AreEqual(10d, x.GetAmount(), 0.001d);
-
-            // 4ティック目以降、降格後のEmptyバケットからAへ流れ戻ることを確認
-            // From tick 4 onward the demoted Empty bucket distributes back to A
-            for (var i = 0; i < 5; i++) GameUpdater.RunFrames(1);
-            Assert.Greater(a.GetAmount(), 0d);
-        }
-
     }
 
     public static class FluidPipeExtension
     {
-        public static FluidContainer GetFluidContainer(this FluidPipeComponent fluidPipe){
-            // リフレクションでFluidContainerを取得する
-            var field = typeof(FluidPipeComponent).GetField("_fluidContainer", BindingFlags.NonPublic | BindingFlags.Instance);
-            return (FluidContainer)field.GetValue(fluidPipe);
+        public static double GetAmount(this FluidPipeComponent fluidPipe)
+        {
+            return fluidPipe.Node.Amount;
         }
 
-        
-        public static double GetAmount(this FluidPipeComponent fluidPipe){
-            return fluidPipe.GetFluidContainer().Amount;
-        }
-        
         public static FluidId GetFluidId(this FluidPipeComponent fluidPipe)
         {
-            return fluidPipe.GetFluidContainer().FluidId;
+            return fluidPipe.Node.FluidId;
         }
-        
     }
 }

@@ -184,8 +184,6 @@ namespace Game.Block.Blocks.PowerGenerator
                     _fuelFluidContainer.Amount = 0;
                     _fuelFluidContainer.FluidId = FluidMaster.EmptyFluidId;
                 }
-
-                _fuelFluidContainer.ClearPreviousSources();
             }
 
             void ClearFuelState()
@@ -199,12 +197,12 @@ namespace Game.Block.Blocks.PowerGenerator
             #endregion
         }
 
-        public FluidStack AddLiquid(FluidStack fluidStack, FluidContainer source)
+        public FluidStack AddLiquid(FluidStack fluidStack)
         {
             // タンク未生成（液体燃料設定なし）の場合は受け入れず全量返す
             // Without a tank (no fluid fuel configured), reject and return the full stack
             if (_fuelFluidContainer == null) return fluidStack;
-            return _fuelFluidContainer.AddLiquid(fluidStack, source);
+            return _fuelFluidContainer.AddLiquid(fluidStack);
         }
 
 
