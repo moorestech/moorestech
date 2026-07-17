@@ -2,7 +2,7 @@
 /* Keep row and column gaps equal for a uniform, tight grid */
 .grid {
   display: grid;
-  column-gap: 0.125rem;
-  row-gap: 0.125rem;
+  column-gap: 0.3125rem;
+  row-gap: 0.3125rem;
   width: fit-content;
 }

@@ -6,22 +6,20 @@ import { useItemSelectionStore } from "./selectionStore";
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
 export default function ItemListPanel() {
-  const selectedItemId = useItemSelectionStore((s) => s.selectedItemId);
   const onSelect = useItemSelectionStore((s) => s.setSelectedItem);
   const itemList = useTopic(Topics.itemList);
   const itemMaster = useItemMaster();
 
   return (
-    <GamePanel gridArea="items" title="CRAFT RECIPE" style={{ justifySelf: "end", alignSelf: "start", minWidth: 356, minHeight: 452 }}>
+    <GamePanel gridArea="items" title="CRAFT RECIPE" style={{ justifySelf: "end", alignSelf: "start", width: 336, minHeight: 445 }}>
       {itemList ? (
-        <ScrollArea.Autosize mah={396} type="auto" offsetScrollbars>
+        <ScrollArea.Autosize mah={396} type="always">
           <SlotGrid cols={6} testId="item-list-grid">
             {itemList.itemIds.map((id) => (
               <ItemSlot
                 key={id}
                 itemId={id}
                 name={itemMaster?.get(id)?.name}
-                selected={id === selectedItemId}
                 onLeftDown={() => onSelect(id)}
               />
             ))}

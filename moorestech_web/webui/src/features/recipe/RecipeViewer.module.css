@@ -14,7 +14,6 @@
   align-items: stretch;
   text-align: center;
 }
-
 .toolTab {
   align-self: flex-start;
   margin-top: -2.25rem;
@@ -23,36 +22,44 @@
   padding: 0.2rem 0.45rem;
   border: 2px solid #a7a9b3;
   border-bottom: 0;
-  border-radius: 0.25rem 0.25rem 0 0;
+  border-radius: 0;
   background: #303542;
   font-size: 13px;
   line-height: 1.4;
 }
-
 .itemName {
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.25;
   text-align: center;
 }
-
 .recipeTreeButton {
   align-self: center;
-  margin-top: 0.35rem;
-  border-radius: 3px;
-  background: #3e7adb;
+  margin-top: 0.2rem;
+  width: 106px;
+  height: 21px;
+  min-height: 21px;
+  padding: 0 6px;
+  border-radius: 0;
+  background: linear-gradient(180deg, #42d5f3 0%, #1385dc 48%, #13cff0 100%);
   color: #fff;
   font-weight: 700;
+  font-size: 10px;
 }
 
-/* 品名の下へ銀色の横線と中央のひし形を置く */
-/* Place a silver horizontal rule and centered diamond below the item name */
+/* 中央境界へ左右ダガーと輪郭ダイヤを一体で描く */
+/* Draw paired daggers and an outlined diamond into the center divider */
 .itemHeaderRule {
   position: relative;
-  width: 100%;
-  height: 1px;
-  margin-top: 0.45rem;
-  background: rgb(200 208 220 / 50%);
+  align-self: center;
+  width: 46%;
+  height: 9px;
+  margin-top: 0.25rem;
+  background:
+    linear-gradient(90deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 42%, transparent 42%) left center / 50% 1px no-repeat,
+    linear-gradient(270deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 42%, transparent 42%) right center / 50% 1px no-repeat,
+    linear-gradient(28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 38% center / 18px 7px no-repeat,
+    linear-gradient(-28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 62% center / 18px 7px no-repeat;
 }
 
 .itemHeaderRule::after {
@@ -62,7 +69,7 @@
   width: 7px;
   height: 7px;
   border: 1px solid #b8c0cc;
-  background: rgb(34 39 48 / 90%);
+  background: transparent;
   content: "";
   transform: translate(-50%, -50%) rotate(45deg);
 }
@@ -71,13 +78,14 @@
 /* Frame materials and result with a thin border and cyan corner brackets */
 .recipeBox {
   position: relative;
-  width: 100%;
-  min-height: 4.5rem;
-  padding: 0.55rem 1rem 0.2rem;
+  align-self: center;
+  width: calc(100% - 24px);
+  min-height: 3.9rem;
+  padding: 0.35rem 0.75rem 0.1rem;
   border: 1px solid rgb(90 160 220 / 50%);
   border-radius: 0;
-  background: rgb(5 18 29 / 82%);
-  box-shadow: inset 0 0 0.7rem rgb(16 51 76 / 45%);
+  background: rgb(5 18 29 / 45%);
+  box-shadow: 0 0 13px 2px rgb(31 166 240 / 72%), inset 0 0 0.7rem rgb(16 51 76 / 42%);
 }
 
 /* 上下の疑似要素で四隅のL字ブラケットを描く */
@@ -90,6 +98,7 @@
   height: 20px;
   background-repeat: no-repeat;
   content: "";
+  filter: drop-shadow(0 0 4px rgb(47 188 255 / 90%));
   pointer-events: none;
 }
 
@@ -113,9 +122,14 @@
 }
 
 .craftTime {
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  z-index: 2;
   color: #d7dbe5;
   text-align: center;
   text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+  transform: translateX(-50%);
 }
 
 .recipeContent,
@@ -128,13 +142,15 @@
 /* Present the craft action as a modest, center-aligned blue button */
 .craftButton {
   align-self: center;
-  width: 100%;
-  max-width: 28%;
+  width: 106px;
+  max-width: none;
   margin-top: auto;
-  min-height: 1.85rem;
-  height: 1.85rem;
-  border-radius: 4px;
-  background: linear-gradient(180deg, #6fb0f2 0%, #4a90e6 100%);
+  margin-bottom: 30px;
+  min-height: 21px;
+  height: 21px;
+  padding: 0;
+  border-radius: 0;
+  background: linear-gradient(180deg, #48a0e8 0%, #b1bedf 38%, #50aff5 52%, #168ce5 100%);
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -143,7 +159,7 @@
 }
 
 .craftButton:hover:not(:disabled) {
-  background: linear-gradient(180deg, #7bb9f5 0%, #579bea 100%);
+  background: linear-gradient(180deg, #58b2f2 0%, #c4d0eb 38%, #62bef9 52%, #259bea 100%);
 }
 
 .craftButton:disabled,

@@ -14,11 +14,11 @@
 .stage {
   position: relative;
   display: grid;
-  column-gap: 2.5rem;
+  column-gap: 3.75rem;
   row-gap: 1rem;
   width: 1280px;
   height: 720px;
-  padding: 115px 48px 30px;
+  padding: 115px 48px 7px;
   box-sizing: border-box;
   flex: 0 0 auto;
   transform: scale(var(--ui-scale, 1));
@@ -50,7 +50,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(17, 17, 17, 0.35);
+  background: transparent;
   pointer-events: none;
   z-index: 0;
 }
