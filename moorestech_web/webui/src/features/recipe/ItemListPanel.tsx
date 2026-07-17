@@ -1,9 +1,14 @@
 import { useMemo } from "react";
+import type { CSSProperties } from "react";
 import { ScrollArea, Text } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
 import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import { useItemSelectionStore } from "./selectionStore";
 import styles from "./ItemListPanel.module.css";
+
+// 正本のスロット外形123px・間隔16pxへ寄せる局所上書き（持ち物と共通、他グリッドの既定値は変えない）
+// Local override toward the reference's 123px slot face / 16px gap (shared with inventory; other grids keep their defaults)
+const GRID_STYLE = { "--slot-size": "3.08rem", "--slot-grid-gap": "0.36rem" } as CSSProperties;
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
@@ -38,9 +43,9 @@ export default function ItemListPanel() {
           type="always"
           scrollbarSize={4}
           className={styles.scrollArea}
-          style={{ marginLeft: -14, marginRight: 6, marginTop: 12 }}
+          style={{ marginLeft: -2, marginRight: 6, marginTop: 12 }}
         >
-          <SlotGrid cols={6} testId="item-list-grid">
+          <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (
               <ItemSlot
                 key={id}

@@ -1,8 +1,13 @@
+import type { CSSProperties } from "react";
 import { Text } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
 import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge/contract/payloadTypes";
 import { createSlotActions } from "../slotActions";
+
+// 正本のスロット外形123px・間隔16pxへ寄せる局所上書き（他グリッドの既定値は変えない）
+// Local override toward the reference's 123px slot face / 16px gap (other grids keep their defaults)
+const GRID_STYLE = { "--slot-size": "3.08rem", "--slot-grid-gap": "0.36rem" } as CSSProperties;
 
 // メイン4行を操作する。grab追従とホットバーは常時別表示
 // Handle four main rows; grab tracking and the hotbar render separately
@@ -20,7 +25,7 @@ export default function InventoryPanel() {
 
   return (
     <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452 }}>
-      <SlotGrid testId="main-grid" cols={6}>
+      <SlotGrid testId="main-grid" cols={6} style={GRID_STYLE}>
         {inventory.mainSlots.map((slot, i) => {
           const ref: SlotRef = { area: "main", slot: i };
           return (

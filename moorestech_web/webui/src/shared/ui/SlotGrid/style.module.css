@@ -1,8 +1,8 @@
-/* 行間・列間を等値にして均一なタイトグリッドにする（正本ピッチ140screenshot-px = 54.8design-px相当） */
-/* Keep row and column gaps equal for a uniform, tight grid (reference pitch is ~54.8 design px) */
+/* 行間・列間を等値にして均一なタイトグリッドにする。既定gapは他グリッド(block inventory等)を変えない値を保つ */
+/* Keep row and column gaps equal for a uniform, tight grid; default gap preserves other grids (block inventory, etc.) */
 .grid {
   display: grid;
-  column-gap: 0.425rem;
-  row-gap: 0.425rem;
+  column-gap: var(--slot-grid-gap, 0.425rem);
+  row-gap: var(--slot-grid-gap, 0.425rem);
   width: fit-content;
 }

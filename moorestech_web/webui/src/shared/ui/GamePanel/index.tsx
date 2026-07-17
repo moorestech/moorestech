@@ -30,6 +30,15 @@ export default function GamePanel({ gridArea, title, headerRight, variant = "def
         </>
       ) : null}
       <div className={styles.body}>{children}</div>
+      {/* default(持ち物/レシピ)パネルだけ下部に三角装飾3個を敷く。craftバリアントは対象外 */}
+      {/* Only default (inventory/recipe) panels get the 3 bottom triangle decorations; the craft variant is excluded */}
+      {variant === "default" ? (
+        <div className={styles.bottomDeco} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      ) : null}
     </div>
   );
 }

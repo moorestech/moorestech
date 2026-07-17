@@ -40,14 +40,18 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
   return (
     <Stack className={styles.craftRecipe} gap="xs">
       <RecipePager index={index} count={recipes.length} setIndex={setRecipeIndex} />
-      <Group className={styles.recipeBox} data-testid="craft-recipe-box" gap={4} align="center" wrap="wrap">
-        {recipe.requiredItems.map((r, i) => (
-          // 所持数不足の素材は 40% 透過で強調を落とす（uGUI 準拠）
-          // Dim insufficient materials to 40% opacity, matching uGUI
-          <Box key={i} opacity={(counts.get(r.itemId) ?? 0) >= r.count ? 1 : 0.4}>
-            <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
-          </Box>
-        ))}
+      {/* 正本は素材群と完成品を枠の左右へ寄せて広く配置する。3クラスタ(素材/矢印/完成品)をspace-betweenで離す */}
+      {/* The reference spreads materials and the result toward the box's left/right edges; space-between separates the 3 clusters (materials/arrow/result) */}
+      <Group className={styles.recipeBox} data-testid="craft-recipe-box" justify="space-between" align="center" wrap="wrap">
+        <Group gap={4}>
+          {recipe.requiredItems.map((r, i) => (
+            // 所持数不足の素材は 40% 透過で強調を落とす（uGUI 準拠）
+            // Dim insufficient materials to 40% opacity, matching uGUI
+            <Box key={i} opacity={(counts.get(r.itemId) ?? 0) >= r.count ? 1 : 0.4}>
+              <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
+            </Box>
+          ))}
+        </Group>
         {/* 素材と完成品の間に長押し進捗を矢印で表示する */}
         {/* Show hold progress as an arrow between materials and result */}
         <Box mx="xs">
