@@ -16,7 +16,11 @@
 }
 /* 台形風フラップ。正本の外接(約64.6×27design-px)に合わせ固定寸法+中央寄せにする */
 /* Trapezoid-flavored flap sized to the reference footprint (~64.6x27 design px), centered content */
+/* 前面台形+背後の暗い縁取り(::before)の2層構造。外接は元の矩形版と同じ範囲に収める */
+/* 2-layer structure: front trapezoid + dark backing edge (::before), kept within the original rectangle's footprint */
 .toolTab {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,42 +30,48 @@
   margin-top: -2.47rem;
   margin-left: -0.8rem;
   margin-bottom: 0.2rem;
-  border: 2px solid #a7a9b3;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  border: 2px solid rgb(167 169 179 / 90%);
   border-bottom: 0;
-  border-radius: 0;
-  background: #303542;
+  background: linear-gradient(155deg, #3c4152 0%, #262b38 100%);
   font-size: 18px;
   line-height: 1;
 }
+/* 正本のタイトルは横幅過大にならない程度に小さくレギュラー太さで表示する(約150x51screenshot-px相当) */
+/* The reference title is smaller and regular-weight so it never grows too wide (~150x51 screenshot px) */
 .itemName {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.86rem;
+  font-weight: 500;
   line-height: 1.25;
   text-align: center;
 }
+/* 正本は縦グラデ+中央白帯でなく、青→シアンの横方向グラデーション */
+/* The reference uses a horizontal blue-to-cyan gradient, not a vertical one with a center white band */
 .recipeTreeButton {
   align-self: center;
-  margin-top: 0.56rem;
+  margin-top: 0.54rem;
   margin-left: -2px;
   width: 106px;
-  height: 21px;
-  min-height: 21px;
+  height: 19px;
+  min-height: 19px;
   padding: 0 6px;
   border-radius: 0;
-  background: linear-gradient(180deg, #42d5f3 0%, #1385dc 48%, #13cff0 100%);
+  background: linear-gradient(90deg, #1a6fce 0%, #2fa8e6 55%, #4fe0f4 100%);
   color: #fff;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 10px;
 }
 
-/* 中央境界へ左右ダガーと輪郭ダイヤを一体で描く */
-/* Draw paired daggers and an outlined diamond into the center divider */
+/* 中央境界へ左右ダガーと輪郭ダイヤを一体で描く。正本は全長707screenshot-px相当まで連続させる */
+/* Draw paired daggers and an outlined diamond into the center divider; the reference runs it out to ~707 screenshot px */
 .itemHeaderRule {
   position: relative;
   align-self: center;
-  width: 46%;
+  width: 84%;
   height: 9px;
-  margin-top: 0.25rem;
+  /* itemNameを小さくした分の高さをここで補い、下のボタン列の縦位置(正本y422-469)を保つ */
+  /* Compensate here for the height itemName lost when shrunk, keeping the button row's vertical position (reference y422-469) */
+  margin-top: 0.55rem;
   background:
     linear-gradient(90deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 42%, transparent 42%) left center / 50% 1px no-repeat,
     linear-gradient(270deg, transparent, rgb(132 137 151 / 70%) 12%, rgb(132 137 151 / 70%) 42%, transparent 42%) right center / 50% 1px no-repeat,
@@ -81,8 +91,8 @@
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
-/* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む */
-/* Frame materials and result with a thin border and cyan corner brackets */
+/* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む。発光は線近傍(6px以内)に限定する */
+/* Frame materials and result with a thin border and cyan corner brackets; keep the glow within 6px of the line */
 .recipeBox {
   position: relative;
   align-self: center;
@@ -94,7 +104,7 @@
   border: 1px solid rgb(90 160 220 / 50%);
   border-radius: 0;
   background: rgb(5 18 29 / 45%);
-  box-shadow: 0 0 13px 2px rgb(31 166 240 / 72%), inset 0 0 0.7rem rgb(16 51 76 / 42%);
+  box-shadow: 0 0 4px 0 rgb(31 166 240 / 55%), inset 0 0 0.7rem rgb(16 51 76 / 42%);
 }
 
 /* 上下の疑似要素で四隅のL字ブラケットを描く */
@@ -107,7 +117,7 @@
   height: 20px;
   background-repeat: no-repeat;
   content: "";
-  filter: drop-shadow(0 0 4px rgb(47 188 255 / 90%));
+  filter: drop-shadow(0 0 1.5px rgb(47 188 255 / 90%));
   pointer-events: none;
 }
 
@@ -130,9 +140,11 @@
   justify-content: center;
 }
 
+/* 正本は時間ラベルの中心が選択枠の下辺に重なる位置まで下げる */
+/* Drop the time label until its center overlaps the selection frame's bottom edge, matching the reference */
 .craftTime {
   position: absolute;
-  bottom: -2px;
+  bottom: -9px;
   left: 50%;
   z-index: 2;
   color: #d7dbe5;
@@ -147,8 +159,8 @@
   min-height: 0;
 }
 
-/* クラフト操作を控えめな中央寄せの青ボタンで示す */
-/* Present the craft action as a modest, center-aligned blue button */
+/* クラフト操作を控えめな中央寄せの青ボタンで示す。正本は縦グラデ+中央白帯でなく横方向の青→シアン */
+/* Present the craft action as a modest, center-aligned blue button; the reference is a horizontal blue-to-cyan gradient, not vertical with a center white band */
 .craftButton {
   align-self: center;
   width: 106px;
@@ -159,16 +171,16 @@
   height: 21px;
   padding: 0;
   border-radius: 0;
-  background: linear-gradient(180deg, #48a0e8 0%, #b1bedf 38%, #50aff5 52%, #168ce5 100%);
+  background: linear-gradient(90deg, #1a6fce 0%, #2fa8e6 55%, #4fe0f4 100%);
   color: #fff;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 28%);
 }
 
 .craftButton:hover:not(:disabled) {
-  background: linear-gradient(180deg, #58b2f2 0%, #c4d0eb 38%, #62bef9 52%, #259bea 100%);
+  background: linear-gradient(90deg, #2680dd, #45bcf5, #6cebfa);
 }
 
 .craftButton:disabled,
@@ -179,21 +191,23 @@
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%);
 }
 
-/* 素材→結果を示す白い矢印グリフ。長押し進捗は下の細いバーで控えめに示す */
-/* White arrow glyph from materials to result; hold progress shows subtly in the thin bar below */
+/* 素材→結果を示す白い矢印グリフ。長押し進捗は下の細いバーで控えめに示す。正本は121x78screenshot-px相当と大きい */
+/* White arrow glyph from materials to result; hold progress shows subtly in the thin bar below. The reference arrow is large (~121x78 screenshot px) */
 .craftArrow {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 2.6rem;
+  width: 3.6rem;
 }
 .craftArrowGlyph {
-  font-size: 1.9rem;
+  display: inline-block;
+  font-size: 2.6rem;
   line-height: 1;
-  font-weight: 700;
+  font-weight: 500;
   color: #f2f3f7;
   text-shadow: 0 1px 2px rgb(0 0 0 / 70%);
+  transform: scaleX(1.35);
 }
 .craftArrowTrack {
   width: 1.9rem;

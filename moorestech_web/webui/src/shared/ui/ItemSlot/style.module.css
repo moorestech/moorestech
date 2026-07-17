@@ -1,14 +1,15 @@
 /* 画面幅に応じて縮むスロット。data-selected は選択状態を参照する e2e 契約として維持する */
 /* Slot scales with viewport width; data-selected remains the e2e contract for selection */
-/* フラットな細枠スロットを使う */
-/* Use a flat slot with a thin border */
+/* 正本は明灰の外線+暗い内線という2層ベベルを持つ。1pxボーダー+inset box-shadowで薄く再現する */
+/* The reference has a 2-layer bevel: light-gray outer line + dark inner line; reproduce it thinly via a 1px border + inset box-shadow */
 .slot {
   position: relative;
   width: var(--slot-size, 2rem);
   height: var(--slot-size, 2rem);
-  border: 2px solid rgb(150 153 158 / 72%);
+  border: 1px solid rgb(112 107 104 / 85%);
   border-radius: 0;
   background-color: rgb(58 48 51);
+  box-shadow: inset 0 0 0 0.5px rgb(24 20 22 / 80%);
   user-select: none;
 }
 
@@ -24,12 +25,12 @@
   background-color: rgb(254 254 254);
 }
 
-/* 選択状態はシアンの塗りと細枠で強調する */
-/* Highlight selection with cyan fill and a thin border */
+/* 選択状態はシアンの塗りと細枠で強調する。正本はぼかし発光をほぼ持たない角張った帯 */
+/* Highlight selection with cyan fill and a thin border; the reference is an angular band with almost no blur/glow */
 .slot[data-selected="true"] {
   border-color: #5db2cd;
   background-color: rgb(93 178 205);
-  box-shadow: 0 0 7px rgb(65 220 246 / 55%);
+  box-shadow: none;
 }
 
 /* アイコンは内面の70-90%に収め、面色測定用の隅を空ける（正本準拠） */
@@ -38,7 +39,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 4px;
+  padding: 6px;
 }
 
 .count {

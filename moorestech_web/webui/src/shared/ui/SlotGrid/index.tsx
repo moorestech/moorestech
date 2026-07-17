@@ -1,4 +1,4 @@
-import type { ReactNode, WheelEvent } from "react";
+import type { CSSProperties, ReactNode, WheelEvent } from "react";
 import styles from "./style.module.css";
 
 type Props = {
@@ -9,16 +9,19 @@ type Props = {
   testId?: string;
   onWheel?: (e: WheelEvent<HTMLDivElement>) => void;
   className?: string;
+  // --slot-size / --slot-grid-gap の局所上書き用（他グリッドの既定値には影響しない）
+  // Local override for --slot-size / --slot-grid-gap (does not affect other grids' defaults)
+  style?: CSSProperties;
 };
 
 // スロットを固定幅セルで並べる共通グリッド（inventory/hotbar/block/itemList で共用）
 // Shared fixed-cell slot grid used by inventory, hotbar, block, and item list views
-export default function SlotGrid({ children, cols, testId, onWheel, className }: Props) {
+export default function SlotGrid({ children, cols, testId, onWheel, className, style }: Props) {
   return (
     <div
       data-testid={testId}
       className={className ? `${styles.grid} ${className}` : styles.grid}
-      style={{ gridTemplateColumns: `repeat(${cols ?? 9}, max-content)` }}
+      style={{ gridTemplateColumns: `repeat(${cols ?? 9}, max-content)`, ...style }}
       onWheel={onWheel}
     >
       {children}
