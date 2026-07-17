@@ -44,6 +44,26 @@ async function main() {
   await page.getByTestId("item-list-grid").locator("> div").first().click();
   await page.locator('[class*="_recipeBox_"]').waitFor();
 
+  // Webフォントのロード完了を待ち、主要要素の実効フォントを記録する（フォント未適用の撮影を防ぐ）
+  // Wait for web fonts and log effective fonts on key elements (prevents capturing with fallback fonts)
+  await page.evaluate("document.fonts.ready.then(() => undefined)");
+  const fontReport = await page.evaluate(`(() => {
+    const faces = [];
+    document.fonts.forEach((f) => faces.push(f.family + ":" + f.status));
+    const pick = (sel) => {
+      const el = document.querySelector(sel);
+      return el ? getComputedStyle(el).fontFamily.slice(0, 60) : "(none)";
+    };
+    return JSON.stringify({
+      loaded: faces.join(", "),
+      body: getComputedStyle(document.body).fontFamily.slice(0, 60),
+      heading: pick("h1,h2,h3,h4"),
+      count: pick('[class*="count"]'),
+      button: pick("button"),
+    });
+  })()`);
+  console.log("fonts:", fontReport);
+
   // 素の確認時だけ共用背景を除く
   // Remove the shared mock-host background only for the plain look-check
   if (!INJECT_BG) {
