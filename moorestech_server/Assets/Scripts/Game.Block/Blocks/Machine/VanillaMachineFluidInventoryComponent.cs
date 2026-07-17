@@ -143,7 +143,12 @@ namespace Game.Block.Blocks.Machine
                 var container = _inputInventory.FluidInputSlot[tankIndex];
                 if (container.FluidId == FluidMaster.EmptyFluidId || container.FluidId == fluidStack.FluidId)
                 {
-                    return container.AddLiquid(fluidStack);
+                    var remaining = container.AddLiquid(fluidStack);
+                    if (remaining.Amount < fluidStack.Amount)
+                    {
+                        _onChangeBlockState.OnNext(Unit.Default);
+                    }
+                    return remaining;
                 }
                 return fluidStack;
             }

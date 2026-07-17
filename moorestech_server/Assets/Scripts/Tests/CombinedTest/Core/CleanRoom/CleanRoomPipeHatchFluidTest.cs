@@ -21,16 +21,24 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var hatch = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomPipeHatchId, new Vector3Int(0, 0, 0));
             var pipe = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1));
 
-            // ハッチへ30注入し、時間経過で全量が隣のパイプへ流れる
-            // Pour 30 into the hatch; over time the full amount flows into the next pipe
+            // ハッチへ30注入する。ハッチは+z方向への一方向流出のため、逆流せず「ハッチ≦パイプ」の水位で静定する
+            // Pour 30 into the hatch; the hatch only flows outward (+z), so it settles with hatch level <= pipe level and no backflow
             var hatchPipeComponent = hatch.GetComponent<FluidPipeComponent>();
             var remain = hatchPipeComponent.AddLiquid(new FluidStack(30, FluidTest.FluidId), default);
             Assert.AreEqual(0, remain.Amount);
 
-            for (var i = 0; i < 60; i++) GameUpdater.UpdateOneTick();
+            // 静定まで進める（10秒 = 200 tick）
+            // Advance until settled (10 seconds = 200 ticks)
+            for (var i = 0; i < 200; i++) GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(0, hatchPipeComponent.GetAmount(), 1);
-            Assert.AreEqual(30, pipe.GetComponent<FluidPipeComponent>().GetAmount(), 1);
+            var hatchAmount = hatchPipeComponent.GetAmount();
+            var pipeAmount = pipe.GetComponent<FluidPipeComponent>().GetAmount();
+
+            // 半量以上がパイプへ渡り、逆流がなく、総量は厳密に保存される
+            // At least half crosses into the pipe, nothing flows back, and the total is exactly conserved
+            Assert.GreaterOrEqual(pipeAmount, 15);
+            Assert.LessOrEqual(hatchAmount, pipeAmount + 0.0001);
+            Assert.AreEqual(30, hatchAmount + pipeAmount, 0.0001);
         }
     }
 }

@@ -149,10 +149,7 @@ namespace Tests.CombinedTest.Core
 
         private static double GetPipeAmount(IBlock pipeBlock)
         {
-            var comp = pipeBlock.GetComponent<FluidPipeComponent>();
-            var field = typeof(FluidPipeComponent).GetField("_fluidContainer", BindingFlags.NonPublic | BindingFlags.Instance);
-            var container = (FluidContainer)field.GetValue(comp);
-            return container.Amount;
+            return pipeBlock.GetComponent<FluidPipeComponent>().Node.Amount;
         }
 
         private static (double Amount, FluidId FluidId) GetPumpTankState(PumpFluidOutputComponent outputComponent)
