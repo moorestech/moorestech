@@ -55,7 +55,9 @@
   right: 0;
   left: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(190, 200, 215, 0.55) 10%, rgba(190, 200, 215, 0.55) 90%, transparent);
+  /* 原本実測は中央ピークの山形フェード(端54→中央117) */
+  /* Measured reference fades bell-shaped, edges 54 → center 117 */
+  background: linear-gradient(90deg, transparent, rgba(190, 200, 215, 0.45) 18%, rgba(190, 200, 215, 0.6) 50%, rgba(190, 200, 215, 0.45) 82%, transparent);
   content: "";
 }
 
@@ -78,7 +80,7 @@
 .decoLine {
   height: 1px;
   margin: 5px 0 8px;
-  background: linear-gradient(90deg, transparent, rgba(190, 200, 215, 0.55) 10%, rgba(190, 200, 215, 0.55) 90%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(190, 200, 215, 0.45) 18%, rgba(190, 200, 215, 0.6) 50%, rgba(190, 200, 215, 0.45) 82%, transparent);
 }
 
 .body {
