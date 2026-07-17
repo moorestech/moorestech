@@ -39,7 +39,6 @@ namespace Tests.UnitTest.Game.SaveLoad
             var noCost = new GearChainConnectionCost(Array.Empty<ConnectToolMaterialCost>());
             Assert.IsTrue(pole1.TryAddChainConnection(pole2.BlockInstanceId, noCost));
             Assert.IsTrue(pole1.TryAddChainConnection(pole3.BlockInstanceId, noCost));
-            GearNetworkDatastore.MarkTopologyDirty();
             GameUpdater.UpdateOneTick();
 
             var saveJson = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
@@ -54,18 +53,16 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedPole1 = ServerContext.WorldBlockDatastore.GetBlock(pos1).GetComponent<IGearChainPole>();
             var loadedPole2 = ServerContext.WorldBlockDatastore.GetBlock(pos2).GetComponent<IGearChainPole>();
             var loadedPole3 = ServerContext.WorldBlockDatastore.GetBlock(pos3).GetComponent<IGearChainPole>();
-            Assert.IsTrue(loadedDatastore.IsTopologyDirty);
-            Assert.IsFalse(GearNetworkDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out _));
+            Assert.IsFalse(loadedDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out _));
             Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole2.BlockInstanceId));
             Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole3.BlockInstanceId));
 
             // 最初のtick先頭で三本を同じ歯車網へまとめ、その後はdirtyを解除する
             // Build one shared gear network at the first tick head and then clear the dirty state
             GameUpdater.UpdateOneTick();
-            Assert.IsFalse(loadedDatastore.IsTopologyDirty);
-            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out var network1));
-            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole2.BlockInstanceId, out var network2));
-            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(loadedPole3.BlockInstanceId, out var network3));
+            Assert.IsTrue(loadedDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out var network1));
+            Assert.IsTrue(loadedDatastore.TryGetGearNetwork(loadedPole2.BlockInstanceId, out var network2));
+            Assert.IsTrue(loadedDatastore.TryGetGearNetwork(loadedPole3.BlockInstanceId, out var network3));
             Assert.AreSame(network1, network2);
             Assert.AreSame(network1, network3);
         }
