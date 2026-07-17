@@ -9,20 +9,19 @@ namespace Game.Block.Blocks.Fluid
 {
     /// <summary>
     ///     全パイプの登録と、シミュレーション用トポロジ（ノード・面・境界ポート）の構築を担うデータストア。
-    ///     追加/削除はコマンドとして溜め、FluidTickUpdaterのtick先頭でFIFO適用する（gear/electricと同じ遅延適用モデル）。
-    ///     ブロックの増減は流体接続の増減なので、ワールド更新イベントで再構築フラグを立て、次tick先頭で組み直す。
+    ///     登録集合とdirtyフラグを持ち、tick先頭にServerTickUpdaterから呼ばれるRebuildIfDirtyでO(V+E)一括再構築する（electric・gearと同型）。
+    ///     ブロックの増減は流体接続の増減なので、ワールド更新イベントでdirtyフラグを立て、次tick先頭で組み直す。
     ///     ノード・面は座標順にソートして保持し、走査順を決定論的にする（将来のクライアント同時計算の前提）。
     ///
     ///     Datastore registering every pipe and building the simulation topology (nodes, faces, boundary ports).
-    ///     Add/remove commands are buffered and applied FIFO at the head of FluidTickUpdater's tick, mirroring gear/electric.
-    ///     Any block place/remove can change fluid connections, so world update events mark the topology dirty for the next tick.
+    ///     It keeps a registration set plus a dirty flag; RebuildIfDirty, called by ServerTickUpdater at the tick head, rebuilds everything in O(V+E) like electric and gear.
+    ///     Any block place/remove can change fluid connections, so world update events mark the topology dirty for the next tick head.
     ///     Nodes and faces are kept position-sorted so iteration is deterministic (a prerequisite for future client-side co-simulation).
     /// </summary>
     public class FluidNetworkDatastore
     {
         private static FluidNetworkDatastore _instance;
 
-        private readonly List<(bool isAdd, FluidPipeComponent pipe)> _pendingMutations = new();
         private readonly HashSet<FluidPipeComponent> _pipes = new();
         private readonly List<FluidPipeComponent> _sortedPipes = new();
 
@@ -30,7 +29,7 @@ namespace Game.Block.Blocks.Fluid
         private readonly List<FluidSimFace> _faces = new();
         private readonly List<FluidBoundaryPort> _boundaryPorts = new();
         private readonly Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace> _faceByPositionPair = new();
-        private bool _topologyDirty;
+        private bool _isTopologyDirty;
 
         public IReadOnlyList<FluidSimNode> Nodes => _nodes;
         public IReadOnlyList<FluidSimFace> Faces => _faces;
@@ -39,18 +38,20 @@ namespace Game.Block.Blocks.Fluid
         public FluidNetworkDatastore(IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
             _instance = this;
-            worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(_ => _topologyDirty = true);
-            worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(_ => _topologyDirty = true);
+            worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(_ => _isTopologyDirty = true);
+            worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(_ => _isTopologyDirty = true);
         }
 
         public static void AddPipe(FluidPipeComponent pipe)
         {
-            _instance._pendingMutations.Add((true, pipe));
+            _instance._pipes.Add(pipe);
+            _instance._isTopologyDirty = true;
         }
 
         public static void RemovePipe(FluidPipeComponent pipe)
         {
-            _instance._pendingMutations.Add((false, pipe));
+            _instance._pipes.Remove(pipe);
+            _instance._isTopologyDirty = true;
         }
 
         // セーブ用に、指定パイプが正準側(NodeA)として所有する面の方向と速度を集める
@@ -64,38 +65,12 @@ namespace Game.Block.Blocks.Fluid
             }
         }
 
-        // tick先頭で未適用の登録/解除を反映し、必要ならトポロジを組み直す
-        // Apply pending registrations at the tick head and rebuild the topology when dirty
-        internal void FlushTopology()
+        // tick先頭にServerTickUpdaterから呼ばれ、登録・接続に変化があった時だけトポロジを一括再構築する
+        // Called by ServerTickUpdater at the tick head; rebuilds the whole topology only when registrations or connections changed
+        public void RebuildIfDirty()
         {
-            if (_pendingMutations.Count > 0)
-            {
-                foreach (var (isAdd, pipe) in _pendingMutations)
-                {
-                    if (isAdd) _pipes.Add(pipe);
-                    else _pipes.Remove(pipe);
-                }
-                _pendingMutations.Clear();
-                _topologyDirty = true;
-            }
+            if (!_isTopologyDirty) return;
 
-            if (!_topologyDirty) return;
-            RebuildTopology();
-            _topologyDirty = false;
-        }
-
-        // 内容量が変化したパイプのBlockState通知をまとめて発火する
-        // Fire batched BlockState notifications for pipes whose amount changed
-        internal void NotifyChangedPipeStates()
-        {
-            foreach (var pipe in _sortedPipes)
-            {
-                pipe.NotifyStateIfChanged();
-            }
-        }
-
-        private void RebuildTopology()
-        {
             // パイプを座標順に整列し、ノード列を確定する
             // Sort pipes by position and settle the node list
             _sortedPipes.Clear();
@@ -136,6 +111,8 @@ namespace Game.Block.Blocks.Fluid
             // ロード復元用の初期速度は最初の構築で消費済みになる
             // Loaded initial velocities are consumed by the first rebuild
             foreach (var pipe in _sortedPipes) pipe.ClearLoadedFaceVelocities();
+
+            _isTopologyDirty = false;
 
             #region Internal
 
@@ -187,14 +164,27 @@ namespace Game.Block.Blocks.Fluid
                 return compare != 0 ? compare : ComparePositions(x.TargetPosition, y.TargetPosition);
             }
 
+            static int ComparePositions(Vector3Int x, Vector3Int y)
+            {
+                if (x.x != y.x) return x.x.CompareTo(y.x);
+                if (x.y != y.y) return x.y.CompareTo(y.y);
+                return x.z.CompareTo(y.z);
+            }
+
             #endregion
         }
 
-        private static int ComparePositions(Vector3Int x, Vector3Int y)
+        // 内容量が変化したパイプのBlockState通知をまとめて発火する
+        // Fire batched BlockState notifications for pipes whose amount changed
+        internal void NotifyChangedPipeStates()
         {
-            if (x.x != y.x) return x.x.CompareTo(y.x);
-            if (x.y != y.y) return x.y.CompareTo(y.y);
-            return x.z.CompareTo(y.z);
+            foreach (var pipe in _sortedPipes)
+            {
+                // tick途中で破壊されたパイプへの通知はスキップする（gearと同じガード）
+                // Skip pipes destroyed mid tick, mirroring the gear guard
+                if (pipe.IsDestroy) continue;
+                pipe.NotifyStateIfChanged();
+            }
         }
     }
 }
