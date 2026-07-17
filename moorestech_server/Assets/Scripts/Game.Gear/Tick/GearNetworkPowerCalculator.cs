@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace Game.Gear.Tick
 {
-    // networkの需給計算。結果はnetwork単位stateとしてstoreへ書くのみ。各gearの現在値は保持せず導出するため、ここではgearへ書き込まない。
-    // Supply-demand calculation for a network. Results are written only as per-network state to the store; per-gear values are derived, not written here.
+    // networkの需給計算。結果はnetwork自身のstateへ書くのみ。各gearの現在値は保持せず導出するため、ここではgearへ書き込まない。
+    // Supply-demand calculation for a network. Results are written only as the network's own state; per-gear values are derived, not written here.
     internal static class GearNetworkPowerCalculator
     {
-        internal static void CalculateAndDistribute(GearNetwork network, GearNetworkRotationCache cache, GearDemandSnapshot demandSnapshot, GearRuntimeStateStore store)
+        internal static void CalculateAndDistribute(GearNetwork network, GearNetworkRotationCache cache, GearDemandSnapshot demandSnapshot)
         {
             // 原点generatorの現在RPMと絶対回転方向。符号付き比をこの2値で実RPM・絶対方向へ展開する
             // The origin generator's current RPM and absolute direction; signed ratios expand into actual RPM/direction via these
@@ -43,21 +43,21 @@ namespace Game.Gear.Tick
             // When demand exceeds available power the network blacks out and stops
             if (demandPower > availablePower)
             {
-                StopNetwork(network, store, GearNetworkStopReason.OverRequirePower, demandPower, availablePower);
+                StopNetwork(network, GearNetworkStopReason.OverRequirePower, demandPower, availablePower);
                 return;
             }
 
-            // 負荷率を確定してnetwork単位stateへ書く。各gearの供給値はこのstateとギア比から導出される
-            // Settle the load rate and write the per-network state; each gear's supply is derived from this state and its ratio
+            // 負荷率を確定してnetwork自身のstateへ書く。各gearの供給値はこのstateとギア比から導出される
+            // Settle the load rate and write the network's own state; each gear's supply is derived from this state and its ratio
             var networkLoadRate = availablePower == 0 ? 0 : Mathf.Min(1, demandPower / availablePower);
-            store.SetNetworkState(network.NetworkId, new GearNetworkRuntimeState(false, GearNetworkStopReason.None, demandPower, availablePower, networkLoadRate));
+            network.SetRuntimeState(new GearNetworkRuntimeState(false, GearNetworkStopReason.None, demandPower, availablePower, networkLoadRate));
         }
 
-        // 停止理由と需給値をnetwork単位stateへ書く。gearの停止はstateのIsStoppedから導出される
-        // Write the stop reason and power figures as per-network state; each gear's stopped-ness is derived from state.IsStopped
-        internal static void StopNetwork(GearNetwork network, GearRuntimeStateStore store, GearNetworkStopReason stopReason, float demandPower, float availablePower)
+        // 停止理由と需給値をnetwork自身のstateへ書く。gearの停止はstateのIsStoppedから導出される
+        // Write the stop reason and power figures as the network's own state; each gear's stopped-ness is derived from state.IsStopped
+        internal static void StopNetwork(GearNetwork network, GearNetworkStopReason stopReason, float demandPower, float availablePower)
         {
-            store.SetNetworkState(network.NetworkId, new GearNetworkRuntimeState(true, stopReason, demandPower, availablePower, 0f));
+            network.SetRuntimeState(new GearNetworkRuntimeState(true, stopReason, demandPower, availablePower, 0f));
         }
     }
 }

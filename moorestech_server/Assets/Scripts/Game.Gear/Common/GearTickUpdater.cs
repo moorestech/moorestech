@@ -22,10 +22,9 @@ namespace Game.Gear.Common
             // 再構築後のgear網だけを計算する
             // A preceding delegate owns topology rebuilding; calculate applied networks only here
             var demandSnapshot = _demandSnapshotUpdater.UpdateSnapshot();
-            var store = _gearNetworkDatastore.RuntimeStateStore;
             _recalcBuffer.Clear();
             _gearNetworkDatastore.CollectNetworksRequiringRecalc(_recalcBuffer);
-            foreach (var network in _recalcBuffer) network.RunTick(demandSnapshot, store);
+            foreach (var network in _recalcBuffer) network.RunTick(demandSnapshot);
 
             // 需給確定後に過負荷を判定する
             // Check overloads from settled values and isolate iteration from target-set mutations
@@ -36,7 +35,7 @@ namespace Game.Gear.Common
             // 継続駆動と状態通知を処理する
             // Update continuous generators only, then notify state changes for recalculated networks
             foreach (var network in _gearNetworkDatastore.ContinuousTickNetworks)
-                network.ConsumeGeneratorTicks(store);
+                network.ConsumeGeneratorTicks();
             foreach (var network in _recalcBuffer)
             {
                 // 同tickの過負荷sweepで破壊済みのgearは通知Subjectがdispose済みのためスキップする

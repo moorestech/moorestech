@@ -27,8 +27,8 @@ namespace Game.Block.Blocks.Machine
             UpdateTorqueRequestRate();
         }
 
-        // GearRuntimeStateStore由来の現在供給値を毎tick取り直し、加工判定より前にprocessorへ渡す
-        // Re-read the current supply from GearRuntimeStateStore each tick and feed the processor before it processes
+        // gear網の確定済み供給値を毎tick取り直し、加工判定より前にprocessorへ渡す
+        // Re-read the network's settled supply each tick and feed the processor before it processes
         public void Update()
         {
             BlockException.CheckDestroy(this);
