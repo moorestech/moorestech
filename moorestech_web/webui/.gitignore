@@ -9,3 +9,7 @@ vite.config.js
 vite.config.d.ts
 tailwind.config.js
 tailwind.config.d.ts
+
+# 採点ハーネスの出力（parts-eval-criteria.md 準拠）
+# Scoring-harness output (per parts-eval-criteria.md)
+out/
