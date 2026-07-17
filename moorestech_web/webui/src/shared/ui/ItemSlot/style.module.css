@@ -76,20 +76,16 @@
   padding: var(--icon-pad, 5px);
 }
 
-/* 実フォントはsynthetic boldを禁止(font-synthesis:none)しているため、太さは4方向1px陰影で作る */
-/* Real fonts forbid synthetic bold (font-synthesis:none), so weight comes from a 4-direction 1px shadow instead */
-/* iter6: 正本の個数はセル右下でアイコンへ重なるほど大きい。旧10pxは正本比よりかなり小さいため
-   19pxへ拡大し、位置もアイコンへ食い込む分だけ右下へ寄せる。縁取りは過剰なぼかしを避け1pxの4方向のみ */
-/* iter6: The reference's count digits run large enough to overlap the icon at the cell's bottom-right. The old
-   10px ran far smaller than the reference's ratio, so it grows to 19px and shifts further into the corner to
-   overlap the icon; the outline stays a crisp 4-direction 1px (no heavy blur) */
+/* 個数調整は用途側から注入し、未指定のホットバーは検出互換の旧値を保つ */
+/* Inject count tuning per usage while unset hotbar slots retain detector-compatible legacy values */
 .count {
   position: absolute;
-  bottom: -3px;
+  bottom: var(--count-bottom, -3px);
   right: -1px;
-  font-size: 19px;
+  font-size: var(--count-font-size, 19px);
   font-weight: 700;
   line-height: 1;
+  letter-spacing: var(--count-letter-spacing, normal);
   color: #fff;
   text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000;
 }
