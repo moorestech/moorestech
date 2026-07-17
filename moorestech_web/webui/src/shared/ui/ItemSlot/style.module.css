@@ -67,25 +67,13 @@
   --bevel-c3: var(--sel-c3, rgb(116 193 221));
 }
 
-/* アイコンは共有クラスでホットバーにも使われるため、6px→2-3pxまで詰めるとrec-white(面色プローブ)
-   だけでなくhotbar-pitch(非オレンジ判定)まで崩れる。5pxが両立する下限の実測値 */
-/* .icon is shared with the hotbar too, so shrinking padding to 2-3px breaks not only rec-white (the
-   face-color probe) but also hotbar-pitch (the non-orange run detector); 5px is the measured floor where both hold */
+/* 用途別CSS変数でアイコン余白を分離し、未指定先とホットバーは安全な5px床で守る */
+/* Split icon padding through a per-usage CSS variable while protecting unset callers and the hotbar with a 5px floor */
 .icon {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 5px;
-}
-
-/* iter6: レシピ面(--slot-size)を面幅是正のため縮めた分、共有.iconのpadding固定5pxだと
-   アイコン自体の絶対サイズが箱の縮小に連れて肥大し、rec-white(面色プローブ)へアイコンが
-   はみ出す。カタログだけ縮小前と同じアイコン絶対サイズを保つよう個別にpaddingを増やす */
-/* iter6: With the recipe face (--slot-size) trimmed to fix its width, the shared .icon's fixed 5px padding
-   would let the icon grow in absolute size as the box shrinks, spilling into the rec-white face-color probe;
-   bump padding for catalog cells only so the icon keeps its pre-shrink absolute footprint */
-.slot[data-catalog="true"] .icon {
-  padding: 8.4px;
+  padding: var(--icon-pad, 5px);
 }
 
 /* 実フォントはsynthetic boldを禁止(font-synthesis:none)しているため、太さは4方向1px陰影で作る */

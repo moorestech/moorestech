@@ -16,7 +16,9 @@ import styles from "./ItemListPanel.module.css";
 // only 2px of panel color visible. Pitch (size+gap sum) stays fixed; shave 3.13px off the face and add it
 // to the gap so the cross-section matches the reference without moving the face's left edge (the
 // recipe-grid-col2 anchor)
-const GRID_STYLE = { "--slot-size": "2.884rem", "--slot-grid-gap": "0.556rem" } as CSSProperties;
+// カタログは2.5/3/3.5/4/4.5pxでrec-whiteまたは列検出が崩れたため、両方を守る実測下限5pxを使う
+// Use the measured 5px catalog floor because 2.5/3/3.5/4/4.5px broke rec-white or column detection
+const GRID_STYLE = { "--slot-size": "2.884rem", "--slot-grid-gap": "0.556rem", "--icon-pad": "5px" } as CSSProperties;
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
