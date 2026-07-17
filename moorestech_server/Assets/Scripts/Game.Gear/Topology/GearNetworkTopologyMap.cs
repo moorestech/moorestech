@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Gear.Common;
-using Game.Gear.Tick;
 
 namespace Game.Gear.Topology
 {
@@ -67,7 +66,6 @@ namespace Game.Gear.Topology
             var topologyMap = new GearNetworkTopologyMap(gearToNetwork, networks);
             return new GearNetworkTopologyBuildResult(
                 topologyMap,
-                new GearRuntimeStateStore(),
                 recalculationNetworks,
                 continuousTickNetworks);
         }

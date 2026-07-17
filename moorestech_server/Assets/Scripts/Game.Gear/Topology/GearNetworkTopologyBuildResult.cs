@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.Gear.Common;
-using Game.Gear.Tick;
 
 namespace Game.Gear.Topology
 {
@@ -9,18 +8,15 @@ namespace Game.Gear.Topology
     internal class GearNetworkTopologyBuildResult
     {
         public readonly GearNetworkTopologyMap TopologyMap;
-        public readonly GearRuntimeStateStore RuntimeStateStore;
         public readonly HashSet<GearNetwork> NetworksRequiringRecalc;
         public readonly HashSet<GearNetwork> ContinuousTickNetworks;
 
         public GearNetworkTopologyBuildResult(
             GearNetworkTopologyMap topologyMap,
-            GearRuntimeStateStore runtimeStateStore,
             HashSet<GearNetwork> networksRequiringRecalc,
             HashSet<GearNetwork> continuousTickNetworks)
         {
             TopologyMap = topologyMap;
-            RuntimeStateStore = runtimeStateStore;
             NetworksRequiringRecalc = networksRequiringRecalc;
             ContinuousTickNetworks = continuousTickNetworks;
         }
