@@ -1,2 +1,0 @@
-corner: /Users/katsumi/Desktop/スクショ/inventory.png box=90.4,2.3,1.5,1.5% corner=tl
-  エッジ検出不足 — box を角に合わせ直す（背景と本体の両方を含む小領域にする）
