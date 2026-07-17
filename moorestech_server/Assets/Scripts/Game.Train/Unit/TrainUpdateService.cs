@@ -27,8 +27,8 @@ namespace Game.Train.Unit
         private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
         private bool _trainAutoRunDebugEnabled;
 
-        // 依存サービスを受け取り、更新ループに接続する
-        // Bind to required services and subscribe to update loop
+        // 駆動はServerTickUpdaterの固定順序がUpdateTrainsを呼ぶ（購読による暗黙順序を持たない）
+        // Driven by ServerTickUpdater's fixed order calling UpdateTrains; no implicit subscription ordering
         public TrainUpdateService(
             TrainDiagramManager diagramManager,
             IRailGraphDatastore railGraphDatastore,
@@ -39,7 +39,6 @@ namespace Game.Train.Unit
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
             _trainCarRidingManualCommandResolver = trainCarRidingManualCommandResolver;
-            GameUpdater.UpdateObservable.Subscribe(_ => UpdateTrains());
         }
 
         public uint GetCurrentTick() => _executedTick;
@@ -55,7 +54,7 @@ namespace Game.Train.Unit
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;
 
-        private void UpdateTrains()
+        public void UpdateTrains()
         {
             // hash計算タイミングはTrainUpdateService側で管理し、間引き時はdummyを送る
             // TrainUpdateService owns hash timing and emits dummy on skipped ticks.
