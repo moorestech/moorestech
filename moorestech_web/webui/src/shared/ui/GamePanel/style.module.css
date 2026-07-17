@@ -41,11 +41,14 @@
 /* D6: the reference's pixel cross-section shows no thick outer band (a near-hard bg→face transition <1px);
    only a very thin blue-gray accent line sits just inside. Thin the old inset 4px+5px band down to 1px+2px to
    remove the "thick uniform band" the criteria flags */
+/* D5-2: 3層(外枠+暗inset+明灰inset)を外1px暗色/内1px明灰の2層へ整理し、輪郭の色分離を明確にする */
+/* D5-2: collapse the 3 layers (outer border + dark inset + light-gray inset) into a clean outer-1px-dark /
+   inner-1px-light-gray pair so the outline's color separation reads clearly */
 .craft {
   padding: 8px 10px 6px;
   border: 1px solid rgb(20 18 24 / 70%);
   background: linear-gradient(180deg, rgb(66 51 37) 0%, rgb(66 48 33) 32%, rgb(65 44 28) 62%, rgb(63 38 25) 100%);
-  box-shadow: inset 0 0 0 1px rgb(3 7 11 / 60%), inset 0 0 0 2px rgb(116 124 137 / 45%);
+  box-shadow: inset 0 0 0 1px rgb(116 124 137 / 40%);
 }
 
 /* 右下の三角グリップは正本実測(2000,1350)-(2061,1395)相当まで縮小し、パネル縁から離して内側へ配置する。
