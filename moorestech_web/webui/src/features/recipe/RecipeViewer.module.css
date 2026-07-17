@@ -21,10 +21,11 @@
   margin-left: 0.15rem;
   margin-bottom: 0.2rem;
   padding: 0.2rem 0.45rem;
-  border: 2px solid #a7a9b3;
+  border: 3px solid rgb(145 151 164 / 76%);
   border-bottom: 0;
-  border-radius: 0.25rem 0.25rem 0 0;
-  background: #303542;
+  border-radius: 0;
+  background: rgb(34 40 52 / 76%);
+  box-shadow: inset 0 0 0 1px rgb(211 218 229 / 20%);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -38,73 +39,116 @@
 
 .recipeTreeButton {
   align-self: center;
-  margin-top: 0.35rem;
-  border-radius: 3px;
-  background: #3e7adb;
+  margin-top: 0.5rem;
+  border: 1px solid rgb(113 224 246 / 78%);
+  border-radius: 0;
+  background: linear-gradient(90deg, #1478c9, #15cce3);
   color: #fff;
   font-weight: 700;
+  box-shadow: 0 0 6px rgb(31 190 235 / 46%);
 }
 
-/* 品名の下へ銀色の横線と中央のひし形を置く */
-/* Place a silver horizontal rule and centered diamond below the item name */
+/* 品名の下へダガー状の複層線と中央紋章を置く */
+/* Place layered dagger rules and a center emblem below the item name */
 .itemHeaderRule {
   position: relative;
   width: 100%;
-  height: 1px;
-  margin-top: 0.45rem;
-  background: rgb(200 208 220 / 50%);
+  height: 18px;
+  margin-top: 0.55rem;
+  background:
+    linear-gradient(90deg, transparent 0%, rgb(97 107 122 / 18%) 4%, rgb(180 194 211 / 62%) 22%, transparent 43%, transparent 57%, rgb(180 194 211 / 62%) 78%, rgb(97 107 122 / 18%) 96%, transparent 100%) center 5px / 100% 2px no-repeat,
+    linear-gradient(90deg, transparent 0%, rgb(45 55 69 / 18%) 8%, rgb(103 119 139 / 48%) 30%, transparent 45%, transparent 55%, rgb(103 119 139 / 48%) 70%, rgb(45 55 69 / 18%) 92%, transparent 100%) center 8px / 100% 4px no-repeat;
 }
 
+/* 内向き矢尻で線と中央ダイヤを接続する */
+/* Join the rules to the center diamond with inward dagger heads */
+.itemHeaderRule::before,
 .itemHeaderRule::after {
   position: absolute;
   top: 50%;
-  left: 50%;
-  width: 7px;
-  height: 7px;
-  border: 1px solid #b8c0cc;
-  background: rgb(34 39 48 / 90%);
+  width: 22px;
+  height: 12px;
+  border-top: 2px solid rgb(196 211 228 / 72%);
+  border-bottom: 2px solid rgb(65 78 96 / 70%);
   content: "";
+  filter: drop-shadow(0 0 3px rgb(127 180 225 / 40%));
+}
+
+.itemHeaderRule::before {
+  left: calc(50% - 37px);
+  clip-path: polygon(0 35%, 74% 35%, 100% 50%, 74% 65%, 0 65%);
+  transform: translateY(-50%);
+}
+
+.itemHeaderRule::after {
+  right: calc(50% - 37px);
+  clip-path: polygon(100% 35%, 26% 35%, 0 50%, 26% 65%, 100% 65%);
+  transform: translateY(-50%);
+}
+
+.dividerDiamond {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #d8e4ef;
+  background: rgb(24 34 46 / 94%);
+  box-shadow:
+    inset 0 0 0 2px rgb(86 113 141 / 84%),
+    0 0 0 2px rgb(33 48 66 / 96%),
+    0 0 7px 3px rgb(93 170 228 / 34%);
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
-/* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む */
-/* Frame materials and result with a thin border and cyan corner brackets */
+/* 素材から完成品までを五層ネオンと直角ブラケットで囲む */
+/* Frame materials and result with five neon layers and square brackets */
 .recipeBox {
   position: relative;
   width: 100%;
   min-height: 4.5rem;
   padding: 0.55rem 1rem 0.2rem;
-  border: 1px solid rgb(90 160 220 / 50%);
+  border: 2px solid #62edff;
   border-radius: 0;
-  background: rgb(5 18 29 / 82%);
-  box-shadow: inset 0 0 0.7rem rgb(16 51 76 / 45%);
+  background: rgb(3 19 27 / 52%);
+  box-shadow:
+    inset 0 0 0 2px rgb(9 55 82 / 88%),
+    inset 0 0 0 4px rgb(32 130 170 / 34%),
+    0 0 0 2px rgb(8 42 70 / 94%),
+    0 0 0 4px rgb(20 111 184 / 62%),
+    0 0 10px 4px rgb(18 182 238 / 38%);
 }
 
-/* 上下の疑似要素で四隅のL字ブラケットを描く */
-/* Draw the four L-shaped brackets with top and bottom pseudo-elements */
+/* 上下の疑似要素で増光したL字コーナーを描く */
+/* Draw bright L-shaped corners with the top and bottom pseudo-elements */
 .recipeBox::before,
 .recipeBox::after {
   position: absolute;
-  right: -3px;
-  left: -3px;
-  height: 20px;
   background-repeat: no-repeat;
   content: "";
   pointer-events: none;
 }
 
 .recipeBox::before {
-  top: -3px;
-  background-image: linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8);
-  background-position: left top, left top, right top, right top;
-  background-size: 20px 3px, 3px 20px, 20px 3px, 3px 20px;
+  top: -5px;
+  right: -5px;
+  left: -5px;
+  height: 26px;
+  background-image: linear-gradient(#92f8ff, #92f8ff), linear-gradient(#92f8ff, #92f8ff);
+  background-position: right top, right top;
+  background-size: 34px 4px, 4px 26px;
+  filter: drop-shadow(0 0 4px #1acfff);
 }
 
 .recipeBox::after {
-  bottom: -3px;
-  background-image: linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8), linear-gradient(#3fa0e8, #3fa0e8);
-  background-position: left bottom, left bottom, right bottom, right bottom;
-  background-size: 20px 3px, 3px 20px, 20px 3px, 3px 20px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  height: 26px;
+  background-image: linear-gradient(#92f8ff, #92f8ff), linear-gradient(#92f8ff, #92f8ff);
+  background-position: right bottom, right bottom;
+  background-size: 34px 4px, 4px 26px;
+  filter: drop-shadow(0 0 5px #1acfff);
 }
 
 .recipeItems {
@@ -113,6 +157,7 @@
 }
 
 .craftTime {
+  flex-basis: 100%;
   color: #d7dbe5;
   text-align: center;
   text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
@@ -122,6 +167,30 @@
 .craftRecipe {
   flex: 1;
   min-height: 0;
+}
+
+.recipeContent {
+  position: relative;
+}
+
+/* クラフト外枠の右下内側へ階段状三角を固定する */
+/* Anchor the stepped triangle inside the craft frame's lower-right corner */
+.recipeContent::after {
+  position: absolute;
+  right: -7px;
+  bottom: -1px;
+  width: 52px;
+  height: 52px;
+  background:
+    linear-gradient(rgb(183 189 204 / 84%), rgb(183 189 204 / 84%)) right bottom / 52px 9px no-repeat,
+    linear-gradient(rgb(151 158 175 / 82%), rgb(151 158 175 / 82%)) right 0 bottom 9px / 43px 9px no-repeat,
+    linear-gradient(rgb(124 132 150 / 80%), rgb(124 132 150 / 80%)) right 0 bottom 18px / 34px 9px no-repeat,
+    linear-gradient(rgb(99 108 127 / 78%), rgb(99 108 127 / 78%)) right 0 bottom 27px / 25px 9px no-repeat,
+    linear-gradient(rgb(76 85 104 / 76%), rgb(76 85 104 / 76%)) right 0 bottom 36px / 16px 9px no-repeat,
+    linear-gradient(rgb(56 65 83 / 74%), rgb(56 65 83 / 74%)) right 0 bottom 45px / 8px 7px no-repeat;
+  content: "";
+  filter: drop-shadow(0 0 3px rgb(174 181 199 / 36%));
+  pointer-events: none;
 }
 
 /* クラフト操作を控えめな中央寄せの青ボタンで示す */
