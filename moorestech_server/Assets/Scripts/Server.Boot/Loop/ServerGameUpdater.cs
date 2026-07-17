@@ -16,8 +16,10 @@ namespace Server.Boot.Loop
             var profilerMarker = new ProfilerMarker("GameUpdate");
             
             var stopwatch = new Stopwatch();
-            
-            while (true)
+
+            // キャンセル時はtick境界で停止する（tick途中の状態を残さない安定点終了）
+            // Stop at a tick boundary on cancellation so the loop never exits mid-tick
+            while (!token.IsCancellationRequested)
             {
                 profilerMarker.Begin();
                 

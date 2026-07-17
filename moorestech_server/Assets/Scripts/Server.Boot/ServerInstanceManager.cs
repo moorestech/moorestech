@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Game.PlayerConnection;
 using Core.Update;
+using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,20 +21,21 @@ namespace Server.Boot
         private Thread _connectionUpdateThread;
         private Thread _gameUpdateThread;
         private CancellationTokenSource _cancellationTokenSource;
-        
+        private WorldSaveCoordinator _worldSaveCoordinator;
+
         private readonly string[] _args;
-        
+
         public ServerInstanceManager(string[] args)
         {
             _args = args;
         }
-        
+
         public void Start()
         {
-            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource) = Start(_args);
+            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _worldSaveCoordinator) = Start(_args);
         }
-        
-        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
+
+        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, WorldSaveCoordinator worldSaveCoordinator) Start(string[] args)
         {
             // これはコンパイルエラーを避ける仮対応
             var settings = CliConvert.Parse<StartServerSettings>(args);
@@ -81,8 +83,8 @@ namespace Server.Boot
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
             gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
             gameUpdateThread.Start();
-            
-            return (connectionUpdateThread, gameUpdateThread, cancellationToken);
+
+            return (connectionUpdateThread, gameUpdateThread, cancellationToken, serviceProvider.GetRequiredService<WorldSaveCoordinator>());
         }
         
         
@@ -98,6 +100,16 @@ namespace Server.Boot
             }
             try
             {
+                // tickスレッドはキャンセルを受けてtick境界で自然停止する。Abortはタイムアウト時のfallback
+                // The tick thread stops itself at a tick boundary after cancellation; Abort is only a timeout fallback
+                if (_gameUpdateThread != null && !_gameUpdateThread.Join(TimeSpan.FromSeconds(1))) _gameUpdateThread.Abort();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            try
+            {
                 _connectionUpdateThread?.Abort();
             }
             catch (Exception e)
@@ -106,7 +118,9 @@ namespace Server.Boot
             }
             try
             {
-                _gameUpdateThread?.Abort();
+                // tickスレッド停止後は安定点なので、未処理のセーブ要求を同期フラッシュして終了時の消失を防ぐ
+                // After the tick thread stops this is a stable point; flush any pending save request so shutdown never drops it
+                _worldSaveCoordinator?.SaveIfRequested();
             }
             catch (Exception e)
             {
