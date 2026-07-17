@@ -63,7 +63,7 @@
 .decoLine {
   height: 2px;
   margin: 4px 0;
-  background: linear-gradient(90deg, transparent 0%, rgb(124 130 145 / 78%) 50%, transparent 100%);
+  background: linear-gradient(90deg, rgb(124 130 145 / 18%) 0%, rgb(124 130 145 / 40%) 12%, rgb(124 130 145 / 70%) 35%, rgb(124 130 145 / 78%) 45%, rgb(124 130 145 / 70%) 55%, rgb(124 130 145 / 40%) 80%, rgb(124 130 145 / 16%) 90%, rgb(124 130 145 / 10%) 100%);
 }
 
 .decoLine:first-child {
