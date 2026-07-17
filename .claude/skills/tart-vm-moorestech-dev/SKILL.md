@@ -1,6 +1,13 @@
 ---
 name: tart-vm-moorestech-dev
 description: Tart macOS VM 内の moorestech worktree で、開発者不在の無人前提で Unity/C# 開発を進めるための運用スキル。Use When — ユーザーが「tart vmモードで起動して」と発言した時に発動する。
+# v2.1.212ではhook実行時にCLAUDE_SKILL_DIRが未設定で、CLAUDE_PLUGIN_ROOTがスキルdirを指す（実測）
+# At hook runtime in v2.1.212, CLAUDE_SKILL_DIR is unset; CLAUDE_PLUGIN_ROOT points to the skill dir (verified)
+hooks:
+  Stop:
+    - hooks:
+        - type: command
+          command: "${CLAUDE_PLUGIN_ROOT:-$CLAUDE_PROJECT_DIR/.claude/skills/tart-vm-moorestech-dev}/scripts/ensure-pr-updated.sh"
 ---
 
 # Tart VM 専用 moorestech 無人開発スキル
@@ -77,6 +84,8 @@ skill を探す時は repo 配下 grep だけで判断せず、`~/.claude/skills
 - **PR を最初から必ず作成する**（ユーザーの指示を待たない。差分レビューは PR で受ける）: コミット後、task branch を push し、`pr-create` skill で PR を作成する。既存 PR があれば push で更新する。base はブランチの派生元（通常 `master`）。PR URL は `gh pr view` で検証してから最終報告に記載する。
 - `master` への直 push / merge / deploy / release はしない。worktree cleanup もしない。
 - 最終報告に「変更ファイル」「実行した検証コマンドと結果」「moores-code-review 結果」「evidence パス」「PR URL」「残課題」を含める。
+
+> **機械的強制**: このスキルには Stop hook（`scripts/ensure-pr-updated.sh`）が紐づいており、未コミット変更・未 push コミット・open PR 不在のいずれかが残った状態でターンを終了しようとするとブロックされ、続行を強制される。ブロック理由に従って commit → push → PR 作成を済ませること。どうしても満たせない場合（gh 認証切れ等）は理由を最終報告に明記して再度終了すれば、3 回で hook 側が停止を許可する。
 
 ## 6. 終了時の evidence 公開（プレビューページ + Cloudflare Tunnel・必須）
 
