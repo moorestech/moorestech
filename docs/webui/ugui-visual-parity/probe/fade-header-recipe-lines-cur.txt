@@ -1,0 +1,5 @@
+  線の自動特定: 帯内オフセット 5px 行（band高 18px）
+fade: /Users/katsumi/moorestech-worktrees/tree3/.mso/sessions/f2277f3f-2541-4bde-8ce2-a9e31d6cede5/turns/iter0-current.png box=69.4,20.85,28.5,1.25% axis=col n=732
+  線強度(最大-中央値): 先頭1/4=83.1 中央=84.1 末尾1/4=61.2
+  減衰率: 先頭1% 末尾27% → 判定: 端まで均一（フェードなし）
+  ※ box は線に沿う細帯（線の全長+両端の少し外側）にする
