@@ -7,56 +7,23 @@
   padding: 8px 10px 10px;
   color: #e8eaf0;
   background: rgba(24, 27, 33, 0.86);
-  border: 1px solid rgba(150, 156, 168, 0.15);
-  border-radius: 0;
+  border: 1px solid rgba(150, 156, 168, 0.5);
+  border-radius: 2px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
 }
 
-/* クラフト詳細は外枠と内側ラインを重ねる */
-/* Layer an outer frame and inset line on the craft detail */
+/* クラフト詳細も同じクロームでわずかに透過する */
+/* Craft detail uses the same chrome with slight transparency */
 .craft {
   padding: 8px 10px 6px;
   background: rgba(24, 27, 33, 0.7);
-  border: 2px solid rgba(190, 198, 212, 0.72);
-}
-
-.craft::before {
-  position: absolute;
-  inset: 5px;
-  border: 1px solid rgba(170, 178, 192, 0.35);
-  content: "";
-  pointer-events: none;
-}
-
-.craft::after {
-  position: absolute;
-  right: 7px;
-  bottom: 7px;
-  width: 10px;
-  height: 10px;
-  background: rgba(205, 210, 222, 0.9);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  content: "";
-  pointer-events: none;
 }
 
 .header {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
   min-height: 18px;
-  padding-top: 6px;
-}
-
-.header::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(190, 200, 215, 0.55) 10%, rgba(190, 200, 215, 0.55) 90%, transparent);
-  content: "";
 }
 
 .title {
@@ -73,12 +40,12 @@
   margin-left: auto;
 }
 
-/* タイトルの上下を両端が消える細線で挟む */
-/* Frame the title with fine rules fading at both ends */
+/* タイトル下は単一の細い罫線にする */
+/* Use a single thin rule beneath the title */
 .decoLine {
   height: 1px;
   margin: 5px 0 8px;
-  background: linear-gradient(90deg, transparent, rgba(190, 200, 215, 0.55) 10%, rgba(190, 200, 215, 0.55) 90%, transparent);
+  background: rgba(150, 156, 168, 0.45);
 }
 
 .body {
