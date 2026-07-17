@@ -2,7 +2,7 @@ using Game.Block.Blocks.Fluid;
 using Game.EnergySystem;
 using Game.Gear.Common;
 using Game.Train.Unit;
-using Game.World.Interface.DataStore;
+using Game.World.DataStore;
 
 namespace Server.Boot
 {
@@ -17,7 +17,7 @@ namespace Server.Boot
         private readonly GearTickUpdater _gearTickUpdater;
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
-        private readonly IWorldBlockDatastore _worldBlockDatastore;
+        private readonly WorldBlockDatastore _worldBlockDatastore;
 
         public MasterTickUpdater(
             ElectricWireNetworkDatastore electricWireNetworkDatastore,
@@ -27,7 +27,7 @@ namespace Server.Boot
             GearTickUpdater gearTickUpdater,
             FluidTickUpdater fluidTickUpdater,
             TrainUpdateService trainUpdateService,
-            IWorldBlockDatastore worldBlockDatastore)
+            WorldBlockDatastore worldBlockDatastore)
         {
             _electricWireNetworkDatastore = electricWireNetworkDatastore;
             _gearNetworkDatastore = gearNetworkDatastore;

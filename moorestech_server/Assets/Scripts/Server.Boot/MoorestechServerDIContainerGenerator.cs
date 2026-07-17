@@ -110,7 +110,10 @@ namespace Server.Boot
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
 
-            initializerCollection.AddSingleton<IWorldBlockDatastore, WorldBlockDatastore>();
+            // 具象はServerTickUpdaterのブロック駆動用、interfaceは参照系向け。同一インスタンスを共有する
+            // The concrete type serves ServerTickUpdater's block drive; the interface serves readers. Both share one instance
+            initializerCollection.AddSingleton<WorldBlockDatastore>();
+            initializerCollection.AddSingleton<IWorldBlockDatastore>(provider => provider.GetService<WorldBlockDatastore>());
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
@@ -159,7 +162,7 @@ namespace Server.Boot
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
-            services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            services.AddSingleton(initializerProvider.GetService<WorldBlockDatastore>());
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());

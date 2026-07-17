@@ -14,7 +14,7 @@ namespace Game.Block.Blocks.CleanRoom
     ///     アイテムを中継しつつ搬送レートを汚染計算へ公開するハッチ
     ///     Hatch that relays items and exposes its throughput to pollution
     /// </summary>
-    public class CleanRoomItemHatchComponent : IBlockInventory, IUpdatableBlockComponent, IBlockSaveState, ICleanRoomItemHatch
+    public class CleanRoomItemHatchComponent : IBlockInventory, ISelfDrivenUpdatableBlockComponent, IBlockSaveState, ICleanRoomItemHatch
     {
         public const int TransitSlotCount = 4;
         public const int ThroughputWindowTicks = 20;

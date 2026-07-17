@@ -18,7 +18,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent, IOpenableBlockInventoryComponent, IBlockSaveState
+    public class TrainPlatformItemContainerComponent : ISelfDrivenUpdatableBlockComponent, IOpenableBlockInventoryComponent, IBlockSaveState
     {
         public IReadOnlyList<IItemStack> InventoryItems => Container.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
