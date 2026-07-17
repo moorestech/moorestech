@@ -110,8 +110,8 @@ namespace Server.Boot
             initializerCollection.AddSingleton<VanillaIBlockTemplates, VanillaIBlockTemplates>();
             initializerCollection.AddSingleton<IBlockFactory, BlockFactory>();
 
-            // 具象はServerTickUpdaterのブロック駆動用、interfaceは参照系向け。同一インスタンスを共有する
-            // The concrete type serves ServerTickUpdater's block drive; the interface serves readers. Both share one instance
+            // 具象はMasterTickUpdaterのブロック駆動用、interfaceは参照系向け。同一インスタンスを共有する
+            // The concrete type serves MasterTickUpdater's block drive; the interface serves readers. Both share one instance
             initializerCollection.AddSingleton<WorldBlockDatastore>();
             initializerCollection.AddSingleton<IWorldBlockDatastore>(provider => provider.GetService<WorldBlockDatastore>());
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();

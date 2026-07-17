@@ -31,8 +31,6 @@ namespace Game.Block.Blocks
         
         private readonly IDisposable _blockUpdateDisposable;
 
-        // 中央tickループ駆動分と、自走駆動を宣言した搬送系分を分けて保持する
-        // Hold central-tick-driven components separately from those declaring self-driven updates
         private readonly List<IUpdatableBlockComponent> _centralDrivenComponents;
         private readonly List<IUpdatableBlockComponent> _selfDrivenComponents;
         private readonly List<IBlockStateDetail> _blockStateDetails;
@@ -60,8 +58,8 @@ namespace Game.Block.Blocks
             _selfDrivenComponents = updatableComponents.Where(c => c is ISelfDrivenUpdatableBlockComponent).ToList();
             _blockStateDetails = _blockComponentManager.GetComponents<IBlockStateDetail>();
 
-            // 自走宣言コンポーネントを持つブロックだけ購読を維持する（他はServerTickUpdaterの中央ループが駆動）
-            // Only blocks holding self-driven components keep the subscription; the rest are driven by ServerTickUpdater's central loop
+            // 自走宣言コンポーネントを持つブロックだけ購読を維持する（他はMasterTickUpdaterの中央ループが駆動）
+            // Only blocks holding self-driven components keep the subscription; the rest are driven by MasterTickUpdater's central loop
             _blockUpdateDisposable = _selfDrivenComponents.Count == 0
                 ? Disposable.Empty
                 : GameUpdater.UpdateObservable.Subscribe(_ => UpdateComponents(_selfDrivenComponents));

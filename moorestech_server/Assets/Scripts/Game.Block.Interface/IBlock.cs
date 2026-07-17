@@ -25,9 +25,9 @@ namespace Game.Block.Interface
         public BlockState GetBlockState();
 
         /// <summary>
-        ///     共通tickループ（ServerTickUpdater）から正準順で呼ばれるブロック更新
+        ///     共通tickループ（MasterTickUpdater）から正準順で呼ばれるブロック更新
         ///     自走駆動を宣言したコンポーネント（ISelfDrivenUpdatableBlockComponent）はここでは更新しない
-        ///     Block update driven by the central tick loop (ServerTickUpdater) in canonical order.
+        ///     Block update driven by the central tick loop (MasterTickUpdater) in canonical order.
         ///     Components declaring self-driven updates (ISelfDrivenUpdatableBlockComponent) are not updated here
         /// </summary>
         public void TickUpdate();
