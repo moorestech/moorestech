@@ -1,0 +1,3 @@
+interface:
+  display_name: "Train System"
+  short_description: "Train/rail sync, events, tick simulation, save/load, invariants, and test priorities"
