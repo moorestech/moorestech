@@ -5,9 +5,11 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.World.Interface.DataStore;
+using Tests.Module;
+using Tests.Module.TestMod;
 using UnityEngine;
 
-namespace Tests.Module.TestMod
+namespace Tests.Util
 {
     /// <summary>
     /// テストで2つのブロックをワイヤー接続するユーティリティ。範囲スキャンの代わりに明示接続を張る
@@ -26,7 +28,7 @@ namespace Tests.Module.TestMod
             connectorA.TryAddWireConnection(connectorB.BlockInstanceId, cost);
             connectorB.TryAddWireConnection(connectorA.BlockInstanceId, cost);
 
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
         }
 
         private static IElectricWireConnector ResolveConnector(Vector3Int pos)
@@ -44,14 +46,14 @@ namespace Tests.Module.TestMod
                 world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             Connect(consumerPos, polePos);
 
-            // 保留トポロジを本番入口経由で反映し、セグメントを確定させる
-            // Apply the pending topology through the production entry so the segment settles
-            new ElectricTickUpdater(ServerContext.GetService<ElectricWireNetworkDatastore>()).Update();
+            // dirtyな登録グラフを再構築してセグメントを確定させる
+            // Rebuild the dirty live graph so the segment is applied immediately
+            ServerContext.GetService<ElectricWireNetworkDatastore>().RebuildIfDirty();
 
             var consumerId = world.GetBlock(consumerPos).BlockInstanceId;
             ServerContext.GetService<IElectricWireNetworkDatastore>().TryGetEnergySegment(consumerId, out var segment);
             var generator = new TestElectricGenerator(new ElectricPower(generatePower), new BlockInstanceId(_nextTestGeneratorId++));
-            segment.AddGenerator(generator);
+            ElectricNetworkReflectionTestUtil.AddGenerator(segment, generator);
             return generator;
         }
 
