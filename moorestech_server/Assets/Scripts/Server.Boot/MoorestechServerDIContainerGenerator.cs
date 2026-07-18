@@ -13,7 +13,6 @@ using Game.Challenge;
 using Game.CleanRoom;
 using Game.Context;
 using Game.Crafting.Interface;
-using Game.CraftTree;
 using Game.EnergySystem;
 using Game.Entity;
 using Game.Entity.Interface;
@@ -170,7 +169,6 @@ namespace Server.Boot
             services.AddSingleton<IRailGraphNodeRemovalListener>(initializerProvider.GetService<TrainRailPositionManager>());
 
             services.AddSingleton<IGameUnlockStateDataController, GameUnlockStateDataController>();
-            services.AddSingleton<CraftTreeManager>();
             services.AddSingleton<IGameActionExecutor, GameActionExecutor>();
             services.AddSingleton(itemStackLevelDataStore);
             services.AddSingleton<IItemStackLevelLookup>(itemStackLevelDataStore);
