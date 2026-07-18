@@ -27,13 +27,18 @@
 7. **機械詳細の分間生産数**: `details/MachineSection.tsx` にレシピ時間×倍率からの算出を追加
    （算出ロジックはマスタのレシピ時間と機械倍率から。uGUI 側表示があれば準拠、無ければ新規表示として設計）
 
+7b. **研究ツリーの報酬アイテム個数表示**: ワイヤ型が個数を未伝搬のため C# 側 DTO 拡張から
+   （research topic + `protocol.ts` 契約 + ビュー）
+
 ## 品質フォロー
 
 8. **`ui_state.request` ホワイトリスト**: 現 state を問わず受理されるため、Story/PauseMenu 中の
    遅延要求で強制遷移し得る。C# 側で「現 state → 受理可能 intent」の許可表を持つ
 9. **itemMaster の WS 再接続後リフレッシュ**（一度ロード成功後の再接続で再取得しない。
-   `bridge/store/itemMasterStore.ts`）+ **crafting validator の堅牢化**（壊れ payload での
-   React クラッシュ耐性）
+   `bridge/store/itemMasterStore.ts`）。**⚠ WU1 が同ストアを修正中 — WU 完了後に残件を
+   確認してから着手**（二重修正禁止）
+10. **crafting validator の堅牢化**（壊れ payload での React クラッシュ耐性。9 とは原因も
+   テスト領域も別のため独立タスクとして扱う）
 
 ## 完了条件・検証
 
