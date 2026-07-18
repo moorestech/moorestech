@@ -21,43 +21,45 @@
 ## Track A: インフラ（`plans/phase-a-infra.md`）
 
 - [ ] **A1: CEF バイナリ恒久統合（INFRA-1・最優先）** — LFS ポインタ手動回避の恒久解消。完了条件は clone→CEF 描画→Topic/Action 往復の証跡
+      （実装済み 2026-07-18 `9ed40f0d5`: setup-cef.sh/.ps1 + Editor LFS検証ゲート + `design/cef-binary-integration.md`。残: clean worktree実機証跡）
 - [ ] **A2: 入力・IME・フォーカス排他（INFRA-2）** — 入力二重配送の解消・IME・フォーカス往復後の入力復活
-- [ ] **A3: 本番静的配信 + アセット配信 + Windows（INFRA-9/8/5）** — 静的配信 + 成果物 hash 照合と uGUI フォールバック + 汎用画像配信規約 + 動的ポート/多重起動 + Vite 死活 + Windows 実機
-- [ ] **A4: 接続堅牢性 + Topic 横断規約（INFRA-13/7）** — revision 規約・再接続 snapshot 復元・死活監視・fault-injection スモーク
-- [ ] **A5: i18n 基盤 + 要素 ID 規約（INFRA-11/12 前倒し）** — `t(key)` フック + ハードコード禁止 lint + `data-tutorial-anchor` 規約（既存画面の文字列変換は Phase D）
-- [ ] **ゲート漏れ決定論チェックの導入**（最初の移行 PR から運用。Phase D まで待たない）
+      （実装済み 2026-07-18 `3024015d6`: input_state op + WebUiInputExclusivity + probeログ + `design/input-focus-exclusivity.md`。残: 実機IME/二重配送検証）
+- [x] **A3: 本番静的配信 + アセット配信 + Windows（INFRA-9/8/5）** — 静的配信 + 成果物 hash 照合と uGUI フォールバック + 汎用画像配信規約 + 動的ポート/多重起動 + Vite 死活 + Windows 実機（2026-07-18 `d0c90cc1c`。Windows実機確認のみPhase D最終検証へ）
+- [x] **A4: 接続堅牢性 + Topic 横断規約（INFRA-13/7）** — revision 規約・再接続 snapshot 復元・死活監視・fault-injection スモーク（2026-07-18 `d0c90cc1c`。`topic-conventions.md`新設・envelope revision・restoring復元・heartbeat・再接続vitest）
+- [x] **A5: i18n 基盤 + 要素 ID 規約（INFRA-11/12 前倒し）** — `t(key)` フック + ハードコード禁止 lint + `data-tutorial-anchor` 規約（既存画面の文字列変換は Phase D）（2026-07-18 `043e279b0`。`/api/i18n/{locale}` + localization.current + `anchor-convention.md`）
+- [x] **ゲート漏れ決定論チェックの導入**（最初の移行 PR から運用。Phase D まで待たない）（2026-07-18 `1365dde3f` WebUiGateAuditTest: 全ファイル分類強制+ゲートルート検証+ルール腐敗検出）
 
 ## Track B: ブロック系仕上げ・細部パリティ
 
 ### B1: ギア系ブロック（`plans/phase-b1-gear-blocks.md`）
-- [ ] ギア伝達系ブロックのレジストリ登録（Generic 落ち解消。v8 blocks.json から対象 blockType を再列挙して確定）
-- [ ] ElectricToGearGenerator 専用ビュー + 出力モード選択
-- [ ] レジストリ網羅 e2e（v8 全 blockType × レジストリ照合）
+- [x] ギア伝達系ブロックのレジストリ登録（実測: Shaft6/Gear3/GearBeltConveyor12 の21ブロック。2026-07-18 `721c4ca7e`）
+- [x] ElectricToGearGenerator 専用ビュー + 出力モード選択（2026-07-18 `721c4ca7e`。実機確認はPhase D）
+- [x] レジストリ網羅 e2e（v8 全 blockType × レジストリ照合。fixture `v8-block-ui-registry.json` + 再生成手順コメント。2026-07-18 `721c4ca7e`）
 
 ### B2: 列車 PF・電柱（`plans/phase-b2-train-pf-electric-pole.md`）
 - [ ] TrainItemPlatform / TrainFluidPlatform の PF インベントリ + 積込/卸しモードトグル
 - [ ] ElectricPole ネットワーク情報表示
 
 ### B3: 細部パリティ（`plans/phase-b3-detail-parity.md`・1件ずつ独立）
-- [ ] スプリットドラッグ（grab の複数スロット均等配分）
-- [ ] 右ドラッグ連続1個配置
-- [ ] クラフト長押し・進捗・キャンセル・連続クラフト
-- [ ] CraftRecipeView の所持数/必要数テキスト（不足赤字）+ ツールチップ内訳
-- [ ] アイテムリストのクラフト可能数バッジ/グレーアウト
-- [ ] 機械詳細の分間生産数表示
-- [ ] ホイールのホットバー切替を入力量累積に
-- [ ] 研究ツリーの報酬アイテム個数表示（ワイヤ型が個数未伝搬・要 C# 拡張）
-- [ ] `ui_state.request` のホワイトリスト化（Story/PauseMenu 中の強制遷移防止）
-- [ ] itemMaster の WS 再接続後リフレッシュ（※WU1 と重複の可能性。WU 完了後に残件確認してから着手）
-- [ ] crafting validator の堅牢化（壊れ payload での React クラッシュ耐性）
+- [ ] スプリットドラッグ（grab の複数スロット均等配分）（B3第2弾で実装中）
+- [x] 右ドラッグ連続1個配置（2026-07-18 `e60b636c1`）
+- [x] クラフト長押し・進捗・キャンセル・連続クラフト（既実装確認。unit9件+e2e2件でカバー済み。2026-07-18）
+- [x] CraftRecipeView の所持数/必要数テキスト（不足赤字）+ ツールチップ内訳（2026-07-18 `e60b636c1`。個数テキストはdata-lack属性）
+- [x] アイテムリストのクラフト可能数バッジ/グレーアウト（2026-07-18 `e60b636c1`）
+- [ ] 機械詳細の分間生産数表示（実行中machineRecipeGuid未伝搬のためC#拡張が必要 — B3第2弾で実装中）
+- [x] ホイールのホットバー切替を入力量累積に（閾値±1・1ノッチ=1切替。2026-07-18 `e60b636c1`）
+- [ ] 研究ツリーの報酬アイテム個数表示（ワイヤ型が個数未伝搬・要 C# 拡張）（B3第2弾で実装中）
+- [ ] `ui_state.request` のホワイトリスト化（Story/PauseMenu 中の強制遷移防止）（B3第2弾で実装中）
+- [x] itemMaster の WS 再接続後リフレッシュ（WU1に含まれず未実装だったため実装。restoring遷移で再取得。2026-07-18 `e60b636c1`）
+- [x] crafting validator の堅牢化（壊れ payload での React クラッシュ耐性）（2026-07-18 `e60b636c1`）
 
 ## Track C: 大物画面（着手時に writing-plans 詳細計画を作成）
 
 ### C1: チャレンジ（`plans/phase-c1-challenge.md`）
-- [ ] ツリー描画基盤の共通化（research を先に載せ替えて回帰確認 → 別コミットで challenge）
-- [ ] チャレンジツリー Topic + リスト/ツリービュー
-- [ ] 進行中チャレンジ HUD（常駐・完了イベント購読。A4 規約準拠）
-- [ ] 死コード削除（`ChallengeListUI` 系2 + `UI/ChallengeList/` 空スタブ3）
+- [x] ツリー描画基盤の共通化（shared/treeView抽出・research載せ替え・回帰green。2026-07-18 `2248253e2`）
+- [x] チャレンジツリー Topic + リスト/ツリービュー（challenge.tree + features/challenge。2026-07-18 `2248253e2`）
+- [x] 進行中チャレンジ HUD（challenge.current・App常駐オーバーレイ・revision準拠。2026-07-18 `2248253e2`）
+- [x] 死コード削除（`ChallengeListUI` 系2 + `UI/ChallengeList/` 空スタブ3。2026-07-18 `2248253e2`）
 
 ### C2: ポーズ・モード HUD・共通部品（`plans/phase-c2-pause-mode-common.md`）
 - [ ] ポーズメニュー（セーブ / メニュー復帰 / 切断表示）
