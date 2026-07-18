@@ -140,14 +140,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse SendConnect(Vector3Int posA, Vector3Int posB)
         {
             var payload = MessagePackSerializer.Serialize(ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, PlayerId, _wireItemId));
-            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
+            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
             return MessagePackSerializer.Deserialize<ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse>(responses[0]);
         }
 
         private ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse SendDisconnect(Vector3Int posA, Vector3Int posB)
         {
             var payload = MessagePackSerializer.Serialize(ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateDisconnectRequest(posA, posB, PlayerId));
-            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext());
+            var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
             return MessagePackSerializer.Deserialize<ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse>(responses[0]);
         }
 

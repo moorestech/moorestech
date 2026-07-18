@@ -33,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             
             //最初のハンドシェイクを実行
-            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
+            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null))[0];
             var handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             
@@ -45,11 +45,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext());
+            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext(null));
             
             
             //再度ハンドシェイクを実行して座標が変更されていることを確認
-            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
+            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null))[0];
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             var connectionChecker = serviceProvider.GetService<IPlayerConnectionChecker>();
 
-            packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext());
+            packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null));
 
             // ハンドシェイクプロトコルが接続登録を担当する。
             // The handshake protocol owns connection registration.
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var response = environment.PacketResponseCreator.GetPacketResponse(
                 GetHandshakePacket(PlayerId),
-                new PacketResponseContext())[0];
+                new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
             Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.RidingStateType);
@@ -112,8 +112,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // handshake自身がsinkを配線することを検証するため、事前登録しないsinkを使う
             // Use an unregistered sink so the handshake itself must wire the context's sink
             var sink = new CapturedEventSink();
-            var context = new PacketResponseContext();
-            context.SetEventSink(sink);
+            var context = new PacketResponseContext(sink);
             environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(PlayerId), context);
             sink.TakeAll();
 

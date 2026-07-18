@@ -12,9 +12,12 @@ namespace Server.Protocol
         private int? _playerId;
         private bool _closed;
 
-        // 接続生成時に一度だけセットされ、以後読み取り専用（受信スレッド起動前にセットされるためlock不要）
-        // Set once at connection creation before the receive thread starts; read-only afterwards
-        public IPlayerEventSink EventSink { get; private set; }
+        public IPlayerEventSink EventSink { get; }
+
+        public PacketResponseContext(IPlayerEventSink eventSink)
+        {
+            EventSink = eventSink;
+        }
 
         public int? PlayerId
         {
@@ -48,11 +51,6 @@ namespace Server.Protocol
                 _closed = true;
                 return _playerId;
             }
-        }
-
-        public void SetEventSink(IPlayerEventSink eventSink)
-        {
-            EventSink = eventSink;
         }
     }
 }

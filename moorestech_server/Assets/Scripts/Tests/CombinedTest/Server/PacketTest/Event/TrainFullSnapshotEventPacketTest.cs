@@ -19,9 +19,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var context = new PacketResponseContext();
             var sink = new CapturedEventSink();
-            context.SetEventSink(sink);
+            var context = new PacketResponseContext(sink);
 
             var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
             var response = packetResponse.GetPacketResponse(handshake, context);
@@ -44,8 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var before = trainUpdateService.GetCurrentTickSequenceId();
 
-            var context = new PacketResponseContext();
-            context.SetEventSink(new CapturedEventSink());
+            var context = new PacketResponseContext(new CapturedEventSink());
             var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
             packetResponse.GetPacketResponse(handshake, context);
 
