@@ -55,3 +55,23 @@ test("右クリックで inventory.split を送る", async ({ page }) => {
     })
     .toBe(true);
 });
+
+test("grab 中の右ドラッグで通過スロットへ1個ずつ配置する", async ({ page }) => {
+  await page.goto("/");
+  const slots = page.getByTestId("main-grid").locator("> div");
+
+  await slots.nth(0).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  await slots.nth(1).hover();
+  await page.mouse.down({ button: "right" });
+  await slots.nth(3).hover();
+  await slots.nth(4).hover();
+  await page.mouse.up({ button: "right" });
+
+  await expect
+    .poll(async () => (await payloadsOf(page, "inventory.move_item")).slice(-2))
+    .toEqual([
+      { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 3 }, count: 1 },
+      { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 4 }, count: 1 },
+    ]);
+});

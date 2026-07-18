@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Box, Button, Group, Stack, Text } from "@mantine/core";
-import { dispatchAction } from "@/bridge";
+import { dispatchAction, useItemMaster } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
 import { clampIndex } from "@/shared/clampIndex";
@@ -21,6 +21,7 @@ type Props = {
 // クラフトタブ: 素材列 → 進捗矢印 → 結果。下端ボタン長押しで craftTime ごとに連続クラフト（uGUI CraftButton 準拠）
 // Craft tab: material row → progress arrow → result; hold the bottom button to continuously craft every craftTime (mirrors uGUI CraftButton)
 export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, onSelect }: Props) {
+  const itemMaster = useItemMaster();
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
   const index = clampIndex(recipeIndex, recipes.length);
@@ -47,9 +48,19 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
       <div className={styles.recipeBox} data-testid="craft-recipe-box">
         <Group gap={0} className={styles.recipeMaterials}>
           {recipe.requiredItems.map((r, i) => (
-            // 所持数不足の素材は 40% 透過で強調を落とす（uGUI 準拠）
-            // Dim insufficient materials to 40% opacity, matching uGUI
-            <ItemSlot key={i} itemId={r.itemId} count={r.count} insufficient={!((counts.get(r.itemId) ?? 0) >= r.count)} onLeftDown={() => onSelect(r.itemId)} />
+            <Box className={styles.materialSlot} key={i}>
+                {/* 所持数不足の素材は既存どおり40%透過にし、数値も赤で示す */}
+                {/* Keep the existing 40% dimming for shortages and also mark the numeric count red */}
+                <ItemSlot
+                  itemId={r.itemId}
+                  insufficient={(counts.get(r.itemId) ?? 0) < r.count}
+                  tooltip={<span style={{ whiteSpace: "pre-line" }}>{`${itemMaster?.get(r.itemId)?.name ?? `item ${r.itemId}`}\n所持数: ${counts.get(r.itemId) ?? 0}\n必要数: ${r.count}\nクリックでこのアイテムのレシピを確認`}</span>}
+                  onLeftDown={() => onSelect(r.itemId)}
+                />
+                <Text className={styles.materialCount} data-lack={(counts.get(r.itemId) ?? 0) < r.count || undefined}>
+                  {counts.get(r.itemId) ?? 0}/{r.count}
+                </Text>
+            </Box>
           ))}
         </Group>
         {/* 素材と完成品の間に長押し進捗を矢印で表示する */}

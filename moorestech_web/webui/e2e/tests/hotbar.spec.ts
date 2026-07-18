@@ -13,6 +13,18 @@ test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });
 
+test("小さいホイール入力を累積し閾値を越えた時だけ切り替える", async ({ page }) => {
+  await page.goto("/");
+  const hotbar = page.getByTestId("hotbar-grid");
+  await hotbar.hover();
+  const before = (await payloadsOf(page, "inventory.select_hotbar")).length;
+
+  await page.mouse.wheel(0, 40);
+  await expect.poll(async () => (await payloadsOf(page, "inventory.select_hotbar")).length).toBe(before);
+  await page.mouse.wheel(0, 70);
+  await expect.poll(async () => (await payloadsOf(page, "inventory.select_hotbar")).length).toBe(before + 1);
+});
+
 test("ホットバー slot 0 が初期選択（data-selected）", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
