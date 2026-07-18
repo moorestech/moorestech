@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { keyToHotbarIndex, cycleHotbar } from "./hotbarLogic";
+import { keyToHotbarIndex, cycleHotbar, accumulateHotbarWheel } from "./hotbarLogic";
 
 describe("keyToHotbarIndex", () => {
   it('"1" を 0 に変換する', () => {
@@ -13,6 +13,22 @@ describe("keyToHotbarIndex", () => {
   });
   it("数字以外は null", () => {
     expect(keyToHotbarIndex("a")).toBeNull();
+  });
+});
+
+describe("accumulateHotbarWheel", () => {
+  it("小さい入力は累積し閾値を越えるまで切り替えない", () => {
+    expect(accumulateHotbarWheel(0, 40)).toEqual({ remainder: 0.4, steps: 0 });
+    expect(accumulateHotbarWheel(0.4, 70)).toEqual({ remainder: 0.10000000000000009, steps: 1 });
+  });
+
+  it("標準1ノッチ(±100)でちょうど1段切り替わる", () => {
+    expect(accumulateHotbarWheel(0, 100)).toEqual({ remainder: 0, steps: 1 });
+    expect(accumulateHotbarWheel(0, -100)).toEqual({ remainder: 0, steps: -1 });
+  });
+
+  it("大きい負入力は複数段を返して端数を残す", () => {
+    expect(accumulateHotbarWheel(0, -250)).toEqual({ remainder: -0.5, steps: -2 });
   });
 });
 

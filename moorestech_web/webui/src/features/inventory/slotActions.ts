@@ -13,6 +13,7 @@ import {
 export type SlotActions = {
   onLeftDown: (ref: SlotRef, shiftKey: boolean) => void;
   onRightDown: (ref: SlotRef) => void;
+  onRightEnter: (ref: SlotRef) => void;
   onDoubleClick: (ref: SlotRef) => void;
 };
 
@@ -37,6 +38,15 @@ export const slotActions: SlotActions = {
   onRightDown: (ref) => {
     const inventory = readTopic(Topics.inventory);
     if (!inventory) return;
+    const slot = resolveSlot(inventory, ref);
+    dispatchPlanned(planPlayerRightClick(ref, slot, inventory.grab.count));
+  },
+
+  onRightEnter: (ref) => {
+    // 空手の連続半分取りを防ぐ
+    // Never chain split-pickups while empty-handed; place one only while holding a grab stack
+    const inventory = readTopic(Topics.inventory);
+    if (!inventory || inventory.grab.count <= 0) return;
     const slot = resolveSlot(inventory, ref);
     dispatchPlanned(planPlayerRightClick(ref, slot, inventory.grab.count));
   },

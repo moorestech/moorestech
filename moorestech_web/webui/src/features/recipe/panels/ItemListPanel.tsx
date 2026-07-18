@@ -5,6 +5,7 @@ import { useTopic, Topics } from "@/bridge";
 import { ConnectingPlaceholder, ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { useItemSelectionStore } from "../logic/selectionStore";
+import { craftableResultCounts } from "../logic/craftLogic";
 import styles from "./ItemListPanel.module.css";
 
 // 固定pxで6列のピッチを均一化する
@@ -19,12 +20,17 @@ export default function ItemListPanel() {
   const onSelect = useItemSelectionStore((s) => s.setSelectedItem);
   const itemList = useTopic(Topics.itemList);
   const inventory = useTopic(Topics.inventory);
+  const craftRecipes = useTopic(Topics.craftRecipes);
 
-  // uGUI 同様、所持中のアイテムだけ白面＋個数で強調する。所持数は main+hotbar を合算
-  // Like uGUI, only owned items get a white face + count; owned totals sum main+hotbar
+  // 素材所持数を制作可能数へ変換する
+  // Aggregate materials across main+hotbar, then derive craftable counts for catalog badges
   const ownedCounts = useMemo(
     () => buildOwnedCounts(inventory ? [...inventory.mainSlots, ...inventory.hotbarSlots] : []),
     [inventory],
+  );
+  const craftableCounts = useMemo(
+    () => craftableResultCounts(craftRecipes?.recipes ?? [], ownedCounts),
+    [craftRecipes, ownedCounts],
   );
 
   return (
@@ -52,7 +58,7 @@ export default function ItemListPanel() {
               <ItemSlot
                 key={id}
                 itemId={id}
-                count={ownedCounts.get(id)}
+                count={craftableCounts.get(id) ?? 0}
                 catalog
                 onLeftDown={() => onSelect(id)}
               />

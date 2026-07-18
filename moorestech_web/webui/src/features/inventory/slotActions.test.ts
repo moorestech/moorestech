@@ -84,4 +84,23 @@ describe("slotActions", () => {
       count: 1,
     });
   });
+
+  it("右ドラッグ進入は grab がある時だけ1個配置する", () => {
+    slotActions.onRightEnter({ area: "main", slot: 0 });
+    expect(bridge.dispatchAction).not.toHaveBeenCalled();
+
+    bridge.inventory = {
+      mainSlots: [slot(0, 0)],
+      hotbarSlots: [],
+      grab: slot(9, 3),
+      selectedHotbar: 0,
+    };
+    slotActions.onRightEnter({ area: "main", slot: 0 });
+
+    expect(bridge.dispatchAction).toHaveBeenCalledWith("inventory.move_item", {
+      from: { area: "grab", slot: 0 },
+      to: { area: "main", slot: 0 },
+      count: 1,
+    });
+  });
 });
