@@ -78,10 +78,10 @@
 - [x] 既存画面への `data-tutorial-anchor` 付与の棚卸し（2026-07-18 C4a。代表アンカー+anchor registry実装〔observer群+rAF集約+ready/not-found/hidden/duplicate ack〕）
 - [x] カットシーン連携（2026-07-18 C4a。game_state.current Topic+Web全レイヤ退避〔Ctrl+Uと独立〕・TimelinePlayerはUniRxイベントで依存反転）
 - [x] バックグラウンドスキット（2026-07-18 C4a。skit.presentation完全snapshot・SkitPresentationStateStore・音声Unity維持・タイプライターWeb）
-- [ ] スキット再設計文書 → 実装（snapshot 配信 + Action 冪等化 + ボイス方式決定〔INFRA-10 の決定責務はここ〕）
-      （文書は完了: `design/skit-web-redesign.md` 2026-07-18。ボイスはUnity再生統一・実機検証はS4）
-- [ ] チュートリアル再設計文書 → 実装（anchor registry による DOM ハイライト。3D ピン/矢印は Unity 残置）
-      （文書は完了: `design/tutorial-web-redesign.md` 2026-07-18）
+- [x] スキット再設計文書 → 実装（snapshot 配信 + Action 冪等化 + ボイス方式決定〔INFRA-10 の決定責務はここ〕）
+      （2026-07-18 C4bマージ。S2本文/auto/skip/hidden・S3選択肢+choiceId jump欠陥修復・全Action冪等化・旧UI抑止〔BGは音声維持のため文字のみ抑止〕。ボイス方式=Unity再生統一。残: S4 Windows実機ボイス検証）
+- [x] チュートリアル再設計文書 → 実装（anchor registry による DOM ハイライト。3D ピン/矢印は Unity 残置）
+      （2026-07-18 C4a+C4b。anchor registry+UIHighlight→宣言state接続・key hint統合・ワールド系Unity残置。残: 実機チュートリアル進行確認）
 
 ## Phase D: カットオーバー完了（`plans/phase-d-cutover.md`）
 
