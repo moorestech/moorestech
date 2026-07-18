@@ -19,6 +19,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             var param = block.BlockMasterElement.BlockParam;
             ElectricToGearDetailDtoBuilder.Apply(dto, block, param);
+            TrainPlatformDetailDtoBuilder.Apply(dto, block, param);
 
             // 機械系: CommonMachine + MachineBlock の両 StateDetail が揃うブロックのみ
             // Machines: only blocks carrying both CommonMachine and MachineBlock state details

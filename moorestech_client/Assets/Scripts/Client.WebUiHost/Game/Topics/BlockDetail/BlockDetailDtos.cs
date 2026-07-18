@@ -93,4 +93,11 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public double Torque;
         public double RequiredPower;
     }
+
+    public class TrainPlatformDetailDto
+    {
+        public string Mode;
+        public int? ItemSlotCount;
+        public double? FluidCapacity;
+    }
 }

@@ -42,6 +42,8 @@ import type {
   SlotRefSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  TrainPlatformDataSchema,
+  TrainPlatformModeSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -65,6 +67,8 @@ export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type ElectricNetworkData = z.infer<typeof ElectricNetworkDataSchema>;
 export type ElectricToGearOutputModeData = z.infer<typeof ElectricToGearOutputModeDataSchema>;
 export type ElectricToGearData = z.infer<typeof ElectricToGearDataSchema>;
+export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
+export type TrainPlatformData = z.infer<typeof TrainPlatformDataSchema>;
 export type GearNetworkStopReason = z.infer<typeof GearNetworkStopReasonSchema>;
 export type GearNetworkData = z.infer<typeof GearNetworkDataSchema>;
 export type FilterSplitterMode = z.infer<typeof FilterSplitterModeSchema>;

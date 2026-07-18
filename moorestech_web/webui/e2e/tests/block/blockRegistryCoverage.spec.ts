@@ -15,13 +15,9 @@ const intentionalGeneric = new Set([
   "CleanRoomMachine",
   "ElectricMachine",
   "ElectricMiner",
-  "ElectricPole",
   "FuelGearGenerator",
   "GearMachine",
   "GearMiner",
-  "TrainFluidPlatform",
-  "TrainItemPlatform",
-  "TrainStation",
 ]);
 
 test("v8マスタで専用UIを持つ全blockTypeがレジストリまたは意図的Genericに分類される", () => {
