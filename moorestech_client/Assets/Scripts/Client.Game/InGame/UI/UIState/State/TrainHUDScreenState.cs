@@ -7,6 +7,7 @@ using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.TrainHUDScreen;
+using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
