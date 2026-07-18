@@ -263,37 +263,6 @@ namespace Server.Boot
             // IPostLoadInitializable implementations are only created here; ServerInstanceManager invokes their Load after initial load.
             serviceProvider.GetServices<IPostLoadInitializable>();
 
-            //イベントレシーバーをインスタンス化する
-            // Materialize event receivers eagerly.
-            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            // TODO find a DI pattern similar to VContainer RegisterEntryPoint for this area.
-            serviceProvider.GetService<MainInventoryUpdateEventPacket>();
-            serviceProvider.GetService<UnifiedInventoryEventPacket>();
-            serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
-            serviceProvider.GetService<PlaceBlockEventPacket>();
-            serviceProvider.GetService<RemoveBlockToSetEventPacket>();
-            serviceProvider.GetService<CompletedChallengeEventPacket>();
-
-            serviceProvider.GetService<GearNetworkDatastore>();
-            serviceProvider.GetService<CleanRoomDatastore>();
-            serviceProvider.GetService<RailGraphDatastore>();
-            serviceProvider.GetService<TrainDiagramManager>();
-            serviceProvider.GetService<TrainRailPositionManager>();
-
-            serviceProvider.GetService<ChangeBlockStateEventPacket>();
-            serviceProvider.GetService<MapObjectUpdateEventPacket>();
-            serviceProvider.GetService<UnlockedEventPacket>();
-            serviceProvider.GetService<ResearchCompleteEventPacket>();
-            serviceProvider.GetService<ItemStackLevelUnlockEventPacket>();
-            serviceProvider.GetService<RailNodeCreatedEventPacket>();
-            serviceProvider.GetService<RailConnectionCreatedEventPacket>();
-            serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();
-            serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
-            serviceProvider.GetService<RailNodeRemovedEventPacket>();
-            serviceProvider.GetService<RailConnectionRemovedEventPacket>();
-            serviceProvider.GetService<RidingStateEventPacket>();
-            serviceProvider.GetService<RemovedRidableRidingHandler>();
-
             serverContext.SetMainServiceProvider(serviceProvider);
 
             // MessagePackResolverを登録
@@ -304,4 +273,3 @@ namespace Server.Boot
         }
     }
 }
-
