@@ -8,8 +8,18 @@
   display: flex;
   flex-direction: column;
 }
-.scroll { flex: 1; }
-.canvas { position: relative; }
+.viewport {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+.viewportPanning { cursor: grabbing; }
+.canvas {
+  position: relative;
+  transform-origin: 0 0;
+}
 .node, .nodeCompleted {
   position: absolute;
   width: 200px;

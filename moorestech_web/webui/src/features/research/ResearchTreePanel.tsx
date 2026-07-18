@@ -1,15 +1,17 @@
-import { useMemo } from "react";
-import { Box, ScrollArea, Title } from "@mantine/core";
+import { useMemo, useRef, useState } from "react";
+import { Box, Title } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
 import type { ResearchNodeData } from "@/bridge/contract/payloadTypes";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
-import { computeCanvasBounds, lineBetween } from "./researchLogic";
+import { computeCanvasBounds, lineBetween, zoomViewportAt } from "./researchLogic";
 import ResearchNodeCard from "./ResearchNodeCard";
 import styles from "./style.module.css";
 
 // topic未受信時の空配列を固定参照にしてuseMemoの空振りを防ぐ
 // Stable empty-array reference so useMemo doesn't recompute every render before the topic arrives
 const EMPTY_NODES: ResearchNodeData[] = [];
+
+type PanPointer = { pointerId: number; clientX: number; clientY: number };
 
 // 研究ツリー全画面表示
 // Full-screen research tree panel
@@ -18,6 +20,9 @@ export default function ResearchTreePanel() {
   const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
   const nodes = tree?.nodes ?? EMPTY_NODES;
+  const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panPointer = useRef<PanPointer | null>(null);
 
   const bounds = useMemo(() => computeCanvasBounds(nodes), [nodes]);
   const byGuid = useMemo(() => new Map(nodes.map((n) => [n.guid, n])), [nodes]);
@@ -27,11 +32,61 @@ export default function ResearchTreePanel() {
   );
   const resolveName = (itemId: number) => itemMaster?.get(itemId)?.name;
 
+  // 表示倍率で縮小されたstageを、論理CSS座標へ補正する
+  // Convert stage-scaled browser coordinates to logical CSS coordinates
+  const toCssScale = (element: HTMLDivElement) => element.offsetWidth / element.getBoundingClientRect().width;
+
+  const endPan = (pointerId: number) => {
+    if (panPointer.current?.pointerId !== pointerId) return;
+    panPointer.current = null;
+    setIsPanning(false);
+  };
+
   return (
     <Box className={styles.panel} data-testid="research-tree">
       <Title order={2} size="h4" p="sm">研究ツリー</Title>
-      <ScrollArea className={styles.scroll} type="auto">
-        <div className={styles.canvas} style={{ width: bounds.width, height: bounds.height }}>
+      <div
+        className={`${styles.viewport} ${isPanning ? styles.viewportPanning : ""}`}
+        data-testid="research-viewport"
+        onWheel={(event) => {
+          event.preventDefault();
+          const rect = event.currentTarget.getBoundingClientRect();
+          const scale = toCssScale(event.currentTarget);
+          setViewport((current) => zoomViewportAt(current, {
+            x: (event.clientX - rect.left) * scale,
+            y: (event.clientY - rect.top) * scale,
+          }, event.deltaY));
+        }}
+        onPointerDown={(event) => {
+          if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest("[data-research-node]")) return;
+          event.currentTarget.setPointerCapture(event.pointerId);
+          panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
+          setIsPanning(true);
+        }}
+        onPointerMove={(event) => {
+          const pan = panPointer.current;
+          if (!pan || pan.pointerId !== event.pointerId) return;
+          const scale = toCssScale(event.currentTarget);
+          setViewport((current) => ({
+            ...current,
+            x: current.x + (event.clientX - pan.clientX) * scale,
+            y: current.y + (event.clientY - pan.clientY) * scale,
+          }));
+          panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
+        }}
+        onPointerUp={(event) => endPan(event.pointerId)}
+        onPointerCancel={(event) => endPan(event.pointerId)}
+        onLostPointerCapture={(event) => endPan(event.pointerId)}
+      >
+        <div
+          className={styles.canvas}
+          data-testid="research-canvas"
+          style={{
+            width: bounds.width,
+            height: bounds.height,
+            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})`,
+          }}
+        >
           {/* 接続線: 子ノード → 前提ノードへ距離+角度の棒を引く（最背面） */}
           {/* Connection lines: length+angle bars from child to prerequisite (behind nodes) */}
           {nodes.flatMap((node) =>
@@ -62,7 +117,7 @@ export default function ResearchTreePanel() {
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </Box>
   );
 }
