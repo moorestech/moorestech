@@ -15,5 +15,7 @@ namespace Client.WebUiHost.Boot
         public string Type;
         public string RequestId;
         public JObject Payload;
+        public bool PointerOverUi;
+        public bool TextInputFocused;
     }
 }

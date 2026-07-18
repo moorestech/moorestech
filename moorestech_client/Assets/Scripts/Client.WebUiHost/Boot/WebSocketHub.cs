@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.Input;
 using Client.WebUiHost.Game;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
@@ -132,6 +133,7 @@ namespace Client.WebUiHost.Boot
             // Once either loop ends, stop the other and unregister the connection
             conn.RequestStop();
             _connections.TryRemove(id, out _);
+            if (_connections.IsEmpty) WebUiInputExclusivity.SetState(false, false);
         }
 
         public async Task CloseAllAsync()
