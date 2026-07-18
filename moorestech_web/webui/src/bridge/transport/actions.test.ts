@@ -1,12 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 
-// webSocketClient はモジュール読み込み時に location.host を参照するため node 環境で stub する
-// Stub webSocketClient because it touches location.host at import time, which is absent in node
-vi.mock("./webSocketClient", () => ({ sendAction: vi.fn() }));
 vi.mock("./notify", () => ({ notify: vi.fn() }));
 
 import { shouldToastFailure, dispatchAction } from "./actions";
-import { sendAction } from "./webSocketClient";
+import * as webSocketClient from "./webSocketClient";
 import { notify } from "./notify";
 
 describe("shouldToastFailure", () => {
@@ -55,15 +52,19 @@ describe("dispatchAction の toast 配線", () => {
     vi.mocked(notify).mockClear();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("良性失敗では notify せず false を返す", async () => {
-    vi.mocked(sendAction).mockResolvedValue({ ok: false, error: "empty_slot" });
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error: "empty_slot" });
     const ok = await dispatchAction("inventory.move_item", movePayload);
     expect(ok).toBe(false);
     expect(notify).not.toHaveBeenCalled();
   });
 
   it("実バグ失敗では notify する", async () => {
-    vi.mocked(sendAction).mockResolvedValue({ ok: false, error: "invalid_slot" });
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error: "invalid_slot" });
     await dispatchAction("inventory.move_item", movePayload);
     expect(notify).toHaveBeenCalledOnce();
   });

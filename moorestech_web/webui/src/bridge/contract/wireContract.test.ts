@@ -1,10 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-
-// actions 経由で webSocketClient が読み込まれ location.host を参照するため node 環境で stub する
-// Stub webSocketClient because importing actions pulls it in and it touches location.host, absent in node
-vi.mock("../transport/webSocketClient", () => ({ sendAction: vi.fn() }));
 
 import { validateTopicPayload } from "./validators";
 import { BENIGN_ERRORS } from "../transport/actions";

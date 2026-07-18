@@ -1,10 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
-
-// 解決対象コンポーネントは BlockItemGrid 経由で webSocketClient を読み込む。
-// import 時に location.host を触るため node 環境では stub する
-// The resolved components import webSocketClient via BlockItemGrid, which touches location.host at import;
-// stub it so this node-env test can load the component tree
-vi.mock("@/bridge/transport/webSocketClient", () => ({ sendAction: vi.fn() }));
+import { describe, it, expect } from "vitest";
 
 import { resolveBlockComponent } from "./blockComponentRegistry";
 import ChestInventory from "./views/ChestInventory";

@@ -1,8 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
-
-// uiScreenRouting は bridge barrel から UiStateNames を読む。node 環境では webSocketClient の location.host を stub する
-// uiScreenRouting reads UiStateNames from the bridge barrel; stub webSocketClient's location.host access in node
-vi.mock("@/bridge/transport/webSocketClient", () => ({ sendAction: vi.fn() }));
+import { describe, it, expect } from "vitest";
 
 import { screenForUiState } from "./uiScreenRouting";
 
