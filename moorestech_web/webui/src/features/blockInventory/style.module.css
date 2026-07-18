@@ -6,4 +6,8 @@
   top: 6rem;
   transform: translateX(-50%);
   z-index: 30;
+  /* 下部境界のフェード効果 */
+  /* Bottom boundary fade effect */
+  mask-image: linear-gradient(180deg, black 0%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, black 0%, black 85%, transparent 100%);
 }
