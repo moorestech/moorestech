@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -14,10 +15,12 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "ui_state.request";
 
         private readonly UIStateControl _uiStateControl;
+        private readonly TrainHUDScreenState _trainHudState;
 
-        public RequestUiStateActionHandler(UIStateControl uiStateControl)
+        public RequestUiStateActionHandler(UIStateControl uiStateControl, TrainHUDScreenState trainHudState)
         {
             _uiStateControl = uiStateControl;
+            _trainHudState = trainHudState;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -29,6 +32,14 @@ namespace Client.WebUiHost.Game.Actions
             // The web may request only GameScreen / PlayerInventory (SubInventory needs a target block)
             var stateName = (string)stateValue;
             if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return UniTask.FromResult(ActionResult.Fail("unsupported_state"));
+
+            // 乗車中ポーズのGameScreen要求は入れ子だけを閉じ、降車させない
+            // A GameScreen request during riding pause closes only the nested pause and never dismounts.
+            if (_uiStateControl.CurrentState == UIStateEnum.TrainHUDScreen && stateName == nameof(UIStateEnum.GameScreen))
+            {
+                _trainHudState.RequestClosePauseMenu();
+                return UniTask.FromResult(ActionResult.Success());
+            }
 
             _uiStateControl.RequestTransition(Enum.Parse<UIStateEnum>(stateName));
             return UniTask.FromResult(ActionResult.Success());

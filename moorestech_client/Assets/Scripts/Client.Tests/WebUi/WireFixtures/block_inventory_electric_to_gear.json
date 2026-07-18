@@ -1,5 +1,6 @@
 {
   "open": true,
+  "source": "block",
   "blockType": "ElectricToGearGenerator",
   "identifier": "(4, 0, 2)",
   "blockName": "回転生成機",

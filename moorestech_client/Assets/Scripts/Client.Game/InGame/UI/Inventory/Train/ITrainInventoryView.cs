@@ -11,6 +11,7 @@ namespace Client.Game.InGame.UI.Inventory.Train
         public void Initialize(TrainCarEntityObject trainCarEntity);
         public void HideSlotObjects();
         public void ShowMessage(TrainInventoryMessageType messageType);
+        public TrainInventoryMessageType? CurrentMessageType { get; }
     }
 
     public enum TrainInventoryMessageType

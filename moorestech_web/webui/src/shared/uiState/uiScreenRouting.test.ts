@@ -18,6 +18,10 @@ describe("screenForUiState", () => {
   it("PauseMenu は pauseMenu 画面に解決される", () => {
     expect(screenForUiState("PauseMenu")).toBe("pauseMenu");
   });
+  it("TrainHUDScreen は入れ子stateでHUDとPauseを分ける", () => {
+    expect(screenForUiState("TrainHUDScreen", "GameScreen")).toBe("trainHud");
+    expect(screenForUiState("TrainHUDScreen", "PauseMenuScreen")).toBe("trainPause");
+  });
   it("PlaceBlock は画面を占有しないHUD stateとして扱う", () => {
     expect(screenForUiState("PlaceBlock")).toBe("none");
   });

@@ -12,6 +12,7 @@ import type {
   ProgressData,
   UiStateData,
   BuildMenuData,
+  TrainRidingData,
 } from "../../src/bridge/contract/payloadTypes";
 
 // BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリーは別ファイルへ分割し再エクスポートする（200行制約）
@@ -39,6 +40,7 @@ export const inventory = {
 // BLK-1 chest: 9 slots (mirrors uGUI IChestParam.ItemSlotCount), some filled
 export const blockChest = {
   open: true,
+  source: "block",
   // blockType は実マスタ値(PascalCase)に合わせる。web レジストリも "Chest" で解決する
   // blockType matches the real master value (PascalCase); the web registry resolves "Chest"
   blockType: "Chest",
@@ -52,6 +54,7 @@ export const blockChest = {
 // INV-6 tank machine: fluid slots + processing progress (for ProgressArrow)
 export const blockTank = {
   open: true,
+  source: "block",
   blockType: "tank",
   identifier: "block:2",
   blockName: "Fluid Tank",
@@ -68,6 +71,35 @@ export const blockTank = {
 export const blockClosed = {
   open: false,
 } satisfies BlockInventoryData;
+
+export const trainCargo = {
+  open: true,
+  source: "train",
+  blockType: "Train",
+  identifier: "train:101",
+  blockName: "Train Inventory",
+  itemSlots: [{ itemId: 1, count: 24 }, { itemId: 2, count: 8 }, ...Array.from({ length: 7 }, empty)],
+  fluidSlots: [],
+} satisfies BlockInventoryData;
+
+export const trainContainerMissing = {
+  open: true,
+  source: "train",
+  blockType: "Train",
+  identifier: "train:102",
+  blockName: "Train Inventory",
+  itemSlots: [],
+  fluidSlots: [],
+  error: "containerMissing",
+} satisfies BlockInventoryData;
+
+// 新topicの既定snapshotは必ず非乗車にし、再接続復元でHUDを残留させない
+// The new topic always defaults to not riding so reconnect restoration cannot retain the HUD.
+export const trainRiding = {
+  riding: false,
+  branchCandidateCount: 0,
+  selectedBranchIndex: 0,
+} satisfies TrainRidingData;
 
 // COM-2 モーダル: 確認ダイアログのサンプル
 // COM-2 modal: sample confirm dialog

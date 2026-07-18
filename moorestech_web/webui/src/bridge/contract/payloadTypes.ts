@@ -60,6 +60,7 @@ import type {
   GameStateDataSchema,
   TutorialPresentationDataSchema,
   SkitPresentationDataSchema,
+  TrainRidingDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -87,6 +88,7 @@ export type ContextMenuData = z.infer<typeof ContextMenuDataSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
 export type SkitPresentationData = z.infer<typeof SkitPresentationDataSchema>;
+export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;

@@ -8,7 +8,7 @@ const MOCK_GRAB_ITEM_ID = 999;
 // filter_splitter.set_mode: 対象方向の mode を書換える。適用できたら true
 // filter_splitter.set_mode: rewrite the target direction's mode; true when applied
 export function applyFilterMode(block: BlockInventoryData, p: ActionPayloads["filter_splitter.set_mode"]): boolean {
-  if (!block.open || !block.filterSplitter) return false;
+  if (!block.open || !("filterSplitter" in block) || !block.filterSplitter) return false;
   const dir = block.filterSplitter.directions[p.directionIndex];
   if (!dir) return false;
   dir.mode = p.mode;
@@ -18,7 +18,7 @@ export function applyFilterMode(block: BlockInventoryData, p: ActionPayloads["fi
 // filter_splitter.set_filter_item: filterItemIds[slotIndex] を clear なら0、それ以外は固定grabIDへ書換える
 // filter_splitter.set_filter_item: set filterItemIds[slotIndex] to 0 when clear, otherwise the fixed grab id
 export function applyFilterItem(block: BlockInventoryData, p: ActionPayloads["filter_splitter.set_filter_item"]): boolean {
-  if (!block.open || !block.filterSplitter) return false;
+  if (!block.open || !("filterSplitter" in block) || !block.filterSplitter) return false;
   const dir = block.filterSplitter.directions[p.directionIndex];
   if (!dir || p.slotIndex < 0 || p.slotIndex >= dir.filterItemIds.length) return false;
   dir.filterItemIds[p.slotIndex] = p.clear ? 0 : MOCK_GRAB_ITEM_ID;
@@ -28,7 +28,7 @@ export function applyFilterItem(block: BlockInventoryData, p: ActionPayloads["fi
 // 有効な出力モードだけ反映する
 // electric_to_gear.set_output_mode: apply only a valid index to the StateDetail equivalent
 export function applyElectricToGearMode(block: BlockInventoryData, p: ActionPayloads["electric_to_gear.set_output_mode"]): boolean {
-  if (!block.open || !block.electricToGear) return false;
+  if (!block.open || !("electricToGear" in block) || !block.electricToGear) return false;
   if (p.modeIndex < 0 || p.modeIndex >= block.electricToGear.outputModes.length) return false;
   block.electricToGear.selectedIndex = p.modeIndex;
   return true;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
 {
@@ -9,8 +10,10 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
     public class TrainHudScreenUIStateController
     {
         private readonly Dictionary<TrainHudScreenUIStateEnum, ITrainHudScreenSubState> _states;
+        private readonly Subject<TrainHudScreenUIStateEnum> _onStateChanged = new();
 
         public TrainHudScreenUIStateEnum CurrentState { get; private set; }
+        public IObservable<TrainHudScreenUIStateEnum> OnStateChanged => _onStateChanged;
 
         public TrainHudScreenUIStateController(PauseMenuStateService pauseMenuStateService, InGameCameraController inGameCameraController)
         {
@@ -25,6 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         {
             CurrentState = TrainHudScreenUIStateEnum.GameScreen;
             _states[CurrentState].OnEnter();
+            _onStateChanged.OnNext(CurrentState);
         }
 
         public void Update()
@@ -35,6 +39,16 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
             _states[CurrentState].OnExit();
             CurrentState = next.Value;
             _states[CurrentState].OnEnter();
+            _onStateChanged.OnNext(CurrentState);
+        }
+
+        public void RequestClosePauseMenu()
+        {
+            if (CurrentState != TrainHudScreenUIStateEnum.PauseMenuScreen) return;
+            _states[CurrentState].OnExit();
+            CurrentState = TrainHudScreenUIStateEnum.GameScreen;
+            _states[CurrentState].OnEnter();
+            _onStateChanged.OnNext(CurrentState);
         }
 
         public void ShutdownSubState()

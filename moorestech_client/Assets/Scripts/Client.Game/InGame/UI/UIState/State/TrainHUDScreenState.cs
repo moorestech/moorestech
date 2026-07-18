@@ -15,6 +15,7 @@ using MessagePack;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
+using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
@@ -33,6 +34,14 @@ namespace Client.Game.InGame.UI.UIState.State
 
         private IDisposable _eventSubscription;
         private CancellationTokenSource _cts;
+        private readonly Subject<Unit> _onPresentationChanged = new();
+        private int _lastBranchCandidateCount;
+
+        public bool IsRiding => _rideContext != null && !_isDismountTrain;
+        public TrainHudScreenUIStateEnum SubState => _subStateController.CurrentState;
+        public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
+        public int SelectedBranchIndex { get; private set; }
+        public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
 
 
         public TrainHUDScreenState(PlayerStateController playerStateController, TrainUnitClientCache trainUnitClientCache, InGameCameraController inGameCameraController, PauseMenuStateService pauseMenuStateService)
@@ -40,6 +49,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _playerStateController = playerStateController;
             _trainUnitClientCache = trainUnitClientCache;
             _subStateController = new TrainHudScreenUIStateController(pauseMenuStateService, inGameCameraController);
+            _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
         }
 
         public void OnEnter(UITransitContext context)
@@ -63,6 +73,7 @@ namespace Client.Game.InGame.UI.UIState.State
                 var target = RidableIdentifierMessagePack.CreateTrainCarMessage(rideRequest.TargetCarId.AsPrimitive());
                 _rideContext = new RidingPlayerStateContext(target, rideRequest.SeatIndex);
                 _playerStateController.SetState(PlayerStateEnum.Riding, _rideContext);
+                _onPresentationChanged.OnNext(Unit.Default);
                 return;
             }
 
@@ -90,12 +101,14 @@ namespace Client.Game.InGame.UI.UIState.State
                     var rideTarget = RidableIdentifierMessagePack.CreateTrainCarMessage(rideRequest.TargetCarId.AsPrimitive());
                     _rideContext = new RidingPlayerStateContext(rideTarget, response.SeatIndex);
                     _playerStateController.SetState(PlayerStateEnum.Riding, _rideContext);
+                    _onPresentationChanged.OnNext(Unit.Default);
                 }
                 else
                 {
                     // 乗車できなかったのでGameScreenに戻る
                     // Failed to ride, bounce back
                     _isDismountTrain = true;
+                    _onPresentationChanged.OnNext(Unit.Default);
                 }
                 
                 _cts = null;
@@ -148,6 +161,14 @@ namespace Client.Game.InGame.UI.UIState.State
             }
 
             _branchRoutePreviewController.Update(ridingTrainUnit);
+            var selectedBranchIndex = ridingTrainUnit.GetManualBranchSelectionIndex();
+            var branchCandidateCount = _branchRoutePreviewController.BranchCandidateCount;
+            if (SelectedBranchIndex != selectedBranchIndex || _lastBranchCandidateCount != branchCandidateCount)
+            {
+                SelectedBranchIndex = selectedBranchIndex;
+                _lastBranchCandidateCount = branchCandidateCount;
+                _onPresentationChanged.OnNext(Unit.Default);
+            }
 
             // GameScreenだけ降車処理、列車操作入力を受け付け
             // Only process dismount and train control input on the GameScreen.
@@ -200,12 +221,19 @@ namespace Client.Game.InGame.UI.UIState.State
             // Change state to trigger dismount processing.
             _playerStateController.SetState(PlayerStateEnum.Normal, null);
             _branchRoutePreviewController.Destroy();
+            SelectedBranchIndex = 0;
+            _onPresentationChanged.OnNext(Unit.Default);
 
         }
         
         public void RestoreAfterApplicationFocus()
         {
             _subStateController.RestoreAfterApplicationFocus();
+        }
+
+        public void RequestClosePauseMenu()
+        {
+            _subStateController.RequestClosePauseMenu();
         }
 
         // fire-and-forget RPC の例外を UnobservedTaskException 経由 log のみに頼らず明示的に拾う。

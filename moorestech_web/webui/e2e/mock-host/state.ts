@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
 
@@ -15,6 +15,7 @@ export const uiStateSubscribers = new Set<WebSocket>();
 export const researchTreeSubscribers = new Set<WebSocket>();
 export const gameStateSubscribers = new Set<WebSocket>();
 export const skitSubscribers = new Set<WebSocket>();
+export const trainRidingSubscribers = new Set<WebSocket>();
 export const connections = new Set<WebSocket>();
 
 // 再代入される可変状態を1オブジェクトに集約し、モジュール間で参照共有する
@@ -34,6 +35,7 @@ export const state = {
   researchTree: clone(fx.researchTree) as ResearchTreeData,
   gameState: clone(fx.gameState) as GameStateData,
   skitPresentation: clone(fx.skitPresentation) as SkitPresentationData,
+  trainRiding: clone(fx.trainRiding) as TrainRidingData,
   injectedActionError: null as { type: string; error: string } | null,
   snapshotDelayMs: 0,
   snapshotDelayTopic: null as string | null,

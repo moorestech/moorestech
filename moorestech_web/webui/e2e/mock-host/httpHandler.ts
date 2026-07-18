@@ -6,7 +6,7 @@ import { Topics } from "../../src/bridge/transport/protocol";
 import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, gameStateSubscribers, skitSubscribers, connections } from "./state";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, gameStateSubscribers, skitSubscribers, trainRidingSubscribers, connections } from "./state";
 
 // /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
 // Type map switched via /__block?type=X; defaults to chest (reliably shows an open panel)
@@ -22,6 +22,8 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
   gearMiner: fx.blockGearMiner,
   generic: fx.blockGeneric,
   electricToGear: fx.blockElectricToGear,
+  train: fx.trainCargo,
+  trainError: fx.trainContainerMissing,
 };
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
@@ -142,9 +144,25 @@ export function createMockHttpServer(): Server {
     // テスト用: ui_state を差し替えて購読者へ event push
     // Test-only: swap the served ui_state and push an event to subscribers
     if (url.startsWith("/__uistate")) {
-      const uiState = new URL(url, "http://x").searchParams.get("state") ?? "PlayerInventory";
-      state.currentUiState = { state: uiState };
+      const params = new URL(url, "http://x").searchParams;
+      const uiState = params.get("state") ?? "PlayerInventory";
+      const subState = params.get("subState") ?? undefined;
+      state.currentUiState = { state: uiState, subState: subState as "GameScreen" | "PauseMenuScreen" | undefined };
       for (const ws of uiStateSubscribers) send(ws, { op: "event", topic: Topics.uiState, data: state.currentUiState });
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+    // テスト用: 乗車状態と分岐候補を差し替えて全購読者へ配信する
+    // Test-only: replace riding/branch state and publish it to every subscriber.
+    if (url.startsWith("/__train-riding")) {
+      const params = new URL(url, "http://x").searchParams;
+      state.trainRiding = {
+        riding: params.get("riding") === "1",
+        branchCandidateCount: Number(params.get("count") ?? 0),
+        selectedBranchIndex: Number(params.get("selected") ?? 0),
+      };
+      for (const ws of trainRidingSubscribers) send(ws, { op: "event", topic: Topics.trainRiding, data: state.trainRiding });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));
       return;

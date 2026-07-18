@@ -13,6 +13,7 @@ import { PauseMenuPanel } from "@/features/pauseMenu";
 import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
 import { Crosshair, KeyHintBar } from "@/features/commonHud";
 import { MiningHud } from "@/features/miningHud";
+import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { ContextMenu } from "@/shared/contextMenu";
 import { BackgroundSkit } from "@/features/skit";
@@ -55,11 +56,13 @@ export default function App() {
 
   // ui_state.current による画面ルーティング（C# UIStateControl が正。セレクタはプリミティブを返す）
   // Screen routing by ui_state.current (C# UIStateControl is authoritative; the selector returns a primitive)
-  const screen = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null));
+  const screen = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null, d?.subState));
   const uiState = useTopicSelector(Topics.uiState, (d) => d?.state ?? null);
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
   const stageRef = useUiScale(uiVisible);
+  const inventoryScreen = screen === "playerInventory" || screen === "subInventory" || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList";
+  const modalScreen = inventoryScreen || screen === "pauseMenu" || screen === "trainPause";
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
@@ -67,10 +70,10 @@ export default function App() {
 
   return (
     <div className={styles.viewport} data-web-ui-transparent>
-      {screen !== "none" && <div className={styles.backdrop} data-testid="screen-backdrop" />}
+      {modalScreen && <div className={styles.backdrop} data-testid="screen-backdrop" />}
       <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
-        {screen !== "none" && <InventoryScreenChrome />}
-        {screen !== "none" && <InventoryPanel />}
+        {inventoryScreen && <InventoryScreenChrome />}
+        {inventoryScreen && <InventoryPanel />}
         {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
         {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
         <HotbarPanel />
@@ -82,6 +85,8 @@ export default function App() {
         {screen === "buildMenu" && <BuildMenuPanel />}
         {screen === "challengeList" && <ChallengePanel />}
         {screen === "pauseMenu" && <PauseMenuPanel />}
+        {screen === "trainPause" && <PauseMenuPanel />}
+        {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
         {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
         {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
         <Crosshair />
@@ -95,7 +100,7 @@ export default function App() {
         <BlockInventoryKeyHandler />
         <RecipeSelectionKeyHandler />
       </div>
-      {screen !== "none" && <GrabOverlay />}
+      {inventoryScreen && <GrabOverlay />}
       <Portal>
         <ToastHost />
         <CurrentChallengeHud />

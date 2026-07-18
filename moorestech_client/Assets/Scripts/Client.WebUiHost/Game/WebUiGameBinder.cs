@@ -51,6 +51,7 @@ namespace Client.WebUiHost.Game
             var hotBarView = resolver.Resolve<HotBarView>();
             var uiStateControl = resolver.Resolve<UIStateControl>();
             var subInventoryState = resolver.Resolve<SubInventoryState>();
+            var trainHudState = resolver.Resolve<TrainHUDScreenState>();
 
             // インベントリトピックを生成して Hub に登録（selectedHotbar 用に HotBarView を渡す）
             // Create inventory topic and register it (HotBarView is passed for selectedHotbar)
@@ -78,11 +79,12 @@ namespace Client.WebUiHost.Game
 
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
-            var uiStateTopic = new UiStateTopic(hub, uiStateControl);
+            var uiStateTopic = new UiStateTopic(hub, uiStateControl, trainHudState);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             hub.RegisterTopic(GameStateTopic.TopicName, new GameStateTopic(hub));
             hub.RegisterTopic(TutorialPresentationTopic.TopicName, new TutorialPresentationTopic());
             hub.RegisterTopic(SkitPresentationTopic.TopicName, new SkitPresentationTopic(hub));
+            hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
 
             // 現在言語トピックを登録（辞書本体はHTTP endpointから取得）
             // Register the current-locale topic (dictionary bodies come from the HTTP endpoint)
@@ -186,7 +188,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
-            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
+            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl, trainHudState));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));

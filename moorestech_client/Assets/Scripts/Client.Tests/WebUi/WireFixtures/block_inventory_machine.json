@@ -1,5 +1,6 @@
 {
   "open": true,
+  "source": "block",
   "blockType": "ElectricMachine",
   "identifier": "(1, 0, 2)",
   "blockName": "電気機械",
