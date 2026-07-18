@@ -180,6 +180,7 @@ namespace Client.WebUiHost.Game
 #endif
             hub.RegisterAction(new MoveItemActionHandler(controller));
             hub.RegisterAction(new SplitGrabActionHandler(controller));
+            hub.RegisterAction(new SplitDragActionHandler(controller));
             hub.RegisterAction(new CollectActionHandler(controller));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));

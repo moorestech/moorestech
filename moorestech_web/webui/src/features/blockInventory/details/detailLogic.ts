@@ -7,6 +7,10 @@ export function computePowerRate(currentPower: number, requestPower: number): nu
   return requestPower === 0 ? 1 : currentPower / requestPower;
 }
 
+export function itemsPerMinute(outputCount: number, recipeTimeSeconds: number): number | null {
+  return recipeTimeSeconds <= 0 ? null : outputCount * 60 / recipeTimeSeconds;
+}
+
 // itemSlots の統合indexを 入力→出力→モジュール に分割（uGUIのスロット構成順）
 // Split combined itemSlots indices into input→output→module (uGUI slot ordering)
 export function splitSlotIndices(

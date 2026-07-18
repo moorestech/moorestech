@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Game.Actions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -10,6 +11,22 @@ namespace Client.Tests.WebUi
         // 研究拡張後の54スロットで検証し、固定45スロット仮定が残っていないことを確認する
         // Verify against 54 slots (post research-expansion) to confirm no fixed 45-slot assumption remains
         private const int MainSlotCount = 54;
+
+        [Test]
+        public void SplitDragCountUsesHostGrabAndDestinationCount()
+        {
+            Assert.AreEqual(3, SplitDragActionHandler.CalculateCountPerSlot(10, 3));
+            Assert.AreEqual(0, SplitDragActionHandler.CalculateCountPerSlot(2, 3));
+        }
+
+        [TestCase(UIStateEnum.GameScreen, UIStateEnum.PlayerInventory, true)]
+        [TestCase(UIStateEnum.PlayerInventory, UIStateEnum.GameScreen, true)]
+        [TestCase(UIStateEnum.Story, UIStateEnum.GameScreen, false)]
+        [TestCase(UIStateEnum.PauseMenu, UIStateEnum.PlayerInventory, false)]
+        public void UiStateRequestWhitelistRejectsUnrelatedCurrentStates(UIStateEnum current, UIStateEnum requested, bool expected)
+        {
+            Assert.AreEqual(expected, RequestUiStateActionHandler.IsAllowed(current, requested));
+        }
 
         // grab 保持時は常に Grab を集積先にする（クリックスロットは無視）
         // While holding grab, the target is always Grab (the clicked slot is ignored)

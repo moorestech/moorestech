@@ -15,6 +15,8 @@ export const blockMachine = {
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
+    recipeTime: 15,
+    outputItems: [{ itemId: 7, count: 3 }],
     currentState: "processing",
     currentPower: 80.0,
     requestPower: 100.0,
@@ -36,6 +38,8 @@ export const blockGearMachine = {
   progress: 0.1,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
+    recipeTime: 15,
+    outputItems: [{ itemId: 7, count: 3 }],
     currentState: "idle",
     currentPower: 0.0,
     requestPower: 0.0,

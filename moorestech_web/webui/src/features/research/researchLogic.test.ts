@@ -11,7 +11,7 @@ import { hasEnoughItems } from "@/shared/ownedCounts";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
   guid, name: guid, description: "", state: "researchable",
-  position: { x, y }, prevGuids: [], consumeItems: [], rewardItemIds: [], unlockItemIds: [], ...extra,
+  position: { x, y }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemIds: [], ...extra,
 });
 
 describe("computeCanvasBounds", () => {
