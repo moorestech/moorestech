@@ -33,7 +33,6 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(ElectricWireConnectionEditProtocol.Tag, new ElectricWireConnectionEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(ElectricWireExtendProtocol.Tag, new ElectricWireExtendProtocol(serviceProvider));
             _packetResponseDictionary.Add(GearChainPoleExtendProtocol.Tag, new GearChainPoleExtendProtocol(serviceProvider));
-            _packetResponseDictionary.Add(EventProtocol.ProtocolTag, new EventProtocol(serviceProvider.GetService<EventProtocolProvider>()));
             _packetResponseDictionary.Add(InventoryItemMoveProtocol.ProtocolTag, new InventoryItemMoveProtocol(serviceProvider));
             _packetResponseDictionary.Add(SortInventoryProtocol.ProtocolTag, new SortInventoryProtocol(serviceProvider));
             _packetResponseDictionary.Add(PlaceBlockProtocol.ProtocolTag, new PlaceBlockProtocol(serviceProvider));

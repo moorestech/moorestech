@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 using MessagePack;
+using Server.Event;
 using Server.Protocol;
 using UniRx;
 using UnityEngine;
@@ -18,13 +20,20 @@ namespace Client.Network.API
         private readonly PacketSender _packetSender;
 
         private readonly Dictionary<int, ResponseWaiter> _responseWaiters = new();
+        private readonly ConcurrentQueue<byte[]> _receivedPackets = new();
+        private readonly Subject<EventMessagePack> _eventPacketSubject = new();
 
         private int _sequenceId;
+
+        // サーバーからpushされたイベントの購読口
+        // Subscription point for server-pushed events
+        public IObservable<EventMessagePack> OnEventPacket => _eventPacketSubject;
 
         public PacketExchangeManager(PacketSender packetSender)
         {
             _packetSender = packetSender;
             TimeOutUpdate().Forget();
+            DispatchReceivedPacketsLoop().Forget();
         }
 
         private async UniTask TimeOutUpdate()
@@ -52,16 +61,42 @@ namespace Client.Network.API
             }
         }
 
-        public async UniTask ExchangeReceivedPacket(byte[] data)
+        // 受信スレッドから呼ばれる。処理はメインスレッドの直列ループに委譲する
+        // Called from the receive thread; processing is deferred to the serial main-thread loop
+        public void EnqueueReceivedPacket(byte[] data)
         {
-            var response = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
-            var sequence = response.SequenceId;
+            _receivedPackets.Enqueue(data);
+        }
 
-            await UniTask.SwitchToMainThread();
+        private async UniTask DispatchReceivedPacketsLoop()
+        {
+            while (true)
+            {
+                // 到着順を保ったままメインスレッドで直列ディスパッチする（順序契約）
+                // Dispatch serially on the main thread preserving arrival order (ordering contract)
+                await UniTask.Yield(PlayerLoopTiming.Update);
+                while (_receivedPackets.TryDequeue(out var data))
+                {
+                    DispatchPacket(data);
+                }
+            }
+        }
 
+        private void DispatchPacket(byte[] data)
+        {
+            var basePacket = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
+
+            // イベントpushはSequenceId照合ではなくイベントストリームへ流す
+            // Route pushed events to the event stream instead of sequence matching
+            if (basePacket.Tag == EventStreamMessagePack.ProtocolTag)
+            {
+                var eventPacket = MessagePackSerializer.Deserialize<EventStreamMessagePack>(data);
+                _eventPacketSubject.OnNext(eventPacket.Event);
+                return;
+            }
+
+            var sequence = basePacket.SequenceId;
             if (!_responseWaiters.ContainsKey(sequence)) return;
-            // 正常に応答が届いたことを通知する
-            // Notify waiter that a valid response has arrived
             _responseWaiters[sequence].WaitSubject.OnNext((data, PacketWaitCompletionReason.Received));
             _responseWaiters.Remove(sequence);
         }

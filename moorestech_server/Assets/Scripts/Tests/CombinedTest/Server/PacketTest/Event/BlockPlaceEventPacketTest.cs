@@ -13,7 +13,6 @@ using Server.Event;
 using Server.Event.EventReceive;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using Random = System.Random;
 using System;
 using Server.Protocol;
@@ -26,11 +25,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void DontBlockPlaceTest()
         {
-            var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 0);
             
-            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
         }
         
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
@@ -38,6 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 0);
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
 
             //初期ロード後にLoadで購読する設計のため、テストでは明示的にLoadを呼ぶ
@@ -45,9 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             serviceProvider.GetService<PlaceBlockEventPacket>().Load();
 
             //イベントキューにIDを登録する
-            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
             
             var random = new Random(1410);
             
@@ -69,11 +66,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //イベントパケットをリクエストする
-            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
+            var events = sink.TakeAll();
             
             //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
-            foreach (var r in eventMessagePack.Events)
+            foreach (var r in events)
             {
                 var b = AnalysisResponsePacket(r.Payload);
                 for (var j = 0; j < blocks.Count; j++)
@@ -86,9 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //イベントのリクエストを送ったので次は何も返ってこないテスト
-            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
         }
         
         //初期ロード中の設置はクライアントへ配信されず、ロード後の設置のみ配信されることを検証する
@@ -130,11 +124,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload).BlockData;
             
             return new TestBlockData(data.BlockPos, data.BlockId, data.Direction);
-        }
-        
-        private byte[] EventRequestData(int plyaerID)
-        {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID));
         }
         
         private class TestBlockData

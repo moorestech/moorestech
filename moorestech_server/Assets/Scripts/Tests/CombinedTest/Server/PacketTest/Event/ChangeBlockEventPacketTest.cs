@@ -16,7 +16,6 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
 using System.Linq;
 using Server.Protocol;
@@ -29,6 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void MachineChangeStateEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 0);
             
             Vector3Int pos = new(0, 0);
             
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //The electric tick settles before machine updates, so no preload is needed to observe a full charge within the tick
 
             //最初にイベントをリクエストして、ブロードキャストを受け取れるようにする
-            packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
+            sink.TakeAll();
 
             //電力がセグメント経由で機械へ行き渡り稼働状態になるまで数tick進める
             //Advance several ticks until power propagates through the segment and the machine starts processing
@@ -71,14 +71,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //ステートが実行中になっているかをチェック
-            List<byte[]> response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
+            var events = sink.TakeAll();
             // アイドル給電イベントも並ぶため、idle→processingの遷移イベントを明示的に選択する
             // Idle supply events are also queued, so pick the idle-to-processing transition event explicitly
             var expectedTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(machine.BlockPositionInfo);
             BlockStateMessagePack transitionStateData = null;
             BlockStateMessagePack latestStateData = null;
-            foreach (var eventMessage in eventMessagePack.Events)
+            foreach (var eventMessage in events)
             {
                 if (eventMessage.Tag != expectedTag) continue;
                 var stateData = MessagePackSerializer.Deserialize<BlockStateMessagePack>(eventMessage.Payload);

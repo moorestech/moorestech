@@ -15,7 +15,6 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using static Server.Protocol.PacketResponse.OneClickCraft;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -31,6 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void CreateItemChallengeClearTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             
             // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
@@ -40,9 +40,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
+            var events = sink.TakeAll();
+            var challengeCompleted = events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
             var challengeId = new Guid("00000000-0000-0000-4567-000000000001");
@@ -72,6 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void InInventoryChallengeClearTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             
             // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
@@ -90,9 +90,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
+            var events = sink.TakeAll();
+            var challengeCompleted = events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
             var challengeId = new Guid("00000000-0000-0000-4567-000000000002");
@@ -103,13 +102,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void BlockPlaceChallengeClearTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             
             // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             challengeDatastore.InitializeCurrentChallenges();
-            
-            // EventProtocolProviderにプレイヤーIDを登録するため、一度イベントを取得
-            packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
             
             // ブロックを設置
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0,0,0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _);
@@ -119,10 +116,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            
-            var challengeCompleted = eventMessagePack.Events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
+            var events = sink.TakeAll();
+            var challengeCompleted = events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
             var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
             
             var challengeId = new Guid("00000000-0000-0000-4567-000000000003");
