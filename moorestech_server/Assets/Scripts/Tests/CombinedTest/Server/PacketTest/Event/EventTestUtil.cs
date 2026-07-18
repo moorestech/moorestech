@@ -4,8 +4,8 @@ using Server.Event;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
-    // push型イベントをテストで捕捉するためのsink登録ヘルパー
-    // Helper that registers a capturing sink to observe pushed events in tests
+    // push型イベントを捕捉するsink登録ヘルパー
+    // Registers a capturing sink to observe pushed events
     public class EventTestUtil
     {
         public static CapturedEventSink RegisterCaptureSink(ServiceProvider serviceProvider, int playerId)

@@ -25,8 +25,8 @@ namespace Client.Network.API
 
         private int _sequenceId;
 
-        // サーバーからpushされたイベントの購読口
-        // Subscription point for server-pushed events
+        // pushイベントの購読口
+        // Subscription point for pushed events
         public IObservable<EventMessagePack> OnEventPacket => _eventPacketSubject;
 
         public PacketExchangeManager(PacketSender packetSender)

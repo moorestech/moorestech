@@ -251,8 +251,8 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // 切断時にイベントsinkを自動解除する配線
-            // Wire automatic event sink unregistration on disconnect
+            // 切断時にsinkを自動解除する配線
+            // Wire sink auto-unregistration on disconnect
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             var playerConnectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             eventProtocolProvider.ListenDisconnect(playerConnectionRegistry.OnPlayerDisconnected);

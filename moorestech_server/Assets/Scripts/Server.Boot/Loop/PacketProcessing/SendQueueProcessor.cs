@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
+using Server.Util;
 using UnityEngine;
 
 namespace Server.Boot.Loop.PacketProcessing
@@ -30,9 +31,15 @@ namespace Server.Boot.Loop.PacketProcessing
             _sendThread.Start();
         }
 
-        public void EnqueueSendData(byte[] data)
+        // 4バイト長ヘッダを前置してキューへ積む（ワイヤフレーミングの唯一のエントリポイント）
+        // Prepend the 4-byte length header and enqueue; the single entry point for wire framing
+        public void EnqueueMessage(byte[] body)
         {
-            _sendQueue.Enqueue(data);
+            var header = ToByteArray.Convert(body.Length);
+            var sendData = new byte[header.Length + body.Length];
+            header.CopyTo(sendData, 0);
+            body.CopyTo(sendData, header.Length);
+            _sendQueue.Enqueue(sendData);
         }
 
         private void SendThreadLoop()

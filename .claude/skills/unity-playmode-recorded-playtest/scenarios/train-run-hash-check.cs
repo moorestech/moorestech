@@ -41,8 +41,8 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
     p.WarpPlayer(new Vector3(16f, 33.5f, 17f));
     await p.WaitSeconds(0.5f);
 
-    // ===== レール敷設: 橋脚2本をサーバー直設置してノードを直結する =====
-    // ===== Lay rails: place two piers directly server-side and connect their nodes =====
+    // ===== レール敷設 =====
+    // ===== Lay rails =====
     p.Note("レール橋脚2本を直設置しノードを結線する");
 
     // 機関車(長さ20=20480units)の助走が取れるよう間隔60ブロックで配置する
@@ -77,15 +77,15 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
     railA.FrontNode.ConnectNode(railB.FrontNode);
     railB.BackNode.ConnectNode(railA.BackNode);
 
-    // ===== 機関車の設置: アンロック→建設コスト付与→本番プロトコル =====
-    // ===== Spawn locomotive: unlock, grant cost, then use the production protocol =====
+    // ===== 機関車の設置 =====
+    // ===== Spawn locomotive =====
     p.Note("機関車をアンロックしレール上へ設置する");
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var clientUnlockState = resolver.Resolve<IGameUnlockStateData>();
 
     // 自走にはtractionForce>0の機関車が必要（貨車は0で走れない）
     // Self-propulsion needs a locomotive with tractionForce > 0 (cargo cars have zero)
-    var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => c.TractionForce > 0);
+    var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => 0 < c.TractionForce);
     var trainCarGuid = carMaster.TrainCarGuid;
     p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid);
     await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(trainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロックのクライアント同期");
@@ -107,8 +107,8 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
     await p.Until(() => SpawnedCar() != null, 15f, "TrainCarEntityObjectのクライアント出現");
     await p.Screenshot("01-train-spawned");
 
-    // ===== 走行: 燃料投入→目的地B.Frontをdiagram登録しauto-runで単走させる =====
-    // ===== Run: add fuel, register B.Front as the destination, run one-way via auto-run =====
+    // ===== 走行 =====
+    // ===== Run =====
     p.Note("燃料を投入しdiagramを直組みしてauto-run開始");
 
     // 燃料切れの機関車は牽引力0でmasconが強制0になるため、デバッグコマンドで燃料を積む
@@ -120,7 +120,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
     train.trainDiagram.AddEntry(railB.FrontNode);
     train.TurnOnAutoRun();
 
-    await p.Until(() => train.CurrentSpeed > 0.0, 15f, "列車が加速開始");
+    await p.Until(() => 0.0 < train.CurrentSpeed, 15f, "列車が加速開始");
     var carBefore = SpawnedCar().transform.position;
     await p.Screenshot("02-train-running");
 
@@ -128,18 +128,18 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
     // Run until arrival (speed returns to zero) or 30 seconds, watching for hash mismatches
     p.Note("走行監視中（到着または30秒でhash検証へ）");
     var elapsed = 0f;
-    while (train.CurrentSpeed > 0.0 && elapsed < 30f)
+    while (0.0 < train.CurrentSpeed && elapsed < 30f)
     {
         await p.WaitSeconds(1f);
         elapsed += 1f;
     }
     await p.WaitSeconds(2f);
 
-    // ===== 検証: クライアント側追従・mismatch 0件 =====
-    // ===== Verify: client entity followed and zero hash mismatches =====
+    // ===== 検証 =====
+    // ===== Verify =====
     var carAfter = SpawnedCar()?.transform.position;
     var movedDistance = carAfter.HasValue ? (carAfter.Value - carBefore).magnitude : 0f;
-    p.Assert(movedDistance > 5f, $"クライアント側の車両entityが走行に追従 (moved={movedDistance:F1})");
+    p.Assert(5f < movedDistance, $"クライアント側の車両entityが走行に追従 (moved={movedDistance:F1})");
     p.Assert(mismatchCount == 0, $"hash mismatch警告が0件 (count={mismatchCount})");
 
     Application.logMessageReceived -= CountMismatch;

@@ -333,8 +333,8 @@ namespace Client.Starter
             return _resolver;
         }
 
-        // 初期snapshot適用後にログイン時状態（列車乗車等）を復元する
-        // Restore login-time state (e.g., riding a train) after the initial snapshot is applied
+        // 初期snapshot適用後に呼ぶ
+        // Call after the initial snapshot is applied
         public void RestoreLoginState(InitialHandshakeResponse init)
         {
             var context = new UITransitContext(UIStateEnum.GameScreen);

@@ -7,8 +7,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class EventStreamMessagePackTest
     {
-        // envelopeのTag/中身がラウンドトリップで保持されることを確認
-        // Verify tag and inner event survive a serialize/deserialize round trip
+        // envelopeのTag/中身がラウンドトリップ保持
+        // Tag and inner event survive a round trip
         [Test]
         public void SerializeDeserializeRoundTrip()
         {

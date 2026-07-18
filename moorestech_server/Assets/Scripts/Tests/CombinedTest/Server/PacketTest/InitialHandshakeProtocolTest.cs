@@ -101,8 +101,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void Handshake_RegistersEventQueue_ForRidingStateBroadcast()
         {
-            // handshake 後は登録済みsinkでbroadcastを受け取れる。
-            // After handshake, broadcasts reach the registered sink.
+            // handshake後はsinkでbroadcast受信可
+            // After handshake, broadcasts reach the sink.
             var environment = TrainTestHelper.CreateEnvironment();
             environment.ServiceProvider.GetService<IWorldSettingsDatastore>().Initialize(environment.ServiceProvider.GetService<MapInfoJson>());
             var car = Tests.UnitTest.PlayerRiding.RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);

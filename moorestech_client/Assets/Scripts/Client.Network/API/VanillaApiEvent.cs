@@ -16,19 +16,23 @@ namespace Client.Network.API
             // push配信されたイベントを購読する（ポーリング廃止）
             // Subscribe to pushed events; polling is removed
             packetExchangeManager.OnEventPacket.Subscribe(OnEventPacketReceived);
-        }
 
-        private void OnEventPacketReceived(EventMessagePack eventMessagePack)
-        {
-            // ハンドラ購読完了前は全イベントをバッファする（初回同期の取りこぼし防止）
-            // Buffer everything until StartDispatch so no event is lost before handlers subscribe
-            if (!_isDispatchStarted)
+            #region Internal
+
+            void OnEventPacketReceived(EventMessagePack eventMessagePack)
             {
-                _bufferedEvents.Add(eventMessagePack);
-                return;
+                // ハンドラ購読完了前は全イベントをバッファする（初回同期の取りこぼし防止）
+                // Buffer everything until StartDispatch so no event is lost before handlers subscribe
+                if (!_isDispatchStarted)
+                {
+                    _bufferedEvents.Add(eventMessagePack);
+                    return;
+                }
+
+                Dispatch(eventMessagePack);
             }
 
-            Dispatch(eventMessagePack);
+            #endregion
         }
 
         // 全ハンドラの購読登録完了後に1回だけ呼ぶ。バッファを到着順にreplayして即時配信へ移行する

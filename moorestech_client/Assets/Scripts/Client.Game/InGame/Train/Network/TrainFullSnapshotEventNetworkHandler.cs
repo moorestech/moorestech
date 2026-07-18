@@ -48,43 +48,47 @@ namespace Client.Game.InGame.Train.Network
             var vanillaApiEvent = ClientContext.VanillaApi.Event;
             _railSubscription = vanillaApiEvent.SubscribeEventResponse(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, OnRailGraphFullSnapshot);
             _trainSubscription = vanillaApiEvent.SubscribeEventResponse(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, OnTrainUnitFullSnapshot);
+
+            #region Internal
+
+            void OnRailGraphFullSnapshot(byte[] payload)
+            {
+                var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
+                _railGraphSnapshotApplier.ApplySnapshot(message.Snapshot);
+            }
+
+            void OnTrainUnitFullSnapshot(byte[] payload)
+            {
+                var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(payload);
+
+                // MessagePackのbundleをモデルへ変換してapplierの既存入力型に合わせる
+                // Convert bundles to models to reuse the applier's existing input type
+                var bundles = new List<TrainUnitSnapshotBundle>(message.Snapshots?.Count ?? 0);
+                if (message.Snapshots != null)
+                {
+                    foreach (var snapshot in message.Snapshots) bundles.Add(snapshot.ToModel());
+                }
+
+                var response = new TrainUnitSnapshotResponse(bundles, message.ServerTick, message.UnitsHash, message.WatermarkTickSequenceId);
+                _trainSnapshotApplier.ApplySnapshot(response);
+
+                // watermark以下の古いdiff/hashをpurgeし、以後のイベントが連続適用できる状態にする
+                // Purge stale diffs/hashes at or below the watermark so later events continue seamlessly
+                var watermarkId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId);
+                _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
+                _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
+
+                _onFullSnapshotApplied.OnNext(watermarkId);
+                _initialSnapshotApplied.TrySetResult();
+            }
+
+            #endregion
         }
 
         public void Dispose()
         {
             _railSubscription?.Dispose();
             _trainSubscription?.Dispose();
-        }
-
-        private void OnRailGraphFullSnapshot(byte[] payload)
-        {
-            var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventMessagePack>(payload);
-            _railGraphSnapshotApplier.ApplySnapshot(message.Snapshot);
-        }
-
-        private void OnTrainUnitFullSnapshot(byte[] payload)
-        {
-            var message = MessagePackSerializer.Deserialize<TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventMessagePack>(payload);
-
-            // MessagePackのbundleをモデルへ変換してapplierの既存入力型に合わせる
-            // Convert bundles to models to reuse the applier's existing input type
-            var bundles = new List<TrainUnitSnapshotBundle>(message.Snapshots?.Count ?? 0);
-            if (message.Snapshots != null)
-            {
-                foreach (var snapshot in message.Snapshots) bundles.Add(snapshot.ToModel());
-            }
-
-            var response = new TrainUnitSnapshotResponse(bundles, message.ServerTick, message.UnitsHash, message.WatermarkTickSequenceId);
-            _trainSnapshotApplier.ApplySnapshot(response);
-
-            // watermark以下の古いdiff/hashをpurgeし、以後のイベントが連続適用できる状態にする
-            // Purge stale diffs/hashes at or below the watermark so later events continue seamlessly
-            var watermarkId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.WatermarkTickSequenceId);
-            _futureMessageBuffer.DiscardEventsAtOrBelow(watermarkId);
-            _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
-
-            _onFullSnapshotApplied.OnNext(watermarkId);
-            _initialSnapshotApplied.TrySetResult();
         }
     }
 }

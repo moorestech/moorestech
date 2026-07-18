@@ -204,8 +204,8 @@ namespace Client.Starter
                 // Await initial snapshot application; the ordering contract makes this normally instant
                 await resolver.Resolve<TrainFullSnapshotEventNetworkHandler>().WaitForInitialSnapshotAsync();
 
-                // 列車乗車などログイン中の特殊な状態を再現し、初期化完了を通知する
-                // Restore login-time special states, then announce initialization completion
+                // ログイン状態復元→初期化完了通知
+                // Restore login state, then announce initialization
                 starter.RestoreLoginState(handshakeResponse);
                 GameInitializedEvent.FireGameInitialized();
             }
