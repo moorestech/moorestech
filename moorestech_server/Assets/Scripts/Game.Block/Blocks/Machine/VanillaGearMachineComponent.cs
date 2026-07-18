@@ -32,7 +32,7 @@ namespace Game.Block.Blocks.Machine
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            _vanillaMachineProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
+            _vanillaMachineProcessorComponent.SupplyExternalPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
 
         private void UpdateTorqueRequestRate()

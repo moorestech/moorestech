@@ -62,7 +62,7 @@ digraph process {
 
     "Read plan, note context and global constraints, create todos" [shape=box];
     "More tasks remain?" [shape=diamond];
-    "Dispatch final code reviewer subagent (../requesting-code-review/code-reviewer.md)" [shape=box];
+    "Run final whole-branch review: moores-code-review skill" [shape=box];
     "Use superpowers:finishing-a-development-branch" [shape=box style=filled fillcolor=lightgreen];
 
     "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -77,8 +77,8 @@ digraph process {
     "Task reviewer reports spec ✅ and quality approved?" -> "Mark task complete in todo list and progress ledger" [label="yes"];
     "Mark task complete in todo list and progress ledger" -> "More tasks remain?";
     "More tasks remain?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="yes"];
-    "More tasks remain?" -> "Dispatch final code reviewer subagent (../requesting-code-review/code-reviewer.md)" [label="no"];
-    "Dispatch final code reviewer subagent (../requesting-code-review/code-reviewer.md)" -> "Use superpowers:finishing-a-development-branch";
+    "More tasks remain?" -> "Run final whole-branch review: moores-code-review skill" [label="no"];
+    "Run final whole-branch review: moores-code-review skill" -> "Use superpowers:finishing-a-development-branch";
 }
 ```
 
@@ -89,6 +89,14 @@ Before dispatching Task 1, scan the plan once for conflicts:
 - tasks that contradict each other or the plan's Global Constraints
 - anything the plan explicitly mandates that the review rubric treats as a
   defect (a test that asserts nothing, verbatim duplication of a logic block)
+- **moorestech design lenses**: check the plan against
+  `.claude/skills/moores-code-review/references/lens-digest.md`. A plan that
+  mandates a lens violation (e.g. "derive state from existing responses
+  instead of a new event packet", "make the schema field optional to avoid
+  JSON updates", "inject an isActive predicate into the base component") is a
+  design-stage defect — catching it here is 10x cheaper than at final review.
+  If the plan skipped spec-architecture-review (no 配置と前例 section), run
+  that scan now using `.claude/skills/writing-plans/references/moorestech-layer-map.md`.
 
 Present everything you find to your human partner as one batched question —
 each finding beside the plan text that mandates it, asking which governs —
@@ -200,11 +208,14 @@ final whole-branch review. When you fill a reviewer template:
   contradiction: present the finding and the plan text, ask which governs.
   Do not dismiss the finding because the plan mandates it, and do not
   dispatch a fix that contradicts the plan without asking.
-- The final whole-branch review gets a package too: run
+- The final whole-branch review is the **moores-code-review skill** (invoke it
+  via the Skill tool, not a single reviewer subagent): it runs the
+  deterministic checks plus the moorestech design lenses in parallel and
+  integrates the findings. Generate the branch diff first with
   `scripts/review-package MERGE_BASE HEAD` (MERGE_BASE = the commit the
-  branch started from, e.g. `git merge-base main HEAD`) and include the
-  printed path in the final review dispatch, so the final reviewer reads
-  one file instead of re-deriving the branch diff with git commands.
+  branch started from, e.g. `git merge-base main HEAD`) and use the printed
+  file as the skill's PATCH_PATH. Feed the Minor-findings ledger into its
+  4-category context so the lens agents can triage it.
 - Every fix dispatch carries the implementer contract: the fix subagent
   re-runs the tests covering its change and reports the results. Name the
   covering test files in the dispatch — a one-line fix does not need the

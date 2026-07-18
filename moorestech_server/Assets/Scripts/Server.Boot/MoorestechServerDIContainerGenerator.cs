@@ -67,17 +67,17 @@ namespace Server.Boot
     public class MoorestechServerDIContainerOptions
     {
         public readonly string ServerDataDirectory;
-        
-        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json"); 
+
+        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json");
         public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
-        
+
         public MoorestechServerDIContainerOptions(string serverDataDirectory)
         {
             ServerDataDirectory = serverDataDirectory;
         }
     }
-    
-    
+
+
     public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
@@ -146,7 +146,10 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            services.AddSingleton<IElectricWireNetworkDatastore, ElectricWireNetworkDatastore>();
+            // 具象はElectricTickUpdaterのflush用、interfaceは参照系向け。同一インスタンスを共有する
+            // The concrete type serves ElectricTickUpdater's flush; the interface serves readers. Both share one instance
+            services.AddSingleton<ElectricWireNetworkDatastore>();
+            services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
@@ -175,7 +178,7 @@ namespace Server.Boot
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
             services.AddSingleton<ResearchEvent>();
-            
+
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
@@ -189,8 +192,9 @@ namespace Server.Boot
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
 
-            // gearのtick更新をDIから登録する
-            // Register gear tick updates through DI.
+            // 電力・gearのtick更新をDIから登録する
+            // Register electric and gear tick updates through DI.
+            services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
@@ -234,11 +238,10 @@ namespace Server.Boot
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
-            
+
             //データのセーブシステム
             // Register data save helpers.
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
-
 
             //マーカーinterface実装をIBootInitializable / IPostLoadInitializableへ転送登録する
             // Forward marker-interface implementations to IBootInitializable / IPostLoadInitializable registrations.
@@ -247,8 +250,9 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick更新処理を登録する
-            // Register tick update handlers.
+            // tick更新処理を登録する。順序は固定: ①電力tick（先頭でワイヤートポロジ反映） ②gear tick（先頭でgearトポロジ反映）
+            // Register tick update handlers in fixed order: 1) electric tick (wire topology flush at its head) 2) gear tick (gear topology flush at its head)
+            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
 
             //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
@@ -259,8 +263,39 @@ namespace Server.Boot
             // IPostLoadInitializable implementations are only created here; ServerInstanceManager invokes their Load after initial load.
             serviceProvider.GetServices<IPostLoadInitializable>();
 
+            //イベントレシーバーをインスタンス化する
+            // Materialize event receivers eagerly.
+            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
+            // TODO find a DI pattern similar to VContainer RegisterEntryPoint for this area.
+            serviceProvider.GetService<MainInventoryUpdateEventPacket>();
+            serviceProvider.GetService<UnifiedInventoryEventPacket>();
+            serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
+            serviceProvider.GetService<PlaceBlockEventPacket>();
+            serviceProvider.GetService<RemoveBlockToSetEventPacket>();
+            serviceProvider.GetService<CompletedChallengeEventPacket>();
+
+            serviceProvider.GetService<GearNetworkDatastore>();
+            serviceProvider.GetService<CleanRoomDatastore>();
+            serviceProvider.GetService<RailGraphDatastore>();
+            serviceProvider.GetService<TrainDiagramManager>();
+            serviceProvider.GetService<TrainRailPositionManager>();
+
+            serviceProvider.GetService<ChangeBlockStateEventPacket>();
+            serviceProvider.GetService<MapObjectUpdateEventPacket>();
+            serviceProvider.GetService<UnlockedEventPacket>();
+            serviceProvider.GetService<ResearchCompleteEventPacket>();
+            serviceProvider.GetService<ItemStackLevelUnlockEventPacket>();
+            serviceProvider.GetService<RailNodeCreatedEventPacket>();
+            serviceProvider.GetService<RailConnectionCreatedEventPacket>();
+            serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();
+            serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
+            serviceProvider.GetService<RailNodeRemovedEventPacket>();
+            serviceProvider.GetService<RailConnectionRemovedEventPacket>();
+            serviceProvider.GetService<RidingStateEventPacket>();
+            serviceProvider.GetService<RemovedRidableRidingHandler>();
+
             serverContext.SetMainServiceProvider(serviceProvider);
-            
+
             // MessagePackResolverを登録
             // Register the MessagePack resolver.
             MessagePackInitializer.Initialize();

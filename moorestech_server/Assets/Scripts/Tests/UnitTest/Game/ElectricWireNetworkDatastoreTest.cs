@@ -24,6 +24,7 @@ namespace Tests.UnitTest.Game
             var datastore = new ElectricWireNetworkDatastore();
             var connector = FakeWireConnector.CreateTransformer(1);
             datastore.AddConnector(connector);
+            new ElectricTickUpdater(datastore).Update();
 
             Assert.AreEqual(1, datastore.SegmentCount);
             Assert.IsTrue(datastore.TryGetEnergySegment(new BlockInstanceId(1), out var segment));
@@ -38,10 +39,12 @@ namespace Tests.UnitTest.Game
             var b = FakeWireConnector.CreateGenerator(2);
             datastore.AddConnector(a);
             datastore.AddConnector(b);
+            new ElectricTickUpdater(datastore).Update();
             Assert.AreEqual(2, datastore.SegmentCount);
 
             FakeWireConnector.ConnectEachOther(a, b);
             datastore.RebuildAround(a, b);
+            new ElectricTickUpdater(datastore).Update();
 
             Assert.AreEqual(1, datastore.SegmentCount);
             datastore.TryGetEnergySegment(new BlockInstanceId(1), out var segA);
@@ -65,10 +68,12 @@ namespace Tests.UnitTest.Game
             FakeWireConnector.ConnectEachOther(a, b);
             FakeWireConnector.ConnectEachOther(b, c);
             datastore.RebuildAround(a, b, c);
+            new ElectricTickUpdater(datastore).Update();
             Assert.AreEqual(1, datastore.SegmentCount);
 
             FakeWireConnector.DisconnectEachOther(a, b);
             datastore.RebuildAround(a, b);
+            new ElectricTickUpdater(datastore).Update();
 
             Assert.AreEqual(2, datastore.SegmentCount);
             datastore.TryGetEnergySegment(new BlockInstanceId(1), out var segA);
@@ -95,8 +100,10 @@ namespace Tests.UnitTest.Game
 
             FakeWireConnector.ConnectEachOther(a, b);
             datastore.RebuildAround(a, b);
+            new ElectricTickUpdater(datastore).Update();
             FakeWireConnector.ConnectEachOther(c, d);
             datastore.RebuildAround(c, d);
+            new ElectricTickUpdater(datastore).Update();
             Assert.AreEqual(2, datastore.SegmentCount);
 
             // 2メンバーの{A,B}側が吸収側になることを参照同一性で検証するため、橋渡し前に控えておく
@@ -105,6 +112,7 @@ namespace Tests.UnitTest.Game
 
             FakeWireConnector.ConnectEachOther(b, c);
             datastore.RebuildAround(b, c);
+            new ElectricTickUpdater(datastore).Update();
 
             // 全員が同一セグメントに統合され、吸収側はサイズの大きい{A,B}側
             // Everyone is folded into one segment, and the larger {A,B} side is the absorber
@@ -134,6 +142,7 @@ namespace Tests.UnitTest.Game
             var b = FakeWireConnector.CreateGenerator(2);
             datastore.AddConnector(a);
             datastore.AddConnector(b);
+            new ElectricTickUpdater(datastore).Update();
 
             // 孤立2コネクタ時点では2セグメントがそれぞれ返る
             // With two isolated connectors, both segments are returned
@@ -148,6 +157,7 @@ namespace Tests.UnitTest.Game
             // After the merge, only the single unified segment is returned
             FakeWireConnector.ConnectEachOther(a, b);
             datastore.RebuildAround(a, b);
+            new ElectricTickUpdater(datastore).Update();
             var mergedSegments = datastore.GetSegments();
             datastore.TryGetEnergySegment(new BlockInstanceId(1), out var merged);
             Assert.AreEqual(1, mergedSegments.Count);
@@ -170,9 +180,11 @@ namespace Tests.UnitTest.Game
             FakeWireConnector.ConnectEachOther(a, b);
             FakeWireConnector.ConnectEachOther(b, c);
             datastore.RebuildAround(a, b, c);
+            new ElectricTickUpdater(datastore).Update();
             Assert.AreEqual(1, datastore.SegmentCount);
 
             datastore.RemoveConnector(b);
+            new ElectricTickUpdater(datastore).Update();
 
             Assert.AreEqual(2, datastore.SegmentCount);
             Assert.IsTrue(datastore.TryGetEnergySegment(new BlockInstanceId(1), out var segA));

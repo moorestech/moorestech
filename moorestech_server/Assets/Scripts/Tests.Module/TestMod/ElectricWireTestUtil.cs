@@ -1,7 +1,10 @@
+using System;
 using Core.Master;
+using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.World.Interface.DataStore;
 using UnityEngine;
 
 namespace Tests.Module.TestMod
@@ -31,5 +34,27 @@ namespace Tests.Module.TestMod
             var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
             return block.GetComponent<IElectricWireConnector>();
         }
+
+        // 対象ブロックを電柱経由で給電セグメントへ入れ、出力可変のテスト発電機を登録して返す
+        // Put the block into a powered segment through a pole and register a settable test generator, returning it
+        public static TestElectricGenerator WirePower(Vector3Int consumerPos, Vector3Int polePos, float generatePower)
+        {
+            var world = ServerContext.WorldBlockDatastore;
+            if (!world.Exists(polePos))
+                world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            Connect(consumerPos, polePos);
+
+            // 保留トポロジを本番入口経由で反映し、セグメントを確定させる
+            // Apply the pending topology through the production entry so the segment settles
+            new ElectricTickUpdater(ServerContext.GetService<ElectricWireNetworkDatastore>()).Update();
+
+            var consumerId = world.GetBlock(consumerPos).BlockInstanceId;
+            ServerContext.GetService<IElectricWireNetworkDatastore>().TryGetEnergySegment(consumerId, out var segment);
+            var generator = new TestElectricGenerator(new ElectricPower(generatePower), new BlockInstanceId(_nextTestGeneratorId++));
+            segment.AddGenerator(generator);
+            return generator;
+        }
+
+        private static int _nextTestGeneratorId = 900000;
     }
 }
