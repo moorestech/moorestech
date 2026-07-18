@@ -18,9 +18,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var context = new PacketResponseContext();
             var sink = new CapturedEventSink();
-            context.SetEventSink(sink);
+            var context = new PacketResponseContext(sink);
 
             // handshakeでsink登録と初期push（ここで捕捉分はクリアする）
             // Handshake registers the sink and pushes initial snapshots; clear those captures
@@ -45,9 +44,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var context = new PacketResponseContext();
             var sink = new CapturedEventSink();
-            context.SetEventSink(sink);
+            var context = new PacketResponseContext(sink);
 
             var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(0, "Player 0"));
             packetResponse.GetPacketResponse(handshake, context);

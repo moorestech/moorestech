@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // クラフトを実行
             // Execute the craft
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)), new PacketResponseContext());
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestOneClickCraftProtocolMessagePack(PlayerId, craftRecipeElement.CraftRecipeGuid)), new PacketResponseContext(null));
         }
         
         [Test]

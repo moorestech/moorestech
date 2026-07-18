@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //インベントリを開く
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext());
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext(null));
             //ブロックにアイテムを入れる
             blockInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 8));
             
@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //ブロックのインベントリを閉じる
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false), new PacketResponseContext());
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), false), new PacketResponseContext(null));
             
             //ブロックにアイテムを入れる
             blockInventory.SetItem(2, itemStackFactory.Create(new ItemId(4), 8));
@@ -104,10 +104,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 一つ目のブロックインベントリを開く
             // Open first block inventory
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext());
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(5, 7), true), new PacketResponseContext(null));
             // 二つ目のブロックインベントリを開く
             // Open second block inventory
-            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(10, 20), true), new PacketResponseContext());
+            packetResponse.GetPacketResponse(OpenCloseBlockInventoryPacket(new Vector3Int(10, 20), true), new PacketResponseContext(null));
 
 
             // 一つ目のブロックインベントリにアイテムを入れる

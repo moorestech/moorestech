@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Fire through the real packet path
             var request = new RequestBlockStateProtocolMessagePack(pos);
             var payload = MessagePackSerializer.Serialize(request);
-            packet.GetPacketResponse(payload, new PacketResponseContext());
+            packet.GetPacketResponse(payload, new PacketResponseContext(null));
 
             var events = sink.TakeAll();
             Assert.AreEqual(1, events.Count, "変化がなくてもpull経路では必ず1件積まれるべき");

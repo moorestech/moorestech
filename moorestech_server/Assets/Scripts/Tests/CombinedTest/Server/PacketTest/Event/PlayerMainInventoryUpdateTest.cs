@@ -44,8 +44,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //インベントリ内のアイテムの移動を実際に移動のプロトコルを用いてテストする
             //分割のイベントのテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 5, 3), new PacketResponseContext());
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 4, 3), new PacketResponseContext());
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 5, 3), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 4, 3), new PacketResponseContext(null));
             
             events = sink.TakeAll();
             
@@ -71,8 +71,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //合成のテスト
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 4, 3), new PacketResponseContext());
-            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 5, 3), new PacketResponseContext());
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(true, 4, 3), new PacketResponseContext(null));
+            packetResponse.GetPacketResponse(PlayerInventoryItemMove(false, 5, 3), new PacketResponseContext(null));
             
             events = sink.TakeAll();
             

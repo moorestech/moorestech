@@ -54,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, PlayerId);
 
             var handshakeRequest = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(PlayerId, "test player"));
-            var response = packetResponse.GetPacketResponse(handshakeRequest, new PacketResponseContext())[0];
+            var response = packetResponse.GetPacketResponse(handshakeRequest, new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(response);
 
             Assert.AreEqual(1, handshakeResponse.ItemStackLevels.Length);
