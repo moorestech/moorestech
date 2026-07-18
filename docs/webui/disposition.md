@@ -14,13 +14,13 @@
 | INFRA-3 | uGUI/CEF 表示切替 | **済**（`WebUiCefToggle` Ctrl+I） |
 | INFRA-4 | C#→TS 型自動生成 | **D**（任意） |
 | INFRA-5 | アセット配信拡張（立ち絵等の汎用画像） | **A3**（配信基盤・2026-07-18 完了 `/api/assets/`）。スキット立ち絵はUnity描画残置決定（skit-web-redesign.md）のため利用側なし |
-| INFRA-6 | UIState 橋渡し | **済**（最小版）。GameStateType（第2状態機械）Topic 化は **C4** |
+| INFRA-6 | UIState 橋渡し | **済**。GameStateType Topic化もC4で完了（2026-07-18 game_state.current） |
 | INFRA-7 | サーバーイベント push 規約（revision・デバウンス・再接続整合性） | **A4**（2026-07-18 完了。`topic-conventions.md`） |
 | INFRA-8 | Windows/Linux 対応 | **A3**（Windows のみ DoD。Linux は非 DoD・将来枠） |
 | INFRA-9 | 本番配信堅牢性（静的配信・成果物整合・動的ポート・多重起動） | **A3**（2026-07-18 実装完了。Windows実機確認はD最終検証） |
-| INFRA-10 | CEF 音声専有 | **C4**（スキットのボイス方式決定に内包。決定責務は C4） |
+| INFRA-10 | CEF 音声専有 | **C4**（2026-07-18 方式決定・実装完了: 全ボイスUnity AudioSource再生統一・CEF無音。Windows実機同時再生確認のみD最終検証） |
 | INFRA-11 | i18n | **A5**（2026-07-18 基盤完了）+ **D**（既存画面の変換） |
-| INFRA-12 | Web UI 要素 ID 規約 | **A5**（2026-07-18 規約策定完了 `anchor-convention.md`）+ 各画面 Phase（付与済み）+ **C4**（registry実装中） |
+| INFRA-12 | Web UI 要素 ID 規約 | **A5**+**C4**（2026-07-18 完了。anchor registry+ack実装・全画面付与済み） |
 | INFRA-13 | CEF/接続堅牢性（死活・クラッシュ復帰・再接続 snapshot 復元) | **A4**（2026-07-18 完了。heartbeat+restoring復元+再接続テスト） |
 
 ## FEAT
@@ -61,8 +61,8 @@
 | WORLD-1 | 3D オブジェクトのツールチップ | **C2 に部分吸収**（2026-07-18 完了: 判定Unity残置・表示はui.tooltip連携） |
 | WORLD-2 | マップオブジェクト HP バー | **除外**: ワールド空間 UI は uGUI 維持（2026-07-18 方針） |
 | WORLD-3 | マップ UI | **除外**: 実体が存在しない（調査済み） |
-| TUT-1 | チュートリアル | **C4**（再設計。ワールド系ピン/矢印は uGUI 残置） |
-| SKIT-1 | スキット | **C4**（再設計） |
+| TUT-1 | チュートリアル | **C4**（2026-07-18 完了。宣言的ハイライト+key hint統合・ワールド系Unity残置。実機進行確認はD） |
+| SKIT-1 | スキット | **C4**（2026-07-18 完了。S2-S3実装・choiceId jump欠陥修復・冪等Action。S4実機ボイス検証はD） |
 | SKIT-2 | バックグラウンドスキット | **C4**（2026-07-18 完了。skit.presentation snapshot・音声Unity維持・文字表示ゲート） |
 | CUT-1 | カットシーン | **C4**（2026-07-18 完了。game_state.current+Web全レイヤ退避） |
 | SYS-1 | ポーズメニュー | **C2**（2026-07-18 完了。pause_menu.current+セーブ/復帰Action） |
