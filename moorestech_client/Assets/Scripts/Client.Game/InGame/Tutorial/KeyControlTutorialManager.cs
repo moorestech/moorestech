@@ -22,7 +22,9 @@ namespace Client.Game.InGame.Tutorial
 
         private void OnDestroy()
         {
-            _uiStateControl.OnStateChanged -= HandleStateChanged;
+            // 初期シーン遷移中はDI注入前に破棄され得るためnull許容（ライフサイクル境界）
+            // May be destroyed before DI injection during the initial scene switch, so tolerate null (lifecycle boundary)
+            if (_uiStateControl != null) _uiStateControl.OnStateChanged -= HandleStateChanged;
         }
 
         public ITutorialView ApplyTutorial(ITutorialParam param)
