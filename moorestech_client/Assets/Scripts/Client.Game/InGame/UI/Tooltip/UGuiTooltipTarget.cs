@@ -41,6 +41,10 @@ namespace Client.Game.InGame.UI.Tooltip
         /// </summary>
         private void UpdateMouseCursorTooltip()
         {
+            // Webモードやシーン破棄中はtooltipシングルトンが存在しない（ライフサイクル境界）
+            // The tooltip singleton may not exist in Web mode or during scene teardown (lifecycle boundary)
+            if (MouseCursorTooltip.Instance == null) return;
+
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
