@@ -18,6 +18,33 @@ export const useItemMasterStore = create<ItemMasterState>((set) => ({
 const RETRY_INTERVAL_MS = 3000;
 let started = false;
 
+// HTTP 由来の各アイテムに必須フィールド型が揃うことを検証する
+// Validate required field types for each item received over HTTP
+function isItemMasterEntry(item: unknown): item is ItemMasterEntry {
+  return (
+    typeof item === "object" &&
+    item !== null &&
+    "itemId" in item &&
+    typeof item.itemId === "number" &&
+    "name" in item &&
+    typeof item.name === "string" &&
+    "maxStack" in item &&
+    typeof item.maxStack === "number"
+  );
+}
+
+// コンテナ形状と全要素を検証して不正データの流入を防ぐ
+// Validate the container and every entry to keep malformed data out of the store
+function isItemMasterData(data: unknown): data is ItemMasterData {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "items" in data &&
+    Array.isArray(data.items) &&
+    data.items.every(isItemMasterEntry)
+  );
+}
+
 export function ensureItemMasterLoaded(): void {
   if (started) return;
   started = true;
@@ -28,9 +55,10 @@ async function loadWithRetry(): Promise<void> {
   for (;;) {
     const res = await fetch("/api/master/items").catch(() => null);
     if (res?.ok) {
-      const data: ItemMasterData | null = await res.json().catch(() => null);
-      if (data) {
+      const data: unknown = await res.json().catch(() => null);
+      if (isItemMasterData(data)) {
         useItemMasterStore.getState().setMaster(new Map(data.items.map((i) => [i.itemId, i])));
+        return;
       }
     }
     await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL_MS));
