@@ -19,7 +19,7 @@
 2. サーバー統合: 取得・適用プロトコル、パケット登録、DI登録、保存組み立て、保存復元。
 3. クライアント通信: 初期取得、初期ハンドシェイク集約結果、送信API、通信asmdef参照、デバッグ用レスポンス。
 4. クライアントUI: エディタ、一覧、ターゲット、進捗更新、レシピ画面の作成導線、UI状態、DI登録。
-5. Unityアセット: 専用Prefab 4個、共有Prefab 3個、作成ボタン2個、関連するserialized参照。
+5. Unityアセット: 専用Prefab 4個、共有Prefab 3個、作成・表示ボタン3個、関連するserialized参照。
 6. 現行資料: uGUIスクリーン一覧と画像、Web UI移行TODO・監査資料の未実装項目。
 
 ## 削除設計
@@ -28,7 +28,7 @@
 
 Unity固有YAMLはテキスト編集しない。`uloop execute-dynamic-code` からUnity Editor APIを呼び、`PrefabUtility.LoadPrefabContents` と `AssetDatabase.DeleteAsset` を使用してUnity自身にシリアライズさせる。
 
-- `InventoryItems.prefab` から `CraftTree` ルートと2個の `RecipeTreeView` ボタンを削除する。
+- `InventoryItems.prefab` から `CraftTree` ルート、2個の `RecipeTreeView` ボタン、旧 `show craft tree` 表示ボタンを削除する。
 - `MainGameUI.prefab` から `CraftTreeTarget` のネストPrefabインスタンスを削除する。
 - `GameSystem.prefab` の `MainGameStarter` から消えるserialized参照が残らないことを保存後に確認する。
 - `CraftTreeEditorViewItem.prefab`、`CraftTreeListItem.prefab`、`CraftTreeTarget.prefab`、`CraftTreeTargetItem.prefab` を削除する。
@@ -63,7 +63,7 @@ Unity固有YAMLはテキスト編集しない。`uloop execute-dynamic-code` か
 
 ## QAと完了条件
 
-- 製品コードと現行資料に `CraftTree`、`craftTree`、`クラフトツリー`、`RecipeTreeView`、`va:getCraftTree`、`va:applyCraftTree` の意図しない参照がない。
+- 製品コードと現行資料に `CraftTree`、`craftTree`、`show craft tree`、`クラフトツリー`、`RecipeTreeView`、`va:getCraftTree`、`va:applyCraftTree` の意図しない参照がない。
 - 削除対象スクリプト・PrefabのGUIDがPrefab、Scene、ScriptableObjectに残っていない。
 - 影響した共有PrefabにMissing Script、Missing Prefab、壊れたobject referenceがない。
 - 保存JSONに `craftTreeInfo` が出力されず、保存と復元が成功する。

@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using Core.Update;
 using Game.Block.Interface;
-using UniRx;
 
 namespace Game.EnergySystem
 {
     /// <summary>
-    ///     そのエネルギーの供給、配分を行うシステム
+    ///     電線で接続された一つの連結成分＝一つの電力セグメント。
+    ///     tick処理は行わず、ElectricTickUpdaterから毎tick需給を再集計されて統計を確定する受動データ構造。
+    ///     One connected component of the wire graph = one electric segment.
+    ///     It performs no tick processing itself; ElectricTickUpdater re-aggregates supply and demand every tick and settles the statistics.
     /// </summary>
     public class EnergySegment
     {
@@ -15,46 +16,24 @@ namespace Game.EnergySystem
         private readonly Dictionary<BlockInstanceId, IElectricTransformer> _energyTransformers = new();
         private readonly Dictionary<BlockInstanceId, IElectricGenerator> _generators = new();
 
-        private readonly IDisposable _updateSubscription;
-
         public bool IsDestroyed { get; private set; }
 
-        public EnergySegment()
-        {
-            _updateSubscription = GameUpdater.UpdateObservable.Subscribe(_ => Update());
-        }
+        // このtickで確定した電力統計。需要0は供給率1として扱う
+        // Statistics settled for this tick; zero demand is treated as supply rate 1
+        public ElectricNetworkStatistics Statistics { get; private set; } = new(0f, 0f, 1f, 0);
 
         public IReadOnlyDictionary<BlockInstanceId, IElectricConsumer> Consumers => _consumers;
 
         public IReadOnlyDictionary<BlockInstanceId, IElectricGenerator> Generators => _generators;
 
         public IReadOnlyDictionary<BlockInstanceId, IElectricTransformer> EnergyTransformers => _energyTransformers;
-        
-        
-        // 現時点のネットワーク集約統計を返す。SupplyEnergyを呼ばないので副作用はない
-        // Return the current aggregated network statistics; this never calls SupplyEnergy so it has no side effects
-        public ElectricNetworkStatistics GetCurrentStatistics()
-        {
-            CheckDestroy();
-            return CalculateStatistics();
-        }
 
-        private void Update()
+        // 毎tickの需給再集計と供給率確定。ElectricTickUpdaterからのみ呼ばれる
+        // Re-aggregate supply and demand and settle the supply rate every tick; called only by ElectricTickUpdater
+        public ElectricNetworkStatistics SettleTick()
         {
             CheckDestroy();
 
-            // 供給率に応じて各消費者へ配分
-            // Calculate aggregated statistics and distribute energy to each consumer by the supply rate
-            var statistics = CalculateStatistics();
-            var powerRate = new ElectricPower(statistics.PowerRate);
-            foreach (var consumer in _consumers.Values)
-                consumer.SupplyEnergy(consumer.RequestEnergy * powerRate);
-        }
-
-        // 発電合計・要求合計・供給率を算出する純粋な計算。UpdateとGetCurrentStatisticsで共有
-        // Pure computation of total generation, total demand, and supply rate; shared by Update and GetCurrentStatistics
-        private ElectricNetworkStatistics CalculateStatistics()
-        {
             //供給されてる合計エネルギー量の算出
             var totalGenerate = new ElectricPower(0);
             foreach (var generator in _generators.Values) totalGenerate += generator.OutputEnergy();
@@ -69,9 +48,24 @@ namespace Game.EnergySystem
             var powerRate = requiredPrimitive <= 0f ? 1f : totalGenerate.AsPrimitive() / requiredPrimitive;
             if (1f < powerRate) powerRate = 1f;
 
-            return new ElectricNetworkStatistics(totalGenerate.AsPrimitive(), requiredPrimitive, powerRate, _consumers.Count);
+            Statistics = new ElectricNetworkStatistics(totalGenerate.AsPrimitive(), requiredPrimitive, powerRate, _consumers.Count);
+            return Statistics;
         }
-        
+
+        // 統計確定後の変換機等の電力tick後処理を実行する
+        // Run the post-electric-tick processing (converters etc.) after the statistics are settled
+        public void RunPostTickProcess()
+        {
+            CheckDestroy();
+
+            foreach (var generator in _generators.Values)
+                if (generator is IElectricTickPostHandler handler)
+                    handler.OnElectricTickPostProcess(Statistics);
+            foreach (var consumer in _consumers.Values)
+                if (consumer is IElectricTickPostHandler handler)
+                    handler.OnElectricTickPostProcess(Statistics);
+        }
+
         public void AddEnergyConsumer(IElectricConsumer electricConsumer)
         {
             CheckDestroy();
@@ -120,15 +114,12 @@ namespace Game.EnergySystem
 
             IsDestroyed = true;
 
-            // Updateの購読を解除
-            _updateSubscription.Dispose();
-
             // 各種Dictionaryをクリア
             _consumers.Clear();
             _generators.Clear();
             _energyTransformers.Clear();
         }
-        
+
         private void CheckDestroy()
         {
             if (IsDestroyed)

@@ -1,10 +1,13 @@
+using Game.Block.Blocks.ElectricWire;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.EnergySystem;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
-    public class CleanRoomMachineComponent : ICleanRoomMachine, IElectricConsumer
+    // 所属セグメントの確定済み供給率から実効電力を導出してProcessorへ渡すクリーンルーム機械
+    // Clean room machine deriving effective power from its segment's settled supply rate and feeding the processor
+    public class CleanRoomMachineComponent : ICleanRoomMachine, IElectricConsumer, IUpdatableBlockComponent
     {
         private readonly CleanRoomMachineProcessorComponent _processor;
 
@@ -23,10 +26,14 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _processor.SetCleanRoomEffect(effect);
         }
 
-        public void SupplyEnergy(ElectricPower power)
+        public void Update()
         {
             BlockException.CheckDestroy(this);
-            _processor.SupplyPower(power.AsPrimitive());
+
+            // 実効電力 = 要求電力 × 所属セグメントの確定済み供給率
+            // Effective power = requested power x the segment's settled supply rate
+            var powerRate = ElectricSegmentPowerRateResolver.GetPowerRate(BlockInstanceId);
+            _processor.SupplyExternalPower(RequestEnergy.AsPrimitive() * powerRate);
         }
 
         public bool IsDestroy { get; private set; }

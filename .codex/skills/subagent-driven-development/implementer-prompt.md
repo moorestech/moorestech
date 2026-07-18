@@ -47,6 +47,17 @@ Subagent (general-purpose):
     While iterating, run the focused test for what you're changing; run the
     full suite once before committing, not after every edit.
 
+    ## moorestech Design Rules (read BEFORE implementing)
+
+    Read `.claude/skills/moores-code-review/references/lens-digest.md` — the
+    8 design lenses distilled from real review rejections. The final review
+    checks against these lenses; a violation means rework. In particular:
+    precedent-first (find how this codebase already solves this shape of
+    problem, follow that role-equivalent precedent), no domain vocabulary in
+    base components (push values via SetHoge instead), no per-tick polling in
+    Update(), no optional/fallback defense for master data, server mutable
+    state needs the event+initial-data+subscription 3-piece set.
+
     ## Code Organization
 
     You reason best about code you can hold in context at once, and your edits are more

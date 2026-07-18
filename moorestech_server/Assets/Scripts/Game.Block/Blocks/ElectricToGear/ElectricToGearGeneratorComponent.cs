@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Block.Blocks.Gear;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -6,52 +7,57 @@ using Game.EnergySystem;
 using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
+using Newtonsoft.Json;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.ElectricToGear
 {
-    public class ElectricToGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IElectricConsumer, IUpdatableBlockComponent, IBlockStateDetail, IBlockSaveState, IBlockStateObservable
+    /// <summary>
+    ///     電力を歯車回転へ変換する変換機。選択モードのrequiredPower 1tick分の内部バッテリーを持つ。
+    ///     電力tickで充電し、満充電のときのみ定格RPM・定格トルクを出力、出力tickで残量を0にする（電力不足時は脈動出力）。
+    ///     Converter turning electric power into gear rotation, holding a one-tick battery of the selected mode's requiredPower.
+    ///     It charges on the electric tick, outputs the rated RPM and torque only when fully charged, and empties the battery on the output tick (pulsing under power shortage).
+    /// </summary>
+    public class ElectricToGearGeneratorComponent : GearEnergyTransformer, IGearGenerator, IElectricConsumer, IElectricTickPostHandler, IBlockStateDetail, IBlockSaveState, IBlockStateObservable
     {
         public int TeethCount => _param.TeethCount;
         public bool GenerateIsClockwise => true;
-        
-        public RPM GenerateRpm => _electricFulfillmentRate > 0f && CurrentMode.Torque > 0 ? new RPM(CurrentMode.Rpm) : new RPM(0);
 
-        // トルクは電力充足率でドループ。
-        // Torque droops by electric fulfillment.
-        public Torque GenerateTorque => new(CurrentMode.Torque * _electricFulfillmentRate);
+        // 満充電確定時のみ定格を出力。トルクドループは行わない。トルク0モードは網の最速起点を奪わないようRPMも0
+        // Output the rated values only when settled as fully charged; no torque droop. A torque-0 mode also yields RPM 0 so it never dominates the network
+        public RPM GenerateRpm => _isOutputting && 0 < CurrentMode.Torque ? new RPM(CurrentMode.Rpm) : new RPM(0);
+        public Torque GenerateTorque => _isOutputting ? new Torque(CurrentMode.Torque) : new Torque(0);
 
-        // 出力は電力側のSupplyEnergyで駆動されるため、gear側の毎tick処理は不要
-        // Output is driven by the electric side's SupplyEnergy, so no gear-side per-tick processing is needed
-        public bool RequiresContinuousTick => false;
-
-        public void ConsumeGeneratorTick(float networkLoadRate)
-        {
-        }
+        // 出力tickでバッテリーを毎tick消費するため常時tick駆動が必要
+        // Needs continuous ticking since the battery is consumed on every output tick
+        public bool RequiresContinuousTick => true;
 
         public string SaveKey => "electricToGearGenerator";
 
-        // モード選択・電力充足率の変化をクライアントへ通知する状態変化ストリーム
-        // State-change stream notifying the client when the mode or electric fulfillment changes
+        // 満充電までに不足している電力だけを要求する
+        // Demand only the power still missing from the one-tick battery
+        public ElectricPower RequestEnergy => new(Mathf.Max(0f, BatteryCapacity - _batteryRemaining));
+
         public new IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
+        public int SelectedIndex { get; private set; }
 
         private readonly ElectricToGearGeneratorBlockParam _param;
-        private readonly Subject<Unit> _onChangeBlockState = new Subject<Unit>();
+        private readonly Subject<Unit> _onChangeBlockState = new();
 
-        // 基底（ギア網）の状態変化を自前の Subject へ転送する購読
-        // Subscription forwarding base (gear-network) state changes into our own Subject
-        // 注: 基底 Destroy() は非 virtual で破棄フックが無く、FuelGearGenerator 同様 Subject/購読は明示破棄しない（両者ともこの同一インスタンスのフィールドで、外部参照を残さないため自然に解放される）
-        // Note: base Destroy() is non-virtual with no dispose hook; like FuelGearGenerator we don't explicitly dispose the Subject/subscription (both ends are fields of this same instance, holding no external reference, so they free naturally)
-        private readonly System.IDisposable _baseStateForward;
+        // 基底（ギア網）の状態変化を自前のSubjectへ転送する購読。基底Destroyに破棄フックが無いため明示破棄はしない
+        // Subscription forwarding base (gear-network) state changes into our Subject; not disposed explicitly since base Destroy has no hook
+        private readonly IDisposable _baseStateForward;
 
-        private int _selectedIndex;
-        private ElectricPower _suppliedPower;
-        private float _electricFulfillmentRate;
-        private bool _poweredThisTick;
+        private float _batteryRemaining;
+        private float _lastChargedPower;
+        private bool _isOutputting;
 
-        // 選択中の出力エントリ。index は常に範囲内に保つ。
-        // The currently selected output entry; index is always kept in range.
-        private OutputModesElement CurrentMode => _param.OutputModes[_selectedIndex];
+        private OutputModesElement CurrentMode => _param.OutputModes[SelectedIndex];
+
+        // バッテリー容量は選択モードのrequiredPower 1tick分。マスターデータから再構築されセーブには残量のみ保存する
+        // Battery capacity is one tick of the selected mode's requiredPower, rebuilt from master data; only the remainder is saved
+        private float BatteryCapacity => CurrentMode.RequiredPower;
 
         public ElectricToGearGeneratorComponent(
             ElectricToGearGeneratorBlockParam param,
@@ -60,102 +66,64 @@ namespace Game.Block.Blocks.ElectricToGear
             base(null, blockInstanceId, connectorComponent)
         {
             _param = param;
-            _selectedIndex = 0;
-            _suppliedPower = new ElectricPower(0);
-            _electricFulfillmentRate = 0f;
-
-            // 基底のギア状態変化を自前ストリームへ転送（RPM/トルク変化もクライアントへ届ける）
-            // Forward base gear-state changes into our stream so RPM/torque changes also reach the client
+            SelectedIndex = 0;
+            _batteryRemaining = 0f;
             _baseStateForward = base.OnChangeBlockState.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
         }
 
-        // セーブ復元用コンストラクタ
-        // Constructor used to restore from saved state
+        // セーブ復元用コンストラクタ。indexは範囲へ、バッテリー残量は0から容量の範囲へクランプする
+        // Restore constructor; the index is clamped into range and the battery remainder into [0, capacity]
         public ElectricToGearGeneratorComponent(
-            System.Collections.Generic.Dictionary<string, string> componentStates,
+            Dictionary<string, string> componentStates,
             ElectricToGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
             this(param, blockInstanceId, connectorComponent)
         {
-            if (componentStates != null && componentStates.TryGetValue(SaveKey, out var raw) && int.TryParse(raw, out var index))
-            {
-                _selectedIndex = ClampIndex(index);
-            }
-
-            #region Internal
-
-            // 保存値が現在の outputModes 範囲外でも安全な index に丸める
-            // Clamp a restored index into the current outputModes range
-            int ClampIndex(int i)
-            {
-                if (i < 0) return 0;
-                if (i >= _param.OutputModes.Length) return _param.OutputModes.Length - 1;
-                return i;
-            }
-
-            #endregion
+            if (componentStates == null || !componentStates.TryGetValue(SaveKey, out var raw)) return;
+            var saveData = JsonConvert.DeserializeObject<ElectricToGearGeneratorSaveJsonObject>(raw);
+            if (saveData == null) return;
+            SelectedIndex = Mathf.Clamp(saveData.SelectedIndex, 0, _param.OutputModes.Length - 1);
+            _batteryRemaining = Mathf.Clamp(saveData.BatteryRemaining, 0f, BatteryCapacity);
         }
 
-        #region IElectricConsumer
-
-        public ElectricPower RequestEnergy => new ElectricPower(CurrentMode.RequiredPower);
-
-        public void SupplyEnergy(ElectricPower power)
+        // 電力tick後処理: 供給率に応じて充電し、満充電なら次の歯車tickの出力を確定する
+        // Electric post-tick: charge by the supply rate, then settle the output for the following gear tick when full
+        public void OnElectricTickPostProcess(ElectricNetworkStatistics statistics)
         {
             BlockException.CheckDestroy(this);
-            _poweredThisTick = true;
-            UpdateFulfillment(power);
+
+            _lastChargedPower = Mathf.Min(RequestEnergy.AsPrimitive() * statistics.PowerRate, BatteryCapacity - _batteryRemaining);
+            _batteryRemaining += _lastChargedPower;
+
+            // 浮動小数の充電誤差を許容して満充電を判定する
+            // Full charge is judged with a small tolerance for floating point charge error
+            var isFull = BatteryCapacity - BatteryCapacity * 1e-4f <= _batteryRemaining;
+            SetOutputting(isFull);
+            if (0f < _lastChargedPower) _onChangeBlockState.OnNext(Unit.Default);
         }
 
-        private void UpdateFulfillment(ElectricPower power)
-        {
-            _suppliedPower = power;
-            var required = CurrentMode.RequiredPower;
-            // 充足率を計算
-            // Calculate fulfillment rate
-            var newRate = required > 0f ? Math.Min(power.AsPrimitive() / required, 1f) : 0f;
-
-            // 充足率が変化したら出力再配分を自己通知し、クライアントへも状態変化を通知
-            // On fulfillment change, self-notify for redistribution and notify the client of the state change
-            var changed = Math.Abs(newRate - _electricFulfillmentRate) > 0.0001f;
-            _electricFulfillmentRate = newRate;
-            if (changed)
-            {
-                GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
-                _onChangeBlockState.OnNext(Unit.Default);
-            }
-        }
-
-        #endregion
-
-        // 電力network側の未リファクタ都合で残すIUpdatableBlockComponent。電力供給の途絶検知のみでgear動力計算はしない
-        // IUpdatableBlockComponent kept due to the unrefactored electric network; it only detects lost electric supply, no gear power calc
-        public void Update()
+        // 出力tick: 1tick分のバッテリーを全て消費して定格出力し、残量を0にする
+        // Output tick: consume the whole one-tick battery for the rated output, leaving the remainder at 0
+        public void ConsumeGeneratorTick(float networkLoadRate)
         {
             BlockException.CheckDestroy(this);
-            if (!_poweredThisTick)
-            {
-                UpdateFulfillment(new ElectricPower(0));
-            }
-            _poweredThisTick = false;
+            if (!_isOutputting) return;
+
+            _batteryRemaining = 0f;
+            SetOutputting(false);
         }
 
-        // 出力モード切替
-        // Switch output mode
+        // 出力モード切替。容量が変わるため残量を新容量へクランプする
+        // Switch the output mode; the battery is clamped to the new capacity since it changes
         public bool SetSelectedMode(int index)
         {
             BlockException.CheckDestroy(this);
             if (index < 0 || index >= _param.OutputModes.Length) return false;
-            var changed = _selectedIndex != index;
-            _selectedIndex = index;
+            var changed = SelectedIndex != index;
+            SelectedIndex = index;
+            _batteryRemaining = Mathf.Clamp(_batteryRemaining, 0f, BatteryCapacity);
 
-            // 新モードの requiredPower で再評価して充足率を更新
-            // Re-evaluate and update fulfillment against the new mode's requiredPower
-            UpdateFulfillment(_suppliedPower);
-
-            // モード変更は充足率が同じでも出力RPM/トルクが変わるため、クライアント通知に加えnetwork再配分を要求する
-            // A mode change alters output RPM/torque even at the same fulfillment rate, so notify the client and request the network's recalculation
             if (changed)
             {
                 GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
@@ -164,12 +132,14 @@ namespace Game.Block.Blocks.ElectricToGear
             return true;
         }
 
-        public int SelectedIndex => _selectedIndex;
-
         public string GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            return _selectedIndex.ToString();
+            return JsonConvert.SerializeObject(new ElectricToGearGeneratorSaveJsonObject
+            {
+                SelectedIndex = SelectedIndex,
+                BatteryRemaining = _batteryRemaining,
+            });
         }
 
         public new BlockStateDetail[] GetBlockStateDetails()
@@ -186,18 +156,30 @@ namespace Game.Block.Blocks.ElectricToGear
 
             BlockStateDetail CreateDetail()
             {
+                var chargeRate = BatteryCapacity <= 0f ? 0f : _batteryRemaining / BatteryCapacity;
                 var detail = new ElectricToGearGeneratorBlockStateDetail(
                     IsCurrentClockwise,
                     CurrentRpm,
                     CurrentTorque,
-                    _selectedIndex,
-                    _electricFulfillmentRate,
-                    _suppliedPower);
+                    SelectedIndex,
+                    chargeRate,
+                    new ElectricPower(_lastChargedPower),
+                    _batteryRemaining);
                 var serialized = MessagePackSerializer.Serialize(detail);
                 return new BlockStateDetail(ElectricToGearGeneratorBlockStateDetail.BlockStateDetailKey, serialized);
             }
 
             #endregion
+        }
+
+        // 出力確定状態の反転時のみ歯車網へ再計算を要求し、クライアントへも通知する
+        // Only when the settled output state flips, request the gear network recalculation and notify the client
+        private void SetOutputting(bool isOutputting)
+        {
+            if (_isOutputting == isOutputting) return;
+            _isOutputting = isOutputting;
+            GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
+            _onChangeBlockState.OnNext(Unit.Default);
         }
     }
 }

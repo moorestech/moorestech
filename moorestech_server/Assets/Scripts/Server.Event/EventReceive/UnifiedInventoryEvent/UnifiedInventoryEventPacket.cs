@@ -1,5 +1,6 @@
 using System;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface.Subscription;
 using Game.Train.Event;
 using MessagePack;
@@ -12,18 +13,29 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
     /// 統一インベントリ更新イベントパケット
     /// Unified inventory update event packet
     /// </summary>
-    public class UnifiedInventoryEventPacket
+    public class UnifiedInventoryEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:invUpdate";
-        
+
+        private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IInventorySubscriptionStore _inventorySubscriptionStore;
+        private readonly ITrainUpdateEvent _trainUpdateEvent;
+
         public UnifiedInventoryEventPacket(EventProtocolProvider eventProtocolProvider, IInventorySubscriptionStore inventorySubscriptionStore, ITrainUpdateEvent trainUpdateEvent)
+        {
+            _eventProtocolProvider = eventProtocolProvider;
+            _inventorySubscriptionStore = inventorySubscriptionStore;
+            _trainUpdateEvent = trainUpdateEvent;
+        }
+
+        public void Load()
         {
             // ブロックインベントリの更新を監視
             // Monitor block inventory updates
-            new BlockInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore);
+            new BlockInventoryUpdateService(_eventProtocolProvider, _inventorySubscriptionStore);
             // 列車インベントリの更新・削除を監視
             // Monitor train inventory updates and removals
-            new TrainInventoryUpdateService(eventProtocolProvider, inventorySubscriptionStore, trainUpdateEvent);
+            new TrainInventoryUpdateService(_eventProtocolProvider, _inventorySubscriptionStore, _trainUpdateEvent);
         }
     }
     

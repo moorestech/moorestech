@@ -55,8 +55,6 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(GetGearNetworkInfoProtocol.ProtocolTag, new GetGearNetworkInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetElectricNetworkInfoProtocol.ProtocolTag, new GetElectricNetworkInfoProtocol(serviceProvider));
 
-            _packetResponseDictionary.Add(ApplyCraftTreeProtocol.ProtocolTag, new ApplyCraftTreeProtocol(serviceProvider));
-            _packetResponseDictionary.Add(GetCraftTreeProtocol.ProtocolTag, new GetCraftTreeProtocol(serviceProvider));
             _packetResponseDictionary.Add(RegisterPlayedSkitProtocol.ProtocolTag, new RegisterPlayedSkitProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetFluidInventoryProtocol.ProtocolTag, new GetFluidInventoryProtocol(serviceProvider));
             _packetResponseDictionary.Add(CompleteResearchProtocol.ProtocolTag, new CompleteResearchProtocol(serviceProvider));

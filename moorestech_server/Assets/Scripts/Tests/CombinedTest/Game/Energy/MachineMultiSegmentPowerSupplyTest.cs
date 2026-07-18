@@ -40,6 +40,10 @@ namespace Tests.CombinedTest.Game.Energy
             var processor = machineBlock.GetComponent<VanillaMachineProcessorComponent>();
             Assert.Greater(processor.RequestPower, 0f, "テスト機械の要求電力が0だと検証が成立しない");
 
+            // トポロジ反映のため1tick進める
+            // Advance one tick for the topology flush
+            GameUpdater.UpdateOneTick();
+
             // 機械は電柱と同じ単一セグメントにのみ所属する（多重所属は構造的に発生しない）
             // The machine belongs only to the same single segment as the pole (multi-membership cannot occur)
             Assert.AreEqual(1, networkDatastore.SegmentCount);

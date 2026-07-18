@@ -29,13 +29,16 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(2, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             worldBlockDatastore.TryAddBlock(ElectricPoleId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole3);
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
+            GameUpdater.UpdateOneTick();
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
+            GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(1, networkDatastore.SegmentCount);
 
             // 中間電柱を削除して鎖を断つ
             // Remove the middle pole to break the chain
             worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
+            GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(2, networkDatastore.SegmentCount);
 
@@ -59,7 +62,9 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock(MachineId, Pos(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             worldBlockDatastore.TryAddBlock(GeneratorId, Pos(4, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(0, 0));
+            GameUpdater.UpdateOneTick();
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(4, 0));
+            GameUpdater.UpdateOneTick();
 
             // 機械・発電機・電柱が1セグメントに集約されている
             // The machine, generator, and pole are consolidated into one segment
@@ -71,6 +76,7 @@ namespace Tests.CombinedTest.Game
             // 電柱を削除
             // Remove the pole
             worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
+            GameUpdater.UpdateOneTick();
 
             // 機械・発電機は繋がりを失い各自単独セグメント化
             // The machine and generator lose their link and each becomes a standalone segment
@@ -103,15 +109,20 @@ namespace Tests.CombinedTest.Game
             // 4本を四角形ループに接続
             // Wire the four poles into a square loop
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
+            GameUpdater.UpdateOneTick();
             ElectricWireTestUtil.Connect(Pos(2, 0), Pos(2, 2));
+            GameUpdater.UpdateOneTick();
             ElectricWireTestUtil.Connect(Pos(2, 2), Pos(0, 2));
+            GameUpdater.UpdateOneTick();
             ElectricWireTestUtil.Connect(Pos(0, 2), Pos(0, 0));
+            GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(1, networkDatastore.SegmentCount);
 
             // ループ上の1本を削除しても残りは別経路で繋がったまま
             // Removing one pole on the loop still leaves the rest connected via the alternate path
             worldBlockDatastore.RemoveBlock(Pos(2, 0), BlockRemoveReason.ManualRemove);
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, networkDatastore.SegmentCount);
 
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole1.BlockInstanceId, out var segment));

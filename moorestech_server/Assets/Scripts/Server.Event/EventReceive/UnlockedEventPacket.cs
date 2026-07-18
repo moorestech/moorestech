@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Game.Context;
 using Game.UnlockState;
 using MessagePack;
 using UniRx;
@@ -12,22 +13,27 @@ namespace Server.Event.EventReceive
     /// A class for sending in-game unlock events. There are multiple things that can be unlocked, but it would be tedious to prepare multiple events for that, so we will handle them together.
     /// We may split it up if there is a demand to do so.
     /// </summary>
-    public class UnlockedEventPacket
+    public class UnlockedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:unlocked";
         
         private readonly EventProtocolProvider _eventProtocolProvider;
-        
+        private readonly IGameUnlockStateDataController _unlockState;
+
         public UnlockedEventPacket(EventProtocolProvider eventProtocolProvider, IGameUnlockStateDataController unlockState)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            
-            unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.CraftRecipe, c)));
-            unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockEventMessagePack(i)));
-            unlockState.OnUnlockChallengeCategory.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ChallengeCategory, c)));
-            unlockState.OnUnlockMachineRecipe.Subscribe(m => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.MachineRecipe, m)));
-            unlockState.OnUnlockBlock.Subscribe(b => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Block, b)));
-            unlockState.OnUnlockTrainCar.Subscribe(t => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.TrainCar, t)));
+            _unlockState = unlockState;
+        }
+
+        public void Load()
+        {
+            _unlockState.OnUnlockCraftRecipe.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.CraftRecipe, c)));
+            _unlockState.OnUnlockItem.Subscribe(i => AddBroadcastEvent(new UnlockEventMessagePack(i)));
+            _unlockState.OnUnlockChallengeCategory.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ChallengeCategory, c)));
+            _unlockState.OnUnlockMachineRecipe.Subscribe(m => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.MachineRecipe, m)));
+            _unlockState.OnUnlockBlock.Subscribe(b => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Block, b)));
+            _unlockState.OnUnlockTrainCar.Subscribe(t => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.TrainCar, t)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)

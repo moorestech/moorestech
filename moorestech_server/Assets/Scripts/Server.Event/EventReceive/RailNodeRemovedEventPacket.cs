@@ -1,4 +1,5 @@
 ﻿using Game.Train.Unit;
+using Game.Context;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event;
@@ -11,18 +12,24 @@ namespace Server.Event.EventReceive
     ///     RailNode削除をクライアントへ通知するイベントパケット
     ///     Event packet that broadcasts removed rail nodes
     /// </summary>
-    public sealed class RailNodeRemovedEventPacket
+    public sealed class RailNodeRemovedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railNodeRemoved";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
 
         public RailNodeRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
-            railGraphDatastore.GetRailNodeRemovedEvent().Subscribe(OnNodeRemoved);
+        }
+
+        public void Load()
+        {
+            _railGraphDatastore.GetRailNodeRemovedEvent().Subscribe(OnNodeRemoved);
         }
 
         private void OnNodeRemoved(RailNodeRemovedData data)

@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Core
     public class ElectricToGearGeneratorTest
     {
         [Test]
-        public void FixedRpmTorqueDroopsAndModeSwitch()
+        public void FullChargeOutputsRatedAndPartialChargePulses()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
@@ -36,40 +36,70 @@ namespace Tests.CombinedTest.Core
             var mode0 = param.OutputModes[0]; // rpm 60, torque 50, power 30
             var mode1 = param.OutputModes[1]; // rpm 120, torque 100, power 100
 
-            Assert.AreEqual((float)mode0.RequiredPower, c.RequestEnergy.AsPrimitive(), 0.001f);
+            // 初期はバッテリーが空なので満容量分を要求し、出力はしない
+            // The empty battery initially demands its full capacity and produces no output
+            Assert.AreEqual(mode0.RequiredPower, c.RequestEnergy.AsPrimitive(), 0.001f);
             Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
 
-            c.SupplyEnergy(new ElectricPower((float)mode0.RequiredPower));
-            Assert.AreEqual((float)mode0.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
-            Assert.AreEqual((float)mode0.Torque, c.GenerateTorque.AsPrimitive(), 0.01f);
+            // 供給率1の電力tickで満充電になり、定格RPM・定格トルクを出力する
+            // A rate-1 electric tick fully charges the battery, outputting the rated RPM and torque
+            c.OnElectricTickPostProcess(FullRateStats(mode0.RequiredPower));
+            Assert.AreEqual(mode0.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
+            Assert.AreEqual(mode0.Torque, c.GenerateTorque.AsPrimitive(), 0.01f);
 
-            c.SupplyEnergy(new ElectricPower((float)mode0.RequiredPower * 0.5f));
-            Assert.AreEqual((float)mode0.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
-            Assert.AreEqual((float)mode0.Torque * 0.5f, c.GenerateTorque.AsPrimitive(), 0.01f);
-
-            c.SupplyEnergy(new ElectricPower(0));
+            // 出力tickで1tick分のバッテリーを全消費し残量0・出力停止
+            // The output tick consumes the whole one-tick battery, stopping the output at zero remainder
+            c.ConsumeGeneratorTick(1f);
+            Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
             Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.01f);
-            Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
 
-            c.SupplyEnergy(new ElectricPower((float)mode0.RequiredPower));
+            // 供給率0.5では半分だけ充電され、次tickの要求は残り半分になる
+            // At rate 0.5 the battery charges halfway and requests only the remaining half next tick
+            c.OnElectricTickPostProcess(HalfRateStats(mode0.RequiredPower));
+            Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.01f);
+            Assert.AreEqual(mode0.RequiredPower * 0.5f, c.RequestEnergy.AsPrimitive(), 0.001f);
+
+            // 残量要求を全量供給すると満充電になり、要求は0になる
+            // Fully supplying the remaining demand completes the charge and reduces demand to zero
+            c.OnElectricTickPostProcess(FullRateStats(c.RequestEnergy.AsPrimitive()));
+            Assert.AreEqual(mode0.Torque, c.GenerateTorque.AsPrimitive(), 0.01f);
+            Assert.AreEqual(0f, c.RequestEnergy.AsPrimitive(), 0.001f);
+            c.ConsumeGeneratorTick(1f);
+
+            // 部分充電のままモードを切り替えると要求電力が新モードへ変わり、満充電まで出力しない
+            // Switching modes while partially charged updates the demand and keeps the output off until fully charged
+            c.OnElectricTickPostProcess(HalfRateStats(mode0.RequiredPower));
             c.SetSelectedMode(1);
+            Assert.AreEqual(mode1.RequiredPower - mode0.RequiredPower * 0.5f, c.RequestEnergy.AsPrimitive(), 0.001f);
+            Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.01f);
 
-            Assert.AreEqual((float)mode1.RequiredPower, c.RequestEnergy.AsPrimitive(), 0.001f);
-
-            var expectedFulfillment = (float)mode0.RequiredPower / (float)mode1.RequiredPower;
-            Assert.AreEqual((float)mode1.Torque * expectedFulfillment, c.GenerateTorque.AsPrimitive(), 0.5f);
-            Assert.AreEqual((float)mode1.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
+            // 供給率1の電力tickで満充電になり、新モードの定格を出力（トルクドループなし）
+            // A rate-1 electric tick fills the battery and outputs the new mode rated values (no torque droop)
+            c.OnElectricTickPostProcess(FullRateStats(c.RequestEnergy.AsPrimitive()));
+            Assert.AreEqual(mode1.Torque, c.GenerateTorque.AsPrimitive(), 0.01f);
+            Assert.AreEqual(mode1.Rpm, c.GenerateRpm.AsPrimitive(), 0.001f);
 
             Assert.IsFalse(c.SetSelectedMode(99));
             Assert.AreEqual(1, c.SelectedIndex);
             Assert.IsFalse(c.SetSelectedMode(-1));
             Assert.AreEqual(1, c.SelectedIndex);
 
-            c.SupplyEnergy(new ElectricPower((float)mode1.RequiredPower));
-            c.Update();
-            c.Update();
+            // 出力後に供給率0が続くと充電されず出力は止まったまま
+            // After the output tick, continued rate-0 ticks charge nothing and the output stays off
+            c.ConsumeGeneratorTick(1f);
+            c.OnElectricTickPostProcess(ZeroRateStats(mode1.RequiredPower));
             Assert.AreEqual(0f, c.GenerateTorque.AsPrimitive(), 0.01f);
             Assert.AreEqual(0f, c.GenerateRpm.AsPrimitive(), 0.001f);
+
+            #region Internal
+
+            // 供給率のみが充電量を決めるため、統計は率だけ変えた固定形で渡す
+            // Only the supply rate drives charging, so the statistics are fixed shapes varying just the rate
+            ElectricNetworkStatistics FullRateStats(double requiredPower) => new((float)requiredPower, (float)requiredPower, 1f, 1);
+            ElectricNetworkStatistics HalfRateStats(double requiredPower) => new((float)requiredPower * 0.5f, (float)requiredPower, 0.5f, 1);
+            ElectricNetworkStatistics ZeroRateStats(double requiredPower) => new(0f, (float)requiredPower, 0f, 1);
+
+            #endregion
         }
 
         [Test]
@@ -125,7 +155,7 @@ namespace Tests.CombinedTest.Core
             // index 3 is the torque-0 mode; supply it to full fulfillment.
             var mode3 = param.OutputModes[3];
             c.SetSelectedMode(3);
-            c.SupplyEnergy(new ElectricPower((float)mode3.RequiredPower));
+            c.OnElectricTickPostProcess(new ElectricNetworkStatistics(mode3.RequiredPower, mode3.RequiredPower, 1f, 1));
 
             // 満充足でもトルク0なら GenerateRpm は0（実効トルクゲート）。網の最速起点を奪わない。
             // Even at full fulfillment, a torque-0 mode yields GenerateRpm 0 (effective-torque gate); never dominates the network.

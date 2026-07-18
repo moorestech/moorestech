@@ -1,4 +1,5 @@
 ﻿using Game.Train.Unit;
+using Game.Context;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Event;
@@ -11,18 +12,24 @@ namespace Server.Event.EventReceive
     ///     RailConnection削除をクライアントへ通知するイベントパケット
     ///     Event packet broadcasting removed rail connections
     /// </summary>
-    public sealed class RailConnectionRemovedEventPacket
+    public sealed class RailConnectionRemovedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railConnectionRemoved";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
 
         public RailConnectionRemovedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
-            railGraphDatastore.GetRailConnectionRemovedEvent().Subscribe(OnConnectionRemoved);
+        }
+
+        public void Load()
+        {
+            _railGraphDatastore.GetRailConnectionRemovedEvent().Subscribe(OnConnectionRemoved);
         }
 
         private void OnConnectionRemoved(RailConnectionRemovalData data)

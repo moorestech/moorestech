@@ -1,12 +1,9 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.Fluid;
-using Game.Block.Component;
 using Game.Block.Interface.Component;
 using Game.Fluid;
 using Newtonsoft.Json;
-using UnityEngine;
-using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -17,31 +14,23 @@ namespace Game.Block.Blocks.Gear
     public class FuelGearGeneratorFluidComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
     {
         private readonly FluidContainer _fuelTank;
-        private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
-        private bool _wasRefilledThisUpdate;
         private int _consecutiveUpdatesWithoutRefill;
-        private bool _wasEverDisconnected;
-        
-        public FuelGearGeneratorFluidComponent(float tankCapacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
+
+        public FuelGearGeneratorFluidComponent(float tankCapacity)
         {
             _fuelTank = new FluidContainer(tankCapacity);
-            _fluidConnector = fluidConnector;
-            _wasRefilledThisUpdate = false;
             _consecutiveUpdatesWithoutRefill = 0;
-            _wasEverDisconnected = false;
         }
-        
-        public FuelGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
-            : this(tankCapacity, fluidConnector)
+
+        public FuelGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity)
+            : this(tankCapacity)
         {
             if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
-            
+
             var saveData = JsonConvert.DeserializeObject<FuelGearGeneratorFluidSaveData>(saveState);
             _fuelTank = saveData.Fluid.ToFluidContainer(tankCapacity);
-            
-            _wasRefilledThisUpdate = saveData.WasRefilledThisUpdate;
+
             _consecutiveUpdatesWithoutRefill = saveData.ConsecutiveUpdatesWithoutRefill;
-            _wasEverDisconnected = saveData.WasEverDisconnected;
         }
         
         public FluidContainer SteamTank => _fuelTank;
@@ -50,22 +39,18 @@ namespace Game.Block.Blocks.Gear
         public void Update()
         {
             // この更新サイクルで補給があったかどうかをチェック
-            _wasRefilledThisUpdate = _fuelTank.HasPreviousSources;
-            
+            // Check whether the tank was refilled during this update cycle
+            var wasRefilledThisUpdate = _fuelTank.HasPreviousSources;
+
             // 補給状態を追跡
-            if (_wasRefilledThisUpdate)
+            // Track the refill state
+            if (wasRefilledThisUpdate)
             {
                 _consecutiveUpdatesWithoutRefill = 0;
             }
             else
             {
                 _consecutiveUpdatesWithoutRefill++;
-                // 一度でも切断が検知されたらフラグを立てる
-                if (_consecutiveUpdatesWithoutRefill >= 1)
-                {
-                    _wasEverDisconnected = true;
-                }
-                // Debug.Log($"[FluidComponent] No refill. Consecutive: {_consecutiveUpdatesWithoutRefill}, Disconnected: {IsPipeDisconnected}");
             }
             
             // タンクの送信元記録をクリア
@@ -110,9 +95,7 @@ namespace Game.Block.Blocks.Gear
             var saveData = new FuelGearGeneratorFluidSaveData
             {
                 Fluid = new FluidContainerSaveJsonObject(_fuelTank),
-                WasRefilledThisUpdate = _wasRefilledThisUpdate,
-                ConsecutiveUpdatesWithoutRefill = _consecutiveUpdatesWithoutRefill,
-                WasEverDisconnected = _wasEverDisconnected
+                ConsecutiveUpdatesWithoutRefill = _consecutiveUpdatesWithoutRefill
             };
             
             return JsonConvert.SerializeObject(saveData);
@@ -122,9 +105,7 @@ namespace Game.Block.Blocks.Gear
         private class FuelGearGeneratorFluidSaveData
         {
             public FluidContainerSaveJsonObject Fluid { get; set; }
-            public bool WasRefilledThisUpdate { get; set; }
             public int ConsecutiveUpdatesWithoutRefill { get; set; }
-            public bool WasEverDisconnected { get; set; }
         }
         
         #endregion

@@ -95,7 +95,7 @@ namespace Game.World.DataStore
             block = _blockFactory.Create(blockId, BlockInstanceId.Create(), blockPositionInfo, createParams);
             return TryAddBlock(block);
         }
-        
+
         private bool TryAddBlock(IBlock block)
         {
             var pos = block.BlockPositionInfo.OriginalPos;
@@ -178,7 +178,7 @@ namespace Game.World.DataStore
                 
                 var blockData = new BlockPositionInfo(pos, direction, size);
                 var block = _blockFactory.Load(blockSave.BlockGuid, new BlockInstanceId(blockSave.InstanceId), blockSave.ComponentStates, blockData);
-                
+
                 TryAddBlock(block);
             }
             

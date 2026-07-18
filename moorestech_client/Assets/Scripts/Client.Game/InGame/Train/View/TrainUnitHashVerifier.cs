@@ -73,8 +73,14 @@ namespace Client.Game.InGame.Train.View
             // If there is no message for the current tick but there are messages for future ticks, it's likely that the current tick's message won't arrive. In that case, we will force advance the tick.
             if (!_futureMessageBuffer.TryDequeueHashAtTickSequenceId(currentTickUnifiedId, out var message))
             {
-                Debug.LogWarning("tick force slip!");
-                return _futureMessageBuffer.TryGetFirstHashTickUnifiedId(out _);                
+                // バッファが空なら次バンドル待ちの正常状態なので警告しない
+                // An empty buffer just means waiting for the next bundle, so stay silent
+                if (!_futureMessageBuffer.TryGetFirstHashTickUnifiedId(out var firstBufferedTickUnifiedId))
+                    return false;
+                Debug.LogWarning(
+                    $"tick force slip! expected={currentTickUnifiedId >> 32}_{(uint)currentTickUnifiedId}, " +
+                    $"firstBuffered={firstBufferedTickUnifiedId >> 32}_{(uint)firstBufferedTickUnifiedId}");
+                return true;
             }
             
             var isVerified = ValidateCurrentTickHash();

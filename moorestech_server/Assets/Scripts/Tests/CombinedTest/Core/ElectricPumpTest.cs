@@ -74,7 +74,12 @@ namespace Tests.CombinedTest.Core
                 world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipePosZRef);
                 world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out pipeNegZRef);
                 world.TryAddBlock(ForUnitTestModBlockId.ElectricPump, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
-                
+
+                // 全電線切断のポンプは供給率0になるため、電柱を1本ワイヤー接続してセグメントを成立させる
+                // A wire-less pump derives supply rate 0, so wire one pole to form a valid segment
+                world.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(2, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+                ElectricWireTestUtil.Connect(Vector3Int.zero, new Vector3Int(2, 0, 0));
+
                 pumpComponentRef = pump.GetComponent<ElectricPumpComponent>();
             }
             
@@ -94,6 +99,9 @@ namespace Tests.CombinedTest.Core
             // Helper to run for the given seconds with a test generator of the given output temporarily registered in the pump's wire segment
             void RunForSeconds(ElectricPumpComponent component, ElectricPower supply, float seconds)
             {
+                // トポロジ反映のため1tick進めてからセグメントを取得する
+                // Advance one tick for the topology flush before fetching the segment
+                GameUpdater.UpdateOneTick();
                 var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
                 Assert.IsTrue(networkDatastore.TryGetEnergySegment(component.BlockInstanceId, out var segment));
                 var generator = new TestElectricGenerator(supply, BlockInstanceId.Create());

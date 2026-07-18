@@ -7,7 +7,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
-using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -58,7 +57,6 @@ namespace Client.Network.API
                 GetPlayerInventory(playerId, ct),
                 GetChallengeResponse(ct),
                 GetUnlockState(ct),
-                GetCraftTree(playerId, ct),
                 GetPlayedSkitIds(ct),
                 GetResearchNodeStates(ct),
                 GetRailGraphSnapshot(ct),
@@ -244,21 +242,6 @@ namespace Client.Network.API
             var response = await _packetExchangeManager.GetPacketResponse<GetResearchInfoProtocol.ResponseResearchInfoMessagePack>(request, ct);
 
             return response.ToDictionary();
-        }
-
-        public async UniTask<CraftTreeResponse> GetCraftTree(int playerId, CancellationToken ct)
-        {
-            var request = new GetCraftTreeProtocol.RequestGetCraftTreeMessagePack(playerId);
-            var response = await _packetExchangeManager.GetPacketResponse<GetCraftTreeProtocol.ResponseGetCraftTreeMessagePack>(request, ct);
-
-            // レスポンスからCraftTreeNodeのリストを作成
-            var craftTreeNodes = new List<CraftTreeNode>();
-            foreach (var tree in response.CraftTrees)
-            {
-                craftTreeNodes.Add(tree.CreateCraftTreeNode());
-            }
-
-            return new CraftTreeResponse(craftTreeNodes, response.CurrentTargetNode);
         }
 
         public async UniTask<List<string>> GetPlayedSkitIds(CancellationToken ct)
