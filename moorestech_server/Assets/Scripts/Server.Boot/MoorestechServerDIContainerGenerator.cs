@@ -233,6 +233,7 @@ namespace Server.Boot
             services.AddSingleton<RailConnectionCreatedEventPacket>();
             services.AddSingleton<TrainUnitTickDiffBundleEventPacket>();
             services.AddSingleton<TrainUnitSnapshotEventPacket>();
+            services.AddSingleton<TrainFullSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();

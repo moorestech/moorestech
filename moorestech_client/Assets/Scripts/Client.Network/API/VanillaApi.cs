@@ -11,7 +11,7 @@ namespace Client.Network.API
         private readonly Process _localServerProcess;
         
         private readonly ServerCommunicator _serverCommunicator;
-        public readonly VanillaApiEvent Event;
+        public readonly IVanillaApiEvent Event;
         public readonly VanillaApiWithResponse Response;
         public readonly VanillaApiSendOnly SendOnly;
         
@@ -20,7 +20,7 @@ namespace Client.Network.API
             _serverCommunicator = serverCommunicator;
             _localServerProcess = localServerProcess;
             
-            Event = new VanillaApiEvent(packetExchangeManager, playerConnectionSetting);
+            Event = new VanillaApiEvent(packetExchangeManager);
             Response = new VanillaApiWithResponse(packetExchangeManager, playerConnectionSetting);
             SendOnly = new VanillaApiSendOnly(packetSender, playerConnectionSetting);
         }

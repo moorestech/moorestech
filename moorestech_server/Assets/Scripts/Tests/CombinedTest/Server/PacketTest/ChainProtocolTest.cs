@@ -10,9 +10,9 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Event;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -30,8 +30,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // テスト用のサーバーとイベントプロバイダを準備する
             // Prepare server and event provider for tests
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var eventProvider = serviceProvider.GetService<EventProtocolProvider>();
-            eventProvider.GetEventBytesList(PlayerId);
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
+            sink.TakeAll();
             var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
 
             // チェーンポールを配置する
@@ -49,13 +49,13 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 接続プロトコルを送信する
             // Send connect protocol
-            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId, chainItemId), new PacketResponseContext()).First();
+            var connectBytes = packet.GetPacketResponse(Connect(posA, posB, PlayerId, chainItemId), new PacketResponseContext(null)).First();
             var typedConnect = MessagePackSerializer.Deserialize<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(connectBytes.ToArray());
             Assert.True(typedConnect.IsSuccess);
 
             // ブロック状態変更イベントが登録されていることを確認する
             // Ensure block state change event is enqueued
-            var events = eventProvider.GetEventBytesList(PlayerId);
+            var events = sink.TakeAll();
             var blockAEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockA.BlockPositionInfo);
             var blockBEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockB.BlockPositionInfo);
             Assert.IsTrue(events.Any(e => e.Tag == blockAEventTag || e.Tag == blockBEventTag), "Block state change event should be published");

@@ -1,0 +1,92 @@
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/BeltConveyorSpeedController.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/BeltConveyorSpeedController.cs
+new file mode 100644
+index 000000000..d4e5f6a7b
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/BeltConveyorSpeedController.cs
+@@ -0,0 +1,34 @@
++using UnityEngine;
++
++namespace Game.Block.Blocks.BeltConveyor
++{
++    // 歯車ネットワークのRPM変動に応じて搬送速度を保持・更新する
++    // Holds and updates transport speed as the gear network RPM changes
++    public class BeltConveyorSpeedController
++    {
++        public float CurrentTransportSpeed { get; private set; }
++
++        public void SetTransportSpeed(float transportSpeed)
++        {
++            // RPM変動のたびに呼ばれ、搬送計算の係数を更新する
++            // Called on every RPM change to update the transport coefficient
++            CurrentTransportSpeed = Mathf.Max(0f, transportSpeed);
++        }
++
++        public float CalcItemAdvance(float deltaTime)
++        {
++            return CurrentTransportSpeed * deltaTime;
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/GearBeltConveyorSpeedSync.cs b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/GearBeltConveyorSpeedSync.cs
+new file mode 100644
+index 000000000..e5f6a7b8c
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/GearBeltConveyorSpeedSync.cs
+@@ -0,0 +1,30 @@
++using System;
++using UniRx;
++
++namespace Game.Block.Blocks.BeltConveyor
++{
++    // 歯車ネットワークの供給率変化を購読し、搬送速度へ反映する
++    // Subscribes to gear network supply changes and pushes them into transport speed
++    public class GearBeltConveyorSpeedSync : IDisposable
++    {
++        private readonly BeltConveyorSpeedController _speedController;
++        private readonly IDisposable _supplySubscription;
++
++        public GearBeltConveyorSpeedSync(BeltConveyorSpeedController speedController, IObservable<float> onSupplyRateChanged, float baseSpeed)
++        {
++            _speedController = speedController;
++
++            // 供給率が変わるたびに速度を再計算してプッシュする
++            // Recompute and push speed on every supply rate change
++            _supplySubscription = onSupplyRateChanged.Subscribe(rate => _speedController.SetTransportSpeed(baseSpeed * rate));
++        }
++
++        public void Dispose()
++        {
++            _supplySubscription?.Dispose();
++        }
++    }
++}
+diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Hud/ConveyorSpeedHudView.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Hud/ConveyorSpeedHudView.cs
+new file mode 100644
+index 000000000..f6a7b8c9d
+--- /dev/null
++++ b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Hud/ConveyorSpeedHudView.cs
+@@ -0,0 +1,26 @@
++using TMPro;
++using UnityEngine;
++
++namespace Client.Game.InGame.UI.Hud
++{
++    // 選択中ベルトコンベアの搬送速度をHUDに表示する
++    // Shows the selected belt conveyor's transport speed on the HUD
++    public class ConveyorSpeedHudView : MonoBehaviour
++    {
++        [SerializeField] private TMP_Text speedText;
++
++        public void SetSpeedText(float transportSpeed)
++        {
++            // ホバー対象が変わるたびに表示を更新する
++            // Refresh the label whenever the hovered target changes
++            speedText.text = $"{transportSpeed:F1} m/s";
++        }
++
++        public void ClearSpeedText()
++        {
++            speedText.text = string.Empty;
++        }
++    }
++}

@@ -57,8 +57,8 @@ namespace Tests.UnitTest.PlayerRiding
 
         private static PacketResponseContext CreateBoundContext(int playerId)
         {
-            var context = new PacketResponseContext();
-            context.BindPlayerId(playerId);
+            var context = new PacketResponseContext(null);
+            context.TryBindPlayerId(playerId);
             return context;
         }
 

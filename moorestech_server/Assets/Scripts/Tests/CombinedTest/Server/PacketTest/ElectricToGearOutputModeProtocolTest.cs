@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static SetElectricToGearOutputModeResponse Send(PacketResponseCreator packet, SetElectricToGearOutputModeRequest request)
         {
             var payload = MessagePackSerializer.Serialize(request);
-            var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext())[0];
+            var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext(null))[0];
             return MessagePackSerializer.Deserialize<SetElectricToGearOutputModeResponse>(responseBytes);
         }
     }
