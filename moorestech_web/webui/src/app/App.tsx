@@ -15,6 +15,8 @@ import { Crosshair, KeyHintBar } from "@/features/commonHud";
 import { MiningHud } from "@/features/miningHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { ContextMenu } from "@/shared/contextMenu";
+import { BackgroundSkit } from "@/features/skit";
+import { TutorialOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
@@ -56,11 +58,12 @@ export default function App() {
   const screen = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null));
   const uiState = useTopicSelector(Topics.uiState, (d) => d?.state ?? null);
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
+  const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
   const stageRef = useUiScale(uiVisible);
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
-  if (!uiVisible) return <div className={styles.hidden} data-web-ui-transparent />;
+  if (!uiVisible || cutScene) return <div className={styles.hidden} data-web-ui-transparent />;
 
   return (
     <div className={styles.viewport} data-web-ui-transparent>
@@ -96,6 +99,8 @@ export default function App() {
       <Portal>
         <ToastHost />
         <CurrentChallengeHud />
+        <BackgroundSkit />
+        <TutorialOverlay />
       </Portal>
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}

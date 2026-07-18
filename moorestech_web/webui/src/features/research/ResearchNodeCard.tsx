@@ -4,6 +4,7 @@ import { ItemSlot } from "@/shared/ui";
 import { dispatchAction } from "@/bridge";
 import { deriveResearchButton, isItemSufficient } from "./researchLogic";
 import styles from "./style.module.css";
+import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
 
 type Props = {
   node: ResearchNodeData;
@@ -25,6 +26,7 @@ export default function ResearchNodeCard({ node, left, top, owned, resolveName }
       style={{ left, top }}
       data-research-node
       data-testid={`research-node-${node.guid}`}
+      {...tutorialAnchor(`research.node-${node.guid}`.toLowerCase() as AnchorId)}
     >
       <Stack gap={4}>
         <Text size="sm" fw={600}>{node.name}</Text>
