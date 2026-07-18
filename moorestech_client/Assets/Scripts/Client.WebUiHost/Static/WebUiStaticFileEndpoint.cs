@@ -20,7 +20,7 @@ namespace Client.WebUiHost.Static
             [".svg"] = "image/svg+xml", [".png"] = "image/png", [".jpg"] = "image/jpeg",
             [".jpeg"] = "image/jpeg", [".webp"] = "image/webp", [".gif"] = "image/gif",
             [".ico"] = "image/x-icon", [".woff"] = "font/woff", [".woff2"] = "font/woff2",
-            [".ttf"] = "font/ttf", [".wasm"] = "application/wasm", [".map"] = "application/json",
+            [".ttf"] = "font/ttf", [".otf"] = "font/otf", [".wasm"] = "application/wasm", [".map"] = "application/json",
         };
 
         public WebUiStaticFileEndpoint(string rootPath)

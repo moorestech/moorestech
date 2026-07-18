@@ -51,7 +51,12 @@ namespace Client.WebUiHost.Static
             }
 
             if (!seen.Contains("index.html")) return Fail("manifest does not contain index.html", out failure);
-            var actualFileCount = Directory.GetFiles(rootPath, "*", SearchOption.AllDirectories).Length - 1;
+
+            // Editor実行はStreamingAssets内に.metaが生成されるため未宣言判定から除外（manifest自身も除外）
+            // The Editor generates .meta files inside StreamingAssets, so exclude them (and the manifest itself) from the undeclared-file check
+            var actualFileCount = -1;
+            foreach (var file in Directory.GetFiles(rootPath, "*", SearchOption.AllDirectories))
+                if (!file.EndsWith(".meta", StringComparison.Ordinal)) actualFileCount++;
             if (actualFileCount != seen.Count) return Fail("artifact contains files not declared by manifest", out failure);
             return true;
         }
