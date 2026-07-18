@@ -1,5 +1,5 @@
 import { ItemSlot, SlotGrid } from "@/shared/ui";
-import type { SlotData } from "@/bridge/contract/payloadTypes";
+import type { SlotData } from "@/bridge";
 import { useBlockInteraction } from "./blockInteractionContext";
 import { useBlockSlotGestures } from "./useBlockSlotGestures";
 

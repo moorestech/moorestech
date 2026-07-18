@@ -1,7 +1,7 @@
 import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics, useItemMaster } from "@/bridge";
 import { readActiveLayer, screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
-import type { SlotRef } from "@/bridge/contract/payloadTypes";
+import type { SlotRef } from "@/bridge";
 import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
 import { createSlotActions } from "../slotActions";
 import styles from "./style.module.css";

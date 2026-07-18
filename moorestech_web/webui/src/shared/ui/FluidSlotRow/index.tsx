@@ -1,5 +1,5 @@
 import { Group } from "@mantine/core";
-import type { FluidSlotData } from "@/bridge/contract/payloadTypes";
+import type { FluidSlotData } from "@/bridge";
 import FluidSlot from "../FluidSlot";
 import ProgressArrow from "../ProgressArrow";
 

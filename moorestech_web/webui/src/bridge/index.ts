@@ -3,6 +3,9 @@
 export { useTopic, useTopicSelector, useConnectionStatus, readTopic } from "./store/useTopic";
 export { useItemMaster } from "./store/useItemMaster";
 export { dispatchAction } from "./transport/actions";
+export { setToastSink } from "./transport/notify";
+export type { NotifyVariant } from "./transport/notify";
 export { Topics, UiStateNames } from "./transport/protocol";
 export type { TopicPayloads, ActionPayloads } from "./transport/protocol";
+export { initBridge } from "./transport/webSocketClient";
 export type * from "./contract/payloadTypes";

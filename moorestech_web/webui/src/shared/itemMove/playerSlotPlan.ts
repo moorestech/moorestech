@@ -1,4 +1,4 @@
-import type { InventoryArea, PlayerInventoryData, SlotData, SlotRef } from "@/bridge/contract/payloadTypes";
+import type { InventoryArea, PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import { planDirectMoves } from "./planDirectMoves";
 import type { PlannedAction } from "./plannedAction";
 

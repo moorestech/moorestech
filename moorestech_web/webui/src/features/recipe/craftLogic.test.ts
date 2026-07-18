@@ -11,7 +11,7 @@ import type {
   CraftRecipesData,
   MachineRecipe,
   MachineRecipesData,
-} from "@/bridge/contract/payloadTypes";
+} from "@/bridge";
 
 const craftRecipe = (resultItemId: number, guid: string): CraftRecipe => ({
   recipeGuid: guid,

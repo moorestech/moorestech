@@ -1,4 +1,4 @@
-import type { SlotData } from "@/bridge/contract/payloadTypes";
+import type { SlotData } from "@/bridge";
 import { planDirectMoves } from "./planDirectMoves";
 import type { PlannedAction } from "./plannedAction";
 

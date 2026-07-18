@@ -1,4 +1,4 @@
-import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge";
 import BlockItemGrid from "../BlockItemGrid";
 
 // Chest UI: uGUI ChestBlockInventoryView 同様 itemSlots をグリッド展開

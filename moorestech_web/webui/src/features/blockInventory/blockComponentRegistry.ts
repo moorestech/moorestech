@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge";
 import ChestInventory from "./views/ChestInventory";
 import FilterSplitterInventory from "./views/FilterSplitterInventory";
 import GearMachineInventory from "./views/GearMachineInventory";

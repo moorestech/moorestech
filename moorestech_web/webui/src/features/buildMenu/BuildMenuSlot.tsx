@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react";
 import { Tooltip } from "@mantine/core";
-import type { BuildMenuEntryData } from "@/bridge/contract/payloadTypes";
+import type { BuildMenuEntryData } from "@/bridge";
 import styles from "./style.module.css";
 
 type Props = {

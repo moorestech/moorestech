@@ -1,4 +1,4 @@
-import type { BuildMenuEntryData } from "@/bridge/contract/payloadTypes";
+import type { BuildMenuEntryData } from "@/bridge";
 import type { ActionPayloads } from "@/bridge";
 
 // 選択アクションの payload を組み立てる純関数

@@ -1,4 +1,4 @@
-import type { GearNetworkStopReason } from "@/bridge/contract/payloadTypes";
+import type { GearNetworkStopReason } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
 
 // uGUI CommonMachineBlockStateDetail.PowerRate と同式（ワイヤ非送信のためWeb側算出）
