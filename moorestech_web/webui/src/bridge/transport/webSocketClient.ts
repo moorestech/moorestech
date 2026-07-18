@@ -1,6 +1,6 @@
 // Unity 側 Web UI ホストと通信する WebSocket クライアント（純粋なトランスポート）
 // WebSocket client that talks to the Unity-side Web UI host (a pure transport)
-import type { ServerMsg, ClientMsg, ActionResult } from "./protocol";
+import { Topics, type ServerMsg, type ClientMsg, type ActionResult, type TopicPayloads } from "./protocol";
 import { deliverTopicPayload, useTopicStore } from "../store/topicStore";
 import { subscriptions } from "./subscriptionManager";
 
@@ -127,8 +127,18 @@ class WebSocketClient {
 // Keep the connection only after explicit initialization
 let client: WebSocketClient | null = null;
 
+// 命令的読み出し対象は React のマウント状態ではなく bridge の生存期間に結び付ける
+// Tie imperative-read topics to the bridge lifetime instead of React mount state
+const PINNED_TOPICS = [
+  Topics.modal,
+  Topics.blockInventory,
+  Topics.uiState,
+  Topics.inventory,
+] as const satisfies readonly (keyof TopicPayloads)[];
+
 export function initBridge() {
   if (client !== null) return;
+  PINNED_TOPICS.forEach((topic) => subscriptions.acquire(topic));
   client = new WebSocketClient(`ws://${location.host}/ws`);
 }
 

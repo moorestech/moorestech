@@ -1,4 +1,5 @@
 import type { ClientMsg } from "./protocol";
+import { clearTopic } from "../store/topicStore";
 
 // topic 毎の参照カウントで購読を一元管理し、0→1 で subscribe、1→0 で unsubscribe を送る
 // Ref-counts subscriptions per topic and sends subscribe on 0→1, unsubscribe on 1→0
@@ -30,10 +31,13 @@ export class SubscriptionManager {
       this.counts.set(topic, current - 1);
       return;
     }
-    // 最終参照の解除で unsubscribe。カウント削除で再接続時の再購読対象からも外れる
-    // Last release sends unsubscribe; deleting the count also excludes it from reconnect resubscription
+    // 最終参照の解除で残値削除と unsubscribe。カウント削除で再接続時の再購読対象からも外れる
+    // Last release clears retained data and unsubscribes; deleting the count also excludes reconnect resubscription
     this.counts.delete(topic);
-    if (current === 1) this.send({ op: "unsubscribe", topics: [topic] });
+    if (current === 1) {
+      clearTopic(topic);
+      this.send({ op: "unsubscribe", topics: [topic] });
+    }
   }
 
   // 再接続時、参照カウント>0 の topic をまとめて再購読する

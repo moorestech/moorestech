@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTopicStore } from "./topicStore";
 import { subscriptions } from "../transport/subscriptionManager";
 import type { TopicPayloads } from "../transport/protocol";
@@ -34,14 +34,37 @@ export function useTopicSelector<K extends keyof TopicPayloads, R>(
   return useTopicStore((s) => selector((s.topics[topic] ?? null) as TopicPayloads[K] | null));
 }
 
+// 比較方法を明示するセレクタ版。複合値を返す場合も安定性を呼び出し側で保証できる
+// Selector variant with explicit comparison, allowing callers to stabilize composite results
+export function useTopicSelectorWithEquality<K extends keyof TopicPayloads, R>(
+  topic: K,
+  selector: (value: TopicPayloads[K] | null) => R,
+  equality: (left: R, right: R) => boolean,
+): R {
+  const previous = useRef<{ value: R } | null>(null);
+  useEffect(() => {
+    subscriptions.acquire(topic);
+    return () => subscriptions.release(topic);
+  }, [topic]);
+
+  return useTopicStore((state) => {
+    const next = selector((state.topics[topic] ?? null) as TopicPayloads[K] | null);
+    if (previous.current !== null && equality(previous.current.value, next)) return previous.current.value;
+    previous.current = { value: next };
+    return next;
+  });
+}
+
 // 接続状態を購読するフック。feature/app 層は topicStore を直接触らずこれを使う
 // Hook subscribing to connection status; feature/app layers use this instead of touching topicStore
 export function useConnectionStatus() {
   return useTopicStore((s) => s.status);
 }
 
-// フック外（イベントハンドラ等）から最新 topic 値を読む命令的アクセサ。購読はしない
-// Imperative accessor to read the latest topic value outside hooks (event handlers); does not subscribe
+/**
+ * フック外から最新値を読む命令的アクセサ。購読は行わず、bridge 初期化時に pin 済みの topic にのみ使用できる。
+ * Imperative latest-value accessor outside hooks. It does not subscribe and may only read topics pinned during bridge initialization.
+ */
 export function readTopic<K extends keyof TopicPayloads>(topic: K): TopicPayloads[K] | null {
   return (useTopicStore.getState().topics[topic] ?? null) as TopicPayloads[K] | null;
 }
