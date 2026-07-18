@@ -57,7 +57,7 @@ describe("SubscriptionManager 参照カウント", () => {
     const m = new SubscriptionManager(send);
     useTopicStore.setState({ topics: {}, status: "connecting" });
     m.acquire("test.topic");
-    deliverTopicPayload("test.topic", { value: "latest" });
+    deliverTopicPayload("test.topic", 1, { value: "latest" });
 
     m.release("test.topic");
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Newtonsoft.Json.Linq;
@@ -17,6 +18,17 @@ namespace Client.Tests.WebUi
     /// </summary>
     public class WireContractTest
     {
+        // 共通envelopeがrevisionとpayloadをフィクスチャ通り保持する
+        // The common envelope preserves revision and payload exactly as declared by the fixture
+        [Test]
+        public void TopicEnvelopeMatchesFixture()
+        {
+            var data = WebUiJson.Serialize(new ProgressDto { Visible = true, Progress = 0.5f, Label = null });
+            var actual = JToken.Parse(WebSocketEnvelope.BuildEnvelope("event", "ui.progress", 42, data));
+            var expected = JToken.Parse(LoadFixture("topic_envelope.json"));
+            Assert.IsTrue(JToken.DeepEquals(expected, actual));
+        }
+
         // インベントリ snapshot は全フィールド必須（省略なし）の代表ケース
         // The inventory snapshot represents the all-fields-present (no omission) case
         [Test]

@@ -13,18 +13,30 @@ import type {
   BuildMenuData,
   BuildMenuEntryType,
 } from "../contract/payloadTypes";
+import { z } from "zod";
+
+export const TopicEnvelopeSchema = z.object({
+  op: z.enum(["snapshot", "event"]),
+  topic: z.string(),
+  revision: z.number().int().nonnegative(),
+  data: z.unknown(),
+});
+
+export type TopicEnvelope = z.infer<typeof TopicEnvelopeSchema>;
 
 // 通信の op レベルのメッセージ型（webSocketClient が使用）
 // Wire-level message types at the op layer (used by webSocketClient)
 export type ServerMsg =
-  | { op: "snapshot"; topic: string; data: unknown }
-  | { op: "event"; topic: string; data: unknown }
+  | TopicEnvelope
+  | { op: "pong" }
   | { op: "result"; requestId: string; ok: boolean; error?: string };
 
 export type ClientMsg =
   | { op: "subscribe"; topics: string[] }
   | { op: "unsubscribe"; topics: string[] }
-  | { op: "action"; type: string; requestId: string; payload: unknown };
+  | { op: "action"; type: string; requestId: string; payload: unknown }
+  | { op: "ping" }
+  | { op: "pong" };
 
 export type ActionResult = { ok: boolean; error?: string };
 

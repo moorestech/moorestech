@@ -48,6 +48,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
 
     ws.on("message", (raw) => {
       const msg = JSON.parse(raw.toString()) as ClientMsg;
+      if (msg.op === "ping") {
+        send(ws, { op: "pong" });
+        return;
+      }
       if (msg.op === "subscribe") {
         for (const topic of msg.topics) {
           if (topic === Topics.blockInventory) blockSubscribers.add(ws);
