@@ -17,3 +17,20 @@ export function setUiState(page: Page, state: string) {
 export function resetResearch(page: Page) {
   return page.request.get("/__research");
 }
+
+export function injectActionError(page: Page, type: string, error: string) {
+  return page.request.get(`/__action-error?type=${encodeURIComponent(type)}&error=${encodeURIComponent(error)}`);
+}
+
+export function clearActionError(page: Page) {
+  return page.request.get("/__action-error");
+}
+
+export function setSnapshotDelay(page: Page, milliseconds: number, topic: string | null) {
+  const topicQuery = topic === null ? "" : `&topic=${encodeURIComponent(topic)}`;
+  return page.request.get(`/__snapshot-delay?ms=${milliseconds}${topicQuery}`);
+}
+
+export function disconnectWebSockets(page: Page, holdMilliseconds: number) {
+  return page.request.get(`/__disconnect?holdMs=${holdMilliseconds}`);
+}

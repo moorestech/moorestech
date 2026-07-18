@@ -70,6 +70,33 @@ export const blockMiner = {
   electricNetwork: { totalGeneratePower: 100.0, totalRequiredPower: 100.0, consumerCount: 1, powerRate: 1.0 },
 } satisfies BlockInventoryData;
 
+// BLK-6 ギア採掘機: miner/gear/gearNetwork の複合表示を検証する
+// BLK-6 gear miner: exercises the combined miner/gear/gearNetwork stack
+export const blockGearMiner = {
+  open: true,
+  blockType: "GearMiner",
+  identifier: "block:8",
+  blockName: "ギア採掘機",
+  itemSlots: [{ itemId: 11, count: 8 }],
+  fluidSlots: [],
+  progress: 0.25,
+  miner: { currentPower: 20.0, requestPower: 40.0, miningItems: [{ itemId: 11, itemsPerMinute: 6.0 }] },
+  gear: { isClockwise: false, currentRpm: 8.0, currentTorque: 2.0, baseRpm: 12.0, baseTorque: 3.0 },
+  gearNetwork: { totalRequiredGearPower: 24.0, totalGenerateGearPower: 40.0, stopReason: "none" },
+} satisfies BlockInventoryData;
+
+// BLK-7 未登録種別: generic fallback の item/fluid 表示を検証する
+// BLK-7 unregistered type: exercises the generic item/fluid fallback
+export const blockGeneric = {
+  open: true,
+  blockType: "UnregisteredBlock",
+  identifier: "block:9",
+  blockName: "汎用ブロック",
+  itemSlots: [{ itemId: 1, count: 1 }],
+  fluidSlots: [{ fluidId: 1, amount: 10, capacity: 20, name: "水" }],
+  progress: 0.5,
+} satisfies BlockInventoryData;
+
 // BLK-8 フィルタ分岐器: 3方向×2フィルタスロットの filterSplitter capability
 // BLK-8 filter splitter: filterSplitter capability with 3 directions x 2 filter slots
 export const blockFilterSplitter = {

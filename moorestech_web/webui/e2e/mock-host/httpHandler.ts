@@ -6,7 +6,7 @@ import { Topics } from "../../src/bridge/transport/protocol";
 import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers } from "./state";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, connections } from "./state";
 
 // /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
 // Type map switched via /__block?type=X; defaults to chest (reliably shows an open panel)
@@ -19,6 +19,8 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
   generator: fx.blockGenerator,
   miner: fx.blockMiner,
   filterSplitter: fx.blockFilterSplitter,
+  gearMiner: fx.blockGearMiner,
+  generic: fx.blockGeneric,
 };
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
@@ -81,6 +83,32 @@ export function createMockHttpServer(): Server {
     if (url === "/__actions") {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify(received));
+      return;
+    }
+    // 次の指定actionだけを失敗させ、良性/実エラーのtoast経路を決定的に駆動する
+    // Fail only the next matching action to deterministically drive benign/real toast paths
+    if (url.startsWith("/__action-error")) {
+      const params = new URL(url, "http://x").searchParams;
+      const type = params.get("type");
+      const error = params.get("error");
+      state.injectedActionError = type && error ? { type, error } : null;
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+    // 初回snapshot遅延と接続切断をHTTPから制御する
+    // Control initial snapshot delay and connection drops over HTTP
+    if (url.startsWith("/__snapshot-delay")) {
+      const params = new URL(url, "http://x").searchParams;
+      state.snapshotDelayMs = Number(params.get("ms") ?? 0);
+      state.snapshotDelayTopic = params.get("topic");
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+    if (url.startsWith("/__disconnect")) {
+      const holdMs = Number(new URL(url, "http://x").searchParams.get("holdMs") ?? 0);
+      state.rejectConnectionsUntil = Date.now() + holdMs;
+      for (const ws of connections) ws.close();
+      res.end(JSON.stringify({ ok: true }));
       return;
     }
     // テスト用: 配信するブロックインベントリを差し替えて購読者へ event push

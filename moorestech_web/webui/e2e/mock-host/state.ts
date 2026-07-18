@@ -13,6 +13,7 @@ export const blockSubscribers = new Set<WebSocket>();
 export const modalSubscribers = new Set<WebSocket>();
 export const uiStateSubscribers = new Set<WebSocket>();
 export const researchTreeSubscribers = new Set<WebSocket>();
+export const connections = new Set<WebSocket>();
 
 // 再代入される可変状態を1オブジェクトに集約し、モジュール間で参照共有する
 // Group reassignable mutable state in one object so modules share it by reference
@@ -29,4 +30,8 @@ export const state = {
   // research.complete でノードを completed 化し購読者へ push する可変ツリー
   // Mutable tree; research.complete flips a node to completed and pushes to subscribers
   researchTree: clone(fx.researchTree) as ResearchTreeData,
+  injectedActionError: null as { type: string; error: string } | null,
+  snapshotDelayMs: 0,
+  snapshotDelayTopic: null as string | null,
+  rejectConnectionsUntil: 0,
 };
