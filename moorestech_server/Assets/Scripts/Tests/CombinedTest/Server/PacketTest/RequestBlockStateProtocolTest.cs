@@ -7,7 +7,6 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Event;
 using Server.Event.EventReceive;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;

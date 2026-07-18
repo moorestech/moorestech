@@ -85,14 +85,14 @@ namespace Client.Game.InGame.Train.Network
             }
         }
 
-        // full snapshot適用時に、watermark以下の古いイベントを一括破棄する
-        // Discard buffered events at or below the applied full-snapshot watermark
+        // full snapshot適用時に呼ぶ
+        // Called when a full snapshot is applied
         public void DiscardEventsAtOrBelow(ulong tickUnifiedId)
         {
-            while (_futureEvents.Count > 0)
+            while (0 < _futureEvents.Count)
             {
                 var firstTickUnifiedId = _futureEvents.First().Key;
-                if (firstTickUnifiedId > tickUnifiedId) break;
+                if (tickUnifiedId < firstTickUnifiedId) break;
                 _futureEvents.Remove(firstTickUnifiedId);
             }
         }

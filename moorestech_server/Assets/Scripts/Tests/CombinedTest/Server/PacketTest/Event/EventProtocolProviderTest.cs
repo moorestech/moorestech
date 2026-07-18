@@ -7,7 +7,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     public class EventProtocolProviderTest
     {
-        // 登録済みsinkへ即時配信されることを確認
+        // 登録済みsinkへ即時配信を確認
         // Registered sinks receive events immediately
         [Test]
         public void AddEventDispatchesToRegisteredSink()
@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, sink.Events.Count);
         }
 
-        // broadcastが全登録sinkへ届くことを確認
+        // broadcastが全sinkへ到達
         // Broadcast reaches every registered sink
         [Test]
         public void BroadcastReachesAllRegisteredSinks()
@@ -69,8 +69,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual("va:event:initial", sink.Events[0].Tag);
         }
 
-        // 切断購読でsinkが解除され、以後のイベントが破棄されることを確認
-        // Disconnect subscription unregisters the sink; later events are dropped
+        // 切断でsink解除・以後は破棄
+        // Disconnect unregisters the sink; later events drop
         [Test]
         public void ListenDisconnectUnregistersSink()
         {

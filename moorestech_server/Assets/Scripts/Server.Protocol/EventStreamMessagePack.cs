@@ -4,8 +4,8 @@ using Server.Event;
 
 namespace Server.Protocol
 {
-    // サーバーからpush配信されるイベント1件のenvelope
-    // Envelope for one server-pushed event on the unified stream
+    // push配信イベント1件のenvelope
+    // Envelope for one pushed event
     [MessagePackObject]
     public class EventStreamMessagePack : ProtocolMessagePackBase
     {

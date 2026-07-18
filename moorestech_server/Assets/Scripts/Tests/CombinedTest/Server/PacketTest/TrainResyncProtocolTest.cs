@@ -31,15 +31,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             var resync = MessagePackSerializer.Serialize(new TrainResyncProtocol.RequestMessagePack(true));
             var response = packetResponse.GetPacketResponse(resync, context);
 
-            Assert.IsTrue(response.Count > 0);
+            Assert.IsTrue(0 < response.Count);
             var events = sink.TakeAll();
             Assert.AreEqual(2, events.Count);
             Assert.AreEqual(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, events[0].Tag);
             Assert.AreEqual(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, events[1].Tag);
         }
 
-        // IncludeRailGraph=falseならtrainのみpushされることを確認
-        // With IncludeRailGraph=false only the train snapshot is pushed
+        // IncludeRailGraph=falseでtrainのみpush
+        // IncludeRailGraph=false pushes the train snapshot only
         [Test]
         public void ResyncTrainOnlyPushesTrainSnapshot()
         {

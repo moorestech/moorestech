@@ -17,8 +17,8 @@ namespace Tests.UnitTest.PlayerRiding
         [Test]
         public void RidingStateChanged_BroadcastsRideAndDismountEvents()
         {
-            // sink登録済みプレイヤーに乗車・降車イベントをbroadcastする。
-            // Broadcasts ride and dismount events to players with registered sinks.
+            // sink登録プレイヤーへ乗車・降車をbroadcast
+            // Broadcasts ride and dismount to registered sinks.
             var environment = TrainTestHelper.CreateEnvironment();
             var car = RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();

@@ -1,7 +1,6 @@
 using MessagePack;
 using Server.Event;
 using Server.Protocol;
-using Server.Util;
 
 namespace Server.Boot.Loop.PacketProcessing
 {
@@ -20,13 +19,9 @@ namespace Server.Boot.Loop.PacketProcessing
         {
             var body = MessagePackSerializer.Serialize(new EventStreamMessagePack(eventMessagePack));
 
-            // 応答と同じ長さヘッダ形式で積み、FIFOで応答との順序を保つ
-            // Use the same length header as responses so FIFO order holds across the stream
-            var header = ToByteArray.Convert(body.Length);
-            var sendData = new byte[header.Length + body.Length];
-            header.CopyTo(sendData, 0);
-            body.CopyTo(sendData, header.Length);
-            _sendQueueProcessor.EnqueueSendData(sendData);
+            // 応答と同じ送信キューへ積み、FIFOで応答との順序を保つ
+            // Enqueue into the same send queue as responses so FIFO order holds across the stream
+            _sendQueueProcessor.EnqueueMessage(body);
         }
     }
 }

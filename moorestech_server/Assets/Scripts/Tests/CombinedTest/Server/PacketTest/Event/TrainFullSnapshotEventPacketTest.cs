@@ -28,7 +28,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // GetPacketResponseが返った時点でsinkに両snapshotが積まれている＝応答より先にワイヤへ載る
             // Both snapshots are already in the sink when the response returns, so they precede it on the wire
-            Assert.IsTrue(response.Count > 0);
+            Assert.IsTrue(0 < response.Count);
             Assert.AreEqual(2, sink.Events.Count);
             Assert.AreEqual(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, sink.Events[0].Tag);
             Assert.AreEqual(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, sink.Events[1].Tag);
