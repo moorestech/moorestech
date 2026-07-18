@@ -1,7 +1,10 @@
-/* ホットバーを下段グリッド領域の中央へ配置する外枠 */
-/* Outer wrapper centering the hotbar in the bottom grid area */
+/* パネル列のauto幅に依存すると閉画面でgridが収縮し左へ流れるため、stage絶対配置で常に画面中央へ置く */
+/* Grid auto columns collapse when panels close and drag the hotbar left, so anchor it to the stage absolutely and always center it on screen */
 .hotbarArea {
-  grid-area: hotbar;
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
   display: flex;
   justify-content: center;
   align-items: flex-end;
