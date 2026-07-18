@@ -12,6 +12,9 @@ describe("screenForUiState", () => {
   it("BuildMenu は buildMenu 画面に解決される", () => {
     expect(screenForUiState("BuildMenu")).toBe("buildMenu");
   });
+  it("ChallengeList は challengeList 画面に解決される", () => {
+    expect(screenForUiState("ChallengeList")).toBe("challengeList");
+  });
   it("GameScreen・未受信・未知state はパネル無し", () => {
     expect(screenForUiState("GameScreen")).toBe("none");
     expect(screenForUiState(null)).toBe("none");

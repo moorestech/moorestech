@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { validateTopicPayload } from "./validators";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
-import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData } from "./payloadTypes";
+import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, ChallengeTreeData, ChallengeCurrentData } from "./payloadTypes";
 
 // C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
 // Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
@@ -135,6 +135,17 @@ describe("research_tree fixture", () => {
     const tree = data as ResearchTreeData;
     expect(tree.nodes.length).toBe(2);
     expect(tree.nodes[1].prevGuids).toContain(tree.nodes[0].guid);
+  });
+});
+
+describe("challenge fixtures", () => {
+  it("accepts tree and current payloads", () => {
+    const tree = loadFixture("challenge_tree.json");
+    const current = loadFixture("challenge_current.json");
+    expect(validateTopicPayload(Topics.challengeTree, tree)).toBe(true);
+    expect(validateTopicPayload(Topics.challengeCurrent, current)).toBe(true);
+    expect((tree as ChallengeTreeData).categories[0].nodes[0].state).toBe("current");
+    expect((current as ChallengeCurrentData).completedChallengeGuid).toBeNull();
   });
 });
 
