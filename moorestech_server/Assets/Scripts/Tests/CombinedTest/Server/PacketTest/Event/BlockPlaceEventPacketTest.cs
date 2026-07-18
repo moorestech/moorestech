@@ -109,9 +109,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             eventProtocolProvider.GetEventBytesList(0); //プレイヤー0をイベントキューに登録 / register player 0
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 
-            //ロード完了後にLoadで購読を開始する
-            //Start subscribing via Load after load completes
-            loadServiceProvider.GetService<PlaceBlockEventPacket>().Load();
+            //本番経路でロード後の購読を始める
+            //Start post-load subscriptions through the same bulk initialization path as production
+            foreach (var postLoadInitializable in loadServiceProvider.GetServices<IPostLoadInitializable>()) postLoadInitializable.Load();
 
             //ロード分の設置イベントは配信されていないこと
             //Load-time placement events must not have been broadcast

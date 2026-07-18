@@ -9,6 +9,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -69,6 +70,24 @@ namespace Tests.CombinedTest.Game
 
             var detail = MessagePackSerializer.Deserialize<ElectricToGearGeneratorBlockStateDetail>(converterBlock.GetComponent<ElectricToGearGeneratorComponent>().GetBlockStateDetails()[0].Value);
             Assert.AreEqual(mode0.RequiredPower * 0.5f, detail.BatteryRemaining, 0.01f);
+        }
+
+        // 電力tickの先行登録を検証する
+        // Verify that DI registers the electric tick before the gear tick
+        [Test]
+        public void ElectricTickIsRegisteredBeforeGearTick()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 両tickの存在と順序を固定する
+            // Require both updaters and pin the electric updater to an earlier registration position
+            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is ElectricTickUpdater).Count);
+            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is GearTickUpdater).Count);
+            var electricTickIndex = GameUpdater.AdditionalUpdates.FindIndex(update => update.Target is ElectricTickUpdater);
+            var gearTickIndex = GameUpdater.AdditionalUpdates.FindIndex(update => update.Target is GearTickUpdater);
+            Assert.GreaterOrEqual(electricTickIndex, 0);
+            Assert.GreaterOrEqual(gearTickIndex, 0);
+            Assert.Less(electricTickIndex, gearTickIndex);
         }
 
         // 歯車→電力変換機のバッテリー残量はセーブ・ロードを跨いで維持される
