@@ -62,13 +62,13 @@
 - [x] 死コード削除（`ChallengeListUI` 系2 + `UI/ChallengeList/` 空スタブ3。2026-07-18 `2248253e2`）
 
 ### C2: ポーズ・モード HUD・共通部品（`plans/phase-c2-pause-mode-common.md`）
-- [ ] ポーズメニュー（セーブ / メニュー復帰 / 切断表示）
-- [ ] 設置モード HUD（選択ブロック・高さ・キー表示。3D プレビューは Unity 残置）
-- [ ] 削除モード HUD + 不可理由ツールチップ
-- [ ] 給電範囲オーバーレイの表示連携（3D は Unity 残置）
-- [ ] 直接採掘 HUD（フォーカス・進捗）
-- [ ] ツールチップ基盤（カーソル追従。3D オブジェクト由来の表示も key を Topic 連携で吸収 = WORLD-1 の表示側）
-- [ ] コンテキストメニュー / キー操作ヒント / クロスヘア / 全 UI 一括非表示（Ctrl+U）/ カーソル追従オーバーレイ（棚卸しのうえ処遇を記録）
+- [x] ポーズメニュー（セーブ / メニュー復帰 / 切断表示）（pause_menu.current + features/pauseMenu。2026-07-18 C2マージ）
+- [x] 設置モード HUD（選択ブロック・高さ・キー表示。3D プレビューは Unity 残置）（ui.placement_mode。2026-07-18）
+- [x] 削除モード HUD + 不可理由ツールチップ（ui.delete_mode。不可理由は既存実装が意味的理由を持たないため契約のみ用意し現状空文字。2026-07-18）
+- [x] 給電範囲オーバーレイの表示連携（3D は Unity 残置）（placement_mode topicに統合。2026-07-18）
+- [x] 直接採掘 HUD（フォーカス・進捗）（ui.mining_hud・100msサンプリング。2026-07-18）
+- [x] ツールチップ基盤（カーソル追従。3D オブジェクト由来の表示も key を Topic 連携で吸収 = WORLD-1 の表示側）（shared/tooltip + ui.tooltip。2026-07-18）
+- [x] コンテキストメニュー / キー操作ヒント / クロスヘア / 全 UI 一括非表示（Ctrl+U）/ カーソル追従オーバーレイ（棚卸しのうえ処遇を記録）（ui.context_menu(ID照合Action)/ui.key_hints/ui.crosshair/ui.visibility。UICursorFollowControlは個別移植不要と判定 — grab/ContextMenuはWeb側で吸収済み・uGUIフォールバック用に残置。2026-07-18）
 
 ### C3: 列車 HUD・インベントリ（`plans/phase-c3-train-hud.md`）
 - [ ] 列車乗車 HUD（入れ子状態機械・乗車入力・分岐選択 → 3D プレビュー駆動）
