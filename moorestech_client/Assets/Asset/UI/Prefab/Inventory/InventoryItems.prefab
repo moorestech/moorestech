@@ -2366,10 +2366,6 @@ MonoBehaviour:
   machineRecipeView: {fileID: 7115292862254446402}
   recipeTabView: {fileID: 751917414941794491}
   itemListView: {fileID: 132914079069095170}
-  craftTreeViewManager: {fileID: 0}
-  createCraftTreeView:
-  - {fileID: 0}
-  - {fileID: 0}
 --- !u!1 &3392406272577392481
 GameObject:
   m_ObjectHideFlags: 0

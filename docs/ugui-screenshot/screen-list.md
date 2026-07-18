@@ -81,7 +81,6 @@ UIStateEnum外だが視覚的に独立したUI要素。
 |---|---|---|---|---|
 | 18 | コンテキストメニュー（右クリックメニュー） | ✅ | `24-context-menu.png` | `ContextMenuView.Instance.Show(null, [...])` を直接呼び出し。位置決定が実OSマウス座標依存（legacy `Input.mousePosition`）だったため、`menuParent`をリフレクションで画面中央へ再配置 |
 | 19 | 共通モーダル (CommonModal/OneButtonModal) | ⛔ | — | **未取得**: `ModalManager.OpenModal`を呼び出す実装（`IModalInstantiator`の具象クラス）がコードベース中に一件も存在しないことを確認（未使用/未配線のデッドコード）。ゼロから`IModalInstantiator`を実装するコストが見合わないため見送り |
-| 20 | クラフトツリー（レシピチェーン設計） | ✅ | `25-craft-tree-planner.png` | `CraftTreeViewManager.CreateNewCraftTree(itemId)` を直接呼び出し（トレイテムのマスターGuidから`MasterHolder.ItemMaster.GetItemId`で変換） |
 | 21 | マウスカーソルツールチップ | ✅ | `26-mouse-cursor-tooltip.png` | `MouseCursorTooltip.Instance.Show(text, isLocalize:false)`。位置追従コンポーネント`UICursorFollowControl`がlegacy `Input.mousePosition`依存でUpdate毎に上書きするため、`enabled=false`にしてから画面中央へ固定配置 |
 | 22 | キー操作ヒントバー (KeyControlDescription) | ✅（写り込み） | 各GameScreen系スクショの左下 | 独立画面ではなく常時表示のオーバーレイ。状態ごとに文言が変化することを`03/18/19/20/23`等で確認済み |
 | 23 | チュートリアルハイライト (TutorialHighlight) | ⛔ | — | **未取得**: 初回プレイ限定のチュートリアル演出。`PlayerPrefs`/チュートリアルフラグのリセットが必要で、時間の都合上見送り |
