@@ -1,7 +1,8 @@
 # Phase B1 実行計画: ギア系ブロック仕上げ
 
 親: `../MIGRATION.md` / 進捗: `../TODO.md`
-旧台帳 FEAT-BLK-6/7 相当。依存なし・即着手可。
+旧台帳 FEAT-BLK-6/7 相当。着手依存: **WU1〜9 完了**（Web 側凍結中。C# Topic/Action 側と
+blockType 再列挙は先行可）。
 
 ## 背景
 

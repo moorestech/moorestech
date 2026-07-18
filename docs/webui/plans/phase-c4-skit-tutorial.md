@@ -3,7 +3,8 @@
 親: `../MIGRATION.md` / 進捗: `../TODO.md`
 旧台帳 FEAT-SKIT-1/2 / TUT-1 / CUT-1 相当。**単純移植不可 — 各系統とも再設計文書を先に書き、
 ユーザー合意後に writing-plans 詳細計画 → 実装の3段階で進める。**
-依存: A2（入力）。要素 ID 規約は全画面に波及するため C1〜C3 完了後の着手を推奨。
+着手依存: 実装は A2/A4/A5（+WU 完了）。チュートリアル実装は発火元とハイライト対象が要るため
+C1（チャレンジ Topic）・C2（キーヒント基盤）の後。**再設計文書はいつでも先行可**。
 
 ## 前提: Web UI 要素 ID 規約（A5 で策定済みの前提）
 
@@ -14,8 +15,9 @@ C1〜C3 の各画面は実装時に付与済み**の前提。本 Phase で行う
 1. それ以前に実装済みだった10画面への anchor 付与の棚卸し
 2. **anchor registry の実装**: ID が存在するだけでは SPA 再レンダーに耐えない
    （対象が未 mount・画面外・Portal 内・仮想化リスト内・Mantine 再構築直後で消失/誤配置する）。
-   Web 側で mount/unmount・可視性を Mutation/Resize/scroll 追従で監視し、Unity へ
-   `ready / not-found / hidden` を ack する**宣言的ハイライト状態**として実装する
+   Web 側で mount/unmount・可視性を MutationObserver + ResizeObserver + IntersectionObserver +
+   capture phase の scroll 監視で追従し、Unity へ `ready / not-found / hidden` を ack する
+   **宣言的ハイライト状態**として実装する
 ※ `data-testid` とは分離する（A5 規約。チュートリアル ID はゲーム契約・test ID はテスト都合）
 
 ## 系統1: スキット（FEAT-SKIT-1）— 再設計対象の本丸
@@ -71,6 +73,7 @@ C1〜C3 の各画面は実装時に付与済み**の前提。本 Phase で行う
 ## 完了条件
 
 - スキット/バックグラウンドスキットの会話・選択肢・スキップが Web 表示で従来内容を再生できる
+- **ゲーム音とボイスが同時に正常再生される**（旧 INFRA-10 の最低条件。方式は再設計文書で決定）
 - チュートリアルが Web UI 要素をハイライトし、ワールド系ピン/矢印は従来通り
 - カットシーン中に Web UI が退避する
 - 各系統の PlayMode 実機確認（該当チャレンジ/ストーリーを進行させる録画付きプレイテスト）
