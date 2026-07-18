@@ -108,10 +108,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             var car = Tests.UnitTest.PlayerRiding.RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
-            var sink = EventTestUtil.RegisterCaptureSink(environment.ServiceProvider, PlayerId);
+
+            // handshake自身がsinkを配線することを検証するため、事前登録しないsinkを使う
+            // Use an unregistered sink so the handshake itself must wire the context's sink
+            var sink = new CapturedEventSink();
             var context = new PacketResponseContext();
             context.SetEventSink(sink);
             environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(PlayerId), context);
+            sink.TakeAll();
 
             datastore.TryRide(PlayerId, id, out _);
 

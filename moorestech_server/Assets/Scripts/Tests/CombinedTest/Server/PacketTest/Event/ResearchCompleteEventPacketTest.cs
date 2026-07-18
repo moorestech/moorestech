@@ -20,12 +20,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
             // イベントがないことを確認する
+            // Verify no events are pending yet
             Assert.AreEqual(0, sink.TakeAll().Count);
 
             // Research 1を完了させる
+            // Complete research 1
             CompleteResearchForTest(serviceProvider, Research1Guid);
 
             // イベントを受け取り、テストする
+            // Take the events and verify them
+            // Take the events and verify them
             var events = sink.TakeAll();
 
             var researchEvents = events
@@ -39,6 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             VerifyResearchCompleteEvent(researchEvents[0], Research1Guid);
 
             // Research 2を完了させる（前提条件付き）
+            // Complete research 2 (which has a prerequisite)
             CompleteResearchForTest(serviceProvider, Research2Guid);
 
             // イベントを受け取り、テストする

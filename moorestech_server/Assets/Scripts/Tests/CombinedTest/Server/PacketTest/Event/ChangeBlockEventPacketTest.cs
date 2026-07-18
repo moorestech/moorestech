@@ -71,6 +71,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //ステートが実行中になっているかをチェック
+            //Check that the state has transitioned to processing
             var events = sink.TakeAll();
             // アイドル給電イベントも並ぶため、idle→processingの遷移イベントを明示的に選択する
             // Idle supply events are also queued, so pick the idle-to-processing transition event explicitly

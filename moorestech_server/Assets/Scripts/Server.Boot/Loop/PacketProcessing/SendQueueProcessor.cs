@@ -35,6 +35,10 @@ namespace Server.Boot.Loop.PacketProcessing
         // Prepend the 4-byte length header and enqueue; the single entry point for wire framing
         public void EnqueueMessage(byte[] body)
         {
+            // Dispose後は積まない。消費者のいないキューが無限成長するのを防ぐ
+            // Reject enqueue after dispose so a consumerless queue never grows unboundedly
+            if (_cancellationTokenSource.IsCancellationRequested) return;
+
             var header = ToByteArray.Convert(body.Length);
             var sendData = new byte[header.Length + body.Length];
             header.CopyTo(sendData, 0);

@@ -52,10 +52,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             blockInventory.SetItem(1, itemStackFactory.Create(new ItemId(4), 8));
             
             
-            //パケットが送られていることをチェック
-            //イベントパケットを取得
+            //イベントパケットを取得してチェック
+            //Take the captured event packets and verify them
             var events = sink.TakeAll();
-            //イベントパケットをチェック
             Assert.AreEqual(1, events.Count);
             var payLoad = events[0].Payload;
             var data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);

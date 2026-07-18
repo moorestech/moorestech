@@ -34,6 +34,52 @@ namespace Client.Network.API
             _packetSender = packetSender;
             TimeOutUpdate().Forget();
             DispatchReceivedPacketsLoop().Forget();
+
+            #region Internal
+
+            async UniTask DispatchReceivedPacketsLoop()
+            {
+                while (true)
+                {
+                    // 到着順を保ったままメインスレッドで直列ディスパッチする（順序契約）
+                    // Dispatch serially on the main thread preserving arrival order (ordering contract)
+                    await UniTask.Yield(PlayerLoopTiming.Update);
+                    while (_receivedPackets.TryDequeue(out var data))
+                    {
+                        // 外部入力デシリアライズ＋購読者呼び出しの境界隔離。1packetの失敗で受信ループを殺さない
+                        // External-input boundary: isolate deserialize/subscriber failures so one packet never kills the loop
+                        try
+                        {
+                            DispatchPacket(data);
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.LogError($"[PacketExchangeManager] Packet dispatch failed. Continuing.\n{e.Message}\n{e.StackTrace}");
+                        }
+                    }
+                }
+            }
+
+            void DispatchPacket(byte[] data)
+            {
+                var basePacket = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
+
+                // イベントpushはSequenceId照合ではなくイベントストリームへ流す
+                // Route pushed events to the event stream instead of sequence matching
+                if (basePacket.Tag == EventStreamMessagePack.ProtocolTag)
+                {
+                    var eventPacket = MessagePackSerializer.Deserialize<EventStreamMessagePack>(data);
+                    _eventPacketSubject.OnNext(eventPacket.Event);
+                    return;
+                }
+
+                var sequence = basePacket.SequenceId;
+                if (!_responseWaiters.ContainsKey(sequence)) return;
+                _responseWaiters[sequence].WaitSubject.OnNext((data, PacketWaitCompletionReason.Received));
+                _responseWaiters.Remove(sequence);
+            }
+
+            #endregion
         }
 
         private async UniTask TimeOutUpdate()
@@ -66,39 +112,6 @@ namespace Client.Network.API
         public void EnqueueReceivedPacket(byte[] data)
         {
             _receivedPackets.Enqueue(data);
-        }
-
-        private async UniTask DispatchReceivedPacketsLoop()
-        {
-            while (true)
-            {
-                // 到着順を保ったままメインスレッドで直列ディスパッチする（順序契約）
-                // Dispatch serially on the main thread preserving arrival order (ordering contract)
-                await UniTask.Yield(PlayerLoopTiming.Update);
-                while (_receivedPackets.TryDequeue(out var data))
-                {
-                    DispatchPacket(data);
-                }
-            }
-        }
-
-        private void DispatchPacket(byte[] data)
-        {
-            var basePacket = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
-
-            // イベントpushはSequenceId照合ではなくイベントストリームへ流す
-            // Route pushed events to the event stream instead of sequence matching
-            if (basePacket.Tag == EventStreamMessagePack.ProtocolTag)
-            {
-                var eventPacket = MessagePackSerializer.Deserialize<EventStreamMessagePack>(data);
-                _eventPacketSubject.OnNext(eventPacket.Event);
-                return;
-            }
-
-            var sequence = basePacket.SequenceId;
-            if (!_responseWaiters.ContainsKey(sequence)) return;
-            _responseWaiters[sequence].WaitSubject.OnNext((data, PacketWaitCompletionReason.Received));
-            _responseWaiters.Remove(sequence);
         }
 
         // 従来互換: 成功時はレスポンス、失敗/タイムアウト時は null を返す
