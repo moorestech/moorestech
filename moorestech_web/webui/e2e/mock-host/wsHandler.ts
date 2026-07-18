@@ -37,6 +37,15 @@ export function attachWsHandlers(wss: WebSocketServer) {
       if (topic === Topics.localization) return { locale: "japanese" };
       if (topic === Topics.challengeTree) return fx.challengeTree;
       if (topic === Topics.challengeCurrent) return fx.challengeCurrent;
+      if (topic === Topics.pauseMenu) return { disconnected: false };
+      if (topic === Topics.placementMode) return { selectedName: "", height: 0, unavailableReason: "", energizedRangeVisible: false };
+      if (topic === Topics.deleteMode) return { unavailableReason: "" };
+      if (topic === Topics.keyHints) return { textKey: "" };
+      if (topic === Topics.crosshair) return { visible: true };
+      if (topic === Topics.uiVisibility) return { visible: true };
+      if (topic === Topics.miningHud) return { visible: false, targetName: "", mining: false, progress: 0 };
+      if (topic === Topics.tooltip) return { visible: false, textKey: "", fontSize: 14 };
+      if (topic === Topics.contextMenu) return { visible: false, items: [] };
       return undefined;
     };
 

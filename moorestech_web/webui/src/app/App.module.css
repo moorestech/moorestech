@@ -9,6 +9,10 @@
   overflow: hidden;
 }
 
+.hidden {
+  display: none;
+}
+
 /* 1280x720基準の3カラムと下段ホットバーを一様拡縮する */
 /* Uniformly scale the 1280x720 three-column layout and bottom hotbar */
 .stage {

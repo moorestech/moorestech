@@ -17,3 +17,21 @@ export const ProgressDataSchema = z.object({
 // Accept every state name because the screen router handles unknown names safely
 export const UiStateDataSchema = z.object({ state: z.string() });
 export const LocalizationDataSchema = z.object({ locale: z.string().min(1) });
+export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
+export const PlacementModeDataSchema = z.object({
+  selectedName: z.string(),
+  height: z.number().int(),
+  unavailableReason: z.string(),
+  energizedRangeVisible: z.boolean(),
+});
+export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
+export const KeyHintsDataSchema = z.object({ textKey: z.string() });
+export const CrosshairDataSchema = z.object({ visible: z.boolean() });
+export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
+export const MiningHudDataSchema = z.object({
+  visible: z.boolean(), targetName: z.string(), mining: z.boolean(), progress: z.number().min(0).max(1),
+});
+export const TooltipDataSchema = z.object({ visible: z.boolean(), textKey: z.string(), fontSize: z.number().positive() });
+export const ContextMenuDataSchema = z.object({
+  visible: z.boolean(), items: z.array(z.object({ id: z.string(), titleKey: z.string() })),
+});

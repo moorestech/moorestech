@@ -1,0 +1,11 @@
+.tooltip {
+  position: fixed;
+  z-index: var(--z-tooltip);
+  max-width: 420px;
+  padding: 8px 12px;
+  color: white;
+  white-space: pre-line;
+  pointer-events: none;
+  background: rgb(16 20 28 / 94%);
+  border: 1px solid rgb(255 255 255 / 22%);
+}

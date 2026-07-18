@@ -150,6 +150,14 @@ namespace Client.Tests.WebUi
             AssertMatchesFixture(new UiStateDto { State = "PlayerInventory" }, "ui_state.json");
         }
 
+        // ポーズメニューは切断表示に必要な状態だけを配信する
+        // The pause menu sends only the state required for disconnect presentation
+        [Test]
+        public void PauseMenuMatchesFixture()
+        {
+            AssertMatchesFixture(new PauseMenuDto { Disconnected = true }, "pause_menu.json");
+        }
+
         // ビルドメニュー: 全エントリ種別とアイコンURL省略の正準形
         // Build menu: the canonical form covering every entry type and icon-url omission
         [Test]

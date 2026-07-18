@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Control;
 using UniRx;
 using UnityEngine;
+using Client.Game.InGame.UI.UIState;
 
 namespace Client.Game.InGame.UI.ContextMenu
 {
@@ -16,6 +18,12 @@ namespace Client.Game.InGame.UI.ContextMenu
         private readonly List<ContextMenuViewItem> _contextMenuViewItems = new();
         private UICursorFollowControlRootCanvasRect _canvasRectRoot;
         private UGuiContextMenuTarget _contextMenuTarget;
+        private List<ContextMenuBarInfo> _contextMenuBars = new();
+        private readonly Subject<Unit> _onPresentationChanged = new();
+
+        public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
+        public bool IsVisible() => gameObject.activeSelf;
+        public IReadOnlyList<ContextMenuBarInfo> GetContextMenuBars() => _contextMenuBars;
         
         private void Awake()
         {
@@ -25,10 +33,13 @@ namespace Client.Game.InGame.UI.ContextMenu
         public void Show(UGuiContextMenuTarget currentTarget, List<ContextMenuBarInfo> contextMenuBars)
         {
             _contextMenuTarget = currentTarget;
+            _contextMenuBars = contextMenuBars;
             gameObject.SetActive(true);
+            menuParent.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
             
             SetContextMenu();
             SetPosition();
+            _onPresentationChanged.OnNext(Unit.Default);
             
             #region Internal
             
@@ -69,6 +80,7 @@ namespace Client.Game.InGame.UI.ContextMenu
         
         private void Update()
         {
+            if (WebUiScreenGate.IsWebUiMode) return;
             if (_contextMenuTarget == null) return;
             
             var menuPointerStay = IsContextMenuPointerStay();
@@ -96,9 +108,20 @@ namespace Client.Game.InGame.UI.ContextMenu
             #endregion
         }
         
-        private void Hide()
+        public void Hide()
         {
             gameObject.SetActive(false);
+            _contextMenuBars = new List<ContextMenuBarInfo>();
+            _onPresentationChanged.OnNext(Unit.Default);
+        }
+
+        public bool TrySelect(string id)
+        {
+            if (!int.TryParse(id, out var index)) return false;
+            if (index < 0 || index >= _contextMenuBars.Count) return false;
+            _contextMenuBars[index].OnClick.Invoke();
+            Hide();
+            return true;
         }
     }
 }
