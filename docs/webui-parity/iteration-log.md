@@ -2,6 +2,7 @@
 
 体制: sonnetオーケストレーターがcodex-implement（gpt-5.6-sol, workspace-write）へ実装を委譲し、検証（build/capture/parity-check 47項目/サブクロップ比較）を担当。親（Fable）がコミットと厳格採点（codex-audit別セッション）・裁定を行う。
 計画: 5回×3ブロック=最大15回。各ブロック終了時に厳格採点が目標水準へ収束していなければアプローチを変更する。
+恒久制約（ユーザー指示 2026-07-18）: **UI装飾を画像アセット化しない**。パネル・枠・装飾線・文字等はCSS/DOM/インラインSVGの実装で再現する（スクショの切り出し貼り付けや事前ラスタライズ画像は禁止）。例外はテスト用モックの世界背景（mock-orange-gradient.png、UI外）のみ。
 採点: 厳格基準（等倍で識別できる差は全て減点。基準: docs/webui-parity/parts-eval-criteria.md）
 
 ## 前史（体制切替前・sonnet直接実装）
