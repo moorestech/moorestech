@@ -86,7 +86,7 @@
 ## Phase D: カットオーバー完了（`plans/phase-d-cutover.md`）
 
 - [x] クラフトツリー機能の削除確認（設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md` が正・先行可）（2026-07-18 `db2b3f5ba` tree3統合。CraftTreeRemovalTest 2/2合格・製品コード残存参照0）
-- [ ] 既存画面の i18n 変換（基盤は A5。ハードコード文字列を全て `t(key)` 化し言語切替を全画面確認）
+- [x] 既存画面の i18n 変換（基盤は A5。ハードコード文字列を全て `t(key)` 化し言語切替を全画面確認）（2026-07-18 `ce18c097b`。26コンポーネント変換・lint allowlist空化・新規eslint-disable 0件・言語切替再描画vitest追加）
 - [ ] 全 uGUI ビューのゲート化監査（`ui-completeness-reaudit-plan.md`〔archive〕の手順 + 状態外オーバーレイ一覧の別軸確認）
 - [ ] `disposition.md` 全59項目のクローズ確認
 - [ ] 最終検証: PlayMode 全画面遷移スモーク + 画面ごとの操作パリティ受け入れ表 + fault-injection（WS 切断/CEF リロード/フォーカス往復）+ Ctrl+I 実機確認 + 本番配信モードで一巡
