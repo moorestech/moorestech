@@ -5,6 +5,7 @@
         "CefUnity.Runtime",
         "Client.Common",
         "Client.Game",
+        "Client.Skit",
         "Client.Input",
         "Client.Localization",
         "Client.Mod",

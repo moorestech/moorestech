@@ -1,4 +1,5 @@
 using Client.Skit.Context;
+using Client.Skit.UI;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 
@@ -15,9 +16,10 @@ namespace CommandForgeGenerator.Command
             }
             
             var skitUi = storyContext.GetBackgroundSkitUI();
+            SkitPresentationStateStore.Instance.SetBackgroundText(characterName, Body);
             
             var voiceClip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
-            await skitUi.SetText(characterName, Body, voiceClip);
+            await skitUi.PlayVoiceAndWait(voiceClip);
             
             return null;
         }

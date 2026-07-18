@@ -1,4 +1,7 @@
 import type {
+  GameStateData,
+  TutorialPresentationData,
+  SkitPresentationData,
   PlayerInventoryData,
   CraftRecipesData,
   MachineRecipesData,
@@ -181,3 +184,17 @@ export const challengeTree = {
   ],
 };
 export const challengeCurrent = { challenges: [{ guid: "ch-2", title: "Second Step", categoryGuid: "cat-1" }], completedChallengeGuid: null };
+
+export const gameState = { state: "InGame" } satisfies GameStateData;
+export const tutorialPresentation = {
+  tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],
+} satisfies TutorialPresentationData;
+export const skitPresentation = {
+  sessionId: "", sceneRevision: 0,
+  presentationState: {
+    mode: "none", speakerName: "", body: "", choices: [], textAreaVisible: false,
+    transitionVisible: false, autoEnabled: false, skipActive: false, uiHidden: false,
+    textReveal: { mode: "instant", intervalMs: 0 },
+  },
+  allowedIntents: [],
+} satisfies SkitPresentationData;

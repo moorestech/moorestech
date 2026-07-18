@@ -24,6 +24,9 @@ import type {
   MiningHudData,
   TooltipData,
   ContextMenuData,
+  GameStateData,
+  TutorialPresentationData,
+  SkitPresentationData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
 
@@ -78,6 +81,9 @@ export const Topics = {
   miningHud: "ui.mining_hud",
   tooltip: "ui.tooltip",
   contextMenu: "ui.context_menu",
+  gameState: "game_state.current",
+  tutorialPresentation: "tutorial.presentation",
+  skitPresentation: "skit.presentation",
 } as const;
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
@@ -119,6 +125,9 @@ export type TopicPayloads = {
   [Topics.miningHud]: MiningHudData;
   [Topics.tooltip]: TooltipData;
   [Topics.contextMenu]: ContextMenuData;
+  [Topics.gameState]: GameStateData;
+  [Topics.tutorialPresentation]: TutorialPresentationData;
+  [Topics.skitPresentation]: SkitPresentationData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
@@ -150,6 +159,11 @@ export type ActionPayloads = {
   "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
   "electric_to_gear.set_output_mode": { modeIndex: number };
   "debug.echo": { hello: string };
+  "tutorial.anchor_ack": {
+    tutorialSessionId: string; revision: number; highlightId: string; anchorId: string;
+    status: "ready" | "not-found" | "hidden";
+    reason: "mounted" | "missing" | "duplicate-anchor" | "display-none" | "visibility-hidden" | "aria-hidden" | "zero-area" | "outside-viewport";
+  };
 };
 
 // 既知 action type の実行時リスト。ActionPayloads のキーと1:1（下の網羅チェックで担保）
@@ -177,6 +191,7 @@ export const ACTION_TYPES = [
   "filter_splitter.set_filter_item",
   "electric_to_gear.set_output_mode",
   "debug.echo",
+  "tutorial.anchor_ack",
 ] as const satisfies readonly (keyof ActionPayloads)[];
 
 export type ActionType = (typeof ACTION_TYPES)[number];
