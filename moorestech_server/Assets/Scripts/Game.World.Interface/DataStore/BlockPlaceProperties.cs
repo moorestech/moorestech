@@ -9,7 +9,7 @@ namespace Game.World.Interface.DataStore
     {
         public Vector3Int Pos { get; }
         public WorldBlockData BlockData { get; }
-        
+
         public BlockPlaceProperties(Vector3Int pos, WorldBlockData blockData)
         {
             Pos = pos;

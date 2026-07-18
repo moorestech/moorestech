@@ -8,7 +8,7 @@ namespace Server.Event.EventReceive
     /// <summary>
     ///     Mapオブジェクトが破壊など、更新されたらその情報を伝えるためのパケット
     /// </summary>
-    public class MapObjectUpdateEventPacket
+    public class MapObjectUpdateEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:mapObjectUpdate";
         private readonly EventProtocolProvider _eventProtocolProvider;
@@ -19,6 +19,10 @@ namespace Server.Event.EventReceive
             _eventProtocolProvider = eventProtocolProvider;
             
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
+        }
+
+        public void Load()
+        {
             _mapObjectDatastore.OnDestroyMapObject += OnDestroyMapObject;
         }
         

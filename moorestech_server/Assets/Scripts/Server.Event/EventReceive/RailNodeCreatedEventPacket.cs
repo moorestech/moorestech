@@ -1,4 +1,5 @@
 ﻿using Game.Train.Unit;
+using Game.Context;
 using Game.Train.RailGraph;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -10,18 +11,24 @@ namespace Server.Event.EventReceive
     ///     RailNode生成イベントをブロードキャストするパケット
     ///     Event packet that broadcasts newly created rail nodes
     /// </summary>
-    public sealed class RailNodeCreatedEventPacket
+    public sealed class RailNodeCreatedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railNodeCreated";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
 
         public RailNodeCreatedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
-            railGraphDatastore.GetRailNodeInitializedEvent().Subscribe(OnNodeInitialized);
+        }
+
+        public void Load()
+        {
+            _railGraphDatastore.GetRailNodeInitializedEvent().Subscribe(OnNodeInitialized);
         }
 
         private void OnNodeInitialized(RailNodeInitializationData data)

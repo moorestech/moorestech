@@ -67,17 +67,17 @@ namespace Server.Boot
     public class MoorestechServerDIContainerOptions
     {
         public readonly string ServerDataDirectory;
-        
-        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json"); 
+
+        public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json");
         public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
-        
+
         public MoorestechServerDIContainerOptions(string serverDataDirectory)
         {
             ServerDataDirectory = serverDataDirectory;
         }
     }
-    
-    
+
+
     public class MoorestechServerDIContainerGenerator
     {
         //TODO セーブファイルのディレクトリもここで指定できるようにする
@@ -178,7 +178,7 @@ namespace Server.Boot
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
             services.AddSingleton<ResearchEvent>();
-            
+
             services.AddSingleton(initializerProvider.GetService<MapInfoJson>());
             services.AddSingleton(masterJsonFileContainer);
             services.AddSingleton<ChallengeDatastore, ChallengeDatastore>();
@@ -238,11 +238,14 @@ namespace Server.Boot
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
-            
+
             //データのセーブシステム
             // Register data save helpers.
             services.AddSingleton<AssembleSaveJsonText, AssembleSaveJsonText>();
 
+            //マーカーinterface実装をIBootInitializable / IPostLoadInitializableへ転送登録する
+            // Forward marker-interface implementations to IBootInitializable / IPostLoadInitializable registrations.
+            services.AddInitializableForwarding();
 
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
@@ -252,39 +255,16 @@ namespace Server.Boot
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
 
-            //イベントレシーバーをインスタンス化する
-            // Materialize event receivers eagerly.
-            //TODO この辺を解決するDIコンテナを探す VContinerのRegisterEntryPoint的な
-            // TODO find a DI pattern similar to VContainer RegisterEntryPoint for this area.
-            serviceProvider.GetService<MainInventoryUpdateEventPacket>();
-            serviceProvider.GetService<UnifiedInventoryEventPacket>();
-            serviceProvider.GetService<GrabInventoryUpdateEventPacket>();
-            serviceProvider.GetService<PlaceBlockEventPacket>();
-            serviceProvider.GetService<RemoveBlockToSetEventPacket>();
-            serviceProvider.GetService<CompletedChallengeEventPacket>();
+            //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
+            // Create all IBootInitializable implementations and invoke their boot-time Load.
+            foreach (var bootInitializable in serviceProvider.GetServices<IBootInitializable>()) bootInitializable.Load();
 
-            serviceProvider.GetService<GearNetworkDatastore>();
-            serviceProvider.GetService<CleanRoomDatastore>();
-            serviceProvider.GetService<RailGraphDatastore>();
-            serviceProvider.GetService<TrainDiagramManager>();
-            serviceProvider.GetService<TrainRailPositionManager>();
+            //IPostLoadInitializable実装は生成のみ行う（Loadは初期ロード完了後にServerInstanceManagerが呼ぶ）
+            // IPostLoadInitializable implementations are only created here; ServerInstanceManager invokes their Load after initial load.
+            serviceProvider.GetServices<IPostLoadInitializable>();
 
-            serviceProvider.GetService<ChangeBlockStateEventPacket>();
-            serviceProvider.GetService<MapObjectUpdateEventPacket>();
-            serviceProvider.GetService<UnlockedEventPacket>();
-            serviceProvider.GetService<ResearchCompleteEventPacket>();
-            serviceProvider.GetService<ItemStackLevelUnlockEventPacket>();
-            serviceProvider.GetService<RailNodeCreatedEventPacket>();
-            serviceProvider.GetService<RailConnectionCreatedEventPacket>();
-            serviceProvider.GetService<TrainUnitTickDiffBundleEventPacket>();
-            serviceProvider.GetService<TrainUnitSnapshotEventPacket>();
-            serviceProvider.GetService<RailNodeRemovedEventPacket>();
-            serviceProvider.GetService<RailConnectionRemovedEventPacket>();
-            serviceProvider.GetService<RidingStateEventPacket>();
-            serviceProvider.GetService<RemovedRidableRidingHandler>();
-            
             serverContext.SetMainServiceProvider(serviceProvider);
-            
+
             // MessagePackResolverを登録
             // Register the MessagePack resolver.
             MessagePackInitializer.Initialize();
@@ -293,4 +273,3 @@ namespace Server.Boot
         }
     }
 }
-

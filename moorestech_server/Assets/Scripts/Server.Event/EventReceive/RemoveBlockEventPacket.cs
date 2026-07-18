@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
-    public class RemoveBlockToSetEventPacket
+    public class RemoveBlockToSetEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:removeBlock";
         private readonly EventProtocolProvider _eventProtocolProvider;
@@ -16,6 +16,10 @@ namespace Server.Event.EventReceive
         public RemoveBlockToSetEventPacket(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
+        }
+
+        public void Load()
+        {
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
         }
         

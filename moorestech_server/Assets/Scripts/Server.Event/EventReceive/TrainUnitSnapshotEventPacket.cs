@@ -1,3 +1,4 @@
+using Game.Context;
 using Game.Train.Event;
 using Game.Train.Unit;
 using MessagePack;
@@ -8,12 +9,13 @@ namespace Server.Event.EventReceive
 {
     // Game層のTrainUnit通知をネットワークイベントへ変換する
     // Convert game-layer train notifications into network events.
-    public sealed class TrainUnitSnapshotEventPacket
+    public sealed class TrainUnitSnapshotEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:trainUnitSnapshot";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly TrainUpdateService _trainUpdateService;
+        private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
 
         public TrainUnitSnapshotEventPacket(
             EventProtocolProvider eventProtocolProvider,
@@ -22,7 +24,12 @@ namespace Server.Event.EventReceive
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
-            trainUnitSnapshotNotifyEvent.OnTrainUnitSnapshotNotified.Subscribe(OnNotified);
+            _trainUnitSnapshotNotifyEvent = trainUnitSnapshotNotifyEvent;
+        }
+
+        public void Load()
+        {
+            _trainUnitSnapshotNotifyEvent.OnTrainUnitSnapshotNotified.Subscribe(OnNotified);
         }
 
         #region Internal

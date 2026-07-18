@@ -1,21 +1,28 @@
 using System;
 using Core.Item.Interface;
+using Game.Context;
 using Game.PlayerInventory.Interface.Event;
 using MessagePack;
 using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public class MainInventoryUpdateEventPacket
+    public class MainInventoryUpdateEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:mainInvUpdate";
+        private readonly IMainInventoryUpdateEvent _mainInventoryUpdateEvent;
         private readonly EventProtocolProvider _eventProtocolProvider;
-        
+
         public MainInventoryUpdateEventPacket(IMainInventoryUpdateEvent mainInventoryUpdateEvent,
             EventProtocolProvider eventProtocolProvider)
         {
+            _mainInventoryUpdateEvent = mainInventoryUpdateEvent;
             _eventProtocolProvider = eventProtocolProvider;
-            mainInventoryUpdateEvent.Subscribe(ReceivedEvent);
+        }
+
+        public void Load()
+        {
+            _mainInventoryUpdateEvent.Subscribe(ReceivedEvent);
         }
         
         
