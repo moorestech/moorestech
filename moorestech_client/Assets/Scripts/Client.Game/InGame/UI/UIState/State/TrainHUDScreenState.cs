@@ -150,7 +150,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // GameScreenだけ降車処理、列車操作入力を受け付け
             // Only process dismount and train control input on the GameScreen.
-            if (UnityEngine.Input.GetKeyDown(KeyCode.E))
+            if (HybridInput.GetKeyDown(KeyCode.E))
             {
                 SendDismountRequestAsync().Forget(LogRpcFault);
             }
