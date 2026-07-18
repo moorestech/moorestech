@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             
-            // 廃止状態が保存JSONにないことを検証する
+            // 廃止状態が保存JSONにないことを検証
             // Verify the retired state is absent from save JSON
             var saveJson = JObject.Parse(json);
             Assert.IsNull(saveJson["craftTreeInfo"]);
