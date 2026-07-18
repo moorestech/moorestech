@@ -1,4 +1,3 @@
-/* eslint-disable local/no-jsx-visible-literal -- Server-localized master strings and CSS/test IDs are dynamic data, not hard-coded copy. */
 import { Paper, Text } from "@mantine/core";
 import type { ChallengeNodeData } from "@/bridge";
 import { useI18n } from "@/shared/i18n";

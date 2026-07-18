@@ -3,10 +3,12 @@ import { useTopic, Topics } from "@/bridge";
 import { ConnectingPlaceholder, GamePanel } from "@/shared/ui";
 import { useItemSelectionStore } from "../logic/selectionStore";
 import RecipeContent from "../views/RecipeContent";
+import { useI18n } from "@/shared/i18n";
 
 // 中央カラム: 選択アイテムのクラフトレシピと機械レシピを表示する（uGUI の RecipeViewer 相当）
 // Center column: shows craft and machine recipes for the selected item, like uGUI's RecipeViewer
 export default function RecipeViewer() {
+  const { t } = useI18n();
   const selectedItemId = useItemSelectionStore((s) => s.selectedItemId);
   const onSelect = useItemSelectionStore((s) => s.setSelectedItem);
   const recipes = useTopic(Topics.craftRecipes);
@@ -35,7 +37,7 @@ export default function RecipeViewer() {
       {!loaded ? (
         <ConnectingPlaceholder m="auto" />
       ) : selectedItemId === null ? (
-        <Text size="sm" c="dimmed" ta="center" m="auto">右のリストからアイテムを選択してください</Text>
+        <Text size="sm" c="dimmed" ta="center" m="auto">{t("右のリストからアイテムを選択してください")}</Text>
       ) : (
         // key={selectedItemId} の再マウントで tabKey/recipeIndex をリセットする契約は維持
         // Keep the contract: remount via key={selectedItemId} resets tabKey/recipeIndex

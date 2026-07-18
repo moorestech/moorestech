@@ -1,4 +1,3 @@
-/* eslint-disable local/no-jsx-visible-literal -- Server-localized challenge titles are dynamic data, not hard-coded copy. */
 import { Paper, Text } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import { tutorialAnchor } from "@/shared/tutorialAnchor";

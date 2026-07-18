@@ -5,6 +5,7 @@ import type { ResearchNodeData } from "@/bridge";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { TreeView } from "@/shared/treeView";
 import ResearchNodeCard from "./ResearchNodeCard";
+import { useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 // topic未受信時の空配列を固定参照にしてuseMemoの空振りを防ぐ
@@ -14,6 +15,7 @@ const EMPTY_NODES: ResearchNodeData[] = [];
 // 研究ツリー全画面表示
 // Full-screen research tree panel
 export default function ResearchTreePanel() {
+  const { t } = useI18n();
   const tree = useTopic(Topics.researchTree);
   const inventory = useTopic(Topics.inventory);
   const itemMaster = useItemMaster();
@@ -26,7 +28,7 @@ export default function ResearchTreePanel() {
 
   return (
     <Box className={styles.panel} data-testid="research-tree">
-      <Title order={2} size="h4" p="sm">研究ツリー</Title>
+      <Title order={2} size="h4" p="sm">{t("研究ツリー")}</Title>
       <TreeView nodes={nodes} getId={(node) => node.guid} getPosition={(node) => node.position}
         getPrevIds={(node) => node.prevGuids} nodeTargetSelector="[data-research-node]" testIdPrefix="research"
         renderNode={(node, point) => (
