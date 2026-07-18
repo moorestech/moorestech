@@ -34,6 +34,14 @@ done
 （人間レビュー指摘が付いたもの）を1〜2本選び、同じ手順でリプレイして「人間指摘のうち何件を
 ハーネスが先取りできたか」を見る。結果は log.md に記録する。
 
+### synthetic/（ブラインド合成fixture）
+レンズ本文に由来PRの実名が書かれている場合、由来PRへの再発火は名前照合で当たっただけの
+可能性がある。`synthetic/` には**レンズと語彙が重ならない別ドメインの合成diff**（陽性=検出すべき・
+陰性=偽陽性を出してはならない、各`-context.md`とペア）を置き、レンズ本文を変えたら3行契約で
+両方に当てて「陽性=Critical あり／陰性=Critical なし」を確認する。
+現行: `set-once-setter-positive.diff`（チャレンジ報酬通知のset-once setter→ありが正）/
+`set-once-setter-negative.diff`（可変値SetHoge＋MonoBehaviour→なしが正）。2026-07-18 opusで両方合格。
+
 ### spec段階のリプレイ
 PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-design.md`（「新規プロトコル・
 イベント・ハンドシェイク拡張は作らない」と明記）に現存する。spec-architecture-review を変更したら、

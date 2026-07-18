@@ -1,0 +1,83 @@
+diff --git a/moorestech_server/Assets/Scripts/Game.Challenge/Reward/ChallengeRewardService.cs b/moorestech_server/Assets/Scripts/Game.Challenge/Reward/ChallengeRewardService.cs
+new file mode 100644
+index 000000000..a1b2c3d4e
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Challenge/Reward/ChallengeRewardService.cs
+@@ -0,0 +1,38 @@
++using Mooresmaster.Model.ChallengesModule;
++
++namespace Game.Challenge.Reward
++{
++    // チャレンジ達成報酬の付与と達成通知を担当する
++    // Grants challenge rewards and notifies completions
++    public class ChallengeRewardService
++    {
++        // 起動配線時に一度だけセットされ、以後読み取り専用（tickループ開始前にセットされるためlock不要）
++        // Set once during boot wiring before the tick loop starts; read-only afterwards
++        public IRewardNotifier RewardNotifier { get; private set; }
++
++        private readonly ChallengeDatastore _challengeDatastore;
++
++        public ChallengeRewardService(ChallengeDatastore challengeDatastore)
++        {
++            _challengeDatastore = challengeDatastore;
++        }
++
++        public void SetRewardNotifier(IRewardNotifier rewardNotifier)
++        {
++            RewardNotifier = rewardNotifier;
++        }
++
++        public void GrantReward(int playerId, ChallengeMasterElement challengeMasterElement)
++        {
++            // 報酬アイテムを付与し、通知役へ達成を伝える
++            // Grant reward items, then notify the completion
++            var granted = _challengeDatastore.GrantRewardItems(playerId, challengeMasterElement);
++            if (!granted) return;
++
++            RewardNotifier.NotifyRewardGranted(playerId, challengeMasterElement);
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Challenge/Reward/ChallengeRewardBootstrapper.cs b/moorestech_server/Assets/Scripts/Game.Challenge/Reward/ChallengeRewardBootstrapper.cs
+new file mode 100644
+index 000000000..b2c3d4e5f
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Challenge/Reward/ChallengeRewardBootstrapper.cs
+@@ -0,0 +1,24 @@
++namespace Game.Challenge.Reward
++{
++    // 報酬サービスと通知役をサーバー起動時に配線する
++    // Wires the reward service and notifier at server boot
++    public class ChallengeRewardBootstrapper
++    {
++        public ChallengeRewardService Build(ChallengeDatastore challengeDatastore, ChatMessageBus chatMessageBus)
++        {
++            var challengeRewardService = new ChallengeRewardService(challengeDatastore);
++
++            // 通知役を配線する（tickループ起動前）
++            // Wire the notifier before the tick loop starts
++            var rewardNotifier = new ChatRewardNotifier(chatMessageBus);
++            challengeRewardService.SetRewardNotifier(rewardNotifier);
++
++            return challengeRewardService;
++        }
++    }
++}
+diff --git a/moorestech_server/Assets/Scripts/Game.Challenge/Reward/IRewardNotifier.cs b/moorestech_server/Assets/Scripts/Game.Challenge/Reward/IRewardNotifier.cs
+new file mode 100644
+index 000000000..c3d4e5f6a
+--- /dev/null
++++ b/moorestech_server/Assets/Scripts/Game.Challenge/Reward/IRewardNotifier.cs
+@@ -0,0 +1,12 @@
++using Mooresmaster.Model.ChallengesModule;
++
++namespace Game.Challenge.Reward
++{
++    // チャレンジ報酬付与の通知先を抽象化する
++    // Abstracts the destination of reward-granted notifications
++    public interface IRewardNotifier
++    {
++        void NotifyRewardGranted(int playerId, ChallengeMasterElement challengeMasterElement);
++    }
++}
