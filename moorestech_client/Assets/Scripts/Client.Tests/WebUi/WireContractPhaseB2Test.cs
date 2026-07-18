@@ -21,6 +21,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "TrainItemPlatform",
                 Identifier = "(6, 0, 4)",
                 BlockName = "貨物プラットフォーム",
@@ -46,6 +47,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "ElectricPole",
                 Identifier = "(7, 0, 4)",
                 BlockName = "電柱",
@@ -69,6 +71,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "TrainFluidPlatform",
                 Identifier = "(8, 0, 4)",
                 BlockName = "液体プラットフォーム",
