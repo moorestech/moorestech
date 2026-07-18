@@ -37,13 +37,14 @@ export function ElectricNetworkSection({ data }: { data: BlockInventoryOpen }) {
 // ギアネットワーク集約 + 停止理由（uGUI SetGearText の networkInfo 部準拠）
 // Gear network aggregate with stop reason (mirrors the networkInfo part of uGUI SetGearText)
 export function GearNetworkSection({ data }: { data: BlockInventoryOpen }) {
+  const { t } = useI18n();
   if (!data.gearNetwork) return null;
   const n = data.gearNetwork;
   const reason = stopReasonText(n.stopReason);
   return (
     <Stack gap={2} data-testid="gear-network-section">
-      <LackHighlightText label="供給 " current={n.totalGenerateGearPower.toFixed(0)} separator=" / 要求 " required={n.totalRequiredGearPower.toFixed(0)} insufficient={false} normalColor="dark.1" insufficientColor="dark.1" size="xs" />
-      {reason !== "" && <Text size="xs" c="red.5" data-testid="gear-stop-reason">{reason}</Text>}
+      <LackHighlightText label={t("供給 ")} current={n.totalGenerateGearPower.toFixed(0)} separator={t(" / 要求 ")} required={n.totalRequiredGearPower.toFixed(0)} insufficient={false} normalColor="dark.1" insufficientColor="dark.1" size="xs" />
+      {reason !== "" && <Text size="xs" c="red.5" data-testid="gear-stop-reason">{t(reason)}</Text>}
     </Stack>
   );
 }

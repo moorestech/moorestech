@@ -1,4 +1,3 @@
-/* eslint-disable local/no-jsx-visible-literal -- Branch counts are runtime train state; all player-facing copy is translated before JSX. */
 import { Paper, Stack, Text, Title } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import { useI18n } from "@/shared/i18n";

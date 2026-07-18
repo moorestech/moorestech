@@ -1,6 +1,7 @@
 import { CloseButton, Group, Title } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { SlotGrid } from "@/shared/ui";
+import { useI18n } from "@/shared/i18n";
 import BuildMenuSlot from "./BuildMenuSlot";
 import styles from "./style.module.css";
 
@@ -8,6 +9,7 @@ import styles from "./style.module.css";
 // Web version of uGUI BuildMenuView; selections reach Unity's consume queue via build_menu.select.
 export function BuildMenuPanel() {
   const data = useTopic(Topics.buildMenu);
+  const { t } = useI18n();
 
   // 閉じるは既存許可済みの GameScreen 遷移要求（BlockInventoryPanel と同型）。B/ESC は Unity 側が処理する。
   // Close requests the already-allowed GameScreen transition (same as BlockInventoryPanel); B/ESC are handled by Unity.
@@ -18,7 +20,7 @@ export function BuildMenuPanel() {
   return (
     <div className={styles.panel} data-testid="build-menu-panel">
       <Group justify="space-between">
-        <Title order={2} size="h4">ビルドメニュー</Title>
+        <Title order={2} size="h4">{t("ビルドメニュー")}</Title>
         <CloseButton data-testid="build-menu-close" onClick={close} />
       </Group>
       <div className={styles.scroll}>
