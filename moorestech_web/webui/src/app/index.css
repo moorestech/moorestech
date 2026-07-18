@@ -39,9 +39,11 @@
   --bevel-1: 0.782875px;
   --bevel-2: 1.565749px;
   --bevel-3: 1.565749px;
-  --bevel-c1: rgb(68 61 64);
-  --bevel-c2: rgb(111 106 106);
-  --bevel-c3: rgb(111 106 106);
+  /* リング色もuGUIスロット原色族(#323443/#7d7f85)の同輝度寒色へ揃える */
+  /* Ring colors also follow the uGUI slot family (#323443/#7d7f85) at the same luminance */
+  --bevel-c1: rgb(56 58 72);
+  --bevel-c2: rgb(104 106 120);
+  --bevel-c3: rgb(104 106 120);
 }
 
 body {
