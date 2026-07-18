@@ -107,6 +107,7 @@ export type ActionPayloads = {
   // clear:true は右クリック相当のフィルタ解除。clear:false は C# 側が Grab の持ち手アイテムを設定する
   // clear:true clears the filter (right-click); with clear:false the C# side assigns the currently grabbed item
   "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
+  "electric_to_gear.set_output_mode": { modeIndex: number };
   "debug.echo": { hello: string };
 };
 
@@ -129,6 +130,7 @@ export const ACTION_TYPES = [
   "research.complete",
   "filter_splitter.set_mode",
   "filter_splitter.set_filter_item",
+  "electric_to_gear.set_output_mode",
   "debug.echo",
 ] as const satisfies readonly (keyof ActionPayloads)[];
 

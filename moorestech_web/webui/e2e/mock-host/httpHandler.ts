@@ -21,6 +21,7 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
   filterSplitter: fx.blockFilterSplitter,
   gearMiner: fx.blockGearMiner,
   generic: fx.blockGeneric,
+  electricToGear: fx.blockElectricToGear,
 };
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));

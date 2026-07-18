@@ -1,18 +1,23 @@
 import type { ComponentType } from "react";
 import type { BlockInventoryOpen } from "@/bridge";
-import FilterSplitterInventory from "./views/FilterSplitterInventory";
-import SectionStackView from "./views/SectionStackView";
+import FilterSplitterInventory from "../views/FilterSplitterInventory";
+import ElectricToGearInventory from "../views/ElectricToGearInventory";
+import SectionStackView from "../views/SectionStackView";
 
-// blockType → React コンポーネントの静的レジストリ。後続 feature が再代入なしで拡張できるよう可変オブジェクト
+// blockType別の静的レジストリ
 // Static blockType → React component registry; a mutable object so later features extend it without rewrites
-// キーは C# BlockMasterElement.BlockType の実値に厳密一致させる(実マスタは "Chest" 等の PascalCase)
+// マスタのblockTypeと一致させる
 // Keys must exactly match C# BlockMasterElement.BlockType (the real master uses PascalCase like "Chest")
 export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
   FilterSplitter: FilterSplitterInventory,
+  Shaft: SectionStackView,
+  Gear: SectionStackView,
+  GearBeltConveyor: SectionStackView,
+  ElectricToGearGenerator: ElectricToGearInventory,
 };
 
-// 未登録 blockType はフォールバックで汎用描画（流体ブロック等が専用 UI 未実装でもクラッシュしない）
+// 未登録種別は共通ビューへ戻す
 // Unknown blockType falls back to a generic view (fluid blocks etc. won't crash before a dedicated UI lands)
 export function resolveBlockComponent(blockType: string): BlockInventoryComponent {
   return blockComponents[blockType] ?? SectionStackView;
