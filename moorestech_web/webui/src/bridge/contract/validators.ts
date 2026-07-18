@@ -12,6 +12,8 @@ import {
   ResearchTreeDataSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  ChallengeTreeDataSchema,
+  ChallengeCurrentDataSchema,
 } from "./schemas";
 
 type TopicSchemaRegistry = {
@@ -32,6 +34,8 @@ const topicSchemas = {
   [Topics.researchTree]: ResearchTreeDataSchema,
   [Topics.buildMenu]: BuildMenuDataSchema,
   [Topics.localization]: LocalizationDataSchema,
+  [Topics.challengeTree]: ChallengeTreeDataSchema,
+  [Topics.challengeCurrent]: ChallengeCurrentDataSchema,
 } satisfies TopicSchemaRegistry;
 
 // 既知topicはsafeParseで検証し、未知topicは従来どおり素通しする

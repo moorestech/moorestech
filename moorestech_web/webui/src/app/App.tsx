@@ -8,6 +8,7 @@ import { ProgressBar } from "@/features/progress";
 import { BlockInventoryKeyHandler, BlockInventoryPanel } from "@/features/blockInventory";
 import { ResearchTreePanel } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
+import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
@@ -64,6 +65,7 @@ export default function App() {
         {/* Scale stage overlays uniformly while the Modal renders into the viewport via its portal */}
         {screen === "researchTree" && <ResearchTreePanel />}
         {screen === "buildMenu" && <BuildMenuPanel />}
+        {screen === "challengeList" && <ChallengePanel />}
         <BlockInventoryPanel />
         <ModalHost />
         <ProgressBar />
@@ -73,6 +75,7 @@ export default function App() {
       {screen !== "none" && <GrabOverlay />}
       <Portal>
         <ToastHost />
+        <CurrentChallengeHud />
       </Portal>
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}

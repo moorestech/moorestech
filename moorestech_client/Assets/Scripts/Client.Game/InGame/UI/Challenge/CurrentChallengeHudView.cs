@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
+using Client.Game.InGame.UI.UIState;
 
 namespace Client.Game.InGame.UI.Challenge
 {
@@ -15,7 +16,7 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void SetActive(bool active)
         {
-            gameObject.SetActive(active);
+            gameObject.SetActive(active && !WebUiScreenGate.IsWebUiMode);
         }
         
         public void SetCurrentChallenge(List<ChallengeMasterElement> nextChallenges)
