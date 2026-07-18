@@ -76,6 +76,13 @@ const MIME: Record<string, string> = {
 export function createMockHttpServer(): Server {
   return createServer(async (req, res) => {
     const url = req.url ?? "/";
+    if (url.startsWith("/api/i18n/")) {
+      // i18n辞書はe2eでは空辞書を返しkey表示にフォールバックさせる
+      // Serve an empty dictionary in e2e so views fall back to key display
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({}));
+      return;
+    }
     if (url === "/api/master/items") {
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify(DEMO ? fx.demoItemMaster : fx.itemMaster));
