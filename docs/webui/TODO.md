@@ -77,7 +77,9 @@
 - [ ] カットシーン連携（GameStateType Topic 化 → HUD 一括退避同期・先行可）
 - [ ] バックグラウンドスキット（GameScreen オーバーレイ会話・軽量。同期方式の実証台）
 - [ ] スキット再設計文書 → 実装（snapshot 配信 + Action 冪等化 + ボイス方式決定〔INFRA-10 の決定責務はここ〕）
+      （文書は完了: `design/skit-web-redesign.md` 2026-07-18。ボイスはUnity再生統一・実機検証はS4）
 - [ ] チュートリアル再設計文書 → 実装（anchor registry による DOM ハイライト。3D ピン/矢印は Unity 残置）
+      （文書は完了: `design/tutorial-web-redesign.md` 2026-07-18）
 
 ## Phase D: カットオーバー完了（`plans/phase-d-cutover.md`）
 
