@@ -37,7 +37,6 @@
 **Files:**
 - Modify through Unity Editor: `moorestech_client/Assets/Asset/UI/Prefab/Inventory/InventoryItems.prefab`
 - Modify through Unity Editor: `moorestech_client/Assets/Asset/UI/Prefab/MainGameUI.prefab`
-- Modify through Unity Editor: `moorestech_client/Assets/Asset/Common/Prefab/GameSystem.prefab`
 - Delete through Unity Editor: `moorestech_client/Assets/Asset/UI/Prefab/CraftTreeEditorViewItem.prefab`
 - Delete through Unity Editor: `moorestech_client/Assets/Asset/UI/Prefab/CraftTreeListItem.prefab`
 - Delete through Unity Editor: `moorestech_client/Assets/Asset/UI/Prefab/CraftTreeTarget.prefab`
@@ -45,7 +44,7 @@
 
 **Interfaces:**
 - Consumes: 現在解決可能な `CraftTreeViewManager` と関連MonoBehaviour、UnityのPrefab API。
-- Produces: 共有PrefabからクラフトツリーGameObjectとserialized参照が消え、後続タスクでスクリプトを削除できる状態。
+- Produces: `InventoryItems.prefab` と `MainGameUI.prefab` からクラフトツリーGameObjectが消え、後続タスクでスクリプトを削除できる状態。型の削除前は `RecipeViewerView` と `MainGameStarter` のserialized field名が残るため、Task 4でフィールド削除後に再シリアライズする。
 
 - [ ] **Step 1: 変更前の対象数をEditor APIで検証する**
 
@@ -101,17 +100,6 @@ UnityEngine.Object.DestroyImmediate(targetObjects[0]);
 PrefabUtility.SaveAsPrefabAsset(mainUi, mainUiPath);
 PrefabUtility.UnloadPrefabContents(mainUi);
 
-var gameSystemPath = "Assets/Asset/Common/Prefab/GameSystem.prefab";
-var gameSystem = PrefabUtility.LoadPrefabContents(gameSystemPath);
-var starter = gameSystem.GetComponentsInChildren<MonoBehaviour>(true)
-    .Single(x => x.GetType().FullName == "Client.Starter.MainGameStarter");
-var serializedStarter = new SerializedObject(starter);
-var craftTreeProperty = serializedStarter.FindProperty("craftTreeViewManager");
-if (craftTreeProperty == null) throw new InvalidOperationException("craftTreeViewManager was not found.");
-craftTreeProperty.objectReferenceValue = null;
-serializedStarter.ApplyModifiedPropertiesWithoutUndo();
-PrefabUtility.SaveAsPrefabAsset(gameSystem, gameSystemPath);
-PrefabUtility.UnloadPrefabContents(gameSystem);
 AssetDatabase.SaveAssets();
 return inventoryTargets.Length + targetObjects.Length;
 '
@@ -151,7 +139,7 @@ Expected: `4`。各Prefabと対応metaが `git status` で削除になる。
 Run:
 
 ```bash
-rg -n 'CraftTree|craftTree|RecipeTreeView|662286bf4e28a450bb63e74ae27083c3|4596607e76063443283c56cf70ec7f86|a0c5713ee75744be3a613a05d49448e3|0b72f2ba269524ecd85a96972d747a1c' \
+rg -n 'm_Name: CraftTree|m_Name: RecipeTreeView|662286bf4e28a450bb63e74ae27083c3|4596607e76063443283c56cf70ec7f86|a0c5713ee75744be3a613a05d49448e3|0b72f2ba269524ecd85a96972d747a1c' \
   moorestech_client/Assets/Asset/UI/Prefab/Inventory/InventoryItems.prefab \
   moorestech_client/Assets/Asset/UI/Prefab/MainGameUI.prefab \
   moorestech_client/Assets/Asset/Common/Prefab/GameSystem.prefab
@@ -423,6 +411,7 @@ var paths = new[]
     "Assets/Asset/UI/Prefab/MainGameUI.prefab",
     "Assets/Asset/Common/Prefab/GameSystem.prefab",
 };
+AssetDatabase.ForceReserializeAssets(paths);
 var failures = new List<string>();
 foreach (var path in paths)
 {
