@@ -89,6 +89,16 @@ describe("validCraftRecipes", () => {
     const invalid = { ...recipe, requiredItems: [{ itemId: "1", count: 3 }] };
     expect(validateTopicPayload(Topics.craftRecipes, { recipes: [invalid] })).toBe(false);
   });
+
+  it.each([
+    ["requiredItems が null", { ...recipe, requiredItems: null }],
+    ["素材数が0", { ...recipe, requiredItems: [{ itemId: 1, count: 0 }] }],
+    ["素材IDが小数", { ...recipe, requiredItems: [{ itemId: 1.5, count: 1 }] }],
+    ["完成数が負", { ...recipe, resultCount: -1 }],
+    ["craftTime が負", { ...recipe, craftTime: -0.1 }],
+  ])("React へ危険値を渡さない（%s）", (_label, invalid) => {
+    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [invalid] })).toBe(false);
+  });
 });
 
 describe("validBuildMenu", () => {

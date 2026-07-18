@@ -13,3 +13,18 @@ export function keyToHotbarIndex(key: string): number | null {
 export function cycleHotbar(current: number, delta: number, count: number): number {
   return (((current + delta) % count) + count) % count;
 }
+
+// wheel/100を累積し整数分を消費する
+// Accumulate wheel/100 and consume only crossed integer steps, matching uGUI HotBarView
+export function accumulateHotbarWheel(remainder: number, delta: number): { remainder: number; steps: number } {
+  const total = remainder + delta / 100;
+  if (total >= 1) {
+    const steps = Math.floor(total);
+    return { remainder: total - steps, steps };
+  }
+  if (total <= -1) {
+    const steps = Math.ceil(total);
+    return { remainder: total - steps, steps };
+  }
+  return { remainder: total, steps: 0 };
+}

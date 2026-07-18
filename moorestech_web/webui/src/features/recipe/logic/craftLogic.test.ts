@@ -4,6 +4,7 @@ import {
   selectCraftRecipes,
   groupMachineRecipesByBlock,
   buildRecipeTabs,
+  craftableResultCounts,
 } from "./craftLogic";
 import type {
   CraftRecipe,
@@ -18,6 +19,18 @@ const craftRecipe = (resultItemId: number, guid: string): CraftRecipe => ({
   resultCount: 1,
   craftTime: 1,
   requiredItems: [],
+});
+
+describe("craftableResultCounts", () => {
+  it("素材の最小商に完成個数を掛け、同じ完成品は最大値を採用する", () => {
+    const recipes: CraftRecipesData = { recipes: [
+      { ...craftRecipe(9, "a"), resultCount: 2, requiredItems: [{ itemId: 1, count: 3 }] },
+      { ...craftRecipe(9, "b"), resultCount: 1, requiredItems: [{ itemId: 2, count: 2 }] },
+      { ...craftRecipe(8, "c"), requiredItems: [{ itemId: 3, count: 1 }] },
+    ] };
+
+    expect(craftableResultCounts(recipes.recipes, new Map([[1, 7], [2, 10]]))).toEqual(new Map([[9, 5]]));
+  });
 });
 
 const machineRecipe = (blockId: number, blockName: string, outputItemId: number, guid: string): MachineRecipe => ({

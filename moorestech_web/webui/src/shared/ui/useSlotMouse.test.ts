@@ -17,4 +17,14 @@ describe("useSlotMouse", () => {
     expect(onRightDown).toHaveBeenCalledOnce();
     expect(preventDefault).toHaveBeenCalledTimes(3);
   });
+
+  it("右ボタンを押したまま進入した時だけ右ドラッグ処理を呼ぶ", () => {
+    const onRightEnter = vi.fn();
+    const handlers = useSlotMouse(undefined, undefined, onRightEnter);
+
+    handlers.onMouseEnter({ buttons: 2 } as unknown as MouseEvent<HTMLElement>);
+    handlers.onMouseEnter({ buttons: 0 } as unknown as MouseEvent<HTMLElement>);
+
+    expect(onRightEnter).toHaveBeenCalledOnce();
+  });
 });

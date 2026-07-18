@@ -1,11 +1,14 @@
 import { z } from "zod";
 
-export const RequiredItemSchema = z.object({ itemId: z.number(), count: z.number() });
+const ItemIdSchema = z.number().int().positive();
+const ItemCountSchema = z.number().int().positive();
+
+export const RequiredItemSchema = z.object({ itemId: ItemIdSchema, count: ItemCountSchema });
 export const CraftRecipeSchema = z.object({
   recipeGuid: z.string(),
-  resultItemId: z.number(),
-  resultCount: z.number(),
-  craftTime: z.number(),
+  resultItemId: ItemIdSchema,
+  resultCount: ItemCountSchema,
+  craftTime: z.number().nonnegative(),
   requiredItems: z.array(RequiredItemSchema),
 });
 export const CraftRecipesDataSchema = z.object({ recipes: z.array(CraftRecipeSchema) });

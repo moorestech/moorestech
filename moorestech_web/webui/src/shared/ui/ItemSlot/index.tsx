@@ -1,4 +1,4 @@
-import { Tooltip } from "@mantine/core";
+import { Tooltip, type TooltipProps } from "@mantine/core";
 import { useItemMaster } from "@/bridge";
 import ItemIcon from "../ItemIcon";
 import SlotFrame from "../SlotFrame";
@@ -10,6 +10,7 @@ type Props = {
   // When count is omitted, the count badge is hidden and the icon shows for itemId>0
   count?: number;
   name?: string;
+  tooltip?: TooltipProps["label"];
   selected?: boolean;
   // catalog はレシピ一覧用。未所持は灰面＋アイコン、所持(count>0)のみ白面＋個数
   // "catalog" is for the recipe list: unowned shows a gray face + icon, only owned (count>0) shows a white face + count
@@ -17,13 +18,14 @@ type Props = {
   insufficient?: boolean;
   onLeftDown?: (shiftKey: boolean) => void;
   onRightDown?: () => void;
+  onRightEnter?: () => void;
   onDoubleClick?: () => void;
   testId?: string;
 };
 
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
-export default function ItemSlot({ itemId, count, name, selected, catalog, insufficient, onLeftDown, onRightDown, onDoubleClick, testId }: Props) {
+export default function ItemSlot({ itemId, count, name, tooltip, selected, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onDoubleClick, testId }: Props) {
   const itemMaster = useItemMaster();
   const resolvedName = name ?? itemMaster?.get(itemId)?.name;
 
@@ -36,7 +38,7 @@ export default function ItemSlot({ itemId, count, name, selected, catalog, insuf
   return (
     // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
     // Tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
-    <Tooltip label={resolvedName} disabled={!hasItem || !resolvedName}>
+    <Tooltip label={tooltip ?? resolvedName} disabled={!hasItem || (!tooltip && !resolvedName)}>
       <SlotFrame
         testId={testId}
         selected={selected}
@@ -45,6 +47,7 @@ export default function ItemSlot({ itemId, count, name, selected, catalog, insuf
         insufficient={insufficient}
         onLeftDown={onLeftDown}
         onRightDown={onRightDown}
+        onRightEnter={onRightEnter}
         onDoubleClick={onDoubleClick}
       >
         {hasItem ? (

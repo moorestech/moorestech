@@ -1,14 +1,16 @@
+import { useRef } from "react";
 import { useTopic, useTopicSelector, readTopic, dispatchAction, Topics } from "@/bridge";
 import { readActiveLayer, screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
 import { ItemSlot } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
-import { keyToHotbarIndex, cycleHotbar } from "../hotbarLogic";
+import { keyToHotbarIndex, cycleHotbar, accumulateHotbarWheel } from "../hotbarLogic";
 import { slotActions } from "../slotActions";
 import styles from "./style.module.css";
 
 // uGUI GameStateController 準拠の常時表示ホットバーHUD（UIState には依存しない）
 // Always-on hotbar HUD mirroring uGUI GameStateController (independent of the UIState)
 export default function HotbarPanel() {
+  const wheelRemainder = useRef(0);
   const inventory = useTopic(Topics.inventory);
   // GameScreen 中は表示+キー/ホイール選択のみ（uGUI はカーソルロックでクリック不能）
   // Display + key/wheel selection only during GameScreen (uGUI locks the cursor, so no clicks)
@@ -32,8 +34,10 @@ export default function HotbarPanel() {
   const onHotbarWheel = (e: { deltaY: number }) => {
     if (readActiveLayer() !== "game") return;
     if (!inventory || inventory.hotbarSlots.length === 0) return;
-    const delta = e.deltaY > 0 ? 1 : -1;
-    const index = cycleHotbar(inventory.selectedHotbar, delta, inventory.hotbarSlots.length);
+    const accumulated = accumulateHotbarWheel(wheelRemainder.current, e.deltaY);
+    wheelRemainder.current = accumulated.remainder;
+    if (accumulated.steps === 0) return;
+    const index = cycleHotbar(inventory.selectedHotbar, accumulated.steps, inventory.hotbarSlots.length);
     if (index === inventory.selectedHotbar) return;
     void dispatchAction("inventory.select_hotbar", { index });
   };
@@ -56,6 +60,7 @@ export default function HotbarPanel() {
                 selected={i === inventory.selectedHotbar}
                 onLeftDown={interactive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
                 onRightDown={interactive ? () => slotActions.onRightDown(ref) : undefined}
+                onRightEnter={interactive ? () => slotActions.onRightEnter(ref) : undefined}
                 onDoubleClick={interactive ? () => slotActions.onDoubleClick(ref) : undefined}
               />
             </div>

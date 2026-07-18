@@ -118,4 +118,23 @@ describe("ensureItemMasterLoaded", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("WS 再接続開始時に成功済み master を再取得する", async () => {
+    const refreshedJson = { items: [{ itemId: 1, name: "Fresh Wood", maxStack: 200 }] };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => masterJson })
+      .mockResolvedValueOnce({ ok: true, json: async () => refreshedJson });
+    vi.stubGlobal("fetch", fetchMock);
+    const { ensureItemMasterLoaded, useItemMasterStore } = await import("./itemMasterStore");
+    const { useTopicStore } = await import("./topicStore");
+
+    ensureItemMasterLoaded();
+    await vi.advanceTimersByTimeAsync(0);
+    useTopicStore.getState().setStatus("reconnecting");
+    useTopicStore.getState().setStatus("restoring");
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(useItemMasterStore.getState().master?.get(1)?.name).toBe("Fresh Wood");
+  });
 });
