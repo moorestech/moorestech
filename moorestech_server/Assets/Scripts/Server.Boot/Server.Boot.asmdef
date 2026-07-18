@@ -34,7 +34,6 @@
         "Core.Master",
         "Game.Train",
         "Game.UnlockState",
-        "Game.CraftTree",
         "Game.Paths",
         "Game.Research",
         "Game.Action",
