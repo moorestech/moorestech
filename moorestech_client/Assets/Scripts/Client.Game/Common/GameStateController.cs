@@ -5,6 +5,8 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using UnityEngine;
 using VContainer;
+using UniRx;
+using System;
 
 namespace Client.Game.Common
 {
@@ -14,6 +16,9 @@ namespace Client.Game.Common
         
         [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
         private HotBarView _hotBarView;
+        private static readonly Subject<GameStateType> _onStateChanged = new();
+        public static IObservable<GameStateType> OnStateChanged => _onStateChanged;
+        public static GameStateType CurrentState { get; private set; } = GameStateType.InGame;
         
         private void Awake()
         {
@@ -33,6 +38,8 @@ namespace Client.Game.Common
         
         public static void ChangeState(GameStateType gameStateType)
         {
+            CurrentState = gameStateType;
+            _onStateChanged.OnNext(gameStateType);
             switch (gameStateType)
             {
                 case GameStateType.InGame:

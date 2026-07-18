@@ -4,7 +4,7 @@ import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/proto
 import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, connections } from "./state";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, gameStateSubscribers, skitSubscribers, connections } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft } from "./inventoryModel";
 import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 // 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
@@ -46,6 +46,9 @@ export function attachWsHandlers(wss: WebSocketServer) {
       if (topic === Topics.miningHud) return { visible: false, targetName: "", mining: false, progress: 0 };
       if (topic === Topics.tooltip) return { visible: false, textKey: "", fontSize: 14 };
       if (topic === Topics.contextMenu) return { visible: false, items: [] };
+      if (topic === Topics.gameState) return state.gameState;
+      if (topic === Topics.tutorialPresentation) return fx.tutorialPresentation;
+      if (topic === Topics.skitPresentation) return state.skitPresentation;
       return undefined;
     };
 
@@ -55,6 +58,8 @@ export function attachWsHandlers(wss: WebSocketServer) {
       modalSubscribers.delete(ws);
       uiStateSubscribers.delete(ws);
       researchTreeSubscribers.delete(ws);
+      gameStateSubscribers.delete(ws);
+      skitSubscribers.delete(ws);
     });
 
     ws.on("message", (raw) => {
@@ -69,6 +74,8 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (topic === Topics.modal) modalSubscribers.add(ws);
           if (topic === Topics.uiState) uiStateSubscribers.add(ws);
           if (topic === Topics.researchTree) researchTreeSubscribers.add(ws);
+          if (topic === Topics.gameState) gameStateSubscribers.add(ws);
+          if (topic === Topics.skitPresentation) skitSubscribers.add(ws);
           const data = topicData(topic);
           if (data !== undefined) {
             const deliver = () => send(ws, { op: "snapshot", topic, data });

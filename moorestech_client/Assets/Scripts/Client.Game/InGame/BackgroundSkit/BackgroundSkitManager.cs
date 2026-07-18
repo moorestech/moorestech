@@ -24,6 +24,7 @@ namespace Client.Game.InGame.BackgroundSkit
         public async UniTask StartBackgroundSkit(string skitAddressablePath)
         {
             IsPlayingSkit = true;
+            SkitPresentationStateStore.Instance.BeginBackground();
             
             // UIステートがGameScreenになるまで待機
             await UniTask.WaitUntil(() => uiStateControl.CurrentState == UIStateEnum.GameScreen);
@@ -42,6 +43,7 @@ namespace Client.Game.InGame.BackgroundSkit
             }
             
             backgroundSkitUI.SetActive(false);
+            SkitPresentationStateStore.Instance.End();
             IsPlayingSkit = false;
             
             #region Internal

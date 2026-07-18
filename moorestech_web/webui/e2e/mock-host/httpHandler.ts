@@ -6,7 +6,7 @@ import { Topics } from "../../src/bridge/transport/protocol";
 import type { BlockInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, connections } from "./state";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, gameStateSubscribers, skitSubscribers, connections } from "./state";
 
 // /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
 // Type map switched via /__block?type=X; defaults to chest (reliably shows an open panel)
@@ -155,6 +155,25 @@ export function createMockHttpServer(): Server {
       state.researchTree = clone(fx.researchTree);
       for (const ws of researchTreeSubscribers) send(ws, { op: "event", topic: Topics.researchTree, data: state.researchTree });
       res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+    if (url.startsWith("/__gamestate")) {
+      const value = new URL(url, "http://x").searchParams.get("state") ?? "InGame";
+      state.gameState = { state: value as "InGame" | "Skit" | "CutScene" };
+      for (const ws of gameStateSubscribers) send(ws, { op: "event", topic: Topics.gameState, data: state.gameState });
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+    if (url.startsWith("/__skit")) {
+      const show = new URL(url, "http://x").searchParams.get("show") === "1";
+      state.skitPresentation = show ? {
+        ...clone(fx.skitPresentation), sessionId: "bg-1", sceneRevision: 1,
+        presentationState: { ...clone(fx.skitPresentation.presentationState), mode: "background",
+          speakerName: "Moore", body: "Background message", textAreaVisible: true,
+          textReveal: { mode: "instant", intervalMs: 0 } },
+      } : clone(fx.skitPresentation);
+      for (const ws of skitSubscribers) send(ws, { op: "event", topic: Topics.skitPresentation, data: state.skitPresentation });
       res.end(JSON.stringify({ ok: true }));
       return;
     }
