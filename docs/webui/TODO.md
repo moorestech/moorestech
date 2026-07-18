@@ -90,7 +90,7 @@
 - [x] 全 uGUI ビューのゲート化監査（`ui-completeness-reaudit-plan.md`〔archive〕の手順 + 状態外オーバーレイ一覧の別軸確認）（2026-07-18 `gate-audit-2026-07-18.md`。機械監査3テスト+状態外8系統の別軸確認。ProgressBar二重表示漏れを検出・修正）
 - [x] `disposition.md` 全59項目のクローズ確認（2026-07-18。未分類0・実機検証残4件は最終検証1項目へ集約。同書末尾にクローズ記録）
 - [ ] 最終検証: PlayMode 全画面遷移スモーク + 画面ごとの操作パリティ受け入れ表 + fault-injection（WS 切断/CEF リロード/フォーカス往復）+ Ctrl+I 実機確認 + 本番配信モードで一巡
-      （2026-07-18 実機スモーク第1回実施: PlayModeでKestrel/Vite/CEF起動→HTTP 3経路200→WS外部接続でsnapshot5topic(revision付)+pong+Action往復+transition_not_allowed拒否を確認。実プレイ画面でC3列車HUD/C2キーヒント/Webホットバーの描画を確認（`evidence-playmode-smoke-2026-07-18.png`）。fault-injectionはe2e 84本で担保。残: Windows実機・IME・音声同時再生・本番staticモード一巡・NRE2件の原因調査）
+      （2026-07-18 実機スモーク第1回実施: PlayModeでKestrel/Vite/CEF起動→HTTP 3経路200→WS外部接続でsnapshot5topic(revision付)+pong+Action往復+transition_not_allowed拒否を確認。実プレイ画面でC3列車HUD/C2キーヒント/Webホットバーの描画を確認（`evidence-playmode-smoke-2026-07-18.png`）。fault-injection含む**Playwright e2e 96本**で全機能を上流(契約/revision/action)→下流(UI操作反映)まで担保（網羅ラウンド `c518606a7`）。残: Windows実機・IME・音声同時再生・本番staticモード一巡・NRE2件の原因調査）
 - [ ] （任意）INFRA-4: C#→TS 型自動生成 / GameStateType Topic の一般整備
 
 ## 品質バックログ
