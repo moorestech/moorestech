@@ -423,11 +423,46 @@ foreach (var path in paths)
         .Where(gameObject => GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(gameObject) > 0)
         .Select(gameObject => AnimationUtility.CalculateTransformPath(gameObject.transform, root.transform))
         .ToArray();
+    var missingPrefabPaths = root.GetComponentsInChildren<Transform>(true)
+        .Select(transform => transform.gameObject)
+        .Where(gameObject => PrefabUtility.GetPrefabInstanceStatus(gameObject) == PrefabInstanceStatus.MissingAsset)
+        .Select(gameObject => AnimationUtility.CalculateTransformPath(gameObject.transform, root.transform))
+        .Distinct()
+        .ToArray();
+    var brokenReferences = new List<string>();
+    foreach (var component in root.GetComponentsInChildren<Component>(true))
+    {
+        if (component == null) continue;
+        var serialized = new SerializedObject(component);
+        var property = serialized.GetIterator();
+        while (property.NextVisible(true))
+        {
+            if (property.propertyType == SerializedPropertyType.ObjectReference &&
+                property.objectReferenceValue == null &&
+                property.objectReferenceInstanceIDValue != 0)
+            {
+                brokenReferences.Add($"{AnimationUtility.CalculateTransformPath(component.transform, root.transform)} | {component.GetType().FullName}.{property.propertyPath}");
+            }
+        }
+    }
+    if (missingPrefabPaths.Length != 0)
+    {
+        failures.Add($"{path}: missing prefabs: {string.Join(", ", missingPrefabPaths)}");
+    }
     if (path.EndsWith("GameSystem.prefab", StringComparison.Ordinal))
     {
         if (missingPaths.Length != 18 || missingPaths.Any(missingPath => !missingPath.StartsWith("Player/PlayerAvater/Chr001/", StringComparison.Ordinal)))
         {
             failures.Add($"{path}: unexpected baseline missing scripts: {string.Join(", ", missingPaths)}");
+        }
+        var expectedBrokenReferences = new[]
+        {
+            "Player/PlayerAvater/Chr001/hair_05 | UnityEngine.SkinnedMeshRenderer.m_Mesh",
+            "CutSceneManager | UnityEngine.Playables.PlayableDirector.m_SceneBindings.Array.data[0].key",
+        };
+        if (!brokenReferences.OrderBy(value => value).SequenceEqual(expectedBrokenReferences.OrderBy(value => value)))
+        {
+            failures.Add($"{path}: unexpected broken references: {string.Join(", ", brokenReferences)}");
         }
     }
     else
@@ -436,15 +471,19 @@ foreach (var path in paths)
         {
             failures.Add($"{path}: {string.Join(", ", missingPaths)}");
         }
+        if (brokenReferences.Count != 0)
+        {
+            failures.Add($"{path}: broken references: {string.Join(", ", brokenReferences)}");
+        }
     }
     PrefabUtility.UnloadPrefabContents(root);
 }
 if (failures.Count != 0) throw new InvalidOperationException(string.Join("\n", failures));
-return "InventoryItems=0, MainGameUI=0, GameSystem=18 baseline";
+return "MissingPrefabs=0, InventoryItems/MainGameUI clean, GameSystem=18 missing scripts + 2 broken-reference baseline";
 '
 ```
 
-Expected: `InventoryItems=0, MainGameUI=0, GameSystem=18 baseline` and no exception。さらに`GameSystem.prefab`から削除対象GUID `61f42a36e8ea4515850d3bce341f3f35` と `craftTreeViewManager` が消え、`Chr001.prefab`に差分がないこと。
+Expected: `MissingPrefabs=0, InventoryItems/MainGameUI clean, GameSystem=18 missing scripts + 2 broken-reference baseline` and no exception。`GameSystem`の18 missing scriptsと2 broken referencesはprivate asset不在に由来する変更前ベースラインであり、増減を失敗にする。さらに`GameSystem.prefab`から削除対象GUID `61f42a36e8ea4515850d3bce341f3f35` と `craftTreeViewManager` が消え、`Chr001.prefab`に差分がないこと。
 
 - [ ] **Step 3: 削除対象GUIDと製品・現行資料の参照を全検索する**
 
