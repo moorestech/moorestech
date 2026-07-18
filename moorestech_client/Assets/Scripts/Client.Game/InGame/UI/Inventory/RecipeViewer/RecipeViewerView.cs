@@ -1,10 +1,7 @@
-using System.Collections.Generic;
-using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.UI.Inventory.Craft;
 using Core.Master;
 using UniRx;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
@@ -16,27 +13,12 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         [SerializeField] private ItemListView itemListView;
         
-        [SerializeField] private CraftTreeViewManager craftTreeViewManager;
-        [SerializeField] private List<Button> createCraftTreeView;
-        
-        private RecipeViewerItemRecipes _currentRecipe;
-        
         private void Awake()
         {
             itemListView.OnClickItem.Subscribe(SetItemListView);
             craftInventoryView.OnClickItem.Subscribe(SetItemListView);
             machineRecipeView.OnClickItem.Subscribe(SetItemListView);
             recipeTabView.OnClickTab.Subscribe(OnClickTab);
-            
-            foreach (var craftTreeView in createCraftTreeView)
-            {
-                craftTreeView.onClick.AddListener(() =>
-                {
-                    if (_currentRecipe == null) return;
-                    
-                    craftTreeViewManager.CreateNewCraftTree(_currentRecipe.ResultItemId);
-                });
-            }
         }
         
         private void SetItemListView(RecipeViewerItemRecipes recipeViewerItemRecipes)
@@ -46,8 +28,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 return;
             }
             
-            _currentRecipe = recipeViewerItemRecipes;
-
             // アンロック済みレシピを1回だけ取得して各ビューに渡す
             // Compute unlocked machine recipes once and pass to each view
             var unlockedMachineRecipes = recipeViewerItemRecipes.UnlockedMachineRecipes();

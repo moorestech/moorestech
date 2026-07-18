@@ -81,17 +81,16 @@ UIStateEnum外だが視覚的に独立したUI要素。
 |---|---|---|---|---|
 | 18 | コンテキストメニュー（右クリックメニュー） | ✅ | `24-context-menu.png` | `ContextMenuView.Instance.Show(null, [...])` を直接呼び出し。位置決定が実OSマウス座標依存（legacy `Input.mousePosition`）だったため、`menuParent`をリフレクションで画面中央へ再配置 |
 | 19 | 共通モーダル (CommonModal/OneButtonModal) | ⛔ | — | **未取得**: `ModalManager.OpenModal`を呼び出す実装（`IModalInstantiator`の具象クラス）がコードベース中に一件も存在しないことを確認（未使用/未配線のデッドコード）。ゼロから`IModalInstantiator`を実装するコストが見合わないため見送り |
-| 20 | クラフトツリー（レシピチェーン設計） | ✅ | `25-craft-tree-planner.png` | `CraftTreeViewManager.CreateNewCraftTree(itemId)` を直接呼び出し（トレイテムのマスターGuidから`MasterHolder.ItemMaster.GetItemId`で変換） |
-| 21 | マウスカーソルツールチップ | ✅ | `26-mouse-cursor-tooltip.png` | `MouseCursorTooltip.Instance.Show(text, isLocalize:false)`。位置追従コンポーネント`UICursorFollowControl`がlegacy `Input.mousePosition`依存でUpdate毎に上書きするため、`enabled=false`にしてから画面中央へ固定配置 |
-| 22 | キー操作ヒントバー (KeyControlDescription) | ✅（写り込み） | 各GameScreen系スクショの左下 | 独立画面ではなく常時表示のオーバーレイ。状態ごとに文言が変化することを`03/18/19/20/23`等で確認済み |
-| 23 | チュートリアルハイライト (TutorialHighlight) | ⛔ | — | **未取得**: 初回プレイ限定のチュートリアル演出。`PlayerPrefs`/チュートリアルフラグのリセットが必要で、時間の都合上見送り |
-| 24 | HUDアロー（目的地方向インジケータ） | ⛔ | — | **未取得**: チュートリアル/ミッションの目標が有効な時のみ表示。有効なミッション状態の構築が必要で見送り |
+| 20 | マウスカーソルツールチップ | ✅ | `26-mouse-cursor-tooltip.png` | `MouseCursorTooltip.Instance.Show(text, isLocalize:false)`。位置追従コンポーネント`UICursorFollowControl`がlegacy `Input.mousePosition`依存でUpdate毎に上書きするため、`enabled=false`にしてから画面中央へ固定配置 |
+| 21 | キー操作ヒントバー (KeyControlDescription) | ✅（写り込み） | 各GameScreen系スクショの左下 | 独立画面ではなく常時表示のオーバーレイ。状態ごとに文言が変化することを`03/18/19/20/23`等で確認済み |
+| 22 | チュートリアルハイライト (TutorialHighlight) | ⛔ | — | **未取得**: 初回プレイ限定のチュートリアル演出。`PlayerPrefs`/チュートリアルフラグのリセットが必要で、時間の都合上見送り |
+| 23 | HUDアロー（目的地方向インジケータ） | ⛔ | — | **未取得**: チュートリアル/ミッションの目標が有効な時のみ表示。有効なミッション状態の構築が必要で見送り |
 
 ---
 
 ## まとめ / Summary
 
-- **画面候補総数**: 24（UIStateEnum 11種 + ネスト2種 + SubInventory 13種[12実装+BaseCamp] + Bootstrap/メタ4種 + オーバーレイ7種、重複整理後）
-- **取得済みスクリーンショット数**: 26枚（SubInventoryの12バリアント込み）
+- **画面候補総数**: 23（UIStateEnum 11種 + ネスト2種 + SubInventory 13種[12実装+BaseCamp] + Bootstrap/メタ4種 + オーバーレイ6種、重複整理後）
+- **取得済みスクリーンショット数**: 25枚（SubInventoryの12バリアント込み）
 - **未取得**: 8項目（ServerConnectPopup、Story/Skit、TrainHUDScreen×2、BaseCampInventory、CommonModal、TutorialHighlight、HudArrow）— いずれも理由を明記
 - **既知の描画上の注意点**: 本worktreeには地形テクスチャ等の一部アセット（`moorestech-client-private`）が展開されておらず、地面がUnityデフォルトのチェッカーテクスチャで表示されている。UI要素自体の見た目・レイアウトへの影響はない
