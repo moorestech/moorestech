@@ -59,6 +59,18 @@ export const FilterSplitterDataSchema = z.object({
   directions: z.array(FilterSplitterDirectionDataSchema),
 });
 
+export const ElectricToGearOutputModeDataSchema = z.object({
+  rpm: z.number(),
+  torque: z.number(),
+  requiredPower: z.number(),
+});
+export const ElectricToGearDataSchema = z.object({
+  selectedIndex: z.number().int().nonnegative(),
+  fulfillmentRate: z.number(),
+  consumedElectricPower: z.number(),
+  outputModes: z.array(ElectricToGearOutputModeDataSchema),
+});
+
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
   blockType: z.string(),
@@ -74,6 +86,7 @@ export const BlockInventoryOpenSchema = z.object({
   electricNetwork: ElectricNetworkDataSchema.optional(),
   gearNetwork: GearNetworkDataSchema.optional(),
   filterSplitter: FilterSplitterDataSchema.optional(),
+  electricToGear: ElectricToGearDataSchema.optional(),
 });
 export const BlockInventoryClosedSchema = z.object({ open: z.literal(false) });
 export const BlockInventoryDataSchema = z.discriminatedUnion("open", [BlockInventoryOpenSchema, BlockInventoryClosedSchema]);

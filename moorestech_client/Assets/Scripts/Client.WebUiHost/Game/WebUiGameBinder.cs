@@ -128,6 +128,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
+            hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, unlockStateData, blueprintLibrary, buildMenuView));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
         }

@@ -25,6 +25,15 @@ export function applyFilterItem(block: BlockInventoryData, p: ActionPayloads["fi
   return true;
 }
 
+// 有効な出力モードだけ反映する
+// electric_to_gear.set_output_mode: apply only a valid index to the StateDetail equivalent
+export function applyElectricToGearMode(block: BlockInventoryData, p: ActionPayloads["electric_to_gear.set_output_mode"]): boolean {
+  if (!block.open || !block.electricToGear) return false;
+  if (p.modeIndex < 0 || p.modeIndex >= block.electricToGear.outputModes.length) return false;
+  block.electricToGear.selectedIndex = p.modeIndex;
+  return true;
+}
+
 // research.complete: 該当 guid ノードを completed へ書換える。適用できたら true
 // research.complete: rewrite the matching guid node to completed; true when applied
 export function applyResearchComplete(tree: ResearchTreeData, p: ActionPayloads["research.complete"]): boolean {

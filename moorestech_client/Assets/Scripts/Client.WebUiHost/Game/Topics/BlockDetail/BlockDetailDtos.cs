@@ -78,4 +78,19 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public string Mode;
         public List<int> FilterItemIds;
     }
+
+    public class ElectricToGearDetailDto
+    {
+        public int SelectedIndex;
+        public float FulfillmentRate;
+        public float ConsumedElectricPower;
+        public List<ElectricToGearOutputModeDto> OutputModes;
+    }
+
+    public class ElectricToGearOutputModeDto
+    {
+        public double Rpm;
+        public double Torque;
+        public double RequiredPower;
+    }
 }
