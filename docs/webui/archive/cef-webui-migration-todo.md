@@ -48,11 +48,10 @@
 > これらは個別 UI 機能より優先。未解決だと各機能の移行が成立しない。各 INFRA にも complexity(S/M/L/XL) を付与（横断インフラの重さを見積に乗せる）。
 > **注**: 後続 FEAT のブロッカーは INFRA-1〜7・11・12。INFRA-9(本番配信)・13(堅牢性)は dev が Vite のため FEAT 開発の前提ではなく、Phase C 末〜任意後フェーズで可。
 
-### INFRA-1: CEF パッケージのバイナリ恒久統合 **【最優先・ハードゲート / complexity: L】**
-- 症状: `jp.juha.cefunitysample`（UPM git）が Git LFS を解決せず、`libcef_unity_rust.dylib` 等が 131B のポインタになり `DllNotFoundException`。新規環境で必ず初期化失敗。
-- 選択肢: (a) パッケージ側で LFS をやめる / (b) バイナリ別配布＋ローカルコピー手順の自動化 / (c) embedded package 化。
-- 完了条件: clean clone → Unity 起動だけで CEF が描画初期化に成功する（手動 LFS pull 不要）。
-- **依存ゲート**: 本項目の完了は **INFRA-2/3/6 の着手前提**（描画が成功した CEF 上でしか入力・表示・状態橋渡しを検証できない）。Windows/Linux バイナリも同じ配布経路（INFRA-8）。
+### INFRA-1: CEF パッケージのバイナリ恒久統合 **【現行計画へ移管済み】**
+- 本アーカイブ作成時は Git LFS 設定不足によりネイティブバイナリがポインタのまま残る問題が未解決だった。
+- 現在は Git URL維持 + OS別セットアップスクリプト + Editor検証ゲートを採用済み。方式と復旧手順は `../design/cef-binary-integration.md` を正とする。
+- clean worktree の実機受け入れ結果は現行 `../plans/phase-a-infra.md` で追跡する。
 
 ### INFRA-2: 入力パススルー（マウス/キーボード/IME → CEF） **【complexity: L】**
 - 現状スモークは表示のみ。クリック/ドラッグ/キー/スクロール/IME を CEF へ送る経路が未検証。

@@ -9,17 +9,23 @@
 # 起動方法
 mooresech_clientをUnityで開きMainGameシーンを再生してください
 
-## 初回セットアップ（Git LFS 必須）
+## 初回セットアップ（CEF / Git LFS）
 
-Unityで開く**前に**、一度だけ `git lfs install` を実行してください（マシンごとに1回）。
+Git LFS をインストールした後、Unityで開く**前に**OS別のセットアップスクリプトを実行してください。
 
 ```bash
-git lfs install
+# macOS / Linux
+./scripts/setup-cef.sh
 ```
 
-Web UI を描画する CEF プラグイン（`jp.juha.cefunity`）は UPM の git 依存として取り込まれ、ネイティブバイナリ（`libcef_unity_rust.dylib` / Chromium Embedded Framework 等）を **Git LFS** で配布しています。git-lfs のグローバル smudge フィルタが未登録だと、UPM の clone がバイナリをポインタファイルのまま展開し、再生時に `DllNotFoundException: dlopen(...) slice is not valid mach-o file` で CEF が起動しません。
+```powershell
+# Windows PowerShell
+.\scripts\setup-cef.ps1
+```
 
-すでにポインタ状態で取り込んでしまった場合は、`git lfs install` 後に `Library/PackageCache/jp.juha.cefunity@*` を削除して Unity に再解決させれば実体が取得されます。
+スクリプトは Git LFS を設定し、CEF の UPM キャッシュを再生成可能な状態にします。
+Unity 起動時にも LFS ポインタの残存を検査し、問題があれば同じ復旧コマンドを Console に表示します。
+方式の詳細と clean worktree 手順は `docs/webui/design/cef-binary-integration.md` を参照してください。
 
 # コーディングエージェントの使用について
 
@@ -83,5 +89,4 @@ https://fonts.google.com/noto/specimen/Noto+Sans+JP
 
 Noto Sans
 https://fonts.google.com/noto/specimen/Noto+Sans
-
 

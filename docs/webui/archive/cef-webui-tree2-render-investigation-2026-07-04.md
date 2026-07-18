@@ -11,8 +11,8 @@
 ## 完了した作業
 
 1. **CEF ネイティブバイナリの LFS 修復**
-   - `jp.juha.cefunitysample`（UPM git パッケージ）が Git LFS を解決せず、`Library/PackageCache/jp.juha.cefunitysample@cde14ac6ee18/Interop/Plugins/osx-arm64/` 配下の `libcef_unity_rust.dylib`・`cef-unity-server.app` が 131B の LFS ポインタのままだった。
-   - `KurisuJuha/cef-unity-moorestech.git` をロック済みリビジョン `3ddfc60bdf786b6233d9eb8a5e8110348941dffb` で clone + `git lfs pull` し、実バイナリ（296MB）を取得して `Library/PackageCache` に上書きコピー。
+   - 当時の UPM git パッケージで Git LFS 設定が不足し、ネイティブバイナリが 131B の LFS ポインタのままだった。
+   - 当時は PackageCache の手動修復で調査を継続したが、この手順は廃止済み。現在は `../design/cef-binary-integration.md` と `scripts/setup-cef.*` を正とする。
 
 2. **Node/pnpm 環境のセットアップ**
    - `moorestech_web/setup.sh` を実行し、Node.js 20.18.1 + pnpm 9.15.0 を `moorestech_web/node/mac-arm64/` に配置。
