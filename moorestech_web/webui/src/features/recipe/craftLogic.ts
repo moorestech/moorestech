@@ -3,7 +3,7 @@ import type {
   CraftRecipesData,
   MachineRecipe,
   MachineRecipesData,
-} from "@/bridge/contract/payloadTypes";
+} from "@/bridge";
 
 // null はクラフトタブ
 // null denotes the craft tab

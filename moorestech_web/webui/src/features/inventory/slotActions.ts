@@ -1,5 +1,5 @@
 import { readTopic, Topics } from "@/bridge";
-import type { ItemMasterEntry, PlayerInventoryData, SlotData, SlotRef } from "@/bridge/contract/payloadTypes";
+import type { ItemMasterEntry, PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import {
   dispatchPlanned,
   planPlayerDoubleClick,

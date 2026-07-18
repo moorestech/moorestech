@@ -1,6 +1,6 @@
 import { CloseButton, Group, Title } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
-import SlotGrid from "@/shared/ui/SlotGrid";
+import { SlotGrid } from "@/shared/ui";
 import BuildMenuSlot from "./BuildMenuSlot";
 import { selectPayload, deletePayload } from "./buildMenuLogic";
 import styles from "./style.module.css";

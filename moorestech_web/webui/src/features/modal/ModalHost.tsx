@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Modal, Text, TextInput } from "@mantine/core";
 import { useTopic, dispatchAction, Topics } from "@/bridge";
-import type { ModalRequest } from "@/bridge/contract/payloadTypes";
+import type { ModalRequest } from "@/bridge";
 import { respondPayload, buttonColor, canConfirm } from "./modalLogic";
 
 // uGUI OneButtonModal の web 版。ui.modal トピックを購読し、要求があれば中央モーダルを描く。

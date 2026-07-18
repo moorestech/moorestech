@@ -1,5 +1,5 @@
 import { Stack, Text, Progress } from "@mantine/core";
-import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge";
 import { fuelRatio } from "./detailLogic";
 
 // 発電機: 残燃料バー + 稼働率（uGUI GeneratorBlockInventoryView 準拠。燃料スロットはビュー側グリッドが描画）

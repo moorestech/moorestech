@@ -1,4 +1,4 @@
-import type { ResearchNodeData, ResearchNodeState } from "@/bridge/contract/payloadTypes";
+import type { ResearchNodeData, ResearchNodeState } from "@/bridge";
 
 // uGUIのY上向き座標をCSS topへ反転写像（screenY = offsetY - y）
 // Flip uGUI's Y-up coords to CSS top (screenY = offsetY - y)

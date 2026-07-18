@@ -1,5 +1,5 @@
 import { readTopic, Topics } from "@/bridge";
-import type { SlotData } from "@/bridge/contract/payloadTypes";
+import type { SlotData } from "@/bridge";
 import {
   dispatchPlanned,
   planBlockDoubleClick,

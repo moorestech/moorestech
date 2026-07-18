@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { NotifyVariant } from "@/bridge/transport/notify";
+import type { NotifyVariant } from "@/bridge";
 
 // variant は bridge の通知契約と共有する（error=赤 / info=青の色分けに使う）
 // The variant is shared with the bridge notify contract (drives error=red / info=blue coloring)

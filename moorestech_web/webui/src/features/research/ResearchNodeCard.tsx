@@ -1,5 +1,5 @@
 import { Button, Paper, Stack, Text, Tooltip, Group } from "@mantine/core";
-import type { ResearchNodeData } from "@/bridge/contract/payloadTypes";
+import type { ResearchNodeData } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import { dispatchAction } from "@/bridge";
 import { deriveResearchButton, isItemSufficient } from "./researchLogic";

@@ -1,4 +1,4 @@
-import type { SlotData } from "@/bridge/contract/payloadTypes";
+import type { SlotData } from "@/bridge";
 
 // Shift+クリック直接移動の配分計画（uGUI PlayerInventoryDirectMover 準拠）
 // Direct-move allocation plan for Shift+click (mirrors uGUI PlayerInventoryDirectMover)

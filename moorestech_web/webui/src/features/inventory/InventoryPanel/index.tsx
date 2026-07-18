@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import { Text } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
 import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
-import type { SlotRef } from "@/bridge/contract/payloadTypes";
+import type { SlotRef } from "@/bridge";
 import { createSlotActions } from "../slotActions";
 
 // 固定pxでピッチの端数ドリフトを防ぐ

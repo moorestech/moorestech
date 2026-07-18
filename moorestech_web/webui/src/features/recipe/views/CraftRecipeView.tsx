@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
-import type { CraftRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
+import type { CraftRecipe, ItemMasterEntry } from "@/bridge";
 import { clampIndex, craftable } from "../craftLogic";
 import { useHoldCraft } from "../useHoldCraft";
 import styles from "./RecipeBox.module.css";

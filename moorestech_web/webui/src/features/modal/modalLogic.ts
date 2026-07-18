@@ -1,4 +1,4 @@
-import type { ModalRequest } from "@/bridge/contract/payloadTypes";
+import type { ModalRequest } from "@/bridge";
 import type { ActionPayloads } from "@/bridge";
 
 // modal 応答の action payload を組み立てる純関数。text は input モーダルの確定時のみ付与する。

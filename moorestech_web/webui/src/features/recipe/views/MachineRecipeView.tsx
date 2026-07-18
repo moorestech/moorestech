@@ -1,7 +1,7 @@
 import { Group, Stack, Text } from "@mantine/core";
 import { ItemSlot, BlockIcon } from "@/shared/ui";
 import slotStyles from "@/shared/ui/ItemSlot/style.module.css";
-import type { MachineRecipe, ItemMasterEntry } from "@/bridge/contract/payloadTypes";
+import type { MachineRecipe, ItemMasterEntry } from "@/bridge";
 import { clampIndex } from "../craftLogic";
 import RecipePager from "./RecipePager";
 

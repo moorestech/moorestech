@@ -8,7 +8,7 @@ import type {
   MachineRecipesData,
   PlayerInventoryData,
   ItemMasterEntry,
-} from "@/bridge/contract/payloadTypes";
+} from "@/bridge";
 import {
   selectCraftRecipes,
   groupMachineRecipesByBlock,

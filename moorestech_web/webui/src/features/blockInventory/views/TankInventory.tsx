@@ -1,4 +1,4 @@
-import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge";
 import { FluidSlotRow } from "@/shared/ui";
 
 // Tank UI: uGUI 流体タンク同様 fluidSlots を列展開＋進捗矢印

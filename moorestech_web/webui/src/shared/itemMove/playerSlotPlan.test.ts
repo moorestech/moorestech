@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { GRAB, planPlayerLeftClick, planPlayerRightClick, planPlayerDoubleClick } from "./playerSlotPlan";
 import type { PlayerSlotContext } from "./playerSlotPlan";
-import type { PlayerInventoryData } from "@/bridge/contract/payloadTypes";
+import type { PlayerInventoryData } from "@/bridge";
 
 const slot = (itemId: number, count: number) => ({ itemId, count });
 const inv = (grabCount: number): PlayerInventoryData => ({

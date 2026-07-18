@@ -1,5 +1,5 @@
 import { Stack } from "@mantine/core";
-import type { BlockInventoryOpen } from "@/bridge/contract/payloadTypes";
+import type { BlockInventoryOpen } from "@/bridge";
 import MachineSection from "../details/MachineSection";
 import { ElectricNetworkSection } from "../details/NetworkSections";
 
