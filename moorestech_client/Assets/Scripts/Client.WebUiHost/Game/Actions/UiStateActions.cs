@@ -41,8 +41,28 @@ namespace Client.WebUiHost.Game.Actions
                 return UniTask.FromResult(ActionResult.Success());
             }
 
-            _uiStateControl.RequestTransition(Enum.Parse<UIStateEnum>(stateName));
+            var requested = Enum.Parse<UIStateEnum>(stateName);
+            if (!IsAllowed(_uiStateControl.CurrentState, requested)) return UniTask.FromResult(ActionResult.Fail("transition_not_allowed"));
+            _uiStateControl.RequestTransition(requested);
             return UniTask.FromResult(ActionResult.Success());
+        }
+
+        public static bool IsAllowed(UIStateEnum current, UIStateEnum requested)
+        {
+            if (current == requested) return true;
+            return current switch
+            {
+                UIStateEnum.GameScreen => requested == UIStateEnum.PlayerInventory,
+                UIStateEnum.PlayerInventory => requested == UIStateEnum.GameScreen,
+                UIStateEnum.SubInventory => requested == UIStateEnum.GameScreen,
+                UIStateEnum.BuildMenu => requested == UIStateEnum.GameScreen,
+                // C1/C2で追加されたWeb画面の閉じ操作。Story/PauseMenu中の強制遷移は引き続き拒否
+                // Close paths for the C1/C2 web screens; forced transitions during Story/PauseMenu stay rejected
+                UIStateEnum.ResearchTree => requested == UIStateEnum.GameScreen,
+                UIStateEnum.ChallengeList => requested == UIStateEnum.GameScreen,
+                UIStateEnum.PauseMenu => requested == UIStateEnum.GameScreen,
+                _ => false,
+            };
         }
     }
 }

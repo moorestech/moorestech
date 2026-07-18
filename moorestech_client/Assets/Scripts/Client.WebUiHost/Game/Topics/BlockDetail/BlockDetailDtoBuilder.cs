@@ -6,6 +6,7 @@ using Game.Block.Interface.State;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.GearConsumptionModule;
+using System;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
@@ -27,10 +28,13 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             var machineState = block.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
             if (common != null && machineState != null && param is IMachineParam machineParam)
             {
+                var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(machineState.MachineRecipeGuid));
                 dto.Progress = machineState.ProcessingRate;
                 dto.Machine = new MachineDetailDto
                 {
                     RecipeGuid = machineState.MachineRecipeGuid,
+                    RecipeTime = recipe?.Time ?? 0,
+                    OutputItems = BuildMachineOutputItems(recipe),
                     CurrentState = ToCamelCase(common.CurrentStateType),
                     CurrentPower = common.CurrentPower,
                     RequestPower = common.RequestPower,
@@ -91,6 +95,15 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             }
 
             ApplyNetworkCaches(dto, cache);
+        }
+
+        private static List<MachineOutputItemDto> BuildMachineOutputItems(Mooresmaster.Model.MachineRecipesModule.MachineRecipeMasterElement recipe)
+        {
+            var result = new List<MachineOutputItemDto>();
+            if (recipe == null) return result;
+            foreach (var output in recipe.OutputItems)
+                result.Add(new MachineOutputItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(output.ItemGuid).AsPrimitive(), Count = output.Count });
+            return result;
         }
 
         // ネットワーク集約キャッシュを dto に写す（未取得は null のままキー省略）

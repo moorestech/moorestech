@@ -32,7 +32,7 @@ namespace Client.Tests.WebUi
                         Position = new ResearchPositionDto { X = 0, Y = 0 },
                         PrevGuids = new List<string>(),
                         ConsumeItems = new List<ResearchConsumeItemDto> { new() { ItemId = 1, Count = 5 } },
-                        RewardItemIds = new List<int> { 2 },
+                        RewardItems = new List<ResearchRewardItemDto> { new() { ItemId = 2, Count = 4 } },
                         UnlockItemIds = new List<int>(),
                     },
                     new()
@@ -44,7 +44,7 @@ namespace Client.Tests.WebUi
                         Position = new ResearchPositionDto { X = 300, Y = -120 },
                         PrevGuids = new List<string> { "11111111-1111-1111-1111-111111111111" },
                         ConsumeItems = new List<ResearchConsumeItemDto>(),
-                        RewardItemIds = new List<int>(),
+                        RewardItems = new List<ResearchRewardItemDto>(),
                         UnlockItemIds = new List<int> { 3 },
                     },
                 },

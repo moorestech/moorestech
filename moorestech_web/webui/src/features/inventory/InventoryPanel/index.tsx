@@ -31,6 +31,7 @@ export default function InventoryPanel() {
               onLeftDown={(shiftKey) => slotActions.onLeftDown(ref, shiftKey)}
               onRightDown={() => slotActions.onRightDown(ref)}
               onRightEnter={() => slotActions.onRightEnter(ref)}
+              onLeftEnter={() => slotActions.onLeftEnter(ref)}
               onDoubleClick={() => slotActions.onDoubleClick(ref)}
             />
           );

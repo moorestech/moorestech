@@ -42,9 +42,12 @@ export default function ResearchNodeCard({ node, left, top, owned, resolveName }
             ))}
           </Group>
         )}
-        {node.rewardItemIds.length + node.unlockItemIds.length > 0 && (
+        {node.rewardItems.length + node.unlockItemIds.length > 0 && (
           <Group gap={4}>
-            {[...node.rewardItemIds, ...node.unlockItemIds].map((id, i) => (
+            {node.rewardItems.map((reward, i) => (
+              <ItemSlot key={`${reward.itemId}-${i}`} itemId={reward.itemId} count={reward.count} name={resolveName(reward.itemId)} />
+            ))}
+            {node.unlockItemIds.map((id, i) => (
               <ItemSlot key={`${id}-${i}`} itemId={id} name={resolveName(id)} />
             ))}
           </Group>

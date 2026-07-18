@@ -9,10 +9,18 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     public class MachineDetailDto
     {
         public string RecipeGuid;
+        public double RecipeTime;
+        public List<MachineOutputItemDto> OutputItems;
         public string CurrentState;
         public float CurrentPower;
         public float RequestPower;
         public SlotLayoutDto SlotLayout;
+    }
+
+    public class MachineOutputItemDto
+    {
+        public int ItemId;
+        public int Count;
     }
 
     public class SlotLayoutDto

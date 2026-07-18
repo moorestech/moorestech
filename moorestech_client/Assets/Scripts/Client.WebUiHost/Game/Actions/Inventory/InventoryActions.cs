@@ -2,6 +2,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace Client.WebUiHost.Game.Actions
 {
@@ -73,6 +74,45 @@ namespace Client.WebUiHost.Game.Actions
             // A stack of 1 has no half; treat as a successful no-op
             var half = item.Count / 2;
             if (0 < half) _controller.MoveItem(LocalMoveInventoryType.MainOrSub, fromSlot, LocalMoveInventoryType.Grab, 0, half);
+            return UniTask.FromResult(ActionResult.Success());
+        }
+    }
+
+    /// <summary>
+    /// inventory.split_drag: 現在の grab を指定スロットへホスト計算で等分する
+    /// inventory.split_drag: evenly distributes the current grab across slots using host-side arithmetic
+    /// </summary>
+    public class SplitDragActionHandler : IActionHandler
+    {
+        public string ActionType => "inventory.split_drag";
+        private readonly LocalPlayerInventoryController _controller;
+
+        public SplitDragActionHandler(LocalPlayerInventoryController controller) { _controller = controller; }
+
+        public static int CalculateCountPerSlot(int grabCount, int destinationCount)
+        {
+            return destinationCount <= 0 ? 0 : grabCount / destinationCount;
+        }
+
+        public UniTask<ActionResult> ExecuteAsync(JObject payload)
+        {
+            if (payload?["slots"] is not JArray slots || slots.Count == 0) return UniTask.FromResult(ActionResult.Fail("invalid_slots"));
+            var destinations = new List<int>();
+            foreach (var token in slots)
+            {
+                if (!InventoryAreaMapper.TryParseClickableSlotRef(token, _controller.LocalPlayerInventory.MainSlotCount, out var slot)) return UniTask.FromResult(ActionResult.Fail("invalid_slot"));
+                if (destinations.Contains(slot)) continue;
+                if (!_controller.LocalPlayerInventory[slot].IsAllowedToAddWithRemain(_controller.GrabInventory)) continue;
+                destinations.Add(slot);
+            }
+
+            // 配分量はホストの現在 grab と一意な行先数だけから決める
+            // Derive the share only from the host's current grab and unique destination count
+            if (destinations.Count == 0) return UniTask.FromResult(ActionResult.Fail("no_valid_slots"));
+            var count = CalculateCountPerSlot(_controller.GrabInventory.Count, destinations.Count);
+            if (count <= 0) return UniTask.FromResult(ActionResult.Success());
+            foreach (var slot in destinations)
+                _controller.TryMoveItem(LocalMoveInventoryType.Grab, 0, LocalMoveInventoryType.MainOrSub, slot, count, out _);
             return UniTask.FromResult(ActionResult.Success());
         }
     }

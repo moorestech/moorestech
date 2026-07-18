@@ -20,8 +20,14 @@ namespace Client.WebUiHost.Game.Topics
         public ResearchPositionDto Position;
         public List<string> PrevGuids;
         public List<ResearchConsumeItemDto> ConsumeItems;
-        public List<int> RewardItemIds;
+        public List<ResearchRewardItemDto> RewardItems;
         public List<int> UnlockItemIds;
+    }
+
+    public class ResearchRewardItemDto
+    {
+        public int ItemId;
+        public int Count;
     }
 
     public class ResearchPositionDto
