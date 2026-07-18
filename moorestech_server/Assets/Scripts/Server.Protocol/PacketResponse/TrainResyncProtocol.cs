@@ -6,8 +6,8 @@ using Server.Event.EventReceive;
 namespace Server.Protocol.PacketResponse
 {
     /// <summary>
-    ///     train/rail再同期の引き金プロトコル。snapshot本体はイベント経路でpushされる
-    ///     Trigger protocol for train/rail resync; snapshots are pushed over the event stream
+    ///     train/rail再同期、データはイベント経由で送られる
+    ///     Train/rail resync, data is sent over the event stream
     /// </summary>
     public sealed class TrainResyncProtocol : IPacketResponse
     {
@@ -23,9 +23,9 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
             var data = MessagePackSerializer.Deserialize<RequestMessagePack>(payload);
-
-            // snapshotはイベント経路でpushし、応答はackのみ返す（適用経路を1本に保つ）
-            // Push snapshots via the event stream; the response is a bare ack to keep one apply path
+                
+            // データはイベント経由で送る
+            // Data is sent over the event stream
             _trainFullSnapshotEventPacket.PushFullSnapshots(context.PlayerId.Value, data.IncludeRailGraph);
 
             return new ResponseMessagePack(true);
