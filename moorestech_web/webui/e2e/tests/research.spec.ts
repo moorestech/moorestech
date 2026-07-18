@@ -62,6 +62,14 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   const afterZoomWidth = (await node.boundingBox())!.width;
   await page.mouse.wheel(0, 240);
   await expect.poll(async () => (await node.boundingBox())!.width).toBeLessThan(afterZoomWidth);
+  await expect.poll(async () => {
+    const box = await node.boundingBox();
+    return box!.x + box!.width / 2;
+  }).toBeCloseTo(zoomCursor.x, 0);
+  await expect.poll(async () => {
+    const box = await node.boundingBox();
+    return box!.y + box!.height / 2;
+  }).toBeCloseTo(zoomCursor.y, 0);
 
   const dragStart = {
     x: viewportBox!.x + viewportBox!.width - 40,
@@ -74,6 +82,16 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   await page.mouse.up();
   await expect.poll(async () => (await node.boundingBox())!.x - beforePan!.x).toBeCloseTo(-80, 0);
   await expect.poll(async () => (await node.boundingBox())!.y - beforePan!.y).toBeCloseTo(-50, 0);
+
+  const beforeRightDrag = await node.boundingBox();
+  await page.mouse.move(dragStart.x, dragStart.y);
+  await page.mouse.down({ button: "right" });
+  await page.mouse.move(dragStart.x - 80, dragStart.y - 50, { steps: 5 });
+  await page.mouse.up({ button: "right" });
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  const afterRightDrag = await node.boundingBox();
+  expect(afterRightDrag!.x).toBe(beforeRightDrag!.x);
+  expect(afterRightDrag!.y).toBe(beforeRightDrag!.y);
 
   const beforeNodeDrag = await node.boundingBox();
   const nodeDragStart = { x: beforeNodeDrag!.x + 16, y: beforeNodeDrag!.y + 16 };

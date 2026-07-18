@@ -1,5 +1,5 @@
-/* 研究ツリー: 全画面固定 + 内部スクロールキャンバス。z-index はモーダル(依存: ModalHost)より下 */
-/* Research tree: full-screen fixed with an inner scroll canvas; z-index stays below the modal host */
+/* 研究ツリー: 全画面固定 + 内部パン・ズームキャンバス。z-index はモーダル(依存: ModalHost)より下 */
+/* Research tree: full-screen fixed with an inner pan-and-zoom canvas; z-index stays below the modal host */
 .panel {
   position: fixed;
   inset: 0;
