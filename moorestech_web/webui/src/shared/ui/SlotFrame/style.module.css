@@ -1,0 +1,82 @@
+/* 画面幅に応じて縮むスロット。data-selected は選択状態を参照する e2e 契約として維持する */
+/* Slot scales with viewport width; data-selected remains the e2e contract for selection */
+/* 正本の画素断面実測通り3層リングを描く。--bevel-insetは既定(持ち物/レシピ)が空文字列=外側成長、
+   ホットバーだけ"inset"を注入する。ホットバーはbox(pitch-gap)が固定でリングがその内側へ食い込む構造
+   (白面幅132pxはリング込みの箱から算出されており、外側成長だとpitch算術が破綻するため) */
+/* Draws the 3-layer ring per the reference's measured cross-section. --bevel-inset defaults to empty
+   (inventory/recipe grow outward); only the hotbar injects "inset", because its box (pitch-gap) is fixed and
+   the ring eats inward from that box's own edge (the 132px white-face width already accounts for the ring —
+   growing outward there breaks the pitch arithmetic) */
+.slot {
+  position: relative;
+  width: var(--slot-size, 3rem);
+  height: var(--slot-size, 3rem);
+  /* borderは0(inset box-shadowはpadding-box=border-boxの内側から描かれるため、透明1pxでも
+     ホットバーのinsetリングの前に隙間ができてしまう。border-boxサイジング下ではborder幅がbox外形へ
+     影響しないため0でもグリッド列幅は変わらない) */
+  /* No border: inset box-shadows are clipped to the padding box (inside the border box), so even a
+     transparent 1px border would leave a gap before the hotbar's inset ring. Under border-box sizing the
+     border width doesn't affect the box's outer footprint, so dropping it doesn't move the grid column width */
+  border: 0;
+  border-radius: 0;
+  /* uGUI原画像スポイト: common_button_base_slice #3e4153 × tint0.8019 = #323443、実アルファ0.502で世界と合成する */
+  /* Eyedropped from the uGUI source: common_button_base_slice #3e4153 × tint 0.8019 = #323443 at its real 0.502 alpha, blended by the browser */
+  background-color: rgb(50 52 67 / 50%);
+  /* inset幅と色を用途別変数に分離し、持ち物の白面際だけ実測した中立暗色を使えるようにする */
+  /* Split inset width and color by usage so only inventory white faces can use the measured neutral dark edge */
+  box-shadow:
+    inset 0 0 0 var(--face-inset, 0px) var(--face-inset-color, rgb(20 22 29)),
+    var(--bevel-inset, ) 0 0 0 var(--bevel-1) var(--bevel-c1),
+    var(--bevel-inset, ) 0 0 0 var(--bevel-2) var(--bevel-c2),
+    var(--bevel-inset, ) 0 0 0 var(--bevel-3) var(--bevel-c3);
+  user-select: none;
+}
+
+/* カタログ（レシピ一覧）の未所持セルは中間グレー面。所持セルは白面で上書きする */
+/* Catalog (recipe list) unowned cells use a mid-gray face; owned cells are overridden white below */
+/* iter6: 正本のギャップ断面実測(黒4px→暗2px→中間2px→パネル色可視)は3層とも別色。旧実装はbevel-3を
+   bevel-2と同値にして外層を無効化していたが、実測では外側にもう1段(中間トーン)が存在するため独立させる */
+/* iter6: The reference's gap cross-section (black 4px → dark 2px → mid 2px → panel color) uses three
+   distinct colors. The old bevel-3 was nulled to match bevel-2, but the true measurement shows a third,
+   lighter mid-tone ring further out, so it now gets its own width/color */
+.slot[data-catalog="true"] {
+  /* 半透明insetを除き、正本の外向き4・6・8物理px断面を不透明色で固定する */
+  /* Remove the translucent inset and fix the reference's outward 4, 6, and 8-device-pixel profile with opaque colors */
+  --face-inset: 0px;
+  --bevel-1: 1.565749px;
+  --bevel-2: 2.348624px;
+  --bevel-3: 3.131498px;
+  /* リング3層も暖色を排し、uGUIスロット原色(#323443系)の同輝度寒色へ置き換える */
+  /* Recolor the 3 bevel rings from warm tones to the uGUI slot family (#323443) at the same luminance */
+  --bevel-c1: rgb(20 22 29);
+  --bevel-c2: rgb(44 46 56);
+  --bevel-c3: rgb(51 53 64);
+  background-color: rgb(124 126 136);
+}
+
+/* アイテム入り（所持）セルは白面で空・未所持セルと二層のコントラストを付ける */
+/* Occupied (owned) cells use a white face to contrast against dark empty / gray catalog cells */
+.slot[data-filled="true"] {
+  --face-inset: var(--filled-face-inset, 0px);
+  background-color: rgb(254 254 254);
+}
+
+/* 選択白面の下端だけを削る */
+/* Trim only the selected white face's bottom edge to lift its weight without moving the ring */
+.slot[data-selected="true"][data-filled="true"] {
+  background-image: linear-gradient(to bottom, transparent 0 calc(100% - var(--selected-face-ring-inset, 0px) - var(--selected-face-bottom-trim, 0px)), rgb(50 52 67) calc(100% - var(--selected-face-ring-inset, 0px) - var(--selected-face-bottom-trim, 0px)) calc(100% - var(--selected-face-ring-inset, 0px)), transparent calc(100% - var(--selected-face-ring-inset, 0px)));
+}
+
+/* 選択状態は正本(ホットバー1枠目)の画素実測どおり、ベベルと同じ3層幅を保ったままシアン系へ着色するだけ。
+   旧来の平坦なinset 4px帯(青灰の塊)を廃した。既定(外側成長系)はc1=面寄り/濃いめ→c3=外側/明るめ。
+   ホットバー(inset系)は逆順が要るため--sel-c*経由でHotbarPanel側から上書きする */
+/* Selection recolors the same 3-layer bevel to cyan per the reference's slot-1 pixel measurement, replacing
+   the old flat inset 4px blue-gray band. Default (outward-growth contexts) is c1=near-face/darker → c3=outer/
+   lighter; the hotbar (inset-growth) needs the reverse order, overridden via --sel-c* from HotbarPanel */
+.slot[data-selected="true"] {
+  /* 選択シアンはframe_select.png原色(コア#00ddff・グロー#05c5f5)から採る */
+  /* Selection cyan is eyedropped from frame_select.png (core #00ddff, glow #05c5f5) */
+  --bevel-c1: var(--sel-c1, rgb(5 197 245));
+  --bevel-c2: var(--sel-c2, rgb(0 221 255));
+  --bevel-c3: var(--sel-c3, rgb(28 219 255));
+}
