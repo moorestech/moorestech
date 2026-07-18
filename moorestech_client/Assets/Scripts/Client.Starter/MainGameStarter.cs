@@ -187,6 +187,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
+            builder.Register<TrainFullSnapshotEventNetworkHandler>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
             
             // 設置システム
             // register placement system
@@ -252,11 +253,11 @@ namespace Client.Starter
             builder.Register<IGameUnlockStateData, ClientGameUnlockStateData>(Lifetime.Singleton);
             builder.Register<RailGraphClientCache>(Lifetime.Singleton);
             builder.Register<ClientStationReferenceRegistry>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
-            builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<RailGraphSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitClientCache>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<TrainUnitFutureMessageBuffer>(Lifetime.Singleton);
-            builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton).AsSelf().As<IInitializable>();
+            builder.Register<TrainUnitSnapshotApplier>(Lifetime.Singleton);
             builder.Register<TrainUnitVisualUpdateSystem>(Lifetime.Singleton);
             builder.Register<TrainUnitClientSimulator>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.Register<TrainUnitHashVerifier>(Lifetime.Singleton).As<ITrainUnitHashTickGate>().As<IDisposable>();
@@ -329,14 +330,12 @@ namespace Client.Starter
             _resolver.Resolve<PlayerSystemContainer>();
             _resolver.Resolve<SkitUI>();
 
-            // 列車乗車などログイン中の特殊な状態を再現する
-            // Reproduce special states during login, such as riding a train.
-            RestoreSpecificState(initialHandshakeResponse);
-
             return _resolver;
         }
 
-        private void RestoreSpecificState(InitialHandshakeResponse init)
+        // 初期snapshot適用後にログイン時状態（列車乗車等）を復元する
+        // Restore login-time state (e.g., riding a train) after the initial snapshot is applied
+        public void RestoreLoginState(InitialHandshakeResponse init)
         {
             var context = new UITransitContext(UIStateEnum.GameScreen);
             var uiState = UIStateEnum.GameScreen;

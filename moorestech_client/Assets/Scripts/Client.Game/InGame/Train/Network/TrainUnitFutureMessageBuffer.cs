@@ -84,6 +84,19 @@ namespace Client.Game.InGame.Train.Network
                 break;
             }
         }
+
+        // full snapshot適用時に、watermark以下の古いイベントを一括破棄する
+        // Discard buffered events at or below the applied full-snapshot watermark
+        public void DiscardEventsAtOrBelow(ulong tickUnifiedId)
+        {
+            while (_futureEvents.Count > 0)
+            {
+                var firstTickUnifiedId = _futureEvents.First().Key;
+                if (firstTickUnifiedId > tickUnifiedId) break;
+                _futureEvents.Remove(firstTickUnifiedId);
+            }
+        }
+
         // 最初のkeyを取得
         // Get the first key
         public bool TryGetFirstHashTickUnifiedId(out ulong tickUnifiedId)

@@ -9,6 +9,7 @@ using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Modal;
 using Client.Mod.Texture;
@@ -26,6 +27,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using VContainer;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -181,6 +183,11 @@ namespace Client.Starter
             void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
+                FinalizeInitializationAsync().Forget();
+            }
+
+            async UniTask FinalizeInitializationAsync()
+            {
                 var starter = FindObjectOfType<MainGameStarter>();
                 var resolver = starter.StartGame(handshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
@@ -193,8 +200,13 @@ namespace Client.Starter
                 // Replay buffered events after all handlers have subscribed
                 vanillaApi.Event.StartDispatch();
 
-                // ゲーム初期化完了イベントを発火
-                // Fire game initialization complete event
+                // 初期snapshot適用完了を待つ（順序契約により通常は即時完了する安全ゲート）
+                // Await initial snapshot application; the ordering contract makes this normally instant
+                await resolver.Resolve<TrainFullSnapshotEventNetworkHandler>().WaitForInitialSnapshotAsync();
+
+                // 列車乗車などログイン中の特殊な状態を再現し、初期化完了を通知する
+                // Restore login-time special states, then announce initialization completion
+                starter.RestoreLoginState(handshakeResponse);
                 GameInitializedEvent.FireGameInitialized();
             }
             

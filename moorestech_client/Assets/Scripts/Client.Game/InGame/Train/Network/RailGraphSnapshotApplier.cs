@@ -1,10 +1,8 @@
 using System;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
-using Client.Network.API;
 using Server.Util.MessagePack;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.Network
 {
@@ -12,30 +10,20 @@ namespace Client.Game.InGame.Train.Network
     ///     RailGraph差分の初期適用から再同期までを担うキャッシュ反映サービス
     ///     Service that applies the initial RailGraph snapshot and future resync payloads
     /// </summary>
-    public sealed class RailGraphSnapshotApplier : IInitializable
+    public sealed class RailGraphSnapshotApplier
     {
         private readonly RailGraphClientCache _cache;
-        private readonly InitialHandshakeResponse _initialHandshakeResponse;
         private readonly ClientStationReferenceRegistry _stationReferenceRegistry;
         private readonly TrainUnitTickState _tickState;
 
         public RailGraphSnapshotApplier(
             RailGraphClientCache cache,
-            InitialHandshakeResponse initialHandshakeResponse,
             ClientStationReferenceRegistry stationReferenceRegistry,
             TrainUnitTickState tickState)
         {
             _cache = cache;
-            _initialHandshakeResponse = initialHandshakeResponse;
             _stationReferenceRegistry = stationReferenceRegistry;
             _tickState = tickState;
-        }
-
-        public void Initialize()
-        {
-            // 初回ハンドシェイクのスナップショットを即座に適用
-            // Apply the handshake snapshot immediately after construction
-            ApplySnapshot(_initialHandshakeResponse?.RailGraphSnapshot);
         }
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)

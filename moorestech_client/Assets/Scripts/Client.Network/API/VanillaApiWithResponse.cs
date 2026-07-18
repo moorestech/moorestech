@@ -60,9 +60,7 @@ namespace Client.Network.API
                 GetUnlockState(ct),
                 GetCraftTree(playerId, ct),
                 GetPlayedSkitIds(ct),
-                GetResearchNodeStates(ct),
-                GetRailGraphSnapshot(ct),
-                GetTrainUnitSnapshots(ct));
+                GetResearchNodeStates(ct));
 
             return new InitialHandshakeResponse(initialHandShake, responses);
         }

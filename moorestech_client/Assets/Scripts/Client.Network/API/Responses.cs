@@ -27,8 +27,6 @@ namespace Client.Network.API
         public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
         public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
-        public RailGraphSnapshotMessagePack RailGraphSnapshot { get; }
-        public TrainUnitSnapshotResponse TrainUnitSnapshots { get; }
         // ログイン時の乗車復帰情報（未乗車なら RidingTarget は null）。
         // Login-time riding restore info (RidingTarget is null when not riding).
         public RidableIdentifierMessagePack RidingTarget { get; }
@@ -44,9 +42,7 @@ namespace Client.Network.API
                 UnlockStateResponse unlockState,
                 CraftTreeResponse craftTree,
                 List<string> playedSkitIds,
-                Dictionary<Guid, ResearchNodeState> researchNodeStates,
-                RailGraphSnapshotMessagePack railGraphSnapshot,
-                TrainUnitSnapshotResponse trainUnitSnapshots) responses)
+                Dictionary<Guid, ResearchNodeState> researchNodeStates) responses)
         {
             PlayerPos = initialHandshake.PlayerPos;
             WorldData = responses.worldData;
@@ -57,8 +53,6 @@ namespace Client.Network.API
             CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
             ResearchNodeStates = responses.researchNodeStates;
-            RailGraphSnapshot = responses.railGraphSnapshot;
-            TrainUnitSnapshots = responses.trainUnitSnapshots;
             RidingTarget = initialHandshake.RidingTarget;
             RidingSeatIndex = initialHandshake.RidingSeatIndex;
         }
