@@ -41,7 +41,7 @@
 | CRAFT-1 | クラフト長押し・連続クラフト | **B3** |
 | CRAFT-2 | 機械レシピビューア | **済** |
 | CRAFT-3 | レシピ対象アイテムリスト | **済**。仕上げ（可能数バッジ）は **B3** |
-| CRAFT-4 | クラフトツリー | **除外（機能削除）**: 削除設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md`・実施確認は **D** |
+| CRAFT-4 | クラフトツリー | **除外（機能削除・実施済み）**: 削除設計書 `docs/superpowers/specs/2026-07-18-craft-tree-removal-design.md`。削除実装を web-ui へ統合済み（2026-07-18 `db2b3f5ba`。回帰テスト CraftTreeRemovalTest/AssembleSaveJsonTextTest 合格） |
 | CHAL-1 | チャレンジリスト/ツリー | **C1** |
 | CHAL-2 | 進行中チャレンジ HUD | **C1** |
 | RES-1 | 研究ツリー | **済**。仕上げ（報酬アイテム個数表示・要 C# ワイヤ拡張）は **B3** |
