@@ -7,3 +7,7 @@ export function itemIconUrl(itemId: number): string {
 export function blockIconUrl(blockId: number): string {
   return `/api/block-icons/${blockId}.png`;
 }
+
+export function localizationDictionaryUrl(locale: string): string {
+  return `/api/i18n/${encodeURIComponent(locale)}`;
+}

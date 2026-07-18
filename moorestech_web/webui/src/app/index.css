@@ -58,6 +58,15 @@
   --bevel-c3: rgb(104 106 120);
 }
 
+/* locale属性でCJK字形を優先し、英数は既存MooresUIへフォールバックする */
+/* Prefer CJK glyphs for CJK locales while retaining the existing MooresUI fallback for Latin text */
+:root[data-locale="japanese"],
+:root[data-locale="korean"],
+:root[data-locale="chinese-simplified"],
+:root[data-locale="chinese-traditional"] {
+  --font-ui: "MooresUI JP", "MooresUI", sans-serif;
+}
+
 body {
   margin: 0;
   font-family: var(--font-ui), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;

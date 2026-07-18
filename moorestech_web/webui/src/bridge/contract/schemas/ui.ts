@@ -16,3 +16,4 @@ export const ProgressDataSchema = z.object({
 // 未知のstate名は画面ルータが安全側へ処理するため文字列全体を受理する
 // Accept every state name because the screen router handles unknown names safely
 export const UiStateDataSchema = z.object({ state: z.string() });
+export const LocalizationDataSchema = z.object({ locale: z.string().min(1) });
