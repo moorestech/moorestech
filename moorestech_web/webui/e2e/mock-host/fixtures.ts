@@ -8,6 +8,7 @@ import type {
   ModalRequest,
   ProgressData,
   UiStateData,
+  BuildMenuData,
 } from "../../src/bridge/contract/payloadTypes";
 
 // BLK-2〜5/8 詳細ブロックと FEAT-RES-1 研究ツリーは別ファイルへ分割し再エクスポートする（200行制約）
@@ -95,12 +96,19 @@ export const craftRecipes = {
         { itemId: 2, count: 1 },
       ],
     },
+    {
+      recipeGuid: "g-craft-insufficient",
+      resultItemId: 101,
+      resultCount: 1,
+      craftTime: 0.2,
+      requiredItems: [{ itemId: 1, count: 999 }],
+    },
   ],
 } satisfies CraftRecipesData;
 
 export const machineRecipes = { recipes: [] } satisfies MachineRecipesData;
 
-export const itemList = { itemIds: [100, 1, 2] } satisfies RecipeViewerItemListData;
+export const itemList = { itemIds: [100, 101, 1, 2] } satisfies RecipeViewerItemListData;
 
 // INFRA-6: 既定はインベントリ画面（既存 e2e が前提とする表示状態を保つ）
 // INFRA-6: default to the inventory screen (keeps the visibility existing e2e tests assume)
@@ -111,8 +119,17 @@ export const itemMaster = {
     { itemId: 1, name: "Wood", maxStack: 100 },
     { itemId: 2, name: "Stone", maxStack: 100 },
     { itemId: 100, name: "Plank", maxStack: 100 },
+    { itemId: 101, name: "Impossible Plank", maxStack: 100 },
   ],
 } satisfies ItemMasterData;
+
+export const buildMenu = {
+  entries: [
+    { entryType: "block", entryKey: "wood-chest", label: "木箱", tooltip: "木箱を建築" },
+    { entryType: "trainCar", entryKey: "cargo-car", label: "貨車", tooltip: "貨車を建築" },
+    { entryType: "blueprint", entryKey: "starter-base", label: "拠点BP", tooltip: "保存済み設計図" },
+  ],
+} satisfies BuildMenuData;
 
 // DEMO(採点用): 60件=10段分。可視7段+スクロール余剰でノブ比が正本(≈70%)と揃う
 // DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%

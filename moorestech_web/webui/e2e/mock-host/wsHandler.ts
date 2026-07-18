@@ -4,7 +4,7 @@ import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/proto
 import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers } from "./state";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, connections } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft } from "./inventoryModel";
 import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 
@@ -20,6 +20,8 @@ const DEMO = process.env.MOCK_DEMO === "1";
 // Inventory state is isolated per connection so parallel tests don't race on the same inv
 export function attachWsHandlers(wss: WebSocketServer) {
   wss.on("connection", (ws) => {
+    if (Date.now() < state.rejectConnectionsUntil) ws.close();
+    connections.add(ws);
     let inv: PlayerInventoryData = clone(DEMO ? fx.demoInventory : fx.inventory);
 
     const topicData = (topic: string): unknown => {
@@ -32,10 +34,12 @@ export function attachWsHandlers(wss: WebSocketServer) {
       if (topic === Topics.progress) return DEMO ? fx.demoProgress : fx.progressSample;
       if (topic === Topics.uiState) return state.currentUiState;
       if (topic === Topics.researchTree) return state.researchTree;
+      if (topic === Topics.buildMenu) return fx.buildMenu;
       return undefined;
     };
 
     ws.on("close", () => {
+      connections.delete(ws);
       blockSubscribers.delete(ws);
       modalSubscribers.delete(ws);
       uiStateSubscribers.delete(ws);
@@ -51,7 +55,11 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (topic === Topics.uiState) uiStateSubscribers.add(ws);
           if (topic === Topics.researchTree) researchTreeSubscribers.add(ws);
           const data = topicData(topic);
-          if (data !== undefined) send(ws, { op: "snapshot", topic, data });
+          if (data !== undefined) {
+            const deliver = () => send(ws, { op: "snapshot", topic, data });
+            if (state.snapshotDelayMs > 0 && (state.snapshotDelayTopic === null || state.snapshotDelayTopic === topic)) setTimeout(deliver, state.snapshotDelayMs);
+            else deliver();
+          }
         }
         return;
       }
@@ -71,7 +79,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
         // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
         // ack is decided after apply like the real host; the topic event is pushed later on a separate channel
         let error: string | undefined;
-        if (msg.type === "fail.always") {
+        if (state.injectedActionError?.type === msg.type) {
+          error = state.injectedActionError.error;
+          state.injectedActionError = null;
+        } else if (msg.type === "fail.always") {
           error = "mock_error";
         } else if (msg.type === "inventory.move_item") {
           // 状態が変化したときだけ topic event を流す（host の失敗は packet を出さない）
