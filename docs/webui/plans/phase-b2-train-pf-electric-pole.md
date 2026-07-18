@@ -1,7 +1,8 @@
 # Phase B2 実行計画: 列車PFインベントリ・電柱ネットワーク情報
 
 親: `../MIGRATION.md` / 進捗: `../TODO.md`
-旧台帳 FEAT-BLK-9 / 電柱情報相当。依存なし。列車 HUD 本体は Phase C3（ここでは PF のみ）。
+旧台帳 FEAT-BLK-9 / 電柱情報相当。着手依存: **WU1〜9 完了**（C# 側は先行可）。
+列車 HUD 本体は Phase C3（ここでは PF のみ）。
 
 ## タスク1: 列車プラットフォーム（item / fluid）
 

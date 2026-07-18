@@ -81,7 +81,7 @@
 - [ ] 最終検証: PlayMode 全画面遷移スモーク + 画面ごとの操作パリティ受け入れ表 + fault-injection（WS 切断/CEF リロード/フォーカス往復）+ Ctrl+I 実機確認 + 本番配信モードで一巡
 - [ ] （任意）INFRA-4: C#→TS 型自動生成 / GameStateType Topic の一般整備
 
-## 品質バックログ（Phase 作業のついでに消化）
+## 品質バックログ
 
-- 設計負債解消 WU1〜9（監査: `design-debt-audit-2026-07-17.md` / 実行計画: `subagent-execution-plan-2026-07-18.md`）
+- 設計負債解消 WU1〜9（別トラックで実行中。監査: `design-debt-audit-2026-07-17.md` / 実行計画: `subagent-execution-plan-2026-07-18.md`）。移行 Phase 中の「ついで消化」はしない — 新規負債は lint/決定論チェックで防止
 - モーダル RequestModal プロデューサ配線（実ユースケース決定待ち）

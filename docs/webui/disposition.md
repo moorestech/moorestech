@@ -16,7 +16,7 @@
 | INFRA-5 | アセット配信拡張（立ち絵等の汎用画像） | **A3**（配信基盤）+ **C4**（スキット立ち絵の利用側） |
 | INFRA-6 | UIState 橋渡し | **済**（最小版）。GameStateType（第2状態機械）Topic 化は **C4** |
 | INFRA-7 | サーバーイベント push 規約（revision・デバウンス・再接続整合性） | **A4**（横断規約として策定・実装） |
-| INFRA-8 | Windows/Linux 対応 | **A3** |
+| INFRA-8 | Windows/Linux 対応 | **A3**（Windows のみ DoD。Linux は非 DoD・将来枠） |
 | INFRA-9 | 本番配信堅牢性（静的配信・成果物整合・動的ポート・多重起動） | **A3** |
 | INFRA-10 | CEF 音声専有 | **C4**（スキットのボイス方式決定に内包。決定責務は C4） |
 | INFRA-11 | i18n | **A5**（基盤+新規ハードコード禁止 lint を前倒し）+ **D**（既存画面の変換） |

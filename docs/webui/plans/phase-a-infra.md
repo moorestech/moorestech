@@ -70,7 +70,8 @@ libcef 等の LFS 実体が UPM 解決時にポインタのまま落ちてくる
    拡張する配信規約を定める（実利用は C4。ここでは経路とキャッシュ方針まで）
 4. 動的ポート・多重起動: ポート競合時の割当と、複数 worktree/多重起動時の分離を確認
    （既存計画 `docs/superpowers/plans/2026-07-16-webui-dynamic-ports.md` があれば整合させる）
-5. Windows での Vite spawn / pid 管理 / CEF 動作を確認（A1 の配布方式と合わせて検証）
+5. Windows での Vite spawn / pid 管理 / CEF 動作を確認（A1 の配布方式と合わせて検証）。
+   **Linux は非 DoD**（将来枠。本移行の完了条件に含めない）
 
 ### 完了条件
 - Vite を起動せずにビルド済み UI でゲームが動く（Windows 実機での確認を含む）
@@ -110,7 +111,9 @@ libcef 等の LFS 実体が UPM 解決時にポインタのまま落ちてくる
 ### i18n 基盤（INFRA-11 の基盤部分）
 1. ローカライズ辞書の配信（HTTP or Topic）+ 言語切替イベント。uGUI 側の正:
    `Client.Localization/TextMeshProLocalize.cs` と同じ辞書ソースを使う
-2. Web 側 `t(key)` フック + 言語切替時の再描画
+2. Web 側 `t(key)` フック + 言語切替時の再描画。設計時に決めること:
+   変数埋め込み（interpolation）・複数形・missing-key 時の挙動・fallback locale・
+   言語別フォント切替（CJK 含む）
 3. **新規ハードコード禁止 lint**（ESLint ルール。WU4 の ESLint 導入と統合）
 4. 既存10画面の文字列変換は Phase D（ここではやらない）
 
