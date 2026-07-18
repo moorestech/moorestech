@@ -34,6 +34,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
       if (topic === Topics.uiState) return state.currentUiState;
       if (topic === Topics.researchTree) return state.researchTree;
       if (topic === Topics.buildMenu) return fx.buildMenu;
+      if (topic === Topics.localization) return { locale: "japanese" };
       return undefined;
     };
 
