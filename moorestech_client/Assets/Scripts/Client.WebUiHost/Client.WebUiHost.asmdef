@@ -6,6 +6,7 @@
         "Client.Common",
         "Client.Game",
         "Client.Input",
+        "Client.Localization",
         "Client.Mod",
         "Client.Network",
         "Core.Item",
