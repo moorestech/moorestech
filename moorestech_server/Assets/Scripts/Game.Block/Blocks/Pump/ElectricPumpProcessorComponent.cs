@@ -26,7 +26,9 @@ namespace Game.Block.Blocks.Pump
             _entries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid.items, blockPositionInfo.OriginalPos);
         }
 
-        public void SupplyPower(ElectricPower power)
+        // tick内限定の内部経路。供給率から導出済みの実効電力を受け取る
+        // Tick-scoped internal path receiving the effective power already derived from the supply rate
+        public void SupplyExternalPower(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
             _currentPower = power;

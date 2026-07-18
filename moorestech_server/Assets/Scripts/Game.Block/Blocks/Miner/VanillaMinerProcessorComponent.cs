@@ -105,10 +105,12 @@ namespace Game.Block.Blocks.Miner
             _remainingTicks = GameUpdater.SecondsToTicks(saveJsonObject.RemainingSeconds);
         }
         
-        public void SupplyPower(float power)
+        // tick内限定の内部経路。電気機械は供給率導出値を、歯車機械はRPM・トルク由来の電力相当値を渡す
+        // Tick-scoped internal path; electric machines pass the rate-derived power, gear machines pass the RPM/torque-equivalent power
+        public void SupplyExternalPower(float power)
         {
             BlockException.CheckDestroy(this);
-            
+
             _usedPower = false;
             _currentPower = power;
             // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う

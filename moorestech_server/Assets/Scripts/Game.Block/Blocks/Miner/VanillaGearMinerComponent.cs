@@ -28,7 +28,7 @@ namespace Game.Block.Blocks.Miner
         public void Update()
         {
             BlockException.CheckDestroy(this);
-            _vanillaMinerProcessorComponent.SupplyPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
+            _vanillaMinerProcessorComponent.SupplyExternalPower(_gearEnergyTransformer.GetCurrentSuppliedPower().AsPrimitive());
         }
 
         private void UpdateTorqueRequestRate()

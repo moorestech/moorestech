@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json.Nodes;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -168,20 +169,30 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
         private static void TickFilter(IBlock filter)
         {
-            // 清浄機だけに毎tick満電を供給し、室内純度を進める
-            // Supply full power to the filter each tick to advance room purity
-            filter.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
+            // 清浄機を電線経由の満電で毎tick進め、室内純度を進める
+            // Keep the filter fully powered through wires each tick to advance room purity
+            EnsureFilterWiredPower(filter);
             GameUpdater.UpdateOneTick();
         }
 
         private static void TickRoom(IBlock filter, IBlock machine)
         {
-            // 清浄機と機械を同じtickで満電にし、通常の室内加工経路を通す
-            // Fully power the filter and machine in the same tick for normal in-room processing
-            filter.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
-            machine.GetComponent<IElectricConsumer>().SupplyEnergy(new ElectricPower(100f));
+            // 清浄機は電線経由、機械は内部経路で同じtick満電にし、通常の室内加工経路を通す
+            // Power the filter through wires and the machine through its internal path in the same tick for normal in-room processing
+            EnsureFilterWiredPower(filter);
+            machine.GetComponent<CleanRoomMachineProcessorComponent>().SupplyExternalPower(100f);
             GameUpdater.UpdateOneTick();
         }
+
+        // 清浄機が発電機付きセグメントに居なければ、部屋外の電柱経由で満電の発電機を接続する
+        // Unless the filter's segment already has a generator, wire a full-power generator through a pole outside the room
+        private static void EnsureFilterWiredPower(IBlock filter)
+        {
+            var datastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            if (datastore.TryGetEnergySegment(filter.BlockInstanceId, out var segment) && 0 < segment.Generators.Count) return;
+            ElectricWireTestUtil.WirePower(filter.BlockPositionInfo.OriginalPos, new Vector3Int(30, 0, 30), 100f);
+        }
+
 
         #endregion
     }

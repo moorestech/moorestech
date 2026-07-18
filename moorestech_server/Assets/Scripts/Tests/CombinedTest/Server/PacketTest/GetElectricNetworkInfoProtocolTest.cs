@@ -1,4 +1,5 @@
 using System;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.EnergySystem;
@@ -32,10 +33,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, 2));
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(2, 0));
 
+            // トポロジ反映と統計確定はtick先頭で行われるため1tick進める
+            // Advance one tick so the topology flush and statistics settlement run
+            GameUpdater.UpdateOneTick();
+
             var segmentDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
             Assert.IsTrue(segmentDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var segment));
 
-            var expected = segment.GetCurrentStatistics();
+            var expected = segment.Statistics;
             // 無限発電機を使うため発電量は正、機械が消費者として1台登録される
             // The infinity generator yields positive generation and the machine registers as one consumer
             Assert.Greater(expected.TotalGeneratePower, 0f);
@@ -68,6 +73,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 発電機のみをワイヤー接続し、消費者ゼロのセグメントを作る
             // Wire only the generator to build a consumer-less segment
             ElectricWireTestUtil.Connect(Pos(0, 0), Pos(0, 2));
+
+            // トポロジ反映と統計確定のため1tick進める
+            // Advance one tick for the topology flush and statistics settlement
+            GameUpdater.UpdateOneTick();
 
             var info = InvokeGetElectricNetworkInfo(packet, pole.BlockInstanceId).Info;
 

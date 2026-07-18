@@ -86,7 +86,9 @@ namespace Game.Block.Blocks.MapObjectMiner
             }
         }
         
-        public void SupplyPower(float currentPower)
+        // tick内限定の内部経路。歯車のRPM・トルクから算出した電力相当値を受け取る
+        // Tick-scoped internal path receiving the power equivalent computed from gear RPM and torque
+        public void SupplyExternalPower(float currentPower)
         {
             BlockException.CheckDestroy(this);
 
