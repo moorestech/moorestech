@@ -1,6 +1,6 @@
 import { CloseButton, Group, Paper, Title } from "@mantine/core";
 import { useTopic, Topics, UiStateNames, dispatchAction } from "@/bridge";
-import { resolveBlockComponent } from "./blockComponentRegistry";
+import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
 
 // ブロック UI のオーバーレイ。uGUI の SubInventoryState 相当で、blockType から中身を静的解決する

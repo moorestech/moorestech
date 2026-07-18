@@ -19,7 +19,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "pnpm build && pnpm tsx e2e/mock-host/server.ts",
+    command: "pnpm build && node --import tsx e2e/mock-host/server.ts",
     cwd: "..",
     port: PORT,
     reuseExistingServer: false,

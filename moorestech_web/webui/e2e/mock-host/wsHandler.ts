@@ -6,8 +6,7 @@ import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, connections } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft } from "./inventoryModel";
-import { applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
-
+import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 // 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
 // Action types the real dispatcher accepts, derived from protocol.ts to kill the duplicate list
 const KNOWN_ACTIONS = new Set<string>(ACTION_TYPES);
@@ -169,16 +168,16 @@ export function attachWsHandlers(wss: WebSocketServer) {
             }, 30);
           }
         } else if (msg.type === "filter_splitter.set_mode") {
-          // 対象方向の mode を書換え、block topic を再配信する
-          // Rewrite the target direction's mode and republish the block topic
           const applied = applyFilterMode(state.currentBlock, msg.payload as ActionPayloads["filter_splitter.set_mode"]);
           if (!applied) error = "invalid_direction";
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "filter_splitter.set_filter_item") {
-          // filterItemIds[slotIndex] を clear:0/固定grabID へ書換え、block topic を再配信する
-          // Rewrite filterItemIds[slotIndex] to clear:0/fixed grab id and republish the block topic
           const applied = applyFilterItem(state.currentBlock, msg.payload as ActionPayloads["filter_splitter.set_filter_item"]);
           if (!applied) error = "invalid_slot";
+          else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
+        } else if (msg.type === "electric_to_gear.set_output_mode") {
+          const applied = applyElectricToGearMode(state.currentBlock, msg.payload as ActionPayloads["electric_to_gear.set_output_mode"]);
+          if (!applied) error = "invalid_mode_index";
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "research.complete") {
           // 該当ノードを completed 化し、全 research 購読者へ push（研究実行→遷移を再現）

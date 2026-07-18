@@ -11,6 +11,8 @@ import type {
   CraftRecipeSchema,
   CraftRecipesDataSchema,
   ElectricNetworkDataSchema,
+  ElectricToGearDataSchema,
+  ElectricToGearOutputModeDataSchema,
   FilterSplitterDataSchema,
   FilterSplitterDirectionDataSchema,
   FilterSplitterModeSchema,
@@ -61,6 +63,8 @@ export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;
 export type MinerDetailData = z.infer<typeof MinerDetailDataSchema>;
 export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type ElectricNetworkData = z.infer<typeof ElectricNetworkDataSchema>;
+export type ElectricToGearOutputModeData = z.infer<typeof ElectricToGearOutputModeDataSchema>;
+export type ElectricToGearData = z.infer<typeof ElectricToGearDataSchema>;
 export type GearNetworkStopReason = z.infer<typeof GearNetworkStopReasonSchema>;
 export type GearNetworkData = z.infer<typeof GearNetworkDataSchema>;
 export type FilterSplitterMode = z.infer<typeof FilterSplitterModeSchema>;
