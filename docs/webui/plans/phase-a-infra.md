@@ -9,17 +9,19 @@ A5 の Web 側実装のみ WU1〜9 完了待ち（規約策定・C# 側は先行
 ## A1: CEF バイナリ恒久統合（INFRA-1）
 
 ### 現状の問題
-`moorestech_client/Packages/manifest.json` は `jp.juha.cefunitysample` を git URL 参照しており、
+`moorestech_client/Packages/manifest.json` は `jp.juha.cefunity` を git URL 参照しており、
 libcef 等の LFS 実体が UPM 解決時にポインタのまま落ちてくる。真因は環境の `git lfs install`
 未実行だが、環境依存の手動回避（lfs install + UPM 再解決）を繰り返しているのが現状。
 
-### 作業
-1. パッケージを **embedded package 化**（`Packages/` 配下へ実体を取り込む）するか、LFS 非依存の
-   配布形態（tarball / レジストリ / バイナリ別取得スクリプト）にするかを比較して決定
-   - 判断基準: リポジトリサイズ影響（libcef は巨大）/ worktree 頻用運用との相性 / Windows 対応（A3）との整合
-   - リポジトリ直コミットが重すぎる場合は「初回セットアップスクリプトでバイナリ取得 + gitignore」が有力
-2. 決定した方式を実装し、**クリーンな worktree からの再現手順**（clone → 起動まで）で検証
-3. `CLAUDE.md`/`AGENTS.md` 等に残る手動回避手順の記述を削除
+### 決定・実装
+
+Git URL を維持し、OS別セットアップ自動化と Unity Editor 起動時検証ゲートを採用した。
+比較と決定根拠、実装、clean worktree 手順は `../design/cef-binary-integration.md` を正とする。
+
+- `scripts/setup-cef.sh` / `scripts/setup-cef.ps1`: Git LFS の確認・設定と対象 UPM キャッシュ削除
+- `CefPackageLfsValidator.cs`: 小さいファイルの先頭を検査し、LFS ポインタ残存時に復旧手順を Error 表示
+- README の個別手動回避を廃止し、セットアップスクリプトへ一本化
+- 実 LFS 取得と clean worktree 実機確認は、ネットワーク接続可能な依頼側環境で実施
 
 ### 完了条件（証跡ベース）
 - クリーンな worktree から clone/checkout → 起動で、手動介入なしに **CEF 描画 → host 接続 →
