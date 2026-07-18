@@ -12,6 +12,7 @@ import type {
   ResearchTreeData,
   BuildMenuData,
   BuildMenuEntryType,
+  LocalizationData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
 
@@ -54,6 +55,7 @@ export const Topics = {
   uiState: "ui_state.current",
   researchTree: "research.tree",
   buildMenu: "build_menu.entries",
+  localization: "localization.current",
 } as const;
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
@@ -79,6 +81,7 @@ export type TopicPayloads = {
   [Topics.uiState]: UiStateData;
   [Topics.researchTree]: ResearchTreeData;
   [Topics.buildMenu]: BuildMenuData;
+  [Topics.localization]: LocalizationData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる

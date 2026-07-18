@@ -39,6 +39,7 @@ import type {
   SlotDataSchema,
   SlotRefSchema,
   UiStateDataSchema,
+  LocalizationDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -53,6 +54,7 @@ export type ModalRequest = z.infer<typeof ModalRequestSchema>;
 export type ModalData = z.infer<typeof ModalDataSchema>;
 export type ProgressData = z.infer<typeof ProgressDataSchema>;
 export type UiStateData = z.infer<typeof UiStateDataSchema>;
+export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;

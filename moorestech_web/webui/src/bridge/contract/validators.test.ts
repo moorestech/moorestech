@@ -7,6 +7,13 @@ const openBase = {
   itemSlots: [{ itemId: 1, count: 2 }], fluidSlots: [],
 };
 
+describe("localization.current schema", () => {
+  it("requires a non-empty locale", () => {
+    expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(true);
+    expect(validateTopicPayload(Topics.localization, { locale: "" })).toBe(false);
+  });
+});
+
 describe("validBlockInventory capability details", () => {
   it("accepts machine + electricNetwork details", () => {
     const d = {

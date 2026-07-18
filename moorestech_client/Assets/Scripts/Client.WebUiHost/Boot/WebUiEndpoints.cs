@@ -94,6 +94,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(Game.LocalizationDictionaryEndpoint.PathPrefix, StringComparison.Ordinal))
+                {
+                    // uGUIと同じローカライズ辞書のJSON配信
+                    // Serve the same localization dictionary used by uGUI
+                    await Game.LocalizationDictionaryEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
                 if (path.StartsWith(Game.ItemIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.ItemIconEndpoint.PathSuffix, StringComparison.Ordinal))
                 {
                     // アイテムアイコンの PNG 配信
