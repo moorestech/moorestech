@@ -67,31 +67,35 @@ echo "== preflight =="
 echo "== boot play mode =="
 IS_PLAYING=$(edc 'return UnityEditor.EditorApplication.isPlaying;' | json_get Result)
 if [[ "$IS_PLAYING" == "True" ]]; then
-    # 既にPlayMode中ならそのままシナリオを流す（セッションディレクトリは既存 or adhoc）
-    # Already playing: inject the scenario as-is (session dir is existing or adhoc)
-    echo "already in play mode — skip boot"
-else
-    BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode(\"$MASTER_DIR\", true);"
-    SESSION_DIR=$(edc "$BOOT_CODE" | json_get Result)
-    if [[ "$SESSION_DIR" != /* ]]; then
-        echo "NG: boot failed: $SESSION_DIR"
+    # PlayMode中は必ず停止してから正規bootする。汚染セッション（前回クラッシュのNREスパム等）に
+    # シナリオを注入するとresult.json未生成の沈黙タイムアウトになる（2026-07-18実測: 420秒沈黙）。
+    # live診断でPlayModeを維持したい場合はこのランナーではなくEDC直叩きを使うこと。
+    # Always stop a live PlayMode before booting: injecting into a polluted session
+    # (NRE spam from a prior crash) hangs silently until the result.json timeout.
+    echo "play mode already running — stopping for a fresh boot"
+    uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1
+    sleep 3
+fi
+BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode(\"$MASTER_DIR\", true);"
+SESSION_DIR=$(edc "$BOOT_CODE" | json_get Result)
+if [[ "$SESSION_DIR" != /* ]]; then
+    echo "NG: boot failed: $SESSION_DIR"
+    exit 1
+fi
+echo "session: $SESSION_DIR"
+
+# ドメインリロード＋ゲーム初期化完了(readyマーカー出現)をファイルポーリングで待つ
+# Wait for domain reload + game init (ready marker) by polling the file
+echo "== wait ready (max ${READY_TIMEOUT}s) =="
+WAITED=0
+until [[ -f "$SESSION_DIR/ready.marker" ]]; do
+    if [[ $WAITED -ge $READY_TIMEOUT ]]; then
+        echo "NG: game not ready within ${READY_TIMEOUT}s"
         exit 1
     fi
-    echo "session: $SESSION_DIR"
-
-    # ドメインリロード＋ゲーム初期化完了(readyマーカー出現)をファイルポーリングで待つ
-    # Wait for domain reload + game init (ready marker) by polling the file
-    echo "== wait ready (max ${READY_TIMEOUT}s) =="
-    WAITED=0
-    until [[ -f "$SESSION_DIR/ready.marker" ]]; do
-        if [[ $WAITED -ge $READY_TIMEOUT ]]; then
-            echo "NG: game not ready within ${READY_TIMEOUT}s"
-            exit 1
-        fi
-        sleep 2; WAITED=$((WAITED + 2))
-    done
-    echo "ready after ~${WAITED}s"
-fi
+    sleep 2; WAITED=$((WAITED + 2))
+done
+echo "ready after ~${WAITED}s"
 
 echo "== inject scenario: $SCENARIO_FILE =="
 SCENARIO_RESPONSE=$(edc "$(cat "$SCENARIO_FILE")")
