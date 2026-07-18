@@ -10,6 +10,7 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   "inventory.move_item": new Set(["empty_slot", "insufficient_count"]),
   "inventory.split": new Set(["grab_not_empty", "empty_slot"]),
   "block_inventory.move_item": new Set(["empty_slot", "insufficient_count"]),
+  "block_inventory.split": new Set(["grab_not_empty", "empty_slot"]),
   "ui.modal.respond": new Set(["no_pending_modal"]),
   // メニューが先に閉じた/BPが先に消えた stale クリックはトースト不要
   // Stale clicks (menu already closed / BP already deleted) need no error toast

@@ -31,6 +31,8 @@ describe("shouldToastFailure", () => {
   it("block/modal の良性失敗は抑止する", () => {
     expect(shouldToastFailure("block_inventory.move_item", "empty_slot")).toBe(false);
     expect(shouldToastFailure("block_inventory.move_item", "insufficient_count")).toBe(false);
+    expect(shouldToastFailure("block_inventory.split", "grab_not_empty")).toBe(false);
+    expect(shouldToastFailure("block_inventory.split", "empty_slot")).toBe(false);
     expect(shouldToastFailure("ui.modal.respond", "no_pending_modal")).toBe(false);
   });
 
