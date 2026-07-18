@@ -123,12 +123,18 @@ class WebSocketClient {
   }
 }
 
-// モジュール内シングルトンで接続を保持
-// Keep the connection as a module-level singleton
-const client = new WebSocketClient(`ws://${location.host}/ws`);
+// 明示初期化後だけ接続を保持する
+// Keep the connection only after explicit initialization
+let client: WebSocketClient | null = null;
+
+export function initBridge() {
+  if (client !== null) return;
+  client = new WebSocketClient(`ws://${location.host}/ws`);
+}
 
 // UI コードは原則 actions.ts の dispatchAction を使うこと（reject の処理が必要なため）
 // UI code should normally use dispatchAction in actions.ts, which handles rejections
 export function sendAction(type: string, payload: unknown): Promise<ActionResult> {
+  if (client === null) return Promise.reject(new Error("disconnected"));
   return client.sendAction(type, payload);
 }

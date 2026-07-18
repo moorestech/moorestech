@@ -8,11 +8,14 @@ import App from "@/app/App";
 import { AppErrorBoundary } from "@/app/AppErrorBoundary";
 import "@/app/index.css";
 import { setToastSink } from "@/bridge/transport/notify";
+import { initBridge } from "@/bridge/transport/webSocketClient";
 import { emitToast } from "@/features/toast/toastStore";
 
 // bridge の通知 sink に toast store を注入（bridge→features の逆依存を作らない）
 // Inject the toast store into the bridge notify sink (avoids a bridge→features back-dependency)
 setToastSink(emitToast);
+
+initBridge();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
