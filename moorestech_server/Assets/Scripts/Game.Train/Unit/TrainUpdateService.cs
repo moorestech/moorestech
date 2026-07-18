@@ -50,8 +50,6 @@ namespace Game.Train.Unit
             _tickSequenceId++;
             return _tickSequenceId;
         }
-        // 発行済み最新のtick内順序ID（snapshotのwatermark用。新規採番しない）
-        // Latest issued per-tick sequence id, used as snapshot watermark without consuming a new id
         public uint GetCurrentTickSequenceId() => _tickSequenceId;
         public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
