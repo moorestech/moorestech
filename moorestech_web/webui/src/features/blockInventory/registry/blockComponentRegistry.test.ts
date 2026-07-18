@@ -37,6 +37,14 @@ describe("resolveBlockComponent", () => {
     expect(blockComponents.ElectricToGearGenerator).not.toBe(SectionStackView);
   });
 
+  it.each(["TrainStation", "TrainItemPlatform", "TrainFluidPlatform", "ElectricPole"])(
+    "%sはPhase B2専用ビューへ登録する",
+    (blockType) => {
+      expect(blockComponents).toHaveProperty(blockType);
+      expect(resolveBlockComponent(blockType)).not.toBe(SectionStackView);
+    },
+  );
+
   it("網羅e2eが参照する登録blockType一覧と実レジストリを一致させる", () => {
     expect(Object.keys(blockComponents).sort()).toEqual([...registeredBlockTypes].sort());
   });

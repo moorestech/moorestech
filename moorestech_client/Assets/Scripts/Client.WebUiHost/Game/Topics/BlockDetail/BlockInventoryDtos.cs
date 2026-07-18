@@ -28,6 +28,7 @@ namespace Client.WebUiHost.Game.Topics
         public FilterSplitterDto FilterSplitter;
         public ElectricToGearDetailDto ElectricToGear;
         public string Error;
+        public TrainPlatformDetailDto TrainPlatform;
     }
 
     public class BlockItemSlotDto

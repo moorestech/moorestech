@@ -3,6 +3,8 @@ import type { BlockInventoryOpen } from "@/bridge";
 import FilterSplitterInventory from "../views/FilterSplitterInventory";
 import ElectricToGearInventory from "../views/ElectricToGearInventory";
 import SectionStackView from "../views/SectionStackView";
+import ElectricPoleInventory from "../views/ElectricPoleInventory";
+import TrainPlatformInventory from "../views/TrainPlatformInventory";
 
 // blockType別の静的レジストリ
 // Static blockType → React component registry; a mutable object so later features extend it without rewrites
@@ -15,6 +17,10 @@ export const blockComponents: Record<string, BlockInventoryComponent> = {
   Gear: SectionStackView,
   GearBeltConveyor: SectionStackView,
   ElectricToGearGenerator: ElectricToGearInventory,
+  TrainStation: TrainPlatformInventory,
+  TrainItemPlatform: TrainPlatformInventory,
+  TrainFluidPlatform: TrainPlatformInventory,
+  ElectricPole: ElectricPoleInventory,
 };
 
 // 未登録種別は共通ビューへ戻す

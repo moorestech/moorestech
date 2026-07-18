@@ -71,6 +71,13 @@ export const ElectricToGearDataSchema = z.object({
   outputModes: z.array(ElectricToGearOutputModeDataSchema),
 });
 
+export const TrainPlatformModeSchema = z.enum(["loadToTrain", "unloadToPlatform"]);
+export const TrainPlatformDataSchema = z.object({
+  mode: TrainPlatformModeSchema,
+  itemSlotCount: z.number().int().nonnegative().optional(),
+  fluidCapacity: z.number().nonnegative().optional(),
+});
+
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("block"),
@@ -88,6 +95,7 @@ export const BlockInventoryOpenSchema = z.object({
   gearNetwork: GearNetworkDataSchema.optional(),
   filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
+  trainPlatform: TrainPlatformDataSchema.optional(),
 });
 export const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),
