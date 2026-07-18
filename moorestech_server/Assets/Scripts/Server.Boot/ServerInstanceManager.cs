@@ -76,7 +76,7 @@ namespace Server.Boot
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
 
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
-            var connectionUpdateThread = new Thread(() => new ServerListenAcceptor().StartServer(packet, connectionRegistry, eventProtocolProvider, token));
+            var connectionUpdateThread = new Thread(() => ServerListenAcceptor.StartServer(packet, connectionRegistry, eventProtocolProvider, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
