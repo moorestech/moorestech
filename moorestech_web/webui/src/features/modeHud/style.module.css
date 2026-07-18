@@ -1,0 +1,9 @@
+.modePanel {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  min-width: 280px;
+  padding: 16px;
+  color: white;
+  background: rgb(16 20 28 / 82%);
+}

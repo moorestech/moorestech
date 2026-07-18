@@ -15,6 +15,15 @@ import type {
   LocalizationData,
   ChallengeTreeData,
   ChallengeCurrentData,
+  PauseMenuData,
+  PlacementModeData,
+  DeleteModeData,
+  KeyHintsData,
+  CrosshairData,
+  UiVisibilityData,
+  MiningHudData,
+  TooltipData,
+  ContextMenuData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
 
@@ -60,6 +69,15 @@ export const Topics = {
   localization: "localization.current",
   challengeTree: "challenge.tree",
   challengeCurrent: "challenge.current",
+  pauseMenu: "pause_menu.current",
+  placementMode: "ui.placement_mode",
+  deleteMode: "ui.delete_mode",
+  keyHints: "ui.key_hints",
+  crosshair: "ui.crosshair",
+  uiVisibility: "ui.visibility",
+  miningHud: "ui.mining_hud",
+  tooltip: "ui.tooltip",
+  contextMenu: "ui.context_menu",
 } as const;
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
@@ -71,6 +89,9 @@ export const UiStateNames = {
   researchTree: "ResearchTree",
   buildMenu: "BuildMenu",
   challengeList: "ChallengeList",
+  pauseMenu: "PauseMenu",
+  placeBlock: "PlaceBlock",
+  deleteBar: "DeleteBar",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -89,6 +110,15 @@ export type TopicPayloads = {
   [Topics.localization]: LocalizationData;
   [Topics.challengeTree]: ChallengeTreeData;
   [Topics.challengeCurrent]: ChallengeCurrentData;
+  [Topics.pauseMenu]: PauseMenuData;
+  [Topics.placementMode]: PlacementModeData;
+  [Topics.deleteMode]: DeleteModeData;
+  [Topics.keyHints]: KeyHintsData;
+  [Topics.crosshair]: CrosshairData;
+  [Topics.uiVisibility]: UiVisibilityData;
+  [Topics.miningHud]: MiningHudData;
+  [Topics.tooltip]: TooltipData;
+  [Topics.contextMenu]: ContextMenuData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
@@ -109,6 +139,10 @@ export type ActionPayloads = {
   "block_inventory.split": { from: BlockSlotRef };
   "block_inventory.collect": { slot: BlockSlotRef };
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
+  "pause_menu.save": Record<string, never>;
+  "pause_menu.back_to_main_menu": Record<string, never>;
+  "context_menu.select": { id: string };
+  "context_menu.close": Record<string, never>;
   "research.complete": { researchGuid: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
   // clear:true は右クリック相当のフィルタ解除。clear:false は C# 側が Grab の持ち手アイテムを設定する
@@ -134,6 +168,10 @@ export const ACTION_TYPES = [
   "block_inventory.split",
   "block_inventory.collect",
   "ui_state.request",
+  "pause_menu.save",
+  "pause_menu.back_to_main_menu",
+  "context_menu.select",
+  "context_menu.close",
   "research.complete",
   "filter_splitter.set_mode",
   "filter_splitter.set_filter_item",

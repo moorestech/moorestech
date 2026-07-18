@@ -9,14 +9,20 @@ import { BlockInventoryKeyHandler, BlockInventoryPanel } from "@/features/blockI
 import { ResearchTreePanel } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
-import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
+import { PauseMenuPanel } from "@/features/pauseMenu";
+import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
+import { Crosshair, KeyHintBar } from "@/features/commonHud";
+import { MiningHud } from "@/features/miningHud";
+import { CursorTooltip } from "@/shared/tooltip";
+import { ContextMenu } from "@/shared/contextMenu";
+import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
 // 基準stageをviewportへ収める一様拡縮を同期する
 // Synchronize uniform scaling that fits the reference stage in the viewport
-function useUiScale() {
+function useUiScale(enabled: boolean) {
   const stageRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -27,10 +33,10 @@ function useUiScale() {
       document.documentElement.style.setProperty("--ui-scale", String(scale));
     };
 
-    updateScale();
+    if (enabled) updateScale();
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
-  }, []);
+  }, [enabled]);
 
   return stageRef;
 }
@@ -38,7 +44,6 @@ function useUiScale() {
 // uGUI のインベントリ画面準拠の3カラム+下段ホットバーレイアウト
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
-  const stageRef = useUiScale();
   useWebInputExclusivity();
 
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
@@ -49,6 +54,13 @@ export default function App() {
   // ui_state.current による画面ルーティング（C# UIStateControl が正。セレクタはプリミティブを返す）
   // Screen routing by ui_state.current (C# UIStateControl is authoritative; the selector returns a primitive)
   const screen = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null));
+  const uiState = useTopicSelector(Topics.uiState, (d) => d?.state ?? null);
+  const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
+  const stageRef = useUiScale(uiVisible);
+
+  // Ctrl+U中はPortalを含む全Web UIをunmountする
+  // Unmount the entire Web UI, including portals, while Ctrl+U is active
+  if (!uiVisible) return <div className={styles.hidden} data-web-ui-transparent />;
 
   return (
     <div className={styles.viewport} data-web-ui-transparent>
@@ -66,6 +78,14 @@ export default function App() {
         {screen === "researchTree" && <ResearchTreePanel />}
         {screen === "buildMenu" && <BuildMenuPanel />}
         {screen === "challengeList" && <ChallengePanel />}
+        {screen === "pauseMenu" && <PauseMenuPanel />}
+        {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
+        {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
+        <Crosshair />
+        <KeyHintBar />
+        <MiningHud />
+        <CursorTooltip />
+        <ContextMenu />
         <BlockInventoryPanel />
         <ModalHost />
         <ProgressBar />

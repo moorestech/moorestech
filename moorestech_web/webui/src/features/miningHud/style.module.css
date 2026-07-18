@@ -1,0 +1,10 @@
+.panel {
+  position: fixed;
+  top: calc(50% + 28px);
+  left: 50%;
+  width: 280px;
+  padding: 10px 14px;
+  color: white;
+  background: rgb(16 20 28 / 78%);
+  transform: translateX(-50%);
+}

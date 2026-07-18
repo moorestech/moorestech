@@ -7,6 +7,53 @@ const openBase = {
   itemSlots: [{ itemId: 1, count: 2 }], fluidSlots: [],
 };
 
+describe("placement mode schema", () => {
+  it("requires every HUD field", () => {
+    expect(validateTopicPayload(Topics.placementMode, {
+      selectedName: "Conveyor Belt", height: 2, unavailableReason: "", energizedRangeVisible: true,
+    })).toBe(true);
+    expect(validateTopicPayload(Topics.placementMode, { selectedName: "Conveyor Belt" })).toBe(false);
+  });
+});
+
+describe("delete mode schema", () => {
+  it("requires the hover denial reason", () => {
+    expect(validateTopicPayload(Topics.deleteMode, { unavailableReason: "Cannot remove" })).toBe(true);
+    expect(validateTopicPayload(Topics.deleteMode, {})).toBe(false);
+  });
+});
+
+describe("common HUD schemas", () => {
+  it("accepts key hints, crosshair, and visibility state", () => {
+    expect(validateTopicPayload(Topics.keyHints, { textKey: "Esc: Back" })).toBe(true);
+    expect(validateTopicPayload(Topics.crosshair, { visible: true })).toBe(true);
+    expect(validateTopicPayload(Topics.uiVisibility, { visible: false })).toBe(true);
+    expect(validateTopicPayload(Topics.crosshair, {})).toBe(false);
+  });
+});
+
+describe("mining HUD schema", () => {
+  it("accepts fixed-screen mining state", () => {
+    expect(validateTopicPayload(Topics.miningHud, { visible: true, targetName: "Rock", mining: true, progress: 0.5 })).toBe(true);
+    expect(validateTopicPayload(Topics.miningHud, { visible: true, progress: 2 })).toBe(false);
+  });
+});
+
+describe("tooltip schema", () => {
+  it("requires a complete cursor-tooltip snapshot", () => {
+    expect(validateTopicPayload(Topics.tooltip, { visible: true, textKey: "Cannot remove", fontSize: 36 })).toBe(true);
+    expect(validateTopicPayload(Topics.tooltip, { visible: true })).toBe(false);
+  });
+});
+
+describe("context menu schema", () => {
+  it("accepts visible and closed snapshots", () => {
+    expect(validateTopicPayload(Topics.contextMenu, { visible: true, items: [{ id: "0", titleKey: "Split" }] })).toBe(true);
+    expect(validateTopicPayload(Topics.contextMenu, { visible: false, items: [] })).toBe(true);
+    expect(validateTopicPayload(Topics.contextMenu, { visible: true })).toBe(false);
+  });
+});
+
 describe("localization.current schema", () => {
   it("requires a non-empty locale", () => {
     expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(true);

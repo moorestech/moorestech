@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
 using UnityEngine;
+using System;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
@@ -14,6 +15,9 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
         private readonly DeleteObjectService _deleteObjectService = new();
+
+        public IObservable<string> OnUnavailableReasonChanged => _deleteObjectService.OnUnavailableReasonChanged;
+        public string GetUnavailableReason() => _deleteObjectService.GetUnavailableReason();
 
         public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
@@ -29,7 +33,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraInteractionApplier.SetCursorVisible(true);
             _cameraInteractionApplier.SetCameraRotatable(false);
 
-            _deleteBarObject.gameObject.SetActive(true);
+            _deleteBarObject.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
             KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
         }
 
