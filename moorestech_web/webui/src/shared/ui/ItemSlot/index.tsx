@@ -13,6 +13,7 @@ type Props = {
   // catalog はレシピ一覧用。未所持は灰面＋アイコン、所持(count>0)のみ白面＋個数
   // "catalog" is for the recipe list: unowned shows a gray face + icon, only owned (count>0) shows a white face + count
   catalog?: boolean;
+  insufficient?: boolean;
   onLeftDown?: (shiftKey: boolean) => void;
   onRightDown?: () => void;
   onDoubleClick?: () => void;
@@ -21,7 +22,7 @@ type Props = {
 
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
-export default function ItemSlot({ itemId, count, name, selected, catalog, onLeftDown, onRightDown, onDoubleClick, testId }: Props) {
+export default function ItemSlot({ itemId, count, name, selected, catalog, insufficient, onLeftDown, onRightDown, onDoubleClick, testId }: Props) {
   // カタログは常にアイコンを出し、白面（filled）は所持数がある時だけ
   // Catalog always shows the icon; the white (filled) face applies only when an owned count exists
   const owned = count !== undefined && count > 0;
@@ -37,6 +38,7 @@ export default function ItemSlot({ itemId, count, name, selected, catalog, onLef
         selected={selected}
         filled={filled}
         catalog={catalog}
+        insufficient={insufficient}
         onLeftDown={onLeftDown}
         onRightDown={onRightDown}
         onDoubleClick={onDoubleClick}

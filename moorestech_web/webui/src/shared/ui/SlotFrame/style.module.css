@@ -61,6 +61,12 @@
   background-color: rgb(254 254 254);
 }
 
+/* 不足素材は従来の親Boxと同じ40%合成で枠・内容をまとめて減光する */
+/* Insufficient materials use the former parent Box's 40% compositing for the frame and content */
+.slot[data-insufficient="true"] {
+  opacity: 0.4;
+}
+
 /* 選択白面の下端だけを削る */
 /* Trim only the selected white face's bottom edge to lift its weight without moving the ring */
 .slot[data-selected="true"][data-filled="true"] {
