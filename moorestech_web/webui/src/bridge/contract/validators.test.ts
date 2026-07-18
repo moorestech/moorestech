@@ -19,7 +19,7 @@ describe("validBlockInventory capability details", () => {
     const d = {
       ...openBase,
       progress: 0.5,
-      machine: { recipeGuid: "g", currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
+      machine: { recipeGuid: "g", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
       electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
     };
     expect(validateTopicPayload(Topics.blockInventory, d)).toBe(true);
@@ -69,7 +69,7 @@ describe("validResearchTree", () => {
     guid: "abc", name: "研究1", description: "説明",
     state: "researchable", position: { x: 100, y: -50 },
     prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
-    rewardItemIds: [2], unlockItemIds: [],
+    rewardItems: [{ itemId: 2, count: 4 }], unlockItemIds: [],
   };
   it("accepts nodes payload", () => {
     expect(validateTopicPayload(Topics.researchTree, { nodes: [node] })).toBe(true);

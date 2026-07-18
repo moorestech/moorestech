@@ -6,7 +6,7 @@ type RightEnterHandler = () => void;
 
 // スロットの左右押下とメニュー抑止を共通化する
 // Shares slot left/right presses and context-menu suppression
-export function useSlotMouse(onLeftDown: LeftDownHandler | undefined, onRightDown: RightDownHandler | undefined, onRightEnter?: RightEnterHandler) {
+export function useSlotMouse(onLeftDown: LeftDownHandler | undefined, onRightDown: RightDownHandler | undefined, onRightEnter?: RightEnterHandler, onLeftEnter?: () => void) {
   const onMouseDown = (event: MouseEvent<HTMLElement>) => {
     event.preventDefault();
     if (event.button === 0) onLeftDown?.(event.shiftKey);
@@ -16,6 +16,7 @@ export function useSlotMouse(onLeftDown: LeftDownHandler | undefined, onRightDow
   // 右保持中のスロット通過を通知する
   // Notify continuous placement when entering a slot while the right button is held
   const onMouseEnter = (event: MouseEvent<HTMLElement>) => {
+    if ((event.buttons & 1) !== 0) onLeftEnter?.();
     if ((event.buttons & 2) !== 0) onRightEnter?.();
   };
 

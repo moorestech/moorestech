@@ -75,3 +75,18 @@ test("grab 中の右ドラッグで通過スロットへ1個ずつ配置する",
       { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 4 }, count: 1 },
     ]);
 });
+
+test("grab 中の左ドラッグは配分先だけを host へ送る", async ({ page }) => {
+  await page.goto("/");
+  const slots = page.getByTestId("main-grid").locator("> div");
+  await slots.nth(0).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  await slots.nth(1).hover();
+  await page.mouse.down();
+  await slots.nth(3).hover();
+  await slots.nth(4).hover();
+  await page.mouse.up();
+  await expect.poll(async () => (await payloadsOf(page, "inventory.split_drag")).at(-1)).toEqual({
+    slots: [{ area: "main", slot: 1 }, { area: "main", slot: 3 }, { area: "main", slot: 4 }],
+  });
+});

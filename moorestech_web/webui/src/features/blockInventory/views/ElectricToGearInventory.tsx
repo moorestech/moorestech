@@ -1,13 +1,12 @@
 import { Radio, Slider, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge";
+import { useI18n } from "@/shared/i18n";
 
-const labels = {
-  fulfillment: "充足率",
-  consumedPower: "消費電力",
-};
+/* eslint-disable local/no-jsx-visible-literal -- all visible copy in this component is emitted through t(key) */
 
 export default function ElectricToGearInventory({ data }: { data: BlockInventoryOpen }) {
+  const { t } = useI18n();
   const detail = data.electricToGear;
   if (!detail) return null;
 
@@ -25,16 +24,16 @@ export default function ElectricToGearInventory({ data }: { data: BlockInventory
             <div key={index} data-testid={`electric-to-gear-mode-${index}`}>
               <Radio
                 value={String(index)}
-                label={`${mode.rpm} rpm / ${mode.torque} trq / ${mode.requiredPower} W`}
+                label={`${mode.rpm} ${t("RPM")} / ${mode.torque} ${t("トルク")} / ${mode.requiredPower} ${t("W")}`}
               />
             </div>
           ))}
         </Stack>
       </Radio.Group>
-      <Text size="sm">{labels.fulfillment}</Text>
+      <Text size="sm">{t("充足率")}</Text>
       <Slider value={detail.fulfillmentRate * 100} min={0} max={100} disabled data-testid="electric-to-gear-fulfillment" />
       <Text data-testid="electric-to-gear-consumed-power">
-        {labels.consumedPower}: {detail.consumedElectricPower.toFixed(0)} W
+        {t("消費電力")} <span>{detail.consumedElectricPower.toFixed(0)}</span> {t("W")}
       </Text>
     </Stack>
   );

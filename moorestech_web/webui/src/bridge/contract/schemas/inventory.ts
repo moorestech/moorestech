@@ -17,6 +17,8 @@ export const FluidSlotDataSchema = z.object({
 
 export const MachineDetailDataSchema = z.object({
   recipeGuid: z.string(),
+  recipeTime: z.number(),
+  outputItems: z.array(z.object({ itemId: z.number(), count: z.number() })),
   currentState: z.string(),
   currentPower: z.number(),
   requestPower: z.number(),
