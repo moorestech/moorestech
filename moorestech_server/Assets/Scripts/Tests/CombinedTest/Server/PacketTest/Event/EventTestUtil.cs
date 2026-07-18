@@ -12,6 +12,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var sink = new CapturedEventSink();
             serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(playerId, sink);
+            // 登録時に自動pushされる初期full snapshotを破棄して空キューから開始する
+            // Discard initial full snapshots pushed on registration so tests start empty
+            sink.TakeAll();
             return sink;
         }
     }

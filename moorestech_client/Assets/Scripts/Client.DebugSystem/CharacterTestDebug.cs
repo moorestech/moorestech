@@ -7,7 +7,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.CraftTree.Models;
 using Game.Research;
-using Game.Train.Unit;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
@@ -48,16 +47,7 @@ namespace Client.DebugSystem
                 var challenges = new List<ChallengeCategoryResponse>();
                 var playedSkitIds = new List<string>();
                 var researchNodeStates = new Dictionary<Guid, ResearchNodeState>();
-                var railGraphSnapshot = new RailGraphSnapshotMessagePack
-                {
-                    Nodes = new List<RailNodeCreatedMessagePack>(),
-                    Connections = new List<RailGraphConnectionSnapshotMessagePack>(),
-                    GraphHash = 0u,
-                    GraphTick = 0,
-                    GraphTickSequenceId = 0,
-                };
-                var trainUnitSnapshots = new TrainUnitSnapshotResponse(new List<TrainUnitSnapshotBundle>(), 0, 0u, 0);
-                
+
                 var responses = (
                     mapObjects,
                     worldData,
@@ -66,9 +56,7 @@ namespace Client.DebugSystem
                     unlockState,
                     craftTree,
                     playedSkitIds,
-                    researchNodeStates,
-                    railGraphSnapshot,
-                    trainUnitSnapshots);
+                    researchNodeStates);
                 
                 return new InitialHandshakeResponse(handshake, responses);
             }
