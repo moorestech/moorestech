@@ -9,7 +9,7 @@
 | 事象 | 内容 | 本設計での解消 |
 |---|---|---|
 | 1 | 到着順と生成順の逆転 | 応答もイベントも接続ごとの単一送信FIFOに生成順で積む（到着順=生成順を輸送層で保証） |
-| 2 | snapshot適用ルール2本併存 | 初期同期・resyncのsnapshotをイベント経路でpushし、適用を`TrainUnitFutureMessageBuffer`経由の1本に統合 |
+| 2 | snapshot適用ルール2本併存 | 初期同期・resyncのsnapshotをイベント経路でpushし、適用ルールを「ストリーム到着順に適用」の1本に統合 |
 | 3 | 初回同期でイベント消失（実測13tick） | クライアントは購読開始まで全イベントをバッファしreplay。snapshotがストリーム内の位置を持つため「続き」が自明 |
 | 4 | snapshot要求が他クライアントにseq穴を作る | full snapshotは`NextTickSequenceId()`を消費せず、発行済み最新IDをwatermarkとして記録するだけにする |
 | 5 | 無事故が暗黙の実装詳細に全依存 | 順序保証を明文化した契約とし、PacketTestで固定する |
@@ -99,9 +99,10 @@ TCP 1本・接続ごとの送信FIFO（`SendQueueProcessor`）に、request/resp
 
 ### 5. snapshot適用の一本化
 
-- full snapshotイベントは既存イベント経路で受信し、`TrainUnitFutureMessageBuffer` にunified-id順で積み、flushで `TrainUnitSnapshotApplier` / `RailGraphSnapshotApplier` を呼んで適用する（適用順はrail → train）
-- **即時適用パスを削除**: `TrainUnitHashVerifier` の `ApplySnapshot` 直呼び（`TrainUnitHashVerifier.cs:149-150,173`）を廃止。resyncは `va:trainResync` を送るだけにし、`_resyncInProgress` の解除は「full snapshot適用完了通知」で行う
-- これで snapshot 適用は「イベント→buffer→id順flush」の1ルールのみになる
+- full snapshotイベントは専用ハンドラが**受信した瞬間（=ストリーム到着順）に適用**する: rail→trainの順で `RailGraphSnapshotApplier` / `TrainUnitSnapshotApplier` を呼び、watermarkを適用済みIDとして記録した上で、`TrainUnitFutureMessageBuffer` 内のwatermark以下の古いイベント・hashをpurgeする
+- `TrainUnitFutureMessageBuffer` のflushは「applied+1の完全一致キー」駆動（`TrainUnitClientSimulator.cs:96`）のため、watermarkへジャンプするfull snapshotはbuffer経由にできない（デッドロックする）。単一ストリーム上では到着順=生成順が保証済みなので、**到着時即時適用こそが順序どおりの適用**であり、bufferはdiff/hashのtickペーシング専用として残る
+- **resyncの即時適用パスを削除**: `TrainUnitHashVerifier` の応答待ち＋`ApplySnapshot` 直呼び（`TrainUnitHashVerifier.cs:149-150,173`）を廃止。resyncは `va:trainResync` を送るだけにし、`_resyncInProgress` の解除は専用ハンドラの「full snapshot適用完了通知」の購読で行う
+- これで snapshot 適用は「専用ハンドラによるストリーム到着順の適用」の1ルールのみになり、diff/hashは従来どおりbuffer経由の1ルールのまま
 
 ## 削除されるもの一覧
 
