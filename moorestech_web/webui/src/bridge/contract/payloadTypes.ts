@@ -40,6 +40,15 @@ import type {
   SlotRefSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  PauseMenuDataSchema,
+  PlacementModeDataSchema,
+  DeleteModeDataSchema,
+  KeyHintsDataSchema,
+  CrosshairDataSchema,
+  UiVisibilityDataSchema,
+  MiningHudDataSchema,
+  TooltipDataSchema,
+  ContextMenuDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -55,6 +64,15 @@ export type ModalData = z.infer<typeof ModalDataSchema>;
 export type ProgressData = z.infer<typeof ProgressDataSchema>;
 export type UiStateData = z.infer<typeof UiStateDataSchema>;
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
+export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;
+export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
+export type DeleteModeData = z.infer<typeof DeleteModeDataSchema>;
+export type KeyHintsData = z.infer<typeof KeyHintsDataSchema>;
+export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
+export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
+export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
+export type TooltipData = z.infer<typeof TooltipDataSchema>;
+export type ContextMenuData = z.infer<typeof ContextMenuDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;

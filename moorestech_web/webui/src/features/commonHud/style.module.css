@@ -1,0 +1,25 @@
+.crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 2px black;
+  transform: translate(-50%, -50%);
+}
+
+.keyHints {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  max-width: 420px;
+  padding: 12px 16px;
+  color: white;
+  background: rgb(16 20 28 / 78%);
+}
+
+.keyHintText {
+  white-space: pre-line;
+}

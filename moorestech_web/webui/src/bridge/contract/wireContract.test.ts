@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { validateTopicPayload } from "./validators";
 import { BENIGN_ERRORS } from "../transport/actions";
 import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
-import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData } from "./payloadTypes";
+import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData, PauseMenuData } from "./payloadTypes";
 
 // C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
 // Single source shared with the C# NUnit (WireContractTest); the TS side checks the contract via validators + type consumption
@@ -90,6 +90,22 @@ describe("wire contract fixtures (shared with C#)", () => {
     const data = loadFixture("ui_state.json");
     expect(validateTopicPayload(Topics.uiState, data)).toBe(true);
     expect((data as UiStateData).state).toBe("PlayerInventory");
+  });
+
+  it("pause_menu が切断状態を受理する", () => {
+    const data = loadFixture("pause_menu.json");
+    expect(validateTopicPayload(Topics.pauseMenu, data)).toBe(true);
+    expect((data as PauseMenuData).disconnected).toBe(true);
+  });
+
+  it("C2 HUD/common fixtures are accepted", () => {
+    const cases = [
+      [Topics.placementMode, "placement_mode.json"], [Topics.deleteMode, "delete_mode.json"],
+      [Topics.keyHints, "key_hints.json"], [Topics.crosshair, "visibility.json"],
+      [Topics.uiVisibility, "visibility.json"], [Topics.miningHud, "mining_hud.json"],
+      [Topics.tooltip, "tooltip.json"], [Topics.contextMenu, "context_menu.json"],
+    ] as const;
+    for (const [topic, fixture] of cases) expect(validateTopicPayload(topic, loadFixture(fixture))).toBe(true);
   });
 
   it("契約違反 payload はバリデータで破棄される", () => {

@@ -12,9 +12,15 @@ describe("screenForUiState", () => {
   it("BuildMenu は buildMenu 画面に解決される", () => {
     expect(screenForUiState("BuildMenu")).toBe("buildMenu");
   });
+  it("PauseMenu は pauseMenu 画面に解決される", () => {
+    expect(screenForUiState("PauseMenu")).toBe("pauseMenu");
+  });
+  it("PlaceBlock は画面を占有しないHUD stateとして扱う", () => {
+    expect(screenForUiState("PlaceBlock")).toBe("none");
+  });
   it("GameScreen・未受信・未知state はパネル無し", () => {
     expect(screenForUiState("GameScreen")).toBe("none");
     expect(screenForUiState(null)).toBe("none");
-    expect(screenForUiState("PauseMenu")).toBe("none");
+    expect(screenForUiState("UnknownState")).toBe("none");
   });
 });

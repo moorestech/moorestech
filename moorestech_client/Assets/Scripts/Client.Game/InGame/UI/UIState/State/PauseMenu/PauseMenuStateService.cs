@@ -21,7 +21,7 @@ namespace Client.Game.InGame.UI.UIState.State.PauseMenu
         
         public void OnEnter()
         {
-            _pauseMenu.gameObject.SetActive(true);
+            _pauseMenu.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
             InputManager.MouseCursorVisible(true);
             KeyControlDescription.Instance.SetText("Esc: ゲームに戻る");
         }

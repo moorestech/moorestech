@@ -28,7 +28,7 @@ namespace Client.Game.InGame.Presenter.PauseMenu
             Disconnect();
         }
         
-        private void Back()
+        public void Back()
         {
             Disconnect();
             SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
