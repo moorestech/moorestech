@@ -15,10 +15,8 @@ namespace Client.Skit.UI
             gameObject.SetActive(isActive);
         }
         
-        public async UniTask SetText(string characterName, string body, AudioClip voice = null)
+        public async UniTask PlayVoiceAndWait(AudioClip voice)
         {
-            skitText.text = $"{characterName} : {body}";
-            
             if (voice == null)
             {
                 await UniTask.Delay(3000);

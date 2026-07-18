@@ -23,6 +23,9 @@ import {
   MiningHudDataSchema,
   TooltipDataSchema,
   ContextMenuDataSchema,
+  GameStateDataSchema,
+  TutorialPresentationDataSchema,
+  SkitPresentationDataSchema,
 } from "./schemas";
 
 type TopicSchemaRegistry = {
@@ -54,6 +57,9 @@ const topicSchemas = {
   [Topics.miningHud]: MiningHudDataSchema,
   [Topics.tooltip]: TooltipDataSchema,
   [Topics.contextMenu]: ContextMenuDataSchema,
+  [Topics.gameState]: GameStateDataSchema,
+  [Topics.tutorialPresentation]: TutorialPresentationDataSchema,
+  [Topics.skitPresentation]: SkitPresentationDataSchema,
 } satisfies TopicSchemaRegistry;
 
 // 既知topicはsafeParseで検証し、未知topicは従来どおり素通しする

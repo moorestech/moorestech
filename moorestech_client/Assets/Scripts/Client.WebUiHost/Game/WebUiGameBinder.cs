@@ -80,6 +80,9 @@ namespace Client.WebUiHost.Game
             // Register the UI-state topic (source of truth for web-side routing)
             var uiStateTopic = new UiStateTopic(hub, uiStateControl);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
+            hub.RegisterTopic(GameStateTopic.TopicName, new GameStateTopic(hub));
+            hub.RegisterTopic(TutorialPresentationTopic.TopicName, new TutorialPresentationTopic());
+            hub.RegisterTopic(SkitPresentationTopic.TopicName, new SkitPresentationTopic(hub));
 
             // 現在言語トピックを登録（辞書本体はHTTP endpointから取得）
             // Register the current-locale topic (dictionary bodies come from the HTTP endpoint)
@@ -192,6 +195,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
             hub.RegisterAction(new PauseMenuBackToMainMenuActionHandler(resolver.Resolve<BackToMainMenu>()));
+            hub.RegisterAction(new TutorialAnchorAckAction());
         }
     }
 }

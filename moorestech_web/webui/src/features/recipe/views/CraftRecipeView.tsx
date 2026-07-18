@@ -9,6 +9,7 @@ import { useHoldCraft } from "../logic/useHoldCraft";
 import styles from "./RecipeBox.module.css";
 import RecipePager from "./RecipePager";
 import CraftProgressArrow from "./CraftProgressArrow";
+import { tutorialAnchor } from "@/shared/tutorialAnchor";
 
 type Props = {
   recipes: CraftRecipe[];
@@ -74,6 +75,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
         <Text className={styles.craftTime} size="sm">{recipe.craftTime}秒</Text>
       </div>
       <Button
+        {...tutorialAnchor("recipe.craft-button")}
         className={styles.craftButton}
         fullWidth
         disabled={!isCraftable}

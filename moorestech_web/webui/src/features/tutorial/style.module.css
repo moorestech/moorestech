@@ -1,0 +1,32 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-tutorial, 900);
+  pointer-events: none;
+}
+
+.highlight {
+  position: fixed;
+  box-sizing: border-box;
+  border: 3px solid #ffdd57;
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px rgb(255 221 87 / 24%);
+  pointer-events: none;
+}
+
+.highlight[data-kind="spotlight"] {
+  box-shadow: 0 0 0 9999px rgb(0 0 0 / 58%);
+}
+
+.callout {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  max-width: 280px;
+  padding: 8px 12px;
+  color: white;
+  background: #1d2330;
+  border-radius: 6px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
