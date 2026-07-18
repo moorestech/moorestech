@@ -24,6 +24,8 @@ class WebSocketClient {
   private hasConnected = false;
   private reconnectDelayMs = 100;
   private nextRequestId = 1;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private lastPongAt = 0;
   private readonly pendingActions = new Map<
     string,
     { resolve: (r: ActionResult) => void; reject: (e: Error) => void; timer: number }
@@ -71,8 +73,16 @@ class WebSocketClient {
       this.hasConnected = true;
       // 接続確立を公開し、参照カウント>0 の topic を一括再購読する
       // Publish the open state and resubscribe all refcount>0 topics in one batch
-      useTopicStore.getState().setStatus("open");
+      useTopicStore.getState().beginRestore(subscriptions.subscribedTopics());
       subscriptions.resubscribe();
+      this.lastPongAt = Date.now();
+      this.heartbeatTimer = globalThis.setInterval(() => {
+        if (Date.now() - this.lastPongAt >= 15000) {
+          ws.close();
+          return;
+        }
+        this.sendRaw({ op: "ping" });
+      }, 5000);
     };
 
     ws.onmessage = (ev) => {
@@ -81,6 +91,10 @@ class WebSocketClient {
       if (typeof ev.data !== "string") return;
       const msg = safeParse(ev.data);
       if (!msg) return;
+      if (msg.op === "pong") {
+        this.lastPongAt = Date.now();
+        return;
+      }
       if (msg.op === "result") {
         if (typeof msg.requestId !== "string") return;
         const pending = this.pendingActions.get(msg.requestId);
@@ -92,9 +106,10 @@ class WebSocketClient {
       }
       if (msg.op !== "snapshot" && msg.op !== "event") return;
       if (typeof msg.topic !== "string") return;
+      if (typeof msg.revision !== "number" || !Number.isSafeInteger(msg.revision) || msg.revision < 0) return;
       // topic 配信の単一チェックポイント: バリデーション→ストア反映（違反は deliver 内で破棄）
       // Single choke point for topic delivery: validate → store write (violations are dropped inside deliver)
-      deliverTopicPayload(msg.topic, msg.data);
+      deliverTopicPayload(msg.topic, msg.revision, msg.data);
     };
 
     ws.onerror = () => {
@@ -103,6 +118,10 @@ class WebSocketClient {
     };
 
     ws.onclose = () => {
+      if (this.heartbeatTimer !== null) {
+        globalThis.clearInterval(this.heartbeatTimer);
+        this.heartbeatTimer = null;
+      }
       // 切断時は保留中の action を全て reject する
       // Reject all pending actions on disconnect
       this.pendingActions.forEach((p) => {

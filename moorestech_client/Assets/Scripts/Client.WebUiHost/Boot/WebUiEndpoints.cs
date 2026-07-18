@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Assets;
+using Client.WebUiHost.Static;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -17,7 +19,7 @@ namespace Client.WebUiHost.Boot
     /// </summary>
     public static class WebUiEndpoints
     {
-        public static void Configure(IApplicationBuilder app, WebSocketHub hub)
+        public static void Configure(IApplicationBuilder app, WebSocketHub hub, WebUiStaticFileEndpoint staticFiles)
         {
             // エンドポイントの fault を Unity コンソールへ必ず残す（Kestrel の no-op logger 対策）
             // Always surface endpoint faults to the Unity console (Kestrel's logger is a no-op here)
@@ -116,11 +118,25 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(GenericImageAssetEndpoint.PathPrefix, StringComparison.Ordinal))
+                {
+                    await GenericImageAssetEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
                 if (path == Game.ItemMasterEndpoint.Path)
                 {
                     // アイテムマスタの JSON 配信
                     // Serve item master JSON
                     await Game.ItemMasterEndpoint.HandleAsync(context);
+                    return;
+                }
+
+                if (staticFiles != null && !path.StartsWith("/api/", StringComparison.Ordinal))
+                {
+                    // 検証済みdistを配信する
+                    // In production, serve non-API/WS requests from the validated dist
+                    await staticFiles.HandleAsync(context, path);
                     return;
                 }
 
@@ -148,10 +164,10 @@ namespace Client.WebUiHost.Boot
         {
             if (string.IsNullOrEmpty(origin)) return false;
 
-            var vitePort = WebUiPortConfig.VitePort;
-            if (vitePort == 0) return false;
+            var browserPort = WebUiPortConfig.BrowserPort;
+            if (browserPort == 0) return false;
 
-            return origin == $"http://localhost:{vitePort}" || origin == $"http://127.0.0.1:{vitePort}";
+            return origin == $"http://localhost:{browserPort}" || origin == $"http://127.0.0.1:{browserPort}";
         }
     }
 }

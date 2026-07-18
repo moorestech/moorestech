@@ -1,5 +1,7 @@
 import type { WebSocket } from "ws";
 
+const revisions = new Map<string, number>();
+
 export function clone<T>(o: T): T {
   return JSON.parse(JSON.stringify(o)) as T;
 }
@@ -20,5 +22,12 @@ export function stripNulls(value: unknown): unknown {
 }
 
 export function send(ws: WebSocket, obj: unknown) {
-  ws.send(JSON.stringify(stripNulls(obj)));
+  const message = obj as Record<string, unknown>;
+  if ((message.op === "snapshot" || message.op === "event") && typeof message.topic === "string" && message.revision === undefined) {
+    const current = revisions.get(message.topic) ?? 0;
+    const revision = message.op === "event" ? current + 1 : current;
+    revisions.set(message.topic, revision);
+    message.revision = revision;
+  }
+  ws.send(JSON.stringify(stripNulls(message)));
 }
