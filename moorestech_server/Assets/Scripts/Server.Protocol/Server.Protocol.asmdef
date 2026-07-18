@@ -23,7 +23,6 @@
     "Game.Challenge.Interface",
     "Core.Master",
     "Game.UnlockState",
-    "Game.CraftTree",
     "Game.Fluid",
     "Game.Research",
     "Game.Train",

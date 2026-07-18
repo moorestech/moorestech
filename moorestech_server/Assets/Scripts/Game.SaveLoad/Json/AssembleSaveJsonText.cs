@@ -3,7 +3,6 @@ using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
 using Game.Context;
-using Game.CraftTree;
 using Game.Entity.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
@@ -23,7 +22,6 @@ namespace Game.SaveLoad.Json
         private readonly IPlayerInventoryDataStore _inventoryDataStore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
-        private readonly CraftTreeManager _craftTreeManager;
         private readonly IResearchDataStore _researchDataStore;
         private readonly TrainSaveLoadService _trainSaveLoadService;
         private readonly RailGraphSaveLoadService _railGraphSaveLoadService;
@@ -39,7 +37,6 @@ namespace Game.SaveLoad.Json
             IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore,
             IGameUnlockStateDataController gameUnlockStateDataController,
-            CraftTreeManager craftTreeManager,
             IResearchDataStore researchDataStore,
             TrainSaveLoadService trainSaveLoadService,
             RailGraphSaveLoadService railGraphSaveLoadService,
@@ -54,7 +51,6 @@ namespace Game.SaveLoad.Json
             _worldSettingsDatastore = worldSettingsDatastore;
             _challengeDatastore = challengeDatastore;
             _gameUnlockStateDataController = gameUnlockStateDataController;
-            _craftTreeManager = craftTreeManager;
             _researchDataStore = researchDataStore;
             _trainSaveLoadService = trainSaveLoadService;
             _railGraphSaveLoadService = railGraphSaveLoadService;
@@ -78,7 +74,6 @@ namespace Game.SaveLoad.Json
                 mapObjectDatastore.GetSaveJsonObject(),
                 _challengeDatastore.GetSaveJsonObject(),
                 _gameUnlockStateDataController.GetSaveJsonObject(),
-                _craftTreeManager.GetSaveJsonObject(),
                 _researchDataStore.GetSaveJsonObject(),
                 _trainSaveLoadService.GetSaveJsonObject(),
                 _railGraphSaveLoadService.GetSaveData(),

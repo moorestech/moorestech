@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
-using Game.CraftTree.Models;
 using Game.PlayerRiding.Interface;
 using Game.Research;
 using Game.Train.Unit;
@@ -24,7 +23,6 @@ namespace Client.Network.API
         public PlayerInventoryResponse Inventory { get; }
         public List<ChallengeCategoryResponse> Challenges { get; }
         public UnlockStateResponse UnlockState { get; }
-        public CraftTreeResponse CraftTree { get; }
         public List<string> PlayedSkitIds { get; }
         public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
         public RailGraphSnapshotMessagePack RailGraphSnapshot { get; }
@@ -42,7 +40,6 @@ namespace Client.Network.API
                 PlayerInventoryResponse inventory,
                 List<ChallengeCategoryResponse> challenges, 
                 UnlockStateResponse unlockState,
-                CraftTreeResponse craftTree,
                 List<string> playedSkitIds,
                 Dictionary<Guid, ResearchNodeState> researchNodeStates,
                 RailGraphSnapshotMessagePack railGraphSnapshot,
@@ -54,7 +51,6 @@ namespace Client.Network.API
             Inventory = responses.inventory;
             Challenges = responses.challenges;
             UnlockState = responses.unlockState;
-            CraftTree = responses.craftTree;
             PlayedSkitIds = responses.playedSkitIds;
             ResearchNodeStates = responses.researchNodeStates;
             RailGraphSnapshot = responses.railGraphSnapshot;
@@ -182,18 +178,6 @@ namespace Client.Network.API
         }
     }
     
-    public class CraftTreeResponse
-    {
-        public List<CraftTreeNode> CraftTrees { get; }
-        public Guid CurrentTargetNode { get; }
-        
-        public CraftTreeResponse(List<CraftTreeNode> craftTrees, Guid currentTargetNode)
-        {
-            CraftTrees = craftTrees;
-            CurrentTargetNode = currentTargetNode;
-        }
-    }
-
     // 列車スナップショット取得時のレスポンス
     // Response wrapper for the initial train unit snapshot payload
     public class TrainUnitSnapshotResponse

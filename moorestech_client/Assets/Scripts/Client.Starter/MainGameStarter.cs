@@ -19,7 +19,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
-using Client.Game.InGame.CraftTree.TreeView;
 using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
@@ -108,7 +107,6 @@ namespace Client.Starter
         [SerializeField] private RecipeViewerView recipeViewerView;
         [SerializeField] private ItemListView itemListView;
         [SerializeField] private RecipeTabView recipeTabView;
-        [SerializeField] private CraftTreeViewManager craftTreeViewManager;
         [SerializeField] private ChallengeListView challengeListView;
         [SerializeField] private ResearchTreeViewManager researchTreeViewManager;
 
@@ -293,7 +291,6 @@ namespace Client.Starter
             builder.RegisterComponent(recipeViewerView);
             builder.RegisterComponent(itemListView);
             builder.RegisterComponent(recipeTabView);
-            builder.RegisterComponent(craftTreeViewManager);
             builder.RegisterComponent(challengeListView);
             builder.RegisterComponent(researchTreeViewManager);
 

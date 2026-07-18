@@ -4,6 +4,7 @@ using Game.Context;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -23,12 +24,17 @@ namespace Tests.UnitTest.Game.SaveLoad
             var assembleSaveJsonText = serviceProvider.GetService<AssembleSaveJsonText>();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
-            
+
             worldBlockDatastore.TryAddBlock((BlockId)1, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block0);
             worldBlockDatastore.TryAddBlock((BlockId)2, new Vector3Int(10, -15), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block1);
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             
+            // 廃止状態が保存JSONにないことを検証
+            // Verify the retired state is absent from save JSON
+            var saveJson = JObject.Parse(json);
+            Assert.IsNull(saveJson["craftTreeInfo"]);
+
             Debug.Log(json);
             
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
