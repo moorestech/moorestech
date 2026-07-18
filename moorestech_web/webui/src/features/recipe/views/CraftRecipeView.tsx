@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Box, Button, Group, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
-import type { CraftRecipe, ItemMasterEntry } from "@/bridge";
+import type { CraftRecipe } from "@/bridge";
 import { clampIndex, craftable } from "../craftLogic";
 import { useHoldCraft } from "../useHoldCraft";
 import styles from "./RecipeBox.module.css";
@@ -14,13 +14,12 @@ type Props = {
   recipeIndex: number;
   setRecipeIndex: (i: number) => void;
   counts: Map<number, number>;
-  itemMaster: Map<number, ItemMasterEntry> | null;
   onSelect: (itemId: number) => void;
 };
 
 // クラフトタブ: 素材列 → 進捗矢印 → 結果。下端ボタン長押しで craftTime ごとに連続クラフト（uGUI CraftButton 準拠）
 // Craft tab: material row → progress arrow → result; hold the bottom button to continuously craft every craftTime (mirrors uGUI CraftButton)
-export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, itemMaster, onSelect }: Props) {
+export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, counts, onSelect }: Props) {
   // topic 更新でレシピ数が減った場合に備えて index をクランプ
   // Clamp the index in case a topic update shrank the recipe list
   const index = clampIndex(recipeIndex, recipes.length);
@@ -49,7 +48,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
           {recipe.requiredItems.map((r, i) => (
             // 所持数不足の素材は 40% 透過で強調を落とす（uGUI 準拠）
             // Dim insufficient materials to 40% opacity, matching uGUI
-            <ItemSlot key={i} itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} insufficient={!((counts.get(r.itemId) ?? 0) >= r.count)} onLeftDown={() => onSelect(r.itemId)} />
+            <ItemSlot key={i} itemId={r.itemId} count={r.count} insufficient={!((counts.get(r.itemId) ?? 0) >= r.count)} onLeftDown={() => onSelect(r.itemId)} />
           ))}
         </Group>
         {/* 素材と完成品の間に長押し進捗を矢印で表示する */}
@@ -58,7 +57,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
           <CraftProgressArrow value={isHolding ? progress : 0} />
         </Box>
         <Box className={styles.recipeResult}>
-          <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} name={itemMaster?.get(recipe.resultItemId)?.name} />
+          <ItemSlot itemId={recipe.resultItemId} count={recipe.resultCount} />
         </Box>
         <Text className={styles.craftTime} size="sm">{recipe.craftTime}秒</Text>
       </div>

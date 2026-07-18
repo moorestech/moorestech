@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Stack, Tabs, Text } from "@mantine/core";
+import { useItemMaster } from "@/bridge";
 import { BlockIcon } from "@/shared/ui";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import styles from "../RecipeViewer.module.css";
@@ -7,7 +8,6 @@ import type {
   CraftRecipesData,
   MachineRecipesData,
   PlayerInventoryData,
-  ItemMasterEntry,
 } from "@/bridge";
 import {
   selectCraftRecipes,
@@ -23,13 +23,13 @@ type Props = {
   recipes: CraftRecipesData;
   machineRecipes: MachineRecipesData;
   inventory: PlayerInventoryData;
-  itemMaster: Map<number, ItemMasterEntry> | null;
   onSelect: (itemId: number) => void;
 };
 
 // 選択アイテムのレシピ本体。key={itemId} で再マウントされタブ・ページ状態がリセットされる
 // Recipe body for the selected item; remounted via key={itemId} so tab/page state resets
-export default function RecipeContent({ itemId, recipes, machineRecipes, inventory, itemMaster, onSelect }: Props) {
+export default function RecipeContent({ itemId, recipes, machineRecipes, inventory, onSelect }: Props) {
+  const itemMaster = useItemMaster();
   // 導出は純関数＋useMemo。入力 topic が変わらない限り再計算しない
   // Derivations are pure functions + useMemo; no recompute unless the input topics change
   const craftRecipes = useMemo(() => selectCraftRecipes(recipes, itemId), [recipes, itemId]);
@@ -98,7 +98,6 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
           recipeIndex={recipeIndex}
           setRecipeIndex={setRecipeIndex}
           counts={counts}
-          itemMaster={itemMaster}
           onSelect={onSelect}
         />
       ) : (
@@ -106,7 +105,6 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
           recipes={machineGroups.get(activeTab.blockId)!}
           recipeIndex={recipeIndex}
           setRecipeIndex={setRecipeIndex}
-          itemMaster={itemMaster}
           onSelect={onSelect}
         />
       )}

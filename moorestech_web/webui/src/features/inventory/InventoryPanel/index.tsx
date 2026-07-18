@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
 import { Text } from "@mantine/core";
-import { useTopic, Topics, useItemMaster } from "@/bridge";
+import { useTopic, Topics } from "@/bridge";
 import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
-import { createSlotActions } from "../slotActions";
+import { slotActions } from "../slotActions";
 
 // 固定pxでピッチの端数ドリフトを防ぐ
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
@@ -15,15 +15,9 @@ const GRID_STYLE = { "--slot-size": "45.617px", "--slot-grid-gap": "9.183px", "-
 // Handle four main rows; grab tracking and the hotbar render separately
 export default function InventoryPanel() {
   const inventory = useTopic(Topics.inventory);
-  const itemMaster = useItemMaster();
-
   if (!inventory) {
     return <Text size="sm" c="dimmed" style={{ gridArea: "inv" }}>connecting...</Text>;
   }
-
-  // クリック操作は HotbarPanel と共通のファクトリで生成する
-  // Click interactions come from the factory shared with HotbarPanel
-  const actions = createSlotActions(inventory, itemMaster);
 
   return (
     <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
@@ -35,10 +29,9 @@ export default function InventoryPanel() {
               key={`main-${i}`}
               itemId={slot.itemId}
               count={slot.count}
-              name={itemMaster?.get(slot.itemId)?.name}
-              onLeftDown={(shiftKey) => actions.onLeftDown(ref, slot, shiftKey)}
-              onRightDown={() => actions.onRightDown(ref, slot)}
-              onDoubleClick={() => actions.onDoubleClick(ref)}
+              onLeftDown={(shiftKey) => slotActions.onLeftDown(ref, shiftKey)}
+              onRightDown={() => slotActions.onRightDown(ref)}
+              onDoubleClick={() => slotActions.onDoubleClick(ref)}
             />
           );
         })}

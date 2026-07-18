@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { CSSProperties } from "react";
 import { ScrollArea, Text } from "@mantine/core";
-import { useTopic, Topics, useItemMaster } from "@/bridge";
+import { useTopic, Topics } from "@/bridge";
 import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import { useItemSelectionStore } from "./selectionStore";
 import styles from "./ItemListPanel.module.css";
@@ -18,7 +18,6 @@ export default function ItemListPanel() {
   const onSelect = useItemSelectionStore((s) => s.setSelectedItem);
   const itemList = useTopic(Topics.itemList);
   const inventory = useTopic(Topics.inventory);
-  const itemMaster = useItemMaster();
 
   // uGUI 同様、所持中のアイテムだけ白面＋個数で強調する。所持数は main+hotbar を合算
   // Like uGUI, only owned items get a white face + count; owned totals sum main+hotbar
@@ -58,7 +57,6 @@ export default function ItemListPanel() {
                 itemId={id}
                 count={ownedCounts.get(id)}
                 catalog
-                name={itemMaster?.get(id)?.name}
                 onLeftDown={() => onSelect(id)}
               />
             ))}

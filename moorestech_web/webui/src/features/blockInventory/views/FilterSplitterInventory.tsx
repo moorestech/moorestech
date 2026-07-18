@@ -1,20 +1,18 @@
 import { Button, Group, Stack, Text } from "@mantine/core";
-import { dispatchAction } from "@/bridge";
+import { dispatchAction, readTopic, Topics } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
-import { useBlockInteraction } from "../blockInteractionContext";
 import { filterSlotClickAction, modeLabel, nextMode } from "../filterSplitterLogic";
 
 // 方向別のフィルタ操作ビュー
 // Per-direction filter operation view
 export default function FilterSplitterInventory({ data }: { data: BlockInventoryOpen }) {
-  const { grabCount, resolveName } = useBlockInteraction();
   if (!data.filterSplitter) return null;
 
   // uGUI と同じ空 grab 判定
   // Applies the same empty-grab branch as uGUI
   const sendFilterItemAction = (directionIndex: number, slotIndex: number, clear: boolean) => {
-    const action = filterSlotClickAction(grabCount, clear);
+    const action = filterSlotClickAction(readTopic(Topics.inventory)?.grab.count ?? 0, clear);
     if (action === "noop") return;
     void dispatchAction("filter_splitter.set_filter_item", { directionIndex, slotIndex, clear: action === "clear" });
   };
@@ -37,7 +35,6 @@ export default function FilterSplitterInventory({ data }: { data: BlockInventory
               <ItemSlot
                 key={slotIndex}
                 itemId={itemId}
-                name={resolveName(itemId)}
                 onLeftDown={() => sendFilterItemAction(dirIndex, slotIndex, false)}
                 onRightDown={() => sendFilterItemAction(dirIndex, slotIndex, true)}
                 testId={`filter-slot-${dirIndex}-${slotIndex}`}

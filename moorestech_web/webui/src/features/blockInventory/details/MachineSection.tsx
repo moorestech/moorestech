@@ -1,7 +1,6 @@
 import { Group, Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
 import { ItemSlot, SlotGrid, ProgressArrow, FluidSlotRow } from "@/shared/ui";
-import { useBlockInteraction } from "../blockInteractionContext";
 import { useBlockSlotGestures } from "../useBlockSlotGestures";
 import { splitSlotIndices } from "./detailLogic";
 import PowerRateText from "./PowerRateText";
@@ -9,7 +8,6 @@ import PowerRateText from "./PowerRateText";
 // 機械: 入力→出力→モジュールの分割グリッド + 進捗 + 電力率（uGUI MachineBlockInventoryView 準拠）
 // Machine: split input→output→module grids, progress, and power rate (mirrors uGUI MachineBlockInventoryView)
 export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
-  const { resolveName } = useBlockInteraction();
   // ジェスチャ配線は BlockItemGrid と共通。分割グリッドでも右クリ/Shift/収集がフルに効く
   // Gesture wiring shared with BlockItemGrid; split grids get the full right-click/Shift/collect set
   const gestures = useBlockSlotGestures();
@@ -23,9 +21,8 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
         key={i}
         itemId={slot.itemId}
         count={slot.count}
-        name={resolveName(slot.itemId)}
-        onLeftDown={(shiftKey) => gestures.onLeftDown(i, slot, shiftKey)}
-        onRightDown={() => gestures.onRightDown(i, slot)}
+        onLeftDown={(shiftKey) => gestures.onLeftDown(i, shiftKey)}
+        onRightDown={() => gestures.onRightDown(i)}
         onDoubleClick={() => gestures.onDoubleClick(i)}
       />
     );

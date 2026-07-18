@@ -1,5 +1,5 @@
 import { Text } from "@mantine/core";
-import { useTopic, Topics, useItemMaster } from "@/bridge";
+import { useTopic, Topics } from "@/bridge";
 import { GamePanel } from "@/shared/ui";
 import { useItemSelectionStore } from "./selectionStore";
 import RecipeContent from "./views/RecipeContent";
@@ -12,7 +12,6 @@ export default function RecipeViewer() {
   const recipes = useTopic(Topics.craftRecipes);
   const machineRecipes = useTopic(Topics.machineRecipes);
   const inventory = useTopic(Topics.inventory);
-  const itemMaster = useItemMaster();
 
   const loaded = recipes !== null && machineRecipes !== null && inventory !== null;
 
@@ -46,7 +45,6 @@ export default function RecipeViewer() {
           recipes={recipes}
           machineRecipes={machineRecipes}
           inventory={inventory}
-          itemMaster={itemMaster}
           onSelect={onSelect}
         />
       )}
