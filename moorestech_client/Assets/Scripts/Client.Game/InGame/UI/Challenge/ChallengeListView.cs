@@ -5,6 +5,7 @@ using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using UnityEngine;
+using Client.Game.InGame.UI.UIState;
 
 namespace Client.Game.InGame.UI.Challenge
 {
@@ -58,7 +59,7 @@ namespace Client.Game.InGame.UI.Challenge
         
         public void SetActive(bool enable)
         {
-            gameObject.SetActive(enable);
+            gameObject.SetActive(enable && !WebUiScreenGate.IsWebUiMode);
         }
         
 #if UNITY_EDITOR

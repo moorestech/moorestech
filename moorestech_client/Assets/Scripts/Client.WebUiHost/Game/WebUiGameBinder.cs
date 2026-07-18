@@ -13,6 +13,7 @@ using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.UnlockState;
 using VContainer;
+using Client.Network.API;
 
 namespace Client.WebUiHost.Game
 {
@@ -102,6 +103,13 @@ namespace Client.WebUiHost.Game
             // Register the research-tree topic (visibility is decided by ui_state.current)
             var researchTopic = new ResearchTopic(hub, uiStateControl);
             hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
+
+            // チャレンジツリーと常駐HUDは同じイベント駆動状態を共有する
+            // The challenge tree and persistent HUD share the same event-driven state
+            var initialHandshake = resolver.Resolve<InitialHandshakeResponse>();
+            var challengeState = new ChallengeTopicState(hub, initialHandshake);
+            hub.RegisterTopic(ChallengeTreeTopic.TopicName, new ChallengeTreeTopic(challengeState));
+            hub.RegisterTopic(ChallengeCurrentTopic.TopicName, new ChallengeCurrentTopic(challengeState));
 
             // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
             // Register the build-menu topic (also wires the blueprint-name input bridge)

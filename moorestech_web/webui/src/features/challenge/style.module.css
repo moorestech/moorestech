@@ -1,0 +1,22 @@
+.panel {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay-panel);
+  background: var(--mantine-color-dark-8);
+  display: flex;
+  flex-direction: column;
+  padding: var(--mantine-spacing-md);
+}
+.categories { flex-wrap: nowrap; overflow-x: auto; }
+.node { position: absolute; width: 240px; padding: var(--mantine-spacing-sm); }
+.locked { opacity: 0.55; }
+.current { outline: 2px solid var(--mantine-color-blue-5); }
+.completed { outline: 2px solid var(--mantine-color-green-6); }
+.hud {
+  position: fixed;
+  left: 24px;
+  top: 24px;
+  z-index: var(--z-overlay-panel);
+  min-width: 280px;
+  padding: var(--mantine-spacing-sm);
+}

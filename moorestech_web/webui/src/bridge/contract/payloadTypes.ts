@@ -40,6 +40,12 @@ import type {
   SlotRefSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  ChallengeNodeStateSchema,
+  ChallengeNodeDataSchema,
+  ChallengeCategoryDataSchema,
+  ChallengeTreeDataSchema,
+  CurrentChallengeDataSchema,
+  ChallengeCurrentDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -84,3 +90,9 @@ export type ResearchTreeData = z.infer<typeof ResearchTreeDataSchema>;
 export type BuildMenuEntryType = z.infer<typeof BuildMenuEntryTypeSchema>;
 export type BuildMenuEntryData = z.infer<typeof BuildMenuEntryDataSchema>;
 export type BuildMenuData = z.infer<typeof BuildMenuDataSchema>;
+export type ChallengeNodeState = z.infer<typeof ChallengeNodeStateSchema>;
+export type ChallengeNodeData = z.infer<typeof ChallengeNodeDataSchema>;
+export type ChallengeCategoryData = z.infer<typeof ChallengeCategoryDataSchema>;
+export type ChallengeTreeData = z.infer<typeof ChallengeTreeDataSchema>;
+export type CurrentChallengeData = z.infer<typeof CurrentChallengeDataSchema>;
+export type ChallengeCurrentData = z.infer<typeof ChallengeCurrentDataSchema>;
