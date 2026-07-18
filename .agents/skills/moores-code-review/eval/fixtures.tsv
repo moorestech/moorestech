@@ -7,3 +7,4 @@ pr996	8e56e402d	379350219	PR996 god-context・Selector・DTO配置 review 466157
 pr997	ce3465853	154bec765	PR997 複合interface・ディレクトリ整理 review 4645972495
 pr1000	081704ebc	df594e403	PR1000 GearChainPole重複・_gearService委譲 comment r3556923781
 # pr1017	<review_commit>	<merge_commit>	PR1017 [0]決め打ちの暗黙単数前提 review 4686520443（マージ後にコミット埋めて有効化）
+# pr1027	35766cfdd	<merge_commit>	PR1027 SetEventSinkのset-once setter注入（マージ後にmerge_commit埋めて有効化）
