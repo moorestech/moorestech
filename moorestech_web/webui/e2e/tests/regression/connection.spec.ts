@@ -1,8 +1,42 @@
 import { test, expect } from "@playwright/test";
-import { disconnectWebSockets, setSnapshotDelay } from "../../support/mockControl";
+import { disconnectWebSockets, injectTopicSnapshot, setSnapshotDelay, setTopicScenario, setTopicScenarioRevision, setWoodItemName } from "../../support/mockControl";
 
 test.afterEach(async ({ page }) => {
   await setSnapshotDelay(page, 0, null);
+  await setTopicScenario(page, "keyHintsHidden");
+  await setWoodItemName(page, "Wood");
+});
+
+test("切断後は全topic snapshotをrestoring中に復元し旧世代snapshotを破棄する", async ({ page }) => {
+  await setTopicScenarioRevision(page, "keyHints", 10, "BASE_HINT");
+  await page.goto("/");
+  const hints = page.locator('[data-tutorial-anchor="game.key-hints"]');
+  await expect(hints).toContainText("BASE_HINT");
+  await setTopicScenarioRevision(page, "keyHints", 11, "HUD_HINT");
+  await expect(hints).toContainText("操作ヒント");
+
+  const firstSlot = page.getByTestId("main-grid").locator("> div").first();
+  await firstSlot.click();
+  await expect(page.getByTestId("grab-overlay")).toContainText("10");
+  await setSnapshotDelay(page, 800, "ui.key_hints");
+  await disconnectWebSockets(page, 200);
+  await setWoodItemName(page, "Timber");
+  const overlay = page.getByTestId("reconnect-overlay");
+  await expect(overlay).toBeVisible();
+
+  // 全snapshot後だけopenへ戻る
+  // Return open only after every snapshot
+  await expect(overlay).toBeHidden({ timeout: 5000 });
+  await expect(hints).toContainText("操作ヒント");
+  await expect(page.getByTestId("grab-overlay")).toContainText("10");
+  await page.getByTestId("main-grid").locator("> div").nth(2).hover();
+  await expect(page.getByRole("tooltip")).toContainText("Timber");
+
+  // 旧snapshotの上書きを防ぐ
+  // Prevent an old snapshot from rolling back the UI
+  await injectTopicSnapshot(page, "keyHints", 10, "STALE_HINT");
+  await expect(hints).toContainText("操作ヒント");
+  await expect(hints).not.toContainText("STALE_HINT");
 });
 
 test("inventory未受信中はconnecting placeholderを表示する", async ({ page }) => {

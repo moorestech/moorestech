@@ -30,3 +30,9 @@ test("gear machine shows torque and gear network info", async ({ page }) => {
   await expect(page.getByTestId("gear-torque")).toContainText("トルク");
   await expect(page.getByTestId("gear-network-section")).toBeVisible();
 });
+
+test("機械recipeの出力個数と秒数から分間生産数を表示する", async ({ page }) => {
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await expect(page.getByTestId("machine-items-per-minute")).toContainText("12");
+});

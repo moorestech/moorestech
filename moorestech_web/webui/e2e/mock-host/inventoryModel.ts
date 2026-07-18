@@ -69,6 +69,22 @@ export function applyMove(inv: PlayerInventoryData, p: ActionPayloads["inventory
   return applyBlockMove(inv, { open: false }, p);
 }
 
+export function applySplitDrag(inv: PlayerInventoryData, p: ActionPayloads["inventory.split_drag"]): string | null {
+  if (inv.grab.count === 0 || p.slots.length === 0) return "grab_empty";
+  const uniqueSlots = p.slots.filter((slot, index) =>
+    p.slots.findIndex((candidate) => candidate.area === slot.area && candidate.slot === slot.slot) === index);
+  const targets = uniqueSlots.map((slot) => slotOf(inv, slot)).filter((slot) => slot.count === 0 || slot.itemId === inv.grab.itemId);
+  if (targets.length === 0) return "no_valid_slots";
+  const count = Math.floor(inv.grab.count / targets.length);
+  if (count === 0) return null;
+  for (const target of targets) {
+    target.itemId = inv.grab.itemId;
+    target.count += count;
+    inv.grab.count -= count;
+  }
+  return null;
+}
+
 // クラフト1回分: main+hotbar から必要素材を消費し結果を追加する。素材不足なら false で no-op
 // One craft: consume required materials from main+hotbar and add the result; returns false (no-op) if short
 // 実 host の OneClickCraft は main+hotbar のみ参照するため grab は対象外
