@@ -20,10 +20,10 @@
   border: 0;
   border-radius: 0;
   background-color: rgb(58 48 51);
-  /* 既定のinset 0.5pxは白面検出位置を維持し、カタログだけ整数キャプチャ画素へ上書きする */
-  /* The default 0.5px inset preserves white-face detection while the catalog overrides it to an integer capture pixel */
+  /* inset幅と色を用途別変数に分離し、持ち物の白面際だけ実測した中立暗色を使えるようにする */
+  /* Split inset width and color by usage so only inventory white faces can use the measured neutral dark edge */
   box-shadow:
-    inset 0 0 0 var(--face-inset, 0px) rgb(24 20 22),
+    inset 0 0 0 var(--face-inset, 0px) var(--face-inset-color, rgb(24 20 22)),
     var(--bevel-inset, ) 0 0 0 var(--bevel-1) var(--bevel-c1),
     var(--bevel-inset, ) 0 0 0 var(--bevel-2) var(--bevel-c2),
     var(--bevel-inset, ) 0 0 0 var(--bevel-3) var(--bevel-c3);
