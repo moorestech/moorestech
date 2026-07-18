@@ -1,20 +1,16 @@
-import { lazy, Suspense, useLayoutEffect, useRef } from "react";
-import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
-import { InventoryPanel, HotbarPanel, GrabOverlay } from "@/features/inventory";
-import { RecipeViewer, ItemListPanel, clearSelectedItem } from "@/features/recipe";
+import { useLayoutEffect, useRef } from "react";
+import { Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
+import { InventoryPanel, HotbarPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryPanel } from "@/features/blockInventory";
 import { ResearchTreePanel } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
-import { dispatchAction, useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
-import { screenForUiState, useGameLayerKeydown } from "@/shared/uiState";
+import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
+import { screenForUiState } from "@/shared/uiState";
 import styles from "./App.module.css";
-
-// dev 専用。static import すると本番バンドルに残るため import.meta.env.DEV 内で lazy 化
-// Dev-only; a static import would ship to prod, so lazy-load it inside the import.meta.env.DEV guard
-const DebugActionButton = import.meta.env.DEV ? lazy(() => import("./DebugActionButton")) : null;
 
 // 基準stageをviewportへ収める一様拡縮を同期する
 // Synchronize uniform scaling that fits the reference stage in the viewport
@@ -50,37 +46,11 @@ export default function App() {
   // Screen routing by ui_state.current (C# UIStateControl is authoritative; the selector returns a primitive)
   const screen = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null));
 
-  // Esc でアイテム選択を解除する。modal 等のオーバーレイは自前で Esc を処理するため game レイヤーのみ
-  // Esc clears item selection; overlays like the modal handle Esc themselves, so only at the game layer
-  useGameLayerKeydown((e) => {
-    if (e.key !== "Escape") return;
-    clearSelectedItem();
-  });
-
   return (
     <div className={styles.viewport}>
       {screen !== "none" && <div className={styles.backdrop} data-testid="screen-backdrop" />}
       <div ref={stageRef} className={styles.stage}>
-        {/* 整理操作と開発用操作を基準stageの右上へ配置する */}
-        {/* Place sorting and development controls at the reference stage top-right */}
-        {screen !== "none" && (
-          <div className={styles.topControls}>
-            <Button className={styles.sortButton} variant="default" size="compact-sm" onClick={() => void dispatchAction("inventory.sort", {})}>
-              整理
-            </Button>
-            {DebugActionButton ? (
-              <Suspense fallback={null}>
-                <DebugActionButton />
-              </Suspense>
-            ) : null}
-          </div>
-        )}
-        {screen !== "none" && (
-          <div className={styles.keyHints} data-testid="key-hints">
-            <div><kbd>Tab/ESC</kbd>: インベントリを閉じる</div>
-            <div><kbd>R</kbd>: リサーチツリー</div>
-          </div>
-        )}
+        {screen !== "none" && <InventoryScreenChrome />}
         {screen !== "none" && <InventoryPanel />}
         {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
         {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
@@ -94,6 +64,7 @@ export default function App() {
         <BlockInventoryPanel />
         <ModalHost />
         <ProgressBar />
+        <RecipeSelectionKeyHandler />
       </div>
       {screen !== "none" && <GrabOverlay />}
       <Portal>

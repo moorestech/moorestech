@@ -1,40 +1,22 @@
 import { describe, it, expect } from "vitest";
 
 import { resolveBlockComponent } from "./blockComponentRegistry";
-import ChestInventory from "./views/ChestInventory";
-import TankInventory from "./views/TankInventory";
-import GenericBlockInventory from "./views/GenericBlockInventory";
+import SectionStackView from "./views/SectionStackView";
 
 describe("resolveBlockComponent", () => {
-  it("Chest(実マスタ値) は ChestInventory を返す", () => {
-    expect(resolveBlockComponent("Chest")).toBe(ChestInventory);
+  it("標準ビューのblockTypeは単一のフォールバックへ統合する", () => {
+    const fallback = resolveBlockComponent("unknown");
+    expect(resolveBlockComponent("Chest")).toBe(fallback);
+    expect(resolveBlockComponent("ElectricMachine")).toBe(fallback);
+    expect(resolveBlockComponent("GearMiner")).toBe(fallback);
   });
   it("小文字 chest は実マスタ値でないため fallback になる", () => {
-    expect(resolveBlockComponent("chest")).toBe(GenericBlockInventory);
+    expect(resolveBlockComponent("chest")).toBe(SectionStackView);
   });
   it("tank は登録キー削除済みのためフォールバックを返す", () => {
-    expect(resolveBlockComponent("tank")).toBe(GenericBlockInventory);
+    expect(resolveBlockComponent("tank")).toBe(SectionStackView);
   });
   it("未登録 blockType はフォールバックを返す", () => {
-    expect(resolveBlockComponent("unknown")).toBe(GenericBlockInventory);
-  });
-  it.each([
-    "ElectricMachine",
-    "GearMachine",
-    "ElectricGenerator",
-    "FuelGearGenerator",
-    "SimpleGearGenerator",
-    "ElectricMiner",
-    "GearMiner",
-  ])("resolves a dedicated view for %s", (blockType) => {
-    expect(resolveBlockComponent(blockType)).not.toBe(GenericBlockInventory);
-  });
-});
-
-// TankInventory は専用 UI として温存（実流体ブロック配線時に再登録する想定）
-// TankInventory is kept as a dedicated UI (to be re-registered when real fluid-block wiring lands)
-describe("TankInventory", () => {
-  it("コンポーネントとして存在する", () => {
-    expect(TankInventory).toBeTypeOf("function");
+    expect(resolveBlockComponent("unknown")).toBe(SectionStackView);
   });
 });

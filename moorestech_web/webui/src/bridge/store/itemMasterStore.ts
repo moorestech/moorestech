@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { ItemMasterData, ItemMasterEntry } from "../contract/payloadTypes";
+import { itemMasterUrl } from "../transport/httpEndpoints";
 
 type ItemMasterState = {
   master: Map<number, ItemMasterEntry> | null;
@@ -53,7 +54,7 @@ export function ensureItemMasterLoaded(): void {
 
 async function loadWithRetry(): Promise<void> {
   for (;;) {
-    const res = await fetch("/api/master/items").catch(() => null);
+    const res = await fetch(itemMasterUrl).catch(() => null);
     if (res?.ok) {
       const data: unknown = await res.json().catch(() => null);
       if (isItemMasterData(data)) {
