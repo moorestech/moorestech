@@ -22,7 +22,7 @@ namespace Client.Game.InGame.Mining
 
         public string GetFocusTargetName()
         {
-            return _context?.CurrentFocusMapObjectGameObject?.MapObjectMasterElement?.Name ?? "";
+            return _context?.CurrentFocusMapObjectGameObject?.MapObjectMasterElement?.MapObjectName ?? "";
         }
 
         public bool IsMining() => _currentState is MapObjectMiningMiningState;
