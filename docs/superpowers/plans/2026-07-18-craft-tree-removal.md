@@ -374,6 +374,7 @@ Expected: both suites have `FailedCount: 0`; commit succeeds。
 - Re-save through Unity Editor: `moorestech_client/Assets/Asset/UI/Prefab/Inventory/InventoryItems.prefab`
 - Re-save through Unity Editor: `moorestech_client/Assets/Asset/UI/Prefab/MainGameUI.prefab`
 - Re-save through Unity Editor: `moorestech_client/Assets/Asset/Common/Prefab/GameSystem.prefab`
+- Create: `moorestech_client/Assets/Scripts/Client.Tests/Removal/CraftTreeRemovalTest.cs`
 
 **Interfaces:**
 - Consumes: Task 1〜3でクラフトツリー型とアセットが削除済みのUnityプロジェクト。
@@ -499,7 +500,25 @@ return "MissingPrefabs=0, InventoryItems/MainGameUI clean, GameSystem=18 missing
 
 Expected: `MissingPrefabs=0, InventoryItems/MainGameUI clean, GameSystem=18 missing scripts + 2 broken-reference baseline` and no exception。`GameSystem`の18 missing scriptsと2 broken referencesはprivate asset不在に由来する変更前ベースラインであり、増減を失敗にする。さらに`GameSystem.prefab`から削除対象GUID `61f42a36e8ea4515850d3bce341f3f35` と `craftTreeViewManager` が消え、`Chr001.prefab`に差分がないこと。
 
-- [ ] **Step 3: 削除対象GUIDと製品・現行資料の参照を全検索する**
+- [ ] **Step 3: Prefab残骸の回帰テストを追加する**
+
+`CraftTreeRemovalTest.cs` に `InventoryPrefabDoesNotContainCraftTreeUi` を追加する。`AssetDatabase.LoadAssetAtPath<GameObject>` で実際の `InventoryItems.prefab` を読み、inactiveを含む全Transformについて次を検査する。
+
+- 名前が `CraftTree`、`RecipeTreeView`、`show craft tree` のいずれでもない。
+- 全Componentのserialized `m_text` に `クラフトツリー` が含まれない。
+- 違反時はHierarchy pathを列挙し、どの残骸が戻ったか分かるようにする。
+
+`TMPro` をテストasmdefへ追加せず、`SerializedObject.FindProperty("m_text")` で表示文言を検査する。フォルダとファイルのmetaはUnityのインポートで生成させ、手動作成しない。
+
+Run:
+
+```bash
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value 'Client\.Tests\.Removal\.CraftTreeRemovalTest'
+```
+
+Expected: 1 passed, 0 failed。
+
+- [ ] **Step 4: 削除対象GUIDと製品・現行資料の参照を全検索する**
 
 Run:
 
@@ -525,28 +544,29 @@ rg -n -i 'CraftTree|craftTree|show[[:space:]_-]*craft[[:space:]_-]*tree|RecipeTr
 
 Expected: 最初の3コマンドは出力なし。テスト検索は保存JSONから削除済みであることを検証する`AssembleSaveJsonTextTest.cs`の`craftTreeInfo`アサーションと、旧Prefab要素の再混入を防ぐ`CraftTreeRemovalTest.cs`だけ。`docs/superpowers/` は承認済み履歴資料なので検索対象外。
 
-- [ ] **Step 4: 最終コンパイル・テスト・Errorログを検証する**
+- [ ] **Step 5: 最終コンパイル・テスト・Errorログを検証する**
 
 Run:
 
 ```bash
 uloop clear-console --project-path ./moorestech_client
 uloop compile --project-path ./moorestech_client
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value 'Client\.Tests\.Removal\.CraftTreeRemovalTest'
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value 'Tests\.UnitTest\.Game\.SaveLoad\.AssembleSaveJsonTextTest'
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value 'Tests\.CombinedTest\.Server\.PacketTest\.InitialHandshakeProtocolTest'
 uloop get-logs --project-path ./moorestech_client --log-type Error
 ```
 
-Expected: compile `Success: true`, tests `FailedCount: 0`, Error logs empty。
+Expected: compile `Success: true`, Prefab removal test 1/1 and both server suites `FailedCount: 0`, Error logs empty。
 
-- [ ] **Step 5: 差分監査を行い最終タスクをコミットする**
+- [ ] **Step 6: 差分監査を行い最終タスクをコミットする**
 
 Run:
 
 ```bash
 git diff --check -- . ':(glob,exclude)moorestech_client/Assets/**/*.prefab'
 git status --short
-git add docs moorestech_client/Assets/Asset
+git add docs moorestech_client/Assets/Asset moorestech_client/Assets/Scripts/Client.Tests/Removal
 git commit -m "refactor: クラフトツリーの残存参照を削除"
 git status --short
 ```
