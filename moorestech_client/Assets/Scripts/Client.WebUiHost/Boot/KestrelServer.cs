@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Static;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,11 @@ namespace Client.WebUiHost.Boot
 
         public async Task StartAsync(WebSocketHub hub)
         {
+            await StartAsync(hub, null);
+        }
+
+        public async Task StartAsync(WebSocketHub hub, WebUiStaticFileEndpoint staticFiles)
+        {
             // 1つずつ上げてbind試行、成功で採用
             // Probe upward from the base port and adopt the first successful bind
             for (var port = WebUiPortConfig.KestrelBasePort; port < WebUiPortConfig.KestrelBasePort + WebUiPortConfig.PortSearchRange; port++)
@@ -32,7 +38,7 @@ namespace Client.WebUiHost.Boot
                     .UseKestrel()
                     .UseUrls(url)
                     .ConfigureServices(services => services.AddRouting())
-                    .Configure(app => WebUiEndpoints.Configure(app, hub))
+                    .Configure(app => WebUiEndpoints.Configure(app, hub, staticFiles))
                     .Build();
 
                 // ポート使用中の bind 失敗は IOException で通知される。OS ネットワーク境界の隔離のためここに限り try-catch を使用

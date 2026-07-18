@@ -18,6 +18,10 @@ namespace Client.WebUiHost.Common
 
         public static string WebuiRoot => Path.Combine(WebRoot, "webui");
 
+        // Playerへ同梱される本番成果物の固定配置
+        // Fixed location of the production artifact bundled with the Player
+        public static string ProductionDistRoot => Path.Combine(Application.streamingAssetsPath, WebUiBuildContract.StreamingAssetsDirectory);
+
         public static string NodeBinary
         {
             get
