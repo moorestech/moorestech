@@ -26,6 +26,10 @@
 
 ## タスク3: 共通部品
 
+0. **ツールチップ基盤**: uGUI 参照 `InGame/UI/Tooltip/MouseCursorTooltip.cs` + `UGuiTooltipTarget.cs`。
+   Web にカーソル追従ツールチップ基盤を新設（クラフト不可理由等の文言表示に必要）。
+   **3D オブジェクト由来の表示（旧 WORLD-1）もここで吸収**: ホバー判定（毎フレーム Raycast）は
+   Unity 残置のまま、表示 key を Topic 連携して同じツールチップ基盤で表示する
 1. **コンテキストメニュー**: uGUI 参照 `InGame/UI/ContextMenu/ContextMenuView.cs` +
    `UGuiContextMenuTarget.cs`。メニュー項目を Topic/Action 化し、Web 汎用 ContextMenu を新設
 2. **キー操作ヒント**: uGUI 参照 `InGame/UI/KeyControl/KeyControlDescription.cs`。

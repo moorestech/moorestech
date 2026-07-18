@@ -3,6 +3,8 @@
 親: `../MIGRATION.md` / 進捗: `../TODO.md`
 旧台帳 FEAT-CHAL-1/2 相当。大物画面の先頭。**着手時に本書を元へ writing-plans 形式の
 詳細計画（完全コード付き）を作成してから実装する。**
+着手依存: WU1〜9 完了 + A5（i18n/anchor 規約）。完了ゲート依存: A1（実機検証）+
+A4（完了イベントの Topic 規約 — `challenge.current` は revision 準拠で実装する）。
 
 ## スコープと uGUI 側の正
 
@@ -24,9 +26,12 @@
    （`CompletedChallengeEventPacket` 中継）。research.tree topic の DTO 設計が先行事例
 3. **契約**: `protocol.ts` / WireFixtures / 両側契約テスト
 4. **Web ビュー**: `src/features/challenge/` 新設
-   - ツリー描画は **`src/features/research/` の接続線 + ノード配置実装を共通化**して再利用する
-     （researchTree が既にノードグラフ + 接続線 + パン/ズームを持つ。共有コンポーネントへ抽出し、
-     research 側もそれを使うようリファクタ — ツリー描画基盤の確立が本 Phase の副目標）
+   - ツリー描画は **`src/features/research/` の接続線 + ノード配置実装を共通化**して再利用する。
+     ただし**2段階に分ける**: まず共通基盤を抽出して research を載せ替え、visual/e2e 回帰を通して
+     コミット → 次のコミットで challenge を実装（research 回帰と challenge 新規不具合を混ぜない）
+   - 共通化の範囲は**描画機構に限定**する（viewport/パン/ズーム/座標変換/接続線/anchor まで。
+     ノード DTO・カード見た目・状態色・操作は feature 側の render prop に残す — research には
+     所持数解決等の研究固有ロジックが混在しており、それらを基盤へ持ち込まない）
    - 常駐 HUD は screen ルーティング外の常時表示レイヤー（`App.tsx` のオーバーレイ層。
      toast/再接続オーバーレイが先行事例）
 5. **ルーティング + ゲート**: `ui_state.current` の `ChallengeList` で表示。`ChallengeListView` に

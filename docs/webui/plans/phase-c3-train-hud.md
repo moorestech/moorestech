@@ -1,7 +1,9 @@
 # Phase C3 実行計画: 列車乗車HUD・列車インベントリ
 
 親: `../MIGRATION.md` / 進捗: `../TODO.md`
-旧台帳 FEAT-TRAIN-1 / FEAT-INV-5 相当。**依存: A2（乗車入力の入力排他）**、B2（PF）完了推奨。
+旧台帳 FEAT-TRAIN-1 / FEAT-INV-5 相当。**着手依存: WU 完了 + A2（乗車入力の入力排他）+
+A4（`RidingStateEventPacket` 中継と強制降車は revision/再接続規約に準拠が必須 — 切断中の
+降車がWeb側に残留すると操作不能になる）**。B2（PF）完了推奨。
 着手時に writing-plans 形式の詳細計画を作成してから実装する。
 
 ## スコープと uGUI 側の正
