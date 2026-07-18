@@ -105,6 +105,10 @@ namespace Client.Game.InGame.UI.UIState
         {
             if (!hasFocus) return;
 
+            // フォーカスイベントは初期化(Initialize)前にも飛んでくるため未初期化中は無視する（ライフサイクル境界）
+            // Focus events can arrive before Initialize, so ignore them while the dictionary is not built yet (lifecycle boundary)
+            if (_uiStateDictionary == null) return;
+
             if (_uiStateDictionary.GetState(CurrentState) is IApplicationFocusRestorer focusRestorer)
                 focusRestorer.RestoreAfterApplicationFocus();
         }
