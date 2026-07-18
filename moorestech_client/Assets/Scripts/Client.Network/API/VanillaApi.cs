@@ -11,7 +11,7 @@ namespace Client.Network.API
         private readonly Process _localServerProcess;
         
         private readonly ServerCommunicator _serverCommunicator;
-        public readonly VanillaApiEvent Event;
+        public readonly IVanillaApiEvent Event;
         public readonly VanillaApiWithResponse Response;
         public readonly VanillaApiSendOnly SendOnly;
         

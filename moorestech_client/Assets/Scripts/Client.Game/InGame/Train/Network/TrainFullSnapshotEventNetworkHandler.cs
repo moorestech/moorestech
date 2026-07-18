@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View;
 using Client.Network.API;
-using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -15,19 +15,20 @@ namespace Client.Game.InGame.Train.Network
 {
     // full snapshotイベントをストリーム到着順に即時適用する唯一のsnapshot適用経路
     // The single snapshot-apply path: applies full snapshots immediately in stream arrival order
-    public sealed class TrainFullSnapshotEventNetworkHandler : IInitializable, IDisposable
+    public sealed class TrainFullSnapshotEventNetworkHandler : IInitializable, IDisposable, IInitialEventApplyWaitTarget
     {
         private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly Subject<ulong> _onFullSnapshotApplied = new();
-        private readonly UniTaskCompletionSource _initialSnapshotApplied = new();
         private IDisposable _railSubscription;
         private IDisposable _trainSubscription;
 
         // full snapshot適用完了通知（resyncゲート解除に使用）
         // Notifies full-snapshot application completion (used to release the resync gate)
         public IObservable<ulong> OnFullSnapshotApplied => _onFullSnapshotApplied;
+
+        public bool IsInitialEventApplied { get; private set; }
 
         public TrainFullSnapshotEventNetworkHandler(
             RailGraphSnapshotApplier railGraphSnapshotApplier,
@@ -38,10 +39,6 @@ namespace Client.Game.InGame.Train.Network
             _trainSnapshotApplier = trainSnapshotApplier;
             _futureMessageBuffer = futureMessageBuffer;
         }
-
-        // 初期snapshot適用完了までのawait口（通常は即時完了する安全ゲート）
-        // Await point for initial snapshot application; normally completes immediately
-        public UniTask WaitForInitialSnapshotAsync() => _initialSnapshotApplied.Task;
 
         public void Initialize()
         {
@@ -79,7 +76,7 @@ namespace Client.Game.InGame.Train.Network
                 _futureMessageBuffer.DiscardHashesOlderThan(watermarkId);
 
                 _onFullSnapshotApplied.OnNext(watermarkId);
-                _initialSnapshotApplied.TrySetResult();
+                IsInitialEventApplied = true;
             }
 
             #endregion
