@@ -4,5 +4,5 @@
   position: fixed;
   bottom: 1rem;
   right: 1rem;
-  z-index: 300;
+  z-index: var(--z-toast);
 }

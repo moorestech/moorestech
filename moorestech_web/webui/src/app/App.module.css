@@ -38,13 +38,6 @@
   justify-content: start;
 }
 
-/* 中央のクラフト詳細カラムは上寄せ（uGUI 同様に持ち物・レシピと天面を揃える） */
-/* The center craft column aligns to the top, matching the game's panel tops */
-.viewerCol {
-  grid-area: viewer;
-  align-self: start;
-}
-
 /* uGUI 同様、インベントリ表示中は世界全体を暗く沈める全面dim（stageより下のworldbgを覆う） */
 /* Like uGUI, a full-screen dim sinks the whole world while the inventory is open (covers the worldbg below the stage) */
 .backdrop {
@@ -85,7 +78,7 @@
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  text-shadow: 0.3px 0 0 rgba(0, 0, 0, 0.7), -0.3px 0 0 rgba(0, 0, 0, 0.7), 0 0.3px 0 rgba(0, 0, 0, 0.7), 0 -0.3px 0 rgba(0, 0, 0, 0.7);
+  text-shadow: 0.3px 0 0 rgb(0 0 0 / 70%), -0.3px 0 0 rgb(0 0 0 / 70%), 0 0.3px 0 rgb(0 0 0 / 70%), 0 -0.3px 0 rgb(0 0 0 / 70%);
 }
 
 .sortButton:hover {
@@ -107,15 +100,15 @@
   line-height: 1.2;
   letter-spacing: 0.055em;
   font-weight: 500;
-  color: #fff;
+  color: var(--text-high-contrast);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8);
+  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
   pointer-events: none;
   z-index: 10;
 }
 
 .keyHints kbd {
   font: inherit;
-  color: #fff;
+  color: var(--text-high-contrast);
 }

@@ -133,20 +133,15 @@
 /* iter6: nudge the measured bbox (1503,1305,1773,1353) toward the reference (1502,1302,1775,1351). The
    center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
 .craftButton {
+  composes: recipeActionButton from "./RecipeActionButton.module.css";
   align-self: center;
   width: 107.609px;
   max-width: none;
   margin-top: auto;
   margin-bottom: 14.763px;
   margin-left: -1px;
-  min-height: 19px;
-  height: 19px;
   padding: 0;
   font-size: 12px;
-  border-radius: 0;
-  background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
-  color: #fff;
-  font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   text-shadow: 1px 0 0 rgb(0 40 80 / 55%), -1px 0 0 rgb(0 40 80 / 55%), 0 1px 0 rgb(0 40 80 / 55%), 0 -1px 0 rgb(0 40 80 / 55%);
@@ -163,7 +158,7 @@
 .craftButton:disabled,
 .craftButton[data-disabled] {
   opacity: 1;
-  background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
+  background: var(--recipe-action-background);
   color: rgb(255 255 255 / 80%);
   box-shadow: none;
 }

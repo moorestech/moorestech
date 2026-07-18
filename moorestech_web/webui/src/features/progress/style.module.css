@@ -7,5 +7,5 @@
   left: 50%;
   transform: translateX(-50%);
   width: 16rem;
-  z-index: 20;
+  z-index: var(--z-screen);
 }
