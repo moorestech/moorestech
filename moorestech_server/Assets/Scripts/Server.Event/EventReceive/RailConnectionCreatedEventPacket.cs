@@ -1,4 +1,5 @@
 ﻿using Game.Train.Unit;
+using Game.Context;
 using Game.Train.RailGraph;
 using MessagePack;
 using UniRx;
@@ -6,18 +7,24 @@ using Server.Util.MessagePack;
 
 namespace Server.Event.EventReceive
 {
-    public sealed class RailConnectionCreatedEventPacket
+    public sealed class RailConnectionCreatedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:railConnectionCreated";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
+        private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainUpdateService _trainUpdateService;
 
         public RailConnectionCreatedEventPacket(EventProtocolProvider eventProtocolProvider, IRailGraphDatastore railGraphDatastore, TrainUpdateService trainUpdateService)
         {
             _eventProtocolProvider = eventProtocolProvider;
+            _railGraphDatastore = railGraphDatastore;
             _trainUpdateService = trainUpdateService;
-            railGraphDatastore.GetRailConnectionInitializedEvent().Subscribe(OnConnectionInitialized);
+        }
+
+        public void Load()
+        {
+            _railGraphDatastore.GetRailConnectionInitializedEvent().Subscribe(OnConnectionInitialized);
         }
 
         private void OnConnectionInitialized(RailConnectionInitializationData data)
