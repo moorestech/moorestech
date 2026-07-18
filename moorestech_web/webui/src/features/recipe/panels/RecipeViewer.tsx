@@ -1,8 +1,8 @@
 import { Text } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
-import { GamePanel } from "@/shared/ui";
-import { useItemSelectionStore } from "./selectionStore";
-import RecipeContent from "./views/RecipeContent";
+import { ConnectingPlaceholder, GamePanel } from "@/shared/ui";
+import { useItemSelectionStore } from "../logic/selectionStore";
+import RecipeContent from "../views/RecipeContent";
 
 // 中央カラム: 選択アイテムのクラフトレシピと機械レシピを表示する（uGUI の RecipeViewer 相当）
 // Center column: shows craft and machine recipes for the selected item, like uGUI's RecipeViewer
@@ -33,7 +33,7 @@ export default function RecipeViewer() {
       style={{ alignSelf: "start", justifySelf: "center", width: 337.2, minWidth: 0, minHeight: panelMinHeight, marginTop: 2, transform: "translate(0.391px, -0.391px)" }}
     >
       {!loaded ? (
-        <Text size="sm" c="dimmed" m="auto">connecting...</Text>
+        <ConnectingPlaceholder m="auto" />
       ) : selectedItemId === null ? (
         <Text size="sm" c="dimmed" ta="center" m="auto">右のリストからアイテムを選択してください</Text>
       ) : (

@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import type { CSSProperties } from "react";
-import { ScrollArea, Text } from "@mantine/core";
+import { ScrollArea } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
-import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
-import { useItemSelectionStore } from "./selectionStore";
+import { ConnectingPlaceholder, ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
+import { buildOwnedCounts } from "@/shared/ownedCounts";
+import { useItemSelectionStore } from "../logic/selectionStore";
 import styles from "./ItemListPanel.module.css";
 
 // 固定pxで6列のピッチを均一化する
@@ -21,14 +22,10 @@ export default function ItemListPanel() {
 
   // uGUI 同様、所持中のアイテムだけ白面＋個数で強調する。所持数は main+hotbar を合算
   // Like uGUI, only owned items get a white face + count; owned totals sum main+hotbar
-  const ownedCounts = useMemo(() => {
-    const counts = new Map<number, number>();
-    if (!inventory) return counts;
-    for (const slot of [...inventory.mainSlots, ...inventory.hotbarSlots]) {
-      if (slot.itemId > 0 && slot.count > 0) counts.set(slot.itemId, (counts.get(slot.itemId) ?? 0) + slot.count);
-    }
-    return counts;
-  }, [inventory]);
+  const ownedCounts = useMemo(
+    () => buildOwnedCounts(inventory ? [...inventory.mainSlots, ...inventory.hotbarSlots] : []),
+    [inventory],
+  );
 
   return (
     <GamePanel
@@ -63,7 +60,7 @@ export default function ItemListPanel() {
           </SlotGrid>
         </ScrollArea.Autosize>
       ) : (
-        <Text size="sm" c="dimmed">connecting...</Text>
+        <ConnectingPlaceholder />
       )}
     </GamePanel>
   );

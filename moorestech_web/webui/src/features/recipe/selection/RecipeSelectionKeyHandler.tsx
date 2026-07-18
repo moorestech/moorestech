@@ -1,5 +1,5 @@
 import { useGameLayerKeydown } from "@/shared/uiState";
-import { clearSelectedItem } from "../selectionStore";
+import { clearSelectedItem } from "../logic/selectionStore";
 
 // ゲームレイヤーのEscでレシピ選択を解除する
 // Clear recipe selection on Escape in the game layer

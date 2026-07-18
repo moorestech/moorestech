@@ -10,3 +10,11 @@ export function buildOwnedCounts(slots: SlotData[]): Map<number, number> {
   }
   return owned;
 }
+
+type ItemRequirement = { itemId: number; count: number };
+
+// 全必要アイテムを所持数が満たすか判定する
+// Determine whether owned counts satisfy every required item
+export function hasEnoughItems(requirements: readonly ItemRequirement[], owned: Map<number, number>): boolean {
+  return requirements.every((requirement) => (owned.get(requirement.itemId) ?? 0) >= requirement.count);
+}

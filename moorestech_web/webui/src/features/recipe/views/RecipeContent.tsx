@@ -3,7 +3,7 @@ import { Stack, Tabs, Text } from "@mantine/core";
 import { useItemMaster } from "@/bridge";
 import { BlockIcon } from "@/shared/ui";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
-import styles from "../RecipeViewer.module.css";
+import styles from "../panels/RecipeViewer.module.css";
 import type {
   CraftRecipesData,
   MachineRecipesData,
@@ -13,7 +13,7 @@ import {
   selectCraftRecipes,
   groupMachineRecipesByBlock,
   buildRecipeTabs,
-} from "../craftLogic";
+} from "../logic/craftLogic";
 import ItemHeader from "./ItemHeader";
 import CraftRecipeView from "./CraftRecipeView";
 import MachineRecipeView from "./MachineRecipeView";

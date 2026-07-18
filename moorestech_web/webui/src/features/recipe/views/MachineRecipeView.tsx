@@ -1,7 +1,7 @@
 import { Group, Stack, Text } from "@mantine/core";
 import { ItemSlot, BlockSlot } from "@/shared/ui";
 import type { MachineRecipe } from "@/bridge";
-import { clampIndex } from "../craftLogic";
+import { clampIndex } from "@/shared/clampIndex";
 import RecipePager from "./RecipePager";
 
 type Props = {

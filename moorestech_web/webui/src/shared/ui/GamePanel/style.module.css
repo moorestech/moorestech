@@ -112,9 +112,6 @@
   white-space: nowrap;
 }
 
-.headerRight {
-  margin-left: auto;
-}
 
 /* 上下罫線は中央を保ちつつ両端を世界背景へフェードさせる */
 /* Keep the middle of both rules while fading their ends into the world */

@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   computeCanvasBounds,
   deriveResearchButton,
-  hasEnoughItems,
   isItemSufficient,
   lineBetween,
   zoomViewportAt,
 } from "./researchLogic";
 import type { ResearchNodeData } from "@/bridge";
+import { hasEnoughItems } from "@/shared/ownedCounts";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
   guid, name: guid, description: "", state: "researchable",
@@ -57,8 +57,8 @@ describe("zoomViewportAt", () => {
 describe("hasEnoughItems", () => {
   it("checks owned counts against consume items", () => {
     const n = node("a", 0, 0, { consumeItems: [{ itemId: 1, count: 3 }] });
-    expect(hasEnoughItems(n, new Map([[1, 3]]))).toBe(true);
-    expect(hasEnoughItems(n, new Map([[1, 2]]))).toBe(false);
+    expect(hasEnoughItems(n.consumeItems, new Map([[1, 3]]))).toBe(true);
+    expect(hasEnoughItems(n.consumeItems, new Map([[1, 2]]))).toBe(false);
   });
 });
 

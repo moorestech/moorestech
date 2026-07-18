@@ -4,10 +4,11 @@ import type {
   MachineRecipe,
   MachineRecipesData,
 } from "@/bridge";
+import { hasEnoughItems } from "@/shared/ownedCounts";
 
 // null はクラフトタブ
 // null denotes the craft tab
-export type RecipeTab = { key: string; label: string; blockId: number | null };
+type RecipeTab = { key: string; label: string; blockId: number | null };
 
 // 選択アイテムを生産するクラフトレシピを抽出する純関数。
 // Pure selector for craft recipes that produce the selected item.
@@ -47,11 +48,5 @@ export function buildRecipeTabs(
 // 全必要素材を所持数が満たすか。
 // Whether owned counts satisfy every required material.
 export function craftable(recipe: CraftRecipe, counts: Map<number, number>): boolean {
-  return recipe.requiredItems.every((r) => (counts.get(r.itemId) ?? 0) >= r.count);
-}
-
-// recipeIndex を [0, length-1] にクランプ。呼び出し側が length>0 を保証する契約。
-// Clamp recipeIndex into [0, length-1]; caller must guarantee length>0.
-export function clampIndex(index: number, length: number): number {
-  return Math.max(0, Math.min(index, length - 1));
+  return hasEnoughItems(recipe.requiredItems, counts);
 }

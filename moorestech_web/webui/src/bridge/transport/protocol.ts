@@ -24,7 +24,6 @@ export type ServerMsg =
 export type ClientMsg =
   | { op: "subscribe"; topics: string[] }
   | { op: "unsubscribe"; topics: string[] }
-  | { op: "snapshot"; topic: string }
   | { op: "action"; type: string; requestId: string; payload: unknown };
 
 export type ActionResult = { ok: boolean; error?: string };

@@ -1,6 +1,6 @@
 import { Progress, Text } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
-import { percentValue } from "./progressLogic";
+import { clamp01 } from "@/shared/clamp01";
 import styles from "./style.module.css";
 
 // uGUI ProgressBarView を模した表示専用オーバーレイ。visible で Show/Hide を切り替える。
@@ -20,7 +20,7 @@ export function ProgressBar() {
         <Text size="sm" c="dimmed" mb={4}>{data.label}</Text>
       )}
       <Progress.Root size="md" transitionDuration={0}>
-        <Progress.Section data-testid="progress-fill" value={percentValue(data.progress)} color="green" />
+        <Progress.Section data-testid="progress-fill" value={clamp01(data.progress) * 100} color="green" />
       </Progress.Root>
     </div>
   );
