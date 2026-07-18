@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { SubscriptionManager } from "./subscriptionManager";
 import type { ClientMsg } from "./protocol";
+import { deliverTopicPayload, useTopicStore } from "../store/topicStore";
+import { readTopic } from "../store/useTopic";
 
 // 送信された op を型付きで取り出すヘルパ
 // Helper to pull sent ops out with their type
@@ -48,6 +50,18 @@ describe("SubscriptionManager 参照カウント", () => {
     const m = new SubscriptionManager(send);
     m.release("t");
     expect(opsOf(send, "unsubscribe")).toHaveLength(0);
+  });
+
+  it("最終参照の解除で topic の読み値を null に戻す", () => {
+    const send = vi.fn();
+    const m = new SubscriptionManager(send);
+    useTopicStore.setState({ topics: {}, status: "connecting" });
+    m.acquire("test.topic");
+    deliverTopicPayload("test.topic", { value: "latest" });
+
+    m.release("test.topic");
+
+    expect(readTopic("test.topic" as keyof import("./protocol").TopicPayloads)).toBeNull();
   });
 });
 

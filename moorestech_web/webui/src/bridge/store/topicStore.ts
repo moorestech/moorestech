@@ -22,6 +22,17 @@ export const useTopicStore = create<TopicState>((set) => ({
   setStatus: (status) => set({ status }),
 }));
 
+// 購読終了した topic の残値を削除し、命令的読み出しが stale 値を返すことを防ぐ
+// Remove a released topic's retained value so imperative reads cannot return stale data
+export function clearTopic(topic: string) {
+  useTopicStore.setState((state) => {
+    if (!(topic in state.topics)) return state;
+    const topics = { ...state.topics };
+    delete topics[topic];
+    return { topics };
+  });
+}
+
 // WS 受信の唯一の書き込み口。バリデーション通過時のみストアへ反映し、違反は警告+toastで破棄する
 // The sole write path for WS input; store only on valid payloads, drop violations with a warn + toast
 export function deliverTopicPayload(topic: string, data: unknown): boolean {

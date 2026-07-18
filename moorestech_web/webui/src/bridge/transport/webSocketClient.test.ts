@@ -47,4 +47,26 @@ describe("WebSocket bridge initialization", () => {
 
     expect(openedUrls).toEqual(["ws://example.test/ws"]);
   });
+
+  it("initBridge は命令的読み出し対象を pin し一時購読解除後も最新値を保持する", async () => {
+    const { initBridge } = await import("./webSocketClient");
+    const { subscriptions } = await import("./subscriptionManager");
+    const { Topics } = await import("./protocol");
+    const { deliverTopicPayload } = await import("../store/topicStore");
+    const { readTopic } = await import("../store/useTopic");
+
+    initBridge();
+    expect(new Set(subscriptions.subscribedTopics())).toEqual(new Set([
+      Topics.modal,
+      Topics.blockInventory,
+      Topics.uiState,
+      Topics.inventory,
+    ]));
+
+    subscriptions.acquire(Topics.modal);
+    deliverTopicPayload(Topics.modal, { modal: undefined });
+    subscriptions.release(Topics.modal);
+
+    expect(readTopic(Topics.modal)).toEqual({ modal: undefined });
+  });
 });
