@@ -5,7 +5,6 @@ using Client.Game.InGame.Player;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
-using Game.CraftTree.Models;
 using Game.Research;
 using Game.Train.Unit;
 using Server.Event.EventReceive;
@@ -40,7 +39,6 @@ namespace Client.DebugSystem
                 var worldData = new WorldDataResponse(new List<BlockInfo>(), new List<EntityResponse>());
                 var inventory = new PlayerInventoryResponse(new List<IItemStack>(), null);
                 var unlockState = new UnlockStateResponse(new List<Guid>(), new List<Guid>(), new List<ItemId>(), new List<ItemId>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>());
-                var craftTree = new CraftTreeResponse(new List<CraftTreeNode>(), Guid.Empty);
                 
                 // テストプレイ用の空レスポンスを構築
                 // Build an empty response set for test play
@@ -64,7 +62,6 @@ namespace Client.DebugSystem
                     inventory,
                     challenges,
                     unlockState,
-                    craftTree,
                     playedSkitIds,
                     researchNodeStates,
                     railGraphSnapshot,
