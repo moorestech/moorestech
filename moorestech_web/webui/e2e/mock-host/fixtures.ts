@@ -230,3 +230,23 @@ export const skitPresentation = {
   },
   allowedIntents: [],
 } satisfies SkitPresentationData;
+
+export const blockingSkitText = {
+  sessionId: "blocking-1", sceneRevision: 1,
+  presentationState: {
+    mode: "blocking", speakerName: "Moore", body: "Blocking message", choices: [], textAreaVisible: true,
+    transitionVisible: false, autoEnabled: false, skipActive: false, uiHidden: false,
+    textReveal: { mode: "typewriter", intervalMs: 1000 },
+  },
+  allowedIntents: ["advance", "set-auto", "skip", "set-ui-hidden"],
+} satisfies SkitPresentationData;
+
+export const blockingSkitChoices = {
+  sessionId: "blocking-1", sceneRevision: 2,
+  presentationState: {
+    ...blockingSkitText.presentationState, body: "Choose a route", choices: [
+      { choiceId: "route-a", label: "Route A" }, { choiceId: "route-b", label: "Route B" },
+    ], textReveal: { mode: "instant", intervalMs: 0 },
+  },
+  allowedIntents: ["select", "set-auto", "skip", "set-ui-hidden"],
+} satisfies SkitPresentationData;
