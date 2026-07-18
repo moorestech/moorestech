@@ -56,7 +56,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 var inventory = PrefabUtility.LoadPrefabContents("Assets/Asset/UI/Prefab/Inventory/InventoryItems.prefab");
-var inventoryNames = inventory.GetComponentsInChildren<Transform>(true).Count(x => x.name == "CraftTree" || x.name == "RecipeTreeView");
+var inventoryNames = inventory.GetComponentsInChildren<Transform>(true).Count(x => x.name == "CraftTree" || x.name == "RecipeTreeView" || x.name == "show craft tree");
 PrefabUtility.UnloadPrefabContents(inventory);
 var mainUi = PrefabUtility.LoadPrefabContents("Assets/Asset/UI/Prefab/MainGameUI.prefab");
 var targetCount = mainUi.GetComponentsInChildren<Transform>(true).Count(x => x.name == "CraftTreeTarget");
@@ -65,7 +65,7 @@ return $"inventory={inventoryNames}, target={targetCount}";
 '
 ```
 
-Expected: `inventory=3, target=1`。値が異なる場合は破壊せず、実Hierarchyを調べて同じ責務のオブジェクトを特定する。
+Expected: `inventory=4, target=1`。値が異なる場合は破壊せず、実Hierarchyと表示テキストを調べて同じ責務のオブジェクトを特定する。
 
 - [ ] **Step 2: 共有PrefabをUnity Editor経由で編集する**
 
@@ -81,10 +81,10 @@ using UnityEngine;
 var inventoryPath = "Assets/Asset/UI/Prefab/Inventory/InventoryItems.prefab";
 var inventory = PrefabUtility.LoadPrefabContents(inventoryPath);
 var inventoryTargets = inventory.GetComponentsInChildren<Transform>(true)
-    .Where(x => x.name == "CraftTree" || x.name == "RecipeTreeView")
+    .Where(x => x.name == "CraftTree" || x.name == "RecipeTreeView" || x.name == "show craft tree")
     .Select(x => x.gameObject)
     .ToArray();
-if (inventoryTargets.Length != 3) throw new InvalidOperationException($"Inventory target count was {inventoryTargets.Length}.");
+if (inventoryTargets.Length != 4) throw new InvalidOperationException($"Inventory target count was {inventoryTargets.Length}.");
 foreach (var target in inventoryTargets) UnityEngine.Object.DestroyImmediate(target);
 PrefabUtility.SaveAsPrefabAsset(inventory, inventoryPath);
 PrefabUtility.UnloadPrefabContents(inventory);
@@ -105,7 +105,7 @@ return inventoryTargets.Length + targetObjects.Length;
 '
 ```
 
-Expected: `4`。
+Expected: `5`。
 
 - [ ] **Step 3: 専用PrefabをAssetDatabase経由で削除する**
 
@@ -139,7 +139,7 @@ Expected: `4`。各Prefabと対応metaが `git status` で削除になる。
 Run:
 
 ```bash
-rg -n 'm_Name: CraftTree|m_Name: RecipeTreeView|662286bf4e28a450bb63e74ae27083c3|4596607e76063443283c56cf70ec7f86|a0c5713ee75744be3a613a05d49448e3|0b72f2ba269524ecd85a96972d747a1c' \
+rg -n -i 'm_Name: CraftTree|m_Name: RecipeTreeView|m_Name: show craft tree|662286bf4e28a450bb63e74ae27083c3|4596607e76063443283c56cf70ec7f86|a0c5713ee75744be3a613a05d49448e3|0b72f2ba269524ecd85a96972d747a1c' \
   moorestech_client/Assets/Asset/UI/Prefab/Inventory/InventoryItems.prefab \
   moorestech_client/Assets/Asset/UI/Prefab/MainGameUI.prefab \
   moorestech_client/Assets/Asset/Common/Prefab/GameSystem.prefab
@@ -343,7 +343,7 @@ git rm moorestech_server/Assets/Scripts/Game.CraftTree.meta
 Run:
 
 ```bash
-rg -n -i 'CraftTree|craftTree|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
+rg -n -i 'CraftTree|craftTree|show[[:space:]_-]*craft[[:space:]_-]*tree|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
   moorestech_server/Assets moorestech_client/Assets \
   --glob '*.cs' --glob '*.asmdef'
 uloop compile --project-path ./moorestech_client
@@ -406,6 +406,7 @@ uloop execute-dynamic-code --project-path ./moorestech_client --code '
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 var paths = new[]
@@ -418,6 +419,15 @@ var failures = new List<string>();
 foreach (var path in paths)
 {
     var root = PrefabUtility.LoadPrefabContents(path);
+    var obsoleteUiPaths = root.GetComponentsInChildren<Transform>(true)
+        .Where(transform =>
+            transform.name.Equals("CraftTree", StringComparison.OrdinalIgnoreCase) ||
+            transform.name.Equals("RecipeTreeView", StringComparison.OrdinalIgnoreCase) ||
+            transform.name.Equals("show craft tree", StringComparison.OrdinalIgnoreCase) ||
+            transform.GetComponents<TMP_Text>().Any(text => text.text.Contains("クラフトツリー", StringComparison.Ordinal)))
+        .Select(transform => AnimationUtility.CalculateTransformPath(transform, root.transform))
+        .Distinct()
+        .ToArray();
     var missingPaths = root.GetComponentsInChildren<Transform>(true)
         .Select(transform => transform.gameObject)
         .Where(gameObject => GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(gameObject) > 0)
@@ -448,6 +458,10 @@ foreach (var path in paths)
     if (missingPrefabPaths.Length != 0)
     {
         failures.Add($"{path}: missing prefabs: {string.Join(", ", missingPrefabPaths)}");
+    }
+    if (obsoleteUiPaths.Length != 0)
+    {
+        failures.Add($"{path}: obsolete craft-tree UI: {string.Join(", ", obsoleteUiPaths)}");
     }
     if (path.EndsWith("GameSystem.prefab", StringComparison.Ordinal))
     {
@@ -494,22 +508,22 @@ rg -n \
   '662286bf4e28a450bb63e74ae27083c3|4596607e76063443283c56cf70ec7f86|a0c5713ee75744be3a613a05d49448e3|0b72f2ba269524ecd85a96972d747a1c|058220796c814f608b0d1b94a6f2dfd5|ee3261436a374ca393cca5bb22485a8f|36b72ae7cc6b4b73a4767fe5b4ddb3f1|1c64e53f6322408d9b376d095e2bad6c|a7e915c9672e4fdbb752d84fbad91529|7bc4ecb2349b47398a4c892145f3aac8|0e111dc75b0e409f85558606cf4912cc|0eb9491ba2804e2aa738d53e718a1ca4|61f42a36e8ea4515850d3bce341f3f35|7867aeb59d3046e8973df223e3187154|c9cd2765530440c4925308171448a53d|2d4e3a54b66a44b798bcba9760b88e43|3908aa65463394990878052ecc1ef88c|2a640c771c80473eb174b15fe9be8809|2e74e2c896c74f7b875c836606fd7670' \
   moorestech_client/Assets moorestech_server/Assets
 
-rg -n -i 'CraftTree|craftTree|クラフトツリー|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
+rg -n -i 'CraftTree|craftTree|show[[:space:]_-]*craft[[:space:]_-]*tree|クラフトツリー|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
   moorestech_client/Assets moorestech_server/Assets \
-  --glob '!**/Tests/**' \
+  --glob '!**/*Tests/**' \
   --glob '!Library/**' --glob '!Temp/**' --glob '!Logs/**'
 
-rg -n -i 'CraftTree|craftTree|クラフトツリー|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
+rg -n -i 'CraftTree|craftTree|show[[:space:]_-]*craft[[:space:]_-]*tree|クラフトツリー|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
   docs \
   --glob '!docs/superpowers/**' \
   --glob '!Library/**' --glob '!Temp/**' --glob '!Logs/**'
 
-rg -n -i 'CraftTree|craftTree|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
+rg -n -i 'CraftTree|craftTree|show[[:space:]_-]*craft[[:space:]_-]*tree|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
   moorestech_client/Assets moorestech_server/Assets \
-  --glob '**/Tests/**'
+  --glob '**/*Tests/**'
 ```
 
-Expected: 最初の2コマンドは出力なし。テスト検索は保存JSONから削除済みであることを検証する`AssembleSaveJsonTextTest.cs`の`craftTreeInfo`アサーションと対応する2言語コメントだけ。`docs/superpowers/` は承認済み履歴資料なので検索対象外。
+Expected: 最初の3コマンドは出力なし。テスト検索は保存JSONから削除済みであることを検証する`AssembleSaveJsonTextTest.cs`の`craftTreeInfo`アサーションと、旧Prefab要素の再混入を防ぐ`CraftTreeRemovalTest.cs`だけ。`docs/superpowers/` は承認済み履歴資料なので検索対象外。
 
 - [ ] **Step 4: 最終コンパイル・テスト・Errorログを検証する**
 

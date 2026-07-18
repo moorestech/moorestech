@@ -30,8 +30,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             var json = assembleSaveJsonText.AssembleSaveJson();
             
-            // 廃止したクラフトツリー状態を保存形式から除外する
-            // Exclude the retired craft-tree state from the save format
+            // 廃止状態が保存JSONにないことを検証する
+            // Verify the retired state is absent from save JSON
             var saveJson = JObject.Parse(json);
             Assert.IsNull(saveJson["craftTreeInfo"]);
 
