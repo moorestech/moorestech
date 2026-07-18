@@ -14,7 +14,7 @@ export const researchTree = {
       position: { x: 0.0, y: 0.0 },
       prevGuids: [],
       consumeItems: [{ itemId: 1, count: 5 }],
-      rewardItemIds: [2],
+      rewardItems: [{ itemId: 2, count: 4 }],
       unlockItemIds: [],
     },
     {
@@ -25,7 +25,7 @@ export const researchTree = {
       position: { x: 300.0, y: -120.0 },
       prevGuids: ["11111111-1111-1111-1111-111111111111"],
       consumeItems: [],
-      rewardItemIds: [],
+      rewardItems: [],
       unlockItemIds: [3],
     },
     {
@@ -36,7 +36,7 @@ export const researchTree = {
       position: { x: 600.0, y: 0.0 },
       prevGuids: ["11111111-1111-1111-1111-111111111111"],
       consumeItems: [{ itemId: 1, count: 5 }],
-      rewardItemIds: [100],
+      rewardItems: [{ itemId: 100, count: 2 }],
       unlockItemIds: [],
     },
   ],

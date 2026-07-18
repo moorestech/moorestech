@@ -36,6 +36,8 @@ namespace Client.Tests.WebUi
                 Machine = new MachineDetailDto
                 {
                     RecipeGuid = "00000000-0000-0000-0000-000000000000",
+                    RecipeTime = 15,
+                    OutputItems = new List<MachineOutputItemDto> { new() { ItemId = 7, Count = 3 } },
                     CurrentState = "idle",
                     CurrentPower = 0f,
                     RequestPower = 0f,
@@ -73,6 +75,8 @@ namespace Client.Tests.WebUi
                 Machine = new MachineDetailDto
                 {
                     RecipeGuid = "00000000-0000-0000-0000-000000000000",
+                    RecipeTime = 15,
+                    OutputItems = new List<MachineOutputItemDto> { new() { ItemId = 7, Count = 3 } },
                     CurrentState = "processing",
                     CurrentPower = 80f,
                     RequestPower = 100f,

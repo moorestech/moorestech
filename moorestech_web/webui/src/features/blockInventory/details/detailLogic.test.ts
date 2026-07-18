@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { computePowerRate, splitSlotIndices, fuelRatio, stopReasonText } from "./detailLogic";
+import { computePowerRate, splitSlotIndices, fuelRatio, itemsPerMinute, stopReasonText } from "./detailLogic";
 
 describe("detailLogic", () => {
+  it("computes output items per minute from recipe seconds", () => {
+    expect(itemsPerMinute(3, 15)).toBe(12);
+    expect(itemsPerMinute(3, 0)).toBeNull();
+  });
   it("computePowerRate follows the uGUI formula", () => {
     expect(computePowerRate(50, 100)).toBe(0.5);
     // RequestPower==0 は uGUI と同じく 1.0 扱い

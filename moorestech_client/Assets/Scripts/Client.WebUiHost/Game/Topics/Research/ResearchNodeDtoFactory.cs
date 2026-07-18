@@ -27,7 +27,7 @@ namespace Client.WebUiHost.Game.Topics
                 Position = new ResearchPositionDto { X = master.GraphViewSettings.UIPosition.x, Y = master.GraphViewSettings.UIPosition.y },
                 PrevGuids = new List<string>(),
                 ConsumeItems = new List<ResearchConsumeItemDto>(),
-                RewardItemIds = new List<int>(),
+                RewardItems = new List<ResearchRewardItemDto>(),
                 UnlockItemIds = new List<int>(),
             };
 
@@ -57,7 +57,7 @@ namespace Client.WebUiHost.Game.Topics
                 {
                     var give = (GiveItemGameActionParam)action.GameActionParam;
                     foreach (var reward in give.RewardItems)
-                        dto.RewardItemIds.Add(MasterHolder.ItemMaster.GetItemId(reward.ItemGuid).AsPrimitive());
+                        dto.RewardItems.Add(new ResearchRewardItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(reward.ItemGuid).AsPrimitive(), Count = reward.ItemCount });
                 }
                 else if (action.GameActionType == GameActionElement.GameActionTypeConst.unlockItemRecipeView)
                 {

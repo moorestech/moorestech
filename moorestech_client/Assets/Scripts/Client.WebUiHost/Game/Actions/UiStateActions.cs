@@ -30,8 +30,23 @@ namespace Client.WebUiHost.Game.Actions
             var stateName = (string)stateValue;
             if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return UniTask.FromResult(ActionResult.Fail("unsupported_state"));
 
-            _uiStateControl.RequestTransition(Enum.Parse<UIStateEnum>(stateName));
+            var requested = Enum.Parse<UIStateEnum>(stateName);
+            if (!IsAllowed(_uiStateControl.CurrentState, requested)) return UniTask.FromResult(ActionResult.Fail("transition_not_allowed"));
+            _uiStateControl.RequestTransition(requested);
             return UniTask.FromResult(ActionResult.Success());
+        }
+
+        public static bool IsAllowed(UIStateEnum current, UIStateEnum requested)
+        {
+            if (current == requested) return true;
+            return current switch
+            {
+                UIStateEnum.GameScreen => requested == UIStateEnum.PlayerInventory,
+                UIStateEnum.PlayerInventory => requested == UIStateEnum.GameScreen,
+                UIStateEnum.SubInventory => requested == UIStateEnum.GameScreen,
+                UIStateEnum.BuildMenu => requested == UIStateEnum.GameScreen,
+                _ => false,
+            };
         }
     }
 }

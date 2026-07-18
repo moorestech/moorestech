@@ -90,6 +90,7 @@ export type ActionPayloads = {
   "inventory.move_item": { from: SlotRef; to: SlotRef; count: number };
   "inventory.split": { from: SlotRef };
   "inventory.collect": { slot: SlotRef };
+  "inventory.split_drag": { slots: SlotRef[] };
   "inventory.sort": Record<string, never>;
   "inventory.select_hotbar": { index: number };
   "craft.execute": { recipeGuid: string };
@@ -117,6 +118,7 @@ export const ACTION_TYPES = [
   "inventory.move_item",
   "inventory.split",
   "inventory.collect",
+  "inventory.split_drag",
   "inventory.sort",
   "inventory.select_hotbar",
   "craft.execute",

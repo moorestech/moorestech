@@ -1,4 +1,4 @@
-import { readItemMaster, readTopic, Topics } from "@/bridge";
+import { dispatchAction, readItemMaster, readTopic, Topics } from "@/bridge";
 import type { PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import {
   dispatchPlanned,
@@ -7,6 +7,10 @@ import {
   planPlayerRightClick,
   type PlayerSlotContext,
 } from "@/shared/itemMove";
+import { SplitDragSession } from "./splitDrag";
+
+const splitDrag = new SplitDragSession((slots) => void dispatchAction("inventory.split_drag", { slots }));
+if (typeof window !== "undefined") window.addEventListener("mouseup", () => splitDrag.end());
 
 // プレイヤースロット共通のクリック操作。InventoryPanel と HotbarPanel が共用する
 // Player-slot click interactions shared by InventoryPanel and HotbarPanel
@@ -14,6 +18,7 @@ export type SlotActions = {
   onLeftDown: (ref: SlotRef, shiftKey: boolean) => void;
   onRightDown: (ref: SlotRef) => void;
   onRightEnter: (ref: SlotRef) => void;
+  onLeftEnter: (ref: SlotRef) => void;
   onDoubleClick: (ref: SlotRef) => void;
 };
 
@@ -25,6 +30,7 @@ export const slotActions: SlotActions = {
     // Read every planner input at event time to avoid mixing render-time snapshots
     const inventory = readTopic(Topics.inventory);
     if (!inventory) return;
+    if (!shiftKey && inventory.grab.count > 0) { splitDrag.begin(ref, true); return; }
     const block = readTopic(Topics.blockInventory);
     const slot = resolveSlot(inventory, ref);
     const ctx: PlayerSlotContext = {
@@ -50,6 +56,8 @@ export const slotActions: SlotActions = {
     const slot = resolveSlot(inventory, ref);
     dispatchPlanned(planPlayerRightClick(ref, slot, inventory.grab.count));
   },
+
+  onLeftEnter: (ref) => splitDrag.enter(ref),
 
   onDoubleClick: (ref) => {
     dispatchPlanned(planPlayerDoubleClick(ref));

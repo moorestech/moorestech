@@ -2,7 +2,8 @@ import { Group, Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
 import { ItemSlot, SlotGrid, ProgressArrow, FluidSlotRow } from "@/shared/ui";
 import { useBlockSlotGestures } from "../useBlockSlotGestures";
-import { splitSlotIndices } from "./detailLogic";
+import { itemsPerMinute, splitSlotIndices } from "./detailLogic";
+import { useI18n } from "@/shared/i18n";
 import PowerRateText from "./PowerRateText";
 
 // 機械: 入力→出力→モジュールの分割グリッド + 進捗 + 電力率（uGUI MachineBlockInventoryView 準拠）
@@ -11,8 +12,10 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
   // ジェスチャ配線は BlockItemGrid と共通。分割グリッドでも右クリ/Shift/収集がフルに効く
   // Gesture wiring shared with BlockItemGrid; split grids get the full right-click/Shift/collect set
   const gestures = useBlockSlotGestures();
+  const { t } = useI18n();
   if (!data.machine) return null;
-  const { input, output, module } = splitSlotIndices(data.machine.slotLayout, data.itemSlots.length);
+  const machine = data.machine;
+  const { input, output, module } = splitSlotIndices(machine.slotLayout, data.itemSlots.length);
 
   const slotAt = (i: number) => {
     const slot = data.itemSlots[i];
@@ -40,6 +43,10 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
       {/* The machine fluid row keeps no arrow; processing progress lives between the in/out grids */}
       <FluidSlotRow fluids={data.fluidSlots} testId="machine-fluid-slots" />
       <PowerRateText currentPower={data.machine.currentPower} requestPower={data.machine.requestPower} testId="machine-power-rate" />
+      {machine.outputItems.map((output) => {
+        const rate = itemsPerMinute(output.count, machine.recipeTime);
+        return rate === null ? null : <div key={output.itemId} data-testid="machine-items-per-minute">{t("分間生産数")} <span>{rate}</span></div>;
+      })}
     </Stack>
   );
 }

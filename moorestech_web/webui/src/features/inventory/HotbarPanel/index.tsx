@@ -61,6 +61,7 @@ export default function HotbarPanel() {
                 onLeftDown={interactive ? (shiftKey) => slotActions.onLeftDown(ref, shiftKey) : undefined}
                 onRightDown={interactive ? () => slotActions.onRightDown(ref) : undefined}
                 onRightEnter={interactive ? () => slotActions.onRightEnter(ref) : undefined}
+                onLeftEnter={interactive ? () => slotActions.onLeftEnter(ref) : undefined}
                 onDoubleClick={interactive ? () => slotActions.onDoubleClick(ref) : undefined}
               />
             </div>
