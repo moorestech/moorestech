@@ -49,9 +49,7 @@ export default function CraftRecipeView({ recipes, recipeIndex, setRecipeIndex, 
           {recipe.requiredItems.map((r, i) => (
             // 所持数不足の素材は 40% 透過で強調を落とす（uGUI 準拠）
             // Dim insufficient materials to 40% opacity, matching uGUI
-            <Box key={i} opacity={(counts.get(r.itemId) ?? 0) >= r.count ? 1 : 0.4}>
-              <ItemSlot itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} onLeftDown={() => onSelect(r.itemId)} />
-            </Box>
+            <ItemSlot key={i} itemId={r.itemId} count={r.count} name={itemMaster?.get(r.itemId)?.name} insufficient={!((counts.get(r.itemId) ?? 0) >= r.count)} onLeftDown={() => onSelect(r.itemId)} />
           ))}
         </Group>
         {/* 素材と完成品の間に長押し進捗を矢印で表示する */}

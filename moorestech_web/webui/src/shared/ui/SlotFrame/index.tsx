@@ -1,4 +1,5 @@
-import { forwardRef, type ForwardedRef, type HTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import { forwardRef, type ForwardedRef, type HTMLAttributes, type ReactNode } from "react";
+import { useSlotMouse } from "../useSlotMouse";
 import styles from "./style.module.css";
 
 type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "onDoubleClick" | "onContextMenu"> & {
@@ -6,23 +7,17 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
   selected?: boolean;
   filled?: boolean;
   catalog?: boolean;
+  insufficient?: boolean;
   onLeftDown?: (shiftKey: boolean) => void;
   onRightDown?: () => void;
   onDoubleClick?: () => void;
   testId?: string;
 };
 
-function createSlotFrameMouseDownHandler(onLeftDown: Props["onLeftDown"], onRightDown: Props["onRightDown"]) {
-  return (event: MouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    if (event.button === 0) onLeftDown?.(event.shiftKey);
-    if (event.button === 2) onRightDown?.();
-  };
-}
-
 // data属性と操作契約を集約する
 // Centralizes the slot frame data attributes and pointer gesture contract
-export function renderSlotFrame({ children, selected, filled, catalog, onLeftDown, onRightDown, onDoubleClick, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
+export function renderSlotFrame({ children, selected, filled, catalog, insufficient, onLeftDown, onRightDown, onDoubleClick, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
+  const slotMouse = useSlotMouse(onLeftDown, onRightDown);
   return (
     <div
       {...divProps}
@@ -32,9 +27,10 @@ export function renderSlotFrame({ children, selected, filled, catalog, onLeftDow
       data-selected={selected ? "true" : undefined}
       data-filled={filled ? "true" : undefined}
       data-catalog={catalog ? "true" : undefined}
-      onMouseDown={createSlotFrameMouseDownHandler(onLeftDown, onRightDown)}
+      data-insufficient={insufficient ? "true" : undefined}
+      onMouseDown={slotMouse.onMouseDown}
       onDoubleClick={onDoubleClick}
-      onContextMenu={(event) => event.preventDefault()}
+      onContextMenu={slotMouse.onContextMenu}
     >
       {children}
     </div>
