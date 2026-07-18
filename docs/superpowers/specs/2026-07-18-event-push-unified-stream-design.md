@@ -92,8 +92,9 @@ TCP 1本・接続ごとの送信FIFO（`SendQueueProcessor`）に、request/resp
 
 ### 4. 初期化ゲート
 
-- ローディングフロー: handshake応答受信 → シーン起動・ハンドラ購読 → `StartDispatch()` → **train/rail初期snapshot適用完了をawait** → 初期化完了
-- 待ちは明示ゲート: train側ハンドラが `UniTask WaitForInitialSnapshot()` 相当を公開し、ローディングシーケンスがawaitする。順序保証（§サーバー7-2）により通常は即時完了するが、届かなければ初期化が完了しないという性質を明示的に担保する
+- ワイヤ上のタイムライン: サーバーは `[rail snapshot event] → [train snapshot event] → [handshake応答]` の順で同一FIFOに送出する（§サーバー7-2の同期購読契約による）。つまり**handshake応答を受信した時点でsnapshotイベントは必ずクライアント側バッファに到着済み**であり、snapshot取得のための追加往復・追加待ち時間は存在しない（現行の `GetRailGraphSnapshot`/`GetTrainUnitSnapshots` の別往復が消えるため、初期化は現行より速くなる）
+- ローディングフロー: handshake応答受信（この時点でsnapshot受信済み） → シーン起動・ハンドラ購読 → `StartDispatch()`（replayでsnapshot適用） → **適用完了をawait（通常は即時完了の安全ゲート）** → 初期化完了
+- 待ちは明示ゲート: train側ハンドラが `UniTask WaitForInitialSnapshot()` 相当を公開し、ローディングシーケンスがawaitする。ネットワーク待ちではなく、万一サーバー側の初期同期が壊れて届いていない場合に初期化を完了させず問題を顕在化させるための担保
 - `VanillaApiWithResponse.InitialHandShake` から `GetRailGraphSnapshot` / `GetTrainUnitSnapshots` の取得2件（`VanillaApiWithResponse.cs:64-65`）を削除
 
 ### 5. snapshot適用の一本化
