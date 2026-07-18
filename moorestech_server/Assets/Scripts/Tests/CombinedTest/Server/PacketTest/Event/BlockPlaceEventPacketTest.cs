@@ -99,8 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //別ワールドを生成し、PlaceBlockEventPacketを購読させる前にロードする（ServerInstanceManagerと同じ順序）
             //Create a fresh world and load BEFORE subscribing PlaceBlockEventPacket (same order as ServerInstanceManager)
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var eventProtocolProvider = loadServiceProvider.GetService<EventProtocolProvider>();
-            eventProtocolProvider.GetEventBytesList(0); //プレイヤー0をイベントキューに登録 / register player 0
+            var loadSink = EventTestUtil.RegisterCaptureSink(loadServiceProvider, 0);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 
             //本番経路でロード後の購読を始める
@@ -109,13 +108,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //ロード分の設置イベントは配信されていないこと
             //Load-time placement events must not have been broadcast
-            var afterLoadEvents = eventProtocolProvider.GetEventBytesList(0);
+            var afterLoadEvents = loadSink.TakeAll();
             Assert.AreEqual(0, afterLoadEvents.Count(e => e.Tag == PlaceBlockEventPacket.EventTag));
 
             //ロード後の通常設置は配信されること
             //A normal placement after load must be broadcast
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            var afterPlaceEvents = eventProtocolProvider.GetEventBytesList(0);
+            var afterPlaceEvents = loadSink.TakeAll();
             Assert.AreEqual(1, afterPlaceEvents.Count(e => e.Tag == PlaceBlockEventPacket.EventTag));
         }
 
