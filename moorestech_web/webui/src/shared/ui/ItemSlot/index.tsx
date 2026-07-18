@@ -1,4 +1,5 @@
 import { Tooltip } from "@mantine/core";
+import { useItemMaster } from "@/bridge";
 import ItemIcon from "../ItemIcon";
 import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
@@ -23,6 +24,9 @@ type Props = {
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
 export default function ItemSlot({ itemId, count, name, selected, catalog, insufficient, onLeftDown, onRightDown, onDoubleClick, testId }: Props) {
+  const itemMaster = useItemMaster();
+  const resolvedName = name ?? itemMaster?.get(itemId)?.name;
+
   // カタログは常にアイコンを出し、白面（filled）は所持数がある時だけ
   // Catalog always shows the icon; the white (filled) face applies only when an owned count exists
   const owned = count !== undefined && count > 0;
@@ -32,7 +36,7 @@ export default function ItemSlot({ itemId, count, name, selected, catalog, insuf
   return (
     // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
     // Tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
-    <Tooltip label={name} disabled={!hasItem || !name}>
+    <Tooltip label={resolvedName} disabled={!hasItem || !resolvedName}>
       <SlotFrame
         testId={testId}
         selected={selected}
@@ -45,7 +49,7 @@ export default function ItemSlot({ itemId, count, name, selected, catalog, insuf
       >
         {hasItem ? (
           <>
-            <ItemIcon itemId={itemId} alt={name ?? `item ${itemId}`} className={styles.icon} />
+            <ItemIcon itemId={itemId} alt={resolvedName ?? `item ${itemId}`} className={styles.icon} />
             {count !== undefined ? <span className={styles.count}>{count}</span> : null}
           </>
         ) : null}

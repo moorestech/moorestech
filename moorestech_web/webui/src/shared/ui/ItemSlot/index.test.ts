@@ -2,8 +2,12 @@ import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MantineProvider } from "@mantine/core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import ItemSlot from "./index";
+
+vi.mock("@/bridge", () => ({
+  useItemMaster: () => new Map([[1, { itemId: 1, name: "Master Item", maxStack: 100 }]]),
+}));
 
 function renderItemSlot(insufficient?: boolean) {
   return renderToStaticMarkup(
@@ -15,6 +19,22 @@ function renderItemSlot(insufficient?: boolean) {
 }
 
 describe("ItemSlot", () => {
+  it("name 省略時は item master の名前を表示に使う", () => {
+    expect(renderItemSlot(undefined)).toContain("Master Item");
+  });
+
+  it("name 指定時は item master より優先する", () => {
+    const markup = renderToStaticMarkup(
+      createElement(MantineProvider, null, createElement(ItemSlot, {
+        itemId: 1,
+        name: "Override Item",
+      })),
+    );
+
+    expect(markup).toContain("Override Item");
+    expect(markup).not.toContain("Master Item");
+  });
+
   it("不足状態をスロット枠のdata属性へ伝える", () => {
     const markup = renderItemSlot(true);
 

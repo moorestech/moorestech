@@ -10,3 +10,9 @@ export function useItemMaster(): Map<number, ItemMasterEntry> | null {
   }, []);
   return useItemMasterStore((s) => s.master);
 }
+
+// イベントハンドラから購読せず最新マスタを読む
+// Read the latest master from event handlers without subscribing
+export function readItemMaster(): Map<number, ItemMasterEntry> | null {
+  return useItemMasterStore.getState().master;
+}
