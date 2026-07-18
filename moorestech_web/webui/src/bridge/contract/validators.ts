@@ -26,6 +26,7 @@ import {
   GameStateDataSchema,
   TutorialPresentationDataSchema,
   SkitPresentationDataSchema,
+  TrainRidingDataSchema,
 } from "./schemas";
 
 type TopicSchemaRegistry = {
@@ -60,6 +61,7 @@ const topicSchemas = {
   [Topics.gameState]: GameStateDataSchema,
   [Topics.tutorialPresentation]: TutorialPresentationDataSchema,
   [Topics.skitPresentation]: SkitPresentationDataSchema,
+  [Topics.trainRiding]: TrainRidingDataSchema,
 } satisfies TopicSchemaRegistry;
 
 // 既知topicはsafeParseで検証し、未知topicは従来どおり素通しする

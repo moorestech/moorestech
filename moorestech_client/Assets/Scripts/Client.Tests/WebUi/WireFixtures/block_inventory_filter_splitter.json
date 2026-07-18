@@ -1,5 +1,6 @@
 {
   "open": true,
+  "source": "block",
   "blockType": "FilterSplitter",
   "identifier": "(2, 0, 2)",
   "blockName": "フィルタ分岐器",

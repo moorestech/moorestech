@@ -46,6 +46,7 @@ describe("slotActions", () => {
     };
     bridge.blockInventory = {
       open: true,
+      source: "block",
       blockType: "chest",
       identifier: "block-1",
       blockName: "Chest",

@@ -4,7 +4,7 @@ import type { ClientMsg, ActionPayloads } from "../../src/bridge/transport/proto
 import type { PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, gameStateSubscribers, skitSubscribers, connections } from "./state";
+import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, gameStateSubscribers, skitSubscribers, trainRidingSubscribers, connections } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft } from "./inventoryModel";
 import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
 // 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
@@ -49,6 +49,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
       if (topic === Topics.gameState) return state.gameState;
       if (topic === Topics.tutorialPresentation) return fx.tutorialPresentation;
       if (topic === Topics.skitPresentation) return state.skitPresentation;
+      if (topic === Topics.trainRiding) return state.trainRiding;
       return undefined;
     };
 
@@ -60,6 +61,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
       researchTreeSubscribers.delete(ws);
       gameStateSubscribers.delete(ws);
       skitSubscribers.delete(ws);
+      trainRidingSubscribers.delete(ws);
     });
 
     ws.on("message", (raw) => {
@@ -76,6 +78,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (topic === Topics.researchTree) researchTreeSubscribers.add(ws);
           if (topic === Topics.gameState) gameStateSubscribers.add(ws);
           if (topic === Topics.skitPresentation) skitSubscribers.add(ws);
+          if (topic === Topics.trainRiding) trainRidingSubscribers.add(ws);
           const data = topicData(topic);
           if (data !== undefined) {
             const deliver = () => send(ws, { op: "snapshot", topic, data });
@@ -93,6 +96,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (topic === Topics.modal) modalSubscribers.delete(ws);
           if (topic === Topics.uiState) uiStateSubscribers.delete(ws);
           if (topic === Topics.researchTree) researchTreeSubscribers.delete(ws);
+          if (topic === Topics.trainRiding) trainRidingSubscribers.delete(ws);
         }
         return;
       }

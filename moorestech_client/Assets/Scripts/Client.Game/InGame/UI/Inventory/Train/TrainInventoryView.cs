@@ -5,6 +5,7 @@ using Core.Item.Interface;
 using Game.PlayerInventory.Interface.Subscription;
 using TMPro;
 using UnityEngine;
+using Client.Game.InGame.UI.UIState;
 
 namespace Client.Game.InGame.UI.Inventory.Train
 {
@@ -18,6 +19,7 @@ namespace Client.Game.InGame.UI.Inventory.Train
         public int Count => _subInventorySlotObjects.Count;
         public List<IItemStack> SubInventory { get; } = new();
         public ISubInventoryIdentifier ISubInventoryIdentifier { get; protected set; }
+        public TrainInventoryMessageType? CurrentMessageType { get; private set; }
 
 
         [SerializeField] private Transform slotParentTransform;
@@ -30,12 +32,14 @@ namespace Client.Game.InGame.UI.Inventory.Train
         public void Initialize(TrainCarEntityObject trainCarEntity)
         {
             containerMissingMessageText.gameObject.SetActive(false);
+            CurrentMessageType = null;
             ISubInventoryIdentifier = new TrainInventorySubInventoryIdentifier(trainCarEntity.TrainCarInstanceId.AsPrimitive());
             for (int i = 0; i < trainCarEntity.GetTrainCarMasterElement().InventorySlots; i++)
             {
                 var slotObject = Instantiate(ItemSlotView.Prefab, slotParentTransform);
                 _subInventorySlotObjects.Add(slotObject);
             }
+            gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
         }
 
         public void HideSlotObjects()
@@ -57,6 +61,8 @@ namespace Client.Game.InGame.UI.Inventory.Train
             };
             containerMissingMessageText.text = message;
             containerMissingMessageText.gameObject.SetActive(true);
+            CurrentMessageType = messageType;
+            gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
         }
 
         public void UpdateItemList(List<IItemStack> response)
