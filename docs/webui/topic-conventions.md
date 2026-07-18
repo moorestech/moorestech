@@ -58,3 +58,8 @@ Web は WS 接続中に5秒間隔で `{ "op": "ping" }` を送り、Unity は `{
 5. payload fixture と、共通 revision envelope を通す両側契約テストを追加する。
 6. snapshot/event の逆転、重複 revision、切断後の再 snapshot をテストする。
 7. 操作がある場合は Action を冪等化し、状態反映は Topic のみに流す。
+8. **e2e mock host（`e2e/mock-host/wsHandler.ts` の `topicData`）へ既定 snapshot を必ず追加する。**
+   常時購読 Topic の snapshot が欠けると、再接続復元の `restoring` ゲートが解除されず
+   再接続オーバーレイが全操作をブロックし、e2e スイート全体がタイムアウトする。
+9. nullable なフィールドは使わない。実ホストは `NullValueHandling.Ignore` で null キーを
+   ワイヤから省略するため、zod スキーマは `.optional()` が正（`.nullable()` は検証落ちする）。
