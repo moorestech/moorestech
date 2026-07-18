@@ -1,0 +1,10 @@
+/* レシピ操作ボタンで完全一致する外観だけを共有し、個別の寸法調整は各利用側に残す */
+/* Share only identical recipe-action button visuals while retaining per-use sizing adjustments locally */
+.recipeActionButton {
+  height: 19px;
+  min-height: 19px;
+  border-radius: 0;
+  background: var(--recipe-action-background);
+  color: var(--text-high-contrast);
+  font-weight: 500;
+}

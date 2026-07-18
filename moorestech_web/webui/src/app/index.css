@@ -23,6 +23,18 @@
 :root {
   --slot-size: 3rem;
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
+  /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
+  /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
+  --z-screen: 20;
+  --z-overlay-panel: 30;
+  --z-grab: 40;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-reconnect: 2000;
+  --text-default: #eee;
+  --text-high-contrast: #fff;
+  --color-content-primary: #f2f3f7;
+  --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
 
   /* スロット枠の既定(持ち物基準)。正本のスロット間ギャップ実測(パネル縁でなく格子中間で断面採取)は
      中間トーン2px+明灰2pxの2層のみ(暗リングは存在しない・パネル縁で見えた濃色帯は別要素)。カタログ/
@@ -53,5 +65,5 @@ body {
   /* The real faces ship a single weight, so forbid synthetic bold/italic to match the reference's crisp edges */
   font-synthesis: none;
   background-color: transparent;
-  color: #eee;
+  color: var(--text-default);
 }

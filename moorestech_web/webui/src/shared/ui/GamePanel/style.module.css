@@ -103,10 +103,10 @@
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
-  color: #f2f3f7;
+  color: var(--color-content-primary);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  text-shadow: 0.3px 0.3px 0 rgba(0, 0, 0, 0.35);
+  text-shadow: 0.3px 0.3px 0 rgb(0 0 0 / 35%);
   transform: translateX(var(--title-shift-x, 0)) scale(var(--title-scale-x, 0.947), var(--title-scale-y, 0.947));
   transform-origin: left center;
   white-space: nowrap;
@@ -124,7 +124,7 @@
   background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);
 }
 
-.decoLine:first-child {
+.decoLineTop {
   margin-top: 0;
   background: linear-gradient(90deg, transparent 0%, rgb(146 148 167 / 42%) 5%, rgb(146 148 167 / 59%) 11%, rgb(146 148 167 / 59%) 89%, rgb(146 148 167 / 38%) 95%, transparent 100%);
   /* 下線とヘッダーのフローを保ったまま上線だけ4物理px上へ合わせる */
@@ -134,7 +134,7 @@
 
 /* 下線は上線と同程度の明るさに揃え、上線を動かさずマージンだけで正本の間隔(約25design-px)へ詰める */
 /* Match the bottom rule's brightness to the top rule; tighten the gap toward the reference (~25 design px) via its own margin only, without moving the top rule */
-.decoLine:nth-child(3) {
+.decoLineBottom {
   margin-top: -1.4px;
   margin-bottom: 8px;
   background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);

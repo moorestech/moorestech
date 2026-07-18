@@ -17,7 +17,7 @@
   font-weight: 500;
   line-height: 1;
   letter-spacing: var(--count-letter-spacing, normal);
-  color: #fff;
+  color: var(--text-high-contrast);
   text-shadow: 0.25px 0 0 #000, -0.25px 0 0 #000, 0 0.25px 0 #000, 0 -0.25px 0 #000;
 }
 
@@ -25,5 +25,5 @@
 /* Use black count text on the light-filled cell for legibility */
 [data-filled="true"][data-filled="true"] .count {
   color: #111;
-  text-shadow: 0.25px 0 0 rgba(255, 255, 255, 0.75), -0.25px 0 0 rgba(255, 255, 255, 0.75), 0 0.25px 0 rgba(255, 255, 255, 0.75), 0 -0.25px 0 rgba(255, 255, 255, 0.75);
+  text-shadow: 0.25px 0 0 rgb(255 255 255 / 75%), -0.25px 0 0 rgb(255 255 255 / 75%), 0 0.25px 0 rgb(255 255 255 / 75%), 0 -0.25px 0 rgb(255 255 255 / 75%);
 }

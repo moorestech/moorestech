@@ -19,7 +19,7 @@
   width: 53.622px;
   height: 30.53px;
   overflow: visible;
-  fill: #f2f3f7;
+  fill: var(--color-content-primary);
   stroke: rgb(79 224 244 / 70%);
   stroke-width: 2px;
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 45%));

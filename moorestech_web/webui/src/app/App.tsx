@@ -103,7 +103,7 @@ export default function App() {
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}
       {disconnected && (
         <Portal>
-          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex={2000} data-testid="reconnect-overlay">
+          <Overlay fixed center backgroundOpacity={0.6} blur={2} zIndex="var(--z-reconnect)" data-testid="reconnect-overlay">
             <Stack align="center" gap="sm">
               <Loader color="gray" />
               <Text c="white" fw={500}>再接続中...</Text>

@@ -94,17 +94,12 @@
 /* 正本は縦グラデ+中央白帯でなく、青→シアンの横方向グラデーション */
 /* The reference uses a horizontal blue-to-cyan gradient, not a vertical one with a center white band */
 .recipeTreeButton {
+  composes: recipeActionButton from "./RecipeActionButton.module.css";
   align-self: center;
   margin-top: 0.54rem;
   margin-left: -2px;
   width: 106.78px;
-  height: 19px;
-  min-height: 19px;
   padding: 0 6px;
-  border-radius: 0;
-  background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
-  color: #fff;
-  font-weight: 500;
   font-size: 10px;
   /* フロー高を変えず拡大タイトル分だけボタンを上へ戻す */
   /* Lift the button by the enlarged title delta without changing flow height */
