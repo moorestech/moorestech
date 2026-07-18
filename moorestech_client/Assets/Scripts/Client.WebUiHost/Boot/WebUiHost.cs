@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using Client.Game.Common;
+using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Vite;
+using Client.WebUiHost.Static;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -16,20 +18,16 @@ namespace Client.WebUiHost.Boot
     public static class WebUiHost
     {
         private static KestrelServer _kestrel;
-        private static ViteProcess _vite;
+        private static ViteSupervisor _vite;
         private static WebSocketHub _hub;
         private static IDisposable _shutdownSubscription;
+        private static IDisposable _viteAvailabilitySubscription;
 
-        // 進行中の停止タスク。StartAsync がこれを await してポート解放を待つ
-        // Tracks the in-flight stop task; StartAsync awaits it to ensure the port is released
         private static Task _stopTask = Task.CompletedTask;
-
         public static WebSocketHub Hub => _hub;
 
-        // 確定後のVite URL。未起動時null
-        // Vite URL resolved after startup; null while not running
-        public static string ViteUrl { get; private set; }
-
+        public static string WebUiUrl => _webUiUrl;
+        private static string _webUiUrl;
         public static async UniTask<bool> StartAsync()
         {
             // 前回の停止完了を待つ（連続 Start/Stop での自ポート衝突を避ける）
@@ -40,36 +38,51 @@ namespace Client.WebUiHost.Boot
                 // The previous stop's fault is already logged inside StopAsync; only wait here, do not rethrow (2-B)
                 await _stopTask.ContinueWith(_ => { });
             }
-            // 起動済みならtrueを返す
-            // Return true if already running
             if (_kestrel != null) return true;
 
-            // GameShutdownEvent 購読はドメイン寿命で 1 度だけ張る。IDisposable で保持し意図を型で表現
-            // Install the GameShutdownEvent subscription exactly once per domain; hold it as IDisposable
             _shutdownSubscription ??= GameShutdownEvent.OnGameShutdown.Subscribe(_ => Stop());
 
             // ローカルで起動し、成功後にフィールドへ代入する。途中失敗時は起動済みを片付け null 残留させない（2-A）
             // Start into locals and assign fields only on success; on partial failure, tear down and leave fields null (2-A)
             var hub = new WebSocketHub();
             var kestrel = new KestrelServer();
-            ViteProcess vite = null;
+            ViteSupervisor vite = null;
+            WebUiStaticFileEndpoint staticFiles = null;
             var kestrelStarted = false;
             var started = false;
             try
             {
-                await kestrel.StartAsync(hub);
+                var mode = WebUiHostModeResolver.Resolve();
+                if (mode == WebUiHostMode.Production)
+                {
+                    // 配信開始前に成果物を検証する
+                    // Validate the entire artifact before opening Kestrel so web mode never becomes available on failure
+                    if (!WebUiArtifactValidator.TryValidate(WebUiPaths.ProductionDistRoot, out var failure))
+                    {
+                        Debug.LogError($"[WebUiHost] production artifact rejected: {failure}; falling back to uGUI");
+                        return false;
+                    }
+                    staticFiles = new WebUiStaticFileEndpoint(WebUiPaths.ProductionDistRoot);
+                }
+
+                await kestrel.StartAsync(hub, staticFiles);
                 kestrelStarted = true;
 
-                vite = new ViteProcess();
-
-                // Vite が起動できない（node 欠如・ready 未達）と無 UI になるため、失敗扱いでロールバックする
-                // A Vite failure (missing node / not ready) leaves the UI blank, so roll back as a failure
-                if (!await vite.StartAsync(kestrel.ActualPort)) return false;
-
-                // 確定した実ポートを公開し、CORS 検査と CEF ナビゲーションを有効化する
-                // Publish the resolved port, enabling the CORS check and CEF navigation
-                WebUiPortConfig.SetVitePort(vite.ActualPort);
-                ViteUrl = $"http://127.0.0.1:{vite.ActualPort}/";
+                if (mode == WebUiHostMode.Development)
+                {
+                    vite = new ViteSupervisor();
+                    // HTTP疎通後に起動成功とする
+                    // A Vite instance without successful HTTP health leaves no UI, so roll it back as startup failure
+                    if (!await vite.StartAsync(kestrel.ActualPort)) return false;
+                    _viteAvailabilitySubscription = vite.Availability.Subscribe(WebUiScreenGate.SetHostAvailable);
+                    WebUiPortConfig.SetBrowserPort(vite.ActualPort);
+                    _webUiUrl = $"http://127.0.0.1:{vite.ActualPort}/";
+                }
+                else
+                {
+                    WebUiPortConfig.SetBrowserPort(kestrel.ActualPort);
+                    _webUiUrl = $"http://127.0.0.1:{kestrel.ActualPort}/";
+                }
 
                 _hub = hub;
                 _kestrel = kestrel;
@@ -80,12 +93,11 @@ namespace Client.WebUiHost.Boot
             {
                 // 起動途中で失敗したら、握ったポート/プロセスを解放してフィールドを null のまま残す
                 // If startup failed midway, release the held port/process and leave the fields null
-                //
-                // 後始末の例外が元の起動例外をマスクしないよう各ステップを隔離してログのみに留める（2-B）
-                // Isolate each cleanup step and only log its fault so it cannot mask the original startup exception (2-B)
                 if (!started)
                 {
-                    try { vite?.Kill(); }
+                    // 後始末例外で起動例外を隠さない
+                    // Isolate cleanup failures so they cannot hide the startup failure
+                    try { vite?.Stop(); }
                     catch (Exception e) { Debug.LogWarning($"[WebUiHost] rollback vite kill failed: {e.GetBaseException().Message}"); }
 
                     if (kestrelStarted)
@@ -95,11 +107,9 @@ namespace Client.WebUiHost.Boot
                     }
                 }
             }
-
-            Debug.Log($"[WebUiHost] ready. Open {ViteUrl}");
+            Debug.Log($"[WebUiHost] ready. Open {WebUiUrl}");
             return true;
         }
-
         // 停止開始（通常経路）。停止タスクをフィールドに保持し Forget で投げる
         // Begin stopping (normal path). The stop task is stored as a field and fired with Forget
         public static void Stop()
@@ -108,8 +118,6 @@ namespace Client.WebUiHost.Boot
             _stopTask.AsUniTask().Forget(e => Debug.LogWarning($"[WebUiHost] stop faulted: {e.GetBaseException().Message}"));
         }
 
-        // 実際の停止シーケンス。通常経路と Editor hook 経路で共有する
-        // Actual stop sequence shared by normal path and editor hook path
         public static async UniTask StopAsync()
         {
             // フィールドをローカルへ退避し即 null 化する。二重 Stop を冪等にし、以後の Start を再試行可能にする
@@ -120,11 +128,14 @@ namespace Client.WebUiHost.Boot
             _vite = null;
             _hub = null;
             _kestrel = null;
+            _viteAvailabilitySubscription?.Dispose();
+            _viteAvailabilitySubscription = null;
+            WebUiScreenGate.SetHostAvailable(false);
 
             // 実ポート公開を取り下げる（停止中の CORS 全拒否・CEF ナビゲーション抑止）
             // Withdraw the published port (rejects CORS and suppresses CEF navigation while stopped)
-            ViteUrl = null;
-            WebUiPortConfig.SetVitePort(0);
+            _webUiUrl = null;
+            WebUiPortConfig.SetBrowserPort(0);
 
             // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
             // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
@@ -132,7 +143,7 @@ namespace Client.WebUiHost.Boot
             {
                 // Vite kill はメインスレッドで同期実行（Process.Kill はメインスレッド前提）
                 // Kill Vite synchronously on the main thread (Process.Kill assumes main thread)
-                try { vite.Kill(); }
+                try { vite.Stop(); }
                 catch (Exception e) { Debug.LogWarning($"[WebUiHost] vite kill failed: {e.GetBaseException().Message}"); }
             }
 
