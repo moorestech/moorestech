@@ -1,6 +1,5 @@
 import { Group, Stack, Text } from "@mantine/core";
-import { ItemSlot, BlockIcon } from "@/shared/ui";
-import slotStyles from "@/shared/ui/ItemSlot/style.module.css";
+import { ItemSlot, BlockSlot } from "@/shared/ui";
 import type { MachineRecipe, ItemMasterEntry } from "@/bridge";
 import { clampIndex } from "../craftLogic";
 import RecipePager from "./RecipePager";
@@ -30,9 +29,7 @@ export default function MachineRecipeView({ recipes, recipeIndex, setRecipeIndex
         ))}
         <Text c="dimmed" mx="xs">→</Text>
         <Stack gap={0} align="center">
-          <div className={slotStyles.slot}>
-            <BlockIcon blockId={recipe.blockId} alt={recipe.blockName} className={slotStyles.icon} />
-          </div>
+          <BlockSlot blockId={recipe.blockId} name={recipe.blockName} />
           <Text fz={10} c="dimmed" maw="4rem" truncate="end">{recipe.blockName}</Text>
         </Stack>
         <Text c="dimmed" mx="xs">→</Text>

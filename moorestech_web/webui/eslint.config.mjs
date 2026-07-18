@@ -22,6 +22,7 @@ export default defineConfig([
                 "@/bridge/*",
                 "@/features/toast/toastStore",
                 "@/shared/ui/SlotGrid",
+                "@/shared/ui/*/style.module.css",
               ],
               message: "Use the package barrel instead of a deep import.",
             },

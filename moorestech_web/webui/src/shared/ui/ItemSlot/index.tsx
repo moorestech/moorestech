@@ -1,6 +1,6 @@
-import type { MouseEvent } from "react";
 import { Tooltip } from "@mantine/core";
 import ItemIcon from "../ItemIcon";
+import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
 
 type Props = {
@@ -22,12 +22,6 @@ type Props = {
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
 export default function ItemSlot({ itemId, count, name, selected, catalog, onLeftDown, onRightDown, onDoubleClick, testId }: Props) {
-  const onMouseDown = (e: MouseEvent) => {
-    e.preventDefault();
-    if (e.button === 0) onLeftDown?.(e.shiftKey);
-    if (e.button === 2) onRightDown?.();
-  };
-
   // カタログは常にアイコンを出し、白面（filled）は所持数がある時だけ
   // Catalog always shows the icon; the white (filled) face applies only when an owned count exists
   const owned = count !== undefined && count > 0;
@@ -38,15 +32,14 @@ export default function ItemSlot({ itemId, count, name, selected, catalog, onLef
     // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
     // Tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
     <Tooltip label={name} disabled={!hasItem || !name}>
-      <div
-        className={styles.slot}
-        data-testid={testId}
-        data-selected={selected ? "true" : undefined}
-        data-filled={filled ? "true" : undefined}
-        data-catalog={catalog ? "true" : undefined}
-        onMouseDown={onMouseDown}
+      <SlotFrame
+        testId={testId}
+        selected={selected}
+        filled={filled}
+        catalog={catalog}
+        onLeftDown={onLeftDown}
+        onRightDown={onRightDown}
         onDoubleClick={onDoubleClick}
-        onContextMenu={(e) => e.preventDefault()}
       >
         {hasItem ? (
           <>
@@ -54,7 +47,7 @@ export default function ItemSlot({ itemId, count, name, selected, catalog, onLef
             {count !== undefined ? <span className={styles.count}>{count}</span> : null}
           </>
         ) : null}
-      </div>
+      </SlotFrame>
     </Tooltip>
   );
 }
