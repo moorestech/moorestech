@@ -28,8 +28,12 @@
   /* Match the reference top cross-section by fading only side panels from transparent to the face over about 30 device pixels */
   background: linear-gradient(180deg, rgb(67 54 44 / 0%) 0, rgb(67 54 44) 11.742px, rgb(67 54 44) 0%, rgb(66 50 40) 24%, rgb(64 44 33) 62%, rgb(63 38 29) 100%);
   box-shadow: 0 0 12px 7px rgb(25 18 17 / 45%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
+  /* 左右に加え下端も上端フェードと同尺(約12CSSpx)で世界背景へ溶かす */
+  /* Fade the bottom edge into the world over the same span as the top (~12 CSS px), in addition to the L/R ends */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%), linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%), linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
+  mask-composite: intersect;
   content: "";
   pointer-events: none;
 }
@@ -163,6 +167,10 @@
   align-items: flex-end;
   justify-content: space-between;
   height: 57px;
+  /* 三角装飾も面と同様に下端をフェードさせ、境界のハードエッジを残さない */
+  /* Fade the triangles' bottoms like the panel face so no hard edge survives at the boundary */
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
   pointer-events: none;
 }
 
