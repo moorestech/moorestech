@@ -15,11 +15,18 @@ namespace Client.WebUiHost.Common
 
         // Vite実ポート。0=未確定(CORS全拒否)
         // Actual Vite port resolved at startup; 0 means unresolved (CORS check rejects everything)
-        public static int VitePort { get; private set; }
+        public static int VitePort => _browserPort;
+        public static int BrowserPort => _browserPort;
+        private static int _browserPort;
 
         public static void SetVitePort(int port)
         {
-            VitePort = port;
+            SetBrowserPort(port);
+        }
+
+        public static void SetBrowserPort(int port)
+        {
+            _browserPort = port;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Client.WebUiHost.Vite
         public int ActualPort => _actualPort;
         private volatile int _actualPort;
 
-        public async UniTask<bool> StartAsync(int kestrelPort)
+        public async UniTask<bool> StartAsync(int kestrelPort, int requestedPort)
         {
             var nodePath = WebUiPaths.NodeBinary;
             var pnpmPath = WebUiPaths.PnpmBinary;
@@ -114,7 +114,7 @@ namespace Client.WebUiHost.Vite
                     FileName = pnpmPath,
                     // strictPort を付けない: 占有時は Vite が自動で次のポートへインクリメントする
                     // No strictPort: Vite auto-increments to the next port when the base is occupied
-                    Arguments = $"exec vite --port {WebUiPortConfig.ViteBasePort} --host 127.0.0.1",
+                    Arguments = $"exec vite --port {requestedPort} --host 127.0.0.1",
                     WorkingDirectory = webuiRoot,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
