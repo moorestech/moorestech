@@ -81,12 +81,18 @@ test("grab 中の左ドラッグは配分先だけを host へ送る", async ({ 
   const slots = page.getByTestId("main-grid").locator("> div");
   await slots.nth(0).click();
   await expect(page.getByTestId("grab-overlay")).toBeVisible();
-  await slots.nth(1).hover();
-  await page.mouse.down();
   await slots.nth(3).hover();
+  await page.mouse.down();
   await slots.nth(4).hover();
+  await slots.nth(5).hover();
   await page.mouse.up();
   await expect.poll(async () => (await payloadsOf(page, "inventory.split_drag")).at(-1)).toEqual({
-    slots: [{ area: "main", slot: 1 }, { area: "main", slot: 3 }, { area: "main", slot: 4 }],
+    slots: [{ area: "main", slot: 3 }, { area: "main", slot: 4 }, { area: "main", slot: 5 }],
   });
+  // 均等配分eventを表示へ反映する
+  // Reflect the distribution event in every slot
+  await expect(slots.nth(3)).toContainText("3");
+  await expect(slots.nth(4)).toContainText("3");
+  await expect(slots.nth(5)).toContainText("3");
+  await expect(page.getByTestId("grab-overlay")).toContainText("1");
 });

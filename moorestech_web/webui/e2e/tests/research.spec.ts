@@ -16,6 +16,13 @@ test("research tree renders nodes when uiState enters ResearchTree", async ({ pa
   await expect(page.getByTestId("research-node-11111111-1111-1111-1111-111111111111")).toBeVisible();
 });
 
+test("研究報酬itemの個数をtopic payloadどおり表示する", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  const node = page.getByTestId("research-node-11111111-1111-1111-1111-111111111111");
+  await expect(node.getByText("4", { exact: true })).toBeVisible();
+});
+
 test("research button sends research.complete and node becomes completed", async ({ page }) => {
   await resetResearch(page);
   await setUiState(page, "ResearchTree");

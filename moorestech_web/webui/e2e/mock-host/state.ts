@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
 
@@ -7,16 +7,9 @@ import { clone } from "./wire";
 // Record received actions (exposed at /__actions to assert the send contract)
 export const received: { type: string; payload: unknown }[] = [];
 
-// topic ごとの購読者集合。HTTP 制御エンドポイントと WS handler の双方が参照する
-// Per-topic subscriber sets, shared by both the HTTP control endpoints and the WS handler
-export const blockSubscribers = new Set<WebSocket>();
-export const modalSubscribers = new Set<WebSocket>();
-export const uiStateSubscribers = new Set<WebSocket>();
-export const researchTreeSubscribers = new Set<WebSocket>();
-export const gameStateSubscribers = new Set<WebSocket>();
-export const skitSubscribers = new Set<WebSocket>();
-export const trainRidingSubscribers = new Set<WebSocket>();
 export const connections = new Set<WebSocket>();
+export const topicSubscribers = new Map<string, Set<WebSocket>>();
+export const subscribersOf = (topic: string) => topicSubscribers.get(topic) ?? new Set<WebSocket>();
 
 // 再代入される可変状態を1オブジェクトに集約し、モジュール間で参照共有する
 // Group reassignable mutable state in one object so modules share it by reference
@@ -36,8 +29,12 @@ export const state = {
   gameState: clone(fx.gameState) as GameStateData,
   skitPresentation: clone(fx.skitPresentation) as SkitPresentationData,
   trainRiding: clone(fx.trainRiding) as TrainRidingData,
+  topicOverrides: new Map<string, unknown>(),
   injectedActionError: null as { type: string; error: string } | null,
   snapshotDelayMs: 0,
   snapshotDelayTopic: null as string | null,
   rejectConnectionsUntil: 0,
+  preserveInventoryOnDisconnect: false,
+  reconnectInventory: null as PlayerInventoryData | null,
+  itemMaster: clone(fx.itemMaster),
 };
