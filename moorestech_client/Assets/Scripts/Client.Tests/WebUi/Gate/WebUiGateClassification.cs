@@ -54,6 +54,7 @@ namespace Client.Tests.WebUi.Gate
             "Client.Game/InGame/UI",
             "Client.Game/InGame/Presenter/PauseMenu",
             "Client.Game/InGame/BackgroundSkit",
+            "Client.Game/Skit",
             "Client.Game/InGame/Mining",
             "Client.Game/InGame/Tutorial",
             "Client.Skit",
@@ -80,6 +81,11 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/UIState/State/PauseMenu/PauseMenuStateService.cs", Category.GatedRoot, "ポーズメニュー (C2)"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu/NetworkDisconnectPresenter.cs", Category.GatedRoot, "切断表示 (C2)"),
             new Rule("Client.Game/InGame/UI/Inventory/Train/TrainInventoryView.cs", Category.GatedRoot, "列車インベントリ (C3)"),
+            new Rule("Client.Game/InGame/BackgroundSkit/BackgroundSkitManager.cs", Category.GatedRoot, "背景スキット (C4/S1)"),
+            new Rule("Client.Game/Skit/SkitManager.cs", Category.GatedRoot, "通常スキット UI Toolkit 抑止 (C4/S2)"),
+            new Rule("Client.Game/InGame/Tutorial/UIHighlight/UIHighlightTutorialManager.cs", Category.GatedRoot, "DOM UIハイライト (C4/T3)"),
+            new Rule("Client.Game/InGame/Tutorial/UIHighlight/ItemViewHighLightTutorialManager.cs", Category.GatedRoot, "DOM itemハイライト (C4/T3)"),
+            new Rule("Client.Game/InGame/Tutorial/KeyControlTutorialManager.cs", Category.GatedRoot, "共通key hint統合 (C4/T4)"),
 
             // --- ルート配下 / Covered by roots
             new Rule("Client.Game/InGame/UI/Inventory", Category.CoveredByRoot, "移行済み画面の配下部品（Phase Dで全量最終監査）"),
@@ -99,10 +105,15 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Tooltip", Category.CoveredByRoot, "MouseCursorTooltip配下 (C2)"),
             new Rule("Client.Game/InGame/UI/ProgressBar", Category.Pending, "D: 処遇確認（ワールド進捗バーならExcludedへ）"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.CoveredByRoot, "PauseMenuStateService/NetworkDisconnectPresenterで抑止 (C2)"),
-            new Rule("Client.Game/InGame/BackgroundSkit", Category.Pending, "C4: バックグラウンドスキット"),
+            new Rule("Client.Game/InGame/BackgroundSkit", Category.CoveredByRoot, "BackgroundSkitManagerでWeb表示時に抑止 (C4/S1)"),
             new Rule("Client.Game/InGame/Mining", Category.Excluded, "ワールド空間表示のためUnity残置。画面固定HUDはWeb側ui.mining_hudで新設 (C2)"),
-            new Rule("Client.Game/InGame/Tutorial", Category.Pending, "C4: DOMハイライト移行（ワールド空間系はUnity残置）"),
-            new Rule("Client.Skit", Category.Pending, "C4: スキット（UI Toolkit表示層）"),
+            new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.CoveredByRoot, "UIHighlight managerでWeb表示へ切替 (C4/T3)"),
+            new Rule("Client.Game/InGame/Tutorial/MapObjectPin.cs", Category.Excluded, "ワールド座標ピンのためUnity残置"),
+            new Rule("Client.Game/InGame/Tutorial/HudArrow", Category.Excluded, "Camera依存のワールド矢印のためUnity残置"),
+            new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialManager.cs", Category.Excluded, "3D配置previewのためUnity残置"),
+            new Rule("Client.Game/InGame/Tutorial/TutorialBlock", Category.Excluded, "3D配置preview配下"),
+            new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),
+            new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootをWebモード時に抑止 (C4/S2-S3)"),
             new Rule("Client.CutScene", Category.Pending, "C4: カットシーン退避（GameStateType Topic化）"),
         };
     }

@@ -170,6 +170,11 @@ export type ActionPayloads = {
     status: "ready" | "not-found" | "hidden";
     reason: "mounted" | "missing" | "duplicate-anchor" | "display-none" | "visibility-hidden" | "aria-hidden" | "zero-area" | "outside-viewport";
   };
+  "skit.advance": { sessionId: string; sceneRevision: number };
+  "skit.select": { sessionId: string; sceneRevision: number; choiceId: string };
+  "skit.set_auto": { sessionId: string; sceneRevision: number; enabled: boolean };
+  "skit.skip": { sessionId: string; sceneRevision: number };
+  "skit.set_ui_hidden": { sessionId: string; sceneRevision: number; hidden: boolean };
 };
 
 // 既知 action type の実行時リスト。ActionPayloads のキーと1:1（下の網羅チェックで担保）
@@ -200,6 +205,11 @@ export const ACTION_TYPES = [
   "train_platform.set_transfer_mode",
   "debug.echo",
   "tutorial.anchor_ack",
+  "skit.advance",
+  "skit.select",
+  "skit.set_auto",
+  "skit.skip",
+  "skit.set_ui_hidden",
 ] as const satisfies readonly (keyof ActionPayloads)[];
 
 export type ActionType = (typeof ACTION_TYPES)[number];

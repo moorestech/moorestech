@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BackgroundSkit
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
             var context = GetStoryContext();
             
-            backgroundSkitUI.SetActive(true);
+            backgroundSkitUI.SetActive(!WebUiScreenGate.IsWebUiMode);
             
             // BackgroundSkitは簡易実装なので、Textコマンドのみを実行
             foreach (var command in commands)

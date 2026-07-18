@@ -1,4 +1,4 @@
-using Client.WebUiHost.Game.Topics;
+using Client.Game.InGame.Tutorial;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -12,9 +12,10 @@ namespace Client.WebUiHost.Game.Actions
         {
             var sessionId = payload?.Value<string>("tutorialSessionId");
             var revision = payload?.Value<int>("revision") ?? -1;
-            if (sessionId != TutorialPresentationTopic.Current.TutorialSessionId)
+            var current = TutorialPresentationStateStore.Instance.GetCurrent();
+            if (sessionId != current.TutorialSessionId)
                 return UniTask.FromResult(ActionResult.Fail("stale_session"));
-            if (revision != TutorialPresentationTopic.Current.Revision)
+            if (revision != current.Revision)
                 return UniTask.FromResult(ActionResult.Fail("stale_revision"));
             return UniTask.FromResult(ActionResult.Success());
         }

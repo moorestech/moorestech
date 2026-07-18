@@ -16,12 +16,12 @@ namespace Client.WebUiHost.Game.Topics
         public SkitPresentationTopic(WebSocketHub hub)
         {
             _hub = hub;
-            _subscription = SkitPresentationStateStore.Instance.OnChanged.Subscribe(Publish);
+            _subscription = SkitPresentationStateStore.Instance.ObserveChanged().Subscribe(Publish);
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
         {
-            return UniTask.FromResult(WebUiJson.Serialize(SkitPresentationStateStore.Instance.Current));
+            return UniTask.FromResult(WebUiJson.Serialize(SkitPresentationStateStore.Instance.GetCurrent()));
         }
 
         public void Dispose()

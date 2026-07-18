@@ -22,7 +22,6 @@ using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.ContextMenu;
 using VContainer;
 using Client.Network.API;
-
 namespace Client.WebUiHost.Game
 {
     /// <summary>
@@ -81,11 +80,8 @@ namespace Client.WebUiHost.Game
             // Register the UI-state topic (source of truth for web-side routing)
             var uiStateTopic = new UiStateTopic(hub, uiStateControl, trainHudState);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
-            hub.RegisterTopic(GameStateTopic.TopicName, new GameStateTopic(hub));
-            hub.RegisterTopic(TutorialPresentationTopic.TopicName, new TutorialPresentationTopic());
-            hub.RegisterTopic(SkitPresentationTopic.TopicName, new SkitPresentationTopic(hub));
+            C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
-
             // 現在言語トピックを登録（辞書本体はHTTP endpointから取得）
             // Register the current-locale topic (dictionary bodies come from the HTTP endpoint)
             var localizationTopic = new LocalizationTopic(hub);
@@ -199,7 +195,6 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
             hub.RegisterAction(new PauseMenuBackToMainMenuActionHandler(resolver.Resolve<BackToMainMenu>()));
-            hub.RegisterAction(new TutorialAnchorAckAction());
         }
     }
 }
