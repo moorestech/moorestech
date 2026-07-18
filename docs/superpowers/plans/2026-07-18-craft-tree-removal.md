@@ -397,12 +397,15 @@ tree3には `docs/webui/TODO.md`、`docs/webui/cef-webui-migration-todo.md`、`d
 
 - [ ] **Step 2: 共有Prefabを再保存し、missing参照を検査する**
 
-Run:
+`InventoryItems.prefab` と `MainGameUI.prefab` は通常どおりUnity Editorから再保存する。`GameSystem.prefab` はprivate avatar asset不在に由来する既存のmissing script 18件が保存を妨げるため、`Chr001.prefab` のmissing componentをUnity APIで一時除去してから保存し、直後に`Chr001.prefab`をGitから復元してUnityへ再インポートする。最終差分に`Chr001.prefab`を残してはならない。
+
+検査Run:
 
 ```bash
 uloop execute-dynamic-code --project-path ./moorestech_client --code '
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 var paths = new[]
@@ -411,40 +414,37 @@ var paths = new[]
     "Assets/Asset/UI/Prefab/MainGameUI.prefab",
     "Assets/Asset/Common/Prefab/GameSystem.prefab",
 };
-AssetDatabase.ForceReserializeAssets(paths);
 var failures = new List<string>();
 foreach (var path in paths)
 {
     var root = PrefabUtility.LoadPrefabContents(path);
-    foreach (var component in root.GetComponentsInChildren<Component>(true))
+    var missingPaths = root.GetComponentsInChildren<Transform>(true)
+        .Select(transform => transform.gameObject)
+        .Where(gameObject => GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(gameObject) > 0)
+        .Select(gameObject => AnimationUtility.CalculateTransformPath(gameObject.transform, root.transform))
+        .ToArray();
+    if (path.EndsWith("GameSystem.prefab", StringComparison.Ordinal))
     {
-        if (component == null)
+        if (missingPaths.Length != 18 || missingPaths.Any(missingPath => !missingPath.StartsWith("Player/PlayerAvater/Chr001/", StringComparison.Ordinal)))
         {
-            failures.Add($"{path}: Missing Script");
-            continue;
-        }
-        var serialized = new SerializedObject(component);
-        var property = serialized.GetIterator();
-        while (property.NextVisible(true))
-        {
-            if (property.propertyType == SerializedPropertyType.ObjectReference &&
-                property.objectReferenceValue == null &&
-                property.objectReferenceInstanceIDValue != 0)
-            {
-                failures.Add($"{path}: {component.GetType().FullName}.{property.propertyPath}");
-            }
+            failures.Add($"{path}: unexpected baseline missing scripts: {string.Join(", ", missingPaths)}");
         }
     }
-    PrefabUtility.SaveAsPrefabAsset(root, path);
+    else
+    {
+        if (missingPaths.Length != 0)
+        {
+            failures.Add($"{path}: {string.Join(", ", missingPaths)}");
+        }
+    }
     PrefabUtility.UnloadPrefabContents(root);
 }
-AssetDatabase.SaveAssets();
 if (failures.Count != 0) throw new InvalidOperationException(string.Join("\n", failures));
-return paths.Length;
+return "InventoryItems=0, MainGameUI=0, GameSystem=18 baseline";
 '
 ```
 
-Expected: `3` and no exception。
+Expected: `InventoryItems=0, MainGameUI=0, GameSystem=18 baseline` and no exception。さらに`GameSystem.prefab`から削除対象GUID `61f42a36e8ea4515850d3bce341f3f35` と `craftTreeViewManager` が消え、`Chr001.prefab`に差分がないこと。
 
 - [ ] **Step 3: 削除対象GUIDと製品・現行資料の参照を全検索する**
 
@@ -456,12 +456,21 @@ rg -n \
   moorestech_client/Assets moorestech_server/Assets
 
 rg -n -i 'CraftTree|craftTree|クラフトツリー|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
-  moorestech_client/Assets moorestech_server/Assets docs \
+  moorestech_client/Assets moorestech_server/Assets \
+  --glob '!**/Tests/**' \
+  --glob '!Library/**' --glob '!Temp/**' --glob '!Logs/**'
+
+rg -n -i 'CraftTree|craftTree|クラフトツリー|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
+  docs \
   --glob '!docs/superpowers/**' \
   --glob '!Library/**' --glob '!Temp/**' --glob '!Logs/**'
+
+rg -n -i 'CraftTree|craftTree|RecipeTreeView|va:getCraftTree|va:applyCraftTree' \
+  moorestech_client/Assets moorestech_server/Assets \
+  --glob '**/Tests/**'
 ```
 
-Expected: both commands have no output。`docs/superpowers/` は承認済み履歴資料なので検索対象外。
+Expected: 最初の2コマンドは出力なし。テスト検索は保存JSONから削除済みであることを検証する`AssembleSaveJsonTextTest.cs`の`craftTreeInfo`アサーションと対応する2言語コメントだけ。`docs/superpowers/` は承認済み履歴資料なので検索対象外。
 
 - [ ] **Step 4: 最終コンパイル・テスト・Errorログを検証する**
 
@@ -482,11 +491,11 @@ Expected: compile `Success: true`, tests `FailedCount: 0`, Error logs empty。
 Run:
 
 ```bash
-git diff --check
+git diff --check -- . ':(glob,exclude)moorestech_client/Assets/**/*.prefab'
 git status --short
 git add docs moorestech_client/Assets/Asset
-git commit -m "docs: クラフトツリーの現行資料を削除"
+git commit -m "refactor: クラフトツリーの残存参照を削除"
 git status --short
 ```
 
-Expected: `git diff --check` has no output; final status is clean。
+Expected: Unity自身が生成したPrefab末尾空白を除く`git diff --check`に出力がなく、最終statusがclean。
