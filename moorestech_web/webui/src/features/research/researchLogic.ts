@@ -6,6 +6,33 @@ export const CANVAS_PADDING = 200;
 
 export type CanvasBounds = { width: number; height: number; offsetX: number; offsetY: number };
 
+export const MIN_VIEW_SCALE = 0.4;
+export const MAX_VIEW_SCALE = 2.5;
+export const WHEEL_ZOOM_SENSITIVITY = 0.0015;
+
+export type ViewportTransform = { x: number; y: number; scale: number };
+export type Point = { x: number; y: number };
+
+// カーソル下のワールド座標を保ったままホイールズームする
+// Wheel-zoom while keeping the cursor's world point fixed
+export function zoomViewportAt(
+  viewport: ViewportTransform,
+  cursor: Point,
+  deltaY: number,
+): ViewportTransform {
+  const scale = Math.min(
+    MAX_VIEW_SCALE,
+    Math.max(MIN_VIEW_SCALE, viewport.scale * Math.exp(-deltaY * WHEEL_ZOOM_SENSITIVITY)),
+  );
+  const worldX = (cursor.x - viewport.x) / viewport.scale;
+  const worldY = (cursor.y - viewport.y) / viewport.scale;
+  return {
+    x: cursor.x - worldX * scale,
+    y: cursor.y - worldY * scale,
+    scale,
+  };
+}
+
 export function computeCanvasBounds(nodes: ResearchNodeData[]): CanvasBounds {
   if (nodes.length === 0) {
     return { width: CANVAS_PADDING * 2, height: CANVAS_PADDING * 2, offsetX: CANVAS_PADDING, offsetY: CANVAS_PADDING };

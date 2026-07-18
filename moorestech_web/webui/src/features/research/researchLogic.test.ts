@@ -5,6 +5,7 @@ import {
   hasEnoughItems,
   isItemSufficient,
   lineBetween,
+  zoomViewportAt,
 } from "./researchLogic";
 import type { ResearchNodeData } from "@/bridge/contract/payloadTypes";
 
@@ -30,6 +31,26 @@ describe("lineBetween", () => {
     expect(line.angleDeg).toBeCloseTo(0);
     const diag = lineBetween({ x: 0, y: 0 }, { x: 0, y: 100 });
     expect(diag.angleDeg).toBeCloseTo(90);
+  });
+});
+
+describe("zoomViewportAt", () => {
+  it("zooms in for wheel-up while keeping the world point under the cursor fixed", () => {
+    const current = { x: 40, y: -20, scale: 1 };
+    const cursor = { x: 300, y: 180 };
+    const next = zoomViewportAt(current, cursor, -120);
+    const worldBefore = {
+      x: (cursor.x - current.x) / current.scale,
+      y: (cursor.y - current.y) / current.scale,
+    };
+    expect(next.scale).toBeGreaterThan(current.scale);
+    expect((cursor.x - next.x) / next.scale).toBeCloseTo(worldBefore.x);
+    expect((cursor.y - next.y) / next.scale).toBeCloseTo(worldBefore.y);
+  });
+
+  it("clamps wheel zoom to the supported minimum and maximum", () => {
+    expect(zoomViewportAt({ x: 0, y: 0, scale: 1 }, { x: 0, y: 0 }, -100000).scale).toBe(2.5);
+    expect(zoomViewportAt({ x: 0, y: 0, scale: 1 }, { x: 0, y: 0 }, 100000).scale).toBe(0.4);
   });
 });
 
