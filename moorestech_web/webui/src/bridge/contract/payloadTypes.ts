@@ -57,6 +57,7 @@ import type {
   MiningHudDataSchema,
   TooltipDataSchema,
   ContextMenuDataSchema,
+  TrainRidingDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -81,6 +82,7 @@ export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
 export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
 export type ContextMenuData = z.infer<typeof ContextMenuDataSchema>;
+export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;

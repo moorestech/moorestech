@@ -24,6 +24,7 @@ import type {
   MiningHudData,
   TooltipData,
   ContextMenuData,
+  TrainRidingData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
 
@@ -78,6 +79,7 @@ export const Topics = {
   miningHud: "ui.mining_hud",
   tooltip: "ui.tooltip",
   contextMenu: "ui.context_menu",
+  trainRiding: "train.riding",
 } as const;
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
@@ -92,6 +94,7 @@ export const UiStateNames = {
   pauseMenu: "PauseMenu",
   placeBlock: "PlaceBlock",
   deleteBar: "DeleteBar",
+  trainHud: "TrainHUDScreen",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -119,6 +122,7 @@ export type TopicPayloads = {
   [Topics.miningHud]: MiningHudData;
   [Topics.tooltip]: TooltipData;
   [Topics.contextMenu]: ContextMenuData;
+  [Topics.trainRiding]: TrainRidingData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる

@@ -1,5 +1,6 @@
 {
   "open": true,
+  "source": "block",
   "blockType": "ElectricMiner",
   "identifier": "(3, 0, 8)",
   "blockName": "電動採掘機",

@@ -23,9 +23,10 @@ namespace Client.WebUiHost.Game.Actions
             // block requires a slot; the sub-inventory lives after the current mainSlotCount in the combined inventory
             if (obj["slot"] is not JValue { Value: long slotLong }) return false;
 
-            // 発生元がブロックのときだけ許可する。列車等の非ブロックサブは block action で操作させない
-            // Allow only when the source is a block; non-block subs (e.g. trains) must not be operated via block actions
-            if (subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource) return false;
+            // 統一SubInventoryのブロック・列車だけを許可し、未知の発生元を拒否する
+            // Allow only block and train sources from unified SubInventory, rejecting unknown sources.
+            var source = subInventoryState.CurrentSubInventorySource;
+            if (source is not BlockSubInventorySource && source is not TrainSubInventorySource) return false;
 
             // 閉状態や範囲外 slot を弾く。サブ未オープンだと結合 identifier が null で MoveItem が例外になる
             // Reject closed/out-of-range slots; with no open sub-inventory the combined identifier is null and MoveItem throws

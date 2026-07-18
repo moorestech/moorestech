@@ -3,6 +3,8 @@ using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using Client.Game.InGame.UI.UIState.State;
+using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -16,17 +18,21 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
+        private readonly TrainHUDScreenState _trainHudState;
+        private readonly IDisposable _trainStateSubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl)
+        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, TrainHUDScreenState trainHudState)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
+            _trainHudState = trainHudState;
 
             // state遷移を購読して push する
             // Subscribe to state transitions and push them
             _uiStateControl.OnStateChanged += OnStateChanged;
+            _trainStateSubscription = _trainHudState.OnPresentationChanged.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -38,6 +44,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
+            _trainStateSubscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -68,7 +75,12 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            return WebUiJson.Serialize(new UiStateDto { State = _uiStateControl.CurrentState.ToString() });
+            var trainHud = _uiStateControl.CurrentState == UIStateEnum.TrainHUDScreen;
+            return WebUiJson.Serialize(new UiStateDto
+            {
+                State = _uiStateControl.CurrentState.ToString(),
+                SubState = trainHud ? _trainHudState.SubState.ToString() : null,
+            });
         }
     }
 
@@ -79,5 +91,6 @@ namespace Client.WebUiHost.Game.Topics
     public class UiStateDto
     {
         public string State;
+        public string SubState;
     }
 }

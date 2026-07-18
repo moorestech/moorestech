@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, TrainRidingData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
 
@@ -13,6 +13,7 @@ export const blockSubscribers = new Set<WebSocket>();
 export const modalSubscribers = new Set<WebSocket>();
 export const uiStateSubscribers = new Set<WebSocket>();
 export const researchTreeSubscribers = new Set<WebSocket>();
+export const trainRidingSubscribers = new Set<WebSocket>();
 export const connections = new Set<WebSocket>();
 
 // 再代入される可変状態を1オブジェクトに集約し、モジュール間で参照共有する
@@ -30,6 +31,7 @@ export const state = {
   // research.complete でノードを completed 化し購読者へ push する可変ツリー
   // Mutable tree; research.complete flips a node to completed and pushes to subscribers
   researchTree: clone(fx.researchTree) as ResearchTreeData,
+  trainRiding: clone(fx.trainRiding) as TrainRidingData,
   injectedActionError: null as { type: string; error: string } | null,
   snapshotDelayMs: 0,
   snapshotDelayTopic: null as string | null,

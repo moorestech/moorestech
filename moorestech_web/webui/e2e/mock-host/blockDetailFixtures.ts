@@ -6,6 +6,7 @@ const empty = () => ({ itemId: 0, count: 0 });
 // BLK-2 electric machine: in/out+module slots with machine/electricNetwork capabilities
 export const blockMachine = {
   open: true,
+  source: "block",
   blockType: "ElectricMachine",
   identifier: "block:3",
   blockName: "電気機械",
@@ -26,6 +27,7 @@ export const blockMachine = {
 // BLK-3 gear machine: machine + gear/gearNetwork capabilities
 export const blockGearMachine = {
   open: true,
+  source: "block",
   blockType: "GearMachine",
   identifier: "block:4",
   blockName: "ギア機械",
@@ -47,6 +49,7 @@ export const blockGearMachine = {
 // BLK-4 generator: fuel slot with generator/electricNetwork capabilities
 export const blockGenerator = {
   open: true,
+  source: "block",
   blockType: "ElectricGenerator",
   identifier: "block:5",
   blockName: "発電機",
@@ -60,6 +63,7 @@ export const blockGenerator = {
 // BLK-5 miner: miner/electricNetwork capabilities with mined items per minute
 export const blockMiner = {
   open: true,
+  source: "block",
   blockType: "ElectricMiner",
   identifier: "block:6",
   blockName: "電動採掘機",
@@ -74,6 +78,7 @@ export const blockMiner = {
 // BLK-6 gear miner: exercises the combined miner/gear/gearNetwork stack
 export const blockGearMiner = {
   open: true,
+  source: "block",
   blockType: "GearMiner",
   identifier: "block:8",
   blockName: "ギア採掘機",
@@ -89,6 +94,7 @@ export const blockGearMiner = {
 // BLK-7 unregistered type: exercises the generic item/fluid fallback
 export const blockGeneric = {
   open: true,
+  source: "block",
   blockType: "UnregisteredBlock",
   identifier: "block:9",
   blockName: "汎用ブロック",
@@ -101,6 +107,7 @@ export const blockGeneric = {
 // BLK-8 filter splitter: filterSplitter capability with 3 directions x 2 filter slots
 export const blockFilterSplitter = {
   open: true,
+  source: "block",
   blockType: "FilterSplitter",
   identifier: "block:7",
   blockName: "フィルタ分岐器",
@@ -121,6 +128,7 @@ export const blockFilterSplitter = {
 // B1 electric-to-gear converter: master-ordered modes and dynamic StateDetail values
 export const blockElectricToGear = {
   open: true,
+  source: "block",
   blockType: "ElectricToGearGenerator",
   identifier: "block:10",
   blockName: "回転生成機",

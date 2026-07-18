@@ -73,6 +73,7 @@ export const ElectricToGearDataSchema = z.object({
 
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
+  source: z.literal("block"),
   blockType: z.string(),
   identifier: z.string(),
   blockName: z.string(),
@@ -88,5 +89,15 @@ export const BlockInventoryOpenSchema = z.object({
   filterSplitter: FilterSplitterDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
 });
+export const TrainInventoryOpenSchema = z.object({
+  open: z.literal(true),
+  source: z.literal("train"),
+  blockType: z.literal("Train"),
+  identifier: z.string(),
+  blockName: z.string(),
+  itemSlots: z.array(SlotDataSchema),
+  fluidSlots: z.array(FluidSlotDataSchema),
+  error: z.enum(["containerMissing", "trainCarMissing", "openFailed"]).optional(),
+});
 export const BlockInventoryClosedSchema = z.object({ open: z.literal(false) });
-export const BlockInventoryDataSchema = z.discriminatedUnion("open", [BlockInventoryOpenSchema, BlockInventoryClosedSchema]);
+export const BlockInventoryDataSchema = z.union([BlockInventoryOpenSchema, TrainInventoryOpenSchema, BlockInventoryClosedSchema]);

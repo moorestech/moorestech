@@ -1,5 +1,6 @@
 {
   "open": true,
+  "source": "block",
   "blockType": "GearMachine",
   "identifier": "(0, 0, 0)",
   "blockName": "ギア機械",
