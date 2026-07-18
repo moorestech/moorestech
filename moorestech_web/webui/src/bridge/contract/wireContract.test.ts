@@ -40,7 +40,7 @@ describe("wire contract fixtures (shared with C#)", () => {
 
     const openData = open as BlockInventoryData;
     expect(openData.open).toBe(true);
-    if (openData.open) {
+    if (openData.open && openData.source === "block") {
       expect(openData.itemSlots.length).toBe(2);
       expect(openData.fluidSlots.length).toBe(1);
       expect(openData.progress).toBe(0.5);
@@ -51,6 +51,11 @@ describe("wire contract fixtures (shared with C#)", () => {
     // 閉状態は他フィールドが省略される
     // The closed state omits every other field
     expect("blockType" in closedData).toBe(false);
+  });
+
+  it("train.riding と貨車inventory fixtureを受理する", () => {
+    expect(validateTopicPayload(Topics.trainRiding, loadFixture("train_riding.json"))).toBe(true);
+    expect(validateTopicPayload(Topics.blockInventory, loadFixture("train_inventory.json"))).toBe(true);
   });
 
   it("progress は label あり(presence)/なし(omission) の両方が受理される", () => {
@@ -136,10 +141,10 @@ describe("block detail fixtures", () => {
   }
   it("consumes capability fields with the declared types", () => {
     const machine = loadFixture("block_inventory_machine.json") as BlockInventoryData;
-    if (!machine.open || !machine.machine) throw new Error("machine fixture shape");
+    if (!machine.open || machine.source !== "block" || !machine.machine) throw new Error("machine fixture shape");
     expect(machine.machine.slotLayout.input + machine.machine.slotLayout.output + machine.machine.slotLayout.module).toBe(machine.itemSlots.length);
     const gear = loadFixture("block_inventory_gear_machine.json") as BlockInventoryData;
-    if (!gear.open || !gear.gearNetwork) throw new Error("gear fixture shape");
+    if (!gear.open || gear.source !== "block" || !gear.gearNetwork) throw new Error("gear fixture shape");
     expect(["none", "rocked", "overRequirePower"]).toContain(gear.gearNetwork.stopReason);
   });
 });

@@ -15,7 +15,15 @@ export const ProgressDataSchema = z.object({
 
 // 未知のstate名は画面ルータが安全側へ処理するため文字列全体を受理する
 // Accept every state name because the screen router handles unknown names safely
-export const UiStateDataSchema = z.object({ state: z.string() });
+export const UiStateDataSchema = z.object({
+  state: z.string(),
+  subState: z.enum(["GameScreen", "PauseMenuScreen"]).optional(),
+});
+export const TrainRidingDataSchema = z.object({
+  riding: z.boolean(),
+  branchCandidateCount: z.number().int().nonnegative(),
+  selectedBranchIndex: z.number().int().nonnegative(),
+});
 export const LocalizationDataSchema = z.object({ locale: z.string().min(1) });
 export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
 export const PlacementModeDataSchema = z.object({

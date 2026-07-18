@@ -23,6 +23,8 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         private LineRenderer _branchRoutePreviewLine;
         private Material _branchRoutePreviewMaterial;
 
+        public int BranchCandidateCount { get; private set; }
+
         public void Update(ClientTrainUnit trainUnit)
         {
             if (!TryBuildBranchRoutePreviewPoints(trainUnit))
@@ -62,6 +64,7 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         {
             _branchRouteNodes.Clear();
             _branchRoutePoints.Clear();
+            BranchCandidateCount = 0;
             var railPosition = trainUnit?.RailPosition;
             if (railPosition == null) return false;
 
@@ -97,6 +100,7 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
                 CopyConnectedNodes(currentNode);
                 if (_branchCandidateNodes.Count >= 2)
                 {
+                    BranchCandidateCount = _branchCandidateNodes.Count;
                     var selectedNode = TrainUnitBranchSelector.SelectManualBranchNode(previousNode, currentNode, _branchCandidateNodes, branchSelectionIndex);
                     _branchRouteNodes.Add(selectedNode);
                     return true;

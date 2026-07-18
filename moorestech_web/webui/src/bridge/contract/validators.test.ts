@@ -3,7 +3,7 @@ import { validateTopicPayload } from "./validators";
 import { Topics } from "../transport/protocol";
 
 const openBase = {
-  open: true, blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockName: "電気機械",
+  open: true, source: "block", blockType: "ElectricMachine", identifier: "(0, 0, 0)", blockName: "電気機械",
   itemSlots: [{ itemId: 1, count: 2 }], fluidSlots: [],
 };
 

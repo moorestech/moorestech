@@ -79,6 +79,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs", Category.GatedRoot, "削除バーHUD (C2)"),
             new Rule("Client.Game/InGame/UI/UIState/State/PauseMenu/PauseMenuStateService.cs", Category.GatedRoot, "ポーズメニュー (C2)"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu/NetworkDisconnectPresenter.cs", Category.GatedRoot, "切断表示 (C2)"),
+            new Rule("Client.Game/InGame/UI/Inventory/Train/TrainInventoryView.cs", Category.GatedRoot, "列車インベントリ (C3)"),
 
             // --- ルート配下 / Covered by roots
             new Rule("Client.Game/InGame/UI/Inventory", Category.CoveredByRoot, "移行済み画面の配下部品（Phase Dで全量最終監査）"),
@@ -90,7 +91,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械・ゲート本体・トグル"),
 
             // --- Phase待ち / Pending migration
-            new Rule("Client.Game/InGame/UI/Inventory/Train", Category.Pending, "C3: 列車インベントリ"),
+            new Rule("Client.Game/InGame/UI/Inventory/Train", Category.CoveredByRoot, "TrainInventoryView配下 (C3)"),
             new Rule("Client.Game/InGame/UI/Challenge", Category.CoveredByRoot, "ChallengeListView/CurrentChallengeHudView配下（C1移行済み）"),
             new Rule("Client.Game/InGame/UI/ContextMenu", Category.CoveredByRoot, "ContextMenuView配下 (C2)"),
             new Rule("Client.Game/InGame/UI/Crosshair", Category.CoveredByRoot, "CrosshairView配下 (C2)"),

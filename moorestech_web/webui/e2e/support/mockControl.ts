@@ -10,8 +10,13 @@ export function setModal(page: Page, show: boolean) {
   return page.request.get(`/__modal?show=${show ? 1 : 0}`);
 }
 
-export function setUiState(page: Page, state: string) {
-  return page.request.get(`/__uistate?state=${state}`);
+export function setUiState(page: Page, state: string, subState?: string) {
+  const subStateQuery = subState ? `&subState=${encodeURIComponent(subState)}` : "";
+  return page.request.get(`/__uistate?state=${state}${subStateQuery}`);
+}
+
+export function setTrainRiding(page: Page, riding: boolean, count: number, selected: number) {
+  return page.request.get(`/__train-riding?riding=${riding ? 1 : 0}&count=${count}&selected=${selected}`);
 }
 
 export function resetResearch(page: Page) {

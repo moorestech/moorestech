@@ -1,5 +1,6 @@
 {
   "open": true,
+  "source": "block",
   "blockType": "ElectricGenerator",
   "identifier": "(5, 0, 5)",
   "blockName": "発電機",

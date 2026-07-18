@@ -10,6 +10,7 @@ namespace Client.WebUiHost.Game.Topics
     public class BlockInventoryDto
     {
         public bool Open;
+        public string Source;
         public string BlockType;
         public string Identifier;
         public string BlockName;
@@ -26,6 +27,7 @@ namespace Client.WebUiHost.Game.Topics
         public GearNetworkDto GearNetwork;
         public FilterSplitterDto FilterSplitter;
         public ElectricToGearDetailDto ElectricToGear;
+        public string Error;
     }
 
     public class BlockItemSlotDto
