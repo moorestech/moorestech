@@ -30,7 +30,7 @@ namespace Server.Boot.Loop
 
                 // 送信・受信キュープロセッサを作成
                 var sendQueueProcessor = new SendQueueProcessor(client);
-                var packetResponseContext = new PacketResponseContext(new ConnectionPlayerEventSink(sendQueueProcessor));
+                var packetResponseContext = new PacketResponseContext(sendQueueProcessor);
                 var receiveQueueProcessor = new ReceiveQueueProcessor(packetResponseCreator, sendQueueProcessor, packetResponseContext);
 
                 // 受信スレッドを起動
