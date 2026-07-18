@@ -14,7 +14,6 @@ using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using System;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
@@ -34,6 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void BlockInventoryUpdatePacketTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -43,6 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //ブロックをセットアップ
             worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var blockInventory = block.GetComponent<IBlockInventory>();
+            sink.TakeAll();
             
             
             //インベントリを開く
@@ -53,13 +54,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //パケットが送られていることをチェック
             //イベントパケットを取得
-            List<byte[]> eventPacket = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
-            
-            
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0]);
+            var events = sink.TakeAll();
             //イベントパケットをチェック
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
-            var payLoad = eventMessagePack.Events[0].Payload;
+            Assert.AreEqual(1, events.Count);
+            var payLoad = events[0].Payload;
             var data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
             
             Assert.AreEqual(InventoryEventType.Update, data.EventType); // event type
@@ -80,9 +78,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             //パケットが送られていないことをチェック
             //イベントパケットを取得
-            eventPacket = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(eventPacket[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
         }
         
         
@@ -92,6 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void MultipleInventoriesCanBeOpenedTest()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
@@ -103,6 +100,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // ブロック2をセットアップ
             // Setup block 2
             worldBlockDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 20), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block2);
+            sink.TakeAll();
 
 
             // 一つ目のブロックインベントリを開く
@@ -121,13 +119,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // パケットが送られていることをチェック（複数サブスクリプション対応のため）
             // Check that packet is sent (multiple subscriptions are now supported)
-            List<byte[]> response = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            var events = sink.TakeAll();
+            Assert.AreEqual(1, events.Count);
 
             // イベントの内容を検証
             // Verify event content
-            var payLoad = eventMessagePack.Events[0].Payload;
+            var payLoad = events[0].Payload;
             var data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
             Assert.AreEqual(InventoryEventType.Update, data.EventType);
             Assert.AreEqual(InventoryType.Block, data.Identifier.InventoryType);
@@ -144,13 +141,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // パケットが送られていることをチェック
             // Check that packet is sent
-            response = packetResponse.GetPacketResponse(GetEventPacket(), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            events = sink.TakeAll();
+            Assert.AreEqual(1, events.Count);
 
             // イベントの内容を検証
             // Verify event content
-            payLoad = eventMessagePack.Events[0].Payload;
+            payLoad = events[0].Payload;
             data = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payLoad);
             Assert.AreEqual(InventoryEventType.Update, data.EventType);
             Assert.AreEqual(InventoryType.Block, data.Identifier.InventoryType);
@@ -165,11 +161,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var identifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
             return MessagePackSerializer
                 .Serialize(new SubscribeInventoryProtocol.SubscribeInventoryRequestMessagePack(PlayerId, identifier, isOpen));
-        }
-        
-        private byte[] GetEventPacket()
-        {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(PlayerId));
         }
     }
 }

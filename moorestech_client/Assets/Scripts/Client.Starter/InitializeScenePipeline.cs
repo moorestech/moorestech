@@ -189,6 +189,10 @@ namespace Client.Starter
                 // Bind game-side Web UI topics to the hub
                 WebUiHost.Game.WebUiGameBinder.BindTopics();
 
+                // 全ハンドラ購読完了後にバッファ済みイベントをreplayする
+                // Replay buffered events after all handlers have subscribed
+                vanillaApi.Event.StartDispatch();
+
                 // ゲーム初期化完了イベントを発火
                 // Fire game initialization complete event
                 GameInitializedEvent.FireGameInitialized();

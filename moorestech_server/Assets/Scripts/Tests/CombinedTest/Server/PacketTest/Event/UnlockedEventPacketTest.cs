@@ -29,12 +29,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void UnlockedEventTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             
             // イベントがないことを確認する
             // Make sure there are no events
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
             
             // レシピのアンロック状態を変更
             // Change the unlock state of the recipe
@@ -47,21 +46,20 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
+            var events = sink.TakeAll();
             
             // イベントがあることを確認する
             // Make sure there are events
-            Assert.AreEqual(2, eventMessagePack.Events.Count);
+            Assert.AreEqual(2, events.Count);
             
             // Craft4のレシピがアンロックされたことを確認する
             // Make sure the recipe for Craft3 is unlocked
-            var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(eventMessagePack.Events[0].Payload);
+            var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(events[0].Payload);
             Assert.AreEqual(UnlockEventType.CraftRecipe, data.UnlockEventType);
             Assert.AreEqual(Craft4.ToString(), data.UnlockedCraftRecipeGuidStr);
             
             // Item4のアイテムアンロックされたことを確認する
-            data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(eventMessagePack.Events[1].Payload);
+            data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(events[1].Payload);
             Assert.AreEqual(UnlockEventType.Item, data.UnlockEventType);
             Assert.AreEqual(ItemId4, data.UnlockedItemId);
         }
@@ -73,13 +71,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void ClearedChallengeToUnlockCraftRecipeEventTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             
             // 初期チャレンジを設定
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             challengeDatastore.InitializeCurrentChallenges();
-            
-            // EventProtocolProviderにプレイヤーIDを登録するため、一度イベントを取得
-            packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
             
             // インベントリに別々にアイテムを追加
             const int itemId = 1;
@@ -94,12 +90,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
-            var response = packet.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(response[0]);
+            var events = sink.TakeAll();
             
             // レシピアンロックのイベントを取得
             // Get the recipe unlock event
-            var unlockedCraftRecipeEventPacket = eventMessagePack.Events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[0];
+            var unlockedCraftRecipeEventPacket = events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[0];
             var unlockCraftRecipeEvent = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(unlockedCraftRecipeEventPacket.Payload);
             
             // Craft2のレシピがアンロックされたことを確認する
@@ -109,7 +104,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // アイテムアンロックのイベントを取得
             //
-            var unlockedItemEventPacket = eventMessagePack.Events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[1];
+            var unlockedItemEventPacket = events.Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList()[1];
             var unlockItemEvent = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(unlockedItemEventPacket.Payload);
 
             // ItemId3がアンロックされたことを確認する

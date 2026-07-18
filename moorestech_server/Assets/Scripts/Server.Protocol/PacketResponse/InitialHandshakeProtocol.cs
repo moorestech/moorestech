@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
             _connectionRegistry.Register(data.PlayerId);
-            _eventProtocolProvider.RegisterPlayer(data.PlayerId);
+            _eventProtocolProvider.RegisterPlayer(data.PlayerId, context.EventSink);
             context.BindPlayerId(data.PlayerId);
             
             var response = CreateResponse();

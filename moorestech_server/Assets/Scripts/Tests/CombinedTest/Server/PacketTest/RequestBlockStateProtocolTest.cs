@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event;
 using Server.Event.EventReceive;
+using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.RequestBlockStateProtocol;
@@ -25,7 +26,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Arrange
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlock = ServerContext.WorldBlockDatastore;
-            var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             
             // ブロックを設置
             var blockPosition = new Vector3Int(10, 20, 30);
@@ -33,7 +33,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             // イベントキューをクリア
             var playerId = 0;
-            eventProtocolProvider.GetEventBytesList(playerId);
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
+            sink.TakeAll();
             
             // Act
             var request = new RequestBlockStateProtocolMessagePack(blockPosition);
@@ -46,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, response.Count);
             
             // イベントが発行されたことを確認
-            var events = eventProtocolProvider.GetEventBytesList(playerId);
+            var events = sink.TakeAll();
             Assert.AreEqual(1, events.Count);
             var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPositionInfo);
             Assert.AreEqual(eventTag, events[0].Tag);
@@ -61,11 +62,11 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // Arrange
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             
             var blockPosition = new Vector3Int(100, 200, 300); // 存在しない座標
             var playerId = 0;
-            eventProtocolProvider.GetEventBytesList(playerId);
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
+            sink.TakeAll();
             
             // Act
             var request = new RequestBlockStateProtocolMessagePack(blockPosition);
@@ -78,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, response.Count);
             
             // イベントが発行されていないことを確認
-            var events = eventProtocolProvider.GetEventBytesList(playerId);
+            var events = sink.TakeAll();
             Assert.AreEqual(0, events.Count);
         }
     }

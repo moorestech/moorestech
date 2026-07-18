@@ -7,7 +7,6 @@ using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using Server.Protocol;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -19,23 +18,21 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void MapObjectDestroyToEventTest()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             
-            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
             //イベントがないことを確認する
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
             
             //MapObjectを一つ破壊する
             var mapObject = ServerContext.MapObjectDatastore.MapObjects[0];
             mapObject.Destroy();
             
             //map objectが破壊されたことを確かめる
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(1, eventMessagePack.Events.Count);
+            var events = sink.TakeAll();
+            Assert.AreEqual(1, events.Count);
             
-            var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(eventMessagePack.Events[0].Payload);
+            var data = MessagePackSerializer.Deserialize<MapObjectUpdateEventMessagePack>(events[0].Payload);
             Assert.AreEqual(MapObjectUpdateEventMessagePack.DestroyEventType, data.EventType);
             Assert.AreEqual(mapObject.InstanceId, data.InstanceId);
         }

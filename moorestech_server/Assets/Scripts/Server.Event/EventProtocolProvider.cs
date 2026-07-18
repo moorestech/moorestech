@@ -2,73 +2,76 @@ using System;
 using System.Collections.Generic;
 using MessagePack;
 using Server.Event.EventReceive;
+using UniRx;
 
 namespace Server.Event
 {
     /// <summary>
-    ///     サーバー内で起こったイベントの中で、各プレイヤーに送る必要があるイベントを管理します。
-    ///     送る必要のある各イベントはEventReceiveフォルダの中に入っています
-    ///     TODO ここのロックは一時的なものなので今後はちゃんとゲーム全体としてセマフォをしっかりやる！！
+    ///     サーバー内で起こったイベントを、接続済みプレイヤーのsinkへ即時配信します。
+    ///     Immediately dispatches server events to registered per-player sinks.
     /// </summary>
     public class EventProtocolProvider
     {
-        private readonly Dictionary<int, List<EventMessagePack>> _events = new();
-        
+        private readonly Dictionary<int, IPlayerEventSink> _sinks = new();
+        private readonly object _lock = new();
+        private readonly Subject<int> _playerEventStreamRegistered = new();
+
+        // sink登録完了直後に発火。購読者は同期的にAddEventすること（初期同期の順序契約）
+        // Fires right after registration. Subscribers must AddEvent synchronously (ordering contract).
+        public IObservable<int> OnPlayerEventStreamRegistered => _playerEventStreamRegistered;
+
+        public void RegisterPlayer(int playerId, IPlayerEventSink sink)
+        {
+            // sink未配線のテスト経路ではイベント購読なしとして扱う（本番はacceptorが必ずセットする）
+            // Treat null sinks (test-only paths) as no subscription; production always sets one
+            if (sink == null) return;
+
+            lock (_lock)
+            {
+                _sinks[playerId] = sink;
+            }
+
+            // 登録完了後に発火し、購読者が初期イベントを同期pushできるようにする
+            // Fire after registration so subscribers can push initial events synchronously
+            _playerEventStreamRegistered.OnNext(playerId);
+        }
+
+        public void UnregisterPlayer(int playerId)
+        {
+            lock (_lock)
+            {
+                _sinks.Remove(playerId);
+            }
+        }
+
+        // 切断通知を購読してsinkを自動解除する（boot時にDIで配線）
+        // Subscribe disconnect notifications to auto-unregister sinks (wired at boot)
+        public void ListenDisconnect(IObservable<int> onPlayerDisconnected)
+        {
+            onPlayerDisconnected.Subscribe(UnregisterPlayer);
+        }
+
         public void AddEvent(int playerId, string tag, byte[] payload)
         {
-            lock (_events)
+            lock (_lock)
             {
-                var eventMessagePack = new EventMessagePack(tag, payload);
-                
-                if (_events.TryGetValue(playerId, out var eventList))
-                    eventList.Add(eventMessagePack);
-                else
-                    _events.Add(playerId, new List<EventMessagePack> { eventMessagePack });
-            }
-        }
-        
-        public void AddBroadcastEvent(string tag, byte[] payload)
-        {
-            lock (_events)
-            {
-                var eventMessagePack = new EventMessagePack(tag, payload);
-                
-                foreach (var key in _events.Keys) _events[key].Add(eventMessagePack);
-            }
-        }
-        public List<EventMessagePack> GetEventBytesList(int playerId)
-        {
-            lock (_events)
-            {
-                if (_events.ContainsKey(playerId))
+                // 未接続プレイヤー宛は破棄する（handshakeで全量を取り直すため正しい）
+                // Drop events for unconnected players; they fully re-sync on handshake
+                if (_sinks.TryGetValue(playerId, out var sink))
                 {
-                    var events = _events[playerId];
-                    var data = new List<EventMessagePack>();
-                    data.AddRange(events);
-                    
-                    _events[playerId].Clear();
-                    return data;
-                }
-                
-                //ブロードキャストイベントの時に使うので、何かしらリクエストがあった際はDictionaryにキーを追加しておく
-                _events.Add(playerId, new List<EventMessagePack>());
-                
-                return new List<EventMessagePack>();
-            }
-        }
-        
-        
-        public void RegisterPlayer(int playerId)
-        {
-            lock (_events)
-            {
-                if (!_events.ContainsKey(playerId))
-                {
-                    _events.Add(playerId, new List<EventMessagePack>());
+                    sink.EnqueueEvent(new EventMessagePack(tag, payload));
                 }
             }
         }
 
+        public void AddBroadcastEvent(string tag, byte[] payload)
+        {
+            lock (_lock)
+            {
+                var eventMessagePack = new EventMessagePack(tag, payload);
+                foreach (var sink in _sinks.Values) sink.EnqueueEvent(eventMessagePack);
+            }
+        }
     }
     
     
