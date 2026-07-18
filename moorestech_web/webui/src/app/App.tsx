@@ -5,7 +5,7 @@ import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/featur
 import { ToastHost } from "@/features/toast";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
-import { BlockInventoryPanel } from "@/features/blockInventory";
+import { BlockInventoryKeyHandler, BlockInventoryPanel } from "@/features/blockInventory";
 import { ResearchTreePanel } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
@@ -64,6 +64,7 @@ export default function App() {
         <BlockInventoryPanel />
         <ModalHost />
         <ProgressBar />
+        <BlockInventoryKeyHandler />
         <RecipeSelectionKeyHandler />
       </div>
       {screen !== "none" && <GrabOverlay />}
