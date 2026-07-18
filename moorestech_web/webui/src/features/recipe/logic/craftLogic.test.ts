@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   craftable,
-  clampIndex,
   selectCraftRecipes,
   groupMachineRecipesByBlock,
   buildRecipeTabs,
@@ -46,15 +45,6 @@ describe("craftable", () => {
   });
   it("一つでも不足なら false", () => {
     expect(craftable(recipe, new Map([[1, 1], [2, 1]]))).toBe(false);
-  });
-});
-
-describe("clampIndex", () => {
-  it("length 内に収める", () => {
-    expect(clampIndex(5, 3)).toBe(2);
-  });
-  it("0 未満にしない", () => {
-    expect(clampIndex(0, 0)).toBe(0);
   });
 });
 

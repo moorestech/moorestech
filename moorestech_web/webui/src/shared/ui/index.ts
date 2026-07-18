@@ -9,3 +9,4 @@ export { default as ProgressArrow } from "./ProgressArrow";
 export { default as SlotGrid } from "./SlotGrid";
 export { useSlotMouse } from "./useSlotMouse";
 export { default as GamePanel } from "./GamePanel";
+export { default as ConnectingPlaceholder } from "./ConnectingPlaceholder";

@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
-import { Text } from "@mantine/core";
 import { useTopic, Topics } from "@/bridge";
-import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
+import { ConnectingPlaceholder, ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import type { SlotRef } from "@/bridge";
 import { slotActions } from "../slotActions";
 
@@ -16,7 +15,7 @@ const GRID_STYLE = { "--slot-size": "45.617px", "--slot-grid-gap": "9.183px", "-
 export default function InventoryPanel() {
   const inventory = useTopic(Topics.inventory);
   if (!inventory) {
-    return <Text size="sm" c="dimmed" style={{ gridArea: "inv" }}>connecting...</Text>;
+    return <ConnectingPlaceholder style={{ gridArea: "inv" }} />;
   }
 
   return (

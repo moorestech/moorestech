@@ -2,7 +2,6 @@ import { CloseButton, Group, Title } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { SlotGrid } from "@/shared/ui";
 import BuildMenuSlot from "./BuildMenuSlot";
-import { selectPayload, deletePayload } from "./buildMenuLogic";
 import styles from "./style.module.css";
 
 // uGUI BuildMenuView の web 版。エントリ選択は build_menu.select で Unity の消費キューへ届く。
@@ -28,10 +27,10 @@ export function BuildMenuPanel() {
             <BuildMenuSlot
               key={`${entry.entryType}:${entry.entryKey}`}
               entry={entry}
-              onLeftClick={() => void dispatchAction("build_menu.select", selectPayload(entry))}
+              onLeftClick={() => void dispatchAction("build_menu.select", { entryType: entry.entryType, entryKey: entry.entryKey })}
               onRightClick={
                 entry.entryType === "blueprint"
-                  ? () => void dispatchAction("blueprint.delete", deletePayload(entry.entryKey))
+                  ? () => void dispatchAction("blueprint.delete", { name: entry.entryKey })
                   : undefined
               }
             />

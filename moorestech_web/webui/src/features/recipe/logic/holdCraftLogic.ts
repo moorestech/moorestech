@@ -2,7 +2,7 @@ import { clamp01 } from "@/shared/clamp01";
 
 // 長押しクラフトの経過時間モデル。uGUI CraftButton.Update の累積ロジックを純関数へ移植
 // Pure time-accumulation model for hold-to-craft; ported from uGUI CraftButton.Update
-export type HoldCraftStep = { elapsed: number; didCraft: boolean };
+type HoldCraftStep = { elapsed: number; didCraft: boolean };
 
 // バックグラウンド復帰時の巨大 delta で連続発火が暴走しないよう1フレーム進行量を上限で丸める
 // Cap per-frame progression so a huge delta after a background tab resume cannot burst-fire crafts

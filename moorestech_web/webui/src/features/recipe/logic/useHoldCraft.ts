@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { advanceHoldCraft, holdCraftProgress, MAX_FRAME_DELTA_SECONDS } from "./holdCraftLogic";
 
-export type HoldCraft = {
+type HoldCraft = {
   progress: number;
   isHolding: boolean;
   start: () => void;

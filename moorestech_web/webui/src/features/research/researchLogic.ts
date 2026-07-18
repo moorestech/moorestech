@@ -1,4 +1,5 @@
 import type { ResearchNodeData, ResearchNodeState } from "@/bridge";
+import { hasEnoughItems } from "@/shared/ownedCounts";
 
 // uGUIのY上向き座標をCSS topへ反転写像（screenY = offsetY - y）
 // Flip uGUI's Y-up coords to CSS top (screenY = offsetY - y)
@@ -61,10 +62,6 @@ export function lineBetween(from: { x: number; y: number }, to: { x: number; y: 
   return { x: from.x, y: from.y, length: Math.hypot(dx, dy), angleDeg: (Math.atan2(dy, dx) * 180) / Math.PI };
 }
 
-export function hasEnoughItems(node: ResearchNodeData, owned: Map<number, number>): boolean {
-  return node.consumeItems.every((c) => (owned.get(c.itemId) ?? 0) >= c.count);
-}
-
 // 前提研究が済んでいるか（uGUIは前提未達を専用stateで表すため状態から逆算）
 // Whether prerequisites are met (uGUI encodes unmet prereqs as dedicated states, so infer from state)
 export function isPreNodeMet(state: ResearchNodeState): boolean {
@@ -89,7 +86,7 @@ export type ResearchButtonState = { completed: boolean; interactable: boolean; t
 export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, number>): ResearchButtonState {
   if (node.state === "completed") return { completed: true, interactable: false, tooltip: "研究済み" };
   const preNodeMet = isPreNodeMet(node.state);
-  const itemsSufficient = hasEnoughItems(node, owned);
+  const itemsSufficient = hasEnoughItems(node.consumeItems, owned);
   const interactable = preNodeMet && itemsSufficient;
   const tooltip = preNodeMet
     ? itemsSufficient

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildOwnedCounts } from "./ownedCounts";
+import { buildOwnedCounts, hasEnoughItems } from "./ownedCounts";
 
 const slot = (itemId: number, count: number) => ({ itemId, count });
 
@@ -14,5 +14,15 @@ describe("buildOwnedCounts", () => {
   });
   it("count<=0 のスロットはエントリを作らない（旧recipe実装と同挙動）", () => {
     expect(buildOwnedCounts([slot(5, 0)]).has(5)).toBe(false);
+  });
+});
+
+describe("hasEnoughItems", () => {
+  it("全素材を満たせば true", () => {
+    expect(hasEnoughItems([{ itemId: 1, count: 3 }], new Map([[1, 3]]))).toBe(true);
+  });
+
+  it("一つでも不足なら false", () => {
+    expect(hasEnoughItems([{ itemId: 1, count: 3 }], new Map([[1, 2]]))).toBe(false);
   });
 });
