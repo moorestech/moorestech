@@ -1,4 +1,5 @@
 using Client.Game.InGame.Context;
+using Client.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
@@ -24,10 +25,10 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         {
             // 乗車中の操作意味でキー入力を読む。
             // Read keys as train-riding control intents.
-            var moveForward = UnityEngine.Input.GetKey(KeyCode.W);
-            var selectPreviousBranch = UnityEngine.Input.GetKeyDown(KeyCode.A);
-            var moveBackward = UnityEngine.Input.GetKey(KeyCode.S);
-            var selectNextBranch = UnityEngine.Input.GetKeyDown(KeyCode.D);
+            var moveForward = HybridInput.GetKey(KeyCode.W);
+            var selectPreviousBranch = HybridInput.GetKeyDown(KeyCode.A);
+            var moveBackward = HybridInput.GetKey(KeyCode.S);
+            var selectNextBranch = HybridInput.GetKeyDown(KeyCode.D);
 
             // W/Sは状態差分と定期送信、A/Dは押し下げだけを送る。
             // Send W/S on state changes and heartbeat, while A/D is key-down only.

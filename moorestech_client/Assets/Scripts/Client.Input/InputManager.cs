@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -47,10 +48,10 @@ namespace Client.Input
         
         public PayerInputManager(MoorestechInputSettings settings)
         {
-            Move = new InputKey(settings.Player.Move);
-            Look = new InputKey(settings.Player.Look);
-            Jump = new InputKey(settings.Player.Jump);
-            Sprint = new InputKey(settings.Player.Sprint);
+            Move = new InputKey(settings.Player.Move, InputSuppressionScope.Keyboard);
+            Look = new InputKey(settings.Player.Look, InputSuppressionScope.Pointer);
+            Jump = new InputKey(settings.Player.Jump, InputSuppressionScope.Keyboard);
+            Sprint = new InputKey(settings.Player.Sprint, InputSuppressionScope.Keyboard);
         }
     }
     
@@ -63,10 +64,10 @@ namespace Client.Input
         
         public PlayableInputManager(MoorestechInputSettings settings)
         {
-            ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick);
-            ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick);
-            ClickPosition = new InputKey(settings.Playable.ClickPosition);
-            BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation);
+            ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick, InputSuppressionScope.Pointer);
+            ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick, InputSuppressionScope.Pointer);
+            ClickPosition = new InputKey(settings.Playable.ClickPosition, InputSuppressionScope.Pointer);
+            BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation, InputSuppressionScope.Keyboard);
         }
     }
     
@@ -87,37 +88,39 @@ namespace Client.Input
         
         public UIInputManager(MoorestechInputSettings settings)
         {
-            OpenMenu = new InputKey(settings.UI.OpenMenu);
-            CloseUI = new InputKey(settings.UI.CloseUI);
-            OpenInventory = new InputKey(settings.UI.OpenInventory);
-            InventoryItemOnePut = new InputKey(settings.UI.InventoryItemOnePut);
-            InventoryItemHalve = new InputKey(settings.UI.InventoryItemHalve);
-            HotBar = new InputKey(settings.UI.HotBar);
-            SwitchHotBar = new InputKey(settings.UI.SwitchHotBar);
-            BlockDelete = new InputKey(settings.UI.BlockDelete);
-            AllCraft = new InputKey(settings.UI.AllCraft);
-            OneStackCraft = new InputKey(settings.UI.OneStackCraft);
-            QuestUI = new InputKey(settings.UI.QuestUI);
-            ItemDirectMove = new InputKey(settings.UI.ItemDirectMove);
+            OpenMenu = new InputKey(settings.UI.OpenMenu, InputSuppressionScope.Keyboard);
+            CloseUI = new InputKey(settings.UI.CloseUI, InputSuppressionScope.Keyboard);
+            OpenInventory = new InputKey(settings.UI.OpenInventory, InputSuppressionScope.Keyboard);
+            InventoryItemOnePut = new InputKey(settings.UI.InventoryItemOnePut, InputSuppressionScope.Pointer);
+            InventoryItemHalve = new InputKey(settings.UI.InventoryItemHalve, InputSuppressionScope.Pointer);
+            HotBar = new InputKey(settings.UI.HotBar, InputSuppressionScope.Keyboard);
+            SwitchHotBar = new InputKey(settings.UI.SwitchHotBar, InputSuppressionScope.Pointer);
+            BlockDelete = new InputKey(settings.UI.BlockDelete, InputSuppressionScope.Keyboard);
+            AllCraft = new InputKey(settings.UI.AllCraft, InputSuppressionScope.Keyboard);
+            OneStackCraft = new InputKey(settings.UI.OneStackCraft, InputSuppressionScope.Keyboard);
+            QuestUI = new InputKey(settings.UI.QuestUI, InputSuppressionScope.Keyboard);
+            ItemDirectMove = new InputKey(settings.UI.ItemDirectMove, InputSuppressionScope.Keyboard);
         }
     }
     
     public class InputKey
     {
         private readonly InputAction _inputAction;
+        private readonly InputSuppressionScope _suppressionScope;
         
         
-        public InputKey(InputAction key)
+        public InputKey(InputAction key, InputSuppressionScope suppressionScope)
         {
             _inputAction = key;
-            key.started += _ => { OnGetKeyDown?.Invoke(); };
-            key.performed += _ => { OnGetKey?.Invoke(); };
-            key.canceled += _ => { OnGetKeyUp?.Invoke(); };
+            _suppressionScope = suppressionScope;
+            key.started += _ => { if (!WebUiInputExclusivity.IsSuppressed(_suppressionScope)) OnGetKeyDown?.Invoke(); };
+            key.performed += _ => { if (!WebUiInputExclusivity.IsSuppressed(_suppressionScope)) OnGetKey?.Invoke(); };
+            key.canceled += _ => { if (!WebUiInputExclusivity.IsSuppressed(_suppressionScope)) OnGetKeyUp?.Invoke(); };
         }
         
-        public bool GetKeyDown => _inputAction.WasPressedThisFrame();
-        public bool GetKey => _inputAction.IsPressed();
-        public bool GetKeyUp => _inputAction.WasReleasedThisFrame();
+        public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame());
+        public bool GetKey => ReadButton(_inputAction.IsPressed());
+        public bool GetKeyUp => ReadButton(_inputAction.WasReleasedThisFrame());
         
         public event Action OnGetKeyDown;
         public event Action OnGetKey;
@@ -125,7 +128,20 @@ namespace Client.Input
         
         public TValue ReadValue<TValue>() where TValue : struct
         {
-            return _inputAction.ReadValue<TValue>();
+            var value = _inputAction.ReadValue<TValue>();
+            if (WebUiInputExclusivity.IsSuppressed(_suppressionScope))
+            {
+                if (!EqualityComparer<TValue>.Default.Equals(value, default)) WebUiInputExclusivity.ProbeSuppressed(_suppressionScope);
+                return default;
+            }
+            return value;
+        }
+
+        private bool ReadButton(bool value)
+        {
+            if (!value || !WebUiInputExclusivity.IsSuppressed(_suppressionScope)) return value;
+            WebUiInputExclusivity.ProbeSuppressed(_suppressionScope);
+            return false;
         }
     }
 }

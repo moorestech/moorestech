@@ -5,6 +5,7 @@
         "CefUnity.Runtime",
         "Client.Common",
         "Client.Game",
+        "Client.Input",
         "Client.Mod",
         "Client.Network",
         "Core.Item",

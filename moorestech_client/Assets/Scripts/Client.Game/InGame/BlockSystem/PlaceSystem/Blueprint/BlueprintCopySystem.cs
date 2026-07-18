@@ -137,6 +137,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
             float ReadScrollDelta()
             {
+                if (WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Pointer))
+                {
+                    var hasScroll = Mouse.current != null ? Mouse.current.scroll.ReadValue().y != 0 : UnityEngine.Input.mouseScrollDelta.y != 0;
+                    if (hasScroll) WebUiInputExclusivity.ProbeSuppressed(InputSuppressionScope.Pointer);
+                    return 0f;
+                }
                 // ホットバーと同じスケールでInputSystemスクロールを読む（入力注入対応。無ければlegacyへフォールバック）
                 // Read Input System scroll at the hot bar's scale (supports input injection); fall back to legacy Input
                 return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;

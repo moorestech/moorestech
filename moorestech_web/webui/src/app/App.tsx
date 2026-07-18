@@ -10,6 +10,7 @@ import { ResearchTreePanel } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { useConnectionStatus, useTopicSelector, Topics } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
+import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
 // 基準stageをviewportへ収める一様拡縮を同期する
@@ -37,6 +38,7 @@ function useUiScale() {
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
   const stageRef = useUiScale();
+  useWebInputExclusivity();
 
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
   // Show the overlay only when disconnected after a prior connect (before first connect, panels show connecting...)
@@ -48,9 +50,9 @@ export default function App() {
   const screen = useTopicSelector(Topics.uiState, (d) => screenForUiState(d?.state ?? null));
 
   return (
-    <div className={styles.viewport}>
+    <div className={styles.viewport} data-web-ui-transparent>
       {screen !== "none" && <div className={styles.backdrop} data-testid="screen-backdrop" />}
-      <div ref={stageRef} className={styles.stage}>
+      <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
         {screen !== "none" && <InventoryScreenChrome />}
         {screen !== "none" && <InventoryPanel />}
         {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}

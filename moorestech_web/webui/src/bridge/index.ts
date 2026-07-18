@@ -8,5 +8,5 @@ export { setToastSink } from "./transport/notify";
 export type { NotifyVariant } from "./transport/notify";
 export { Topics, UiStateNames } from "./transport/protocol";
 export type { TopicPayloads, ActionPayloads } from "./transport/protocol";
-export { initBridge } from "./transport/webSocketClient";
+export { initBridge, sendInputState } from "./transport/webSocketClient";
 export type * from "./contract/payloadTypes";
