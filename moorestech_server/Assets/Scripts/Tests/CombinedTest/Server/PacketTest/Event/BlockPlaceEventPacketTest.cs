@@ -9,11 +9,9 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Event;
 using Server.Event.EventReceive;
 using Tests.Module.TestMod;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using Random = System.Random;
 using System;
 using Server.Protocol;
@@ -26,18 +24,19 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void DontBlockPlaceTest()
         {
-            var (packetResponse, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 0);
             
-            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
         }
         
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
+        //Placing one or more blocks must deliver a place event per block
         [Test]
         public void BlockPlaceEvent()
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 0);
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
 
             //初期ロード後にLoadで購読する設計のため、テストでは明示的にLoadを呼ぶ
@@ -45,9 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             serviceProvider.GetService<PlaceBlockEventPacket>().Load();
 
             //イベントキューにIDを登録する
-            List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
             
             var random = new Random(1410);
             
@@ -68,12 +65,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             }
             
             
-            //イベントパケットをリクエストする
-            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
+            //捕捉済みイベントを取得する
+            //Take the captured events
+            var events = sink.TakeAll();
             
             //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
-            foreach (var r in eventMessagePack.Events)
+            //Match each event against the placed blocks and remove matches
+            foreach (var r in events)
             {
                 var b = AnalysisResponsePacket(r.Payload);
                 for (var j = 0; j < blocks.Count; j++)
@@ -86,9 +84,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             
             //イベントのリクエストを送ったので次は何も返ってこないテスト
-            response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            Assert.AreEqual(0, sink.TakeAll().Count);
         }
         
         //初期ロード中の設置はクライアントへ配信されず、ロード後の設置のみ配信されることを検証する
@@ -105,8 +101,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             //別ワールドを生成し、PlaceBlockEventPacketを購読させる前にロードする（ServerInstanceManagerと同じ順序）
             //Create a fresh world and load BEFORE subscribing PlaceBlockEventPacket (same order as ServerInstanceManager)
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var eventProtocolProvider = loadServiceProvider.GetService<EventProtocolProvider>();
-            eventProtocolProvider.GetEventBytesList(0); //プレイヤー0をイベントキューに登録 / register player 0
+            var loadSink = EventTestUtil.RegisterCaptureSink(loadServiceProvider, 0);
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 
             //本番経路でロード後の購読を始める
@@ -115,13 +110,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             //ロード分の設置イベントは配信されていないこと
             //Load-time placement events must not have been broadcast
-            var afterLoadEvents = eventProtocolProvider.GetEventBytesList(0);
+            var afterLoadEvents = loadSink.TakeAll();
             Assert.AreEqual(0, afterLoadEvents.Count(e => e.Tag == PlaceBlockEventPacket.EventTag));
 
             //ロード後の通常設置は配信されること
             //A normal placement after load must be broadcast
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            var afterPlaceEvents = eventProtocolProvider.GetEventBytesList(0);
+            var afterPlaceEvents = loadSink.TakeAll();
             Assert.AreEqual(1, afterPlaceEvents.Count(e => e.Tag == PlaceBlockEventPacket.EventTag));
         }
 
@@ -130,11 +125,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload).BlockData;
             
             return new TestBlockData(data.BlockPos, data.BlockId, data.Direction);
-        }
-        
-        private byte[] EventRequestData(int plyaerID)
-        {
-            return MessagePackSerializer.Serialize(new EventProtocolMessagePack(plyaerID));
         }
         
         private class TestBlockData

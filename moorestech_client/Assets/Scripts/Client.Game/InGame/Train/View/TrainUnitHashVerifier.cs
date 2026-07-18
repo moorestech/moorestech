@@ -5,6 +5,7 @@ using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.Unit;
 using Cysharp.Threading.Tasks;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.View
@@ -13,33 +14,41 @@ namespace Client.Game.InGame.Train.View
     // Handles train/rail hash gate checks and resync on mismatch.
     public sealed class TrainUnitHashVerifier : ITrainUnitHashTickGate, IDisposable
     {
-        private readonly TrainUnitSnapshotApplier _trainSnapshotApplier;
-        private readonly RailGraphSnapshotApplier _railGraphSnapshotApplier;
         private readonly TrainUnitFutureMessageBuffer _futureMessageBuffer;
         private readonly TrainUnitClientCache _trainCache;
         private readonly RailGraphClientCache _railGraphCache;
         private readonly TrainUnitTickState _tickState;
+        private readonly IDisposable _fullSnapshotSubscription;
         private CancellationTokenSource _resyncCancellation;
         private int _resyncInProgress;
 
         public TrainUnitHashVerifier(
-            TrainUnitSnapshotApplier trainSnapshotApplier,
-            RailGraphSnapshotApplier railGraphSnapshotApplier,
+            TrainFullSnapshotEventNetworkHandler fullSnapshotEventNetworkHandler,
             TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitClientCache trainCache,
             RailGraphClientCache railGraphCache,
             TrainUnitTickState tickState)
         {
-            _trainSnapshotApplier = trainSnapshotApplier;
-            _railGraphSnapshotApplier = railGraphSnapshotApplier;
             _futureMessageBuffer = futureMessageBuffer;
             _trainCache = trainCache;
             _railGraphCache = railGraphCache;
             _tickState = tickState;
+
+            // full snapshot適用完了でresyncゲートを解除する（適用自体はhandlerが担う）
+            // Release the resync gate on full-snapshot application; the handler owns the apply itself
+            _fullSnapshotSubscription = fullSnapshotEventNetworkHandler.OnFullSnapshotApplied.Subscribe(_ => ReleaseResyncGate());
+        }
+
+        private void ReleaseResyncGate()
+        {
+            var cts = Interlocked.Exchange(ref _resyncCancellation, null);
+            cts?.Dispose();
+            Interlocked.Exchange(ref _resyncInProgress, 0);
         }
 
         public void Dispose()
         {
+            _fullSnapshotSubscription?.Dispose();
             CancelResync();
 
             #region Internal
@@ -114,7 +123,7 @@ namespace Client.Game.InGame.Train.View
                     $"tickSequenceId={message.tickSequenceId}. Requesting snapshot.");
                 if (Interlocked.CompareExchange(ref _resyncInProgress, 1, 0) == 1)
                     return false;
-                RequestSnapshotAsync(isRailGraphMismatch).Forget();
+                RequestResyncAsync(isRailGraphMismatch).Forget();
                 return false;
                 
                 bool IsDummyHash((uint unitsHash, uint railGraphHash, uint serverTick, uint tickSequenceId) hashState)
@@ -124,72 +133,25 @@ namespace Client.Game.InGame.Train.View
                 }
             }
 
-            async UniTask RequestSnapshotAsync(bool includeRailGraphSnapshot)
+            async UniTask RequestResyncAsync(bool includeRailGraph)
             {
                 var api = ClientContext.VanillaApi.Response;
                 var cts = new CancellationTokenSource();
                 _resyncCancellation = cts;
 
-                if (includeRailGraphSnapshot)
+                // 引き金だけ送る。snapshotはイベント経路で届き、適用完了通知でゲートが解除される
+                // Send only the trigger; the snapshot arrives via the event stream and releases the gate on apply
+                var ackResult = await api.SendTrainResync(includeRailGraph, cts.Token).SuppressCancellationThrow();
+                if (ackResult.IsCanceled || ackResult.Result == null)
                 {
-                    // rail不整合時はRailGraph+TrainUnitを同時に再同期する
-                    // On rail mismatch, resync both rail graph and train snapshots
-                    var snapshotResult = await UniTask.WhenAll(
-                        api.GetRailGraphSnapshot(cts.Token),
-                        api.GetTrainUnitSnapshots(cts.Token)).SuppressCancellationThrow();
-                    if (snapshotResult.IsCanceled || cts.IsCancellationRequested)
+                    // ack失敗時は自要求が現役の場合のみゲート解放。後続resync要求の状態を旧要求が壊さないため
+                    // On ack failure release only if this request still owns the gate; never clobber a newer resync
+                    if (Interlocked.CompareExchange(ref _resyncCancellation, null, cts) == cts)
                     {
-                        FinalizeResync(cts);
-                        return;
+                        Debug.LogWarning("[TrainUnitHashVerifier] Resync trigger failed. Releasing gate for retry.");
+                        cts.Dispose();
+                        Interlocked.Exchange(ref _resyncInProgress, 0);
                     }
-
-                    var (railGraphSnapshot, trainSnapshot) = snapshotResult.Result;
-                    if (railGraphSnapshot == null || trainSnapshot == null)
-                    {
-                        Debug.LogWarning("[TrainUnitHashVerifier] Rail+Train snapshot response was null.");
-                        FinalizeResync(cts);
-                        return;
-                    }
-                    // 再同期snapshotはキューに積まず即時適用する（rail -> train の順）。
-                    // Apply resync snapshots immediately without queueing (rail -> train order).
-                    _railGraphSnapshotApplier.ApplySnapshot(railGraphSnapshot);
-                    _trainSnapshotApplier.ApplySnapshot(trainSnapshot);
-                    FinalizeResync(cts);
-                    return;
-                }
-
-                // train不整合のみならTrainUnitスナップショットだけ再取得する
-                // For train-only mismatch, fetch only train snapshots
-                var trainSnapshotResult = await api.GetTrainUnitSnapshots(cts.Token).SuppressCancellationThrow();
-                if (trainSnapshotResult.IsCanceled || cts.IsCancellationRequested)
-                {
-                    FinalizeResync(cts);
-                    return;
-                }
-
-                var snapshot = trainSnapshotResult.Result;
-                if (snapshot == null)
-                {
-                    Debug.LogWarning("[TrainUnitHashVerifier] Train snapshot response was null.");
-                }
-                else
-                {
-                    // trainのみの再同期snapshotも即時適用し、古いキューを破棄する。
-                    // Apply train-only resync snapshot immediately and discard stale queued data.
-                    _trainSnapshotApplier.ApplySnapshot(snapshot);
-                }
-                FinalizeResync(cts);
-
-                void FinalizeResync(CancellationTokenSource targetCancellation)
-                {
-                    // 再同期処理の状態を終了処理する
-                    // Finalize resync state and release the gate
-                    var current = Interlocked.CompareExchange(ref _resyncCancellation, null, targetCancellation);
-                    if (current == targetCancellation)
-                    {
-                        targetCancellation.Dispose();
-                    }
-                    Interlocked.Exchange(ref _resyncInProgress, 0);
                 }
             }
             #endregion

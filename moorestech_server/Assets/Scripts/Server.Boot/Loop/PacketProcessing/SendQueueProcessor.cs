@@ -2,6 +2,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
+using MessagePack;
+using Server.Event;
+using Server.Protocol;
+using Server.Util;
 using UnityEngine;
 
 namespace Server.Boot.Loop.PacketProcessing
@@ -11,7 +15,7 @@ namespace Server.Boot.Loop.PacketProcessing
     /// メインスレッドから送信データをEnqueueし、送信スレッドで50msごとにSocketに送信する
     /// ConcurrentQueueを使用してlock-freeで高速処理
     /// </summary>
-    public class SendQueueProcessor
+    public class SendQueueProcessor : IPlayerEventSink
     {
         private readonly Socket _client;
         private readonly ConcurrentQueue<byte[]> _sendQueue = new();
@@ -30,9 +34,25 @@ namespace Server.Boot.Loop.PacketProcessing
             _sendThread.Start();
         }
 
-        public void EnqueueSendData(byte[] data)
+        public void EnqueueMessage(byte[] body)
         {
-            _sendQueue.Enqueue(data);
+            // Dispose後は積まない。消費者のいないキューが無限成長するのを防ぐ
+            // Reject enqueue after dispose so a consumerless queue never grows unboundedly
+            if (_cancellationTokenSource.IsCancellationRequested) return;
+
+            var header = ToByteArray.Convert(body.Length);
+            var sendData = new byte[header.Length + body.Length];
+            header.CopyTo(sendData, 0);
+            body.CopyTo(sendData, header.Length);
+            _sendQueue.Enqueue(sendData);
+        }
+
+        // イベント経由のデータ送信
+        // Event-driven data sending
+        public void EnqueueEvent(EventMessagePack eventMessagePack)
+        {
+            var body = MessagePackSerializer.Serialize(new EventStreamMessagePack(eventMessagePack));
+            EnqueueMessage(body);
         }
 
         private void SendThreadLoop()

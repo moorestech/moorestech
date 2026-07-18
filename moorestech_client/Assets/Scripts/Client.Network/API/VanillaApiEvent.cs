@@ -1,67 +1,60 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using Client.Network.Settings;
-using Cysharp.Threading.Tasks;
-using Server.Protocol;
+using Server.Event;
 using UniRx;
-using UnityEngine;
-using static Server.Protocol.PacketResponse.EventProtocol;
 
 namespace Client.Network.API
 {
-    public class VanillaApiEvent
+    public interface IVanillaApiEvent
+    {
+        IDisposable SubscribeEventResponse(string tag, Action<byte[]> responseAction);
+    }
+    
+    public class VanillaApiEvent : IVanillaApiEvent
     {
         private readonly Dictionary<string, Subject<byte[]>> _eventResponseSubjects = new();
-        private readonly PacketExchangeManager _packetExchangeManager;
-        private readonly PlayerConnectionSetting _playerConnectionSetting;
-        
-        public VanillaApiEvent(PacketExchangeManager packetExchangeManager, PlayerConnectionSetting playerConnectionSetting)
-        {
-            _packetExchangeManager = packetExchangeManager;
-            _playerConnectionSetting = playerConnectionSetting;
-            CollectEvent().Forget();
-        }
-        
-        private async UniTask CollectEvent()
-        {
-            while (true)
-            {
-                var ct = new CancellationTokenSource().Token;
-                
-                try
-                {
-                    await RequestAndParse(ct);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Event Protocol Error:{e.Message}\n{e.StackTrace}");
-                }
-                
-                await UniTask.Delay(ServerConst.PollingRateMillSec, cancellationToken: ct);
-            }
-            
-            #region Internal
-            
-            async UniTask RequestAndParse(CancellationToken ct)
-            {
-                var request = new EventProtocolMessagePack(_playerConnectionSetting.PlayerId);
-                
-                var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<ResponseEventProtocolMessagePack>(request, ct);
-                // 正常終了以外（タイムアウト等）は今回のポーリングをスキップする
-                // Skip this polling cycle unless the exchange completed successfully
-                if (reason != PacketWaitCompletionReason.Received) return;
+        private readonly List<EventMessagePack> _bufferedEvents = new();
+        private bool _isDispatchStarted;
 
-                foreach (var eventMessagePack in response.Events)
+        public VanillaApiEvent(PacketExchangeManager packetExchangeManager)
+        {
+            // push配信されたイベントを購読する（ポーリング廃止）
+            // Subscribe to pushed events; polling is removed
+            packetExchangeManager.OnEventPacket.Subscribe(OnEventPacketReceived);
+
+            #region Internal
+
+            void OnEventPacketReceived(EventMessagePack eventMessagePack)
+            {
+                // ハンドラ購読完了前は全イベントをバッファする（初回同期の取りこぼし防止）
+                // Buffer everything until InitializeDispatch so no event is lost before handlers subscribe
+                if (!_isDispatchStarted)
                 {
-                    if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subjects)) continue;
-                    subjects.OnNext(eventMessagePack.Payload);
+                    _bufferedEvents.Add(eventMessagePack);
+                    return;
                 }
+
+                Dispatch(eventMessagePack);
             }
-            
+
             #endregion
         }
-        
+
+        // 全ハンドラの購読登録完了後に1回だけ呼ぶ。バッファを到着順にreplayして即時配信へ移行する
+        // Call once after all handlers subscribed; replays the buffer in arrival order then goes live
+        public void InitializeDispatch()
+        {
+            _isDispatchStarted = true;
+            foreach (var buffered in _bufferedEvents) Dispatch(buffered);
+            _bufferedEvents.Clear();
+        }
+
+        private void Dispatch(EventMessagePack eventMessagePack)
+        {
+            if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subject)) return;
+            subject.OnNext(eventMessagePack.Payload);
+        }
+
         public IDisposable SubscribeEventResponse(string tag, Action<byte[]> responseAction)
         {
             if (!_eventResponseSubjects.TryGetValue(tag, out var subject))
@@ -69,7 +62,7 @@ namespace Client.Network.API
                 subject = new Subject<byte[]>();
                 _eventResponseSubjects.Add(tag, subject);
             }
-            
+
             return subject.Subscribe(responseAction);
         }
     }

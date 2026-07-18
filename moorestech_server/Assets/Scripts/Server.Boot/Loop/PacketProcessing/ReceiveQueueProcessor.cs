@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using Core.Update;
 using Server.Protocol;
-using Server.Util;
 using UniRx;
 
 namespace Server.Boot.Loop.PacketProcessing
@@ -45,15 +44,9 @@ namespace Server.Boot.Loop.PacketProcessing
                 var results = _packetResponseCreator.GetPacketResponse(packet, _packetResponseContext);
                 foreach (var result in results)
                 {
-                    // パケット長ヘッダーを付与して送信データを構築
-                    // Build send data with packet length header
-                    var header = ToByteArray.Convert(result.Length);
-                    var sendData = new byte[header.Length + result.Length];
-                    header.CopyTo(sendData, 0);
-                    result.CopyTo(sendData, header.Length);
-
-                    // 送信キューに追加（実際の送信は送信スレッドで行う）
-                    _sendQueueProcessor.EnqueueSendData(sendData);
+                    // 送信キューに追加（長さヘッダ付与と実送信はSendQueueProcessorが行う）
+                    // Enqueue for send; SendQueueProcessor handles length framing and the actual send
+                    _sendQueueProcessor.EnqueueMessage(result);
                 }
             }
         }

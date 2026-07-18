@@ -42,11 +42,17 @@ namespace Server.Protocol.PacketResponse
         {
             var data = MessagePackSerializer.Deserialize<RequestInitialHandshakeMessagePack>(payload);
             _connectionRegistry.Register(data.PlayerId);
-            _eventProtocolProvider.RegisterPlayer(data.PlayerId);
-            context.BindPlayerId(data.PlayerId);
-            
+            _eventProtocolProvider.RegisterPlayer(data.PlayerId, context.EventSink);
+            if (!context.TryBindPlayerId(data.PlayerId))
+            {
+                // handshake処理中に切断済み。登録を巻き戻してsink/登録の永久残留を防ぐ
+                // Connection closed mid-handshake: roll back registrations to avoid a leaked sink
+                _eventProtocolProvider.UnregisterPlayer(data.PlayerId, context.EventSink);
+                _connectionRegistry.Unregister(data.PlayerId);
+            }
+
             var response = CreateResponse();
-            
+
             return response;
 
             #region Internal

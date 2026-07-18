@@ -177,7 +177,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             };
 
             var payload = MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfo));
-            packet.GetPacketResponse(payload, new PacketResponseContext());
+            packet.GetPacketResponse(payload, new PacketResponseContext(null));
         }
 
         private static int GetWireCount(IOpenableInventory inventory)

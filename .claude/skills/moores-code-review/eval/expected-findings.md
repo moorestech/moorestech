@@ -75,3 +75,9 @@
 | # | 指摘 | 対象 | 検出器 |
 |---|---|---|---|
 | 26 | レール/チェーン/電線の`[0]`決め打ちが「1種類しか無い」を暗黙に規定 | ConnectToolCatalog.cs:53,59,65（SelectIconItemGuid） | implicit-cardinality-assumption |
+
+## pr1027（レビュー会話由来・SetEventSink）
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 27 | set-once依存EventSinkの可変setter注入（生成直後1回のみ・不変条件がコメント頼み）をコンストラクタ注入へ | PacketResponseContext.cs:53（SetEventSink）/ ServerListenAcceptor.cs:36 | set-once-dependency-injection |
