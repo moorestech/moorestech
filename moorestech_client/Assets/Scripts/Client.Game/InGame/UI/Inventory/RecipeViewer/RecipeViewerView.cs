@@ -13,8 +13,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
         
         [SerializeField] private ItemListView itemListView;
         
-        private RecipeViewerItemRecipes _currentRecipe;
-        
         private void Awake()
         {
             itemListView.OnClickItem.Subscribe(SetItemListView);
@@ -30,8 +28,6 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
                 return;
             }
             
-            _currentRecipe = recipeViewerItemRecipes;
-
             // アンロック済みレシピを1回だけ取得して各ビューに渡す
             // Compute unlocked machine recipes once and pass to each view
             var unlockedMachineRecipes = recipeViewerItemRecipes.UnlockedMachineRecipes();
