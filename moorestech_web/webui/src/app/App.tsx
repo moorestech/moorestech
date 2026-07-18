@@ -40,7 +40,8 @@ export default function App() {
 
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
   // Show the overlay only when disconnected after a prior connect (before first connect, panels show connecting...)
-  const disconnected = useConnectionStatus() === "reconnecting";
+  const connectionStatus = useConnectionStatus();
+  const disconnected = connectionStatus === "reconnecting" || connectionStatus === "restoring";
 
   // ui_state.current による画面ルーティング（C# UIStateControl が正。セレクタはプリミティブを返す）
   // Screen routing by ui_state.current (C# UIStateControl is authoritative; the selector returns a primitive)

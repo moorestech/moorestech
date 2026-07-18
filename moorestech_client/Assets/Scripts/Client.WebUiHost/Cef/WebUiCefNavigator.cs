@@ -28,7 +28,7 @@ namespace Client.WebUiHost.Cef
 
                 // WebUiHost は MainGame シーンロード前（InitializeScenePipeline 序盤）に起動済み。null はホスト起動失敗
                 // WebUiHost boots before the MainGame scene loads (early InitializeScenePipeline); null means host startup failed
-                var url = Boot.WebUiHost.ViteUrl;
+                var url = Boot.WebUiHost.WebUiUrl;
                 if (string.IsNullOrEmpty(url)) return;
 
                 var browser = GetComponent<CefUnityBrowserSample>();

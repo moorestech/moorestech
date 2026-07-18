@@ -16,13 +16,16 @@ namespace Client.WebUiHost.Boot
     {
         private readonly ConcurrentDictionary<string, ITopicHandler> _handlers;
         private readonly ConcurrentDictionary<string, IActionHandler> _actionHandlers;
+        private readonly ConcurrentDictionary<string, long> _topicRevisions;
 
         public WebSocketMessageDispatcher(
             ConcurrentDictionary<string, ITopicHandler> handlers,
-            ConcurrentDictionary<string, IActionHandler> actionHandlers)
+            ConcurrentDictionary<string, IActionHandler> actionHandlers,
+            ConcurrentDictionary<string, long> topicRevisions)
         {
             _handlers = handlers;
             _actionHandlers = actionHandlers;
+            _topicRevisions = topicRevisions;
         }
 
         // 受信 JSON を解釈して op ごとに振り分ける。パース失敗は境界で握って接続を維持する
@@ -52,6 +55,9 @@ namespace Client.WebUiHost.Boot
                 case "action":
                     await HandleActionAsync(conn, msg);
                     break;
+                case "ping":
+                    conn.EnqueueSend(WebSocketEnvelope.BuildControl("pong"));
+                    break;
             }
         }
 
@@ -60,9 +66,12 @@ namespace Client.WebUiHost.Boot
         public async UniTask SendSnapshotAsync(WebSocketConnection conn, string topic)
         {
             if (!_handlers.TryGetValue(topic, out var handler)) return;
+            // 生成前のrevisionを固定し、生成中eventより新しい番号を古いsnapshotへ付けない
+            // Pin revision before building so an old snapshot never gets newer than an event emitted during the build
+            _topicRevisions.TryGetValue(topic, out var revision);
             var (ok, json) = await TryBuildSnapshotAsync(handler);
             if (!ok) return;
-            conn.EnqueueSend(WebSocketEnvelope.BuildEnvelope("snapshot", topic, json));
+            conn.EnqueueSend(WebSocketEnvelope.BuildEnvelope("snapshot", topic, revision, json));
         }
 
         // トピックを既に購読している全接続へ snapshot を再送する（Bind 前 subscribe 救済・2-E）
@@ -73,9 +82,12 @@ namespace Client.WebUiHost.Boot
             var targets = connections.Where(c => c.Topics.ContainsKey(topic)).ToList();
             if (targets.Count == 0) return;
 
+            // 全接続へ同一世代のsnapshotを配り、接続ごとの順序差はWebのrevision gateで解消する
+            // Send one snapshot generation to all targets; the web revision gate resolves per-connection ordering
+            _topicRevisions.TryGetValue(topic, out var revision);
             var (ok, json) = await TryBuildSnapshotAsync(handler);
             if (!ok) return;
-            var envelope = WebSocketEnvelope.BuildEnvelope("snapshot", topic, json);
+            var envelope = WebSocketEnvelope.BuildEnvelope("snapshot", topic, revision, json);
             foreach (var conn in targets) conn.EnqueueSend(envelope);
         }
 

@@ -31,11 +31,12 @@ namespace Client.WebUiHost.Boot
         private readonly ConcurrentDictionary<Guid, WebSocketConnection> _connections = new();
         private readonly ConcurrentDictionary<string, ITopicHandler> _handlers = new();
         private readonly ConcurrentDictionary<string, IActionHandler> _actionHandlers = new();
+        private readonly ConcurrentDictionary<string, long> _topicRevisions = new();
         private readonly WebSocketMessageDispatcher _dispatcher;
 
         public WebSocketHub()
         {
-            _dispatcher = new WebSocketMessageDispatcher(_handlers, _actionHandlers);
+            _dispatcher = new WebSocketMessageDispatcher(_handlers, _actionHandlers, _topicRevisions);
         }
 
         // ページからのWS接続が1本でも確立しているか（CEFナビゲーション成否の確認に使う）
@@ -53,6 +54,7 @@ namespace Client.WebUiHost.Boot
                 (existing as IDisposable)?.Dispose();
             }
             _handlers[topic] = handler;
+            _topicRevisions.TryAdd(topic, 0);
 
             // 登録前に購読していた接続へ snapshot を再送する（connecting のまま/stale 表示を解消・2-E）
             // Re-send the snapshot to connections that subscribed before registration (fixes stuck-connecting/stale, 2-E)
@@ -97,7 +99,10 @@ namespace Client.WebUiHost.Boot
         // Broadcast an event payload to all connections subscribed to the topic
         public void Publish(string topic, string dataJson)
         {
-            var envelope = WebSocketEnvelope.BuildEnvelope("event", topic, dataJson);
+            // revision はハンドラ再登録を跨いで維持し、ホスト生存中の単調増加を保証する
+            // Preserve revision across handler rebinds to guarantee monotonicity for the host lifetime
+            var revision = _topicRevisions.AddOrUpdate(topic, 1, (_, current) => checked(current + 1));
+            var envelope = WebSocketEnvelope.BuildEnvelope("event", topic, revision, dataJson);
             foreach (var conn in _connections.Values)
             {
                 if (conn.Topics.ContainsKey(topic))
