@@ -26,6 +26,7 @@ class WebSocketClient {
   private nextRequestId = 1;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private lastPongAt = 0;
+  private inputState = { pointerOverUi: false, textInputFocused: false };
   private readonly pendingActions = new Map<
     string,
     { resolve: (r: ActionResult) => void; reject: (e: Error) => void; timer: number }
@@ -58,6 +59,11 @@ class WebSocketClient {
     });
   }
 
+  updateInputState(pointerOverUi: boolean, textInputFocused: boolean) {
+    this.inputState = { pointerOverUi, textInputFocused };
+    this.sendRaw({ op: "input_state", ...this.inputState });
+  }
+
   private sendRaw(msg: ClientMsg) {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(msg));
@@ -75,6 +81,7 @@ class WebSocketClient {
       // Publish the open state and resubscribe all refcount>0 topics in one batch
       useTopicStore.getState().beginRestore(subscriptions.subscribedTopics());
       subscriptions.resubscribe();
+      this.sendRaw({ op: "input_state", ...this.inputState });
       this.lastPongAt = Date.now();
       this.heartbeatTimer = globalThis.setInterval(() => {
         if (Date.now() - this.lastPongAt >= 15000) {
@@ -166,4 +173,8 @@ export function initBridge() {
 export function sendAction(type: string, payload: unknown): Promise<ActionResult> {
   if (client === null) return Promise.reject(new Error("disconnected"));
   return client.sendAction(type, payload);
+}
+
+export function sendInputState(pointerOverUi: boolean, textInputFocused: boolean) {
+  client?.updateInputState(pointerOverUi, textInputFocused);
 }

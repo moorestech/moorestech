@@ -1,4 +1,5 @@
 using Common.Debug;
+using Client.Input;
 using UnityEngine;
 using static Client.Game.DebugConst;
 
@@ -30,8 +31,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             // Ctrl+IでWeb UI(CEF)とuGUIの表示を排他的に切り替える（入力即応のため毎フレーム検知）
             // Toggle CEF vs uGUI exclusively with Ctrl+I (detected every frame for input responsiveness)
-            // TODO InputManagerに移動
-            if (UnityEngine.Input.GetKey(KeyCode.LeftControl) && UnityEngine.Input.GetKeyDown(KeyCode.I))
+            if (HybridInput.GetKey(KeyCode.LeftControl) && HybridInput.GetKeyDown(KeyCode.I))
             {
                 _isCefActive = !_isCefActive;
                 DebugParameters.SaveBool(WebUiCefActiveKey, _isCefActive);

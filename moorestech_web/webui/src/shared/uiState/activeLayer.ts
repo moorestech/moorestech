@@ -4,6 +4,24 @@ import { readTopic, Topics, UiStateNames } from "@/bridge";
 // Frontmost UI layer priority
 export type ActiveLayer = "modal" | "blockInventory" | "research" | "buildMenu" | "game";
 
+export type WebInputState = { pointerOverUi: boolean; textInputFocused: boolean };
+
+const textInputSelector = "input:not([type='button']):not([type='submit']):not([type='reset']), textarea, [contenteditable='true']";
+
+// 透明サーフェス自身だけを貫通対象とし、その子の実UIは捕捉する
+// Treat only the transparent surface itself as pass-through; real UI descendants capture input
+export function isPointerOverWebUi(target: EventTarget | null): boolean {
+  return target != null && "hasAttribute" in target && !(target as Element).hasAttribute("data-web-ui-transparent");
+}
+
+export function isTextInputElement(target: EventTarget | null): boolean {
+  return target != null && "matches" in target && (target as Element).matches(textInputSelector);
+}
+
+export function reduceWebInputState(state: WebInputState, change: Partial<WebInputState>): WebInputState {
+  return { ...state, ...change };
+}
+
 // 各オーバーレイの有無から最前面レイヤーを導出する純関数（優先順位を1箇所に固定）
 // Pure derivation of the frontmost layer from overlay presence (priority fixed in one place)
 export function deriveActiveLayer(input: { modalOpen: boolean; blockInventoryOpen: boolean; researchOpen: boolean; buildMenuOpen: boolean }): ActiveLayer {

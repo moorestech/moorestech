@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Input;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
@@ -54,6 +55,9 @@ namespace Client.WebUiHost.Boot
                     break;
                 case "action":
                     await HandleActionAsync(conn, msg);
+                    break;
+                case "input_state":
+                    WebUiInputExclusivity.SetState(msg.PointerOverUi, msg.TextInputFocused);
                     break;
                 case "ping":
                     conn.EnqueueSend(WebSocketEnvelope.BuildControl("pong"));

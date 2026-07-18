@@ -3,6 +3,7 @@ using Client.Game.InGame.Entity.Object;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.Train.Unit
@@ -26,7 +27,7 @@ namespace Client.Game.InGame.Train.Unit
             context = null;
             
             // TODO ほかプレイヤーが列車に乗っているかどうかをチェックする
-            if (!UnityEngine.Input.GetKeyDown(KeyCode.E)) return false;
+            if (!HybridInput.GetKeyDown(KeyCode.E)) return false;
             if (!TryFindNearbyTrainCar(out var car)) return false;
             
             var container = UITransitContextContainer.Create(new RideTrainCarRequest(car.TrainCarInstanceId));
