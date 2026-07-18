@@ -1,0 +1,56 @@
+/* 整理操作と開発用操作を基準stageの右上へ固定する */
+/* Anchor sorting and development controls to the stage top-right */
+.topControls {
+  position: absolute;
+  top: 11.609px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* 正本の直角・濃紺・影なしのボタン面へ合わせる */
+/* Match the reference's square, navy, shadowless button face */
+.sortButton {
+  width: 87px;
+  height: 28.609px;
+  border: 0;
+  border-radius: 0;
+  background: rgb(50 52 67);
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.3px 0 0 rgb(0 0 0 / 70%), -0.3px 0 0 rgb(0 0 0 / 70%), 0 0.3px 0 rgb(0 0 0 / 70%), 0 -0.3px 0 rgb(0 0 0 / 70%);
+}
+
+.sortButton:hover {
+  background: rgb(62 65 83);
+}
+
+/* 左下へuGUI準拠のキー操作ヒントを固定する */
+/* Fix the uGUI-aligned key guide to the bottom-left */
+.keyHints {
+  position: absolute;
+  left: 7px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: 0.055em;
+  font-weight: 500;
+  color: var(--text-high-contrast);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.keyHints kbd {
+  font: inherit;
+  color: var(--text-high-contrast);
+}

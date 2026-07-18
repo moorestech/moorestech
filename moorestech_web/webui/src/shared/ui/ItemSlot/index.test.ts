@@ -5,7 +5,8 @@ import { MantineProvider } from "@mantine/core";
 import { describe, expect, it, vi } from "vitest";
 import ItemSlot from "./index";
 
-vi.mock("@/bridge", () => ({
+vi.mock("@/bridge", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/bridge")>(),
   useItemMaster: () => new Map([[1, { itemId: 1, name: "Master Item", maxStack: 100 }]]),
 }));
 

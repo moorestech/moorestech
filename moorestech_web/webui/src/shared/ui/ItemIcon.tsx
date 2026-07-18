@@ -1,3 +1,4 @@
+import { itemIconUrl } from "@/bridge";
 import GameIcon from "./GameIcon";
 
 type Props = {
@@ -7,5 +8,5 @@ type Props = {
 };
 
 export default function ItemIcon({ itemId, alt, className }: Props) {
-  return <GameIcon id={itemId} src={`/api/icons/${itemId}.png`} alt={alt ?? `item ${itemId}`} className={className} />;
+  return <GameIcon id={itemId} src={itemIconUrl(itemId)} alt={alt ?? `item ${itemId}`} className={className} />;
 }
