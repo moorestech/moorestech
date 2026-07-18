@@ -3,7 +3,7 @@ import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 import type { SkitPresentationData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
-import { state, skitSubscribers } from "./state";
+import { state, subscribersOf } from "./state";
 
 const SKIT_ACTIONS = new Set([
   "skit.advance", "skit.select", "skit.set_auto", "skit.skip", "skit.set_ui_hidden",
@@ -64,7 +64,7 @@ function applyControls(update: Partial<SkitPresentationData["presentationState"]
 }
 
 function publish() {
-  for (const ws of skitSubscribers) {
+  for (const ws of subscribersOf(Topics.skitPresentation)) {
     send(ws, { op: "event", topic: Topics.skitPresentation, data: state.skitPresentation });
   }
 }
