@@ -2,6 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Threading;
+using MessagePack;
+using Server.Event;
+using Server.Protocol;
 using Server.Util;
 using UnityEngine;
 
@@ -12,7 +15,7 @@ namespace Server.Boot.Loop.PacketProcessing
     /// メインスレッドから送信データをEnqueueし、送信スレッドで50msごとにSocketに送信する
     /// ConcurrentQueueを使用してlock-freeで高速処理
     /// </summary>
-    public class SendQueueProcessor
+    public class SendQueueProcessor : IPlayerEventSink
     {
         private readonly Socket _client;
         private readonly ConcurrentQueue<byte[]> _sendQueue = new();
@@ -44,6 +47,14 @@ namespace Server.Boot.Loop.PacketProcessing
             header.CopyTo(sendData, 0);
             body.CopyTo(sendData, header.Length);
             _sendQueue.Enqueue(sendData);
+        }
+
+        // イベントをenvelope化し応答と同じキューへ積む（FIFOで応答との順序を保つ）
+        // Wrap the event in the envelope and enqueue with responses so FIFO order holds across the stream
+        public void EnqueueEvent(EventMessagePack eventMessagePack)
+        {
+            var body = MessagePackSerializer.Serialize(new EventStreamMessagePack(eventMessagePack));
+            EnqueueMessage(body);
         }
 
         private void SendThreadLoop()
