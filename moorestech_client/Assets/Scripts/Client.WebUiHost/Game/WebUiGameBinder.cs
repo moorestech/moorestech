@@ -72,6 +72,11 @@ namespace Client.WebUiHost.Game
             var uiStateTopic = new UiStateTopic(hub, uiStateControl);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
 
+            // 現在言語トピックを登録（辞書本体はHTTP endpointから取得）
+            // Register the current-locale topic (dictionary bodies come from the HTTP endpoint)
+            var localizationTopic = new LocalizationTopic(hub);
+            hub.RegisterTopic(LocalizationTopic.TopicName, localizationTopic);
+
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic
             var unlockStateData = ClientDIContext.DIContainer
