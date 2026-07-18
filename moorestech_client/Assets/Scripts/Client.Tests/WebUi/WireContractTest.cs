@@ -52,6 +52,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "Chest",
                 Identifier = "block:1",
                 BlockName = "Chest",
