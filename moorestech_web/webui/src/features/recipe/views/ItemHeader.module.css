@@ -48,7 +48,7 @@
 .toolTab::before {
   position: absolute;
   z-index: -1;
-  inset: 3px 0.5px -3px 3px;
+  inset: 3px -2.35px -4.17px 3px;
   clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
   background: rgb(20 23 31 / 85%);
   content: "";
@@ -59,8 +59,8 @@
 .toolTab::after {
   position: absolute;
   top: 0;
-  right: 0;
-  width: 7px;
+  right: -2.35px;
+  width: 15px;
   height: 100%;
   background: linear-gradient(100deg, transparent, rgb(255 255 255 / 22%) 55%, transparent);
   content: "";
@@ -71,9 +71,13 @@
    real font landed, ballooning it past 188px wide; iter4's font swap is paired with sizing it back down to match */
 .itemName {
   margin-top: 0.3rem;
-  font-size: 0.92rem;
+  font-size: 19.75px;
   font-weight: 500;
-  line-height: 1.25;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.3px 0 0 rgb(0 0 0 / 55%), -0.3px 0 0 rgb(0 0 0 / 55%);
   text-align: center;
 }
 /* 正本は縦グラデ+中央白帯でなく、青→シアンの横方向グラデーション */
@@ -82,7 +86,7 @@
   align-self: center;
   margin-top: 0.54rem;
   margin-left: -2px;
-  width: 106px;
+  width: 106.78px;
   height: 19px;
   min-height: 19px;
   padding: 0 6px;
@@ -91,6 +95,9 @@
   color: #fff;
   font-weight: 500;
   font-size: 10px;
+  /* フロー高を変えず拡大タイトル分だけボタンを上へ戻す */
+  /* Lift the button by the enlarged title delta without changing flow height */
+  transform: translateY(-1.565749px);
 }
 
 /* 中央境界へ左右ダガーと輪郭ダイヤを一体で描く。正本は全長707screenshot-px相当まで連続させる */
@@ -107,8 +114,8 @@
   align-self: center;
   width: 97%;
   height: 9px;
-  /* itemNameをC2で0.92remへ縮めた分、ボタン列の縦位置(正本y422-469)を保つよう正方向へ補正する */
-  /* itemName was shrunk to 0.92rem in C2, so this compensates in the positive direction to keep the button row's vertical position (reference y422-469) */
+  /* itemName拡大分を相殺し、後続ボタン列を正本y422-469へ固定する */
+  /* Offset the enlarged itemName to keep the following button row fixed at the reference y422-469 */
   margin-top: 0.17rem;
   /* D12: 中央装飾の手前(ダガー位置38%/62%の直前)まで線を伸ばし、旧来の42%地点での硬い断ち切りでなく
      徐々にフェードさせて連続感を出す */

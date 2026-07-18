@@ -23,7 +23,7 @@ export default function RecipeViewer() {
   // iter6: nudge the measured craft-panel bbox (1209,301,2072,1407) toward the reference (1210,300,2071,1405).
   // Trim width by 0.78 CSS px (≈2 screenshot px) so centering pulls both edges in evenly, and trim minHeight
   // by the same amount for the bottom edge
-  const panelMinHeight = loaded && selectedItemId !== null ? 432.2 : 300;
+  const panelMinHeight = loaded && selectedItemId !== null ? 432.983 : 300;
 
   return (
     <GamePanel
@@ -31,7 +31,7 @@ export default function RecipeViewer() {
       variant="craft"
       // marginTopのみ: craft-tabゾーン(y<298)へパネル上端の暗色50%規則が滲むのを避けるための余白
       // marginTop only: keeps the panel's dark-50%-rule top edge out of the craft-tab detection zone (y<298)
-      style={{ alignSelf: "start", justifySelf: "center", width: 337.2, minWidth: 0, minHeight: panelMinHeight, marginTop: 2 }}
+      style={{ alignSelf: "start", justifySelf: "center", width: 337.2, minWidth: 0, minHeight: panelMinHeight, marginTop: 2, transform: "translate(0.391px, -0.391px)" }}
     >
       {!loaded ? (
         <Text size="sm" c="dimmed" m="auto">connecting...</Text>

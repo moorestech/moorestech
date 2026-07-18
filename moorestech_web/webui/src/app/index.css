@@ -35,12 +35,13 @@
   /* iter6: The old values (0.15/0.22px) were sub-pixel and effectively invisible. The reference cross-section
      (y800) shows a mid 2px + light-gray 2px ring at a measurable screenshot-px width, so both are scaled up
      (÷2.5547) into CSS px to render as a genuinely visible 2-layer ring */
-  --bevel-1: 0.68px;
-  --bevel-2: 1.35px;
-  --bevel-3: 1.35px;
-  --bevel-c1: rgb(80 74 76);
-  --bevel-c2: rgb(114 108 106);
-  --bevel-c3: rgb(114 108 106);
+  --face-inset: 0px;
+  --bevel-1: 0.782875px;
+  --bevel-2: 1.565749px;
+  --bevel-3: 1.565749px;
+  --bevel-c1: rgb(68 61 64);
+  --bevel-c2: rgb(111 106 106);
+  --bevel-c3: rgb(111 106 106);
 }
 
 body {
