@@ -60,7 +60,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 10px;
+  width: 7px;
   height: 100%;
   background: linear-gradient(100deg, transparent, rgb(255 255 255 / 22%) 55%, transparent);
   content: "";
@@ -119,12 +119,12 @@
   /* The reference shows one more small diamond node just 8-10px short of the center diamond on each side,
      distinct from the dagger; add a small diamond layer between the dagger and center (44%/56%) */
   background:
-    linear-gradient(90deg, transparent, rgb(132 137 151 / 78%) 4%, rgb(132 137 151 / 78%) 60%, transparent 78%) left center / 50% 1px no-repeat,
-    linear-gradient(270deg, transparent, rgb(132 137 151 / 78%) 4%, rgb(132 137 151 / 78%) 60%, transparent 78%) right center / 50% 1px no-repeat,
-    linear-gradient(28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 38% center / 18px 7px no-repeat,
-    linear-gradient(-28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 62% center / 18px 7px no-repeat,
-    linear-gradient(45deg, transparent 30%, rgb(174 180 194 / 85%) 45% 55%, transparent 70%) 44% center / 7px 7px no-repeat,
-    linear-gradient(-45deg, transparent 30%, rgb(174 180 194 / 85%) 45% 55%, transparent 70%) 56% center / 7px 7px no-repeat;
+    linear-gradient(90deg, transparent, rgb(132 137 151 / 78%) 25%, rgb(132 137 151 / 78%) 88%, transparent) left center / 50% 1px no-repeat,
+    linear-gradient(270deg, transparent, rgb(132 137 151 / 78%) 25%, rgb(132 137 151 / 78%) 88%, transparent) right center / 50% 1px no-repeat,
+    linear-gradient(28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 46% center / 18px 7px no-repeat,
+    linear-gradient(-28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 54% center / 18px 7px no-repeat,
+    linear-gradient(45deg, transparent 30%, rgb(174 180 194 / 85%) 45% 55%, transparent 70%) 48% center / 7px 7px no-repeat,
+    linear-gradient(-45deg, transparent 30%, rgb(174 180 194 / 85%) 45% 55%, transparent 70%) 52% center / 7px 7px no-repeat;
 }
 
 .itemHeaderRule::after {

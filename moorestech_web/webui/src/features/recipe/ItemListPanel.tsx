@@ -6,19 +6,11 @@ import { ItemSlot, SlotGrid, GamePanel } from "@/shared/ui";
 import { useItemSelectionStore } from "./selectionStore";
 import styles from "./ItemListPanel.module.css";
 
-// 正本のスロット外形123px・間隔16pxへ寄せる局所上書き（持ち物と共通、他グリッドの既定値は変えない）
-// Local override toward the reference's 123px slot face / 16px gap (shared with inventory; other grids keep their defaults)
-// iter6: 正本の面-間隔断面実測(y500)はギャップ計28screenshot-px(8pxリング×2+パネル色12px可視)。旧設定は
-// 面が8px screenshot分(≈3.13CSSpx)太すぎパネル色が2pxしか覗かない。ピッチ(size+gap合計)は不変のまま
-// 面を3.13px縮めgapへ同量足し、面の左端(recipe-grid-col2アンカー)を動かさず断面だけ正本へ寄せる
-// iter6: The reference's face-gap cross-section (y500) measures a 28-screenshot-px gap (8px ring ×2 +
-// 12px visible panel color). The old split ran the face ~3.13 CSS px (8 screenshot px) too wide, leaving
-// only 2px of panel color visible. Pitch (size+gap sum) stays fixed; shave 3.13px off the face and add it
-// to the gap so the cross-section matches the reference without moving the face's left edge (the
-// recipe-grid-col2 anchor)
+// 固定pxで6列のピッチを均一化する
+// Use fixed-pixel tracks and gaps to keep all six catalog columns on a uniform 140px screenshot pitch
 // カタログは2.5/3/3.5/4/4.5pxでrec-whiteまたは列検出が崩れたため、両方を守る実測下限5pxを使う
 // Use the measured 5px catalog floor because 2.5/3/3.5/4/4.5px broke rec-white or column detection
-const GRID_STYLE = { "--slot-size": "2.884rem", "--slot-grid-gap": "0.556rem", "--icon-pad": "5px", "--count-bottom": "-1px", "--count-font-size": "16px", "--count-letter-spacing": "0.12em" } as CSSProperties;
+const GRID_STYLE = { "--slot-size": "46.144px", "--slot-grid-gap": "8.656px", "--slot-grid-row-gap": "8.896px", "--icon-pad": "5px", "--count-bottom": "-1px", "--count-font-size": "16px", "--count-letter-spacing": "0.12em" } as CSSProperties;
 
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
@@ -43,7 +35,7 @@ export default function ItemListPanel() {
     <GamePanel
       gridArea="items"
       title="CRAFT RECIPE"
-      style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452 }}
+      style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452, "--panel-top": "-6.43px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
     >
       {itemList ? (
         // mahは7段が丸ごと収まりつつDEMO60件(10段)でノブ比が正本≈70%になる高さ。marginLeftはグリッド内側

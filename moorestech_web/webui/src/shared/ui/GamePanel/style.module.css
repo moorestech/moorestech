@@ -18,7 +18,10 @@
 .panel:not(.craft)::before {
   position: absolute;
   z-index: 0;
-  inset: -8px -3px;
+  top: var(--panel-top, -8px);
+  right: var(--panel-right, -3px);
+  bottom: var(--panel-bottom, -8px);
+  left: var(--panel-left, -3px);
   background: linear-gradient(180deg, rgb(67 54 44) 0%, rgb(66 50 40) 24%, rgb(64 44 33) 62%, rgb(63 38 29) 100%);
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%);
@@ -88,7 +91,7 @@
   letter-spacing: 0.02em;
   color: #f2f3f7;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
-  transform: scale(0.947);
+  transform: translateX(var(--title-shift-x, 0)) scale(var(--title-scale-x, 0.947), var(--title-scale-y, 0.947));
   transform-origin: left center;
   white-space: nowrap;
 }

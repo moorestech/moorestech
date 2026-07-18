@@ -21,7 +21,7 @@ export default function SlotGrid({ children, cols, testId, onWheel, className, s
     <div
       data-testid={testId}
       className={className ? `${styles.grid} ${className}` : styles.grid}
-      style={{ gridTemplateColumns: `repeat(${cols ?? 9}, max-content)`, ...style }}
+      style={{ gridTemplateColumns: `repeat(${cols ?? 9}, var(--slot-size, 2rem))`, ...style }}
       onWheel={onWheel}
     >
       {children}

@@ -3,6 +3,6 @@
 .grid {
   display: grid;
   column-gap: var(--slot-grid-gap, 0.425rem);
-  row-gap: var(--slot-grid-gap, 0.425rem);
+  row-gap: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem));
   width: fit-content;
 }
