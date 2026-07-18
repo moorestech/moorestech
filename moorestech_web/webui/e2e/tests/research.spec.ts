@@ -44,9 +44,21 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   expect(viewportBox).not.toBeNull();
   expect(beforeZoom).not.toBeNull();
 
-  await page.mouse.move(viewportBox!.x + viewportBox!.width - 40, viewportBox!.y + viewportBox!.height - 40);
+  const zoomCursor = {
+    x: beforeZoom!.x + beforeZoom!.width / 2,
+    y: beforeZoom!.y + beforeZoom!.height / 2,
+  };
+  await page.mouse.move(zoomCursor.x, zoomCursor.y);
   await page.mouse.wheel(0, -240);
   await expect.poll(async () => (await node.boundingBox())!.width).toBeGreaterThan(beforeZoom!.width);
+  await expect.poll(async () => {
+    const box = await node.boundingBox();
+    return box!.x + box!.width / 2;
+  }).toBeCloseTo(zoomCursor.x, 0);
+  await expect.poll(async () => {
+    const box = await node.boundingBox();
+    return box!.y + box!.height / 2;
+  }).toBeCloseTo(zoomCursor.y, 0);
   const afterZoomWidth = (await node.boundingBox())!.width;
   await page.mouse.wheel(0, 240);
   await expect.poll(async () => (await node.boundingBox())!.width).toBeLessThan(afterZoomWidth);
@@ -62,4 +74,15 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   await page.mouse.up();
   await expect.poll(async () => (await node.boundingBox())!.x - beforePan!.x).toBeCloseTo(-80, 0);
   await expect.poll(async () => (await node.boundingBox())!.y - beforePan!.y).toBeCloseTo(-50, 0);
+
+  const beforeNodeDrag = await node.boundingBox();
+  const nodeDragStart = { x: beforeNodeDrag!.x + 16, y: beforeNodeDrag!.y + 16 };
+  await page.mouse.move(nodeDragStart.x, nodeDragStart.y);
+  await page.mouse.down();
+  await page.mouse.move(nodeDragStart.x - 80, nodeDragStart.y - 50, { steps: 5 });
+  await page.mouse.up();
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  const afterNodeDrag = await node.boundingBox();
+  expect(afterNodeDrag!.x).toBe(beforeNodeDrag!.x);
+  expect(afterNodeDrag!.y).toBe(beforeNodeDrag!.y);
 });
