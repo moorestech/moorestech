@@ -175,16 +175,19 @@ namespace Tests.CombinedTest.Core.CleanRoom
             block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, count);
         }
 
+        // 部屋の外に置く給電用電柱の位置
+        // Position of the powering pole placed outside every room
+        private static readonly Vector3Int PowerPolePosition = new(30, 0, 30);
+
         private static void TickWithPower(IBlock block, float power, int ticks)
         {
-            // 既存の電力系テストと同様にConsumerへ毎tick直接供給する
-            // Supply the consumer directly each tick, as existing electric tests do
-            var consumer = block.GetComponent<IElectricConsumer>();
-            for (var i = 0; i < ticks; i++)
-            {
-                consumer.SupplyEnergy(new ElectricPower(power));
-                GameUpdater.UpdateOneTick();
-            }
+            // 電線経由の実経路で給電する。発電機が既に居るセグメントには追加しない
+            // Power through the real wire path; skip registration when the segment already has a generator
+            var datastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            if (!datastore.TryGetEnergySegment(block.BlockInstanceId, out var segment) || segment.Generators.Count == 0)
+                ElectricWireTestUtil.WirePower(block.BlockPositionInfo.OriginalPos, PowerPolePosition, power);
+
+            for (var i = 0; i < ticks; i++) GameUpdater.UpdateOneTick();
         }
 
         #endregion

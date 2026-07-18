@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Network.Settings;
 using Core.Master;
 
-using Game.CraftTree.Models;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
 using Server.Protocol.PacketResponse;
@@ -76,12 +75,6 @@ namespace Client.Network.API
         public void SendCommand(string command)
         {
             var request = new SendCommandProtocol.SendCommandProtocolMessagePack(command);
-            _packetSender.Send(request);
-        }
-        
-        public void SendCraftTreeNode(Guid target ,List<CraftTreeNode> craftTree)
-        {
-            var request = new ApplyCraftTreeProtocol.ApplyCraftProtocolMessagePack(_playerId, target, craftTree);
             _packetSender.Send(request);
         }
         

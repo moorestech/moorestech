@@ -46,7 +46,7 @@ namespace Game.Block.Blocks.GearChainPole
             _param = param;
             BlockInstanceId = blockInstanceId;
             _gearService = new SimpleGearService(this, connectorComponent);
-            _gearService.OnGearUpdate.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
+            _gearService.BlockStateChange.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
             
             _componentStates = componentStates;
             GearNetworkDatastore.AddGear(this);
@@ -184,6 +184,7 @@ namespace Game.Block.Blocks.GearChainPole
             // コネクタはBlockComponentManagerが別コンポーネントとして破棄するため、ここでは破棄しない
             // The connector is destroyed separately by BlockComponentManager, so it must not be destroyed here
             _chainTargets.Clear();
+            _gearService.Destroy();
             _onChangeBlockState.Dispose();
             IsDestroy = true;
         }

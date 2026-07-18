@@ -3,9 +3,13 @@ using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
+using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
+using Server.Event;
 using Server.Event.EventReceive;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -35,7 +39,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         {
             var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var worldBlockDataStore = ServerContext.WorldBlockDatastore;
-            
+
+            //初期ロード後にLoadで購読する設計のため、テストでは明示的にLoadを呼ぶ
+            //Placement broadcasts subscribe in post-load Load by design, so invoke Load explicitly in the test
+            serviceProvider.GetService<PlaceBlockEventPacket>().Load();
+
             //イベントキューにIDを登録する
             List<byte[]> response = packetResponse.GetPacketResponse(EventRequestData(0), new PacketResponseContext());
             var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
@@ -83,6 +91,40 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, eventMessagePack.Events.Count);
         }
         
+        //初期ロード中の設置はクライアントへ配信されず、ロード後の設置のみ配信されることを検証する
+        //Verify load-time placements are not broadcast and only post-load placements are delivered to clients
+        [Test]
+        public void 初期ロードの設置は配信されずロード後の設置のみ配信される()
+        {
+            //ブロック1個を含むセーブデータを用意する
+            //Prepare save data containing one placed block
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            //別ワールドを生成し、PlaceBlockEventPacketを購読させる前にロードする（ServerInstanceManagerと同じ順序）
+            //Create a fresh world and load BEFORE subscribing PlaceBlockEventPacket (same order as ServerInstanceManager)
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var eventProtocolProvider = loadServiceProvider.GetService<EventProtocolProvider>();
+            eventProtocolProvider.GetEventBytesList(0); //プレイヤー0をイベントキューに登録 / register player 0
+            (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
+
+            //本番経路でロード後の購読を始める
+            //Start post-load subscriptions through the same bulk initialization path as production
+            foreach (var postLoadInitializable in loadServiceProvider.GetServices<IPostLoadInitializable>()) postLoadInitializable.Load();
+
+            //ロード分の設置イベントは配信されていないこと
+            //Load-time placement events must not have been broadcast
+            var afterLoadEvents = eventProtocolProvider.GetEventBytesList(0);
+            Assert.AreEqual(0, afterLoadEvents.Count(e => e.Tag == PlaceBlockEventPacket.EventTag));
+
+            //ロード後の通常設置は配信されること
+            //A normal placement after load must be broadcast
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(10, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var afterPlaceEvents = eventProtocolProvider.GetEventBytesList(0);
+            Assert.AreEqual(1, afterPlaceEvents.Count(e => e.Tag == PlaceBlockEventPacket.EventTag));
+        }
+
         private TestBlockData AnalysisResponsePacket(byte[] payload)
         {
             var data = MessagePackSerializer.Deserialize<PlaceBlockEventMessagePack>(payload).BlockData;

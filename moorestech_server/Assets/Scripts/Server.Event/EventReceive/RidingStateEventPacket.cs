@@ -1,4 +1,5 @@
 using System;
+using Game.Context;
 using Game.PlayerRiding.Interface;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -8,17 +9,23 @@ namespace Server.Event.EventReceive
 {
     // 乗車状態変化を全クライアントへ broadcast するイベントパケット。
     // Broadcasts riding-state changes to all clients.
-    public class RidingStateEventPacket : IDisposable
+    public class RidingStateEventPacket : IDisposable, IBootInitializable
     {
         public const string EventTag = "va:event:ridingState";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
-        private readonly IDisposable _ridingStateChangedSubscription;
+        private readonly IPlayerRidingDatastore _playerRidingDatastore;
+        private IDisposable _ridingStateChangedSubscription;
 
         public RidingStateEventPacket(EventProtocolProvider eventProtocolProvider, IPlayerRidingDatastore playerRidingDatastore)
         {
             _eventProtocolProvider = eventProtocolProvider;
-            _ridingStateChangedSubscription = playerRidingDatastore.OnRidingStateChanged.Subscribe(OnRidingStateChanged);
+            _playerRidingDatastore = playerRidingDatastore;
+        }
+
+        public void Load()
+        {
+            _ridingStateChangedSubscription = _playerRidingDatastore.OnRidingStateChanged.Subscribe(OnRidingStateChanged);
         }
 
         public void Dispose()

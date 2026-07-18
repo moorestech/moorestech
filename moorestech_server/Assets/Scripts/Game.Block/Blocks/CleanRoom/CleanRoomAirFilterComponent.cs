@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.ElectricWire;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -33,9 +34,8 @@ namespace Game.Block.Blocks.CleanRoom
         private readonly double _filterCapacity;
         private readonly ItemId _filterItemId;
 
-        // このtickの供給電力の加算器と、Update冒頭で確定した現在電力
-        // Accumulator of power supplied this tick, latched into current power on Update
-        private float _suppliedPower;
+        // Update冒頭で確定した現在電力
+        // The current power latched at the start of Update
         private float _currentPower;
         private double _wearAccumulation;
 
@@ -67,20 +67,14 @@ namespace Game.Block.Blocks.CleanRoom
 
         public ElectricPower RequestEnergy => new(_requiredPower);
 
-        public void SupplyEnergy(ElectricPower power)
-        {
-            CheckDestroy(this);
-            _suppliedPower += power.AsPrimitive();
-        }
-
         public void Update()
         {
             CheckDestroy(this);
 
-            // セグメント毎の供給合算を現在電力として確定し、加算器をリセットする
-            // Latch the summed per-segment supply as current power and reset the accumulator
-            _currentPower = _suppliedPower;
-            _suppliedPower = 0f;
+            // 実効電力 = 要求電力 × 所属セグメントの確定済み供給率
+            // Effective power = requested power x the segment's settled supply rate
+            var powerRate = ElectricSegmentPowerRateResolver.GetPowerRate(BlockInstanceId);
+            _currentPower = _requiredPower * powerRate;
         }
 
         public void ApplyRemovedImpurity(double removed)

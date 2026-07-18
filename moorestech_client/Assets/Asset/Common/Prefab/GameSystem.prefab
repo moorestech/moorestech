@@ -803,7 +803,6 @@ MonoBehaviour:
   recipeViewerView: {fileID: 807033093719594881}
   itemListView: {fileID: 7746862281990510609}
   recipeTabView: {fileID: 6932463085528317352}
-  craftTreeViewManager: {fileID: 8435890574218881057}
   challengeListView: {fileID: 3927056720062408772}
   researchTreeViewManager: {fileID: 6041840377622776724}
   mapObjectPin: {fileID: 467412427984320023}
@@ -1496,17 +1495,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba2c762d2cd1452eaba898ada3521b51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &8435890574218881057 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5883316104925725767, guid: c06acbf297d444764a23d26ca36b673b, type: 3}
-  m_PrefabInstance: {fileID: 2645848407441091686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 61f42a36e8ea4515850d3bce341f3f35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &8995564702550197256 stripped

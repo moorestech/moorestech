@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Core
             // レシピ入力を投入して加工が始まるとフル要求へ戻る
             // Once recipe inputs start processing, demand returns to full power
             InsertRecipeInputs(block, GetMachineRecipe());
-            processor.SupplyPower(processor.RequestPower);
+            processor.SupplyExternalPower(processor.RequestPower);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
             Assert.AreEqual(param.RequiredPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);

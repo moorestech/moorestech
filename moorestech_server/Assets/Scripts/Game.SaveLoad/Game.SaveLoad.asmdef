@@ -14,7 +14,6 @@
     "Game.Context",
     "Game.Challenge",
     "Game.UnlockState",
-    "Game.CraftTree",
     "Game.Research",
     "Game.Train",
     "Game.PlayerRiding.Interface",
