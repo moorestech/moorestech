@@ -8,6 +8,7 @@ const legacyUnlocalizedFiles = [
   "src/app/App.tsx",
   "src/app/AppErrorBoundary.tsx",
   "src/features/blockInventory/BlockInventoryKeyHandler.tsx",
+  "src/features/blockInventory/views/ElectricToGearInventory.tsx",
   "src/features/blockInventory/BlockInventoryPanel.tsx",
   "src/features/blockInventory/BlockItemGrid.tsx",
   "src/features/blockInventory/details/GearSection.tsx",

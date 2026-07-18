@@ -25,5 +25,5 @@ export const CurrentChallengeDataSchema = z.object({
 });
 export const ChallengeCurrentDataSchema = z.object({
   challenges: z.array(CurrentChallengeDataSchema),
-  completedChallengeGuid: z.string().nullable(),
+  completedChallengeGuid: z.string().optional(),
 });

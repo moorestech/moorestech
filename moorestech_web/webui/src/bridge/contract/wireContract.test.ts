@@ -145,7 +145,7 @@ describe("challenge fixtures", () => {
     expect(validateTopicPayload(Topics.challengeTree, tree)).toBe(true);
     expect(validateTopicPayload(Topics.challengeCurrent, current)).toBe(true);
     expect((tree as ChallengeTreeData).categories[0].nodes[0].state).toBe("current");
-    expect((current as ChallengeCurrentData).completedChallengeGuid).toBeNull();
+    expect((current as ChallengeCurrentData).completedChallengeGuid).toBeUndefined();
   });
 });
 

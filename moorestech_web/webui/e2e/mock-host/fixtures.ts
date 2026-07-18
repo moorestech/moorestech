@@ -164,3 +164,20 @@ export const demoItemMaster = {
 // DEMO: 進捗バー非表示でホットバーをすっきり見せる
 // DEMO: hide the progress bar to keep the hotbar clean
 export const demoProgress = { visible: false, progress: 0 } satisfies ProgressData;
+
+// チャレンジのe2e最小fixture（1カテゴリ2ノード・進行1件）
+// Minimal challenge fixtures for e2e: one category with two nodes and one active challenge
+export const challengeTree = {
+  categories: [
+    {
+      guid: "cat-1",
+      name: "Basics",
+      iconItemId: 1,
+      nodes: [
+        { guid: "ch-1", title: "First Craft", summary: "craft something", iconItemId: 1, state: "completed", position: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: [] },
+        { guid: "ch-2", title: "Second Step", summary: "keep going", iconItemId: 2, state: "current", position: { x: 220, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: ["ch-1"] },
+      ],
+    },
+  ],
+};
+export const challengeCurrent = { challenges: [{ guid: "ch-2", title: "Second Step", categoryGuid: "cat-1" }], completedChallengeGuid: null };
