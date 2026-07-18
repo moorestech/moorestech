@@ -23,6 +23,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "GearMachine",
                 Identifier = "(0, 0, 0)",
                 BlockName = "ギア機械",
@@ -55,6 +56,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "ElectricMachine",
                 Identifier = "(1, 0, 2)",
                 BlockName = "電気機械",
@@ -91,6 +93,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "ElectricGenerator",
                 Identifier = "(5, 0, 5)",
                 BlockName = "発電機",
@@ -111,6 +114,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "ElectricMiner",
                 Identifier = "(3, 0, 8)",
                 BlockName = "電動採掘機",
@@ -140,6 +144,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "FilterSplitter",
                 Identifier = "(2, 0, 2)",
                 BlockName = "フィルタ分岐器",

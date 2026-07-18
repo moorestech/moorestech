@@ -21,6 +21,7 @@ namespace Client.Tests.WebUi
             var dto = new BlockInventoryDto
             {
                 Open = true,
+                Source = "block",
                 BlockType = "ElectricToGearGenerator",
                 Identifier = "(4, 0, 2)",
                 BlockName = "回転生成機",

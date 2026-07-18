@@ -23,6 +23,11 @@ namespace Client.Game.Common
         private void Awake()
         {
             _instance = this;
+            // カットシーン再生状態をゲーム全体状態へ反映する（CutSceneはClient.Gameを参照できないため購読で受ける）
+            // Map cutscene playback onto the game state (CutScene cannot reference Client.Game, so subscribe here)
+            Client.CutScene.TimelinePlayer.OnPlayingChanged
+                .Subscribe(playing => ChangeState(playing ? GameStateType.CutScene : GameStateType.InGame))
+                .AddTo(this);
         }
         
         [Inject]
