@@ -34,8 +34,6 @@ namespace Server.Boot.Loop.PacketProcessing
             _sendThread.Start();
         }
 
-        // 4バイト長ヘッダを前置してキューへ積む（ワイヤフレーミングの唯一のエントリポイント）
-        // Prepend the 4-byte length header and enqueue; the single entry point for wire framing
         public void EnqueueMessage(byte[] body)
         {
             // Dispose後は積まない。消費者のいないキューが無限成長するのを防ぐ
@@ -49,8 +47,8 @@ namespace Server.Boot.Loop.PacketProcessing
             _sendQueue.Enqueue(sendData);
         }
 
-        // イベントをenvelope化し応答と同じキューへ積む（FIFOで応答との順序を保つ）
-        // Wrap the event in the envelope and enqueue with responses so FIFO order holds across the stream
+        // イベント経由のデータ送信
+        // Event-driven data sending
         public void EnqueueEvent(EventMessagePack eventMessagePack)
         {
             var body = MessagePackSerializer.Serialize(new EventStreamMessagePack(eventMessagePack));
