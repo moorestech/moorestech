@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import type { TopicScenario } from "../mock-host/topics/topicControls";
 
 // mock-host 制御エンドポイントの薄いラッパ。URL リテラルの散在を防ぐ
 // Thin wrappers over the mock-host control endpoints; keeps URL literals in one place
@@ -42,4 +43,24 @@ export function disconnectWebSockets(page: Page, holdMilliseconds: number) {
 
 export function setSkitStage(page: Page, stage: "none" | "background" | "text" | "choices") {
   return page.request.get(`/__skit?stage=${stage}`);
+}
+
+export async function setTopicScenario(page: Page, scenario: TopicScenario) {
+  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}`);
+  if (!response.ok()) throw new Error(`topic control failed: ${response.status()}`);
+}
+
+export async function injectTopicSnapshot(page: Page, scenario: TopicScenario, revision: number, text: string) {
+  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&text=${encodeURIComponent(text)}`);
+  if (!response.ok()) throw new Error(`topic snapshot control failed: ${response.status()}`);
+}
+
+export async function setTopicScenarioRevision(page: Page, scenario: TopicScenario, revision: number, text: string) {
+  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&revision=${revision}&setWireRevision=1&text=${encodeURIComponent(text)}`);
+  if (!response.ok()) throw new Error(`topic revision control failed: ${response.status()}`);
+}
+
+export async function setWoodItemName(page: Page, name: string) {
+  const response = await page.request.get(`/__item-master?woodName=${encodeURIComponent(name)}`);
+  if (!response.ok()) throw new Error(`item master control failed: ${response.status()}`);
 }

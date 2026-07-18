@@ -2,6 +2,10 @@ import type { WebSocket } from "ws";
 
 const revisions = new Map<string, number>();
 
+export function setTopicRevision(topic: string, revision: number): void {
+  revisions.set(topic, revision);
+}
+
 export function clone<T>(o: T): T {
   return JSON.parse(JSON.stringify(o)) as T;
 }
