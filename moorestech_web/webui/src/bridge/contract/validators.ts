@@ -11,6 +11,7 @@ import {
   RecipeViewerItemListDataSchema,
   ResearchTreeDataSchema,
   UiStateDataSchema,
+  LocalizationDataSchema,
 } from "./schemas";
 
 type TopicSchemaRegistry = {
@@ -30,6 +31,7 @@ const topicSchemas = {
   [Topics.uiState]: UiStateDataSchema,
   [Topics.researchTree]: ResearchTreeDataSchema,
   [Topics.buildMenu]: BuildMenuDataSchema,
+  [Topics.localization]: LocalizationDataSchema,
 } satisfies TopicSchemaRegistry;
 
 // 既知topicはsafeParseで検証し、未知topicは従来どおり素通しする
