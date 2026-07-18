@@ -33,11 +33,11 @@ export default function ResearchTreePanel() {
   );
   const resolveName = (itemId: number) => itemMaster?.get(itemId)?.name;
 
-  // 表示倍率で縮小されたstageを、論理CSS座標へ補正する
+  // stage縮小をCSS座標へ補正
   // Convert stage-scaled browser coordinates to logical CSS coordinates
   const toCssScale = (element: HTMLDivElement) => element.offsetWidth / element.getBoundingClientRect().width;
 
-  // ホイール位置を基準にキャンバスを拡大縮小する
+  // カーソル位置を基準にズーム
   // Zoom the canvas around the wheel position
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -49,16 +49,17 @@ export default function ResearchTreePanel() {
     }, event.deltaY));
   };
 
-  // 空背景のprimary pointerでパン操作を開始する
+  // 空背景の左入力でパン開始
   // Start panning with a primary pointer on the empty background
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest("[data-research-node]")) return;
+    const target = event.target;
+    if (!event.isPrimary || event.button !== 0 || (target instanceof Element && target.closest("[data-research-node]"))) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
     setIsPanning(true);
   };
 
-  // ポインター差分を論理CSS座標へ補正してパンする
+  // ポインター差分でパン移動
   // Pan using pointer deltas converted to logical CSS coordinates
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const pan = panPointer.current;
@@ -72,7 +73,7 @@ export default function ResearchTreePanel() {
     panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
   };
 
-  // pointer終了・取消・capture喪失時にパン状態を解除する
+  // 入力終了時にパン解除
   // Clear panning when the pointer ends, cancels, or loses capture
   const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
     if (panPointer.current?.pointerId !== event.pointerId) return;
