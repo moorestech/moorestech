@@ -31,6 +31,8 @@
   position: relative;
   display: block;
   --slot-size: 3.23rem;
+  --selected-face-bottom-trim: 0.78px;
+  --selected-face-ring-inset: 3.13px;
   /* iter7: hotbar-pitch(非オレンジ判定)がこのpaddingに依存するため、用途別分離後も5pxの床を明示維持する */
   /* iter7: hotbar-pitch (the non-orange run detector) depends on this padding, so keep the 5px floor explicit even after splitting by usage */
   --icon-pad: 5px;

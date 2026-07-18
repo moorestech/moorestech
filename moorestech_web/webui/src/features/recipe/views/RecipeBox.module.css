@@ -33,7 +33,7 @@
   /* iter6: The reference frame isn't a single-tone thin line but a navy outer band + a brighter cyan inner
      line. The border (inner line) touches the sel-row probe, so it stays untouched; only an outer navy ring
      (box-shadow) gets added for the 2-layer look */
-  box-shadow: 0 0 0 1.5px rgb(20 75 135 / 40%), 0 0 2.5px 0 rgb(31 166 240 / 48%);
+  box-shadow: 0 0 0 1.5px rgb(20 75 135 / 40%), 0 0 2.5px 0 rgb(31 166 240 / 25%);
 }
 
 /* 正本の入力・出力セルは約94x94px(≈2.3rem)と通常スロット(123px)より小さい。行高(min-height)は
@@ -44,7 +44,7 @@
 /* Tighten only the selection row to 1px for higher icon occupancy inside the reference-sized 94px cells */
 .recipeMaterials {
   justify-self: start;
-  margin-left: -6px;
+  margin-left: 1px;
   --slot-size: 2.3rem;
   --icon-pad: 1px;
   --count-bottom: -1px;
@@ -58,6 +58,7 @@
 
 .recipeResult {
   justify-self: end;
+  margin-right: 21px;
   --slot-size: 2.3rem;
   --icon-pad: 1px;
   --count-bottom: -1px;
@@ -129,8 +130,8 @@
   width: 107.2px;
   max-width: none;
   margin-top: auto;
-  margin-bottom: 14.98px;
-  margin-left: -1.6px;
+  margin-bottom: 13.98px;
+  margin-left: -1px;
   min-height: 19px;
   height: 19px;
   padding: 0;
@@ -142,7 +143,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   text-shadow: 1px 0 0 rgb(0 40 80 / 55%), -1px 0 0 rgb(0 40 80 / 55%), 0 1px 0 rgb(0 40 80 / 55%), 0 -1px 0 rgb(0 40 80 / 55%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 28%);
+  box-shadow: none;
 }
 
 .craftButton:hover:not(:disabled) {
@@ -157,5 +158,5 @@
   opacity: 1;
   background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
   color: rgb(255 255 255 / 80%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%);
+  box-shadow: none;
 }
