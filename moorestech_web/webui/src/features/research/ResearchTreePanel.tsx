@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import type { PointerEvent, WheelEvent } from "react";
 import { Box, Title } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
 import type { ResearchNodeData } from "@/bridge/contract/payloadTypes";
@@ -36,8 +37,45 @@ export default function ResearchTreePanel() {
   // Convert stage-scaled browser coordinates to logical CSS coordinates
   const toCssScale = (element: HTMLDivElement) => element.offsetWidth / element.getBoundingClientRect().width;
 
-  const endPan = (pointerId: number) => {
-    if (panPointer.current?.pointerId !== pointerId) return;
+  // ホイール位置を基準にキャンバスを拡大縮小する
+  // Zoom the canvas around the wheel position
+  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    const scale = toCssScale(event.currentTarget);
+    setViewport((current) => zoomViewportAt(current, {
+      x: (event.clientX - rect.left) * scale,
+      y: (event.clientY - rect.top) * scale,
+    }, event.deltaY));
+  };
+
+  // 空背景のprimary pointerでパン操作を開始する
+  // Start panning with a primary pointer on the empty background
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest("[data-research-node]")) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
+    setIsPanning(true);
+  };
+
+  // ポインター差分を論理CSS座標へ補正してパンする
+  // Pan using pointer deltas converted to logical CSS coordinates
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const pan = panPointer.current;
+    if (!pan || pan.pointerId !== event.pointerId) return;
+    const scale = toCssScale(event.currentTarget);
+    setViewport((current) => ({
+      ...current,
+      x: current.x + (event.clientX - pan.clientX) * scale,
+      y: current.y + (event.clientY - pan.clientY) * scale,
+    }));
+    panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
+  };
+
+  // pointer終了・取消・capture喪失時にパン状態を解除する
+  // Clear panning when the pointer ends, cancels, or loses capture
+  const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
+    if (panPointer.current?.pointerId !== event.pointerId) return;
     panPointer.current = null;
     setIsPanning(false);
   };
@@ -48,35 +86,12 @@ export default function ResearchTreePanel() {
       <div
         className={`${styles.viewport} ${isPanning ? styles.viewportPanning : ""}`}
         data-testid="research-viewport"
-        onWheel={(event) => {
-          event.preventDefault();
-          const rect = event.currentTarget.getBoundingClientRect();
-          const scale = toCssScale(event.currentTarget);
-          setViewport((current) => zoomViewportAt(current, {
-            x: (event.clientX - rect.left) * scale,
-            y: (event.clientY - rect.top) * scale,
-          }, event.deltaY));
-        }}
-        onPointerDown={(event) => {
-          if (!event.isPrimary || event.button !== 0 || (event.target as HTMLElement).closest("[data-research-node]")) return;
-          event.currentTarget.setPointerCapture(event.pointerId);
-          panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
-          setIsPanning(true);
-        }}
-        onPointerMove={(event) => {
-          const pan = panPointer.current;
-          if (!pan || pan.pointerId !== event.pointerId) return;
-          const scale = toCssScale(event.currentTarget);
-          setViewport((current) => ({
-            ...current,
-            x: current.x + (event.clientX - pan.clientX) * scale,
-            y: current.y + (event.clientY - pan.clientY) * scale,
-          }));
-          panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
-        }}
-        onPointerUp={(event) => endPan(event.pointerId)}
-        onPointerCancel={(event) => endPan(event.pointerId)}
-        onLostPointerCapture={(event) => endPan(event.pointerId)}
+        onWheel={handleWheel}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onLostPointerCapture={handlePointerEnd}
       >
         <div
           className={styles.canvas}
