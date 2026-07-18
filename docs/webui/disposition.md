@@ -9,10 +9,10 @@
 
 | ID | 内容 | 処遇 |
 |---|---|---|
-| INFRA-1 | CEF バイナリ恒久統合 | **A1** |
-| INFRA-2 | 入力・IME・フォーカス排他 | **A2** |
+| INFRA-1 | CEF バイナリ恒久統合 | **A1**（2026-07-18 実装完了: setup-cef+Editor検証ゲート。clean worktree実機証跡のみD最終検証） |
+| INFRA-2 | 入力・IME・フォーカス排他 | **A2**（2026-07-18 実装完了: input_state+読み取り境界抑止+probe。実機IME検証のみD最終検証） |
 | INFRA-3 | uGUI/CEF 表示切替 | **済**（`WebUiCefToggle` Ctrl+I） |
-| INFRA-4 | C#→TS 型自動生成 | **D**（任意） |
+| INFRA-4 | C#→TS 型自動生成 | **除外（任意・未着手）**: zod単一定義+両側契約テストで型乖離は既に機械検出されるため必須性なし（2026-07-18 判断） |
 | INFRA-5 | アセット配信拡張（立ち絵等の汎用画像） | **A3**（配信基盤・2026-07-18 完了 `/api/assets/`）。スキット立ち絵はUnity描画残置決定（skit-web-redesign.md）のため利用側なし |
 | INFRA-6 | UIState 橋渡し | **済**。GameStateType Topic化もC4で完了（2026-07-18 game_state.current） |
 | INFRA-7 | サーバーイベント push 規約（revision・デバウンス・再接続整合性） | **A4**（2026-07-18 完了。`topic-conventions.md`） |
@@ -73,3 +73,12 @@
 
 - Phase 完了時、本表の該当行に完了日を追記する（例: `**B1**（2026-07-20 完了）`）
 - 新項目が発生したら本表に行を追加してから Phase へ割り当てる
+
+## クローズ確認（2026-07-18 Phase D タスク4）
+
+全59項目を走査した結果:
+- **済/完了**: 実装・検証済み（各行に完了日を付記）
+- **除外**: BLK-10（マスタ実体0・保留）/ MODE-3・SYS-2・SYS-3 / WORLD-2・WORLD-3 / INFRA-4（任意・zod契約テストで代替）/ CRAFT-4（機能削除実施済み）
+- **実機検証のみ残**: INFRA-1（clean worktree証跡）・INFRA-2（IME/二重配送）・INFRA-8（Windows）・INFRA-10（音声同時再生）— いずれも実装完了済みで、TODO「Phase D 最終検証」1項目に集約
+
+未分類の項目は存在しない。
