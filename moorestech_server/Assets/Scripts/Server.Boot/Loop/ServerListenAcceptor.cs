@@ -13,7 +13,7 @@ namespace Server.Boot.Loop
     {
         private const int Port = 11564;
 
-        public void StartServer(PacketResponseCreator packetResponseCreator, PlayerConnectionRegistry connectionRegistry, EventProtocolProvider eventProtocolProvider, CancellationToken token)
+        public static void StartServer(PacketResponseCreator packetResponseCreator, PlayerConnectionRegistry connectionRegistry, EventProtocolProvider eventProtocolProvider, CancellationToken token)
         {
             //ソケットの作成
             var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
