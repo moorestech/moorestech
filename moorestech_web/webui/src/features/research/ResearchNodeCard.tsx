@@ -5,6 +5,7 @@ import { dispatchAction } from "@/bridge";
 import { deriveResearchButton, isItemSufficient } from "./researchLogic";
 import styles from "./style.module.css";
 import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
+import { useI18n } from "@/shared/i18n";
 
 type Props = {
   node: ResearchNodeData;
@@ -17,6 +18,7 @@ type Props = {
 // 研究ノード表示と実行
 // Render and complete one research node
 export default function ResearchNodeCard({ node, left, top, owned, resolveName }: Props) {
+  const { t } = useI18n();
   const button = deriveResearchButton(node, owned);
   return (
     <Paper
@@ -34,7 +36,7 @@ export default function ResearchNodeCard({ node, left, top, owned, resolveName }
         {node.consumeItems.length > 0 && (
           <Group gap={4}>
             {node.consumeItems.map((c, i) => (
-              <Tooltip key={`${c.itemId}-${i}`} label={`${resolveName(c.itemId) ?? c.itemId} x${c.count}`}>
+              <Tooltip key={`${c.itemId}-${i}`} label={t("{itemName} x{count}", { itemName: resolveName(c.itemId) ?? c.itemId, count: c.count })}>
                 <div>
                   <ItemSlot itemId={c.itemId} count={c.count} selected={isItemSufficient(node, c.itemId, c.count, owned)} />
                 </div>
@@ -52,7 +54,7 @@ export default function ResearchNodeCard({ node, left, top, owned, resolveName }
             ))}
           </Group>
         )}
-        <Tooltip label={button.tooltip} multiline w={200} style={{ whiteSpace: "pre-line" }}>
+        <Tooltip label={t(button.tooltip)} multiline w={200} style={{ whiteSpace: "pre-line" }}>
           <div>
             <Button
               size="compact-xs"
@@ -60,7 +62,7 @@ export default function ResearchNodeCard({ node, left, top, owned, resolveName }
               data-testid={`research-button-${node.guid}`}
               onClick={() => void dispatchAction("research.complete", { researchGuid: node.guid })}
             >
-              {button.completed ? "研究済み" : "研究"}
+              {button.completed ? t("研究済み") : t("研究")}
             </Button>
           </div>
         </Tooltip>

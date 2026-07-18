@@ -1,4 +1,3 @@
-/* eslint-disable local/no-jsx-visible-literal -- Generic render props and CSS/test-id templates are not player-facing copy. */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, ReactNode } from "react";
 import { computeTreeCanvasBounds, lineBetween, toTreeCanvasPoint } from "./treeGeometry";

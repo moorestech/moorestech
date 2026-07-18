@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { Button, Stack, Text, Title } from "@mantine/core";
+import { useI18n } from "@/shared/i18n";
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -27,12 +28,17 @@ export class AppErrorBoundary extends Component<Props, State> {
 
     // フォールバック: エラー通知と再読み込みボタンだけの最小画面
     // Fallback: a minimal screen with just an error notice and a reload button
-    return (
-      <Stack align="center" justify="center" h="100vh" gap="md" p="lg">
-        <Title order={2} size="h3">UIエラーが発生しました</Title>
-        <Text size="sm" c="dimmed" ta="center">画面の描画中に問題が発生しました。再読み込みしてください。</Text>
-        <Button color="red" onClick={() => location.reload()}>再読み込み</Button>
-      </Stack>
-    );
+    return <AppErrorFallback />;
   }
+}
+
+function AppErrorFallback() {
+  const { t } = useI18n();
+  return (
+    <Stack align="center" justify="center" h="100vh" gap="md" p="lg">
+      <Title order={2} size="h3">{t("UIエラーが発生しました")}</Title>
+      <Text size="sm" c="dimmed" ta="center">{t("画面の描画中に問題が発生しました。再読み込みしてください。")}</Text>
+      <Button color="red" onClick={() => location.reload()}>{t("再読み込み")}</Button>
+    </Stack>
+  );
 }

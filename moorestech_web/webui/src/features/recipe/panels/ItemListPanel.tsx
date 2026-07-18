@@ -6,6 +6,7 @@ import { ConnectingPlaceholder, ItemSlot, SlotGrid, GamePanel } from "@/shared/u
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { useItemSelectionStore } from "../logic/selectionStore";
 import { craftableResultCounts } from "../logic/craftLogic";
+import { useI18n } from "@/shared/i18n";
 import styles from "./ItemListPanel.module.css";
 
 // 固定pxで6列のピッチを均一化する
@@ -17,6 +18,7 @@ const GRID_STYLE = { "--slot-size": "46.144px", "--slot-grid-gap": "8.656px", "-
 // 右カラム: 表示対象アイテムの一覧（uGUI の ItemListView 準拠）。クリックで中央にレシピ表示
 // Right column: list of viewable items, like uGUI's ItemListView; click shows recipes in the center
 export default function ItemListPanel() {
+  const { t } = useI18n();
   const onSelect = useItemSelectionStore((s) => s.setSelectedItem);
   const itemList = useTopic(Topics.itemList);
   const inventory = useTopic(Topics.inventory);
@@ -36,7 +38,7 @@ export default function ItemListPanel() {
   return (
     <GamePanel
       gridArea="items"
-      title="CRAFT RECIPE"
+      title={t("CRAFT RECIPE")}
       style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452, "--panel-top": "-6.821px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
     >
       {itemList ? (

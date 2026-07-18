@@ -1,4 +1,3 @@
-/* eslint-disable local/no-jsx-visible-literal -- Server-localized category strings and CSS/test IDs are dynamic data, not hard-coded copy. */
 import { useEffect, useState } from "react";
 import { Button, Group, Title } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";

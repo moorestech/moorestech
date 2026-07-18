@@ -17,6 +17,7 @@ import {
 import ItemHeader from "./ItemHeader";
 import CraftRecipeView from "./CraftRecipeView";
 import MachineRecipeView from "./MachineRecipeView";
+import { useI18n } from "@/shared/i18n";
 
 type Props = {
   itemId: number;
@@ -29,6 +30,7 @@ type Props = {
 // 選択アイテムのレシピ本体。key={itemId} で再マウントされタブ・ページ状態がリセットされる
 // Recipe body for the selected item; remounted via key={itemId} so tab/page state resets
 export default function RecipeContent({ itemId, recipes, machineRecipes, inventory, onSelect }: Props) {
+  const { t } = useI18n();
   const itemMaster = useItemMaster();
   // 導出は純関数＋useMemo。入力 topic が変わらない限り再計算しない
   // Derivations are pure functions + useMemo; no recompute unless the input topics change
@@ -55,13 +57,13 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   // Fall back to the first tab if a topic update changed the tab set
   const activeTab = tabs.find((t) => t.key === tabKey) ?? tabs[0] ?? null;
 
-  const itemName = itemMaster?.get(itemId)?.name ?? `item ${itemId}`;
+  const itemName = itemMaster?.get(itemId)?.name ?? t("item {itemId}", { itemId });
 
   if (activeTab === null) {
     return (
       <Stack gap="sm">
         <ItemHeader name={itemName} />
-        <Text size="sm" c="dimmed">このアイテムのレシピはありません</Text>
+        <Text size="sm" c="dimmed">{t("このアイテムのレシピはありません")}</Text>
       </Stack>
     );
   }
@@ -80,13 +82,13 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
           }}
         >
           <Tabs.List>
-            {tabs.map((t) => (
+            {tabs.map((tab) => (
               <Tabs.Tab
-                key={t.key}
-                value={t.key}
-                leftSection={t.blockId !== null ? <BlockIcon blockId={t.blockId} className={styles.tabIcon} /> : undefined}
+                key={tab.key}
+                value={tab.key}
+                leftSection={tab.blockId !== null ? <BlockIcon blockId={tab.blockId} className={styles.tabIcon} /> : undefined}
               >
-                {t.label}
+                {tab.blockId === null ? t(tab.label) : tab.label}
               </Tabs.Tab>
             ))}
           </Tabs.List>
