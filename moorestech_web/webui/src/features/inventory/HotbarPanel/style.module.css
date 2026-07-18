@@ -45,14 +45,16 @@
   --bevel-3: 1.565749px;
   /* c1のalpha化は非オレンジ判定(hotbar-pitchのnbマスク)を壊すため見送り、不透明のまま維持する */
   /* Alpha-ing c1 broke the non-orange mask used by hotbar-pitch detection, so it stays opaque */
-  --bevel-c1: rgb(142 114 106);
-  --bevel-c2: rgb(113 85 79);
-  --bevel-c3: rgb(113 85 79);
-  /* 選択帯は再実測したフラットなシアン単色を2層の全域へ適用する */
-  /* Apply the remeasured flat cyan tone across both layers of the selection band */
-  --sel-c1: rgb(104 216 251);
-  --sel-c2: rgb(104 216 251);
-  --sel-c3: rgb(104 216 251);
+  /* uGUI原画像スポイト: common_button_base_sliceの縁 #9c9ea6/#91939c × tint0.8019 (R-G<0で非オレンジ判定も維持) */
+  /* Eyedropped from common_button_base_slice edges #9c9ea6/#91939c × tint 0.8019 (R-G<0 keeps the non-orange test intact) */
+  --bevel-c1: rgb(125 127 133);
+  --bevel-c2: rgb(116 118 125);
+  --bevel-c3: rgb(116 118 125);
+  /* 選択帯はframe_select.pngコア原色#00ddffのフラット単色を2層の全域へ適用する */
+  /* Apply frame_select.png's core cyan #00ddff flat across both layers of the selection band */
+  --sel-c1: rgb(0 221 255);
+  --sel-c2: rgb(0 221 255);
+  --sel-c3: rgb(0 221 255);
 }
 
 /* 正本は角張った(角丸0)・約38px角(≈14.9CSS)の半透明茶タグ+細い明枠。旧44px角は一回り大きすぎたため縮小 */
@@ -71,9 +73,11 @@
   min-width: 15px;
   height: 15px;
   padding: 0 1px;
-  border: 1px solid rgb(169 141 120 / 55%);
+  /* タグの茶系は世界背景の焼き込みだったため、uGUIスロット族の寒色(縁#9c9ea6×0.8・面#323443)へ戻す */
+  /* The tag's brown was baked-in world blending; return it to the uGUI slot family (edge #9c9ea6×0.8, face #323443) */
+  border: 1px solid rgb(156 158 166 / 55%);
   border-radius: 0;
-  background: rgb(101 67 62 / 68%);
+  background: rgb(50 52 67 / 68%);
   font-size: 13px;
   font-weight: 400;
   line-height: 13px;
