@@ -187,7 +187,7 @@ namespace Client.Starter
             builder.RegisterEntryPoint<RailGraphConnectionNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
-            builder.Register<TrainFullSnapshotEventNetworkHandler>(Lifetime.Singleton).AsSelf().As<IInitializable>().As<IDisposable>();
+            builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
             
             // 設置システム
             // register placement system

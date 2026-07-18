@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,6 @@ using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Modal;
 using Client.Mod.Texture;
@@ -196,20 +196,39 @@ namespace Client.Starter
                 // Bind game-side Web UI topics to the hub
                 WebUiHost.Game.WebUiGameBinder.BindTopics();
 
-                // 全ハンドラ購読完了後にバッファ済みイベントをreplayする
-                // Replay buffered events after all handlers have subscribed
-                vanillaApi.Event.StartDispatch();
+                // ダウンキャストして初期化専用メソッドを呼ぶ
+                // Downcast and call the initialization-specific method
+                (vanillaApi.Event as VanillaApiEvent)?.InitializeDispatch();
 
-                // 初期snapshot適用完了を待つ（順序契約により通常は即時完了する安全ゲート）
-                // Await initial snapshot application; the ordering contract makes this normally instant
-                await resolver.Resolve<TrainFullSnapshotEventNetworkHandler>().WaitForInitialSnapshotAsync();
+                // ディスパッチ済み初期イベントの適用完了を全対象分待つ（順序契約により通常は即時完了する）
+                // Wait until every target applies its dispatched initial events; normally instant per the ordering contract
+                await WaitAllInitialEventApplyAsync(resolver);
 
                 // ログイン状態復元→初期化完了通知
                 // Restore login state, then announce initialization
                 starter.RestoreLoginState(handshakeResponse);
                 GameInitializedEvent.FireGameInitialized();
             }
-            
+
+            async UniTask WaitAllInitialEventApplyAsync(IObjectResolver resolver)
+            {
+                var targets = resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>();
+                var warnAt = Time.realtimeSinceStartup + 5f;
+                var warned = false;
+                while (!targets.All(t => t.IsInitialEventApplied))
+                {
+                    // 長時間未完了なら詰まっている対象を顕在化させる（待機自体は継続）
+                    // Surface stuck targets after a while; keep waiting regardless
+                    if (!warned && Time.realtimeSinceStartup >= warnAt)
+                    {
+                        warned = true;
+                        var pending = string.Join(", ", targets.Where(t => !t.IsInitialEventApplied).Select(t => t.GetType().Name));
+                        Debug.LogWarning($"[InitializeScenePipeline] 初期イベント適用が未完了のまま待機中: {pending}");
+                    }
+                    await UniTask.Yield();
+                }
+            }
+
             async UniTask CreateAndStartVanillaApi()
             {
                 //サーバーとの接続を確立
