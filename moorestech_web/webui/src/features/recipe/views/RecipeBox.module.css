@@ -134,10 +134,10 @@
    center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
 .craftButton {
   align-self: center;
-  width: 108px;
+  width: 107.609px;
   max-width: none;
   margin-top: auto;
-  margin-bottom: 13.98px;
+  margin-bottom: 14.763px;
   margin-left: -1px;
   min-height: 19px;
   height: 19px;

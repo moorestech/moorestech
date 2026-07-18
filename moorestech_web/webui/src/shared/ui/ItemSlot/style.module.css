@@ -46,13 +46,14 @@
   --bevel-3: 3.131498px;
   --bevel-c1: rgb(24 19 20);
   --bevel-c2: rgb(47 44 44);
-  --bevel-c3: rgb(100 94 94);
+  --bevel-c3: rgb(54 52 50);
   background-color: rgb(126 126 126);
 }
 
 /* アイテム入り（所持）セルは白面で空・未所持セルと二層のコントラストを付ける */
 /* Occupied (owned) cells use a white face to contrast against dark empty / gray catalog cells */
 .slot[data-filled="true"] {
+  --face-inset: var(--filled-face-inset, 0px);
   background-color: rgb(254 254 254);
 }
 
@@ -88,7 +89,7 @@
 .count {
   position: absolute;
   bottom: var(--count-bottom, -3px);
-  right: -1px;
+  right: 2px;
   font-size: var(--count-font-size, 19px);
   font-weight: 500;
   line-height: 1;

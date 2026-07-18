@@ -27,18 +27,21 @@
   align-items: center;
   justify-content: center;
   align-self: flex-start;
-  width: 68.43px;
+  width: 67.256px;
   height: 31px;
   margin-top: -2.47rem;
   margin-left: -0.8rem;
   margin-bottom: 0.2rem;
   clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
   border: 2px solid rgb(167 169 179 / 90%);
-  border-top-color: rgb(167 169 179 / 65%);
+  border-top-color: rgb(70 74 88 / 65%);
   border-bottom: 0;
   background: linear-gradient(155deg, #3c4152 0%, #262b38 100%);
   font-size: 18px;
   line-height: 1;
+  /* 後続フローを動かさずタブだけ2物理px下げる */
+  /* Lower only the tab two device pixels without moving downstream flow */
+  transform: translateY(0.782875px);
 }
 
 /* 背後にひと回り小さい暗色タブを覗かせ、二重フラップの奥行きを出す。正本は右側へ非対称に
@@ -70,6 +73,13 @@
 /* The reference runs ~150x51 screenshot px (measured (1565,337)-(1715,388)). iter3 enlarged this before the
    real font landed, ballooning it past 188px wide; iter4's font swap is paired with sizing it back down to match */
 .itemName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-width: 58.715px;
+  width: auto;
+  height: 19.963px;
   margin-top: 0.3rem;
   font-size: 19.75px;
   font-weight: 500;
@@ -79,6 +89,7 @@
   text-rendering: optimizeLegibility;
   text-shadow: 0.3px 0 0 rgb(0 0 0 / 55%), -0.3px 0 0 rgb(0 0 0 / 55%);
   text-align: center;
+  white-space: nowrap;
 }
 /* 正本は縦グラデ+中央白帯でなく、青→シアンの横方向グラデーション */
 /* The reference uses a horizontal blue-to-cyan gradient, not a vertical one with a center white band */
@@ -112,7 +123,7 @@
 .itemHeaderRule {
   position: relative;
   align-self: center;
-  width: 97%;
+  width: 276.743px;
   height: 9px;
   /* itemName拡大分を相殺し、後続ボタン列を正本y422-469へ固定する */
   /* Offset the enlarged itemName to keep the following button row fixed at the reference y422-469 */
@@ -125,13 +136,7 @@
      ダガーと中央菱形の間(44%/56%)に小型の菱形レイヤーを追加する */
   /* The reference shows one more small diamond node just 8-10px short of the center diamond on each side,
      distinct from the dagger; add a small diamond layer between the dagger and center (44%/56%) */
-  background:
-    linear-gradient(90deg, transparent, rgb(132 137 151 / 78%) 25%, rgb(132 137 151 / 78%) 88%, transparent) left center / 50% 1px no-repeat,
-    linear-gradient(270deg, transparent, rgb(132 137 151 / 78%) 25%, rgb(132 137 151 / 78%) 88%, transparent) right center / 50% 1px no-repeat,
-    linear-gradient(28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 46% center / 18px 7px no-repeat,
-    linear-gradient(-28deg, transparent 42%, #aeb4c2 43% 56%, transparent 57%) 54% center / 18px 7px no-repeat,
-    linear-gradient(45deg, transparent 30%, rgb(174 180 194 / 85%) 45% 55%, transparent 70%) 48% center / 7px 7px no-repeat,
-    linear-gradient(-45deg, transparent 30%, rgb(174 180 194 / 85%) 45% 55%, transparent 70%) 52% center / 7px 7px no-repeat;
+  background: linear-gradient(90deg, transparent 0%, rgb(132 137 151 / 78%) 20%, rgb(132 137 151 / 78%) 44%, transparent 48%, transparent 52%, rgb(132 137 151 / 78%) 56%, rgb(132 137 151 / 78%) 80%, transparent 100%) center / 100% 1px no-repeat;
 }
 
 .itemHeaderRule::after {

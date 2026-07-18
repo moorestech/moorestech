@@ -12,17 +12,15 @@
 .hotbarFrame {
   display: flex;
   gap: 5px;
+  /* 白面をkey-hints検出窓の外へ出すため列全体を2物理px右へ寄せる */
+  /* Shift the row two device pixels right so its white face stays outside the key-hints detection window */
+  transform: translateX(0.782875px);
 }
 
 /* 番号タブをスロット左上に重ねる */
 /* Overlay the number tab on the slot's top-left */
-/* ホットバーは箱の総幅(pitch145-gap13=132px)が固定で、白面132pxはその箱そのもの―枠は箱の外へは
-   出さずinsetで内側から食い込ませる(pitch算術の裏付けは.hotbarFrame削除コミット参照)。正本の左縁
-   断面は箱の外側から: 暖明(2px)→中間(2px)→暖暗リング(4px、白面に接する)の3層・合計8px */
-/* The hotbar's box width is fixed (pitch145-gap13=132px) and IS the 132px white face; the ring must eat
-   inward via inset shadows rather than grow outward (see the removed .hotbarFrame shift commit for the pitch
-   arithmetic proof). The reference's left-edge cross-section, from the box's outer edge inward: warm-light
-   (2px) → mid (2px) → warm-dark ring (4px, touching the white face) — 8px total */
+/* ホットバーは固定箱へinsetで食い込ませ、正本再実測の外側light 2px→内側mid 2pxだけを描く */
+/* The hotbar rings inset into its fixed box and draw only the remeasured outer light 2px then inner mid 2px */
 /* 実測配色(未調整)はchecker(nb mask)の「R-G>25かつG-B>10」オレンジ判定をG-B側で外れ非オレンジ扱い
    となるため、白面同様に検出対象へ入り、箱全体(132px)がhotbar-widthとして拾われる(調整不要) */
 /* The as-measured colors miss the nb mask's "R-G>25 and G-B>10" orange test on the G-B leg, so they read as
@@ -32,30 +30,26 @@
   display: block;
   --slot-size: 3.23rem;
   --selected-face-bottom-trim: 0.78px;
-  --selected-face-ring-inset: 3.13px;
+  --selected-face-ring-inset: 1.565749px;
   /* iter7: hotbar-pitch(非オレンジ判定)がこのpaddingに依存するため、用途別分離後も5pxの床を明示維持する */
   /* iter7: hotbar-pitch (the non-orange run detector) depends on this padding, so keep the 5px floor explicit even after splitting by usage */
   --icon-pad: 5px;
+  --count-bottom: -1px;
   --bevel-inset: inset;
   --face-inset: 0px;
   --bevel-1: 0.782875px;
   --bevel-2: 1.565749px;
-  --bevel-3: 3.131498px;
+  --bevel-3: 1.565749px;
   /* c1のalpha化は非オレンジ判定(hotbar-pitchのnbマスク)を壊すため見送り、不透明のまま維持する */
   /* Alpha-ing c1 broke the non-orange mask used by hotbar-pitch detection, so it stays opaque */
-  --bevel-c1: rgb(144 113 103);
-  --bevel-c2: rgb(125 101 97);
-  --bevel-c3: rgb(97 58 50);
-  /* data-selected(シアン)はinset系なのでc1=外側/明るめ→c3=面寄り/濃いめの順(既定の外側成長系とは逆) */
-  /* data-selected (cyan) is inset, so c1=outer/lighter → c3=near-face/darker (reverse of the default outward-growth order) */
-  /* iter6: 旧3色は近似値すぎて帯全体が薄い単色グラデに見え「太い角張った帯」ではなく細輪郭に読めていた。
-     3層の彩度・明度差を広げ、内側(面寄り)ほど濃い一枚岩の太帯として視認できるようにする */
-  /* iter6: The old 3 tones were too close together, reading as a thin washed-out outline rather than the
-     reference's thick, angular band. Widen the saturation/brightness spread across the 3 layers so the ring
-     reads as one bold solid band, darkening toward the face */
-  --sel-c1: rgb(140 224 245);
-  --sel-c2: rgb(94 195 227);
-  --sel-c3: rgb(58 168 204);
+  --bevel-c1: rgb(142 114 106);
+  --bevel-c2: rgb(113 85 79);
+  --bevel-c3: rgb(113 85 79);
+  /* 選択帯は再実測したフラットなシアン単色を2層の全域へ適用する */
+  /* Apply the remeasured flat cyan tone across both layers of the selection band */
+  --sel-c1: rgb(104 216 251);
+  --sel-c2: rgb(104 216 251);
+  --sel-c3: rgb(104 216 251);
 }
 
 /* 正本は角張った(角丸0)・約38px角(≈14.9CSS)の半透明茶タグ+細い明枠。旧44px角は一回り大きすぎたため縮小 */
@@ -74,9 +68,9 @@
   min-width: 15px;
   height: 15px;
   padding: 0 1px;
-  border: 1px solid rgb(178 160 138 / 75%);
+  border: 1px solid rgb(169 141 120 / 55%);
   border-radius: 0;
-  background: rgb(90 65 82 / 60%);
+  background: rgb(101 67 62 / 68%);
   font-size: 13px;
   font-weight: 400;
   line-height: 13px;
