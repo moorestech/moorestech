@@ -9,7 +9,7 @@
    raise the opacity so the thin track stays visible at all times */
 .scrollArea :global(.mantine-ScrollArea-scrollbar) {
   padding: 0;
-  background: rgb(16 14 16 / 88%);
+  background: rgb(16 14 16 / 52%);
 }
 
 /* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */

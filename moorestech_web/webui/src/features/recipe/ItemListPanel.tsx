@@ -35,7 +35,7 @@ export default function ItemListPanel() {
     <GamePanel
       gridArea="items"
       title="CRAFT RECIPE"
-      style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452, "--panel-top": "-6.43px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
+      style={{ justifySelf: "end", alignSelf: "start", width: 378, minHeight: 452, "--panel-top": "-6.821px", "--panel-bottom": "-9.17px", "--panel-left": "-1.04px", "--title-shift-x": "1.57px", "--title-scale-x": 0.963, "--title-scale-y": 0.861 } as CSSProperties}
     >
       {itemList ? (
         // mahは7段が丸ごと収まりつつDEMO60件(10段)でノブ比が正本≈70%になる高さ。marginLeftはグリッド内側
@@ -45,11 +45,11 @@ export default function ItemListPanel() {
         // corrects the grid inset; marginTop aligns the knob vertically. Under align-self:stretch, marginLeft alone
         // doesn't move the right edge (knob position), so marginRight tucks the right edge in separately
         <ScrollArea.Autosize
-          mah={382}
+          mah={381.2}
           type="always"
           scrollbarSize={4}
           className={styles.scrollArea}
-          style={{ marginLeft: -0.43, marginRight: 6, marginTop: 12 }}
+          style={{ marginLeft: -0.43, marginRight: 4.826, marginTop: 12 }}
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (

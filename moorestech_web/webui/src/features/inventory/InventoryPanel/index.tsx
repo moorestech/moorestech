@@ -26,7 +26,7 @@ export default function InventoryPanel() {
   const actions = createSlotActions(inventory, itemMaster);
 
   return (
-    <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452, "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
+    <GamePanel gridArea="inv" title="持ち物" style={{ justifySelf: "start", alignSelf: "start", width: 378, minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
       <SlotGrid testId="main-grid" cols={6} style={GRID_STYLE}>
         {inventory.mainSlots.map((slot, i) => {
           const ref: SlotRef = { area: "main", slot: i };

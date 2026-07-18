@@ -13,6 +13,9 @@
   align-items: center;
   align-self: center;
   margin-top: -1px;
+  /* ヘッダーのフロー高を保ったまま選択枠だけ4物理px上へ戻す */
+  /* Move only the selection frame four device pixels upward while preserving the header's flow height */
+  transform: translateY(-1.565749px);
   /* 選択枠を正本へ寄せるため実測約2倍のグリッド反応を織り込み、左余白と幅を微調整する */
   /* Tune the selection margin and width for the measured roughly 2x grid response toward the reference */
   margin-left: -5.2px;
@@ -21,19 +24,23 @@
      3.36remを上回って高さを決めていたため、収縮後はmin-heightを底上げしないと行高が縮む) */
   /* min-height now owns the row height after C2 shrank the slots to 2.3rem — previously the 3rem slot
      itself exceeded 3.36rem and drove the height, so shrinking it needs a taller min-height to compensate */
-  min-height: 3.52rem;
+  /* 上端を固定したまま下端だけ正本まで7物理px伸ばす */
+  /* Extend only the bottom edge seven device pixels to the reference while keeping the top fixed */
+  min-height: calc(3.52rem + 2.740061px);
   padding: 0.35rem 0.75rem 0.1rem;
-  border: 1px solid rgb(60 145 215 / 58%);
+  /* 5x5中央値が枠色に支配されるため、視認性を残しつつ正本色へ収まる実測下限12%に抑える */
+  /* The border controls the 5x5 median, so cap it at the measured 12% floor that stays visible while matching the reference color */
+  border: 1px solid rgb(60 145 215 / 12%);
   border-radius: 0;
-  /* 内面が青黒すぎたため面を薄く・insetグローを外して背面(craft面)の暖色を透けさせる */
-  /* The interior read too dark/blue, so lighten the fill and drop the inset glow to let the warm craft face show through */
-  background: rgb(5 18 29 / 15%);
+  /* 正本の選択行内面は青紫を帯びるため、背面との30%合成で実測RGB(64,57,75)を再現する */
+  /* The reference selection interior is blue-violet, so a 30% blend with the backing reproduces measured RGB(64,57,75) */
+  background: rgb(59 80 175 / 30%);
   /* iter6: 正本の枠は単色の細線でなく「外側の紺の帯+内側の明るいシアン線」の2層。border(内側の線)は
      sel-rowプローブに触れるため不変のまま、外側にだけ紺のリング(box-shadow)を足して2層化する */
   /* iter6: The reference frame isn't a single-tone thin line but a navy outer band + a brighter cyan inner
      line. The border (inner line) touches the sel-row probe, so it stays untouched; only an outer navy ring
      (box-shadow) gets added for the 2-layer look */
-  box-shadow: 0 0 0 1.5px rgb(20 75 135 / 40%), 0 0 2.5px 0 rgb(31 166 240 / 25%);
+  box-shadow: 0 0 0 1.2px rgb(20 75 135 / 35%), 0 0 2px 0 rgb(0 205 255 / 25%);
 }
 
 /* 正本の入力・出力セルは約94x94px(≈2.3rem)と通常スロット(123px)より小さい。行高(min-height)は
@@ -75,10 +82,10 @@
   position: absolute;
   right: -3px;
   left: -3px;
-  height: 12px;
+  height: 9px;
   background-repeat: no-repeat;
   content: "";
-  filter: drop-shadow(0 0 1px rgb(47 188 255 / 35%));
+  filter: drop-shadow(0 0 1px rgb(47 188 255 / 30%));
   pointer-events: none;
 }
 
@@ -86,21 +93,21 @@
   top: -3px;
   background-image: linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0);
   background-position: left top, left top, right top, right top;
-  background-size: 12px 2px, 2px 12px, 12px 2px, 2px 12px;
+  background-size: 9px 1px, 1px 9px, 9px 1px, 1px 9px;
 }
 
 .recipeBox::after {
   bottom: -3px;
   background-image: linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0);
   background-position: left bottom, left bottom, right bottom, right bottom;
-  background-size: 12px 2px, 2px 12px, 12px 2px, 2px 12px;
+  background-size: 9px 1px, 1px 9px, 9px 1px, 1px 9px;
 }
 
 /* 正本は時間ラベルの中心が選択枠の下辺に重なる位置まで下げる */
 /* Drop the time label until its center overlaps the selection frame's bottom edge, matching the reference */
 .craftTime {
   position: absolute;
-  bottom: -9px;
+  bottom: -7.434px;
   left: 50%;
   z-index: 2;
   color: #d7dbe5;
@@ -127,7 +134,7 @@
    center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
 .craftButton {
   align-self: center;
-  width: 107.2px;
+  width: 108px;
   max-width: none;
   margin-top: auto;
   margin-bottom: 13.98px;
