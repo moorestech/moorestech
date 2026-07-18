@@ -35,7 +35,7 @@ export default function BlockInventoryPanel() {
 
   return (
     <BlockInteractionContext.Provider value={interaction}>
-      <Paper data-testid="block-inventory" className={styles.panel} p="md" c="dark.1">
+      <Paper data-testid="block-inventory" className={styles.panel} p="md" withBorder bg="dark.6" c="dark.1">
         <Group justify="space-between" mb="sm">
           <Title order={2} size="h4">{data.blockName}</Title>
           {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
