@@ -37,19 +37,19 @@
 - [x] レジストリ網羅 e2e（v8 全 blockType × レジストリ照合。fixture `v8-block-ui-registry.json` + 再生成手順コメント。2026-07-18 `721c4ca7e`）
 
 ### B2: 列車 PF・電柱（`plans/phase-b2-train-pf-electric-pole.md`）
-- [ ] TrainItemPlatform / TrainFluidPlatform の PF インベントリ + 積込/卸しモードトグル
-- [ ] ElectricPole ネットワーク情報表示
+- [x] TrainItemPlatform / TrainFluidPlatform の PF インベントリ + 積込/卸しモードトグル（2026-07-18 B2マージ。TrainStation/両PF登録・冪等set_transfer_mode）
+- [x] ElectricPole ネットワーク情報表示（2026-07-18。ElectricPole3種・1秒固定サンプリング）
 
 ### B3: 細部パリティ（`plans/phase-b3-detail-parity.md`・1件ずつ独立）
-- [ ] スプリットドラッグ（grab の複数スロット均等配分）（B3第2弾で実装中）
+- [x] スプリットドラッグ（grab の複数スロット均等配分）（2026-07-18 B3-1。配分計算はホスト所有）
 - [x] 右ドラッグ連続1個配置（2026-07-18 `e60b636c1`）
 - [x] クラフト長押し・進捗・キャンセル・連続クラフト（既実装確認。unit9件+e2e2件でカバー済み。2026-07-18）
 - [x] CraftRecipeView の所持数/必要数テキスト（不足赤字）+ ツールチップ内訳（2026-07-18 `e60b636c1`。個数テキストはdata-lack属性）
 - [x] アイテムリストのクラフト可能数バッジ/グレーアウト（2026-07-18 `e60b636c1`）
-- [ ] 機械詳細の分間生産数表示（実行中machineRecipeGuid未伝搬のためC#拡張が必要 — B3第2弾で実装中）
+- [x] 機械詳細の分間生産数表示（2026-07-18 B3-7。recipeTime/出力をDTO伝搬・表示式はWeb純関数）
 - [x] ホイールのホットバー切替を入力量累積に（閾値±1・1ノッチ=1切替。2026-07-18 `e60b636c1`）
-- [ ] 研究ツリーの報酬アイテム個数表示（ワイヤ型が個数未伝搬・要 C# 拡張）（B3第2弾で実装中）
-- [ ] `ui_state.request` のホワイトリスト化（Story/PauseMenu 中の強制遷移防止）（B3第2弾で実装中）
+- [x] 研究ツリーの報酬アイテム個数表示（2026-07-18 B3-8。rewardItems {itemId,count}[]へ置換）
+- [x] `ui_state.request` のホワイトリスト化（Story/PauseMenu 中の強制遷移防止）（2026-07-18 B3-9+統合時にC1/C2/C3遷移を拡張。transition_not_allowed拒否）
 - [x] itemMaster の WS 再接続後リフレッシュ（WU1に含まれず未実装だったため実装。restoring遷移で再取得。2026-07-18 `e60b636c1`）
 - [x] crafting validator の堅牢化（壊れ payload での React クラッシュ耐性）（2026-07-18 `e60b636c1`）
 
@@ -71,13 +71,13 @@
 - [x] コンテキストメニュー / キー操作ヒント / クロスヘア / 全 UI 一括非表示（Ctrl+U）/ カーソル追従オーバーレイ（棚卸しのうえ処遇を記録）（ui.context_menu(ID照合Action)/ui.key_hints/ui.crosshair/ui.visibility。UICursorFollowControlは個別移植不要と判定 — grab/ContextMenuはWeb側で吸収済み・uGUIフォールバック用に残置。2026-07-18）
 
 ### C3: 列車 HUD・インベントリ（`plans/phase-c3-train-hud.md`）
-- [ ] 列車乗車 HUD（入れ子状態機械・乗車入力・分岐選択 → 3D プレビュー駆動）
-- [ ] 列車（貨車）インベントリ
+- [x] 列車乗車 HUD（入れ子状態機械・乗車入力・分岐選択 → 3D プレビュー駆動）（2026-07-18 C3マージ。train.riding+ui_state.subState・入力主権C#維持。実機乗車一巡はPhase D）
+- [x] 列車（貨車）インベントリ（2026-07-18。SubInventory拡張+コンテナ不在等エラー表示）
 
 ### C4: スキット・チュートリアル・カットシーン（`plans/phase-c4-skit-tutorial.md`・**再設計から**）
-- [ ] 既存画面への `data-tutorial-anchor` 付与の棚卸し（規約は A5。C1〜C3 実装分は各 Phase で付与済みの前提）
-- [ ] カットシーン連携（GameStateType Topic 化 → HUD 一括退避同期・先行可）
-- [ ] バックグラウンドスキット（GameScreen オーバーレイ会話・軽量。同期方式の実証台）
+- [x] 既存画面への `data-tutorial-anchor` 付与の棚卸し（2026-07-18 C4a。代表アンカー+anchor registry実装〔observer群+rAF集約+ready/not-found/hidden/duplicate ack〕）
+- [x] カットシーン連携（2026-07-18 C4a。game_state.current Topic+Web全レイヤ退避〔Ctrl+Uと独立〕・TimelinePlayerはUniRxイベントで依存反転）
+- [x] バックグラウンドスキット（2026-07-18 C4a。skit.presentation完全snapshot・SkitPresentationStateStore・音声Unity維持・タイプライターWeb）
 - [ ] スキット再設計文書 → 実装（snapshot 配信 + Action 冪等化 + ボイス方式決定〔INFRA-10 の決定責務はここ〕）
       （文書は完了: `design/skit-web-redesign.md` 2026-07-18。ボイスはUnity再生統一・実機検証はS4）
 - [ ] チュートリアル再設計文書 → 実装（anchor registry による DOM ハイライト。3D ピン/矢印は Unity 残置）
