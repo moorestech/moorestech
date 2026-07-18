@@ -32,3 +32,34 @@ test("research button sends research.complete and node becomes completed", async
   // The mock rewrites the node to completed and pushes; the button flips to the completed label
   await expect(page.getByTestId(`research-button-${researchableGuid}`)).toContainText("研究済み");
 });
+
+test("research tree zooms with the wheel and pans by dragging its empty background", async ({ page }) => {
+  await page.setViewportSize({ width: 960, height: 540 });
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  const viewport = page.getByTestId("research-viewport");
+  const node = page.getByTestId("research-node-11111111-1111-1111-1111-111111111111");
+  const viewportBox = await viewport.boundingBox();
+  const beforeZoom = await node.boundingBox();
+  expect(viewportBox).not.toBeNull();
+  expect(beforeZoom).not.toBeNull();
+
+  await page.mouse.move(viewportBox!.x + viewportBox!.width - 40, viewportBox!.y + viewportBox!.height - 40);
+  await page.mouse.wheel(0, -240);
+  await expect.poll(async () => (await node.boundingBox())!.width).toBeGreaterThan(beforeZoom!.width);
+  const afterZoomWidth = (await node.boundingBox())!.width;
+  await page.mouse.wheel(0, 240);
+  await expect.poll(async () => (await node.boundingBox())!.width).toBeLessThan(afterZoomWidth);
+
+  const dragStart = {
+    x: viewportBox!.x + viewportBox!.width - 40,
+    y: viewportBox!.y + viewportBox!.height - 40,
+  };
+  const beforePan = await node.boundingBox();
+  await page.mouse.move(dragStart.x, dragStart.y);
+  await page.mouse.down();
+  await page.mouse.move(dragStart.x - 80, dragStart.y - 50, { steps: 5 });
+  await page.mouse.up();
+  await expect.poll(async () => (await node.boundingBox())!.x - beforePan!.x).toBeCloseTo(-80, 0);
+  await expect.poll(async () => (await node.boundingBox())!.y - beforePan!.y).toBeCloseTo(-50, 0);
+});

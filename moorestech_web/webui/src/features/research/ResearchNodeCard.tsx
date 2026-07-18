@@ -23,6 +23,7 @@ export default function ResearchNodeCard({ node, left, top, owned, resolveName }
       p="xs"
       className={button.completed ? styles.nodeCompleted : styles.node}
       style={{ left, top }}
+      data-research-node
       data-testid={`research-node-${node.guid}`}
     >
       <Stack gap={4}>
