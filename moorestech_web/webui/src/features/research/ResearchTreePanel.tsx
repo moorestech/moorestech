@@ -1,8 +1,8 @@
-import { useMemo, useRef, useState } from "react";
-import type { PointerEvent, WheelEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent } from "react";
 import { Box, Title } from "@mantine/core";
 import { useTopic, Topics, useItemMaster } from "@/bridge";
-import type { ResearchNodeData } from "@/bridge/contract/payloadTypes";
+import type { ResearchNodeData } from "@/bridge";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { computeCanvasBounds, lineBetween, zoomViewportAt } from "./researchLogic";
 import ResearchNodeCard from "./ResearchNodeCard";
@@ -14,6 +14,10 @@ const EMPTY_NODES: ResearchNodeData[] = [];
 
 type PanPointer = { pointerId: number; clientX: number; clientY: number };
 
+// stage縮小をCSS座標へ補正
+// Convert stage-scaled browser coordinates to logical CSS coordinates
+const toCssScale = (element: HTMLDivElement) => element.offsetWidth / element.getBoundingClientRect().width;
+
 // 研究ツリー全画面表示
 // Full-screen research tree panel
 export default function ResearchTreePanel() {
@@ -24,6 +28,7 @@ export default function ResearchTreePanel() {
   const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
   const [isPanning, setIsPanning] = useState(false);
   const panPointer = useRef<PanPointer | null>(null);
+  const viewportElement = useRef<HTMLDivElement | null>(null);
 
   const bounds = useMemo(() => computeCanvasBounds(nodes), [nodes]);
   const byGuid = useMemo(() => new Map(nodes.map((n) => [n.guid, n])), [nodes]);
@@ -33,21 +38,24 @@ export default function ResearchTreePanel() {
   );
   const resolveName = (itemId: number) => itemMaster?.get(itemId)?.name;
 
-  // stage縮小をCSS座標へ補正
-  // Convert stage-scaled browser coordinates to logical CSS coordinates
-  const toCssScale = (element: HTMLDivElement) => element.offsetWidth / element.getBoundingClientRect().width;
+  useEffect(() => {
+    const element = viewportElement.current;
+    if (!element) return;
 
-  // カーソル位置を基準にズーム
-  // Zoom the canvas around the wheel position
-  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const rect = event.currentTarget.getBoundingClientRect();
-    const scale = toCssScale(event.currentTarget);
-    setViewport((current) => zoomViewportAt(current, {
-      x: (event.clientX - rect.left) * scale,
-      y: (event.clientY - rect.top) * scale,
-    }, event.deltaY));
-  };
+    // passive制約を避け既定動作を抑止
+    // Bypass passive constraints to suppress the default action
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const rect = element.getBoundingClientRect();
+      const scale = toCssScale(element);
+      setViewport((current) => zoomViewportAt(current, {
+        x: (event.clientX - rect.left) * scale,
+        y: (event.clientY - rect.top) * scale,
+      }, event.deltaY));
+    };
+    element.addEventListener("wheel", handleWheel, { passive: false });
+    return () => element.removeEventListener("wheel", handleWheel);
+  }, []);
 
   // 空背景の左入力でパン開始
   // Start panning with a primary pointer on the empty background
@@ -85,9 +93,9 @@ export default function ResearchTreePanel() {
     <Box className={styles.panel} data-testid="research-tree">
       <Title order={2} size="h4" p="sm">研究ツリー</Title>
       <div
+        ref={viewportElement}
         className={`${styles.viewport} ${isPanning ? styles.viewportPanning : ""}`}
         data-testid="research-viewport"
-        onWheel={handleWheel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerEnd}
