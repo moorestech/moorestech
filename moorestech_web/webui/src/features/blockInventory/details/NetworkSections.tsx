@@ -2,18 +2,33 @@ import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
 import { stopReasonText } from "./detailLogic";
 import LackHighlightText from "./LackHighlightText";
+import { useI18n } from "@/shared/i18n";
 
 // 電力ネットワーク集約（uGUI ElectricNetworkInfoView 準拠。消費者0は需要なし表示）
 // Electric network aggregate (mirrors uGUI ElectricNetworkInfoView; zero consumers shows a no-demand note)
 export function ElectricNetworkSection({ data }: { data: BlockInventoryOpen }) {
+  const { t } = useI18n();
   if (!data.electricNetwork) return null;
   const n = data.electricNetwork;
   return (
     <Stack gap={2} data-testid="electric-network-section">
       {n.consumerCount === 0 ? (
-        <Text size="xs" c="dark.2">需要なし</Text>
+        <Text size="xs" c="dark.2">{t("需要なし")}</Text>
       ) : (
-        <LackHighlightText label="発電 " current={n.totalGeneratePower.toFixed(0)} separator=" / 需要 " required={n.totalRequiredPower.toFixed(0)} suffix={`（消費 ${n.consumerCount}件, 供給率 ${Math.round(n.powerRate * 100)}%）`} insufficient={false} normalColor="dark.1" insufficientColor="dark.1" size="xs" />
+        <LackHighlightText
+          label={t("発電 ")}
+          current={n.totalGeneratePower.toFixed(0)}
+          separator={t(" / 需要 ")}
+          required={n.totalRequiredPower.toFixed(0)}
+          suffix={t("（消費 {count}件, 供給率 {rate}%）", {
+            count: n.consumerCount,
+            rate: Math.round(n.powerRate * 100),
+          })}
+          insufficient={false}
+          normalColor="dark.1"
+          insufficientColor="dark.1"
+          size="xs"
+        />
       )}
     </Stack>
   );

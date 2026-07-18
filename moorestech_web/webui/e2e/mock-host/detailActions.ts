@@ -34,6 +34,14 @@ export function applyElectricToGearMode(block: BlockInventoryData, p: ActionPayl
   return true;
 }
 
+// PF capabilityへ目標モードを反映する
+// train_platform.set_transfer_mode: apply the target mode only to a platform carrying the capability
+export function applyTrainPlatformMode(block: BlockInventoryData, p: ActionPayloads["train_platform.set_transfer_mode"]): boolean {
+  if (!block.open || !block.trainPlatform) return false;
+  block.trainPlatform.mode = p.mode;
+  return true;
+}
+
 // research.complete: 該当 guid ノードを completed へ書換える。適用できたら true
 // research.complete: rewrite the matching guid node to completed; true when applied
 export function applyResearchComplete(tree: ResearchTreeData, p: ActionPayloads["research.complete"]): boolean {

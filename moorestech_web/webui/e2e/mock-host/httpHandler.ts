@@ -22,6 +22,9 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryData> = {
   gearMiner: fx.blockGearMiner,
   generic: fx.blockGeneric,
   electricToGear: fx.blockElectricToGear,
+  trainPlatform: fx.blockTrainPlatform,
+  trainFluidPlatform: fx.blockTrainFluidPlatform,
+  electricPole: fx.blockElectricPole,
 };
 
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));

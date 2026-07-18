@@ -136,3 +136,39 @@ export const blockElectricToGear = {
     ],
   },
 } satisfies BlockInventoryData;
+
+// B2 列車PFのスロットとモード
+// B2 train platform: item slots and transfer mode
+export const blockTrainPlatform = {
+  open: true,
+  blockType: "TrainItemPlatform",
+  identifier: "block:11",
+  blockName: "貨物プラットフォーム",
+  itemSlots: [{ itemId: 3, count: 12 }, empty()],
+  fluidSlots: [],
+  trainPlatform: { mode: "loadToTrain", itemSlotCount: 2 },
+} satisfies BlockInventoryData;
+
+// B2 液体PFのマスタ容量
+// B2 fluid platform: the same master capacity shown by uGUI
+export const blockTrainFluidPlatform = {
+  open: true,
+  blockType: "TrainFluidPlatform",
+  identifier: "block:12",
+  blockName: "液体プラットフォーム",
+  itemSlots: [],
+  fluidSlots: [],
+  trainPlatform: { mode: "unloadToPlatform", fluidCapacity: 1000 },
+} satisfies BlockInventoryData;
+
+// B2 電柱の電力集約値
+// B2 electric pole: electric-network aggregates sampled every second
+export const blockElectricPole = {
+  open: true,
+  blockType: "ElectricPole",
+  identifier: "block:13",
+  blockName: "電柱",
+  itemSlots: [],
+  fluidSlots: [],
+  electricNetwork: { totalGeneratePower: 240, totalRequiredPower: 180, consumerCount: 3, powerRate: 1 },
+} satisfies BlockInventoryData;

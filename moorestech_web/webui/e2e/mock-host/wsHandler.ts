@@ -6,15 +6,13 @@ import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, connections } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft } from "./inventoryModel";
-import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyResearchComplete } from "./detailActions";
+import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
 // 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
 // Action types the real dispatcher accepts, derived from protocol.ts to kill the duplicate list
 const KNOWN_ACTIONS = new Set<string>(ACTION_TYPES);
-
 // DEMO(採点用): 高密度インベントリ/一覧を配信
 // DEMO (scoring): serve the dense inventory/item list
 const DEMO = process.env.MOCK_DEMO === "1";
-
 // インベントリ状態は接続ごとに分離する。並列テストが同一 inv を奪い合わないため
 // Inventory state is isolated per connection so parallel tests don't race on the same inv
 export function attachWsHandlers(wss: WebSocketServer) {
@@ -22,7 +20,6 @@ export function attachWsHandlers(wss: WebSocketServer) {
     if (Date.now() < state.rejectConnectionsUntil) ws.close();
     connections.add(ws);
     let inv: PlayerInventoryData = clone(DEMO ? fx.demoInventory : fx.inventory);
-
     const topicData = (topic: string): unknown => {
       if (topic === Topics.inventory) return inv;
       if (topic === Topics.craftRecipes) return fx.craftRecipes;
@@ -36,7 +33,6 @@ export function attachWsHandlers(wss: WebSocketServer) {
       if (topic === Topics.buildMenu) return fx.buildMenu;
       return undefined;
     };
-
     ws.on("close", () => {
       connections.delete(ws);
       blockSubscribers.delete(ws);
@@ -178,6 +174,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
         } else if (msg.type === "electric_to_gear.set_output_mode") {
           const applied = applyElectricToGearMode(state.currentBlock, msg.payload as ActionPayloads["electric_to_gear.set_output_mode"]);
           if (!applied) error = "invalid_mode_index";
+          else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
+        } else if (msg.type === "train_platform.set_transfer_mode") {
+          const applied = applyTrainPlatformMode(state.currentBlock, msg.payload as ActionPayloads["train_platform.set_transfer_mode"]);
+          if (!applied) error = "invalid_block_type";
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "research.complete") {
           // 該当ノードを completed 化し、全 research 購読者へ push（研究実行→遷移を再現）
