@@ -39,3 +39,7 @@ export function setSnapshotDelay(page: Page, milliseconds: number, topic: string
 export function disconnectWebSockets(page: Page, holdMilliseconds: number) {
   return page.request.get(`/__disconnect?holdMs=${holdMilliseconds}`);
 }
+
+export function setSkitStage(page: Page, stage: "none" | "background" | "text" | "choices") {
+  return page.request.get(`/__skit?stage=${stage}`);
+}

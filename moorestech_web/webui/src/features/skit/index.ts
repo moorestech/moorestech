@@ -1,1 +1,1 @@
-export { BackgroundSkit } from "./BackgroundSkit";
+export { SkitPresentation } from "./SkitPresentation";

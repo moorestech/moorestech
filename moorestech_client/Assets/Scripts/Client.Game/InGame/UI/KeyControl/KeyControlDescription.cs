@@ -12,6 +12,8 @@ namespace Client.Game.InGame.UI.KeyControl
         
         [SerializeField] private TMP_Text keyControlText;
         private readonly ReactiveProperty<string> _text = new("");
+        private string _defaultText = "";
+        private string _overrideText;
 
         public IObservable<string> OnTextChanged => _text;
         public string GetText() => _text.Value;
@@ -23,6 +25,25 @@ namespace Client.Game.InGame.UI.KeyControl
         
         public void SetText(string text)
         {
+            _defaultText = text;
+            RefreshText();
+        }
+
+        public void SetOverrideText(string text)
+        {
+            _overrideText = text;
+            RefreshText();
+        }
+
+        public void ClearOverrideText()
+        {
+            _overrideText = null;
+            RefreshText();
+        }
+
+        private void RefreshText()
+        {
+            var text = _overrideText ?? _defaultText;
             _text.Value = text;
             if (keyControlText != null)
             {

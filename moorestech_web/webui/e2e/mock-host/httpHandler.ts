@@ -187,8 +187,13 @@ export function createMockHttpServer(): Server {
       return;
     }
     if (url.startsWith("/__skit")) {
-      const show = new URL(url, "http://x").searchParams.get("show") === "1";
-      state.skitPresentation = show ? {
+      const params = new URL(url, "http://x").searchParams;
+      // S1のshow契約を維持しつつ、S2/S3の段階fixtureを選択する
+      // Preserve the S1 show contract while selecting S2/S3 staged fixtures
+      const stage = params.get("stage") ?? (params.get("show") === "1" ? "background" : "none");
+      state.skitPresentation = stage === "text" ? clone(fx.blockingSkitText)
+        : stage === "choices" ? clone(fx.blockingSkitChoices)
+        : stage === "background" ? {
         ...clone(fx.skitPresentation), sessionId: "bg-1", sceneRevision: 1,
         presentationState: { ...clone(fx.skitPresentation.presentationState), mode: "background",
           speakerName: "Moore", body: "Background message", textAreaVisible: true,

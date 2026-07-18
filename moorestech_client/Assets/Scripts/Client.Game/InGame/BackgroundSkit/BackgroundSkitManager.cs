@@ -35,8 +35,8 @@ namespace Client.Game.InGame.BackgroundSkit
             var context = GetStoryContext();
             
             backgroundSkitUI.SetActive(true);
-            // webモード中はuGUI文字表示のみ抑止する（音声はUnity再生のため本体は維持）
-            // In web mode suppress only the uGUI text (the root stays active because Unity owns voice playback)
+            // webモード中はuGUI文字表示のみ抑止する（音声はUnity再生のためルートは維持。SetActive(false)は音声を殺すため禁止）
+            // In web mode suppress only the uGUI text; keep the root active because Unity owns voice playback (SetActive(false) would kill audio)
             backgroundSkitUI.SetTextVisible(!WebUiScreenGate.IsWebUiMode);
 
             // BackgroundSkitは簡易実装なので、Textコマンドのみを実行

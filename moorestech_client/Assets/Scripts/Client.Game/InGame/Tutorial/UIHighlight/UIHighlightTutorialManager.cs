@@ -1,5 +1,6 @@
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
+using Client.Game.InGame.UI.UIState;
 
 namespace Client.Game.InGame.Tutorial.UIHighlight
 {
@@ -14,6 +15,11 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             
             var objectId = highlightParam.HighLightUIObjectId;
             var text = highlightParam.HighLightText;
+            if (WebUiScreenGate.IsWebUiMode)
+            {
+                var anchorId = TutorialAnchorIdMapper.FromUiObjectId(objectId);
+                return TutorialPresentationStateStore.Instance.AddHighlight(anchorId, "spotlight", text);
+            }
             return SetHighLightTargetObject(highlightTutorialViewPrefab, highlightParent, objectId, text, false);
         }
         
