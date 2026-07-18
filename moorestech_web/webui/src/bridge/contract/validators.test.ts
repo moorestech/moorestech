@@ -70,6 +70,27 @@ describe("validMachineRecipes", () => {
   });
 });
 
+describe("validCraftRecipes", () => {
+  const recipe = {
+    recipeGuid: "recipe-guid", resultItemId: 2, resultCount: 1, craftTime: 0.5,
+    requiredItems: [{ itemId: 1, count: 3 }],
+  };
+
+  it("accepts complete recipe elements", () => {
+    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [recipe] })).toBe(true);
+  });
+
+  it("rejects recipe elements with a missing required field", () => {
+    const { craftTime: _, ...missingCraftTime } = recipe;
+    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [missingCraftTime] })).toBe(false);
+  });
+
+  it("rejects recipe elements with an invalid nested item type", () => {
+    const invalid = { ...recipe, requiredItems: [{ itemId: "1", count: 3 }] };
+    expect(validateTopicPayload(Topics.craftRecipes, { recipes: [invalid] })).toBe(false);
+  });
+});
+
 describe("validBuildMenu", () => {
   const entry = { entryType: "block", entryKey: "1", label: "鉄の機械", tooltip: "鉄の機械\n鉄インゴット x5", iconUrl: "/api/block-icons/1.png" };
   it("accepts icon and text entries", () => {

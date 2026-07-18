@@ -86,7 +86,7 @@ export type ActionPayloads = {
   "block_inventory.move_item": { from: BlockSlotRef; to: BlockSlotRef; count: number };
   "block_inventory.split": { from: BlockSlotRef };
   "block_inventory.collect": { slot: BlockSlotRef };
-  "ui_state.request": { state: "GameScreen" | "PlayerInventory" };
+  "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "research.complete": { researchGuid: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
   // clear:true は右クリック相当のフィルタ解除。clear:false は C# 側が Grab の持ち手アイテムを設定する
