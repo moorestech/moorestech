@@ -3,6 +3,7 @@ import { useItemMaster } from "@/bridge";
 import ItemIcon from "../ItemIcon";
 import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
+import { useI18n } from "@/shared/i18n";
 
 type Props = {
   itemId: number;
@@ -27,6 +28,7 @@ type Props = {
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
 export default function ItemSlot({ itemId, count, name, tooltip, selected, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, testId }: Props) {
+  const { t } = useI18n();
   const itemMaster = useItemMaster();
   const resolvedName = name ?? itemMaster?.get(itemId)?.name;
 
@@ -54,7 +56,7 @@ export default function ItemSlot({ itemId, count, name, tooltip, selected, catal
       >
         {hasItem ? (
           <>
-            <ItemIcon itemId={itemId} alt={resolvedName ?? `item ${itemId}`} className={styles.icon} />
+            <ItemIcon itemId={itemId} alt={resolvedName ?? t("item {itemId}", { itemId })} className={styles.icon} />
             {count !== undefined ? <span className={styles.count}>{count}</span> : null}
           </>
         ) : null}
