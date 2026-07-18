@@ -70,6 +70,8 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Inventory/Block/Research/ResearchTreeViewManager.cs", Category.GatedRoot, "研究ツリー"),
             new Rule("Client.Game/InGame/UI/BuildMenu/BuildMenuView.cs", Category.GatedRoot, "ビルドメニュー"),
             new Rule("Client.Game/InGame/UI/Blueprint/BlueprintNameInputView.cs", Category.GatedRoot, "ブループリント名入力"),
+            new Rule("Client.Game/InGame/UI/Challenge/ChallengeListView.cs", Category.GatedRoot, "チャレンジリスト/ツリー (C1)"),
+            new Rule("Client.Game/InGame/UI/Challenge/CurrentChallengeHudView.cs", Category.GatedRoot, "進行中チャレンジHUD (C1)"),
 
             // --- ルート配下 / Covered by roots
             new Rule("Client.Game/InGame/UI/Inventory", Category.CoveredByRoot, "移行済み画面の配下部品（Phase Dで全量最終監査）"),
@@ -82,8 +84,7 @@ namespace Client.Tests.WebUi.Gate
 
             // --- Phase待ち / Pending migration
             new Rule("Client.Game/InGame/UI/Inventory/Train", Category.Pending, "C3: 列車インベントリ"),
-            new Rule("Client.Game/InGame/UI/Challenge", Category.Pending, "C1: チャレンジ（ChallengeListUI系2枚はC1で死コード削除）"),
-            new Rule("Client.Game/InGame/UI/ChallengeList", Category.Pending, "C1: 空スタブ死コード（C1で削除）"),
+            new Rule("Client.Game/InGame/UI/Challenge", Category.CoveredByRoot, "ChallengeListView/CurrentChallengeHudView配下（C1移行済み）"),
             new Rule("Client.Game/InGame/UI/ContextMenu", Category.Pending, "C2: コンテキストメニュー"),
             new Rule("Client.Game/InGame/UI/Crosshair", Category.Pending, "C2: クロスヘア"),
             new Rule("Client.Game/InGame/UI/KeyControl", Category.Pending, "C2: キー操作ヒント"),
