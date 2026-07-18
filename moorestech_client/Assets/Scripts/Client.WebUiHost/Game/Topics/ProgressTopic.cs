@@ -17,8 +17,8 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly ProgressBarView _view;
-        private readonly IDisposable _subscription;
-        private bool _publishScheduled;
+        private readonly CompositeDisposable _subscriptions = new();
+        private bool _publishPending;
         private bool _disposed;
 
         public ProgressTopic(WebSocketHub hub, ProgressBarView view)
@@ -28,7 +28,11 @@ namespace Client.WebUiHost.Game.Topics
 
             // Show/Hide/SetProgress の変化を購読して push する
             // Subscribe to Show/Hide/SetProgress changes and push them
-            _subscription = _view.OnProgressChanged.Subscribe(_ => SchedulePublish());
+            _view.OnProgressChanged.Subscribe(_ => _publishPending = true).AddTo(_subscriptions);
+            Observable.Interval(TimeSpan.FromMilliseconds(100))
+                .Where(_ => _publishPending)
+                .Subscribe(_ => PublishSample())
+                .AddTo(_subscriptions);
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -39,28 +43,16 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose()
         {
             _disposed = true;
-            _subscription.Dispose();
+            _subscriptions.Dispose();
         }
 
-        // INFRA-7 デバウンス規約: 採掘中の毎フレーム SetProgress をフレーム末の1回に畳む
-        // INFRA-7 debounce rule: fold per-frame SetProgress during mining into one publish per frame
-        private void SchedulePublish()
+        // 連続値を100ms固定間隔でサンプリングし、区間内の最終値だけ配信する
+        // Sample continuous values every fixed 100ms and publish only the interval's final value
+        private void PublishSample()
         {
-            if (_publishScheduled) return;
-            _publishScheduled = true;
-            PublishAtEndOfFrame().Forget();
-
-            #region Internal
-
-            async UniTaskVoid PublishAtEndOfFrame()
-            {
-                await UniTask.Yield(PlayerLoopTiming.PostLateUpdate);
-                _publishScheduled = false;
-                if (_disposed) return;
-                _hub.Publish(TopicName, BuildJson());
-            }
-
-            #endregion
+            _publishPending = false;
+            if (_disposed) return;
+            _hub.Publish(TopicName, BuildJson());
         }
 
         private string BuildJson()

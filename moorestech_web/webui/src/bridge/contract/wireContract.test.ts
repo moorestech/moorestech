@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { validateTopicPayload } from "./validators";
 import { BENIGN_ERRORS } from "../transport/actions";
-import { Topics } from "../transport/protocol";
+import { TopicEnvelopeSchema, Topics } from "../transport/protocol";
 import type { PlayerInventoryData, BlockInventoryData, ProgressData, ModalData, UiStateData, ResearchTreeData, BuildMenuData } from "./payloadTypes";
 
 // C# NUnit(WireContractTest) と同一のフィクスチャを参照する単一ソース。TS 側は validators と型消費で契約を確認する
@@ -18,6 +18,11 @@ function loadFixture(name: string): unknown {
 }
 
 describe("wire contract fixtures (shared with C#)", () => {
+  it("topic envelope requires a non-negative revision", () => {
+    const envelope = TopicEnvelopeSchema.parse(loadFixture("topic_envelope.json"));
+    expect(envelope.revision).toBe(42);
+    expect(validateTopicPayload(envelope.topic, envelope.data)).toBe(true);
+  });
   it("inventory_snapshot が受理され型消費できる", () => {
     const data = loadFixture("inventory_snapshot.json");
     expect(validateTopicPayload(Topics.inventory, data)).toBe(true);
