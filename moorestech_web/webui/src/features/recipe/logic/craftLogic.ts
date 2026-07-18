@@ -50,3 +50,18 @@ export function buildRecipeTabs(
 export function craftable(recipe: CraftRecipe, counts: Map<number, number>): boolean {
   return hasEnoughItems(recipe.requiredItems, counts);
 }
+
+// 完成品ごとの最大制作数を集計する
+// Aggregate the maximum craftable result count per output item, matching uGUI ItemListView
+export function craftableResultCounts(recipes: CraftRecipe[], counts: Map<number, number>): Map<number, number> {
+  const result = new Map<number, number>();
+  for (const recipe of recipes) {
+    let times = Number.MAX_SAFE_INTEGER;
+    for (const required of recipe.requiredItems) {
+      times = Math.min(times, Math.floor((counts.get(required.itemId) ?? 0) / required.count));
+    }
+    const outputCount = times === Number.MAX_SAFE_INTEGER ? 0 : times * recipe.resultCount;
+    if (outputCount > (result.get(recipe.resultItemId) ?? 0)) result.set(recipe.resultItemId, outputCount);
+  }
+  return result;
+}

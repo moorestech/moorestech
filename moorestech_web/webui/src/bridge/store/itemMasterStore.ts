@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { ItemMasterData, ItemMasterEntry } from "../contract/payloadTypes";
 import { itemMasterUrl } from "../transport/httpEndpoints";
+import { useTopicStore } from "./topicStore";
 
 type ItemMasterState = {
   master: Map<number, ItemMasterEntry> | null;
@@ -18,6 +19,8 @@ export const useItemMasterStore = create<ItemMasterState>((set) => ({
 // Retry on a fixed interval independent of mounts (e.g. 503 before game start, network drop)
 const RETRY_INTERVAL_MS = 3000;
 let started = false;
+let loading = false;
+let reconnectObserved = false;
 
 // HTTP 由来の各アイテムに必須フィールド型が揃うことを検証する
 // Validate required field types for each item received over HTTP
@@ -49,7 +52,21 @@ function isItemMasterData(data: unknown): data is ItemMasterData {
 export function ensureItemMasterLoaded(): void {
   if (started) return;
   started = true;
-  void loadWithRetry();
+  useTopicStore.subscribe((state) => {
+    if (state.status === "reconnecting") reconnectObserved = true;
+    if (state.status === "restoring" && reconnectObserved) {
+      reconnectObserved = false;
+      void requestLoad();
+    }
+  });
+  void requestLoad();
+}
+
+async function requestLoad(): Promise<void> {
+  if (loading) return;
+  loading = true;
+  await loadWithRetry();
+  loading = false;
 }
 
 async function loadWithRetry(): Promise<void> {

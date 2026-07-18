@@ -10,14 +10,15 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
   insufficient?: boolean;
   onLeftDown?: (shiftKey: boolean) => void;
   onRightDown?: () => void;
+  onRightEnter?: () => void;
   onDoubleClick?: () => void;
   testId?: string;
 };
 
 // data属性と操作契約を集約する
 // Centralizes the slot frame data attributes and pointer gesture contract
-export function renderSlotFrame({ children, selected, filled, catalog, insufficient, onLeftDown, onRightDown, onDoubleClick, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
-  const slotMouse = useSlotMouse(onLeftDown, onRightDown);
+export function renderSlotFrame({ children, selected, filled, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onDoubleClick, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
+  const slotMouse = useSlotMouse(onLeftDown, onRightDown, onRightEnter);
   return (
     <div
       {...divProps}
@@ -29,6 +30,7 @@ export function renderSlotFrame({ children, selected, filled, catalog, insuffici
       data-catalog={catalog ? "true" : undefined}
       data-insufficient={insufficient ? "true" : undefined}
       onMouseDown={slotMouse.onMouseDown}
+      onMouseEnter={slotMouse.onMouseEnter}
       onDoubleClick={onDoubleClick}
       onContextMenu={slotMouse.onContextMenu}
     >
