@@ -70,20 +70,35 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         // 切断でsink解除・以後は破棄
-        // Disconnect unregisters the sink; later events drop
+        // Unregister removes the sink; later events drop
         [Test]
-        public void ListenDisconnectUnregistersSink()
+        public void UnregisterRemovesSink()
         {
             var provider = new EventProtocolProvider();
             var sink = new CapturedEventSink();
-            var disconnect = new Subject<int>();
-            provider.ListenDisconnect(disconnect);
             provider.RegisterPlayer(1, sink);
 
-            disconnect.OnNext(1);
+            provider.UnregisterPlayer(1, sink);
             provider.AddEvent(1, "va:event:test", new byte[] { 1 });
 
             Assert.AreEqual(0, sink.Events.Count);
+        }
+
+        // 旧接続の切断は再接続後の新sinkを解除しない（同一性照合）
+        // A stale disconnect must not remove a reconnected sink (identity check)
+        [Test]
+        public void StaleUnregisterDoesNotRemoveReconnectedSink()
+        {
+            var provider = new EventProtocolProvider();
+            var oldSink = new CapturedEventSink();
+            var newSink = new CapturedEventSink();
+            provider.RegisterPlayer(1, oldSink);
+            provider.RegisterPlayer(1, newSink);
+
+            provider.UnregisterPlayer(1, oldSink);
+            provider.AddEvent(1, "va:event:test", new byte[] { 1 });
+
+            Assert.AreEqual(1, newSink.Events.Count);
         }
     }
 }

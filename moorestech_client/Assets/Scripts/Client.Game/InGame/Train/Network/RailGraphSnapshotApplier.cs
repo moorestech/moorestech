@@ -28,8 +28,15 @@ namespace Client.Game.InGame.Train.Network
 
         public void ApplySnapshot(RailGraphSnapshotMessagePack snapshot)
         {
-            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot?.GraphTick ?? 0, snapshot?.GraphTickSequenceId ?? 0);
-            if (snapshot != null && unifiedId < _tickState.GetAppliedTickUnifiedId())
+            // ペイロード欠損のみ無視。空Nodesは「レール全消滅」の正当なfull snapshotとして適用する
+            // Skip only a missing payload; empty Nodes is a valid "all rails removed" full snapshot
+            if (snapshot?.Nodes == null)
+            {
+                return;
+            }
+
+            var unifiedId = TrainTickUnifiedIdUtility.CreateTickUnifiedId(snapshot.GraphTick, snapshot.GraphTickSequenceId);
+            if (unifiedId < _tickState.GetAppliedTickUnifiedId())
             {
                 // 遅延rail snapshotが既に適用済み範囲より古い場合は破棄する。
                 // Ignore delayed rail snapshots older than the applied sequence baseline.
@@ -40,23 +47,9 @@ namespace Client.Game.InGame.Train.Network
                 return;
             }
 
-            // スナップショットが空のときは何もしない
-            // Skip when snapshot payload is missing or empty
-            if (snapshot?.Nodes == null || snapshot.Nodes.Count == 0)
-            {
-                return;
-            }
-
-            // ノードと辺の最大IDを算出し、配列サイズを先に確定
-            // Determine the max node id before allocating buffers
+            // ノードの最大IDから配列サイズを確定（空snapshotはsize 0でキャッシュ全消去になる）
+            // Size buffers from the max node id; an empty snapshot yields size 0 and clears the cache
             var maxNodeId = ResolveMaxNodeId(snapshot);
-            if (maxNodeId < 0)
-            {
-                return;
-            }
-
-            // 事前確保したコンテナにノード情報を流し込み
-            // Populate prepared containers with node information
             var size = maxNodeId + 1;
             // まとめてキャッシュへ反映
             // Commit prepared data to cache

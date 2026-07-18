@@ -29,6 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             mapObject.Destroy();
             
             //map objectが破壊されたことを確かめる
+            //Verify the map object destruction event was delivered
             var events = sink.TakeAll();
             Assert.AreEqual(1, events.Count);
             

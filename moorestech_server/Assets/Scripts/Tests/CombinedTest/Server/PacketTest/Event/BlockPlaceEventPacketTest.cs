@@ -31,6 +31,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
         
         //ブロックを0個以上設置した時にブロック設置イベントが返ってくるテスト
+        //Placing one or more blocks must deliver a place event per block
         [Test]
         public void BlockPlaceEvent()
         {
@@ -64,10 +65,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             }
             
             
-            //イベントパケットをリクエストする
+            //捕捉済みイベントを取得する
+            //Take the captured events
             var events = sink.TakeAll();
             
             //返ってきたイベントパケットと設置したブロックを照合し、あったら削除する
+            //Match each event against the placed blocks and remove matches
             foreach (var r in events)
             {
                 var b = AnalysisResponsePacket(r.Payload);

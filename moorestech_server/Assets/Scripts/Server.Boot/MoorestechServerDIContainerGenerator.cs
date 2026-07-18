@@ -251,12 +251,6 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // 切断時にsinkを自動解除する配線
-            // Wire sink auto-unregistration on disconnect
-            var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
-            var playerConnectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
-            eventProtocolProvider.ListenDisconnect(playerConnectionRegistry.OnPlayerDisconnected);
-
             // tick更新処理を登録する。順序は固定: ①電力tick（先頭でワイヤートポロジ反映） ②gear tick（先頭でgearトポロジ反映）
             // Register tick update handlers in fixed order: 1) electric tick (wire topology flush at its head) 2) gear tick (gear topology flush at its head)
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);

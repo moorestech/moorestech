@@ -36,19 +36,17 @@ namespace Server.Event
             _playerEventStreamRegistered.OnNext(playerId);
         }
 
-        public void UnregisterPlayer(int playerId)
+        public void UnregisterPlayer(int playerId, IPlayerEventSink sink)
         {
             lock (_lock)
             {
-                _sinks.Remove(playerId);
+                // 現役sinkと一致する場合のみ解除。同一playerId再接続後に旧接続の切断が新sinkを壊さないため
+                // Remove only the matching sink so a stale disconnect never clobbers a reconnected sink
+                if (_sinks.TryGetValue(playerId, out var current) && ReferenceEquals(current, sink))
+                {
+                    _sinks.Remove(playerId);
+                }
             }
-        }
-
-        // 切断通知を購読してsinkを自動解除する（boot時にDIで配線）
-        // Subscribe disconnect notifications to auto-unregister sinks (wired at boot)
-        public void ListenDisconnect(IObservable<int> onPlayerDisconnected)
-        {
-            onPlayerDisconnected.Subscribe(UnregisterPlayer);
         }
 
         public void AddEvent(int playerId, string tag, byte[] payload)

@@ -34,6 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             playerInventoryData.MainOpenableInventory.SetItem(5, itemStackFactory.Create(new ItemId(1), 5));
             
             //追加時のイベントのキャッチ
+            //Capture the event fired by the item addition
             var events = sink.TakeAll();
             var data = MessagePackSerializer.Deserialize<MainInventoryUpdateEventMessagePack>(events[0].Payload);
             Assert.AreEqual(5, data.Slot);

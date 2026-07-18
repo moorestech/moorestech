@@ -144,10 +144,14 @@ namespace Client.Game.InGame.Train.View
                 var ackResult = await api.SendTrainResync(includeRailGraph, cts.Token).SuppressCancellationThrow();
                 if (ackResult.IsCanceled || ackResult.Result == null)
                 {
-                    // ack失敗（タイムアウト等）はゲートを解放して次回のhash検証で再試行する
-                    // On ack failure (e.g. timeout) release the gate and let the next hash check retry
-                    Debug.LogWarning("[TrainUnitHashVerifier] Resync trigger failed. Releasing gate for retry.");
-                    ReleaseResyncGate();
+                    // ack失敗時は自要求が現役の場合のみゲート解放。後続resync要求の状態を旧要求が壊さないため
+                    // On ack failure release only if this request still owns the gate; never clobber a newer resync
+                    if (Interlocked.CompareExchange(ref _resyncCancellation, null, cts) == cts)
+                    {
+                        Debug.LogWarning("[TrainUnitHashVerifier] Resync trigger failed. Releasing gate for retry.");
+                        cts.Dispose();
+                        Interlocked.Exchange(ref _resyncInProgress, 0);
+                    }
                 }
             }
             #endregion

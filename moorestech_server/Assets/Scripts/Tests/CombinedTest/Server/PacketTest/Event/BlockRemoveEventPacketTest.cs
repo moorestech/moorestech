@@ -32,7 +32,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             serviceProvider.GetService<PlaceBlockEventPacket>().Load();
 
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 0);
-            //イベントキューにIDを登録する
+            //捕捉sinkを登録し初期分を空にする
+            //Register the capture sink and drain initial events
             Assert.AreEqual(0, sink.TakeAll().Count);
             var worldBlock = ServerContext.WorldBlockDatastore;
             var blockFactory = ServerContext.BlockFactory;
@@ -44,14 +45,17 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             BlockPlace(1, 4, 4, worldBlock, blockFactory);
             
             //イベントを取得
+            //Take the captured events
             var events = sink.TakeAll();
             Assert.AreEqual(4, events.Count);
             
             var worldDataStore = ServerContext.WorldBlockDatastore;
             //一個ブロックを削除
+            //Remove one block
             worldDataStore.RemoveBlock(new Vector3Int(4, 0), BlockRemoveReason.ManualRemove);
             
             //イベントを取得
+            //Take the captured events
             events = sink.TakeAll();
             
             Assert.AreEqual(1, events.Count);
@@ -60,9 +64,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(0, pos.y);
             
             //二個ブロックを削除
+            //Remove two more blocks
             worldDataStore.RemoveBlock(new Vector3Int(3, 1), BlockRemoveReason.ManualRemove);
             worldDataStore.RemoveBlock(new Vector3Int(1, 4), BlockRemoveReason.ManualRemove);
             //イベントを取得
+            //Take the captured events
             events = sink.TakeAll();
             Assert.AreEqual(2, events.Count);
             pos = AnalysisResponsePacket(events[0].Payload);
