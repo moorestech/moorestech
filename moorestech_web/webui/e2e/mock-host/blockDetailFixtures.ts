@@ -116,3 +116,23 @@ export const blockFilterSplitter = {
     ],
   },
 } satisfies BlockInventoryData;
+
+// 回転生成機の動的fixture
+// B1 electric-to-gear converter: master-ordered modes and dynamic StateDetail values
+export const blockElectricToGear = {
+  open: true,
+  blockType: "ElectricToGearGenerator",
+  identifier: "block:10",
+  blockName: "回転生成機",
+  itemSlots: [],
+  fluidSlots: [],
+  electricToGear: {
+    selectedIndex: 1,
+    fulfillmentRate: 0.75,
+    consumedElectricPower: 10,
+    outputModes: [
+      { rpm: 10, torque: 10, requiredPower: 10 },
+      { rpm: 20, torque: 20, requiredPower: 10 },
+    ],
+  },
+} satisfies BlockInventoryData;

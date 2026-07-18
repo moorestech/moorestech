@@ -28,9 +28,12 @@ namespace Client.WebUiHost.Game.Topics
         private readonly SubInventoryState _subInventoryState;
         private readonly BlockNetworkInfoCache _networkCache = new();
         private readonly IDisposable _subInventorySubscription;
+        private readonly IDisposable _continuousSampleSubscription;
         private BlockGameObject _trackedBlock;
         private IDisposable _blockStateSubscription;
         private bool _publishScheduled;
+        private bool _continuousSamplePending;
+        private bool _sampleContinuously;
         private bool _disposed;
 
         // Task 8 の action handler がスナップショット反映に使う公開口
@@ -50,6 +53,11 @@ namespace Client.WebUiHost.Game.Topics
             // ネットワーク取得完了でも再配信する
             // Republish when a network fetch completes
             _networkCache.OnUpdated += SchedulePublish;
+            // ギア連続値を4tick間隔で配信する
+            // Sample RPM/torque and other continuous values every four ticks, publishing only the latest state
+            _continuousSampleSubscription = Observable.IntervalFrame(4)
+                .Where(_ => _continuousSamplePending)
+                .Subscribe(_ => PublishContinuousSample());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -62,6 +70,7 @@ namespace Client.WebUiHost.Game.Topics
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _subInventorySubscription.Dispose();
+            _continuousSampleSubscription.Dispose();
             _networkCache.OnUpdated -= SchedulePublish;
             TrackBlock(null);
         }
@@ -69,6 +78,18 @@ namespace Client.WebUiHost.Game.Topics
         private void OnStateChanged(UIStateEnum state)
         {
             SchedulePublish();
+        }
+
+        private void PublishContinuousSample()
+        {
+            _continuousSamplePending = false;
+            SchedulePublish();
+        }
+
+        private void OnTrackedBlockStateChanged()
+        {
+            if (_sampleContinuously) _continuousSamplePending = true;
+            else SchedulePublish();
         }
 
         // INFRA-7 デバウンス規約: 中間状態を畳んでフレーム末に一度だけ全量配信する
@@ -151,6 +172,7 @@ namespace Client.WebUiHost.Game.Topics
             _trackedBlock = block;
             if (block == null)
             {
+                _sampleContinuously = false;
                 _networkCache.Clear();
                 return;
             }
@@ -158,13 +180,17 @@ namespace Client.WebUiHost.Game.Topics
             // uGUI BlockGameObject と同じ per-block イベントタグを直接購読して再配信トリガにする
             // Directly subscribe the same per-block event tag as uGUI BlockGameObject as the republish trigger
             var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
-            _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(eventTag, _ => SchedulePublish());
+            _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
+                eventTag,
+                _ => OnTrackedBlockStateChanged());
 
             var blockType = block.BlockMasterElement.BlockType;
             // ネットワーク集約の要否は blockType で決める（spec §2-a の組み合わせ表）
             // Whether to fetch network aggregates is decided by blockType (spec §2-a combination table)
-            var electric = blockType is "ElectricMachine" or "ElectricGenerator" or "ElectricMiner";
-            var gear = blockType is "GearMachine" or "GearMiner" or "FuelGearGenerator" or "SimpleGearGenerator";
+            var electric = blockType is "ElectricMachine" or "ElectricGenerator" or "ElectricMiner" or "ElectricToGearGenerator";
+            var gear = blockType is "GearMachine" or "GearMiner" or "FuelGearGenerator" or "SimpleGearGenerator"
+                or "Shaft" or "Gear" or "GearBeltConveyor" or "ElectricToGearGenerator";
+            _sampleContinuously = gear;
             var filterSplitter = blockType == "FilterSplitter";
             _networkCache.Track(block, electric, gear, filterSplitter);
         }
