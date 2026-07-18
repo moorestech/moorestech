@@ -7,6 +7,7 @@ import { send, clone } from "./wire";
 import { received, state, blockSubscribers, modalSubscribers, uiStateSubscribers, researchTreeSubscribers, gameStateSubscribers, skitSubscribers, trainRidingSubscribers, connections } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft } from "./inventoryModel";
 import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
+import { applySkitAction } from "./skitActions";
 // 本番 dispatcher が受理する既知 action type。protocol.ts から導出し二重定義を排除する
 // Action types the real dispatcher accepts, derived from protocol.ts to kill the duplicate list
 const KNOWN_ACTIONS = new Set<string>(ACTION_TYPES);
@@ -92,6 +93,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (topic === Topics.modal) modalSubscribers.delete(ws);
           if (topic === Topics.uiState) uiStateSubscribers.delete(ws);
           if (topic === Topics.researchTree) researchTreeSubscribers.delete(ws);
+          if (topic === Topics.skitPresentation) skitSubscribers.delete(ws);
           if (topic === Topics.trainRiding) trainRidingSubscribers.delete(ws);
         }
         return;
@@ -101,11 +103,14 @@ export function attachWsHandlers(wss: WebSocketServer) {
         // ack は実 host 同様 apply 後に確定し、topic event は数十ms 後に別経路で push（stale grab 再現）
         // ack is decided after apply like the real host; the topic event is pushed later on a separate channel
         let error: string | undefined;
+        let skitActionResult: string | null | undefined;
         if (state.injectedActionError?.type === msg.type) {
           error = state.injectedActionError.error;
           state.injectedActionError = null;
         } else if (msg.type === "fail.always") {
           error = "mock_error";
+        } else if ((skitActionResult = applySkitAction(msg.type, msg.payload)) !== null) {
+          error = skitActionResult ?? undefined;
         } else if (msg.type === "inventory.move_item") {
           // 状態が変化したときだけ topic event を流す（host の失敗は packet を出さない）
           // Emit a topic event only when state changed (the host's failed move sends no packet)

@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Client.Skit.Context;
 using Client.Skit.Skit;
+using Client.Skit.UI;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -24,6 +25,14 @@ namespace CommandForgeGenerator.Command
             
             var skitUi = storyContext.GetSkitUI();
             var skitActionContext = storyContext.GetService<ISkitActionContext>();
+            var presentationMode = storyContext.GetService<SkitPresentationMode>();
+
+            // Webモードでは全文snapshotをpushし、Unity側のintent待機だけを行う
+            // In Web mode, push the full snapshot and wait only for a Unity-owned intent
+            if (presentationMode.WebUiEnabled)
+            {
+                return await ExecuteWebPresentationAsync(characterName, skitActionContext);
+            }
             
             if (skitActionContext.IsSkip)
             {
@@ -76,6 +85,34 @@ namespace CommandForgeGenerator.Command
                 
                 await UniTask.Yield();
             }
+
+            #region Internal
+
+            async UniTask<CommandResultContext> ExecuteWebPresentationAsync(
+                string speakerName, ISkitActionContext actionContext)
+            {
+                var store = SkitPresentationStateStore.Instance;
+                store.PresentBlockingText(speakerName, Body);
+                var advanceWait = store.WaitForAdvanceAsync();
+
+                // ボイスは従来どおりUnity AudioSourceで再生する
+                // Keep voice playback on the existing Unity AudioSource path
+                var clip = storyContext.GetVoiceDefine().GetVoiceClip(CharacterId, Body);
+                var skitCharacter = storyContext.GetCharacter(CharacterId);
+                if (clip != null) skitCharacter.PlayVoice(clip);
+
+                if (actionContext.IsSkip)
+                {
+                    await UniTask.Delay(TimeSpan.FromSeconds(SkipDuration));
+                    var current = store.GetCurrent();
+                    store.TryAdvance(current.SessionId, current.SceneRevision);
+                }
+
+                await advanceWait;
+                return null;
+            }
+
+            #endregion
         }
     }
 }

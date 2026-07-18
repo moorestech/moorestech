@@ -16,7 +16,7 @@ import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { ContextMenu } from "@/shared/contextMenu";
-import { BackgroundSkit } from "@/features/skit";
+import { SkitPresentation } from "@/features/skit";
 import { TutorialOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
@@ -104,7 +104,7 @@ export default function App() {
       <Portal>
         <ToastHost />
         <CurrentChallengeHud />
-        <BackgroundSkit />
+        <SkitPresentation />
         <TutorialOverlay />
       </Portal>
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}

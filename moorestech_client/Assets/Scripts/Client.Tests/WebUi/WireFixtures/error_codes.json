@@ -23,6 +23,10 @@
     "block_not_open",
     "invalid_direction",
     "filter_request_failed",
-    "unknown_entry"
+    "unknown_entry",
+    "stale_session",
+    "stale_revision",
+    "intent_not_allowed",
+    "unknown_choice"
   ]
 }

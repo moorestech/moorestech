@@ -14,6 +14,7 @@
         "Core.Master",
         "Server.Protocol",
         "UniTask",
+        "UniRx",
         "Client.Starter",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
@@ -30,6 +31,7 @@
         "Core.Update",
         "Core.Inventory",
         "Client.WebUiHost",
+        "Client.Skit",
         "Game.UnlockState"
     ],
     "includePlatforms": [

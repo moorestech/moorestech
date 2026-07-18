@@ -1,39 +1,39 @@
+using System;
+using Client.Game.InGame.Tutorial;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
-    public class TutorialPresentationTopic : ITopicHandler
+    public class TutorialPresentationTopic : ITopicHandler, IDisposable
     {
         public const string TopicName = "tutorial.presentation";
-        public static TutorialPresentationDto Current { get; } = new()
+        private readonly WebSocketHub _hub;
+        private readonly TutorialPresentationStateStore _store;
+        private readonly IDisposable _subscription;
+
+        public TutorialPresentationTopic(WebSocketHub hub)
         {
-            TutorialSessionId = "", Revision = 0, ChallengeId = "",
-            Highlights = System.Array.Empty<TutorialHighlightDto>()
-        };
+            _hub = hub;
+            _store = TutorialPresentationStateStore.Instance;
+            _subscription = _store.ObserveChanged().Subscribe(Publish);
+        }
 
         public UniTask<string> GetSnapshotJsonAsync()
         {
-            return UniTask.FromResult(WebUiJson.Serialize(Current));
+            return UniTask.FromResult(WebUiJson.Serialize(_store.GetCurrent()));
         }
-    }
 
-    public class TutorialPresentationDto
-    {
-        public string TutorialSessionId;
-        public int Revision;
-        public string ChallengeId;
-        public TutorialHighlightDto[] Highlights;
-    }
+        public void Dispose()
+        {
+            _subscription.Dispose();
+        }
 
-    public class TutorialHighlightDto
-    {
-        public string HighlightId;
-        public string AnchorId;
-        public string Kind;
-        public string Message;
-        public int PaddingPx;
-        public bool BlocksPointerInput;
+        private void Publish(TutorialPresentationData data)
+        {
+            _hub.Publish(TopicName, WebUiJson.Serialize(data));
+        }
     }
 }

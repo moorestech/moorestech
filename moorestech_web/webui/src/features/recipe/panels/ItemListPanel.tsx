@@ -7,6 +7,7 @@ import { buildOwnedCounts } from "@/shared/ownedCounts";
 import { useItemSelectionStore } from "../logic/selectionStore";
 import { craftableResultCounts } from "../logic/craftLogic";
 import styles from "./ItemListPanel.module.css";
+import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
 
 // 固定pxで6列のピッチを均一化する
 // Use fixed-pixel tracks and gaps to keep all six catalog columns on a uniform 140px screenshot pitch
@@ -55,13 +56,14 @@ export default function ItemListPanel() {
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (
-              <ItemSlot
-                key={id}
-                itemId={id}
-                count={craftableCounts.get(id) ?? 0}
-                catalog
-                onLeftDown={() => onSelect(id)}
-              />
+              <div key={id} {...tutorialAnchor(`recipe.item-${id}` as AnchorId)}>
+                <ItemSlot
+                  itemId={id}
+                  count={craftableCounts.get(id) ?? 0}
+                  catalog
+                  onLeftDown={() => onSelect(id)}
+                />
+              </div>
             ))}
           </SlotGrid>
         </ScrollArea.Autosize>
