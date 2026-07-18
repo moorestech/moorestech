@@ -16,8 +16,8 @@ namespace Client.Tests.Removal
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(InventoryPrefabPath);
             Assert.IsNotNull(prefab, InventoryPrefabPath);
 
-            // 旧ルート名と表示文言の両方から残骸を検知する
-            // Detect remnants through both legacy root names and visible text
+            // 旧ルート名と表示文言で残骸を検知
+            // Detect remnants by legacy root names and visible text
             var obsoleteObjects = prefab.GetComponentsInChildren<Transform>(true)
                 .Where(IsObsoleteCraftTreeObject)
                 .Select(BuildHierarchyPath)
