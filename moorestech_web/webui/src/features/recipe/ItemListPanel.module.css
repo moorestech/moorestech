@@ -12,6 +12,13 @@
   background: rgb(12 10 12 / 62%);
 }
 
+/* 左端のクリップ領域だけ3層リング分広げ、グリッド本体の絶対位置は維持する */
+/* Widen only the left clipping region by the three-layer ring while preserving the grid's absolute position */
+.scrollArea :global(.mantine-ScrollArea-viewport) {
+  box-sizing: border-box;
+  padding-left: 3.131498px;
+}
+
 /* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */
 /* Thumb size stays content-driven (DEMO's 60 items = 10 rows yield the reference's ~70% track ratio) */
 .scrollArea :global(.mantine-ScrollArea-thumb) {

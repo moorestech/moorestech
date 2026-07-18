@@ -49,7 +49,7 @@ export default function ItemListPanel() {
           type="always"
           scrollbarSize={4}
           className={styles.scrollArea}
-          style={{ marginLeft: -0.43, marginRight: 4.435, marginTop: 12 }}
+          style={{ marginLeft: -3.561498, marginRight: 4.435, marginTop: 12 }}
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (
