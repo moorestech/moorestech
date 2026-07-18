@@ -60,7 +60,7 @@
 
 **結果: 表示成功。** MainGame シーン上の無効化済み `GameSystem/MainGameUI/CefUnity` インスタンスを uloop execute-dynamic-code で操作（`_url` を `http://localhost:5173/` に書き換え → コンポーネント enable → `SetActive(true)`）し、ゲーム内 RawImage 上に moorestech Web UI（ヘッダ・Ping Action・インベントリグリッド・Craft パネル約80レシピ、すべてアイコン付き）が描画されることを GameView スクリーンショットで確認した（`/tmp/cef-smoke.png`）。accelerated paint（macOS IOSurface/Metal 経路）が有効（`acceleratedPaint=True`、1224x650 外部テクスチャ）で、色味の異常（sRGB washout）は見られなかった。CEF 関連の Error/Warning ログはゼロ。
 
-**最大の発見（要恒久対応）: UPM git パッケージは Git LFS を解決しない。** `jp.juha.cefunitysample`（`KurisuJuha/cef-unity-moorestech.git?path=/Assets/CefUnity`）の macOS バイナリ（`libcef_unity_rust.dylib`・`cef-unity-server.app` 一式、実体296MB）は LFS 管理のため、PackageCache には**131バイトの LFS ポインタテキスト**しか入っておらず、素の状態では `DllNotFoundException: cef_unity_rust` で必ず初期化失敗する（.meta も LFS ポインタでプラグインインポート自体が無効）。今回の回避手順: ロック済みリビジョン 3ddfc60 を `git clone` + `git lfs pull --include "Assets/CefUnity/Interop/Plugins/osx-arm64/**"` → PackageCache に実バイナリと .meta を上書き → `AssetDatabase.ImportAsset(ForceUpdate)` でプラグイン再インポート（`isNative=True / editorCompatible=True` 確認）→ **Play mode 再突入（ドメインリロード）**。Mono は DllImport 解決失敗を同一ドメイン内でキャッシュするため、バイナリ修復後も再リトライ・絶対パス dlopen 先読みでは復活せず、ドメインリロードが必須だった。恒久対応の選択肢: パッケージ側で LFS をやめる / バイナリを別配布してローカルコピーする / embedded package 化。
+**最大の発見（当時）:** Git LFS 設定不足により、CEF の macOS バイナリが PackageCache で131バイトのポインタテキストのまま残り、`DllNotFoundException` が発生した。当時は手動修復で調査を継続したが、その操作手順は廃止済み。現在の根本原因、採用方式、復旧手順は `../design/cef-binary-integration.md` と `scripts/setup-cef.*` を正とする。
 
 **その他の観察事項:**
 - prefab 上は GameObject の `m_IsActive: 0` に加えて `CefUnityBrowserSample` コンポーネント自体も `enabled: false`。有効化は両方必要。
