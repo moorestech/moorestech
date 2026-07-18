@@ -4,4 +4,8 @@ export const registeredBlockTypes = [
   "Gear",
   "GearBeltConveyor",
   "ElectricToGearGenerator",
+  "TrainStation",
+  "TrainItemPlatform",
+  "TrainFluidPlatform",
+  "ElectricPole",
 ] as const;

@@ -30,12 +30,11 @@ export function setDictionaries(
 export function createTranslator(current: I18nSnapshot) {
   return (key: string, values: InterpolationValues = {}): string => {
     const template = current.dictionary[key] ?? current.fallbackDictionary[key];
-    if (template === undefined) {
-      console.warn(`[i18n] Missing translation key: ${key}`);
-      return key;
-    }
+    if (template === undefined) console.warn(`[i18n] Missing translation key: ${key}`);
 
-    return template.replace(/\{([^{}]+)\}/g, (token, name: string) =>
+    // 未登録keyもkey文字列をテンプレートとして補間する（移行期のkey=原文運用を成立させる）
+    // Interpolate the key itself when unregistered so the transitional key-as-source-text style works
+    return (template ?? key).replace(/\{([^{}]+)\}/g, (token, name: string) =>
       Object.hasOwn(values, name) ? String(values[name]) : token);
   };
 }

@@ -1,0 +1,22 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "TrainItemPlatform",
+  "identifier": "(6, 0, 4)",
+  "blockName": "貨物プラットフォーム",
+  "itemSlots": [
+    {
+      "itemId": 3,
+      "count": 12
+    },
+    {
+      "itemId": 0,
+      "count": 0
+    }
+  ],
+  "fluidSlots": [],
+  "trainPlatform": {
+    "mode": "loadToTrain",
+    "itemSlotCount": 2
+  }
+}
