@@ -12,6 +12,14 @@ using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.UnlockState;
+using Client.Game.InGame.Presenter.PauseMenu;
+using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.Electric;
+using Client.Game.InGame.UI.KeyControl;
+using Client.Game.InGame.UI.Crosshair;
+using Client.Game.InGame.Mining;
+using Client.Game.InGame.UI.Tooltip;
+using Client.Game.InGame.UI.ContextMenu;
 using VContainer;
 
 namespace Client.WebUiHost.Game
@@ -77,6 +85,44 @@ namespace Client.WebUiHost.Game
             var localizationTopic = new LocalizationTopic(hub);
             hub.RegisterTopic(LocalizationTopic.TopicName, localizationTopic);
 
+            // ポーズメニューの切断表示を登録する
+            // Register the pause-menu disconnect presentation
+            var networkDisconnectPresenter = resolver.Resolve<NetworkDisconnectPresenter>();
+            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectPresenter);
+            hub.RegisterTopic(PauseMenuTopic.TopicName, pauseMenuTopic);
+
+            // 設置モードHUDを既存の設置状態と給電範囲へ接続する
+            // Connect the placement HUD to the existing placement state and energized range
+            var placementModeTopic = new PlacementModeTopic(hub, resolver.Resolve<PlaceSystemStateController>(),
+                resolver.Resolve<PlaceBlockState>(), resolver.Resolve<DisplayEnergizedRange>());
+            hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
+
+            // 削除可否理由を削除HUDへ配信する
+            // Publish delete denial reasons to the delete HUD
+            var deleteModeTopic = new DeleteModeTopic(hub, resolver.Resolve<DeleteObjectState>());
+            hub.RegisterTopic(DeleteModeTopic.TopicName, deleteModeTopic);
+
+            // 状態外の共通HUDを各既存ビューの変更通知へ接続する
+            // Connect state-independent HUD topics to the existing view notifications
+            hub.RegisterTopic(KeyHintsTopic.TopicName, new KeyHintsTopic(hub, KeyControlDescription.Instance));
+            hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, CrosshairView.Instance));
+            hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, UIRoot.Instance));
+
+            // 直接採掘HUDを固定間隔サンプリングTopicへ接続する
+            // Connect direct-mining HUD state to a fixed-interval sampled topic
+            hub.RegisterTopic(MiningHudTopic.TopicName, new MiningHudTopic(hub, resolver.Resolve<MapObjectMiningController>()));
+
+            // uGUI/3D由来のツールチップを共通Web基盤へ接続する
+            // Connect uGUI/3D tooltip sources to the shared web tooltip foundation
+            hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, MouseCursorTooltip.Instance));
+
+            // コンテキストメニュー項目と既存callbackをTopic/Actionへ接続する
+            // Connect context-menu items and existing callbacks through Topic/Action
+            var contextMenuView = ContextMenuView.Instance;
+            hub.RegisterTopic(ContextMenuTopic.TopicName, new ContextMenuTopic(hub, contextMenuView));
+            hub.RegisterAction(new ContextMenuSelectActionHandler(contextMenuView));
+            hub.RegisterAction(new ContextMenuCloseActionHandler(contextMenuView));
+
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic
             var unlockStateData = ClientDIContext.DIContainer
@@ -135,6 +181,8 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, unlockStateData, blueprintLibrary, buildMenuView));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
+            hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
+            hub.RegisterAction(new PauseMenuBackToMainMenuActionHandler(resolver.Resolve<BackToMainMenu>()));
         }
     }
 }

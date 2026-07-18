@@ -12,6 +12,15 @@ import {
   ResearchTreeDataSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  PauseMenuDataSchema,
+  PlacementModeDataSchema,
+  DeleteModeDataSchema,
+  KeyHintsDataSchema,
+  CrosshairDataSchema,
+  UiVisibilityDataSchema,
+  MiningHudDataSchema,
+  TooltipDataSchema,
+  ContextMenuDataSchema,
 } from "./schemas";
 
 type TopicSchemaRegistry = {
@@ -32,6 +41,15 @@ const topicSchemas = {
   [Topics.researchTree]: ResearchTreeDataSchema,
   [Topics.buildMenu]: BuildMenuDataSchema,
   [Topics.localization]: LocalizationDataSchema,
+  [Topics.pauseMenu]: PauseMenuDataSchema,
+  [Topics.placementMode]: PlacementModeDataSchema,
+  [Topics.deleteMode]: DeleteModeDataSchema,
+  [Topics.keyHints]: KeyHintsDataSchema,
+  [Topics.crosshair]: CrosshairDataSchema,
+  [Topics.uiVisibility]: UiVisibilityDataSchema,
+  [Topics.miningHud]: MiningHudDataSchema,
+  [Topics.tooltip]: TooltipDataSchema,
+  [Topics.contextMenu]: ContextMenuDataSchema,
 } satisfies TopicSchemaRegistry;
 
 // 既知topicはsafeParseで検証し、未知topicは従来どおり素通しする

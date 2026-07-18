@@ -1,4 +1,7 @@
 using UnityEngine;
+using System;
+using Client.Game.InGame.UI.UIState;
+using UniRx;
 
 namespace Client.Game.InGame.UI.Crosshair
 {
@@ -12,6 +15,10 @@ namespace Client.Game.InGame.UI.Crosshair
         public static CrosshairView Instance => _instance;
 
         [SerializeField] private GameObject dotObject;
+        private readonly ReactiveProperty<bool> _visible = new(false);
+
+        public IObservable<bool> OnVisibleChanged => _visible;
+        public bool IsVisible() => _visible.Value;
 
         private void Awake()
         {
@@ -21,7 +28,8 @@ namespace Client.Game.InGame.UI.Crosshair
 
         public void SetVisible(bool visible)
         {
-            dotObject.SetActive(visible);
+            _visible.Value = visible;
+            dotObject.SetActive(visible && !WebUiScreenGate.IsWebUiMode);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -25,6 +26,10 @@ namespace Client.Game.InGame.Electric
         [Inject] private PlaceSystemStateController _placeSystemStateController;
 
         private bool isBlockPlaceState;
+        private readonly ReactiveProperty<bool> _isRangeVisible = new(false);
+
+        public IObservable<bool> OnRangeVisibleChanged => _isRangeVisible;
+        public bool IsRangeVisible() => _isRangeVisible.Value;
 
         [Inject]
         public void Construct(UIStateControl uiStateControl)
@@ -61,6 +66,7 @@ namespace Client.Game.InGame.Electric
         {
             foreach (var rangeObject in rangeObjects) Destroy(rangeObject.gameObject);
             rangeObjects.Clear();
+            _isRangeVisible.Value = false;
         }
         
         
@@ -89,6 +95,7 @@ namespace Client.Game.InGame.Electric
                 rangeObject.SetRange(horizontalRange, heightRange);
                 rangeObjects.Add(rangeObject);
             }
+            _isRangeVisible.Value = rangeObjects.Count > 0;
             
             #region Internal
 

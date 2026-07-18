@@ -19,6 +19,18 @@ namespace Client.Game.InGame.Mining
         
         private IMapObjectMiningState _currentState;
         private MapObjectMiningControllerContext _context;
+
+        public string GetFocusTargetName()
+        {
+            return _context?.CurrentFocusMapObjectGameObject?.MapObjectMasterElement?.Name ?? "";
+        }
+
+        public bool IsMining() => _currentState is MapObjectMiningMiningState;
+
+        public float GetMiningProgress()
+        {
+            return _currentState is MapObjectMiningMiningState mining ? mining.GetProgress() : 0;
+        }
         
         [Inject]
         public void Constructor(ILocalPlayerInventory localPlayerInventory, HotBarView hotBarView)
