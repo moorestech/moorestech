@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void ExtendPlacesConnectsAndConsumesItems()
         {
-            _helper.SetInventory(5, 3);
+            _helper.SetInventory(15, 3);
             var placePos = new Vector3Int(3, 0, 0);
             var response = _helper.SendExtend(placePos);
 
@@ -48,14 +48,14 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 距離3分のチェーンと建設コスト(Test3 x2)の消費を検証する
             // Verify consumption of 3 chains (distance) and the construction cost (Test3 x2)
-            Assert.AreEqual(2, _helper.CountItem(_helper.ChainItemId));
+            Assert.AreEqual(5, _helper.CountItem(_helper.ChainItemId));
             Assert.AreEqual(1, _helper.CountItem(_helper.MaterialItemId));
         }
 
         [Test]
         public void IsolatedPlaceDoesNotConnectOrConsumeChain()
         {
-            _helper.SetInventory(5, 3);
+            _helper.SetInventory(15, 3);
             var placePos = new Vector3Int(5, 0, 5);
             var response = _helper.SendIsolated(placePos);
 
@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(ServerContext.WorldBlockDatastore.Exists(placePos));
             GearChainSystemUtil.TryGetGearChainPole(placePos, out _, out var transformer);
             Assert.IsEmpty(transformer.GetGearConnects());
-            Assert.AreEqual(5, _helper.CountItem(_helper.ChainItemId));
+            Assert.AreEqual(15, _helper.CountItem(_helper.ChainItemId));
             Assert.AreEqual(1, _helper.CountItem(_helper.MaterialItemId));
         }
 
@@ -79,8 +79,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void ExtendFailsWithoutChainItem()
         {
-            _helper.SetInventory(2, 3);
-            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementEvaluator.NoItemError, 2, 3);
+            _helper.SetInventory(9, 3);
+            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementEvaluator.NoItemError, 9, 3);
         }
 
         [Test]
@@ -88,8 +88,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 素材(建設コスト)を持たない場合はInsufficientItemsで失敗し状態不変
             // Without the materials (construction cost), it fails with InsufficientItems and leaves no state change
-            _helper.SetInventory(5, 0);
-            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementEvaluator.InsufficientItemsError, 5, 0);
+            _helper.SetInventory(10, 0);
+            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(3, 0, 0), GearChainPlacementEvaluator.InsufficientItemsError, 10, 0);
         }
 
         [Test]
@@ -97,14 +97,14 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 未解放ポールブロックIDを送るとNotUnlockedで失敗し状態不変
             // Sending a locked pole BlockId fails with NotUnlocked and leaves no state change
-            _helper.SetInventory(5, 3);
+            _helper.SetInventory(10, 3);
             var placePos = new Vector3Int(3, 0, 0);
             var response = _helper.SendExtendWithBlock(placePos, ForUnitTestModBlockId.LockedGearChainPole);
 
             Assert.False(response.IsSuccess);
             Assert.AreEqual(GearChainPlacementEvaluator.NotUnlockedError, response.Error);
             Assert.False(ServerContext.WorldBlockDatastore.Exists(placePos));
-            Assert.AreEqual(5, _helper.CountItem(_helper.ChainItemId));
+            Assert.AreEqual(10, _helper.CountItem(_helper.ChainItemId));
             Assert.AreEqual(3, _helper.CountItem(_helper.MaterialItemId));
         }
 
@@ -113,28 +113,28 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 起点ポールを上限(2)まで接続してから延長を試みる
             // Fill the source pole to its limit (2) then attempt extension
-            _helper.SetInventory(10, 3);
+            _helper.SetInventory(30, 3);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, new Vector3Int(2, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, new Vector3Int(-2, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            Assert.True(GearChainSystemUtil.TryConnect(FromPos, new Vector3Int(2, 0, 0), GearChainPoleExtendTestHelper.PlayerId, _helper.ChainItemId, out _));
-            Assert.True(GearChainSystemUtil.TryConnect(FromPos, new Vector3Int(-2, 0, 0), GearChainPoleExtendTestHelper.PlayerId, _helper.ChainItemId, out _));
+            Assert.True(GearChainSystemUtil.TryConnect(FromPos, new Vector3Int(2, 0, 0), GearChainPoleExtendTestHelper.PlayerId, GearChainPoleExtendTestHelper.ConnectToolGuid, out _));
+            Assert.True(GearChainSystemUtil.TryConnect(FromPos, new Vector3Int(-2, 0, 0), GearChainPoleExtendTestHelper.PlayerId, GearChainPoleExtendTestHelper.ConnectToolGuid, out _));
 
             // 手動接続でチェーン4個消費済み(6残)、素材は未消費(3)
             // 4 chains consumed by manual connects (6 left), materials untouched (3)
-            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(0, 0, 3), GearChainPlacementEvaluator.ConnectionLimitError, 6, 3);
+            _helper.AssertExtendFailsWithoutStateChange(new Vector3Int(0, 0, 3), GearChainPlacementEvaluator.ConnectionLimitError, 10, 3);
         }
 
         [Test]
         public void ExtendFailsWhenPositionOccupied()
         {
-            _helper.SetInventory(5, 3);
+            _helper.SetInventory(10, 3);
             var placePos = new Vector3Int(3, 0, 0);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, placePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var response = _helper.SendExtend(placePos);
             Assert.False(response.IsSuccess);
             Assert.AreEqual(GearChainPlacementEvaluator.PositionOccupiedError, response.Error);
-            Assert.AreEqual(5, _helper.CountItem(_helper.ChainItemId));
+            Assert.AreEqual(10, _helper.CountItem(_helper.ChainItemId));
             Assert.AreEqual(3, _helper.CountItem(_helper.MaterialItemId));
         }
     }

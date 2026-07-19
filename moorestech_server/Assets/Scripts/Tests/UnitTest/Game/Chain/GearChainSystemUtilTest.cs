@@ -11,6 +11,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,8 @@ namespace Tests.UnitTest.Game.Chain
         private PacketResponseCreator _packet;
         private ItemId _chainItemId;
         private const int PlayerId = 1;
+        private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000003");
+        private static readonly Guid ChainMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
 
         [SetUp]
         public void SetUp()
@@ -40,7 +43,8 @@ namespace Tests.UnitTest.Game.Chain
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _serviceProvider = serviceProvider;
             _packet = packet;
-            _chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            _chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
         }
 
         [Test]
@@ -55,8 +59,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーン接続を試行し、失敗コードを確認する
             // Attempt to connect chain and verify failure code
-            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
-            var succeeded = GearChainSystemUtil.TryConnect(Vector3Int.zero, far, PlayerId, chainItemId, out var error);
+            var succeeded = GearChainSystemUtil.TryConnect(Vector3Int.zero, far, PlayerId, ConnectToolGuid, out var error);
             Assert.False(succeeded);
             Assert.AreEqual("TooFar", error);
         }
@@ -74,7 +77,7 @@ namespace Tests.UnitTest.Game.Chain
 
             // チェーンアイテムを持っていない状態で接続を試行する
             // Attempt to connect without chain item
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var error);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
             Assert.False(connected);
             Assert.AreEqual("NoItem", error);
         }
@@ -93,14 +96,14 @@ namespace Tests.UnitTest.Game.Chain
             // 必要数より少ないチェーンを渡す
             // Give fewer chain items than required
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 2));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 9));
 
             // 接続を試行し不足エラーを確認する
             // Attempt to connect and confirm shortage error
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var error);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
             Assert.False(connected);
             Assert.AreEqual("NoItem", error);
-            Assert.AreEqual(2, inventory.GetItem(0).Count);
+            Assert.AreEqual(9, inventory.GetItem(0).Count);
         }
 
         [Test]
@@ -117,14 +120,14 @@ namespace Tests.UnitTest.Game.Chain
             // プレイヤーにチェーンアイテムを配布する
             // Give chain item to player inventory
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 4));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 15));
 
             // チェーン接続を実行する
             // Execute chain connection
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var connectError);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
-            Assert.AreEqual(1, CountItem(inventory, _chainItemId));
+            Assert.AreEqual(5, CountItem(inventory, _chainItemId));
 
             // ギア接続が双方向に登録されることを確認する
             // Verify gear connections are registered both ways
@@ -152,12 +155,12 @@ namespace Tests.UnitTest.Game.Chain
             // チェーンアイテムを上限分プレイヤーに配布する
             // Provide chain items for connection attempts
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 5));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 25));
 
             // 上限まで接続を成功させる
             // Connect until reaching the limit
-            var firstConnect = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var firstError);
-            var secondConnect = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, _chainItemId, out var secondError);
+            var firstConnect = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var firstError);
+            var secondConnect = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, ConnectToolGuid, out var secondError);
             Assert.True(firstConnect);
             Assert.True(secondConnect);
             Assert.IsEmpty(firstError ?? string.Empty);
@@ -165,10 +168,10 @@ namespace Tests.UnitTest.Game.Chain
 
             // 上限超過の接続を拒否する
             // Reject connection beyond the limit
-            var limitConnect = GearChainSystemUtil.TryConnect(posA, posD, PlayerId, _chainItemId, out var limitError);
+            var limitConnect = GearChainSystemUtil.TryConnect(posA, posD, PlayerId, ConnectToolGuid, out var limitError);
             Assert.False(limitConnect);
             Assert.AreEqual("ConnectionLimit", limitError);
-            Assert.AreEqual(1, inventory.GetItem(0).Count);
+            Assert.AreEqual(5, inventory.GetItem(0).Count);
 
             // 接続中のポールが正しく記録されていることを確認する
             // Ensure current connections are tracked correctly
@@ -201,11 +204,11 @@ namespace Tests.UnitTest.Game.Chain
             // プレイヤーにチェーンアイテムを配布する
             // Give chain item to player inventory
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 3));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 10));
 
             // チェーン接続を実行する
             // Execute chain connection
-            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var connectError);
+            var connected = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var connectError);
             Assert.True(connected);
             Assert.IsEmpty(connectError ?? string.Empty);
             Assert.AreEqual(0, CountItem(inventory, _chainItemId));
@@ -221,7 +224,7 @@ namespace Tests.UnitTest.Game.Chain
             // Destroy block B via protocol
             _packet.GetPacketResponse(CreateRemoveBlockPacket(posB, PlayerId), new PacketResponseContext(null));
             Assert.False(worldBlockDatastore.Exists(posB));
-            Assert.AreEqual(3, CountItem(inventory, _chainItemId));
+            Assert.AreEqual(10, CountItem(inventory, _chainItemId));
 
             // ブロックAの接続が削除されていることを確認する
             // Verify block A's connection is removed
@@ -244,12 +247,12 @@ namespace Tests.UnitTest.Game.Chain
             // チェーンアイテムをプレイヤーに配布する
             // Provide chain items to player
             var inventory = _serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 4));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(_chainItemId, 20));
 
             // 複数の接続を確立する
             // Establish multiple connections
-            var connectAB = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, _chainItemId, out var errorAB);
-            var connectAC = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, _chainItemId, out var errorAC);
+            var connectAB = GearChainSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var errorAB);
+            var connectAC = GearChainSystemUtil.TryConnect(posA, posC, PlayerId, ConnectToolGuid, out var errorAC);
             Assert.True(connectAB);
             Assert.True(connectAC);
             Assert.IsEmpty(errorAB ?? string.Empty);
@@ -270,7 +273,7 @@ namespace Tests.UnitTest.Game.Chain
             // Destroy block A via protocol
             _packet.GetPacketResponse(CreateRemoveBlockPacket(posA, PlayerId), new PacketResponseContext(null));
             Assert.False(worldBlockDatastore.Exists(posA));
-            Assert.AreEqual(4, CountItem(inventory, _chainItemId));
+            Assert.AreEqual(20, CountItem(inventory, _chainItemId));
 
             // ブロックBとCの接続が削除されていることを確認する
             // Verify connections are removed from blocks B and C

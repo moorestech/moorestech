@@ -7,6 +7,7 @@ using Core.Master;
 using Game.Context;
 using Game.Gear.Common;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -20,6 +21,9 @@ namespace Tests.CombinedTest.Core
 {
     public class ChainEnergyTransmissionTest
     {
+        private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000003");
+        private static readonly Guid ChainMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
+
         [Test]
         public void GeneratorPowerTravelsThroughChain()
         {
@@ -27,7 +31,8 @@ namespace Tests.CombinedTest.Core
             // Initialize test DI container
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             const int playerId = 0;
-            var chainItemId = global::Core.Master.MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
             // ブロックを配置してギアネットワークを構築する
             // Place blocks to build gear network
@@ -40,11 +45,11 @@ namespace Tests.CombinedTest.Core
             // プレイヤーのインベントリにチェーンを追加する
             // Grant chain item to player inventory
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 5));
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 20));
 
             // チェーン接続を確立する
             // Establish chain connection
-            var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), playerId, chainItemId, out var error);
+            var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), playerId, ConnectToolGuid, out var error);
             Assert.True(connected);
             Assert.IsEmpty(error ?? string.Empty);
 
@@ -67,7 +72,8 @@ namespace Tests.CombinedTest.Core
             // Initialize test DI container
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             const int playerId = 0;
-            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
             // 3本のチェーンポールを直列に配置する
             // Place three chain poles in a line
@@ -83,8 +89,8 @@ namespace Tests.CombinedTest.Core
             // Grant chain items and connect A-B / B-C
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 20));
-            Assert.True(GearChainSystemUtil.TryConnect(posA, posB, playerId, chainItemId, out _));
-            Assert.True(GearChainSystemUtil.TryConnect(posB, posC, playerId, chainItemId, out _));
+            Assert.True(GearChainSystemUtil.TryConnect(posA, posB, playerId, ConnectToolGuid, out _));
+            Assert.True(GearChainSystemUtil.TryConnect(posB, posC, playerId, ConnectToolGuid, out _));
 
             var poleAId = poleA.BlockInstanceId;
             var poleBId = poleB.BlockInstanceId;
@@ -112,7 +118,8 @@ namespace Tests.CombinedTest.Core
             // Initialize test DI container
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             const int playerId = 0;
-            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
             // 発電機-poleA(隣接ギア噛み合い)-チェーン-poleB-ギア のネットワークを構築する
             // Build network: generator-poleA(gear-meshed)-chain-poleB-gear
@@ -129,7 +136,7 @@ namespace Tests.CombinedTest.Core
             // Connect poleA-poleB with chain
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 20));
-            Assert.True(GearChainSystemUtil.TryConnect(poleAPos, poleBPos, playerId, chainItemId, out _));
+            Assert.True(GearChainSystemUtil.TryConnect(poleAPos, poleBPos, playerId, ConnectToolGuid, out _));
 
             // 隣接ギアと噛み合いつつチェーンで橋渡しするpoleAを削除しても例外が出ないことを確認する
             // Removing poleA, which both gear-meshes and chain-bridges, must not throw
@@ -147,7 +154,8 @@ namespace Tests.CombinedTest.Core
             // Build a gear network through chain poles before saving
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             const int playerId = 0;
-            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            var chainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
+            saveServiceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var generatorBlock);
@@ -158,8 +166,8 @@ namespace Tests.CombinedTest.Core
             // チェーン接続を確立して保存対象のインスタンスIDを控える
             // Establish the chain connection and keep instance ids for load assertions
             var inventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 5));
-            var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), playerId, chainItemId, out var error);
+            inventory.SetItem(0, ServerContext.ItemStackFactory.Create(chainItemId, 20));
+            var connected = GearChainSystemUtil.TryConnect(new Vector3Int(1, 0, 0), new Vector3Int(6, 0, 0), playerId, ConnectToolGuid, out var error);
             Assert.True(connected);
             Assert.IsEmpty(error ?? string.Empty);
 

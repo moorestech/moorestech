@@ -12,7 +12,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
     /// </summary>
     public class GearChainPoleChainConnectModeTest
     {
-        private static readonly ItemId HoldingChainItemId = new(7);
+        private static readonly System.Guid TestConnectToolGuid = System.Guid.NewGuid();
 
         [Test]
         // ポール非命中で起点があればカーソルへ赤線を表示する
@@ -38,7 +38,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // Show nothing without a source or a pole hit
         public void NoHitNoSourceShowsNothingTest()
         {
-            var input = new GearChainPoleChainConnectInput { HoldingChainItemId = HoldingChainItemId };
+            var input = new GearChainPoleChainConnectInput { ConnectToolGuid = TestConnectToolGuid };
 
             var result = GearChainPoleChainConnectMode.Decide(input);
 
@@ -58,7 +58,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 HitPole = hitPole,
                 HitPolePos = hitPole.GetBlockPosition(),
                 Clicked = true,
-                HoldingChainItemId = HoldingChainItemId,
+                ConnectToolGuid = TestConnectToolGuid,
             };
 
             var result = GearChainPoleChainConnectMode.Decide(input);
@@ -100,7 +100,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             var send = result.ChainConnectSend.Value;
             Assert.AreEqual(input.SourcePolePos, send.FromPos);
             Assert.AreEqual(input.HitPolePos, send.ToPos);
-            Assert.AreEqual(HoldingChainItemId, send.ChainItemId);
+            Assert.AreEqual(TestConnectToolGuid, send.ConnectToolGuid);
             Assert.IsNull(result.NextSourcePole);
             Assert.IsTrue(result.InvalidatePendingRequest);
         }
@@ -149,7 +149,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             {
                 HitPole = hitPole,
                 SourcePole = sourcePole,
-                HoldingChainItemId = HoldingChainItemId,
+                ConnectToolGuid = TestConnectToolGuid,
                 SourcePolePos = sourcePos,
                 SourcePoleCenter = sourcePos + new Vector3(0.5f, 0.5f, 0.5f),
                 HitPolePos = hitPos,
