@@ -56,8 +56,8 @@ namespace Server.Protocol.PacketResponse
                 var placeBlockId = placeInfo.BlockId;
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
 
-                // 未解放セルはスキップ（バリアントはファミリー代表のunlock状態で判定）
-                // Skip locked cells; variants resolve unlock via their family representative
+                // 未解放セルはスキップし、ベルトの坂はファミリー直線の状態で判定する
+                // Skip locked cells and resolve belt slopes through their family straight block
                 if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) return;
 
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
