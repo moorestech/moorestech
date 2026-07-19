@@ -75,15 +75,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 case BlueprintCopyToolPlacementTarget:
                     return _blueprintCopySystem;
                 case ConnectToolPlacementTarget connectTool:
-                    // ツール種別で3系統へ振り分ける
-                    // Route by tool type to the three connect systems
-                    return connectTool.ToolType switch
+                {
+                    // マスタからtoolTypeを解決して3系統へ振り分ける
+                    // Resolve toolType from the master and route to the three connect systems
+                    var element = MasterHolder.ConnectToolMaster.GetElementOrNull(connectTool.ConnectToolGuid);
+                    if (element == null) return EmptyPlaceSystem;
+                    return ConnectToolCatalog.ToConnectToolType(element.ToolType) switch
                     {
                         ConnectToolType.TrainRailConnect => _trainRailConnectSystem,
                         ConnectToolType.GearChainPoleConnect => _gearChainPoleConnectSystem,
                         ConnectToolType.ElectricWireConnect => _electricWireConnectSystem,
                         _ => EmptyPlaceSystem,
                     };
+                }
                 default:
                     // null（未選択）や未知の型はEmptyへ
                     // Route null (nothing selected) and unknown types to Empty

@@ -1,16 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.EnergySystem;
-using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
 {
     /// <summary>
-    /// ワイヤー接続の可否を純粋関数として判定する
-    /// Judge wire connection eligibility as a pure function
+    /// ワイヤー接続の可否を純粋関数として判定する。消費はconnectToolマスタ駆動の複数素材
+    /// Judge wire connection eligibility as a pure function; consumption is connectTool-master driven multi-material
     /// </summary>
     public static class ElectricWirePlacementEvaluator
     {
@@ -20,9 +21,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             float toMaxWireLength,
             bool alreadyConnected,
             bool anyConnectionFull,
-            ItemId wireItemId,
+            Guid connectToolGuid,
             IEnumerable<IItemStack> inventoryItems,
-            ItemId poleItemId)
+            IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
             // 距離・既存接続・接続数上限を先に確認する
             // Check distance, existing connection and capacity first
@@ -35,50 +36,42 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             // Materialize inventory once for reuse across the following checks
             var items = inventoryItems as IReadOnlyCollection<IItemStack> ?? inventoryItems.ToList();
 
-            // ポールアイテムが指定されている場合は所持を確認する
-            // When a pole item is specified, ensure at least one is held
-            if (poleItemId != ItemMaster.EmptyItemId && !HasEnoughItem(items, poleItemId, 1))
-                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoPoleItem);
-
-            // ワイヤーコストと所持数を確認
-            // Calculate the wire cost and verify inventory covers it
-            // 同一アイテムなら1個上乗せで判定
-            // Require one extra when the pole shares the wire item
-            if (!TryCalculateWireCost(wireItemId, distance, out var cost))
+            // connectToolマスタから複数素材の消費量を算出する
+            // Calculate multi-material consumption from the connectTool master
+            if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials))
                 return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
-            var requiredWireCount = cost.Count + (poleItemId != ItemMaster.EmptyItemId && poleItemId == cost.ItemId ? 1 : 0);
-            if (!HasEnoughItem(items, cost.ItemId, requiredWireCount))
-                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
-
-            return ElectricWirePlacementJudgement.Success(cost);
-        }
-
-        public static bool TryCalculateWireCost(ItemId wireItemId, float distance, out ElectricWireConnectionCost cost)
-        {
-            cost = default;
-
-            // 設定が無ければ算出できない
-            // Cannot calculate without configuration
-            var electricWireItems = MasterHolder.BlockMaster.Blocks.ElectricWireItems;
-            if (electricWireItems.Length == 0) return false;
-
-            // 指定されたアイテムが設定に含まれているか確認する
-            // Check if the specified item is included in the configuration
-            ElectricWireItemsElement matchedWireItem = null;
-            foreach (var electricWireItem in electricWireItems)
+            // 各素材について、予約分を上乗せした必要数を所持が満たすか確認する
+            // For each material, verify held count covers the requirement plus any reservation
+            foreach (var material in materials)
             {
-                var configItemId = MasterHolder.ItemMaster.GetItemId(electricWireItem.ItemGuid);
-                if (configItemId != wireItemId) continue;
-                matchedWireItem = electricWireItem;
-                break;
+                var reserved = SumReserved(reservedMaterials, material.ItemId);
+                if (!HasEnoughItem(items, material.ItemId, material.Count + reserved))
+                    return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
             }
 
-            if (matchedWireItem == null) return false;
+            return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionCost(materials));
+        }
 
-            var required = Mathf.CeilToInt(distance / matchedWireItem.ConsumptionPerLength);
-            cost = new ElectricWireConnectionCost(wireItemId, required);
+        public static bool TryCalculateWireCost(Guid connectToolGuid, float distance, out ElectricWireConnectionCost cost)
+        {
+            cost = ElectricWireConnectionCost.Empty;
+            if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials)) return false;
+            cost = new ElectricWireConnectionCost(materials);
             return true;
+        }
+
+        private static int SumReserved(IReadOnlyList<ConnectToolMaterialCost> reservedMaterials, ItemId itemId)
+        {
+            // 予約リスト中の同一アイテム数を合計する
+            // Sum the reserved amount of the same item in the reservation list
+            if (reservedMaterials == null) return 0;
+            var reserved = 0;
+            foreach (var material in reservedMaterials)
+            {
+                if (material.ItemId == itemId) reserved += material.Count;
+            }
+            return reserved;
         }
 
         private static bool HasEnoughItem(IEnumerable<IItemStack> items, ItemId itemId, int required)

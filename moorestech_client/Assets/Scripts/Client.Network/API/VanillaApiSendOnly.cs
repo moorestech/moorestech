@@ -146,9 +146,9 @@ namespace Client.Network.API
         /// ギアチェーンポール間の接続を作成する
         /// Create a connection between GearChainPoles
         /// </summary>
-        public void ConnectGearChain(Vector3Int posA, Vector3Int posB, ItemId itemId)
+        public void ConnectGearChain(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
         {
-            var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, itemId);
+            var request = GearChainConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, connectToolGuid);
             _packetSender.Send(request);
         }
 
@@ -156,9 +156,9 @@ namespace Client.Network.API
         /// 電気系ブロック間に電線を接続する
         /// Connect an electric wire between electric blocks
         /// </summary>
-        public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, ItemId wireItemId)
+        public void ConnectElectricWire(Vector3Int posA, Vector3Int posB, Guid connectToolGuid)
         {
-            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, wireItemId);
+            var request = ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, _playerId, connectToolGuid);
             _packetSender.Send(request);
         }
 

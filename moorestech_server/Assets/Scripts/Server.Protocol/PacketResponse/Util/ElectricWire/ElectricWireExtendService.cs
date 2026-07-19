@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
@@ -10,6 +11,7 @@ using Game.PlayerInventory.Interface;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
 
@@ -25,7 +27,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
     /// </summary>
     public static class ElectricWireExtendService
     {
-        public static ExtendResult Execute(bool hasFromConnector, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, int playerId, BlockId poleBlockId, ItemId wireItemId)
+        public static ExtendResult Execute(bool hasFromConnector, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, int playerId, BlockId poleBlockId, Guid connectToolGuid)
         {
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
@@ -38,6 +40,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // Validate the unlock state (judged on the base block)
             var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(poleBlockId).BlockGuid;
             if (!ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[baseBlockGuid].IsUnlocked)
+                return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
+
+            // 起点接続ありなら未解放のconnectToolによる延長を拒否する
+            // With an origin connection, reject extension using a connectTool that is not unlocked
+            if (hasFromConnector && !ElectricWireSystemUtil.IsConnectToolUnlocked(connectToolGuid))
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.NotUnlocked);
 
             // 指定BlockIdから電柱パラメータを解決する
@@ -56,13 +63,13 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // 起点ありは明示接続＋機械収集、起点なしは通常設置と同じフル自動接続
             // With origin: explicit wire + machine collection; without: same full auto-connect as normal placement
             return hasFromConnector
-                ? ExecuteExtendWithOrigin(inventory, fromPos, polePlaceInfo, blockId, poleParam, wireItemId, costItemCounts)
+                ? ExecuteExtendWithOrigin(inventory, fromPos, polePlaceInfo, blockId, poleParam, connectToolGuid, costItemCounts)
                 : ExecuteIsolatedPlace(inventory, polePlaceInfo, blockId, costItemCounts);
         }
 
         // 起点との明示接続＋設置電柱の未接続機械収集をアトミックに行う
         // Atomically wire the origin plus collect unconnected machines around the placed pole
-        private static ExtendResult ExecuteExtendWithOrigin(IOpenableInventory inventory, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, BlockId blockId, ElectricPoleBlockParam poleParam, ItemId wireItemId, (ItemId itemId, int count)[] costItemCounts)
+        private static ExtendResult ExecuteExtendWithOrigin(IOpenableInventory inventory, Vector3Int fromPos, PlaceInfoMessagePack polePlaceInfo, BlockId blockId, ElectricPoleBlockParam poleParam, Guid connectToolGuid, (ItemId itemId, int count)[] costItemCounts)
         {
             // 起点コネクタを解決し、距離・上限・コストを検証する
             // Resolve the origin connector and validate distance, capacity and cost
@@ -79,11 +86,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // Fail when the pole to be placed cannot hold even one wire
             if (poleParam.MaxWireConnectionCount < 1)
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
-            if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(wireItemId, distance, out var fromCost))
+            if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var fromCost))
                 return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
+            // 素材ごとの必要総数を集計する。まず起点接続分
+            // Aggregate required totals per material; start with the origin connection
             var targets = new List<(BlockInstanceId TargetId, ElectricWireConnectionCost Cost)> { (fromConnector.BlockInstanceId, fromCost) };
-            var totalWire = fromCost.Count;
+            var requiredByItem = new Dictionary<ItemId, int>();
+            AddMaterials(requiredByItem, fromCost);
 
             // 起点接続で1本使う前提で残り本数まで未接続機械を収集する
             // Collect unconnected machines up to remaining capacity, accounting for the origin wire slot
@@ -93,21 +103,24 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 // 起点自身が未接続機械として再収集された場合は除外する（二重接続・二重計上の防止）
                 // Skip the origin when re-collected as an unconnected machine, preventing double wiring and counting
                 if (machineTarget.TargetId == fromConnector.BlockInstanceId) continue;
-                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(wireItemId, machineTarget.Distance, out var cost))
+                if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, machineTarget.Distance, out var cost))
                     return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
                 targets.Add((machineTarget.TargetId, cost));
-                totalWire += cost.Count;
+                AddMaterials(requiredByItem, cost);
             }
 
-            // 電線合計＋建設コスト中の同一アイテム分を合算で判定する
-            // Judge by total wires plus the same-item amount reserved by the construction cost
-            var reservedWire = 0;
-            foreach (var (itemId, count) in costItemCounts)
+            // 電線素材合計＋建設コスト中の同一アイテム分を合算で判定する
+            // Judge by total wire materials plus the same-item amount reserved by the construction cost
+            foreach (var (itemId, required) in requiredByItem)
             {
-                if (itemId == wireItemId) reservedWire += count;
+                var reserved = 0;
+                foreach (var (costItemId, count) in costItemCounts)
+                {
+                    if (costItemId == itemId) reserved += count;
+                }
+                if (ElectricWireSystemUtil.CountItem(inventory, itemId) < required + reserved)
+                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
             }
-            if (ElectricWireSystemUtil.CountItem(inventory, wireItemId) < totalWire + reservedWire)
-                return ExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             // 検証をすべて通過したのでここから状態を変更する
             // All validation passed; start mutating state from here
@@ -117,23 +130,37 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
             // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の電線だけを消費する
             // Validated ahead, but to survive runtime drift we consume wires only for connections that actually succeeded
             var connectedConnectors = new List<IElectricWireConnector> { selfConnector };
-            var consumedWire = 0;
             foreach (var (targetId, cost) in targets)
             {
                 var targetConnector = ServerContext.WorldBlockDatastore.GetBlock(targetId)?.GetComponent<IElectricWireConnector>();
                 if (targetConnector == null) continue;
                 if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, cost)) continue;
                 connectedConnectors.Add(targetConnector);
-                consumedWire += cost.Count;
+                ConnectToolMaterialConsumer.Consume(cost.Materials, inventory);
             }
 
-            // 建設コストと張れた電線分を消費してから連結成分を再構築する
-            // Consume the construction cost and successfully-placed wires, then rebuild connected components
+            // 建設コストを消費してから連結成分を再構築する
+            // Consume the construction cost, then rebuild connected components
             ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
-            ElectricWireSystemUtil.ConsumeItem(inventory, wireItemId, consumedWire);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
 
             return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
+
+            #region Internal
+
+            void AddMaterials(Dictionary<ItemId, int> accumulator, ElectricWireConnectionCost cost)
+            {
+                // 接続コストの各素材を必要総数へ加算する
+                // Add each material of a connection cost to the running required totals
+                if (cost.Materials == null) return;
+                foreach (var material in cost.Materials)
+                {
+                    accumulator.TryGetValue(material.ItemId, out var current);
+                    accumulator[material.ItemId] = current + material.Count;
+                }
+            }
+
+            #endregion
         }
 
         // 起点なし設置。通常のブロック設置と同じ自動接続（最寄り電柱1本＋未接続機械）を適用する

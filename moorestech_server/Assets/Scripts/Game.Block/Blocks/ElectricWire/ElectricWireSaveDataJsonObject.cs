@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
-using Game.Block.Interface;
+using System.Linq;
 using Core.Master;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.EnergySystem;
 using Newtonsoft.Json;
 
@@ -19,8 +20,7 @@ namespace Game.Block.Blocks.ElectricWire
             Connections = new List<ElectricWireConnectionJsonObject>();
             foreach (var target in wireConnections)
             {
-                var cost = target.Value.Cost;
-                Connections.Add(new ElectricWireConnectionJsonObject(target.Key.AsPrimitive(), MasterHolder.ItemMaster.GetItemGuid(cost.ItemId), cost.Count));
+                Connections.Add(new ElectricWireConnectionJsonObject(target.Key.AsPrimitive(), target.Value.Cost.Materials));
             }
         }
 
@@ -31,18 +31,25 @@ namespace Game.Block.Blocks.ElectricWire
     public class ElectricWireConnectionJsonObject
     {
         [JsonProperty("targetBlockInstanceId")] public int TargetBlockInstanceId { get; set; }
-        [JsonProperty("itemGuid")] public string ItemGuidStr { get; set; }
-        [JsonProperty("count")] public int Count { get; set; }
+        [JsonProperty("materials")] public List<ConnectToolMaterialSaveJsonObject> Materials { get; set; }
 
-        [JsonIgnore] public Guid ItemGuid => Guid.Parse(ItemGuidStr);
+        public ElectricWireConnectionJsonObject() { Materials = new List<ConnectToolMaterialSaveJsonObject>(); }
 
-        public ElectricWireConnectionJsonObject() { }
-
-        public ElectricWireConnectionJsonObject(int targetBlockInstanceId, Guid itemGuid, int count)
+        public ElectricWireConnectionJsonObject(int targetBlockInstanceId, IReadOnlyList<ConnectToolMaterialCost> materials)
         {
             TargetBlockInstanceId = targetBlockInstanceId;
-            ItemGuidStr = itemGuid.ToString();
-            Count = count;
+            Materials = materials == null
+                ? new List<ConnectToolMaterialSaveJsonObject>()
+                : materials.Select(m => new ConnectToolMaterialSaveJsonObject(m)).ToList();
+        }
+
+        // ロード時に永続素材からコストを復元する
+        // Restore the cost from persisted materials on load
+        public ElectricWireConnectionCost ToConnectionCost()
+        {
+            var materials = (Materials ?? new List<ConnectToolMaterialSaveJsonObject>())
+                .Select(m => m.ToMaterialCost()).ToList();
+            return new ElectricWireConnectionCost(materials);
         }
     }
 }
