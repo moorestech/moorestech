@@ -84,6 +84,19 @@ namespace Client.Game.InGame.Train.Network
                 break;
             }
         }
+
+        // full snapshot適用時に呼ぶ
+        // Called when a full snapshot is applied
+        public void DiscardEventsAtOrBelow(ulong tickUnifiedId)
+        {
+            while (0 < _futureEvents.Count)
+            {
+                var firstTickUnifiedId = _futureEvents.First().Key;
+                if (tickUnifiedId < firstTickUnifiedId) break;
+                _futureEvents.Remove(firstTickUnifiedId);
+            }
+        }
+
         // 最初のkeyを取得
         // Get the first key
         public bool TryGetFirstHashTickUnifiedId(out ulong tickUnifiedId)

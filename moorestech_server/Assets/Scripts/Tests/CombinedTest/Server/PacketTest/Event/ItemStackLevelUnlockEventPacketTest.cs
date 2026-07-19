@@ -10,7 +10,6 @@ using Server.Event.EventReceive;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using static Tests.CombinedTest.Game.ItemStackLevelUpgradeTest;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -22,13 +21,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void UnlockStackLevelToEventPacketTest()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
-            // イベントがないことを確認する（この呼び出しでプレイヤーがイベントキューに登録される）
-            // Verify no events yet (this call also registers the player in the event queue)
-            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            // イベントがないことを確認する
+            // Verify no events yet
+            Assert.AreEqual(0, sink.TakeAll().Count);
 
             // スタックレベル解放アクション付きの研究を完了させる
             // Complete the research that carries an unlockItemStackLevel action
@@ -36,10 +34,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // イベントを受け取り、内容を検証する
             // Receive the event and verify the payload
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
+            var events = sink.TakeAll();
 
-            var stackLevelEvents = eventMessagePack.Events.Where(e => e.Tag == ItemStackLevelUnlockEventPacket.EventTag).ToList();
+            var stackLevelEvents = events.Where(e => e.Tag == ItemStackLevelUnlockEventPacket.EventTag).ToList();
             Assert.AreEqual(1, stackLevelEvents.Count);
 
             var eventData = MessagePackSerializer.Deserialize<ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack>(stackLevelEvents[0].Payload);
@@ -57,7 +54,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             serviceProvider.GetService<IResearchDataStore>().CompleteResearch(StackUpgradeResearchGuid, PlayerId);
 
             var handshakeRequest = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(PlayerId, "test player"));
-            var response = packetResponse.GetPacketResponse(handshakeRequest, new PacketResponseContext())[0];
+            var response = packetResponse.GetPacketResponse(handshakeRequest, new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack>(response);
 
             Assert.AreEqual(1, handshakeResponse.ItemStackLevels.Length);

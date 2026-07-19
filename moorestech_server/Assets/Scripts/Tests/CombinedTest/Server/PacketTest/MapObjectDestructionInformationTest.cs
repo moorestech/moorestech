@@ -24,7 +24,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mapObjectDatastore.Get(mapObjectDatastore.MapObjects[0].InstanceId).Destroy();
             
             
-            var responseArray = packet.GetPacketResponse(MapObjectDestructionInformationProtocol(), new PacketResponseContext())[0];
+            var responseArray = packet.GetPacketResponse(MapObjectDestructionInformationProtocol(), new PacketResponseContext(null))[0];
             var response = MessagePackSerializer.Deserialize<ResponseMapObjectInfosMessagePack>(responseArray.ToArray());
             
             foreach (var mapObject in mapObjectDatastore.MapObjects)

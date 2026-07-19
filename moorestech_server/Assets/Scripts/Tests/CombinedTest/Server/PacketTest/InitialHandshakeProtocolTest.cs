@@ -11,6 +11,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;
@@ -32,7 +33,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             
             //最初のハンドシェイクを実行
-            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
+            var response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null))[0];
             var handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             
@@ -44,11 +45,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //プレイヤーの座標を変更
-            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext());
+            packet.GetPacketResponse(GetPlayerPositionPacket(PlayerId, new Vector3(100, 0, -100)), new PacketResponseContext(null));
             
             
             //再度ハンドシェイクを実行して座標が変更されていることを確認
-            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext())[0];
+            response = packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null))[0];
             handShakeResponse =
                 MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
             Assert.AreEqual(100, handShakeResponse.PlayerPos.X);
@@ -63,7 +64,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IWorldSettingsDatastore>().Initialize(serviceProvider.GetService<MapInfoJson>());
             var connectionChecker = serviceProvider.GetService<IPlayerConnectionChecker>();
 
-            packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext());
+            packet.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext(null));
 
             // ハンドシェイクプロトコルが接続登録を担当する。
             // The handshake protocol owns connection registration.
@@ -86,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var response = environment.PacketResponseCreator.GetPacketResponse(
                 GetHandshakePacket(PlayerId),
-                new PacketResponseContext())[0];
+                new PacketResponseContext(null))[0];
             var handshakeResponse = MessagePackSerializer.Deserialize<ResponseInitialHandshakeMessagePack>(response);
 
             Assert.AreEqual(InitialHandshakeRidingStateType.Restored, handshakeResponse.RidingStateType);
@@ -100,20 +101,25 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void Handshake_RegistersEventQueue_ForRidingStateBroadcast()
         {
-            // handshake 後は初回 EventProtocol 呼び出し前でも broadcast を受け取れる。
-            // After handshake, broadcast events are queued even before the first EventProtocol call.
+            // handshake後はsinkでbroadcast受信可
+            // After handshake, broadcasts reach the sink.
             var environment = TrainTestHelper.CreateEnvironment();
             environment.ServiceProvider.GetService<IWorldSettingsDatastore>().Initialize(environment.ServiceProvider.GetService<MapInfoJson>());
             var car = Tests.UnitTest.PlayerRiding.RidingTestHelper.RegisterSeatedCarOnNewTrain(environment, 0);
             var datastore = environment.ServiceProvider.GetService<IPlayerRidingDatastore>();
             var id = new TrainCarRidableIdentifier(car.TrainCarInstanceId.AsPrimitive());
-            environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(PlayerId), new PacketResponseContext());
+
+            // handshake自身がsinkを配線することを検証するため、事前登録しないsinkを使う
+            // Use an unregistered sink so the handshake itself must wire the context's sink
+            var sink = new CapturedEventSink();
+            var context = new PacketResponseContext(sink);
+            environment.PacketResponseCreator.GetPacketResponse(GetHandshakePacket(PlayerId), context);
+            sink.TakeAll();
 
             datastore.TryRide(PlayerId, id, out _);
 
-            var eventResponse = environment.PacketResponseCreator.GetPacketResponse(GetEventPacket(PlayerId), new PacketResponseContext())[0];
-            var events = MessagePackSerializer.Deserialize<EventProtocol.ResponseEventProtocolMessagePack>(eventResponse);
-            Assert.IsTrue(events.Events.Exists(e => e.Tag == RidingStateEventPacket.EventTag));
+            var events = sink.TakeAll();
+            Assert.IsTrue(events.Exists(e => e.Tag == RidingStateEventPacket.EventTag));
         }
         
         private byte[] GetHandshakePacket(int playerId)
@@ -127,11 +133,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             return MessagePackSerializer.Serialize(
                 new SetPlayerCoordinateProtocol.PlayerCoordinateSendProtocolMessagePack(playerId, pos));
-        }
-
-        private byte[] GetEventPacket(int playerId)
-        {
-            return MessagePackSerializer.Serialize(new EventProtocol.EventProtocolMessagePack(playerId));
         }
     }
 }

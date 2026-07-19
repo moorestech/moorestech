@@ -4,7 +4,6 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Network.API;
 using Game.Train.Unit;
 using UnityEngine;
-using VContainer.Unity;
 
 namespace Client.Game.InGame.Train.View
 {
@@ -12,28 +11,20 @@ namespace Client.Game.InGame.Train.View
     ///     列車スナップショットを初期化時にキャッシュへ流し込むアプライヤー
     ///     Applies the initial train snapshots to the local cache and can be reused for resync
     /// </summary>
-    public sealed class TrainUnitSnapshotApplier : IInitializable
+    public sealed class TrainUnitSnapshotApplier
     {
         private readonly TrainUnitClientCache _cache;
         private readonly TrainUnitTickState _tickState;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
-        private readonly InitialHandshakeResponse _initialHandshakeResponse;
 
         public TrainUnitSnapshotApplier(
             TrainUnitClientCache cache,
             TrainUnitTickState tickState,
-            InitialHandshakeResponse initialHandshakeResponse,
             TrainCarObjectDatastore trainCarDatastore)
         {
             _cache = cache;
             _tickState = tickState;
-            _initialHandshakeResponse = initialHandshakeResponse;
             _trainCarDatastore = trainCarDatastore;
-        }
-
-        public void Initialize()
-        {
-            ApplySnapshot(_initialHandshakeResponse?.TrainUnitSnapshots);
         }
 
         // レスポンスに含まれる列車データをキャッシュへ適用

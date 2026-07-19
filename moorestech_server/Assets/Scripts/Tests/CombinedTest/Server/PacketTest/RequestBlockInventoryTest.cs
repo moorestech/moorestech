@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             machineComponent.SetItem(2, itemStackFactory.Create(new ItemId(4), 5));
 
             //レスポンスの取得
-            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), new PacketResponseContext())[0]);
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), new PacketResponseContext(null))[0]);
 
             Assert.AreEqual(InputSlotNum + OutPutSlotNum + ModuleSlotNum, data.Items.Length); // slot num
 
@@ -68,7 +68,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(10, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainItemPlatform, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext())[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
             var param = (TrainItemPlatformBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainItemPlatform).BlockParam;
 
@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(30, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainStation, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext())[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
             var param = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
 
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var environment = TrainTestHelper.CreateEnvironment();
             var position = new Vector3Int(999, 20, 0);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext())[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Block, data.InventoryType);
@@ -122,7 +122,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var position = new Vector3Int(40, 20, 0);
             TrainTestHelper.PlaceBlock(environment, ForUnitTestModBlockId.TestTrainRail, position, BlockDirection.North);
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext())[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestBlock(position), new PacketResponseContext(null))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Block, data.InventoryType);
@@ -169,7 +169,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             itemContainer.SetItem(0, itemFactory.Create(new ItemId(1), 7));
             itemContainer.SetItem(1, itemFactory.Create(new ItemId(2), 3));
 
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), new PacketResponseContext())[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), new PacketResponseContext(null))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
@@ -206,7 +206,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // コンテナなしが空インベントリとは別の結果として返ることを確認
             // Verify that missing container is returned separately from an empty inventory
-            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), new PacketResponseContext())[0];
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), new PacketResponseContext(null))[0];
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType);

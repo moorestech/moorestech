@@ -2,6 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Threading;
 using Game.PlayerConnection;
+using Server.Event;
 using Server.Protocol;
 using Server.Util;
 using UnityEngine;
@@ -19,15 +20,17 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly SendQueueProcessor _sendQueueProcessor;
         
         private readonly PlayerConnectionRegistry _connectionRegistry;
+        private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly PacketResponseContext _packetResponseContext;
         private bool _cleaned;
 
-        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, PacketResponseContext packetResponseContext)
+        public UserPacketHandler(Socket client, ReceiveQueueProcessor receiveQueueProcessor, SendQueueProcessor sendQueueProcessor, PlayerConnectionRegistry connectionRegistry, EventProtocolProvider eventProtocolProvider, PacketResponseContext packetResponseContext)
         {
             _client = client;
             _receiveQueueProcessor = receiveQueueProcessor;
             _sendQueueProcessor = sendQueueProcessor;
             _connectionRegistry = connectionRegistry;
+            _eventProtocolProvider = eventProtocolProvider;
             _packetResponseContext = packetResponseContext;
         }
 
@@ -86,11 +89,15 @@ namespace Server.Boot.Loop.PacketProcessing
             if (_cleaned) return;
             _cleaned = true;
 
-            // 接続終了時、紐付いた playerId を登録解除して切断イベントを発火する。
-            // On connection end, unregister the bound playerId and fire the disconnect event.
-            if (_packetResponseContext.PlayerId.HasValue)
+            // close確定を先に記録し、以後のhandshakeバインドを失敗させる（handshake中切断のsink残留防止）
+            // Mark closed first so a concurrent handshake bind fails; prevents sink leaks on mid-handshake disconnect
+            var playerId = _packetResponseContext.MarkClosedAndGetPlayerId();
+            if (playerId.HasValue)
             {
-                _connectionRegistry.Unregister(_packetResponseContext.PlayerId.Value);
+                // この接続のsinkだけを解除し、切断イベントを発火する
+                // Unregister only this connection's sink, then fire the disconnect event
+                _eventProtocolProvider.UnregisterPlayer(playerId.Value, _packetResponseContext.EventSink);
+                _connectionRegistry.Unregister(playerId.Value);
             }
 
             _receiveQueueProcessor.Dispose();

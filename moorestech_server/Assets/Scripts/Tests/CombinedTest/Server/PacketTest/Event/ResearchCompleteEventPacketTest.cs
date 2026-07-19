@@ -6,7 +6,6 @@ using Server.Boot;
 using Server.Event;
 using Server.Event.EventReceive;
 using Tests.Module.TestMod;
-using static Server.Protocol.PacketResponse.EventProtocol;
 using static Tests.CombinedTest.Game.ResearchDataStoreTest;
 using Server.Protocol;
 
@@ -17,21 +16,23 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         public void ResearchCompleteToEventPacketTest()
         {
-            var (packetResponse, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
             // イベントがないことを確認する
-            var response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            var eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
-            Assert.AreEqual(0, eventMessagePack.Events.Count);
+            // Verify no events are pending yet
+            Assert.AreEqual(0, sink.TakeAll().Count);
 
             // Research 1を完了させる
+            // Complete research 1
             CompleteResearchForTest(serviceProvider, Research1Guid);
 
             // イベントを受け取り、テストする
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
+            // Take the events and verify them
+            // Take the events and verify them
+            var events = sink.TakeAll();
 
-            var researchEvents = eventMessagePack.Events
+            var researchEvents = events
                 .Where(e => e.Tag == ResearchCompleteEventPacket.EventTag)
                 .ToList();
 
@@ -42,13 +43,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             VerifyResearchCompleteEvent(researchEvents[0], Research1Guid);
 
             // Research 2を完了させる（前提条件付き）
+            // Complete research 2 (which has a prerequisite)
             CompleteResearchForTest(serviceProvider, Research2Guid);
 
             // イベントを受け取り、テストする
-            response = packetResponse.GetPacketResponse(EventTestUtil.EventRequestData(PlayerId), new PacketResponseContext());
-            eventMessagePack = MessagePackSerializer.Deserialize<ResponseEventProtocolMessagePack>(response[0]);
+            events = sink.TakeAll();
 
-            researchEvents = eventMessagePack.Events
+            researchEvents = events
                 .Where(e => e.Tag == ResearchCompleteEventPacket.EventTag)
                 .ToList();
 

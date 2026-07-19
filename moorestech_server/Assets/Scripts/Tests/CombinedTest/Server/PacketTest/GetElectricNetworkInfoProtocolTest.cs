@@ -101,7 +101,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack InvokeGetElectricNetworkInfo(PacketResponseCreator packet, BlockInstanceId id)
         {
             var request = new GetElectricNetworkInfoProtocol.RequestGetElectricNetworkInfoMessagePack(id);
-            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext());
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
             return MessagePackSerializer.Deserialize<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack>(responseBytes[0]);
         }
 

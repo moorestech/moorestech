@@ -58,9 +58,7 @@ namespace Client.Network.API
                 GetChallengeResponse(ct),
                 GetUnlockState(ct),
                 GetPlayedSkitIds(ct),
-                GetResearchNodeStates(ct),
-                GetRailGraphSnapshot(ct),
-                GetTrainUnitSnapshots(ct));
+                GetResearchNodeStates(ct));
 
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
@@ -72,35 +70,12 @@ namespace Client.Network.API
             return response?.MapObjects;
         }
 
-        public async UniTask<RailGraphSnapshotMessagePack> GetRailGraphSnapshot(CancellationToken ct)
+        // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く
+        // Send the resync trigger; snapshots arrive over the event stream
+        public async UniTask<TrainResyncProtocol.ResponseMessagePack> SendTrainResync(bool includeRailGraph, CancellationToken ct)
         {
-            var request = new GetRailGraphSnapshotProtocol.RequestMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetRailGraphSnapshotProtocol.ResponseMessagePack>(request, ct);
-            return response?.Snapshot;
-        }
-
-        public async UniTask<TrainUnitSnapshotResponse> GetTrainUnitSnapshots(CancellationToken ct)
-        {
-            var request = new GetTrainUnitSnapshotsProtocol.RequestMessagePack();
-            var response = await _packetExchangeManager.GetPacketResponse<GetTrainUnitSnapshotsProtocol.ResponseMessagePack>(request, ct);
-            var snapshotPacks = response?.Snapshots;
-            var snapshots = new List<TrainUnitSnapshotBundle>(snapshotPacks?.Count ?? 0);
-            if (snapshotPacks != null)
-            {
-                for (var i = 0; i < snapshotPacks.Count; i++)
-                {
-                    var snapshotPack = snapshotPacks[i];
-                    if (snapshotPack == null)
-                    {
-                        continue;
-                    }
-                    snapshots.Add(snapshotPack.ToModel());
-                }
-            }
-            var tick = response?.ServerTick ?? 0u;
-            var unitsHash = response?.UnitsHash ?? 0u;
-            var tickSequenceId = response?.TickSequenceId ?? 0u;
-            return new TrainUnitSnapshotResponse(snapshots, tick, unitsHash, tickSequenceId);
+            var request = new TrainResyncProtocol.RequestMessagePack(includeRailGraph);
+            return await _packetExchangeManager.GetPacketResponse<TrainResyncProtocol.ResponseMessagePack>(request, ct);
         }
 
         public async UniTask<PlaceTrainCarOnRailProtocol.PlaceTrainOnRailResponseMessagePack> PlaceTrainOnRail(RailPosition railPosition, Guid trainCarGuid, CancellationToken ct)
