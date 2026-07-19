@@ -42,7 +42,8 @@ description: |
 ## 2.5 ブロックUIパネル
 
 - **ブロックインベントリの外枠は `GamePanel variant="default"` + `title`=ブロック名。** スロットが並ぶ主要パネルを「一覧の置き場」として扱い、タイトル上下の2本罫線を許可する。
-- 画面中央上部へ固定し、重なり順は `--z-overlay-panel` を使う。機能側CSSでパネル面や下端フェード等の面装飾を作らず、面表現は GamePanel が一元供給する。
+- App の stage グリッドにある `viewer` 領域へ置き、持ち物パネルの右隣で上端を揃える。機能側の固定配置・独自z-index・パネル面・下端フェードは禁止し、配置は stage、面表現は GamePanel が一元供給する。
+- GamePanel の下向き三角と内容が重ならないよう、ブロックパネルだけ `--block-panel-bottom-safe-area` の下部安全帯を確保する。共通 GamePanel の余白は変更しない。
 - 閉じる操作はパネル右上の `shared/ui/PanelCloseButton` を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
 
 ## 3. モーダル
@@ -105,8 +106,8 @@ description: |
 
 ## 8.6 shared/ui の汎用表示部品
 
-- **GaugeBar**: 読み取り専用の水平ゲージ。溝は `--gauge-track`（半透明ネイビー）、充填は `--gauge-fill`（寒色グレー）を使い、青グラデは禁止。`value`（0..1）を描くだけでドメイン語彙を持たない。
-- **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、青グラデは禁止。
+- **GaugeBar**: 読み取り専用の水平ゲージ。溝は `--gauge-track`（半透明ネイビー）と `--bevel-c1` の薄い内周輪郭、充填は `--gauge-fill`（寒色グレー）を使い、青グラデは禁止。`value`（0..1）を描くだけでドメイン語彙を持たない。
+- **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
 - **PanelCloseButton**: パネル右上の面を持たない×。インラインSVGまたはCSSで描画する。
 
 ## 8.7 機械レシピ選択行

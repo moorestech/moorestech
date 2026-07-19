@@ -47,6 +47,30 @@
   /* ゲージの充填は主要アクションと競合しない寒色グレーにする */
   /* Use a cool gray for gauge fills so they do not compete with primary actions */
   --gauge-fill: rgb(104 106 120);
+  /* ゲージの器は寒色リングが判別できる最小幅で縁取る */
+  /* Outline gauge vessels with the minimum visible width for a cool ring */
+  --gauge-outline-width: 1px;
+  /* ブロックパネルの下向き三角と内容を分離する安全帯を確保する */
+  /* Reserves a safe area between block-panel content and the downward triangle */
+  --block-panel-bottom-safe-area: 58px;
+  /* モード選択肢を独立したボタンとして見せる間隔を確保する */
+  /* Separates mode options so each reads as an independent button */
+  --mode-switch-gap: 4px;
+  /* モード選択肢の文字が縦につぶれない余白を確保する */
+  /* Preserves vertical breathing room around mode option labels */
+  --mode-switch-padding-block: 5px;
+  /* 横並びのモード選択肢をコンパクトに保つ */
+  /* Keeps horizontally arranged mode options compact */
+  --mode-switch-padding-inline: 0.6rem;
+  /* 選択中の寒色面を非選択面より一段明るくする */
+  /* Makes the selected cool face one step brighter than unselected faces */
+  --mode-switch-selected-mix: 30%;
+  /* 進捗矢印の既定幅を共有トークンで管理する */
+  /* Controls the default progress-arrow width through a shared token */
+  --progress-arrow-width: 4rem;
+  /* 進捗矢印の既定高を共有トークンで管理する */
+  /* Controls the default progress-arrow height through a shared token */
+  --progress-arrow-height: 0.75rem;
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
   --research-node-face: rgb(10 14 27 / 80%);

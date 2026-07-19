@@ -29,7 +29,11 @@ export default function BlockInventoryPanel() {
 
   return (
     <div className={styles.panel} data-testid="block-inventory">
-      <GamePanel variant="default" title={title}>
+      <GamePanel
+        variant="default"
+        title={title}
+        style={{ paddingBottom: "var(--block-panel-bottom-safe-area)" }}
+      >
         {data.source === "train" && trainError && <div data-testid="train-inventory-error">{trainError}</div>}
         {data.source === "train" && !trainError && <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />}
         {data.source === "block" && Body && <Body data={data} />}
