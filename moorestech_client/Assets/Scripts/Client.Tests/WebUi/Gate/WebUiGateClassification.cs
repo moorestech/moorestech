@@ -74,7 +74,6 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Blueprint/BlueprintNameInputView.cs", Category.GatedRoot, "ブループリント名入力"),
             new Rule("Client.Game/InGame/UI/Challenge/ChallengeListView.cs", Category.GatedRoot, "チャレンジリスト/ツリー (C1)"),
             new Rule("Client.Game/InGame/UI/Challenge/CurrentChallengeHudView.cs", Category.GatedRoot, "進行中チャレンジHUD (C1)"),
-            new Rule("Client.Game/InGame/UI/ContextMenu/ContextMenuView.cs", Category.GatedRoot, "コンテキストメニュー (C2)"),
             new Rule("Client.Game/InGame/UI/Crosshair/CrosshairView.cs", Category.GatedRoot, "クロスヘア (C2)"),
             new Rule("Client.Game/InGame/UI/KeyControl/KeyControlDescription.cs", Category.GatedRoot, "キー操作ヒント (C2)"),
             new Rule("Client.Game/InGame/UI/Tooltip/MouseCursorTooltip.cs", Category.GatedRoot, "カーソル追従ツールチップ (C2)"),
@@ -100,7 +99,6 @@ namespace Client.Tests.WebUi.Gate
             // --- Phase待ち / Pending migration
             new Rule("Client.Game/InGame/UI/Inventory/Train", Category.CoveredByRoot, "TrainInventoryView配下 (C3)"),
             new Rule("Client.Game/InGame/UI/Challenge", Category.CoveredByRoot, "ChallengeListView/CurrentChallengeHudView配下（C1移行済み）"),
-            new Rule("Client.Game/InGame/UI/ContextMenu", Category.CoveredByRoot, "ContextMenuView配下 (C2)"),
             new Rule("Client.Game/InGame/UI/Crosshair", Category.CoveredByRoot, "CrosshairView配下 (C2)"),
             new Rule("Client.Game/InGame/UI/KeyControl", Category.CoveredByRoot, "KeyControlDescription配下 (C2)"),
             new Rule("Client.Game/InGame/UI/Tooltip", Category.CoveredByRoot, "MouseCursorTooltip配下 (C2)"),

@@ -19,7 +19,6 @@ using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Tooltip;
-using Client.Game.InGame.UI.ContextMenu;
 using VContainer;
 using Client.Network.API;
 namespace Client.WebUiHost.Game
@@ -117,13 +116,6 @@ namespace Client.WebUiHost.Game
             // uGUI/3D由来のツールチップを共通Web基盤へ接続する
             // Connect uGUI/3D tooltip sources to the shared web tooltip foundation
             hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, MouseCursorTooltip.Instance));
-
-            // コンテキストメニュー項目と既存callbackをTopic/Actionへ接続する
-            // Connect context-menu items and existing callbacks through Topic/Action
-            var contextMenuView = ContextMenuView.Instance;
-            hub.RegisterTopic(ContextMenuTopic.TopicName, new ContextMenuTopic(hub, contextMenuView));
-            hub.RegisterAction(new ContextMenuSelectActionHandler(contextMenuView));
-            hub.RegisterAction(new ContextMenuCloseActionHandler(contextMenuView));
 
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic

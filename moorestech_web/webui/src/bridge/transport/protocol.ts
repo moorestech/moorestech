@@ -23,7 +23,6 @@ import type {
   UiVisibilityData,
   MiningHudData,
   TooltipData,
-  ContextMenuData,
   GameStateData,
   TutorialPresentationData,
   SkitPresentationData,
@@ -81,7 +80,6 @@ export const Topics = {
   uiVisibility: "ui.visibility",
   miningHud: "ui.mining_hud",
   tooltip: "ui.tooltip",
-  contextMenu: "ui.context_menu",
   gameState: "game_state.current",
   tutorialPresentation: "tutorial.presentation",
   skitPresentation: "skit.presentation",
@@ -127,7 +125,6 @@ export type TopicPayloads = {
   [Topics.uiVisibility]: UiVisibilityData;
   [Topics.miningHud]: MiningHudData;
   [Topics.tooltip]: TooltipData;
-  [Topics.contextMenu]: ContextMenuData;
   [Topics.gameState]: GameStateData;
   [Topics.tutorialPresentation]: TutorialPresentationData;
   [Topics.skitPresentation]: SkitPresentationData;
@@ -155,8 +152,6 @@ export type ActionPayloads = {
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
   "pause_menu.back_to_main_menu": Record<string, never>;
-  "context_menu.select": { id: string };
-  "context_menu.close": Record<string, never>;
   "research.complete": { researchGuid: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
   // clear:true は右クリック相当のフィルタ解除。clear:false は C# 側が Grab の持ち手アイテムを設定する
@@ -196,8 +191,6 @@ export const ACTION_TYPES = [
   "ui_state.request",
   "pause_menu.save",
   "pause_menu.back_to_main_menu",
-  "context_menu.select",
-  "context_menu.close",
   "research.complete",
   "filter_splitter.set_mode",
   "filter_splitter.set_filter_item",

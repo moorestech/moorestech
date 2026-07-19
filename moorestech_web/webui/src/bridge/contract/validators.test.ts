@@ -46,14 +46,6 @@ describe("tooltip schema", () => {
   });
 });
 
-describe("context menu schema", () => {
-  it("accepts visible and closed snapshots", () => {
-    expect(validateTopicPayload(Topics.contextMenu, { visible: true, items: [{ id: "0", titleKey: "Split" }] })).toBe(true);
-    expect(validateTopicPayload(Topics.contextMenu, { visible: false, items: [] })).toBe(true);
-    expect(validateTopicPayload(Topics.contextMenu, { visible: true })).toBe(false);
-  });
-});
-
 describe("localization.current schema", () => {
   it("requires a non-empty locale", () => {
     expect(validateTopicPayload(Topics.localization, { locale: "japanese" })).toBe(true);

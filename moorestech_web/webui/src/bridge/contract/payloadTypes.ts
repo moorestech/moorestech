@@ -56,7 +56,6 @@ import type {
   UiVisibilityDataSchema,
   MiningHudDataSchema,
   TooltipDataSchema,
-  ContextMenuDataSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
   SkitPresentationDataSchema,
@@ -86,7 +85,6 @@ export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
 export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
 export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
-export type ContextMenuData = z.infer<typeof ContextMenuDataSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
 export type SkitPresentationData = z.infer<typeof SkitPresentationDataSchema>;

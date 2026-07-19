@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
@@ -39,17 +38,6 @@ namespace Client.Tests.WebUi
         public void TooltipMatchesFixture()
         {
             AssertMatches(new TooltipDto { Visible = true, TextKey = "Cannot remove", FontSize = 36 }, "tooltip.json");
-        }
-
-        [Test]
-        public void ContextMenuMatchesFixture()
-        {
-            var dto = new ContextMenuDto
-            {
-                Visible = true,
-                Items = new List<ContextMenuItemDto> { new() { Id = "0", TitleKey = "Split" } },
-            };
-            AssertMatches(dto, "context_menu.json");
         }
 
         private static void AssertMatches(object dto, string fixtureName)

@@ -15,7 +15,6 @@ import { Crosshair, KeyHintBar } from "@/features/commonHud";
 import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
-import { ContextMenu } from "@/shared/contextMenu";
 import { useI18n } from "@/shared/i18n";
 import { SkitPresentation } from "@/features/skit";
 import { TutorialOverlay } from "@/features/tutorial";
@@ -95,7 +94,6 @@ export default function App() {
         <KeyHintBar />
         <MiningHud />
         <CursorTooltip />
-        <ContextMenu />
         <BlockInventoryPanel />
         <ModalHost />
         <ProgressBar />
