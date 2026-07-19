@@ -33,8 +33,20 @@
   --z-reconnect: 2000;
   --text-default: #eee;
   --text-high-contrast: #fff;
+  /* 従属テキストには通常テキストより抑えた寒色グレーを使う */
+  /* Use a subdued cool gray for secondary text */
+  --text-muted: #a6a7ab;
+  /* 不足や警告を示す文字には共通の赤を使う */
+  /* Use the shared red for insufficient or warning text */
+  --text-insufficient: #ff6b6b;
   --color-content-primary: #f2f3f7;
   --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
+  /* ゲージの溝は世界が透ける半透明ネイビー面にする */
+  /* Use a translucent navy face for gauge tracks so the world remains visible */
+  --gauge-track: rgb(10 14 27 / 80%);
+  /* ゲージの充填は主要アクションと競合しない寒色グレーにする */
+  /* Use a cool gray for gauge fills so they do not compete with primary actions */
+  --gauge-fill: rgb(104 106 120);
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
   --research-node-face: rgb(10 14 27 / 80%);

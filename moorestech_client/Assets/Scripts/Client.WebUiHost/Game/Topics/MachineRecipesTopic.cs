@@ -60,6 +60,7 @@ namespace Client.WebUiHost.Game.Topics
                 dto.Recipes.Add(new MachineRecipeDto
                 {
                     RecipeGuid = recipe.MachineRecipeGuid.ToString(),
+                    BlockGuid = recipe.BlockGuid.ToString(),
                     BlockId = blockId.AsPrimitive(),
                     BlockName = blockName,
                     Time = recipe.Time,
@@ -115,6 +116,7 @@ namespace Client.WebUiHost.Game.Topics
     public class MachineRecipeDto
     {
         public string RecipeGuid;
+        public string BlockGuid;
         public int BlockId;
         public string BlockName;
         public double Time;

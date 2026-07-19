@@ -33,6 +33,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 dto.Machine = new MachineDetailDto
                 {
                     RecipeGuid = machineState.MachineRecipeGuid,
+                    SelectedRecipeGuid = machineState.SelectedRecipeGuid,
+                    BlockGuid = block.BlockMasterElement.BlockGuid.ToString(),
                     RecipeTime = recipe?.Time ?? 0,
                     OutputItems = BuildMachineOutputItems(recipe),
                     CurrentState = ToCamelCase(common.CurrentStateType),

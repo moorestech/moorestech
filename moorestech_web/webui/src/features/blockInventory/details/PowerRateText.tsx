@@ -16,6 +16,6 @@ export default function PowerRateText({
   const { t } = useI18n();
   const rate = computePowerRate(currentPower, requestPower);
   return (
-    <LackHighlightText label={t("電力 {rate}% (", { rate: Math.round(rate * 100) })} current={currentPower} separator={t("/")} required={requestPower} suffix={t(")")} insufficient={rate < 1} normalColor="dark.1" insufficientColor="red.5" size="sm" testId={testId} />
+    <LackHighlightText label={t("電力 {rate}% (", { rate: Math.round(rate * 100) })} current={currentPower} separator={t("/")} required={requestPower} suffix={t(")")} insufficient={rate < 1} size="sm" testId={testId} />
   );
 }

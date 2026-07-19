@@ -6,12 +6,12 @@ test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
 });
 
-// fixture の direction0 は whitelist → モードボタンは次モード blacklist を明示送信する
-// Direction0 in the fixture is whitelist, so the mode button sends the explicit next mode blacklist
-test("mode button sends explicit next mode", async ({ page }) => {
+// fixture の direction0 は whitelist。択一スイッチで blacklist を選び目標モードを明示送信する
+// Direction0 in the fixture is whitelist; selecting blacklist sends that explicit target mode
+test("mode switch sends explicitly selected mode", async ({ page }) => {
   await setBlock(page, "filterSplitter");
   await page.goto("/");
-  await page.getByTestId("filter-mode-0").click();
+  await page.getByTestId("filter-mode-0").getByRole("button", { name: "ブラックリスト" }).click();
   await expect
     .poll(async () => {
       const payloads = await payloadsOf(page, "filter_splitter.set_mode");

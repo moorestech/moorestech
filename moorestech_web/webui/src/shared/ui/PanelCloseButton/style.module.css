@@ -1,0 +1,34 @@
+/* パネル面と競合しない透明な閉じる操作を描く */
+/* Draws a transparent close control that does not compete with the panel face */
+.button {
+  display: grid;
+  width: calc(var(--slot-size) / 2);
+  height: calc(var(--slot-size) / 2);
+  padding: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: 0;
+  background: none;
+  place-items: center;
+}
+
+/* ×は画像を使わず、親ボタンの文字色を継承する線だけで表す */
+/* The cross uses no image and consists only of lines inheriting the button color */
+.icon {
+  width: calc(var(--slot-size) / 3);
+  height: calc(var(--slot-size) / 3);
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: square;
+  stroke-width: var(--bevel-1);
+}
+
+.button:hover,
+.button:focus-visible {
+  color: var(--text-high-contrast);
+}
+
+.button:focus-visible {
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}

@@ -4,6 +4,7 @@ import type { ActionPayloads } from "../../src/bridge/transport/protocol";
 // mock 用の固定 grab アイテムID。clear:false 時に C# 側が持ち手アイテムを設定するのを代替する
 // Fixed mock grab item id; stands in for the C# side assigning the currently grabbed item on clear:false
 const MOCK_GRAB_ITEM_ID = 999;
+const EMPTY_GUID = "00000000-0000-0000-0000-000000000000";
 
 // filter_splitter.set_mode: 対象方向の mode を書換える。適用できたら true
 // filter_splitter.set_mode: rewrite the target direction's mode; true when applied
@@ -40,6 +41,21 @@ export function applyTrainPlatformMode(block: BlockInventoryData, p: ActionPaylo
   if (!block.open || !("trainPlatform" in block) || !block.trainPlatform) return false;
   block.trainPlatform.mode = p.mode;
   return true;
+}
+
+// machine_recipe.select: 選択GUIDを設定し、clearまたはGUID欠落時は未選択へ戻す
+// machine_recipe.select: set the selected GUID, returning to unselected on clear or a missing GUID
+export function applyMachineRecipeSelect(block: BlockInventoryData, p: ActionPayloads["machine_recipe.select"]): boolean {
+  if (!block.open || !("machine" in block) || !block.machine) return false;
+  if (p.operation === "set") {
+    block.machine.selectedRecipeGuid = p.recipeGuid ?? EMPTY_GUID;
+    return true;
+  }
+  if (p.operation === "clear") {
+    block.machine.selectedRecipeGuid = EMPTY_GUID;
+    return true;
+  }
+  return false;
 }
 
 // research.complete: 該当 guid ノードを completed へ書換える。適用できたら true

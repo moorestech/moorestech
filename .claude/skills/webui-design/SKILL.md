@@ -39,6 +39,12 @@ description: |
 - 新しい見た目が必要なら GamePanel に variant を追加し、本ドキュメントに追記してから使う。GamePanel の外で独自CSSのパネル面を作るのは禁止。
 - **注: インベントリ画面の「整理」ボタンとpingボタンは仮実装であり、様式に含めない。** これらを前例として引用しない。
 
+## 2.5 ブロックUIパネル
+
+- **ブロックインベントリの外枠は `GamePanel variant="default"` + `title`=ブロック名。** スロットが並ぶ主要パネルを「一覧の置き場」として扱い、タイトル上下の2本罫線を許可する。
+- 画面中央上部へ固定し、重なり順は `--z-overlay-panel` を使う。機能側CSSでパネル面や下端フェード等の面装飾を作らず、面表現は GamePanel が一元供給する。
+- 閉じる操作はパネル右上の `shared/ui/PanelCloseButton` を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
+
 ## 3. モーダル
 
 - **モーダルの面もインベントリパネル系（GamePanelのトーン）を使う。** Mantine標準テーマ剥き出しの白/グレー面を出さない。
@@ -60,6 +66,8 @@ description: |
 - 色は `index.css` の CSS変数（`--color-*` / `--text-*` / `--bevel-*` 等）から取る。機能側CSSへの新色ハードコード禁止。新色が必要ならトークン化してから使う。
 - アクセントの青グラデ（`--recipe-action-background`）は**主要アクションボタン限定**。装飾や面には使わない。
 - 面は必ず半透明。不透明100%の面は作らない（世界が透けるのが前提のため）。
+- `index.css` の `--text-muted` は従属テキスト、`--text-insufficient` は不足/警告、`--gauge-track` はゲージの溝、`--gauge-fill` はゲージの充填に使う。
+- 機能側への色ハードコードは引き続き禁止し、これらの色も必ずトークン経由で参照する。
 
 ## 6. 装飾
 
@@ -94,6 +102,19 @@ description: |
 - **グラフ内詳細ペイン**: ノード選択で開く `GamePanel variant="craft"` のフロート。グラフパネル内の固定位置
   （パン・ズーム非追従）。内容は名前・説明・消費(`ItemSlot`+insufficient)・報酬/解放(`ItemSlot`)・
   主要アクションボタン（青グラデ）・閉じるボタン。オンオフ可能（同ノード再クリック/閉じるで消える）。
+
+## 8.6 shared/ui の汎用表示部品
+
+- **GaugeBar**: 読み取り専用の水平ゲージ。溝は `--gauge-track`（半透明ネイビー）、充填は `--gauge-fill`（寒色グレー）を使い、青グラデは禁止。`value`（0..1）を描くだけでドメイン語彙を持たない。
+- **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、青グラデは禁止。
+- **PanelCloseButton**: パネル右上の面を持たない×。インラインSVGまたはCSSで描画する。
+
+## 8.7 機械レシピ選択行
+
+- **MachineSection 内の1行として置く。** `t()` した「レシピ選択」ラベルの下に、解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid` に列挙し、独自gridは作らない。
+- 選択中は ItemSlot の `selected`（SlotFrame の `data-selected`）で示し、新しい色相・光彩は足さない。
+- 左クリックで選択し、右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`（内部の `useSlotMouse`）に従う。
+- 対象レシピが0件なら行を描画しない。区切り線等の新しい装飾を増やさず、ラベルと SlotGrid だけで構成する。
 
 ## 9. やらないことリスト（再掲・明示）
 
