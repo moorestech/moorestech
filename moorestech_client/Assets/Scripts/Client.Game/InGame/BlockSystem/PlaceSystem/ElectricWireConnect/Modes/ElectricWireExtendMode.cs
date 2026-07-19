@@ -74,7 +74,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // 可否OK かつクリックで接続する。起点は維持し連続接続できる
                 // Connect on click when placeable; keep the origin for continuous connection
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && judgement.IsPlaceable)
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && judgement.IsPlaceable)
                 {
                     ElectricWireExtendRequestSender.Connect(fromPos, toPos, wireItemId);
                 }
@@ -132,7 +132,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // 可否OK かつクリックで延長設置する。trueを返して上位が起点をクリアし、二重発火を防ぐ
                 // Extend on click when placeable; return true so the owner clears the origin, preventing double-fire
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && placeable)
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && placeable)
                 {
                     _context.WirePreview.SetActive(false);
                     _context.PreviewBlockController.SetActive(false);

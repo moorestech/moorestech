@@ -3,13 +3,13 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
+using Client.Game.InGame.Control;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static Client.Common.LayerConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
@@ -126,7 +126,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         {
             // UI上のクリックはブロック設置操作として扱わない
             // Ignore clicks over UI as placement input
-            return InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject();
+            return InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi();
         }
 
         private IGearChainPoleConnectAreaCollider GetHitPole()

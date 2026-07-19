@@ -38,19 +38,19 @@ namespace Client.Input
         public static bool GetMouseButtonDown(int button)
         {
             var control = GetMouseButtonControl(button);
-            return Suppress((control != null && control.wasPressedThisFrame) || UnityEngine.Input.GetMouseButtonDown(button), InputSuppressionScope.Pointer);
+            return (control != null && control.wasPressedThisFrame) || UnityEngine.Input.GetMouseButtonDown(button);
         }
 
         public static bool GetMouseButtonUp(int button)
         {
             var control = GetMouseButtonControl(button);
-            return Suppress((control != null && control.wasReleasedThisFrame) || UnityEngine.Input.GetMouseButtonUp(button), InputSuppressionScope.Pointer);
+            return (control != null && control.wasReleasedThisFrame) || UnityEngine.Input.GetMouseButtonUp(button);
         }
 
         public static bool GetMouseButton(int button)
         {
             var control = GetMouseButtonControl(button);
-            return Suppress((control != null && control.isPressed) || UnityEngine.Input.GetMouseButton(button), InputSuppressionScope.Pointer);
+            return (control != null && control.isPressed) || UnityEngine.Input.GetMouseButton(button);
         }
 
         private static bool Suppress(bool value, InputSuppressionScope scope)

@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -14,7 +15,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
 using static Client.Game.DebugConst;
 
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController.SetActive(true);
 
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
                 _clickStartPosition = placePoint;
                 _clickStartHeightOffset = _heightOffset;
@@ -184,6 +184,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
 
+                if (UiPointerHitTest.IsPointerOverAnyUi()) return;
                 SendPlaceBlockProtocol(_currentPlaceInfos.Where(info => info.Placeable).ToList());
             }
 

@@ -3,7 +3,6 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Entity.Object;
 using Client.Input;
-using UnityEngine.EventSystems;
 
 namespace Client.Game.InGame.UI.UIState.State.SubInventory
 {
@@ -26,7 +25,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             // クリックしてなければ無視
             // Ignore if not clicked
             if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return false;
-            if (EventSystem.current.IsPointerOverGameObject()) return false;
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
             
             
             if (BlockClickDetectUtil.TryGetCursorOnBlockPosition(out var blockPos) && // クリックしたブロックの位置を取得 Get position of clicked block

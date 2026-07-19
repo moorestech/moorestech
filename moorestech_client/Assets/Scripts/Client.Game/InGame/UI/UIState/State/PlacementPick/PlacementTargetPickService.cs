@@ -26,6 +26,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 
             //TODO InputSystem対応
             if (!HybridInput.GetMouseButtonDown(2)) return false;
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
 
             // 電線→列車→ブロックの順に解決する（ワイヤー優先は電線ツールの切断判定と整合）
             // Resolve wire, then train car, then block (wire priority matches the wire tool's disconnect check)

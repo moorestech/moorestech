@@ -4,13 +4,13 @@ using System.Text;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Blueprint;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 {
@@ -78,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
             // 左クリックで設置可能セルのみ送信
             // Left click sends placeable cells only; server allows partial success
-            if (InputManager.Playable.ScreenLeftClick.GetKeyUp && !EventSystem.current.IsPointerOverGameObject()) SendPlace(placements, placeableFlags);
+            if (InputManager.Playable.ScreenLeftClick.GetKeyUp && !UiPointerHitTest.IsPointerOverAnyUi()) SendPlace(placements, placeableFlags);
 
             #region Internal
 

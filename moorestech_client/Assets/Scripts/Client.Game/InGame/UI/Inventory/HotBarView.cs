@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Item.Interface;
@@ -77,7 +78,10 @@ namespace Client.Game.InGame.UI.Inventory
             int SelectedHotBar()
             {
                 // スクロールで変化
-                _switchHotBarDeltaTotal += InputManager.UI.SwitchHotBar.ReadValue<float>() / 100f;
+                if (!UiPointerHitTest.IsPointerOverAnyUi())
+                {
+                    _switchHotBarDeltaTotal += InputManager.UI.SwitchHotBar.ReadValue<float>() / 100f;
+                }
                 
                 if (_switchHotBarDeltaTotal > 1)
                 {

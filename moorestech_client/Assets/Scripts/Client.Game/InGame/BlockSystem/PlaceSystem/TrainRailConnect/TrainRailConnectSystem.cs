@@ -8,6 +8,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -49,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // If the connection source is not selected, select the connection source.
             if (_connectFromArea == null)
             {
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
                 {
                     _connectFromArea = GetTrainRailConnectAreaCollider();
                 }
@@ -136,7 +137,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             }
             void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || UiPointerHitTest.IsPointerOverAnyUi()) return;
                 _previewObject.SetActive(false);
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railTypeGuid);
@@ -144,7 +145,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             }
             void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, BlockId pierBlockId)
             {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || UiPointerHitTest.IsPointerOverAnyUi()) return;
                 if (!TryResolveNode(fromDestination, out var fromNode)) return;
 
                 _previewObject.SetActive(false);

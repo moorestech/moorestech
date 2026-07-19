@@ -34,17 +34,18 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // カーソル下のブロックにバウンディングボックスを表示
             // Show bounding box on the block under the cursor
-            UpdateHoverPreview();
+            var isPointerOverUi = UiPointerHitTest.IsPointerOverAnyUi();
+            UpdateHoverPreview(isPointerOverUi);
 
             // 左クリックでカーソル下のブロック情報をログに出力
             // Log the block info at the cursor on left click
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !isPointerOverUi)
             {
                 LogClickedBlockInfo();
             }
 
             //TODO InputSystemのリファクタ対象
-            if (HybridInput.GetMouseButtonDown(1))
+            if (HybridInput.GetMouseButtonDown(1) && !isPointerOverUi)
             {
                 InputManager.MouseCursorVisible(false);
                 _inGameCameraController.SetControllable(true);
@@ -59,9 +60,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
             #region Internal
 
-            void UpdateHoverPreview()
+            void UpdateHoverPreview(bool pointerOverUi)
             {
-                BlockClickDetectUtil.TryGetCursorOnBlock(out var hovered);
+                BlockGameObject hovered = null;
+                if (!pointerOverUi) BlockClickDetectUtil.TryGetCursorOnBlock(out hovered);
 
                 if (_hoveredBlock == hovered) return;
 

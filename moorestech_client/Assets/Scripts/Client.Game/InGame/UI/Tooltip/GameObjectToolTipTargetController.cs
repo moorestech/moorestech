@@ -1,6 +1,6 @@
+using Client.Game.InGame.Control;
 using Client.Input;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Client.Game.InGame.UI.Tooltip
 {
@@ -33,7 +33,7 @@ namespace Client.Game.InGame.UI.Tooltip
             target = null;
             var meinCamera = Camera.main;
             if (meinCamera == null) return false;
-            if (EventSystem.current.IsPointerOverGameObject()) return false;
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
             
             var mousePosition = InputManager.Playable.ClickPosition.ReadValue<Vector2>();
             var ray = meinCamera.ScreenPointToRay(mousePosition);
