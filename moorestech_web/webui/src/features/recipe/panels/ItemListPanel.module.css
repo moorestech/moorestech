@@ -17,6 +17,9 @@
 .scrollArea :global(.mantine-ScrollArea-viewport) {
   box-sizing: border-box;
   padding-left: 3.131498px;
+  /* 掴みドラッグを自前で処理するため、タッチの既定スクロールを無効化する */
+  /* Disable native touch scrolling since we handle grab-drag ourselves */
+  touch-action: none;
 }
 
 /* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */
