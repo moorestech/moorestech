@@ -45,12 +45,44 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             // For each material, verify held count covers the requirement plus any reservation
             foreach (var material in materials)
             {
-                var reserved = SumReserved(reservedMaterials, material.ItemId);
-                if (!HasEnoughItem(items, material.ItemId, material.Count + reserved))
+                var reserved = SumReserved(material.ItemId);
+                if (!HasEnoughItem(material.ItemId, material.Count + reserved))
                     return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
             }
 
             return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionCost(materials));
+
+            #region Internal
+
+            int SumReserved(ItemId itemId)
+            {
+                // 予約リスト中の同一アイテム数を合計する
+                // Sum the reserved amount of the same item in the reservation list
+                if (reservedMaterials == null) return 0;
+                var reserved = 0;
+                foreach (var material in reservedMaterials)
+                {
+                    if (material.ItemId == itemId) reserved += material.Count;
+                }
+                return reserved;
+            }
+
+            bool HasEnoughItem(ItemId itemId, int required)
+            {
+                // 対象アイテムの合計所持数が必要数を満たすか確認する
+                // Check whether the summed count of the target item meets the requirement
+                var total = 0;
+                foreach (var itemStack in items)
+                {
+                    if (itemStack.Id != itemId) continue;
+                    total += itemStack.Count;
+                    if (required <= total) return true;
+                }
+
+                return required <= total;
+            }
+
+            #endregion
         }
 
         public static bool TryCalculateWireCost(Guid connectToolGuid, float distance, out ElectricWireConnectionCost cost)
@@ -59,34 +91,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials)) return false;
             cost = new ElectricWireConnectionCost(materials);
             return true;
-        }
-
-        private static int SumReserved(IReadOnlyList<ConnectToolMaterialCost> reservedMaterials, ItemId itemId)
-        {
-            // 予約リスト中の同一アイテム数を合計する
-            // Sum the reserved amount of the same item in the reservation list
-            if (reservedMaterials == null) return 0;
-            var reserved = 0;
-            foreach (var material in reservedMaterials)
-            {
-                if (material.ItemId == itemId) reserved += material.Count;
-            }
-            return reserved;
-        }
-
-        private static bool HasEnoughItem(IEnumerable<IItemStack> items, ItemId itemId, int required)
-        {
-            // 対象アイテムの合計所持数が必要数を満たすか確認する
-            // Check whether the summed count of the target item meets the requirement
-            var total = 0;
-            foreach (var itemStack in items)
-            {
-                if (itemStack.Id != itemId) continue;
-                total += itemStack.Count;
-                if (required <= total) return true;
-            }
-
-            return required <= total;
         }
     }
 }

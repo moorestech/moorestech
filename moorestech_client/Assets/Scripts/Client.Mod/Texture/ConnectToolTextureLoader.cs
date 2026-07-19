@@ -30,18 +30,22 @@ namespace Client.Mod.Texture
             }
 
             return textureList;
-        }
 
-        private static ItemViewData LoadViewData(ConnectToolMasterElement element, global::Mod.Loader.Mod mod)
-        {
-            // imagePathが空ならassets/connectTool/{name}.pngへフォールバックする
-            // Fall back to assets/connectTool/{name}.png when imagePath is empty
-            var path = string.IsNullOrEmpty(element.ImagePath) ? Path.Combine("assets", "connectTool", $"{element.Name}.png") : element.ImagePath;
+            #region Internal
 
-            // 画像が無い場合はnullテクスチャのまま生成する（ToSpriteがnull安全のため落ちない）
-            // Keep a null texture when the image is missing (ToSprite is null-safe, so this does not crash)
-            var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
-            return new ItemViewData(texture, element.Name);
+            ItemViewData LoadViewData(ConnectToolMasterElement element, global::Mod.Loader.Mod mod)
+            {
+                // imagePathが空ならassets/connectTool/{name}.pngへフォールバックする
+                // Fall back to assets/connectTool/{name}.png when imagePath is empty
+                var path = string.IsNullOrEmpty(element.ImagePath) ? Path.Combine("assets", "connectTool", $"{element.Name}.png") : element.ImagePath;
+
+                // 画像が無い場合はnullテクスチャのまま生成する（ToSpriteがnull安全のため落ちない）
+                // Keep a null texture when the image is missing (ToSprite is null-safe, so this does not crash)
+                var texture = GetExtractedZipTexture.Get(mod.ExtractedPath, path);
+                return new ItemViewData(texture, element.Name);
+            }
+
+            #endregion
         }
     }
 }

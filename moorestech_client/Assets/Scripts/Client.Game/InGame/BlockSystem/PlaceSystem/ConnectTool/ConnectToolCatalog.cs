@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Core.Master;
+using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.ConnectToolsModule;
 
@@ -38,13 +39,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
             };
         }
 
-        // ブロック設置延長など、ツール未選択の経路で使うconnectToolを種別からSortPriority最小で解決する
-        // Resolve the connectTool for block-placement extend paths (no tool selected) by type, smallest SortPriority
-        public static Guid ResolveDefaultConnectToolGuid(ConnectToolType toolType)
+        // ブロック設置延長など、ツール未選択の経路で使う解放済みconnectToolを種別からSortPriority最小で解決する
+        // Resolve the unlocked connectTool for block-placement extend paths (no tool selected) by type, smallest SortPriority
+        public static Guid ResolveDefaultConnectToolGuid(ConnectToolType toolType, IGameUnlockStateData unlockState)
         {
             var masterToolType = ToMasterToolType(toolType);
             var element = MasterHolder.ConnectToolMaster.All
                 .Where(e => e.ToolType == masterToolType)
+                .Where(e => unlockState.ConnectToolUnlockStateInfos.TryGetValue(e.ConnectToolGuid, out var info) && info.IsUnlocked)
                 .OrderBy(e => e.SortPriority)
                 .FirstOrDefault();
             return element?.ConnectToolGuid ?? Guid.Empty;

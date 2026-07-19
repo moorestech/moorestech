@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
+using Game.UnlockState;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
@@ -24,16 +25,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         private readonly GearChainPoleFrameInputCollector _inputCollector;
         private readonly GearChainPoleExtendPreviewObject _previewObject;
         private readonly GearChainPoleExtendRequestSender _requestSender;
+        private readonly IGameUnlockStateData _gameUnlockStateData;
 
         // 延長の起点ポール。このシステムが持つ唯一の状態
         // Extension source pole: the only state this system owns
         private IGearChainPoleConnectAreaCollider _sourcePole;
 
-        public GearChainPoleConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
+        public GearChainPoleConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData)
         {
             _previewObject = new GearChainPoleExtendPreviewObject(previewBlockController);
             _requestSender = new GearChainPoleExtendRequestSender(blockGameObjectDataStore);
             _inputCollector = new GearChainPoleFrameInputCollector(mainCamera, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, _previewObject);
+            _gameUnlockStateData = gameUnlockStateData;
         }
 
         public void Enable()
@@ -57,7 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
                 // ブロック選択時は種別からgearChainのconnectToolを解決して延長接続に使う
                 // With a block selected, resolve the gearChain connectTool by type for the extension connection
                 var poleBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockTarget.BlockId);
-                var connectToolGuid = ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.GearChainPoleConnect);
+                var connectToolGuid = ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.GearChainPoleConnect, _gameUnlockStateData);
                 var input = _inputCollector.CollectPlaceExtend(_sourcePole, poleBlockMaster, _requestSender.IsAwaitingResponse, connectToolGuid);
                 result = GearChainPolePlaceExtendMode.Decide(input);
             }

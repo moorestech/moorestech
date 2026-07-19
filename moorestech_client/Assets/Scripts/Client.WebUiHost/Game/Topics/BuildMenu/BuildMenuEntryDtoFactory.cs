@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
-using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
 using Core.Master;

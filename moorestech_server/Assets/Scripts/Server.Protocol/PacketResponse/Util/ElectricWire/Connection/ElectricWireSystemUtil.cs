@@ -140,7 +140,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             var cost = connectorA.WireConnections[connectorB.BlockInstanceId].Cost;
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
             var refundStacks = ConnectToolMaterialConsumer.CreateRefundItems(cost.Materials);
-            if (refundStacks.Count > 0 && !inventory.InsertionCheck(refundStacks))
+            if (0 < refundStacks.Count && !inventory.InsertionCheck(refundStacks))
             {
                 failureReason = ElectricWirePlacementFailureReason.InventoryFull;
                 return false;

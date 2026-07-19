@@ -137,7 +137,7 @@ namespace Server.Protocol.PacketResponse
 
                 // playerインベントリに空きがない場合は削除不可
                 // Abort when there is no inventory space to return the items
-                if (refundStacks.Count > 0 && !inventory.InsertionCheck(refundStacks))
+                if (0 < refundStacks.Count && !inventory.InsertionCheck(refundStacks))
                 {
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotEnoughInventorySpace, data.Mode);
                 }

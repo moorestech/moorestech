@@ -41,7 +41,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 
                 // カーソル下の電線に対応するelectricWire connectToolを解決する
                 // Resolve the electricWire connectTool corresponding to the wire under the cursor
-                target = new ConnectToolPlacementTarget(ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.ElectricWireConnect));
+                target = new ConnectToolPlacementTarget(ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.ElectricWireConnect, _gameUnlockStateData));
                 return true;
             }
 
