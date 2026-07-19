@@ -8,8 +8,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
-    /// 長尺分解済みエンティティ列に対し、所持素材で賄えない後続分をPlaceable=falseへ書き換える
-    /// Marks decomposed entities beyond what the held materials can afford as Placeable=false
+    /// ベルトセル列のうち所持素材で賄えない後続分をPlaceable=falseへ書き換える
+    /// Marks belt cells beyond what the held materials can afford as Placeable=false
     /// </summary>
     public static class BeltConveyorCostPreviewMarker
     {
