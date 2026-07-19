@@ -6,7 +6,7 @@ import { ToastHost } from "@/features/toast";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryKeyHandler, BlockInventoryPanel } from "@/features/blockInventory";
-import { ResearchTreePanel } from "@/features/research";
+import { ResearchTreePanel, ResearchScreenChrome } from "@/features/research";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
@@ -65,6 +65,7 @@ export default function App() {
   // プレイヤーインベントリ本体を出すのは uGUI 準拠で持ち物・サブインベントリ画面のみ
   // Show the player inventory itself only on the inventory / sub-inventory screens, matching uGUI
   const inventoryScreen = screen === "playerInventory" || screen === "subInventory";
+  const researchScreen = screen === "researchTree";
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
   const modalScreen = inventoryScreen || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList" || screen === "pauseMenu" || screen === "trainPause";
@@ -78,7 +79,8 @@ export default function App() {
       {modalScreen && <div className={styles.backdrop} data-testid="screen-backdrop" />}
       <div ref={stageRef} className={styles.stage} data-web-ui-transparent>
         {inventoryScreen && <InventoryScreenChrome />}
-        {inventoryScreen && <InventoryPanel />}
+        {researchScreen && <ResearchScreenChrome />}
+        {(inventoryScreen || researchScreen) && <InventoryPanel />}
         {/* ホットバーは uGUI GameStateController 準拠の常時表示HUD（GameScreen中も出す） */}
         {/* The hotbar is an always-on HUD mirroring uGUI GameStateController (shown during GameScreen too) */}
         <HotbarPanel />
@@ -104,7 +106,7 @@ export default function App() {
         <BlockInventoryKeyHandler />
         <RecipeSelectionKeyHandler />
       </div>
-      {inventoryScreen && <GrabOverlay />}
+      {(inventoryScreen || researchScreen) && <GrabOverlay />}
       <Portal>
         <ToastHost />
         <CurrentChallengeHud />
