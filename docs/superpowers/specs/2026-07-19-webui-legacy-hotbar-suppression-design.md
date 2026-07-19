@@ -27,6 +27,31 @@ WebUI版ホットバーは `moorestech_web/webui/src/features/inventory/HotbarPa
 
 これにより、WebUI中にuGUIの描画だけを止めつつ、WebUIホストから参照される `HotBarView` の選択状態と外部選択APIは残す。
 
+## 配置と前例
+
+| 項目 | 配置先 | 役割・前例 |
+|---|---|---|
+| WebUI実効モード変化通知 | `Client.Game/InGame/UI/UIState/WebUiScreenGate.cs` | 既存ゲート値の通知面。UniRxのprivate `Subject<T>` + public `IObservable<T>`は `GameStateController.OnStateChanged` と同形 |
+| 旧ホットバー表示再評価 | `Client.Game/InGame/UI/Inventory/HotBarView.cs` | 表示専用の読み手。`CurrentChallengeHudView` 等と同様にWebUIモード中だけ旧ビューを抑止 |
+| ゲート漏れ監査 | `Client.Tests/WebUi/Gate` | 既存の `WebUiGateAuditTest` と分類台帳を拡張 |
+
+データフローは `WebUiCefToggle/WebUiHost → WebUiScreenGate → HotBarView（読み手）→ uGUI表示` の一方向とする。ホットバー側からゲートやホスト状態を書き戻す経路は追加しない。
+
+既存機構を無傷で残して表示子だけを差し替える案も比較した。しかし `HotBarView` は描画と旧入力処理を同じGameObjectで所有しており、描画子だけを止めるにはPrefab変更または旧入力との二重駆動が必要になる。採用案は既存のWebUIゲート済みビューと同様にGameObjectを抑止する一方、WebUIが利用する `SetSelectIndex` と選択状態はコンポーネント参照経由で引き続き利用する。
+
+## 操作の死活表
+
+| 操作・状態 | 計画後 | 根拠 |
+|---|---|---|
+| WebUIホットバー表示 | 維持 | React側 `HotbarPanel` は変更しない |
+| WebUIの1〜9キー選択 | 維持 | Web actionから非アクティブな `HotBarView.SetSelectIndex` を引き続き呼べる |
+| WebUIのホイール選択 | 維持 | 同じ `inventory.select_hotbar` action経路を維持 |
+| WebUIのスロットクリック | 維持 | Reactのslot action経路は変更しない |
+| 手持ち3Dモデル更新 | 維持 | Web actionの `SetSelectIndex` が既存 `ApplySelection` を通る |
+| WebUIホスト失敗時のuGUI | 維持 | 実効モードfalse通知で保存済みゲーム状態要求を再適用 |
+| Skit/CutScene中のホットバー退避 | 維持 | `GameStateController.SetActive(false)` の要求を保存し、WebUI状態より優先して非表示 |
+| `InventoryTopic` の状態配信 | 維持 | `HotBarView` のインスタンスと公開状態は破棄しない |
+
 ## 代替案と不採用理由
 
 ### `HotBarView.SetActive` に条件を追加するだけ
