@@ -7,8 +7,13 @@
   height: 100%;
   min-width: 0;
 }
+/* TreeViewのviewportはflex:1で高さを取る前提。ChallengePanel同様にflex列で包む */
+/* TreeView's viewport fills via flex:1; wrap it in a flex column like ChallengePanel */
 .treeContainer {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   height: 100%;
   overflow: hidden;
 }
