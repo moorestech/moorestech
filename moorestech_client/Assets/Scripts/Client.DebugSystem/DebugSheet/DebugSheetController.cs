@@ -1,6 +1,7 @@
 using System.Reflection;
 using Client.DebugSystem.Environment;
 using Client.Game;
+using Common.Debug;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using IngameDebugConsole;
@@ -81,6 +82,7 @@ namespace Client.DebugSystem
             rootPage.AddBoolWithSave(false, TrainAutoRunLabel, TrainAutoRunKey);
             rootPage.AddBoolWithSave(false, TrainUnitDebugOverlayLabel, TrainUnitDebugOverlayKey);
             rootPage.AddBoolWithSave(false, PlacePreviewKeepLabel, PlacePreviewKeepKey);
+            rootPage.AddBoolWithSave(false, FreeBlockPlacementLabel, DebugParameterKeys.FreeBlockPlacement);
             rootPage.AddBoolWithSave(true, WebUiCefActiveLabel, WebUiCefActiveKey);
         }
         public static void CloseDebugSheet()
