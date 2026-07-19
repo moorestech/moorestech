@@ -23,7 +23,7 @@ export default function FilterSplitterInventory({ data }: { data: BlockInventory
   };
 
   return (
-    <Group align="flex-start" gap="md" data-testid="filter-splitter">
+    <Stack gap="sm" data-testid="filter-splitter">
       {data.filterSplitter.directions.map((direction, dirIndex) => (
         <Stack key={dirIndex} gap="xs" data-testid={`filter-direction-${dirIndex}`}>
           <Text size="sm" c="var(--text-default)">{t("出力 {index}", { index: dirIndex + 1 })}</Text>
@@ -46,6 +46,6 @@ export default function FilterSplitterInventory({ data }: { data: BlockInventory
           </Group>
         </Stack>
       ))}
-    </Group>
+    </Stack>
   );
 }

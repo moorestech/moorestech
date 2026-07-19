@@ -3,7 +3,7 @@
 .root {
   display: flex;
   flex-direction: row;
-  gap: var(--bevel-2);
+  gap: var(--mode-switch-gap);
 }
 
 .root[data-orientation="vertical"] {
@@ -14,7 +14,7 @@
 /* Unselected options use secondary text and a restrained bevel ring */
 .option {
   flex: 1 1 auto;
-  padding: var(--bevel-2) calc(var(--slot-size) / 4);
+  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
   color: var(--text-muted);
   font: inherit;
   cursor: pointer;
@@ -28,7 +28,7 @@
 /* Selected options avoid the blue gradient and use a brighter cool face with high-contrast text */
 .option[data-selected="true"] {
   color: var(--text-high-contrast);
-  background: color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 20%);
+  background: color-mix(in srgb, var(--gauge-track), var(--bevel-c2) var(--mode-switch-selected-mix));
   box-shadow: 0 0 0 var(--bevel-1) var(--bevel-c2);
 }
 
