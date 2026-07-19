@@ -179,6 +179,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 // Skip sending in debug mode
                 if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
 
+                // 押下未登録の解放は無視する（ビルドメニュー選択クリックの解放がPlaceBlock遷移直後に漏れて
+                // Enableのセンチネル-1を_heightOffsetへ書き込み、以後の設置が1段沈むのを防ぐ）
+                // Ignore releases without a registered press (the build-menu selection click's release can leak in right
+                // after entering PlaceBlock and write Enable's -1 sentinel into _heightOffset, sinking later placements)
+                if (!_clickStartPosition.HasValue) return;
+
                 // マウスを離したので連続設置状態は解除する（設置有無に関わらず）
                 // Clear the continuous-placement state on mouse release (regardless of whether we place)
                 _heightOffset = _clickStartHeightOffset;

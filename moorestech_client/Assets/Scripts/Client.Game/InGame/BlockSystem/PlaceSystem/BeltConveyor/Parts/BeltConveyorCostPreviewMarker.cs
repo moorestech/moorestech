@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
@@ -15,6 +16,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     {
         public static void MarkInsufficientEntitiesAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, IEnumerable<IItemStack> inventoryItems)
         {
+            // 無料設置デバッグ中はコストによる設置不可判定を行わない（CommonBlockPlaceSystemと同一のスキップ）
+            // Skip cost-based unplaceable marking during free-placement debug (same skip as CommonBlockPlaceSystem)
+            if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
+
             // 地面埋没等の設置不可エンティティはコストを消費しないため予算計算から除外する
             // Exclude already-unplaceable entities (e.g. buried in ground) since they consume no cost
             var entityCosts = new List<ConstructionRequiredItemElement[]>(currentPlaceInfos.Count);
