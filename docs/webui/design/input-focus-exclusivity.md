@@ -17,6 +17,11 @@ Unity 側の状態権威は `Client.Input.WebUiInputExclusivity` に集約する
 キーバインドを個別の画面実装で判定せず同じ境界で抑止する。CEF は Unity Input System を経由しないため、
 `InputSystem.QueueStateEvent` は Web 入力の検証には使用しない。
 
+カーソルロック中（`CursorLockMode.Locked`、GameScreen等）は OS カーソルが存在しないため、`pointerOverUi` に
+かかわらずポインタ抑止を無効化する。ロック後は DOM に `pointermove` が届かず `pointerOverUi` が最後の値の
+まま残留する（例: パネル上でドラッグ→Tabで閉じる→カメラが動かない）ため、解除を Web からの通知に依存せず
+Unity 側のロック状態で判定する。
+
 テキスト入力は `input`（button系を除く）、`textarea`、`contenteditable=true` を対象にする。フォーカス中の
 Esc は Web が `preventDefault` / `stopPropagation` して対象を blur し、Unityへフォーカス返却を通知する。
 Escを押したフレームでは旧フォーカス状態がUnity側のキーバインドを抑止するため、同じEscがゲーム操作へ

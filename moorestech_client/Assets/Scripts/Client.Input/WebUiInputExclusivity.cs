@@ -28,7 +28,10 @@ namespace Client.Input
 
         public static bool IsSuppressed(InputSuppressionScope scope)
         {
-            return ((scope & InputSuppressionScope.Pointer) != 0 && _pointerOverUi) ||
+            // カーソルロック中はOSカーソルが無くWebはポインタを所有できない。ロック後はpointermoveが来ずpointerOverUiが解除されないため、ここで無効化する
+            // While the cursor is locked there is no OS cursor, so the web layer cannot own the pointer; pointermove never arrives after locking, leaving pointerOverUi latched, so neutralize it here
+            var pointerOwnedByWeb = _pointerOverUi && Cursor.lockState != CursorLockMode.Locked;
+            return ((scope & InputSuppressionScope.Pointer) != 0 && pointerOwnedByWeb) ||
                    ((scope & InputSuppressionScope.Keyboard) != 0 && _textInputFocused);
         }
 
