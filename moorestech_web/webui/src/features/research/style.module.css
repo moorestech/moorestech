@@ -8,9 +8,29 @@
   display: flex;
   flex-direction: column;
 }
-.node, .nodeCompleted {
+/* ノードカード: 名前+アイコンの縦積み。面と枠はトークン、状態はdata属性 */
+/* Node card: name + icon stack; face/border via tokens, states via data attributes */
+.node {
   position: absolute;
-  width: 200px;
+  width: 132px;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  background: var(--research-node-face);
+  border: 1px solid var(--research-node-border);
+  cursor: pointer;
 }
-.nodeCompleted { outline: 2px solid var(--mantine-color-green-6); }
+.node[data-locked] { opacity: 0.45; }
+.node[data-completed] { border-color: var(--text-default); }
+.node[data-selected] { outline: 2px solid var(--text-high-contrast); }
+.nodeName {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--text-default);
+}

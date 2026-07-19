@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   computeCanvasBounds,
+  deriveNodeCardState,
   deriveResearchButton,
   isItemSufficient,
   lineBetween,
@@ -106,5 +107,15 @@ describe("deriveResearchButton", () => {
       interactable: false,
       tooltip: "研究アイテムが足りません。\n前提研究が完了していません。",
     });
+  });
+});
+
+describe("deriveNodeCardState", () => {
+  it("completed/researchable/lockedを状態から導出する", () => {
+    expect(deriveNodeCardState("completed")).toEqual({ completed: true, researchable: false, locked: false });
+    expect(deriveNodeCardState("researchable")).toEqual({ completed: false, researchable: true, locked: false });
+    expect(deriveNodeCardState("unresearchableNotEnoughItem")).toEqual({ completed: false, researchable: false, locked: false });
+    expect(deriveNodeCardState("unresearchableNotEnoughPreNode")).toEqual({ completed: false, researchable: false, locked: true });
+    expect(deriveNodeCardState("unresearchableAllReasons")).toEqual({ completed: false, researchable: false, locked: true });
   });
 });

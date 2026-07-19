@@ -97,3 +97,15 @@ export function deriveResearchButton(node: ResearchNodeData, owned: Map<number, 
       : "研究アイテムが足りません。\n前提研究が完了していません。";
   return { completed: false, interactable, tooltip };
 }
+
+// カードのdata属性用の状態導出（lockedは前提未達）
+// Derive card data-attribute state (locked = prerequisites unmet)
+export type NodeCardState = { completed: boolean; researchable: boolean; locked: boolean };
+
+export function deriveNodeCardState(state: ResearchNodeState): NodeCardState {
+  return {
+    completed: state === "completed",
+    researchable: state === "researchable",
+    locked: state !== "completed" && !isPreNodeMet(state),
+  };
+}
