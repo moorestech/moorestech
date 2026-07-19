@@ -17,6 +17,7 @@ namespace Game.UnlockState
         private readonly MachineRecipeUnlockStateHolder _machineRecipe = new();
         private readonly BlockUnlockStateHolder _block = new();
         private readonly TrainCarUnlockStateHolder _trainCar = new();
+        private readonly ConnectToolUnlockStateHolder _connectTool = new();
 
         public IObservable<Guid> OnUnlockCraftRecipe => _craftRecipe.OnUnlock;
         public IReadOnlyDictionary<Guid, CraftRecipeUnlockStateInfo> CraftRecipeUnlockStateInfos => _craftRecipe.Infos;
@@ -42,6 +43,10 @@ namespace Game.UnlockState
         public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos => _trainCar.Infos;
         public void UnlockTrainCar(Guid trainCarGuid) => _trainCar.Unlock(trainCarGuid);
 
+        public IObservable<Guid> OnUnlockConnectTool => _connectTool.OnUnlock;
+        public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos => _connectTool.Infos;
+        public void UnlockConnectTool(Guid connectToolGuid) => _connectTool.Unlock(connectToolGuid);
+
         #region SaveLoad
 
         public void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject)
@@ -52,6 +57,7 @@ namespace Game.UnlockState
             _machineRecipe.Load(stateJsonObject.MachineRecipeUnlockStateInfos);
             _block.Load(stateJsonObject.BlockUnlockStateInfos);
             _trainCar.Load(stateJsonObject.TrainCarUnlockStateInfos);
+            _connectTool.Load(stateJsonObject.ConnectToolUnlockStateInfos);
         }
 
         public GameUnlockStateJsonObject GetSaveJsonObject()
@@ -64,6 +70,7 @@ namespace Game.UnlockState
                 MachineRecipeUnlockStateInfos = _machineRecipe.GetSaveJsonObject(),
                 BlockUnlockStateInfos = _block.GetSaveJsonObject(),
                 TrainCarUnlockStateInfos = _trainCar.GetSaveJsonObject(),
+                ConnectToolUnlockStateInfos = _connectTool.GetSaveJsonObject(),
             };
         }
 
@@ -78,5 +85,6 @@ namespace Game.UnlockState
         [JsonProperty("machineRecipeUnlockStateInfos")] public List<MachineRecipeUnlockStateInfoJsonObject> MachineRecipeUnlockStateInfos;
         [JsonProperty("blockUnlockStateInfos")] public List<BlockUnlockStateInfoJsonObject> BlockUnlockStateInfos;
         [JsonProperty("trainCarUnlockStateInfos")] public List<TrainCarUnlockStateInfoJsonObject> TrainCarUnlockStateInfos;
+        [JsonProperty("connectToolUnlockStateInfos")] public List<ConnectToolUnlockStateInfoJsonObject> ConnectToolUnlockStateInfos;
     }
 }

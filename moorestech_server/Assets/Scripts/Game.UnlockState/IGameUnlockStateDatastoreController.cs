@@ -49,6 +49,10 @@ namespace Game.UnlockState
         public IObservable<Guid> OnUnlockTrainCar { get; }
         void UnlockTrainCar(Guid trainCarGuid);
 
+        public IObservable<Guid> OnUnlockConnectTool { get; }
+        public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos { get; }
+        void UnlockConnectTool(Guid connectToolGuid);
+
         void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
         GameUnlockStateJsonObject GetSaveJsonObject();
     }
