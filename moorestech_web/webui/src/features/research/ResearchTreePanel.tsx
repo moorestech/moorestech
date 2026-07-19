@@ -44,7 +44,7 @@ export default function ResearchTreePanel() {
 
   return (
     <div className={styles.researchArea} data-testid="research-tree">
-      <GamePanel title={t("研究")} style={{ height: "100%" }}>
+      <GamePanel title={t("研究")} style={{ height: "100%", boxSizing: "border-box" }}>
         <div className={styles.treeContainer}>
           <TreeView nodes={nodes} getId={getResearchNodeId} getPosition={getResearchNodePosition}
             getPrevIds={getPreviousResearchNodeIds} nodeTargetSelector="[data-research-node]" testIdPrefix="research"
