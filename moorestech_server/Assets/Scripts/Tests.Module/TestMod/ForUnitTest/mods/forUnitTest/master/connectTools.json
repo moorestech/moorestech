@@ -1,0 +1,41 @@
+{
+    "data": [
+        {
+            "connectToolGuid": "c0000000-0000-0000-0000-000000000001",
+            "name": "TestElectricWire",
+            "toolType": "electricWire",
+            "imagePath": "TestElectricWire",
+            "sortPriority": 100,
+            "initialUnlocked": false,
+            "lengthPerUnit": 1,
+            "requiredItems": [
+                { "itemGuid": "00000000-0000-0000-1234-000000000001", "count": 1 }
+            ]
+        },
+        {
+            "connectToolGuid": "c0000000-0000-0000-0000-000000000002",
+            "name": "TestRail",
+            "toolType": "rail",
+            "imagePath": "TestRail",
+            "sortPriority": 110,
+            "initialUnlocked": false,
+            "lengthPerUnit": 5,
+            "requiredItems": [
+                { "itemGuid": "00000000-0000-0000-1234-000000000002", "count": 12 },
+                { "itemGuid": "00000000-0000-0000-1234-000000000003", "count": 5 }
+            ]
+        },
+        {
+            "connectToolGuid": "c0000000-0000-0000-0000-000000000003",
+            "name": "TestGearChain",
+            "toolType": "gearChain",
+            "imagePath": "TestGearChain",
+            "sortPriority": 120,
+            "initialUnlocked": false,
+            "lengthPerUnit": 4,
+            "requiredItems": [
+                { "itemGuid": "00000000-0000-0000-1234-000000000004", "count": 10 }
+            ]
+        }
+    ]
+}
