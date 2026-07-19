@@ -84,6 +84,17 @@ description: |
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrow`。
 
+## 8.5 グラフビュー（研究ツリー等のノードグラフ）
+
+- グラフの置き場は `GamePanel variant="default"` + タイトル罫線。body内で `shared/treeView` のパン・ズームを使う。
+- **研究ノードカード**: 「名前1行(ellipsis) + `ItemSlot`アイコン」の縦積みのみ。説明・消費・報酬・ボタンはカードに載せない。
+  面は `--research-node-face`、枠は `--research-node-border`（index.cssのトークン）。
+  状態はdata属性（`data-completed` / `data-researchable` / `data-locked` / `data-selected`）。
+  lockedはopacity減衰、selectedは `--text-high-contrast` のoutlineで表す。新しい色相・光彩は使わない。
+- **グラフ内詳細ペイン**: ノード選択で開く `GamePanel variant="craft"` のフロート。グラフパネル内の固定位置
+  （パン・ズーム非追従）。内容は名前・説明・消費(`ItemSlot`+insufficient)・報酬/解放(`ItemSlot`)・
+  主要アクションボタン（青グラデ）・閉じるボタン。オンオフ可能（同ノード再クリック/閉じるで消える）。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し
