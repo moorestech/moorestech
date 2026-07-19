@@ -44,8 +44,8 @@ namespace Client.Game.InGame.UI.UIState
 
         private static void PublishModeChange(bool previous)
         {
-            // AND結果が変わらない入力更新では下流を再駆動しない
-            // Do not redrive observers when an input changes without changing the AND result
+            // AND結果の同値更新では通知しない
+            // Skip notifications when the AND result stays unchanged
             var current = IsWebUiMode;
             if (current == previous) return;
             _onWebUiModeChanged.OnNext(current);

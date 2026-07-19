@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.UIState;
 using NUnit.Framework;
 using UniRx;
+using UnityEngine;
 
 namespace Client.Tests.WebUi.Gate
 {
@@ -24,8 +26,6 @@ namespace Client.Tests.WebUi.Gate
         [Test]
         public void EffectiveModeChangesArePublishedWithoutDuplicates()
         {
-            // CEFトグルとホスト稼働状態のANDが変わった場合だけ通知する
-            // Publish only when the AND of the CEF toggle and host availability changes
             var changes = new List<bool>();
             using var subscription = WebUiScreenGate.OnWebUiModeChanged.Subscribe(changes.Add);
 
@@ -35,6 +35,22 @@ namespace Client.Tests.WebUi.Gate
             WebUiScreenGate.SetWebUiMode(false);
 
             CollectionAssert.AreEqual(new[] { true, false }, changes);
+        }
+
+        [Test]
+        public void HotBarVisibilityIsDeferredUntilStartInitialization()
+        {
+            // Start前は自身を止めず初期化を保つ
+            // Preserve initialization by staying active before Start
+            WebUiScreenGate.SetWebUiMode(true);
+            WebUiScreenGate.SetHostAvailable(true);
+            var hotBarObject = new GameObject("HotBarViewLifecycleTest");
+            var hotBarView = hotBarObject.AddComponent<HotBarView>();
+
+            hotBarView.SetActive(true);
+
+            Assert.IsTrue(hotBarObject.activeSelf);
+            Object.DestroyImmediate(hotBarObject);
         }
     }
 }
