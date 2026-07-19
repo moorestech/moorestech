@@ -16,6 +16,7 @@ items:
     - unlockChallengeCategory
     - unlockMachineRecipe
     - unlockBlock
+    - unlockConnectTool
     - unlockTrainCar
     - playSkit
     - playBackgroundSkit
@@ -75,6 +76,18 @@ items:
           foreignKey:
             schemaId: blocks
             foreignKeyIdPath: /data/[*]/blockGuid
+            displayElementPath: /data/[*]/name
+    - when: unlockConnectTool
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: unlockConnectToolGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: connectTools
+            foreignKeyIdPath: /data/[*]/connectToolGuid
             displayElementPath: /data/[*]/name
     - when: unlockTrainCar
       type: object

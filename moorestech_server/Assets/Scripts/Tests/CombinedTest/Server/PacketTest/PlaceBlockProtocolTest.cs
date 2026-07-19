@@ -19,7 +19,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
         private static readonly Guid PoleMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱コスト×1)
-        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001"); // TestElectricWire
+        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001"); // electricWire connectToolのrequiredItem
+        private static readonly Guid ElectricWireConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001"); // TestElectricWire connectTool
 
         [Test]
         public void 建設コストを消費して設置される()
@@ -107,6 +108,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 距離1に機械→電柱設置
             // Pre-place an unconnected machine at distance 1, then place a pole via the protocol
             world.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+
+            // 自動接続にはelectricWire connectToolの解放が必要
+            // Auto-connect requires the electricWire connectTool to be unlocked
+            UnlockConnectTool(serviceProvider, ElectricWireConnectToolGuid);
 
             var inventory = GetInventory(serviceProvider);
             SetItem(inventory, 0, PoleMaterialGuid, 2);

@@ -6,6 +6,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +32,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         private const int MaterialSlot = 3;
         private const int WireSlot = 4;
         private static readonly Guid MaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000005"); // Test5 (電柱の建設コスト×1)
-        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
+        private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
+        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         private ServiceProvider _serviceProvider;
         private PacketResponseCreator _packet;
@@ -46,6 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             _packet = packet;
             _materialItemId = MasterHolder.ItemMaster.GetItemId(MaterialGuid);
             _wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
         }
 
         [Test]
@@ -148,7 +151,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         private ElectricWireExtendProtocol.ElectricWireExtendResponse SendExtend(Vector3Int fromPos, Vector3Int newPolePos, BlockId poleBlockId)
         {
             var placeInfo = new PlaceInfo { Position = newPolePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal };
-            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, poleBlockId, placeInfo, _wireItemId));
+            var payload = MessagePackSerializer.Serialize(ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(PlayerId, fromPos, poleBlockId, placeInfo, ConnectToolGuid));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
             return MessagePackSerializer.Deserialize<ElectricWireExtendProtocol.ElectricWireExtendResponse>(responses[0]);
         }

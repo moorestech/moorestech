@@ -2375,7 +2375,6 @@
       "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricToGearBlockInventory"
     }
   ],
-  "gearChainItems": [],
   "beltConveyorFamilies": [
     {
       "upBlockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d",
@@ -2388,6 +2387,5 @@
       "straightBlockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0"
     }
   ],
-  "blockDestructionCategories": [],
-  "electricWireItems": []
+  "blockDestructionCategories": []
 }

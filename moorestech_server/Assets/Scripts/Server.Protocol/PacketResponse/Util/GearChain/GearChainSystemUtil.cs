@@ -4,15 +4,17 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Gear.Common;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 using Game.PlayerInventory.Interface;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 
 namespace Server.Protocol.PacketResponse.Util.GearChain
 {
     public static class GearChainSystemUtil
     {
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId, out string error)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out string error)
         {
             // 接続対象を取得する
             // Acquire target chain poles
@@ -32,13 +34,21 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 error = GearChainPlacementEvaluator.InvalidTargetError;
                 return false;
             }
-            
-            // 距離・既接続・接続数上限・チェーンアイテムを共有判定で検証する
-            // Validate distance, existing connection, connection limit and chain items via shared judgement
+
+            // 未解放のconnectToolによる接続要求は拒否する
+            // Reject connection requests using a connectTool that is not unlocked
+            if (!IsConnectToolUnlocked(connectToolGuid))
+            {
+                error = GearChainPlacementEvaluator.NotUnlockedError;
+                return false;
+            }
+
+            // 距離・既接続・接続数上限・チェーン素材を共有判定で検証する
+            // Validate distance, existing connection, connection limit and chain materials via shared judgement
             var connectionDistance = Vector3Int.Distance(posA, posB);
             var alreadyConnected = poleA.ContainsChainConnection(poleB.BlockInstanceId) || poleB.ContainsChainConnection(poleA.BlockInstanceId);
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(connectionDistance, poleA.MaxConnectionDistance, poleB.MaxConnectionDistance, alreadyConnected, poleA.IsConnectionFull || poleB.IsConnectionFull, itemId, inventory.InventoryItems, Array.Empty<(ItemId itemId, int count)>());
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(connectionDistance, poleA.MaxConnectionDistance, poleB.MaxConnectionDistance, alreadyConnected, poleA.IsConnectionFull || poleB.IsConnectionFull, connectToolGuid, inventory.InventoryItems, null);
             if (!judgement.IsPlaceable)
             {
                 error = judgement.FailureReason;
@@ -58,34 +68,19 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
                 error = "ConnectionLimit";
                 return false;
             }
-            
-            Consume(cost);
-            RebuildNetworks(transformerA, transformerB);
-            
-            return true;
-            
-            #region Internal
 
-            void Consume(GearChainConnectionCost consumedCost)
-            {
-                var remaining = consumedCost.Count;
-                
-                // スロットを順に減算する
-                // Decrease stacks across slots
-                for (var i = 0; i < inventory.InventoryItems.Count && 0 < remaining; i++)
-                {
-                    var itemStack = inventory.InventoryItems[i];
-                    if (itemStack.Id != itemId) continue;
-                    
-                    var consumeAmount = Math.Min(itemStack.Count, remaining);
-                    var updated = itemStack.SubItem(consumeAmount);
-                    inventory.SetItem(i, updated);
-                    
-                    remaining -= consumeAmount;
-                }
-            }
-            
-            #endregion
+            ConnectToolMaterialConsumer.Consume(cost.Materials, inventory);
+            RebuildNetworks(transformerA, transformerB);
+
+            return true;
+        }
+
+        // connectToolの解放状態を確認する
+        // Check whether the connectTool is unlocked
+        public static bool IsConnectToolUnlocked(Guid connectToolGuid)
+        {
+            var infos = ServerContext.GetService<IGameUnlockStateDataController>().ConnectToolUnlockStateInfos;
+            return infos.TryGetValue(connectToolGuid, out var info) && info.IsUnlocked;
         }
 
         public static bool TryGetGearChainPole(Vector3Int position, out IGearChainPole chainPole, out IGearEnergyTransformer transformer)

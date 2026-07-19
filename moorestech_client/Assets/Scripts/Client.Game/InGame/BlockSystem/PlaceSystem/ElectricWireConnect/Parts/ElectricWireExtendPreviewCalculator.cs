@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Block;
@@ -38,7 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         /// 既存ブロック同士の接続可否を評価する。既接続・接続上限は受信済みワイヤー状態から内部で判定する
         /// Evaluate connecting two existing blocks; already-connected and full states are derived internally from received wire state
         /// </summary>
-        public static ElectricWirePlacementJudgement Evaluate(BlockGameObject source, BlockGameObject target, int sourceMaxConnectionCount, int targetMaxConnectionCount, float sourceMaxWireLength, float targetMaxWireLength, float distance, ItemId wireItemId, IEnumerable<IItemStack> inventoryItems)
+        public static ElectricWirePlacementJudgement Evaluate(BlockGameObject source, BlockGameObject target, int sourceMaxConnectionCount, int targetMaxConnectionCount, float sourceMaxWireLength, float targetMaxWireLength, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems)
         {
             var alreadyConnected = IsAlreadyConnected(source, target);
             var anyConnectionFull = IsConnectionFull(source, sourceMaxConnectionCount) || IsConnectionFull(target, targetMaxConnectionCount);
@@ -46,21 +47,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             return ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 distance, sourceMaxWireLength, targetMaxWireLength,
                 alreadyConnected, anyConnectionFull,
-                wireItemId, inventoryItems, ItemMaster.EmptyItemId);
+                connectToolGuid, inventoryItems, null);
         }
 
         /// <summary>
         /// 新設電柱への延長可否を評価する。新設側は未接続のため起点の状態のみ内部で判定する
         /// Evaluate extending to a newly placed pole; only the origin's state matters since the new pole has no connections
         /// </summary>
-        public static ElectricWirePlacementJudgement EvaluateNewPole(BlockGameObject source, int sourceMaxConnectionCount, float sourceMaxWireLength, float poleMaxWireLength, float distance, ItemId wireItemId, ItemId poleItemId, IEnumerable<IItemStack> inventoryItems)
+        public static ElectricWirePlacementJudgement EvaluateNewPole(BlockGameObject source, int sourceMaxConnectionCount, float sourceMaxWireLength, float poleMaxWireLength, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems)
         {
             var sourceFull = IsConnectionFull(source, sourceMaxConnectionCount);
 
             return ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 distance, sourceMaxWireLength, poleMaxWireLength,
                 false, sourceFull,
-                wireItemId, inventoryItems, poleItemId);
+                connectToolGuid, inventoryItems, null);
         }
 
         // どちらか一方の接続先集合に相手が含まれていれば接続済み

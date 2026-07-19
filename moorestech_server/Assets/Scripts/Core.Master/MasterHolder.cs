@@ -18,6 +18,7 @@ namespace Core.Master
         public static ResearchMaster ResearchMaster { get; private set; }
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
         public static CleanRoomMaster CleanRoomMaster { get; private set; }
+        public static ConnectToolMaster ConnectToolMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -44,6 +45,11 @@ namespace Core.Master
             // Depends on ItemMaster
             CraftRecipeMaster = new CraftRecipeMaster(GetJson(masterJsonFileContainer, new JsonFileName("craftRecipes")));
             InitializeMaster(CraftRecipeMaster);
+
+            // ItemMaster依存（requiredItemsのitemGuidを検証）
+            // Depends on ItemMaster (validates requiredItems.itemGuid)
+            ConnectToolMaster = new ConnectToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("connectTools")));
+            InitializeMaster(ConnectToolMaster);
 
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
             InitializeMaster(MapObjectMaster);

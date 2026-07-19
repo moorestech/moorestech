@@ -1,72 +1,55 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.ConnectToolsModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
 {
     /// <summary>
-    /// 接続ツール3種の表示情報とマスタ選択規則を定義する
-    /// このあたりはこれらが非アイテムになったら一緒ん全部消し去る
-    /// Defines display information and master-selection rules for the three connect tools
+    /// 接続ツール3種のenum変換と、ツール未選択経路のマスタ選択規則を定義する
+    /// Defines enum conversion and no-tool-selected master-selection rules for the three connect tools
     /// </summary>
     public static class ConnectToolCatalog
     {
-        private static readonly IReadOnlyList<ConnectToolType> DisplayOrder = Array.AsReadOnly(new[]
+        // マスタのtoolType文字列をクライアントのルーティング用enumへ写す
+        // Map the master's toolType string to the client routing enum
+        public static ConnectToolType ToConnectToolType(string masterToolType)
         {
-            ConnectToolType.TrainRailConnect,
-            ConnectToolType.GearChainPoleConnect,
-            ConnectToolType.ElectricWireConnect,
-        });
-
-        public static IReadOnlyList<ConnectToolType> GetDisplayOrder()
-        {
-            return DisplayOrder;
+            return masterToolType switch
+            {
+                ConnectToolMasterElement.ToolTypeConst.electricWire => ConnectToolType.ElectricWireConnect,
+                ConnectToolMasterElement.ToolTypeConst.rail => ConnectToolType.TrainRailConnect,
+                ConnectToolMasterElement.ToolTypeConst.gearChain => ConnectToolType.GearChainPoleConnect,
+                _ => throw new ArgumentOutOfRangeException(nameof(masterToolType), masterToolType, null),
+            };
         }
 
-        public static string GetDisplayName(ConnectToolType toolType)
+        // クライアントのenumをマスタのtoolType文字列へ写す
+        // Map the client enum to the master's toolType string
+        public static string ToMasterToolType(ConnectToolType toolType)
         {
             return toolType switch
             {
-                ConnectToolType.TrainRailConnect => "レール敷設",
-                ConnectToolType.GearChainPoleConnect => "歯車チェーン接続",
-                ConnectToolType.ElectricWireConnect => "電線接続",
+                ConnectToolType.ElectricWireConnect => ConnectToolMasterElement.ToolTypeConst.electricWire,
+                ConnectToolType.TrainRailConnect => ConnectToolMasterElement.ToolTypeConst.rail,
+                ConnectToolType.GearChainPoleConnect => ConnectToolMasterElement.ToolTypeConst.gearChain,
                 _ => throw new ArgumentOutOfRangeException(nameof(toolType), toolType, null),
             };
         }
 
-        public static Guid? SelectIconItemGuid(ConnectToolType toolType)
+        // ブロック設置延長など、ツール未選択の経路で使う解放済みconnectToolを種別からSortPriority最小で解決する
+        // Resolve the unlocked connectTool for block-placement extend paths (no tool selected) by type, smallest SortPriority
+        public static Guid ResolveDefaultConnectToolGuid(ConnectToolType toolType, IGameUnlockStateData unlockState)
         {
-            return toolType switch
-            {
-                ConnectToolType.TrainRailConnect => SelectRailItemGuid(),
-                ConnectToolType.GearChainPoleConnect => SelectGearChainItemGuid(),
-                ConnectToolType.ElectricWireConnect => SelectElectricWireItemGuid(),
-                _ => throw new ArgumentOutOfRangeException(nameof(toolType), toolType, null),
-            };
-
-            #region Internal
-
-            Guid? SelectRailItemGuid()
-            {
-                var railItems = MasterHolder.TrainUnitMaster.GetRailItems();
-                return railItems.Length == 0 ? null : railItems[0].ItemGuid;
-            }
-
-            Guid? SelectGearChainItemGuid()
-            {
-                var chainItems = MasterHolder.BlockMaster.Blocks.GearChainItems;
-                return chainItems.Length == 0 ? null : chainItems[0].ItemGuid;
-            }
-
-            Guid? SelectElectricWireItemGuid()
-            {
-                var wireItems = MasterHolder.BlockMaster.Blocks.ElectricWireItems;
-                return wireItems.Length == 0 ? null : wireItems[0].ItemGuid;
-            }
-
-            #endregion
+            var masterToolType = ToMasterToolType(toolType);
+            var element = MasterHolder.ConnectToolMaster.All
+                .Where(e => e.ToolType == masterToolType)
+                .Where(e => unlockState.ConnectToolUnlockStateInfos.TryGetValue(e.ConnectToolGuid, out var info) && info.IsUnlocked)
+                .OrderBy(e => e.SortPriority)
+                .FirstOrDefault();
+            return element?.ConnectToolGuid ?? Guid.Empty;
         }
 
         // 空きスペース延長時の自動設置ブロックを解決する

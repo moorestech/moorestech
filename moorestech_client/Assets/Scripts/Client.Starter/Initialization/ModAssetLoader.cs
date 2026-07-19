@@ -23,6 +23,7 @@ namespace Client.Starter.Initialization
 
         private BlockGameObjectPrefabContainer _blockContainer;
         private ItemImageContainer _itemImageContainer;
+        private ConnectToolImageContainer _connectToolImageContainer;
         private FluidImageContainer _fluidImageContainer;
 
         public ModAssetLoader(string serverDirectory, BlockGameObject missingBlockIdObject, BlockIconImagePhotographer blockIconImagePhotographer, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
@@ -55,7 +56,7 @@ namespace Client.Starter.Initialization
         {
             // ブロックとアイテムのアセットをロード
             // Load block and item assets.
-            await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadFluidAssets());
+            await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadConnectToolAssets(), LoadFluidAssets());
 
             // ブロック・列車画像を生成
             // Generate block and train icons
@@ -68,6 +69,7 @@ namespace Client.Starter.Initialization
                 ItemImageContainer = _itemImageContainer,
                 BlockImageContainer = iconResult.BlockImageContainer,
                 TrainCarImageContainer = iconResult.TrainCarImageContainer,
+                ConnectToolImageContainer = _connectToolImageContainer,
                 FluidImageContainer = _fluidImageContainer,
             };
 
@@ -87,6 +89,15 @@ namespace Client.Starter.Initialization
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(modDirectory);
                 _loadingLog.text += $"\nアイテム画像ロード完了  {_loadingStopwatch.Elapsed}";
+            }
+
+            async UniTask LoadConnectToolAssets()
+            {
+                // 接続ツールアイコンをimagePathからロード
+                // Load connect-tool icons from imagePath
+                var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
+                _connectToolImageContainer = ConnectToolImageContainer.CreateAndLoadConnectToolImageContainer(modDirectory);
+                _loadingLog.text += $"\n接続ツール画像ロード完了  {_loadingStopwatch.Elapsed}";
             }
 
             async UniTask LoadFluidAssets()
@@ -112,6 +123,7 @@ namespace Client.Starter.Initialization
         public ItemImageContainer ItemImageContainer;
         public BlockImageContainer BlockImageContainer;
         public TrainCarImageContainer TrainCarImageContainer;
+        public ConnectToolImageContainer ConnectToolImageContainer;
         public FluidImageContainer FluidImageContainer;
     }
 }

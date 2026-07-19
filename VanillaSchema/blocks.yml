@@ -1016,21 +1016,6 @@ properties:
           type: number
           default: 8
 
-- key: gearChainItems
-  type: array
-  items:
-    type: object
-    properties:
-    - key: itemGuid
-      type: uuid
-      foreignKey:
-        schemaId: items
-        foreignKeyIdPath: /data/[*]/itemGuid
-        displayElementPath: /data/[*]/name
-    - key: consumptionPerLength
-      type: number
-      default: 1
-
 # ベルトコンベアの設置ファミリー定義。1エントリが直線と任意の上り/下りからなる1つの敷設グループを表す。
 # Belt conveyor placement families; each entry groups one straight block with optional up/down blocks.
 - key: beltConveyorFamilies
@@ -1083,18 +1068,3 @@ properties:
             schemaId: blocks
             foreignKeyIdPath: /data/[*]/blockGuid
             displayElementPath: /data/[*]/name
-
-- key: electricWireItems
-  type: array
-  items:
-    type: object
-    properties:
-    - key: itemGuid
-      type: uuid
-      foreignKey:
-        schemaId: items
-        foreignKeyIdPath: /data/[*]/itemGuid
-        displayElementPath: /data/[*]/name
-    - key: consumptionPerLength
-      type: number
-      default: 1

@@ -74,7 +74,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
                 // 応答を待ち、成功時のみ新規ポールの生成を待って引き継ぎ先を解決する
                 // Await the response, then resolve the next source only on success by waiting for the new pole to spawn
                 var response = command.FromPos.HasValue
-                    ? await ClientContext.VanillaApi.Response.ExtendGearChainPole(command.FromPos.Value, command.PoleBlockId, command.PlaceInfo, command.ChainItemId, CancellationToken.None)
+                    ? await ClientContext.VanillaApi.Response.ExtendGearChainPole(command.FromPos.Value, command.PoleBlockId, command.PlaceInfo, command.ConnectToolGuid, CancellationToken.None)
                     : await ClientContext.VanillaApi.Response.PlaceIsolatedGearChainPole(command.PoleBlockId, command.PlaceInfo, CancellationToken.None);
                 var placedPole = response is { IsSuccess: true } ? await WaitForPlacedPole((Vector3Int)response.PlacedPolePos) : null;
 

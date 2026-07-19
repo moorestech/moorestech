@@ -39,7 +39,7 @@ namespace Server.Protocol.PacketResponse
                 switch (data.Mode)
                 {
                     case ChainEditMode.Connect:
-                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, data.PlayerId, new ItemId(data.ItemId), out error);
+                        success = GearChainSystemUtil.TryConnect(data.PosAVector, data.PosBVector, data.PlayerId, data.ConnectToolGuid, out error);
                         break;
 
                     default:
@@ -59,7 +59,7 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public Vector3IntMessagePack PosB { get; set; }
             [Key(4)] public ChainEditMode Mode { get; set; }
             [Key(5)] public int PlayerId { get; set; }
-            [Key(6)] public int ItemId { get; set; }
+            [Key(6)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int PosAVector => PosA;
             [IgnoreMember] public Vector3Int PosBVector => PosB;
@@ -67,7 +67,7 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public GearChainConnectionEditRequest() { Tag = GearChainConnectionEditProtocol.Tag; }
 
-            public static GearChainConnectionEditRequest CreateConnectRequest(Vector3Int posA, Vector3Int posB, int playerId, ItemId itemId)
+            public static GearChainConnectionEditRequest CreateConnectRequest(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid)
             {
                 return new GearChainConnectionEditRequest
                 {
@@ -76,7 +76,7 @@ namespace Server.Protocol.PacketResponse
                     PosB = new Vector3IntMessagePack(posB),
                     Mode = ChainEditMode.Connect,
                     PlayerId = playerId,
-                    ItemId = itemId.AsPrimitive(),
+                    ConnectToolGuid = connectToolGuid,
                 };
             }
 

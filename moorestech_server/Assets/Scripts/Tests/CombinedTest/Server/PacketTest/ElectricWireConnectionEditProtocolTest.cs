@@ -7,6 +7,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -24,7 +25,8 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class ElectricWireConnectionEditProtocolTest
     {
         private const int PlayerId = 7;
-        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
+        private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
+        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         private ServiceProvider _serviceProvider;
         private PacketResponseCreator _packet;
@@ -42,6 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 接続成功で電線が消費されセグメントがマージされる()
         {
+            UnlockConnectTool();
             // 距離3の2本の電柱を設置し、電線5本を配布する
             // Place two poles 3 apart and give five wire items
             var posA = Vector3Int.zero;
@@ -71,6 +74,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 切断で電線が返却される()
         {
+            UnlockConnectTool();
             // 接続してから切断し、電線が戻ることを確認する
             // Connect then disconnect and verify wire refund
             var posA = Vector3Int.zero;
@@ -107,6 +111,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 電線不足で接続に失敗する()
         {
+            UnlockConnectTool();
             // 電線を持たずに接続を試みる
             // Attempt connection while holding no wire items
             var posA = Vector3Int.zero;
@@ -118,6 +123,24 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsFalse(response.IsSuccess);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, response.FailureReason);
             Assert.IsFalse(connectorA.ContainsWireConnection(connectorB.BlockInstanceId));
+        }
+
+        [Test]
+        public void 未解放connectToolでの接続はNotUnlockedで失敗する()
+        {
+            // 未解放の電線connectToolと必要素材を用意する
+            // Prepare a locked wire connectTool and sufficient materials
+            var posA = Vector3Int.zero;
+            var posB = new Vector3Int(3, 0, 0);
+            PlaceTwoPoles(posA, posB);
+            GiveWire(3);
+
+            // 接続拒否理由が未解放であることを検証する
+            // Verify the connection is rejected specifically as locked
+            var response = SendConnect(posA, posB);
+
+            Assert.IsFalse(response.IsSuccess);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NotUnlocked, response.FailureReason);
         }
 
         #region TestUtil
@@ -139,7 +162,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse SendConnect(Vector3Int posA, Vector3Int posB)
         {
-            var payload = MessagePackSerializer.Serialize(ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, PlayerId, _wireItemId));
+            var payload = MessagePackSerializer.Serialize(ElectricWireConnectionEditProtocol.ElectricWireConnectionEditRequest.CreateConnectRequest(posA, posB, PlayerId, ConnectToolGuid));
             var responses = _packet.GetPacketResponse(payload, new PacketResponseContext(null));
             return MessagePackSerializer.Deserialize<ElectricWireConnectionEditProtocol.ElectricWireConnectionEditResponse>(responses[0]);
         }
@@ -158,6 +181,11 @@ namespace Tests.CombinedTest.Server.PacketTest
                 if (itemStack.Id == itemId)
                     total += itemStack.Count;
             return total;
+        }
+
+        private void UnlockConnectTool()
+        {
+            _serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
         }
 
         #endregion
