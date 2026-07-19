@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
+using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -29,8 +31,19 @@ namespace Client.Game.InGame.UI.Inventory
         /// Index from 0 to 8. To find out which item in the inventory, refer to <see cref="PlayerInventoryConst.HotBarSlotToInventorySlot"/>.
         /// </summary>
         public int SelectIndex { get; private set; }
+        private bool _isInitialized;
+        private bool _isGameStateVisible = true;
         private float _switchHotBarDeltaTotal;
-        
+
+        private void Awake()
+        {
+            // 実効モード変化を旧表示へ反映する
+            // Reflect effective-mode changes in the legacy view
+            WebUiScreenGate.OnWebUiModeChanged
+                .Subscribe(_ => ApplyVisibility())
+                .AddTo(this);
+        }
+
         private void Start()
         {
             _heldItemModel = new HotBarHeldItemModel(_localPlayerInventory);
@@ -42,6 +55,9 @@ namespace Client.Game.InGame.UI.Inventory
                 var keyBordText = (i + 1).ToString();
                 hotBarItems[i].SetKeyBoardText(keyBordText);
             }
+
+            _isInitialized = true;
+            ApplyVisibility();
         }
         
         private void Update()
@@ -144,7 +160,16 @@ namespace Client.Game.InGame.UI.Inventory
 
         public void SetActive(bool active)
         {
-            gameObject.SetActive(active);
+            _isGameStateVisible = active;
+            ApplyVisibility();
+        }
+
+        private void ApplyVisibility()
+        {
+            // 初期化後に表示要求とWebUIを合成する
+            // Combine the visibility request with Web UI after initialization
+            if (!_isInitialized) return;
+            gameObject.SetActive(_isGameStateVisible && !WebUiScreenGate.IsWebUiMode);
         }
         
         private void OnDestroy()
