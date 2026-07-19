@@ -42,6 +42,7 @@ const node: ResearchNodeData = {
   name: "Research A",
   description: "Description",
   state: "researchable",
+  iconItemId: 1,
   position: { x: 10, y: 20 },
   prevGuids: [],
   consumeItems: [{ itemId: 1, count: 2 }],
