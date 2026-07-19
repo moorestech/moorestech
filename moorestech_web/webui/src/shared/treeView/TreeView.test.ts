@@ -3,21 +3,23 @@ import { act, create } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import TreeView from "./TreeView";
 
+type TestNode = { id: string; x: number; y: number; prevIds: string[] };
+
 describe("TreeView render cache", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("does not rebuild nodes when only the viewport moves", () => {
     vi.stubGlobal("Element", class TestElement {});
-    const nodes = [{ id: "node-a", x: 10, y: 20, prevIds: [] as string[] }];
+    const nodes: TestNode[] = [{ id: "node-a", x: 10, y: 20, prevIds: [] }];
     let renderedNodeCount = 0;
-    const getId = (node: (typeof nodes)[number]) => node.id;
-    const getPosition = (node: (typeof nodes)[number]) => ({ x: node.x, y: node.y });
-    const getPrevIds = (node: (typeof nodes)[number]) => node.prevIds;
+    const getId = (node: TestNode) => node.id;
+    const getPosition = (node: TestNode) => ({ x: node.x, y: node.y });
+    const getPrevIds = (node: TestNode) => node.prevIds;
     const renderNode = () => {
       renderedNodeCount++;
       return createElement("span", null, "node");
     };
-    const renderer = create(createElement(TreeView, {
+    const renderer = create(createElement(TreeView<TestNode>, {
       nodes,
       getId,
       getPosition,
