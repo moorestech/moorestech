@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { payloadsOf } from "../../support/actions";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
 
 test.afterEach(async ({ page }) => {
@@ -9,7 +8,6 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "keyHintsHidden");
   await setTopicScenario(page, "miningHidden");
   await setTopicScenario(page, "tooltipHidden");
-  await setTopicScenario(page, "contextMenuHidden");
 });
 
 test("設置・削除モードtopicをHUDへ反映する", async ({ page }) => {
@@ -57,11 +55,4 @@ test("ui.visibility=falseでPortalを含む全UIを退避し復帰する", async
 
   await setTopicScenario(page, "uiVisible");
   await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
-});
-
-test("context menu項目クリックでid付きactionを送る", async ({ page }) => {
-  await page.goto("/");
-  await setTopicScenario(page, "contextMenu");
-  await page.getByRole("button", { name: "調べる" }).click();
-  await expect.poll(async () => (await payloadsOf(page, "context_menu.select")).at(-1)).toEqual({ id: "inspect-1" });
 });

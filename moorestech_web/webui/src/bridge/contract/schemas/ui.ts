@@ -40,6 +40,3 @@ export const MiningHudDataSchema = z.object({
   visible: z.boolean(), targetName: z.string(), mining: z.boolean(), progress: z.number().min(0).max(1),
 });
 export const TooltipDataSchema = z.object({ visible: z.boolean(), textKey: z.string(), fontSize: z.number().positive() });
-export const ContextMenuDataSchema = z.object({
-  visible: z.boolean(), items: z.array(z.object({ id: z.string(), titleKey: z.string() })),
-});
