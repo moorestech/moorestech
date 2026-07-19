@@ -6,19 +6,19 @@ namespace Client.Input
     public enum InputSuppressionScope
     {
         Keyboard = 1,
-        Pointer = 2,
     }
 
     /// <summary>
-    /// Web UIが所有する入力範囲を一元管理し、ゲーム入力の読み取り口で抑止する。
-    /// Owns the Web UI input claim and suppresses game input at its read boundary.
+    /// Web UIの状態保持とテキスト入力時のキー抑止を担う。
+    /// Holds Web UI input state and suppresses keyboard input while a text field is focused.
     /// </summary>
     public static class WebUiInputExclusivity
     {
         private static volatile bool _pointerOverUi;
         private static volatile bool _textInputFocused;
-        private static int _lastPointerProbeFrame = -1;
         private static int _lastKeyboardProbeFrame = -1;
+
+        public static bool IsPointerOverWebUi => _pointerOverUi;
 
         public static void SetState(bool pointerOverUi, bool textInputFocused)
         {
@@ -28,22 +28,13 @@ namespace Client.Input
 
         public static bool IsSuppressed(InputSuppressionScope scope)
         {
-            // カーソルロック中はOSカーソルが無くWebはポインタを所有できない。ロック後はpointermoveが来ずpointerOverUiが解除されないため、ここで無効化する
-            // While the cursor is locked there is no OS cursor, so the web layer cannot own the pointer; pointermove never arrives after locking, leaving pointerOverUi latched, so neutralize it here
-            var pointerOwnedByWeb = _pointerOverUi && Cursor.lockState != CursorLockMode.Locked;
-            return ((scope & InputSuppressionScope.Pointer) != 0 && pointerOwnedByWeb) ||
-                   ((scope & InputSuppressionScope.Keyboard) != 0 && _textInputFocused);
+            return (scope & InputSuppressionScope.Keyboard) != 0 && _textInputFocused;
         }
 
         public static void ProbeSuppressed(InputSuppressionScope scope)
         {
-            // 物理入力が存在したフレームだけカテゴリ別に一度記録し、長押しによるログ洪水を防ぐ
-            // Log once per category only on frames with physical input, avoiding held-input log floods
-            if ((scope & InputSuppressionScope.Pointer) != 0 && _pointerOverUi && _lastPointerProbeFrame != Time.frameCount)
-            {
-                _lastPointerProbeFrame = Time.frameCount;
-                Debug.Log("[WebUiInputProbe] Suppressed pointer input because the pointer is over Web UI");
-            }
+            // 入力時だけ記録しログ洪水を防ぐ
+            // Log only on input to prevent log floods
             if ((scope & InputSuppressionScope.Keyboard) != 0 && _textInputFocused && _lastKeyboardProbeFrame != Time.frameCount)
             {
                 _lastKeyboardProbeFrame = Time.frameCount;

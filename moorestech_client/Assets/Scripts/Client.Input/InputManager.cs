@@ -49,7 +49,7 @@ namespace Client.Input
         public PayerInputManager(MoorestechInputSettings settings)
         {
             Move = new InputKey(settings.Player.Move, InputSuppressionScope.Keyboard);
-            Look = new InputKey(settings.Player.Look, InputSuppressionScope.Pointer);
+            Look = new InputKey(settings.Player.Look);
             Jump = new InputKey(settings.Player.Jump, InputSuppressionScope.Keyboard);
             Sprint = new InputKey(settings.Player.Sprint, InputSuppressionScope.Keyboard);
         }
@@ -64,9 +64,9 @@ namespace Client.Input
         
         public PlayableInputManager(MoorestechInputSettings settings)
         {
-            ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick, InputSuppressionScope.Pointer);
-            ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick, InputSuppressionScope.Pointer);
-            ClickPosition = new InputKey(settings.Playable.ClickPosition, InputSuppressionScope.Pointer);
+            ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick);
+            ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick);
+            ClickPosition = new InputKey(settings.Playable.ClickPosition);
             BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation, InputSuppressionScope.Keyboard);
         }
     }
@@ -91,10 +91,10 @@ namespace Client.Input
             OpenMenu = new InputKey(settings.UI.OpenMenu, InputSuppressionScope.Keyboard);
             CloseUI = new InputKey(settings.UI.CloseUI, InputSuppressionScope.Keyboard);
             OpenInventory = new InputKey(settings.UI.OpenInventory, InputSuppressionScope.Keyboard);
-            InventoryItemOnePut = new InputKey(settings.UI.InventoryItemOnePut, InputSuppressionScope.Pointer);
-            InventoryItemHalve = new InputKey(settings.UI.InventoryItemHalve, InputSuppressionScope.Pointer);
+            InventoryItemOnePut = new InputKey(settings.UI.InventoryItemOnePut);
+            InventoryItemHalve = new InputKey(settings.UI.InventoryItemHalve);
             HotBar = new InputKey(settings.UI.HotBar, InputSuppressionScope.Keyboard);
-            SwitchHotBar = new InputKey(settings.UI.SwitchHotBar, InputSuppressionScope.Pointer);
+            SwitchHotBar = new InputKey(settings.UI.SwitchHotBar);
             BlockDelete = new InputKey(settings.UI.BlockDelete, InputSuppressionScope.Keyboard);
             AllCraft = new InputKey(settings.UI.AllCraft, InputSuppressionScope.Keyboard);
             OneStackCraft = new InputKey(settings.UI.OneStackCraft, InputSuppressionScope.Keyboard);
@@ -106,16 +106,23 @@ namespace Client.Input
     public class InputKey
     {
         private readonly InputAction _inputAction;
-        private readonly InputSuppressionScope _suppressionScope;
+        private readonly InputSuppressionScope? _suppressionScope;
         
-        
-        public InputKey(InputAction key, InputSuppressionScope suppressionScope)
+        public InputKey(InputAction key) : this(key, null)
+        {
+        }
+
+        public InputKey(InputAction key, InputSuppressionScope suppressionScope) : this(key, (InputSuppressionScope?)suppressionScope)
+        {
+        }
+
+        private InputKey(InputAction key, InputSuppressionScope? suppressionScope)
         {
             _inputAction = key;
             _suppressionScope = suppressionScope;
-            key.started += _ => { if (!WebUiInputExclusivity.IsSuppressed(_suppressionScope)) OnGetKeyDown?.Invoke(); };
-            key.performed += _ => { if (!WebUiInputExclusivity.IsSuppressed(_suppressionScope)) OnGetKey?.Invoke(); };
-            key.canceled += _ => { if (!WebUiInputExclusivity.IsSuppressed(_suppressionScope)) OnGetKeyUp?.Invoke(); };
+            key.started += _ => { if (!IsSuppressed()) OnGetKeyDown?.Invoke(); };
+            key.performed += _ => { if (!IsSuppressed()) OnGetKey?.Invoke(); };
+            key.canceled += _ => { if (!IsSuppressed()) OnGetKeyUp?.Invoke(); };
         }
         
         public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame());
@@ -129,9 +136,9 @@ namespace Client.Input
         public TValue ReadValue<TValue>() where TValue : struct
         {
             var value = _inputAction.ReadValue<TValue>();
-            if (WebUiInputExclusivity.IsSuppressed(_suppressionScope))
+            if (IsSuppressed())
             {
-                if (!EqualityComparer<TValue>.Default.Equals(value, default)) WebUiInputExclusivity.ProbeSuppressed(_suppressionScope);
+                if (!EqualityComparer<TValue>.Default.Equals(value, default)) WebUiInputExclusivity.ProbeSuppressed(_suppressionScope.Value);
                 return default;
             }
             return value;
@@ -139,9 +146,14 @@ namespace Client.Input
 
         private bool ReadButton(bool value)
         {
-            if (!value || !WebUiInputExclusivity.IsSuppressed(_suppressionScope)) return value;
-            WebUiInputExclusivity.ProbeSuppressed(_suppressionScope);
+            if (!value || !IsSuppressed()) return value;
+            WebUiInputExclusivity.ProbeSuppressed(_suppressionScope.Value);
             return false;
+        }
+
+        private bool IsSuppressed()
+        {
+            return _suppressionScope.HasValue && WebUiInputExclusivity.IsSuppressed(_suppressionScope.Value);
         }
     }
 }

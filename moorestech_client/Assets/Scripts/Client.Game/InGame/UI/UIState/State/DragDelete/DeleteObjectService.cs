@@ -1,7 +1,6 @@
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
-using UnityEngine.EventSystems;
 using System;
 using UniRx;
 
@@ -53,7 +52,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             void HandleDragStart()
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
-                if (EventSystem.current.IsPointerOverGameObject()) return;
+                if (UiPointerHitTest.IsPointerOverAnyUi()) return;
 
                 // 単体プレビューの所有権を選択側へ渡す
                 // Hand off preview ownership from single-hover to the selection

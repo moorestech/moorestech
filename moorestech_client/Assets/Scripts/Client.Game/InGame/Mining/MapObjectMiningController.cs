@@ -1,11 +1,11 @@
 ﻿using Client.Common;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using VContainer;
 
 namespace Client.Game.InGame.Mining
@@ -57,7 +57,7 @@ namespace Client.Game.InGame.Mining
 
                 var ray = Camera.main.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
                 if (!Physics.Raycast(ray, out var hit, 10, LayerConst.MapObjectOnlyLayerMask)) return null;
-                if (EventSystem.current.IsPointerOverGameObject()) return null;
+                if (UiPointerHitTest.IsPointerOverAnyUi()) return null;
                 if (!hit.collider.gameObject.TryGetComponent(out MapObjectRayTarget mapObjectRayTarget)) return null;
 
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
