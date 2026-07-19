@@ -48,10 +48,26 @@ describe("useI18n translation behavior", () => {
     second("missing.key");
     expect(warn).toHaveBeenCalledTimes(1);
 
-    // 辞書更新後は新しい世代の欠落として再度一度だけ報告する
-    // Report the missing key once again for the new dictionary generation
+    // 辞書更新後に警告を再許可する
+    // Allow the warning again after dictionary updates
     setDictionaries("english", {}, {});
     createTranslator({ locale: "english", dictionary: {}, fallbackDictionary: {} })("missing.key");
+    expect(warn).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
+  });
+
+  it("keeps missing-key warnings isolated between old and current translators", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setDictionaries("japanese", {}, {});
+    const oldTranslator = createTranslator({ locale: "japanese", dictionary: {}, fallbackDictionary: {} });
+
+    // 旧翻訳器と現行警告を分離する
+    // Keep old translators isolated from current warnings
+    setDictionaries("english", {}, {});
+    const currentTranslator = createTranslator({ locale: "english", dictionary: {}, fallbackDictionary: {} });
+    oldTranslator("late.missing.key");
+    currentTranslator("late.missing.key");
+
     expect(warn).toHaveBeenCalledTimes(2);
     warn.mockRestore();
   });
