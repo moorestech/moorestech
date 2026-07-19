@@ -56,7 +56,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             if (target is BlockPlacementTarget block) return MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name;
             if (target is BlueprintPlacementTarget blueprint) return blueprint.BlueprintName;
-            if (target is ConnectToolPlacementTarget tool) return tool.ToolType.ToString();
+            if (target is ConnectToolPlacementTarget tool) return MasterHolder.ConnectToolMaster.GetElementOrNull(tool.ConnectToolGuid)?.Name ?? "";
             if (target is TrainCarPlacementTarget) return "Train Car";
             if (target is BlueprintCopyToolPlacementTarget) return "Blueprint Copy";
             return "";

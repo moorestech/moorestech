@@ -56,7 +56,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             {
                 BlockPlacementTarget block => block.BlockId.AsPrimitive().ToString(),
                 TrainCarPlacementTarget trainCar => trainCar.TrainCarGuid.ToString(),
-                ConnectToolPlacementTarget connectTool => connectTool.ToolType.ToString(),
+                ConnectToolPlacementTarget connectTool => connectTool.ConnectToolGuid.ToString(),
                 BlueprintPlacementTarget blueprint => blueprint.BlueprintName,
                 _ => string.Empty,
             };
@@ -74,7 +74,9 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 {
                     // 接続ツールのアイコンは敷設素材アイテムから引く（カタログが解決）
                     // The connect tool icon comes from its laying-material item (resolved by the catalog)
-                    var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(connectTool.ToolType);
+                    var element = MasterHolder.ConnectToolMaster.GetElementOrNull(connectTool.ConnectToolGuid);
+                    if (element == null) return null;
+                    var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(element);
                     if (iconItemGuid == null) return null;
                     var itemId = MasterHolder.ItemMaster.GetItemId(iconItemGuid.Value);
                     return $"{ItemIconEndpoint.PathPrefix}{itemId.AsPrimitive()}{ItemIconEndpoint.PathSuffix}";
