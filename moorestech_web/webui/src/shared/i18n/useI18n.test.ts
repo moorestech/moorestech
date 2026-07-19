@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTranslator } from "./i18nStore";
+import { createTranslator, setDictionaries } from "./i18nStore";
 
 describe("useI18n translation behavior", () => {
   it("current locale wins and interpolates named values", () => {
@@ -35,5 +35,24 @@ describe("useI18n translation behavior", () => {
       fallbackDictionary: {},
     });
     expect(t("greeting", { name: "Moore" })).toBe("Hello Moore, {count}");
+  });
+
+  it("warns once per missing key until dictionaries change", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const current = { locale: "japanese", dictionary: {}, fallbackDictionary: {} };
+    setDictionaries(current.locale, current.dictionary, current.fallbackDictionary);
+    const first = createTranslator(current);
+    const second = createTranslator(current);
+
+    first("missing.key");
+    second("missing.key");
+    expect(warn).toHaveBeenCalledTimes(1);
+
+    // 辞書更新後は新しい世代の欠落として再度一度だけ報告する
+    // Report the missing key once again for the new dictionary generation
+    setDictionaries("english", {}, {});
+    createTranslator({ locale: "english", dictionary: {}, fallbackDictionary: {} })("missing.key");
+    expect(warn).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
   });
 });
