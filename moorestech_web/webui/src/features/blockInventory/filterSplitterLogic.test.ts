@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { filterSlotClickAction, nextMode } from "./filterSplitterLogic";
+import { filterSlotClickAction, modeLabel } from "./filterSplitterLogic";
 
-describe("nextMode", () => {
-  it("cycles default→whitelist→blacklist→default", () => {
-    expect(nextMode("default")).toBe("whitelist");
-    expect(nextMode("whitelist")).toBe("blacklist");
-    expect(nextMode("blacklist")).toBe("default");
+describe("modeLabel", () => {
+  it("3モードの表示キーを保持する", () => {
+    expect(modeLabel).toEqual({
+      default: "デフォルト",
+      whitelist: "ホワイトリスト",
+      blacklist: "ブラックリスト",
+    });
   });
 });
 

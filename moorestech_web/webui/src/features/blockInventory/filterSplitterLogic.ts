@@ -2,14 +2,6 @@ import type { FilterSplitterMode } from "@/bridge";
 
 export type FilterSlotClickAction = "set" | "clear" | "noop";
 
-// uGUI と同じモード循環
-// Uses the same mode cycle as uGUI
-export function nextMode(mode: FilterSplitterMode): FilterSplitterMode {
-  if (mode === "default") return "whitelist";
-  if (mode === "whitelist") return "blacklist";
-  return "default";
-}
-
 // grab 空の設定は無操作
 // Empty-grab assign clicks are no-ops
 export function filterSlotClickAction(grabCount: number, clear: boolean): FilterSlotClickAction {

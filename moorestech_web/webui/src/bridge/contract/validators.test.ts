@@ -58,10 +58,14 @@ describe("validBlockInventory capability details", () => {
     const d = {
       ...openBase,
       progress: 0.5,
-      machine: { recipeGuid: "g", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
+      machine: { recipeGuid: "g", selectedRecipeGuid: "selected", blockGuid: "block-guid", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
       electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
     };
     expect(validateTopicPayload(Topics.blockInventory, d)).toBe(true);
+    expect(validateTopicPayload(Topics.blockInventory, {
+      ...d,
+      machine: { ...d.machine, selectedRecipeGuid: undefined, blockGuid: undefined },
+    })).toBe(false);
   });
   it("accepts gear + gearNetwork + generator + miner + filterSplitter + electricToGear details", () => {
     const d = {
@@ -122,7 +126,7 @@ describe("validResearchTree", () => {
 
 describe("validMachineRecipes", () => {
   const recipe = {
-    recipeGuid: "recipe-guid", blockId: 12, blockName: "炉", time: 1,
+    recipeGuid: "recipe-guid", blockGuid: "block-guid", blockId: 12, blockName: "炉", time: 1,
     inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
   };
 
@@ -130,6 +134,9 @@ describe("validMachineRecipes", () => {
     expect(validateTopicPayload(Topics.machineRecipes, { recipes: [recipe] })).toBe(true);
     expect(validateTopicPayload(Topics.machineRecipes, {
       recipes: [{ ...recipe, blockId: undefined, blockItemId: 12 }],
+    })).toBe(false);
+    expect(validateTopicPayload(Topics.machineRecipes, {
+      recipes: [{ ...recipe, blockGuid: undefined }],
     })).toBe(false);
   });
 });

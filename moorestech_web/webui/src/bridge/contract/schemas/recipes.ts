@@ -16,6 +16,7 @@ export const CraftRecipesDataSchema = z.object({ recipes: z.array(CraftRecipeSch
 export const MachineRecipeItemSchema = z.object({ itemId: z.number(), count: z.number() });
 export const MachineRecipeSchema = z.object({
   recipeGuid: z.string(),
+  blockGuid: z.string(),
   blockId: z.number(),
   blockName: z.string(),
   time: z.number(),

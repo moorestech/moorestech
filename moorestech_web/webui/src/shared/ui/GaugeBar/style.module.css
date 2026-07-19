@@ -1,0 +1,16 @@
+/* 読み取り専用ゲージを半透明ネイビーの溝と寒色グレーの充填で描く */
+/* Draws a read-only gauge with a translucent navy track and cool-gray fill */
+.track {
+  width: 100%;
+  height: calc(var(--slot-size) / 6);
+  overflow: hidden;
+  border-radius: var(--bevel-1);
+  background: var(--gauge-track);
+}
+
+/* 充填幅はコンポーネントがクランプしたvalueだけを反映する */
+/* The fill width reflects only the value clamped by the component */
+.fill {
+  height: 100%;
+  background: var(--gauge-fill);
+}

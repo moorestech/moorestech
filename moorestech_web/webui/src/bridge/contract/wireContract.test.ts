@@ -151,8 +151,12 @@ describe("block detail fixtures", () => {
     const machine = loadFixture("block_inventory_machine.json") as BlockInventoryData;
     if (!machine.open || machine.source !== "block" || !machine.machine) throw new Error("machine fixture shape");
     expect(machine.machine.slotLayout.input + machine.machine.slotLayout.output + machine.machine.slotLayout.module).toBe(machine.itemSlots.length);
+    expect(machine.machine.selectedRecipeGuid).toBe("00000000-0000-0000-0000-000000000000");
+    expect(machine.machine.blockGuid).toBe("11111111-1111-1111-1111-111111111111");
     const gear = loadFixture("block_inventory_gear_machine.json") as BlockInventoryData;
-    if (!gear.open || gear.source !== "block" || !gear.gearNetwork) throw new Error("gear fixture shape");
+    if (!gear.open || gear.source !== "block" || !gear.machine || !gear.gearNetwork) throw new Error("gear fixture shape");
+    expect(gear.machine.selectedRecipeGuid).toBe("00000000-0000-0000-0000-000000000000");
+    expect(gear.machine.blockGuid).toBe("22222222-2222-2222-2222-222222222222");
     expect(["none", "rocked", "overRequirePower"]).toContain(gear.gearNetwork.stopReason);
   });
 });

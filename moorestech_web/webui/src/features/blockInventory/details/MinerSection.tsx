@@ -17,7 +17,7 @@ export default function MinerSection({ data }: { data: BlockInventoryOpen }) {
         {data.miner.miningItems.map((m, i) => (
           <Group key={`${m.itemId}-${i}`} gap={4}>
             <ItemSlot itemId={m.itemId} />
-            <Text size="xs" c="dark.1">{t("{itemsPerMinute}/分", { itemsPerMinute: m.itemsPerMinute.toFixed(1) })}</Text>
+            <Text size="xs" c="var(--text-default)">{t("{itemsPerMinute}/分", { itemsPerMinute: m.itemsPerMinute.toFixed(1) })}</Text>
           </Group>
         ))}
       </Group>

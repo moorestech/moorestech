@@ -1,5 +1,5 @@
-import { CloseButton, Group, Paper, Title } from "@mantine/core";
 import { useTopic, Topics, UiStateNames, dispatchAction } from "@/bridge";
+import { GamePanel, PanelCloseButton } from "@/shared/ui";
 import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
 import BlockItemGrid from "./BlockItemGrid";
@@ -25,25 +25,26 @@ export default function BlockInventoryPanel() {
         openFailed: "Could not open train inventory",
       }[data.error])
     : null;
+  const title = data.source === "train" ? t("Train Inventory") : data.blockName;
 
   return (
-    <Paper data-testid="block-inventory" className={styles.panel} p="md" withBorder bg="dark.6" c="dark.1">
-        <Group justify="space-between" mb="sm">
-          <Title order={2} size="h4">{data.source === "train" ? t("Train Inventory") : data.blockName}</Title>
-          {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
-          {/* Mouse-driven close, like uGUI Esc/Tab; asks the host to transit to GameScreen */}
-          <CloseButton
-            data-testid="block-inventory-close"
-            aria-label={t("Close")}
-            {...tutorialAnchor("inventory.close-button")}
-            onClick={() => {
-              void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
-            }}
-          />
-        </Group>
+    <div className={styles.panel} data-testid="block-inventory">
+      <GamePanel variant="default" title={title}>
         {data.source === "train" && trainError && <div data-testid="train-inventory-error">{trainError}</div>}
         {data.source === "train" && !trainError && <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />}
         {data.source === "block" && Body && <Body data={data} />}
-    </Paper>
+      </GamePanel>
+      {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
+      {/* Mouse-driven close, like uGUI Esc/Tab; asks the host to transit to GameScreen */}
+      <PanelCloseButton
+        className={styles.close}
+        onClick={() => {
+          void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
+        }}
+        ariaLabel={t("Close")}
+        testId="block-inventory-close"
+        {...tutorialAnchor("inventory.close-button")}
+      />
+    </div>
   );
 }

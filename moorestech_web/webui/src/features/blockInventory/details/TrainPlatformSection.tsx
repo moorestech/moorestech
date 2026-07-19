@@ -1,7 +1,8 @@
-import { SegmentedControl, Stack, Text } from "@mantine/core";
+import { Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { BlockInventoryOpen, TrainPlatformMode } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
+import { ModeSwitch } from "@/shared/ui";
 
 const TRAIN_PLATFORM_SECTION_TEST_ID = "train-platform-section";
 const TRAIN_PLATFORM_MODE_TEST_ID = "train-platform-mode";
@@ -39,11 +40,11 @@ export default function TrainPlatformSection({ data }: { data: BlockInventoryOpe
 
   return (
     <Stack gap="xs" data-testid={TRAIN_PLATFORM_SECTION_TEST_ID}>
-      <SegmentedControl
-        data-testid={TRAIN_PLATFORM_MODE_TEST_ID}
+      <ModeSwitch
+        testId={TRAIN_PLATFORM_MODE_TEST_ID}
         value={detail.mode}
         onChange={setMode}
-        data={modeOptions}
+        options={modeOptions}
       />
       {capacityElement}
     </Stack>

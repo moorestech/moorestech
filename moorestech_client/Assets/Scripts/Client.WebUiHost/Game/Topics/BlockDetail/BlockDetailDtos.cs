@@ -9,6 +9,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     public class MachineDetailDto
     {
         public string RecipeGuid;
+
+        // ユーザー選択レシピと対象ブロックを Web UI の選択表示・絞り込みへ渡す
+        // Expose the selected recipe and target block for Web UI selection and filtering
+        public string SelectedRecipeGuid;
+        public string BlockGuid;
+
         public double RecipeTime;
         public List<MachineOutputItemDto> OutputItems;
         public string CurrentState;

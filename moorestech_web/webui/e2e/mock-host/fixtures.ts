@@ -1,8 +1,6 @@
 import type {
   PlayerInventoryData,
   SkitPresentationData,
-  CraftRecipesData,
-  MachineRecipesData,
   RecipeViewerItemListData,
   ItemMasterData,
   BlockInventoryData,
@@ -18,6 +16,7 @@ import type {
 export * from "./blockDetailFixtures";
 export * from "./researchFixtures";
 export * from "./fixtures/presentationFixtures";
+export * from "./fixtures/recipeFixtures";
 
 const empty = () => ({ itemId: 0, count: 0 });
 
@@ -117,32 +116,6 @@ export const progressSample = {
   progress: 0.4,
   label: "Crafting",
 } satisfies ProgressData;
-
-export const craftRecipes = {
-  recipes: [
-    {
-      recipeGuid: "g-craft-1",
-      resultItemId: 100,
-      resultCount: 1,
-      craftTime: 0.2,
-      requiredItems: [
-        { itemId: 1, count: 2 },
-        { itemId: 2, count: 1 },
-      ],
-    },
-    {
-      recipeGuid: "g-craft-insufficient",
-      resultItemId: 101,
-      resultCount: 1,
-      craftTime: 0.2,
-      requiredItems: [{ itemId: 1, count: 999 }],
-    },
-  ],
-} satisfies CraftRecipesData;
-
-export const machineRecipes = { recipes: [] } satisfies MachineRecipesData;
-
-export const itemList = { itemIds: [100, 101, 1, 2] } satisfies RecipeViewerItemListData;
 
 // INFRA-6: 既定はインベントリ画面（既存 e2e が前提とする表示状態を保つ）
 // INFRA-6: default to the inventory screen (keeps the visibility existing e2e tests assume)

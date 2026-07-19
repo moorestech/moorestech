@@ -13,7 +13,7 @@ export function ElectricNetworkSection({ data }: { data: BlockInventoryOpen }) {
   return (
     <Stack gap={2} data-testid="electric-network-section">
       {n.consumerCount === 0 ? (
-        <Text size="xs" c="dark.2">{t("需要なし")}</Text>
+        <Text size="xs" c="var(--text-muted)">{t("需要なし")}</Text>
       ) : (
         <LackHighlightText
           label={t("発電 ")}
@@ -25,8 +25,6 @@ export function ElectricNetworkSection({ data }: { data: BlockInventoryOpen }) {
             rate: Math.round(n.powerRate * 100),
           })}
           insufficient={false}
-          normalColor="dark.1"
-          insufficientColor="dark.1"
           size="xs"
         />
       )}
@@ -43,8 +41,8 @@ export function GearNetworkSection({ data }: { data: BlockInventoryOpen }) {
   const reason = stopReasonText(n.stopReason);
   return (
     <Stack gap={2} data-testid="gear-network-section">
-      <LackHighlightText label={t("供給 ")} current={n.totalGenerateGearPower.toFixed(0)} separator={t(" / 要求 ")} required={n.totalRequiredGearPower.toFixed(0)} insufficient={false} normalColor="dark.1" insufficientColor="dark.1" size="xs" />
-      {reason !== "" && <Text size="xs" c="red.5" data-testid="gear-stop-reason">{t(reason)}</Text>}
+      <LackHighlightText label={t("供給 ")} current={n.totalGenerateGearPower.toFixed(0)} separator={t(" / 要求 ")} required={n.totalRequiredGearPower.toFixed(0)} insufficient={false} size="xs" />
+      {reason !== "" && <Text size="xs" c="var(--text-insufficient)" data-testid="gear-stop-reason">{t(reason)}</Text>}
     </Stack>
   );
 }

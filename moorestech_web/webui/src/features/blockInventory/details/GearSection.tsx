@@ -12,8 +12,8 @@ export default function GearSection({ data }: { data: BlockInventoryOpen }) {
   const rpmLack = data.gear.currentRpm < data.gear.baseRpm;
   return (
     <Stack gap={2} data-testid="gear-section">
-      <LackHighlightText label={t("トルク ")} current={data.gear.currentTorque.toFixed(1)} separator={t(" / ")} required={data.gear.baseTorque.toFixed(1)} insufficient={torqueLack} normalColor="dark.1" insufficientColor="red.5" size="sm" testId="gear-torque" />
-      <LackHighlightText label={t("RPM ")} current={data.gear.currentRpm.toFixed(1)} separator={t(" / ")} required={data.gear.baseRpm.toFixed(1)} insufficient={rpmLack} normalColor="dark.1" insufficientColor="red.5" size="sm" testId="gear-rpm" />
+      <LackHighlightText label={t("トルク ")} current={data.gear.currentTorque.toFixed(1)} separator={t(" / ")} required={data.gear.baseTorque.toFixed(1)} insufficient={torqueLack} size="sm" testId="gear-torque" />
+      <LackHighlightText label={t("RPM ")} current={data.gear.currentRpm.toFixed(1)} separator={t(" / ")} required={data.gear.baseRpm.toFixed(1)} insufficient={rpmLack} size="sm" testId="gear-rpm" />
     </Stack>
   );
 }

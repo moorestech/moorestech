@@ -9,6 +9,8 @@
   "progress": 0.1,
   "machine": {
     "recipeGuid": "00000000-0000-0000-0000-000000000000",
+    "selectedRecipeGuid": "00000000-0000-0000-0000-000000000000",
+    "blockGuid": "22222222-2222-2222-2222-222222222222",
     "recipeTime": 15.0,
     "outputItems": [ { "itemId": 7, "count": 3 } ],
     "currentState": "idle",

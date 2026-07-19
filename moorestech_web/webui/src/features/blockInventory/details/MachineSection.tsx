@@ -5,6 +5,7 @@ import { useBlockSlotGestures } from "../useBlockSlotGestures";
 import { itemsPerMinute, splitSlotIndices } from "./detailLogic";
 import { useI18n } from "@/shared/i18n";
 import PowerRateText from "./PowerRateText";
+import MachineRecipeSelectionRow from "./MachineRecipeSelectionRow";
 
 // 機械: 入力→出力→モジュールの分割グリッド + 進捗 + 電力率（uGUI MachineBlockInventoryView 準拠）
 // Machine: split input→output→module grids, progress, and power rate (mirrors uGUI MachineBlockInventoryView)
@@ -47,6 +48,7 @@ export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
         const rate = itemsPerMinute(output.count, machine.recipeTime);
         return rate === null ? null : <div key={output.itemId} data-testid="machine-items-per-minute">{t("分間生産数")} <span>{rate}</span></div>;
       })}
+      <MachineRecipeSelectionRow data={data} />
     </Stack>
   );
 }

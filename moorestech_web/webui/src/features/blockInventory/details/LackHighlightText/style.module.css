@@ -1,0 +1,11 @@
+/* 現在値と要求値の通常表示には共通の本文色を使う */
+/* Uses the shared body color for normal current-versus-required text */
+.text {
+  color: var(--text-default);
+}
+
+/* 不足状態だけを共通の警告色へ切り替える */
+/* Switches only insufficient state to the shared warning color */
+.text[data-insufficient="true"] {
+  color: var(--text-insufficient);
+}

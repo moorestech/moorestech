@@ -6,7 +6,7 @@ import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, connections, subscribersOf, topicSubscribers } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft, applySplitDrag } from "./inventoryModel";
-import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
+import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyMachineRecipeSelect, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
 import { applySkitAction } from "./skitActions";
 import { demoMode, topicData } from "./topics/topicFixtures";
 import { knownActions } from "./topics/actionTypes";
@@ -169,6 +169,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "train_platform.set_transfer_mode") {
           const applied = applyTrainPlatformMode(state.currentBlock, msg.payload as ActionPayloads["train_platform.set_transfer_mode"]);
+          if (!applied) error = "invalid_block_type";
+          else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
+        } else if (msg.type === "machine_recipe.select") {
+          const applied = applyMachineRecipeSelect(state.currentBlock, msg.payload as ActionPayloads["machine_recipe.select"]);
           if (!applied) error = "invalid_block_type";
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "research.complete") {

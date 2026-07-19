@@ -6,8 +6,13 @@
   top: 6rem;
   transform: translateX(-50%);
   z-index: var(--z-overlay-panel);
-  /* 下部境界のフェード効果 */
-  /* Bottom boundary fade effect */
-  mask-image: linear-gradient(180deg, black 0%, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(180deg, black 0%, black 85%, transparent 100%);
+}
+
+/* 面を追加せず、共通の閉じる操作だけをパネル右上へ重ねる */
+/* Places only the shared close control at the panel top-right without adding a face */
+.close {
+  position: absolute;
+  top: var(--bevel-3);
+  right: var(--bevel-3);
+  z-index: var(--z-overlay-panel);
 }

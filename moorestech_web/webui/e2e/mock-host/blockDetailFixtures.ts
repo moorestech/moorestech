@@ -15,6 +15,8 @@ export const blockMachine = {
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
+    selectedRecipeGuid: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    blockGuid: "11111111-1111-1111-1111-111111111111",
     recipeTime: 15,
     outputItems: [{ itemId: 7, count: 3 }],
     currentState: "processing",
@@ -38,6 +40,8 @@ export const blockGearMachine = {
   progress: 0.1,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
+    selectedRecipeGuid: "00000000-0000-0000-0000-000000000000",
+    blockGuid: "22222222-2222-2222-2222-222222222222",
     recipeTime: 15,
     outputItems: [{ itemId: 7, count: 3 }],
     currentState: "idle",

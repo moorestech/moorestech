@@ -35,6 +35,7 @@ describe("craftableResultCounts", () => {
 
 const machineRecipe = (blockId: number, blockName: string, outputItemId: number, guid: string): MachineRecipe => ({
   recipeGuid: guid,
+  blockGuid: `block-${blockId}`,
   blockId,
   blockName,
   time: 1,
