@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
 using Game.PlayerInventory.Interface;
+using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -28,6 +30,7 @@ namespace Client.Game.InGame.UI.Inventory
         /// Index from 0 to 8. To find out which item in the inventory, refer to <see cref="PlayerInventoryConst.HotBarSlotToInventorySlot"/>.
         /// </summary>
         public int SelectIndex { get; private set; }
+        private bool _isGameStateVisible = true;
         private float _switchHotBarDeltaTotal;
         
         private void Start()
@@ -41,6 +44,13 @@ namespace Client.Game.InGame.UI.Inventory
                 var keyBordText = (i + 1).ToString();
                 hotBarItems[i].SetKeyBoardText(keyBordText);
             }
+
+            // WebUI実効モードの変化で旧ホットバー表示を再評価する
+            // Reevaluate legacy hotbar visibility whenever the effective Web UI mode changes
+            WebUiScreenGate.OnWebUiModeChanged
+                .Subscribe(_ => ApplyVisibility())
+                .AddTo(this);
+            ApplyVisibility();
         }
         
         private void Update()
@@ -140,7 +150,15 @@ namespace Client.Game.InGame.UI.Inventory
 
         public void SetActive(bool active)
         {
-            gameObject.SetActive(active);
+            _isGameStateVisible = active;
+            ApplyVisibility();
+        }
+
+        private void ApplyVisibility()
+        {
+            // ゲーム状態の表示要求を保ちつつWebUI中だけ旧表示を止める
+            // Preserve the game-state request while suppressing only the legacy view in Web UI mode
+            gameObject.SetActive(_isGameStateVisible && !WebUiScreenGate.IsWebUiMode);
         }
         
         private void OnDestroy()
