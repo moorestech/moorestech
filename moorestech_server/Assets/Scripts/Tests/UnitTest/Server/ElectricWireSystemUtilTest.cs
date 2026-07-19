@@ -6,6 +6,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -25,7 +26,8 @@ namespace Tests.UnitTest.Server
     public class ElectricWireSystemUtilTest
     {
         private const int PlayerId = 3;
-        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
+        private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
+        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         private ServiceProvider _serviceProvider;
         private ItemId _wireItemId;
@@ -36,6 +38,7 @@ namespace Tests.UnitTest.Server
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _serviceProvider = serviceProvider;
             _wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
         }
 
         [Test]
@@ -48,7 +51,7 @@ namespace Tests.UnitTest.Server
             PlaceTwoPoles(posA, posB);
             GiveWire(50);
 
-            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, _wireItemId, out var error);
+            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
 
             Assert.IsFalse(connected);
             Assert.AreEqual(ElectricWirePlacementFailureReason.TooFar, error);
@@ -64,7 +67,7 @@ namespace Tests.UnitTest.Server
             var (connectorA, connectorB) = PlaceTwoPoles(posA, posB);
             var inventory = GiveWire(2);
 
-            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, _wireItemId, out var error);
+            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
 
             Assert.IsFalse(connected);
             Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, error);
@@ -82,7 +85,7 @@ namespace Tests.UnitTest.Server
             var (connectorA, connectorB) = PlaceTwoPoles(posA, posB);
             var inventory = GiveWire(5);
 
-            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, _wireItemId, out var error);
+            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
 
             Assert.IsTrue(connected);
             Assert.AreEqual(ElectricWirePlacementFailureReason.None, error);
@@ -101,7 +104,7 @@ namespace Tests.UnitTest.Server
             var (connectorA, connectorB) = PlaceTwoPoles(posA, posB);
             var inventory = GiveWire(5);
 
-            ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, _wireItemId, out _);
+            ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out _);
             var disconnected = ElectricWireSystemUtil.TryDisconnect(posA, posB, PlayerId, out var error);
 
             Assert.IsTrue(disconnected);
