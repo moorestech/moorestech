@@ -2,6 +2,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Input;
@@ -39,9 +40,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             // Resolve the origin's connection limit and max wire length (do nothing when it is not electric)
             if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out var sourceMaxLength)) return false;
 
-            // 敷設に使う電線アイテムをマスタ定義順で自動選択する（手持ち非依存）
-            // Auto-select the wire item in master definition order, independent of the held item
-            var wireItemId = ElectricWireItemAutoSelector.FindOwnedWireItemId(_context.Inventory);
+            // 選択中の電線connectToolのGuidを使う（未選択時はEmpty）
+            // Use the selected wire connectTool's Guid (Empty when nothing is selected)
+            var connectToolGuid = ctx.Target is ConnectToolPlacementTarget connectTool ? connectTool.ConnectToolGuid : System.Guid.Empty;
             var fromPos = source.BlockPosInfo.OriginalPos;
 
             // 接続先ブロックがカーソル下にあり、起点と異なる電気系なら接続モード
@@ -68,7 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Already-connected and connection-full judgements are delegated to the calculator
                 var toPos = targetBlock.BlockPosInfo.OriginalPos;
                 var distance = Vector3Int.Distance(fromPos, toPos);
-                var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, sourceMaxLength, targetMaxWireLength, distance, wireItemId, _context.Inventory);
+                var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, sourceMaxLength, targetMaxWireLength, distance, connectToolGuid, _context.Inventory);
 
                 _context.WirePreview.Show(fromPos, toPos, judgement.IsPlaceable, ResolveCostCount(judgement, distance));
 
@@ -76,7 +77,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Connect on click when placeable; keep the origin for continuous connection
                 if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && judgement.IsPlaceable)
                 {
-                    ElectricWireExtendRequestSender.Connect(fromPos, toPos, wireItemId);
+                    ElectricWireExtendRequestSender.Connect(fromPos, toPos, connectToolGuid);
                 }
             }
 
@@ -121,7 +122,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // 電柱は建設コスト充足を別途判定するためワイヤー判定へはポールアイテム所持前提を渡さない
                 // Pole affordability is judged separately, so the wire judgement receives no pole-item assumption
                 var distance = Vector3Int.Distance(fromPos, placeInfo.Position);
-                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, sourceMaxLength, poleMaxLength, distance, wireItemId, ItemMaster.EmptyItemId, _context.Inventory);
+                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, sourceMaxLength, poleMaxLength, distance, connectToolGuid, _context.Inventory);
                 var placeable = placeInfo.Placeable && judgement.IsPlaceable && canAffordPole;
 
                 // ゴーストとワイヤー線を可否色で表示する
@@ -136,7 +137,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 {
                     _context.WirePreview.SetActive(false);
                     _context.PreviewBlockController.SetActive(false);
-                    ElectricWireExtendRequestSender.Extend(fromPos, poleBlockId, placeInfo, wireItemId, _context.BlockDataStore, toolEpoch);
+                    ElectricWireExtendRequestSender.Extend(fromPos, poleBlockId, placeInfo, connectToolGuid, _context.BlockDataStore, toolEpoch);
                     return true;
                 }
 
@@ -147,8 +148,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             {
                 // 成功時は判定結果のコストを、失敗時も距離から算出したコストを表示する
                 // Show the judgement cost on success, or the distance-derived cost even on failure
-                if (judgement.IsPlaceable) return judgement.WireCost.Count;
-                return ElectricWirePlacementEvaluator.TryCalculateWireCost(wireItemId, distance, out var cost) ? cost.Count : 0;
+                if (judgement.IsPlaceable) return judgement.WireCost.TotalCount;
+                return ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var cost) ? cost.TotalCount : 0;
             }
 
             void HidePreview()

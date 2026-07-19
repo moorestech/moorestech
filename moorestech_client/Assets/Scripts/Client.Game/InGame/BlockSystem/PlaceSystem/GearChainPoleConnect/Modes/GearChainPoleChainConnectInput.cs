@@ -1,5 +1,5 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
-using Core.Master;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
@@ -13,7 +13,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public IGearChainPoleConnectAreaCollider HitPole;
         public IGearChainPoleConnectAreaCollider SourcePole;
         public bool Clicked;
-        public ItemId HoldingChainItemId;
+        public Guid ConnectToolGuid;
 
         // 起点情報（SourcePole != null のときのみ有効）
         // Source pole info (valid only when SourcePole is not null)
