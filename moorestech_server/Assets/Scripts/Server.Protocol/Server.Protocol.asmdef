@@ -3,6 +3,7 @@
   "rootNamespace": "",
   "references": [
     "MessagePack.Annotations",
+    "Common.Debug",
     "Core.Util",
     "Game.Entity.Interface",
     "Server.Util",

@@ -212,6 +212,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             void MarkInsufficientItemPreviewsAsNotPlaceable()
             {
+                // 無料設置モードでは所持数による制限をかけない
+                // In free placement mode, do not limit by held item count
+                if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
+
                 // 建設コストで賄えるセル数まで設置可にする
                 // Allow placement up to the affordable cell count
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
