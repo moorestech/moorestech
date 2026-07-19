@@ -48,15 +48,14 @@ namespace Client.Game.InGame.UI.BuildMenu
                 entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
             }
 
-            // 解放済みconnectToolをSortPriority順に1エントリずつ表示（アイコンは敷設素材アイテム）
-            // Show one entry per unlocked connectTool in SortPriority order (icon is the laying material)
+            // 解放済みconnectToolをSortPriority順に1エントリずつ表示（アイコンはimagePath由来）
+            // Show one entry per unlocked connectTool in SortPriority order (icon comes from imagePath)
             var unlockedConnectTools = MasterHolder.ConnectToolMaster.All
                 .Where(element => unlockState.ConnectToolUnlockStateInfos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
                 .OrderBy(element => element.SortPriority);
             foreach (var connectTool in unlockedConnectTools)
             {
-                var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(connectTool);
-                var iconView = iconItemGuid == null ? null : ClientContext.ItemImageContainer.GetItemView(iconItemGuid.Value);
+                var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid);
                 entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), iconView, connectTool.Name));
             }
 

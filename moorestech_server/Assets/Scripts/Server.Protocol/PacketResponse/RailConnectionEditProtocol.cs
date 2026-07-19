@@ -68,9 +68,9 @@ namespace Server.Protocol.PacketResponse
                 if (!_commandHandler.TryResolveNodes(data.FromNodeId, data.FromGuid, data.ToNodeId, data.ToGuid, out var fromNode, out var toNode))
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.InvalidNode, data.Mode);
 
-                // 未解放のconnectToolによる接続要求は拒否する（Empty=無コストは許可）
-                // Reject a connection request using a connectTool that is not unlocked (Empty means costless and is allowed)
-                if (data.ConnectToolGuid != Guid.Empty && !ConnectToolSelector.IsUnlocked(data.ConnectToolGuid))
+                // 未解放または未指定(Empty)のconnectToolによる接続要求は拒否する（電線・歯車の4経路と対称）
+                // Reject connection requests with an unlocked or unspecified (Empty) connectTool, symmetric with the electric-wire/gear-chain paths
+                if (!ConnectToolSelector.IsUnlocked(data.ConnectToolGuid))
                     return ResponseRailConnectionEditMessagePack.CreateFailure(RailConnectionEditFailureReason.NotUnlocked, data.Mode);
 
                 var length = GetRailLength(fromNode, toNode);

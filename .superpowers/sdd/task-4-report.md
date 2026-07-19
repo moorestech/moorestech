@@ -41,3 +41,28 @@ main裁定（選択肢C）によりTask 4（サーバー）とTask 5（クライ
 3. **プレビューの解放非考慮**: `ResolveDefaultConnectToolGuid`・`ElectricWireAutoConnectPreview` はSortPriority最小を解放状態非依存で選ぶ（サーバーが最終権威。プレビューは近似）。多connectTool/種別のUX厳密化は以降タスクで。
 4. **wip中間コミット(46651d1)は非コンパイル**: bisect時の注意。必要なら `f865c54` へsquash可。
 5. マスタ由来値(LengthPerUnit等)はセーブせず、揮発ItemIdも保存していない（ItemGuid保存・ロード時解決）。
+
+---
+
+## レビュー指摘修正（Fix 1 + Fix 2）2026-07-19
+
+### Fix 1（CLIENT/Important）: connectToolのimagePathアイコンを実装
+死にデータだった`connectTools.yml`の`imagePath`を実アイコン経路に接続。ItemTextureLoader/ItemImageContainer/ItemIconEndpointと同型で3層を新設し、素材アイコンフォールバックを撤去。
+- 新規 `ConnectToolTextureLoader`（Client.Mod/Texture）: connectToolのimagePathからTexture2D→ItemViewDataを生成。imagePath空なら`assets/connectTool/{name}.png`へフォールバック。画像欠落時は`GetExtractedZipTexture.Get`がnull→`ToSprite`がnull安全のため落ちない。
+- 新規 `ConnectToolImageContainer`（Client.Game/InGame/Context）: connectToolGuid→ItemViewData辞書。`ClientContext.ConnectToolImageContainer`で保持。ModAssetLoaderの並列ロードに`LoadConnectToolAssets`を追加。
+- 新規 `ConnectToolIconEndpoint`（WebUI, `/api/connect-tool-icons/{guid}.png`）: TrainCarIconEndpointと同型。WebUiEndpointsにルート登録。
+- `BuildMenuEntryCatalog`（uGUI）と`BuildMenuEntryDtoFactory.CreateIconUrl`（WebUI）をconnectToolGuid由来アイコンへ変更。
+- 死んだ`ConnectToolCatalog.SelectIconItemGuid(ConnectToolMasterElement)`（素材アイコンフォールバック）を撤去。ConnectToolType overload・auto-selector群はTask 6へ委譲（スコープ非拡大）。
+
+### Fix 2（SERVER/Important）: rail 2経路のGuid.Empty無料接続を是正
+**調査結果**: `RailConnectionEditProtocol`/`RailConnectWithPlacePierProtocol`にEmptyを送る正当な内部呼び出し元は存在しない。station内部レール等は`RailComponentUtility.ConnectRailComponent`で直接生成し当プロトコルを通らない。クライアントは`target.ConnectToolGuid`（実マスタGuid）のみ送る。→escalate不要と判断し対称化。
+- 両rail経路のガードを`if (!ConnectToolSelector.IsUnlocked(guid))`へ変更（`!= Guid.Empty &&`を除去）。Empty=`NotUnlocked`で拒否、electricWire/gearChainの4経路と対称。
+- 拒否テスト追加: `RailConnectionEditProtocolTest.connectToolGuidがEmptyの接続要求は無料設置扱いされず拒否される`（NotUnlocked＋無消費）、`RailConnectWithPlacePierProtocolTest.connectToolGuidがEmptyの接続要求は無料設置扱いされず失敗応答を返す`（橋脚非設置＋無消費）。
+
+### 検証
+- `uloop compile --project-path ./moorestech_client`: Errors 0 / Warnings 0
+- `uloop run-tests ... "RailConnectionEditProtocolTest|RailConnectWithPlacePierProtocolTest|ConnectToolCatalogTest"`: 15/15 passed
+- `uloop run-tests ... "ElectricWire|Rail|GearChain|ConnectTool|BuildMenu"`: 179/179 passed
+
+### 残懸念
+- `RailConnectWithPlacePierProtocol`の`if (ConnectToolGuid != Guid.Empty)`ブロックとEvaluatePlacementのEmpty=無コスト分岐はEmpty拒否後に到達不能な残存コード。害はないためスコープ非拡大で残置（クライアントプレビューは実Guidのみ渡すため実挙動不変）。

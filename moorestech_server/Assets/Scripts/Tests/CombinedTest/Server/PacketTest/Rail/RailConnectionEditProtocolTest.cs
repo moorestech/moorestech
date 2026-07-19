@@ -79,6 +79,22 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
             Assert.AreEqual(insufficientIronPlateCount, CountItem(_ironPlateId));
         }
 
+        [Test]
+        public void connectToolGuidがEmptyの接続要求は無料設置扱いされず拒否される()
+        {
+            // 素材を十分に持たせても、Empty指定は未解放としてNotUnlockedで拒否される
+            // Even with ample materials, an Empty specification is rejected as NotUnlocked
+            var units = CalculateUnits();
+            SetInventory(units * 12 + 12, units * 5 + 5);
+
+            var response = SendConnectWith(Guid.Empty);
+
+            Assert.IsFalse(response.Success);
+            Assert.AreEqual(RailConnectionEditProtocol.RailConnectionEditFailureReason.NotUnlocked, response.FailureReason);
+            Assert.AreEqual(units * 12 + 12, CountItem(_reinforcingMaterialId));
+            Assert.AreEqual(units * 5 + 5, CountItem(_ironPlateId));
+        }
+
         private int CalculateUnits()
         {
             var length = RailConnectionEditProtocol.GetRailLength(_fromNode, _toNode);
@@ -93,8 +109,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Rail
 
         private RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack SendConnect()
         {
+            return SendConnectWith(ConnectToolGuid);
+        }
+
+        private RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack SendConnectWith(Guid connectToolGuid)
+        {
             var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(
-                PlayerId, _fromNode.NodeId, _fromNode.Guid, _toNode.NodeId, _toNode.Guid, ConnectToolGuid);
+                PlayerId, _fromNode.NodeId, _fromNode.Guid, _toNode.NodeId, _toNode.Guid, connectToolGuid);
             var responseBytes = _environment.PacketResponseCreator.GetPacketResponse(
                 MessagePackSerializer.Serialize(request), new PacketResponseContext(null)).First();
             return MessagePackSerializer.Deserialize<RailConnectionEditProtocol.ResponseRailConnectionEditMessagePack>(responseBytes.ToArray());
