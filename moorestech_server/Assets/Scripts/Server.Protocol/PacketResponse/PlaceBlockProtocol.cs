@@ -59,19 +59,27 @@ namespace Server.Protocol.PacketResponse
                 if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
 
                 var placeBlockId = placeInfo.BlockId;
+                var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
+
+                // 無料設置デバッグ: 解放・コスト・電線を一切見ず強制設置して即return
+                // Free placement debug: force-place ignoring unlock/cost/wire entirely, then return
+                if (isFreePlacement)
+                {
+                    ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out _);
+                    return;
+                }
+
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
 
                 // 未解放セルはスキップし、ベルトの坂はファミリー直線の状態で判定する
                 // Skip locked cells and resolve belt slopes through their family straight block
                 if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) return;
 
-                var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-
-                // コスト不足セルはスキップ（無料設置時はコスト判定を無視）
-                // Skip cells whose construction cost cannot be covered; ignore the check when free placement is on
+                // コスト不足セルはスキップ
+                // Skip cells whose construction cost cannot be covered
                 var inventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
-                if (!isFreePlacement && !ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return;
+                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return;
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
@@ -89,9 +97,7 @@ namespace Server.Protocol.PacketResponse
                 // Do not consume the cost when placement fails
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
 
-                // 無料設置時はコストを消費しない
-                // Do not consume the cost when free placement is on
-                if (!isFreePlacement) ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
+                ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
