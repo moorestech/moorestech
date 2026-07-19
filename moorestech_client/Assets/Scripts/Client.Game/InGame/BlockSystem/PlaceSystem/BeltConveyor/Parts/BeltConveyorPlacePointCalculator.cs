@@ -23,12 +23,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
 
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement representativeBlockMaster)
+        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster)
         {
-            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, representativeBlockMaster, IsNotExistBlock, IsOccupied);
+            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied);
         }
 
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement representativeBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied)
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied)
         {
             var (placeInfos, startToCornerDistance) = BeltConveyorPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);
 
@@ -40,17 +40,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             // Keep the infeasibility flag the Raiser set for an impossible overpass, then AND in occupancy.
             foreach (var info in placeInfos)
             {
-                info.Placeable = info.Placeable && isNotExistBlock(info, representativeBlockMaster);
+                info.Placeable = info.Placeable && isNotExistBlock(info, straightBlockMaster);
             }
 
             return placeInfos;
         }
 
-        // 設置予定地に既存ブロックが存在しているか（代表ブロックの1セル判定。長尺化は後段のデコンポーザが担う）
-        // Whether the placement cell already has a block (single-cell check via representative; length merging happens later)
-        private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement representativeBlockMaster)
+        // 直線ブロックの1セル範囲で既存ブロックとの重なりを判定する
+        // Detect overlap in the straight block's single-cell area
+        private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement straightBlockMaster)
         {
-            var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, representativeBlockMaster.BlockSize);
+            var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, straightBlockMaster.BlockSize);
             return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
         }
 

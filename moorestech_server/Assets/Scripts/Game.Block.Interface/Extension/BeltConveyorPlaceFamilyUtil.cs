@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 
@@ -32,60 +31,35 @@ namespace Game.Block.Interface.Extension
             return false;
         }
 
-        // 非代表バリアント（長尺・斜面）かを判定。非ベルトはfalse
-        // Whether a block is a non-representative variant; non-belt returns false
-        public static bool IsHiddenVariant(Guid blockGuid)
+        // 坂ブロックかを判定し、非ベルトはfalseにする
+        // Detect slope blocks while returning false for non-belt blocks
+        public static bool IsSlopeBlock(Guid blockGuid)
         {
-            return TryGetFamilyByGuid(blockGuid, out var family) && family.IsHiddenVariant(MasterHolder.BlockMaster.GetBlockId(blockGuid));
+            return TryGetFamilyByGuid(blockGuid, out var family) &&
+                   family.IsSlopeBlock(MasterHolder.BlockMaster.GetBlockId(blockGuid));
         }
 
         private static bool IsMember(BeltConveyorFamiliesElement element, Guid blockGuid)
         {
-            if (element.UpBlockGuid == blockGuid || element.DownBlockGuid == blockGuid) return true;
-            foreach (var straight in element.StraightBlocks)
-            {
-                if (straight.BlockGuid == blockGuid) return true;
-            }
-
-            return false;
+            return element.StraightBlockGuid == blockGuid ||
+                   element.UpBlockGuid == blockGuid ||
+                   element.DownBlockGuid == blockGuid;
         }
 
-        // ファミリーエントリを解決する。長さはblockSize.zから導出
-        // Resolve a family entry; length is derived from blockSize.z
+        // ファミリーのGUIDを実行時IDへ解決する
+        // Resolve the family's GUIDs to runtime IDs
         private static BeltConveyorFamily BuildFamily(BeltConveyorFamiliesElement element)
         {
-            var straightVariants = new List<(int length, BlockId blockId)>();
-            foreach (var straight in element.StraightBlocks)
-            {
-                var blockId = MasterHolder.BlockMaster.GetBlockId(straight.BlockGuid);
-                straightVariants.Add((MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize.z, blockId));
-            }
-
-            // 長い順に並べ、貪欲割当が最長バリアントから選べるようにする
-            // Sort descending so greedy assignment can pick the longest variant first
-            straightVariants.Sort((a, b) => b.length.CompareTo(a.length));
-
+            var straightBlockId = MasterHolder.BlockMaster.GetBlockId(element.StraightBlockGuid);
             var upBlockId = ResolveSlope(element.UpBlockGuid);
             var downBlockId = ResolveSlope(element.DownBlockGuid);
-            return new BeltConveyorFamily(FindRepresentativeBlockId(straightVariants), straightVariants, upBlockId, downBlockId);
+            return new BeltConveyorFamily(straightBlockId, upBlockId, downBlockId);
         }
 
         private static BlockId? ResolveSlope(Guid? slopeBlockGuid)
         {
             if (slopeBlockGuid == null) return null;
             return MasterHolder.BlockMaster.GetBlockId(slopeBlockGuid.Value);
-        }
-
-        // 代表は長さ1の直線ブロック（BeltConveyorFamilyValidatorがちょうど1件を保証する）
-        // The representative is the length-1 straight block (BeltConveyorFamilyValidator guarantees exactly one)
-        private static BlockId FindRepresentativeBlockId(List<(int length, BlockId blockId)> straightVariants)
-        {
-            foreach (var variant in straightVariants)
-            {
-                if (variant.length == 1) return variant.blockId;
-            }
-
-            throw new InvalidOperationException("BeltConveyorFamily has no length-1 straight block");
         }
     }
 }

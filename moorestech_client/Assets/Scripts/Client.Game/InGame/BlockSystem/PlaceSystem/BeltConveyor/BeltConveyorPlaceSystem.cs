@@ -21,8 +21,8 @@ using static Client.Game.DebugConst;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 {
     /// <summary>
-    /// ベルトコンベアファミリー専用の設置システム（1マス刻みの経路を長尺バリアントへ分解して設置する）
-    /// Dedicated placement system for belt-conveyor families (decomposes the grid-step path into length variants)
+    /// ベルトコンベアファミリー専用の1セル単位設置システム
+    /// Dedicated per-cell placement system for belt-conveyor families
     /// </summary>
     public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
@@ -84,10 +84,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
-            // ファミリー定義を解決（代表・斜面・長尺バリアント）。非ファミリーブロックは対象外
-            // Resolve the family definition (representative, slopes, length variants); bail out for non-family blocks
+            // ファミリー定義を解決し、非ファミリーブロックは対象外にする
+            // Resolve the family definition and ignore non-family blocks
             if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(target.BlockId, out var family)) return;
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.RepresentativeBlockId);
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
@@ -166,9 +166,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                     cellInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
                 }
 
-                // セル列を長尺バリアント・斜面エンティティ列へ分解
-                // Decompose cells into length-variant and slope entities
-                _currentPlaceInfos = BeltConveyorRunDecomposer.Decompose(cellInfos, family);
+                // セル列へ直線・坂ブロックを1対1で割り当てる
+                // Assign straight and slope blocks to cells one-to-one
+                _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family);
             }
 
             void PlaceBlock()

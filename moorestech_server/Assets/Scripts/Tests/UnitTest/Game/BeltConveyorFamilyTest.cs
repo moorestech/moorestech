@@ -14,96 +14,95 @@ namespace Tests.UnitTest.Game
         private const string NonBeltBlockGuid = "00000000-0000-0000-0000-000000000002";
 
         [Test]
-        public void 歯車ベルト系ブロックはファミリー解決できる()
+        public void 歯車ベルト系ブロックは単一直線ファミリーとして解決できる()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor, out _));
-            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor3, out _));
-            // up/downバリアントもファミリー所属
-            // Up/down slope variants also belong to the family
+            // 直線と坂を同じファミリーへ解決する
+            // Resolve the straight and slope blocks to the same family
+            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor, out var family));
             Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.TestGearBeltConveyorUp, out _));
-            // 非ベルトブロックは解決されない
-            // Non-belt blocks are not resolved
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, family.StraightBlockId);
+            Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp, family.UpBlockId);
+            Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorDown, family.DownBlockId);
+
             Assert.IsFalse(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.MachineId, out _));
         }
 
         [Test]
-        public void 代表ブロックと長さ降順バリアントが正しい()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor3, out var family);
-            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, family.RepresentativeBlockId);
-
-            // 長さはblockSize.z導出・降順に並ぶ
-            // Lengths derive from blockSize.z, sorted descending
-            var variants = family.StraightVariantsDesc;
-            Assert.AreEqual(3, variants.Count);
-            Assert.AreEqual(3, variants[0].length);
-            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor3, variants[0].blockId);
-            Assert.AreEqual(1, variants[2].length);
-
-            // 斜面はUp/DownBlockGuidから解決される
-            // Slopes resolve from Up/DownBlockGuid
-            Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp, family.UpBlockId);
-        }
-
-        [Test]
-        public void 隠しバリアント判定は代表のみfalse()
+        public void 坂ブロックだけを非直線メンバーとして判定する()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor, out var family);
 
-            Assert.IsTrue(family.IsHiddenVariant(ForUnitTestModBlockId.TestGearBeltConveyorUp));
-            Assert.IsTrue(family.IsHiddenVariant(ForUnitTestModBlockId.GearBeltConveyor3));
-            Assert.IsFalse(family.IsHiddenVariant(ForUnitTestModBlockId.GearBeltConveyor));
+            Assert.IsTrue(family.IsSlopeBlock(ForUnitTestModBlockId.TestGearBeltConveyorUp));
+            Assert.IsTrue(family.IsSlopeBlock(ForUnitTestModBlockId.TestGearBeltConveyorDown));
+            Assert.IsFalse(family.IsSlopeBlock(ForUnitTestModBlockId.GearBeltConveyor));
         }
 
         [Test]
-        public void 多重所属エラーから長さ1不足エラーを連鎖させない()
+        public void ファミリーメンバーが2セルなら検証エラーになる()
         {
-            // 第1族の長さ1を第2族へ重複登録する
-            // Register family one's length-1 block in family two
-            var blocksJsonPath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
-            var blocksJToken = JToken.Parse(File.ReadAllText(blocksJsonPath));
-            var firstBlockGuid = blocksJToken["beltConveyorFamilies"][0]["straightBlocks"][0]["blockGuid"].Value<string>();
-            var displacedBlockGuid = blocksJToken["beltConveyorFamilies"][1]["straightBlocks"][0]["blockGuid"].Value<string>();
-            blocksJToken["beltConveyorFamilies"][1]["straightBlocks"][0]["blockGuid"] = firstBlockGuid;
+            var blocksJToken = LoadBlocksJson();
+            var straightBlockGuid = blocksJToken["beltConveyorFamilies"][0]["straightBlockGuid"].Value<string>();
+            var straightBlock = FindBlock(blocksJToken, straightBlockGuid);
+            straightBlock["blockSize"] = new JArray(1, 1, 2);
+
+            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
+
+            StringAssert.Contains("blockSize must be [1,1,1]", logs);
+        }
+
+        [Test]
+        public void 多重所属エラーから未所属エラーを連鎖させない()
+        {
+            var blocksJToken = LoadBlocksJson();
+            var firstBlockGuid = blocksJToken["beltConveyorFamilies"][0]["straightBlockGuid"].Value<string>();
+            var displacedBlockGuid = blocksJToken["beltConveyorFamilies"][1]["straightBlockGuid"].Value<string>();
+            blocksJToken["beltConveyorFamilies"][1]["straightBlockGuid"] = firstBlockGuid;
             AddSingleBlockFamily(blocksJToken, displacedBlockGuid);
 
             var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
 
             StringAssert.Contains("belongs to more than one family", logs);
-            StringAssert.DoesNotContain("must contain exactly one length-1 straight block", logs);
             StringAssert.DoesNotContain("belongs to no beltConveyorFamily", logs);
         }
 
         [Test]
-        public void 非ベルト型は長さ1代表として数えない()
+        public void 非ベルト型はファミリー直線ブロックにできない()
         {
-            // 第1族の長さ1を非ベルト型へ変更する
-            // Replace family one's length-1 block with a non-belt block
-            var blocksJsonPath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
-            var blocksJToken = JToken.Parse(File.ReadAllText(blocksJsonPath));
-            var displacedBlockGuid = blocksJToken["beltConveyorFamilies"][0]["straightBlocks"][0]["blockGuid"].Value<string>();
-            blocksJToken["beltConveyorFamilies"][0]["straightBlocks"][0]["blockGuid"] = NonBeltBlockGuid;
+            var blocksJToken = LoadBlocksJson();
+            var displacedBlockGuid = blocksJToken["beltConveyorFamilies"][0]["straightBlockGuid"].Value<string>();
+            blocksJToken["beltConveyorFamilies"][0]["straightBlockGuid"] = NonBeltBlockGuid;
             AddSingleBlockFamily(blocksJToken, displacedBlockGuid);
 
             var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
 
             StringAssert.Contains("is not a belt block", logs);
-            StringAssert.Contains("must contain exactly one length-1 straight block", logs);
             StringAssert.DoesNotContain("belongs to no beltConveyorFamily", logs);
+        }
+
+        private static JToken LoadBlocksJson()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
+            return JToken.Parse(File.ReadAllText(path));
+        }
+
+        private static JToken FindBlock(JToken blocksJToken, string blockGuid)
+        {
+            foreach (var block in blocksJToken["data"])
+            {
+                if (block["blockGuid"].Value<string>() == blockGuid) return block;
+            }
+
+            Assert.Fail($"Block not found: {blockGuid}");
+            return null;
         }
 
         private static void AddSingleBlockFamily(JToken blocksJToken, string blockGuid)
         {
-            var family = new JObject
-            {
-                ["straightBlocks"] = new JArray(new JObject { ["blockGuid"] = blockGuid }),
-            };
+            var family = new JObject { ["straightBlockGuid"] = blockGuid };
             ((JArray)blocksJToken["beltConveyorFamilies"]).Add(family);
         }
     }
