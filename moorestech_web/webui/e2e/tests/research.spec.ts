@@ -16,11 +16,14 @@ test("research tree renders nodes when uiState enters ResearchTree", async ({ pa
   await expect(page.getByTestId("research-node-11111111-1111-1111-1111-111111111111")).toBeVisible();
 });
 
-test("研究報酬itemの個数をtopic payloadどおり表示する", async ({ page }) => {
+test("研究報酬itemの個数をtopic payloadどおり詳細ペインで表示する", async ({ page }) => {
   await setUiState(page, "ResearchTree");
   await page.goto("/");
-  const node = page.getByTestId("research-node-11111111-1111-1111-1111-111111111111");
-  await expect(node.getByText("4", { exact: true })).toBeVisible();
+  // ノード選択で詳細ペインを開き、報酬個数はカードでなくペイン側に出る
+  // Selecting the node opens the detail pane; the reward count now lives in the pane, not the card
+  await page.getByTestId("research-node-11111111-1111-1111-1111-111111111111").click();
+  const pane = page.getByTestId("research-detail-pane");
+  await expect(pane.getByText("4", { exact: true })).toBeVisible();
 });
 
 test("research button sends research.complete and node becomes completed", async ({ page }) => {
@@ -28,6 +31,9 @@ test("research button sends research.complete and node becomes completed", async
   await setUiState(page, "ResearchTree");
   await page.goto("/");
   const researchableGuid = "33333333-3333-3333-3333-333333333333";
+  // 研究実行ボタンは選択時の詳細ペイン内にあるため、先にノードを選択する
+  // The research button lives in the selection detail pane, so select the node first
+  await page.getByTestId(`research-node-${researchableGuid}`).click();
   await page.getByTestId(`research-button-${researchableGuid}`).click();
   await expect
     .poll(async () => {
