@@ -17,6 +17,7 @@ namespace Client.WebUiHost.Game.Topics
         public string Name;
         public string Description;
         public string State;
+        public int IconItemId;
         public ResearchPositionDto Position;
         public List<string> PrevGuids;
         public List<ResearchConsumeItemDto> ConsumeItems;
