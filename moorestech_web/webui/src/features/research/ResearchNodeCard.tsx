@@ -1,72 +1,36 @@
-import { Button, Paper, Stack, Text, Tooltip, Group } from "@mantine/core";
 import type { ResearchNodeData } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
-import { dispatchAction } from "@/bridge";
-import { deriveResearchButton, isItemSufficient } from "./researchLogic";
+import { deriveNodeCardState } from "./researchLogic";
 import styles from "./style.module.css";
 import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
-import { useI18n } from "@/shared/i18n";
 
 type Props = {
   node: ResearchNodeData;
   left: number;
   top: number;
-  owned: Map<number, number>;
-  resolveName: (itemId: number) => string | undefined;
+  selected: boolean;
+  onSelect: (guid: string) => void;
 };
 
-// 研究ノード表示と実行
-// Render and complete one research node
-export default function ResearchNodeCard({ node, left, top, owned, resolveName }: Props) {
-  const { t } = useI18n();
-  const button = deriveResearchButton(node, owned);
+// モック準拠の「研究名+アイコン」ノードカード。詳細は選択時の詳細ペインが担う
+// Mock-compliant "name + icon" node card; details live in the selection detail pane
+export default function ResearchNodeCard({ node, left, top, selected, onSelect }: Props) {
+  const cardState = deriveNodeCardState(node.state);
   return (
-    <Paper
-      withBorder
-      p="xs"
-      className={button.completed ? styles.nodeCompleted : styles.node}
+    <div
+      className={styles.node}
       style={{ left, top }}
       data-research-node
+      data-selected={selected || undefined}
+      data-completed={cardState.completed || undefined}
+      data-researchable={cardState.researchable || undefined}
+      data-locked={cardState.locked || undefined}
       data-testid={`research-node-${node.guid}`}
+      onClick={() => onSelect(node.guid)}
       {...tutorialAnchor(`research.node-${node.guid}`.toLowerCase() as AnchorId)}
     >
-      <Stack gap={4}>
-        <Text size="sm" fw={600}>{node.name}</Text>
-        <Text size="xs" c="dark.2" lineClamp={2}>{node.description}</Text>
-        {node.consumeItems.length > 0 && (
-          <Group gap={4}>
-            {node.consumeItems.map((c, i) => (
-              <Tooltip key={`${c.itemId}-${i}`} label={t("{itemName} x{count}", { itemName: resolveName(c.itemId) ?? c.itemId, count: c.count })}>
-                <div>
-                  <ItemSlot itemId={c.itemId} count={c.count} selected={isItemSufficient(node, c.itemId, c.count, owned)} />
-                </div>
-              </Tooltip>
-            ))}
-          </Group>
-        )}
-        {node.rewardItems.length + node.unlockItemIds.length > 0 && (
-          <Group gap={4}>
-            {node.rewardItems.map((reward, i) => (
-              <ItemSlot key={`${reward.itemId}-${i}`} itemId={reward.itemId} count={reward.count} name={resolveName(reward.itemId)} />
-            ))}
-            {node.unlockItemIds.map((id, i) => (
-              <ItemSlot key={`${id}-${i}`} itemId={id} name={resolveName(id)} />
-            ))}
-          </Group>
-        )}
-        <Tooltip label={t(button.tooltip)} multiline w={200} style={{ whiteSpace: "pre-line" }}>
-          <div>
-            <Button
-              size="compact-xs"
-              disabled={!button.interactable}
-              data-testid={`research-button-${node.guid}`}
-              onClick={() => void dispatchAction("research.complete", { researchGuid: node.guid })}
-            >
-              {button.completed ? t("研究済み") : t("研究")}
-            </Button>
-          </div>
-        </Tooltip>
-      </Stack>
-    </Paper>
+      <span className={styles.nodeName}>{node.name}</span>
+      <ItemSlot itemId={node.iconItemId} />
+    </div>
   );
 }
