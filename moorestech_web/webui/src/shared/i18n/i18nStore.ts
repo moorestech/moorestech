@@ -17,6 +17,7 @@ let snapshot: I18nSnapshot = {
   fallbackDictionary: {},
 };
 const listeners = new Set<() => void>();
+const warnedMissingTranslationKeys = new Set<string>();
 
 export function setDictionaries(
   locale: string,
@@ -24,13 +25,19 @@ export function setDictionaries(
   fallbackDictionary: TranslationDictionary,
 ): void {
   snapshot = { locale, dictionary, fallbackDictionary };
+  warnedMissingTranslationKeys.clear();
   listeners.forEach((listener) => listener());
 }
 
 export function createTranslator(current: I18nSnapshot) {
   return (key: string, values: InterpolationValues = {}): string => {
     const template = current.dictionary[key] ?? current.fallbackDictionary[key];
-    if (template === undefined) console.warn(`[i18n] Missing translation key: ${key}`);
+    // 同じ辞書世代では欠落キーごとの警告を一度に抑える
+    // Warn only once per missing key within the same dictionary generation
+    if (template === undefined && !warnedMissingTranslationKeys.has(key)) {
+      warnedMissingTranslationKeys.add(key);
+      console.warn(`[i18n] Missing translation key: ${key}`);
+    }
 
     // 未登録keyもkey文字列をテンプレートとして補間する（移行期のkey=原文運用を成立させる）
     // Interpolate the key itself when unregistered so the transitional key-as-source-text style works
