@@ -29,6 +29,20 @@ export default function TreeView<T>(props: Props<T>) {
     [nodes, getId, getPosition],
   );
   const byId = useMemo(() => new Map(nodes.map((node) => [getId(node), node])), [nodes, getId]);
+  // ノードと接続線は意味のある入力が変わるまで同じReact要素を再利用する
+  // Reuse node and connection React elements until a semantic input changes
+  const renderedScene = useMemo(() => (
+    <>
+      {nodes.flatMap((node) => getPrevIds(node).map((prevId) => {
+        const prev = byId.get(prevId);
+        if (!prev) return null;
+        const line = lineBetween(toTreeCanvasPoint(getPosition(node), bounds), toTreeCanvasPoint(getPosition(prev), bounds));
+        return <div key={`${getId(node)}-${prevId}`} className={styles.line}
+          style={{ left: line.x, top: line.y, width: line.length, transform: `rotate(${line.angleDeg}deg)` }} />;
+      }))}
+      {nodes.map((node) => <div key={getId(node)}>{renderNode(node, toTreeCanvasPoint(getPosition(node), bounds))}</div>)}
+    </>
+  ), [bounds, byId, getId, getPosition, getPrevIds, nodes, renderNode]);
 
   useEffect(() => {
     const element = viewportElement.current;
@@ -73,14 +87,7 @@ export default function TreeView<T>(props: Props<T>) {
       onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd} onLostPointerCapture={handlePointerEnd}>
       <div className={styles.canvas} data-testid={`${testIdPrefix}-canvas`}
         style={{ width: bounds.width, height: bounds.height, transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})` }}>
-        {nodes.flatMap((node) => getPrevIds(node).map((prevId) => {
-          const prev = byId.get(prevId);
-          if (!prev) return null;
-          const line = lineBetween(toTreeCanvasPoint(getPosition(node), bounds), toTreeCanvasPoint(getPosition(prev), bounds));
-          return <div key={`${getId(node)}-${prevId}`} className={styles.line}
-            style={{ left: line.x, top: line.y, width: line.length, transform: `rotate(${line.angleDeg}deg)` }} />;
-        }))}
-        {nodes.map((node) => <div key={getId(node)}>{renderNode(node, toTreeCanvasPoint(getPosition(node), bounds))}</div>)}
+        {renderedScene}
       </div>
     </div>
   );
