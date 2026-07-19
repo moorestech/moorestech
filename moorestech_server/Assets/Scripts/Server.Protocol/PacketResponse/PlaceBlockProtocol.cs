@@ -93,10 +93,10 @@ namespace Server.Protocol.PacketResponse
 
             bool IsUnlocked(BlockId blockId, Guid blockGuid)
             {
-                // ベルトファミリーは代表ブロックのunlock状態を参照する
-                // Belt families resolve unlock state through the representative block
+                // ベルトファミリーは直線ブロックのunlock状態を参照する
+                // Belt families resolve unlock state through their straight block
                 var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)
-                    ? MasterHolder.BlockMaster.GetBlockMaster(family.RepresentativeBlockId).BlockGuid
+                    ? MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId).BlockGuid
                     : blockGuid;
                 return _gameUnlockStateDataController.BlockUnlockStateInfos[unlockGuid].IsUnlocked;
             }
