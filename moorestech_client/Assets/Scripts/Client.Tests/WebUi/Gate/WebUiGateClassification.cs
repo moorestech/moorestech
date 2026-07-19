@@ -66,7 +66,8 @@ namespace Client.Tests.WebUi.Gate
         public static readonly IReadOnlyList<Rule> Rules = new List<Rule>
         {
             // --- ゲートルート（ゲート参照必須） / Gated roots (gate reference required)
-            new Rule("Client.Game/InGame/UI/Inventory/Main/PlayerInventoryViewController.cs", Category.GatedRoot, "インベントリ/ホットバー"),
+            new Rule("Client.Game/InGame/UI/Inventory/HotBarView.cs", Category.GatedRoot, "常駐ホットバーHUD"),
+            new Rule("Client.Game/InGame/UI/Inventory/Main/PlayerInventoryViewController.cs", Category.GatedRoot, "インベントリ"),
             new Rule("Client.Game/InGame/UI/Inventory/RecipeViewer/RecipeViewerView.cs", Category.GatedRoot, "レシピビューア/クラフト"),
             new Rule("Client.Game/InGame/UI/Inventory/Block/Research/ResearchTreeViewManager.cs", Category.GatedRoot, "研究ツリー"),
             new Rule("Client.Game/InGame/UI/BuildMenu/BuildMenuView.cs", Category.GatedRoot, "ビルドメニュー"),
