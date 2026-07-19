@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.TryAddBlock(ForUnitTestModBlockId.BlockId, new Vector3Int(3, 3), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var inventory = GetInventory(serviceProvider);
-            packet.GetPacketResponse(CreateRemovePayload(3, 3), new PacketResponseContext());
+            packet.GetPacketResponse(CreateRemovePayload(3, 3), new PacketResponseContext(null));
 
             // 素材(Test3×2+Test4×1)が返り、旧ブロックアイテム(Test2)は返らない
             // Materials (Test3 x2 + Test4 x1) are refunded; the old block item (Test2) is not
@@ -58,10 +58,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 new() { Position = new Vector3Int(50, 0, 10), Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3 },
             };
-            packet.GetPacketResponse(PlaceBlockProtocolTestSupport.CreatePlacePayload(placeInfos), new PacketResponseContext());
+            packet.GetPacketResponse(PlaceBlockProtocolTestSupport.CreatePlacePayload(placeInfos), new PacketResponseContext(null));
 
             var inventory = GetInventory(serviceProvider);
-            packet.GetPacketResponse(CreateRemovePayload(new Vector3Int(50, 0, 10)), new PacketResponseContext());
+            packet.GetPacketResponse(CreateRemovePayload(new Vector3Int(50, 0, 10)), new PacketResponseContext(null));
 
             // 1セット分（Test3×1+Test4×1）が返却される
             // One cost set (Test3 x1 + Test4 x1) is refunded
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(4, 4), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             var inventory = GetInventory(serviceProvider);
-            packet.GetPacketResponse(CreateRemovePayload(4, 4), new PacketResponseContext());
+            packet.GetPacketResponse(CreateRemovePayload(4, 4), new PacketResponseContext(null));
 
             // フォールバック廃止により、コスト未定義ブロックは破壊しても本体アイテムを返さない
             // With the fallback removed, destroying a cost-less block refunds no body item

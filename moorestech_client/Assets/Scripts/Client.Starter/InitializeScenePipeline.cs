@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Modal;
+using Client.Network.API;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
 using Cysharp.Threading.Tasks;
@@ -17,6 +20,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using VContainer;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Starter
@@ -140,14 +144,50 @@ namespace Client.Starter
             void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= MainGameSceneLoaded;
+                FinalizeInitializationAsync().Forget();
+            }
+
+            async UniTask FinalizeInitializationAsync()
+            {
                 var starter = FindObjectOfType<MainGameStarter>();
                 var resolver = starter.StartGame(serverResult.HandshakeResponse);
                 new ClientDIContext(new DIContainer(resolver));
 
-                // Web UIをHubへバインドしてゲーム初期化完了を通知する
-                // Bind the Web UI to the hub and announce game initialization completion
+                // Web UIをHubへバインド
+                // Bind the Web UI to the hub
                 WebUiHost.Game.WebUiGameBinder.Bind();
+
+                // ダウンキャストして初期化専用メソッドを呼ぶ
+                // Downcast and call the initialization-specific method
+                (serverResult.VanillaApi.Event as VanillaApiEvent)?.InitializeDispatch();
+
+                // ディスパッチ済み初期イベントの適用完了を全対象分待つ（順序契約により通常は即時完了する）
+                // Wait until every target applies its dispatched initial events; normally instant per the ordering contract
+                await WaitAllInitialEventApplyAsync(resolver);
+
+                // ログイン状態復元→初期化完了通知
+                // Restore login state, then announce initialization
+                starter.RestoreLoginState(serverResult.HandshakeResponse);
                 GameInitializedEvent.FireGameInitialized();
+            }
+
+            async UniTask WaitAllInitialEventApplyAsync(IObjectResolver resolver)
+            {
+                var targets = resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>();
+                var warnAt = Time.realtimeSinceStartup + 5f;
+                var warned = false;
+                while (!targets.All(t => t.IsInitialEventApplied))
+                {
+                    // 長時間未完了なら詰まっている対象を顕在化させる（待機自体は継続）
+                    // Surface stuck targets after a while; keep waiting regardless
+                    if (!warned && Time.realtimeSinceStartup >= warnAt)
+                    {
+                        warned = true;
+                        var pending = string.Join(", ", targets.Where(t => !t.IsInitialEventApplied).Select(t => t.GetType().Name));
+                        Debug.LogWarning($"[InitializeScenePipeline] 初期イベント適用が未完了のまま待機中: {pending}");
+                    }
+                    await UniTask.Yield();
+                }
             }
 
             #endregion

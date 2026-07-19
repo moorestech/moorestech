@@ -39,7 +39,7 @@ TCP 1本・接続ごとの送信FIFO（`SendQueueProcessor`）に、request/resp
 ### 2. IPlayerEventSink（新設・Server.Event）
 
 - 1メソッド: シリアライズ済みパケットを送信キューへenqueue
-- 実装は `Server.Boot/Loop/PacketProcessing` に置き、接続の `SendQueueProcessor` をラップ（パケット長ヘッダ付与も担う）
+- 実装は接続の `SendQueueProcessor` 自身が担う（`IPlayerEventSink` を実装し、envelope化とパケット長ヘッダ付与を行って自分の送信キューへ積む）
 - `PacketResponseContext` が接続のsink参照を保持し、`InitialHandshakeProtocol` が `RegisterPlayer(data.PlayerId, context.EventSink)` を呼ぶ（現行 `InitialHandshakeProtocol.cs:45` の置換。ここが唯一の登録点）
 - スレッド安全性: `AddEvent` はメインスレッド限定（契約）。sink実体は `ConcurrentQueue` へのenqueueで安全。登録/解除は既存lockで保護
 

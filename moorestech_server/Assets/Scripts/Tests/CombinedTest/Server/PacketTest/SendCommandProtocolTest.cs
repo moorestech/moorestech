@@ -23,7 +23,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             //ID2のアイテムを5個入れる
             var commandPacket = GetGiveCommandPacket(10, 2, 5);
             //送信を実行
-            packet.GetPacketResponse(commandPacket, new PacketResponseContext());
+            packet.GetPacketResponse(commandPacket, new PacketResponseContext(null));
             
             
             //アイテムが正しく入っているかチェック
@@ -38,13 +38,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             
             
             //別のアイテムIDを入れたので、ホットバースロット1にアイテムが入っているかチェック
-            packet.GetPacketResponse(GetGiveCommandPacket(10, 3, 7), new PacketResponseContext());
+            packet.GetPacketResponse(GetGiveCommandPacket(10, 3, 7), new PacketResponseContext(null));
             var id3Slot = PlayerInventoryConst.HotBarSlotToInventorySlot(1, playerInventory.MainOpenableInventory.GetSlotSize());
             Assert.AreEqual(3, playerInventory.MainOpenableInventory.GetItem(id3Slot).Id.AsPrimitive());
             Assert.AreEqual(7, playerInventory.MainOpenableInventory.GetItem(id3Slot).Count);
             
             //アイテムID2を入れたので、ホットバースロット0のアイテムが増えているかチェック
-            packet.GetPacketResponse(GetGiveCommandPacket(10, 2, 3), new PacketResponseContext());
+            packet.GetPacketResponse(GetGiveCommandPacket(10, 2, 3), new PacketResponseContext(null));
             Assert.AreEqual(2, playerInventory.MainOpenableInventory.GetItem(id2Slot).Id.AsPrimitive());
             Assert.AreEqual(8, playerInventory.MainOpenableInventory.GetItem(id2Slot).Count);
         }

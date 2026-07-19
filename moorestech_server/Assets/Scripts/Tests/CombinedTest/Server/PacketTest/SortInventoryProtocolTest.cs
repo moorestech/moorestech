@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // メインインベントリを整理
             // Sort the main inventory.
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext());
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext(null));
 
             // 同種が結合され、ItemId 昇順に詰め直されている
             // Same items are merged and re-packed in ItemId ascending order.
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             mainInventory.SetItem(0, itemId, maxStack - 5);
             mainInventory.SetItem(3, itemId, 10);
 
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext());
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateMainMessage(PlayerId)), new PacketResponseContext(null));
 
             // 先頭スロットは最大スタックまで詰まり、あふれた5個が次スロットへ流れる
             // The first slot fills to max stack and the overflowing 5 items flow into the next slot.
@@ -109,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // チェスト（サブインベントリ）を整理
             // Sort the chest (sub-inventory).
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(chestPosition)), new PacketResponseContext());
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(chestPosition)), new PacketResponseContext(null));
 
             // 同種結合＋ItemId 昇順（ホットバー除外なし、全スロット対象）
             // Same items merged and re-packed in ItemId order (no hotbar exclusion; all slots).
@@ -145,7 +145,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 実プロトコル経由で機械インベントリを整理する
             // Sort the machine inventory via the actual protocol packet.
-            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), new PacketResponseContext());
+            packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), new PacketResponseContext(null));
 
             // インプット・アウトプットレンジはItemId昇順に整理されている
             // The input/output ranges are re-packed in ItemId ascending order.

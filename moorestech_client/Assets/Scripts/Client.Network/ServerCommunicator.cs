@@ -69,7 +69,7 @@ namespace Client.Network
                     
                     //解析をしてunity viewに送る
                     var packets = parser.Parse(buffer, length);
-                    foreach (var packet in packets) packetExchangeManager.ExchangeReceivedPacket(packet).Forget();
+                    foreach (var packet in packets) packetExchangeManager.EnqueueReceivedPacket(packet);
                 }
             }
             catch (Exception e)

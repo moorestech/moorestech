@@ -74,6 +74,8 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 4. スニペットで使うAPI/フィールド名の実在確認（実ファイルをReadして確認。存在しない名前はpollingを無限ループ化させる）
 5. Step単位の実行計画（各Stepのコマンドと期待結果）
 
+**scout報告の否定的断定は裏取りするまで採用しない。** 「〜は関係ない・不要・ゲートにならない」型の断定は、コード静的読みだけでは間違うことがある（実例: 2026-07-18、scoutが「全車fuelSlots=0で燃料は走行のゲートにならない」と断定→実際は燃料切れが走行しない真因で、誤誘導により3〜4ランを浪費）。シナリオが原因不明で失敗したら、scoutが「排除した」要因こそ最小実験（EDCで直接コマンド投入等）で真っ先に検証する。
+
 ## Available scripts / scenarios（すべて本スキル同梱）
 
 - `scripts/run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]` — preflight→boot→シナリオ投入→result.json回収の一発実行

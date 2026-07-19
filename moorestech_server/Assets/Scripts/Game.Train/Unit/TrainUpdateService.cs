@@ -50,6 +50,7 @@ namespace Game.Train.Unit
             _tickSequenceId++;
             return _tickSequenceId;
         }
+        public uint GetCurrentTickSequenceId() => _tickSequenceId;
         public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
         public bool IsTrainAutoRunDebugEnabled() => _trainAutoRunDebugEnabled;

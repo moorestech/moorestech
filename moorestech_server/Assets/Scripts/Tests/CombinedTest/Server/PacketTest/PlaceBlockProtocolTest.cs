@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 0, Material1Guid, 5);
             SetItem(inventory, 1, Material2Guid, 3);
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (2, 4)), new PacketResponseContext());
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (2, 4)), new PacketResponseContext(null));
 
             Assert.AreEqual(ForUnitTestModBlockId.BlockId, ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(2, 4)).BlockId);
             Assert.AreEqual(3, GetItemCount(inventory, Material1Guid));
@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 0, Material1Guid, 5);
             SetItem(inventory, 1, Material2Guid, 2);
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (10, 0), (11, 0), (12, 0)), new PacketResponseContext());
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (10, 0), (11, 0), (12, 0)), new PacketResponseContext(null));
 
             var world = ServerContext.WorldBlockDatastore;
             Assert.IsTrue(world.Exists(new Vector3Int(10, 0)));
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // TestElectricMachineはinitialUnlocked未設定（=ロック中）かつコスト未定義
             // TestElectricMachine is locked (no initialUnlocked) and has no cost
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.MachineId, (5, 5)), new PacketResponseContext());
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.MachineId, (5, 5)), new PacketResponseContext(null));
 
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(5, 5)));
         }
@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = CreateServer();
             GetInventory(serviceProvider);
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BeltConveyorId, (6, 6)), new PacketResponseContext());
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BeltConveyorId, (6, 6)), new PacketResponseContext(null));
 
             Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(6, 6)));
         }
@@ -91,8 +91,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 0, Material1Guid, 4);
             SetItem(inventory, 1, Material2Guid, 2);
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (7, 7)), new PacketResponseContext());
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (7, 7)), new PacketResponseContext());
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (7, 7)), new PacketResponseContext(null));
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (7, 7)), new PacketResponseContext(null));
 
             Assert.AreEqual(2, GetItemCount(inventory, Material1Guid));
             Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                     VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3,
                 },
             };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext());
+            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext(null));
 
             // 3セル全て同一ブロックとして占有される
             // All three cells are occupied by the same block entity
@@ -142,7 +142,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 0, PoleMaterialGuid, 2);
             SetItem(inventory, 1, WireItemGuid, 5);
 
-            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.ElectricPoleId, (0, 0)), new PacketResponseContext());
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.ElectricPoleId, (0, 0)), new PacketResponseContext(null));
 
             var pole = world.GetBlock(new Vector3Int(0, 0, 0));
             Assert.IsNotNull(pole);
