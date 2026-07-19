@@ -1,22 +1,24 @@
-using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
+using System;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 {
     public sealed class ConnectToolPlacementTarget : IPlacementTarget
     {
-        public readonly ConnectToolType ToolType;
+        // 選択されたconnectToolのGuid。種別・アイコン・素材はマスタから解決する
+        // Guid of the selected connectTool; type, icon and materials are resolved from the master
+        public readonly Guid ConnectToolGuid;
 
-        public ConnectToolPlacementTarget(ConnectToolType toolType)
+        public ConnectToolPlacementTarget(Guid connectToolGuid)
         {
-            ToolType = toolType;
+            ConnectToolGuid = connectToolGuid;
         }
 
         public bool Equals(IPlacementTarget other)
         {
-            return other is ConnectToolPlacementTarget target && ToolType == target.ToolType;
+            return other is ConnectToolPlacementTarget target && ConnectToolGuid == target.ConnectToolGuid;
         }
 
         public override bool Equals(object obj) => obj is IPlacementTarget target && Equals(target);
-        public override int GetHashCode() => ToolType.GetHashCode();
+        public override int GetHashCode() => ConnectToolGuid.GetHashCode();
     }
 }

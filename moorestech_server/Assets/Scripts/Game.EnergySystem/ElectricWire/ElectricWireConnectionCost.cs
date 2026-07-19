@@ -1,20 +1,39 @@
+using System;
+using System.Collections.Generic;
 using Core.Master;
 
 namespace Game.EnergySystem
 {
     /// <summary>
-    /// ワイヤー1本の接続に消費した電線アイテムの情報。切断・撤去時の返却に使う
-    /// Wire item consumption info per wire, used for refund on disconnect or removal
+    /// ワイヤー1本の接続に消費した素材（複数可）の情報。切断・撤去時の返却に使う
+    /// Multi-material consumption info per wire, used for refund on disconnect or removal
     /// </summary>
     public readonly struct ElectricWireConnectionCost
     {
-        public readonly ItemId ItemId;
-        public readonly int Count;
+        public readonly IReadOnlyList<ConnectToolMaterialCost> Materials;
 
-        public ElectricWireConnectionCost(ItemId itemId, int count)
+        public ElectricWireConnectionCost(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
-            ItemId = itemId;
-            Count = count;
+            Materials = materials;
         }
+
+        // 返却対象の素材を1件でも持つか
+        // Whether at least one refundable material exists
+        public bool HasMaterials => Materials != null && Materials.Count > 0;
+
+        // プレビュー表示用の総素材数。全素材の消費数を合算する
+        // Total material count for preview display; sums consumption across all materials
+        public int TotalCount
+        {
+            get
+            {
+                if (Materials == null) return 0;
+                var total = 0;
+                foreach (var material in Materials) total += material.Count;
+                return total;
+            }
+        }
+
+        public static ElectricWireConnectionCost Empty => new(Array.Empty<ConnectToolMaterialCost>());
     }
 }
