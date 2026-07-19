@@ -12,6 +12,7 @@ export const ResearchNodeDataSchema = z.object({
   name: z.string(),
   description: z.string(),
   state: ResearchNodeStateSchema,
+  iconItemId: z.number(),
   position: z.object({ x: z.number(), y: z.number() }),
   prevGuids: z.array(z.string()),
   consumeItems: z.array(z.object({ itemId: z.number(), count: z.number() })),

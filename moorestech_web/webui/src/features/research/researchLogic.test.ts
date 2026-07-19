@@ -10,7 +10,7 @@ import type { ResearchNodeData } from "@/bridge";
 import { hasEnoughItems } from "@/shared/ownedCounts";
 
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
-  guid, name: guid, description: "", state: "researchable",
+  guid, name: guid, description: "", state: "researchable", iconItemId: 1,
   position: { x, y }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemIds: [], ...extra,
 });
 

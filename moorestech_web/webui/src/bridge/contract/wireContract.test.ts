@@ -162,6 +162,7 @@ describe("research_tree fixture", () => {
     const data = loadFixture("research_tree.json");
     expect(validateTopicPayload(Topics.researchTree, data)).toBe(true);
     const tree = data as ResearchTreeData;
+    expect(tree.nodes[0].iconItemId).toBe(2);
     expect(tree.nodes.length).toBe(2);
     expect(tree.nodes[1].prevGuids).toContain(tree.nodes[0].guid);
   });
