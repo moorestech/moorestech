@@ -59,9 +59,9 @@ namespace Server.Protocol.PacketResponse
             var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(request.PierBlockId).BlockGuid;
             if (!_gameUnlockStateDataController.BlockUnlockStateInfos[baseBlockGuid].IsUnlocked) return RailConnectWithPlacePierResponse.CreateFailedResponse();
 
-            // 未解放のconnectToolによる接続要求は設置前に拒否する（Empty=無コストは許可）
-            // Reject a connection request using a connectTool that is not unlocked before placement (Empty is costless and allowed)
-            if (request.ConnectToolGuid != Guid.Empty && !ConnectToolSelector.IsUnlocked(request.ConnectToolGuid)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            // 未解放または未指定(Empty)のconnectToolによる接続要求は設置前に拒否する（電線・歯車の4経路と対称）
+            // Reject connection requests with an unlocked or unspecified (Empty) connectTool before placement, symmetric with the electric-wire/gear-chain paths
+            if (!ConnectToolSelector.IsUnlocked(request.ConnectToolGuid)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
 
             // 橋脚がレールブロックであることと建設コストを設置前に検証する
             // Validate the pier is a rail block and its construction cost before placement

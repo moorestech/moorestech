@@ -27,13 +27,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
             };
         }
 
-        // connectToolのアイコンに使う素材アイテムGuidを返す（先頭のrequiredItem）
-        // Return the material item Guid used as the connectTool icon (the first requiredItem)
-        public static Guid? SelectIconItemGuid(ConnectToolMasterElement element)
-        {
-            return element.RequiredItems.Length == 0 ? null : element.RequiredItems[0].ItemGuid;
-        }
-
         // クライアントのenumをマスタのtoolType文字列へ写す
         // Map the client enum to the master's toolType string
         public static string ToMasterToolType(ConnectToolType toolType)

@@ -10,18 +10,20 @@ namespace Client.Game.InGame.Context
         public static ItemImageContainer ItemImageContainer { get; private set; }
         public static BlockImageContainer BlockImageContainer { get; private set; }
         public static TrainCarImageContainer TrainCarImageContainer { get; private set; }
+        public static ConnectToolImageContainer ConnectToolImageContainer { get; private set; }
         public static FluidImageContainer FluidImageContainer { get; private set; }
         public static PlayerConnectionSetting PlayerConnectionSetting { get; private set; }
         public static VanillaApi VanillaApi { get; private set; }
         public static ModalManager ModalManager { get; private set; }
 
-        public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, BlockImageContainer blockImageContainer, TrainCarImageContainer trainCarImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager)
+        public ClientContext(BlockGameObjectPrefabContainer blockGameObjectPrefabContainer, ItemImageContainer itemImageContainer, BlockImageContainer blockImageContainer, TrainCarImageContainer trainCarImageContainer, ConnectToolImageContainer connectToolImageContainer, FluidImageContainer fluidImageContainer, PlayerConnectionSetting playerConnectionSetting, VanillaApi vanillaApi, ModalManager modalManager)
         {
             BlockGameObjectPrefabContainer = blockGameObjectPrefabContainer;
             ModalManager = modalManager;
             ItemImageContainer = itemImageContainer;
             BlockImageContainer = blockImageContainer;
             TrainCarImageContainer = trainCarImageContainer;
+            ConnectToolImageContainer = connectToolImageContainer;
             FluidImageContainer = fluidImageContainer;
             PlayerConnectionSetting = playerConnectionSetting;
             VanillaApi = vanillaApi;

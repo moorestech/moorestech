@@ -71,16 +71,9 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 case TrainCarPlacementTarget trainCar:
                     return $"{TrainCarIconEndpoint.PathPrefix}{trainCar.TrainCarGuid}{TrainCarIconEndpoint.PathSuffix}";
                 case ConnectToolPlacementTarget connectTool:
-                {
-                    // 接続ツールのアイコンは敷設素材アイテムから引く（カタログが解決）
-                    // The connect tool icon comes from its laying-material item (resolved by the catalog)
-                    var element = MasterHolder.ConnectToolMaster.GetElementOrNull(connectTool.ConnectToolGuid);
-                    if (element == null) return null;
-                    var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(element);
-                    if (iconItemGuid == null) return null;
-                    var itemId = MasterHolder.ItemMaster.GetItemId(iconItemGuid.Value);
-                    return $"{ItemIconEndpoint.PathPrefix}{itemId.AsPrimitive()}{ItemIconEndpoint.PathSuffix}";
-                }
+                    // 接続ツールのアイコンはconnectToolのimagePathから配信する
+                    // The connect tool icon is served from the connectTool's imagePath
+                    return $"{ConnectToolIconEndpoint.PathPrefix}{connectTool.ConnectToolGuid}{ConnectToolIconEndpoint.PathSuffix}";
                 default:
                     return null;
             }

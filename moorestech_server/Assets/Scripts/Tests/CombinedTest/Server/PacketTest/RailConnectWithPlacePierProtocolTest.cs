@@ -133,6 +133,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             AssertFailedWithoutStateChange(response, expectedReinforce: ReinforcePlenty, expectedPlate: PlatePlenty);
         }
 
+        [Test]
+        public void connectToolGuidがEmptyの接続要求は無料設置扱いされず失敗応答を返す()
+        {
+            // connectToolを解放し素材も潤沢でも、Empty指定は無料設置扱いされず拒否される
+            // Even with an unlocked connectTool and ample materials, an Empty specification is rejected instead of treated as free placement
+            UnlockRailConnectTool();
+            SetInventory(reinforce: ReinforcePlenty, plate: PlatePlenty);
+
+            var response = Send(ForUnitTestModBlockId.TestTrainRail, Guid.Empty);
+
+            AssertFailedWithoutStateChange(response, expectedReinforce: ReinforcePlenty, expectedPlate: PlatePlenty);
+        }
+
         #region Internal
 
         // 設置後のtoNodeまでのレール長から必要単位数を算出する
@@ -157,6 +170,11 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse Send(BlockId pierBlockId)
         {
+            return Send(pierBlockId, RailConnectToolGuid);
+        }
+
+        private RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse Send(BlockId pierBlockId, Guid connectToolGuid)
+        {
             // クライアント同様にレール向きの生成パラメータを付与する
             // Attach the rail direction create param just like the client does
             var stateDetail = new RailBridgePierComponentStateDetail(Vector3.forward);
@@ -168,7 +186,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 VerticalDirection = BlockVerticalDirection.Horizontal,
                 CreateParams = createParams,
             };
-            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(PlayerId, _fromNode.NodeId, _fromNode.Guid, pierBlockId, placeInfo, RailConnectToolGuid);
+            var request = RailConnectWithPlacePierProtocol.RailConnectWithPlacePierRequest.Create(PlayerId, _fromNode.NodeId, _fromNode.Guid, pierBlockId, placeInfo, connectToolGuid);
             var responseBytes = _environment.PacketResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null)).First();
             return MessagePackSerializer.Deserialize<RailConnectWithPlacePierProtocol.RailConnectWithPlacePierResponse>(responseBytes.ToArray());
         }
