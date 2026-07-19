@@ -101,13 +101,24 @@ namespace Server.Protocol.PacketResponse
                 else lockedTrainCar.Add(trainCar.TrainCarGuid.ToString());
             }
 
+            // 接続ツールのアンロック状態を取得
+            // Get connect tool unlock states
+            var lockedConnectTool = new List<string>();
+            var unlockedConnectTool = new List<string>();
+            foreach (var connectTool in gameUnlockStateData.ConnectToolUnlockStateInfos.Values)
+            {
+                if (connectTool.IsUnlocked) unlockedConnectTool.Add(connectTool.ConnectToolGuid.ToString());
+                else lockedConnectTool.Add(connectTool.ConnectToolGuid.ToString());
+            }
+
             return new ResponseGameUnlockStateProtocolMessagePack(
                 unlockedCraftRecipe, lockedCraftRecipe,
                 lockedItem, unlockedItem,
                 lockedChallengeCategory, unlockedChallengeCategory,
                 lockedMachineRecipe, unlockedMachineRecipe,
                 lockedBlock, unlockedBlock,
-                lockedTrainCar, unlockedTrainCar);
+                lockedTrainCar, unlockedTrainCar,
+                lockedConnectTool, unlockedConnectTool);
         }
         
         
@@ -135,6 +146,8 @@ namespace Server.Protocol.PacketResponse
             [IgnoreMember] public List<Guid> LockedBlockGuids => LockedBlockGuidsStr.Select(Guid.Parse).ToList();
             [IgnoreMember] public List<Guid> UnlockedTrainCarGuids => UnlockedTrainCarGuidsStr.Select(Guid.Parse).ToList();
             [IgnoreMember] public List<Guid> LockedTrainCarGuids => LockedTrainCarGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> UnlockedConnectToolGuids => UnlockedConnectToolGuidsStr.Select(Guid.Parse).ToList();
+            [IgnoreMember] public List<Guid> LockedConnectToolGuids => LockedConnectToolGuidsStr.Select(Guid.Parse).ToList();
 
             [Key(2)] public List<string> UnlockedCraftRecipeGuidsStr { get; set; }
             [Key(3)] public List<string> LockedCraftRecipeGuidsStr { get; set; }
@@ -152,6 +165,8 @@ namespace Server.Protocol.PacketResponse
             [Key(11)] public List<string> UnlockedBlockGuidsStr { get; set; }
             [Key(12)] public List<string> LockedTrainCarGuidsStr { get; set; }
             [Key(13)] public List<string> UnlockedTrainCarGuidsStr { get; set; }
+            [Key(14)] public List<string> LockedConnectToolGuidsStr { get; set; }
+            [Key(15)] public List<string> UnlockedConnectToolGuidsStr { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseGameUnlockStateProtocolMessagePack() { }
@@ -161,7 +176,8 @@ namespace Server.Protocol.PacketResponse
                 List<string> lockedChallengeCategoryGuidsStr, List<string> unlockedChallengeCategoryGuidsStr,
                 List<string> lockedMachineRecipeGuidsStr, List<string> unlockedMachineRecipeGuidsStr,
                 List<string> lockedBlockGuidsStr, List<string> unlockedBlockGuidsStr,
-                List<string> lockedTrainCarGuidsStr, List<string> unlockedTrainCarGuidsStr)
+                List<string> lockedTrainCarGuidsStr, List<string> unlockedTrainCarGuidsStr,
+                List<string> lockedConnectToolGuidsStr, List<string> unlockedConnectToolGuidsStr)
             {
                 Tag = ProtocolTag;
                 UnlockedCraftRecipeGuidsStr = unlockedCraftRecipeGuidsStr;
@@ -176,6 +192,8 @@ namespace Server.Protocol.PacketResponse
                 UnlockedBlockGuidsStr = unlockedBlockGuidsStr;
                 LockedTrainCarGuidsStr = lockedTrainCarGuidsStr;
                 UnlockedTrainCarGuidsStr = unlockedTrainCarGuidsStr;
+                LockedConnectToolGuidsStr = lockedConnectToolGuidsStr;
+                UnlockedConnectToolGuidsStr = unlockedConnectToolGuidsStr;
             }
         }
     }

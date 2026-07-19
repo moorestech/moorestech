@@ -75,5 +75,32 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.True(response.UnlockedItemIds.Contains(ItemId3));
             Assert.True(response.LockedItemIds.Contains(ItemId4));
         }
+
+        [Test]
+        public void GetConnectToolUnlockState()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // テストマスタの接続ツール（初期状態は全てロック）
+            // Connect tool in the test master (all locked initially)
+            var electricWireGuid = System.Guid.Parse("c0000000-0000-0000-0000-000000000001");
+            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
+
+            // 初期ハンドシェイクでロックされていることを確認
+            // Verify it is locked in the initial handshake
+            var messagePack = new RequestGameUnlockStateProtocolMessagePack();
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null))[0];
+            var response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
+            Assert.True(response.LockedConnectToolGuids.Contains(electricWireGuid));
+            Assert.False(response.UnlockedConnectToolGuids.Contains(electricWireGuid));
+
+            // 解放後のハンドシェイクに解放状態が含まれることを確認
+            // Verify the unlocked state is included in the handshake after unlocking
+            unlockStateDatastore.UnlockConnectTool(electricWireGuid);
+            responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(messagePack), new PacketResponseContext(null))[0];
+            response = MessagePackSerializer.Deserialize<ResponseGameUnlockStateProtocolMessagePack>(responseBytes);
+            Assert.True(response.UnlockedConnectToolGuids.Contains(electricWireGuid));
+            Assert.False(response.LockedConnectToolGuids.Contains(electricWireGuid));
+        }
     }
 }

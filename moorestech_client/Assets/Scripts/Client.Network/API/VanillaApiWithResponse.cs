@@ -208,7 +208,8 @@ namespace Client.Network.API
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
                 response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids,
                 response.LockedBlockGuids, response.UnlockedBlockGuids,
-                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids);
+                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids,
+                response.LockedConnectToolGuids, response.UnlockedConnectToolGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
