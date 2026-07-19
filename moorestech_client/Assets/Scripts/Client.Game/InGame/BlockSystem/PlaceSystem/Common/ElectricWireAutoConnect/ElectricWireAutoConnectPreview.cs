@@ -72,7 +72,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             foreach (var placeInfo in placeInfos)
             {
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = TrySelectConnectTool(targets, virtualInventory, out var cellMaterials, out var cellCost);
+                var wirePlaceable = TrySelectConnectTool(targets, out var cellMaterials, out var cellCost);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
@@ -122,6 +122,60 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 return positions;
             }
 
+            // 全ターゲットを賄えるelectricWire connectToolをSortPriority順に仮想在庫から選ぶ（サーバーと同じ選定規則）
+            // Pick the electricWire connectTool covering all targets in SortPriority order against the virtual inventory (same rule as the server)
+            bool TrySelectConnectTool(List<(Vector3Int TargetPos, float Distance)> targets, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost)
+            {
+                selectedMaterials = null;
+                selectedCost = 0;
+
+                // 接続先なし・electricWire未設定マスタは自動接続なしで設置可
+                // No targets or no configured electricWire connectTool allows placement without auto-connect
+                if (targets.Count == 0) return true;
+                var electricWireTools = new List<ConnectToolMasterElement>();
+                foreach (var element in MasterHolder.ConnectToolMaster.All)
+                    if (element.ToolType == ConnectToolMasterElement.ToolTypeConst.electricWire) electricWireTools.Add(element);
+                if (electricWireTools.Count == 0) return true;
+                electricWireTools.Sort((a, b) => a.SortPriority.CompareTo(b.SortPriority));
+
+                foreach (var element in electricWireTools)
+                {
+                    if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
+                    if (!virtualInventory.CanAfford(materials)) continue;
+
+                    selectedMaterials = materials;
+                    selectedCost = cost;
+                    return true;
+                }
+
+                return false;
+
+                bool TrySumCost(System.Guid connectToolGuid, out IReadOnlyList<ConnectToolMaterialCost> materials, out int cost)
+                {
+                    cost = 0;
+                    var accumulator = new Dictionary<ItemId, int>();
+                    foreach (var target in targets)
+                    {
+                        if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
+                        {
+                            materials = null;
+                            return false;
+                        }
+                        cost += targetCost.TotalCount;
+                        foreach (var material in targetCost.Materials)
+                        {
+                            accumulator.TryGetValue(material.ItemId, out var current);
+                            accumulator[material.ItemId] = current + material.Count;
+                        }
+                    }
+
+                    var list = new List<ConnectToolMaterialCost>(accumulator.Count);
+                    foreach (var (itemId, count) in accumulator) list.Add(new ConnectToolMaterialCost(itemId, count));
+                    materials = list;
+                    return true;
+                }
+            }
+
             #endregion
         }
 
@@ -130,64 +184,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             _renderer.Hide();
             _cellGeometryCache.Clear();
             _hasCacheKey = false;
-        }
-
-        // 全ターゲットを賄えるelectricWire connectToolをSortPriority順に仮想在庫から選ぶ（サーバーと同じ選定規則）
-        // Pick the electricWire connectTool covering all targets in SortPriority order against the virtual inventory (same rule as the server)
-        private static bool TrySelectConnectTool(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int totalCost)
-        {
-            selectedMaterials = null;
-            totalCost = 0;
-
-            // 接続先なし・electricWire未設定マスタは自動接続なしで設置可
-            // No targets or no configured electricWire connectTool allows placement without auto-connect
-            if (targets.Count == 0) return true;
-            var electricWireTools = new List<ConnectToolMasterElement>();
-            foreach (var element in MasterHolder.ConnectToolMaster.All)
-                if (element.ToolType == ConnectToolMasterElement.ToolTypeConst.electricWire) electricWireTools.Add(element);
-            if (electricWireTools.Count == 0) return true;
-            electricWireTools.Sort((a, b) => a.SortPriority.CompareTo(b.SortPriority));
-
-            foreach (var element in electricWireTools)
-            {
-                if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
-                if (!virtualInventory.CanAfford(materials)) continue;
-
-                selectedMaterials = materials;
-                totalCost = cost;
-                return true;
-            }
-
-            return false;
-
-            #region Internal
-
-            bool TrySumCost(System.Guid connectToolGuid, out IReadOnlyList<ConnectToolMaterialCost> materials, out int cost)
-            {
-                cost = 0;
-                var accumulator = new Dictionary<ItemId, int>();
-                foreach (var target in targets)
-                {
-                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, target.Distance, out var targetCost))
-                    {
-                        materials = null;
-                        return false;
-                    }
-                    cost += targetCost.TotalCount;
-                    foreach (var material in targetCost.Materials)
-                    {
-                        accumulator.TryGetValue(material.ItemId, out var current);
-                        accumulator[material.ItemId] = current + material.Count;
-                    }
-                }
-
-                var list = new List<ConnectToolMaterialCost>(accumulator.Count);
-                foreach (var (itemId, count) in accumulator) list.Add(new ConnectToolMaterialCost(itemId, count));
-                materials = list;
-                return true;
-            }
-
-            #endregion
         }
     }
 }

@@ -57,13 +57,26 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // For each material, verify held count covers the requirement plus any reservation
             foreach (var material in materials)
             {
-                var reserved = SumReserved(reservedMaterials, material.ItemId);
+                var reserved = SumReserved(material.ItemId);
                 if (CountItem(material.ItemId) < material.Count + reserved) return GearChainPlacementJudgement.Failure(NoItemError);
             }
 
             return GearChainPlacementJudgement.Success(new GearChainConnectionCost(materials));
 
             #region Internal
+
+            int SumReserved(ItemId itemId)
+            {
+                // 予約リスト中の同一アイテム数を合計する
+                // Sum the reserved amount of the same item in the reservation list
+                if (reservedMaterials == null) return 0;
+                var reserved = 0;
+                foreach (var material in reservedMaterials)
+                {
+                    if (material.ItemId == itemId) reserved += material.Count;
+                }
+                return reserved;
+            }
 
             int CountItem(ItemId itemId)
             {
@@ -81,20 +94,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             #endregion
         }
-
-        private static int SumReserved(IReadOnlyList<ConnectToolMaterialCost> reservedMaterials, ItemId itemId)
-        {
-            // 予約リスト中の同一アイテム数を合計する
-            // Sum the reserved amount of the same item in the reservation list
-            if (reservedMaterials == null) return 0;
-            var reserved = 0;
-            foreach (var material in reservedMaterials)
-            {
-                if (material.ItemId == itemId) reserved += material.Count;
-            }
-            return reserved;
-        }
-
     }
 
     /// <summary>

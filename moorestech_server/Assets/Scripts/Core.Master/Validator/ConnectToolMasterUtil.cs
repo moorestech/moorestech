@@ -10,6 +10,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += ValidateRequiredItems();
+            errorLogs += ValidateLengthPerUnit();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -32,13 +33,23 @@ namespace Core.Master.Validator
                 return logs;
             }
 
-            #endregion
-        }
+            string ValidateLengthPerUnit()
+            {
+                // lengthPerUnitが0以下だとコスト算出で0除算になるため不正として検出する
+                // Detect non-positive lengthPerUnit which would cause division-by-zero in cost calculation
+                var logs = "";
+                foreach (var element in connectTools.Data)
+                {
+                    if (element.LengthPerUnit <= 0)
+                    {
+                        logs += $"[ConnectToolMaster] Name:{element.Name} has invalid LengthPerUnit:{element.LengthPerUnit} (must be greater than 0)\n";
+                    }
+                }
 
-        public static void Initialize(ConnectTools connectTools)
-        {
-            // ConnectToolMasterは索引構築をマスタ側で行うため、追加の初期化はなし
-            // ConnectToolMaster builds its index on the master side, so no extra initialization
+                return logs;
+            }
+
+            #endregion
         }
     }
 }

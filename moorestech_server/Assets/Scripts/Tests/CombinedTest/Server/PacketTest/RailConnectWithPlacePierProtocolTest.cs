@@ -146,8 +146,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             AssertFailedWithoutStateChange(response, expectedReinforce: ReinforcePlenty, expectedPlate: PlatePlenty);
         }
 
-        #region Internal
-
         // 設置後のtoNodeまでのレール長から必要単位数を算出する
         // Compute the required unit count from the rail length up to the placed toNode
         private int UnitsFor(global::Game.Train.RailGraph.RailNode toNode)
@@ -205,7 +203,5 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             return _inventory.InventoryItems.Where(stack => stack.Id == itemId).Sum(stack => stack.Count);
         }
-
-        #endregion
     }
 }
