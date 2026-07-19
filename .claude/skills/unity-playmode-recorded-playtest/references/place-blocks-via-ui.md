@@ -6,35 +6,37 @@
 ## 最小コード（このまま使う）
 
 ```csharp
-await p.SetupFlatGround();
-p.WarpPlayer(new Vector3(4f, 33.5f, 5f));          // 設置範囲の中央付近へ（トップダウンカメラの視界確保）
+await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());   // 足場+ワープ+無料設置を1行で
+p.WarpPlayer(new Vector3(3.5f, 33.5f, -1f));       // 設置エリアの南側へ（設置カメラは北向き・浅ピッチ）
 
-await p.PrepareBlockForUiPlacement("ベルトコンベア", 15);      // アンロック＋コスト付与＋同期待ちを1行で
-await p.PrepareBlockForUiPlacement("木のコンベアチェスト", 2);
-
-// ドラッグ設置: 向きは経路から自動解決（(2,2)→(2,6)なら北向き。ベルトのライン構築はこれ）
-await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
+// 遠いセルから設置する（手前の既設ブロックが奥セルへのレイを遮るため。単クリックは隣接が埋まる前に）
 // 単クリック設置: 向きはNorth固定
 await p.PlaceBlockViaUi("木のコンベアチェスト", new Vector3Int(4, 32, 8), BlockDirection.North);
+// ドラッグ設置: 向きは経路から自動解決（(2,2)→(2,6)なら北向き。ベルトのライン構築はこれ）
+await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
 await p.ExitToGameScreen();
 ```
 
 ## 前提（欠けると必ず失敗する）
 
-1. **`SetupFlatGround()` 必須**: UI設置のレイキャストは `GroundGameObject` コンポーネント付き、
+1. **`SetupDebugEnvironment(new PlaytestEnvironmentConfig())` 必須（推奨）**: UI設置のレイキャストは `GroundGameObject` コンポーネント付き、
    かつ**上面がy=32ちょうど**の足場が前提（`Floor(hit.y)` がブロックグリッドと一致する条件）。
-   素のCubeを自作すると「プレビューが出ない/1段沈む」
-2. **`PrepareBlockForUiPlacement` 必須**: ビルドメニューは解放済みブロックのみ表示、
-   UI設置はクライアント側インベントリの `RequiredItems` を消費する（Direct設置と違う）
-3. **プレイヤーを設置範囲の中央へワープ**: PlaceBlock遷移でカメラがトップダウンにtweenし
-   プレイヤー中心の視界になる。遠い座標はWorldToScreenPointが画面外になり照準不能
+   素のCubeを自作すると「プレビューが出ない/1段沈む」。旧`SetupFlatGround()`は足場+ワープのみ
+2. **アンロックとコスト**: デフォルトの`FreeBlockPlacement=true`なら**メニュー全表示+コスト無料**になり
+   `PrepareBlockForUiPlacement`は不要。在庫消費まで検証するときのみ`FreeBlockPlacement=false`にして
+   `PrepareBlockForUiPlacement`（アンロック+建設コスト付与）を使う
+3. **プレイヤーは設置エリアの南側に立たせる**: 設置カメラは**北向き・浅いピッチ**（旧トップダウンから変更）。
+   足元・背後のセルは画面外になり `AimAtWorldPosition` が「off-screen」例外で失敗する（黙った空振りは廃止済み）
+4. **カメラから遠いセル→近いセルの順に設置**: 浅いカメラでは手前の既設ブロック天面/側面が
+   奥セルへの照準レイを奪い誤設置する。単クリック設置は隣接セルが埋まる前に行う
 
 ## 内部動作（デバッグ時に知るべきこと）
 
 - UI状態遷移: GameScreen --B--> BuildMenu --スロットクリック--> PlaceBlock。
   **PlaceBlock中のBはGameScreenへ抜ける。メニュー再オープンはTab**（`OpenBuildMenuAndSelectBlock`が自動で使い分け）
-- ビルドメニューのスロット選択は座標クリックでなく**EventSystem直叩き**
-  （`ExecuteEvents.pointerDown/UpHandler`。OSカーソル非依存・カメラ非干渉）
+- ビルドメニューのスロット選択は**CEF(Web UI)モードではDOMクリック経路**
+  （DOM矩形→座標逆変換→注入マウス→`CefInputForwarder`がCEFへ転送。write-scenario.mdのWeb UI操作参照）、
+  **uGUIモードではEventSystem直叩き**（`ExecuteEvents.pointerDown/UpHandler`）へ自動分岐
 - 照準は `PlaytestUiOps.PlaceAimPoint` = CalcPlacePointの逆算。**接地面上のフットプリント中心**
   （`origin + rotatedSize/2` のx,z、y=origin.y）を狙えば指定originに置かれる
 - クリックは押下→2フレーム→解放。**設置はScreenLeftClickのGetKeyUp（解放）で確定**する

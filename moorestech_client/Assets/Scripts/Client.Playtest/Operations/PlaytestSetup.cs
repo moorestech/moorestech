@@ -1,6 +1,7 @@
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
+using Common.Debug;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -30,6 +31,24 @@ namespace Client.Playtest.Operations
             var warpPosition = new Vector3(GroundCenter.x, GroundCenter.y + GroundSize.y / 2f + 1.5f, GroundCenter.z);
             WarpPlayer(warpPosition);
             await UniTask.DelayFrame(10);
+        }
+
+        public static async UniTask SetupDebugEnvironment(PlaytestEnvironmentConfig config)
+        {
+            // falseも明示保存し、前回実行の無料設置設定が残留しないようにする
+            // Persist false explicitly too, preventing free placement from leaking across runs
+            DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, config.FreeBlockPlacement);
+
+            // 足場生成は設定に従い、ワープは足場の有無にかかわらずサーバーまで同期する
+            // Create the scaffold conditionally, then always warp with server sync regardless of scaffold choice
+            if (config.CreateFlatGround) CreateFlatGround();
+            WarpPlayer(config.SpawnPosition);
+            await UniTask.DelayFrame(10);
+        }
+
+        public static string FormatEnvironmentConfig(PlaytestEnvironmentConfig config)
+        {
+            return $"[Playtest] env config: FreeBlockPlacement={config.FreeBlockPlacement}, CreateFlatGround={config.CreateFlatGround}, SpawnPosition={config.SpawnPosition}";
         }
 
         public static GameObject CreateFlatGround()
