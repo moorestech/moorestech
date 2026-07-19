@@ -35,8 +35,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         }
 
         /// <summary>
-        /// エンティティ列の先頭から所持素材で賄える個数を返す（長尺分解後のコストプレビュー用）
-        /// Returns how many leading entities the inventory can afford (for decomposed cost preview)
+        /// エンティティ列の先頭から所持素材で賄える個数を返す
+        /// Returns how many leading entities the inventory can afford
         /// </summary>
         public static int CalculateAffordableEntityCount(IReadOnlyList<ConstructionRequiredItemElement[]> entityCosts, IEnumerable<IItemStack> inventoryItems)
         {
