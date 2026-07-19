@@ -25,11 +25,11 @@ namespace Client.Game.InGame.UI.BuildMenu
         {
             var entries = new List<BuildMenuEntry>();
 
-            // 解放済みブロックをソート順に列挙する（ベルト隠しバリアントは除外）
-            // Enumerate unlocked blocks in sort order (exclude hidden belt variants)
+            // 解放済みブロックをソート順に列挙し、ベルトの坂は除外する
+            // Enumerate unlocked blocks in sort order while excluding belt slopes
             var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
                 .Where(b => IsBlockUnlocked(unlockState, b))
-                .Where(b => !BeltConveyorPlaceFamilyUtil.IsHiddenVariant(b.BlockGuid))
+                .Where(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid))
                 .OrderBy(b => b.SortPriority ?? 0)
                 .ThenBy(b => b.Name);
             foreach (var blockMaster in unlockedBlocks)

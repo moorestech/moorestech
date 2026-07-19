@@ -99,36 +99,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 長尺ベルトは全セルを占有しコスト1セットで設置される()
-        {
-            var (packet, serviceProvider) = CreateServer();
-            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3, 1);
-            // バリアントの設置可否はファミリー代表のunlock状態で決まる
-            // Variant placement is gated by the family representative's unlock state
-            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
-
-            var placeInfos = new List<PlaceInfo>
-            {
-                new()
-                {
-                    Position = new Vector3Int(30, 0, 10), Direction = BlockDirection.North,
-                    VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3,
-                },
-            };
-            packet.GetPacketResponse(CreatePlacePayload(placeInfos), new PacketResponseContext(null));
-
-            // 3セル全て同一ブロックとして占有される
-            // All three cells are occupied by the same block entity
-            var block = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(30, 0, 10));
-            Assert.IsNotNull(block);
-            Assert.AreEqual(block, ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(30, 0, 12)));
-
-            // コストは1セットのみ消費（素材残0）
-            // Exactly one cost set consumed (no materials remain)
-            AssertInventoryEmptyOfRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3);
-        }
-
-        [Test]
         public void 電柱設置で自動接続の電線と建設コストが同時に消費される()
         {
             var (packet, serviceProvider) = CreateServer();

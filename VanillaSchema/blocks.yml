@@ -1054,19 +1054,14 @@ properties:
         schemaId: blocks
         foreignKeyIdPath: /data/[*]/blockGuid
         displayElementPath: /data/[*]/name
-    # 直線コンベア群。長さはblockSize.zから導出し、代表はblockSize.z==1のブロック
-    # Straight conveyors; length is derived from blockSize.z, the representative is the blockSize.z==1 block
-    - key: straightBlocks
-      type: array
-      items:
-        type: object
-        properties:
-        - key: blockGuid
-          type: uuid
-          foreignKey:
-            schemaId: blocks
-            foreignKeyIdPath: /data/[*]/blockGuid
-            displayElementPath: /data/[*]/name
+    # ファミリーの1セル直線コンベア
+    # The family's single-cell straight conveyor
+    - key: straightBlockGuid
+      type: uuid
+      foreignKey:
+        schemaId: blocks
+        foreignKeyIdPath: /data/[*]/blockGuid
+        displayElementPath: /data/[*]/name
 
 # ブロック破壊カテゴリ定義。カテゴリキーと、それに属するブロックを外部キーで一元管理する
 # Block destruction category definitions; each maps a category key to its member blocks via foreign key
