@@ -17,7 +17,7 @@ let snapshot: I18nSnapshot = {
   fallbackDictionary: {},
 };
 const listeners = new Set<() => void>();
-const warnedMissingTranslationKeys = new Set<string>();
+let warnedMissingTranslationKeys = new Set<string>();
 
 export function setDictionaries(
   locale: string,
@@ -25,17 +25,18 @@ export function setDictionaries(
   fallbackDictionary: TranslationDictionary,
 ): void {
   snapshot = { locale, dictionary, fallbackDictionary };
-  warnedMissingTranslationKeys.clear();
+  warnedMissingTranslationKeys = new Set<string>();
   listeners.forEach((listener) => listener());
 }
 
 export function createTranslator(current: I18nSnapshot) {
+  const warnedKeysForGeneration = warnedMissingTranslationKeys;
   return (key: string, values: InterpolationValues = {}): string => {
     const template = current.dictionary[key] ?? current.fallbackDictionary[key];
     // 同じ辞書世代では欠落キーごとの警告を一度に抑える
     // Warn only once per missing key within the same dictionary generation
-    if (template === undefined && !warnedMissingTranslationKeys.has(key)) {
-      warnedMissingTranslationKeys.add(key);
+    if (template === undefined && !warnedKeysForGeneration.has(key)) {
+      warnedKeysForGeneration.add(key);
       console.warn(`[i18n] Missing translation key: ${key}`);
     }
 

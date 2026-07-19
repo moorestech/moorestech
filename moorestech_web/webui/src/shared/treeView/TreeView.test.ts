@@ -10,11 +10,22 @@ describe("TreeView render cache", () => {
 
   it("does not rebuild nodes when only the viewport moves", () => {
     vi.stubGlobal("Element", class TestElement {});
-    const nodes: TestNode[] = [{ id: "node-a", x: 10, y: 20, prevIds: [] }];
+    const nodes: TestNode[] = [
+      { id: "node-a", x: 10, y: 20, prevIds: [] },
+      { id: "node-b", x: 30, y: 40, prevIds: ["node-a"] },
+    ];
     let renderedNodeCount = 0;
+    let positionReadCount = 0;
+    let previousIdsReadCount = 0;
     const getId = (node: TestNode) => node.id;
-    const getPosition = (node: TestNode) => ({ x: node.x, y: node.y });
-    const getPrevIds = (node: TestNode) => node.prevIds;
+    const getPosition = (node: TestNode) => {
+      positionReadCount++;
+      return { x: node.x, y: node.y };
+    };
+    const getPrevIds = (node: TestNode) => {
+      previousIdsReadCount++;
+      return node.prevIds;
+    };
     const renderNode = () => {
       renderedNodeCount++;
       return createElement("span", null, "node");
@@ -29,10 +40,10 @@ describe("TreeView render cache", () => {
       testIdPrefix: "test",
     }));
     const viewport = renderer.root.findByProps({ "data-testid": "test-viewport" });
-    expect(renderedNodeCount).toBe(1);
+    const initialPositionReadCount = positionReadCount;
+    const initialPreviousIdsReadCount = previousIdsReadCount;
+    expect(renderedNodeCount).toBe(2);
 
-    // viewport状態だけを更新し、静的ノードの再構築有無を観測する
-    // Update only viewport state and observe whether static nodes rebuild
     act(() => viewport.props.onPointerDown({
       isPrimary: true,
       button: 0,
@@ -52,6 +63,43 @@ describe("TreeView render cache", () => {
       },
     }));
 
-    expect(renderedNodeCount).toBe(1);
+    const canvas = renderer.root.findByProps({ "data-testid": "test-canvas" });
+    expect(renderedNodeCount).toBe(2);
+    expect(positionReadCount).toBe(initialPositionReadCount);
+    expect(previousIdsReadCount).toBe(initialPreviousIdsReadCount);
+    expect(canvas.props.style.transform).toBe("translate(10px, 5px) scale(1)");
+  });
+
+  it("rebuilds the scene when render inputs change", () => {
+    const firstNodes: TestNode[] = [{ id: "node-a", x: 10, y: 20, prevIds: [] }];
+    const secondNodes: TestNode[] = [{ id: "node-b", x: 30, y: 40, prevIds: [] }];
+    const getId = (node: TestNode) => node.id;
+    const getPosition = (node: TestNode) => ({ x: node.x, y: node.y });
+    const getPrevIds = (node: TestNode) => node.prevIds;
+    const firstRenderNode = vi.fn(() => createElement("span", null, "first"));
+    const secondRenderNode = vi.fn(() => createElement("span", null, "second"));
+    const renderer = create(createElement(TreeView<TestNode>, {
+      nodes: firstNodes,
+      getId,
+      getPosition,
+      getPrevIds,
+      renderNode: firstRenderNode,
+      nodeTargetSelector: "[data-node]",
+      testIdPrefix: "test",
+    }));
+
+    act(() => renderer.update(createElement(TreeView<TestNode>, {
+      nodes: secondNodes,
+      getId,
+      getPosition,
+      getPrevIds,
+      renderNode: secondRenderNode,
+      nodeTargetSelector: "[data-node]",
+      testIdPrefix: "test",
+    })));
+
+    expect(firstRenderNode).toHaveBeenCalledOnce();
+    expect(secondRenderNode).toHaveBeenCalledOnce();
+    expect(secondRenderNode).toHaveBeenCalledWith(secondNodes[0], expect.any(Object));
   });
 });
