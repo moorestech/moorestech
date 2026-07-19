@@ -102,6 +102,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             serviceProvider.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid);
         }
 
+        public static void UnlockConnectTool(ServiceProvider serviceProvider, Guid connectToolGuid)
+        {
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(connectToolGuid);
+        }
+
         public static void LockBlock(ServiceProvider serviceProvider, BlockId blockId)
         {
             // IGameUnlockStateDataControllerにはUnlockのみ存在するため、Load経由で強制的にロック状態へ書き換える
