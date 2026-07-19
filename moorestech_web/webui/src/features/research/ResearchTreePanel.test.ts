@@ -1,4 +1,4 @@
-import { createElement, type ReactNode } from "react";
+import { createElement, type ReactElement, type ReactNode } from "react";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ItemMasterEntry, PlayerInventoryData, ResearchNodeData, ResearchTreeData } from "@/bridge";
@@ -9,10 +9,6 @@ const mockState = vi.hoisted(() => ({
   tree: null as ResearchTreeData | null,
 }));
 
-vi.mock("@mantine/core", () => ({
-  Box: ({ children, ...props }: { children: ReactNode }) => createElement("mock-box", props, children),
-  Title: ({ children, ...props }: { children: ReactNode }) => createElement("mock-title", props, children),
-}));
 vi.mock("@/bridge", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/bridge")>();
   return {
@@ -28,12 +24,21 @@ vi.mock("@/shared/treeView", () => ({
 vi.mock("./ResearchNodeCard", () => ({
   default: (props: object) => createElement("mock-research-node-card", props),
 }));
+vi.mock("./ResearchDetailPane", () => ({
+  default: (props: object) => createElement("mock-research-detail-pane", props),
+}));
+vi.mock("@/shared/ui", () => ({
+  GamePanel: ({ children }: { children: ReactNode }) => createElement("mock-game-panel", null, children),
+}));
 
 import ResearchTreePanel from "./ResearchTreePanel";
 
 type TreeViewInstance = ReactTestInstance & {
   props: {
-    renderNode: (node: ResearchNodeData, point: { x: number; y: number }) => ReactTestInstance;
+    renderNode: (node: ResearchNodeData, point: { x: number; y: number }) => ReactElement<{
+      selected: boolean;
+      onSelect: (guid: string) => void;
+    }>;
   };
 };
 
@@ -50,7 +55,7 @@ const node: ResearchNodeData = {
   unlockItemIds: [],
 };
 
-describe("ResearchTreePanel render cache inputs", () => {
+describe("ResearchTreePanel selection toggle", () => {
   beforeEach(() => {
     mockState.tree = { nodes: [node] };
     mockState.inventory = {
@@ -62,29 +67,25 @@ describe("ResearchTreePanel render cache inputs", () => {
     mockState.itemMaster = new Map([[1, { itemId: 1, name: "Iron", maxStack: 100 }]]);
   });
 
-  it("rebuilds research cards after inventory or item-master updates", () => {
+  it("選択トグルで詳細ペインが開閉しrenderNodeが更新される", () => {
     const renderer = create(createElement(ResearchTreePanel));
     const firstTree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
     const firstRenderNode = firstTree.props.renderNode;
-    const firstCard = firstRenderNode(node, node.position);
-    expect(firstCard.props.owned.get(1)).toBe(1);
-    expect(firstCard.props.resolveName(1)).toBe("Iron");
+    const card = firstRenderNode(node, node.position);
+    expect(card.props.selected).toBe(false);
+    expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(0);
 
-    // 所持数更新で描画関数を更新する
-    // Replace the render function after inventory updates
-    mockState.inventory = { ...mockState.inventory!, mainSlots: [{ itemId: 1, count: 5 }] };
-    act(() => renderer.update(createElement(ResearchTreePanel)));
-    const inventoryTree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
-    expect(inventoryTree.props.renderNode).not.toBe(firstRenderNode);
-    expect(inventoryTree.props.renderNode(node, node.position).props.owned.get(1)).toBe(5);
+    // ノード選択で詳細ペインが開く
+    // Selecting a node opens the detail pane
+    act(() => card.props.onSelect(node.guid));
+    expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(1);
+    const selectedTree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
+    expect(selectedTree.props.renderNode).not.toBe(firstRenderNode);
+    expect(selectedTree.props.renderNode(node, node.position).props.selected).toBe(true);
 
-    // マスタ更新で名称解決を更新する
-    // Refresh name resolution after master updates
-    const inventoryRenderNode = inventoryTree.props.renderNode;
-    mockState.itemMaster = new Map([[1, { itemId: 1, name: "Steel", maxStack: 100 }]]);
-    act(() => renderer.update(createElement(ResearchTreePanel)));
-    const masterTree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
-    expect(masterTree.props.renderNode).not.toBe(inventoryRenderNode);
-    expect(masterTree.props.renderNode(node, node.position).props.resolveName(1)).toBe("Steel");
+    // 同ノード再選択で閉じる
+    // Re-selecting the same node closes it
+    act(() => selectedTree.props.renderNode(node, node.position).props.onSelect(node.guid));
+    expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(0);
   });
 });
