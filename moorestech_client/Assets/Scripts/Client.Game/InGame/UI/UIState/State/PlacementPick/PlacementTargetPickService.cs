@@ -39,9 +39,9 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
                 target = null;
                 if (!BlockClickDetectUtil.TryGetCursorOnElectricWire(out _)) return false;
 
-                // 接続ツールは常時解放のため解放判定なしで電線接続ツールへ解決する
-                // Connect tools are always unlocked, so resolve to the wire connect tool without an unlock check
-                target = new ConnectToolPlacementTarget(ConnectToolType.ElectricWireConnect);
+                // カーソル下の電線に対応するelectricWire connectToolを解決する
+                // Resolve the electricWire connectTool corresponding to the wire under the cursor
+                target = new ConnectToolPlacementTarget(ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.ElectricWireConnect, _gameUnlockStateData));
                 return true;
             }
 

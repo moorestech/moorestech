@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Core.Master;
 
@@ -37,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (CanSend(input, placeable))
             {
                 var canContinue = 0 < input.MaxConnectionCount;
-                return GearChainPoleFrameResult.SendExtend(new GearChainPoleExtendSendCommand(null, input.PoleBlockId, input.GhostPlaceInfo, ItemMaster.EmptyItemId, canContinue));
+                return GearChainPoleFrameResult.SendExtend(new GearChainPoleExtendSendCommand(null, input.PoleBlockId, input.GhostPlaceInfo, Guid.Empty, canContinue));
             }
 
             return GearChainPoleFrameResult.Show(null, GearChainPolePreviewCommand.Ghost(placeable));
@@ -53,7 +54,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 // 設置直後に接続を1つ使うため、上限1のポールは連続延長を終了する
                 // The placed pole uses one connection immediately, so a max-1 pole ends continuous extension
                 var canContinue = 1 < input.MaxConnectionCount;
-                return GearChainPoleFrameResult.SendExtend(new GearChainPoleExtendSendCommand(input.SourcePolePos, input.PoleBlockId, input.GhostPlaceInfo, input.OwnedChainItemId, canContinue));
+                return GearChainPoleFrameResult.SendExtend(new GearChainPoleExtendSendCommand(input.SourcePolePos, input.PoleBlockId, input.GhostPlaceInfo, input.ConnectToolGuid, canContinue));
             }
 
             return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.GhostAndLine(placeable, input.SourcePoleCenter, input.GhostCenter));

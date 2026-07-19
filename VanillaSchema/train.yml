@@ -90,20 +90,6 @@ properties:
       default: 0
     - key: name
       type: string
-- key: railItems
-  type: array
-  overrideCodeGeneratePropertyName: RailItemMasterElement
-  items:
-    type: object
-    properties:
-    - key: itemGuid
-      type: uuid
-      foreignKey:
-        schemaId: items
-        foreignKeyIdPath: /data/[*]/itemGuid
-        displayElementPath: /data/[*]/name
-    - key: railLengthPerItem
-      type: integer
 - key: itemContainer
   type: object
   properties:

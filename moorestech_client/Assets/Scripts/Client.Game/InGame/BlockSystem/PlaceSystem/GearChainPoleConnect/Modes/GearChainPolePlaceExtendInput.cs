@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Core.Master;
 using Server.Protocol.PacketResponse;
@@ -30,7 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public GearChainPoleExtendPreviewData ExtendPreview;
 
         public BlockId PoleBlockId;
-        public ItemId OwnedChainItemId;
+        public Guid ConnectToolGuid;
         public int MaxConnectionCount;
     }
 }

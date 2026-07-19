@@ -126,6 +126,14 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(Game.ConnectToolIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.ConnectToolIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // 接続ツールアイコンの PNG 配信
+                    // Serve connect-tool icon PNGs
+                    await Game.ConnectToolIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
                 if (path.StartsWith(GenericImageAssetEndpoint.PathPrefix, StringComparison.Ordinal))
                 {
                     await GenericImageAssetEndpoint.HandleAsync(context, path);

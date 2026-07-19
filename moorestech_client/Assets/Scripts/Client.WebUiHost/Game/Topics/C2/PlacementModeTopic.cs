@@ -42,7 +42,7 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            var selectedName = GetSelectedName(_controller.CurrentTarget);
+            var selectedName = GetSelectedName();
             return WebUiJson.Serialize(new PlacementModeDto
             {
                 SelectedName = selectedName,
@@ -50,16 +50,21 @@ namespace Client.WebUiHost.Game.Topics
                 UnavailableReason = "",
                 EnergizedRangeVisible = _range.IsRangeVisible(),
             });
-        }
 
-        private static string GetSelectedName(IPlacementTarget target)
-        {
-            if (target is BlockPlacementTarget block) return MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name;
-            if (target is BlueprintPlacementTarget blueprint) return blueprint.BlueprintName;
-            if (target is ConnectToolPlacementTarget tool) return tool.ToolType.ToString();
-            if (target is TrainCarPlacementTarget) return "Train Car";
-            if (target is BlueprintCopyToolPlacementTarget) return "Blueprint Copy";
-            return "";
+            #region Internal
+
+            string GetSelectedName()
+            {
+                var target = _controller.CurrentTarget;
+                if (target is BlockPlacementTarget block) return MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name;
+                if (target is BlueprintPlacementTarget blueprint) return blueprint.BlueprintName;
+                if (target is ConnectToolPlacementTarget tool) return MasterHolder.ConnectToolMaster.GetElementOrNull(tool.ConnectToolGuid)?.Name ?? "";
+                if (target is TrainCarPlacementTarget) return "Train Car";
+                if (target is BlueprintCopyToolPlacementTarget) return "Blueprint Copy";
+                return "";
+            }
+
+            #endregion
         }
     }
 

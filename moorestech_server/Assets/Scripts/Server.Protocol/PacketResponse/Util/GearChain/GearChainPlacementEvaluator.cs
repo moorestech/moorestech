@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.Component;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.GearChain
@@ -26,12 +28,12 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
         public const string InsufficientItemsError = "InsufficientItems";
 
         /// <summary>
-        /// 距離・既接続・接続数上限・チェーンアイテムを一括判定する。
-        /// reservedItemCounts に建設コスト等の予約分を渡すと、チェーンと同一アイテムの予約数を必要数へ上乗せして判定する。
-        /// Evaluate distance, existing connection, connection limit and chain items at once.
-        /// Passing reservedItemCounts (e.g. construction cost) adds the reserved amount of the same item as the chain to the required count.
+        /// 距離・既接続・接続数上限・チェーン素材を一括判定する。消費はconnectToolマスタ駆動の複数素材。
+        /// reservedMaterials に建設コスト等の予約分を渡すと、同一アイテムの予約数を必要数へ上乗せして判定する。
+        /// Evaluate distance, existing connection, connection limit and chain materials at once; consumption is connectTool-master driven multi-material.
+        /// Passing reservedMaterials (e.g. construction cost) adds the reserved amount of the same item to the required count.
         /// </summary>
-        public static GearChainPlacementJudgement EvaluatePlacement(float connectionDistance, float fromMaxConnectionDistance, float toMaxConnectionDistance, bool alreadyConnected, bool anyConnectionFull, ItemId chainItemId, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<(ItemId itemId, int count)> reservedItemCounts)
+        public static GearChainPlacementJudgement EvaluatePlacement(float connectionDistance, float fromMaxConnectionDistance, float toMaxConnectionDistance, bool alreadyConnected, bool anyConnectionFull, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
             var stacks = inventoryItems as IItemStack[] ?? inventoryItems.ToArray();
 
@@ -47,25 +49,34 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // Check connection count limit
             if (anyConnectionFull) return GearChainPlacementJudgement.Failure(ConnectionLimitError);
 
-            // チェーンアイテムの必要数を算出する
-            // Calculate the required chain item count
-            if (!TryCalculateChainCost(chainItemId, connectionDistance, out var chainCost)) return GearChainPlacementJudgement.Failure(NoItemError);
+            // connectToolマスタから複数素材の必要数を算出する
+            // Calculate the required multi-material count from the connectTool master
+            if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, connectionDistance, out var materials)) return GearChainPlacementJudgement.Failure(NoItemError);
 
-            // 予約リスト中のチェーンと同一アイテム分を必要数へ上乗せする
-            // Add the same-item amount reserved in the list on top of the required chain count
-            var reservedChain = 0;
-            if (reservedItemCounts != null)
+            // 各素材について、予約分を上乗せした必要数を所持が満たすか確認する
+            // For each material, verify held count covers the requirement plus any reservation
+            foreach (var material in materials)
             {
-                foreach (var (itemId, count) in reservedItemCounts)
-                {
-                    if (itemId == chainItemId) reservedChain += count;
-                }
+                var reserved = SumReserved(material.ItemId);
+                if (CountItem(material.ItemId) < material.Count + reserved) return GearChainPlacementJudgement.Failure(NoItemError);
             }
-            if (CountItem(chainItemId) < chainCost.Count + reservedChain) return GearChainPlacementJudgement.Failure(NoItemError);
 
-            return GearChainPlacementJudgement.Success(chainCost);
+            return GearChainPlacementJudgement.Success(new GearChainConnectionCost(materials));
 
             #region Internal
+
+            int SumReserved(ItemId itemId)
+            {
+                // 予約リスト中の同一アイテム数を合計する
+                // Sum the reserved amount of the same item in the reservation list
+                if (reservedMaterials == null) return 0;
+                var reserved = 0;
+                foreach (var material in reservedMaterials)
+                {
+                    if (material.ItemId == itemId) reserved += material.Count;
+                }
+                return reserved;
+            }
 
             int CountItem(ItemId itemId)
             {
@@ -83,29 +94,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             #endregion
         }
-
-        /// <summary>
-        /// チェーンアイテム設定から距離に応じた消費数を算出する
-        /// Calculate consumption count for the distance from chain item master
-        /// </summary>
-        private static bool TryCalculateChainCost(ItemId chainItemId, float distance, out GearChainConnectionCost chainCost)
-        {
-            chainCost = default;
-
-            // 指定アイテムがチェーンアイテム設定に含まれるか確認する
-            // Check the specified item exists in the chain item master
-            foreach (var gearChainItem in MasterHolder.BlockMaster.Blocks.GearChainItems)
-            {
-                if (MasterHolder.ItemMaster.GetItemId(gearChainItem.ItemGuid) != chainItemId) continue;
-
-                var required = Mathf.CeilToInt(distance / gearChainItem.ConsumptionPerLength);
-                chainCost = new GearChainConnectionCost(chainItemId, required);
-                return true;
-            }
-
-            return false;
-        }
-
     }
 
     /// <summary>

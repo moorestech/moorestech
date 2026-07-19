@@ -37,7 +37,7 @@ namespace Client.DebugSystem
                 var handshake = new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(new Vector3MessagePack(playerPos), null, -1, Array.Empty<ItemStackLevelUnlockEventPacket.ItemStackLevelMessagePack>());
                 var worldData = new WorldDataResponse(new List<BlockInfo>(), new List<EntityResponse>());
                 var inventory = new PlayerInventoryResponse(new List<IItemStack>(), null);
-                var unlockState = new UnlockStateResponse(new List<Guid>(), new List<Guid>(), new List<ItemId>(), new List<ItemId>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>());
+                var unlockState = new UnlockStateResponse(new List<Guid>(), new List<Guid>(), new List<ItemId>(), new List<ItemId>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>(), new List<Guid>());
                 
                 // テストプレイ用の空レスポンスを構築
                 // Build an empty response set for test play

@@ -11,26 +11,10 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += TrainCarWeightValidation();
-            errorLogs += TrainCarValidation();
             errorLogs += TrainCarRequiredItemsValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
-
-            string TrainCarValidation()
-            {
-                var logs = "";
-                foreach (var railItem in train.RailItems)
-                {
-                    ItemId? itemId = MasterHolder.ItemMaster.GetItemIdOrNull(railItem.ItemGuid);
-                    if (itemId == null)
-                    {
-                        logs += $"[TrainMaster] Invalid RailItemGuid:{railItem.ItemGuid}\n";
-                    }
-                }
-
-                return logs;
-            }
 
             string TrainCarRequiredItemsValidation()
             {
@@ -88,15 +72,11 @@ namespace Core.Master.Validator
 
         public static void Initialize(
             Train train,
-            out Dictionary<Guid, TrainCarMasterElement> trainCarMastersByGuid,
-            out RailItemMasterElement[] railItems,
-            out Dictionary<ItemId, RailItemMasterElement> railItemsByItemId)
+            out Dictionary<Guid, TrainCarMasterElement> trainCarMastersByGuid)
         {
             // Dictionary構築（Validate成功後に実行）
             // Build dictionaries (executed after Validate succeeds)
             trainCarMastersByGuid = train.TrainCars.ToDictionary(car => car.TrainCarGuid, car => car);
-            railItems = train.RailItems;
-            railItemsByItemId = train.RailItems.ToDictionary(rail => MasterHolder.ItemMaster.GetItemId(rail.ItemGuid), rail => rail);
         }
     }
 }

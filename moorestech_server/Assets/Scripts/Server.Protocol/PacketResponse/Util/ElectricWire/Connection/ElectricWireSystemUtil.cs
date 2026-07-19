@@ -7,16 +7,18 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 {
     public static class ElectricWireSystemUtil
     {
-        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, ItemId wireItemId, out ElectricWirePlacementFailureReason failureReason)
+        public static bool TryConnect(Vector3Int posA, Vector3Int posB, int playerId, Guid connectToolGuid, out ElectricWirePlacementFailureReason failureReason)
         {
             // 接続対象を取得する
             // Acquire target wire connectors
@@ -36,6 +38,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
                 return false;
             }
 
+            // 未解放のconnectToolによる接続要求は拒否する
+            // Reject connection requests using a connectTool that is not unlocked
+            if (!IsConnectToolUnlocked(connectToolGuid))
+            {
+                failureReason = ElectricWirePlacementFailureReason.NotUnlocked;
+                return false;
+            }
+
             // 距離・既存接続・所持アイテムを評価に渡す
             // Feed distance, existing connection state and held items into the evaluation
             var distance = Vector3Int.Distance(posA, posB);
@@ -45,7 +55,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 distance, connectorA.MaxWireLength, connectorB.MaxWireLength,
-                alreadyConnected, anyConnectionFull, wireItemId, inventory.InventoryItems, ItemMaster.EmptyItemId);
+                alreadyConnected, anyConnectionFull, connectToolGuid, inventory.InventoryItems, null);
 
             if (!judgement.IsPlaceable)
             {
@@ -65,10 +75,18 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
                 return false;
             }
 
-            ConsumeItem(inventory, wireItemId, judgement.WireCost.Count);
+            ConnectToolMaterialConsumer.Consume(judgement.WireCost.Materials, inventory);
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
 
             return true;
+        }
+
+        // connectToolの解放状態を確認する
+        // Check whether the connectTool is unlocked
+        public static bool IsConnectToolUnlocked(Guid connectToolGuid)
+        {
+            var infos = ServerContext.GetService<IGameUnlockStateDataController>().ConnectToolUnlockStateInfos;
+            return infos.TryGetValue(connectToolGuid, out var info) && info.IsUnlocked;
         }
 
         // 指定アイテムをインベントリのスロット順に減算する
@@ -121,9 +139,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             // Reject the disconnect when the refund cannot fit, preventing item loss
             var cost = connectorA.WireConnections[connectorB.BlockInstanceId].Cost;
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
-            var hasRefund = 0 < cost.Count && cost.ItemId != ItemMaster.EmptyItemId;
-            var refundStack = hasRefund ? ServerContext.ItemStackFactory.Create(cost.ItemId, cost.Count) : null;
-            if (hasRefund && !inventory.InsertionCheck(new List<IItemStack> { refundStack }))
+            var refundStacks = ConnectToolMaterialConsumer.CreateRefundItems(cost.Materials);
+            if (0 < refundStacks.Count && !inventory.InsertionCheck(refundStacks))
             {
                 failureReason = ElectricWirePlacementFailureReason.InventoryFull;
                 return false;
@@ -133,7 +150,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             // Disconnect and refund items
             connectorA.TryRemoveWireConnection(connectorB.BlockInstanceId, out _);
             connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
-            if (hasRefund) inventory.InsertItem(refundStack);
+            foreach (var refundStack in refundStacks) inventory.InsertItem(refundStack);
 
             ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
 

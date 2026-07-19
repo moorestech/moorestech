@@ -8,6 +8,7 @@ using Core.Master;
 using Game.Block.Blocks.GearChainPole;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Protocol.PacketResponse.Util.GearChain;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         /// 既存ポール同士の接続プレビューを計算する（チェーンアイテムモード）
         /// Calculate preview for connecting two existing poles (chain item mode)
         /// </summary>
-        public static GearChainPoleExtendPreviewData CalculatePoleToPole(Vector3Int fromPos, Vector3Int toPos, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, ItemId chainItemId)
+        public static GearChainPoleExtendPreviewData CalculatePoleToPole(Vector3Int fromPos, Vector3Int toPos, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, Guid connectToolGuid)
         {
             if (!TryGetPoleInfo(fromPos, blockGameObjectDataStore, out var fromInfo)) return GearChainPoleExtendPreviewData.Invalid;
             if (!TryGetPoleInfo(toPos, blockGameObjectDataStore, out var toInfo)) return GearChainPoleExtendPreviewData.Invalid;
@@ -35,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             var alreadyConnected = fromInfo.PartnerInstanceIds.Contains(toInfo.InstanceId.AsPrimitive());
 
             var distance = Vector3Int.Distance(fromPos, toPos);
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, chainItemId, playerInventory, Array.Empty<(ItemId itemId, int count)>());
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, connectToolGuid, playerInventory, null);
             return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(toPos), judgement.IsPlaceable);
         }
 
@@ -43,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         /// 起点ポールから新規設置位置への延長プレビューを計算する（ポールアイテムモード）
         /// Calculate preview for extending from a pole to a new placement position (pole item mode)
         /// </summary>
-        public static GearChainPoleExtendPreviewData CalculateExtend(Vector3Int fromPos, Vector3Int placePos, GearChainPoleBlockParam placingPoleParam, IReadOnlyList<(ItemId itemId, int count)> reservedItemCounts, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, ItemId chainItemId)
+        public static GearChainPoleExtendPreviewData CalculateExtend(Vector3Int fromPos, Vector3Int placePos, GearChainPoleBlockParam placingPoleParam, IReadOnlyList<(ItemId itemId, int count)> reservedItemCounts, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory playerInventory, Guid connectToolGuid)
         {
             if (!TryGetPoleInfo(fromPos, blockGameObjectDataStore, out var fromInfo)) return GearChainPoleExtendPreviewData.Invalid;
 
@@ -51,7 +52,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             // Treat the new pole as full only when its connection capacity is zero
             var anyConnectionFull = fromInfo.IsConnectionFull || placingPoleParam.MaxConnectionCount < 1;
             var distance = Vector3Int.Distance(fromPos, placePos);
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, chainItemId, playerInventory, reservedItemCounts);
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, connectToolGuid, playerInventory, ConnectToolMaterialConsumer.ToMaterials(reservedItemCounts));
             return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement.IsPlaceable);
         }
 

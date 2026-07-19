@@ -110,14 +110,18 @@ namespace Game.Block.Blocks.GearChainPole
 
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
-            // 返却すべきアイテムのリストを取得する
-            // Get list of items that should be refunded
+            // 返却すべきアイテムのリストを取得する（接続ごとに複数素材を展開）
+            // Get list of items that should be refunded (expand multiple materials per connection)
             var refundItems = new List<IItemStack>();
             foreach (var connection in _chainTargets.Values)
             {
-                if (connection.Cost.Count <= 0 || connection.Cost.ItemId == ItemMaster.EmptyItemId) continue;
-                var itemStack = ServerContext.ItemStackFactory.Create(connection.Cost.ItemId, connection.Cost.Count);
-                refundItems.Add(itemStack);
+                var materials = connection.Cost.Materials;
+                if (materials == null) continue;
+                foreach (var material in materials)
+                {
+                    if (material.Count <= 0 || material.ItemId == ItemMaster.EmptyItemId) continue;
+                    refundItems.Add(ServerContext.ItemStackFactory.Create(material.ItemId, material.Count));
+                }
             }
 
             return refundItems;
@@ -152,7 +156,7 @@ namespace Game.Block.Blocks.GearChainPole
                 if (_chainTargets.ContainsKey(targetId)) continue;
                 var transformer = ResolveChainTarget(targetId);
                 if (transformer == null) continue;
-                var cost = new GearChainConnectionCost(MasterHolder.ItemMaster.GetItemId(connection.ItemGuid), connection.Count);
+                var cost = connection.ToConnectionCost();
                 _chainTargets.Add(targetId, (transformer, cost));
             }
             

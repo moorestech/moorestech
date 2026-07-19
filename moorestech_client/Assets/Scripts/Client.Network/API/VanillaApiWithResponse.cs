@@ -208,7 +208,8 @@ namespace Client.Network.API
                 response.LockedCategoryChallengeGuids, response.UnlockedCategoryChallengeGuids,
                 response.LockedMachineRecipeGuids, response.UnlockedMachineRecipeGuids,
                 response.LockedBlockGuids, response.UnlockedBlockGuids,
-                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids);
+                response.LockedTrainCarGuids, response.UnlockedTrainCarGuids,
+                response.LockedConnectToolGuids, response.UnlockedConnectToolGuids);
         }
 
         public async UniTask<Dictionary<Guid, ResearchNodeState>> GetResearchNodeStates(CancellationToken ct)
@@ -327,12 +328,12 @@ namespace Client.Network.API
             Vector3Int fromPos,
             BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
-            ItemId wireItemId,
+            Guid connectToolGuid,
             CancellationToken ct)
         {
             // 起点あり延長として電柱設置＋接続要求を送り、設置電柱情報を受け取る
             // Send a with-origin extend request (place pole + wire) and receive the placed pole info
-            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleBlockId, polePlaceInfo, wireItemId);
+            var request = ElectricWireExtendProtocol.ElectricWireExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPos, poleBlockId, polePlaceInfo, connectToolGuid);
             return await _packetExchangeManager.GetPacketResponse<ElectricWireExtendProtocol.ElectricWireExtendResponse>(request, ct);
         }
 
@@ -342,10 +343,10 @@ namespace Client.Network.API
             Vector3Int fromPolePos,
             BlockId poleBlockId,
             PlaceInfo polePlaceInfo,
-            ItemId chainItemId,
+            Guid connectToolGuid,
             CancellationToken ct)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleBlockId, polePlaceInfo, chainItemId);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(_playerConnectionSetting.PlayerId, fromPolePos, poleBlockId, polePlaceInfo, connectToolGuid);
             return await _packetExchangeManager.GetPacketResponse<GearChainPoleExtendProtocol.GearChainPoleExtendResponse>(request, ct);
         }
 
