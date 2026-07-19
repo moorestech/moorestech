@@ -1,32 +1,14 @@
 import type {
-  PlayerInventoryData,
-  CraftRecipesData,
-  MachineRecipesData,
-  RecipeViewerItemListData,
-  SlotRef,
-  BlockSlotRef,
-  ModalData,
-  ProgressData,
-  BlockInventoryData,
-  UiStateData,
-  ResearchTreeData,
-  BuildMenuData,
-  BuildMenuEntryType,
-  LocalizationData,
-  ChallengeTreeData,
-  ChallengeCurrentData,
-  PauseMenuData,
-  PlacementModeData,
-  DeleteModeData,
-  KeyHintsData,
-  CrosshairData,
-  UiVisibilityData,
-  MiningHudData,
-  TooltipData,
-  GameStateData,
-  TutorialPresentationData,
-  SkitPresentationData,
-  TrainRidingData,
+  PlayerInventoryData, CraftRecipesData, MachineRecipesData,
+  RecipeViewerItemListData, SlotRef, BlockSlotRef,
+  ModalData, ProgressData, BlockInventoryData,
+  UiStateData, ResearchTreeData, BuildMenuData,
+  BuildMenuEntryType, LocalizationData, ChallengeTreeData,
+  ChallengeCurrentData, PauseMenuData, PlacementModeData,
+  DeleteModeData, KeyHintsData, CrosshairData,
+  UiVisibilityData, MiningHudData, TooltipData,
+  GameStateData, TutorialPresentationData,
+  SkitPresentationData, TrainRidingData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
 
@@ -84,6 +66,9 @@ export const Topics = {
   tutorialPresentation: "tutorial.presentation",
   skitPresentation: "skit.presentation",
   trainRiding: "train.riding",
+  // プレイテスト要求は snapshot を持たない一時イベントとして扱う
+  // Playtest requests are transient events without snapshots
+  playtestDomQuery: "playtest.dom_query",
 } as const;
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ

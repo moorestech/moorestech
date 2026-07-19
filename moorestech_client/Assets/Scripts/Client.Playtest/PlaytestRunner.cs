@@ -2,6 +2,7 @@ using System;
 using Client.Playtest.Core;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
+using Client.Playtest.WebUi;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -23,49 +24,63 @@ namespace Client.Playtest
             if (_isRunning) return "ERROR: another scenario is running";
 
             var runDirectory = PlaytestPaths.CreateRunDirectory(runName);
-            RunAsync(runName, runDirectory, options, scenario).Forget();
+            RunAsync().Forget();
             return runDirectory;
-        }
 
-        private static async UniTask RunAsync(string runName, string runDirectory, PlaytestRunOptions options, Func<PlaytestDriver, UniTask> scenario)
-        {
-            _isRunning = true;
-            var result = new PlaytestResult { RunName = runName, StartedAt = DateTime.Now.ToString("O") };
-            var logCollector = new PlaytestLogCollector();
-            logCollector.StartCollect();
+            #region Internal
 
-            // ゲーム初期化を待ってから録画開始・シナリオ実行
-            // Wait for game initialization, then start recording and run the scenario
-            PlaytestRecorder recorder = null;
-            var driver = new PlaytestDriver(result, runDirectory);
-            try
+            async UniTask RunAsync()
             {
-                await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
+                _isRunning = true;
+                var result = new PlaytestResult { RunName = runName, StartedAt = DateTime.Now.ToString("O") };
+                var logCollector = new PlaytestLogCollector();
+                logCollector.StartCollect();
 
-                // 録画に焼き込むオーバーレイを初期化し、開始ナレーションを流す
-                // Initialize the overlay baked into the recording and post the opening narration
-                PlaytestOverlay.EnsureCreatedAndReset();
-                PlaytestOverlay.PushNote($"シナリオ開始: {runName}");
-                if (options.Record) recorder = PlaytestRecorder.StartRecording(runDirectory);
-                await scenario(driver).Timeout(TimeSpan.FromSeconds(options.ScenarioTimeoutSeconds));
-                result.Success = result.Asserts.TrueForAll(assert => assert.Passed);
-            }
-            catch (Exception exception)
-            {
-                // シナリオの失敗もresult.jsonへ落とすため、ここでのみ例外を捕捉する
-                // Catch exceptions only here so scenario failures still land in result.json
-                result.Success = false;
-                result.Error = $"{exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}";
+                // ゲーム初期化を待ってから録画開始・シナリオ実行
+                // Wait for game initialization, then start recording and run the scenario
+                PlaytestRecorder recorder = null;
+                var driver = new PlaytestDriver(result, runDirectory);
+                try
+                {
+                    await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
+
+                    // DOM応答ハンドラを登録し、CEF利用時だけInputSystem転送を実行中に有効化する
+                    // Register the DOM response handler and enable InputSystem forwarding only while CEF is in use
+                    PlaytestDomQuery.RegisterHandler();
+                    if (CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();
+
+                    // 録画に焼き込むオーバーレイを初期化し、開始ナレーションを流す
+                    // Initialize the overlay baked into the recording and post the opening narration
+                    PlaytestOverlay.EnsureCreatedAndReset();
+                    PlaytestOverlay.PushNote($"シナリオ開始: {runName}");
+                    if (options.Record) recorder = PlaytestRecorder.StartRecording(runDirectory);
+                    await scenario(driver).Timeout(TimeSpan.FromSeconds(options.ScenarioTimeoutSeconds));
+                    result.Success = result.Asserts.TrueForAll(assert => assert.Passed);
+                }
+                catch (Exception exception)
+                {
+                    // シナリオの失敗もresult.jsonへ落とすため、ここでのみ例外を捕捉する
+                    // Catch exceptions only here so scenario failures still land in result.json
+                    result.Success = false;
+                    result.Error = $"{exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}";
+                }
+
+                // 成否にかかわらず転送を止め、次回実行へDOM応答を持ち越さない
+                // Stop forwarding and discard pending DOM responses regardless of success or failure
+                CefInputForwarder.StopForwarding();
+                PlaytestDomQuery.ResetPending();
+
+                // 後始末して結果を書き出す（result.jsonの出現が完走シグナル）
+                // Clean up and write the result (result.json's appearance signals completion)
+                recorder?.StopRecording(result);
+                logCollector.StopCollect();
+                result.ErrorLogs.AddRange(logCollector.ErrorLogs);
+                result.FinishedAt = DateTime.Now.ToString("O");
+                result.Write(runDirectory);
+                _isRunning = false;
             }
 
-            // 後始末して結果を書き出す（result.jsonの出現が完走シグナル）
-            // Clean up and write the result (result.json's appearance signals completion)
-            recorder?.StopRecording(result);
-            logCollector.StopCollect();
-            result.ErrorLogs.AddRange(logCollector.ErrorLogs);
-            result.FinishedAt = DateTime.Now.ToString("O");
-            result.Write(runDirectory);
-            _isRunning = false;
+            #endregion
         }
     }
 }
