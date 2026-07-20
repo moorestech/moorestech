@@ -127,8 +127,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 
             var selfConnector = placedBlock.GetComponent<IElectricWireConnector>();
             var datastore = ServerContext.WorldBlockDatastore;
-            var connectedConnectors = new List<IElectricWireConnector> { selfConnector };
-
             // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の電線だけを消費する
             // Validated ahead, but to survive runtime drift we consume wires only for connections that actually succeeded
             var consumedWireCount = 0;
@@ -138,12 +136,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 if (targetConnector == null) continue;
                 if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, target.Cost)) continue;
 
-                connectedConnectors.Add(targetConnector);
                 consumedWireCount += target.Cost.Count;
             }
 
             ElectricWireSystemUtil.ConsumeItem(inventory, plan.WireItemId, consumedWireCount);
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
         }
     }
 }

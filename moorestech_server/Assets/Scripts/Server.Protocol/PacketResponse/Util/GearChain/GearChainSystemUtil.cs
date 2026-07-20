@@ -17,8 +17,8 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // 接続対象を取得する
             // Acquire target chain poles
             error = string.Empty;
-            var foundA = TryGetGearChainPole(posA, out var poleA, out var transformerA);
-            var foundB = TryGetGearChainPole(posB, out var poleB, out var transformerB);
+            var foundA = TryGetGearChainPole(posA, out var poleA, out _);
+            var foundB = TryGetGearChainPole(posB, out var poleB, out _);
 
 
             if (!foundA || !foundB)
@@ -60,7 +60,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             }
             
             Consume(cost);
-            RebuildNetworks(transformerA, transformerB);
+            GearNetworkDatastore.MarkTopologyDirty();
             
             return true;
             
@@ -108,13 +108,5 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             return chainPole != null && transformer != null;
         }
 
-        private static void RebuildNetworks(params IGearEnergyTransformer[] transformers)
-        {
-            // ネットワークを再構築して回転を再計算する
-            // Rebuild gear networks to recalc rotation
-            
-            foreach (var transformer in transformers) GearNetworkDatastore.RemoveGear(transformer);
-            foreach (var transformer in transformers) GearNetworkDatastore.AddGear(transformer);
-        }
     }
 }

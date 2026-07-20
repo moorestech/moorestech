@@ -13,24 +13,21 @@ namespace Game.EnergySystem
     public class EnergySegment
     {
         private readonly Dictionary<BlockInstanceId, IElectricConsumer> _consumers = new();
-        private readonly Dictionary<BlockInstanceId, IElectricTransformer> _energyTransformers = new();
         private readonly Dictionary<BlockInstanceId, IElectricGenerator> _generators = new();
 
-        public bool IsDestroyed { get; private set; }
+        private bool _isDestroyed;
 
         // このtickで確定した電力統計。需要0は供給率1として扱う
         // Statistics settled for this tick; zero demand is treated as supply rate 1
         public ElectricNetworkStatistics Statistics { get; private set; } = new(0f, 0f, 1f, 0);
 
-        public IReadOnlyDictionary<BlockInstanceId, IElectricConsumer> Consumers => _consumers;
-
-        public IReadOnlyDictionary<BlockInstanceId, IElectricGenerator> Generators => _generators;
-
-        public IReadOnlyDictionary<BlockInstanceId, IElectricTransformer> EnergyTransformers => _energyTransformers;
+        internal EnergySegment()
+        {
+        }
 
         // 毎tickの需給再集計と供給率確定。ElectricTickUpdaterからのみ呼ばれる
         // Re-aggregate supply and demand and settle the supply rate every tick; called only by ElectricTickUpdater
-        public ElectricNetworkStatistics SettleTick()
+        internal ElectricNetworkStatistics SettleTick()
         {
             CheckDestroy();
 
@@ -54,7 +51,7 @@ namespace Game.EnergySystem
 
         // 統計確定後の変換機等の電力tick後処理を実行する
         // Run the post-electric-tick processing (converters etc.) after the statistics are settled
-        public void RunPostTickProcess()
+        internal void RunPostTickProcess()
         {
             CheckDestroy();
 
@@ -66,63 +63,34 @@ namespace Game.EnergySystem
                     handler.OnElectricTickPostProcess(Statistics);
         }
 
-        public void AddEnergyConsumer(IElectricConsumer electricConsumer)
+        internal void AddEnergyConsumer(IElectricConsumer electricConsumer)
         {
             CheckDestroy();
             if (_consumers.ContainsKey(electricConsumer.BlockInstanceId)) return;
             _consumers.Add(electricConsumer.BlockInstanceId, electricConsumer);
         }
 
-        public void RemoveEnergyConsumer(IElectricConsumer electricConsumer)
-        {
-            CheckDestroy();
-            if (!_consumers.ContainsKey(electricConsumer.BlockInstanceId)) return;
-            _consumers.Remove(electricConsumer.BlockInstanceId);
-        }
-
-        public void AddGenerator(IElectricGenerator generator)
+        internal void AddGenerator(IElectricGenerator generator)
         {
             CheckDestroy();
             if (_generators.ContainsKey(generator.BlockInstanceId)) return;
             _generators.Add(generator.BlockInstanceId, generator);
         }
 
-        public void RemoveGenerator(IElectricGenerator generator)
+        internal void Destroy()
         {
-            CheckDestroy();
-            if (!_generators.ContainsKey(generator.BlockInstanceId)) return;
-            _generators.Remove(generator.BlockInstanceId);
-        }
+            if (_isDestroyed) return;
 
-        public void AddEnergyTransformer(IElectricTransformer electricTransformer)
-        {
-            CheckDestroy();
-            if (_energyTransformers.ContainsKey(electricTransformer.BlockInstanceId)) return;
-            _energyTransformers.Add(electricTransformer.BlockInstanceId, electricTransformer);
-        }
-
-        public void RemoveEnergyTransformer(IElectricTransformer electricTransformer)
-        {
-            CheckDestroy();
-            if (!_energyTransformers.ContainsKey(electricTransformer.BlockInstanceId)) return;
-            _energyTransformers.Remove(electricTransformer.BlockInstanceId);
-        }
-
-        public void Destroy()
-        {
-            if (IsDestroyed) return;
-
-            IsDestroyed = true;
+            _isDestroyed = true;
 
             // 各種Dictionaryをクリア
             _consumers.Clear();
             _generators.Clear();
-            _energyTransformers.Clear();
         }
 
         private void CheckDestroy()
         {
-            if (IsDestroyed)
+            if (_isDestroyed)
             {
                 throw new InvalidOperationException("This EnergySegment is already destroyed");
             }

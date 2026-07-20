@@ -16,7 +16,9 @@ using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 
 namespace Tests.CombinedTest.Core
 {
@@ -35,6 +37,12 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var miner = worldBlockDatastore.GetBlock(pos);
             var minerComponent = miner.GetComponent<VanillaMinerProcessorComponent>();
+
+            // 採掘機を電柱へ接続して電力網を成立させる
+            // Connect the miner to a pole so it belongs to a usable electric network
+            var polePosition = pos + new Vector3Int(2, 0, 0);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ElectricWireTestUtil.Connect(pos, polePosition);
             
             var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
             var miningItemId = miningItems[0].Id;
@@ -46,15 +54,13 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, chestBlockPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chestBlock);
             var chestComponent = chestBlock.GetComponent<VanillaChestComponent>();
             
-            //電力の設定。電柱とワイヤー接続してトポロジ反映後、採掘機のセグメントへテスト発電機を登録する
-            //Power setup: wire a pole to the miner, flush the topology, then register a test generator into its segment
-            var polePos = new Vector3Int(pos.x, pos.y, pos.z + 2);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            ElectricWireTestUtil.Connect(pos, polePos);
+            //電力の設定。採掘機が属するワイヤーセグメントへテスト発電機を登録する
+            //Power setup: register a test generator into the wire segment the miner belongs to
             GameUpdater.UpdateOneTick();
             var networkDatastore = ServerContext.GetService<IElectricWireNetworkDatastore>();
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(miner.BlockInstanceId, out var segment));
-            segment.AddGenerator(new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
+            AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
+            GameUpdater.UpdateOneTick();
             
             // tick数で採掘時間を計算（+2 tickのマージン）
             // Calculate mining time in ticks (with +2 ticks margin)
