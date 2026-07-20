@@ -15,8 +15,8 @@ namespace Game.Block.Blocks.MapObjectMiner
             _gearEnergyTransformer = gearEnergyTransformer;
         }
 
-        // GearRuntimeStateStore由来の現在供給値を毎tick取り直し、採掘処理より前にprocessorへ渡す
-        // Re-read the current supply from GearRuntimeStateStore each tick and feed the processor before it mines
+        // gear網の確定済み供給値を毎tick取り直し、採掘処理より前にprocessorへ渡す
+        // Re-read the network's settled supply each tick and feed the processor before it mines
         public void Update()
         {
             BlockException.CheckDestroy(this);

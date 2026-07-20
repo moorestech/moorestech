@@ -10,13 +10,13 @@ namespace Game.Gear.Common
     // A connected component of meshed gears; supply-demand runs only through RunTick. Per-gear values are derived via TryResolveRotation, not stored.
     public class GearNetwork
     {
-        public IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
-        public IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
+        internal IReadOnlyList<IGearEnergyTransformer> GearTransformers => _gearTransformers;
+        internal IReadOnlyList<IGearGenerator> GearGenerators => _gearGenerators;
         public readonly GearNetworkId NetworkId;
 
         // 毎tickの燃料消費等が必要なgeneratorを含むか。GearTickUpdaterの燃料更新対象の判定に使う
         // Whether this network contains generators needing per-tick fuel updates; used by GearTickUpdater
-        public bool HasContinuousTickGenerator => _continuousTickGeneratorCount > 0;
+        internal bool HasContinuousTickGenerator => 0 < _continuousTickGeneratorCount;
 
         private readonly List<IGearEnergyTransformer> _gearTransformers = new();
         private readonly List<IGearGenerator> _gearGenerators = new();
@@ -26,23 +26,32 @@ namespace Game.Gear.Common
         // Traversal cache reused while topology and origin stay unchanged; nulled on topology change, origin switch, or loss of generators
         private GearNetworkRotationCache _rotationCache;
 
-        public GearNetwork(GearNetworkId networkId)
+        // 自網のtick計算結果。RunTick系のみが書く
+        // This network's tick calculation result, written only by the RunTick path
+        private GearNetworkRuntimeState _runtimeState;
+
+        internal GearNetwork(GearNetworkId networkId)
         {
             NetworkId = networkId;
         }
 
-        // 現在の需給集約情報。実体はGearRuntimeStateStoreのnetwork単位stateから組み立てる
-        // Current aggregate supply-demand info, assembled from the store's per-network state
+        // 現在の需給集約情報。tick計算結果のnetwork単位stateから組み立てる
+        // Current aggregate supply-demand info, assembled from this network's tick result state
         public GearNetworkInfo CurrentGearNetworkInfo
         {
             get
             {
-                var state = GearRuntimeStateStore.Instance.GetNetworkState(NetworkId);
+                var state = _runtimeState;
                 return new GearNetworkInfo(state.DemandPower, state.AvailablePower, state.NetworkLoadRate, state.StopReason);
             }
         }
 
-        public void AddGear(IGearEnergyTransformer gear)
+        internal void SetRuntimeState(GearNetworkRuntimeState state)
+        {
+            _runtimeState = state;
+        }
+
+        internal void AddGear(IGearEnergyTransformer gear)
         {
             switch (gear)
             {
@@ -54,25 +63,6 @@ namespace Game.Gear.Common
                     _gearTransformers.Add(gear);
                     break;
             }
-        }
-
-        public void RemoveGear(IGearEnergyTransformer gear)
-        {
-            switch (gear)
-            {
-                case IGearGenerator generator:
-                    _gearGenerators.Remove(generator);
-                    if (generator.RequiresContinuousTick) _continuousTickGeneratorCount--;
-                    break;
-                default:
-                    _gearTransformers.Remove(gear);
-                    break;
-            }
-        }
-
-        public void MarkTopologyDirty()
-        {
-            _rotationCache = null;
         }
 
         // gearの実RPMと絶対回転方向を符号付き原点RPM比から導出する。停止時はRPM0（向きは維持）。
@@ -89,14 +79,13 @@ namespace Game.Gear.Common
             var origin = _rotationCache.Origin;
             isClockwise = rotation.IsSameDirectionAsOrigin ? origin.GenerateIsClockwise : !origin.GenerateIsClockwise;
 
-            var state = GearRuntimeStateStore.Instance.GetNetworkState(NetworkId);
-            rpm = state.IsStopped ? new RPM(0) : new RPM(Math.Abs(rotation.SignedRpmRatio) * origin.GenerateRpm.AsPrimitive());
+            rpm = _runtimeState.IsStopped ? new RPM(0) : new RPM(Math.Abs(rotation.SignedRpmRatio) * origin.GenerateRpm.AsPrimitive());
             return true;
         }
 
         // 1tick分の需給計算。traversal cacheを再構築した場合trueを返す（診断カウンタ用）
         // Run one tick of supply-demand and refresh the traversal cache when needed
-        public void RunTick(GearDemandSnapshot demandSnapshot, GearRuntimeStateStore store)
+        internal void RunTick(GearDemandSnapshot demandSnapshot)
         {
             // 最も速いgeneratorを原点として選定する
             // Pick the fastest generator as the traversal origin
@@ -111,7 +100,7 @@ namespace Game.Gear.Common
             if (originGenerator == null)
             {
                 _rotationCache = null;
-                store.SetNetworkState(NetworkId, new GearNetworkRuntimeState(false, GearNetworkStopReason.None, 0f, 0f, 0f));
+                _runtimeState = new GearNetworkRuntimeState(false, GearNetworkStopReason.None, 0f, 0f, 0f);
                 return;
             }
 
@@ -126,25 +115,34 @@ namespace Game.Gear.Common
             // Lock the network on a sign conflict (reverse rotation) or a gear-ratio conflict at the current rpm
             if (_rotationCache.HasDirectionConflict || _rotationCache.IsRpmConflicted(originGenerator.GenerateRpm.AsPrimitive()))
             {
-                GearNetworkPowerCalculator.StopNetwork(this, store, GearNetworkStopReason.Rocked, 0f, 0f);
+                GearNetworkPowerCalculator.StopNetwork(this, GearNetworkStopReason.Rocked, 0f, 0f);
                 return;
             }
 
-            GearNetworkPowerCalculator.CalculateAndDistribute(this, _rotationCache, demandSnapshot, store);
+            GearNetworkPowerCalculator.CalculateAndDistribute(this, _rotationCache, demandSnapshot);
         }
 
         // 毎tick駆動が必要なgeneratorの燃料消費・出力更新。確定済みの負荷率を渡す
         // Per-tick fuel consumption and output update for continuous generators, fed the settled load rate
-        public void ConsumeGeneratorTicks(GearRuntimeStateStore store)
+        internal void ConsumeGeneratorTicks()
         {
-            var networkLoadRate = store.GetNetworkState(NetworkId).NetworkLoadRate;
+            var networkLoadRate = _runtimeState.NetworkLoadRate;
             foreach (var generator in _gearGenerators)
             {
-                // 同tickの破断sweep等で破壊済みのgeneratorはスキップする（topologyからの除去は次tickのflushで行われる）
-                // Skip generators already destroyed this tick (e.g. by the breakage sweep); topology removal happens at the next flush
+                // 破壊済みgeneratorを飛ばす
+                // Skip generators destroyed this tick; the next tick rebuild removes them from topology
                 if (generator.IsDestroy) continue;
                 if (generator.RequiresContinuousTick) generator.ConsumeGeneratorTick(networkLoadRate);
             }
+        }
+
+        internal void Destroy()
+        {
+            _gearTransformers.Clear();
+            _gearGenerators.Clear();
+            _continuousTickGeneratorCount = 0;
+            _rotationCache = null;
+            _runtimeState = default;
         }
 
     }

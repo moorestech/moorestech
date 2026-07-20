@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
@@ -16,10 +17,12 @@ namespace Tests.UnitTest.Game
         private static readonly Dictionary<BlockInstanceId, FakeWireConnector> Registry = new();
 
         private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> _wireConnections = new();
+        private readonly CountingWireConnections _countingWireConnections;
 
         private FakeWireConnector(BlockInstanceId blockInstanceId)
         {
             BlockInstanceId = blockInstanceId;
+            _countingWireConnections = new CountingWireConnections(this, _wireConnections);
             Registry[blockInstanceId] = this;
         }
 
@@ -30,7 +33,9 @@ namespace Tests.UnitTest.Game
 
         public IElectricEnergyRole EnergyRole { get; private set; }
 
-        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections => _wireConnections;
+        public IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> WireConnections => _countingWireConnections;
+        public int AdjacencyEnumerationCount { get; private set; }
+        public int YieldedConnectionCount { get; private set; }
 
         public static FakeWireConnector CreateTransformer(int id)
         {
@@ -106,6 +111,55 @@ namespace Tests.UnitTest.Game
         public void Destroy()
         {
             IsDestroy = true;
+        }
+
+        private sealed class CountingWireConnections : IReadOnlyDictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)>
+        {
+            private readonly FakeWireConnector _owner;
+            private readonly Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> _source;
+
+            public CountingWireConnections(
+                FakeWireConnector owner,
+                Dictionary<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> source)
+            {
+                _owner = owner;
+                _source = source;
+            }
+
+            public int Count => _source.Count;
+            public IEnumerable<BlockInstanceId> Keys => _source.Keys;
+            public IEnumerable<(IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> Values => EnumerateValues();
+            public (IElectricWireConnector Connector, ElectricWireConnectionCost Cost) this[BlockInstanceId key] => _source[key];
+
+            public bool ContainsKey(BlockInstanceId key)
+            {
+                return _source.ContainsKey(key);
+            }
+
+            public bool TryGetValue(BlockInstanceId key, out (IElectricWireConnector Connector, ElectricWireConnectionCost Cost) value)
+            {
+                return _source.TryGetValue(key, out value);
+            }
+
+            public IEnumerator<KeyValuePair<BlockInstanceId, (IElectricWireConnector Connector, ElectricWireConnectionCost Cost)>> GetEnumerator()
+            {
+                return _source.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            private IEnumerable<(IElectricWireConnector Connector, ElectricWireConnectionCost Cost)> EnumerateValues()
+            {
+                _owner.AdjacencyEnumerationCount++;
+                foreach (var connection in _source.Values)
+                {
+                    _owner.YieldedConnectionCount++;
+                    yield return connection;
+                }
+            }
         }
     }
 }

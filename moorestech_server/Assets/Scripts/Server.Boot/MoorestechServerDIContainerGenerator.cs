@@ -145,8 +145,8 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            // 具象はElectricTickUpdaterのflush用、interfaceは参照系向け。同一インスタンスを共有する
-            // The concrete type serves ElectricTickUpdater's flush; the interface serves readers. Both share one instance
+            // 具象はtick先頭の再構築登録用、interfaceは参照系向け。同一インスタンスを共有する
+            // The concrete type serves the tick-head rebuild registration; the interface serves readers. Both share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
             services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
@@ -249,8 +249,10 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick更新処理を登録する。順序は固定: ①電力tick（先頭でワイヤートポロジ反映） ②gear tick（先頭でgearトポロジ反映）
-            // Register tick update handlers in fixed order: 1) electric tick (wire topology flush at its head) 2) gear tick (gear topology flush at its head)
+            // tick更新を固定順で登録する。トポロジ反映は全網とも需給計算より先（tick途中でセグメント所属を変えないため）
+            // Register tick handlers in fixed order: apply both topologies before any settlement so segment membership never changes mid tick
+            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricWireNetworkDatastore>().RebuildIfDirty);
+            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearNetworkDatastore>().RebuildIfDirty);
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
 

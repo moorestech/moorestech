@@ -160,10 +160,9 @@ namespace Game.Block.Blocks.GearChainPole
                 _chainTargets.Add(targetId, (transformer, cost));
             }
             
-            // 復元したチェーン接続をギアネットワークへ反映する
-            // Reflect restored chain connections into the gear network
-            GearNetworkDatastore.RemoveGear(this);
-            GearNetworkDatastore.AddGear(this);
+            // 復元したチェーン接続を次tick先頭の再構築対象にする
+            // Mark restored chain connections for rebuilding at the next tick head
+            GearNetworkDatastore.MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }
 
