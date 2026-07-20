@@ -17,27 +17,10 @@ namespace Client.Playtest
     {
         private const string GameInitializerScenePath = "Assets/Scenes/Game/GameInitialaizer.unity";
         private const string PendingBootKey = "Playtest_PendingBoot";
-        // DebugServerDirectoryは永続cacheに書かれるため、上書き前の値を退避し再生終了時に戻す
-        // DebugServerDirectory lives in the persistent cache, so back up the pre-override value and restore it on play-exit
-        private const string OverroteServerDirKey = "Playtest_OverroteServerDir";
-        private const string PriorServerDirKey = "Playtest_PriorServerDir";
-        private const string PriorServerDirExistedKey = "Playtest_PriorServerDirExisted";
 
         public static string PrepareAndEnterPlayMode(string serverDirectory, bool noSave)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return "ERROR: already playing";
-
-            // worktree必須のmasterパス設定（未指定なら既存設定を維持）。上書き前の値を退避して再生終了時に戻す
-            // Set the master data path required in worktrees (keep the existing value when unspecified); back up the pre-override value for play-exit restore
-            if (!string.IsNullOrEmpty(serverDirectory))
-            {
-                var key = ServerDirectory.DebugServerDirectorySettingKey;
-                var priorExisted = DebugParameters.ExistsString(key);
-                SessionState.SetBool(PriorServerDirExistedKey, priorExisted);
-                SessionState.SetString(PriorServerDirKey, priorExisted ? DebugParameters.GetValueOrDefaultString(key, "") : "");
-                SessionState.SetBool(OverroteServerDirKey, true);
-                DebugParameters.SaveString(key, serverDirectory);
-            }
 
             // NoSaveフラグと起動待ちフラグはSessionStateでドメインリロードを越えて保持される
             // The NoSave flag and pending-boot flag persist across domain reload via SessionState
@@ -48,6 +31,16 @@ namespace Client.Playtest
             // Disable debug object bootstrap as tests do (prevents IngameDebugConsole etc. noise)
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
             PlaytestPaths.ResetSession();
+
+            // デバッグ設定をセッション専用キャッシュへ隔離する。実キャッシュを複製するので開発者設定は引き継がれる
+            // Isolate debug parameters into a session-local cache; copying the real cache carries developer settings over
+            DebugParametersCacheDirectory.CopyDefaultTo(PlaytestPaths.DebugCacheDirectory);
+            DebugParametersCacheDirectory.SetOverride(PlaytestPaths.DebugCacheDirectory);
+
+            // worktree必須のmasterパス設定（未指定なら既存設定を維持）。隔離後に書くため実キャッシュは汚れない
+            // Set the master data path required in worktrees (keep the existing value when unspecified); written after isolation so the real cache stays clean
+            if (!string.IsNullOrEmpty(serverDirectory))
+                DebugParameters.SaveString(ServerDirectory.DebugServerDirectorySettingKey, serverDirectory);
 
             // ゲーム初期化シーンから再生を開始する
             // Start play mode from the game initializer scene
@@ -80,17 +73,11 @@ namespace Client.Playtest
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             EditorSceneManager.playModeStartScene = null;
 
-            // 上書きしたmasterパスを元へ戻す。退避値が無ければ削除し、既定(ライブmaster)へ復帰させる
-            // Restore the overridden master path; remove it when there was no prior value so it falls back to the default (live master)
-            if (SessionState.GetBool(OverroteServerDirKey, false))
-            {
-                var key = ServerDirectory.DebugServerDirectorySettingKey;
-                if (SessionState.GetBool(PriorServerDirExistedKey, false))
-                    DebugParameters.SaveString(key, SessionState.GetString(PriorServerDirKey, ""));
-                else
-                    DebugParameters.RemoveString(key);
-                SessionState.SetBool(OverroteServerDirKey, false);
-            }
+            // このプレイテストが張った隔離だけを解除する。テスト側SetUpFixtureの隔離を巻き込まないため
+            // Clear only the isolation this playtest installed, so a test fixture's isolation is never torn down with it
+            var sessionDebugCache = PlaytestPaths.DebugCacheDirectory;
+            if (!string.IsNullOrEmpty(sessionDebugCache) && DebugParametersCacheDirectory.GetOverride() == sessionDebugCache)
+                DebugParametersCacheDirectory.SetOverride(null);
         }
     }
 }

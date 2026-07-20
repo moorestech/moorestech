@@ -23,6 +23,10 @@ namespace Client.Playtest.Core
 
         public static string ReadyMarkerPath => Path.Combine(SessionDirectory, "ready.marker");
 
+        // デバッグ設定の隔離先。セッション毎に作り直すので前回実行の残骸を読まない
+        // Isolated debug parameter cache; recreated per session so a previous run's leftovers are never read
+        public static string DebugCacheDirectory => string.IsNullOrEmpty(SessionDirectory) ? string.Empty : Path.Combine(SessionDirectory, "debug-cache");
+
         public static void ResetSession()
         {
             // タイムスタンプ付きセッションディレクトリを新規作成して記録する
