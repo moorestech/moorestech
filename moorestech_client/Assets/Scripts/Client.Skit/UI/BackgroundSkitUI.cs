@@ -14,11 +14,16 @@ namespace Client.Skit.UI
         {
             gameObject.SetActive(isActive);
         }
-        
-        public async UniTask SetText(string characterName, string body, AudioClip voice = null)
+
+        // 文字表示だけを切り替える（webモード抑止用。ルートを消すとAudioSourceの音声再生が止まるため分離）
+        // Toggle only the text visuals (for web-mode suppression; disabling the root would kill AudioSource playback)
+        public void SetTextVisible(bool visible)
         {
-            skitText.text = $"{characterName} : {body}";
-            
+            skitText.gameObject.SetActive(visible);
+        }
+        
+        public async UniTask PlayVoiceAndWait(AudioClip voice)
+        {
             if (voice == null)
             {
                 await UniTask.Delay(3000);

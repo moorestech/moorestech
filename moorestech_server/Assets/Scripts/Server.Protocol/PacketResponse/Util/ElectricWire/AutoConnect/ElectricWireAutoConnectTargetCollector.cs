@@ -115,7 +115,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             var probe = ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 distance, selfMaxWireLength, target.MaxWireLength,
                 false, target.IsWireConnectionFull,
-                ItemMaster.EmptyItemId, System.Array.Empty<IItemStack>(), ItemMaster.EmptyItemId);
+                System.Guid.Empty, System.Array.Empty<IItemStack>(), null);
 
             return probe.FailureReason is not (
                 ElectricWirePlacementFailureReason.TooFar

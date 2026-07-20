@@ -6,8 +6,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
     /// <summary>
-    /// ドラッグ設置プレビュー用の仮想在庫。サーバーの逐次消費（建設コスト予約＋電線消費）を再現する
-    /// Virtual inventory for drag placement preview, replaying the server's sequential consumption (construction reservation + wire cost)
+    /// ドラッグ設置プレビュー用の仮想在庫。サーバーの逐次消費（建設コスト予約＋複数素材の電線消費）を再現する
+    /// Virtual inventory for drag placement preview, replaying the server's sequential consumption (construction reservation + multi-material wire cost)
     /// </summary>
     public class ElectricWireAutoConnectVirtualInventory
     {
@@ -33,21 +33,30 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             }
         }
 
-        // サーバー同様、当該セルの建設コスト予約分を上乗せして電線所持数を判定する
-        // Like the server, judge the wire count with this cell's construction reservation added on top
-        public bool CanAffordWire(ItemId wireItemId, int wireCost)
+        // サーバー同様、当該セルの建設コスト予約分を上乗せして各素材の所持数を判定する
+        // Like the server, judge each material's count with this cell's construction reservation added on top
+        public bool CanAfford(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
-            var requiredCount = wireCost + _constructionCostPerCell.GetValueOrDefault(wireItemId);
-            return requiredCount <= _counts.GetValueOrDefault(wireItemId);
+            if (materials == null) return true;
+            foreach (var material in materials)
+            {
+                var requiredCount = material.Count + _constructionCostPerCell.GetValueOrDefault(material.ItemId);
+                if (_counts.GetValueOrDefault(material.ItemId) < requiredCount) return false;
+            }
+            return true;
         }
 
-        // 設置確定セル分の電線と建設コストを仮想在庫から消費する
-        // Consume the placed cell's wire cost and construction cost from the virtual inventory
-        public void ConsumePlacedCell(ItemId wireItemId, int wireCost)
+        // 設置確定セル分の電線素材と建設コストを仮想在庫から消費する
+        // Consume the placed cell's wire materials and construction cost from the virtual inventory
+        public void ConsumePlacedCell(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
-            if (wireItemId != ItemMaster.EmptyItemId && 0 < wireCost)
+            if (materials != null)
             {
-                _counts[wireItemId] = _counts.GetValueOrDefault(wireItemId) - wireCost;
+                foreach (var material in materials)
+                {
+                    if (material.ItemId == ItemMaster.EmptyItemId || material.Count <= 0) continue;
+                    _counts[material.ItemId] = _counts.GetValueOrDefault(material.ItemId) - material.Count;
+                }
             }
 
             foreach (var (itemId, count) in _constructionCostPerCell)

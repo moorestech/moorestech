@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
+using Common.Debug;
 using Game.Block.Interface.Extension;
 using Client.Mod.Texture;
 using Core.Master;
@@ -25,11 +26,15 @@ namespace Client.Game.InGame.UI.BuildMenu
         {
             var entries = new List<BuildMenuEntry>();
 
-            // 解放済みブロックをソート順に列挙する（ベルト隠しバリアントは除外）
-            // Enumerate unlocked blocks in sort order (exclude hidden belt variants)
+            // 無料設置デバッグ時は未解放も含め設置可能な全ブロック/車両を表示する
+            // In free-placement debug mode, show every placeable block/train car including locked ones
+            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+
+            // 解放済み（無料設置時は全）ブロックをソート順に列挙し、ベルトの坂は除外する
+            // Enumerate unlocked (all in free mode) blocks in sort order while excluding belt slopes
             var unlockedBlocks = MasterHolder.BlockMaster.Blocks.Data
-                .Where(b => IsBlockUnlocked(unlockState, b))
-                .Where(b => !BeltConveyorPlaceFamilyUtil.IsHiddenVariant(b.BlockGuid))
+                .Where(b => showAllPlaceable || IsBlockUnlocked(unlockState, b))
+                .Where(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid))
                 .OrderBy(b => b.SortPriority ?? 0)
                 .ThenBy(b => b.Name);
             foreach (var blockMaster in unlockedBlocks)
@@ -43,18 +48,20 @@ namespace Client.Game.InGame.UI.BuildMenu
             // Enumerate unlocked train cars
             foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
             {
-                if (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked) continue;
+                if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
                 var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
                 entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
             }
 
-            // 接続ツールはカタログから常時表示（アイコンは敷設素材アイテム）
-            // Connect tools always shown from the catalog (icon is the laying material)
-            foreach (var toolType in ConnectToolCatalog.GetDisplayOrder())
+            // 解放済みconnectToolをSortPriority順に1エントリずつ表示（アイコンはimagePath由来）
+            // Show one entry per unlocked connectTool in SortPriority order (icon comes from imagePath)
+            var unlockedConnectTools = MasterHolder.ConnectToolMaster.All
+                .Where(element => unlockState.ConnectToolUnlockStateInfos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
+                .OrderBy(element => element.SortPriority);
+            foreach (var connectTool in unlockedConnectTools)
             {
-                var iconItemGuid = ConnectToolCatalog.SelectIconItemGuid(toolType);
-                var iconView = iconItemGuid == null ? null : ClientContext.ItemImageContainer.GetItemView(iconItemGuid.Value);
-                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(toolType), iconView, ConnectToolCatalog.GetDisplayName(toolType)));
+                var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid);
+                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), iconView, connectTool.Name));
             }
 
             // 接続ツール群にBPコピーツール追加（テキスト表示）

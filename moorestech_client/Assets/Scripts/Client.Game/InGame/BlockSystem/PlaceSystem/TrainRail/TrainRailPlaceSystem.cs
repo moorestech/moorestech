@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Control;
 using Client.Input;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -28,7 +29,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             // Drive preview and placement from the build-menu selected BlockId
             var blockId = target.BlockId;
             var placeInfo = _trainRailPlaceSystemService.ManualUpdate(blockId);
-            if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
+            if (!InputManager.Playable.ScreenLeftClick.GetKeyUp || UiPointerHitTest.IsPointerOverAnyUi()) return;
 
             PlaceSystemUtil.SendPlaceBlockProtocol(new List<PlaceInfo> { placeInfo });
         }

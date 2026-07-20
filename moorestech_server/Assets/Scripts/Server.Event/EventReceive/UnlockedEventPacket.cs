@@ -34,6 +34,7 @@ namespace Server.Event.EventReceive
             _unlockState.OnUnlockMachineRecipe.Subscribe(m => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.MachineRecipe, m)));
             _unlockState.OnUnlockBlock.Subscribe(b => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.Block, b)));
             _unlockState.OnUnlockTrainCar.Subscribe(t => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.TrainCar, t)));
+            _unlockState.OnUnlockConnectTool.Subscribe(c => AddBroadcastEvent(new UnlockEventMessagePack(UnlockEventType.ConnectTool, c)));
         }
         
         private void AddBroadcastEvent(UnlockEventMessagePack unlockEventMessagePack)
@@ -54,6 +55,7 @@ namespace Server.Event.EventReceive
         [IgnoreMember] public Guid UnlockedMachineRecipeGuid => Guid.Parse(UnlockedMachineRecipeGuidStr);
         [IgnoreMember] public Guid UnlockedBlockGuid => Guid.Parse(UnlockedBlockGuidStr);
         [IgnoreMember] public Guid UnlockedTrainCarGuid => Guid.Parse(UnlockedTrainCarGuidStr);
+        [IgnoreMember] public Guid UnlockedConnectToolGuid => Guid.Parse(UnlockedConnectToolGuidStr);
 
         [Key(0)] public int UnlockEventTypeInt { get; set; }
         [Key(1)] public string UnlockedCraftRecipeGuidStr { get; set; }
@@ -62,6 +64,7 @@ namespace Server.Event.EventReceive
         [Key(4)] public string UnlockedMachineRecipeGuidStr { get; set; }
         [Key(5)] public string UnlockedBlockGuidStr { get; set; }
         [Key(6)] public string UnlockedTrainCarGuidStr { get; set; }
+        [Key(7)] public string UnlockedConnectToolGuidStr { get; set; }
         
         
         
@@ -94,6 +97,9 @@ namespace Server.Event.EventReceive
                 case UnlockEventType.TrainCar:
                     UnlockedTrainCarGuidStr = guid.ToString();
                     break;
+                case UnlockEventType.ConnectTool:
+                    UnlockedConnectToolGuidStr = guid.ToString();
+                    break;
             }
         }
     }
@@ -106,5 +112,6 @@ namespace Server.Event.EventReceive
         MachineRecipe,
         Block,
         TrainCar,
+        ConnectTool,
     }
 }

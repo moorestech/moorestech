@@ -5,6 +5,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
+using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,6 +32,8 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
         // ポールの建設コスト(Test3 x2)。BlockId化に伴いポールアイテムではなく素材を消費する
         // Construction cost of the pole (Test3 x2). After BlockId migration, materials are consumed instead of a pole item
         private static readonly Guid MaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000003");
+        public static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000003");
+        private static readonly Guid ChainMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000004");
 
         public readonly ItemId ChainItemId;
         public readonly ItemId MaterialItemId;
@@ -44,8 +47,9 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
             // Prepare the server and the source pole
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _packet = packet;
-            ChainItemId = MasterHolder.ItemMaster.GetItemId(ChainConstants.ChainItemGuid);
+            ChainItemId = MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid);
             MaterialItemId = MasterHolder.ItemMaster.GetItemId(MaterialGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
             _inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearChainPole, FromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
         }
@@ -75,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest.GearChain
 
         public GearChainPoleExtendProtocol.GearChainPoleExtendResponse SendExtendWithBlock(Vector3Int placePos, BlockId poleBlockId)
         {
-            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(PlayerId, FromPos, poleBlockId, CreatePlaceInfo(placePos), ChainItemId);
+            var request = GearChainPoleExtendProtocol.GearChainPoleExtendRequest.CreateExtendRequest(PlayerId, FromPos, poleBlockId, CreatePlaceInfo(placePos), ConnectToolGuid);
             return Send(request);
         }
 

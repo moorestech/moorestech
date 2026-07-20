@@ -5,6 +5,8 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using UnityEngine;
 using VContainer;
+using UniRx;
+using System;
 
 namespace Client.Game.Common
 {
@@ -14,10 +16,18 @@ namespace Client.Game.Common
         
         [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
         private HotBarView _hotBarView;
+        private static readonly Subject<GameStateType> _onStateChanged = new();
+        public static IObservable<GameStateType> OnStateChanged => _onStateChanged;
+        public static GameStateType CurrentState { get; private set; } = GameStateType.InGame;
         
         private void Awake()
         {
             _instance = this;
+            // カットシーン再生状態をゲーム全体状態へ反映する（CutSceneはClient.Gameを参照できないため購読で受ける）
+            // Map cutscene playback onto the game state (CutScene cannot reference Client.Game, so subscribe here)
+            Client.CutScene.TimelinePlayer.OnPlayingChanged
+                .Subscribe(playing => ChangeState(playing ? GameStateType.CutScene : GameStateType.InGame))
+                .AddTo(this);
         }
         
         [Inject]
@@ -33,6 +43,8 @@ namespace Client.Game.Common
         
         public static void ChangeState(GameStateType gameStateType)
         {
+            CurrentState = gameStateType;
+            _onStateChanged.OnNext(gameStateType);
             switch (gameStateType)
             {
                 case GameStateType.InGame:

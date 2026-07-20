@@ -1,0 +1,35 @@
+{
+  "loop_type": "eval",
+  "active": true,
+  "iteration": 0,
+  "max_iterations": 12,
+  "threshold": 70,
+  "started_at": 1784362613,
+  "max_wall_minutes": 360,
+  "ended_reason": null,
+  "session_id": "c05c700c-ee08-4d40-b8c4-926caebf1d9d",
+  "agent_id": "ablind-negative-340ccc2d9c64c6ad",
+  "project_dir": "/Users/katsumi/moorestech-worktrees/tree1",
+  "task": "",
+  "criteria": "",
+  "generator_skill": "assign-eval-loop-generator",
+  "evaluator_skill": "assign-eval-loop-evaluator",
+  "latest_score": null,
+  "evaluated_iteration": null,
+  "best_score": null,
+  "best_iteration": null,
+  "snapshot_enabled": true,
+  "snapshot_ref_prefix": "refs/eval-loop/c05c700c-ee08-4d40-b8c4-926caebf1d9d/ablind-negative-340ccc2d9c64c6ad",
+  "turns_dir": "/Users/katsumi/moorestech-worktrees/tree1/.mso/agents/ablind-negative-340ccc2d9c64c6ad/turns",
+  "phase": "plan",
+  "latest_plan": null,
+  "write_targets": [],
+  "evaluator_history": [
+    {
+      "evaluator": "assign-eval-loop-evaluator",
+      "from_iteration": 0,
+      "to_iteration": null,
+      "reason": "initial"
+    }
+  ]
+}

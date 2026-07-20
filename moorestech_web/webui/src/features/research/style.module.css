@@ -1,0 +1,111 @@
+/* 研究エリア: stageグリッドのviewer〜items列を占有。全画面固定・不透明塗りは廃止 */
+/* Research area occupies the viewer..items grid columns; no fixed fullscreen, no opaque fill */
+.researchArea {
+  grid-column: viewer-start / items-end;
+  grid-row: 1;
+  position: relative;
+  height: 100%;
+  min-width: 0;
+}
+/* TreeViewのviewportはflex:1で高さを取る前提。ChallengePanel同様にflex列で包む */
+/* TreeView's viewport fills via flex:1; wrap it in a flex column like ChallengePanel */
+.treeContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+/* ノードカード: 名前+アイコンの縦積み。面と枠はトークン、状態はdata属性 */
+/* Node card: name + icon stack; face/border via tokens, states via data attributes */
+.node {
+  position: absolute;
+  width: 132px;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  background: var(--research-node-face);
+  border: 1px solid var(--research-node-border);
+  cursor: pointer;
+}
+.node[data-locked] { opacity: 0.45; }
+.node[data-completed] { border-color: var(--text-default); }
+.node[data-selected] { outline: 2px solid var(--text-high-contrast); }
+.nodeName {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  color: var(--text-default);
+}
+
+/* 詳細ペイン: グラフパネル内の右上固定フロート。パン・ズーム非追従 */
+/* Detail pane: fixed float at the graph panel's top-right, unaffected by pan/zoom */
+.detailPane {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 300px;
+}
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+.detailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.detailName {
+  font-size: 16px;
+  color: var(--text-high-contrast);
+}
+.detailClose {
+  border: 0;
+  background: transparent;
+  color: var(--text-default);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.detailDescription {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-default);
+}
+.detailSlots {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+/* 主要アクション: 青グラデはこのボタン限定 */
+/* Primary action: the blue gradient is exclusive to this button */
+.researchButton {
+  border: 0;
+  border-radius: 0;
+  padding: 8px 0;
+  background: var(--recipe-action-background);
+  color: var(--text-high-contrast);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.researchButton:disabled {
+  background: rgb(50 52 67);
+  color: var(--text-default);
+  cursor: default;
+  opacity: 0.6;
+}
+.detailReason {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-default);
+  white-space: pre-line;
+}

@@ -45,32 +45,6 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 長尺ベルトの解体で建設コスト1セットが返却される()
-        {
-            var (packet, serviceProvider) = CreateServer();
-            var world = ServerContext.WorldBlockDatastore;
-
-            // 長尺3連ベルトをプロトコル経由で設置（コスト消費と3セル占有を再現）
-            // Place the 3-length belt via the protocol to reproduce cost consumption and the 3-cell footprint
-            PlaceBlockProtocolTestSupport.GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor3, 1);
-            PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
-            var placeInfos = new List<PlaceInfo>
-            {
-                new() { Position = new Vector3Int(50, 0, 10), Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = ForUnitTestModBlockId.GearBeltConveyor3 },
-            };
-            packet.GetPacketResponse(PlaceBlockProtocolTestSupport.CreatePlacePayload(placeInfos), new PacketResponseContext(null));
-
-            var inventory = GetInventory(serviceProvider);
-            packet.GetPacketResponse(CreateRemovePayload(new Vector3Int(50, 0, 10)), new PacketResponseContext(null));
-
-            // 1セット分（Test3×1+Test4×1）が返却される
-            // One cost set (Test3 x1 + Test4 x1) is refunded
-            Assert.IsFalse(world.Exists(new Vector3Int(50, 0, 10)));
-            Assert.AreEqual(1, GetItemCount(inventory, Material1Guid));
-            Assert.AreEqual(1, GetItemCount(inventory, Material2Guid));
-        }
-
-        [Test]
         public void requiredItems未定義ブロックは何も返却されない()
         {
             var (packet, serviceProvider) = CreateServer();

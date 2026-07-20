@@ -10,6 +10,7 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.GearChain;
 using Server.Util.MessagePack;
@@ -66,13 +67,17 @@ namespace Server.Protocol.PacketResponse
             // With a from pole, validate connection viability before placing
             if (request.HasFromPole)
             {
+                // 未解放のconnectToolによる接続要求は設置前に拒否する
+                // Reject a connection request using a connectTool that is not unlocked before placement
+                if (!GearChainSystemUtil.IsConnectToolUnlocked(request.ConnectToolGuid)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.NotUnlockedError);
+
                 if (!GearChainSystemUtil.TryGetGearChainPole(request.FromPolePosVector, out var fromPole, out _)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InvalidTargetError);
 
                 // 新規ポール側は接続容量0の場合のみ上限超過として扱う
                 // Treat the new pole as full only when its connection capacity is zero
                 var anyConnectionFull = fromPole.IsConnectionFull || poleParam.MaxConnectionCount < 1;
                 var distance = Vector3Int.Distance(request.FromPolePosVector, placePosition);
-                var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromPole.MaxConnectionDistance, poleParam.MaxConnectionDistance, false, anyConnectionFull, request.ChainItemId, inventory.InventoryItems, costItemCounts);
+                var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromPole.MaxConnectionDistance, poleParam.MaxConnectionDistance, false, anyConnectionFull, request.ConnectToolGuid, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(costItemCounts));
                 if (!judgement.IsPlaceable) return GearChainPoleExtendResponse.CreateFailed(judgement.FailureReason);
             }
 
@@ -83,7 +88,7 @@ namespace Server.Protocol.PacketResponse
 
             // 起点ありならチェーン接続とアイテム消費
             // With a from pole, connect the chain and consume chain items
-            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, request.PlayerId, request.ChainItemId, out var connectError))
+            if (request.HasFromPole && !GearChainSystemUtil.TryConnect(request.FromPolePosVector, placePosition, request.PlayerId, request.ConnectToolGuid, out var connectError))
             {
                 // 事前検証済みのため通常到達しないが、孤立ポールを残さないよう設置を取り消す
                 // Unreachable after pre-validation; remove the block to avoid leaving an orphan pole
@@ -106,7 +111,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public int PoleBlockIdInt { get; set; }
-            [Key(7)] public ItemId ChainItemId { get; set; }
+            [Key(7)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int FromPolePosVector => FromPolePos;
             [IgnoreMember] public BlockId PoleBlockId => new(PoleBlockIdInt);
@@ -117,7 +122,7 @@ namespace Server.Protocol.PacketResponse
                 Tag = GearChainPoleExtendProtocol.Tag;
             }
 
-            public static GearChainPoleExtendRequest CreateExtendRequest(int playerId, Vector3Int fromPolePos, BlockId poleBlockId, PlaceInfo polePlaceInfo, ItemId chainItemId)
+            public static GearChainPoleExtendRequest CreateExtendRequest(int playerId, Vector3Int fromPolePos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
             {
                 return new GearChainPoleExtendRequest
                 {
@@ -126,7 +131,7 @@ namespace Server.Protocol.PacketResponse
                     PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleBlockIdInt = poleBlockId.AsPrimitive(),
-                    ChainItemId = chainItemId,
+                    ConnectToolGuid = connectToolGuid,
                 };
             }
 
@@ -139,7 +144,7 @@ namespace Server.Protocol.PacketResponse
                     PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleBlockIdInt = poleBlockId.AsPrimitive(),
-                    ChainItemId = ItemMaster.EmptyItemId,
+                    ConnectToolGuid = Guid.Empty,
                 };
             }
         }

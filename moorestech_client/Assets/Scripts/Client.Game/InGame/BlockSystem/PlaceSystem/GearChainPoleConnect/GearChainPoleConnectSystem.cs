@@ -1,11 +1,13 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
+using Game.UnlockState;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
@@ -23,16 +25,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         private readonly GearChainPoleFrameInputCollector _inputCollector;
         private readonly GearChainPoleExtendPreviewObject _previewObject;
         private readonly GearChainPoleExtendRequestSender _requestSender;
+        private readonly IGameUnlockStateData _gameUnlockStateData;
 
         // 延長の起点ポール。このシステムが持つ唯一の状態
         // Extension source pole: the only state this system owns
         private IGearChainPoleConnectAreaCollider _sourcePole;
 
-        public GearChainPoleConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
+        public GearChainPoleConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData)
         {
             _previewObject = new GearChainPoleExtendPreviewObject(previewBlockController);
             _requestSender = new GearChainPoleExtendRequestSender(blockGameObjectDataStore);
             _inputCollector = new GearChainPoleFrameInputCollector(mainCamera, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, _previewObject);
+            _gameUnlockStateData = gameUnlockStateData;
         }
 
         public void Enable()
@@ -53,13 +57,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             GearChainPoleFrameResult result;
             if (context.Target is BlockPlacementTarget blockTarget)
             {
+                // ブロック選択時は種別からgearChainのconnectToolを解決して延長接続に使う
+                // With a block selected, resolve the gearChain connectTool by type for the extension connection
                 var poleBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockTarget.BlockId);
-                var input = _inputCollector.CollectPlaceExtend(_sourcePole, poleBlockMaster, _requestSender.IsAwaitingResponse);
+                var connectToolGuid = ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.GearChainPoleConnect, _gameUnlockStateData);
+                var input = _inputCollector.CollectPlaceExtend(_sourcePole, poleBlockMaster, _requestSender.IsAwaitingResponse, connectToolGuid);
                 result = GearChainPolePlaceExtendMode.Decide(input);
             }
             else
             {
-                var input = _inputCollector.CollectChainConnect(_sourcePole);
+                // 接続ツール選択時は選択されたconnectToolのGuidを使う
+                // With a connect tool selected, use the selected connectTool's Guid
+                var connectToolGuid = context.Target is ConnectToolPlacementTarget connectTool ? connectTool.ConnectToolGuid : System.Guid.Empty;
+                var input = _inputCollector.CollectChainConnect(_sourcePole, connectToolGuid);
                 result = GearChainPoleChainConnectMode.Decide(input);
             }
 
@@ -74,7 +84,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             if (result.ChainConnectSend.HasValue)
             {
                 var connect = result.ChainConnectSend.Value;
-                ClientContext.VanillaApi.SendOnly.ConnectGearChain(connect.FromPos, connect.ToPos, connect.ChainItemId);
+                ClientContext.VanillaApi.SendOnly.ConnectGearChain(connect.FromPos, connect.ToPos, connect.ConnectToolGuid);
             }
 
             // 反映: 次の起点を確定する

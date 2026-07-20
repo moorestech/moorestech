@@ -107,7 +107,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 var point = Vector3Int.zero;
                 point.x = Mathf.FloorToInt(hitPoint.x + (rotatedSize.x % 2 == 0 ? 0.5f : 0));
                 point.z = Mathf.FloorToInt(hitPoint.z + (rotatedSize.z % 2 == 0 ? 0.5f : 0));
-                point.y = Mathf.FloorToInt(hitPoint.y);
+
+                // 天面ヒットのyは整数ちょうどだが、掠り角レイの浮動小数点誤差で僅かに下回り1段沈むためイプシロン補正
+                // Top-face hits land exactly on integer y, but grazing rays dip epsilon below and sink one cell, so correct it
+                point.y = Mathf.FloorToInt(hitPoint.y + 0.001f);
 
                 point += new Vector3Int(0, heightOffset, 0);
                 point -= new Vector3Int(rotatedSize.x, 0, rotatedSize.z) / 2;

@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory.Main;
@@ -14,7 +15,6 @@ using Core.Master;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
 using static Client.Game.DebugConst;
 
@@ -130,7 +130,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _previewBlockController.SetActive(true);
             
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
                 _clickStartPosition = placePoint;
                 _clickStartHeightOffset = _heightOffset;
@@ -199,9 +199,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
 
-                // 電線不足で全セル設置不可なら設置クリックを無効化する（サーバーも拒否するが先回りで抑止）
-                // Disable the placement click when no cell is placeable due to wire shortage (server also rejects, but block early)
-                if (!wirePlaceable) return;
+                // UI上か電線不足なら設置しない
+                // Do not place over UI or without enough wire
+                if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return;
 
                 SendPlaceBlockProtocol(_currentPlaceInfos);
 
@@ -212,6 +212,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             void MarkInsufficientItemPreviewsAsNotPlaceable()
             {
+                // 無料設置モードでは所持数による制限をかけない
+                // In free placement mode, do not limit by held item count
+                if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
+
                 // 建設コストで賄えるセル数まで設置可にする
                 // Allow placement up to the affordable cell count
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);

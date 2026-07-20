@@ -24,7 +24,7 @@ namespace Tests.Util
             var connectorA = ResolveConnector(posA);
             var connectorB = ResolveConnector(posB);
 
-            var cost = new ElectricWireConnectionCost(ItemMaster.EmptyItemId, 0);
+            var cost = ElectricWireConnectionCost.Empty;
             connectorA.TryAddWireConnection(connectorB.BlockInstanceId, cost);
             connectorB.TryAddWireConnection(connectorA.BlockInstanceId, cost);
 

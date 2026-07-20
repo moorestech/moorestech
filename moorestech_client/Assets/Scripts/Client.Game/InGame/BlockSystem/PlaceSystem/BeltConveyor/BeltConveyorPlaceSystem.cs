@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -14,15 +15,14 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
 using static Client.Game.DebugConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 {
     /// <summary>
-    /// ベルトコンベアファミリー専用の設置システム（1マス刻みの経路を長尺バリアントへ分解して設置する）
-    /// Dedicated placement system for belt-conveyor families (decomposes the grid-step path into length variants)
+    /// ベルトコンベアファミリー専用の1セル単位設置システム
+    /// Dedicated per-cell placement system for belt-conveyor families
     /// </summary>
     public class BeltConveyorPlaceSystem : PlaceSystemBase<BlockPlacementTarget>
     {
@@ -84,10 +84,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
-            // ファミリー定義を解決（代表・斜面・長尺バリアント）。非ファミリーブロックは対象外
-            // Resolve the family definition (representative, slopes, length variants); bail out for non-family blocks
+            // ファミリー定義を解決し、非ファミリーブロックは対象外にする
+            // Resolve the family definition and ignore non-family blocks
             if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(target.BlockId, out var family)) return;
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.RepresentativeBlockId);
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             if (!TryGetRayHitBlockPosition(_mainCamera, _heightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController.SetActive(true);
 
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject())
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
                 _clickStartPosition = placePoint;
                 _clickStartHeightOffset = _heightOffset;
@@ -166,9 +166,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                     cellInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
                 }
 
-                // セル列を長尺バリアント・斜面エンティティ列へ分解
-                // Decompose cells into length-variant and slope entities
-                _currentPlaceInfos = BeltConveyorRunDecomposer.Decompose(cellInfos, family);
+                // セル列へ直線・坂ブロックを1対1で割り当てる
+                // Assign straight and slope blocks to cells one-to-one
+                _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family);
             }
 
             void PlaceBlock()
@@ -179,11 +179,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 // Skip sending in debug mode
                 if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
 
+                // 押下未登録の解放は無視する（ビルドメニュー選択クリックの解放がPlaceBlock遷移直後に漏れて
+                // Enableのセンチネル-1を_heightOffsetへ書き込み、以後の設置が1段沈むのを防ぐ）
+                // Ignore releases without a registered press (the build-menu selection click's release can leak in right
+                // after entering PlaceBlock and write Enable's -1 sentinel into _heightOffset, sinking later placements)
+                if (!_clickStartPosition.HasValue) return;
+
                 // マウスを離したので連続設置状態は解除する（設置有無に関わらず）
                 // Clear the continuous-placement state on mouse release (regardless of whether we place)
                 _heightOffset = _clickStartHeightOffset;
                 _clickStartPosition = null;
 
+                if (UiPointerHitTest.IsPointerOverAnyUi()) return;
                 SendPlaceBlockProtocol(_currentPlaceInfos.Where(info => info.Placeable).ToList());
             }
 

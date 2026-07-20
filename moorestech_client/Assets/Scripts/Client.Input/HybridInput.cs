@@ -25,14 +25,14 @@ namespace Client.Input
         {
             var key = ToInputSystemKey(keyCode);
             var inputSystemPressed = key.HasValue && Keyboard.current != null && Keyboard.current[key.Value].wasPressedThisFrame;
-            return inputSystemPressed || UnityEngine.Input.GetKeyDown(keyCode);
+            return Suppress(inputSystemPressed || UnityEngine.Input.GetKeyDown(keyCode), InputSuppressionScope.Keyboard);
         }
 
         public static bool GetKey(KeyCode keyCode)
         {
             var key = ToInputSystemKey(keyCode);
             var inputSystemHeld = key.HasValue && Keyboard.current != null && Keyboard.current[key.Value].isPressed;
-            return inputSystemHeld || UnityEngine.Input.GetKey(keyCode);
+            return Suppress(inputSystemHeld || UnityEngine.Input.GetKey(keyCode), InputSuppressionScope.Keyboard);
         }
 
         public static bool GetMouseButtonDown(int button)
@@ -51,6 +51,13 @@ namespace Client.Input
         {
             var control = GetMouseButtonControl(button);
             return (control != null && control.isPressed) || UnityEngine.Input.GetMouseButton(button);
+        }
+
+        private static bool Suppress(bool value, InputSuppressionScope scope)
+        {
+            if (!value || !WebUiInputExclusivity.IsSuppressed(scope)) return value;
+            WebUiInputExclusivity.ProbeSuppressed(scope);
+            return false;
         }
 
         private static UnityEngine.InputSystem.Controls.ButtonControl GetMouseButtonControl(int button)
@@ -74,12 +81,19 @@ namespace Client.Input
             return keyCode switch
             {
                 KeyCode.B => Key.B,
+                KeyCode.A => Key.A,
+                KeyCode.D => Key.D,
                 KeyCode.E => Key.E,
+                KeyCode.F1 => Key.F1,
+                KeyCode.F2 => Key.F2,
+                KeyCode.I => Key.I,
                 KeyCode.Q => Key.Q,
                 KeyCode.R => Key.R,
                 KeyCode.T => Key.T,
                 KeyCode.U => Key.U,
                 KeyCode.V => Key.V,
+                KeyCode.W => Key.W,
+                KeyCode.S => Key.S,
                 KeyCode.Tab => Key.Tab,
                 KeyCode.F3 => Key.F3,
                 KeyCode.LeftShift => Key.LeftShift,

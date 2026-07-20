@@ -9,6 +9,24 @@
 # 起動方法
 mooresech_clientをUnityで開きMainGameシーンを再生してください
 
+## 初回セットアップ（CEF / Git LFS）
+
+Git LFS をインストールした後、Unityで開く**前に**OS別のセットアップスクリプトを実行してください。
+
+```bash
+# macOS / Linux
+./scripts/setup-cef.sh
+```
+
+```powershell
+# Windows PowerShell
+.\scripts\setup-cef.ps1
+```
+
+スクリプトは Git LFS を設定し、CEF の UPM キャッシュを再生成可能な状態にします。
+Unity 起動時にも LFS ポインタの残存を検査し、問題があれば同じ復旧コマンドを Console に表示します。
+方式の詳細と clean worktree 手順は `docs/webui/design/cef-binary-integration.md` を参照してください。
+
 # コーディングエージェントの使用について
 
 ## セキュリティに関する注意事項
@@ -71,5 +89,4 @@ https://fonts.google.com/noto/specimen/Noto+Sans+JP
 
 Noto Sans
 https://fonts.google.com/noto/specimen/Noto+Sans
-
 

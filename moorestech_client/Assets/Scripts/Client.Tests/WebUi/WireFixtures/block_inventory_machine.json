@@ -1,0 +1,34 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "ElectricMachine",
+  "identifier": "(1, 0, 2)",
+  "blockName": "電気機械",
+  "itemSlots": [
+    { "itemId": 3, "count": 5 },
+    { "itemId": 0, "count": 0 },
+    { "itemId": 7, "count": 1 },
+    { "itemId": 0, "count": 0 }
+  ],
+  "fluidSlots": [
+    { "fluidId": 1, "amount": 25.5, "capacity": 100.0, "name": "水" }
+  ],
+  "progress": 0.42,
+  "machine": {
+    "recipeGuid": "00000000-0000-0000-0000-000000000000",
+    "selectedRecipeGuid": "00000000-0000-0000-0000-000000000000",
+    "blockGuid": "11111111-1111-1111-1111-111111111111",
+    "recipeTime": 15.0,
+    "outputItems": [ { "itemId": 7, "count": 3 } ],
+    "currentState": "processing",
+    "currentPower": 80.0,
+    "requestPower": 100.0,
+    "slotLayout": { "input": 2, "output": 1, "module": 1 }
+  },
+  "electricNetwork": {
+    "totalGeneratePower": 500.0,
+    "totalRequiredPower": 300.0,
+    "consumerCount": 4,
+    "powerRate": 1.0
+  }
+}

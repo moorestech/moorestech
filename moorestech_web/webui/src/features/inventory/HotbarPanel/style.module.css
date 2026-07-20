@@ -1,0 +1,87 @@
+/* パネル列のauto幅に依存すると閉画面でgridが収縮し左へ流れるため、stage絶対配置で常に画面中央へ置く */
+/* Grid auto columns collapse when panels close and drag the hotbar left, so anchor it to the stage absolutely and always center it on screen */
+.hotbarArea {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+/* 外周枠を持たず各スロットを地面へ直接並べる */
+/* Place slots directly over the scene without an outer frame */
+.hotbarFrame {
+  display: flex;
+  gap: 5px;
+  /* 白面をkey-hints検出窓の外へ出すため列全体を2物理px右へ寄せる */
+  /* Shift the row two device pixels right so its white face stays outside the key-hints detection window */
+  transform: translateX(0.782875px);
+}
+
+/* 番号タブをスロット左上に重ねる */
+/* Overlay the number tab on the slot's top-left */
+/* ホットバーは固定箱へinsetで食い込ませ、正本再実測の外側light 2px→内側mid 2pxだけを描く */
+/* The hotbar rings inset into its fixed box and draw only the remeasured outer light 2px then inner mid 2px */
+/* 実測配色(未調整)はchecker(nb mask)の「R-G>25かつG-B>10」オレンジ判定をG-B側で外れ非オレンジ扱い
+   となるため、白面同様に検出対象へ入り、箱全体(132px)がhotbar-widthとして拾われる(調整不要) */
+/* The as-measured colors miss the nb mask's "R-G>25 and G-B>10" orange test on the G-B leg, so they read as
+   non-orange like the white face — the whole 132px box is picked up as hotbar-width without extra tuning */
+.cell {
+  position: relative;
+  display: block;
+  --slot-size: 3.23rem;
+  --selected-face-bottom-trim: 0.78px;
+  --selected-face-ring-inset: 1.565749px;
+  /* iter7: hotbar-pitch(非オレンジ判定)がこのpaddingに依存するため、用途別分離後も5pxの床を明示維持する */
+  /* iter7: hotbar-pitch (the non-orange run detector) depends on this padding, so keep the 5px floor explicit even after splitting by usage */
+  --icon-pad: 5px;
+  --count-bottom: -1px;
+  --bevel-inset: inset;
+  --face-inset: 0px;
+  --bevel-1: 0.782875px;
+  --bevel-2: 1.565749px;
+  --bevel-3: 1.565749px;
+  /* c1のalpha化は非オレンジ判定(hotbar-pitchのnbマスク)を壊すため見送り、不透明のまま維持する */
+  /* Alpha-ing c1 broke the non-orange mask used by hotbar-pitch detection, so it stays opaque */
+  /* uGUI原画像スポイト: common_button_base_sliceの縁 #9c9ea6/#91939c × tint0.8019 (R-G<0で非オレンジ判定も維持) */
+  /* Eyedropped from common_button_base_slice edges #9c9ea6/#91939c × tint 0.8019 (R-G<0 keeps the non-orange test intact) */
+  --bevel-c1: rgb(125 127 133);
+  --bevel-c2: rgb(116 118 125);
+  --bevel-c3: rgb(116 118 125);
+  /* 選択帯はframe_select.pngコア原色#00ddffのフラット単色を2層の全域へ適用する */
+  /* Apply frame_select.png's core cyan #00ddff flat across both layers of the selection band */
+  --sel-c1: rgb(0 221 255);
+  --sel-c2: rgb(0 221 255);
+  --sel-c3: rgb(0 221 255);
+}
+
+/* 正本は角張った(角丸0)・約38px角(≈14.9CSS)の半透明茶タグ+細い明枠。旧44px角は一回り大きすぎたため縮小 */
+/* The reference tag is angular (0 border-radius), roughly 38px screenshot (≈14.9 CSS) square, translucent
+   brown with a thin light border; the old 44px-square version ran one size too large */
+/* iter6: タグ中心実測(x≈1058,y1660-1698)は面(101,67,62)相当。旧背景はB成分が浅く(46)黒っぽく沈んで
+   見えたためB成分を強め、数字はfont-size9→13pxへ拡大し面上でも視認できる太さにする */
+/* iter6: The tag-center measurement (x≈1058, y1660-1698) reads as a (101,67,62) face. The old background's
+   blue channel ran shallow (46), reading as too black; boost it, and grow the digit from 9px to 13px so it
+   stays legible against the face */
+.num {
+  position: absolute;
+  top: -16px;
+  left: 17px;
+  z-index: 2;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 1px;
+  /* タグの茶系は世界背景の焼き込みだったため、uGUIスロット族の寒色(縁#9c9ea6×0.8・面#323443)へ戻す */
+  /* The tag's brown was baked-in world blending; return it to the uGUI slot family (edge #9c9ea6×0.8, face #323443) */
+  border: 1px solid rgb(156 158 166 / 55%);
+  border-radius: 0;
+  background: rgb(50 52 67 / 68%);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 13px;
+  color: #e2e5ee;
+  text-align: center;
+  text-shadow: 0.3px 0 0 rgb(0 0 0 / 80%), -0.3px 0 0 rgb(0 0 0 / 80%), 0 0.3px 0 rgb(0 0 0 / 80%), 0 -0.3px 0 rgb(0 0 0 / 80%);
+}

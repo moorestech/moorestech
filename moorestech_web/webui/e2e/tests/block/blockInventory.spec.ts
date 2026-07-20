@@ -1,0 +1,58 @@
+import { test, expect } from "@playwright/test";
+import { payloadsOf } from "../../support/actions";
+import { setBlock } from "../../support/mockControl";
+
+// 各テスト冒頭で chest を配信状態へリセットしてから接続する（決定的に panel を出すため）
+// Reset the served block to chest before connecting so the panel deterministically shows
+// 終了後は閉に戻し、後続テストファイルへ open 状態を漏らさない
+// Reset to closed afterwards so the open state never leaks into later test files
+test.afterEach(async ({ page }) => {
+  await setBlock(page, "closed");
+});
+
+test("chest の block inventory パネルが描画される", async ({ page }) => {
+  await setBlock(page, "chest");
+  await page.goto("/");
+  await expect(page.getByTestId("block-inventory")).toBeVisible();
+  await expect(page.getByText("Chest")).toBeVisible();
+  // 先頭スロット itemId=1,count=7 の count バッジが出る
+  // The count badge for the first slot (itemId=1, count=7) appears
+  await expect(page.getByText("7").first()).toBeVisible();
+});
+
+test("filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る", async ({ page }) => {
+  await setBlock(page, "chest");
+  await page.goto("/");
+  await expect(page.getByTestId("block-inventory")).toBeVisible();
+
+  // chest-grid 先頭(block slot 0, count=7)をクリックして拾い上げる
+  // Click the first chest-grid slot (block slot 0, count=7) to pick it up
+  const firstSlot = page.getByTestId("chest-grid").locator("> div").first();
+  await firstSlot.click();
+
+  // block→grab の move_item が送られたことを action 記録で検証
+  // Verify the block→grab move_item was sent via the action log
+  await expect
+    .poll(async () => {
+      const payloads = await payloadsOf(page, "block_inventory.move_item");
+      return payloads[0] as
+        | { from?: { area?: string; slot?: number }; to?: { area?: string; slot?: number }; count?: number }
+        | undefined;
+    })
+    .toEqual({ from: { area: "block", slot: 0 }, to: { area: "grab", slot: 0 }, count: 7 });
+
+  // mock が grab を更新し inventory event を流すので grab オーバーレイが出現する
+  // The mock updates grab and pushes an inventory event, so the grab overlay appears
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+});
+
+test("ブロックを閉じると panel が消える", async ({ page }) => {
+  await setBlock(page, "chest");
+  await page.goto("/");
+  await expect(page.getByTestId("block-inventory")).toBeVisible();
+
+  // closed を配信すると mock が open:false の event を流し panel が閉じる
+  // Serving closed makes the mock push an open:false event so the panel closes
+  await setBlock(page, "closed");
+  await expect(page.getByTestId("block-inventory")).toHaveCount(0);
+});

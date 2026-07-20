@@ -30,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             _context.WirePreview.SetActive(false);
 
             if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return null;
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return null;
 
             // ワイヤーを優先判定し、ヒットしたら切断する
             // Prioritize wires; disconnect when one is hit

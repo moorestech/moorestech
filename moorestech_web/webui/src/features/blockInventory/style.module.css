@@ -1,0 +1,17 @@
+/* stageのviewer領域で持ち物パネルの右隣へ置き、上端を揃える */
+/* Places the block panel beside inventory at the top of the stage viewer area */
+.panel {
+  grid-area: viewer;
+  justify-self: start;
+  align-self: start;
+  position: relative;
+}
+
+/* 面を追加せず、共通の閉じる操作だけをパネル右上へ重ねる */
+/* Places only the shared close control at the panel top-right without adding a face */
+.close {
+  position: absolute;
+  top: var(--bevel-3);
+  right: var(--bevel-3);
+  z-index: var(--z-overlay-panel);
+}

@@ -1,12 +1,12 @@
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
@@ -89,7 +89,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             void HandleDragStart()
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
-                if (EventSystem.current.IsPointerOverGameObject()) return;
+                if (UiPointerHitTest.IsPointerOverAnyUi()) return;
                 if (!PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var hit, out _)) return;
 
                 _dragStart = PlaceSystemUtil.SnapHitPointToCell(hit);
@@ -137,6 +137,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
             float ReadScrollDelta()
             {
+                if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
+
                 // ホットバーと同じスケールでInputSystemスクロールを読む（入力注入対応。無ければlegacyへフォールバック）
                 // Read Input System scroll at the hot bar's scale (supports input injection); fall back to legacy Input
                 return Mouse.current != null ? Mouse.current.scroll.ReadValue().y / 100f : UnityEngine.Input.mouseScrollDelta.y;

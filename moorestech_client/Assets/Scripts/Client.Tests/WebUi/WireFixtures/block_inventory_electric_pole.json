@@ -1,0 +1,15 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "ElectricPole",
+  "identifier": "(7, 0, 4)",
+  "blockName": "電柱",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "electricNetwork": {
+    "totalGeneratePower": 240.0,
+    "totalRequiredPower": 180.0,
+    "consumerCount": 3,
+    "powerRate": 1.0
+  }
+}

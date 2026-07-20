@@ -1,0 +1,98 @@
+import { test, expect } from "@playwright/test";
+import { payloadsOf } from "../support/actions";
+
+test("接続後にインベントリが描画される", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  // Wood(itemId=1,count=10) の count バッジが出る
+  // The count badge for Wood (itemId=1, count=10) appears
+  await expect(page.getByText("10").first()).toBeVisible();
+});
+
+test("左クリックで grab オーバーレイが追従する", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  const firstSlot = page.getByTestId("main-grid").locator("> div").first();
+  await firstSlot.click();
+  // move_item→grab を mock がシミュレートし、grab オーバーレイが出現する
+  // The mock simulates move_item→grab so the grab overlay appears
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+});
+
+test("ダブルクリックで同種を集約し、collect はクリックされたスロットを送る", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  // Wood は main[0]=10 と main[2]=5 に分かれている。先頭をダブルクリックすると 15 へ集約される
+  // Wood is split across main[0]=10 and main[2]=5; double-clicking the first slot consolidates to 15
+  const firstSlot = page.getByTestId("main-grid").locator("> div").first();
+  await firstSlot.dblclick();
+  // クリック連鎖と event の競合に関わらず、host が現在の grab で集積先を決め Wood は 15 にまとまる
+  // Regardless of the click/event race, the host decides the target from its grab and Wood ends as 15
+  await expect(page.getByText("15").first()).toBeVisible();
+  // Web は target ではなくクリックされた slot を送る（grab/slot の判断は host 側）
+  // The web sends the clicked slot, not a target; the grab/slot decision lives on the host
+  await expect
+    .poll(async () => {
+      const payloads = await payloadsOf(page, "inventory.collect");
+      return payloads[0] as { slot?: { area?: string; slot?: number } } | undefined;
+    })
+    .toEqual({ slot: { area: "main", slot: 0 } });
+  // クリック連鎖の stale な2回目 pickup は host で empty_slot 失敗するが、良性なのでトーストを出さない。
+  // collect 反映(15)後に確認するので、失敗トースト(3s生存)が出ていれば下の bounded 0件アサートは失敗する
+  // The stale second pickup fails with empty_slot on the host, but as a benign op it must not toast.
+  // Checked after collect settles (15); a failure toast (lives 3s) would still be present and fail this bounded assert
+  await expect(page.getByTestId("toast-host").getByText(/failed/)).toHaveCount(0, { timeout: 2000 });
+});
+
+test("右クリックで inventory.split を送る", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
+  const firstSlot = page.getByTestId("main-grid").locator("> div").first();
+  await firstSlot.click({ button: "right" });
+  await expect
+    .poll(async () => {
+      return (await payloadsOf(page, "inventory.split")).length > 0;
+    })
+    .toBe(true);
+});
+
+test("grab 中の右ドラッグで通過スロットへ1個ずつ配置する", async ({ page }) => {
+  await page.goto("/");
+  const slots = page.getByTestId("main-grid").locator("> div");
+
+  await slots.nth(0).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  await slots.nth(1).hover();
+  await page.mouse.down({ button: "right" });
+  await slots.nth(3).hover();
+  await slots.nth(4).hover();
+  await page.mouse.up({ button: "right" });
+
+  await expect
+    .poll(async () => (await payloadsOf(page, "inventory.move_item")).slice(-2))
+    .toEqual([
+      { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 3 }, count: 1 },
+      { from: { area: "grab", slot: 0 }, to: { area: "main", slot: 4 }, count: 1 },
+    ]);
+});
+
+test("grab 中の左ドラッグは配分先だけを host へ送る", async ({ page }) => {
+  await page.goto("/");
+  const slots = page.getByTestId("main-grid").locator("> div");
+  await slots.nth(0).click();
+  await expect(page.getByTestId("grab-overlay")).toBeVisible();
+  await slots.nth(3).hover();
+  await page.mouse.down();
+  await slots.nth(4).hover();
+  await slots.nth(5).hover();
+  await page.mouse.up();
+  await expect.poll(async () => (await payloadsOf(page, "inventory.split_drag")).at(-1)).toEqual({
+    slots: [{ area: "main", slot: 3 }, { area: "main", slot: 4 }, { area: "main", slot: 5 }],
+  });
+  // 均等配分eventを表示へ反映する
+  // Reflect the distribution event in every slot
+  await expect(slots.nth(3)).toContainText("3");
+  await expect(slots.nth(4)).toContainText("3");
+  await expect(slots.nth(5)).toContainText("3");
+  await expect(page.getByTestId("grab-overlay")).toContainText("1");
+});

@@ -1,0 +1,20 @@
+/* 横向き進捗矢印のトラックとフィル。フィル幅は inline style（動的値） */
+/* Track and fill of the horizontal progress arrow; the fill width is a dynamic inline style */
+.track {
+  position: relative;
+  width: var(--progress-arrow-width);
+  height: var(--progress-arrow-height);
+  border: 0;
+  border-radius: var(--bevel-1);
+  background-color: var(--gauge-track);
+  box-shadow: inset 0 0 0 var(--gauge-outline-width) var(--bevel-c1);
+  overflow: hidden;
+}
+
+.fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--gauge-fill);
+}

@@ -65,6 +65,32 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(ItemId4, data.UnlockedItemId);
         }
         
+        [Test]
+        public void UnlockConnectToolEventTest()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
+
+            // イベントがないことを確認する
+            // Make sure there are no events
+            Assert.AreEqual(0, sink.TakeAll().Count);
+
+            // 接続ツールを解放する
+            // Unlock a connect tool
+            var electricWireGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
+            var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
+            unlockStateDatastore.UnlockConnectTool(electricWireGuid);
+
+            // 解放イベントを受け取り検証する
+            // Receive and verify the unlock event
+            var events = sink.TakeAll();
+            Assert.AreEqual(1, events.Count);
+
+            var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(events[0].Payload);
+            Assert.AreEqual(UnlockEventType.ConnectTool, data.UnlockEventType);
+            Assert.AreEqual(electricWireGuid, data.UnlockedConnectToolGuid);
+        }
+
         /// <summary>
         /// チャレンジがクリアされたらアンロックされるレシピのテスト
         /// </summary>

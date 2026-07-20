@@ -14,11 +14,11 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
         {
             resolvedBlockId = rawBlockId;
 
-            // ベルトファミリーは代表ブロックへ変換（ビルドメニューの隠しバリアント除外と整合）
-            // Belt family members resolve to the representative block, matching the menu's hidden-variant exclusion
+            // ベルトファミリーはビルドメニューで選べる直線へ正規化する
+            // Normalize belt-family members to the straight block available in the build menu
             if (BeltConveyorPlaceFamilyUtil.TryGetFamily(rawBlockId, out var family))
             {
-                resolvedBlockId = family.RepresentativeBlockId;
+                resolvedBlockId = family.StraightBlockId;
             }
 
             // 未解放ブロックはピック不可（スポイトで解放システムを迂回させない）

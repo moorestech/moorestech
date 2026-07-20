@@ -5,6 +5,9 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.Input;
+using Client.WebUiHost.Game;
+using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 
 namespace Client.WebUiHost.Boot
@@ -26,56 +29,111 @@ namespace Client.WebUiHost.Boot
     /// </summary>
     public class WebSocketHub
     {
-        private readonly ConcurrentDictionary<Guid, Connection> _connections = new();
+        private readonly ConcurrentDictionary<Guid, WebSocketConnection> _connections = new();
         private readonly ConcurrentDictionary<string, ITopicHandler> _handlers = new();
+        private readonly ConcurrentDictionary<string, IActionHandler> _actionHandlers = new();
+        private readonly ConcurrentDictionary<string, long> _topicRevisions = new();
+        private readonly WebSocketMessageDispatcher _dispatcher;
+
+        public WebSocketHub()
+        {
+            _dispatcher = new WebSocketMessageDispatcher(_handlers, _actionHandlers, _topicRevisions);
+        }
+
+        // ページからのWS接続が1本でも確立しているか（CEFナビゲーション成否の確認に使う）
+        // Whether at least one page WS connection is established (used to confirm CEF navigation)
+        public bool HasConnections => !_connections.IsEmpty;
 
         // トピックハンドラ登録（InventoryTopic などが呼ぶ）
         // Register a topic handler (called by InventoryTopic etc.)
         public void RegisterTopic(string topic, ITopicHandler handler)
         {
+            // 旧ハンドラがあれば Dispose してから差し替え、UniRx 購読リークを防ぐ（2-D）
+            // Dispose any old handler before replacing to prevent UniRx subscription leaks (2-D)
+            if (_handlers.TryGetValue(topic, out var existing) && !ReferenceEquals(existing, handler))
+            {
+                (existing as IDisposable)?.Dispose();
+            }
             _handlers[topic] = handler;
+            _topicRevisions.TryAdd(topic, 0);
+
+            // 登録前に購読していた接続へ snapshot を再送する（connecting のまま/stale 表示を解消・2-E）
+            // Re-send the snapshot to connections that subscribed before registration (fixes stuck-connecting/stale, 2-E)
+            _dispatcher.BroadcastSnapshotAsync(topic, _connections.Values).Forget();
         }
 
-        // 登録済みトピックを全て解除。IDisposable なものは dispose する
-        // Clear all registered topics; dispose IDisposable handlers
-        public void ClearTopics()
+        // action ハンドラ登録（WebUiGameBinder が呼ぶ）
+        // Register an action handler (called by WebUiGameBinder)
+        public void RegisterAction(IActionHandler handler)
+        {
+            if (!_actionHandlers.TryAdd(handler.ActionType, handler))
+            {
+                // 同名 ActionType の二重登録は実装ミスなので警告して上書きする
+                // Duplicate ActionType registration is a programming error; warn and overwrite
+                UnityEngine.Debug.LogWarning($"[WebSocketHub] duplicate action handler: {handler.ActionType}");
+                _actionHandlers[handler.ActionType] = handler;
+            }
+        }
+
+        // 全バインド解除。IDisposable は dispose
+        // Clear all bindings; dispose IDisposable handlers
+        public void ClearBindings()
         {
             foreach (var kv in _handlers)
             {
                 (kv.Value as IDisposable)?.Dispose();
             }
             _handlers.Clear();
+
+            foreach (var kv in _actionHandlers)
+            {
+                (kv.Value as IDisposable)?.Dispose();
+            }
+            _actionHandlers.Clear();
+
+            // 保留中モーダルの await を放置しないよう cancel で解決する
+            // Resolve any pending modal await with cancel so it is not left dangling
+            WebUiModalService.Instance?.CancelPending();
         }
 
         // 全接続のうち指定トピックを購読している接続に event を配信
         // Broadcast an event payload to all connections subscribed to the topic
         public void Publish(string topic, string dataJson)
         {
-            var envelope = $"{{\"op\":\"event\",\"topic\":\"{EscapeJsonString(topic)}\",\"data\":{dataJson}}}";
+            // revision はハンドラ再登録を跨いで維持し、ホスト生存中の単調増加を保証する
+            // Preserve revision across handler rebinds to guarantee monotonicity for the host lifetime
+            var revision = _topicRevisions.AddOrUpdate(topic, 1, (_, current) => checked(current + 1));
+            var envelope = WebSocketEnvelope.BuildEnvelope("event", topic, revision, dataJson);
             foreach (var conn in _connections.Values)
             {
-                if (conn.Topics.Contains(topic))
+                if (conn.Topics.ContainsKey(topic))
                 {
                     conn.EnqueueSend(envelope);
                 }
             }
         }
 
-        // 新規接続を受け入れ、メッセージループを開始
-        // Accept a new connection and start its message loop
+        // 新規接続を受け入れ、送受信ループを開始
+        // Accept a new connection and start its send/receive loops
         public async Task HandleConnectionAsync(WebSocket webSocket, CancellationToken ct)
         {
             var id = Guid.NewGuid();
-            var conn = new Connection(webSocket);
+            var conn = new WebSocketConnection(webSocket);
             _connections[id] = conn;
 
-            // 送信ループと受信ループを同時実行
-            // Run send loop and receive loop concurrently
-            var sendTask = SendLoop(conn, ct);
+            // 送信ループと受信ループを同時実行し、fault は完了時に必ずログへ残す
+            // Run send/receive loops concurrently; faults are always logged on completion
+            var sendTask = conn.RunSendLoopAsync(ct);
             var receiveTask = ReceiveLoop(conn, ct);
+            _ = sendTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] send loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
+            _ = receiveTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] receive loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
             await Task.WhenAny(sendTask, receiveTask);
 
+            // 片方のループが終わったら残るループも止めて接続を登録解除する
+            // Once either loop ends, stop the other and unregister the connection
+            conn.RequestStop();
             _connections.TryRemove(id, out _);
+            if (_connections.IsEmpty) WebUiInputExclusivity.SetState(false, false);
         }
 
         public async Task CloseAllAsync()
@@ -85,141 +143,50 @@ namespace Client.WebUiHost.Boot
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             foreach (var conn in _connections.Values)
             {
-                if (conn.WebSocket.State == WebSocketState.Open)
+                // 1 接続の close 失敗が他接続の close を止めないよう境界で隔離する（2-B）
+                // Isolate each close so one connection's failure cannot skip the rest (2-B)
+                try
                 {
-                    await conn.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "server stopping", cts.Token);
+                    await conn.CloseAsync(cts.Token);
+                }
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogWarning($"[WebSocketHub] close failed: {e.GetBaseException().Message}");
                 }
             }
             _connections.Clear();
         }
 
-        private async Task ReceiveLoop(Connection conn, CancellationToken ct)
+        private async Task ReceiveLoop(WebSocketConnection conn, CancellationToken ct)
         {
             var buffer = new byte[8192];
+            var messageBytes = new List<byte>();
             while (conn.WebSocket.State == WebSocketState.Open && !ct.IsCancellationRequested)
             {
                 var result = await conn.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-                    await conn.WebSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "bye", cts.Token);
+                    await conn.CloseAsync(cts.Token);
                     return;
                 }
-                var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                await HandleClientMessage(conn, json);
-            }
-        }
 
-        private async Task HandleClientMessage(Connection conn, string json)
-        {
-            // 超軽量 JSON パース: op / topics / topic を小さく取り出すだけ
-            // 既知キー("op"/"topic"/"topics") の衝突を避けるため、値側には引用符付き予約語を入れない前提
-            // Minimal JSON parse: extract only op / topics / topic
-            // Assumes values do not contain the reserved quoted keywords above
-            var op = ExtractJsonString(json, "\"op\"");
-            if (op == "subscribe")
-            {
-                var topics = ExtractJsonStringArray(json, "\"topics\"");
-                foreach (var t in topics)
+                // Text 以外（Binary 等）は Web UI プロトコル対象外なので破棄する（2-C）
+                // Discard non-Text frames (Binary etc.); they are outside the Web UI protocol (2-C)
+                if (result.MessageType != WebSocketMessageType.Text)
                 {
-                    conn.Topics.Add(t);
-                    if (_handlers.TryGetValue(t, out var handler))
-                    {
-                        var snap = await handler.GetSnapshotJsonAsync();
-                        var env = $"{{\"op\":\"snapshot\",\"topic\":\"{EscapeJsonString(t)}\",\"data\":{snap}}}";
-                        conn.EnqueueSend(env);
-                    }
+                    messageBytes.Clear();
+                    continue;
                 }
-            }
-            else if (op == "unsubscribe")
-            {
-                var topics = ExtractJsonStringArray(json, "\"topics\"");
-                foreach (var t in topics) conn.Topics.Remove(t);
-            }
-            else if (op == "snapshot")
-            {
-                var topic = ExtractJsonString(json, "\"topic\"");
-                if (_handlers.TryGetValue(topic, out var handler))
-                {
-                    var snap = await handler.GetSnapshotJsonAsync();
-                    var env = $"{{\"op\":\"snapshot\",\"topic\":\"{EscapeJsonString(topic)}\",\"data\":{snap}}}";
-                    conn.EnqueueSend(env);
-                }
-            }
-        }
 
-        private async Task SendLoop(Connection conn, CancellationToken ct)
-        {
-            while (conn.WebSocket.State == WebSocketState.Open && !ct.IsCancellationRequested)
-            {
-                var msg = await conn.DequeueSendAsync(ct);
-                var bytes = Encoding.UTF8.GetBytes(msg);
-                await conn.WebSocket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, ct);
-            }
-        }
+                // EndOfMessage まで断片を蓄積
+                // Accumulate fragments until EndOfMessage
+                for (var i = 0; i < result.Count; i++) messageBytes.Add(buffer[i]);
+                if (!result.EndOfMessage) continue;
 
-        private static string EscapeJsonString(string s) => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
-
-        // 最小 JSON ヘルパ: "key":"value" パターンから value を返す
-        // Minimal JSON helper: extract string value after a "key": marker
-        private static string ExtractJsonString(string json, string key)
-        {
-            var idx = json.IndexOf(key, StringComparison.Ordinal);
-            if (idx < 0) return "";
-            var colon = json.IndexOf(':', idx);
-            if (colon < 0) return "";
-            var q1 = json.IndexOf('"', colon);
-            if (q1 < 0) return "";
-            var q2 = json.IndexOf('"', q1 + 1);
-            if (q2 < 0) return "";
-            return json.Substring(q1 + 1, q2 - q1 - 1);
-        }
-
-        // 最小 JSON ヘルパ: "key":[ "a", "b" ] から文字列配列を返す
-        // Minimal JSON helper: extract string array after a "key": marker
-        private static List<string> ExtractJsonStringArray(string json, string key)
-        {
-            var result = new List<string>();
-            var idx = json.IndexOf(key, StringComparison.Ordinal);
-            if (idx < 0) return result;
-            var lb = json.IndexOf('[', idx);
-            if (lb < 0) return result;
-            var rb = json.IndexOf(']', lb);
-            if (rb < 0) return result;
-            var inside = json.Substring(lb + 1, rb - lb - 1);
-            var pos = 0;
-            while (pos < inside.Length)
-            {
-                var q1 = inside.IndexOf('"', pos);
-                if (q1 < 0) break;
-                var q2 = inside.IndexOf('"', q1 + 1);
-                if (q2 < 0) break;
-                result.Add(inside.Substring(q1 + 1, q2 - q1 - 1));
-                pos = q2 + 1;
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 1 本の WS 接続の状態
-        /// State of a single WS connection
-        /// </summary>
-        private sealed class Connection
-        {
-            public WebSocket WebSocket { get; }
-            public HashSet<string> Topics { get; } = new();
-            private readonly System.Threading.Channels.Channel<string> _sendChannel = System.Threading.Channels.Channel.CreateUnbounded<string>();
-
-            public Connection(WebSocket webSocket)
-            {
-                WebSocket = webSocket;
-            }
-
-            public void EnqueueSend(string msg) => _sendChannel.Writer.TryWrite(msg);
-
-            public async Task<string> DequeueSendAsync(CancellationToken ct)
-            {
-                return await _sendChannel.Reader.ReadAsync(ct);
+                var json = Encoding.UTF8.GetString(messageBytes.ToArray());
+                messageBytes.Clear();
+                await _dispatcher.DispatchAsync(conn, json);
             }
         }
     }

@@ -1,0 +1,51 @@
+/* buildMenuはblockInventory/researchより下位で、modalはPortalで最前面になる */
+/* BuildMenu sits below blockInventory/research, while the modal portal stays on top */
+.panel {
+  position: fixed;
+  inset: 8% 12%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: rgb(30 30 30 / 92%);
+  border-radius: 8px;
+  z-index: var(--z-screen);
+}
+
+.scroll {
+  overflow-y: auto;
+}
+
+.slot {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.slot:hover {
+  background: rgb(255 255 255 / 15%);
+}
+
+.icon {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.label {
+  font-size: 10px;
+  color: var(--text-default);
+  text-align: center;
+  word-break: break-all;
+  padding: 2px;
+}
+
+.tooltip {
+  white-space: pre-line;
+}

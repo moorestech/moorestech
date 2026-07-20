@@ -1,0 +1,18 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "FilterSplitter",
+  "identifier": "(2, 0, 2)",
+  "blockName": "フィルタ分岐器",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "filterSplitter": {
+    "directionCount": 3,
+    "filterSlotCountPerDirection": 2,
+    "directions": [
+      { "mode": "whitelist", "filterItemIds": [4, 0] },
+      { "mode": "default", "filterItemIds": [0, 0] },
+      { "mode": "blacklist", "filterItemIds": [7, 8] }
+    ]
+  }
+}

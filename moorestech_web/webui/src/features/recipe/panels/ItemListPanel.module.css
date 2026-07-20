@@ -1,0 +1,30 @@
+/* Mantine ScrollArea を正本準拠の細い白ノブへ上書きする（静的クラス名 mantine-ScrollArea-* を対象）。
+   トラックは従来透明だったが、正本は暗色トラックが可視。ノブの位置・長さ算出には影響しない */
+/* Override Mantine's ScrollArea to a thin white knob matching the reference (targets the static
+   mantine-ScrollArea-* classes). The track used to be transparent, but the reference shows a visible dark
+   track; this doesn't affect the thumb's position/length math */
+/* iter6: 旧トラック(31 35 39/70%)はパネル面に溶けほぼ不可視だったため、より暗く不透明度も上げて
+   常時視認できる細トラックにする */
+/* iter6: The old track (31 35 39/70%) blended into the panel face and was nearly invisible; darken it and
+   raise the opacity so the thin track stays visible at all times */
+.scrollArea :global(.mantine-ScrollArea-scrollbar) {
+  padding: 0;
+  background: rgb(12 10 12 / 62%);
+}
+
+/* 左端のクリップ領域だけ3層リング分広げ、グリッド本体の絶対位置は維持する */
+/* Widen only the left clipping region by the three-layer ring while preserving the grid's absolute position */
+.scrollArea :global(.mantine-ScrollArea-viewport) {
+  box-sizing: border-box;
+  padding-left: 3.131498px;
+  /* 掴みドラッグを自前で処理するため、タッチの既定スクロールを無効化する */
+  /* Disable native touch scrolling since we handle grab-drag ourselves */
+  touch-action: none;
+}
+
+/* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */
+/* Thumb size stays content-driven (DEMO's 60 items = 10 rows yield the reference's ~70% track ratio) */
+.scrollArea :global(.mantine-ScrollArea-thumb) {
+  border-radius: 0;
+  background: rgb(255 255 255 / 88%);
+}

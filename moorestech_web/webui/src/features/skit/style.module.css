@@ -1,0 +1,76 @@
+.backgroundBox,
+.blockingBox {
+  position: fixed;
+  z-index: var(--z-skit, 500);
+  padding: 16px 20px;
+  color: white;
+  background: rgb(13 18 28 / 92%);
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 10px;
+}
+
+.backgroundBox {
+  right: 36px;
+  bottom: 116px;
+  width: min(520px, calc(100vw - 72px));
+  pointer-events: none;
+}
+
+.blockingBox {
+  right: 8vw;
+  bottom: 7vh;
+  left: 8vw;
+  min-height: 150px;
+  cursor: pointer;
+}
+
+.speaker {
+  margin-bottom: 6px;
+  color: #ffdd88;
+  font-weight: 700;
+}
+
+.body {
+  min-height: 1.5em;
+  white-space: pre-wrap;
+}
+
+.choices,
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.choices {
+  flex-direction: column;
+}
+
+.choices button,
+.controls button,
+.restore {
+  padding: 8px 14px;
+  color: white;
+  background: rgb(40 52 72 / 95%);
+  border: 1px solid rgb(255 255 255 / 32%);
+  border-radius: 6px;
+}
+
+.controls {
+  justify-content: flex-end;
+}
+
+.restore {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: var(--z-skit, 500);
+}
+
+.transition {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-skit, 500) - 1);
+  background: black;
+  pointer-events: none;
+}

@@ -88,20 +88,8 @@ properties:
     - key: ridableSeatCount
       type: integer
       default: 0
-- key: railItems
-  type: array
-  overrideCodeGeneratePropertyName: RailItemMasterElement
-  items:
-    type: object
-    properties:
-    - key: itemGuid
-      type: uuid
-      foreignKey:
-        schemaId: items
-        foreignKeyIdPath: /data/[*]/itemGuid
-        displayElementPath: /data/[*]/name
-    - key: railLengthPerItem
-      type: integer
+    - key: name
+      type: string
 - key: itemContainer
   type: object
   properties:

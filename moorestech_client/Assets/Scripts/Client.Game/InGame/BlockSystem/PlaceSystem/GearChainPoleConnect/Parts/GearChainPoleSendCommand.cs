@@ -1,3 +1,4 @@
+using System;
 using Core.Master;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -13,18 +14,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         public readonly Vector3Int? FromPos;
         public readonly BlockId PoleBlockId;
         public readonly PlaceInfo PlaceInfo;
-        public readonly ItemId ChainItemId;
+        public readonly Guid ConnectToolGuid;
 
         // 設置直後に接続上限へ達するポールは次の起点に引き継がない
         // Do not hand over the placed pole as the next source when it reaches its connection limit immediately
         public readonly bool CanContinueExtension;
 
-        public GearChainPoleExtendSendCommand(Vector3Int? fromPos, BlockId poleBlockId, PlaceInfo placeInfo, ItemId chainItemId, bool canContinueExtension)
+        public GearChainPoleExtendSendCommand(Vector3Int? fromPos, BlockId poleBlockId, PlaceInfo placeInfo, Guid connectToolGuid, bool canContinueExtension)
         {
             FromPos = fromPos;
             PoleBlockId = poleBlockId;
             PlaceInfo = placeInfo;
-            ChainItemId = chainItemId;
+            ConnectToolGuid = connectToolGuid;
             CanContinueExtension = canContinueExtension;
         }
     }
@@ -37,13 +38,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     {
         public readonly Vector3Int FromPos;
         public readonly Vector3Int ToPos;
-        public readonly ItemId ChainItemId;
+        public readonly Guid ConnectToolGuid;
 
-        public GearChainConnectSendCommand(Vector3Int fromPos, Vector3Int toPos, ItemId chainItemId)
+        public GearChainConnectSendCommand(Vector3Int fromPos, Vector3Int toPos, Guid connectToolGuid)
         {
             FromPos = fromPos;
             ToPos = toPos;
-            ChainItemId = chainItemId;
+            ConnectToolGuid = connectToolGuid;
         }
     }
 }

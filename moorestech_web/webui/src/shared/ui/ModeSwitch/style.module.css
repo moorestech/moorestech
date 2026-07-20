@@ -1,0 +1,39 @@
+/* 択一モードをGamePanelと同族の半透明ネイビー面で並べる */
+/* Arranges exclusive modes on translucent navy faces from the GamePanel family */
+.root {
+  display: flex;
+  flex-direction: row;
+  gap: var(--mode-switch-gap);
+}
+
+.root[data-orientation="vertical"] {
+  flex-direction: column;
+}
+
+/* 非選択状態は従属テキストと控えめなベベルリングで示す */
+/* Unselected options use secondary text and a restrained bevel ring */
+.option {
+  flex: 1 1 auto;
+  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+  border-radius: var(--bevel-1);
+  background: var(--gauge-track);
+  box-shadow: 0 0 0 var(--bevel-1) var(--bevel-c1);
+}
+
+/* 選択状態は青グラデを避け、明るい寒色面と高コントラスト文字で示す */
+/* Selected options avoid the blue gradient and use a brighter cool face with high-contrast text */
+.option[data-selected="true"] {
+  color: var(--text-high-contrast);
+  background: color-mix(in srgb, var(--gauge-track), var(--bevel-c2) var(--mode-switch-selected-mix));
+  box-shadow: 0 0 0 var(--bevel-1) var(--bevel-c2);
+}
+
+.option:focus-visible {
+  color: var(--text-high-contrast);
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}

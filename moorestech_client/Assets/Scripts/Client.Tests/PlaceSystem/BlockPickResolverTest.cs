@@ -23,15 +23,15 @@ namespace Client.Tests.PlaceSystem
         }
 
         [Test]
-        public void ベルト隠しバリアントは代表ブロックへ解決される()
+        public void ベルト坂ブロックは同じファミリーの直線へ解決される()
         {
             var serviceProvider = CreateServer();
             PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            // 長さ3の隠しバリアントをピックしても代表（長さ1）に解決される
-            // Picking the hidden length-3 variant resolves to the representative length-1 block
-            Assert.IsTrue(BlockPickResolver.TryResolvePickTarget(ForUnitTestModBlockId.GearBeltConveyor3, unlockState, out var resolved));
+            // 坂をピックしてもビルドメニューで選べる直線へ解決する
+            // Resolve a picked slope to the straight block available in the build menu
+            Assert.IsTrue(BlockPickResolver.TryResolvePickTarget(ForUnitTestModBlockId.TestGearBeltConveyorUp, unlockState, out var resolved));
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, resolved);
         }
 

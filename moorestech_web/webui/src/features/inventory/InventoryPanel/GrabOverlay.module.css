@@ -1,0 +1,12 @@
+/* カーソル追従の 48px オーバーレイ。座標は inline style（動的値） */
+/* Cursor-following 48px overlay; coordinates are dynamic inline styles */
+.overlay {
+  --slot-size: 3rem;
+  pointer-events: none;
+  position: fixed;
+  z-index: var(--z-grab);
+  width: 3rem;
+  height: 3rem;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: center;
+}

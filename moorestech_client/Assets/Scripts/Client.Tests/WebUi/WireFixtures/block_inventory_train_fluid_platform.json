@@ -1,0 +1,13 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "TrainFluidPlatform",
+  "identifier": "(8, 0, 4)",
+  "blockName": "液体プラットフォーム",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "trainPlatform": {
+    "mode": "unloadToPlatform",
+    "fluidCapacity": 1000.0
+  }
+}

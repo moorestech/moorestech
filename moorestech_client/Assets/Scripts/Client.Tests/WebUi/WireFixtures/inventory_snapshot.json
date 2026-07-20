@@ -1,0 +1,11 @@
+{
+  "mainSlots": [
+    { "itemId": 1, "count": 10 },
+    { "itemId": 2, "count": 5 }
+  ],
+  "hotbarSlots": [
+    { "itemId": 3, "count": 1 }
+  ],
+  "grab": { "itemId": 0, "count": 0 },
+  "selectedHotbar": 2
+}

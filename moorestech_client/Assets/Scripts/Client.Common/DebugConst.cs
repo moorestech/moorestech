@@ -23,8 +23,15 @@ namespace Client.Game
         public const string PlacePreviewKeepLabel = "Place preview keep (no send)";
         public const string PlacePreviewKeepKey = "PlacePreviewKeep";
 
+        // キーはサーバーからも参照するためCommon.Debug.DebugParameterKeysに定義
+        // Key lives in Common.Debug.DebugParameterKeys because the server reads it too
+        public const string FreeBlockPlacementLabel = "Free block placement (no item cost)";
+
         public const string FpsLimitLabel = "FPS Limit";
         public const string FpsLimitKey = "FpsLimit";
+
+        public const string WebUiCefActiveLabel = "Web UI (CEF) active";
+        public const string WebUiCefActiveKey = "WebUiCefActive";
     }
 
     /// <summary>

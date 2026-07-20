@@ -20,6 +20,7 @@ namespace Game.UnlockState
         public IReadOnlyDictionary<Guid, MachineRecipeUnlockStateInfo> MachineRecipeUnlockStateInfos { get; }
         public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos { get; }
         public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos { get; }
+        public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos { get; }
     }
     
     /// <summary>
@@ -48,6 +49,9 @@ namespace Game.UnlockState
 
         public IObservable<Guid> OnUnlockTrainCar { get; }
         void UnlockTrainCar(Guid trainCarGuid);
+
+        public IObservable<Guid> OnUnlockConnectTool { get; }
+        void UnlockConnectTool(Guid connectToolGuid);
 
         void LoadUnlockState(GameUnlockStateJsonObject stateJsonObject);
         GameUnlockStateJsonObject GetSaveJsonObject();

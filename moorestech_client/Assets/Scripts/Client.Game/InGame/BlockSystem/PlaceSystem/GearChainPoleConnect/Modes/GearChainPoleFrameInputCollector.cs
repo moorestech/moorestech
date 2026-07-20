@@ -1,15 +1,16 @@
+using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
+using Client.Game.InGame.Control;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.Construction;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using static Client.Common.LayerConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
@@ -39,7 +40,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             _previewObject = previewObject;
         }
 
-        public GearChainPolePlaceExtendInput CollectPlaceExtend(IGearChainPoleConnectAreaCollider sourcePole, BlockMasterElement poleBlockMaster, bool isAwaitingResponse)
+        public GearChainPolePlaceExtendInput CollectPlaceExtend(IGearChainPoleConnectAreaCollider sourcePole, BlockMasterElement poleBlockMaster, bool isAwaitingResponse, Guid connectToolGuid)
         {
             var poleParam = (GearChainPoleBlockParam)poleBlockMaster.BlockParam;
 
@@ -55,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 Clicked = IsScreenClicked(),
                 IsAwaitingResponse = isAwaitingResponse,
                 PoleBlockId = poleBlockId,
-                OwnedChainItemId = GearChainPoleItemFinder.FindOwnedChainItemId(_playerInventory),
+                ConnectToolGuid = connectToolGuid,
                 MaxConnectionCount = poleParam.MaxConnectionCount,
             };
             if (sourcePole != null)
@@ -82,23 +83,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
             // 起点があれば延長の設置可否を評価しておく
             // Pre-evaluate extension placeability when a source exists
-            if (sourcePole != null) input.ExtendPreview = GearChainPoleExtendPreviewCalculator.CalculateExtend(input.SourcePolePos, placePos, poleParam, reservedItemCounts, _blockGameObjectDataStore, _playerInventory, input.OwnedChainItemId);
+            if (sourcePole != null) input.ExtendPreview = GearChainPoleExtendPreviewCalculator.CalculateExtend(input.SourcePolePos, placePos, poleParam, reservedItemCounts, _blockGameObjectDataStore, _playerInventory, input.ConnectToolGuid);
 
             return input;
         }
 
-        public GearChainPoleChainConnectInput CollectChainConnect(IGearChainPoleConnectAreaCollider sourcePole)
+        public GearChainPoleChainConnectInput CollectChainConnect(IGearChainPoleConnectAreaCollider sourcePole, Guid connectToolGuid)
         {
-            // 接続に使うチェーンアイテムをインベントリから自動選択する（手持ち非依存）
-            // Auto-select the chain item from inventory, independent of the held item
-            var ownedChainItemId = GearChainPoleItemFinder.FindOwnedChainItemId(_playerInventory);
-
             var input = new GearChainPoleChainConnectInput
             {
                 HitPole = GetHitPole(),
                 SourcePole = sourcePole,
                 Clicked = IsScreenClicked(),
-                HoldingChainItemId = ownedChainItemId,
+                ConnectToolGuid = connectToolGuid,
             };
             if (sourcePole != null)
             {
@@ -111,7 +108,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (input.HitPole != null)
             {
                 input.HitPolePos = input.HitPole.GetBlockPosition();
-                if (sourcePole != null && input.SourcePolePos != input.HitPolePos) input.PoleToPolePreview = GearChainPoleExtendPreviewCalculator.CalculatePoleToPole(input.SourcePolePos, input.HitPolePos, _blockGameObjectDataStore, _playerInventory, ownedChainItemId);
+                if (sourcePole != null && input.SourcePolePos != input.HitPolePos) input.PoleToPolePreview = GearChainPoleExtendPreviewCalculator.CalculatePoleToPole(input.SourcePolePos, input.HitPolePos, _blockGameObjectDataStore, _playerInventory, connectToolGuid);
             }
             else if (sourcePole != null && PlaceSystemUtil.TryGetRayHitPosition(_mainCamera, out var cursorPoint, out _))
             {
@@ -126,7 +123,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         {
             // UI上のクリックはブロック設置操作として扱わない
             // Ignore clicks over UI as placement input
-            return InputManager.Playable.ScreenLeftClick.GetKeyDown && !EventSystem.current.IsPointerOverGameObject();
+            return InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi();
         }
 
         private IGearChainPoleConnectAreaCollider GetHitPole()

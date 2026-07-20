@@ -10,7 +10,12 @@ namespace Client.Game.InGame.Presenter.PauseMenu
         
         private void Start()
         {
-            saveButton.onClick.AddListener(ClientContext.VanillaApi.SendOnly.Save);
+            saveButton.onClick.AddListener(Save);
+        }
+
+        public void Save()
+        {
+            ClientContext.VanillaApi.SendOnly.Save();
         }
     }
 }

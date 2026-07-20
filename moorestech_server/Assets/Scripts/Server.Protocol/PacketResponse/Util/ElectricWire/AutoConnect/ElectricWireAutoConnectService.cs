@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
@@ -8,26 +9,23 @@ using Game.Context;
 using Game.EnergySystem;
 using Core.Inventory;
 using Mooresmaster.Model.BlocksModule;
+using Mooresmaster.Model.ConnectToolsModule;
 using UnityEngine;
 
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
-    /// 設置時の電力ワイヤー自動接続を計画・実行する
-    /// Plans and executes wire auto-connect on placement
+    /// 設置時の電力ワイヤー自動接続を計画・実行する。使用connectToolは解放済みelectricWireのSortPriority最小を採用する
+    /// Plans and executes wire auto-connect on placement; adopts the unlocked electricWire connectTool with the smallest SortPriority
     /// </summary>
     public static class ElectricWireAutoConnectService
     {
         public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems)
         {
-            // 電線アイテム未設定のマスタでは自動接続なしで設置を許可する
-            // With no wire items configured, allow placement without auto-connect
-            if (MasterHolder.BlockMaster.Blocks.ElectricWireItems.Length == 0)
-                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), ItemMaster.EmptyItemId);
-
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
 
             // 電柱設置か機械/発電機設置かで対象選定ロジックが異なる
@@ -37,12 +35,21 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 : CollectMachineTargets(blockMaster, position, direction);
 
             if (candidates.Count == 0)
-                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), ItemMaster.EmptyItemId);
+                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
 
-            // 合計コストを所持数が満たす最初の電線を選ぶ
-            // Pick the first wire item whose held count covers the summed cost across all targets
-            return TrySelectWireItem(out var targets, out var wireItemId)
-                ? ElectricWireAutoConnectPlan.Success(targets, wireItemId)
+            // 解放済みelectricWire connectToolをSortPriority昇順で取得する
+            // Fetch unlocked electricWire connectTools ascending by SortPriority
+            var unlockedTools = ConnectToolSelector.UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire).ToList();
+
+            // 電線connectToolが未解放の世界では配線せず設置のみ許可する（設置自体はブロックしない）
+            // With no unlocked wire connectTool, allow placement without wiring (do not block the placement itself)
+            if (unlockedTools.Count == 0)
+                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
+
+            // 解放済みの中から全素材が賄える最初のものを選ぶ。解放済みだが賄えないなら従来通り設置を失敗させる
+            // Pick the first unlocked tool whose materials are all affordable; when unlocked but unaffordable, fail placement as before
+            return TrySelectConnectTool(unlockedTools, out var targets, out var connectToolGuid)
+                ? ElectricWireAutoConnectPlan.Success(targets, connectToolGuid)
                 : ElectricWireAutoConnectPlan.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             #region Internal
@@ -57,56 +64,67 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, pos, dir, ownMaxWireLength);
             }
 
-            // 距離を満たす電線をマスタ設定順に探す
-            // Search wire item configs in master order for one covering all target distances
-            bool TrySelectWireItem(out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out ItemId selectedWireItemId)
+            // 距離を満たすconnectToolをSortPriority昇順で探す
+            // Search connectTools in ascending SortPriority for one covering all target distances
+            bool TrySelectConnectTool(List<ConnectToolMasterElement> unlockedElements, out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out Guid selectedConnectToolGuid)
             {
-                foreach (var electricWireItem in MasterHolder.BlockMaster.Blocks.ElectricWireItems)
+                foreach (var element in unlockedElements)
                 {
-                    var candidateItemId = MasterHolder.ItemMaster.GetItemId(electricWireItem.ItemGuid);
-                    if (!TryBuildTargets(candidateItemId, out var builtTargets, out var totalRequired)) continue;
+                    if (!TryBuildTargets(element.ConnectToolGuid, out var builtTargets, out var requiredByItem)) continue;
 
                     // 建設コスト等で予約済みの数量を上乗せして所持数を判定する
                     // Add quantities reserved by construction costs when judging held counts
-                    var reservedCount = 0;
-                    foreach (var reserved in reservedItems)
-                    {
-                        if (reserved.itemId == candidateItemId) reservedCount += reserved.count;
-                    }
-                    var requiredTotal = totalRequired + reservedCount;
-                    if (!HasEnoughItem(candidateItemId, requiredTotal)) continue;
+                    if (!HasEnoughAll(requiredByItem)) continue;
 
                     selectedTargets = builtTargets;
-                    selectedWireItemId = candidateItemId;
+                    selectedConnectToolGuid = element.ConnectToolGuid;
                     return true;
                 }
 
                 selectedTargets = null;
-                selectedWireItemId = ItemMaster.EmptyItemId;
+                selectedConnectToolGuid = Guid.Empty;
                 return false;
             }
 
-            bool TryBuildTargets(ItemId candidateItemId, out List<(BlockInstanceId, ElectricWireConnectionCost)> builtTargets, out int totalRequired)
+            bool TryBuildTargets(Guid connectToolGuid, out List<(BlockInstanceId, ElectricWireConnectionCost)> builtTargets, out Dictionary<ItemId, int> requiredByItem)
             {
                 builtTargets = new List<(BlockInstanceId, ElectricWireConnectionCost)>();
-                totalRequired = 0;
+                requiredByItem = new Dictionary<ItemId, int>();
 
                 foreach (var candidate in candidates)
                 {
-                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(candidateItemId, candidate.Distance, out var cost))
+                    if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, candidate.Distance, out var cost))
                     {
                         builtTargets = null;
                         return false;
                     }
 
                     builtTargets.Add((candidate.TargetId, cost));
-                    totalRequired += cost.Count;
+                    foreach (var material in cost.Materials)
+                    {
+                        requiredByItem.TryGetValue(material.ItemId, out var current);
+                        requiredByItem[material.ItemId] = current + material.Count;
+                    }
                 }
 
                 return true;
             }
 
-            bool HasEnoughItem(ItemId itemId, int required)
+            bool HasEnoughAll(Dictionary<ItemId, int> requiredByItem)
+            {
+                foreach (var (itemId, required) in requiredByItem)
+                {
+                    var reserved = 0;
+                    foreach (var reservedItem in reservedItems)
+                    {
+                        if (reservedItem.itemId == itemId) reserved += reservedItem.count;
+                    }
+                    if (CountItem(itemId) < required + reserved) return false;
+                }
+                return true;
+            }
+
+            int CountItem(ItemId itemId)
             {
                 var total = 0;
                 foreach (var itemStack in inventoryItems)
@@ -114,8 +132,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                     if (itemStack.Id != itemId) continue;
                     total += itemStack.Count;
                 }
-
-                return required <= total;
+                return total;
             }
 
             #endregion
@@ -127,19 +144,17 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 
             var selfConnector = placedBlock.GetComponent<IElectricWireConnector>();
             var datastore = ServerContext.WorldBlockDatastore;
-            // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の電線だけを消費する
-            // Validated ahead, but to survive runtime drift we consume wires only for connections that actually succeeded
-            var consumedWireCount = 0;
+            // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の素材だけを消費する
+            // Validated ahead, but to survive runtime drift we consume materials only for connections that actually succeeded
             foreach (var target in plan.Targets)
             {
                 var targetConnector = datastore.GetBlock(target.TargetId)?.GetComponent<IElectricWireConnector>();
                 if (targetConnector == null) continue;
                 if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, target.Cost)) continue;
 
-                consumedWireCount += target.Cost.Count;
+                ConnectToolMaterialConsumer.Consume(target.Cost.Materials, inventory);
             }
 
-            ElectricWireSystemUtil.ConsumeItem(inventory, plan.WireItemId, consumedWireCount);
             ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Client.Common.Asset;
 using Client.Game.InGame.Context;
@@ -10,6 +11,7 @@ using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using MessagePack;
+using UniRx;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -29,6 +31,16 @@ namespace Client.Game.InGame.UI.UIState.State
         private ISubInventoryView _currentView;
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
+
+        // 開いているサブと発生元の公開口
+        // Read access to the open sub and its source
+        public ISubInventory CurrentSubInventory => _currentView;
+        public ISubInventorySource CurrentSubInventorySource => _subInventorySource;
+
+        // スロット単位の更新通知(変更毎に発火)
+        // Per-slot update notification (fired on change)
+        public IObservable<Unit> OnSubInventoryUpdated => _onSubInventoryUpdated;
+        private readonly Subject<Unit> _onSubInventoryUpdated = new();
 
 
         public SubInventoryState(PlayerInventoryViewController playerInventoryViewController)
@@ -51,6 +63,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 // アイテムを更新
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
                 _currentView.UpdateInventorySlot(packet.Slot, item);
+
+                // 外部購読者(Web UI等)へ通知
+                // Notify external subscribers (e.g. Web UI)
+                _onSubInventoryUpdated.OnNext(Unit.Default);
             }
             else if (packet.EventType == InventoryEventType.Remove)
             {
@@ -126,6 +142,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 // インベントリの更新を購読
                 // Subscribe to inventory updates
                 ClientContext.VanillaApi.SendOnly.SubscribeInventory(_subInventorySource.InventoryIdentifier, true);
+
+                // ロード完了を外部購読者（Web UI など）へ通知する
+                // Notify external subscribers (e.g. Web UI) that loading has finished
+                _onSubInventoryUpdated.OnNext(Unit.Default);
             }
 
             #endregion

@@ -125,7 +125,7 @@ public class MySingleton : MonoBehaviour
 .metaファイルは絶対に手動作成しない。Unity自動生成のため。Unity起動で作成された.metaのコミットは可
 Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）をテキストエディタや`Write`/`Edit`ツールで直接編集することは禁止。整合性が壊れるため。ただし`uloop execute-dynamic-code`によるUnity Editor経由の変更は正規ルートとして許容（Unity自身がシリアライズするため整合性が保たれる）。手で書き換える必要があるケースのみユーザーに指示すること。
 Library/ディレクトリは絶対に削除禁止。再インポートに膨大な時間がかかるため
-try-catchは基本的に使用禁止。エラーハンドリングが必要な場合は、適切な条件分岐やnullチェックで対応
+try-catchは基本的に使用禁止。エラーハンドリングは条件分岐やnullチェックで対応。例外として、外部境界（外部プロセス起動、WebSocket等のネットワーク送受信、外部入力JSONのパース）の隔離目的に限り使用可。その場合は境界である根拠をコメントで明記すること
 git worktree頻用のため、最初に必ず`pwd`で現在ディレクトリを確認すること。タスク終了前に必ず全作業をコミットすること。作業消失防止
 partialは禁止。如何なる条件でもpartialを絶対に使ってはいけない。
 

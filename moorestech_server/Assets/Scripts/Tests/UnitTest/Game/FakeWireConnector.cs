@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game
         // Test helper wiring a bidirectional connection between two fakes
         public static void ConnectEachOther(FakeWireConnector a, FakeWireConnector b)
         {
-            var cost = new ElectricWireConnectionCost(new ItemId(1), 1);
+            var cost = new ElectricWireConnectionCost(new List<ConnectToolMaterialCost> { new(new ItemId(1), 1) });
             a.TryAddWireConnection(b.BlockInstanceId, cost);
             b.TryAddWireConnection(a.BlockInstanceId, cost);
         }

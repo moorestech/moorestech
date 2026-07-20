@@ -4,6 +4,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.WebUiHost.Common;
+using Client.WebUiHost.Assets;
+using Client.WebUiHost.Static;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -16,8 +19,17 @@ namespace Client.WebUiHost.Boot
     /// </summary>
     public static class WebUiEndpoints
     {
-        public static void Configure(IApplicationBuilder app, WebSocketHub hub)
+        public static void Configure(IApplicationBuilder app, WebSocketHub hub, WebUiStaticFileEndpoint staticFiles)
         {
+            // エンドポイントの fault を Unity コンソールへ必ず残す（Kestrel の no-op logger 対策）
+            // Always surface endpoint faults to the Unity console (Kestrel's logger is a no-op here)
+            app.Use((context, next) =>
+            {
+                var task = next();
+                _ = task.ContinueWith(t => UnityEngine.Debug.LogError($"[WebUiHost] endpoint faulted: {context.Request.Path} {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
+                return task;
+            });
+
             app.Run(async context =>
             {
                 var path = context.Request.Path.Value ?? "";
@@ -82,6 +94,68 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
+                if (path.StartsWith(Game.LocalizationDictionaryEndpoint.PathPrefix, StringComparison.Ordinal))
+                {
+                    // uGUIと同じローカライズ辞書のJSON配信
+                    // Serve the same localization dictionary used by uGUI
+                    await Game.LocalizationDictionaryEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
+                if (path.StartsWith(Game.ItemIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.ItemIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // アイテムアイコンの PNG 配信
+                    // Serve item icon PNGs
+                    await Game.ItemIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
+                if (path.StartsWith(Game.BlockIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.BlockIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // ブロックアイコンの PNG 配信
+                    // Serve block icon PNGs
+                    await Game.BlockIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
+                if (path.StartsWith(Game.TrainCarIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.TrainCarIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // 車両アイコンの PNG 配信
+                    // Serve train-car icon PNGs
+                    await Game.TrainCarIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
+                if (path.StartsWith(Game.ConnectToolIconEndpoint.PathPrefix, StringComparison.Ordinal) && path.EndsWith(Game.ConnectToolIconEndpoint.PathSuffix, StringComparison.Ordinal))
+                {
+                    // 接続ツールアイコンの PNG 配信
+                    // Serve connect-tool icon PNGs
+                    await Game.ConnectToolIconEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
+                if (path.StartsWith(GenericImageAssetEndpoint.PathPrefix, StringComparison.Ordinal))
+                {
+                    await GenericImageAssetEndpoint.HandleAsync(context, path);
+                    return;
+                }
+
+                if (path == Game.ItemMasterEndpoint.Path)
+                {
+                    // アイテムマスタの JSON 配信
+                    // Serve item master JSON
+                    await Game.ItemMasterEndpoint.HandleAsync(context);
+                    return;
+                }
+
+                if (staticFiles != null && !path.StartsWith("/api/", StringComparison.Ordinal))
+                {
+                    // 検証済みdistを配信する
+                    // In production, serve non-API/WS requests from the validated dist
+                    await staticFiles.HandleAsync(context, path);
+                    return;
+                }
+
                 // 上記以外は 404 を返す
                 // Return 404 for all other paths
                 context.Response.StatusCode = 404;
@@ -100,10 +174,16 @@ namespace Client.WebUiHost.Boot
             return Convert.ToBase64String(hash);
         }
 
-        private static bool IsAllowedOrigin(string origin)
+        // Vite実ポートのみ許可。未確定(0)は全拒否
+        // Allow only the origin of the Vite port resolved at startup (reject all while unresolved = 0)
+        public static bool IsAllowedOrigin(string origin)
         {
             if (string.IsNullOrEmpty(origin)) return false;
-            return origin == "http://localhost:5173" || origin == "http://127.0.0.1:5173";
+
+            var browserPort = WebUiPortConfig.BrowserPort;
+            if (browserPort == 0) return false;
+
+            return origin == $"http://localhost:{browserPort}" || origin == $"http://127.0.0.1:{browserPort}";
         }
     }
 }

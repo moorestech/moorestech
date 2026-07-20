@@ -19,6 +19,7 @@ namespace Client.Game.InGame.UnlockState
 
         public IReadOnlyDictionary<Guid, BlockUnlockStateInfo> BlockUnlockStateInfos => _blockUnlockStateInfos;
         public IReadOnlyDictionary<Guid, TrainCarUnlockStateInfo> TrainCarUnlockStateInfos => _trainCarUnlockStateInfos;
+        public IReadOnlyDictionary<Guid, ConnectToolUnlockStateInfo> ConnectToolUnlockStateInfos => _connectToolUnlockStateInfos;
 
         private readonly Dictionary<Guid, CraftRecipeUnlockStateInfo> _recipeUnlockStateInfos = new();
         private readonly Dictionary<ItemId, ItemUnlockStateInfo> _itemUnlockStateInfos = new();
@@ -26,6 +27,7 @@ namespace Client.Game.InGame.UnlockState
         private readonly Dictionary<Guid, MachineRecipeUnlockStateInfo> _machineRecipeUnlockStateInfos = new();
         private readonly Dictionary<Guid, BlockUnlockStateInfo> _blockUnlockStateInfos = new();
         private readonly Dictionary<Guid, TrainCarUnlockStateInfo> _trainCarUnlockStateInfos = new();
+        private readonly Dictionary<Guid, ConnectToolUnlockStateInfo> _connectToolUnlockStateInfos = new();
         
         public ClientGameUnlockStateData(InitialHandshakeResponse initialHandshakeResponse)
         {
@@ -90,6 +92,17 @@ namespace Client.Game.InGame.UnlockState
                 _trainCarUnlockStateInfos[unlockedGuid] = new TrainCarUnlockStateInfo(unlockedGuid, true);
             }
 
+            // 接続ツールの解放状態を初期化
+            // Initialize connect tool unlock states
+            foreach (var lockedGuid in unlockState.LockedConnectToolGuids)
+            {
+                _connectToolUnlockStateInfos[lockedGuid] = new ConnectToolUnlockStateInfo(lockedGuid, false);
+            }
+            foreach (var unlockedGuid in unlockState.UnlockedConnectToolGuids)
+            {
+                _connectToolUnlockStateInfos[unlockedGuid] = new ConnectToolUnlockStateInfo(unlockedGuid, true);
+            }
+
             ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, OnUpdateUnlock);
         }
         
@@ -126,6 +139,12 @@ namespace Client.Game.InGame.UnlockState
                  case UnlockEventType.TrainCar:
                      var trainCarGuid = message.UnlockedTrainCarGuid;
                      _trainCarUnlockStateInfos[trainCarGuid] = new TrainCarUnlockStateInfo(trainCarGuid, true);
+                     break;
+                 // 接続ツールの解放をイベントから反映する
+                 // Reflect connect tool unlock from the event
+                 case UnlockEventType.ConnectTool:
+                     var connectToolGuid = message.UnlockedConnectToolGuid;
+                     _connectToolUnlockStateInfos[connectToolGuid] = new ConnectToolUnlockStateInfo(connectToolGuid, true);
                      break;
                  default:
                      throw new ArgumentOutOfRangeException();

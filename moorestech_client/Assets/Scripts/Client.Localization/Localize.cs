@@ -29,6 +29,20 @@ namespace Client.Localization
         
         public static string CurrentLanguageCode { get; private set; }
         public static List<string> LanguageCodes => localizeDictionary.Keys.ToList();
+
+        public static bool TryGetDictionary(string languageCode, out IReadOnlyDictionary<string, string> dictionary)
+        {
+            // 初期化後は辞書を変更しないため、Web配信にも同じ正本を公開する
+            // The dictionary is immutable after initialization, so Web delivery can share the same source
+            if (localizeDictionary.TryGetValue(languageCode, out var values))
+            {
+                dictionary = values;
+                return true;
+            }
+
+            dictionary = null;
+            return false;
+        }
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()

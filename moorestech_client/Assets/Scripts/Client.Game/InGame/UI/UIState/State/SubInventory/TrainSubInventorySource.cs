@@ -13,6 +13,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public string UIPrefabAddressablePath => "Vanilla/UI/Train/CommonTrainInventoryView";
         
         private readonly TrainCarEntityObject _trainCarEntityObject;
+        public long TrainCarInstanceId => _trainCarEntityObject.TrainCarInstanceId.AsPrimitive();
         
         public TrainSubInventorySource(TrainCarEntityObject trainCarEntityObject)
         {

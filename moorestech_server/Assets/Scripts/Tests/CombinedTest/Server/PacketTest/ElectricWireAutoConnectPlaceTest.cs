@@ -25,7 +25,10 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class ElectricWireAutoConnectPlaceTest
     {
         private const int PlayerId = 5;
-        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
+        // electricWire connectToolのrequiredItem（消費対象）
+        // The electricWire connectTool's required item (the consumed material)
+        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        private static readonly Guid ElectricWireConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
 
         [Test]
         public void 機械設置時に最寄り電柱1本へ自動接続される()
@@ -138,6 +141,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private static IOpenableInventory SetupWire(ServiceProvider serviceProvider, int wireCount)
         {
+            // 自動接続にはelectricWire connectToolの解放が必要
+            // Auto-connect requires the electricWire connectTool to be unlocked
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ElectricWireConnectToolGuid);
+
             // 電線アイテムだけをインベントリへ置く（設置ブロックは建設コスト方式のため所持不要）
             // Put only wire items into the inventory (placement no longer consumes a block item)
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
