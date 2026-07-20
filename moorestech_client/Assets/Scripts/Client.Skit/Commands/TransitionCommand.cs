@@ -1,6 +1,7 @@
 using System.Threading;
 using Client.Skit.Context;
 using Client.Skit.Skit;
+using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -17,7 +18,11 @@ namespace CommandForgeGenerator.Command
                 duration = 0;
             }
             
-            storyContext.GetSkitUI().ShowTransition(Enabled, duration);
+            var mode = storyContext.GetService<SkitPresentationMode>();
+            if (mode.WebUiEnabled)
+                SkitPresentationStateStore.Instance.SetTransitionVisible(Enabled);
+            else
+                storyContext.GetSkitUI().ShowTransition(Enabled, duration);
             await UniTask.Delay((int)(duration * 1000), isSkip);
             return null;
         }

@@ -1,0 +1,9 @@
+{
+  "entries": [
+    { "entryType": "block", "entryKey": "1", "label": "鉄の機械", "tooltip": "鉄の機械\n鉄インゴット x5", "iconUrl": "/api/block-icons/1.png" },
+    { "entryType": "trainCar", "entryKey": "11111111-2222-3333-4444-555555555555", "label": "貨物車", "tooltip": "貨物車", "iconUrl": "/api/train-car-icons/11111111-2222-3333-4444-555555555555.png" },
+    { "entryType": "connectTool", "entryKey": "BeltConveyor", "label": "ベルトコンベア", "tooltip": "ベルトコンベア", "iconUrl": "/api/icons/3.png" },
+    { "entryType": "blueprintCopy", "entryKey": "", "label": "ブループリントコピー", "tooltip": "ブループリントコピー" },
+    { "entryType": "blueprint", "entryKey": "家", "label": "家", "tooltip": "家" }
+  ]
+}

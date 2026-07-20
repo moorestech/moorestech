@@ -5,6 +5,17 @@ using UnityEngine;
 
 namespace Common.Debug
 {
+    /// <summary>
+    /// クライアントとサーバーの両方から参照する共有デバッグキー
+    /// Shared debug keys referenced by both the client and the server
+    /// </summary>
+    public static class DebugParameterKeys
+    {
+        // ブロック設置を無料化する（建設コストを消費しない）
+        // Make block placement free (do not consume construction cost)
+        public const string FreeBlockPlacement = "FreeBlockPlacement";
+    }
+
     public static class DebugParameters
     {
         private static readonly string CachePath = Path.GetFullPath("../cache");

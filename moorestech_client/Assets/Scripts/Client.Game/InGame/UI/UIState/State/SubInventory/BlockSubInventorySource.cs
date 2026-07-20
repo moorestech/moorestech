@@ -14,15 +14,21 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
     {
         public InventoryIdentifierMessagePack InventoryIdentifier { get; }
         public string UIPrefabAddressablePath => _blockGameObject.BlockMasterElement.BlockUIAddressablesPath;
-        
+
+        // ブロック種別/表示名/座標の公開口
+        // Read access to block type, name, position
+        public string BlockName => _blockGameObject.BlockMasterElement.Name;
+        public string BlockTypeName => _blockGameObject.BlockMasterElement.BlockType;
+        public Vector3Int BlockPosition => _blockGameObject.BlockPosInfo.OriginalPos;
+
         private readonly BlockGameObject _blockGameObject;
-        
+
         public BlockSubInventorySource(BlockGameObject blockGameObject)
         {
             _blockGameObject = blockGameObject;
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos);
         }
-        
+
         public void ExecuteInitialize(ISubInventoryView subInventoryView, InventoryResponse inventoryResponse)
         {
             ((IBlockInventoryView)subInventoryView).Initialize(_blockGameObject);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
@@ -12,6 +13,7 @@ using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
@@ -57,6 +59,10 @@ namespace Server.Protocol.PacketResponse
             var baseBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(request.PierBlockId).BlockGuid;
             if (!_gameUnlockStateDataController.BlockUnlockStateInfos[baseBlockGuid].IsUnlocked) return RailConnectWithPlacePierResponse.CreateFailedResponse();
 
+            // 未解放または未指定(Empty)のconnectToolによる接続要求は設置前に拒否する（電線・歯車の4経路と対称）
+            // Reject connection requests with an unlocked or unspecified (Empty) connectTool before placement, symmetric with the electric-wire/gear-chain paths
+            if (!ConnectToolSelector.IsUnlocked(request.ConnectToolGuid)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+
             // 橋脚がレールブロックであることと建設コストを設置前に検証する
             // Validate the pier is a rail block and its construction cost before placement
             var blockId = request.PierBlockId;
@@ -71,43 +77,46 @@ namespace Server.Protocol.PacketResponse
             if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placePosition, request.PierPlaceInfo.Direction, createParams, out var block)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
             var toNode = block.GetComponent<RailComponent>().BackNode;
 
-            // レール長は設置後のtoNodeからのみ確定するため、レール不足時は設置を取り消して失敗させる
-            // Rail length is only known from the placed toNode, so roll back the placement when rails run short
+            // レール長は設置後のtoNodeからのみ確定するため、レール素材算出は設置後に行う
+            // Rail length is only known from the placed toNode, so compute the material cost after placement
             var railLength = RailConnectionEditProtocol.GetRailLength(fromNode, toNode);
-            if (!RailConnectionEditProtocol.TryResolveRailItemForPlacement(request.RailTypeGuid, inventory.InventoryItems, railLength, out var railItem, out var requiredCount))
+            IReadOnlyList<ConnectToolMaterialCost> railMaterials = null;
+            if (request.ConnectToolGuid != Guid.Empty)
             {
-                ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
-                return RailConnectWithPlacePierResponse.CreateFailedResponse();
-            }
-
-            // レール所要数に橋脚コスト中の同一アイテム分を予約として上乗せして判定する
-            // Judge rail sufficiency with the pier cost's same-item amount added as a reservation
-            var railItemId = request.RailTypeGuid == Guid.Empty ? ItemMaster.EmptyItemId : MasterHolder.ItemMaster.GetItemId(railItem.ItemGuid);
-            if (request.RailTypeGuid != Guid.Empty)
-            {
-                var reservedRailCount = pierItemCounts.Where(pair => pair.itemId == railItemId).Sum(pair => pair.count);
-                var ownedRailCount = inventory.InventoryItems.Where(stack => stack.Id == railItemId).Sum(stack => stack.Count);
-                if (ownedRailCount < requiredCount + reservedRailCount)
+                // connectToolマスタから複数素材の必要数を算出し、橋脚コスト中の同一アイテム分を予約として上乗せして判定する
+                // Compute multi-material requirement from the connectTool master and judge with the pier cost's same-item amount reserved
+                if (!ConnectToolCostCalculator.TryCalculate(request.ConnectToolGuid, railLength, out railMaterials))
                 {
                     ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
                     return RailConnectWithPlacePierResponse.CreateFailedResponse();
                 }
+
+                foreach (var material in railMaterials)
+                {
+                    var reserved = pierItemCounts.Where(pair => pair.itemId == material.ItemId).Sum(pair => pair.count);
+                    var owned = inventory.InventoryItems.Where(stack => stack.Id == material.ItemId).Sum(stack => stack.Count);
+                    if (owned < material.Count + reserved)
+                    {
+                        ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
+                        return RailConnectWithPlacePierResponse.CreateFailedResponse();
+                    }
+                }
             }
 
-            // 接続失敗時は孤立橋脚とコスト消費を残さないよう設置を取り消して失敗させる
-            // On connection failure, roll back the placement so no orphan pier or cost consumption remains
-            if (!_commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.RailTypeGuid))
+            // 接続失敗時は孤立橋脚とコスト消費を残さないよう設置を取り消して失敗させる。RailTypeGuidにはconnectToolGuidを格納する
+            // On connection failure, roll back the placement so no orphan pier or cost consumption remains; store the connectToolGuid in the RailTypeGuid slot
+            if (!_commandHandler.TryConnect(fromNode.NodeId, fromNode.Guid, toNode.NodeId, toNode.Guid, request.ConnectToolGuid))
             {
                 ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
                 return RailConnectWithPlacePierResponse.CreateFailedResponse();
             }
 
-            // 橋脚コストと接続に使ったレールを消費する
-            // Consume the pier cost and the rails used by the connection
+            // 橋脚コストと接続に使ったレール素材を消費する
+            // Consume the pier cost and the rail materials used by the connection
             ConstructionCostService.ConsumeRequiredItems(pierItemCounts, inventory);
-            if (request.RailTypeGuid != Guid.Empty)
+            if (railMaterials != null)
             {
-                ElectricWireSystemUtil.ConsumeItem(inventory, railItemId, requiredCount);
+                ConnectToolMaterialConsumer.Consume(railMaterials, inventory);
             }
 
             return RailConnectWithPlacePierResponse.Create(toNode.NodeId, toNode.Guid);
@@ -152,7 +161,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public PlaceInfoMessagePack PierPlaceInfo { get; set; }
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public int PierBlockIdInt { get; set; }
-            [Key(7)] public Guid RailTypeGuid { get; set; }
+            [Key(7)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public BlockId PierBlockId => new(PierBlockIdInt);
 
@@ -162,7 +171,7 @@ namespace Server.Protocol.PacketResponse
                 Tag = RailConnectWithPlacePierProtocol.Tag;
             }
 
-            public static RailConnectWithPlacePierRequest Create(int playerId, int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo placeInfo, Guid railTypeGuid)
+            public static RailConnectWithPlacePierRequest Create(int playerId, int fromNodeId, Guid fromGuid, BlockId pierBlockId, PlaceInfo placeInfo, Guid connectToolGuid)
             {
                 return new RailConnectWithPlacePierRequest
                 {
@@ -170,7 +179,7 @@ namespace Server.Protocol.PacketResponse
                     FromNodeId = fromNodeId,
                     FromGuid = fromGuid,
                     PierBlockIdInt = pierBlockId.AsPrimitive(),
-                    RailTypeGuid = railTypeGuid,
+                    ConnectToolGuid = connectToolGuid,
                     PierPlaceInfo = new PlaceInfoMessagePack(placeInfo),
                 };
             }

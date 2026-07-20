@@ -42,7 +42,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
             // 接続可能な状態でクリックされたら接続プロトコルを送信する
             // Send the connect protocol when clicked in a connectable state
-            if (input.PoleToPolePreview.IsPlaceable && input.Clicked) return GearChainPoleFrameResult.SendChainConnect(new GearChainConnectSendCommand(input.SourcePolePos, input.HitPolePos, input.HoldingChainItemId));
+            if (input.PoleToPolePreview.IsPlaceable && input.Clicked) return GearChainPoleFrameResult.SendChainConnect(new GearChainConnectSendCommand(input.SourcePolePos, input.HitPolePos, input.ConnectToolGuid));
 
             return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Line(input.PoleToPolePreview.StartPoint, input.PoleToPolePreview.EndPoint, input.PoleToPolePreview.IsPlaceable));
         }

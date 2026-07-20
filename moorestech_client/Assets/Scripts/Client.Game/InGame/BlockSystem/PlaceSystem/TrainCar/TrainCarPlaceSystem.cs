@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
@@ -78,7 +79,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
 
             // クリック時に選択中の車両Guidで設置リクエストを送る
             // Send the placement request with the selected car guid on click
-            if (InputManager.Playable.ScreenLeftClick.GetKeyUp)
+            if (InputManager.Playable.ScreenLeftClick.GetKeyUp && !UiPointerHitTest.IsPointerOverAnyUi())
             {
                 RequestPlacementAsync(hit, target.TrainCarGuid).Forget();
             }

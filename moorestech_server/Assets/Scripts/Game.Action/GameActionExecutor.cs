@@ -44,6 +44,7 @@ namespace Game.Action
                     case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
                     case GameActionElement.GameActionTypeConst.unlockBlock:
                     case GameActionElement.GameActionTypeConst.unlockTrainCar:
+                    case GameActionElement.GameActionTypeConst.unlockConnectTool:
                     case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
                         ExecuteAction(action, context);
                         break;
@@ -88,6 +89,10 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.unlockTrainCar:
                     UnlockTrainCar();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockConnectTool:
+                    UnlockConnectTool();
                     break;
 
                 case GameActionElement.GameActionTypeConst.giveItem:
@@ -157,6 +162,15 @@ namespace Game.Action
                 foreach (var guid in trainCarGuids)
                 {
                     _gameUnlockStateDataController.UnlockTrainCar(guid);
+                }
+            }
+
+            void UnlockConnectTool()
+            {
+                var connectToolGuids = ((UnlockConnectToolGameActionParam)action.GameActionParam).UnlockConnectToolGuids;
+                foreach (var guid in connectToolGuids)
+                {
+                    _gameUnlockStateDataController.UnlockConnectTool(guid);
                 }
             }
 

@@ -1,0 +1,29 @@
+/* 48px 固定の流体スロット。縦フィルの高さと色は inline style（動的値） */
+/* Fixed 48px fluid slot; the vertical fill height/color are dynamic inline styles */
+.slot {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--mantine-color-dark-4);
+  border-radius: var(--mantine-radius-sm);
+  background-color: var(--mantine-color-dark-8);
+  overflow: hidden;
+  user-select: none;
+}
+
+.fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+.amount {
+  position: absolute;
+  bottom: 0;
+  right: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mantine-color-white);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 80%);
+}

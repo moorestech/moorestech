@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -38,6 +39,10 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<SendPlaceBlockProtocolMessagePack>(payload);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
 
+            // デバッグ: ブロック設置無料化トグル（設置ごとのファイルIOを避け一度だけ読む）
+            // Debug: free block placement toggle (read once to avoid per-cell file IO)
+            var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+
             foreach (var placeInfo in data.PlacePositions)
             {
                 PlaceBlock(placeInfo);
@@ -54,16 +59,24 @@ namespace Server.Protocol.PacketResponse
                 if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
 
                 var placeBlockId = placeInfo.BlockId;
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
-
-                // 未解放セルはスキップ（バリアントはファミリー代表のunlock状態で判定）
-                // Skip locked cells; variants resolve unlock via their family representative
-                if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) return;
-
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
+                // 無料設置デバッグ: 解放・コスト・電線を一切見ず強制設置して即return
+                // Free placement debug: force-place ignoring unlock/cost/wire entirely, then return
+                if (isFreePlacement)
+                {
+                    ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out _);
+                    return;
+                }
+
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
+
+                // 未解放セルはスキップし、ベルトの坂はファミリー直線の状態で判定する
+                // Skip locked cells and resolve belt slopes through their family straight block
+                if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) return;
+
                 // コスト不足セルはスキップ
-                // Skip cells whose construction cost cannot be covered (place only what is affordable)
+                // Skip cells whose construction cost cannot be covered
                 var inventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return;
@@ -93,10 +106,10 @@ namespace Server.Protocol.PacketResponse
 
             bool IsUnlocked(BlockId blockId, Guid blockGuid)
             {
-                // ベルトファミリーは代表ブロックのunlock状態を参照する
-                // Belt families resolve unlock state through the representative block
+                // ベルトファミリーは直線ブロックのunlock状態を参照する
+                // Belt families resolve unlock state through their straight block
                 var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)
-                    ? MasterHolder.BlockMaster.GetBlockMaster(family.RepresentativeBlockId).BlockGuid
+                    ? MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId).BlockGuid
                     : blockGuid;
                 return _gameUnlockStateDataController.BlockUnlockStateInfos[unlockGuid].IsUnlocked;
             }

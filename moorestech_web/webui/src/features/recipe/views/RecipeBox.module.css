@@ -1,0 +1,184 @@
+/* 素材から完成品までを細枠とシアンの四隅ブラケットで囲む。発光は線近傍(6px以内)に限定する。
+   3カラムgridで素材/矢印+時間/完成品を固定配置し、素材の点数で矢印列が押し出されないようにする */
+/* Frame materials and result with a thin border and cyan corner brackets; keep the glow within 6px of the line.
+   A fixed 3-column grid pins materials/arrow+time/result so the arrow column never drifts with material count */
+/* D4-2: 主線を暗青rgb(45 145 220/80%)へ強め、四隅の鉤(シアン#3fa0e8)と色を分離する。
+   glowは1-2pxに絞り、20px外への滲みをゼロにする */
+/* D4-2: strengthen the main line to a darker blue rgb(45 145 220/80%), separating it in hue from the
+   corner hooks' cyan (#3fa0e8); the glow tightens to 1-2px so nothing bleeds past 20px */
+.recipeBox {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  align-self: center;
+  margin-top: -1px;
+  /* ヘッダーのフロー高を保ったまま選択枠だけ4物理px上へ戻す */
+  /* Move only the selection frame four device pixels upward while preserving the header's flow height */
+  transform: translateY(-1.565749px);
+  /* 選択枠を正本へ寄せるため実測約2倍のグリッド反応を織り込み、左余白と幅を微調整する */
+  /* Tune the selection margin and width for the measured roughly 2x grid response toward the reference */
+  margin-left: -5.2px;
+  width: calc(100% - 19.5px);
+  /* C2でスロットを2.3remへ縮小した後もmin-heightが行高を担保する(縮小前は3remスロット自身が
+     3.36remを上回って高さを決めていたため、収縮後はmin-heightを底上げしないと行高が縮む) */
+  /* min-height now owns the row height after C2 shrank the slots to 2.3rem — previously the 3rem slot
+     itself exceeded 3.36rem and drove the height, so shrinking it needs a taller min-height to compensate */
+  /* 上端を固定したまま下端だけ正本まで7物理px伸ばす */
+  /* Extend only the bottom edge seven device pixels to the reference while keeping the top fixed */
+  min-height: calc(3.52rem + 2.740061px);
+  padding: 0.35rem 0.75rem 0.1rem;
+  /* 5x5中央値が枠色に支配されるため、視認性を残しつつ正本色へ収まる実測下限12%に抑える */
+  /* The border controls the 5x5 median, so cap it at the measured 12% floor that stays visible while matching the reference color */
+  border: 1px solid rgb(60 145 215 / 12%);
+  border-radius: 0;
+  /* 正本の内部プローブは暖色主体のため、青紫tintを10%まで弱めて背面色を保つ */
+  /* The reference interior probe stays mostly warm, so reduce the blue-violet tint to 10% and preserve the backing color */
+  background: rgb(59 80 175 / 10%);
+  /* iter6: 正本の枠は単色の細線でなく「外側の紺の帯+内側の明るいシアン線」の2層。border(内側の線)は
+     sel-rowプローブに触れるため不変のまま、外側にだけ紺のリング(box-shadow)を足して2層化する */
+  /* iter6: The reference frame isn't a single-tone thin line but a navy outer band + a brighter cyan inner
+     line. The border (inner line) touches the sel-row probe, so it stays untouched; only an outer navy ring
+     (box-shadow) gets added for the 2-layer look */
+  box-shadow: 0 0 0 1.2px rgb(20 75 135 / 35%), 0 0 2px 0 rgb(0 205 255 / 25%);
+}
+
+/* 正本の入力・出力セルは約94x94px(≈2.3rem)と通常スロット(123px)より小さい。行高(min-height)は
+   不変のまま、align-items:centerで縦中央を保ちつつセルだけ縮める */
+/* The reference's input/output cells run ~94x94px (≈2.3rem), smaller than the normal 123px slot; the row's
+   min-height stays fixed, and align-items:center keeps the shrunk cells vertically centered */
+/* 正本の94px角セルに近づけるため選択行だけ1pxへ縮め、アイコン占有率を高める */
+/* Tighten only the selection row to 1px for higher icon occupancy inside the reference-sized 94px cells */
+.recipeMaterials {
+  justify-self: start;
+  margin-left: 1px;
+  --slot-size: 2.3rem;
+  --icon-pad: 1px;
+  --count-bottom: -1px;
+  --count-font-size: 16px;
+  --count-letter-spacing: 0.12em;
+}
+
+.materialSlot {
+  position: relative;
+}
+
+.materialCount {
+  position: absolute;
+  right: -2px;
+  bottom: -4px;
+  z-index: 2;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+  text-shadow: 0 1px 2px #000;
+  white-space: nowrap;
+}
+
+.materialCount[data-lack="true"] {
+  color: #ff4d4d;
+}
+
+.recipeArrowCol {
+  justify-self: center;
+}
+
+.recipeResult {
+  justify-self: end;
+  margin-right: 21px;
+  --slot-size: 2.3rem;
+  --icon-pad: 1px;
+  --count-bottom: -1px;
+  --count-font-size: 16px;
+  --count-letter-spacing: 0.12em;
+}
+
+/* 上下の疑似要素で四隅のL字ブラケットを描く。D4: 鉤20px/線3pxは肥大していたため12px/2pxへ縮小し、
+   発光も半径1.5px・alpha90%から半径1px・alpha35%へ弱める */
+/* Draw the four L-shaped brackets with top and bottom pseudo-elements. D4: the 20px/3px hook was oversized,
+   so it shrinks to 12px/2px, and the glow eases from radius 1.5px/alpha90% to radius 1px/alpha35% */
+.recipeBox::before,
+.recipeBox::after {
+  position: absolute;
+  right: -3px;
+  left: -3px;
+  height: 9px;
+  background-repeat: no-repeat;
+  content: "";
+  filter: drop-shadow(0 0 1px rgb(47 188 255 / 30%));
+  pointer-events: none;
+}
+
+.recipeBox::before {
+  top: -3px;
+  background-image: linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0);
+  background-position: left top, left top, right top, right top;
+  background-size: 9px 1px, 1px 9px, 9px 1px, 1px 9px;
+}
+
+.recipeBox::after {
+  bottom: -3px;
+  background-image: linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0), linear-gradient(#2fd0f0, #2fd0f0);
+  background-position: left bottom, left bottom, right bottom, right bottom;
+  background-size: 9px 1px, 1px 9px, 9px 1px, 1px 9px;
+}
+
+/* 正本は時間ラベルの中心が選択枠の下辺に重なる位置まで下げる */
+/* Drop the time label until its center overlaps the selection frame's bottom edge, matching the reference */
+.craftTime {
+  position: absolute;
+  bottom: -7.434px;
+  left: 50%;
+  z-index: 2;
+  color: #d7dbe5;
+  text-align: center;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+  transform: translateX(-50%);
+}
+
+.craftRecipe {
+  flex: 1;
+  min-height: 0;
+}
+
+/* クラフト操作を控えめな中央寄せの青ボタンで示す。正本は縦グラデ+中央白帯でなく横方向の青→シアン */
+/* Present the craft action as a modest, center-aligned blue button; the reference is a horizontal blue-to-cyan gradient, not vertical with a center white band */
+/* D7: 正本の実測bboxへ位置合わせ。左端を約1.5CSSpx左へ・上端を1px上へ・青面高を49screenshot-px
+   (≈19.2CSS)相当へ詰める。文字は合成太字禁止のため4方向陰影で輪郭を太らせる */
+/* D7: nudge toward the reference's measured bbox — left edge ~1.5 CSS px left, top edge 1px up, and the
+   blue face trimmed to ~49 screenshot px (≈19.2 CSS) tall. Synthetic bold is forbidden, so the text weight
+   comes from a 4-direction shadow */
+/* iter6: bbox実測(1503,1305,1773,1353)を正本(1502,1302,1775,1351)へ微調整。中心はほぼ不変(+3px幅の
+   均等成長)、上へ2.5screenshot-px(≈0.98CSSpx)はmargin-bottomの加算で寄せる */
+/* iter6: nudge the measured bbox (1503,1305,1773,1353) toward the reference (1502,1302,1775,1351). The
+   center barely moves (grow width by +3px evenly); shift up 2.5 screenshot px (≈0.98 CSS px) via margin-bottom */
+.craftButton {
+  composes: recipeActionButton from "./RecipeActionButton.module.css";
+  align-self: center;
+  width: 107.609px;
+  max-width: none;
+  margin-top: auto;
+  margin-bottom: 14.763px;
+  margin-left: -1px;
+  padding: 0;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 1px 0 0 rgb(0 40 80 / 55%), -1px 0 0 rgb(0 40 80 / 55%), 0 1px 0 rgb(0 40 80 / 55%), 0 -1px 0 rgb(0 40 80 / 55%);
+  box-shadow: none;
+}
+
+.craftButton:hover:not(:disabled) {
+  background: linear-gradient(90deg, #2680dd, #45bcf5, #6cebfa);
+}
+
+/* 正本は無効時も濃青→高彩度シアンの横グラデを保ち、白帯を足さない。文字色だけ弱めて無効を示す */
+/* The reference keeps the same deep-blue-to-saturated-cyan horizontal gradient even when disabled, with no
+   white band; only the text color dims to signal disabled */
+.craftButton:disabled,
+.craftButton[data-disabled] {
+  opacity: 1;
+  background: var(--recipe-action-background);
+  color: rgb(255 255 255 / 80%);
+  box-shadow: none;
+}

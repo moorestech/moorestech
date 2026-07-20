@@ -1,0 +1,11 @@
+/* 画面下部中央の固定トラック。クリックを奪わない表示専用オーバーレイ */
+/* Fixed bottom-center track; a display-only overlay that never captures clicks */
+.wrapper {
+  pointer-events: none;
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16rem;
+  z-index: var(--z-screen);
+}

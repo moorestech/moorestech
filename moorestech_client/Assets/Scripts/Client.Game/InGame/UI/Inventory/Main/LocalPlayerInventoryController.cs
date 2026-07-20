@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Context;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Subscription;
-using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
+using UniRx;
 using static Server.Util.MessagePack.InventoryIdentifierMessagePack;
 
 namespace Client.Game.InGame.UI.Inventory.Main
@@ -16,7 +17,12 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         public ILocalPlayerInventory LocalPlayerInventory => _localPlayerInventory;
         public IItemStack GrabInventory { get; private set; }
-        
+
+        // grab・全置換などインデクサを経由しない更新の通知
+        // Notifies updates that bypass the indexer, such as grab or full replacement
+        public IObservable<Unit> OnInventoryRefreshed => _onInventoryRefreshed;
+        private readonly Subject<Unit> _onInventoryRefreshed = new();
+
         private readonly LocalPlayerInventory _localPlayerInventory;
         private ISubInventory _subInventory;
         
@@ -36,13 +42,15 @@ namespace Client.Game.InGame.UI.Inventory.Main
             };
             
             if (fromInvItem.Count < count) return;
-            
+
             SetInventory();
-            
-            if (isMoveSendData) SendMoveItemData();
-            
+
+            // サーバー送信は結合スロット→サーバースロット変換を担う専用クラスへ委譲する
+            // Delegate server dispatch (combined-slot to server-slot conversion) to a dedicated class
+            if (isMoveSendData) InventoryMoveServerDispatcher.SendMoveItemData(_subInventory, _localPlayerInventory.MainSlotCount, from, fromSlot, to, toSlot, count);
+
             #region Internal
-            
+
             void SetInventory()
             {
                 var itemStackFactory = ServerContext.ItemStackFactory;
@@ -80,45 +88,65 @@ namespace Client.Game.InGame.UI.Inventory.Main
                         break;
                 }
             }
-            
-            void SendMoveItemData()
-            {
-                // ローカル結合スロットをサーバーのインベントリ内スロットへ変換する
-                // Convert combined local slots into inventory-local server slots.
-                var fromIdentifier = GetServerInventoryIdentifier(from, fromSlot);
-                var toIdentifier = GetServerInventoryIdentifier(to, toSlot);
-                var fromServerSlot = GetServerInventorySlot(from, fromSlot);
-                var toServerSlot = GetServerInventorySlot(to, toSlot);
-                ClientContext.VanillaApi.SendOnly.ItemMove(count, ItemMoveType.SwapSlot, fromIdentifier, fromServerSlot, toIdentifier, toServerSlot);
-            }
-            
-            InventoryIdentifierMessagePack GetServerInventoryIdentifier(LocalMoveInventoryType localType, int localSlot)
-            {
-                return localType switch
-                {
-                    LocalMoveInventoryType.MainOrSub => localSlot < _localPlayerInventory.MainSlotCount
-                        ? CreateMainMessage(ClientContext.PlayerConnectionSetting.PlayerId)
-                        : _subInventory.ISubInventoryIdentifier.ToMessagePack(),
-                    LocalMoveInventoryType.Grab => CreateGrabMessage(ClientContext.PlayerConnectionSetting.PlayerId),
-                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
-                };
-            }
-
-            int GetServerInventorySlot(LocalMoveInventoryType localType, int localSlot)
-            {
-                return localType switch
-                {
-                    LocalMoveInventoryType.MainOrSub => localSlot < _localPlayerInventory.MainSlotCount
-                        ? localSlot
-                        : localSlot - _localPlayerInventory.MainSlotCount,
-                    LocalMoveInventoryType.Grab => 0,
-                    _ => throw new ArgumentOutOfRangeException(nameof(localType), localType, null),
-                };
-            }
-            
             #endregion
         }
         
+        public bool TryMoveItem(LocalMoveInventoryType fromType, int fromSlot, LocalMoveInventoryType toType, int toSlot, int count, out string denyReason)
+        {
+            // 移動元の実在・数量を検証してから MoveItem を呼ぶ（Web/uGUI 共通の検証口）
+            // Validate the source stack's presence and count before calling MoveItem (shared web/uGUI guard)
+            var fromItem = fromType == LocalMoveInventoryType.Grab ? GrabInventory : LocalPlayerInventory[fromSlot];
+            if (fromItem.Id == ItemMaster.EmptyItemId)
+            {
+                denyReason = "empty_slot";
+                return false;
+            }
+            if (fromItem.Count < count)
+            {
+                denyReason = "insufficient_count";
+                return false;
+            }
+
+            denyReason = null;
+            MoveItem(fromType, fromSlot, toType, toSlot, count);
+            return true;
+        }
+
+        public void CollectItems(LocalMoveInventoryType targetType, int targetSlot)
+        {
+            // 同種アイテムを所持数の少ない順に集積先へ移す（uGUI ダブルクリックと Web collect の共通実装）
+            // Gather same-type stacks smallest-first into the target; shared by uGUI double-click and web collect
+            var isGrabTarget = targetType == LocalMoveInventoryType.Grab;
+            var collectTarget = isGrabTarget ? GrabInventory : LocalPlayerInventory[targetSlot];
+            if (collectTarget.Id == ItemMaster.EmptyItemId) return;
+
+            // 集積先自身は移動元から除外する
+            // Exclude the target slot itself from the sources
+            var sourceSlots = LocalPlayerInventory
+                .Select((item, index) => (item, index))
+                .Where(x => x.item.Id == collectTarget.Id)
+                .Where(x => isGrabTarget || x.index != targetSlot)
+                .OrderBy(x => x.item.Count)
+                .Select(x => x.index)
+                .ToList();
+
+            foreach (var index in sourceSlots)
+            {
+                var added = collectTarget.AddItem(LocalPlayerInventory[index]);
+                var moveCount = LocalPlayerInventory[index].Count - added.RemainderItemStack.Count;
+
+                // 1個も移せない＝集積先が満杯なので終了
+                // Zero movable items means the target is full; stop here
+                if (moveCount <= 0) break;
+                MoveItem(LocalMoveInventoryType.MainOrSub, index, targetType, targetSlot, moveCount);
+                collectTarget = added.ProcessResultItemStack;
+
+                // 余りが出たら集積先が満杯なので終了
+                // A remainder means the target stack is full; stop here
+                if (added.RemainderItemStack.Count != 0) break;
+            }
+        }
+
         public void SortInventory()
         {
             // メインインベントリを整理（ホットバー除外はサーバー側で実施）
@@ -134,6 +162,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public void SetGrabItem(IItemStack itemStack)
         {
             GrabInventory = itemStack;
+            _onInventoryRefreshed.OnNext(Unit.Default);
         }
         
         public void SetMainItem(int slot, IItemStack itemStack)
@@ -153,6 +182,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public void SetMainInventory(List<IItemStack> inventoryMainInventory)
         {
             _localPlayerInventory.SetMainInventory(inventoryMainInventory);
+            _onInventoryRefreshed.OnNext(Unit.Default);
         }
     }
     

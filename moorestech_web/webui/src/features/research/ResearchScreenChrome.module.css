@@ -1,0 +1,24 @@
+/* 左下へuGUI準拠のキー操作ヒントを固定する */
+/* Fix the uGUI-aligned key guide to the bottom-left */
+.keyHints {
+  position: absolute;
+  left: 7px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: 0.055em;
+  font-weight: 500;
+  color: var(--text-high-contrast);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+  pointer-events: none;
+  z-index: 10;
+}
+.keyHints kbd {
+  font: inherit;
+  color: var(--text-high-contrast);
+}

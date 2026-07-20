@@ -1,0 +1,15 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "Chest",
+  "identifier": "block:1",
+  "blockName": "Chest",
+  "itemSlots": [
+    { "itemId": 1, "count": 7 },
+    { "itemId": 2, "count": 4 }
+  ],
+  "fluidSlots": [
+    { "fluidId": 10, "amount": 500.0, "capacity": 1000.0, "name": "Water" }
+  ],
+  "progress": 0.5
+}

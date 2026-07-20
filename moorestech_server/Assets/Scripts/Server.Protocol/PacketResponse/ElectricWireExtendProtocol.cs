@@ -28,7 +28,7 @@ namespace Server.Protocol.PacketResponse
             // Delegate validation, placement, wiring and consumption to the service; map its result to a response
             var result = ElectricWireExtendService.Execute(
                 request.HasFromConnector, request.FromPosVector, request.PolePlaceInfo,
-                request.PlayerId, request.PoleBlockId, new ItemId(request.WireItemId));
+                request.PlayerId, request.PoleBlockId, request.ConnectToolGuid);
 
             return result.IsSuccess
                 ? ElectricWireExtendResponse.CreateSuccess(result.PlacedPolePos, result.PlacedBlockInstanceId)
@@ -43,7 +43,7 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public PlaceInfoMessagePack PolePlaceInfo { get; set; }
             [Key(5)] public int PlayerId { get; set; }
             [Key(6)] public int PoleBlockIdInt { get; set; }
-            [Key(7)] public int WireItemId { get; set; }
+            [Key(7)] public Guid ConnectToolGuid { get; set; }
 
             [IgnoreMember] public Vector3Int FromPosVector => FromPos;
             [IgnoreMember] public BlockId PoleBlockId => new(PoleBlockIdInt);
@@ -51,7 +51,7 @@ namespace Server.Protocol.PacketResponse
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ElectricWireExtendRequest() { Tag = ElectricWireExtendProtocol.Tag; }
 
-            public static ElectricWireExtendRequest CreateExtendRequest(int playerId, Vector3Int fromPos, BlockId poleBlockId, PlaceInfo polePlaceInfo, ItemId wireItemId)
+            public static ElectricWireExtendRequest CreateExtendRequest(int playerId, Vector3Int fromPos, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
             {
                 return new ElectricWireExtendRequest
                 {
@@ -61,11 +61,11 @@ namespace Server.Protocol.PacketResponse
                     PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleBlockIdInt = poleBlockId.AsPrimitive(),
-                    WireItemId = wireItemId.AsPrimitive(),
+                    ConnectToolGuid = connectToolGuid,
                 };
             }
 
-            public static ElectricWireExtendRequest CreateIsolatedPlaceRequest(int playerId, BlockId poleBlockId, PlaceInfo polePlaceInfo, ItemId wireItemId)
+            public static ElectricWireExtendRequest CreateIsolatedPlaceRequest(int playerId, BlockId poleBlockId, PlaceInfo polePlaceInfo, Guid connectToolGuid)
             {
                 return new ElectricWireExtendRequest
                 {
@@ -75,7 +75,7 @@ namespace Server.Protocol.PacketResponse
                     PolePlaceInfo = new PlaceInfoMessagePack(polePlaceInfo),
                     PlayerId = playerId,
                     PoleBlockIdInt = poleBlockId.AsPrimitive(),
-                    WireItemId = wireItemId.AsPrimitive(),
+                    ConnectToolGuid = connectToolGuid,
                 };
             }
         }

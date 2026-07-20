@@ -7,6 +7,10 @@
         "Client.Common",
         "Client.Network",
         "Client.Mod",
+        "Client.Input",
+        "Client.WebUiHost",
+        "CefUnity.Runtime",
+        "CefUnity.Interop",
         "Server.Boot",
         "Server.Protocol",
         "Core.Master",
@@ -24,7 +28,8 @@
         "VContainer",
         "Unity.InputSystem",
         "Unity.Recorder.Editor",
-        "Client.Playtest.Overlay"
+        "Client.Playtest.Overlay",
+        "Nuget"
     ],
     "includePlatforms": [
         "Editor"

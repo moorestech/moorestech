@@ -1,0 +1,182 @@
+/* 側面パネルは縁を設けず世界背景へ溶かす。左paddingは正本のグリッド内側インデントに合わせ広めに取る */
+/* Let side panels dissolve into the world without a hard outer edge; the left padding is wider to match the reference's grid inset */
+.panel {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px 10px 28px;
+  color: #e8eaf0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 側面パネルはuGUI原画像(invebtory_bg_base #0a0e1b, α0.8)の半透明ネイビー面。旧来の焦茶グラデは
+   正本スクショで橙世界が透けた合成結果の焼き込みで、実アルファに戻せば世界の透過が縦グラデを自然に再現する */
+/* Side panels use the uGUI source (invebtory_bg_base #0a0e1b at α0.8) translucent navy. The old brown gradient
+   was the baked-in blend of the orange world through the reference screenshot; the real alpha lets the world
+   show through and recreate that vertical gradient naturally */
+.panel:not(.craft)::before {
+  position: absolute;
+  z-index: 0;
+  /* 実測で10物理px遅かったフェード全体を上へ送り、開始267・完了297付近へ合わせる */
+  /* Shift the whole fade upward by the measured ten-device-pixel delay to start near 267 and finish near 297 */
+  top: calc(var(--panel-top, -8px) - 3.913894px);
+  right: var(--panel-right, -3px);
+  bottom: var(--panel-bottom, -8px);
+  left: var(--panel-left, -3px);
+  /* 正本の上端断面に合わせ、側面パネルだけ約30物理pxで透明から面色へ遷移させる */
+  /* Match the reference top cross-section by fading only side panels from transparent to the face over about 30 device pixels */
+  background: linear-gradient(180deg, rgb(10 14 27 / 0%) 0, rgb(10 14 27 / 80%) 11.742px, rgb(10 14 27 / 80%) 100%);
+  box-shadow: 0 0 12px 7px rgb(9 11 20 / 45%);
+  /* 左右に加え下端も上端フェードと同尺(約12CSSpx)で世界背景へ溶かす */
+  /* Fade the bottom edge into the world over the same span as the top (~12 CSS px), in addition to the L/R ends */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%), linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 3%, #000 97%, transparent 100%), linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
+  mask-composite: intersect;
+  content: "";
+  pointer-events: none;
+}
+
+/* 内容を暗部レイヤーの前面に固定する。bottomDecoは絶対配置のまま維持し、通常フローに巻き込まない
+   (このルールがposition:relativeで上書きすると38px分フローを占有し、パネル下端へ張り付かなくなる) */
+/* Keep panel content in front of the shading layer, but leave bottomDeco absolutely positioned out of
+   flow (this rule overriding it to position:relative used to eat 38px of flow and detach it from the panel's bottom edge) */
+.panel:not(.craft) > *:not(.bottomDeco) {
+  position: relative;
+  z-index: 1;
+}
+
+/* 中央だけ外枠と内周線を持つ二層クローム。面はuGUI原画像(craft_bg_base_slice #070912, α0.8)の半透明ネイビー。
+   D6: 正本の画素実測では外周に太い帯は無く(bg→面へ1px弱の硬い遷移)、内側にごく細い青灰の差し色線が
+   1本あるのみ。旧来のinset4px+5pxの厚い帯を1px+2pxへ薄くし「太い均一帯」を解消する */
+/* D6: the reference's pixel cross-section shows no thick outer band (a near-hard bg→face transition <1px);
+   only a very thin blue-gray accent line sits just inside. Thin the old inset 4px+5px band down to 1px+2px to
+   remove the "thick uniform band" the criteria flags */
+/* D5-2: 3層(外枠+暗inset+明灰inset)を外1px暗色/内1px明灰の2層へ整理し、輪郭の色分離を明確にする */
+/* D5-2: collapse the 3 layers (outer border + dark inset + light-gray inset) into a clean outer-1px-dark /
+   inner-1px-light-gray pair so the outline's color separation reads clearly */
+.craft {
+  padding: 8px 10px 6px;
+  /* 透明borderで外寸を維持し、背景のハードエッジと8px内側の灰線だけを見せる */
+  /* Preserve geometry with a transparent border while showing only the hard background edge and gray line eight pixels inward */
+  border: 1px solid transparent;
+  background: rgb(7 9 18 / 80%);
+  box-shadow: inset 0 0 0 3.132px rgb(40 42 53), inset 0 0 0 3.524px rgb(146 148 167 / 55%);
+}
+
+/* 右下の三角グリップは正本実測(2000,1350)-(2061,1395)相当まで縮小し、パネル縁から離して内側へ配置する。
+   iter3ではパネル縁に接する肥大三角になっていた(幅130px超)ため、正本の画素実測(約22x23screenshot=
+   8.6x9CSS)に合わせ、right/bottomのオフセットも広げて縁から浮かせる */
+/* Shrink the bottom-right triangular grip to the reference's measured footprint (~22x23 screenshot =
+   8.6x9 CSS) and pull it off the panel edges. iter3 left it oversized and flush against the edges
+   (130px+ wide); this restores the reference's small, inset ribbon */
+.craft::after {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 24px;
+  height: 18px;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(135deg, rgb(206 210 220 / 18%) 0 32%, rgb(146 148 167 / 55%) 33% 66%, rgb(64 66 82 / 72%) 67% 100%);
+  box-shadow: inset -1px -1px 2px rgb(0 0 0 / 55%), inset 1px 1px 1px rgb(255 255 255 / 18%);
+  content: "";
+}
+
+/* heightを固定し、タイトルの拡大が上下罫線の位置(y316/382)を押し流さないようにする */
+/* Fix the height so enlarging the title never pushes the top/bottom rule positions (y316/382) */
+.header {
+  display: flex;
+  align-items: center;
+  height: 19px;
+  gap: 10px;
+}
+
+/* 正本のタイトルは大きめ・レギュラー太さ・影は控えめ(143x48screenshot-px相当)。line-height1でheader高を超えない */
+/* The reference title is larger, regular weight, with a subtle shadow (~143x48 screenshot px); line-height 1 keeps it within the header's fixed height */
+.title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--color-content-primary);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.3px 0.3px 0 rgb(0 0 0 / 35%);
+  transform: translateX(var(--title-shift-x, 0)) scale(var(--title-scale-x, 0.947), var(--title-scale-y, 0.947));
+  transform-origin: left center;
+  white-space: nowrap;
+}
+
+
+/* 上下罫線は中央を保ちつつ両端を世界背景へフェードさせる */
+/* Keep the middle of both rules while fading their ends into the world */
+.decoLine {
+  height: 2px;
+  margin: 4px 0;
+  background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);
+}
+
+.decoLineTop {
+  margin-top: 0;
+  background: linear-gradient(90deg, transparent 0%, rgb(146 148 167 / 42%) 5%, rgb(146 148 167 / 59%) 11%, rgb(146 148 167 / 59%) 89%, rgb(146 148 167 / 38%) 95%, transparent 100%);
+  /* 下線とヘッダーのフローを保ったまま上線だけ4物理px上へ合わせる */
+  /* Align only the top rule four device pixels upward while preserving the bottom rule and header flow */
+  transform: translateY(-1.565749px);
+}
+
+/* 下線は上線と同程度の明るさに揃え、上線を動かさずマージンだけで正本の間隔(約25design-px)へ詰める */
+/* Match the bottom rule's brightness to the top rule; tighten the gap toward the reference (~25 design px) via its own margin only, without moving the top rule */
+.decoLineBottom {
+  margin-top: -1.4px;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);
+}
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 下部の素材感を出す下向き三角3個。content(z-index1)の背後に沈め、空洞でのみ見える。正本実測は
+   持ち物y≈1315-1460(高さ約57CSS)・レシピy≈1390-1460(空洞が浅く上部は最終行セルの陰に隠れる)で
+   同一様式。色はuGUI背景の三角パターン族から採った青灰 rgb(94 100 128/22%)。パネル間で高さは共有し、レシピ側は
+   自然にグリッド(z-index1)へ隠れて浅く見える設計のまま揃える */
+/* Three downward triangles add bottom texture, sitting behind the content (z-index 1) so they only show in
+   the empty gap. Reference measurements: inventory y≈1315-1460 (≈57 CSS tall), recipe y≈1390-1460 (a
+   shallower cavity where the top hides behind the last grid row) — same visual style, blue-gray
+   rgb(94 100 128/22%) from the uGUI background's triangle-pattern family. Height is shared across panels; the recipe side naturally
+   reads shallower because its grid (z-index 1) covers the rest */
+/* iter6: 正本実測は持ち物y≈1315-1460・レシピy≈1390-1460で、旧位置(持ち物y1290-1428)より20-30
+   screenshot-px下(≈11CSSpx)。bottomをパネル下端の外側まで押し出し正本の深さへ合わせる */
+/* iter6: The reference measures inventory y≈1315-1460 / recipe y≈1390-1460, roughly 20-30 screenshot px
+   (≈11 CSS px) lower than the old position (inventory y1290-1428). Push bottom past the panel's own edge to match */
+.bottomDeco {
+  position: absolute;
+  right: 8%;
+  bottom: -7px;
+  left: 7%;
+  z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 57px;
+  /* 三角装飾も面と同様に下端をフェードさせ、境界のハードエッジを残さない */
+  /* Fade the triangles' bottoms like the panel face so no hard edge survives at the boundary */
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 12px), transparent 100%);
+  pointer-events: none;
+}
+
+.bottomDeco span {
+  width: 68px;
+  height: 100%;
+  background: rgb(94 100 128 / 20%);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}

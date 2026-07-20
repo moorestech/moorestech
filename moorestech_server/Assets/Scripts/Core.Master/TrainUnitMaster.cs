@@ -12,9 +12,7 @@ namespace Core.Master
         public readonly Train Train;
 
         private Dictionary<Guid, TrainCarMasterElement> _trainCarMastersByGuid;
-        private RailItemMasterElement[] _railItems;
-        private Dictionary<ItemId, RailItemMasterElement> _railItemsByItemId;
-        
+
         public double Friction => Train.MotionParameters.Friction / (double)10000000;
         public double AirResistance => Train.MotionParameters.AirResistance / (double)10000000;
         public double MaxBrakeDecelerationMetersPerSecondSquared => Train.MotionParameters.MaxBrakeDecelerationKmhPerSecond / 3.6d;
@@ -32,33 +30,12 @@ namespace Core.Master
 
         public void Initialize()
         {
-            TrainUnitMasterUtil.Initialize(Train, out _trainCarMastersByGuid, out _railItems, out _railItemsByItemId);
+            TrainUnitMasterUtil.Initialize(Train, out _trainCarMastersByGuid);
         }
 
         public bool TryGetTrainCarMaster(Guid guid, out TrainCarMasterElement element)
         {
             return _trainCarMastersByGuid.TryGetValue(guid, out element);
-        }
-        
-        public ReadOnlySpan<RailItemMasterElement> GetRailItems()
-        {
-            return _railItems;
-        }
-
-        public bool TryGetRailItem(Guid railTypeGuid, out RailItemMasterElement element)
-        {
-            element = default;
-            if (railTypeGuid == Guid.Empty || _railItems == null)
-                return false;
-            for (int i = 0; i < _railItems.Length; i++)
-            {
-                if (_railItems[i].ItemGuid.Equals(railTypeGuid))
-                {
-                    element = _railItems[i];
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }

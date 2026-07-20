@@ -8,6 +8,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
@@ -49,7 +50,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // If the connection source is not selected, select the connection source.
             if (_connectFromArea == null)
             {
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
                 {
                     _connectFromArea = GetTrainRailConnectAreaCollider();
                 }
@@ -64,9 +65,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Compute ConnectionDestination for both endpoints
             var fromDestination = _connectFromArea.CreateConnectionDestination();
 
-            // 敷設に使うレールアイテムをマスタ定義順で自動選択する（手持ち非依存）
-            // Auto-select the rail item in master definition order, independent of the held item
-            var railItemId = TrainRailItemAutoSelector.FindOwnedRailItemId(_playerInventory);
+            // 選択中のレールconnectToolのGuidを使う
+            // Use the selected rail connectTool's Guid
+            var connectToolGuid = target.ConnectToolGuid;
 
             // If the connection point is not under the cursor, return.
             var connectToArea = GetTrainRailConnectAreaCollider();
@@ -80,7 +81,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         // 橋脚未定義の場合は設置不可。仮にデフォルトの最大長で判定する
                         // No pier defined: still preview with default max length
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, railItemId);
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, connectToolGuid);
                         ShowPreview(previewData);
                     }
                     else
@@ -89,7 +90,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         // Pier available: pass the placing TrainRail block's max length
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
                         var placeInfo = _trainRailPlaceSystemService.ManualUpdate(pierBlockId);
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, railItemId);
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid);
                         ShowPreview(previewData);
 
                         if (!previewData.IsPlaceable) return;
@@ -116,7 +117,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     _connectFromArea = null;
                     return;
                 }
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, railItemId);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, connectToolGuid);
                 ShowPreview(previewData);
 
                 if (!previewData.IsPlaceable) return;
@@ -136,7 +137,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             }
             void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || UiPointerHitTest.IsPointerOverAnyUi()) return;
                 _previewObject.SetActive(false);
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railTypeGuid);
@@ -144,7 +145,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             }
             void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, BlockId pierBlockId)
             {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown) return;
+                if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || UiPointerHitTest.IsPointerOverAnyUi()) return;
                 if (!TryResolveNode(fromDestination, out var fromNode)) return;
 
                 _previewObject.SetActive(false);

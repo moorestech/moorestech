@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
@@ -42,8 +43,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // チェーン接続を追加する
             // Add chain connections
-            var connection1to2 = chainPole1.TryAddChainConnection(chainPole2.BlockInstanceId, new GearChainConnectionCost(ItemMaster.EmptyItemId, 0));
-            var connection1to3 = chainPole1.TryAddChainConnection(chainPole3.BlockInstanceId, new GearChainConnectionCost(ItemMaster.EmptyItemId, 0));
+            var connection1to2 = chainPole1.TryAddChainConnection(chainPole2.BlockInstanceId, new GearChainConnectionCost(Array.Empty<ConnectToolMaterialCost>()));
+            var connection1to3 = chainPole1.TryAddChainConnection(chainPole3.BlockInstanceId, new GearChainConnectionCost(Array.Empty<ConnectToolMaterialCost>()));
             
             Assert.IsTrue(connection1to2);
             Assert.IsTrue(connection1to3);

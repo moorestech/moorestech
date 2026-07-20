@@ -1,0 +1,118 @@
+/* uGUIの実フォントを移植。JPは和文専用グリフのみ持つため、英数はNotoSans-Regularへ字形単位で自動フォールバックする */
+/* Ports the real uGUI fonts; the JP face only carries Japanese glyphs, so Latin/digits fall back to NotoSans-Regular per-glyph */
+@font-face {
+  font-family: "MooresUI";
+  src: url("/fonts/NotoSans-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MooresUI JP";
+  src: url("/fonts/NotoSansJP-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CEF は常時表示の透明オーバーレイのため body は完全透過（dim は App の screen バックドロップが担う） */
+/* The body is fully transparent since CEF is an always-on overlay; dimming is done by App's screen backdrop */
+/* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
+/* Overrides Mantine's global body background (--mantine-color-body) via import order */
+:root {
+  --slot-size: 3rem;
+  --font-ui: "MooresUI", "MooresUI JP", sans-serif;
+  /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
+  /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
+  --z-screen: 20;
+  --z-overlay-panel: 30;
+  --z-grab: 40;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-reconnect: 2000;
+  --text-default: #eee;
+  --text-high-contrast: #fff;
+  /* 従属テキストには通常テキストより抑えた寒色グレーを使う */
+  /* Use a subdued cool gray for secondary text */
+  --text-muted: #a6a7ab;
+  /* 不足や警告を示す文字には共通の赤を使う */
+  /* Use the shared red for insufficient or warning text */
+  --text-insufficient: #ff6b6b;
+  --color-content-primary: #f2f3f7;
+  --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
+  /* ゲージの溝は世界が透ける半透明ネイビー面にする */
+  /* Use a translucent navy face for gauge tracks so the world remains visible */
+  --gauge-track: rgb(10 14 27 / 80%);
+  /* ゲージの充填は主要アクションと競合しない寒色グレーにする */
+  /* Use a cool gray for gauge fills so they do not compete with primary actions */
+  --gauge-fill: rgb(104 106 120);
+  /* ゲージの器は寒色リングが判別できる最小幅で縁取る */
+  /* Outline gauge vessels with the minimum visible width for a cool ring */
+  --gauge-outline-width: 1px;
+  /* ブロックパネルの下向き三角と内容を分離する安全帯を確保する */
+  /* Reserves a safe area between block-panel content and the downward triangle */
+  --block-panel-bottom-safe-area: 58px;
+  /* モード選択肢を独立したボタンとして見せる間隔を確保する */
+  /* Separates mode options so each reads as an independent button */
+  --mode-switch-gap: 4px;
+  /* モード選択肢の文字が縦につぶれない余白を確保する */
+  /* Preserves vertical breathing room around mode option labels */
+  --mode-switch-padding-block: 5px;
+  /* 横並びのモード選択肢をコンパクトに保つ */
+  /* Keeps horizontally arranged mode options compact */
+  --mode-switch-padding-inline: 0.6rem;
+  /* 選択中の寒色面を非選択面より一段明るくする */
+  /* Makes the selected cool face one step brighter than unselected faces */
+  --mode-switch-selected-mix: 30%;
+  /* 進捗矢印の既定幅を共有トークンで管理する */
+  /* Controls the default progress-arrow width through a shared token */
+  --progress-arrow-width: 4rem;
+  /* 進捗矢印の既定高を共有トークンで管理する */
+  /* Controls the default progress-arrow height through a shared token */
+  --progress-arrow-height: 0.75rem;
+  /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
+  /* Research node card face and border, matching the GamePanel navy family */
+  --research-node-face: rgb(10 14 27 / 80%);
+  --research-node-border: rgb(104 106 120);
+
+  /* スロット枠の既定(持ち物基準)。正本のスロット間ギャップ実測(パネル縁でなく格子中間で断面採取)は
+     中間トーン2px+明灰2pxの2層のみ(暗リングは存在しない・パネル縁で見えた濃色帯は別要素)。カタログ/
+     ホットバーは各自で上書きする */
+  /* Default slot bevel (inventory baseline). The reference's true slot-to-slot gap cross-section (sampled
+     mid-grid, not at the panel edge) is only 2 layers — mid-tone 2px + light-gray 2px, no dark ring; the
+     darker band seen at the panel's own edge is a separate element. Catalog/hotbar override locally */
+  /* iter6: 旧値(0.15/0.22px)はサブピクセルで実質不可視だった。正本断面(y800)は中間2px+明灰2pxが
+     screenshot-pxで実測できる太さのため、CSSpx換算(÷2.5547)へ引き上げて可視な2層リングにする */
+  /* iter6: The old values (0.15/0.22px) were sub-pixel and effectively invisible. The reference cross-section
+     (y800) shows a mid 2px + light-gray 2px ring at a measurable screenshot-px width, so both are scaled up
+     (÷2.5547) into CSS px to render as a genuinely visible 2-layer ring */
+  --face-inset: 0px;
+  --bevel-1: 0.782875px;
+  --bevel-2: 1.565749px;
+  --bevel-3: 1.565749px;
+  /* リング色もuGUIスロット原色族(#323443/#7d7f85)の同輝度寒色へ揃える */
+  /* Ring colors also follow the uGUI slot family (#323443/#7d7f85) at the same luminance */
+  --bevel-c1: rgb(56 58 72);
+  --bevel-c2: rgb(104 106 120);
+  --bevel-c3: rgb(104 106 120);
+}
+
+/* locale属性でCJK字形を優先し、英数は既存MooresUIへフォールバックする */
+/* Prefer CJK glyphs for CJK locales while retaining the existing MooresUI fallback for Latin text */
+:root[data-locale="japanese"],
+:root[data-locale="korean"],
+:root[data-locale="chinese-simplified"],
+:root[data-locale="chinese-traditional"] {
+  --font-ui: "MooresUI JP", "MooresUI", sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-ui), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  /* 実フォントは単一ウェイトのみのため合成太字・斜体は禁止し、正本のシャープな輪郭に合わせる */
+  /* The real faces ship a single weight, so forbid synthetic bold/italic to match the reference's crisp edges */
+  font-synthesis: none;
+  background-color: transparent;
+  color: var(--text-default);
+}

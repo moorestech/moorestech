@@ -1,0 +1,9 @@
+{
+  "modal": {
+    "id": "m1",
+    "title": "確認",
+    "message": "これは確認ダイアログです",
+    "buttonText": "OK",
+    "variant": "confirm"
+  }
+}

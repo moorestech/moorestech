@@ -14,6 +14,7 @@
         "Core.Master",
         "Server.Protocol",
         "UniTask",
+        "UniRx",
         "Client.Starter",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
@@ -29,6 +30,8 @@
         "Game.Train",
         "Core.Update",
         "Core.Inventory",
+        "Client.WebUiHost",
+        "Client.Skit",
         "Game.UnlockState"
     ],
     "includePlatforms": [
@@ -42,7 +45,8 @@
         "MessagePack.dll",
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
-        "Microsoft.Extensions.DependencyInjection.dll"
+        "Microsoft.Extensions.DependencyInjection.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [

@@ -122,3 +122,7 @@ moorestech_server/UserSettings/UnityMcpSettings.json
 moorestech_client/PlaytestResults/
 .idea/
 .mso/**/recording.mp4
+
+# WebUI本番成果物ステージング（ビルド時にWebUiProductionArtifactBuilderが再生成） / WebUI prod artifact staging (regenerated at build time)
+moorestech_client/Assets/StreamingAssets/WebUi/
+moorestech_client/Assets/StreamingAssets/WebUi.meta

@@ -13,7 +13,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
     /// </summary>
     public class GearChainPolePlaceExtendModeTest
     {
-        private static readonly ItemId ChainItemId = new(7);
+        private static readonly System.Guid TestConnectToolGuid = System.Guid.NewGuid();
 
         [Test]
         // 既存ポールクリックで起点選択され進行中応答が無効化される
@@ -62,7 +62,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             Assert.IsTrue(result.ExtendSend.HasValue);
             var send = result.ExtendSend.Value;
             Assert.IsFalse(send.FromPos.HasValue);
-            Assert.AreEqual(ItemMaster.EmptyItemId, send.ChainItemId);
+            Assert.AreEqual(System.Guid.Empty, send.ConnectToolGuid);
             Assert.IsTrue(send.CanContinueExtension);
             Assert.IsNull(result.NextSourcePole);
             Assert.IsFalse(result.Preview.GhostVisible);
@@ -115,7 +115,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             Assert.IsTrue(result.ExtendSend.HasValue);
             var send = result.ExtendSend.Value;
             Assert.AreEqual(sourcePole.GetBlockPosition(), send.FromPos.Value);
-            Assert.AreEqual(ChainItemId, send.ChainItemId);
+            Assert.AreEqual(TestConnectToolGuid, send.ConnectToolGuid);
             Assert.IsFalse(send.CanContinueExtension);
             Assert.IsNull(result.NextSourcePole);
         }
@@ -153,7 +153,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 GhostGroundClear = true,
                 GhostCenter = placePos + new Vector3(0.5f, 0.5f, 0.5f),
                 PoleBlockId = new BlockId(5),
-                OwnedChainItemId = ChainItemId,
+                ConnectToolGuid = TestConnectToolGuid,
                 MaxConnectionCount = 4,
             };
             if (sourcePole != null)

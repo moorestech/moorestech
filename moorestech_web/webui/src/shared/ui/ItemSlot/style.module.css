@@ -1,0 +1,29 @@
+/* 用途別CSS変数でアイコン余白を分離し、未指定先とホットバーは安全な5px床で守る */
+/* Split icon padding through a per-usage CSS variable while protecting unset callers and the hotbar with a 5px floor */
+.icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--icon-pad, 5px);
+}
+
+/* 個数調整は用途側から注入し、未指定のホットバーは検出互換の旧値を保つ */
+/* Inject count tuning per usage while unset hotbar slots retain detector-compatible legacy values */
+.count {
+  position: absolute;
+  bottom: var(--count-bottom, -3px);
+  right: 2px;
+  font-size: var(--count-font-size, 19px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: var(--count-letter-spacing, normal);
+  color: var(--text-high-contrast);
+  text-shadow: 0.25px 0 0 #000, -0.25px 0 0 #000, 0 0.25px 0 #000, 0 -0.25px 0 #000;
+}
+
+/* 明色塗りのセル上では個数を黒文字にして視認性を確保する */
+/* Use black count text on the light-filled cell for legibility */
+[data-filled="true"][data-filled="true"] .count {
+  color: #111;
+  text-shadow: 0.25px 0 0 rgb(255 255 255 / 75%), -0.25px 0 0 rgb(255 255 255 / 75%), 0 0.25px 0 rgb(255 255 255 / 75%), 0 -0.25px 0 rgb(255 255 255 / 75%);
+}

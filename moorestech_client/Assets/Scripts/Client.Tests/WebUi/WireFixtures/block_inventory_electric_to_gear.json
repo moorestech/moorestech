@@ -1,0 +1,18 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "ElectricToGearGenerator",
+  "identifier": "(4, 0, 2)",
+  "blockName": "回転生成機",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "electricToGear": {
+    "selectedIndex": 1,
+    "fulfillmentRate": 0.75,
+    "consumedElectricPower": 10.0,
+    "outputModes": [
+      { "rpm": 10.0, "torque": 10.0, "requiredPower": 10.0 },
+      { "rpm": 20.0, "torque": 20.0, "requiredPower": 10.0 }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+/* 基準解像度のstageをレターボックス中央へ配置する */
+/* Center the reference-resolution stage with letterboxing */
+.viewport {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+/* 1280x720基準の3カラムと下段ホットバーを一様拡縮する */
+/* Uniformly scale the 1280x720 three-column layout and bottom hotbar */
+.stage {
+  position: relative;
+  display: grid;
+  column-gap: 2.1875rem;
+  row-gap: 1rem;
+  width: 1280px;
+  height: 720px;
+  padding: 115px 48px 2px 59.7px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: center center;
+  z-index: 1;
+  /* 全面dimは backdrop が担い、stage は縁をわずかに沈める控えめなヴィネットのみ持つ */
+  /* The backdrop handles the full dim; the stage keeps only a faint edge vignette */
+  background: radial-gradient(ellipse 82% 86% at 50% 46%, rgb(4 5 8 / 0%) 66%, rgb(4 5 8 / 16%) 100%);
+  /* 上段パネル3列のみgridで並べる。ホットバーはstage絶対配置で常時画面中央（HotbarPanel側で定義） */
+  /* The grid lays out only the three upper panel columns; the hotbar is stage-absolute and always screen-centered (defined in HotbarPanel) */
+  grid-template-areas: "inv viewer items";
+  grid-template-columns: auto auto auto;
+  grid-template-rows: 1fr;
+  align-items: start;
+  /* 正本は左詰めの固定アンカー配置。center centeringは総幅で揺れるため使わない */
+  /* The reference uses fixed left-anchored panels; centering would drift with total width */
+  justify-content: start;
+}
+
+/* uGUI 同様、インベントリ表示中は世界全体を暗く沈める全面dim（stageより下のworldbgを覆う） */
+/* Like uGUI, a full-screen dim sinks the whole world while the inventory is open (covers the worldbg below the stage) */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 42%);
+  pointer-events: none;
+  z-index: 0;
+}

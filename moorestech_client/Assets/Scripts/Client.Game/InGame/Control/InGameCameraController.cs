@@ -61,8 +61,8 @@ namespace Client.Game.InGame.Control
             if (!_isFirstPerson)
             {
                 var zoomDelta = 0f;
-                if (UnityEngine.Input.GetKey(KeyCode.F1)) zoomDelta -= Time.deltaTime * ZoomSpeedPerSecond; // TODO InputManagerに移動
-                if (UnityEngine.Input.GetKey(KeyCode.F2)) zoomDelta += Time.deltaTime * ZoomSpeedPerSecond; // TODO InputManagerに移動
+                if (HybridInput.GetKey(KeyCode.F1)) zoomDelta -= Time.deltaTime * ZoomSpeedPerSecond;
+                if (HybridInput.GetKey(KeyCode.F2)) zoomDelta += Time.deltaTime * ZoomSpeedPerSecond;
 
                 if (zoomDelta != 0f) AddThirdPersonZoom(zoomDelta);
             }

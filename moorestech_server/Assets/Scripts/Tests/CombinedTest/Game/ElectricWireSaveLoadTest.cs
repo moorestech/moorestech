@@ -11,6 +11,7 @@ using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -28,7 +29,8 @@ namespace Tests.CombinedTest.Game
     public class ElectricWireSaveLoadTest
     {
         private const int PlayerId = 5;
-        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
+        private static readonly Guid ConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
+        private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         // 電柱-発電機-機械をワイヤー接続で消費ありのTryConnectを使って結ぶ→セーブ→別ワールドへロード
         // → 双方向接続・セグメント数・統計・切断時返却コストがすべて一致することを検証
@@ -39,6 +41,7 @@ namespace Tests.CombinedTest.Game
         {
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+            saveServiceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
             var posPole = Pos(0, 0);
             var posGenerator = Pos(3, 0);
@@ -51,8 +54,8 @@ namespace Tests.CombinedTest.Game
             var inventory = saveServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(wireItemId, 10));
 
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, PlayerId, wireItemId, out var errorA), errorA.ToString());
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posGenerator, posMachine, PlayerId, wireItemId, out var errorB), errorB.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posPole, posGenerator, PlayerId, ConnectToolGuid, out var errorA), errorA.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posGenerator, posMachine, PlayerId, ConnectToolGuid, out var errorB), errorB.ToString());
 
             // トポロジ反映と統計確定のため1tick進める
             // Advance one tick for the topology flush and statistics settlement
@@ -104,8 +107,7 @@ namespace Tests.CombinedTest.Game
             // GUIDを介してコストが正しく復元されているか（保存時と同一）を確認する
             // Verify the connection cost (via GUID roundtrip) matches the pre-save value
             var loadedCost = loadedPole.WireConnections[loadedGenerator.BlockInstanceId].Cost;
-            Assert.AreEqual(savedCost.ItemId, loadedCost.ItemId);
-            Assert.AreEqual(savedCost.Count, loadedCost.Count);
+            CollectionAssert.AreEqual(savedCost.Materials, loadedCost.Materials);
 
             // 復元後の切断でセーブ前と同じコストが返却される
             // Disconnecting after restore refunds the same wire cost as before the save
@@ -113,7 +115,7 @@ namespace Tests.CombinedTest.Game
             var beforeDisconnectCount = CountItem(loadedInventory, wireItemId);
             Assert.IsTrue(ElectricWireSystemUtil.TryDisconnect(posPole, posGenerator, PlayerId, out var disconnectError), disconnectError.ToString());
             var afterDisconnectCount = CountItem(loadedInventory, wireItemId);
-            Assert.AreEqual(savedCost.Count, afterDisconnectCount - beforeDisconnectCount);
+            Assert.AreEqual(savedCost.TotalCount, afterDisconnectCount - beforeDisconnectCount);
         }
 
         // 3ブロックを鎖状に接続後、中央を撤去するとセグメントが分割され、
@@ -125,6 +127,7 @@ namespace Tests.CombinedTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+            serviceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
             var posA = Pos(0, 0);
             var posB = Pos(3, 0);
@@ -137,8 +140,8 @@ namespace Tests.CombinedTest.Game
             var inventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(wireItemId, 10));
 
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, wireItemId, out var errorA), errorA.ToString());
-            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posB, posC, PlayerId, wireItemId, out var errorB), errorB.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var errorA), errorA.ToString());
+            Assert.IsTrue(ElectricWireSystemUtil.TryConnect(posB, posC, PlayerId, ConnectToolGuid, out var errorB), errorB.ToString());
 
             // トポロジ反映のため1tick進める
             // Advance one tick for the topology flush
@@ -155,8 +158,8 @@ namespace Tests.CombinedTest.Game
             // Blocks at (0,0)-(3,0)-(6,0) put each connection at distance 3; with consumptionPerLength=1 each wire costs 3
             var costToA = connectorB.WireConnections[connectorA.BlockInstanceId].Cost;
             var costToC = connectorB.WireConnections[connectorC.BlockInstanceId].Cost;
-            Assert.AreEqual(3, costToA.Count);
-            Assert.AreEqual(3, costToC.Count);
+            Assert.AreEqual(3, costToA.TotalCount);
+            Assert.AreEqual(3, costToC.TotalCount);
 
             var refundItems = blockB.GetComponent<IGetRefundItemsInfo>().GetRefundItems();
             Assert.AreEqual(2, refundItems.Count);

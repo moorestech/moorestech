@@ -3,24 +3,70 @@ using System.Linq;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.CraftRecipesModule;
+using Mooresmaster.Model.ItemsModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Client.Game.InGame.UI.Inventory.RecipeViewer
 {
     /// <summary>
-    /// アイテムID → 全てのレシピ を管理するためのクラス 
+    /// アイテムID → 全てのレシピ を管理するためのクラス
     /// </summary>
     public class  ItemRecipeViewerDataContainer
     {
         private readonly Dictionary<ItemId, RecipeViewerItemRecipes> _recipeViewerElements = new();
-        
+        private readonly IGameUnlockStateData _gameUnlockStateData;
+
         public RecipeViewerItemRecipes GetItem(ItemId itemId)
         {
             return _recipeViewerElements.GetValueOrDefault(itemId);
         }
-        
+
+        public RecipeViewerItemVisibility EvaluateVisibility(ItemId itemId, ItemMasterElement itemMaster)
+        {
+            // レシピビューアの表示可否を決める SSOT。未知タイプは呼び出し側が処理する
+            // SSOT that decides recipe-viewer visibility; unknown types are handled by the caller
+            switch (itemMaster.RecipeViewType)
+            {
+                case ItemMasterElement.RecipeViewTypeConst.Default:
+                    // アンロック済みかつクラフト/機械レシピがあれば表示する
+                    // Show when unlocked and a craft or machine recipe exists
+                    if (!IsItemUnlocked(itemId)) return RecipeViewerItemVisibility.Hide;
+                    var defaultRecipes = GetItem(itemId);
+                    if (defaultRecipes == null) return RecipeViewerItemVisibility.Hide;
+                    var hasCraft = defaultRecipes.UnlockedCraftRecipes().Count != 0;
+                    var hasMachine = defaultRecipes.UnlockedMachineRecipes().Count != 0;
+                    return hasCraft || hasMachine ? RecipeViewerItemVisibility.Show : RecipeViewerItemVisibility.Hide;
+                case ItemMasterElement.RecipeViewTypeConst.IsUnlocked:
+                    return IsItemUnlocked(itemId) ? RecipeViewerItemVisibility.Show : RecipeViewerItemVisibility.Hide;
+                case ItemMasterElement.RecipeViewTypeConst.IsCraftRecipeExist:
+                    var craftRecipes = GetItem(itemId);
+                    if (craftRecipes == null) return RecipeViewerItemVisibility.Hide;
+                    return craftRecipes.UnlockedCraftRecipes().Count != 0 ? RecipeViewerItemVisibility.Show : RecipeViewerItemVisibility.Hide;
+                case ItemMasterElement.RecipeViewTypeConst.ForceHide:
+                    return RecipeViewerItemVisibility.Hide;
+                case ItemMasterElement.RecipeViewTypeConst.ForceShow:
+                    return RecipeViewerItemVisibility.Show;
+                default:
+                    return RecipeViewerItemVisibility.UnknownType;
+            }
+
+            #region Internal
+
+            bool IsItemUnlocked(ItemId id)
+            {
+                // dict に無いアイテムはロック扱いに倒して例外を避ける
+                // Treat items missing from the dict as locked to avoid exceptions
+                if (!_gameUnlockStateData.ItemUnlockStateInfos.TryGetValue(id, out var state)) return false;
+                return state.IsUnlocked;
+            }
+
+            #endregion
+        }
+
         public ItemRecipeViewerDataContainer(IGameUnlockStateData gameUnlockStateData)
         {
+            _gameUnlockStateData = gameUnlockStateData;
+
             // そのアイテムを作成するための機械のレシピを取得
             // Get the recipe of the machine to create the item
             var machineRecipeDictionary = new Dictionary<ItemId, List<MachineRecipeMasterElement>>();
@@ -135,5 +181,16 @@ namespace Client.Game.InGame.UI.Inventory.RecipeViewer
             }
             return result;
         }
+    }
+
+    /// <summary>
+    /// レシピビューア表示判定の結果。UnknownType は呼び出し側でフォールバック
+    /// Result of the recipe-viewer visibility check; UnknownType is a caller-side fallback
+    /// </summary>
+    public enum RecipeViewerItemVisibility
+    {
+        Show,
+        Hide,
+        UnknownType,
     }
 }

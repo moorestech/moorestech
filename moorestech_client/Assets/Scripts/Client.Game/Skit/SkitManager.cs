@@ -6,6 +6,7 @@ using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
+using Client.Game.InGame.UI.UIState;
 using Client.Skit.Context;
 using Client.Skit.Define;
 using Client.Skit.Skit;
@@ -28,7 +29,7 @@ namespace Client.Game.Skit
         [SerializeField] private SkitCamera skitCamera;
         [SerializeField] private VoiceDefine voiceDefine;
         
-        [Inject] private ISkitActionContext _skitActionContext;
+        [Inject] private ISkitActionController _skitActionController;
         [Inject] private EnvironmentRoot environmentRoot;
         [Inject] private BlockGameObjectDataStore blockGameObjectDataStore;
         [Inject] private IMapObjectPin mapObjectPin;
@@ -42,7 +43,7 @@ namespace Client.Game.Skit
         }
         public void Initialize()
         {
-            _skitActionContext.OnSkip.Subscribe(_ =>
+            _skitActionController.OnSkip.Subscribe(_ =>
             {
                 _isSkip = true;
             }).AddTo(this);
@@ -66,25 +67,18 @@ namespace Client.Game.Skit
             _isSkip = false;
             var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
             var commands = CommandForgeLoader.LoadCommands(commandsToken);
+            var webUiMode = WebUiScreenGate.IsWebUiMode;
+            if (webUiMode) SkitPresentationStateStore.Instance.BeginBlocking(_skitActionController);
             
             //前処理 Pre process
             using var storyContext = await PreProcess();
             CameraManager.RegisterCamera(skitCamera);
             
-            foreach (var command in commands)
-            {
-                try
-                {
-                    await command.ExecuteAsync(storyContext);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
-            }
+            await SkitCommandExecutor.ExecuteAsync(commands, storyContext);
             
             //後処理 Post process
             skitUI.SetActive(false);
+            if (webUiMode) SkitPresentationStateStore.Instance.End();
             HudArrowManager.SetActive(true);
             mapObjectPin.SetActive(true);
             var characterContainer = storyContext.GetService<CharacterObjectContainer>();
@@ -121,7 +115,7 @@ namespace Client.Game.Skit
                 }
                 
                 // 表示の設定
-                skitUI.SetActive(true);
+                skitUI.SetActive(!webUiMode);
                 mapObjectPin.SetActive(false);
                 HudArrowManager.SetActive(false);
                 
@@ -134,7 +128,8 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
-                builder.RegisterInstance(_skitActionContext);
+                builder.RegisterInstance(_skitActionController);
+                builder.RegisterInstance(new SkitPresentationMode(webUiMode));
                 
                 return new StoryContext(builder.Build());
             }

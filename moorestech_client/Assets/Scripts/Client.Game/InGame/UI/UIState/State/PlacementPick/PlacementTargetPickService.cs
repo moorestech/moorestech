@@ -26,6 +26,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 
             //TODO InputSystem対応
             if (!HybridInput.GetMouseButtonDown(2)) return false;
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
 
             // 電線→列車→ブロックの順に解決する（ワイヤー優先は電線ツールの切断判定と整合）
             // Resolve wire, then train car, then block (wire priority matches the wire tool's disconnect check)
@@ -38,9 +39,9 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
                 target = null;
                 if (!BlockClickDetectUtil.TryGetCursorOnElectricWire(out _)) return false;
 
-                // 接続ツールは常時解放のため解放判定なしで電線接続ツールへ解決する
-                // Connect tools are always unlocked, so resolve to the wire connect tool without an unlock check
-                target = new ConnectToolPlacementTarget(ConnectToolType.ElectricWireConnect);
+                // カーソル下の電線に対応するelectricWire connectToolを解決する
+                // Resolve the electricWire connectTool corresponding to the wire under the cursor
+                target = new ConnectToolPlacementTarget(ConnectToolCatalog.ResolveDefaultConnectToolGuid(ConnectToolType.ElectricWireConnect, _gameUnlockStateData));
                 return true;
             }
 

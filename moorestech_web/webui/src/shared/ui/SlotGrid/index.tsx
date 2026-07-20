@@ -1,0 +1,27 @@
+import type { CSSProperties, ReactNode } from "react";
+import styles from "./style.module.css";
+
+type Props = {
+  children: ReactNode;
+  // 省略時は uGUI 標準の 9 列
+  // Defaults to the uGUI-standard 9 columns when omitted
+  cols?: number;
+  testId?: string;
+  // --slot-size / --slot-grid-gap の局所上書き用（他グリッドの既定値には影響しない）
+  // Local override for --slot-size / --slot-grid-gap (does not affect other grids' defaults)
+  style?: CSSProperties;
+};
+
+// スロットを固定幅セルで並べる共通グリッド（inventory/hotbar/block/itemList で共用）
+// Shared fixed-cell slot grid used by inventory, hotbar, block, and item list views
+export default function SlotGrid({ children, cols, testId, style }: Props) {
+  return (
+    <div
+      data-testid={testId}
+      className={styles.grid}
+      style={{ gridTemplateColumns: `repeat(${cols ?? 9}, var(--slot-size, 2rem))`, ...style }}
+    >
+      {children}
+    </div>
+  );
+}

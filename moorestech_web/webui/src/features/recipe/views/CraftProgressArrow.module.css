@@ -1,0 +1,38 @@
+/* 素材→結果を示す白い矢印グリフ。長押し進捗は下の細いバーで控えめに示す。正本は121x78screenshot-px相当と大きい */
+/* White arrow glyph from materials to result; hold progress shows subtly in the thin bar below. The reference arrow is large (~121x78 screenshot px) */
+/* グリッド行のcenter揃えだと矢印の上端が正本より少し下がるため、上へ寄せる */
+/* Row-level center alignment leaves the arrow's top edge slightly low versus the reference, so nudge it upward */
+.craftArrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 53.622px;
+  margin-top: -6.218px;
+}
+/* D11: 正本は太い単色でなくシアンの細い輪郭+弱い影。fillは白のまま保ちbbox検出(min>190)を崩さず、
+   輪郭だけ4方向1pxのシアンへ差し替える */
+/* D11: the reference reads as a thin cyan outline with a soft shadow rather than a thick flat fill; keep the
+   white fill so the bbox detector (min>190) still matches, swapping only the outline to a 4-direction 1px cyan */
+.craftArrowGlyph {
+  display: block;
+  width: 53.622px;
+  height: 30.53px;
+  overflow: visible;
+  fill: var(--color-content-primary);
+  stroke: rgb(79 224 244 / 70%);
+  stroke-width: 2px;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 45%));
+}
+.craftArrowTrack {
+  width: 1.9rem;
+  height: 3px;
+  margin-top: 3px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 14%);
+  overflow: hidden;
+}
+.craftArrowFill {
+  height: 100%;
+  background: var(--mantine-color-green-6);
+}

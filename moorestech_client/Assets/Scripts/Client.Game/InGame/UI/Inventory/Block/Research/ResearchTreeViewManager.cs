@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState;
 using Client.Network.API;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -66,10 +67,13 @@ namespace Client.Game.InGame.UI.Inventory.Block.Research
         
         public void SetActive(bool isActive)
         {
-            gameObject.SetActive(isActive);
-            
-            if (!isActive) return;
-            
+            // webモード中はWeb側が同画面を描画するためuGUIビューは表示しない（falseは常に通す）
+            // In web mode the web renders this screen, so never show the uGUI view (false always passes)
+            var visible = isActive && !WebUiScreenGate.IsWebUiMode;
+            gameObject.SetActive(visible);
+
+            if (!visible) return;
+
             // 念の為の最新化処理
             // Refresh just in case
             LoadResearchTreeAsync().Forget();

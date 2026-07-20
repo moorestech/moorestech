@@ -183,6 +183,31 @@ jobs:
               json.dump(data, f, indent=2)
           "
 
+      # Unityのビルド前処理(WebUiProductionArtifactBuilder)がpnpm buildを実行するが、
+      # node/pnpm本体と webui/node_modules は gitignore されているためここで用意する
+      - name: Setup Web UI toolchain
+        shell: bash
+        working-directory: moorestech_web
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            pwsh -File setup.ps1
+            pnpm_binary="$PWD/node/win-x64/pnpm.exe"
+          else
+            bash setup.sh
+            # setup.sh はランナーのarchに応じたディレクトリへ配置するのでglobで解決する
+            # setup.sh installs into an arch-dependent directory, so resolve it by glob
+            shopt -s nullglob
+            candidates=(node/*/pnpm)
+            pnpm_binary="$PWD/${candidates[0]}"
+          fi
+          if [ ! -f "$pnpm_binary" ]; then
+            echo "pnpm not found after setup: $pnpm_binary" >&2
+            exit 1
+          fi
+          "$pnpm_binary" --dir webui install --frozen-lockfile
+
       # 年月日を取得　キャッシュのkeyに利用
       - name: Set current datetime as env variable
         env:

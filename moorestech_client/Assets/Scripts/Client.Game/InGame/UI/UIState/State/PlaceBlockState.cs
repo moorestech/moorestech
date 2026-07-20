@@ -21,6 +21,10 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly PlaceSystemStateController _placeSystemStateController;
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
+        private readonly ReactiveProperty<int> _placementHeight = new(0);
+
+        public IObservable<int> OnPlacementHeightChanged => _placementHeight;
+        public int GetPlacementHeight() => _placementHeight.Value;
 
         public PlaceBlockState(SkitManager skitManager, BlockGameObjectDataStore blockGameObjectDataStore, PlaceSystemStateController placeSystemStateController, PlacementTargetPickService placementTargetPickService, IPlayerCameraInteractionApplier cameraInteractionApplier)
         {
@@ -33,6 +37,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            _placementHeight.Value = 0;
             // 遷移payloadから設置ターゲットを受け取り所有者へ渡す（無ければEmptyに落ちる）
             // Take the placement target from the transition payload and hand it to the owner (falls back to Empty when absent)
             if (context.TryGetContext<IPlacementTarget>(out var target)) _placeSystemStateController.SetTarget(target);
@@ -82,6 +87,11 @@ namespace Client.Game.InGame.UI.UIState.State
             if (_placementTargetPickService.TryPickTargetUnderCursor(out var pickedTarget)) _placeSystemStateController.SetTarget(pickedTarget);
 
             _placeSystemStateController.ManualUpdate();
+
+            // 実設置系と同じ入力でHUDの高さ表示を更新する
+            // Update the HUD height from the same input used by placement systems
+            if (HybridInput.GetKeyDown(KeyCode.Q)) _placementHeight.Value--;
+            else if (HybridInput.GetKeyDown(KeyCode.E)) _placementHeight.Value++;
 
             return null;
 

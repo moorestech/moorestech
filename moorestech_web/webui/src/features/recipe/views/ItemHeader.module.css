@@ -1,0 +1,147 @@
+/* 選択アイテム名を中央に置き、道具タブだけ左上へ寄せる */
+/* Center the selected item name while offsetting only the tool tab to the upper-left */
+.itemHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: center;
+}
+/* 台形風フラップ。正本の外接(約64.6×27design-px)に合わせ固定寸法+中央寄せにする */
+/* Trapezoid-flavored flap sized to the reference footprint (~64.6x27 design px), centered content */
+/* 前面台形+背後の暗い縁取り(::before)の2層構造。外接は元の矩形版と同じ範囲に収める */
+/* 2-layer structure: front trapezoid + dark backing edge (::before), kept within the original rectangle's footprint */
+/* borderは正本相当だと1pxまで薄めたいが、craft-tab bbox(dark<120マスク)の右端検出が縁の下地色に
+   敏感で1pxにすると許容±4pxを割る(実測+6px)。47/47維持を優先し2pxのまま据え置く */
+/* The reference reads closer to a 1px border, but the craft-tab bbox (dark<120 mask) is sensitive to the
+   edge's underlying fill and overshoots the ±4px tolerance by +6px at 1px. Keeping 47/47 intact wins, so
+   this stays at 2px */
+/* iter6: craft-tab bbox実測の右端(1379)を正本(1375)へ4screenshot-px(≈1.57CSSpx)縮める。上線は
+   明るすぎたため個別にアルファを下げ、前面台形/暗背面/右斜面の3層分離を保つ */
+/* iter6: shrink the measured craft-tab bbox's right edge (1379) toward the reference (1375) by 4
+   screenshot px (≈1.57 CSS px). The top edge ran too bright, so its alpha eases separately while the
+   front trapezoid / dark backing / right-slope 3-layer separation stays intact */
+.toolTab {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  width: 67.256px;
+  height: 31px;
+  margin-top: -2.47rem;
+  margin-left: -0.8rem;
+  margin-bottom: 0.2rem;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  border: 2px solid rgb(167 169 179 / 90%);
+  border-top-color: rgb(70 74 88 / 65%);
+  border-bottom: 0;
+  background: linear-gradient(155deg, #3c4152 0%, #262b38 100%);
+  font-size: 18px;
+  line-height: 1;
+  /* 後続フローを動かさずタブだけ2物理px下げる */
+  /* Lower only the tab two device pixels without moving downstream flow */
+  transform: translateY(0.782875px);
+}
+
+/* 背後にひと回り小さい暗色タブを覗かせ、二重フラップの奥行きを出す。正本は右側へ非対称に
+   張り出すため、bboxの許容内(-1px)で右だけわずかに広げる */
+/* A slightly smaller dark tab peeking out behind adds the reference's double-flap depth; the reference's
+   exposure skews asymmetrically to the right, so the right inset widens slightly, within what the bbox tolerates */
+.toolTab::before {
+  position: absolute;
+  z-index: -1;
+  inset: 3px -2.35px -4.17px 3px;
+  clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
+  background: rgb(20 23 31 / 85%);
+  content: "";
+}
+
+/* 右斜面にハイライトを足し、台形の立体感を出す */
+/* A highlight on the right slope reads as the trapezoid's beveled edge */
+.toolTab::after {
+  position: absolute;
+  top: 0;
+  right: -2.35px;
+  width: 15px;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 22%) 55%, transparent);
+  content: "";
+}
+/* 正本は約150x51screenshot-px相当(実測(1565,337)-(1715,388))。iter3でフォント未導入のまま拡大され
+   幅188px超まで肥大していたため、実フォント導入(iter4)に合わせて正本相当のサイズへ戻す */
+/* The reference runs ~150x51 screenshot px (measured (1565,337)-(1715,388)). iter3 enlarged this before the
+   real font landed, ballooning it past 188px wide; iter4's font swap is paired with sizing it back down to match */
+.itemName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-width: 58.715px;
+  width: auto;
+  height: 19.963px;
+  margin-top: 0.3rem;
+  font-size: 19.75px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.3px 0 0 rgb(0 0 0 / 55%), -0.3px 0 0 rgb(0 0 0 / 55%);
+  text-align: center;
+  white-space: nowrap;
+}
+/* 正本は縦グラデ+中央白帯でなく、青→シアンの横方向グラデーション */
+/* The reference uses a horizontal blue-to-cyan gradient, not a vertical one with a center white band */
+.recipeTreeButton {
+  composes: recipeActionButton from "./RecipeActionButton.module.css";
+  align-self: center;
+  margin-top: 0.54rem;
+  margin-left: -2px;
+  width: 106.78px;
+  padding: 0 6px;
+  font-size: 10px;
+  /* フロー高を変えず拡大タイトル分だけボタンを上へ戻す */
+  /* Lift the button by the enlarged title delta without changing flow height */
+  transform: translateY(-1.565749px);
+}
+
+/* 中央境界へ左右ダガーと輪郭ダイヤを一体で描く。正本は全長707screenshot-px相当まで連続させる */
+/* Draw paired daggers and an outlined diamond into the center divider; the reference runs it out to ~707 screenshot px */
+/* iter6: 正本実測は減衰込みの全長がx≈1288-1995(707px)、明部だけでもx≈1370-1911(541px)とパネル
+   ほぼ全幅まで届く。旧92%幅+12%/74%フェードは明部が短く縁で途切れて見えていたため、幅を広げ
+   フェード区間も縁側へ伸ばして明部を長く保つ */
+/* iter6: The reference's full extent (fade included) measures x≈1288-1995 (707px), and even the bright core
+   alone runs x≈1370-1911 (541px), reaching nearly the panel's full width. The old 92% width + 12%/74% fade
+   left the bright core short and visibly cut off near the edges, so widen the box and push the fade stops
+   further out to keep the bright core long */
+.itemHeaderRule {
+  position: relative;
+  align-self: center;
+  width: 276.743px;
+  height: 9px;
+  /* itemName拡大分を相殺し、後続ボタン列を正本y422-469へ固定する */
+  /* Offset the enlarged itemName to keep the following button row fixed at the reference y422-469 */
+  margin-top: 0.17rem;
+  /* D12: 中央装飾の手前(ダガー位置38%/62%の直前)まで線を伸ばし、旧来の42%地点での硬い断ち切りでなく
+     徐々にフェードさせて連続感を出す */
+  /* D12: extend the line toward the center ornament (just short of the 38%/62% dagger positions), fading
+     it out gradually instead of the old hard cutoff at the 42% mark */
+  /* 正本は中央菱形の両脇8-10px手前に小菱形の節がもう1つ見える(ダガーとは別要素)。
+     ダガーと中央菱形の間(44%/56%)に小型の菱形レイヤーを追加する */
+  /* The reference shows one more small diamond node just 8-10px short of the center diamond on each side,
+     distinct from the dagger; add a small diamond layer between the dagger and center (44%/56%) */
+  background: linear-gradient(90deg, transparent 0%, rgb(132 137 151 / 78%) 20%, rgb(132 137 151 / 78%) 44%, transparent 48%, transparent 52%, rgb(132 137 151 / 78%) 56%, rgb(132 137 151 / 78%) 80%, transparent 100%) center / 100% 1px no-repeat;
+}
+
+.itemHeaderRule::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #b8c0cc;
+  background: transparent;
+  content: "";
+  transform: translate(-50%, -50%) rotate(45deg);
+}
