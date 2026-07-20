@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -18,11 +17,6 @@ namespace Common.Debug
 
     public static class DebugParameters
     {
-        private static readonly string CachePath = Path.GetFullPath("../cache");
-        private const string BoolFileName = "BoolDebugParameters.json";
-        private const string IntFileName = "IntDebugParameters.json";
-        private const string StringFileName = "StringDebugParameters.json";
-
         private static Dictionary<string, bool> BoolDebugParameters { get; set; } = new();
         private static Dictionary<string, int> IntDebugParameters { get; set; } = new();
         private static Dictionary<string, string> StringDebugParameters { get; set; } = new();
@@ -134,26 +128,26 @@ namespace Common.Debug
 
         private static void Save()
         {
-            EnsureCacheDirectoryExists();
+            Directory.CreateDirectory(DebugParametersCacheDirectory.Resolve());
 
             // Save bool parameters
             var boolDict = new SerializableDictionary<string, bool>(BoolDebugParameters);
-            File.WriteAllText(GetFilePath(BoolFileName), JsonUtility.ToJson(boolDict));
+            File.WriteAllText(GetFilePath(DebugParametersCacheDirectory.BoolFileName), JsonUtility.ToJson(boolDict));
 
             // Save int parameters
             var intDict = new SerializableDictionary<string, int>(IntDebugParameters);
-            File.WriteAllText(GetFilePath(IntFileName), JsonUtility.ToJson(intDict));
+            File.WriteAllText(GetFilePath(DebugParametersCacheDirectory.IntFileName), JsonUtility.ToJson(intDict));
 
             // Save string parameters
             var stringDict = new SerializableDictionary<string, string>(StringDebugParameters);
-            File.WriteAllText(GetFilePath(StringFileName), JsonUtility.ToJson(stringDict));
+            File.WriteAllText(GetFilePath(DebugParametersCacheDirectory.StringFileName), JsonUtility.ToJson(stringDict));
         }
 
         private static void Load()
         {
-            BoolDebugParameters = LoadDictionary<string, bool>(GetFilePath(BoolFileName));
-            IntDebugParameters = LoadDictionary<string, int>(GetFilePath(IntFileName));
-            StringDebugParameters = LoadDictionary<string, string>(GetFilePath(StringFileName));
+            BoolDebugParameters = LoadDictionary<string, bool>(GetFilePath(DebugParametersCacheDirectory.BoolFileName));
+            IntDebugParameters = LoadDictionary<string, int>(GetFilePath(DebugParametersCacheDirectory.IntFileName));
+            StringDebugParameters = LoadDictionary<string, string>(GetFilePath(DebugParametersCacheDirectory.StringFileName));
         }
 
         private static Dictionary<TKey, TValue> LoadDictionary<TKey, TValue>(string filePath)
@@ -165,77 +159,11 @@ namespace Common.Debug
             return dict?.ToDictionary() ?? new Dictionary<TKey, TValue>();
         }
 
-        private static void EnsureCacheDirectoryExists()
-        {
-            if (!Directory.Exists(CachePath))
-            {
-                Directory.CreateDirectory(CachePath);
-            }
-        }
-
+        // 静的初期化時にキャッシュせずアクセス毎に解決する。環境変数設定より前に初期化されると切替が効かないため
+        // Resolve per access instead of caching at static init, since initializing before the env var is set would defeat the switch
         private static string GetFilePath(string fileName)
         {
-            return Path.Combine(CachePath, fileName);
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// Dictionary を JSON シリアライズできるようにするためのクラス
-    /// </summary>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TValue"></typeparam>
-    [Serializable]
-    public class SerializableDictionary<TKey, TValue> : ISerializationCallbackReceiver
-    {
-        [SerializeField]
-        private List<TKey> keys = new();
-
-        [SerializeField]
-        private List<TValue> values = new();
-
-        // 実際の Dictionary データ。シリアライズ時・デシリアライズ時に keys/values と相互変換。
-        private Dictionary<TKey, TValue> dictionary = new();
-
-        public SerializableDictionary() { }
-
-        public SerializableDictionary(Dictionary<TKey, TValue> dict)
-        {
-            dictionary = dict;
-        }
-
-        /// <summary>
-        /// Dictionary 形式に変換して取得
-        /// </summary>
-        public Dictionary<TKey, TValue> ToDictionary()
-        {
-            return dictionary;
-        }
-
-        #region ISerializationCallbackReceiver implements
-
-        public void OnBeforeSerialize()
-        {
-            // JSON シリアライズされる前に、Dictionary の情報を keys/values に詰め込む
-            keys.Clear();
-            values.Clear();
-
-            foreach (var kvp in dictionary)
-            {
-                keys.Add(kvp.Key);
-                values.Add(kvp.Value);
-            }
-        }
-
-        public void OnAfterDeserialize()
-        {
-            // JSON デシリアライズ後に、keys/values から Dictionary を再構成する
-            dictionary = new Dictionary<TKey, TValue>();
-            for (int i = 0; i < Mathf.Min(keys.Count, values.Count); i++)
-            {
-                dictionary[keys[i]] = values[i];
-            }
+            return Path.Combine(DebugParametersCacheDirectory.Resolve(), fileName);
         }
 
         #endregion
