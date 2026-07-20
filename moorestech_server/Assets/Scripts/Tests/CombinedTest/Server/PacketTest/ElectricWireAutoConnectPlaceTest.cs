@@ -17,6 +17,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Game.UnlockState;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -24,7 +25,6 @@ namespace Tests.CombinedTest.Server.PacketTest
     public class ElectricWireAutoConnectPlaceTest
     {
         private const int PlayerId = 5;
-
         private static readonly Guid WireItemGuid = Guid.Parse("00000000-0000-0000-4649-000000000001");
 
         [Test]
@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 事前配置分のトポロジを反映してから基準値を取る
             // Flush the pre-placed topology before taking the baseline
             GameUpdater.UpdateOneTick();
-            var segmentCountBefore = segmentDatastore.SegmentCount;
+            var segmentCountBefore = Tests.Util.ElectricNetworkReflectionTestUtil.GetSegmentCount(segmentDatastore);
 
             PlaceBlock(packet, ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0));
 
@@ -108,7 +108,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 設置失敗後の状態確認もtick反映後に行う
             // Verify the unchanged state after a tick so pending commands are settled
             GameUpdater.UpdateOneTick();
-            Assert.AreEqual(segmentCountBefore, segmentDatastore.SegmentCount);
+            Assert.AreEqual(segmentCountBefore, Tests.Util.ElectricNetworkReflectionTestUtil.GetSegmentCount(segmentDatastore));
         }
 
         [Test]
