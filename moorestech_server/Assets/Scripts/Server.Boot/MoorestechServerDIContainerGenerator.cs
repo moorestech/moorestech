@@ -145,8 +145,8 @@ namespace Server.Boot
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
-            // 具象はtick先頭の再構築登録用、interfaceは参照系向け。同一インスタンスを共有する
-            // The concrete type serves the tick-head rebuild registration; the interface serves readers. Both share one instance
+            // 具象はMasterTickUpdaterの再構築用、interfaceは参照系向け。同一インスタンスを共有する
+            // The concrete type serves MasterTickUpdater's rebuild; the interface serves readers. Both share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
             services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
             services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
@@ -194,6 +194,7 @@ namespace Server.Boot
             // Register electric and gear tick updates through DI.
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
+            services.AddSingleton<MasterTickUpdater>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
@@ -249,12 +250,9 @@ namespace Server.Boot
             var serviceProvider = services.BuildServiceProvider();
             var packetResponse = new PacketResponseCreator(serviceProvider);
 
-            // tick更新を固定順で登録する。トポロジ反映は全網とも需給計算より先（tick途中でセグメント所属を変えないため）
-            // Register tick handlers in fixed order: apply both topologies before any settlement so segment membership never changes mid tick
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricWireNetworkDatastore>().RebuildIfDirty);
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearNetworkDatastore>().RebuildIfDirty);
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<ElectricTickUpdater>().Update);
-            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<GearTickUpdater>().Update);
+            // tick順序（仕様2.1）はMasterTickUpdaterの1ファイルに集約し、ここでは1本だけ登録する
+            // The tick order (spec 2.1) lives in MasterTickUpdater; register just that one entry here
+            GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<MasterTickUpdater>().Update);
 
             //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
             // Create all IBootInitializable implementations and invoke their boot-time Load.

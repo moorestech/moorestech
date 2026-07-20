@@ -28,13 +28,15 @@ namespace Tests.CombinedTest.Game
     public class ElectricTickUnificationTest
     {
         [Test]
-        public void tick更新はトポロジ反映が需給計算より先に登録される()
+        public void tick順序はMasterTickUpdaterに集約される()
         {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var masterTickUpdater = provider.GetRequiredService<MasterTickUpdater>();
 
-            // 登録順: 電力網再構築→歯車網再構築→電力tick→歯車tick（tick途中でセグメント所属を変えないため）
-            // Registration order: electric rebuild, gear rebuild, electric tick, gear tick — segment membership never changes mid tick
-            Assert.AreEqual(4, GameUpdater.AdditionalUpdates.Count);
+            // AdditionalUpdatesへの登録はMasterTickUpdater1本だけ（内部順序は仕様2.1）
+            // MasterTickUpdater is the only AdditionalUpdates entry; its body carries the spec 2.1 order
+            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.Count);
+            Assert.AreEqual((Action)masterTickUpdater.Update, GameUpdater.AdditionalUpdates[0]);
         }
 
         // 発電機を撤去された機械は、供給率0の導出により自然に停止する
@@ -83,22 +85,18 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(mode0.RequiredPower * 0.5f, detail.BatteryRemaining, 0.01f);
         }
 
-        // 電力tickの先行登録を検証する
-        // Verify that DI registers the electric tick before the gear tick
+        // tick登録がMasterTickUpdaterの1本に集約されていることを検証する（電力→歯車の順序はMasterTickUpdater内のコードで固定）
+        // Verify tick registration is consolidated into the single MasterTickUpdater entry (electric-before-gear order is fixed inside it)
         [Test]
         public void ElectricTickIsRegisteredBeforeGearTick()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 両tickの存在と順序を固定する
-            // Require both updaters and pin the electric updater to an earlier registration position
-            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is ElectricTickUpdater).Count);
-            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is GearTickUpdater).Count);
-            var electricTickIndex = GameUpdater.AdditionalUpdates.FindIndex(update => update.Target is ElectricTickUpdater);
-            var gearTickIndex = GameUpdater.AdditionalUpdates.FindIndex(update => update.Target is GearTickUpdater);
-            Assert.GreaterOrEqual(electricTickIndex, 0);
-            Assert.GreaterOrEqual(gearTickIndex, 0);
-            Assert.Less(electricTickIndex, gearTickIndex);
+            // 個別Updaterの直接登録は存在せず、MasterTickUpdaterだけが1本登録される
+            // No individual updater registrations remain; only the single MasterTickUpdater entry exists
+            Assert.AreEqual(1, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is MasterTickUpdater).Count);
+            Assert.AreEqual(0, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is ElectricTickUpdater).Count);
+            Assert.AreEqual(0, GameUpdater.AdditionalUpdates.FindAll(update => update.Target is GearTickUpdater).Count);
         }
 
         // 歯車→電力変換機のバッテリー残量はセーブ・ロードを跨いで維持される
