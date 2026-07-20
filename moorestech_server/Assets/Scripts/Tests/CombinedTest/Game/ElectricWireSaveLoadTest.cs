@@ -18,8 +18,8 @@ using Server.Boot;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
 using static Tests.Module.TestMod.ForUnitTestModBlockId;
-
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 
 namespace Tests.CombinedTest.Game
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Game
             GameUpdater.UpdateOneTick();
 
             var networkDatastore = saveServiceProvider.GetService<IElectricWireNetworkDatastore>();
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(pole.BlockInstanceId, out var savedSegment));
             var savedStatistics = savedSegment.Statistics;
             var savedCost = pole.GetComponent<IElectricWireConnector>().WireConnections[generator.BlockInstanceId].Cost;
@@ -89,13 +89,14 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(loadedPole.ContainsWireConnection(loadedMachine.BlockInstanceId));
 
             var loadedNetworkDatastore = loadServiceProvider.GetService<IElectricWireNetworkDatastore>();
-            Assert.AreEqual(1, loadedNetworkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(loadedNetworkDatastore));
             Assert.IsTrue(loadedNetworkDatastore.TryGetEnergySegment(loadedPole.BlockInstanceId, out var loadedSegment));
-            // 役割ごとのメンバー数(電柱=Transformer、発電機=Generator、機械=Consumer)を確認
-            // Verify per-role membership counts (pole=Transformer, generator=Generator, machine=Consumer)
-            Assert.AreEqual(1, loadedSegment.EnergyTransformers.Count);
-            Assert.AreEqual(1, loadedSegment.Generators.Count);
-            Assert.AreEqual(1, loadedSegment.Consumers.Count);
+            Assert.IsTrue(loadedNetworkDatastore.TryGetEnergySegment(loadedGenerator.BlockInstanceId, out var loadedGeneratorSegment));
+            Assert.IsTrue(loadedNetworkDatastore.TryGetEnergySegment(loadedMachine.BlockInstanceId, out var loadedMachineSegment));
+            Assert.AreSame(loadedSegment, loadedGeneratorSegment);
+            Assert.AreSame(loadedSegment, loadedMachineSegment);
+            Assert.AreEqual(1, GetGenerators(loadedSegment).Count);
+            Assert.AreEqual(1, GetConsumers(loadedSegment).Count);
 
             var loadedStatistics = loadedSegment.Statistics;
             Assert.AreEqual(savedStatistics.TotalGeneratePower, loadedStatistics.TotalGeneratePower);
@@ -147,7 +148,7 @@ namespace Tests.CombinedTest.Game
             GameUpdater.UpdateOneTick();
 
             var networkDatastore = serviceProvider.GetService<IElectricWireNetworkDatastore>();
-            Assert.AreEqual(1, networkDatastore.SegmentCount);
+            Assert.AreEqual(1, GetSegmentCount(networkDatastore));
 
             var connectorA = blockA.GetComponent<IElectricWireConnector>();
             var connectorB = blockB.GetComponent<IElectricWireConnector>();
@@ -178,12 +179,10 @@ namespace Tests.CombinedTest.Game
 
             // セグメントがA単独・C単独の2つに分かれていること
             // The segment splits into two: A alone and C alone
-            Assert.AreEqual(2, networkDatastore.SegmentCount);
+            Assert.AreEqual(2, GetSegmentCount(networkDatastore));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(connectorA.BlockInstanceId, out var segmentA));
             Assert.IsTrue(networkDatastore.TryGetEnergySegment(connectorC.BlockInstanceId, out var segmentC));
             Assert.AreNotSame(segmentA, segmentC);
-            Assert.AreEqual(1, segmentA.EnergyTransformers.Count);
-            Assert.AreEqual(1, segmentC.EnergyTransformers.Count);
         }
 
         private static Vector3Int Pos(int x, int z)

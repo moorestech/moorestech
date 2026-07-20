@@ -76,7 +76,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             }
 
             ConnectToolMaterialConsumer.Consume(judgement.WireCost.Materials, inventory);
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
 
             return true;
         }
@@ -152,7 +152,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
             connectorB.TryRemoveWireConnection(connectorA.BlockInstanceId, out _);
             foreach (var refundStack in refundStacks) inventory.InsertItem(refundStack);
 
-            ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectorA, connectorB);
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
 
             return true;
         }

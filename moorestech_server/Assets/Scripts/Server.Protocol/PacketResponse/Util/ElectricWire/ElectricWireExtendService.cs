@@ -127,22 +127,20 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 if (!TryPlacePole(polePlaceInfo, blockId, out var selfConnector))
                     return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
-                // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の電線だけを消費する
-                // Validated ahead, but to survive runtime drift we consume wires only for connections that actually succeeded
-                var connectedConnectors = new List<IElectricWireConnector> { selfConnector };
+                // 事前検証済みだが実行時ズレに備え、実際に張れた接続分の素材だけを消費する
+                // Validated ahead, but to survive runtime drift we consume materials only for connections that actually succeeded
                 foreach (var (targetId, cost) in targets)
                 {
                     var targetConnector = ServerContext.WorldBlockDatastore.GetBlock(targetId)?.GetComponent<IElectricWireConnector>();
                     if (targetConnector == null) continue;
                     if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, cost)) continue;
-                    connectedConnectors.Add(targetConnector);
                     ConnectToolMaterialConsumer.Consume(cost.Materials, inventory);
                 }
 
-                // 建設コストを消費してから連結成分を再構築する
-                // Consume the construction cost, then rebuild connected components
+                // 建設コストを消費してから再構築を予約する
+                // Consume the construction cost, then mark topology for the next tick rebuild
                 ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
-                ServerContext.GetService<IElectricWireNetworkDatastore>().RebuildAround(connectedConnectors.ToArray());
+                ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
 
                 return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
 
@@ -172,8 +170,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 if (!TryPlacePole(polePlaceInfo, blockId, out var selfConnector))
                     return ExtendResult.Failure(ElectricWirePlacementFailureReason.PositionOccupied);
 
-                // 建設コストを消費し、検証済み計画でワイヤーを張って電線を消費する
-                // Consume the construction cost, then execute the validated plan to add wires and consume wire items
+                // 建設コストを消費し、検証済み計画でワイヤーを張って素材を消費する
+                // Consume the construction cost, then execute the validated plan to add wires and consume materials
                 ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
                 ElectricWireAutoConnectService.ExecuteAutoConnect(plan, ServerContext.WorldBlockDatastore.GetBlock(selfConnector.BlockInstanceId), inventory);
 
