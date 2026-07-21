@@ -27,11 +27,13 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly BlockReplaceService _blockReplaceService;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
+            _blockReplaceService = new BlockReplaceService(_gameUnlockStateDataController);
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -54,8 +56,13 @@ namespace Server.Protocol.PacketResponse
 
             void PlaceBlock(PlaceInfoMessagePack placeInfo)
             {
-                // すでにブロックがある場合は何もしない
-                // Do nothing when a block already exists
+                // リプレース指定セルはリプレースサービスへ委譲、それ以外は既存ブロックがあれば何もしない
+                // Delegate replace-flagged cells to the replace service; otherwise skip occupied cells
+                if (placeInfo.IsReplace)
+                {
+                    _blockReplaceService.TryReplaceBlock(placeInfo, inventoryData.MainOpenableInventory, isFreePlacement);
+                    return;
+                }
                 if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
 
                 var placeBlockId = placeInfo.BlockId;
@@ -106,12 +113,9 @@ namespace Server.Protocol.PacketResponse
 
             bool IsUnlocked(BlockId blockId, Guid blockGuid)
             {
-                // ベルトファミリーは直線ブロックのunlock状態を参照する
-                // Belt families resolve unlock state through their straight block
-                var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)
-                    ? MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId).BlockGuid
-                    : blockGuid;
-                return _gameUnlockStateDataController.BlockUnlockStateInfos[unlockGuid].IsUnlocked;
+                // unlock判定はBlockReplaceServiceと共通化（ベルトファミリーは直線ブロック参照）
+                // Unlock judgement shared with BlockReplaceService (belt families resolve through their straight block)
+                return BlockReplaceService.IsUnlocked(blockId, blockGuid, _gameUnlockStateDataController);
             }
 
             #endregion
