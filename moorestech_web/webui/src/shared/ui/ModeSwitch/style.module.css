@@ -37,3 +37,11 @@
   outline: var(--bevel-1) solid var(--text-high-contrast);
   outline-offset: var(--bevel-1);
 }
+
+/* disabled時は全選択肢を従属テキストへ減衰させ、クリックを不可にする */
+/* When disabled, fade every option to secondary text and block clicks */
+.root[data-disabled] .option {
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
+}
