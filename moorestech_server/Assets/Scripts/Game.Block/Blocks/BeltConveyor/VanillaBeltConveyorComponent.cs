@@ -288,6 +288,33 @@ namespace Game.Block.Blocks.BeltConveyor
             }
         }
 
+        /// <summary>
+        /// 進行率を維持したままアイテムを挿入する（リプレース設置の搬送品引き継ぎ用）
+        /// Insert an item preserving its progress rate (for replace-placement transit handover)
+        /// </summary>
+        public bool TryInsertItemWithRemainingRate(ItemId itemId, double remainingRate)
+        {
+            BlockException.CheckDestroy(this);
+
+            // 進行率に対応するスロットから入口側へ空きを探す
+            // Search for a free slot from the rate-matched slot toward the entry side
+            var idealIndex = Math.Clamp((int)Math.Ceiling(remainingRate * _inventoryItemNum) - 1, 0, _inventoryItemNum - 1);
+            for (var i = idealIndex; i < _inventoryItems.Length; i++)
+            {
+                if (_inventoryItems[i] != null) continue;
+
+                var goalConnector = _blockInventoryInserter.GetNextGoalConnector(new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemId, 1) });
+                _inventoryItems[i] = new VanillaBeltConveyorInventoryItem(itemId, ItemInstanceId.Create(), null, goalConnector, _ticksOfItemEnterToExit)
+                {
+                    RemainingTicks = (uint)Math.Ceiling(_ticksOfItemEnterToExit * remainingRate),
+                };
+                NotifyItemsChanged();
+                return true;
+            }
+
+            return false;
+        }
+
         private void NotifyItemsChanged()
         {
             _onItemsChanged.OnNext(Unit.Default);
