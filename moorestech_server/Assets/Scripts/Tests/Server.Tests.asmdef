@@ -55,7 +55,8 @@
         "Game.PlayerRiding",
         "Game.PlayerConnection",
         "Game.CleanRoom",
-        "Game.Blueprint"
+        "Game.Blueprint",
+        "Common.Debug"
     ],
     "includePlatforms": [
         "Editor"
