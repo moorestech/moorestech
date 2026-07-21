@@ -60,66 +60,50 @@ namespace Client.Game.InGame.Tutorial
             var currentCamera = CameraManager.MainCamera.Camera;
             if (!currentCamera)
                 return;
-            
+
+            // 射影計算はWorldPinScreenProjectionに集約（Webピンと同一の座標源）
+            // Projection math is centralized in WorldPinScreenProjection (same source as web pins)
             var targetWorldPos = target.transform.position;
-            var viewportPos = currentCamera.WorldToViewportPoint(targetWorldPos);
-            
-            // 画面内かどうかの判定
-            var isOnScreen = viewportPos.z > 0 &&
-                             viewportPos.x >= 0 && viewportPos.x <= 1 &&
-                             viewportPos.y >= 0 && viewportPos.y <= 1;
-            
-            if (isOnScreen) OnScreenProcess();
+            var projection = WorldPinScreenProjection.Project(currentCamera, targetWorldPos);
+
+            if (projection.OnScreen) OnScreenProcess();
             else OffScreenProcess();
-            
+
             return;
-            
-            
+
+
             #region Internal
-            
+
             void OnScreenProcess()
             {
                 // 画面内の場合
-                
+
                 // Canvas のサイズ
                 var canvasSize = _canvasRect.rect.size;
-                
-                // ビューポート座標をCanvas座標に変換（0-1を-0.5～0.5に変換してからCanvasサイズを掛ける）
+
+                // CSS座標（左上原点）を中央原点・上正のCanvas座標に変換
+                // Convert CSS coords (top-left origin) into center-origin, +Y-up canvas coords
                 var targetCanvasPos = new Vector2(
-                    (viewportPos.x - 0.5f) * canvasSize.x,
-                    (viewportPos.y - 0.5f) * canvasSize.y
+                    (projection.ScreenX - 0.5f) * canvasSize.x,
+                    (0.5f - projection.ScreenY) * canvasSize.y
                 );
-                
+
                 // 画面中央からターゲットへの方向を計算
                 var direction = targetCanvasPos.normalized;
                 var arrowRotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-                
+
                 var rotation = Quaternion.Euler(0, 0, arrowRotation);
                 // 矢印の位置をターゲット位置に設定
                 arrow.SetArrowTransform(targetCanvasPos, rotation, true);
             }
-            
+
             void OffScreenProcess()
             {
                 // 画面外の場合
-                
-                // カメラからターゲットへの方向ベクトル（ワールド空間）
-                var cameraToTarget = targetWorldPos - currentCamera.transform.position;
-                
-                // カメラの右方向と上方向
-                var cameraRight = currentCamera.transform.right;
-                var cameraUp = currentCamera.transform.up;
-                
-                // ターゲット方向をカメラのローカル空間に投影
-                var localX = Vector3.Dot(cameraToTarget, cameraRight);
-                var localY = Vector3.Dot(cameraToTarget, cameraUp);
-                var localZ = Vector3.Dot(cameraToTarget, currentCamera.transform.forward);
-                
-                // カメラの後ろにある場合の処理
-                // 特に反転処理は不要
-                
-                // 画面上での方向ベクトル
-                var direction = new Vector2(localX, localY).normalized;
+
+                // CSS方向（+Y下）を上正のCanvas方向へ反転
+                // Flip the CSS direction (+Y down) into +Y-up canvas space
+                var direction = new Vector2(projection.DirectionX, -projection.DirectionY);
                 
                 // Canvas のサイズ
                 var canvasSize = _canvasRect.rect.size;
