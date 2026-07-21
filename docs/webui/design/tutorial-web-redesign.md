@@ -8,7 +8,7 @@
 
 チャレンジ進行とチュートリアル開始・終了の主権を Unity に保ち、DOM 化された平面 UI のハイライトとキーガイドだけを Web 表示へ移す。SPA の mount/unmount、Portal、仮想化、スクロール、リサイズに追従し、Unity が「指示を出した」ことと Web が「実際に対象を表示できた」ことを ack で区別できる設計にする。
 
-MapObjectPin、HudArrow、BlockPlacePreview はワールド座標・Camera・GameObject に依存するため Unity に残す。本書はそれらを DOM に投影せず、同じチュートリアル lifecycle で発火・終了する整合だけを扱う。
+MapObjectPin、HudArrow、BlockPlacePreview はワールド座標・Camera・GameObject に依存するため Unity に残す。本書はそれらを DOM に投影せず、同じチュートリアル lifecycle で発火・終了する整合だけを扱う。（§9で改訂: MapObjectPin / HudArrow の表示は Web へ移行済み。BlockPlacePreview のみ残置）
 
 ## 2. 現状分析
 

@@ -1,0 +1,49 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-world-pin);
+  pointer-events: none;
+}
+
+/* マーカー先端が指定座標に一致するよう、下端基準で吊り下げる */
+/* Anchor by the bottom edge so the marker tip lands exactly on the projected point */
+.pin {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translate(-50%, -100%);
+}
+
+.label {
+  margin-bottom: 2px;
+  padding: 4px 10px;
+  color: var(--text-high-contrast);
+  background: var(--world-pin-face);
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.marker {
+  width: 20px;
+  height: 20px;
+  fill: var(--world-pin-face);
+  stroke: var(--text-high-contrast);
+  stroke-width: 1.5;
+}
+
+.arrow {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+}
+
+.arrow svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: var(--text-high-contrast);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

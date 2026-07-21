@@ -29,6 +29,7 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.tooltip) return { visible: false, textKey: "", fontSize: 14 };
   if (topic === Topics.gameState) return state.gameState;
   if (topic === Topics.tutorialPresentation) return fx.tutorialPresentation;
+  if (topic === Topics.worldPins) return state.worldPins;
   if (topic === Topics.skitPresentation) return state.skitPresentation;
   if (topic === Topics.trainRiding) return state.trainRiding;
   return undefined;

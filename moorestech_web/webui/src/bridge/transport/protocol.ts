@@ -8,6 +8,7 @@ import type {
   DeleteModeData, CrosshairData,
   UiVisibilityData, MiningHudData, TooltipData,
   GameStateData, TutorialPresentationData,
+  WorldPinPresentationData,
   SkitPresentationData, TrainRidingData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
@@ -63,6 +64,7 @@ export const Topics = {
   tooltip: "ui.tooltip",
   gameState: "game_state.current",
   tutorialPresentation: "tutorial.presentation",
+  worldPins: "tutorial.world_pins",
   skitPresentation: "skit.presentation",
   trainRiding: "train.riding",
   // プレイテスト要求は snapshot を持たない一時イベントとして扱う
@@ -110,6 +112,7 @@ export type TopicPayloads = {
   [Topics.tooltip]: TooltipData;
   [Topics.gameState]: GameStateData;
   [Topics.tutorialPresentation]: TutorialPresentationData;
+  [Topics.worldPins]: WorldPinPresentationData;
   [Topics.skitPresentation]: SkitPresentationData;
   [Topics.trainRiding]: TrainRidingData;
 };
