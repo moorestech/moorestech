@@ -25,6 +25,6 @@
 .close {
   position: absolute;
   top: var(--bevel-3);
-  right: var(--bevel-3);
+  right: var(--panel-edge-fade);
   z-index: var(--z-overlay-panel);
 }
