@@ -33,7 +33,6 @@ export const PlacementModeDataSchema = z.object({
   energizedRangeVisible: z.boolean(),
 });
 export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
-export const KeyHintsDataSchema = z.object({ textKey: z.string() });
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
 export const MiningHudDataSchema = z.object({

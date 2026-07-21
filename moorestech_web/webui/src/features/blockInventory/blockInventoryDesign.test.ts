@@ -12,6 +12,7 @@ const sources = {
   electricToGear: read("./views/ElectricToGearInventory.tsx"),
   network: read("./details/NetworkSections.tsx"),
   miner: read("./details/MinerSection.tsx"),
+  machineInventoryBody: read("./details/machine/MachineInventoryBody.tsx"),
 };
 
 const styles = {
@@ -19,6 +20,7 @@ const styles = {
   gaugeBar: read("../../shared/ui/GaugeBar/style.module.css"),
   modeSwitch: read("../../shared/ui/ModeSwitch/style.module.css"),
   progressArrow: read("../../shared/ui/ProgressArrow/style.module.css"),
+  machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
 };
 
 const appTokens = read("../../app/index.css");
@@ -84,9 +86,38 @@ describe("block inventory design whitelist", () => {
     expect(styles.modeSwitch).toContain("var(--mode-switch-selected-mix)");
   });
 
-  it("MachineSectionへレシピ選択行を組み込む", () => {
+  it("MachineSectionはレシピ有りでタブ切替、電力率を共通フッタに置く", () => {
     const machineSection = read("./details/MachineSection.tsx");
-    expect(machineSection).toContain("<MachineRecipeSelectionRow");
+    expect(machineSection).toContain("<ModeSwitch");
+    expect(machineSection).toContain("<MachineRecipeSelectionTab");
+    expect(machineSection).toContain("<MachineInventoryBody");
+    expect(machineSection).toContain("<PowerRateText");
+  });
+
+  it("レシピ有り機械だけviewer〜items占有の大型パネルへ広げる", () => {
+    expect(styles.panel).toContain("grid-column: viewer-start / items-end");
+    expect(sources.panel).toContain("styles.panelLarge");
+    expect(sources.panel).toContain("buildMachineRecipeSelectionRows");
+  });
+
+  it("レシピ選択タブは共通SlotGridの9列折返しで列挙する", () => {
+    const recipeTab = read("./details/machine/MachineRecipeSelectionTab.tsx");
+    expect(recipeTab).toContain("<SlotGrid cols={Math.min(9, Math.max(1, rows.length))}");
+    expect(recipeTab).not.toMatch(/display:\s*grid/);
+  });
+
+  it("機械の加工行は進捗矢印を中央に固定する3カラムグリッドにする", () => {
+    expect(styles.machineInventoryBody).toContain("grid-template-columns: 1fr auto 1fr");
+    expect(sources.machineInventoryBody).toContain("styles.processRow");
+    expect(sources.machineInventoryBody).toContain("styles.inputSide");
+    expect(sources.machineInventoryBody).toContain("styles.outputSide");
+    expect(sources.machineInventoryBody).not.toMatch(/<Group\b/);
+  });
+
+  it("モジュールスロットをラベル付きで加工行から1段下げる", () => {
+    expect(sources.machineInventoryBody).toContain('data-testid="machine-module-label"');
+    expect(sources.machineInventoryBody).toContain('t("アップグレードスロット")');
+    expect(sources.machineInventoryBody).toContain('mt="xs"');
   });
 });
 

@@ -1,0 +1,9 @@
+/* 詳細プレビューの高さを固定し、ホバーの出入りでグリッドが跳ねないようにする */
+/* Fix the detail preview height so the grid never jumps as the hover preview toggles */
+.detailArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: calc(var(--slot-size) + 8px);
+}

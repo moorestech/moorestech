@@ -1,28 +1,22 @@
 using TMPro;
 using UnityEngine;
-using System;
 using Client.Game.InGame.UI.UIState;
-using UniRx;
 
 namespace Client.Game.InGame.UI.KeyControl
 {
     public class KeyControlDescription : MonoBehaviour
     {
         public static KeyControlDescription Instance { get; private set; }
-        
+
         [SerializeField] private TMP_Text keyControlText;
-        private readonly ReactiveProperty<string> _text = new("");
         private string _defaultText = "";
         private string _overrideText;
 
-        public IObservable<string> OnTextChanged => _text;
-        public string GetText() => _text.Value;
-        
         private void Awake()
         {
             Instance = this;
         }
-        
+
         public void SetText(string text)
         {
             _defaultText = text;
@@ -44,7 +38,6 @@ namespace Client.Game.InGame.UI.KeyControl
         private void RefreshText()
         {
             var text = _overrideText ?? _defaultText;
-            _text.Value = text;
             if (keyControlText != null)
             {
                 keyControlText.text = text;

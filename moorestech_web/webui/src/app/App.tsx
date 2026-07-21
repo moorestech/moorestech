@@ -11,7 +11,7 @@ import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
 import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
-import { Crosshair, KeyHintBar } from "@/features/commonHud";
+import { Crosshair } from "@/features/commonHud";
 import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
@@ -97,7 +97,6 @@ export default function App() {
         {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
         {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
         <Crosshair />
-        <KeyHintBar />
         <MiningHud />
         <CursorTooltip />
         <BlockInventoryPanel />

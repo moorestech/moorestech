@@ -1,54 +1,77 @@
+import { useState } from "react";
 import { Group, Stack } from "@mantine/core";
+import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen } from "@/bridge";
-import { ItemSlot, SlotGrid, ProgressArrow, FluidSlotRow } from "@/shared/ui";
-import { useBlockSlotGestures } from "../useBlockSlotGestures";
-import { itemsPerMinute, splitSlotIndices } from "./detailLogic";
+import { ItemSlot, ModeSwitch } from "@/shared/ui";
 import { useI18n } from "@/shared/i18n";
 import PowerRateText from "./PowerRateText";
-import MachineRecipeSelectionRow from "./MachineRecipeSelectionRow";
+import MachineInventoryBody from "./machine/MachineInventoryBody";
+import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
+import { buildMachineRecipeSelectionRows } from "./machine/machineRecipeSelectionLogic";
 
-// 機械: 入力→出力→モジュールの分割グリッド + 進捗 + 電力率（uGUI MachineBlockInventoryView 準拠）
-// Machine: split input→output→module grids, progress, and power rate (mirrors uGUI MachineBlockInventoryView)
+// 機械: レシピ有りはインベントリ/レシピ選択の2タブ、レシピ無しは従来スタック
+// Machine: recipe-capable machines get inventory/recipe tabs; others keep the plain stack
 export default function MachineSection({ data }: { data: BlockInventoryOpen }) {
-  // ジェスチャ配線は BlockItemGrid と共通。分割グリッドでも右クリ/Shift/収集がフルに効く
-  // Gesture wiring shared with BlockItemGrid; split grids get the full right-click/Shift/collect set
-  const gestures = useBlockSlotGestures();
+  const machineRecipes = useTopic(Topics.machineRecipes);
+  const [tab, setTab] = useState("inventory");
   const { t } = useI18n();
   if (!data.machine) return null;
   const machine = data.machine;
-  const { input, output, module } = splitSlotIndices(machine.slotLayout, data.itemSlots.length);
 
-  const slotAt = (i: number) => {
-    const slot = data.itemSlots[i];
+  const rows = buildMachineRecipeSelectionRows(
+    machineRecipes?.recipes ?? [],
+    machine.blockGuid,
+    machine.selectedRecipeGuid,
+  );
+  // 電力率は稼働状態の常時視認のため、タブの外の共通フッタとして中央揃えで表示する
+  // The power rate stays visible on both tabs as a centered common footer for at-a-glance status
+  const powerRate = (
+    <Group justify="center">
+      <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
+    </Group>
+  );
+
+  if (rows.length === 0) {
     return (
-      <ItemSlot
-        key={i}
-        itemId={slot.itemId}
-        count={slot.count}
-        onLeftDown={(shiftKey) => gestures.onLeftDown(i, shiftKey)}
-        onRightDown={() => gestures.onRightDown(i)}
-        onDoubleClick={() => gestures.onDoubleClick(i)}
-      />
+      <Stack gap="xs" data-testid="machine-section">
+        <MachineInventoryBody data={data} />
+        {powerRate}
+      </Stack>
     );
-  };
+  }
+
+  // 選択中レシピの生産物はインベントリタブでも1個表示する（個数バッジ無し）
+  // The selected recipe's product also shows on the inventory tab as one badge-less slot
+  const selectedRow = rows.find((row) => row.selected);
 
   return (
-    <Stack gap="xs" data-testid="machine-section">
-      <Group align="center" gap="md">
-        <SlotGrid cols={Math.max(1, input.length)} testId="machine-input-slots">{input.map(slotAt)}</SlotGrid>
-        <ProgressArrow value={data.progress ?? 0} />
-        <SlotGrid cols={Math.max(1, output.length)} testId="machine-output-slots">{output.map(slotAt)}</SlotGrid>
-      </Group>
-      {module.length > 0 && <SlotGrid cols={module.length} testId="machine-module-slots">{module.map(slotAt)}</SlotGrid>}
-      {/* 機械の流体行は従来どおり矢印なし（加工進捗は入出力グリッド間の矢印が担う） */}
-      {/* The machine fluid row keeps no arrow; processing progress lives between the in/out grids */}
-      <FluidSlotRow fluids={data.fluidSlots} testId="machine-fluid-slots" />
-      <PowerRateText currentPower={data.machine.currentPower} requestPower={data.machine.requestPower} testId="machine-power-rate" />
-      {machine.outputItems.map((output) => {
-        const rate = itemsPerMinute(output.count, machine.recipeTime);
-        return rate === null ? null : <div key={output.itemId} data-testid="machine-items-per-minute">{t("分間生産数")} <span>{rate}</span></div>;
-      })}
-      <MachineRecipeSelectionRow data={data} />
+    <Stack gap="sm" data-testid="machine-section">
+      <ModeSwitch
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: "inventory", label: t("インベントリ"), testId: "machine-tab-inventory" },
+          { value: "recipes", label: t("レシピ選択"), testId: "machine-tab-recipes" },
+        ]}
+        testId="machine-tab-switch"
+      />
+      {tab === "inventory" ? (
+        <>
+          {selectedRow && (
+            <Group justify="center" data-testid="machine-selected-product">
+              <ItemSlot itemId={selectedRow.iconItemId} />
+            </Group>
+          )}
+          <MachineInventoryBody data={data} />
+        </>
+      ) : (
+        <MachineRecipeSelectionTab
+          rows={rows}
+          recipes={machineRecipes?.recipes ?? []}
+          onSelected={() => setTab("inventory")}
+        />
+      )}
+      {powerRate}
     </Stack>
   );
 }
