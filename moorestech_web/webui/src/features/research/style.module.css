@@ -1,10 +1,15 @@
 /* 研究エリア: stageグリッドのviewer〜items列を占有。全画面固定・不透明塗りは廃止 */
 /* Research area occupies the viewer..items grid columns; no fixed fullscreen, no opaque fill */
+/* stage上padding(115px)より上のy48まで持ち上げて描画面積を最大化し、下端はホットバー手前のy640で止める */
+/* Lift the panel above the stage's 115px top padding to y48 for max area; stop at y640, clear of the hotbar */
+/* 下端装飾はパネル下-7pxまで出るため、ホットバー番号タブ(y≈652)との間に約5pxの余白が残る */
+/* The bottom deco extends 7px past the panel, leaving ~5px clearance to the hotbar number tabs (y≈652) */
 .researchArea {
   grid-column: viewer-start / items-end;
   grid-row: 1;
   position: relative;
-  height: 100%;
+  margin-top: -67px;
+  height: 592px;
   min-width: 0;
 }
 /* TreeViewのviewportはflex:1で高さを取る前提。ChallengePanel同様にflex列で包む */
