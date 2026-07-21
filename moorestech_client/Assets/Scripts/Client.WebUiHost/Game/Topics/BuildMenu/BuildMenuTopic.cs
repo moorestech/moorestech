@@ -84,7 +84,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         private string BuildJson()
         {
-            var dto = new BuildMenuTopicDto { Entries = BuildMenuEntryDtoFactory.CreateDtos(_unlockState, _blueprintLibrary) };
+            var dto = new BuildMenuTopicDto
+            {
+                Categories = BuildMenuEntryDtoFactory.CreateCategoryDtos(),
+                Entries = BuildMenuEntryDtoFactory.CreateDtos(_unlockState, _blueprintLibrary),
+            };
             return WebUiJson.Serialize(dto);
         }
     }

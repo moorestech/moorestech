@@ -1,11 +1,13 @@
+using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Mod.Texture;
+using Core.Master;
 
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    /// ビルドメニュー1エントリ（設置ターゲット＋表示情報）
-    /// One build-menu entry: a placement target plus its display info
+    /// 建設メニュー1エントリの表示・分類情報。tooltip文字列は持たず構造化データのみ持つ
+    /// A single build menu entry. Holds structured data instead of a preformatted tooltip string
     /// </summary>
     public readonly struct BuildMenuEntry
     {
@@ -14,13 +16,31 @@ namespace Client.Game.InGame.UI.BuildMenu
         // アイコン無し（BP等）はnullでテキスト表示になる
         // Null icon (e.g. blueprints) renders as a text-only slot
         public readonly ItemViewData IconView;
-        public readonly string ToolTipText;
+        public readonly string Label;
+        public readonly string Category;
+        public readonly string SubCategory;
+        public readonly IReadOnlyList<RequiredItem> RequiredItems;
 
-        public BuildMenuEntry(IPlacementTarget target, ItemViewData iconView, string toolTipText)
+        public BuildMenuEntry(IPlacementTarget target, ItemViewData iconView, string label, string category, string subCategory, IReadOnlyList<RequiredItem> requiredItems)
         {
             Target = target;
             IconView = iconView;
-            ToolTipText = toolTipText;
+            Label = label;
+            Category = category;
+            SubCategory = subCategory;
+            RequiredItems = requiredItems;
+        }
+
+        public readonly struct RequiredItem
+        {
+            public readonly ItemId ItemId;
+            public readonly int Count;
+
+            public RequiredItem(ItemId itemId, int count)
+            {
+                ItemId = itemId;
+                Count = count;
+            }
         }
     }
 }
