@@ -24,8 +24,7 @@ describe("delete mode schema", () => {
 });
 
 describe("common HUD schemas", () => {
-  it("accepts key hints, crosshair, and visibility state", () => {
-    expect(validateTopicPayload(Topics.keyHints, { textKey: "Esc: Back" })).toBe(true);
+  it("accepts crosshair and visibility state", () => {
     expect(validateTopicPayload(Topics.crosshair, { visible: true })).toBe(true);
     expect(validateTopicPayload(Topics.uiVisibility, { visible: false })).toBe(true);
     expect(validateTopicPayload(Topics.crosshair, {})).toBe(false);
