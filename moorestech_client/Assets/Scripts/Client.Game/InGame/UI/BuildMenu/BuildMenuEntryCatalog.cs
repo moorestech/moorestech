@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Common.Debug;
 using Game.Block.Interface.Extension;
-using Client.Mod.Texture;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.TrainModule;
 
 namespace Client.Game.InGame.UI.BuildMenu
 {
@@ -22,6 +19,17 @@ namespace Client.Game.InGame.UI.BuildMenu
     /// </summary>
     public static class BuildMenuEntryCatalog
     {
+        // 非ブロックエントリの固定カテゴリ（blockCategories定義に同名ペアが必要。不一致はDtoFactoryのガードで検出）
+        // Fixed categories for non-block entries. Pairs must exist in blockCategories; mismatch is caught by the DtoFactory guard
+        private const string TrainCarCategory = "輸送";
+        private const string TrainCarSubCategory = "車両";
+        private const string ConnectToolCategory = "ツール";
+        private const string ConnectToolSubCategory = "接続";
+        private const string BlueprintCopyCategory = "ツール";
+        private const string BlueprintCopySubCategory = "ブループリント";
+        private const string BlueprintCategory = "ブループリント";
+        private const string BlueprintSubCategory = "保存済み";
+
         public static List<BuildMenuEntry> CreateEntries(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
         {
             var entries = new List<BuildMenuEntry>();
@@ -41,7 +49,8 @@ namespace Client.Game.InGame.UI.BuildMenu
             {
                 var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
                 var iconView = ClientContext.BlockImageContainer.GetBlockView(blockId);
-                entries.Add(new BuildMenuEntry(new BlockPlacementTarget(blockId, null), iconView, CreateBlockToolTip(blockMaster)));
+                var requiredItems = ToRequiredItems(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
+                entries.Add(new BuildMenuEntry(new BlockPlacementTarget(blockId, null), iconView, blockMaster.Name, blockMaster.Category, blockMaster.SubCategory, requiredItems));
             }
 
             // 解放済み車両を列挙する
@@ -50,7 +59,11 @@ namespace Client.Game.InGame.UI.BuildMenu
             {
                 if (!showAllPlaceable && (!unlockState.TrainCarUnlockStateInfos.TryGetValue(trainCar.TrainCarGuid, out var state) || !state.IsUnlocked)) continue;
                 var iconView = ClientContext.TrainCarImageContainer.GetTrainCarView(trainCar.TrainCarGuid);
-                entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, CreateTrainCarToolTip(trainCar, iconView)));
+
+                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
+                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
+                var requiredItems = ToRequiredItems(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count)));
+                entries.Add(new BuildMenuEntry(new TrainCarPlacementTarget(trainCar.TrainCarGuid), iconView, iconView.ItemName, TrainCarCategory, TrainCarSubCategory, requiredItems));
             }
 
             // 解放済みconnectToolをSortPriority順に1エントリずつ表示（アイコンはimagePath由来）
@@ -61,18 +74,18 @@ namespace Client.Game.InGame.UI.BuildMenu
             foreach (var connectTool in unlockedConnectTools)
             {
                 var iconView = ClientContext.ConnectToolImageContainer.GetConnectToolView(connectTool.ConnectToolGuid);
-                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), iconView, connectTool.Name));
+                entries.Add(new BuildMenuEntry(new ConnectToolPlacementTarget(connectTool.ConnectToolGuid), iconView, connectTool.Name, ConnectToolCategory, ConnectToolSubCategory, new List<BuildMenuEntry.RequiredItem>()));
             }
 
             // 接続ツール群にBPコピーツール追加（テキスト表示）
             // Append the blueprint copy tool alongside the connect tools (icon-less text slot)
-            entries.Add(new BuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, "ブループリントコピー"));
+            entries.Add(new BuildMenuEntry(new BlueprintCopyToolPlacementTarget(), null, "ブループリントコピー", BlueprintCopyCategory, BlueprintCopySubCategory, new List<BuildMenuEntry.RequiredItem>()));
 
             // 保存済みBPのエントリを追加
             // Append entries for saved blueprints
             foreach (var blueprint in blueprintLibrary.Blueprints)
             {
-                entries.Add(new BuildMenuEntry(new BlueprintPlacementTarget(blueprint.Name), null, blueprint.Name));
+                entries.Add(new BuildMenuEntry(new BlueprintPlacementTarget(blueprint.Name), null, blueprint.Name, BlueprintCategory, BlueprintSubCategory, new List<BuildMenuEntry.RequiredItem>()));
             }
 
             return entries;
@@ -84,37 +97,20 @@ namespace Client.Game.InGame.UI.BuildMenu
                 return state.BlockUnlockStateInfos.TryGetValue(blockMaster.BlockGuid, out var info) && info.IsUnlocked;
             }
 
-            string CreateBlockToolTip(BlockMasterElement blockMaster)
-            {
-                var builder = new StringBuilder(blockMaster.Name);
-                AppendRequiredItems(builder, ConstructionCostTexts(blockMaster.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
-                return builder.ToString();
-            }
-
-            string CreateTrainCarToolTip(TrainCarMasterElement trainCar, ItemViewData iconView)
-            {
-                // 車両マスタにnameが無いため、アイコンビューの表示名（addressablePath末尾）を使う
-                // Train car masters have no name, so use the icon view's display name (addressablePath tail)
-                var builder = new StringBuilder(iconView.ItemName);
-                AppendRequiredItems(builder, ConstructionCostTexts(trainCar.RequiredItems?.Select(r => (r.ItemGuid, r.Count))));
-                return builder.ToString();
-            }
-
-            IEnumerable<string> ConstructionCostTexts(IEnumerable<(Guid itemGuid, int count)> requiredItems)
-            {
-                if (requiredItems == null) yield break;
-                foreach (var (itemGuid, count) in requiredItems)
-                {
-                    yield return $"{MasterHolder.ItemMaster.GetItemMaster(itemGuid).Name} x{count}";
-                }
-            }
-
-            void AppendRequiredItems(StringBuilder builder, IEnumerable<string> costTexts)
-            {
-                foreach (var text in costTexts) builder.Append('\n').Append(text);
-            }
-
             #endregion
+        }
+
+        private static List<BuildMenuEntry.RequiredItem> ToRequiredItems(IEnumerable<(Guid itemGuid, int count)> requiredItems)
+        {
+            // マスタのItemGuidを通信・表示用の揮発ItemIdへ解決する
+            // Resolve master ItemGuids into volatile ItemIds for wire and display use
+            var results = new List<BuildMenuEntry.RequiredItem>();
+            if (requiredItems == null) return results;
+            foreach (var (itemGuid, count) in requiredItems)
+            {
+                results.Add(new BuildMenuEntry.RequiredItem(MasterHolder.ItemMaster.GetItemId(itemGuid), count));
+            }
+            return results;
         }
     }
 }

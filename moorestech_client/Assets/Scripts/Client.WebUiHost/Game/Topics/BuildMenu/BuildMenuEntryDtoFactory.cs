@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
@@ -18,18 +20,35 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dtos = new List<BuildMenuEntryDto>();
             foreach (var entry in BuildMenuEntryCatalog.CreateEntries(unlockState, blueprintLibrary))
             {
+                // 種別導出カテゴリがblockCategories定義に無い場合は設定不備として即座に失敗させる
+                // Fail loudly when a derived category pair is missing from the blockCategories definition
+                if (!MasterHolder.BlockCategoryMaster.Contains(entry.Category, entry.SubCategory))
+                    throw new InvalidOperationException($"BuildMenu entry has undefined category pair. label:{entry.Label} category:{entry.Category} subCategory:{entry.SubCategory}");
+
                 dtos.Add(new BuildMenuEntryDto
                 {
                     EntryType = GetEntryTypeName(entry.Target),
                     EntryKey = GetEntryKey(entry.Target),
-                    // ラベルはツールチップ1行目（ブロック名等）を使う
-                    // The label is the tooltip's first line (block name etc.)
-                    Label = entry.ToolTipText.Split('\n')[0],
-                    Tooltip = entry.ToolTipText,
+                    Label = entry.Label,
+                    Category = entry.Category,
+                    SubCategory = entry.SubCategory,
+                    RequiredItems = entry.RequiredItems.Select(r => new BuildMenuRequiredItemDto { ItemId = r.ItemId.AsPrimitive(), Count = r.Count }).ToList(),
                     IconUrl = CreateIconUrl(entry.Target),
                 });
             }
             return dtos;
+        }
+
+        public static List<BuildMenuCategoryDto> CreateCategoryDtos()
+        {
+            // blockCategoriesマスタの配列順そのままが表示順の正
+            // The array order of the blockCategories master is the source of truth for display order
+            return MasterHolder.BlockCategoryMaster.BlockCategories.Data
+                .Select(c => new BuildMenuCategoryDto
+                {
+                    Name = c.Name,
+                    SubCategories = c.SubCategories.Select(s => s.Name).ToList(),
+                }).ToList();
         }
 
         // web契約の entryType 文字列（select アクションの照合と共有する）
