@@ -125,9 +125,13 @@ echo "== [5/5] ゲームサーバーポート(11564)の空き =="
 if [[ "$PING" == "pong:True" ]]; then
     echo "OK: 自プロジェクトがPlayMode中（ポートは自サーバーが保持している想定）"
 else
-    PORT_HOLDERS=$(lsof -nP -iTCP:11564 2>/dev/null | grep -E "LISTEN|ESTABLISHED" || true)
+    # LISTENのみを塞がり扱いにする。停止済みPlayModeのESTABLISHEDペア残留はbindを妨げない（実測: bind可）
+    # Treat only LISTEN as blocking; stale ESTABLISHED pairs left by a stopped play mode do not prevent bind (verified)
+    PORT_HOLDERS=$(lsof -nP -iTCP:11564 -sTCP:LISTEN 2>/dev/null | grep "LISTEN" || true)
     if [[ -z "$PORT_HOLDERS" ]]; then
         echo "OK: port 11564 free"
+        STALE_PAIRS=$(lsof -nP -iTCP:11564 2>/dev/null | grep "ESTABLISHED" || true)
+        [[ -n "$STALE_PAIRS" ]] && echo "  note: 残留ESTABLISHEDペアあり（無害）: $(echo "$STALE_PAIRS" | head -1)"
     else
         echo "NG: port 11564 in use（他worktreeのPlayMode/ソケットリークの可能性）:"
         echo "$PORT_HOLDERS" | head -4
