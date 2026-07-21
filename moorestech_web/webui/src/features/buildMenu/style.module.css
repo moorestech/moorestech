@@ -84,7 +84,15 @@
 .sectionHeading {
   font-size: 12px;
   font-weight: 400;
-  margin: 0 0 4px;
+  margin: 0;
+}
+
+/* 見出し→FadeRule→SlotGridの縦積み。gapで一定間隔を保つ（§8.11） */
+/* Stacks heading, FadeRule, and SlotGrid; gap keeps consistent spacing (§8.11) */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .previewIcon,

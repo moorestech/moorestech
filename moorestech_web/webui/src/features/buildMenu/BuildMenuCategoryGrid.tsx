@@ -1,4 +1,4 @@
-import { SlotGrid } from "@/shared/ui";
+import { FadeRule, SlotGrid } from "@/shared/ui";
 import type { BuildMenuEntryData } from "@/bridge";
 import type { BuildMenuSection } from "./buildMenuGrouping";
 import { BuildMenuSlot } from "./BuildMenuSlot";
@@ -23,8 +23,13 @@ export function BuildMenuCategoryGrid({ sections, compositeHeading, onSelect, on
   return (
     <div className={styles.gridArea}>
       {sections.map((section) => (
-        <section key={`${section.category}/${section.subCategory}`} data-testid={`build-menu-section-${section.category}-${section.subCategory}`}>
+        <section
+          key={`${section.category}/${section.subCategory}`}
+          className={styles.section}
+          data-testid={`build-menu-section-${section.category}-${section.subCategory}`}
+        >
           <h3 className={styles.sectionHeading}>{sectionHeading(section)}</h3>
+          <FadeRule />
           <SlotGrid cols={8}>
             {section.entries.map((entry) => (
               <BuildMenuSlot
