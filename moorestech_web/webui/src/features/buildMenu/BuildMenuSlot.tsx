@@ -18,7 +18,7 @@ export default function BuildMenuSlot({ entry, onLeftClick, onRightClick }: Prop
   const slotMouse = useSlotMouse(() => onLeftClick(), onRightClick);
 
   return (
-    <Tooltip label={<span className={styles.tooltip}>{entry.tooltip}</span>}>
+    <Tooltip label={<span className={styles.tooltip}>{entry.label}</span>}>
       <div
         className={styles.slot}
         data-testid={`build-menu-entry-${entry.entryType}-${entry.entryKey}`}
