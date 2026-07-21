@@ -122,6 +122,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 isStartDirectionZ,
                 BlockDirection.North,
                 blockMasterElement,
+                false,
                 (_, _) => true,
                 _ => false
             );
@@ -148,7 +149,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             // isNotExistBlock always returns true (no occupancy); the endpoints must still stay unplaceable.
             var actual = BeltConveyorPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
-                blockMasterElement, (_, _) => true, obstacle.Contains);
+                blockMasterElement, false, (_, _) => true, obstacle.Contains);
 
             Assert.IsFalse(actual[0].Placeable);
             Assert.IsFalse(actual[2].Placeable);

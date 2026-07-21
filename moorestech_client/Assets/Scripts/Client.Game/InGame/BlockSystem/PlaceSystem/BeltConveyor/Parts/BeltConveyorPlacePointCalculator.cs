@@ -23,18 +23,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
 
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster)
+        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, bool isReplaceDrag)
         {
-            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied);
+            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, isReplaceDrag, IsNotExistBlock, IsOccupied);
         }
 
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied)
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, bool isReplaceDrag, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied)
         {
             var (placeInfos, startToCornerDistance) = BeltConveyorPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);
 
-            // 障害物を自動で跨ぐ立体交差プロファイルを後段で重ねる
-            // Layer the auto-overpass profile that steps over obstacles
-            new ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied);
+            // 障害物を自動で跨ぐ立体交差プロファイルを後段で重ねる（リプレースドラッグ時は持ち上げず実y高さに留める）
+            // Layer the auto-overpass profile that steps over obstacles (skip during replace drag so cells stay at their real y)
+            if (!isReplaceDrag) new ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied);
 
             // Raiserが立体交差不能で立てた設置不可フラグを残したまま、占有判定を重ねる
             // Keep the infeasibility flag the Raiser set for an impossible overpass, then AND in occupancy.

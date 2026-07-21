@@ -105,12 +105,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
-                _clickStartPosition = placePoint;
-                _clickStartHeightOffset = _heightOffset;
+                // 天面レイヒットで浮いた起点を直下の既存ファミリーブロックへ引き戻して判定する
+                // Resolve the ray-floated start cell down to the family block below before judging
+                var startCell = ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, placePoint);
+                _isReplaceDrag = ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, startCell);
 
-                // 起点セルと手持ちが両方ファミリーならこのドラッグをリプレース設置にする
-                // Make this drag a replace placement when both the start cell and held block are families
-                _isReplaceDrag = ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, placePoint);
+                // リプレースドラッグ時のみ解決後セルを起点にし、通常設置は従来通り生placePointを使う
+                // Use the resolved cell only for replace drags; normal placement keeps the raw placePoint
+                _clickStartPosition = _isReplaceDrag ? startCell : placePoint;
+                _clickStartHeightOffset = _heightOffset;
             }
 
             //プレビュー表示と地面との接触を取得する
@@ -159,24 +162,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             void SetCurrentPlaceInfo()
             {
+                // リプレースドラッグ中は終点も直下の既存ファミリーブロックへ引き戻す（通常設置は生placePoint）
+                // During a replace drag, also pull the endpoint down to the family block below (normal placement keeps raw placePoint)
+                var endPoint = _isReplaceDrag ? ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, placePoint) : placePoint;
+
                 List<PlaceInfo> cellInfos;
                 if (_clickStartPosition.HasValue)
                 {
-                    if (_clickStartPosition.Value == placePoint)
+                    if (_clickStartPosition.Value == endPoint)
                     {
                         _isStartZDirection = null;
                     }
                     else if (!_isStartZDirection.HasValue)
                     {
-                        _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
+                        _isStartZDirection = Mathf.Abs(endPoint.z - _clickStartPosition.Value.z) > Mathf.Abs(endPoint.x - _clickStartPosition.Value.x);
                     }
 
-                    cellInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
+                    cellInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, endPoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster, _isReplaceDrag);
                 }
                 else
                 {
                     _isStartZDirection = null;
-                    cellInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
+                    cellInfos = _blockPlacePointCalculator.CalculatePoint(endPoint, endPoint, true, _currentBlockDirection, holdingBlockMaster, _isReplaceDrag);
                 }
 
                 // セル列へ直線・坂ブロックを1対1で割り当てる
