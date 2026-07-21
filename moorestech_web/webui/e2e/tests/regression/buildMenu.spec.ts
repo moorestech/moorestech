@@ -85,7 +85,7 @@ test("エントリの無いカテゴリはサイドバーに出ない", async ({
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  // fixturesの全カテゴリにエントリがあるため、定義順どおり3カテゴリのみが並ぶことを確認する
-  // fixtures' every category has entries, so this confirms only the 3 defined categories render, in order
+  // fixturesは4カテゴリ定義だが「建材」はエントリ皆無のため、エントリを持つ3カテゴリのみが並ぶ
+  // fixtures define 4 categories but "建材" has no entries, so only the 3 with entries render
   await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(3);
 });
