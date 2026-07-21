@@ -23,19 +23,19 @@ namespace Tests.UnitTest.Game.GearTopology
 
             // add/remove履歴ではなく境界時点のlive登録だけをBFS対象にする
             // Run BFS over only the live registry at the boundary, not add/remove history
-            GearNetworkDatastore.AddGear(removed);
-            GearNetworkDatastore.RemoveGear(removed);
-            GearNetworkDatastore.AddGear(a);
-            GearNetworkDatastore.AddGear(b);
-            GearNetworkDatastore.AddGear(c);
+            datastore.AddGear(removed);
+            datastore.RemoveGear(removed);
+            datastore.AddGear(a);
+            datastore.AddGear(b);
+            datastore.AddGear(c);
             datastore.RebuildIfDirty();
 
             Assert.AreEqual(1, a.AdjacencyEnumerationCount);
             Assert.AreEqual(1, b.AdjacencyEnumerationCount);
             Assert.AreEqual(1, c.AdjacencyEnumerationCount);
             Assert.AreEqual(0, removed.AdjacencyEnumerationCount);
-            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(a.BlockInstanceId, out var networkA));
-            Assert.IsTrue(GearNetworkDatastore.TryGetGearNetwork(c.BlockInstanceId, out var networkC));
+            Assert.IsTrue(datastore.TryGetGearNetwork(a.BlockInstanceId, out var networkA));
+            Assert.IsTrue(datastore.TryGetGearNetwork(c.BlockInstanceId, out var networkC));
             Assert.AreSame(networkA, networkC);
         }
 
@@ -43,7 +43,7 @@ namespace Tests.UnitTest.Game.GearTopology
         public void dirtyでない再構築は適用済みmapを維持する()
         {
             var datastore = new GearNetworkDatastore();
-            GearNetworkDatastore.AddGear(new FakeGear(1));
+            datastore.AddGear(new FakeGear(1));
             datastore.RebuildIfDirty();
             var appliedMap = GearNetworkDatastoreReflectionTestUtil.GetTopologyMap(datastore);
 
