@@ -1,7 +1,9 @@
 using System;
+using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Tutorial.TutorialBlock;
+using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -15,6 +17,10 @@ namespace Client.Game.InGame.Tutorial
 {
     public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
+        // WebオーバーレイでのピンID。BlockPlacePreviewTutorialManagerはシーンに1つなので固定IDでよい
+        // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
+        private const string WebPinId = "block-place-preview-pin";
+
         private BlockGameObjectDataStore _blockGameObjectDataStore;
         private TutorialBlockPreviewObject _previewObject;
         private BlockPlacePreviewTutorialParam _currentParam;
@@ -25,6 +31,19 @@ namespace Client.Game.InGame.Tutorial
         public void Construct(BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
+        }
+
+        private void Update()
+        {
+            // Webへ射影配信する（3Dプレビュー自体はUnity側に残置し、矢印/ピンのみWeb化）
+            // Project and publish to the web overlay (the 3D preview stays in Unity; only the arrow/pin moves to web)
+            if (!WebUiScreenGate.IsWebUiMode || _currentParam == null || _previewObject == null) return;
+
+            var camera = CameraManager.MainCamera.Camera;
+            if (!camera) return;
+
+            var projection = WorldPinScreenProjection.Project(camera, _previewObject.transform.position);
+            WorldPinStateStore.Instance.SetPin(WebPinId, _currentParam.Message, projection);
         }
 
         public ITutorialView ApplyTutorial(ITutorialParam param)
@@ -61,7 +80,7 @@ namespace Client.Game.InGame.Tutorial
                 {
                     if (_previewObject != null)
                     {
-                        HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
+                        if (!WebUiScreenGate.IsWebUiMode) HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
                         _previewObject.DestroyPreview();
                     }
 
@@ -76,7 +95,11 @@ namespace Client.Game.InGame.Tutorial
                 _previewObject.SetTransform(position, rotation);
                 _previewObject.SetPlaceableColor(true);
                 _previewObject.SetActive(true);
-                HudArrowManager.RegisterHudArrowTarget(_previewObject.gameObject, new HudArrowOptions(hideWhenTargetInactive: false));
+
+                // Webモードでは矢印もWebオーバーレイが担うため、uGUIのHudArrowは登録しない
+                // In web mode the overlay also renders the arrow, so skip the uGUI HudArrow registration
+                if (!WebUiScreenGate.IsWebUiMode)
+                    HudArrowManager.RegisterHudArrowTarget(_previewObject.gameObject, new HudArrowOptions(hideWhenTargetInactive: false));
             }
 
             void SubscribePlacementEvent()
@@ -106,11 +129,20 @@ namespace Client.Game.InGame.Tutorial
             // Hide the preview and update HUD state
             if (_previewObject != null)
             {
-                HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
+                if (!WebUiScreenGate.IsWebUiMode) HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
                 _previewObject.SetActive(false);
             }
 
+            // Webピンは冪等に除去（未配信でも安全）
+            // Removing the web pin is idempotent, safe even when never published
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
+
             _currentParam = null;
+        }
+
+        private void OnDestroy()
+        {
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
     }
 }
