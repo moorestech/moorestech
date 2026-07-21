@@ -57,7 +57,7 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             // Compute the dragged gear-belt placement via the production calc path.
             var holding = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor);
             var placeInfos = BeltConveyorPlacePointCalculator.CalculatePoint(
-                start, end, false, BlockDirection.East, holding,
+                start, end, false, BlockDirection.East, holding, false,
                 (info, _) => !world.Exists(info.Position),
                 cell => world.Exists(cell));
 

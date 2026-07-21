@@ -137,13 +137,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
-                _clickStartPosition = placePoint;
-                _clickStartHeightOffset = _heightOffset;
-
-                // 1x1ブロックかつ起点セルと手持ちが両方ファミリーならこのドラッグをリプレース設置にする
-                // Make this drag a replace placement only for 1x1 blocks where start cell and held block are both families
+                // 天面レイヒットで浮いた起点を直下の既存ファミリーブロックへ引き戻して判定する（1x1のみ対象）
+                // Resolve the ray-floated start cell down to the family block below before judging (1x1 blocks only)
+                var startCell = ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, placePoint);
                 _isReplaceDrag = holdingBlockMaster.BlockSize == Vector3Int.one
-                                 && ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, placePoint);
+                                 && ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, startCell);
+
+                // リプレースドラッグ時のみ解決後セルを起点にし、通常設置は従来通り生placePointを使う
+                // Use the resolved cell only for replace drags; normal placement keeps the raw placePoint
+                _clickStartPosition = _isReplaceDrag ? startCell : placePoint;
+                _clickStartHeightOffset = _heightOffset;
             }
 
             //プレビュー表示と地面との接触を取得する
@@ -197,7 +200,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             void SetCurrentPlaceInfo()
             {
                 var startPoint = _clickStartPosition ?? placePoint;
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(startPoint, placePoint, _currentBlockDirection, holdingBlockMaster);
+
+                // リプレースドラッグ中は終点も直下の既存ファミリーブロックへ引き戻す（通常設置は生placePoint）
+                // During a replace drag, also pull the endpoint down to the family block below (normal placement keeps raw placePoint)
+                var endPoint = _isReplaceDrag ? ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, placePoint) : placePoint;
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(startPoint, endPoint, _currentBlockDirection, holdingBlockMaster);
             }
 
             void MarkReplaceCells()
