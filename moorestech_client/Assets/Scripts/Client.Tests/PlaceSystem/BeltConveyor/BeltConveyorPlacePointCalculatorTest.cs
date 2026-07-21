@@ -107,7 +107,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 "TestBlockType",
                                 null,
                 null,
-                null,
+                "テスト",
+                "テスト",
                 0,
                 false,
                 testCase.BlockSize,
@@ -141,7 +142,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         [Test]
         public void InfeasibleOverpass_KeepsEndpointsUnplaceable()
         {
-            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", null, null, null, 0, false, Vector3Int.one, null, null, null);
+            var blockMasterElement = new BlockMasterElement(0, Guid.Empty, "TestBlock", "TestBlockType", null, null, "テスト", "テスト", 0, false, Vector3Int.one, null, null, null);
             var obstacle = new HashSet<Vector3Int> { new(1, 0, 0), new(1, 1, 0) };
 
             // isNotExistBlock は常に true（占有なし扱い）。それでも端点は不可のまま残るべき
