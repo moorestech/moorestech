@@ -56,6 +56,9 @@
   /* ブロックパネルの下向き三角と内容を分離する安全帯を確保する */
   /* Reserves a safe area between block-panel content and the downward triangle */
   --block-panel-bottom-safe-area: 58px;
+  /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
+  /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
+  --block-panel-right-safe-area: 28px;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;
