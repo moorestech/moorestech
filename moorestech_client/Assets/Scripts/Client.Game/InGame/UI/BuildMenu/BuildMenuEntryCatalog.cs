@@ -99,8 +99,8 @@ namespace Client.Game.InGame.UI.BuildMenu
 
             List<BuildMenuEntry.RequiredItem> ToRequiredItems(IEnumerable<(Guid itemGuid, int count)> requiredItems)
             {
-                // マスタのItemGuidを通信・表示用の揮発ItemIdへ解決する
-                // Resolve master ItemGuids into volatile ItemIds for wire and display use
+                // ItemGuidを揮発ItemIdへ解決
+                // Resolve ItemGuid to a volatile ItemId
                 var results = new List<BuildMenuEntry.RequiredItem>();
                 if (requiredItems == null) return results;
                 foreach (var (itemGuid, count) in requiredItems)

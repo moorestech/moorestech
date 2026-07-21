@@ -280,8 +280,8 @@ namespace Core.Master.Validator
 
             string BlockCategoryReferenceValidation()
             {
-                // category/subCategoryペアがblockCategoriesに定義済みであることを検証する
-                // Validate that each category and subCategory pair is defined in blockCategories
+                // カテゴリペアの定義有無を検証
+                // Validate the category pair is defined
                 var logs = string.Empty;
                 foreach (var block in blocks.Data)
                 {

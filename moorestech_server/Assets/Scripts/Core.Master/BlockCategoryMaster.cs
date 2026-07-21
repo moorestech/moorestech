@@ -19,8 +19,8 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            // カテゴリ名・カテゴリ内サブカテゴリ名の一意性を検証する
-            // Validate uniqueness of category names and sub category names within a category
+            // カテゴリ/サブカテゴリ名の一意性検証
+            // Validate uniqueness of category and sub category names
             errorLogs = string.Empty;
             var categoryNames = BlockCategories.Data.Select(c => c.Name).ToList();
             foreach (var duplicated in categoryNames.GroupBy(n => n).Where(g => 1 < g.Count()))
@@ -35,8 +35,8 @@ namespace Core.Master
 
         public void Initialize()
         {
-            // 参照整合チェック用にカテゴリ/サブカテゴリの全ペアを索引化する
-            // Build a lookup of all category and sub category pairs for reference validation
+            // 参照整合チェック用に全ペアを索引化
+            // Build a lookup of all pairs for reference validation
             _definedPairs = new HashSet<(string, string)>();
             foreach (var category in BlockCategories.Data)
             foreach (var subCategory in category.SubCategories)
