@@ -1,5 +1,5 @@
-// 開いている機械に対応するレシピを選択行の表示データへ変換する
-// Converts recipes for the open machine into selection-row display data
+// 開いている機械に対応するレシピを選択タブの表示データへ変換する
+// Converts recipes for the open machine into selection-tab display data
 import type { MachineRecipe } from "@/bridge";
 
 const emptyGuid = "00000000-0000-0000-0000-000000000000";

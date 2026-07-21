@@ -84,9 +84,24 @@ describe("block inventory design whitelist", () => {
     expect(styles.modeSwitch).toContain("var(--mode-switch-selected-mix)");
   });
 
-  it("MachineSectionへレシピ選択行を組み込む", () => {
+  it("MachineSectionはレシピ有りでタブ切替、電力率を共通フッタに置く", () => {
     const machineSection = read("./details/MachineSection.tsx");
-    expect(machineSection).toContain("<MachineRecipeSelectionRow");
+    expect(machineSection).toContain("<ModeSwitch");
+    expect(machineSection).toContain("<MachineRecipeSelectionTab");
+    expect(machineSection).toContain("<MachineInventoryBody");
+    expect(machineSection).toContain("<PowerRateText");
+  });
+
+  it("レシピ有り機械だけviewer〜items占有の大型パネルへ広げる", () => {
+    expect(styles.panel).toContain("grid-column: viewer-start / items-end");
+    expect(sources.panel).toContain("styles.panelLarge");
+    expect(sources.panel).toContain("buildMachineRecipeSelectionRows");
+  });
+
+  it("レシピ選択タブは共通SlotGridの9列折返しで列挙する", () => {
+    const recipeTab = read("./details/machine/MachineRecipeSelectionTab.tsx");
+    expect(recipeTab).toContain("<SlotGrid cols={Math.min(9, Math.max(1, rows.length))}");
+    expect(recipeTab).not.toMatch(/display:\s*grid/);
   });
 });
 
