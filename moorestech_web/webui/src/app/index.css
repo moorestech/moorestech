@@ -22,6 +22,9 @@
 /* Overrides Mantine's global body background (--mantine-color-body) via import order */
 :root {
   --slot-size: 3rem;
+  /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
+  /* Horizontal face-fade span; fixed length so it never scales with panel width */
+  --panel-edge-fade: 12px;
   --font-ui: "MooresUI", "MooresUI JP", sans-serif;
   /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
   /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
