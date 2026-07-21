@@ -8,7 +8,7 @@ import { useItemSelectionStore } from "../logic/selectionStore";
 import { craftableResultCounts } from "../logic/craftLogic";
 import { useI18n } from "@/shared/i18n";
 import styles from "./ItemListPanel.module.css";
-import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, recipeItemAnchorId } from "@/shared/tutorialAnchor";
 import { useDragScroll } from "./useDragScroll";
 
 // 固定pxで6列のピッチを均一化する
@@ -71,7 +71,7 @@ export default function ItemListPanel() {
         >
           <SlotGrid cols={6} testId="item-list-grid" style={GRID_STYLE}>
             {itemList.itemIds.map((id) => (
-              <div key={id} data-item-id={id} {...tutorialAnchor(`recipe.item-${id}` as AnchorId)}>
+              <div key={id} data-item-id={id} {...tutorialAnchor(recipeItemAnchorId(id))}>
                 <ItemSlot
                   itemId={id}
                   count={craftableCounts.get(id) ?? 0}

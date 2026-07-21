@@ -1,7 +1,7 @@
 import { Paper, Stack, Text, Title } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
-import { tutorialAnchor } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 export function TrainRidingHud() {
@@ -14,7 +14,7 @@ export function TrainRidingHud() {
   const showBranchSelection = riding.branchCandidateCount > 1;
 
   return (
-    <Paper className={styles.hud} data-testid="train-riding-hud" {...tutorialAnchor("train-hud.status")}>
+    <Paper className={styles.hud} data-testid="train-riding-hud" {...tutorialAnchor(TutorialAnchorIds.trainHudStatus)}>
       <Stack gap={4}>
         <Title order={2} size="h4">{title}</Title>
         <Text>{controls}</Text>
