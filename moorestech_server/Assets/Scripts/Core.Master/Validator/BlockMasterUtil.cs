@@ -15,6 +15,7 @@ namespace Core.Master.Validator
             errorLogs += BlockRequiredItemsValidation();
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
+            errorLogs += BlockCategoryReferenceValidation();
             errorLogs += ConnectorSettingsValidation();
             errorLogs += ConnectorShapeGuidValidation();
             errorLogs += MeshingAxisValidation();
@@ -274,6 +275,19 @@ namespace Core.Master.Validator
                     }
                 }
 
+                return logs;
+            }
+
+            string BlockCategoryReferenceValidation()
+            {
+                // category/subCategoryペアがblockCategoriesに定義済みであることを検証する
+                // Validate that each category and subCategory pair is defined in blockCategories
+                var logs = string.Empty;
+                foreach (var block in blocks.Data)
+                {
+                    if (!MasterHolder.BlockCategoryMaster.Contains(block.Category, block.SubCategory))
+                        logs += $"[BlockMaster] Block:{block.Name} has undefined category pair. category:{block.Category} subCategory:{block.SubCategory}\n";
+                }
                 return logs;
             }
 

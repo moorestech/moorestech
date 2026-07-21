@@ -19,6 +19,7 @@ namespace Core.Master
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
         public static CleanRoomMaster CleanRoomMaster { get; private set; }
         public static ConnectToolMaster ConnectToolMaster { get; private set; }
+        public static BlockCategoryMaster BlockCategoryMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -36,8 +37,11 @@ namespace Core.Master
             CharacterMaster = new CharacterMaster(GetJson(masterJsonFileContainer, new JsonFileName("characters")));
             InitializeMaster(CharacterMaster);
 
-            // ItemMaster, FluidMaster依存
-            // Depends on ItemMaster, FluidMaster
+            BlockCategoryMaster = new BlockCategoryMaster(GetJson(masterJsonFileContainer, new JsonFileName("blockCategories")));
+            InitializeMaster(BlockCategoryMaster);
+
+            // ItemMaster, FluidMaster, BlockCategoryMaster依存（category/subCategoryの参照を検証）
+            // Depends on ItemMaster, FluidMaster, BlockCategoryMaster (validates category/subCategory references)
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             InitializeMaster(BlockMaster);
 
