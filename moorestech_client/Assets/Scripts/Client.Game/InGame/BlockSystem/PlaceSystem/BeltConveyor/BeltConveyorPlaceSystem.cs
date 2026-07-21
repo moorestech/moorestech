@@ -31,6 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
@@ -38,6 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
         private BlockId? _previousSelectedBlockId;
+        private bool _isReplaceDrag;
 
         private int _heightOffset;
 
@@ -46,6 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
             _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
         }
 
@@ -60,6 +63,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // 連続設置状態をリセット
             _clickStartPosition = null;
             _isStartZDirection = null;
+            _isReplaceDrag = false;
             _currentPlaceInfos.Clear();
         }
 
@@ -78,6 +82,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             {
                 _clickStartPosition = null;
                 _clickStartHeightOffset = _heightOffset;
+                _isReplaceDrag = false;
             }
             _previousSelectedBlockId = target.BlockId;
 
@@ -102,11 +107,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             {
                 _clickStartPosition = placePoint;
                 _clickStartHeightOffset = _heightOffset;
+
+                // 起点セルと手持ちが両方ファミリーならこのドラッグをリプレース設置にする
+                // Make this drag a replace placement when both the start cell and held block are families
+                _isReplaceDrag = ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, placePoint);
             }
 
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
+
+            // リプレースドラッグ中は既存ファミリーブロック重なりセルを設置可へ復活させる
+            // During a replace drag, revive cells overlapping an existing family block as placeable
+            if (_isReplaceDrag) MarkReplaceCells();
 
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
@@ -169,6 +182,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 // セル列へ直線・坂ブロックを1対1で割り当てる
                 // Assign straight and slope blocks to cells one-to-one
                 _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family);
+            }
+
+            void MarkReplaceCells()
+            {
+                // 既存ブロック重なりが原因で不可のセルだけをリプレース判定にかける
+                // Only run replace judgement on cells blocked by an overlapping existing block
+                foreach (var info in _currentPlaceInfos)
+                {
+                    if (info.Placeable) continue;
+                    ReplacePlacementJudge.TryMarkReplace(_blockGameObjectDataStore, info);
+                }
             }
 
             void PlaceBlock()
