@@ -41,8 +41,8 @@ export function BuildMenuPanel() {
   const select = (entry: BuildMenuEntryData) =>
     void dispatchAction("build_menu.select", { entryType: entry.entryType, entryKey: entry.entryKey });
   const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { name: entry.entryKey });
-  // 閉じるは既存許可済みの GameScreen 遷移要求（BlockInventoryPanel と同型）
-  // Close requests the already-allowed GameScreen transition (same as BlockInventoryPanel)
+  // 閉じるはGameScreen遷移要求
+  // Close requests a GameScreen transition
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
 
   return (

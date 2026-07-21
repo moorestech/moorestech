@@ -1,5 +1,5 @@
-// 目視QA用: mock-host を起動し BuildMenu を3状態（既定/検索中/ホバー）で撮影する
-// Visual QA: boot mock-host and capture BuildMenu in 3 states (default / searching / hovered)
+// 目視QA:3状態を撮影
+// Visual QA: capture BuildMenu in 3 states
 
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
@@ -38,16 +38,16 @@ async function main() {
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-1-default.png` });
 
-  // 2. 検索中（横断検索で複合見出し・サイドバー無効）
-  // 2. Searching (cross-category composite headings, sidebar disabled)
+  // 2.検索中(複合見出し)
+  // 2. Searching (composite headings)
   await page.getByTestId("build-menu-search").fill("鉄");
   await page.getByTestId("build-menu-section-輸送-鉄道").waitFor();
   await page.mouse.move(2, 2);
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-2-search.png` });
 
-  // 3. ホバープレビュー（検索クリア後にエントリをホバー）
-  // 3. Hover preview (clear search, then hover an entry)
+  // 3.ホバー(検索クリア後)
+  // 3. Hover (after clearing search)
   await page.getByTestId("build-menu-search").fill("");
   await page.getByTestId("build-menu-entry-block-wood-chest").hover();
   await page.getByTestId("build-menu-preview").waitFor();
