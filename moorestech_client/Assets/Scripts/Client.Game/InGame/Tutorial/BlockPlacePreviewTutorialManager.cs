@@ -80,7 +80,6 @@ namespace Client.Game.InGame.Tutorial
                 {
                     if (_previewObject != null)
                     {
-                        if (!WebUiScreenGate.IsWebUiMode) HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
                         _previewObject.DestroyPreview();
                     }
 
@@ -95,11 +94,6 @@ namespace Client.Game.InGame.Tutorial
                 _previewObject.SetTransform(position, rotation);
                 _previewObject.SetPlaceableColor(true);
                 _previewObject.SetActive(true);
-
-                // Webモードでは矢印もWebオーバーレイが担うため、uGUIのHudArrowは登録しない
-                // In web mode the overlay also renders the arrow, so skip the uGUI HudArrow registration
-                if (!WebUiScreenGate.IsWebUiMode)
-                    HudArrowManager.RegisterHudArrowTarget(_previewObject.gameObject, new HudArrowOptions(hideWhenTargetInactive: false));
             }
 
             void SubscribePlacementEvent()
@@ -129,7 +123,6 @@ namespace Client.Game.InGame.Tutorial
             // Hide the preview and update HUD state
             if (_previewObject != null)
             {
-                if (!WebUiScreenGate.IsWebUiMode) HudArrowManager.UnregisterHudArrowTarget(_previewObject.gameObject);
                 _previewObject.SetActive(false);
             }
 

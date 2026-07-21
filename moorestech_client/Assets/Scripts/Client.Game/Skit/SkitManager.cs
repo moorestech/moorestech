@@ -79,7 +79,6 @@ namespace Client.Game.Skit
             //後処理 Post process
             skitUI.SetActive(false);
             if (webUiMode) SkitPresentationStateStore.Instance.End();
-            HudArrowManager.SetActive(true);
             mapObjectPin.SetActive(true);
             var characterContainer = storyContext.GetService<CharacterObjectContainer>();
             characterContainer.DestroyAllCharacters();
@@ -117,8 +116,7 @@ namespace Client.Game.Skit
                 // 表示の設定
                 skitUI.SetActive(!webUiMode);
                 mapObjectPin.SetActive(false);
-                HudArrowManager.SetActive(false);
-                
+
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(skitUI);
