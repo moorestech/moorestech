@@ -24,22 +24,26 @@ return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
 {
     await p.SetupFlatGround();
 
-    // ライン中央付近へワープし、トップダウンカメラの視界に設置範囲全体を収める
-    // Warp near the line center so the top-down camera covers the whole build area
-    p.WarpPlayer(new Vector3(4f, 33.5f, 5f));
+    // 設置カメラは北向き・浅いピッチのため、エリア南側に立ち設置範囲全体を前方視界に収める
+    // The placement camera faces north at a shallow pitch, so stand south of the area to keep it all in view
+    p.WarpPlayer(new Vector3(3.5f, 33.5f, -1f));
 
     // UI設置の前提を整える: アンロック＋建設コスト付与（クライアント在庫反映待ち込み）
     // Set up UI placement prerequisites: unlock plus construction cost (waits for client inventory sync)
     await p.PrepareBlockForUiPlacement("ベルトコンベア", 15);
     await p.PrepareBlockForUiPlacement("木のコンベアチェスト", 2);
 
-    // UI経路のみでS字ラインを構築: 北5本→東3本→北1本→コンベアチェスト
-    // Build the S-line via UI only: 5 north belts, 3 east belts, 1 north belt, then the conveyor chest
-    await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
-    await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 7), new Vector3Int(4, 32, 7));
-    await p.PlaceBlockViaUi("ベルトコンベア", new Vector3Int(5, 32, 7), BlockDirection.North);
+    // UI経路のみでS字ラインを構築。浅い設置カメラでは手前の既設ブロック天面が奥セルへの照準レイを遮るため、
+    // カメラから遠い順（北奥→南手前）に設置する: チェスト→東3本→北1本→北5本
+    // Build the S-line via UI only. The shallow placement camera lets near blocks occlude rays to far cells,
+    // so place far-to-near (north to south): chest, 3 east belts, 1 north belt, then 5 north belts
+    // 単クリック設置は既設隣接ブロックのコライダにレイを奪われやすいため、隣接が埋まる前に置く
+    // Single-click placement is prone to ray capture by adjacent existing colliders, so place before neighbors fill in
     var chestPosition = new Vector3Int(4, 32, 8);
     await p.PlaceBlockViaUi("木のコンベアチェスト", chestPosition, BlockDirection.North);
+    await p.PlaceBlockViaUi("ベルトコンベア", new Vector3Int(5, 32, 7), BlockDirection.North);
+    await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 7), new Vector3Int(4, 32, 7));
+    await p.DragPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), new Vector3Int(2, 32, 6));
     await p.ExitToGameScreen();
 
     // ライン接続の健全性を設置直後に検証（belt-line.csと同一assert）
