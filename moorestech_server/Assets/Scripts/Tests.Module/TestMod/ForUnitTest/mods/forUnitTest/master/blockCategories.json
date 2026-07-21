@@ -1,0 +1,135 @@
+{
+  "data": [
+    {
+      "name": "テスト",
+      "subCategories": [
+        {
+          "name": "ElectricMachine"
+        },
+        {
+          "name": "Block"
+        },
+        {
+          "name": "BeltConveyor"
+        },
+        {
+          "name": "ElectricPole"
+        },
+        {
+          "name": "ElectricGenerator"
+        },
+        {
+          "name": "ElectricMiner"
+        },
+        {
+          "name": "Chest"
+        },
+        {
+          "name": "Gear"
+        },
+        {
+          "name": "Shaft"
+        },
+        {
+          "name": "GearChainPole"
+        },
+        {
+          "name": "GearMachine"
+        },
+        {
+          "name": "SimpleGearGenerator"
+        },
+        {
+          "name": "GearBeltConveyor"
+        },
+        {
+          "name": "GearMiner"
+        },
+        {
+          "name": "TrainRail"
+        },
+        {
+          "name": "TrainStation"
+        },
+        {
+          "name": "TrainItemPlatform"
+        },
+        {
+          "name": "GearMapObjectMiner"
+        },
+        {
+          "name": "FluidPipe"
+        },
+        {
+          "name": "FuelGearGenerator"
+        },
+        {
+          "name": "BaseCamp"
+        },
+        {
+          "name": "GearPump"
+        },
+        {
+          "name": "ElectricPump"
+        },
+        {
+          "name": "GearToElectricGenerator"
+        },
+        {
+          "name": "TrainFluidPlatform"
+        },
+        {
+          "name": "FilterSplitter"
+        },
+        {
+          "name": "ElectricToGearGenerator"
+        },
+        {
+          "name": "CleanRoomWall"
+        },
+        {
+          "name": "CleanRoomDoor"
+        },
+        {
+          "name": "CleanRoomItemHatch"
+        },
+        {
+          "name": "CleanRoomPipeHatch"
+        },
+        {
+          "name": "CleanRoomAirFilter"
+        },
+        {
+          "name": "CleanRoomMachine"
+        }
+      ]
+    },
+    {
+      "name": "輸送",
+      "subCategories": [
+        {
+          "name": "車両"
+        }
+      ]
+    },
+    {
+      "name": "ツール",
+      "subCategories": [
+        {
+          "name": "接続"
+        },
+        {
+          "name": "ブループリント"
+        }
+      ]
+    },
+    {
+      "name": "ブループリント",
+      "subCategories": [
+        {
+          "name": "保存済み"
+        }
+      ]
+    }
+  ]
+}
