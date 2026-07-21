@@ -45,6 +45,7 @@ description: |
 - App の stage グリッドにある `viewer` 領域へ置き、持ち物パネルの右隣で上端を揃える。機能側の固定配置・独自z-index・パネル面・下端フェードは禁止し、配置は stage、面表現は GamePanel が一元供給する。
 - GamePanel の下向き三角と内容が重ならないよう、ブロックパネルだけ `--block-panel-bottom-safe-area` の下部安全帯を確保する。共通 GamePanel の余白は変更しない。
 - 閉じる操作はパネル右上の `shared/ui/PanelCloseButton` を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
+- **レシピ選択を持つ機械ブロックのみ大型レイアウト**: 研究パネル同様 `viewer-start / items-end` の2列を占有し、上端は持ち物パネルと揃え、下端はホットバー手前で止める。中身は `ModeSwitch` を横向きタブバーとした「インベントリ / レシピ選択」の2タブ切替（§8.7）。レシピ0件のブロックは従来の小型パネルのまま。
 
 ## 3. モーダル
 
@@ -110,12 +111,14 @@ description: |
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
 - **PanelCloseButton**: パネル右上の面を持たない×。インラインSVGまたはCSSで描画する。
 
-## 8.7 機械レシピ選択行
+## 8.7 機械レシピ選択タブ
 
-- **MachineSection 内の1行として置く。** `t()` した「レシピ選択」ラベルの下に、解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid` に列挙し、独自gridは作らない。
+- **MachineSection のタブとして置く。** 対象レシピが1件以上ある機械は `ModeSwitch`（横向き）で「インベントリ / レシピ選択」を切り替える。デフォルトはインベントリタブ。0件ならタブ自体を出さず従来表示のまま。
+- インベントリタブは従来の機械表示（入出力/モジュールスロット・進捗矢印・流体行・分間生産数）。電力率テキストはタブの外の共通フッタとして両タブで常時表示する。
+- レシピ選択タブは、解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid`（9列折返し）に列挙し、独自gridは作らない。
 - 選択中は ItemSlot の `selected`（SlotFrame の `data-selected`）で示し、新しい色相・光彩は足さない。
 - 左クリックで選択し、右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`（内部の `useSlotMouse`）に従う。
-- 対象レシピが0件なら行を描画しない。区切り線等の新しい装飾を増やさず、ラベルと SlotGrid だけで構成する。
+- 選択中レシピの詳細（材料 `ItemSlot` → 出力 `ItemSlot`・所要時間）をグリッド下に表示する。様式は RecipeViewer の `MachineRecipeView`（矢印テキスト＋ItemSlot列）に準拠し、新しい装飾は増やさない。
 
 ## 9. やらないことリスト（再掲・明示）
 

@@ -7,6 +7,19 @@
   position: relative;
 }
 
+/* レシピ有り機械: 研究パネル同系の大型面。viewer〜items2列を占有し下端はホットバー手前(y640)で止める */
+/* Recipe-capable machines: research-sized panel spanning viewer..items, stopping short of the hotbar (y640) */
+/* SubInventoryではitems列が空でauto列が収縮するため、幅は明示する */
+/* 1280 - padding(59.7+48) - 持ち物378 - 列gap35 = 759.3 */
+/* The items column collapses in SubInventory, so state the width: 1280 - padding(59.7+48) - inventory 378 - gap 35 */
+.panelLarge {
+  grid-column: viewer-start / items-end;
+  grid-row: 1;
+  width: 759.3px;
+  height: 525px;
+  min-width: 0;
+}
+
 /* 面を追加せず、共通の閉じる操作だけをパネル右上へ重ねる */
 /* Places only the shared close control at the panel top-right without adding a face */
 .close {
