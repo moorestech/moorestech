@@ -22,12 +22,13 @@ type Props = {
   onRightEnter?: () => void;
   onLeftEnter?: () => void;
   onDoubleClick?: () => void;
+  onHoverChange?: (hovering: boolean) => void;
   testId?: string;
 };
 
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
-export default function ItemSlot({ itemId, count, name, tooltip, selected, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, testId }: Props) {
+export default function ItemSlot({ itemId, count, name, tooltip, selected, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId }: Props) {
   const { t } = useI18n();
   const itemMaster = useItemMaster();
   const resolvedName = name ?? itemMaster?.get(itemId)?.name;
@@ -53,6 +54,7 @@ export default function ItemSlot({ itemId, count, name, tooltip, selected, catal
         onRightEnter={onRightEnter}
         onLeftEnter={onLeftEnter}
         onDoubleClick={onDoubleClick}
+        onHoverChange={onHoverChange}
       >
         {hasItem ? (
           <>

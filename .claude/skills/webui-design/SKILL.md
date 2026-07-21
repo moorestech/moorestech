@@ -61,6 +61,7 @@ description: |
 - スロット寸法は `--slot-size`、間隔は `--slot-grid-gap` の局所上書きで調整する。コンポーネント内にpx直書きしない。
 - スロットの状態表現は data属性（`data-selected` / `data-filled` / `data-catalog` / `data-insufficient`）に統一。新しい状態が要るなら data属性を追加する。
 - マウス操作の契約は `useSlotMouse`（左押下・右押下・ドラッグ進入・ダブルクリック）。スロットに生の onClick を生やさない。
+- ホバープレビュー（ホバー中スロットの詳細を別領域へ出す）は SlotFrame/ItemSlot の `onHoverChange` を使う。機能側で生の onMouseEnter/Leave をスロットに生やさない。
 
 ## 5. 色・トーン
 
@@ -110,15 +111,18 @@ description: |
 - **GaugeBar**: 読み取り専用の水平ゲージ。溝は `--gauge-track`（半透明ネイビー）と `--bevel-c1` の薄い内周輪郭、充填は `--gauge-fill`（寒色グレー）を使い、青グラデは禁止。`value`（0..1）を描くだけでドメイン語彙を持たない。
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
 - **PanelCloseButton**: パネル右上の面を持たない×。インラインSVGまたはCSSで描画する。
+- **FadeRule**: 両端フェードする水平罫線（装飾語彙1）の単体部品。パネル内のセクション区切りに使う。GamePanel のタイトル罫線と同族の青灰グラデで、新しい色相は持たない。
 
 ## 8.7 機械レシピ選択タブ
 
 - **MachineSection のタブとして置く。** 対象レシピが1件以上ある機械は `ModeSwitch`（横向き）で「インベントリ / レシピ選択」を切り替える。デフォルトはインベントリタブ。0件ならタブ自体を出さず従来表示のまま。
-- インベントリタブは従来の機械表示（入出力/モジュールスロット・進捗矢印・流体行・分間生産数）。電力率テキストはタブの外の共通フッタとして両タブで常時表示する。
-- レシピ選択タブは、解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid`（9列折返し）に列挙し、独自gridは作らない。
+- **機械UIの中身は基本的に中央揃え。** 両タブとも詳細・グリッド・テキストを水平中央に揃える。電力率テキストはタブの外の共通フッタとして両タブで常時表示する。
+- インベントリタブは従来の機械表示（入出力/モジュールスロット・進捗矢印・流体行・分間生産数）に加え、レシピ選択中はその生産物（代表出力アイテム）を `ItemSlot` 1個（個数バッジ無し）で表示する。
+- レシピ選択タブは上から「詳細プレビュー → `FadeRule` の区切り罫線 → レシピグリッド」の縦構成。
+  - **詳細プレビュー**: ホバー中レシピを優先し、無ければ選択中レシピを表示。どちらも無ければ `--text-muted` の案内テキスト。内容は「材料 `ItemSlot` 列 → 矢印テキスト（直下に所要時間） → 出力 `ItemSlot` 列」で、RecipeViewer の `MachineRecipeView`（矢印テキスト＋ItemSlot列）様式に準拠。高さを固定しホバーで段落が跳ねないようにする。
+  - **レシピグリッド**: 解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid`（9列折返し）に列挙し、独自gridは作らない。
 - 選択中は ItemSlot の `selected`（SlotFrame の `data-selected`）で示し、新しい色相・光彩は足さない。
-- 左クリックで選択し、右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`（内部の `useSlotMouse`）に従う。
-- 選択中レシピの詳細（材料 `ItemSlot` → 出力 `ItemSlot`・所要時間）をグリッド下に表示する。様式は RecipeViewer の `MachineRecipeView`（矢印テキスト＋ItemSlot列）に準拠し、新しい装飾は増やさない。
+- 左クリックで選択し、**選択と同時にインベントリタブへ切り替える**。右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`、ホバーは `onHoverChange` に従う。
 
 ## 9. やらないことリスト（再掲・明示）
 

@@ -2,7 +2,7 @@ import { forwardRef, type ForwardedRef, type HTMLAttributes, type ReactNode } fr
 import { useSlotMouse } from "../useSlotMouse";
 import styles from "./style.module.css";
 
-type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "onDoubleClick" | "onContextMenu"> & {
+type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "onDoubleClick" | "onContextMenu" | "onMouseEnter" | "onMouseLeave"> & {
   children?: ReactNode;
   selected?: boolean;
   filled?: boolean;
@@ -13,12 +13,15 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
   onRightEnter?: () => void;
   onLeftEnter?: () => void;
   onDoubleClick?: () => void;
+  // ホバープレビュー用。カーソルの出入りを真偽で通知する
+  // For hover previews; reports cursor enter/leave as a boolean
+  onHoverChange?: (hovering: boolean) => void;
   testId?: string;
 };
 
 // data属性と操作契約を集約する
 // Centralizes the slot frame data attributes and pointer gesture contract
-export function renderSlotFrame({ children, selected, filled, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
+export function renderSlotFrame({ children, selected, filled, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
   const slotMouse = useSlotMouse(onLeftDown, onRightDown, onRightEnter, onLeftEnter);
   return (
     <div
@@ -31,7 +34,11 @@ export function renderSlotFrame({ children, selected, filled, catalog, insuffici
       data-catalog={catalog ? "true" : undefined}
       data-insufficient={insufficient ? "true" : undefined}
       onMouseDown={slotMouse.onMouseDown}
-      onMouseEnter={slotMouse.onMouseEnter}
+      onMouseEnter={(event) => {
+        slotMouse.onMouseEnter(event);
+        onHoverChange?.(true);
+      }}
+      onMouseLeave={() => onHoverChange?.(false)}
       onDoubleClick={onDoubleClick}
       onContextMenu={slotMouse.onContextMenu}
     >

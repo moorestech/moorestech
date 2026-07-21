@@ -13,3 +13,4 @@ export { default as ConnectingPlaceholder } from "./ConnectingPlaceholder";
 export { default as GaugeBar } from "./GaugeBar";
 export { default as ModeSwitch, type ModeSwitchOption } from "./ModeSwitch";
 export { default as PanelCloseButton } from "./PanelCloseButton";
+export { default as FadeRule } from "./FadeRule";
