@@ -70,7 +70,6 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             }
 
             ConnectToolMaterialConsumer.Consume(cost.Materials, inventory);
-            GearNetworkDatastore.MarkTopologyDirty();
 
             return true;
         }

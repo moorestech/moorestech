@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Core
             // generator不変でも再計算を模擬
             // Simulate a recalc without generator change
             var generator = generatorBlock.GetComponent<IGearEnergyTransformer>();
-            GearNetworkDatastore.NotifyGeneratorOutputChanged(generator);
+            ServerContext.GetService<IGearNetworkDatastore>().NotifyGeneratorOutputChanged(generator);
             GameUpdater.UpdateOneTick();
 
             Assert.AreEqual(firedAfterFirstTick, fired, "値が変化していないtickでは再発火しないべき");

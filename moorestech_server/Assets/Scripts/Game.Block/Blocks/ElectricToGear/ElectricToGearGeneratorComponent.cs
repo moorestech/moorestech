@@ -10,6 +10,7 @@ using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
+using Game.Context;
 
 namespace Game.Block.Blocks.ElectricToGear
 {
@@ -126,7 +127,7 @@ namespace Game.Block.Blocks.ElectricToGear
 
             if (changed)
             {
-                GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
+                ServerContext.GetService<IGearNetworkDatastore>().NotifyGeneratorOutputChanged(this);
                 _onChangeBlockState.OnNext(Unit.Default);
             }
             return true;
@@ -178,7 +179,7 @@ namespace Game.Block.Blocks.ElectricToGear
         {
             if (_isOutputting == isOutputting) return;
             _isOutputting = isOutputting;
-            GearNetworkDatastore.NotifyGeneratorOutputChanged(this);
+            ServerContext.GetService<IGearNetworkDatastore>().NotifyGeneratorOutputChanged(this);
             _onChangeBlockState.OnNext(Unit.Default);
         }
     }

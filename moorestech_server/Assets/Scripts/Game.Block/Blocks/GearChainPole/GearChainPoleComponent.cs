@@ -49,7 +49,7 @@ namespace Game.Block.Blocks.GearChainPole
             _gearService.BlockStateChange.Subscribe(_ => _onChangeBlockState.OnNext(Unit.Default));
             
             _componentStates = componentStates;
-            GearNetworkDatastore.AddGear(this);
+            ServerContext.GetService<IGearNetworkDatastore>().AddGear(this);
         }
 
 
@@ -79,6 +79,9 @@ namespace Game.Block.Blocks.GearChainPole
             var transformer = ResolveChainTarget(partnerId);
             if (transformer == null) return false;
             _chainTargets.Add(partnerId, (transformer, connectionCost));
+            // 接続集合の変更点自身でdirty化し、呼び出し元の再構築漏れを構造的に防ぐ
+            // Mark dirty at the mutation itself so no caller can ever forget the rebuild
+            ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             // 状態変更を通知する
             // Notify state change
             _onChangeBlockState.OnNext(Unit.Default);
@@ -94,6 +97,7 @@ namespace Game.Block.Blocks.GearChainPole
             }
 
             cost = connection.Cost;
+            ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
         }
@@ -162,7 +166,7 @@ namespace Game.Block.Blocks.GearChainPole
             
             // 復元したチェーン接続を次tick先頭の再構築対象にする
             // Mark restored chain connections for rebuilding at the next tick head
-            GearNetworkDatastore.MarkTopologyDirty();
+            ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }
 
@@ -182,7 +186,7 @@ namespace Game.Block.Blocks.GearChainPole
 
             // ギアネットワークから除去する。隣接ギアの噛み合いを次数判定に含めるため、コネクタ生存中に実行する
             // Remove from the gear network while the connector is still alive so adjacent gear meshing counts toward the degree check
-            GearNetworkDatastore.RemoveGear(this);
+            ServerContext.GetService<IGearNetworkDatastore>().RemoveGear(this);
 
             // コネクタはBlockComponentManagerが別コンポーネントとして破棄するため、ここでは破棄しない
             // The connector is destroyed separately by BlockComponentManager, so it must not be destroyed here
