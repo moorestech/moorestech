@@ -40,7 +40,7 @@ v8序盤進行から抽出した20個・1カテゴリ「生きる基盤」。res
 | 9 | 風力掘削機を設置する | blockPlace | 風力掘削機 | 1 | keyControl(GameScreen,「研究画面で原始研究1〜3を完了して解放」) | 原始研究3 |
 | 10 | 粘土を入手する | inInventoryItem | 粘土 | 1 | なし（summaryで掘削機採掘を案内） | 原始研究3 |
 | 11 | レンガを作る | createItem | レンガ | - | itemViewHighLight(レンガ,「粘土からレンガを作る」) | 原始研究3 |
-| 12 | ブッシュから青銅の鉱石を集める | inInventoryItem | 青銅の鉱石 | 5 | mapObjectPin(ブッシュ,「ブッシュから青銅の鉱石を採取」) | なし |
+| 12 | 青銅の鉱石を5個採掘する | inInventoryItem | 青銅の鉱石 | 5 | なし（summaryで「鉱脈上に風力掘削機を設置」を案内） | 原始研究3 |
 | 13 | 青銅鉱石の粉を3個作る | inInventoryItem | 青銅鉱石の粉 | 3 | なし | なし |
 | 14 | 石窯を設置する | blockPlace | 石窯 | 1 | keyControl(GameScreen,「原始研究4を完了して石窯を解放」) | 原始研究4 |
 | 15 | 青銅インゴットを作る | inInventoryItem | 青銅インゴット | 1 | なし（summaryで石窯精錬を案内） | 原始研究4 |
@@ -53,7 +53,8 @@ v8序盤進行から抽出した20個・1カテゴリ「生きる基盤」。res
 - チャレンジ1の `startedActions` にスキット2本（100_start_game=normal, 200_star_background=background, playSortPriority 0/1）。v3と同じ結線
 - 接続は直列（各チャレンジの `prevChallengeGuids` = 直前1個、#1のみ空）。`unlockAllPreviousChallengeComplete: true`
 - `displayListParam`: `UIPosition = [300*(i%5), 250*(i//5)]`、`IconItem` = タスク対象アイテム、`UIScale = [1,1,1]`。**注意: blocks.jsonのブロックはitems.jsonにエントリを持たない**（blockにitemGuidフィールド無し・IconItemのforeignKeyはitems限定）ため、blockPlaceチャレンジ（#9/#14）のアイコンは素材アイテム（#9=砕いた石材、#14=レンガ）で代用する
-- 根拠データ（調査済み）: 初期解放ハンドクラフトに 石器/木の板/木の棒/砕いた石材/石の斧/木釘/合板/レンガ/青銅鉱石の粉/青銅シート/補強棒材/木のフレーム が含まれる。原始研究3→風力掘削機解放、原始研究4→石窯解放。ブッシュのドロップは青銅の鉱石(5-15)。粘土は風力掘削機のmineSettingsに含まれる。石窯の機械レシピ「青銅鉱石の粉x1+原木x1→青銅インゴット」あり
+- 根拠データ（調査済み）: 初期解放ハンドクラフトに 石器/木の板/木の棒/砕いた石材/石の斧/木釘/合板/レンガ/青銅鉱石の粉/青銅シート/補強棒材/木のフレーム が含まれる。原始研究3→風力掘削機解放、原始研究4→石窯解放。青銅の鉱石と粘土の正規獲得ルートは**地中鉱脈**（`map/map.json` の `itemMapVeins` に青銅の鉱石×100・粘土×91）を風力掘削機（mineSettingsに両方含む）で採掘する経路。石窯の機械レシピ「青銅鉱石の粉x1+原木x1→青銅インゴット」あり
+- **ブッシュは参照禁止**: ブッシュのドロップが青銅の鉱石(5-15)になっているのはマスタ移行ミスで、ブッシュ自体が廃止予定（ユーザー裁定 2026-07-22）。チャレンジ・チュートリアルからブッシュを一切参照しない。ドロップ修正・ブッシュ削除自体は本プランのスコープ外（別タスク）
 
 ## 配置と前例
 
@@ -93,6 +94,10 @@ def load(base, name):
     with open(os.path.join(base, name), encoding='utf-8') as f:
         return json.load(f)
 
+def load_map():
+    with open(os.path.join(ROOT, 'server_v8', 'map', 'map.json'), encoding='utf-8') as f:
+        return json.load(f)
+
 items = {x['name']: x['itemGuid'] for x in load(V8, 'items.json')['data']}
 blocks = {b['name']: b['blockGuid'] for b in load(V8, 'blocks.json')['data']}
 map_objects = {m['mapObjectName']: m['mapObjectGuid'] for m in load(V8, 'mapObjects.json')['data']}
@@ -130,8 +135,8 @@ CHALLENGES = [
     ('粘土を入手する', '風力掘削機で粘土を採掘して1個入手しよう', 'item', '粘土', 1, [], '粘土'),
     ('レンガを作る', '粘土からレンガをクラフトしよう', 'craft', 'レンガ', None,
      [iv('レンガ', '粘土からレンガを作る')], 'レンガ'),
-    ('ブッシュから青銅の鉱石を集める', 'ブッシュを採取して青銅の鉱石を5個集めよう', 'item', '青銅の鉱石', 5,
-     [pin('ブッシュ', 'ブッシュから青銅の鉱石を採取')], '青銅の鉱石'),
+    ('青銅の鉱石を5個採掘する', '青銅の鉱脈の上に風力掘削機を設置して青銅の鉱石を5個採掘しよう', 'item', '青銅の鉱石', 5,
+     [], '青銅の鉱石'),
     ('青銅鉱石の粉を3個作る', '青銅の鉱石から青銅鉱石の粉を3個クラフトしよう', 'item', '青銅鉱石の粉', 3, [], '青銅鉱石の粉'),
     ('石窯を設置する', '原始研究4を完了し、石窯を作って設置しよう', 'block', '石窯', 1,
      [key('GameScreen', '原始研究4を完了して石窯を解放')], 'レンガ'),
@@ -148,12 +153,20 @@ CHALLENGES = [
 initial_craft_results = {c['craftResultItemGuid'] for c in crafts if c.get('initialUnlocked')}
 map_drops = set()
 for m in load(V8, 'mapObjects.json')['data']:
+    # ブッシュは移行ミス残骸で廃止予定のため獲得手段として数えない
+    # Bushes are deprecated migration leftovers; never count them as a source
+    if m['mapObjectName'] == 'ブッシュ':
+        continue
     for e in m.get('earnItems') or []:
         map_drops.add(e['itemGuid'])
+# 地中鉱脈×掘削機mineSettingsの交差を正規の採掘ルートとして数える
+# Count underground veins intersected with miner mineSettings as the mining route
+vein_items = {v['veinItemGuid'] for v in load_map()['itemMapVeins']}
 miner_mines = set()
 for b in load(V8, 'blocks.json')['data']:
     for ms in (b.get('blockParam', {}).get('mineSettings') or []):
         miner_mines.add(ms['itemGuid'])
+miner_mines &= vein_items
 machine_outputs = set()
 for mr in load(V8, 'machineRecipes.json')['data']:
     for o in mr.get('outputItems') or []:
