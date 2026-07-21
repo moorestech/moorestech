@@ -45,7 +45,11 @@ export default function BlockInventoryPanel() {
         title={title}
         style={{
           paddingBottom: "var(--block-panel-bottom-safe-area)",
-          ...(isLargeMachinePanel ? { height: "100%", boxSizing: "border-box" } : {}),
+          // 内容量幅の小型パネルは右余白が10pxしかなくフェード帯で途切れて見えるため、左と対称の右余白を足す
+          // Content-sized small panels have only a 10px right padding that dies in the fade band, so mirror the left inset
+          ...(isLargeMachinePanel
+            ? { height: "100%", boxSizing: "border-box" }
+            : { paddingRight: "var(--block-panel-right-safe-area)" }),
         }}
       >
         {data.source === "train" && trainError && <div data-testid="train-inventory-error">{trainError}</div>}
