@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon入力基盤 調査レポート図解</title>
+<style>
+  :root{
+    --surface:#FFFFFF;
+    --bg:#FFFFFF;
+    --border:#E2E8F0;
+    --text:#0F172A;
+    --text-muted:#475569;
+    --text-subtle:#64748B;
+    --engine:#2563EB;
+    --danger:#DC2626;
+    --amber:#F59E0B;
+    --amber-bg:#FFFBEB;
+    --amber-border:#FDE68A;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    width:100%;
+    background:var(--bg);
+    color:var(--text);
+    overflow-x:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans",system-ui,sans-serif;
+    line-height:1.75;
+  }
+  p,li,td,th,.lead-item,.callout,.compare-col,.ci-body,.panel-empty{
+    overflow-wrap:anywhere;
+  }
+  main{
+    max-width:880px;
+    margin:0 auto;
+    padding:0 20px 96px;
+  }
+  .hero{
+    background:linear-gradient(180deg,#F8FAFC 0%,#FFFFFF 100%);
+    border-bottom:1px solid var(--border);
+    padding:52px 20px 34px;
+    text-align:center;
+  }
+  .hero h1{
+    font-size:26px;
+    margin:0 0 10px;
+    letter-spacing:0.01em;
+  }
+  .hero .meta{
+    font-size:13px;
+    color:var(--text-subtle);
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .pill{
+    display:inline-block;
+    border-radius:999px;
+    padding:3px 12px;
+    font-weight:600;
+    font-size:12px;
+  }
+  .pill.date{ background:#EEF2FF; color:#4338CA; }
+  .pill.review{ background:#FEF3C7; color:#92400E; }
+  .pill.status{ background:#DCFCE7; color:#166534; }
+
+  section{ margin-top:52px; }
+  h2{
+    font-size:20px;
+    border-left:5px solid var(--engine);
+    padding-left:12px;
+    margin:0 0 18px;
+  }
+  h3{
+    font-size:16px;
+    margin:28px 0 10px;
+    color:var(--text);
+  }
+  h3 .num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;height:22px;
+    border-radius:999px;
+    background:var(--engine);
+    color:#fff;
+    font-size:12px;
+    margin-right:8px;
+  }
+
+  /* ---- lead ---- */
+  .lead-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:12px;
+  }
+  .lead-item{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    background:#F8FAFC;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+    font-size:14.5px;
+  }
+  .lead-item .badge{
+    flex:0 0 auto;
+    width:26px;height:26px;
+    border-radius:999px;
+    background:var(--engine);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  /* ---- figure wrapper (comment target) ---- */
+  .figure{ position:relative; margin:18px 0; }
+  .figure-caption{
+    font-size:12.5px;
+    color:var(--text-subtle);
+    margin:8px 2px 0;
+  }
+  .figure[data-has-comment]{
+    outline:2px solid #FCD34D;
+    outline-offset:6px;
+    border-radius:16px;
+  }
+  .figure-comment-btn{
+    position:absolute;
+    top:-14px;
+    right:6px;
+    z-index:20;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    background:rgba(15,23,42,0.86);
+    color:#fff;
+    border:none;
+    border-radius:999px;
+    padding:6px 11px;
+    font-size:11.5px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    opacity:0;
+    transition:opacity .15s;
+    box-shadow:0 4px 14px rgba(15,23,42,.25);
+  }
+  .figure:hover .figure-comment-btn,
+  .figure-comment-btn:focus-visible{ opacity:1; }
+  @media (hover:none){
+    .figure-comment-btn{ opacity:1; position:static; margin-bottom:8px; }
+  }
+
+  /* ---- compare (before/after) ---- */
+  .compare{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .compare-col h4{
+    margin:0 0 6px;
+    font-size:13px;
+  }
+  .compare-col.before h4{ color:var(--danger); }
+  .compare-col.after h4{ color:#166534; }
+  pre{
+    background:#0F172A;
+    color:#E2E8F0;
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:12.5px;
+    line-height:1.7;
+    white-space:pre;
+    overflow-x:auto;
+    margin:0;
+  }
+  pre .anchor{ color:#F59E0B; }
+  pre .ctrl{ color:#93C5FD; }
+  pre .head{ color:#86EFAC; }
+
+  .compare-col .plain-box{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 16px;
+    font-size:13px;
+    height:100%;
+  }
+  .compare-col .plain-box ul{ margin:0; padding-left:18px; }
+  .compare-col .plain-box li{ margin:6px 0; }
+
+  /* ---- callouts ---- */
+  .callout{
+    border-left:5px solid var(--amber);
+    background:var(--amber-bg);
+    border:1px solid var(--amber-border);
+    border-left-width:5px;
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:14px;
+  }
+  .callout h4{
+    margin:0 0 10px;
+    font-size:14.5px;
+    color:#92400E;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout.plain{
+    border-left-color:#94A3B8;
+    background:#F8FAFC;
+    border-color:var(--border);
+  }
+  .callout.plain h4{ color:var(--text); }
+  .callout ul{ margin:6px 0; padding-left:20px; }
+  .callout li{ margin:4px 0; }
+
+  /* ---- proposal cards ---- */
+  .proposal-card{
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    margin:16px 0;
+    background:#FFFFFF;
+  }
+  .proposal-card.priority{
+    border-color:#BFDBFE;
+    background:#F5F9FF;
+  }
+
+  /* ---- alignment diagram ---- */
+  .align-diagram{
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    background:#FAFAFA;
+  }
+  .align-head{
+    display:grid;
+    grid-template-columns:1fr 140px 1fr;
+    background:#F1F5F9;
+    font-size:12px;
+    font-weight:700;
+    color:var(--text-muted);
+    padding:8px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  .align-sync{
+    background:#EFF6FF;
+    color:#1D4ED8;
+    font-size:12.5px;
+    font-weight:600;
+    padding:8px 14px;
+    border-top:1px dashed #93C5FD;
+    border-bottom:1px dashed #93C5FD;
+  }
+  .align-row{
+    display:grid;
+    grid-template-columns:1fr 140px 1fr;
+    gap:8px;
+    align-items:center;
+    padding:8px 12px;
+    border-bottom:1px solid #EEF1F5;
+    font-size:12.5px;
+  }
+  .align-cell{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:6px 8px;
+    min-height:16px;
+  }
+  .align-cell.empty{ background:#F8FAFC; border-style:dashed; color:var(--text-subtle); }
+  .align-tag{
+    text-align:center;
+    font-size:11px;
+    font-weight:700;
+    border-radius:999px;
+    padding:4px 6px;
+  }
+  .align-row.match .align-tag{ background:#DCFCE7; color:#166534; }
+  .align-row.update .align-tag{ background:#FEF3C7; color:#92400E; }
+  .align-row.insert .align-tag{ background:#DBEAFE; color:#1D4ED8; }
+  .align-row.delete .align-tag{ background:#FEE2E2; color:#B91C1C; }
+  .align-note{
+    font-size:12px;
+    color:var(--text-subtle);
+    padding:10px 14px;
+    background:#F8FAFC;
+  }
+
+  /* ---- table ---- */
+  .table-wrap{ overflow-x:auto; border:1px solid var(--border); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; font-size:13px; min-width:560px; }
+  th,td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  thead th{ background:#F1F5F9; font-size:12.5px; color:var(--text-muted); }
+  tbody tr:last-child td{ border-bottom:none; }
+  td code, li code, p code{
+    background:#F1F5F9;
+    border-radius:5px;
+    padding:1px 6px;
+    font-size:12px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  .kind-tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:700;
+    border-radius:999px;
+    padding:2px 8px;
+  }
+  .kind-tag.new{ background:#DBEAFE; color:#1D4ED8; }
+  .kind-tag.mod{ background:#FEF3C7; color:#92400E; }
+  .kind-tag.keep{ background:#F1F5F9; color:var(--text-muted); }
+
+  ul.plain{ padding-left:22px; margin:8px 0; }
+  ul.plain li{ margin:6px 0; font-size:14px; }
+
+  .ref-list{ list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+  .ref-list li{ font-size:13px; }
+  .ref-list code{ background:#F1F5F9; border-radius:5px; padding:2px 6px; }
+
+  footer{
+    text-align:center;
+    font-size:12px;
+    color:var(--text-subtle);
+    padding:40px 20px 120px;
+  }
+
+  @media (max-width:640px){
+    main{ padding:0 14px 96px; }
+    .hero{ padding:40px 14px 26px; }
+    .hero h1{ font-size:21px; }
+    .compare{ grid-template-columns:1fr; }
+    .align-head,.align-row{ grid-template-columns:1fr; gap:4px; }
+    .align-tag{ justify-self:start; }
+    section{ margin-top:40px; }
+  }
+
+  /* ================= comment feature ================= */
+  ::highlight(review-comment){ background-color:#FEF08A; color:#0F172A; }
+
+  .comment-fab{
+    position:absolute; z-index:9000;
+    display:flex; align-items:center; gap:6px;
+    background:#0F172A; color:#fff; border:none;
+    border-radius:999px; padding:8px 14px;
+    font-size:12.5px; font-weight:600; font-family:inherit;
+    cursor:pointer; box-shadow:0 6px 20px rgba(15,23,42,.28);
+  }
+  .comment-fab:hover{ background:#1E293B; }
+  .comment-fab[hidden]{ display:none; }
+
+  .comment-composer{
+    position:absolute; z-index:9000;
+    width:320px; background:var(--surface);
+    border:1px solid var(--border); border-radius:12px;
+    padding:14px; box-shadow:0 12px 32px rgba(15,23,42,.22);
+  }
+  .comment-composer[hidden]{ display:none; }
+  .composer-quote{
+    font-size:12px; color:var(--text-subtle); line-height:1.6;
+    margin-bottom:9px; max-height:56px; overflow:hidden;
+    border-left:3px solid #FCD34D; padding-left:8px;
+  }
+  .composer-input{
+    width:100%; min-height:76px; resize:vertical;
+    border:1px solid var(--border); border-radius:8px;
+    padding:9px 10px; font-size:13px; font-family:inherit;
+    line-height:1.6; color:var(--text);
+  }
+  .composer-input:focus{ outline:2px solid #BFDBFE; border-color:var(--engine); }
+  .composer-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:10px; }
+
+  .btn-primary,.btn-ghost{
+    font-family:inherit; font-size:12.5px; font-weight:600;
+    border-radius:8px; padding:7px 14px; cursor:pointer; border:1px solid transparent;
+  }
+  .btn-primary{ background:var(--engine); color:#fff; }
+  .btn-primary:hover{ background:#1D4ED8; }
+  .btn-primary:disabled{ background:#CBD5E1; cursor:not-allowed; }
+  .btn-primary.wide{ width:100%; padding:10px; font-size:13px; }
+  .btn-ghost{ background:var(--surface); color:var(--text-muted); border-color:var(--border); }
+  .btn-ghost:hover{ background:#F1F5F9; }
+
+  .comment-panel{
+    position:fixed; left:22px; bottom:22px; z-index:8500;
+    display:flex; flex-direction:column;
+  }
+  .comment-panel.open{ width:350px; }
+  .panel-toggle{
+    display:flex; align-items:center; gap:7px; margin-right:auto;
+    background:#0F172A; color:#fff; border:none; border-radius:999px;
+    padding:11px 17px; font-size:13px; font-weight:600; font-family:inherit;
+    cursor:pointer; box-shadow:0 8px 24px rgba(15,23,42,.26);
+  }
+  .panel-toggle:hover{ background:#1E293B; }
+  .panel-count{
+    background:var(--engine); color:#fff; font-size:11px; font-weight:700;
+    border-radius:999px; min-width:19px; height:19px;
+    display:inline-flex; align-items:center; justify-content:center; padding:0 5px;
+  }
+  .panel-caret{ font-size:11px; opacity:.8; }
+  .panel-body{
+    margin-bottom:10px; background:var(--surface); border:1px solid var(--border);
+    border-radius:14px; box-shadow:0 16px 40px rgba(15,23,42,.18); overflow:hidden;
+  }
+  .panel-body[hidden]{ display:none; }
+  .panel-empty{ font-size:13px; line-height:1.75; color:var(--text-muted); padding:18px 16px; margin:0; }
+  .comment-list{ list-style:none; margin:0; padding:8px; max-height:46vh; overflow-y:auto; }
+  .comment-item{
+    border:1px solid var(--border); border-radius:10px; padding:10px 11px; margin:6px 0;
+    background:#FCFCFD; cursor:pointer; transition:border-color .12s, background .12s;
+  }
+  .comment-item:hover{ border-color:#93C5FD; background:#F8FAFF; }
+  .ci-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .ci-num{ font-size:11px; font-weight:700; color:var(--engine); }
+  .ci-act{
+    display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:700;
+    font-family:inherit; background:var(--engine); color:#fff; border:none;
+    border-radius:6px; padding:4px 10px; cursor:pointer;
+  }
+  .ci-act:hover{ background:#1D4ED8; }
+  .ci-del{
+    margin-left:auto; font-size:14px; line-height:1; background:none; border:none;
+    color:var(--text-subtle); cursor:pointer; padding:2px 6px; border-radius:6px;
+  }
+  .ci-del:hover{ background:#FEE2E2; color:var(--danger); }
+  .ci-quote{
+    font-size:11.5px; color:var(--text-subtle); line-height:1.55;
+    border-left:3px solid #FCD34D; padding-left:7px; margin-bottom:6px;
+  }
+  .ci-body{ font-size:13px; line-height:1.65; color:var(--text); white-space:pre-wrap; }
+  .ci-edit{ margin-bottom:0; }
+  .ci-edit-label{ font-size:11px; font-weight:700; color:var(--engine); margin:2px 0 6px; }
+  .panel-foot{ border-top:1px solid var(--border); padding:10px; background:#F8FAFC; }
+
+  .kind-pill{ display:inline-block; font-size:10px; font-weight:700; border-radius:999px; padding:2px 7px; letter-spacing:.02em; }
+  .kind-pill.fig{ background:#EDE9FE; color:#6D28D9; }
+  .kind-pill.txt{ background:#DBEAFE; color:#1D4ED8; }
+  .composer-quote .kind-pill{ margin-right:6px; }
+
+  @media (hover:none){
+    .comment-composer{
+      position:fixed; left:50% !important; top:12px !important;
+      transform:translateX(-50%) !important; width:min(92vw,360px); max-width:92vw;
+    }
+    .composer-input{ font-size:16px; }
+  }
+  @media (max-width:640px){
+    .comment-panel{ left:12px; right:12px; bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+    .comment-panel.open{ width:auto; }
+    .panel-body{ display:flex; flex-direction:column; max-height:70vh; }
+    .comment-list{ flex:1 1 auto; min-height:0; max-height:none; }
+    .panel-foot{ flex:0 0 auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>Neon入力基盤 調査レポート図解</h1>
+  <div class="meta">
+    <span class="pill date">調査日 2026-07-22</span>
+    <span class="pill review">レビュー用</span>
+  </div>
+</header>
+
+<main>
+
+  <ul class="lead-list">
+    <li class="lead-item"><span class="badge">1</span><span>Neonの入力基盤の本質は2点。<strong>画面ごとのキーマップを宣言的に定義し、スタック最上位だけが入力を受ける</strong>こと、そして<strong>アクションIDを安定値enumで一元管理</strong>しリバインド・プリセット・バージョン管理を載せることである。</span></li>
+    <li class="lead-item"><span class="badge">2</span><span>moorestechは排他制御の権威（UIStateマシン）を既に持っているため、Neonの<strong>Keymapスタックそのものは持ち込まない</strong>。</span></li>
+    <li class="lead-item"><span class="badge">3</span><span>結論として、「各UIStateが自分のキーマップを宣言する」形で、<strong>宣言的バインドとアクションID一元化だけを移植</strong>するのが正着。現在19ファイル39箇所に散らばる<code>HybridInput.GetKeyDown(KeyCode.B)</code>直書きを一掃し、リバインド機能への道を開く。</span></li>
+  </ul>
+
+  <section id="scope">
+    <h2>調査の前提</h2>
+    <p>調査対象は <code>/Users/katsumi/Desktop/個人データ/Neon</code>（Neon.Input / Neon.VirtualMouse 他）および <code>moorestech_client</code> の入力基盤。<code>Neon.Input</code> は商用タイトルの私有コード（Aktsk.Input=Akatsuki製の下位レイヤーに依存）であり、<strong>コードのコピーではなく設計パターンの移植</strong>が前提となる。下位のAktsk.Input（BasicInput等）はディレクトリに含まれておらず、そもそも流用不能。</p>
+  </section>
+
+  <section id="architecture-compare">
+    <h2>Neonの4層アーキテクチャ vs moorestechの現状</h2>
+    <div class="figure" data-label="Neonの入力基盤4層（デバイス抽象化層・Keymapスタック・宣言的バインド・リバインド永続化層）と、moorestech側の現状の問題点（HybridInputとInputManagerの2系統並存・生KeyCode19ファイル39箇所・リバインド機能なし・排他制御がif文に散在・ゲームパッド未対応）を左右対比した図">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <div class="compare">
+        <div class="compare-col before">
+          <h4>Before：moorestechの現状</h4>
+          <div class="plain-box">
+            <ul>
+              <li>正規経路<code>Client.Input.InputManager</code>（InputAction直結）と移行層<code>HybridInput</code>（KeyCode直読み）の<strong>2系統が並存</strong>。<code>UIRoot.cs:26</code>に「TODO InputManagerに移動」の是正途上コメントあり</li>
+              <li><strong>生KeyCodeが19ファイル39箇所</strong>。「B=ビルドメニュー」等が複数Stateに重複ハードコード</li>
+              <li><code>HybridInput.ToInputSystemKey</code>のホワイトリスト（18キー手書き）に無いキーは<strong>QueueStateEvent注入が効かないサイレントフォールバック</strong>になる</li>
+              <li><strong>リバインド機能なし</strong>。実行時バインドオーバーライドのAPIは一切未使用。キーバインドは<code>moorestechInputSettings.inputactions</code>にビルド時固定</li>
+              <li>排他制御はUIStateマシン（13ステート）＋<code>WebUiInputExclusivity</code>＋<code>WebUiScreenGate</code>の3枚。機能はしているが「どのStateでどのキーが生きているか」は各Stateのif文の中にしか存在しない</li>
+              <li>ゲームパッドはスキーム定義（KeyboardMouse/Gamepad/Xbox/PS4）だけあり、バインド・カーソル・ナビゲーションは実質皆無</li>
+            </ul>
+          </div>
+        </div>
+        <div class="compare-col after">
+          <h4>After：Neonの4層構造</h4>
+          <div class="plain-box">
+            <ul>
+              <li><strong>①InputManager（静的・デバイス抽象化層）</strong>：PlayerLoopに独自ノードを挿し全MonoBehaviourのUpdateより先に入力を確定。スキーム自動判定・仮想マウスカーソル・カーソルロック/ワープ・ソフトウェア入力注入</li>
+              <li><strong>②Keymapスタック（コンテキスト排他層）</strong>：画面ごとに<code>Keymap</code>サブクラスを定義し<code>KeymapManager</code>がスタック管理。最上位のみバインド有効</li>
+              <li><strong>③宣言的バインド定義</strong>：各Keymapが「アクションID×割当キー×判定種別×修飾キー×優先度」を1メソッドに列挙。一覧性が最大の価値</li>
+              <li><strong>④AssignSettings（リバインド永続化層）</strong>：アクションIDは<code>enum AssignId</code>でシリアライズ値を絶対に変えない運用。プリセット・データバージョン不一致時の自動リセットを持つ</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <p class="figure-caption">moorestechは②Keymapスタック相当（排他制御）を既にUIStateマシンで持っているため、移植対象は①のパターンではなく③・④が中心となる。</p>
+    </div>
+  </section>
+
+  <section id="proposals">
+    <h2>移植提案（優先度順）</h2>
+
+    <div class="proposal-card priority">
+      <h3><span class="num">1</span>アクションID一元化 + State別宣言的キーマップ（最優先・単独で価値大）</h3>
+      <p>Neonの<code>AssignId</code>パターンで<code>GameActionId</code> enum（安定値・グループ範囲・廃止はコメントアウト）を<code>Client.Input</code>に導入し、各UIStateに<code>CreateKeymap()</code>相当の宣言メソッドを持たせて「このStateで効くアクション→キー」を列挙させる。判定はInputSystemの<code>InputAction</code>に寄せ、<code>HybridInput</code>のKeyCode直書き39箇所を全廃。「変更の波及を恐れない」原則どおり全呼び出し側を一括更新する。ホワイトリスト漏れによるプレイテスト無言死も構造的に消える。</p>
+    </div>
+
+    <div class="figure" data-label="Keymapスタックはmoorestechに持ち込まず、既存のUIStateControlを唯一の遷移権威としたまま宣言的キーマップだけを移植するという裁定を示す警告コールアウト">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <div class="callout">
+        <h4><span class="num">2</span>Keymapスタックは移植しない（裁定事項）</h4>
+        <p>moorestechでは<code>UIStateControl</code>が「唯一の正」の遷移権威と明記されており、Neonの<code>KeymapManager</code>スタックを併設すると権威が二重になる。スタックの利点（最上位のみ有効・Guard・Back統一）は、①の宣言的キーマップを「現在のUIStateのものだけ有効化する」ことで同等に得られる。<code>KeymapGuard</code>相当は「空キーマップのState」（Skit/Story用に実質既存）で足りる。</p>
+      </div>
+    </div>
+
+    <div class="proposal-card">
+      <h3><span class="num">3</span>リバインド永続化（①の上に載せる）</h3>
+      <p>Neonのような自前バインド機構は不要で、InputSystem標準の<code>SaveBindingOverridesAsJson</code>/<code>LoadBindingOverridesFromJson</code>を使い、Neonから借りるのは<strong>運用設計</strong>の方：</p>
+      <ul class="plain">
+        <li>(a) 保存データにバージョンを持たせ不一致で全リセット（<code>AAssignSettings.OnAfterDeserialize</code>）</li>
+        <li>(b) プリセット＋部分カスタム</li>
+        <li>(c) リバインド禁止の固定キー枠</li>
+        <li>(d) UIキーガイド表示をアクションIDから引く仕組み</li>
+      </ul>
+    </div>
+
+    <div class="proposal-card">
+      <h3><span class="num">4</span>バインド意味論の拡充（必要になった時）</h3>
+      <p>現状<code>InputKey</code>はDown/Hold/Upのみ。NeonのValidateType相当のうちmoorestechに実益があるのは<strong>修飾キーコード</strong>（Ctrl+I等が現在ベタ書き）と<strong>長押し判定</strong>（TimeSensitiveBind）。InputSystemのInteraction（Hold/Tap）とComposite（<code>HotBarKeyBoardComposite</code>の前例あり）で表現可能。</p>
+    </div>
+
+    <div class="proposal-card">
+      <h3><span class="num">5</span>ゲームパッド対応時のロードマップ（将来枠）</h3>
+      <p>Neonの<code>InputControlScheme</code>（最終使用デバイスでスキーム自動切替）＋仮想マウスは、moorestechでは面白い符合がある：<strong>UIがCEFなので、ゲームパッド用仮想カーソルは<code>CefInputForwarder</code>（プレイテスト用の仮想マウス→CEF転送）とほぼ同じ機構で実現できる</strong>。スティック→仮想カーソル座標→<code>SendMouseMove/Click</code>転送、という経路の骨格が既にある。着手時はNeonの「切替フレームの座標乖離ケア」（<code>InputControlScheme.cs:81-94</code>）が参考になる。</p>
+    </div>
+  </section>
+
+  <section id="not-portable">
+    <h2>移植しない方がよいもの</h2>
+    <div class="figure" data-label="Aktsk依存のAction1-4チャネルモデル・ClearDragEventInvokerのリフレクションハック・static partial classスタイル・タッチジャイロ層の4項目をmoorestechへ移植すべきでない理由とともに示すコールアウト">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <div class="callout plain">
+        <h4>トレードオフの整理</h4>
+        <ul>
+          <li>Aktsk依存のAction1-4チャネルモデル（InputSystemコールバックで足りる）</li>
+          <li><code>ClearDragEventInvoker</code>のリフレクションハック（InputSystemUIInputModule内部フィールドをリフレクションで書き換えるドラッグ状態リセット）</li>
+          <li><code>static partial class InputManager</code>スタイル（本リポジトリはpartial全面禁止）</li>
+          <li>タッチ/ジャイロ層</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="files">
+    <h2>主要ファイル一覧</h2>
+    <div class="figure" data-label="Neon側7ファイル(InputManager・InputUpdater・Keymap系・Mapping系・AssignSettings系・InputControlScheme・AdventureKeymap)とmoorestech側9ファイル(InputManager・HybridInput・WebUiInputExclusivity・HotBarKeyBoardComposite・inputactionsアセット・UIStateControl・WebSocketMessageDispatcher・SemanticInput・CefInputForwarder)のパスと役割を列挙した表">
+      <button class="figure-comment-btn" data-comment-ui>コメント</button>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>側</th><th>パス</th><th>役割</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Neon</td><td><code>Neon.Input/Scripts/InputManager.cs</code></td><td>静的デバイス抽象化層（562行）</td></tr>
+            <tr><td>Neon</td><td><code>Neon.Input/Scripts/InputUpdater.cs</code></td><td>PlayerLoop挿入</td></tr>
+            <tr><td>Neon</td><td><code>Neon.Input/Scripts/Keymap.cs</code> / <code>KeymapManager.cs</code> / <code>KeymapGuard.cs</code></td><td>Keymapスタック</td></tr>
+            <tr><td>Neon</td><td><code>Neon.Input/Scripts/Mapping/KeyboardMapping.cs</code> / <code>GamepadMapping.cs</code></td><td>宣言的バインド</td></tr>
+            <tr><td>Neon</td><td><code>Neon.Input/Scripts/AssignSetting/AAssignSettings.cs</code> / <code>KeyboardAssignSettings.cs</code></td><td>リバインド永続化</td></tr>
+            <tr><td>Neon</td><td><code>Neon.Input/Scripts/InputControlScheme.cs</code></td><td>スキーム自動切替＋仮想マウス統合</td></tr>
+            <tr><td>Neon</td><td><code>Neon.Game/Scripts/Scenes/Adventure/Sequence/Bindings/AdventureKeymap.cs</code></td><td>ゲームプレイKeymapの好例</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.Input/InputManager.cs</code></td><td>正規入力ゲートウェイ</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.Input/HybridInput.cs</code></td><td>KeyCode直読み移行層</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.Input/WebUiInputExclusivity.cs</code></td><td>CEFフォーカス抑止</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.Input/HotBarKeyBoardComposite.cs</code></td><td>独自Composite前例</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Asset/Common/moorestechInputSettings.inputactions</code></td><td>バインド定義本体</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/UIStateControl.cs</code></td><td>遷移権威</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.WebUiHost/Boot/WebSocketMessageDispatcher.cs</code></td><td>input_state受信</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.Playtest/Input/SemanticInput.cs</code></td><td>QueueStateEvent注入</td></tr>
+            <tr><td>moorestech</td><td><code>moorestech_client/Assets/Scripts/Client.Playtest/WebUi/CefInputForwarder.cs</code></td><td>仮想マウス→CEF転送</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ul class="ref-list">
+      <li><code>/Users/katsumi/moorestech/docs/neon-input-research/report.md</code>（本文ソース）</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>Neon入力基盤 調査レポート図解 / 2026-07-22 / レビュー用ペライチ</footer>
+
+<!-- ============== comment feature (vanilla JS port) ============== -->
+<div id="comment-ui-root" data-comment-ui>
+  <button id="comment-fab" class="comment-fab" hidden>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    コメントを追加
+  </button>
+
+  <div id="comment-composer" class="comment-composer" hidden>
+    <div class="composer-quote" id="composer-quote"></div>
+    <textarea id="composer-textarea" class="composer-input" placeholder="この範囲へのコメントを入力…（Cmd/Ctrl + Enter で保存）"></textarea>
+    <div class="composer-actions">
+      <button class="btn-ghost" id="composer-cancel">キャンセル</button>
+      <button class="btn-primary" id="composer-save" disabled>保存</button>
+    </div>
+  </div>
+
+  <div class="comment-panel" id="comment-panel">
+    <div class="panel-body" id="panel-body" hidden>
+      <div id="panel-list-wrap"></div>
+      <div class="panel-foot">
+        <button class="btn-primary wide" id="copy-all-btn" disabled>すべてコピー（0件）</button>
+      </div>
+    </div>
+    <button class="panel-toggle" id="panel-toggle">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      コメント
+      <span class="panel-count" id="panel-count">0</span>
+      <span class="panel-caret" id="panel-caret">&#9652;</span>
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ===== 設定 / このページ固有の値 =====
+  <!-- CONFIG: ページごとに必ず固有の値へ変更すること。他ページと同じキーだと localStorage 上でコメントが混ざる -->
+  var STORAGE_KEY = 'neon-input-research-comments-v1';
+  <!-- CONFIG: コピー出力（Markdown化）の見出し。ページの内容に合わせて変更すること -->
+  var COPY_TITLE = 'Neon入力基盤調査レポート図解へのコメント';
+  var HIGHLIGHT_NAME = 'review-comment';
+
+  // ---- state ----
+  var comments = loadComments();
+  var rangeMap = new Map(); // id -> Range（テキストコメントのみ・セッション内限定）
+  var draftRange = null;
+  var pending = null; // {anchor:{x,y}, place, quote, kind, figureKey}
+  var composerOpen = false;
+  var editingId = null;
+  var editBody = '';
+
+  // ---- DOM refs ----
+  var fab = document.getElementById('comment-fab');
+  var composer = document.getElementById('comment-composer');
+  var quoteEl = document.getElementById('composer-quote');
+  var textarea = document.getElementById('composer-textarea');
+  var saveBtn = document.getElementById('composer-save');
+  var cancelBtn = document.getElementById('composer-cancel');
+  var panel = document.getElementById('comment-panel');
+  var panelBody = document.getElementById('panel-body');
+  var panelToggle = document.getElementById('panel-toggle');
+  var panelCount = document.getElementById('panel-count');
+  var panelCaret = document.getElementById('panel-caret');
+  var listWrap = document.getElementById('panel-list-wrap');
+  var copyAllBtn = document.getElementById('copy-all-btn');
+  var panelOpen = false;
+  var copiedTimer = null;
+
+  function loadComments() {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    try {
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function persist() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(comments));
+  }
+
+  function refreshHighlights() {
+    if (!window.CSS || !CSS.highlights || typeof Highlight === 'undefined') return;
+    var hl = new Highlight();
+    rangeMap.forEach(function (r) { hl.add(r); });
+    CSS.highlights.set(HIGHLIGHT_NAME, hl);
+  }
+
+  function markFigureComments() {
+    var keyed = {};
+    comments.forEach(function (c) { if (c.kind === 'figure') keyed[c.figureKey] = true; });
+    document.querySelectorAll('[data-figure-key]').forEach(function (el) {
+      var key = el.getAttribute('data-figure-key');
+      if (keyed[key]) el.setAttribute('data-has-comment', '');
+      else el.removeAttribute('data-has-comment');
+    });
+  }
+
+  // ===== figure 初期化: .figure[data-label] に figureKey を付与し、既存ボタンへ配線 =====
+  document.querySelectorAll('.figure[data-label]').forEach(function (fig) {
+    var label = fig.getAttribute('data-label');
+    fig.setAttribute('data-figure-key', label);
+    var btn = fig.querySelector('.figure-comment-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var rect = fig.getBoundingClientRect();
+      draftRange = null;
+      pending = {
+        anchor: { x: rect.left + window.scrollX + rect.width / 2, y: rect.top + window.scrollY + 44 },
+        place: 'below',
+        quote: label,
+        kind: 'figure',
+        figureKey: label
+      };
+      hideFab();
+      openComposer();
+    });
+  });
+
+  // ===== テキスト選択監視（selectionchange をデバウンス。mouseup 非依存） =====
+  var isTouch = window.matchMedia('(hover: none)').matches;
+  var selTimer = null;
+
+  document.addEventListener('selectionchange', function () {
+    if (composerOpen) return;
+    window.clearTimeout(selTimer);
+    selTimer = window.setTimeout(function () {
+      var sel = window.getSelection();
+      var text = sel ? sel.toString().trim() : '';
+      if (!sel || sel.isCollapsed || !text) {
+        hideFab();
+        return;
+      }
+      var node = sel.anchorNode;
+      var host = node instanceof Element ? node : (node ? node.parentElement : null);
+      if (host && host.closest('[data-comment-ui]')) return;
+
+      var range = sel.getRangeAt(0);
+      var rect = range.getBoundingClientRect();
+      draftRange = range.cloneRange();
+      pending = {
+        anchor: { x: rect.left + window.scrollX + rect.width / 2, y: rect.top + window.scrollY },
+        place: 'above',
+        quote: text,
+        kind: 'text'
+      };
+      if (isTouch) {
+        openComposer();
+      } else {
+        showFab();
+      }
+    }, 350);
+  });
+
+  function applyAnchor(el) {
+    el.style.left = pending.anchor.x + 'px';
+    el.style.top = pending.anchor.y + 'px';
+    el.style.transform = pending.place === 'below'
+      ? 'translate(-50%, 10px)'
+      : 'translate(-50%, calc(-100% - 9px))';
+  }
+
+  function showFab() {
+    if (!pending) return;
+    applyAnchor(fab);
+    fab.hidden = false;
+  }
+  function hideFab() { fab.hidden = true; }
+
+  fab.addEventListener('mousedown', function (e) { e.preventDefault(); });
+  fab.addEventListener('click', function () {
+    hideFab();
+    openComposer();
+  });
+
+  function openComposer() {
+    if (!pending) return;
+    composerOpen = true;
+    quoteEl.innerHTML = (pending.kind === 'figure' ? '<span class="kind-pill fig">図</span>' : '')
+      + '「' + escapeHtml(pending.quote) + '」';
+    textarea.value = '';
+    saveBtn.disabled = true;
+    applyAnchor(composer);
+    composer.hidden = false;
+    window.setTimeout(function () { textarea.focus(); }, 0);
+  }
+
+  function closeComposer() {
+    pending = null;
+    composerOpen = false;
+    composer.hidden = true;
+    textarea.value = '';
+  }
+
+  textarea.addEventListener('input', function () {
+    saveBtn.disabled = textarea.value.trim().length === 0;
+  });
+  textarea.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); saveComment(); }
+    if (e.key === 'Escape') closeComposer();
+  });
+  cancelBtn.addEventListener('click', closeComposer);
+  saveBtn.addEventListener('click', saveComment);
+  composer.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+
+  function genId() {
+    return 'c-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+  }
+
+  function saveComment() {
+    var body = textarea.value.trim();
+    if (!pending || !body) return;
+    var id = genId();
+    if (pending.kind === 'text' && draftRange) {
+      rangeMap.set(id, draftRange);
+      refreshHighlights();
+    }
+    comments.push({
+      id: id,
+      kind: pending.kind,
+      quote: pending.quote,
+      body: body,
+      createdAt: Date.now(),
+      figureKey: pending.figureKey
+    });
+    persist();
+    renderPanel();
+    markFigureComments();
+    closeComposer();
+    var s = window.getSelection();
+    if (s) s.removeAllRanges();
+  }
+
+  function deleteComment(id) {
+    rangeMap.delete(id);
+    refreshHighlights();
+    comments = comments.filter(function (c) { return c.id !== id; });
+    persist();
+    if (editingId === id) editingId = null;
+    renderPanel();
+    markFigureComments();
+  }
+
+  function startEdit(id, body) {
+    editingId = id;
+    editBody = body;
+    renderPanel();
+  }
+
+  function saveEdit() {
+    if (!editingId) return;
+    var body = editBody.trim();
+    if (body) {
+      comments = comments.map(function (c) {
+        return c.id === editingId ? Object.assign({}, c, { body: body }) : c;
+      });
+      persist();
+    }
+    editingId = null;
+    editBody = '';
+    renderPanel();
+  }
+
+  function jumpTo(c) {
+    if (c.kind === 'figure' && c.figureKey) {
+      var target = null;
+      document.querySelectorAll('[data-figure-key]').forEach(function (el) {
+        if (el.getAttribute('data-figure-key') === c.figureKey) target = el;
+      });
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    var r = rangeMap.get(c.id);
+    var el = r ? r.startContainer.parentElement : null;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  function renderPanel() {
+    panelCount.textContent = comments.length;
+    copyAllBtn.disabled = comments.length === 0;
+    if (!copiedTimer) copyAllBtn.textContent = 'すべてコピー（' + comments.length + '件）';
+
+    if (comments.length === 0) {
+      listWrap.innerHTML = '<p class="panel-empty">本文中のテキストを選択すると「コメントを追加」ボタンが出ます。図は右上の「コメント」ボタンから。書いたコメントはここに集まります。</p>';
+      return;
+    }
+
+    var html = '<ul class="comment-list">';
+    comments.forEach(function (c, i) {
+      var isEditing = editingId === c.id;
+      html += '<li class="comment-item" data-id="' + c.id + '" data-idx="' + i + '">';
+      html += '<div class="ci-head">';
+      html += '<span class="ci-num">#' + (i + 1) + '</span>';
+      html += '<span class="kind-pill ' + (c.kind === 'figure' ? 'fig' : 'txt') + '">' + (c.kind === 'figure' ? '図' : '本文') + '</span>';
+      if (!isEditing) {
+        html += '<button class="ci-act" data-act="edit" data-id="' + c.id + '">編集</button>';
+      }
+      html += '<button class="ci-del" data-act="del" data-id="' + c.id + '">&times;</button>';
+      html += '</div>';
+      html += '<div class="ci-quote">「' + escapeHtml(c.quote) + '」</div>';
+      if (isEditing) {
+        html += '<div class="ci-edit-box" data-noselect>';
+        html += '<div class="ci-edit-label">コメントを編集</div>';
+        html += '<textarea class="composer-input ci-edit" data-act="edit-input">' + escapeHtml(editBody) + '</textarea>';
+        html += '<div class="composer-actions">';
+        html += '<button class="btn-ghost" data-act="edit-cancel">キャンセル</button>';
+        html += '<button class="btn-primary" data-act="edit-save"' + (editBody.trim() ? '' : ' disabled') + '>更新</button>';
+        html += '</div></div>';
+      } else {
+        html += '<div class="ci-body">' + escapeHtml(c.body) + '</div>';
+      }
+      html += '</li>';
+    });
+    html += '</ul>';
+    listWrap.innerHTML = html;
+
+    // イベント配線（再描画のたびに張り直す）
+    listWrap.querySelectorAll('.comment-item').forEach(function (li) {
+      var id = li.getAttribute('data-id');
+      li.addEventListener('click', function (e) {
+        if (editingId === id) return;
+        if (e.target.closest('[data-act]')) return;
+        var c = comments.find(function (x) { return x.id === id; });
+        if (c) jumpTo(c);
+      });
+    });
+    listWrap.querySelectorAll('[data-act="edit"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var id = btn.getAttribute('data-id');
+        var c = comments.find(function (x) { return x.id === id; });
+        if (c) startEdit(id, c.body);
+      });
+    });
+    listWrap.querySelectorAll('[data-act="del"]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        deleteComment(btn.getAttribute('data-id'));
+      });
+    });
+    var editInput = listWrap.querySelector('[data-act="edit-input"]');
+    if (editInput) {
+      editInput.addEventListener('click', function (e) { e.stopPropagation(); });
+      editInput.addEventListener('input', function () {
+        editBody = editInput.value;
+        var saveBtnEl = listWrap.querySelector('[data-act="edit-save"]');
+        if (saveBtnEl) saveBtnEl.disabled = editBody.trim().length === 0;
+      });
+      editInput.addEventListener('keydown', function (e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); saveEdit(); }
+        if (e.key === 'Escape') { editingId = null; renderPanel(); }
+      });
+    }
+    var editCancel = listWrap.querySelector('[data-act="edit-cancel"]');
+    if (editCancel) editCancel.addEventListener('click', function (e) {
+      e.stopPropagation();
+      editingId = null;
+      renderPanel();
+    });
+    var editSave = listWrap.querySelector('[data-act="edit-save"]');
+    if (editSave) editSave.addEventListener('click', function (e) {
+      e.stopPropagation();
+      saveEdit();
+    });
+  }
+
+  panelToggle.addEventListener('click', function () {
+    panelOpen = !panelOpen;
+    panel.classList.toggle('open', panelOpen);
+    panelBody.hidden = !panelOpen;
+    panelCaret.innerHTML = panelOpen ? '&#9662;' : '&#9652;';
+  });
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    done();
+  }
+
+  copyAllBtn.addEventListener('click', function () {
+    if (comments.length === 0) return;
+    var lines = ['# ' + COPY_TITLE + '（' + comments.length + '件）', ''];
+    comments.forEach(function (c, i) {
+      lines.push('## コメント ' + (i + 1) + '（' + (c.kind === 'figure' ? '図' : '本文') + '）');
+      lines.push('> ' + c.quote.replace(/\n+/g, ' '));
+      lines.push('');
+      lines.push(c.body);
+      lines.push('');
+    });
+    var text = lines.join('\n');
+
+    function done() {
+      window.clearTimeout(copiedTimer);
+      copyAllBtn.textContent = 'コピーしました';
+      copiedTimer = window.setTimeout(function () {
+        copiedTimer = null;
+        copyAllBtn.textContent = 'すべてコピー（' + comments.length + '件）';
+      }, 2000);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
+
+  // ---- 初期描画 ----
+  markFigureComments();
+  renderPanel();
+})();
+</script>
+
+</body>
+</html>
