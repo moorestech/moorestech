@@ -15,17 +15,30 @@
 - **検索ボックスを実装する**（全カテゴリ横断・名前部分一致）
 - ホバー詳細は**パネル内固定プレビュー欄**（機械レシピ選択タブ様式の前例一致。カーソル追従カードは作らない）
 - カテゴリ値はマスタデータが正本。`category` は**必須化**し全ブロックへ一括付与（optional+未分類フォールバック禁止 / PR978原則）
-- カテゴリ・サブカテゴリの**表示順は配信配列の初出順から導出**（順序定義用の新マスタ・契約フィールドは作らない。配列順の正は既存カタログのsortPriority昇順）
-- 非ブロックエントリは**エントリ種別から固定カテゴリを導出**（マスタ拡張しない）
+- **カテゴリの一覧・並び順は専用マスタ（blockCategories）で明示定義する**（ユーザー裁定: sortPriorityからの自動導出はしない。順序は導出可能な情報ではないため中央定義がSSOT）
+- カテゴリ内のエントリ並びのみ従来どおり配信配列順（=sortPriority昇順）
+- 非ブロックエントリは**エントリ種別から固定カテゴリを導出**（カテゴリ名はblockCategories定義を参照）
 
 ## 1. マスタデータ設計
 
-### 1.1 スキーマ変更（VanillaSchema/blocks.yml）
+### 1.1 スキーマ変更
+
+**新規マスタ `VanillaSchema/blockCategories.yml`**（カテゴリ定義の正本）:
+
+```yaml
+# カテゴリの並び順は配列順がそのまま表示順
+categories:
+  - name: string (required)        # カテゴリ表示名（一意）
+    subCategories:
+      - name: string (required)    # サブカテゴリ表示名（カテゴリ内一意）。配列順=表示順
+```
+
+**`VanillaSchema/blocks.yml` の変更**:
 
 - 既存 `category`（optional string, blocks.yml:186付近）の `optional: true` を削除して**required化**
 - `subCategory`（required string）を追加
 
-両方とも自由文字列。カテゴリの一覧・順序・表示名はデータから導出するため、カテゴリ定義用の別マスタ・enumは作らない。付与漏れはmooresmasterのロードで必須違反として大声で失敗する。
+blocks側の値は blockCategories に定義済みの name を参照する文字列。mooresmasterのforeignKey機構が使える形ならforeignKey指定し、使えない場合は **C#バリデーション（validate-schemaスキルの手順）で「category/subCategoryペアがblockCategoriesに存在すること」をロード時検証**する。付与漏れ・タイポはロードで大声で失敗する。
 
 **注**: `sortPriority` は現行 optional + `?? 0` のままとし、今回はrequired化しない（既存債務として別課題。触ると全modのsortPriority付与が必要になり本タスクと無関係な波及が大きい）。
 
@@ -37,6 +50,8 @@
 | `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json` | 59 | 機械的に `category: "テスト"` / `subCategory: blockType名`（テストはカテゴリUIを検証しないため意味分類不要） |
 | `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/.../master/blocks.json` | 29 | 同上 |
 | `mooresmaster/mooresmaster.SandBox/` 配下のblocks.json 2件 | - | 同上 |
+
+各modには `blockCategories.json` も新規追加する（プレイ用modは§1.5の定義、テストmodは「テスト」カテゴリ+blockType名サブカテゴリの機械生成）。
 
 旧バージョンmod（`../moorestech_master/` の server(v3)〜server_v7）は現行コードから参照されないため**更新しない**（旧コミット用データを新スキーマに合わせるのは逆に不整合）。
 
@@ -86,15 +101,26 @@
 | blueprintCopy | ツール | ブループリント |
 | blueprint | ブループリント | 保存済み |
 
-車両はブロックの「輸送」カテゴリに合流する。カタログの列挙順（ブロック→車両→接続ツール→BPコピー→保存BP）により、輸送カテゴリ内で「車両」サブカテゴリは常に「鉄道」の後、「ツール」「ブループリント」カテゴリは常にサイドバー末尾になる（§2の順序導出規則参照）。
+車両はブロックの「輸送」カテゴリに合流する。これらのカテゴリ/サブカテゴリ名もblockCategoriesに定義し、C#の種別導出マッピングは定義済み名を参照する（定義との不一致はバリデーションで検出）。
 
-### 1.5 導出されるサイドバー順（現sortPriorityでの実態）
+### 1.5 blockCategories.json の定義内容（プレイ用mod・配列順=表示順）
 
-採掘(180) → 物流(200) → 生産(220) → 動力(300) → 建材(400) → 液体(570) → 輸送(780) → 電力(970) → ツール → ブループリント
+| category | subCategories（順） |
+|---|---|
+| 採掘 | 採掘機 / 液体採取 |
+| 生産 | 原始加工 / 電気機械 / 化学 / 半導体 |
+| 動力 | シャフト / 歯車 / チェーンポール / 動力源 |
+| 電力 | 発電 / 変換 / 送電 |
+| 物流 | 歯車コンベア / 電気コンベア / 仕分け / チェスト |
+| 液体 | パイプ / ポンプ / タンク |
+| 輸送 | 鉄道 / 車両 |
+| 建材 | 土台 / クリーンルーム |
+| ツール | 接続 / ブループリント |
+| ブループリント | 保存済み |
 
-**これは解放進行順であり、初期リリースはこの順をそのまま受け入れる**（thematicな並び替えのためのsortPriority大規模改編は今回しない）。順序を変えたくなった場合の調整手段はマスタのsortPriority側を直すこと。
+この並びは初期案であり、以後の調整はこのJSONの配列順を並べ替えるだけで完結する（コード変更不要）。
 
-**master-refineとの相互作用**: master-refine操作AはsortPriorityをresearch解放順+nodeGraph配置から自動再計算するため、手動調整は再計算で上書きされる。カテゴリ順=進行順という本設計はこの再計算と整合する（進行順が変われば表示順も追従するのが正）。再計算後は§7の目視確認を必ず行う。
+**master-refineとの関係**: sortPriority再計算はカテゴリ内のエントリ並びにのみ影響し、カテゴリ/サブカテゴリの表示順はblockCategoriesが正のため衝突しない。
 
 ## 2. 配信契約の変更
 
@@ -102,8 +128,8 @@
   - `Category` / `SubCategory`（required string。ブロックはマスタ値、非ブロックは種別導出値）
   - `RequiredItems`（`{ itemId: int, count: int }[]`。ブロック/車両は `RequiredItems` マスタ値から、無いエントリは空配列）
 - `Tooltip` フィールドは**契約から削除**（整形済み表示文字列の逆パース依存を作らない。詳細プレビューが構造化データから描画する）。`Label` は継続
-- **順序フィールドは追加しない**: カタログ（`BuildMenuEntryCatalog.cs`）が既にブロックをsortPriority昇順→車両→接続ツール→BPコピー→保存BPの順で配列構築しており、**配信配列の並び順そのものが順序の正**。カテゴリ/サブカテゴリの表示順はwebui側で「配列内の初出index」から導出する。カタログのこの順序保証を契約前提としてコード内コメントに明記する
-- webui側 `bridge/contract/schemas/buildMenu.ts` の zod スキーマへ `category` / `subCategory` / `requiredItems` を必須追加、`tooltip` を削除
+- buildMenuトピックのpayloadに**カテゴリ定義リストを追加**: `categories: { name: string, subCategories: string[] }[]`（blockCategoriesマスタの配列順そのまま。カテゴリ/サブカテゴリの表示順の正）。エントリ側の並び（カテゴリ内順）は従来どおり配信配列順=カタログのsortPriority昇順で、順序フィールドは追加しない
+- webui側 `bridge/contract/schemas/buildMenu.ts` の zod スキーマへ `categories` / エントリの `category` / `subCategory` / `requiredItems` を必須追加、`tooltip` を削除
 - 更新対象テスト・フィクスチャ:
   - `Client.Tests/WebUi/WireContractTest.cs`
   - 共有fixture `Client.Tests/WebUi/WireFixtures/build_menu_snapshot.json`（C#とwebuiの `wireContract.test.ts` が両側で読む）
@@ -146,8 +172,8 @@
 
 ### 4.2 状態と挙動
 
-- 選択中カテゴリ: `useState<string | null>(null)` で**カテゴリ名（値）で保持**し、描画時に「nullまたは消滅したカテゴリ名なら導出順の先頭」へフォールバック（データ非同期到着・BP増減の再配信・index ずれに耐える）。パネルは閉じるとunmountされるため、再オープンで検索文字列・選択カテゴリがリセットされるのは意図した仕様
-- カテゴリ順・サブカテゴリ順: エントリ配列の初出index昇順で導出（§2）。**エントリが1件も無いカテゴリはサイドバーに出さない**
+- 選択中カテゴリ: `useState<string | null>(null)` で**カテゴリ名（値）で保持**し、描画時に「nullまたは表示対象外のカテゴリ名なら定義順の先頭（表示中カテゴリの先頭）」へフォールバック（データ非同期到着・BP増減の再配信・index ずれに耐える）。パネルは閉じるとunmountされるため、再オープンで検索文字列・選択カテゴリがリセットされるのは意図した仕様
+- カテゴリ順・サブカテゴリ順: payloadの `categories` 定義順（§2）。**エントリが1件も無いカテゴリ/サブカテゴリは表示しない**（unlock進行で自然に増える）
 - 検索: 入力非空の間は**全カテゴリ横断**で `label` 部分一致（大文字小文字無視）。**検索中は常に「カテゴリ名 / サブカテゴリ名」の複合見出し**で区切り、グループ並びはカテゴリ導出順→サブカテゴリ導出順。**検索中はサイドバーを無効化**し、検索クリアで元のカテゴリ表示へ戻る。検索0件はグリッド領域に `--text-muted` の「該当なし」
   - 無効化の実現: `ModeSwitch` に汎用 `disabled?: boolean` prop + `data-disabled` 表現を追加する（ドメイン語彙なしの汎用属性。判断はbuildMenu側が行いboolを渡すだけ）。様式は§4.4で追記
 - 表示リテラル（プレースホルダ・「該当なし」・プレビュー案内等）は**すべて `t()` 経由**（lint: no-jsx-visible-literal）。カテゴリ名・サブカテゴリ名・エントリ名はマスタ由来文字列のため `t()` を通さずraw表示（既存 `entry.label` と同扱い）
@@ -185,7 +211,7 @@ index.ts込み9ファイルで1ディレクトリ10上限内。
 - **保存BPの動的増減**: 種別導出のため常に「ブループリント」カテゴリに出る。メニューを開いたままのBP保存/削除は再配信を起こすが、選択カテゴリは名前保持のため維持され、消滅時のみ先頭へフォールバック
 - **検索0件**: `--text-muted` の「該当なし」テキスト
 - **未解放進行初期**: 解放済みが1カテゴリしか無い場合もサイドバーは1項目で表示（特別扱いしない）
-- **輸送ブロック未解放で車両のみ解放**: カタログ列挙順により輸送カテゴリは車両の位置で初出し、接続ツールより前に出る（順序導出は初出indexのため矛盾しない）
+- **輸送ブロック未解放で車両のみ解放**: 輸送カテゴリはblockCategories定義順の位置に「車両」サブカテゴリのみで表示される（定義順ベースのため列挙順に依存しない）
 
 ## 6. 検証計画
 
@@ -194,11 +220,11 @@ index.ts込み9ファイルで1ディレクトリ10上限内。
 3. webui: `validators.test.ts` / `wireContract.test.ts` 更新、既存 `e2e/tests/regression/buildMenu.spec.ts` を再構成（現行の「3エントリ同時可視」assertはカテゴリ分散で成立しなくなるため、select・BP右クリック削除テストにカテゴリ切替操作を挿入）。追加シナリオ: カテゴリ切替 / 横断検索と複合見出し / 検索中サイドバー無効 / 検索0件表示 / 検索クリア復元 / ホバーでプレビュー更新・解除でフォールバック / 空カテゴリ非表示
 4. mockホストで目視QA（webui-design §10: 4辺の余白・フェード帯・中央揃え・見出し区別をスクショ確認）
 5. 実マスタで起動し、表示対象ブロック（坂除く）の分類・カテゴリ順を目視確認。blocks.json全73件の category/subCategory 付与網羅は jq 等で機械確認
-6. master-refine 操作Aを実行した場合はカテゴリ順の目視確認を再実施（§1.5）
+6. 新設バリデーション（category/subCategoryペアの定義参照）の失敗系テストを追加（validate-schemaスキル手順）。master-refine 操作Aはカテゴリ順に影響しなくなったため再確認はカテゴリ内エントリ順のみ
 
 ## 7. 自己反証
 
-- 「順序を配列初出順（=sortPriority）から導出」への反例: サイドバー順が進行順になりthematic順にならない（§1.5の実態）。→ 初期リリースは進行順を仕様として受け入れ、UI側に順序テーブルを持たない。調整はマスタ側・master-refine側の責務
+- 「カテゴリ定義マスタ新設」への反例: 導出可能な情報の置き場を増やすのはSSOT違反ではないか。→ 並び順はユーザー裁定により明示指定すべき情報（=どこからも導出できない）となったため、中央定義こそがSSOT。blocks側は名前参照のみで順序情報を持たず二重化しない
 - 「検索中サイドバー無効化」への反例: 検索しながらカテゴリを絞りたいユースケース。→ 73種の規模では横断検索で十分（YAGNI）。必要になったら様式更新から入る
-- 「category自由文字列」への反例: タイポで新カテゴリが生えて気づかない。→ 検証計画5の機械確認+目視で検出する。foreignKey化（カテゴリマスタ新設）は導出可能テストにより不採用
+- 「category/subCategoryタイポ」への反例: 自由文字列のタイポで未定義カテゴリが生える。→ blockCategories参照のロード時バリデーション（§1.1）で大声で失敗するため無言死しない
 - 「tooltip契約削除」への反例: 他にtooltipを使う消費者がいれば破壊。→ 現状の消費者はBuildMenuSlotのMantine Tooltipのみ（同時撤去）で、契約はbuildMenuトピック閉域。破壊なし

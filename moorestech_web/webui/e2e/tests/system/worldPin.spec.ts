@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-// ワールドピンHUD: Unity射影済み座標のDOM描画契約を検証する
-// World-pin HUD: verifies the DOM rendering contract for Unity-projected coordinates
+// ワールドピンHUD描画契約を検証
+// Verify the world-pin HUD rendering contract
 test.afterEach(async ({ request }) => {
   await request.get("/__worldpin?clear=1");
 });
@@ -15,8 +15,8 @@ test("on-screen world pin renders with its marker tip at the projected viewport 
   await expect(pin).toBeVisible();
   await expect(pin).toContainText("PickPebbles");
 
-  // マーカー先端（下端中央）が正規化座標×ビューポート寸法に一致すること
-  // The marker tip (bottom center) must land on normalized coords × viewport size
+  // マーカー先端が正規化座標に一致
+  // The marker tip lands on the normalized coords
   const viewport = page.viewportSize()!;
   const box = (await pin.boundingBox())!;
   expect(Math.abs(box.x + box.width / 2 - viewport.width * 0.25)).toBeLessThanOrEqual(1.5);

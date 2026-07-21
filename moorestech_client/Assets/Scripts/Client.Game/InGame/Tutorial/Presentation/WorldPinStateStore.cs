@@ -35,7 +35,7 @@ namespace Client.Game.InGame.Tutorial
         public void SetPin(string pinId, string text, WorldPinProjection projection)
         {
             var existing = _pins.FirstOrDefault(pin => pin.PinId == pinId);
-            if (existing != null && IsSame(existing, text, projection)) return;
+            if (existing != null && IsSame(existing)) return;
 
             if (existing == null)
             {
@@ -50,22 +50,26 @@ namespace Client.Game.InGame.Tutorial
             existing.DirectionX = projection.DirectionX;
             existing.DirectionY = projection.DirectionY;
             Publish();
+
+            #region Internal
+
+            bool IsSame(WorldPinData pin)
+            {
+                return pin.Text == text &&
+                       pin.OnScreen == projection.OnScreen &&
+                       Mathf.Abs(pin.ScreenX - projection.ScreenX) < PositionEpsilon &&
+                       Mathf.Abs(pin.ScreenY - projection.ScreenY) < PositionEpsilon &&
+                       Mathf.Abs(pin.DirectionX - projection.DirectionX) < PositionEpsilon &&
+                       Mathf.Abs(pin.DirectionY - projection.DirectionY) < PositionEpsilon;
+            }
+
+            #endregion
         }
 
         public void RemovePin(string pinId)
         {
             var removed = _pins.RemoveAll(pin => pin.PinId == pinId);
-            if (removed > 0) Publish();
-        }
-
-        private static bool IsSame(WorldPinData pin, string text, WorldPinProjection projection)
-        {
-            return pin.Text == text &&
-                   pin.OnScreen == projection.OnScreen &&
-                   Mathf.Abs(pin.ScreenX - projection.ScreenX) < PositionEpsilon &&
-                   Mathf.Abs(pin.ScreenY - projection.ScreenY) < PositionEpsilon &&
-                   Mathf.Abs(pin.DirectionX - projection.DirectionX) < PositionEpsilon &&
-                   Mathf.Abs(pin.DirectionY - projection.DirectionY) < PositionEpsilon;
+            if (0 < removed) Publish();
         }
 
         private void Publish()

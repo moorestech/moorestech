@@ -54,8 +54,8 @@ namespace Client.Game.InGame.Tutorial
             // 最も近いMapObjectにピンする
             NearestPinMapObject();
 
-            // Webモードではワールド座標を射影してWebオーバーレイへ配信する
-            // In web mode project the tracked position and publish it to the web overlay
+            // Webへ射影配信する
+            // Project and publish to the web overlay
             PublishWebWorldPin();
 
             #region Internal
@@ -101,17 +101,34 @@ namespace Client.Game.InGame.Tutorial
 
             // Webモードでは3D表示を隠し、追跡と射影配信だけを行う
             // In web mode hide the 3D visuals; this object only tracks and publishes projections
-            if (WebUiScreenGate.IsWebUiMode) SetRenderersVisible(false);
+            if (WebUiScreenGate.IsWebUiMode) SetVisualsVisible(false);
 
             return this;
+
+            #region Internal
+
+            void SetVisualsVisible(bool visible)
+            {
+                // ピン表示はworld-space Canvas構成のためCanvasを無効化する（Renderer系も併せて対象）
+                // The pin visuals live on a world-space Canvas, so toggle Canvas (and any Renderer) components
+                foreach (var childCanvas in GetComponentsInChildren<Canvas>(true))
+                {
+                    childCanvas.enabled = visible;
+                }
+                foreach (var childRenderer in GetComponentsInChildren<Renderer>(true))
+                {
+                    childRenderer.enabled = visible;
+                }
+            }
+
+            #endregion
         }
 
         public void CompleteTutorial()
         {
             SetActive(false);
             _currentTutorialParam = null;
-
-            if (WebUiScreenGate.IsWebUiMode) WorldPinStateStore.Instance.RemovePin(WebPinId);
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
         public void SetActive(bool active)
@@ -119,21 +136,16 @@ namespace Client.Game.InGame.Tutorial
             gameObject.SetActive(active);
         }
 
-        private void SetRenderersVisible(bool visible)
+        // SkitManager等の外部SetActive(false)でもWebピンを確実に消す（RemovePinは冪等）
+        // External SetActive(false) (e.g. SkitManager) must also clear the web pin; RemovePin is idempotent
+        private void OnDisable()
         {
-            foreach (var childRenderer in GetComponentsInChildren<Renderer>(true))
-            {
-                childRenderer.enabled = visible;
-            }
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
         private void OnDestroy()
         {
-            if (WebUiScreenGate.IsWebUiMode)
-            {
-                WorldPinStateStore.Instance.RemovePin(WebPinId);
-                return;
-            }
+            WorldPinStateStore.Instance.RemovePin(WebPinId);
             HudArrowManager.UnregisterHudArrowTarget(gameObject);
         }
     }

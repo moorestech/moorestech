@@ -31,8 +31,8 @@ function OnScreenPin({ pin }: { pin: WorldPin }) {
   );
 }
 
-// 方向ベクトルを固定マージンの画面端矩形へクランプし、方向へ回転したシェブロンを置く
-// Clamp the direction vector onto the fixed-margin screen rectangle and rotate a chevron toward it
+// 方向を画面端へクランプ配置
+// Clamp toward the screen edge
 function EdgeArrow({ pin, width, height }: { pin: WorldPin; width: number; height: number }) {
   if (width === 0 || height === 0) return null;
   const margin = readEdgeMargin();
@@ -55,11 +55,16 @@ function EdgeArrow({ pin, width, height }: { pin: WorldPin; width: number; heigh
 }
 
 const FALLBACK_EDGE_MARGIN_PX = 28;
+let cachedEdgeMargin: number | null = null;
 
 // クランプ計算はJSで行うため、固定長トークンをCSS変数から読み取り単一の値源を保つ
 // The clamp math runs in JS, so read the fixed-length token from the CSS variable to keep one source
+// トークンは実行中に変わらないため初回読み取りをキャッシュし、毎レンダーのgetComputedStyleを避ける
+// The token never changes at runtime, so cache the first read and avoid per-render getComputedStyle
 function readEdgeMargin(): number {
+  if (cachedEdgeMargin !== null) return cachedEdgeMargin;
   const raw = getComputedStyle(document.documentElement).getPropertyValue("--world-pin-edge-margin");
   const value = Number.parseFloat(raw);
-  return Number.isNaN(value) ? FALLBACK_EDGE_MARGIN_PX : value;
+  cachedEdgeMargin = Number.isNaN(value) ? FALLBACK_EDGE_MARGIN_PX : value;
+  return cachedEdgeMargin;
 }
