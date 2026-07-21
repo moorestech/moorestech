@@ -59,6 +59,11 @@
   /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
   /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
   --block-panel-right-safe-area: 28px;
+  /* 建設メニュー: サイドバー幅・プレビュー高・フェード帯と内容の安全余白（固定長。%は破綻源） */
+  /* Construction menu: sidebar width, preview height, and edge safe area (fixed length; % is a failure source) */
+  --build-menu-sidebar-width: 8.5rem;
+  --build-menu-preview-height: calc(var(--slot-size) + 8px);
+  --build-menu-edge-safe-area: 16px;
   /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
   /* World-pin HUD layer; kept below panel faces so open panels cover it */
   --z-world-pin: 10;
