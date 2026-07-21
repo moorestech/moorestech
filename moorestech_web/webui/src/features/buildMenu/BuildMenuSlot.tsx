@@ -1,8 +1,7 @@
-import { Tooltip } from "@mantine/core";
+import { SlotFrame } from "@/shared/ui";
 import type { BuildMenuEntryData } from "@/bridge";
-import { useSlotMouse } from "@/shared/ui";
-import styles from "./style.module.css";
 import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
+import styles from "./style.module.css";
 
 type Props = {
   entry: BuildMenuEntryData;
@@ -10,28 +9,26 @@ type Props = {
   // BPエントリのみ右クリック削除を受け付ける
   // Only blueprint entries accept right-click deletion
   onRightClick?: () => void;
+  onHoverChange: (hovering: boolean) => void;
 };
 
 // アイコン有無で画像/テキストを出し分けるビルドメニュー1スロット
 // One build-menu slot, rendering an image or a text label depending on icon presence
-export default function BuildMenuSlot({ entry, onLeftClick, onRightClick }: Props) {
-  const slotMouse = useSlotMouse(() => onLeftClick(), onRightClick);
-
+export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange }: Props) {
   return (
-    <Tooltip label={<span className={styles.tooltip}>{entry.label}</span>}>
-      <div
-        className={styles.slot}
-        data-testid={`build-menu-entry-${entry.entryType}-${entry.entryKey}`}
-        {...tutorialAnchor(`build-menu.entry-${entry.entryType}-${entry.entryKey}`.toLowerCase() as AnchorId)}
-        onMouseDown={slotMouse.onMouseDown}
-        onContextMenu={slotMouse.onContextMenu}
-      >
-        {entry.iconUrl ? (
-          <img src={entry.iconUrl} alt={entry.label} className={styles.icon} draggable={false} />
-        ) : (
-          <span className={styles.label}>{entry.label}</span>
-        )}
-      </div>
-    </Tooltip>
+    <SlotFrame
+      filled
+      testId={`build-menu-entry-${entry.entryType}-${entry.entryKey}`}
+      onLeftDown={onLeftClick}
+      onRightDown={onRightClick}
+      onHoverChange={onHoverChange}
+      {...tutorialAnchor(`build-menu.entry-${entry.entryType}-${entry.entryKey}`.toLowerCase() as AnchorId)}
+    >
+      {entry.iconUrl ? (
+        <img className={styles.slotIcon} src={entry.iconUrl} alt={entry.label} draggable={false} />
+      ) : (
+        <span className={styles.slotLabel}>{entry.label}</span>
+      )}
+    </SlotFrame>
   );
 }
