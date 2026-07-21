@@ -130,11 +130,21 @@ export const itemMaster = {
   ],
 } satisfies ItemMasterData;
 
+// カテゴリ×サブカテゴリ構成。「鉄」検索で 物流/チェスト と 輸送/鉄道 が複数カテゴリ跨ぎでヒットする
+// Category x sub-category layout; searching "鉄" hits both 物流/チェスト and 輸送/鉄道 across categories
 export const buildMenu = {
+  categories: [
+    { name: "物流", subCategories: ["チェスト", "電気コンベア"] },
+    { name: "輸送", subCategories: ["鉄道", "車両"] },
+    { name: "ブループリント", subCategories: ["保存済み"] },
+  ],
   entries: [
-    { entryType: "block", entryKey: "wood-chest", label: "木箱", tooltip: "木箱を建築" },
-    { entryType: "trainCar", entryKey: "cargo-car", label: "貨車", tooltip: "貨車を建築" },
-    { entryType: "blueprint", entryKey: "starter-base", label: "拠点BP", tooltip: "保存済み設計図" },
+    { entryType: "block", entryKey: "wood-chest", label: "木のチェスト", category: "物流", subCategory: "チェスト", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: "/icons/wood-chest.png" },
+    { entryType: "block", entryKey: "iron-chest", label: "鉄のチェスト", category: "物流", subCategory: "チェスト", requiredItems: [], iconUrl: "/icons/iron-chest.png" },
+    { entryType: "block", entryKey: "belt-conveyor", label: "ベルトコンベア", category: "物流", subCategory: "電気コンベア", requiredItems: [], iconUrl: "/icons/belt-conveyor.png" },
+    { entryType: "block", entryKey: "rail", label: "鉄道レール", category: "輸送", subCategory: "鉄道", requiredItems: [], iconUrl: "/icons/rail.png" },
+    { entryType: "trainCar", entryKey: "cargo-car", label: "貨物車両", category: "輸送", subCategory: "車両", requiredItems: [], iconUrl: "/icons/cargo-car.png" },
+    { entryType: "blueprint", entryKey: "starter-base", label: "starter-base", category: "ブループリント", subCategory: "保存済み", requiredItems: [] },
   ],
 } satisfies BuildMenuData;
 
