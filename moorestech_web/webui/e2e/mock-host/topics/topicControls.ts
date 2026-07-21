@@ -7,8 +7,8 @@ import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
 
 const dictionaries: Record<string, Record<string, string>> = {
-  japanese: { "Pause Menu": "ポーズメニュー", "Save this game": "セーブする", HUD_HINT: "操作ヒント", CONTEXT_INSPECT: "調べる", TOOLTIP_WORLD: "世界の対象" },
-  english: { "Pause Menu": "Pause Menu", "Save this game": "Save Game", HUD_HINT: "Controls", CONTEXT_INSPECT: "Inspect", TOOLTIP_WORLD: "World Target" },
+  japanese: { "Pause Menu": "ポーズメニュー", "Save this game": "セーブする", CONTEXT_INSPECT: "調べる", TOOLTIP_WORLD: "世界の対象" },
+  english: { "Pause Menu": "Pause Menu", "Save this game": "Save Game", CONTEXT_INSPECT: "Inspect", TOOLTIP_WORLD: "World Target" },
 };
 
 export function serveDictionary(url: string, response: ServerResponse): void {
@@ -21,13 +21,11 @@ const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]
 const controls = {
   placement: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "", energizedRangeVisible: true }),
   delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
-  keyHints: (params: URLSearchParams) => control(Topics.keyHints, { textKey: params.get("text") ?? "HUD_HINT" }),
-  keyHintsHidden: () => control(Topics.keyHints, { textKey: "" }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),
   uiHidden: () => control(Topics.uiVisibility, { visible: false }),
   uiVisible: () => control(Topics.uiVisibility, { visible: true }),
-  mining: () => control(Topics.miningHud, { visible: true, targetName: "Iron Ore", mining: true, progress: 0.65 }),
+  mining: (params: URLSearchParams) => control(Topics.miningHud, { visible: true, targetName: params.get("text") ?? "Iron Ore", mining: true, progress: 0.65 }),
   miningHidden: () => control(Topics.miningHud, { visible: false, targetName: "", mining: false, progress: 0 }),
   tooltip: () => control(Topics.tooltip, { visible: true, textKey: "TOOLTIP_WORLD", fontSize: 18 }),
   tooltipHidden: () => control(Topics.tooltip, { visible: false, textKey: "", fontSize: 14 }),

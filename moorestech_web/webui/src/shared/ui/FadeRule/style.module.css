@@ -1,0 +1,7 @@
+/* GamePanelのタイトル罫線と同族の青灰グラデ。中央を保ち両端を世界背景へフェードさせる */
+/* Blue-gray gradient from the GamePanel title-rule family; keeps the middle and fades both ends into the world */
+.rule {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgb(128 132 159 / 30%) 5%, rgb(128 132 159 / 42%) 11%, rgb(128 132 159 / 42%) 89%, rgb(128 132 159 / 26%) 95%, transparent 100%);
+}

@@ -1,1 +1,1 @@
-export { Crosshair, KeyHintBar } from "./CommonHud";
+export { Crosshair } from "./CommonHud";

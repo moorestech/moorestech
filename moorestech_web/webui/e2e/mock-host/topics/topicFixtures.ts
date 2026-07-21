@@ -23,7 +23,6 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.pauseMenu) return { disconnected: false };
   if (topic === Topics.placementMode) return { selectedName: "", height: 0, unavailableReason: "", energizedRangeVisible: false };
   if (topic === Topics.deleteMode) return { unavailableReason: "" };
-  if (topic === Topics.keyHints) return { textKey: "" };
   if (topic === Topics.crosshair) return { visible: true };
   if (topic === Topics.uiVisibility) return { visible: true };
   if (topic === Topics.miningHud) return { visible: false, targetName: "", mining: false, progress: 0 };
