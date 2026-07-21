@@ -1,7 +1,7 @@
 import { Button, Stack, Text, Title } from "@mantine/core";
 import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
-import { tutorialAnchor } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 export function PauseMenuPanel() {
@@ -16,14 +16,14 @@ export function PauseMenuPanel() {
   const back = () => void dispatchAction("pause_menu.back_to_main_menu", {});
 
   return (
-    <section className={styles.panel} data-testid="pause-menu" {...tutorialAnchor("pause.menu")}>
+    <section className={styles.panel} data-testid="pause-menu" {...tutorialAnchor(TutorialAnchorIds.pauseMenu)}>
       <Stack gap="md">
         <Title order={1}>{title}</Title>
         {data?.disconnected && <Text c={disconnectColor}>{disconnected}</Text>}
-        <Button {...tutorialAnchor("pause.save")} onClick={save}>
+        <Button {...tutorialAnchor(TutorialAnchorIds.pauseSave)} onClick={save}>
           {saveLabel}
         </Button>
-        <Button {...tutorialAnchor("pause.back")} onClick={back}>
+        <Button {...tutorialAnchor(TutorialAnchorIds.pauseBack)} onClick={back}>
           {backLabel}
         </Button>
       </Stack>

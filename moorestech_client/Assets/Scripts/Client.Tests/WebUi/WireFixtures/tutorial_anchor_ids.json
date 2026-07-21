@@ -1,0 +1,23 @@
+{
+  "staticIds": [
+    "placement.hud",
+    "delete.hud",
+    "game.crosshair",
+    "train-hud.status",
+    "pause.menu",
+    "pause.save",
+    "pause.back",
+    "inventory.close-button",
+    "challenge.current-hud",
+    "recipe.craft-button",
+    "mining.hud",
+    "challenge.panel",
+    "challenge.categories"
+  ],
+  "dynamicPrefixes": {
+    "researchNode": "research.node-",
+    "recipeItem": "recipe.item-",
+    "buildMenuEntry": "build-menu.entry-",
+    "challengeNode": "challenge.node-"
+  }
+}
