@@ -1,0 +1,72 @@
+{
+  "data": [
+    {
+      "name": "テスト",
+      "subCategories": [
+        {
+          "name": "ElectricMachine"
+        },
+        {
+          "name": "Gear"
+        },
+        {
+          "name": "SimpleGearGenerator"
+        },
+        {
+          "name": "GearMachine"
+        },
+        {
+          "name": "Shaft"
+        },
+        {
+          "name": "GearBeltConveyor"
+        },
+        {
+          "name": "GearMiner"
+        },
+        {
+          "name": "Block"
+        },
+        {
+          "name": "BeltConveyor"
+        },
+        {
+          "name": "Chest"
+        },
+        {
+          "name": "BaseCamp"
+        },
+        {
+          "name": "ElectricToGearGenerator"
+        }
+      ]
+    },
+    {
+      "name": "輸送",
+      "subCategories": [
+        {
+          "name": "車両"
+        }
+      ]
+    },
+    {
+      "name": "ツール",
+      "subCategories": [
+        {
+          "name": "接続"
+        },
+        {
+          "name": "ブループリント"
+        }
+      ]
+    },
+    {
+      "name": "ブループリント",
+      "subCategories": [
+        {
+          "name": "保存済み"
+        }
+      ]
+    }
+  ]
+}

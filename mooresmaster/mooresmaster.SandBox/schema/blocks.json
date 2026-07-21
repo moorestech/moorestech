@@ -65,6 +65,12 @@
           "name": {
             "type": "string"
           },
+          "category": {
+            "type": "string"
+          },
+          "subCategory": {
+            "type": "string"
+          },
           "blockType": {
             "type": "string",
             "enum": [

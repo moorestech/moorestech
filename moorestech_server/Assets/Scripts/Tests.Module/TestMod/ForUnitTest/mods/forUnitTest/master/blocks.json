@@ -113,7 +113,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000001"
+      "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "category": "テスト",
+      "subCategory": "ElectricMachine"
     },
     {
       "modelTransform": {
@@ -152,7 +154,9 @@
           "count": 1
         }
       ],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "Block"
     },
     {
       "modelTransform": {
@@ -236,7 +240,9 @@
         "slopeType": "Straight"
       },
       "blockGuid": "00000000-0000-0000-0000-000000000003",
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "BeltConveyor"
     },
     {
       "modelTransform": {
@@ -279,7 +285,9 @@
           "count": 1
         }
       ],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "ElectricPole"
     },
     {
       "modelTransform": {
@@ -321,7 +329,9 @@
           "itemGuid": "00000000-0000-0000-1234-000000000005",
           "count": 1
         }
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "ElectricPole"
     },
     {
       "modelTransform": {
@@ -419,7 +429,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000005"
+      "blockGuid": "00000000-0000-0000-0000-000000000005",
+      "category": "テスト",
+      "subCategory": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -494,7 +506,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000006"
+      "blockGuid": "00000000-0000-0000-0000-000000000006",
+      "category": "テスト",
+      "subCategory": "ElectricMiner"
     },
     {
       "modelTransform": {
@@ -590,7 +604,9 @@
           ]
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000007"
+      "blockGuid": "00000000-0000-0000-0000-000000000007",
+      "category": "テスト",
+      "subCategory": "Chest"
     },
     {
       "modelTransform": {
@@ -711,7 +727,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000008"
+      "blockGuid": "00000000-0000-0000-0000-000000000008",
+      "category": "テスト",
+      "subCategory": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -809,7 +827,9 @@
         ],
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      }
+      },
+      "category": "テスト",
+      "subCategory": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -896,7 +916,9 @@
         ],
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      }
+      },
+      "category": "テスト",
+      "subCategory": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -993,7 +1015,9 @@
         ],
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      }
+      },
+      "category": "テスト",
+      "subCategory": "ElectricGenerator"
     },
     {
       "modelTransform": {
@@ -1107,7 +1131,9 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-00000000000c"
+      "blockGuid": "00000000-0000-0000-0000-00000000000c",
+      "category": "テスト",
+      "subCategory": "Gear"
     },
     {
       "modelTransform": {
@@ -1278,7 +1304,9 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-00000000000d"
+      "blockGuid": "00000000-0000-0000-0000-00000000000d",
+      "category": "テスト",
+      "subCategory": "Gear"
     },
     {
       "modelTransform": {
@@ -1352,7 +1380,9 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-00000000000e"
+      "blockGuid": "00000000-0000-0000-0000-00000000000e",
+      "category": "テスト",
+      "subCategory": "Shaft"
     },
     {
       "modelTransform": {
@@ -1435,7 +1465,9 @@
           "count": 2
         }
       ],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "GearChainPole"
     },
     {
       "modelTransform": {
@@ -1511,7 +1543,9 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000102"
+      "blockGuid": "00000000-0000-0000-0000-000000000102",
+      "category": "テスト",
+      "subCategory": "GearChainPole"
     },
     {
       "modelTransform": {
@@ -1661,7 +1695,9 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-00000000000f"
+      "blockGuid": "00000000-0000-0000-0000-00000000000f",
+      "category": "テスト",
+      "subCategory": "GearMachine"
     },
     {
       "modelTransform": {
@@ -1735,7 +1771,9 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000010"
+      "blockGuid": "00000000-0000-0000-0000-000000000010",
+      "category": "テスト",
+      "subCategory": "SimpleGearGenerator"
     },
     {
       "modelTransform": {
@@ -1811,7 +1849,9 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000011"
+      "blockGuid": "00000000-0000-0000-0000-000000000011",
+      "category": "テスト",
+      "subCategory": "SimpleGearGenerator"
     },
     {
       "modelTransform": {
@@ -1925,7 +1965,9 @@
         }
       },
       "name": "Teeth10RequireTorqueTestGear",
-      "blockGuid": "00000000-0000-0000-0000-000000000012"
+      "blockGuid": "00000000-0000-0000-0000-000000000012",
+      "category": "テスト",
+      "subCategory": "Gear"
     },
     {
       "modelTransform": {
@@ -2039,7 +2081,9 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000013"
+      "blockGuid": "00000000-0000-0000-0000-000000000013",
+      "category": "テスト",
+      "subCategory": "Gear"
     },
     {
       "modelTransform": {
@@ -2113,7 +2157,9 @@
         "destructionCheckInterval": 1,
         "baseDestructionProbability": 0
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000014"
+      "blockGuid": "00000000-0000-0000-0000-000000000014",
+      "category": "テスト",
+      "subCategory": "SimpleGearGenerator"
     },
     {
       "blockSize": [
@@ -2213,7 +2259,9 @@
           "torqueExponentOver": 1.585
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000030"
+      "blockGuid": "00000000-0000-0000-0000-000000000030",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor"
     },
     {
       "blockSize": [
@@ -2373,7 +2421,9 @@
           "itemGuid": "00000000-0000-0000-1234-000000000004",
           "count": 1
         }
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor"
     },
     {
       "maxStack": 100,
@@ -2488,7 +2538,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000019"
+      "blockGuid": "00000000-0000-0000-0000-000000000019",
+      "category": "テスト",
+      "subCategory": "ElectricMachine"
     },
     {
       "maxStack": 100,
@@ -2603,7 +2655,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "00000000-0000-0000-0000-00000000001a"
+      "blockGuid": "00000000-0000-0000-0000-00000000001a",
+      "category": "テスト",
+      "subCategory": "ElectricMachine"
     },
     {
       "maxStack": 100,
@@ -2718,7 +2772,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "00000000-0000-0000-0000-00000000001b"
+      "blockGuid": "00000000-0000-0000-0000-00000000001b",
+      "category": "テスト",
+      "subCategory": "ElectricMachine"
     },
     {
       "name": "GearMiner",
@@ -2812,7 +2868,9 @@
         1,
         1,
         1
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "GearMiner"
     },
     {
       "maxStack": 100,
@@ -2840,7 +2898,9 @@
           "count": 2
         }
       ],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "TrainRail"
     },
     {
       "maxStack": 100,
@@ -2867,7 +2927,9 @@
           "itemGuid": "00000000-0000-0000-1234-000000000003",
           "count": 2
         }
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "TrainRail"
     },
     {
       "maxStack": 100,
@@ -2895,7 +2957,9 @@
           "count": 5
         }
       ],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "category": "テスト",
+      "subCategory": "TrainRail"
     },
     {
       "blockSize": [
@@ -2958,7 +3022,9 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainStation",
-      "blockGuid": "00000000-0000-0000-0000-000000000025"
+      "blockGuid": "00000000-0000-0000-0000-000000000025",
+      "category": "テスト",
+      "subCategory": "TrainStation"
     },
     {
       "blockSize": [
@@ -3021,7 +3087,9 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainItemPlatform",
-      "blockGuid": "00000000-0000-0000-0000-000000000026"
+      "blockGuid": "00000000-0000-0000-0000-000000000026",
+      "category": "テスト",
+      "subCategory": "TrainItemPlatform"
     },
     {
       "maxStack": 100,
@@ -3106,7 +3174,9 @@
         }
       },
       "name": "TestGearMapObjectMiner",
-      "blockGuid": "00000000-0000-0000-0000-000000000027"
+      "blockGuid": "00000000-0000-0000-0000-000000000027",
+      "category": "テスト",
+      "subCategory": "GearMapObjectMiner"
     },
     {
       "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
@@ -3214,7 +3284,9 @@
         1,
         1,
         1
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "FluidPipe"
     },
     {
       "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
@@ -3272,7 +3344,9 @@
         1,
         1,
         1
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "FluidPipe"
     },
     {
       "time": 1,
@@ -3404,7 +3478,9 @@
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
       },
-      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0"
+      "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
+      "category": "テスト",
+      "subCategory": "ElectricMachine"
     },
     {
       "blockSize": [
@@ -3542,7 +3618,9 @@
         "baseDestructionProbability": 0
       },
       "name": "FuelGearGenerator",
-      "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471"
+      "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
+      "category": "テスト",
+      "subCategory": "FuelGearGenerator"
     },
     {
       "blockGuid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
@@ -3568,7 +3646,9 @@
           "inputConnects": [],
           "outputConnects": []
         }
-      }
+      },
+      "category": "テスト",
+      "subCategory": "BaseCamp"
     },
     {
       "blockGuid": "9e18bb3d-b821-4f19-a47e-e3718c39eafa",
@@ -3602,7 +3682,9 @@
           "outputConnects": []
         },
         "upgradBlockGuid": ""
-      }
+      },
+      "category": "テスト",
+      "subCategory": "BaseCamp"
     },
     {
       "blockGuid": "cda19f55-adef-41f4-9212-3ed5f4f926b9",
@@ -3623,7 +3705,9 @@
           "inputConnects": [],
           "outputConnects": []
         }
-      }
+      },
+      "category": "テスト",
+      "subCategory": "BaseCamp"
     },
     {
       "blockGuid": "13806455-551c-4399-a7e7-b45a95709a6b",
@@ -3733,7 +3817,9 @@
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
         }
-      }
+      },
+      "category": "テスト",
+      "subCategory": "GearPump"
     },
     {
       "blockGuid": "3829088a-5a78-43d7-8c3c-d3e4bb91b90a",
@@ -3798,7 +3884,9 @@
         },
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      }
+      },
+      "category": "テスト",
+      "subCategory": "ElectricPump"
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000028",
@@ -3865,7 +3953,9 @@
         },
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      }
+      },
+      "category": "テスト",
+      "subCategory": "GearToElectricGenerator"
     },
     {
       "blockSize": [
@@ -4005,7 +4095,9 @@
           "idlePowerRate": 0.2
         }
       },
-      "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
+      "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor"
     },
     {
       "blockSize": [
@@ -4076,7 +4168,9 @@
         "maxConnectableRailLength": 100
       },
       "name": "TestTrainFluidPlatform",
-      "blockGuid": "00000000-0000-0000-0000-000000000029"
+      "blockGuid": "00000000-0000-0000-0000-000000000029",
+      "category": "テスト",
+      "subCategory": "TrainFluidPlatform"
     },
     {
       "blockSize": [
@@ -4155,7 +4249,9 @@
           ]
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000031"
+      "blockGuid": "00000000-0000-0000-0000-000000000031",
+      "category": "テスト",
+      "subCategory": "FilterSplitter"
     },
     {
       "blockSize": [
@@ -4204,7 +4300,9 @@
           ]
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000032"
+      "blockGuid": "00000000-0000-0000-0000-000000000032",
+      "category": "テスト",
+      "subCategory": "Chest"
     },
     {
       "blockSize": [
@@ -4284,7 +4382,9 @@
           "outputConnects": []
         }
       },
-      "blockGuid": "00000000-0000-0000-0000-000000000033"
+      "blockGuid": "00000000-0000-0000-0000-000000000033",
+      "category": "テスト",
+      "subCategory": "Chest"
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
@@ -4360,7 +4460,9 @@
         },
         "maxWireConnectionCount": 2,
         "maxWireLength": 8
-      }
+      },
+      "category": "テスト",
+      "subCategory": "ElectricToGearGenerator"
     },
     {
       "blockSize": [
@@ -4470,7 +4572,9 @@
           "itemGuid": "00000000-0000-0000-1234-000000000004",
           "count": 1
         }
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor"
     },
     {
       "blockSize": [
@@ -4585,7 +4689,9 @@
           "itemGuid": "00000000-0000-0000-1234-000000000004",
           "count": 1
         }
-      ]
+      ],
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor"
     },
     {
       "name": "TestCleanRoomWall",
@@ -4596,7 +4702,9 @@
         1,
         1
       ],
-      "blockGuid": "2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8"
+      "blockGuid": "2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8",
+      "category": "テスト",
+      "subCategory": "CleanRoomWall"
     },
     {
       "name": "TestCleanRoomDoor",
@@ -4607,7 +4715,9 @@
         1,
         1
       ],
-      "blockGuid": "07d7e1a2-b1fd-412f-819c-af098e79e4d4"
+      "blockGuid": "07d7e1a2-b1fd-412f-819c-af098e79e4d4",
+      "category": "テスト",
+      "subCategory": "CleanRoomDoor"
     },
     {
       "name": "TestCleanRoomItemHatch",
@@ -4655,7 +4765,9 @@
         1,
         1
       ],
-      "blockGuid": "d6268837-5326-480b-960a-ffdce4b5478e"
+      "blockGuid": "d6268837-5326-480b-960a-ffdce4b5478e",
+      "category": "テスト",
+      "subCategory": "CleanRoomItemHatch"
     },
     {
       "name": "TestCleanRoomPipeHatch",
@@ -4711,7 +4823,9 @@
         1,
         1
       ],
-      "blockGuid": "8e425510-aa34-4a1b-9f40-5f8079183ab2"
+      "blockGuid": "8e425510-aa34-4a1b-9f40-5f8079183ab2",
+      "category": "テスト",
+      "subCategory": "CleanRoomPipeHatch"
     },
     {
       "name": "TestCleanRoomAirFilter",
@@ -4729,7 +4843,9 @@
         1,
         1
       ],
-      "blockGuid": "21e760d0-54b2-41a5-8cef-d78e1efb8fb8"
+      "blockGuid": "21e760d0-54b2-41a5-8cef-d78e1efb8fb8",
+      "category": "テスト",
+      "subCategory": "CleanRoomAirFilter"
     },
     {
       "name": "TestCleanRoomMachine",
@@ -4821,7 +4937,9 @@
         1,
         1
       ],
-      "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc"
+      "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc",
+      "category": "テスト",
+      "subCategory": "CleanRoomMachine"
     }
   ],
   "connectorSettings": {
