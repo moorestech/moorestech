@@ -31,8 +31,8 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
   };
 
   return (
-    <Stack gap="xs" data-testid="machine-inventory-body">
-      <Group align="center" gap="md">
+    <Stack gap="xs" align="center" data-testid="machine-inventory-body">
+      <Group align="center" justify="center" gap="md">
         <SlotGrid cols={Math.max(1, input.length)} testId="machine-input-slots">{input.map(slotAt)}</SlotGrid>
         <ProgressArrow value={data.progress ?? 0} />
         <SlotGrid cols={Math.max(1, output.length)} testId="machine-output-slots">{output.map(slotAt)}</SlotGrid>
