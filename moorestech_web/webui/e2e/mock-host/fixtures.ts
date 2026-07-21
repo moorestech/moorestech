@@ -137,6 +137,9 @@ export const buildMenu = {
     { name: "物流", subCategories: ["チェスト", "電気コンベア"] },
     { name: "輸送", subCategories: ["鉄道", "車両"] },
     { name: "ブループリント", subCategories: ["保存済み"] },
+    // エントリを持たない空カテゴリ。サイドバーの除外分岐を検証するためのもの
+    // An empty category with no entries, to exercise the sidebar's exclusion branch
+    { name: "建材", subCategories: ["土台"] },
   ],
   entries: [
     { entryType: "block", entryKey: "wood-chest", label: "木のチェスト", category: "物流", subCategory: "チェスト", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: "/icons/wood-chest.png" },

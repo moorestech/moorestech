@@ -97,20 +97,20 @@ namespace Client.Game.InGame.UI.BuildMenu
                 return state.BlockUnlockStateInfos.TryGetValue(blockMaster.BlockGuid, out var info) && info.IsUnlocked;
             }
 
-            #endregion
-        }
-
-        private static List<BuildMenuEntry.RequiredItem> ToRequiredItems(IEnumerable<(Guid itemGuid, int count)> requiredItems)
-        {
-            // マスタのItemGuidを通信・表示用の揮発ItemIdへ解決する
-            // Resolve master ItemGuids into volatile ItemIds for wire and display use
-            var results = new List<BuildMenuEntry.RequiredItem>();
-            if (requiredItems == null) return results;
-            foreach (var (itemGuid, count) in requiredItems)
+            List<BuildMenuEntry.RequiredItem> ToRequiredItems(IEnumerable<(Guid itemGuid, int count)> requiredItems)
             {
-                results.Add(new BuildMenuEntry.RequiredItem(MasterHolder.ItemMaster.GetItemId(itemGuid), count));
+                // マスタのItemGuidを通信・表示用の揮発ItemIdへ解決する
+                // Resolve master ItemGuids into volatile ItemIds for wire and display use
+                var results = new List<BuildMenuEntry.RequiredItem>();
+                if (requiredItems == null) return results;
+                foreach (var (itemGuid, count) in requiredItems)
+                {
+                    results.Add(new BuildMenuEntry.RequiredItem(MasterHolder.ItemMaster.GetItemId(itemGuid), count));
+                }
+                return results;
             }
-            return results;
+
+            #endregion
         }
     }
 }

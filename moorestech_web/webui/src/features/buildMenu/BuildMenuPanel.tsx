@@ -32,11 +32,17 @@ export function BuildMenuPanel() {
       ? sectionsForCategory(currentCategory, data.categories, data.entries)
       : [];
 
-  // 閉じるは既存許可済みの GameScreen 遷移要求（BlockInventoryPanel と同型）
-  // Close requests the already-allowed GameScreen transition (same as BlockInventoryPanel)
+  // topic再配信で hovered が消えたエントリを指し続けても、描画時に現データ側の実在エントリへ引き直す
+  // If a topic rebroadcast leaves hovered pointing at a removed entry, re-resolve to the live entry at render time
+  const previewEntry = hovered
+    ? data.entries.find((e) => e.entryType === hovered.entryType && e.entryKey === hovered.entryKey) ?? null
+    : null;
+
   const select = (entry: BuildMenuEntryData) =>
     void dispatchAction("build_menu.select", { entryType: entry.entryType, entryKey: entry.entryKey });
   const remove = (entry: BuildMenuEntryData) => void dispatchAction("blueprint.delete", { name: entry.entryKey });
+  // 閉じるは既存許可済みの GameScreen 遷移要求（BlockInventoryPanel と同型）
+  // Close requests the already-allowed GameScreen transition (same as BlockInventoryPanel)
   const close = () => void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
 
   return (
@@ -52,7 +58,7 @@ export function BuildMenuPanel() {
           />
           <div className={styles.main}>
             <BuildMenuSearchInput value={query} onChange={setQuery} />
-            <BuildMenuDetailPreview entry={hovered} />
+            <BuildMenuDetailPreview entry={previewEntry} />
             <ScrollArea className={styles.scroll} type="auto">
               {sections.length === 0 && searching ? (
                 <span className={styles.noHit}>{t("該当なし")}</span>

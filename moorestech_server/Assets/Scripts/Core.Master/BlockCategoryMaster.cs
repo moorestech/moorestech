@@ -23,11 +23,11 @@ namespace Core.Master
             // Validate uniqueness of category names and sub category names within a category
             errorLogs = string.Empty;
             var categoryNames = BlockCategories.Data.Select(c => c.Name).ToList();
-            foreach (var duplicated in categoryNames.GroupBy(n => n).Where(g => g.Count() > 1))
+            foreach (var duplicated in categoryNames.GroupBy(n => n).Where(g => 1 < g.Count()))
                 errorLogs += $"[BlockCategoryMaster] duplicate category name:{duplicated.Key}\n";
 
             foreach (var category in BlockCategories.Data)
-            foreach (var duplicated in category.SubCategories.Select(s => s.Name).GroupBy(n => n).Where(g => g.Count() > 1))
+            foreach (var duplicated in category.SubCategories.Select(s => s.Name).GroupBy(n => n).Where(g => 1 < g.Count()))
                 errorLogs += $"[BlockCategoryMaster] duplicate subCategory:{duplicated.Key} in category:{category.Name}\n";
 
             return errorLogs == string.Empty;
