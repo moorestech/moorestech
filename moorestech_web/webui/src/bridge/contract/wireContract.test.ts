@@ -111,7 +111,7 @@ describe("wire contract fixtures (shared with C#)", () => {
   it("C2 HUD/common fixtures are accepted", () => {
     const cases = [
       [Topics.placementMode, "placement_mode.json"], [Topics.deleteMode, "delete_mode.json"],
-      [Topics.keyHints, "key_hints.json"], [Topics.crosshair, "visibility.json"],
+      [Topics.crosshair, "visibility.json"],
       [Topics.uiVisibility, "visibility.json"], [Topics.miningHud, "mining_hud.json"],
       [Topics.tooltip, "tooltip.json"],
     ] as const;

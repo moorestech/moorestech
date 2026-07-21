@@ -5,7 +5,7 @@ import type {
   UiStateData, ResearchTreeData, BuildMenuData,
   BuildMenuEntryType, LocalizationData, ChallengeTreeData,
   ChallengeCurrentData, PauseMenuData, PlacementModeData,
-  DeleteModeData, KeyHintsData, CrosshairData,
+  DeleteModeData, CrosshairData,
   UiVisibilityData, MiningHudData, TooltipData,
   GameStateData, TutorialPresentationData,
   SkitPresentationData, TrainRidingData,
@@ -57,7 +57,6 @@ export const Topics = {
   pauseMenu: "pause_menu.current",
   placementMode: "ui.placement_mode",
   deleteMode: "ui.delete_mode",
-  keyHints: "ui.key_hints",
   crosshair: "ui.crosshair",
   uiVisibility: "ui.visibility",
   miningHud: "ui.mining_hud",
@@ -105,7 +104,6 @@ export type TopicPayloads = {
   [Topics.pauseMenu]: PauseMenuData;
   [Topics.placementMode]: PlacementModeData;
   [Topics.deleteMode]: DeleteModeData;
-  [Topics.keyHints]: KeyHintsData;
   [Topics.crosshair]: CrosshairData;
   [Topics.uiVisibility]: UiVisibilityData;
   [Topics.miningHud]: MiningHudData;

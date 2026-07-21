@@ -51,7 +51,6 @@ import type {
   PauseMenuDataSchema,
   PlacementModeDataSchema,
   DeleteModeDataSchema,
-  KeyHintsDataSchema,
   CrosshairDataSchema,
   UiVisibilityDataSchema,
   MiningHudDataSchema,
@@ -80,7 +79,6 @@ export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;
 export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
 export type DeleteModeData = z.infer<typeof DeleteModeDataSchema>;
-export type KeyHintsData = z.infer<typeof KeyHintsDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
 export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
 export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
