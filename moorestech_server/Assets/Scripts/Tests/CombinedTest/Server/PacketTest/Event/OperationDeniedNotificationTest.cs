@@ -7,6 +7,7 @@ using Server.Boot;
 using Server.Event.Notification;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Tests.CombinedTest.Server.PacketTest;
 using Tests.Module.TestMod;
 using static Tests.CombinedTest.Game.ResearchDataStoreTest;
 
@@ -43,6 +44,22 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.craftMaterialShortage"));
+        }
+
+        [Test]
+        public void PlaceBlockNotUnlockedFiresDeniedNotification()
+        {
+            var (packet, serviceProvider) = PlaceBlockProtocolTestSupport.CreateServer();
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlaceBlockProtocolTestSupport.PlayerId);
+
+            // 初期ロック状態のブロックを設置要求 → スキップされ未解放通知が1件飛ぶ
+            // Request placing a block that starts locked → the cell is skipped and one not-unlocked notification fires
+            var blockId = Tests.Module.TestMod.ForUnitTestModBlockId.LockedElectricPoleId;
+            var payload = PlaceBlockProtocolTestSupport.CreatePlaceBlockPayload(blockId, (0, 0));
+            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+
+            var denied = TakeDenied(sink);
+            Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.placeBlockNotUnlocked"));
         }
 
         private static List<NotificationMessagePack> TakeDenied(CapturedEventSink sink)
