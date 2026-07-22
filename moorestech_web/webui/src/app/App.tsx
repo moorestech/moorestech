@@ -3,6 +3,7 @@ import { Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
+import { NotificationHost } from "@/features/notification";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryKeyHandler, BlockInventoryPanel } from "@/features/blockInventory";
@@ -108,6 +109,7 @@ export default function App() {
       {(inventoryScreen || researchScreen) && <GrabOverlay />}
       <Portal>
         <ToastHost />
+        <NotificationHost />
         <CurrentChallengeHud />
         <SkitPresentation />
         <TutorialOverlay />

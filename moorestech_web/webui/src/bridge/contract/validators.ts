@@ -26,6 +26,7 @@ import {
   WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
+  NotificationDataSchema,
 } from "./schemas";
 
 type TopicSchemaRegistry = {
@@ -60,6 +61,7 @@ const topicSchemas = {
   [Topics.worldPins]: WorldPinPresentationDataSchema,
   [Topics.skitPresentation]: SkitPresentationDataSchema,
   [Topics.trainRiding]: TrainRidingDataSchema,
+  [Topics.notification]: NotificationDataSchema,
 } satisfies TopicSchemaRegistry;
 
 // 既知topicはsafeParseで検証し、未知topicは従来どおり素通しする
