@@ -9,13 +9,16 @@ namespace Core.Master
     public class BuildMenuCategoryMaster : IMasterValidator
     {
         public readonly BuildMenuCategoryElement[] Categories;
+        public readonly ReplaceFamilyElement[] ReplaceFamilies;
 
         private HashSet<(string category, string subCategory)> _definedPairs;
         private Dictionary<string, (string category, string subCategory)> _pairByEntrySource;
 
         public BuildMenuCategoryMaster(JToken buildMenuJToken)
         {
-            Categories = BuildMenuLoader.Load(buildMenuJToken).Categories;
+            var buildMenu = BuildMenuLoader.Load(buildMenuJToken);
+            Categories = buildMenu.Categories;
+            ReplaceFamilies = buildMenu.ReplaceFamilies;
         }
 
         public bool Validate(out string errorLogs)

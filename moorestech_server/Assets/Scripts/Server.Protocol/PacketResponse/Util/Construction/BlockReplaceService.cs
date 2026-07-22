@@ -43,12 +43,11 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             var pos = placeInfo.Position;
             var newBlockId = placeInfo.BlockId;
 
-            // Step1: 対象セルに既存ブロックがあり、新旧ともにリプレースファミリーであること
-            // Step1: an existing block occupies the cell and both old and new are replace-family
+            // Step1: 対象セルに既存ブロックがあり、新旧が同一リプレースファミリーであること
+            // Step1: an existing block occupies the cell and old and new share a replace family
             var oldBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
             if (oldBlock == null) return false;
-            if (!BlockReplaceFamilyUtil.IsReplaceFamily(oldBlock.BlockId)) return false;
-            if (!BlockReplaceFamilyUtil.IsReplaceFamily(newBlockId)) return false;
+            if (!BlockReplaceFamilyUtil.IsSameReplaceFamily(oldBlock.BlockId, newBlockId)) return false;
 
             // Step2: 同一BlockId・同一Directionは冪等no-op（サーバー側防御）
             // Step2: identical block id and direction is an idempotent no-op (server-side guard)

@@ -40,8 +40,8 @@ namespace Core.Master
             BuildMenuCategoryMaster = new BuildMenuCategoryMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(BuildMenuCategoryMaster);
 
-            // ItemMaster, FluidMaster, BuildMenuCategoryMaster依存（category/subCategoryの参照を検証）
-            // Depends on ItemMaster, FluidMaster, BuildMenuCategoryMaster (validates category/subCategory references)
+            // ItemMaster, FluidMaster, BuildMenuCategoryMaster依存（category/subCategoryとreplaceFamiliesの参照を検証）
+            // Depends on ItemMaster, FluidMaster, BuildMenuCategoryMaster (validates category/subCategory and replaceFamilies references)
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             InitializeMaster(BlockMaster);
 

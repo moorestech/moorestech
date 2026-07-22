@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Core.Block
 
         private static JToken CreateJson(string categoriesJson)
         {
-            return JToken.Parse($@"{{""categories"":[{categoriesJson},{NonBlockCategories}],""connectTools"":[]}}");
+            return JToken.Parse($@"{{""categories"":[{categoriesJson},{NonBlockCategories}],""replaceFamilies"":[],""connectTools"":[]}}");
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Core.Block
         public void 非ブロックentrySourceの欠落はバリデーションで失敗する()
         {
             var json = JToken.Parse(@"{""categories"":[
-                {""name"":""採掘"",""subCategories"":[{""name"":""採掘機"",""entrySource"":""blocks""}]}],""connectTools"":[]}");
+                {""name"":""採掘"",""subCategories"":[{""name"":""採掘機"",""entrySource"":""blocks""}]}],""replaceFamilies"":[],""connectTools"":[]}");
             var master = new BuildMenuCategoryMaster(json);
             Assert.IsFalse(master.Validate(out var logs));
             Assert.IsTrue(logs.Contains("entrySource"));
