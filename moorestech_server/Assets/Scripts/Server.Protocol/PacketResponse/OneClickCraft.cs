@@ -40,12 +40,12 @@ namespace Server.Protocol.PacketResponse
 
             // クラフト不可の理由を判別して通知し中断する
             // Identify why crafting is impossible, notify the player, and abort
-            if (!CanInsertResult(mainInventory, craftConfig))
+            if (!CanInsertResult())
             {
                 _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftResultFull", Array.Empty<string>()));
                 return null;
             }
-            if (!HasRequiredItems(mainInventory, craftConfig))
+            if (!HasRequiredItems())
             {
                 _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftMaterialShortage", Array.Empty<string>()));
                 return null;
@@ -62,60 +62,64 @@ namespace Server.Protocol.PacketResponse
             _craftEvent.InvokeCraftItem(craftConfig);
 
             return null;
-        }
 
-        // 既存IsCraftable前半（InsertionCheck部分）をそのまま移す
-        // Move the existing IsCraftable's InsertionCheck part verbatim
-        private static bool CanInsertResult(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
-        {
-            //クラフト結果のアイテムをインサートできるかどうかをチェックする
-            var resultItem = ServerContext.ItemStackFactory.Create(recipe.CraftResultItemGuid, recipe.CraftResultCount);
-            var resultItemList = new List<IItemStack> { resultItem };
-            return mainInventory.InsertionCheck(resultItemList);
-        }
+            #region Internal
 
-        // 既存IsCraftable後半（必要アイテム集計〜所持チェック）をそのまま移す
-        // Move the existing IsCraftable's required-item check part verbatim
-        private static bool HasRequiredItems(IOpenableInventory mainInventory, CraftRecipeMasterElement recipe)
-        {
-            //クラフトに必要なアイテムを収集する
-            //key itemId value count
-            var requiredItems = new Dictionary<ItemId, int>();
-            foreach (var requiredItem in recipe.RequiredItems)
+            // 既存IsCraftable前半（InsertionCheck部分）をそのまま移す
+            // Move the existing IsCraftable's InsertionCheck part verbatim
+            bool CanInsertResult()
             {
-                var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
+                //クラフト結果のアイテムをインサートできるかどうかをチェックする
+                var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.CraftResultItemGuid, craftConfig.CraftResultCount);
+                var resultItemList = new List<IItemStack> { resultItem };
+                return mainInventory.InsertionCheck(resultItemList);
+            }
 
-                if (requiredItems.ContainsKey(requiredItemId))
+            // 既存IsCraftable後半（必要アイテム集計〜所持チェック）をそのまま移す
+            // Move the existing IsCraftable's required-item check part verbatim
+            bool HasRequiredItems()
+            {
+                //クラフトに必要なアイテムを収集する
+                //key itemId value count
+                var requiredItems = new Dictionary<ItemId, int>();
+                foreach (var requiredItem in craftConfig.RequiredItems)
                 {
-                    requiredItems[requiredItemId] += requiredItem.Count;
+                    var requiredItemId = MasterHolder.ItemMaster.GetItemId(requiredItem.ItemGuid);
+
+                    if (requiredItems.ContainsKey(requiredItemId))
+                    {
+                        requiredItems[requiredItemId] += requiredItem.Count;
+                    }
+                    else
+                    {
+                        requiredItems.Add(requiredItemId, requiredItem.Count);
+                    }
                 }
-                else
+
+                //クラフトに必要なアイテムを持っているか確認する
+                var checkResult = new Dictionary<ItemId, int>();
+                foreach (var itemStack in mainInventory.InventoryItems)
                 {
-                    requiredItems.Add(requiredItemId, requiredItem.Count);
+                    if (!requiredItems.ContainsKey(itemStack.Id)) continue;
+
+                    if (checkResult.ContainsKey(itemStack.Id))
+                        checkResult[itemStack.Id] += itemStack.Count;
+                    else
+                        checkResult[itemStack.Id] = itemStack.Count;
                 }
+
+                //必要なアイテムを持っていない場合はクラフトできない
+                foreach (var requiredItem in requiredItems)
+                {
+                    if (!checkResult.ContainsKey(requiredItem.Key)) return false;
+                    if (checkResult[requiredItem.Key] < requiredItem.Value) return false;
+                }
+
+
+                return true;
             }
 
-            //クラフトに必要なアイテムを持っているか確認する
-            var checkResult = new Dictionary<ItemId, int>();
-            foreach (var itemStack in mainInventory.InventoryItems)
-            {
-                if (!requiredItems.ContainsKey(itemStack.Id)) continue;
-
-                if (checkResult.ContainsKey(itemStack.Id))
-                    checkResult[itemStack.Id] += itemStack.Count;
-                else
-                    checkResult[itemStack.Id] = itemStack.Count;
-            }
-
-            //必要なアイテムを持っていない場合はクラフトできない
-            foreach (var requiredItem in requiredItems)
-            {
-                if (!checkResult.ContainsKey(requiredItem.Key)) return false;
-                if (checkResult[requiredItem.Key] < requiredItem.Value) return false;
-            }
-
-
-            return true;
+            #endregion
         }
 
 
