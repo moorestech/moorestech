@@ -44,7 +44,7 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     // === Goal 1 + Goal 3: operation-denied notification and cooldown ===
     p.Note("素材ゼロで研究完了を試みる(1回目)。操作拒否通知が届くはず");
     ClientContext.VanillaApi.SendOnly.CompleteResearch(firstResearchGuid);
-    await p.Until(() => DeniedResearchCount() >= 1, 10f, "1回目の失敗で操作拒否通知(denied.researchNotCompletable)がクライアントに届く");
+    await p.Until(() => 1 <= DeniedResearchCount(), 10f, "1回目の失敗で操作拒否通知(denied.researchNotCompletable)がクライアントに届く");
 
     // クールダウン窓(3秒)内に同一失敗を連打する。2回目はワイヤに乗らないはず
     // Burst the same failure inside the 3s cooldown window; the 2nd must not reach the wire
@@ -74,12 +74,12 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     var achievementBefore = AchievementResearchCount();
     p.Note("研究を完了する。実績通知『Research completed: 原始研究1』が届くはず");
     ClientContext.VanillaApi.SendOnly.CompleteResearch(firstResearchGuid);
-    await p.Until(() => AchievementResearchCount() > achievementBefore, 10f, "研究完了で実績通知(achievement.researchCompleted)がクライアントに届く");
+    await p.Until(() => achievementBefore < AchievementResearchCount(), 10f, "研究完了で実績通知(achievement.researchCompleted)がクライアントに届く");
 
     // 実ペイロードの研究名パラメータまで検証する(Web側テンプレ「Research completed: {p0}」に流し込まれる値)
     // Assert the actual research-name param carried in the payload (fed into the web template "Research completed: {p0}")
     var achievement = received.Last(n => n.Category == NotificationCategory.Achievement && n.MessageId == "achievement.researchCompleted");
-    p.Assert(achievement.MessageParams.Length >= 1 && achievement.MessageParams[0] == "原始研究1", $"実績通知の研究名パラメータが『原始研究1』 実際:{string.Join(",", achievement.MessageParams)}");
+    p.Assert(1 <= achievement.MessageParams.Length && achievement.MessageParams[0] == "原始研究1", $"実績通知の研究名パラメータが『原始研究1』 実際:{string.Join(",", achievement.MessageParams)}");
 
     await p.UntilWebUiElement("notification-host", 10f);
     await p.Screenshot("03-achievement-notification");
