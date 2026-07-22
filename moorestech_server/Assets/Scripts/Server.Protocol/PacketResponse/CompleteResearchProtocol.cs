@@ -4,6 +4,7 @@ using System.Linq;
 using Game.Research;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.Notification;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -12,10 +13,12 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:completeResearch";
 
         private readonly IResearchDataStore _researchDataStore;
+        private readonly NotificationService _notificationService;
 
         public CompleteResearchProtocol(ServiceProvider serviceProvider)
         {
             _researchDataStore = serviceProvider.GetService<IResearchDataStore>();
+            _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -25,6 +28,10 @@ namespace Server.Protocol.PacketResponse
             // 研究完了を試みる
             var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, request.PlayerId);
             var nodeStates = _researchDataStore.GetResearchNodeStates(request.PlayerId);
+
+            // 失敗（前提未達・素材不足等）は通知基盤経由でプレイヤーに知らせる
+            // Report failure (prerequisites unmet, materials short, etc.) via the notification service
+            if (!isSuccess) _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
 
             return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString(), nodeStates);
         }
