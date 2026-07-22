@@ -56,8 +56,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Delegate the delete interaction to the service
             _deleteObjectService.Update();
 
-            // Ctrl+Zで直前の建築操作を取り消す（判定はサービス内部）
-            // Undo the latest build operation on Ctrl+Z (detection lives inside the service)
+            // Ctrl+Z判定はサービス内部
+            // Ctrl+Z detection lives inside the service
             _buildUndoService.ManualUpdate();
 
             return null;

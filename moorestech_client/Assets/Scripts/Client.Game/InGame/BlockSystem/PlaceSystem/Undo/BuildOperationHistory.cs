@@ -14,7 +14,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         public void Push(IBuildOperationRecord record)
         {
             _records.AddLast(record);
-            if (_records.Count > MaxHistoryCount) _records.RemoveFirst();
+            if (MaxHistoryCount < _records.Count) _records.RemoveFirst();
         }
 
         public bool TryPop(out IBuildOperationRecord record)
