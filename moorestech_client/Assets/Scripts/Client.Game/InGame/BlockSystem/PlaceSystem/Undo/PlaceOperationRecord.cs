@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 {
     /// <summary>
-    ///     設置1バッチの履歴レコード。送信時のPlaceInfoをスナップショットとして保持する
-    ///     History record of one place batch; holds a snapshot of the sent PlaceInfo list
+    ///     設置1バッチの履歴レコード
+    ///     History record of one place batch
     /// </summary>
     public class PlaceOperationRecord : IBuildOperationRecord
     {
@@ -39,8 +39,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         }
 
         /// <summary>
-        ///     同座標に同BlockIdのブロックが現存するセルだけをUndo対象として返す
-        ///     Return only cells whose position still holds a block with the same BlockId
+        ///     同座標同BlockId現存セルのみ返す
+        ///     Return only cells still holding the same BlockId
         /// </summary>
         public List<Vector3Int> SelectUndoableCells(Func<Vector3Int, BlockId?> blockIdAt)
         {

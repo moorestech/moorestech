@@ -12,8 +12,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 {
     /// <summary>
-    ///     Ctrl+Zで直前の建築操作を取り消す。UIステートからManualUpdateで毎フレーム駆動される
-    ///     Undo the latest build operation on Ctrl+Z; driven every frame from UI states via ManualUpdate
+    ///     Ctrl+Zで直前の建築操作を取り消す
+    ///     Undo the latest build operation on Ctrl+Z
     /// </summary>
     public class BuildUndoService
     {
