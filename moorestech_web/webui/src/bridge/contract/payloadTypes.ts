@@ -51,13 +51,13 @@ import type {
   PauseMenuDataSchema,
   PlacementModeDataSchema,
   DeleteModeDataSchema,
-  KeyHintsDataSchema,
   CrosshairDataSchema,
   UiVisibilityDataSchema,
   MiningHudDataSchema,
   TooltipDataSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
+  WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
   TrainPlatformDataSchema,
@@ -80,13 +80,13 @@ export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;
 export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
 export type DeleteModeData = z.infer<typeof DeleteModeDataSchema>;
-export type KeyHintsData = z.infer<typeof KeyHintsDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
 export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
 export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
+export type WorldPinPresentationData = z.infer<typeof WorldPinPresentationDataSchema>;
 export type SkitPresentationData = z.infer<typeof SkitPresentationDataSchema>;
 export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;

@@ -11,13 +11,13 @@ import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
 import { DeleteModeHud, PlacementModeHud } from "@/features/modeHud";
-import { Crosshair, KeyHintBar } from "@/features/commonHud";
+import { Crosshair } from "@/features/commonHud";
 import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { useI18n } from "@/shared/i18n";
 import { SkitPresentation } from "@/features/skit";
-import { TutorialOverlay } from "@/features/tutorial";
+import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
@@ -97,7 +97,6 @@ export default function App() {
         {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
         {uiState === UiStateNames.deleteBar && <DeleteModeHud />}
         <Crosshair />
-        <KeyHintBar />
         <MiningHud />
         <CursorTooltip />
         <BlockInventoryPanel />
@@ -112,6 +111,7 @@ export default function App() {
         <CurrentChallengeHud />
         <SkitPresentation />
         <TutorialOverlay />
+        <WorldPinOverlay />
       </Portal>
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}

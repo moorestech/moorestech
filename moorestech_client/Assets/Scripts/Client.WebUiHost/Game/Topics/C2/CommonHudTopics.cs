@@ -1,6 +1,5 @@
 using System;
 using Client.Game.InGame.UI.Crosshair;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -9,26 +8,6 @@ using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
-    public class KeyHintsTopic : ITopicHandler, IDisposable
-    {
-        public const string TopicName = "ui.key_hints";
-        private readonly WebSocketHub _hub;
-        private readonly KeyControlDescription _view;
-        private readonly IDisposable _subscription;
-
-        public KeyHintsTopic(WebSocketHub hub, KeyControlDescription view)
-        {
-            _hub = hub;
-            _view = view;
-            _subscription = view.OnTextChanged.Skip(1).Subscribe(_ => Publish());
-        }
-
-        public UniTask<string> GetSnapshotJsonAsync() => UniTask.FromResult(BuildJson());
-        public void Dispose() => _subscription.Dispose();
-        private void Publish() => _hub.Publish(TopicName, BuildJson());
-        private string BuildJson() => WebUiJson.Serialize(new KeyHintsDto { TextKey = _view.GetText() });
-    }
-
     public class CrosshairTopic : ITopicHandler, IDisposable
     {
         public const string TopicName = "ui.crosshair";
@@ -69,6 +48,5 @@ namespace Client.WebUiHost.Game.Topics
         private string BuildJson() => WebUiJson.Serialize(new VisibilityDto { Visible = _root.IsVisible() });
     }
 
-    public class KeyHintsDto { public string TextKey; }
     public class VisibilityDto { public bool Visible; }
 }

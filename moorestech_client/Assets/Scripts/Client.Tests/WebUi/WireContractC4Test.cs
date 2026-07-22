@@ -41,6 +41,26 @@ namespace Client.Tests.WebUi
             AssertMatches(dto, "tutorial_presentation.json");
         }
 
+        [Test]
+        public void WorldPinMatchesFixture()
+        {
+            var dto = new WorldPinPresentationData
+            {
+                Revision = 4,
+                Pins = new[]
+                {
+                    new WorldPinData
+                    {
+                        PinId = "map-object-pin", Text = "Pick Pebbles",
+                        ScreenX = 0.25f, ScreenY = 0.75f, OnScreen = true,
+                        DirectionX = 0.5f, DirectionY = -0.5f,
+                    },
+                },
+            };
+
+            AssertMatches(dto, "world_pins.json");
+        }
+
         private static void AssertMatches(object dto, string fixtureName)
         {
             var actual = JToken.Parse(WebUiJson.Serialize(dto));

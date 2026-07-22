@@ -15,7 +15,6 @@ using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Electric;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Tooltip;
@@ -105,7 +104,6 @@ namespace Client.WebUiHost.Game
 
             // 状態外の共通HUDを各既存ビューの変更通知へ接続する
             // Connect state-independent HUD topics to the existing view notifications
-            hub.RegisterTopic(KeyHintsTopic.TopicName, new KeyHintsTopic(hub, KeyControlDescription.Instance));
             hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, CrosshairView.Instance));
             hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, UIRoot.Instance));
 

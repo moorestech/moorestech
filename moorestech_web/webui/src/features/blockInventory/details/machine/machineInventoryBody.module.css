@@ -1,0 +1,19 @@
+/* 進捗矢印をパネル中央に固定する3カラムグリッド。入出力の個数差があっても矢印がずれない */
+/* Fix the progress arrow at the panel's center via a 3-column grid, immune to input/output count mismatches */
+.processRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  column-gap: 16px;
+  width: 100%;
+}
+
+.inputSide {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.outputSide {
+  display: flex;
+  justify-content: flex-start;
+}
