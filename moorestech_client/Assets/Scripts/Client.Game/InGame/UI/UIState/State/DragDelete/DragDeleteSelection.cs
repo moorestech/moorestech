@@ -1,13 +1,16 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
     /// <summary>
-    ///     ドラッグ中に選択された削除対象を管理する純粋なモデルクラス
-    ///     Pure model class that manages delete targets selected during a drag
+    ///     ドラッグ中に選択された削除対象を管理するモデルクラス。削除確定時のUndo履歴記録も担う
+    ///     Model class that manages delete targets selected during a drag; also records undo history on commit
     /// </summary>
     public class DragDeleteSelection
     {
+        private readonly BuildOperationHistory _buildOperationHistory;
+
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
@@ -20,6 +23,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // 別カテゴリー混在時の拒否理由。IsRemovableのreasonと同様に生文字列で表示する
         // Deny reason shown when mixing categories; a raw string like IsRemovable's reason
         public const string DifferentCategoryDenyReason = "別カテゴリーのブロックは同時に選択できません。";
+
+        public DragDeleteSelection(BuildOperationHistory buildOperationHistory)
+        {
+            _buildOperationHistory = buildOperationHistory;
+        }
 
         // 新しいドラッグ開始時に選択・キャンセル状態・セッションカテゴリーをリセットする
         // Reset selection, canceled state, and session category when a new drag begins
@@ -82,13 +90,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _sessionCategory = null;
         }
 
-        // 選択対象を全て削除しMaterialを戻して選択を空にする（マウス離し操作）
-        // Delete all selected targets, reset materials, then clear selection (mouse release)
+        // 選択を一括削除し、Ctrl+Z用のUndo履歴も記録する
+        // Delete the whole selection and record the undo history for Ctrl+Z
         public void CommitDelete()
         {
             if (_canceled) return;
 
-            foreach (var target in _selectedTargets.Values)
+            var committed = new List<IDeleteTarget>(_selectedTargets.Values);
+            foreach (var target in committed)
             {
                 // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す
                 // Delete is async over the server, so we just clear the red preview immediately
@@ -98,6 +107,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             _selectedTargets.Clear();
             _sessionCategory = null;
+
+            // Ctrl+Z用のUndo履歴を記録（空バッチはPushしない）
+            // Record the undo history for Ctrl+Z (skip empty batches)
+            var record = RemoveOperationRecord.CreateFrom(committed);
+            if (record.HasCells) _buildOperationHistory.Push(record);
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

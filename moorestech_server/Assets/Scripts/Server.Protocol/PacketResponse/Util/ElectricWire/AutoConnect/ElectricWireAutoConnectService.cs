@@ -155,7 +155,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 ConnectToolMaterialConsumer.Consume(target.Cost.Materials, inventory);
             }
 
-            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
         }
     }
 }

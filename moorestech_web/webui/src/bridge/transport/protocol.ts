@@ -10,6 +10,7 @@ import type {
   GameStateData, TutorialPresentationData,
   WorldPinPresentationData,
   SkitPresentationData, TrainRidingData,
+  NotificationData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
 
@@ -70,6 +71,9 @@ export const Topics = {
   // プレイテスト要求は snapshot を持たない一時イベントとして扱う
   // Playtest requests are transient events without snapshots
   playtestDomQuery: "playtest.dom_query",
+  // ゲーム内通知も一時イベント
+  // In-game notifications are also transient events
+  notification: "notification.events",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -100,6 +104,7 @@ export type TopicPayloads = {
   [Topics.worldPins]: WorldPinPresentationData;
   [Topics.skitPresentation]: SkitPresentationData;
   [Topics.trainRiding]: TrainRidingData;
+  [Topics.notification]: NotificationData;
 };
 
 // 200行制限でactionContract.tsへ分離

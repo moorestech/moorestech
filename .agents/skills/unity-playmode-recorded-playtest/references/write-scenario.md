@@ -16,7 +16,8 @@ using UnityEngine;
 var options = new PlaytestRunOptions { Record = true };   // Record=true でmp4録画内蔵
 return PlaytestRunner.Run("my-scenario", options, async p =>
 {
-    await p.SetupFlatGround();                              // 足場生成+ワープ（必ず最初）
+    // デバッグ環境を1行構築（無限落下防止の足場+ワープ+無料設置）。設定値は冒頭ログとTimelineに流れる
+    await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     p.Note("チェスト設置フェーズ開始");                       // AIナレーション（動画とTimelineに残る）
     // ...操作...
     p.Assert(条件, "ラベル");                                // 失敗しても続行し記録される
@@ -25,12 +26,18 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 });
 ```
 
+`PlaytestEnvironmentConfig` のフィールド（すべてpublicフィールド・デフォルト値あり）:
+`FreeBlockPlacement=true`（建築全解放+クライアント/サーバー両方のコスト無料。falseでも毎回明示保存され前回実行の残留なし）/
+`CreateFlatGround=true`（上面y=32の足場）/ `SpawnPosition=(0, 33.5, 0)`。
+在庫消費まで検証したい場合のみ `FreeBlockPlacement = false` にして従来の `PrepareBlockForUiPlacement` を使う。
+
 ## Driver API 全リファレンス（PlaytestDriver）
 
 ### セットアップ・状態構築（サーバー直＝検証対象外の準備用）
 | API | 用途 |
 |---|---|
-| `SetupFlatGround()` | 足場(50x4x50 @ y30、**上面y=32ちょうど**、`GroundGameObject`付与)生成+ワープ。UI設置の前提 |
+| `SetupDebugEnvironment(config)` | **推奨の最初の1行**。足場生成+ワープ+無料設置トグルを`PlaytestEnvironmentConfig`で一括設定し、全設定値をログ/Timelineへ出力 |
+| `SetupFlatGround()` | 足場(50x4x50 @ y30、**上面y=32ちょうど**、`GroundGameObject`付与)生成+ワープのみ（旧API・互換） |
 | `WarpPlayer(pos)` / `PlayerPosition` | テレポート/現在地。UI設置前に対象範囲の中央へワープ推奨 |
 | `GiveItemDirect(name, count)` | サーバーインベントリ直挿入（即時） |
 | `GiveItem(name, count)` | 本番giveコマンド経路＋サーバー在庫反映待ち |
@@ -44,7 +51,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 ### UI経路操作（実プレイヤーと同じキーマウ経路＝検証対象）
 | API | 用途 |
 |---|---|
-| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→対象スロットをEventSystem直叩きでクリック→PlaceBlock遷移＋カメラtween待ち0.6s |
+| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋カメラtween待ち0.6s。**CEF(Web UI)モードではDOMクリック経路、uGUIモードではEventSystem直叩きへ自動分岐** |
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
 | `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
@@ -53,6 +60,22 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `AimAt(worldPos)` / `AimAtPlaceOrigin(name, origin)` | マウス絶対座標照準（後者は設置原点→フットプリント中心の逆算込み） |
 | `ClickPlace()` | 左クリック（押下→2フレーム→解放。設置はGetKeyUpで確定するため解放必須） |
 | `CurrentUiState` / `WaitUiState(state, timeout)` | UIState確認/遷移待ち |
+
+### Web UI (CEF) 操作（web-ui系ブランチのReact画面向け。DOM座標を自動解決し通常マウス経路でクリック）
+| API | 用途 |
+|---|---|
+| `ClickWebUi(testid)` | `data-testid`の要素中心へ注入マウスを滑走→クリック。矩形2回一致(React安定)+`elementFromPoint`被覆チェック込み。要素出現まで内部リトライ(15s) |
+| `HoverWebUi(testid)` | 同解決でポインタ移動のみ（ツールチップ検証等） |
+| `UntilWebUiElement(testid, timeout)` | 要素が可視かつクリック可能（遮蔽なし）になるまで待つ |
+| `ClickBuildMenuBlock(blockName)` | ビルドメニューのブロックスロットを1行でクリック（testid `build-menu-entry-block-{BlockId}` を自動解決） |
+| `CloseWebUiPanel()` | 共通閉じるボタン（`build-menu-close`）をクリック |
+
+testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
+`build-menu-entry-{entryType}-{entryKey}`（entryType: block/trainCar/connectTool/blueprintCopy/blueprint、
+blockのentryKeyはBlockIdのint値）。PlaceBlock遷移直後のカメラtweenは`AimAtWorldPosition`内蔵の
+カメラ静定待ちが吸収するため、シナリオ側での追加待ちは不要。
+仕組み: DOM矩形をWS往復(`playtest.dom_query`)で取得→CEFブラウザ座標→Unityスクリーン座標へ逆変換→
+`SemanticInput`で注入→プレイテスト専用`CefInputForwarder`がInputSystemマウスをCEFへ転送（パッケージのlegacy Input転送は注入不感のため）。
 
 ### 検証・待機・記録
 | API | 用途 |

@@ -13,6 +13,7 @@
         "Core.Item.Interface",
         "Core.Update",
         "Core.Util",
+        "Common.Debug",
         "Game.Block",
         "Game.Block.Interface",
         "Game.Crafting",

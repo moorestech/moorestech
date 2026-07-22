@@ -58,6 +58,15 @@ description: >
 - `agent/recent-change-hypothesis.md` — 直近 git 変更との関連
 - `agent/unread-evidence-hypothesis.md` — 未読領域 (prefab YAML / 設定 / 外部 docs / git 履歴)
 
+### モデル振り分け (コスト最適化・必須)
+
+メインループが高コストモデル (Fable 等) でも、サブエージェントにそれを継承させない。**観点の複雑さで Opus / Sonnet を固定的に振り分ける**:
+
+- **Opus (推論が重い 3 観点)**: `state-lifecycle-hypothesis` (寿命・タイミング・並行性の推論), `dependency-event-hypothesis` (システム横断のイベント順序), `unread-evidence-hypothesis` (シーンYAML/設定/git履歴の広域発掘)
+- **Sonnet (機械的調査寄りの 4 観点)**: `data-input-hypothesis`, `boundary-conversion-hypothesis`, `working-precedent-hypothesis`, `recent-change-hypothesis`
+
+Agent 呼び出しでは必ず `model` を明示指定する (省略するとメインのモデルを継承して高コストになる)。
+
 ### 並列起動の物理形
 
 1 メッセージ内で 7 個の Agent 呼び出しを並列実行する。順次呼び出しは禁止。
@@ -67,7 +76,7 @@ description: >
 Agent({
   description: "3〜5語の説明",
   subagent_type: "general-purpose",
-  model: "sonnet",
+  model: "sonnet", // 上記「モデル振り分け」に従い観点ごとに "opus" / "sonnet" を明示
   prompt: `まず以下の 2 ファイルを Read で読み、共通ルール → 個別テンプレートの順に従ってください。
 
 共通ルール: /絶対パス/.claude/skills/debug-workflow/references/subagent-common-rules.md

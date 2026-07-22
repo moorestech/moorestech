@@ -7,10 +7,8 @@ namespace Game.Gear.Common
 {
     // live gearと適用済み状態を分離する
     // Separates live gear registration from all derived state applied at the tick boundary
-    public class GearNetworkDatastore
+    public class GearNetworkDatastore : IGearNetworkDatastore
     {
-        private static GearNetworkDatastore _instance;
-
         private readonly Dictionary<BlockInstanceId, IGearEnergyTransformer> _registeredGears = new();
         private readonly HashSet<IGearOverloadTickTarget> _overloadTickTargets = new();
         private GearNetworkTopologyMap _topologyMap;
@@ -20,7 +18,6 @@ namespace Game.Gear.Common
 
         public GearNetworkDatastore()
         {
-            _instance = this;
             _topologyMap = GearNetworkTopologyMap.CreateEmpty();
             _networksRequiringRecalc = new HashSet<GearNetwork>();
             _continuousTickNetworks = new HashSet<GearNetwork>();
@@ -28,21 +25,21 @@ namespace Game.Gear.Common
 
         internal IReadOnlyCollection<GearNetwork> ContinuousTickNetworks => _continuousTickNetworks;
 
-        public static void AddGear(IGearEnergyTransformer gear)
+        public void AddGear(IGearEnergyTransformer gear)
         {
-            _instance._registeredGears[gear.BlockInstanceId] = gear;
-            _instance._isTopologyDirty = true;
+            _registeredGears[gear.BlockInstanceId] = gear;
+            _isTopologyDirty = true;
         }
 
-        public static void RemoveGear(IGearEnergyTransformer gear)
+        public void RemoveGear(IGearEnergyTransformer gear)
         {
-            _instance._registeredGears.Remove(gear.BlockInstanceId);
-            _instance._isTopologyDirty = true;
+            _registeredGears.Remove(gear.BlockInstanceId);
+            _isTopologyDirty = true;
         }
 
-        public static void MarkTopologyDirty()
+        public void MarkTopologyDirty()
         {
-            _instance._isTopologyDirty = true;
+            _isTopologyDirty = true;
         }
 
         public void RebuildIfDirty()
@@ -62,14 +59,14 @@ namespace Game.Gear.Common
             _isTopologyDirty = false;
         }
 
-        public static void RegisterOverloadTickTarget(IGearOverloadTickTarget target)
+        public void RegisterOverloadTickTarget(IGearOverloadTickTarget target)
         {
-            _instance._overloadTickTargets.Add(target);
+            _overloadTickTargets.Add(target);
         }
 
-        public static void UnregisterOverloadTickTarget(IGearOverloadTickTarget target)
+        public void UnregisterOverloadTickTarget(IGearOverloadTickTarget target)
         {
-            _instance._overloadTickTargets.Remove(target);
+            _overloadTickTargets.Remove(target);
         }
 
         internal void CollectOverloadTickTargets(List<IGearOverloadTickTarget> buffer)
@@ -77,24 +74,24 @@ namespace Game.Gear.Common
             buffer.AddRange(_overloadTickTargets);
         }
 
-        public static void NotifyGeneratorOutputChanged(IGearEnergyTransformer generator)
+        public void NotifyGeneratorOutputChanged(IGearEnergyTransformer generator)
         {
             AddAppliedNetworkToRecalculation(generator);
         }
 
-        public static void NotifyConsumerDemandChanged(IGearEnergyTransformer consumer)
+        public void NotifyConsumerDemandChanged(IGearEnergyTransformer consumer)
         {
             AddAppliedNetworkToRecalculation(consumer);
         }
 
-        public static bool TryGetGearNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)
+        public bool TryGetGearNetwork(BlockInstanceId blockInstanceId, out GearNetwork network)
         {
-            return _instance._topologyMap.TryGetNetwork(blockInstanceId, out network);
+            return _topologyMap.TryGetNetwork(blockInstanceId, out network);
         }
 
-        public static GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
+        public GearNetwork GetGearNetwork(BlockInstanceId blockInstanceId)
         {
-            return _instance._topologyMap.GetNetwork(blockInstanceId);
+            return _topologyMap.GetNetwork(blockInstanceId);
         }
 
         internal void CollectNetworksRequiringRecalc(List<GearNetwork> buffer)
@@ -103,10 +100,10 @@ namespace Game.Gear.Common
             _networksRequiringRecalc.Clear();
         }
 
-        private static void AddAppliedNetworkToRecalculation(IGearEnergyTransformer gear)
+        private void AddAppliedNetworkToRecalculation(IGearEnergyTransformer gear)
         {
-            if (_instance._topologyMap.TryGetNetwork(gear.BlockInstanceId, out var network))
-                _instance._networksRequiringRecalc.Add(network);
+            if (_topologyMap.TryGetNetwork(gear.BlockInstanceId, out var network))
+                _networksRequiringRecalc.Add(network);
         }
     }
 }

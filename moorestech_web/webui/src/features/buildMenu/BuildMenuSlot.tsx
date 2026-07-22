@@ -1,6 +1,6 @@
 import { SlotFrame } from "@/shared/ui";
 import type { BuildMenuEntryData } from "@/bridge";
-import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 type Props = {
@@ -22,7 +22,7 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
       onLeftDown={onLeftClick}
       onRightDown={onRightClick}
       onHoverChange={onHoverChange}
-      {...tutorialAnchor(`build-menu.entry-${entry.entryType}-${entry.entryKey}`.toLowerCase() as AnchorId)}
+      {...tutorialAnchor(buildMenuEntryAnchorId(entry.entryType, entry.entryKey))}
     >
       {entry.iconUrl ? (
         <img className={styles.slotIcon} src={entry.iconUrl} alt={entry.label} draggable={false} />

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Game.Block.Interface;
+using Game.Context;
 using Game.Gear.Common;
 using NUnit.Framework;
 
@@ -37,7 +38,7 @@ namespace Tests.Util
 
         public static GearNetwork GetAppliedNetwork(BlockInstanceId blockInstanceId)
         {
-            Assert.True(GearNetworkDatastore.TryGetGearNetwork(blockInstanceId, out var network));
+            Assert.True(ServerContext.GetService<IGearNetworkDatastore>().TryGetGearNetwork(blockInstanceId, out var network));
             return network;
         }
 

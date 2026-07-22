@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
@@ -75,7 +76,10 @@ namespace Client.Tests.UIState
             SetUpMouseCursorTooltip();
             var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new DeleteObjectState(deleteObject, null, applier);
+            // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
+            // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
+            var buildOperationHistory = new BuildOperationHistory();
+            var state = new DeleteObjectState(deleteObject, null, applier, buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             Press(_mouse.rightButton);
             state.GetNextUpdate();
@@ -93,7 +97,7 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier, new BuildUndoService(new BuildOperationHistory(), dataStore));
         }
 
         private void SetUpMouseCursorTooltip()
