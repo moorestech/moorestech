@@ -9,7 +9,7 @@
 /additionalfile:Assets/../../VanillaSchema/research.yml
 /additionalfile:Assets/../../VanillaSchema/train.yml
 /additionalfile:Assets/../../VanillaSchema/cleanRoom.yml
-/additionalfile:Assets/../../VanillaSchema/connectTools.yml
+/additionalfile:Assets/../../VanillaSchema/buildMenu.yml
 /additionalfile:Assets/../../VanillaSchema/ref/inventoryConnects.yml
 /additionalfile:Assets/../../VanillaSchema/ref/gearConnects.yml
 /additionalfile:Assets/../../VanillaSchema/ref/gearConnectOption.yml

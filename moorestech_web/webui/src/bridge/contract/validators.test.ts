@@ -172,17 +172,32 @@ describe("validCraftRecipes", () => {
 });
 
 describe("validBuildMenu", () => {
-  const entry = { entryType: "block", entryKey: "1", label: "鉄の機械", tooltip: "鉄の機械\n鉄インゴット x5", iconUrl: "/api/block-icons/1.png" };
+  const categories = [{ name: "物流", subCategories: ["チェスト"] }];
+  const entry = {
+    entryType: "block", entryKey: "1", label: "鉄の機械", category: "物流", subCategory: "チェスト",
+    requiredItems: [{ itemId: 3, count: 5 }], iconUrl: "/api/block-icons/1.png",
+  };
   it("accepts icon and text entries", () => {
-    const d = { entries: [entry, { entryType: "blueprint", entryKey: "家", label: "家", tooltip: "家" }] };
+    const d = {
+      categories,
+      entries: [entry, { entryType: "blueprint", entryKey: "家", label: "家", category: "物流", subCategory: "チェスト", requiredItems: [] }],
+    };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(true);
   });
   it("rejects a non-string entryKey", () => {
-    const d = { entries: [{ ...entry, entryKey: 1 }] };
+    const d = { categories, entries: [{ ...entry, entryKey: 1 }] };
     expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
   it("rejects a missing entries array", () => {
-    expect(validateTopicPayload(Topics.buildMenu, {})).toBe(false);
+    expect(validateTopicPayload(Topics.buildMenu, { categories })).toBe(false);
+  });
+  it("rejects an entry with a missing category", () => {
+    const { category: _, ...missingCategory } = entry;
+    expect(validateTopicPayload(Topics.buildMenu, { categories, entries: [missingCategory] })).toBe(false);
+  });
+  it("rejects an entry with a non-array requiredItems", () => {
+    const d = { categories, entries: [{ ...entry, requiredItems: "not-an-array" }] };
+    expect(validateTopicPayload(Topics.buildMenu, d)).toBe(false);
   });
 });
 

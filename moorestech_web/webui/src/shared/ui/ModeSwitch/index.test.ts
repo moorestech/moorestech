@@ -28,6 +28,22 @@ describe("ModeSwitch", () => {
     expect(buttons[1].props["data-selected"]).toBe("true");
   });
 
+  it("disabled指定時はdata-disabledと各buttonのdisabledを公開する", () => {
+    const renderer = create(createElement(ModeSwitch, {
+      value: "a",
+      options: [{ value: "a", label: createElement("span", null, "mode") }],
+      onChange: () => {},
+      disabled: true,
+      testId: "mode-switch",
+    }));
+
+    const root = renderer.root.findByProps({ "data-testid": "mode-switch" });
+    const button = renderer.root.findByType("button");
+
+    expect(root.props["data-disabled"]).toBe(true);
+    expect(button.props.disabled).toBe(true);
+  });
+
   it("クリックしたoptionのvalueを通知する", () => {
     const onChange = vi.fn();
     const renderer = create(createElement(ModeSwitch, {
