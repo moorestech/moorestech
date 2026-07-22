@@ -3,7 +3,7 @@ using System.Linq;
 using Core.Master;
 using Game.Context;
 using Game.UnlockState;
-using Mooresmaster.Model.ConnectToolsModule;
+using Mooresmaster.Model.BuildMenuModule;
 
 namespace Server.Protocol.PacketResponse.Util.ConnectTool
 {

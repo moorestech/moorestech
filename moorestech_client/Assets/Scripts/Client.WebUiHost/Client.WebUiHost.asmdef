@@ -4,6 +4,7 @@
     "references": [
         "CefUnity.Runtime",
         "Client.Common",
+        "Common.Debug",
         "Client.Game",
         "Client.Skit",
         "Client.Input",

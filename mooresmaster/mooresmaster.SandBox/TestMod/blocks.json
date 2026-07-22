@@ -27,6 +27,8 @@
       "name": "MultiBlock1",
       "blockType": "ElectricGenerator",
       "blockGuid": "00000000-0000-0000-0000-000000000009",
+      "category": "テスト",
+      "subCategory": "テスト",
       "blockParam": {
         "fuelItemSlotCount": 0,
         "isInfinityPower": true,

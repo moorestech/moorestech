@@ -1,51 +1,134 @@
-/* buildMenuはblockInventory/researchより下位で、modalはPortalで最前面になる */
-/* BuildMenu sits below blockInventory/research, while the modal portal stays on top */
+/* 大型2列占有はblockInventory .panelLarge前例。上端=持ち物と揃い、下端=ホットバー手前 */
+/* Large two-column span follows blockInventory .panelLarge; top aligns with inventory, bottom clears the hotbar */
 .panel {
-  position: fixed;
-  inset: 8% 12%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: rgb(30 30 30 / 92%);
-  border-radius: 8px;
+  grid-column: viewer-start / items-end;
+  grid-row: 1;
+  width: 759.3px;
+  height: 525px;
+  min-width: 0;
+  position: relative;
   z-index: var(--z-screen);
 }
 
-.scroll {
-  overflow-y: auto;
+/* 面を追加せず、共通の閉じる操作だけをパネル右上へ重ねる */
+/* Places only the shared close control at the panel top-right without adding a face */
+.close {
+  position: absolute;
+  top: var(--bevel-3);
+  right: var(--panel-edge-fade);
+  z-index: var(--z-overlay-panel);
 }
 
-.slot {
-  width: 64px;
-  height: 64px;
+.columns {
+  display: grid;
+  grid-template-columns: var(--build-menu-sidebar-width) 1fr;
+  gap: var(--build-menu-edge-safe-area);
+  height: 100%;
+  padding-right: var(--build-menu-edge-safe-area);
+  padding-bottom: var(--block-panel-bottom-safe-area);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+/* §8.9 検索入力: GaugeBar溝と同トーンの半透明面。フォーカスはModeSwitch様式を踏襲 */
+/* §8.9 search input: translucent face in the GaugeBar-groove tone; focus follows the ModeSwitch style */
+.searchInput {
+  background: var(--gauge-track);
+  border: var(--bevel-1) solid var(--bevel-c1);
+  color: var(--text-default);
+  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+  font-family: inherit;
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus-visible {
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}
+
+.preview {
+  min-height: var(--build-menu-preview-height);
+}
+
+.previewBody {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: rgb(255 255 255 / 6%);
-  border: 1px solid rgb(255 255 255 / 15%);
-  border-radius: 4px;
-  cursor: pointer;
-  overflow: hidden;
+  gap: 8px;
+  min-height: var(--build-menu-preview-height);
 }
 
-.slot:hover {
-  background: rgb(255 255 255 / 15%);
+.previewCost {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
 }
 
-.icon {
-  max-width: 100%;
-  max-height: 100%;
+.previewName {
+  color: var(--text-default);
 }
 
-.label {
+.previewHint,
+.noHit,
+.sectionHeading {
+  color: var(--text-muted);
+}
+
+.sectionHeading {
+  font-size: 12px;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* 見出し→FadeRule→SlotGridの縦積み。gapで一定間隔を保つ（§8.11） */
+/* Stacks heading, FadeRule, and SlotGrid; gap keeps consistent spacing (§8.11) */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.previewIcon,
+.slotIcon {
+  width: calc(var(--slot-size) - 8px);
+  height: calc(var(--slot-size) - 8px);
+  object-fit: contain;
+}
+
+.slotLabel {
   font-size: 10px;
   color: var(--text-default);
-  text-align: center;
   word-break: break-all;
-  padding: 2px;
+  text-align: center;
 }
 
-.tooltip {
-  white-space: pre-line;
+/* サブカテゴリ区切りごとに間隔を空けて群を独立させる（§8.11 無札並置の禁止） */
+/* Space out each sub-category group so sections read as distinct (§8.11 no unlabeled adjacency) */
+.gridArea {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+/* §8.10 カスタムスクロールバー（ItemListPanel前例のネイビートーン版） */
+/* §8.10 custom scrollbar (navy-tone variant of the ItemListPanel precedent) */
+.scroll :global(.mantine-ScrollArea-scrollbar) {
+  background: var(--gauge-track);
+}
+
+.scroll :global(.mantine-ScrollArea-thumb) {
+  background: var(--bevel-c2);
+  border-radius: 0;
 }
