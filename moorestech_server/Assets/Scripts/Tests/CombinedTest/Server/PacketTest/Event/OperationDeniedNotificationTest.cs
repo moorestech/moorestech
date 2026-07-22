@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -9,6 +10,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.CombinedTest.Server.PacketTest;
 using Tests.Module.TestMod;
+using Tests.Util;
 using static Tests.CombinedTest.Game.ResearchDataStoreTest;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -60,6 +62,22 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.placeBlockNotUnlocked"));
+        }
+
+        [Test]
+        public void RailConnectInvalidNodeFiresDeniedNotification()
+        {
+            var environment = TrainTestHelper.CreateEnvironment();
+            var sink = EventTestUtil.RegisterCaptureSink(environment.ServiceProvider, PlayerId);
+
+            // 存在しないノード同士の接続要求 → InvalidNodeの拒否通知
+            // Request connecting nonexistent nodes → InvalidNode denied notification
+            var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(
+                PlayerId, 999999, Guid.NewGuid(), 999998, Guid.NewGuid(), Guid.NewGuid());
+            environment.PacketResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+
+            var denied = TakeDenied(sink);
+            Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.railEdit.InvalidNode"));
         }
 
         private static List<NotificationMessagePack> TakeDenied(CapturedEventSink sink)
