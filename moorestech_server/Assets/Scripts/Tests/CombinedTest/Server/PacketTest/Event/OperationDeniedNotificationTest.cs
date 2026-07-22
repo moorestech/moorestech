@@ -33,6 +33,26 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
+        public void CompleteResearchAlreadyCompletedDoesNotFireDeniedNotification()
+        {
+            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
+
+            // 正規手順で研究完了→シンクをクリア
+            // Complete research legitimately → drain the sink
+            CompleteResearchForTest(serviceProvider, Research1Guid);
+            sink.TakeAll();
+
+            // 完了済み研究への二重完了要求
+            // Send a duplicate completion request for the same guid
+            var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(PlayerId, Research1Guid);
+            packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
+
+            var denied = TakeDenied(sink);
+            Assert.AreEqual(0, denied.Count(d => d.MessageId == "denied.researchNotCompletable"));
+        }
+
+        [Test]
         public void OneClickCraftMaterialShortageFiresDeniedNotification()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
