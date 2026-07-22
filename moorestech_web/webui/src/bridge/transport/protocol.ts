@@ -9,6 +9,7 @@ import type {
   UiVisibilityData, MiningHudData, TooltipData,
   GameStateData, TutorialPresentationData,
   SkitPresentationData, TrainRidingData,
+  NotificationData,
 } from "../contract/payloadTypes";
 import { z } from "zod";
 
@@ -68,6 +69,9 @@ export const Topics = {
   // プレイテスト要求は snapshot を持たない一時イベントとして扱う
   // Playtest requests are transient events without snapshots
   playtestDomQuery: "playtest.dom_query",
+  // ゲーム内通知（実績・操作拒否）も snapshot を持たない一時イベント
+  // In-game notifications (achievements / operation denials) are also transient events without snapshots
+  notification: "notification.events",
 } as const;
 
 // C# UIStateEnum 由来の state 名。文字列リテラルの散在を防ぐ
@@ -112,6 +116,7 @@ export type TopicPayloads = {
   [Topics.tutorialPresentation]: TutorialPresentationData;
   [Topics.skitPresentation]: SkitPresentationData;
   [Topics.trainRiding]: TrainRidingData;
+  [Topics.notification]: NotificationData;
 };
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる

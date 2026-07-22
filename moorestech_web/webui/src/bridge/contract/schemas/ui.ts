@@ -39,3 +39,15 @@ export const MiningHudDataSchema = z.object({
   visible: z.boolean(), targetName: z.string(), mining: z.boolean(), progress: z.number().min(0).max(1),
 });
 export const TooltipDataSchema = z.object({ visible: z.boolean(), textKey: z.string(), fontSize: z.number().positive() });
+
+// snapshotを持たない一時イベントのため、接続直後は{}が届く。全フィールドoptionalにしそれを許容する
+// Transient event without a snapshot: {} arrives right after connect, so every field is optional to accept it
+// itemIdはアイテム無し時にキー自体が省略される（NullValueHandling.Ignore）ためnullableではなくoptionalにする
+// itemId is omitted entirely (not sent as null) when there is no item, so it is optional rather than nullable
+export const NotificationDataSchema = z.object({
+  seq: z.number().optional(),
+  category: z.enum(["achievement", "operationDenied"]).optional(),
+  messageId: z.string().optional(),
+  messageParams: z.array(z.string()).optional(),
+  itemId: z.number().optional(),
+});
