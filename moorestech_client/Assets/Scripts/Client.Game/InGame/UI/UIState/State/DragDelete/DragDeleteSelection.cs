@@ -1,13 +1,17 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
 {
     /// <summary>
-    ///     ドラッグ中に選択された削除対象を管理する純粋なモデルクラス
-    ///     Pure model class that manages delete targets selected during a drag
+    ///     ドラッグ中に選択された削除対象を管理するモデルクラス。削除確定時のUndo履歴記録も担う
+    ///     Model class that manages delete targets selected during a drag; also records undo history on commit
     /// </summary>
     public class DragDeleteSelection
     {
+        private readonly BuildOperationHistory _buildOperationHistory;
+
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _selectedTargets = new();
@@ -20,6 +24,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // 別カテゴリー混在時の拒否理由。IsRemovableのreasonと同様に生文字列で表示する
         // Deny reason shown when mixing categories; a raw string like IsRemovable's reason
         public const string DifferentCategoryDenyReason = "別カテゴリーのブロックは同時に選択できません。";
+
+        public DragDeleteSelection(BuildOperationHistory buildOperationHistory)
+        {
+            _buildOperationHistory = buildOperationHistory;
+        }
 
         // 新しいドラッグ開始時に選択・キャンセル状態・セッションカテゴリーをリセットする
         // Reset selection, canceled state, and session category when a new drag begins
@@ -82,11 +91,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _sessionCategory = null;
         }
 
-        // 選択を一括削除しコミット対象を返す
-        // Delete the whole selection and return the committed targets
-        public List<IDeleteTarget> CommitDelete()
+        // 選択を一括削除し、Ctrl+Z用のUndo履歴も記録する
+        // Delete the whole selection and record the undo history for Ctrl+Z
+        public void CommitDelete()
         {
-            if (_canceled) return new List<IDeleteTarget>();
+            if (_canceled) return;
 
             var committed = new List<IDeleteTarget>(_selectedTargets.Values);
             foreach (var target in committed)
@@ -99,7 +108,29 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             _selectedTargets.Clear();
             _sessionCategory = null;
-            return committed;
+
+            RecordRemoveOperation(committed);
+
+            #region Internal
+
+            void RecordRemoveOperation(List<IDeleteTarget> targets)
+            {
+                // ブロック対象だけを楽観的記録（撤去失敗セルはUndo時の空き座標ガードで自然に無効化）
+                // Optimistically record block targets only (failed removals are neutralized by the empty-cell guard on undo)
+                var removedBlocks = new List<RemovedBlockInfo>();
+                foreach (var target in targets)
+                {
+                    if (target is not BlockGameObjectChild blockChild) continue;
+                    var blockGameObject = blockChild.BlockGameObject;
+                    removedBlocks.Add(new RemovedBlockInfo(
+                        blockGameObject.BlockPosInfo.OriginalPos,
+                        blockGameObject.BlockId,
+                        blockGameObject.BlockPosInfo.BlockDirection));
+                }
+                if (removedBlocks.Count != 0) _buildOperationHistory.Push(new RemoveOperationRecord(removedBlocks));
+            }
+
+            #endregion
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

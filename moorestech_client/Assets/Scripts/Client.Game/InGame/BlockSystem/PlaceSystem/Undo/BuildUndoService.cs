@@ -1,19 +1,13 @@
-using System.Collections.Generic;
-using System.Threading;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Context;
 using Client.Input;
-using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Block.Interface;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 {
     /// <summary>
-    ///     Ctrl+Zで直前の建築操作を取り消す
-    ///     Undo the latest build operation on Ctrl+Z
+    ///     Ctrl+Zで直前の建築操作を取り消す。具体的な取り消し処理は各レコードに委譲する
+    ///     Undo the latest build operation on Ctrl+Z; the concrete undo logic is delegated to each record
     /// </summary>
     public class BuildUndoService
     {
@@ -53,82 +47,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             // Guarantee the re-entrancy flag resets even on network-boundary exceptions (boundary exemption of the no-try-catch rule)
             try
             {
-                switch (record)
-                {
-                    case PlaceOperationRecord placeRecord:
-                        await UndoPlaceOperation(placeRecord);
-                        break;
-                    case RemoveOperationRecord removeRecord:
-                        UndoRemoveOperation(removeRecord);
-                        break;
-                }
+                await record.UndoAsync(_blockGameObjectDataStore);
             }
             finally
             {
                 _isUndoing = false;
             }
-
-            #region Internal
-
-            async UniTask UndoPlaceOperation(PlaceOperationRecord placeRecord)
-            {
-                // 同座標同BlockIdの現存セルだけを撤去する（設置失敗・他者変更セルの誤爆防止）
-                // Remove only cells still holding the same BlockId (avoids nuking failed or replaced cells)
-                var cells = placeRecord.SelectUndoableCells(GetBlockIdAt);
-                foreach (var position in cells)
-                {
-                    await ClientContext.VanillaApi.Response.BlockRemove(position, CancellationToken.None);
-                }
-            }
-
-            void UndoRemoveOperation(RemoveOperationRecord removeRecord)
-            {
-                // 占有範囲が空いているセルだけを1バッチで再設置する（CreateParamsは復元不可のため空）
-                // Re-place only cells whose footprint is unoccupied, in one batch (CreateParams cannot be restored, so empty)
-                var cells = removeRecord.SelectReplaceableCells(IsFootprintOccupied);
-                if (cells.Count == 0) return;
-
-                var placeInfos = new List<PlaceInfo>(cells.Count);
-                foreach (var cell in cells)
-                {
-                    placeInfos.Add(new PlaceInfo
-                    {
-                        Position = cell.Position,
-                        Direction = cell.Direction,
-                        VerticalDirection = ToVerticalDirection(cell.Direction),
-                        BlockId = cell.BlockId,
-                        Placeable = true,
-                    });
-                }
-                ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos);
-            }
-
-            BlockId? GetBlockIdAt(Vector3Int position)
-            {
-                if (!_blockGameObjectDataStore.TryGetBlockGameObject(position, out var blockGameObject)) return null;
-                return blockGameObject.BlockId;
-            }
-
-            bool IsFootprintOccupied(RemovedBlockInfo removed)
-            {
-                // 辞書キーはオリジン座標のみのため、マルチセルブロックとの重なりは占有範囲同士で判定する
-                // The dictionary keys origins only, so overlap with multi-cell blocks needs a footprint check
-                var blockSize = MasterHolder.BlockMaster.GetBlockMaster(removed.BlockId).BlockSize;
-                var positionInfo = new BlockPositionInfo(removed.Position, removed.Direction, blockSize);
-                return _blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
-            }
-
-            static BlockVerticalDirection ToVerticalDirection(BlockDirection direction)
-            {
-                return direction switch
-                {
-                    BlockDirection.UpNorth or BlockDirection.UpEast or BlockDirection.UpSouth or BlockDirection.UpWest => BlockVerticalDirection.Up,
-                    BlockDirection.DownNorth or BlockDirection.DownEast or BlockDirection.DownSouth or BlockDirection.DownWest => BlockVerticalDirection.Down,
-                    _ => BlockVerticalDirection.Horizontal,
-                };
-            }
-
-            #endregion
         }
     }
 }
