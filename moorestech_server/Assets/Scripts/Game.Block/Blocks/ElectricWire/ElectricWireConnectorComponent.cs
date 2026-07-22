@@ -69,6 +69,9 @@ namespace Game.Block.Blocks.ElectricWire
             var connector = ResolveWireTarget(partnerId);
             if (connector == null) return false;
             _wireConnections.Add(partnerId, (connector, connectionCost));
+            // 接続集合の変更点自身でdirty化し、呼び出し元の再構築漏れを構造的に防ぐ
+            // Mark dirty at the mutation itself so no caller can ever forget the rebuild
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
             // 状態変更を通知する
             // Notify state change
             _onChangeBlockState.OnNext(Unit.Default);
@@ -83,6 +86,7 @@ namespace Game.Block.Blocks.ElectricWire
                 return false;
             }
             cost = connection.Cost;
+            ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
             return true;
         }

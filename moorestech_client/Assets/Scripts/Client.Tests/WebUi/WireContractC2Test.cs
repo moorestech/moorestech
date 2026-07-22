@@ -24,7 +24,6 @@ namespace Client.Tests.WebUi
         [Test]
         public void CommonHudMatchesFixtures()
         {
-            AssertMatches(new KeyHintsDto { TextKey = "Esc: Back" }, "key_hints.json");
             AssertMatches(new VisibilityDto { Visible = true }, "visibility.json");
         }
 

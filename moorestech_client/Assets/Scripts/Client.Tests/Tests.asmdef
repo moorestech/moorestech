@@ -32,7 +32,8 @@
         "Core.Inventory",
         "Client.WebUiHost",
         "Client.Skit",
-        "Game.UnlockState"
+        "Game.UnlockState",
+        "Common.Debug"
     ],
     "includePlatforms": [
         "Editor"

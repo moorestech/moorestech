@@ -1,4 +1,4 @@
-import type { GameStateData, SkitPresentationData, TutorialPresentationData } from "../../../src/bridge/contract/payloadTypes";
+import type { GameStateData, SkitPresentationData, TutorialPresentationData, WorldPinPresentationData } from "../../../src/bridge/contract/payloadTypes";
 
 export const challengeTree = {
   categories: [{
@@ -16,6 +16,7 @@ export const gameState = { state: "InGame" } satisfies GameStateData;
 export const tutorialPresentation = {
   tutorialSessionId: "", revision: 0, challengeId: "", highlights: [],
 } satisfies TutorialPresentationData;
+export const worldPins = { revision: 0, pins: [] } satisfies WorldPinPresentationData;
 export const skitPresentation = {
   sessionId: "", sceneRevision: 0,
   presentationState: {
