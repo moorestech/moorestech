@@ -128,7 +128,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
-                builder.RegisterInstance(_skitActionController);
+                builder.RegisterInstance(_skitActionController).As<ISkitActionController, ISkitActionContext>();
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));
                 
                 return new StoryContext(builder.Build());
