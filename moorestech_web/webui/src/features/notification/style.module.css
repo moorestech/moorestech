@@ -1,9 +1,43 @@
-/* 画面左端・縦中央固定。中央を基準に上下へスタックする。z-indexはtoastと同じ一時オーバーレイ層を共有 */
-/* Pinned to the left edge, vertically centered; the stack grows around the middle. Shares the transient-overlay z-layer with toast */
+/* 画面左端・下端を画面中央に固定し上方向へ積む(中央下のキーヒント一覧と重ねない)。z-indexはtoastと同層 */
+/* Pinned to the left edge with the stack bottom at mid-screen, growing upward (clear of the key-hint list below); same z-layer as toast */
 .host {
   position: fixed;
   top: 50%;
   left: 1rem;
-  transform: translateY(-50%);
+  transform: translateY(-100%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   z-index: var(--z-toast);
+  pointer-events: none;
+}
+
+/* 面を持たない浮遊テキスト（キーヒントHUD同族）。世界の上で読めるよう黒縁の文字影のみ */
+/* Face-less floating text (same family as the key-hint HUD); only a dark text shadow for legibility over the world */
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: 0.055em;
+  font-weight: 500;
+  color: var(--text-high-contrast);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+}
+
+/* 操作拒否は共通の警告色で区別する */
+/* Denied operations use the shared warning color */
+.notification[data-category="operationDenied"] {
+  color: var(--text-insufficient);
+}
+
+/* アイテムアイコンは1行の文字高に収める */
+/* Keep the item icon within the single line's text height */
+.icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }

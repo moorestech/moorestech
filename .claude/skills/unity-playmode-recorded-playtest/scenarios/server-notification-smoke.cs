@@ -54,9 +54,9 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     await p.WaitSeconds(1.8f);
     p.Assert(DeniedResearchCount() == deniedAfterFirst, $"クールダウンで2回目の失敗通知は抑制される(件数 {deniedAfterFirst} のまま 実際:{DeniedResearchCount()})");
 
-    // 通知ホストの可視化を待って撮影
-    // Wait for the notification host to become visible, then capture
-    await p.UntilWebUiElement("notification-host", 10f);
+    // 通知ホストの可視化を待って撮影(HUDはpointer-events:noneのためクリック可能待ちは使えない)
+    // Wait for the notification host to render, then capture (the HUD is pointer-events:none, so the clickable wait cannot be used)
+    await UntilHudVisible("notification-host", 10f);
     p.Assert(received.Last().MessageId == "denied.researchNotCompletable", $"直近通知が操作拒否である 実際:{received.Last().MessageId}");
     await p.Screenshot("01-denied-notification");
 
@@ -81,8 +81,22 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     var achievement = received.Last(n => n.Category == NotificationCategory.Achievement && n.MessageId == "achievement.researchCompleted");
     p.Assert(1 <= achievement.MessageParams.Length && achievement.MessageParams[0] == "原始研究1", $"実績通知の研究名パラメータが『原始研究1』 実際:{string.Join(",", achievement.MessageParams)}");
 
-    await p.UntilWebUiElement("notification-host", 10f);
+    await UntilHudVisible("notification-host", 10f);
     await p.Screenshot("03-achievement-notification");
+
+    // HUD要素の「存在+矩形あり」だけを待つ(空のホストは幅0のため、通知1件以上の描画完了と等価)
+    // Wait only for presence + a non-empty rect (an empty host has zero width, so this equals "at least one notification rendered")
+    async UniTask UntilHudVisible(string testid, float timeoutSeconds)
+    {
+        var deadline = UnityEngine.Time.realtimeSinceStartup + timeoutSeconds;
+        while (UnityEngine.Time.realtimeSinceStartup < deadline)
+        {
+            var result = await Client.Playtest.WebUi.PlaytestDomQuery.Query(testid, 2f);
+            if (result.Found && 0 < result.Width) return;
+            await UniTask.Delay(TimeSpan.FromMilliseconds(250), ignoreTimeScale: true);
+        }
+        throw new Exception($"HUD要素が可視にならない: {testid}");
+    }
 
     // 後片付け: 観測用購読を破棄する
     // Cleanup: dispose the observer subscription

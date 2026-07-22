@@ -101,6 +101,7 @@ description: |
 ## 8. 通知・情報表示
 
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・5秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
+- **NotificationHostの見た目はキーヒントHUD同族の「面を持たない浮遊テキスト」**（黒縁文字影のみ・パネル面/枠/角丸なし）。色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrow`。
 
