@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -235,7 +236,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Do not place over UI or without enough wire
                 if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return;
 
-                SendPlaceBlockProtocol(_currentPlaceInfos);
+                SendPlaceBlockProtocol(_currentPlaceInfos.Where(info => info.Placeable).ToList());
 
                 // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the auto-connect evaluation cache

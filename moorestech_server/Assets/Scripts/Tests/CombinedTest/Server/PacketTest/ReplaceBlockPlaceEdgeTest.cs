@@ -1,4 +1,5 @@
 using System;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Interface;
@@ -50,7 +51,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
             var oldBelt = oldBlock.GetComponent<VanillaBeltConveyorComponent>();
-            Assert.IsTrue(oldBelt.TryInsertItemWithRemainingRate(ForUnitTestItemId.ItemId2, 0.5));
+            Assert.IsTrue(oldBelt.TryInsertItemWithRemainingRate(ForUnitTestItemId.ItemId2, ItemInstanceId.Create(), 0.5));
 
             // コスト外アイテムで全スロットを埋め、返却挿入の空きを消す
             // Fill every slot with a non-cost item so refund insertion has no room

@@ -1,11 +1,17 @@
 using System;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.FilterSplitter;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.UnlockState;
+using Microsoft.Extensions.DependencyInjection;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.Construction;
 using Tests.Module.TestMod;
 using NUnit.Framework;
 using UnityEngine;
@@ -54,12 +60,13 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 入口に投入して数tick進行させる
             // Insert at the entry and let it progress a few ticks
-            Assert.IsTrue(oldBelt.TryInsertItemWithRemainingRate(ForUnitTestItemId.ItemId2, 1.0));
+            Assert.IsTrue(oldBelt.TryInsertItemWithRemainingRate(ForUnitTestItemId.ItemId2, ItemInstanceId.Create(), 1.0));
             GameUpdater.RunFrames(5);
 
             var oldItem = FindItem(oldBelt, ForUnitTestItemId.ItemId2);
             Assert.IsNotNull(oldItem);
             var oldRate = oldItem.RemainingTicks / (double)oldItem.TotalTicks;
+            var oldInstanceId = oldItem.ItemInstanceId;
 
             // 向きを変えてリプレース（同IDでもDirectionが変わるので実リプレースが走る）
             // Replace with a different direction so an actual replace runs even for the same id
@@ -72,6 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var slotTolerance = 1.0 / newBelt.BeltConveyorItems.Count;
             Assert.LessOrEqual(Math.Abs(newRate - oldRate), slotTolerance);
+            Assert.AreEqual(oldInstanceId, newItem.ItemInstanceId);
 
             #region Internal
 
@@ -113,6 +121,50 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
             Assert.AreEqual(ForUnitTestModBlockId.SmallGearBeltConveyor, ServerContext.WorldBlockDatastore.GetBlock(pos).BlockId);
             AssertRequiredItemsCount(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
+        }
+
+        // 分岐器の設定とバッファ中の搬送品をリプレース後も保持する
+        // Replacing a filter splitter preserves its settings and buffered transit item
+        [Test]
+        public void フィルター分岐器の設定と搬送品をリプレース後も保持する()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            var pos = new Vector3Int(56, 0, 56);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.FilterSplitter);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.FilterSplitter, 1);
+
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FilterSplitter, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
+            var oldSplitter = oldBlock.GetComponent<VanillaFilterSplitterComponent>();
+            for (var i = 0; i < oldSplitter.DirectionCount; i++) oldSplitter.SetMode(i, FilterSplitterMode.Default);
+            var input = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1);
+            oldSplitter.SetItem(0, input);
+            oldSplitter.SetMode(0, FilterSplitterMode.Blacklist);
+
+            var replaceService = new BlockReplaceService(serviceProvider.GetService<IGameUnlockStateDataController>());
+            var replaceInfo = new PlaceInfoMessagePack(new PlaceInfo
+            {
+                Position = pos,
+                Direction = BlockDirection.East,
+                VerticalDirection = BlockVerticalDirection.Horizontal,
+                BlockId = ForUnitTestModBlockId.FilterSplitter,
+                IsReplace = true,
+            });
+            Assert.IsTrue(replaceService.TryReplaceBlock(replaceInfo, GetInventory(serviceProvider), true));
+
+            var newBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            var newSplitter = newBlock.GetComponent<VanillaFilterSplitterComponent>();
+            Assert.AreEqual(FilterSplitterMode.Blacklist, newSplitter.GetMode(0));
+            var inventory = newBlock.GetComponent<IBlockInventory>();
+            var hasTransitItem = false;
+            for (var i = 0; i < inventory.GetSlotSize(); i++)
+            {
+                var item = inventory.GetItem(i);
+                if (item.Id != ForUnitTestItemId.ItemId2) continue;
+                Assert.AreEqual(input.ItemInstanceId, item.ItemInstanceId);
+                hasTransitItem = true;
+                break;
+            }
+            Assert.IsTrue(hasTransitItem);
         }
     }
 }

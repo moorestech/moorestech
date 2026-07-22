@@ -1,4 +1,5 @@
 using System;
+using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
@@ -32,7 +33,7 @@ namespace Tests.UnitTest.Game
             // Insert an item at progress rate 0.5
             const double rate = 0.5;
             var itemId = new ItemId(2);
-            var inserted = beltConveyorComponent.TryInsertItemWithRemainingRate(itemId, rate);
+            var inserted = beltConveyorComponent.TryInsertItemWithRemainingRate(itemId, ItemInstanceId.Create(), rate);
             Assert.IsTrue(inserted);
 
             // 期待スロットとRemainingTicksを算出して検証する
@@ -59,12 +60,12 @@ namespace Tests.UnitTest.Game
             // Fill every slot starting from the exit side
             for (var i = 0; i < slotCount; i++)
             {
-                Assert.IsTrue(beltConveyorComponent.TryInsertItemWithRemainingRate(itemId, 0.0));
+                Assert.IsTrue(beltConveyorComponent.TryInsertItemWithRemainingRate(itemId, ItemInstanceId.Create(), 0.0));
             }
 
             // 満杯状態ではfalseを返す
             // Returns false when full
-            Assert.IsFalse(beltConveyorComponent.TryInsertItemWithRemainingRate(itemId, 0.0));
+            Assert.IsFalse(beltConveyorComponent.TryInsertItemWithRemainingRate(itemId, ItemInstanceId.Create(), 0.0));
         }
 
         #region Internal
