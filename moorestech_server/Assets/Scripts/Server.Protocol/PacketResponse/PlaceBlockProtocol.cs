@@ -11,6 +11,7 @@ using Game.UnlockState;
 using Game.World.Interface.DataStore;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.Notification;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
@@ -27,11 +28,13 @@ namespace Server.Protocol.PacketResponse
 
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
+        private readonly NotificationService _notificationService;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
+            _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -43,10 +46,20 @@ namespace Server.Protocol.PacketResponse
             // Debug: free block placement toggle (read once to avoid per-cell file IO)
             var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
+            // セル単位のスキップ理由を集約しリクエスト末尾で1回ずつ通知する
+            // Aggregate per-cell skip reasons and notify once per reason at the end of the request
+            var notUnlockedCount = 0;
+            var costShortageCount = 0;
+            var wireShortageCount = 0;
+
             foreach (var placeInfo in data.PlacePositions)
             {
                 PlaceBlock(placeInfo);
             }
+
+            if (notUnlockedCount > 0) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
+            if (costShortageCount > 0) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
+            if (wireShortageCount > 0) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", Array.Empty<string>()));
 
             return null;
 
@@ -73,13 +86,13 @@ namespace Server.Protocol.PacketResponse
 
                 // 未解放セルはスキップし、ベルトの坂はファミリー直線の状態で判定する
                 // Skip locked cells and resolve belt slopes through their family straight block
-                if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) return;
+                if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
 
                 // コスト不足セルはスキップ
                 // Skip cells whose construction cost cannot be covered
                 var inventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
-                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return;
+                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) { costShortageCount++; return; }
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
@@ -90,7 +103,7 @@ namespace Server.Protocol.PacketResponse
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
                     plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, costItemCounts, inventory.InventoryItems);
-                    if (!plan.IsPlaceable) return;
+                    if (!plan.IsPlaceable) { wireShortageCount++; return; }
                 }
 
                 // 設置に失敗した場合はコストを消費しない
