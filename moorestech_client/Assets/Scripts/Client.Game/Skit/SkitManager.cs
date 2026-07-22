@@ -79,7 +79,6 @@ namespace Client.Game.Skit
             //後処理 Post process
             skitUI.SetActive(false);
             if (webUiMode) SkitPresentationStateStore.Instance.End();
-            HudArrowManager.SetActive(true);
             mapObjectPin.SetActive(true);
             var characterContainer = storyContext.GetService<CharacterObjectContainer>();
             characterContainer.DestroyAllCharacters();
@@ -117,8 +116,7 @@ namespace Client.Game.Skit
                 // 表示の設定
                 skitUI.SetActive(!webUiMode);
                 mapObjectPin.SetActive(false);
-                HudArrowManager.SetActive(false);
-                
+
                 // DIコンテナをセットアップ
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(skitUI);
@@ -128,7 +126,9 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
-                builder.RegisterInstance(_skitActionController);
+                // コマンド側はISkitActionContextで解決するため両インターフェースで登録
+                // Register under both interfaces because commands resolve ISkitActionContext
+                builder.RegisterInstance(_skitActionController).As<ISkitActionController>().As<ISkitActionContext>();
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));
                 
                 return new StoryContext(builder.Build());

@@ -59,6 +59,15 @@
   /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
   /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
   --block-panel-right-safe-area: 28px;
+  /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
+  /* World-pin HUD layer; kept below panel faces so open panels cover it */
+  --z-world-pin: 10;
+  /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
+  /* World-pin label and marker faces share the translucent navy family */
+  --world-pin-face: rgb(10 14 27 / 80%);
+  /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
+  /* Clamp off-screen arrows this fixed length inside the screen edge */
+  --world-pin-edge-margin: 28px;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;

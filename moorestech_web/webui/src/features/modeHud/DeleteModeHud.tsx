@@ -1,7 +1,7 @@
 import { Paper, Stack, Text, Title } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
-import { tutorialAnchor } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import styles from "./style.module.css";
 
 export function DeleteModeHud() {
@@ -14,7 +14,7 @@ export function DeleteModeHud() {
   const unavailableColor = "red";
 
   return (
-    <Paper className={styles.modePanel} {...tutorialAnchor("delete.hud")}>
+    <Paper className={styles.modePanel} {...tutorialAnchor(TutorialAnchorIds.deleteHud)}>
       <Stack gap="xs">
         <Title order={2} size="h4">{title}</Title>
         <Text>{guide}</Text>
