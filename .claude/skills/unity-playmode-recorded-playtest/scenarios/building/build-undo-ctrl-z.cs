@@ -1,6 +1,6 @@
-// 建築UI Ctrl+ZアンドゥのE2E検証(UI経路): 設置/撤去を実プレイと同じキーマウ経路で行い、Ctrl+Zで取り消せることを通しで確認する
+// 建築UI Ctrl+ZアンドゥのE2E検証
 // 記録フックは PlaceSystemUtil.SendPlaceBlockProtocol(設置) と DragDeleteSelection.CommitDelete(撤去) のため、必ずUI経路で操作する（SendOnly直送は履歴に積まれず偽陰性になる）
-// End-to-end check of the build-UI Ctrl+Z undo (UI route): place/remove via the real key-mouse route and confirm Ctrl+Z reverts each.
+// End-to-end check of the build-UI Ctrl+Z undo.
 // Recording hooks live in PlaceSystemUtil.SendPlaceBlockProtocol (place) and DragDeleteSelection.CommitDelete (remove), so operate strictly via UI (direct SendOnly bypasses history = false negative).
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -92,8 +92,8 @@ return PlaytestRunner.Run("build-undo-ctrl-z", options, async p =>
         await driver.WaitSeconds(0.5f);
     }
 
-    // 破壊モードのドラッグ撤去。照準→左押下(ドラッグ開始)→保持フレーム(選択追加)→左解放(確定削除)
-    // Drag-delete in destroy mode: aim -> left down (start drag) -> hold frames (accumulate) -> left up (commit delete)
+    // 照準→押下→保持→解放で単体撤去
+    // Aim, press, hold, release to delete one block
     async UniTask DragDeleteAt(PlaytestDriver driver, Vector3 worldCenter)
     {
         await driver.AimAt(worldCenter);

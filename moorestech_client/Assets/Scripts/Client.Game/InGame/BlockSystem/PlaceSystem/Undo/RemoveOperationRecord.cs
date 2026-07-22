@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 {
     /// <summary>
-    ///     撤去1バッチの履歴レコード。コミット時点の選択対象を楽観的に記録する
-    ///     History record of one remove batch; optimistically captured at commit time
+    ///     撤去1バッチの楽観記録レコード
+    ///     Optimistic record of one remove batch
     /// </summary>
     public class RemoveOperationRecord : IBuildOperationRecord
     {

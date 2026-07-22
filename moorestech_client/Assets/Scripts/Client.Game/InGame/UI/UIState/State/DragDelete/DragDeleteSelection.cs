@@ -82,8 +82,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _sessionCategory = null;
         }
 
-        // 選択対象を全て削除しMaterialを戻して選択を空にする。コミットした対象を履歴記録用に返す
-        // Delete all selected targets, reset materials, clear the selection, and return the committed targets for history recording
+        // 選択を一括削除しコミット対象を返す
+        // Delete the whole selection and return the committed targets
         public List<IDeleteTarget> CommitDelete()
         {
             if (_canceled) return new List<IDeleteTarget>();

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 {
     /// <summary>
-    ///     建築操作の履歴スタック。上限を超えたら最古を破棄するLIFO
-    ///     Build operation history stack; LIFO that drops the oldest entry over capacity
+    ///     上限付きLIFOの建築操作履歴
+    ///     Capped LIFO build-operation history
     /// </summary>
     public class BuildOperationHistory
     {
