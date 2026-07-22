@@ -29,9 +29,13 @@ namespace Server.Protocol.PacketResponse
             var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, request.PlayerId);
             var nodeStates = _researchDataStore.GetResearchNodeStates(request.PlayerId);
 
+            // 完了済みは二重通知を抑制
+            // Skip notify if already completed
+            var alreadyCompleted = _researchDataStore.IsResearchCompleted(request.ResearchGuid);
+
             // 失敗は通知基盤で知らせる
             // Report failure via the notification service
-            if (!isSuccess) _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
+            if (!isSuccess && !alreadyCompleted) _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
 
             return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString(), nodeStates);
         }
