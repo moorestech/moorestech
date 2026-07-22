@@ -12,12 +12,15 @@
   pointer-events: none;
 }
 
-/* 面を持たない浮遊テキスト（キーヒントHUD同族）。世界の上で読めるよう黒縁の文字影のみ */
-/* Face-less floating text (same family as the key-hint HUD); only a dark text shadow for legibility over the world */
+/* 研究ノードカード同族の半透明ネイビー面+1px寒色枠（直角・影なし）。文字影は世界が透ける面上の可読性補助 */
+/* Navy-family translucent face with a 1px cool border (square, shadowless), same family as research node cards; the text shadow aids legibility over the see-through face */
 .notification {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 6px 14px;
+  background: var(--notification-face);
+  border: 1px solid var(--notification-border);
   font-size: 20px;
   line-height: 1.2;
   letter-spacing: 0.055em;
