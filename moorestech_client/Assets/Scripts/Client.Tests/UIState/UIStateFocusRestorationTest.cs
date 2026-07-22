@@ -76,7 +76,7 @@ namespace Client.Tests.UIState
             SetUpMouseCursorTooltip();
             var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new DeleteObjectState(deleteObject, null, applier, new BuildOperationHistory());
+            var state = new DeleteObjectState(deleteObject, null, applier, new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             Press(_mouse.rightButton);
             state.GetNextUpdate();
@@ -94,7 +94,7 @@ namespace Client.Tests.UIState
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
             var placeStateController = new PlaceSystemStateController(selector);
             var pickService = new PlacementTargetPickService(null);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, applier, new BuildUndoService(new BuildOperationHistory(), dataStore));
         }
 
         private void SetUpMouseCursorTooltip()
