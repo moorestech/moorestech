@@ -1,8 +1,8 @@
 # ユースケース: 新しいシナリオを書く
 
 シナリオは execute-dynamic-code のC#スニペット形式（using可・文の羅列・returnで値を返す）。
-置き場所は本スキル同梱の `scenarios/<名前>.cs`（`.claude/skills/unity-playmode-recorded-playtest/scenarios/`）。**実証済みの手本**: `belt-line.cs`(direct構築) /
-`belt-line-via-ui.cs`(UI経路) / `gear-chain-pole-via-ui.cs`(ホットバー駆動) / `gear-chain-connect-via-ui.cs`(クリック結線)。
+置き場所は本スキル同梱の `scenarios/<カテゴリ>/<名前>.cs`（`.claude/skills/unity-playmode-recorded-playtest/scenarios/` 配下のカテゴリ別サブディレクトリ: `building/` `connect/` `train/` `misc/`）。**実証済みの手本**: `building/belt-line.cs`(direct構築) /
+`building/belt-line-via-ui.cs`(UI経路) / `connect/gear-chain-pole-via-ui.cs`(ホットバー駆動) / `connect/gear-chain-connect-via-ui.cs`(クリック結線)。
 
 ## テンプレート（このまま使う）
 
