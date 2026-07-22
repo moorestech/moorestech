@@ -10,8 +10,8 @@
 
 ## 2. 前提となる調査事実
 
-- 設置は `PlaceSystemUtil.SendPlaceBlockProtocol(List<PlaceInfo>)`（`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceSystemUtil.cs:149`）に一本化されており、全設置系（Common・BeltConveyor・TrainRail・Blueprint）がここを通る。送信は `va:placeBlock` の fire-and-forget（レスポンス無し）。サーバーは設置不能セルを黙ってスキップする
-- 撤去は `VanillaApiWithResponse.BlockRemove(Vector3Int, ct)` → `va:removeBlock`。Response型で `Success / FailureReason` が返る。撤去成功時、建設コスト＋ブロック内部インベントリの中身はプレイヤーインベントリへ全額返却される（`RemoveBlockProtocol.cs:89-125`）
+- 設置は `PlaceSystemUtil.SendPlaceBlockProtocol(List<PlaceInfo>)`（`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceSystemUtil.cs:149`）に一本化されており、通常の設置系（Common・BeltConveyor・TrainRail・Blueprint）がここを通る。例外はレール接続ツールの橋脚設置（`PlaceRailWithPier` 別プロトコル、`TrainRailConnectSystem.cs:157`）で、これはUndo対象外とする（§6）。送信は `va:placeBlock` の fire-and-forget（レスポンス無し）。サーバーは設置不能セルを黙ってスキップする
+- 撤去は `VanillaApiWithResponse.BlockRemove(Vector3Int, ct)` → `va:removeBlock`。Response型で `Success / FailureReason` が返る。撤去成功時、建設コスト（`requiredItems` 定義ブロックのみ。未定義ブロックは設置コスト自体が無いため収支は同じ）＋ブロック内部インベントリの中身はプレイヤーインベントリへ返却される（`RemoveBlockProtocol.cs:89-125`）
 - 設置イベント `va:event:blockPlace` は全プレイヤー分ブロードキャストされ送信者IDを含まないため、「自分の操作」の識別はイベントからは不可能
 - クライアントの `BlockGameObjectDataStore` / `BlockGameObject` は座標ごとに `BlockId`・`BlockInstanceId`・`BlockPosInfo.BlockDirection` を保持している
 - 既存のアンドゥ・操作履歴機構はゲームランタイムに存在しない（新規実装）
@@ -31,7 +31,7 @@
 | クラス | 責務 |
 |---|---|
 | `BuildOperationHistory` | 履歴スタック本体。上限32エントリのLIFO。`Push(IBuildOperationRecord)` / `TryPop(out record)` のみ |
-| `PlaceOperationRecord` | 設置1バッチの記録。送信した `List<PlaceInfo>` のスナップショット（Position / BlockId / Direction / VerticalDirection） |
+| `PlaceOperationRecord` | 設置1バッチの記録。送信した `List<PlaceInfo>` のスナップショット（Undo＝撤去発行に必要な Position / BlockId のみ保持） |
 | `RemoveOperationRecord` | 撤去1バッチの記録。コミット時点で選択されていた各ブロックの `Position / BlockId / BlockDirection` のリスト（**楽観的記録**。撤去の成否は追わず、失敗セルはUndo時の照合ガード＝「座標が空でなければ再設置しない」で自然に無効化される） |
 | `BuildUndoService` | Ctrl+Z受付とUndo実行。照合ガード→逆操作プロトコル発行。実行中の再入は無視（bool ガード） |
 
@@ -39,7 +39,7 @@
 
 ### 記録フック（2箇所）
 
-1. **設置**: `PlaceSystemUtil.SendPlaceBlockProtocol` 内で、送信した `PlaceInfo` リストのディープコピーを `PlaceOperationRecord` として `Push`。`Placeable == false` のセルは除外して記録する
+1. **設置**: `PlaceSystemUtil.SendPlaceBlockProtocol` 内で、送信した `PlaceInfo` リストのディープコピーを `PlaceOperationRecord` として `Push`。`Placeable == false` のセルは除外して記録し、**有効セルが0件ならPushしない**（空エントリがCtrl+Z 1回を無言で浪費するのを防ぐ。撤去側も同様）
 2. **撤去**: `DragDeleteSelection.CommitDelete()` がコミットした対象リストを返すよう変更し、呼び出し側の `DeleteObjectService` が `BlockGameObjectChild` 対象から `Position / BlockId / BlockDirection` を控えて `RemoveOperationRecord` として `Push` する（コミット時の楽観的記録。`DeleteAsync` の成否には触れない）。`IDeleteTarget` のうち `BlockGameObjectChild` 以外（レールノード・列車車両等）は記録対象外
 
 ### Undo実行フロー（Ctrl+Z 1回）
@@ -52,11 +52,13 @@ Ctrl+Z → BuildUndoService.TryUndo()
   │    各セル: BlockGameObjectDataStore で「同座標に同BlockIdのブロックが現存」を照合
   │      → 一致セルのみ BlockRemove を await 発行（失敗セルは黙ってスキップ）
   └─ RemoveOperationRecord の場合:
-       各セル: 同座標にブロックが存在しないことを照合
+       各セル: 再設置ブロックの占有範囲が既存ブロックと重ならないことを照合
+         （BlockGameObjectDataStore.IsOverlapPositionInfo。辞書キーはオリジン座標のみのため
+          単純な「座標が空」判定ではマルチセルブロックの占有を見逃す）
          → 通過セルを PlaceInfo に再構成し、1回の SendOnly.PlaceBlock でバッチ再設置
 ```
 
-照合ガードの根拠: 設置失敗セル（サーバーが黙ってスキップした分）や、Undoまでの間に他要因で変化した座標に対して逆操作を発行すると、無関係のブロックを破壊し得るため。BlockIdの一致まで確認する。
+照合ガードの根拠: 設置失敗セル（サーバーが黙ってスキップした分）や、Undoまでの間に他要因で変化した座標に対して逆操作を発行すると、無関係のブロックを破壊し得るため。BlockIdの一致まで確認する。ガードの評価は**Undo開始時に1回**行い、逐次awaitの間の世界変化には追従しない（許容。最終防衛はサーバー側の検証）。
 
 ### PlaceInfo再構成の詳細（撤去Undo）
 
@@ -66,13 +68,14 @@ Ctrl+Z → BuildUndoService.TryUndo()
 
 ## 4. 入力
 
-- 検知: `HybridInput.GetKey(KeyCode.LeftControl/RightControl/LeftCommand/RightCommand)` ＋ `GetKeyDown(KeyCode.Z)`。既存の建築キー（Q/E/X等）と同じ直接キー参照の流儀に従い、InputActionアセットは変更しない
+- 検知: `HybridInput.GetKey(KeyCode.LeftControl or KeyCode.LeftCommand)` ＋ `GetKeyDown(KeyCode.Z)`。修飾キーはLeft系のみ（既存前例のCtrl+I/Ctrl+UもLeftControlのみ。YAGNI）。既存の建築キー（Q/E/X等）と同じ直接キー参照の流儀に従い、InputActionアセットは変更しない
 - 有効な状態: `PlaceBlockState` と `DeleteObjectState` の `GetNextUpdate()` から `BuildUndoService.TryUndo()` を呼ぶ（建築UI中のみ有効）。Web UIのkeydownは使わない（建築操作は全てUnity側で処理されている前例に従う）
 - キー説明UI: 両Stateの `KeyControlDescription` テキストに「Ctrl+Z: 元に戻す」を追記する
 
 ## 5. エラーハンドリング
 
 - Undo中の撤去リクエスト失敗（インベントリ満杯・列車使用中レール等）: そのセルは残り、エントリは消費済みとする。既存の削除拒否ツールチップは経由せず、静かにスキップ（設置プロトコル自体が失敗セルを黙殺する既存挙動と整合）
+- Undo実行中の再入防止フラグ `_isUndoing` は、ネットワーク送受信（外部境界）の例外でも必ず復帰するよう try-finally で保証する（try-catch原則禁止の例外条項に該当。境界根拠コメントを実装に明記）
 - 再設置の成否はレスポンスが無いため確認しない（通常の設置と同じ扱い。建設コスト不足セルはサーバーが黙ってスキップ）
 - 履歴が上限32を超えたら最古を破棄
 
@@ -83,6 +86,7 @@ Ctrl+Z → BuildUndoService.TryUndo()
 3. マルチプレイで他プレイヤーが同座標を変更した場合、照合ガードによりそのセルのUndoは黙って無効になる
 4. Redo（Ctrl+Y）は無い。履歴はセッション内のみでセーブされない
 5. Undo自体は履歴に積まない（Undoの取り消しは不可。積むとRedo相当が必要になるため）
+6. レール接続ツールの橋脚設置（`PlaceRailWithPier` 別プロトコル）はUndo対象外
 
 ## 7. テスト
 
@@ -108,5 +112,7 @@ Ctrl+Z → BuildUndoService.TryUndo()
 | `HybridInput.ToInputSystemKey` に `Z`/`LeftCommand` のマッピング追加（プレイテストDSLのキー注入対応に必須） | 同メソッド内の既存マッピング群 |
 | 新プロトコル・新イベント・サーバー変更なし。Undoは既存 `va:removeBlock` / `va:placeBlock` の逆操作発行のみ | 同期3点セットの適用外（新規サーバー可変状態を作らないため。履歴はクライアントローカルの入力状態） |
 | 通知系の新設なし（UniRx Subject追加不要。ブロックの出現・消滅は既存の `BlockGameObjectDataStore.OnBlockPlaced/OnBlockRemoved` が既に流している） | — |
+| 撤去Undoの占有ガードは `BlockGameObjectDataStore.IsOverlapPositionInfo` を使用（辞書はオリジン座標キーのみでマルチセル占有を表現しないため） | `BlockGameObjectDataStore.cs:112`（占有判定の既存手段） |
+| レコードの照合ガードは `Func` 注入（`SelectUndoableCells(Func<Vector3Int, BlockId?>)` 等） | ドメインレコード内のテスト容易化目的の注入であり、「汎用基盤への `Func<bool>` 述語持ち込み禁止」の対象（基底コンポーネント・共通サービス・Master・Template）には該当しない。レビューで裁定済み |
 
 機能パリティ（死活表）: 本機能は純追加であり、既存の入力キー・UI・遷移はすべて無変更で生存する。Zキー・Ctrl+Z/Cmd+Zの既存割当は無し（grep確認済み。既存のCtrl系はCtrl+I/Ctrl+Uのみ）。`DragDeleteSelection.CommitDelete()` の戻り値変更（void→コミット済みリスト）は既存呼び出し側1箇所・既存テストとも互換。

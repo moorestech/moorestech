@@ -61,9 +61,10 @@ moorestech_client/Assets/Scripts/Client.Tests/BuildUndo/
 - Produces:
   - `interface IBuildOperationRecord {}`
   - `PlaceOperationRecord.CreateFrom(List<PlaceInfo>)` → `PlaceOperationRecord`（Placeableセルのみスナップショット）
+  - `PlaceOperationRecord.HasCells` → `bool`（空バッチのPush抑止用）
   - `PlaceOperationRecord.SelectUndoableCells(Func<Vector3Int, BlockId?> blockIdAt)` → `List<Vector3Int>`
   - `RemoveOperationRecord(List<RemovedBlockInfo>)`、`struct RemovedBlockInfo { Vector3Int Position; BlockId BlockId; BlockDirection Direction; }`
-  - `RemoveOperationRecord.SelectReplaceableCells(Func<Vector3Int, bool> existsAt)` → `List<RemovedBlockInfo>`
+  - `RemoveOperationRecord.SelectReplaceableCells(Func<RemovedBlockInfo, bool> isOccupied)` → `List<RemovedBlockInfo>`（占有判定はセル情報ごと渡す。マルチセルブロックの占有範囲照合に必要）
   - `BuildOperationHistory.Push(IBuildOperationRecord)` / `TryPop(out IBuildOperationRecord)`（上限32・最古破棄）
 
 - [ ] **Step 1: 失敗するテストを書く**
@@ -73,7 +74,6 @@ moorestech_client/Assets/Scripts/Client.Tests/BuildUndo/
 ```csharp
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse;
 using System.Collections.Generic;
 
 namespace Client.Tests.BuildUndo
@@ -215,16 +215,16 @@ namespace Client.Tests.BuildUndo
     public class RemoveOperationRecordTest
     {
         [Test]
-        public void SelectReplaceableCellsは座標が空のセルだけを返す()
+        public void SelectReplaceableCellsは占有されていないセルだけを返す()
         {
             var record = new RemoveOperationRecord(new List<RemovedBlockInfo>
             {
                 new(new Vector3Int(0, 0, 0), new BlockId(1), BlockDirection.North), // 空 → 再設置対象
-                new(new Vector3Int(1, 0, 0), new BlockId(1), BlockDirection.East),  // ブロック現存（撤去失敗 or 他者設置）→ 除外
+                new(new Vector3Int(1, 0, 0), new BlockId(1), BlockDirection.East),  // 占有（撤去失敗 or 他者設置）→ 除外
             });
 
             var occupied = new HashSet<Vector3Int> { new(1, 0, 0) };
-            var cells = record.SelectReplaceableCells(pos => occupied.Contains(pos));
+            var cells = record.SelectReplaceableCells(info => occupied.Contains(info.Position));
 
             Assert.AreEqual(1, cells.Count);
             Assert.AreEqual(new Vector3Int(0, 0, 0), cells[0].Position);
@@ -315,6 +315,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             _cells = cells;
         }
 
+        /// <summary>
+        ///     有効セルが1件以上あるか（空バッチをPushしないためのガード）
+        ///     Whether the record has any cells (guards against pushing an empty batch)
+        /// </summary>
+        public bool HasCells => _cells.Count > 0;
+
         public static PlaceOperationRecord CreateFrom(List<PlaceInfo> placeInfos)
         {
             // 設置システムはPlaceInfoを使い回すため値をコピーして保持する
@@ -384,15 +390,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         }
 
         /// <summary>
-        ///     座標が空のセルだけを再設置対象として返す（撤去失敗・他者設置セルを除外）
-        ///     Return only cells whose position is now empty (excludes failed removals and rebuilt cells)
+        ///     占有されていないセルだけを再設置対象として返す（撤去失敗・他者設置セルを除外）
+        ///     Return only unoccupied cells (excludes failed removals and rebuilt cells)
         /// </summary>
-        public List<RemovedBlockInfo> SelectReplaceableCells(Func<Vector3Int, bool> existsAt)
+        public List<RemovedBlockInfo> SelectReplaceableCells(Func<RemovedBlockInfo, bool> isOccupied)
         {
             var result = new List<RemovedBlockInfo>();
             foreach (var removed in _removedBlocks)
             {
-                if (existsAt(removed.Position)) continue;
+                if (isOccupied(removed)) continue;
                 result.Add(removed);
             }
             return result;
@@ -511,16 +517,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         private async UniTask UndoAsync(IBuildOperationRecord record)
         {
             _isUndoing = true;
-            switch (record)
+            // ネットワーク送受信（外部境界）の例外でも再入フラグを必ず復帰させる（try-catch原則禁止の境界例外条項）
+            // Guarantee the re-entrancy flag resets even on network-boundary exceptions (boundary exemption of the no-try-catch rule)
+            try
             {
-                case PlaceOperationRecord placeRecord:
-                    await UndoPlaceOperation(placeRecord);
-                    break;
-                case RemoveOperationRecord removeRecord:
-                    UndoRemoveOperation(removeRecord);
-                    break;
+                switch (record)
+                {
+                    case PlaceOperationRecord placeRecord:
+                        await UndoPlaceOperation(placeRecord);
+                        break;
+                    case RemoveOperationRecord removeRecord:
+                        UndoRemoveOperation(removeRecord);
+                        break;
+                }
             }
-            _isUndoing = false;
+            finally
+            {
+                _isUndoing = false;
+            }
 
             #region Internal
 
@@ -537,9 +551,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 
             void UndoRemoveOperation(RemoveOperationRecord removeRecord)
             {
-                // 空いている座標だけを1バッチで再設置する（CreateParamsは復元不可のため空）
-                // Re-place only empty cells in one batch (CreateParams cannot be restored, so empty)
-                var cells = removeRecord.SelectReplaceableCells(_blockGameObjectDataStore.ContainsBlockGameObject);
+                // 占有範囲が空いているセルだけを1バッチで再設置する（CreateParamsは復元不可のため空）
+                // Re-place only cells whose footprint is unoccupied, in one batch (CreateParams cannot be restored, so empty)
+                var cells = removeRecord.SelectReplaceableCells(IsFootprintOccupied);
                 if (cells.Count == 0) return;
 
                 var placeInfos = new List<PlaceInfo>(cells.Count);
@@ -561,6 +575,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             {
                 if (!_blockGameObjectDataStore.TryGetBlockGameObject(position, out var blockGameObject)) return null;
                 return blockGameObject.BlockId;
+            }
+
+            bool IsFootprintOccupied(RemovedBlockInfo removed)
+            {
+                // 辞書キーはオリジン座標のみのため、マルチセルブロックとの重なりは占有範囲同士で判定する
+                // The dictionary keys origins only, so overlap with multi-cell blocks needs a footprint check
+                var blockSize = MasterHolder.BlockMaster.GetBlockMaster(removed.BlockId).BlockSize;
+                var positionInfo = new BlockPositionInfo(removed.Position, removed.Direction, blockSize);
+                return _blockGameObjectDataStore.IsOverlapPositionInfo(positionInfo);
             }
 
             static BlockVerticalDirection ToVerticalDirection(BlockDirection direction)
@@ -651,9 +674,10 @@ namespace Client.Game.InGame.Context
             // Send PlaceInfo to server; each cell already carries its own BlockId
             ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
 
-            // Ctrl+Z用に設置バッチを履歴へ記録する
-            // Record the place batch into the undo history for Ctrl+Z
-            ClientDIContext.BuildOperationHistory.Push(PlaceOperationRecord.CreateFrom(currentPlaceInfos));
+            // Ctrl+Z用に設置バッチを履歴へ記録する（全セル設置不能の空バッチは積まない）
+            // Record the place batch into the undo history for Ctrl+Z (skip empty batches where no cell was placeable)
+            var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
+            if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
 
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
@@ -682,7 +706,7 @@ git commit -m "feat(client): 設置バッチのUndo履歴記録とDI登録"
 
 **Interfaces:**
 - Consumes: Task 1の `BuildOperationHistory` / `RemoveOperationRecord` / `RemovedBlockInfo`、`BlockGameObjectChild.BlockGameObject`（`BlockId` / `BlockPosInfo.OriginalPos` / `BlockPosInfo.BlockDirection`）
-- Produces: `DragDeleteSelection.CommitDelete()` → `List<IDeleteTarget>`（コミットした対象。従来voidから変更）、`DeleteObjectService(BuildOperationHistory)` ctor、`DeleteObjectState(DeleteBarObject, RailGraphClientCache, IPlayerCameraInteractionApplier, BuildOperationHistory, BuildUndoService)` ctor
+- Produces: `DragDeleteSelection.CommitDelete()` → `List<IDeleteTarget>`（コミットした対象。従来voidから変更）、`DeleteObjectService(BuildOperationHistory)` ctor、`DeleteObjectState(DeleteBarObject, RailGraphClientCache, IPlayerCameraInteractionApplier, BuildOperationHistory)` ctor（4引数。Task 5で `BuildUndoService` を足して5引数になる）
 
 - [ ] **Step 1: CommitDeleteがコミット対象を返すよう変更**
 
@@ -875,6 +899,8 @@ git commit -m "feat(client): 建築UIにCtrl+Zアンドゥを配線"
 
 - [ ] **Step 2: シナリオ追加**
 
+**必須前提**: 設置は必ずUI経路（ビルドメニュー→PlaceBlockState→クリック設置）で行うこと。過去のE2E回避策である `SendOnly.PlaceBlock` 直送は `PlaceSystemUtil` の記録フックを通らず履歴が積まれないため、Ctrl+Z検証が偽陰性になる。
+
 内容（DSLの実アクション名はスキルreferencesに従う）:
 1. ホットバーにブロックを持ち設置モードへ → 1ブロック設置 → ブロック存在を確認
 2. Ctrl+Z（LeftCtrl押下→Z押下→両解放を `QueueStateEvent` で注入）→ ブロック消滅を確認
@@ -901,6 +927,7 @@ git commit -m "test(playtest): Ctrl+ZアンドゥのE2Eシナリオを追加"
 ## Self-Review 済み事項
 
 - **Spec coverage**: spec §3（記録フック2箇所・Undoフロー・ガード）→ Task 1-4、§4（入力・キー説明）→ Task 2/5、§5（エラー処理）→ Task 2のガードとスキップ、§7（テスト）→ Task 1/6。§6の既知の制限はコード対応不要
-- **型整合**: `RemovedBlockInfo(Vector3Int, BlockId, BlockDirection)` / `SelectUndoableCells(Func<Vector3Int, BlockId?>)` / `SelectReplaceableCells(Func<Vector3Int, bool>)` をTask 1定義・Task 2/4消費で統一
+- **型整合**: `RemovedBlockInfo(Vector3Int, BlockId, BlockDirection)` / `SelectUndoableCells(Func<Vector3Int, BlockId?>)` / `SelectReplaceableCells(Func<RemovedBlockInfo, bool>)` をTask 1定義・Task 2/4消費で統一
+- **Fableレビュー反映済み**: ①`_isUndoing` のtry-finally復帰保証（外部境界例外条項）②空バッチのPush抑止（`HasCells`）③撤去Undoの占有ガードを `IsOverlapPositionInfo` によるフットプリント判定へ変更（辞書はオリジンキーのみのため）④橋脚設置（`PlaceRailWithPier`）はUndo対象外としてspec既知の制限に明記⑤修飾キーはLeft系のみにspec側を統一⑥E2EはUI経路設置必須を明記
 - **配置と前例**: spec §9 の通り（ステート駆動ManualUpdate・ClientDIContext static・VContainer登録・HybridInput直接キー参照）
 - **注意点**: `BlockId?` の比較は `Equals` を使用（`BlockId` はUnitGenerator型のため `==` のnullable挙動を避ける）。`PlaceBlockState` を `WebUiGameBinder` / `PlacementModeTopic` もresolveしているがctor変更はVContainer解決のため影響なし
