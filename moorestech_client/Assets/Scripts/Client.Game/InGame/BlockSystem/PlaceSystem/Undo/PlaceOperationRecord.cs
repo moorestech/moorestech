@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -48,37 +47,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         /// </summary>
         public async UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore)
         {
-            var cells = SelectUndoableCells(GetBlockIdAt);
-            foreach (var position in cells)
+            foreach (var cell in _cells)
             {
-                await ClientContext.VanillaApi.Response.BlockRemove(position, CancellationToken.None);
+                if (!IsSameBlockAlive(cell)) continue;
+                await ClientContext.VanillaApi.Response.BlockRemove(cell.Position, CancellationToken.None);
             }
 
             #region Internal
 
-            BlockId? GetBlockIdAt(Vector3Int position)
+            bool IsSameBlockAlive(PlacedCell cell)
             {
-                if (!blockGameObjectDataStore.TryGetBlockGameObject(position, out var blockGameObject)) return null;
-                return blockGameObject.BlockId;
+                if (!blockGameObjectDataStore.TryGetBlockGameObject(cell.Position, out var blockGameObject)) return false;
+                return blockGameObject.BlockId.Equals(cell.BlockId);
             }
 
             #endregion
-        }
-
-        /// <summary>
-        ///     同座標同BlockId現存セルのみ返す
-        ///     Return only cells still holding the same BlockId
-        /// </summary>
-        public List<Vector3Int> SelectUndoableCells(Func<Vector3Int, BlockId?> blockIdAt)
-        {
-            var result = new List<Vector3Int>();
-            foreach (var cell in _cells)
-            {
-                var currentBlockId = blockIdAt(cell.Position);
-                if (currentBlockId == null || !currentBlockId.Value.Equals(cell.BlockId)) continue;
-                result.Add(cell.Position);
-            }
-            return result;
         }
 
         private readonly struct PlacedCell

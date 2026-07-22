@@ -1,4 +1,6 @@
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using System.Collections.Generic;
 
@@ -10,8 +12,8 @@ namespace Client.Tests.BuildUndo
         public void PushしたレコードがLIFO順でPopされる()
         {
             var history = new BuildOperationHistory();
-            var first = new RemoveOperationRecord(new List<RemovedBlockInfo>());
-            var second = new RemoveOperationRecord(new List<RemovedBlockInfo>());
+            var first = new FakeOperationRecord();
+            var second = new FakeOperationRecord();
             history.Push(first);
             history.Push(second);
 
@@ -26,10 +28,10 @@ namespace Client.Tests.BuildUndo
         public void 上限32を超えると最古のレコードが破棄される()
         {
             var history = new BuildOperationHistory();
-            var records = new List<RemoveOperationRecord>();
+            var records = new List<FakeOperationRecord>();
             for (var i = 0; i < 33; i++)
             {
-                var record = new RemoveOperationRecord(new List<RemovedBlockInfo>());
+                var record = new FakeOperationRecord();
                 records.Add(record);
                 history.Push(record);
             }
@@ -42,6 +44,16 @@ namespace Client.Tests.BuildUndo
                 Assert.AreSame(records[i], popped);
             }
             Assert.IsFalse(history.TryPop(out _));
+        }
+
+        // 履歴の入出力順のみ検証するためのフェイクレコード
+        // Fake record used only to verify push/pop ordering
+        private class FakeOperationRecord : IBuildOperationRecord
+        {
+            public UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore)
+            {
+                return UniTask.CompletedTask;
+            }
         }
     }
 }

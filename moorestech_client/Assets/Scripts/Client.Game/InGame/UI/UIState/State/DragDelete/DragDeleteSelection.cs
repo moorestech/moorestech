@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
@@ -109,28 +108,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _selectedTargets.Clear();
             _sessionCategory = null;
 
-            RecordRemoveOperation(committed);
-
-            #region Internal
-
-            void RecordRemoveOperation(List<IDeleteTarget> targets)
-            {
-                // ブロック対象だけを楽観的記録（撤去失敗セルはUndo時の空き座標ガードで自然に無効化）
-                // Optimistically record block targets only (failed removals are neutralized by the empty-cell guard on undo)
-                var removedBlocks = new List<RemovedBlockInfo>();
-                foreach (var target in targets)
-                {
-                    if (target is not BlockGameObjectChild blockChild) continue;
-                    var blockGameObject = blockChild.BlockGameObject;
-                    removedBlocks.Add(new RemovedBlockInfo(
-                        blockGameObject.BlockPosInfo.OriginalPos,
-                        blockGameObject.BlockId,
-                        blockGameObject.BlockPosInfo.BlockDirection));
-                }
-                if (removedBlocks.Count != 0) _buildOperationHistory.Push(new RemoveOperationRecord(removedBlocks));
-            }
-
-            #endregion
+            // Ctrl+Z用のUndo履歴を記録（空バッチはPushしない）
+            // Record the undo history for Ctrl+Z (skip empty batches)
+            var record = RemoveOperationRecord.CreateFrom(committed);
+            if (record.HasCells) _buildOperationHistory.Push(record);
         }
 
         // キャンセルされていない場合のみ削除確定を許可する

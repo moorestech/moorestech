@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.UIState.State;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -18,9 +18,34 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
     {
         private readonly List<RemovedBlockInfo> _removedBlocks;
 
-        public RemoveOperationRecord(List<RemovedBlockInfo> removedBlocks)
+        private RemoveOperationRecord(List<RemovedBlockInfo> removedBlocks)
         {
             _removedBlocks = removedBlocks;
+        }
+
+        /// <summary>
+        ///     有効セルが1件以上あるか（空バッチをPushしないためのガード）
+        ///     Whether the record has any cells (guards against pushing an empty batch)
+        /// </summary>
+        public bool HasCells => 0 < _removedBlocks.Count;
+
+        /// <summary>
+        ///     削除対象からブロック分だけを楽観的にスナップショットする（撤去失敗セルはUndo時の占有ガードで自然に無効化）
+        ///     Optimistically snapshot block targets only (failed removals are neutralized by the occupancy guard on undo)
+        /// </summary>
+        public static RemoveOperationRecord CreateFrom(List<IDeleteTarget> deleteTargets)
+        {
+            var removedBlocks = new List<RemovedBlockInfo>();
+            foreach (var target in deleteTargets)
+            {
+                if (target is not BlockGameObjectChild blockChild) continue;
+                var blockGameObject = blockChild.BlockGameObject;
+                removedBlocks.Add(new RemovedBlockInfo(
+                    blockGameObject.BlockPosInfo.OriginalPos,
+                    blockGameObject.BlockId,
+                    blockGameObject.BlockPosInfo.BlockDirection));
+            }
+            return new RemoveOperationRecord(removedBlocks);
         }
 
         /// <summary>
@@ -29,22 +54,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         /// </summary>
         public UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore)
         {
-            var cells = SelectReplaceableCells(IsFootprintOccupied);
-            if (cells.Count == 0) return UniTask.CompletedTask;
-
-            var placeInfos = new List<PlaceInfo>(cells.Count);
-            foreach (var cell in cells)
+            var placeInfos = new List<PlaceInfo>();
+            foreach (var removed in _removedBlocks)
             {
+                // 占有中のセルは再設置しない（撤去失敗・他者設置セルを除外）
+                // Skip occupied cells (excludes failed removals and rebuilt cells)
+                if (IsFootprintOccupied(removed)) continue;
                 placeInfos.Add(new PlaceInfo
                 {
-                    Position = cell.Position,
-                    Direction = cell.Direction,
-                    VerticalDirection = ToVerticalDirection(cell.Direction),
-                    BlockId = cell.BlockId,
+                    Position = removed.Position,
+                    Direction = removed.Direction,
+                    VerticalDirection = ToVerticalDirection(removed.Direction),
+                    BlockId = removed.BlockId,
                     Placeable = true,
                 });
             }
-            ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos);
+            if (placeInfos.Count != 0) ClientContext.VanillaApi.SendOnly.PlaceBlock(placeInfos);
             return UniTask.CompletedTask;
 
             #region Internal
@@ -69,21 +94,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             }
 
             #endregion
-        }
-
-        /// <summary>
-        ///     占有されていないセルだけを再設置対象として返す（撤去失敗・他者設置セルを除外）
-        ///     Return only unoccupied cells (excludes failed removals and rebuilt cells)
-        /// </summary>
-        public List<RemovedBlockInfo> SelectReplaceableCells(Func<RemovedBlockInfo, bool> isOccupied)
-        {
-            var result = new List<RemovedBlockInfo>();
-            foreach (var removed in _removedBlocks)
-            {
-                if (isOccupied(removed)) continue;
-                result.Add(removed);
-            }
-            return result;
         }
     }
 
