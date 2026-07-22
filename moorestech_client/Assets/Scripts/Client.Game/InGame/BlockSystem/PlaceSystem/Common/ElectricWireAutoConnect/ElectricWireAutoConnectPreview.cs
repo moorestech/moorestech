@@ -3,7 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Interface;
-using Mooresmaster.Model.ConnectToolsModule;
+using Mooresmaster.Model.BuildMenuModule;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;

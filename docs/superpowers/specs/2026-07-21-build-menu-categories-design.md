@@ -228,3 +228,12 @@ index.ts込み9ファイルで1ディレクトリ10上限内。
 - 「検索中サイドバー無効化」への反例: 検索しながらカテゴリを絞りたいユースケース。→ 73種の規模では横断検索で十分（YAGNI）。必要になったら様式更新から入る
 - 「category/subCategoryタイポ」への反例: 自由文字列のタイポで未定義カテゴリが生える。→ blockCategories参照のロード時バリデーション（§1.1）で大声で失敗するため無言死しない
 - 「tooltip契約削除」への反例: 他にtooltipを使う消費者がいれば破壊。→ 現状の消費者はBuildMenuSlotのMantine Tooltipのみ（同時撤去）で、契約はbuildMenuトピック閉域。破壊なし
+
+## 追補（2026-07-22 レビュー反映）
+
+PR #1042 のレビュー指摘により、本設計から以下を変更した（本文は歴史的記録としてそのまま残す）。
+
+- トップ階層スキーマ `blockCategories.yml` は新設せず、`connectTools.yml` を `buildMenu.yml` へ改名してカテゴリ定義（`categories`）と接続ツール（`connectTools`）を同居させた。JSONも `buildMenu.json` に統合
+- `BlockCategoryMaster` は `BuildMenuCategoryMaster` へ改名し、`buildMenu.json` からロードする
+- 非ブロックエントリ（車両・接続ツール・BPコピー・保存済みBP）のカテゴリC#ハードコードは全廃。サブカテゴリ定義に `entrySource` enum（blocks/trainCars/connectTools/blueprintCopyTool/savedBlueprints）を持たせ、blocks以外は「ちょうど1箇所」の定義をマスタバリデーションで強制する
+- uGUI側（`BuildMenuEntry`/`BuildMenuEntryCatalog`/`BuildMenuView`）はmaster状態へrevert。カテゴリ付きエントリ合成は `Client.WebUiHost` の `WebBuildMenuEntryCatalog` が担う

@@ -1,0 +1,223 @@
+{
+  "categories": [
+    {
+      "name": "テスト",
+      "subCategories": [
+        {
+          "name": "ElectricMachine",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "Block",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "BeltConveyor",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "ElectricPole",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "ElectricGenerator",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "ElectricMiner",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "Chest",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "Gear",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "Shaft",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "GearChainPole",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "GearMachine",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "SimpleGearGenerator",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "GearBeltConveyor",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "GearMiner",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "TrainRail",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "TrainStation",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "TrainItemPlatform",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "GearMapObjectMiner",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "FluidPipe",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "FuelGearGenerator",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "BaseCamp",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "GearPump",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "ElectricPump",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "GearToElectricGenerator",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "TrainFluidPlatform",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "FilterSplitter",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "ElectricToGearGenerator",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "CleanRoomWall",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "CleanRoomDoor",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "CleanRoomItemHatch",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "CleanRoomPipeHatch",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "CleanRoomAirFilter",
+          "entrySource": "blocks"
+        },
+        {
+          "name": "CleanRoomMachine",
+          "entrySource": "blocks"
+        }
+      ]
+    },
+    {
+      "name": "輸送",
+      "subCategories": [
+        {
+          "name": "車両",
+          "entrySource": "trainCars"
+        }
+      ]
+    },
+    {
+      "name": "ツール",
+      "subCategories": [
+        {
+          "name": "接続",
+          "entrySource": "connectTools"
+        },
+        {
+          "name": "ブループリント",
+          "entrySource": "blueprintCopyTool"
+        }
+      ]
+    },
+    {
+      "name": "ブループリント",
+      "subCategories": [
+        {
+          "name": "保存済み",
+          "entrySource": "savedBlueprints"
+        }
+      ]
+    }
+  ],
+  "connectTools": [
+    {
+      "connectToolGuid": "c0000000-0000-0000-0000-000000000001",
+      "name": "TestElectricWire",
+      "toolType": "electricWire",
+      "imagePath": "TestElectricWire",
+      "sortPriority": 100,
+      "initialUnlocked": false,
+      "lengthPerUnit": 1,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000001",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "connectToolGuid": "c0000000-0000-0000-0000-000000000002",
+      "name": "TestRail",
+      "toolType": "rail",
+      "imagePath": "TestRail",
+      "sortPriority": 110,
+      "initialUnlocked": false,
+      "lengthPerUnit": 5,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000002",
+          "count": 12
+        },
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000003",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "connectToolGuid": "c0000000-0000-0000-0000-000000000003",
+      "name": "TestGearChain",
+      "toolType": "gearChain",
+      "imagePath": "TestGearChain",
+      "sortPriority": 120,
+      "initialUnlocked": false,
+      "lengthPerUnit": 4,
+      "requiredItems": [
+        {
+          "itemGuid": "00000000-0000-0000-1234-000000000004",
+          "count": 10
+        }
+      ]
+    }
+  ]
+}

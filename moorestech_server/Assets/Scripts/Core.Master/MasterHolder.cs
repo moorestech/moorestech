@@ -19,7 +19,7 @@ namespace Core.Master
         public static TrainUnitMaster TrainUnitMaster { get; private set; }
         public static CleanRoomMaster CleanRoomMaster { get; private set; }
         public static ConnectToolMaster ConnectToolMaster { get; private set; }
-        public static BlockCategoryMaster BlockCategoryMaster { get; private set; }
+        public static BuildMenuCategoryMaster BuildMenuCategoryMaster { get; private set; }
 
         public static void Load(MasterJsonFileContainer masterJsonFileContainer)
         {
@@ -37,11 +37,11 @@ namespace Core.Master
             CharacterMaster = new CharacterMaster(GetJson(masterJsonFileContainer, new JsonFileName("characters")));
             InitializeMaster(CharacterMaster);
 
-            BlockCategoryMaster = new BlockCategoryMaster(GetJson(masterJsonFileContainer, new JsonFileName("blockCategories")));
-            InitializeMaster(BlockCategoryMaster);
+            BuildMenuCategoryMaster = new BuildMenuCategoryMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
+            InitializeMaster(BuildMenuCategoryMaster);
 
-            // ItemMaster, FluidMaster, BlockCategoryMaster依存（category/subCategoryの参照を検証）
-            // Depends on ItemMaster, FluidMaster, BlockCategoryMaster (validates category/subCategory references)
+            // ItemMaster, FluidMaster, BuildMenuCategoryMaster依存（category/subCategoryの参照を検証）
+            // Depends on ItemMaster, FluidMaster, BuildMenuCategoryMaster (validates category/subCategory references)
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             InitializeMaster(BlockMaster);
 
@@ -52,7 +52,7 @@ namespace Core.Master
 
             // ItemMaster依存（requiredItemsのitemGuidを検証）
             // Depends on ItemMaster (validates requiredItems.itemGuid)
-            ConnectToolMaster = new ConnectToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("connectTools")));
+            ConnectToolMaster = new ConnectToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(ConnectToolMaster);
 
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));

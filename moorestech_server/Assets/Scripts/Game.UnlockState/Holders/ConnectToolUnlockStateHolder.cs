@@ -18,7 +18,7 @@ namespace Game.UnlockState.Holders
 
         public ConnectToolUnlockStateHolder()
         {
-            foreach (var element in MasterHolder.ConnectToolMaster.ConnectTools.Data)
+            foreach (var element in MasterHolder.ConnectToolMaster.All)
             {
                 if (_infos.ContainsKey(element.ConnectToolGuid)) continue;
                 _infos.Add(element.ConnectToolGuid, new ConnectToolUnlockStateInfo(element.ConnectToolGuid, element.InitialUnlocked));
