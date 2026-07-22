@@ -18,10 +18,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  padding: 5px 12px;
+  max-width: var(--notification-max-width);
   background: var(--notification-face);
   border: 1px solid var(--notification-border);
-  font-size: 20px;
+  font-size: 15px;
   line-height: 1.2;
   letter-spacing: 0.055em;
   font-weight: 500;
@@ -40,7 +41,7 @@
 /* アイテムアイコンは1行の文字高に収める */
 /* Keep the item icon within the single line's text height */
 .icon {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
 }
