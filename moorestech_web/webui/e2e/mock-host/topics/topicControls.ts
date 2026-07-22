@@ -35,6 +35,9 @@ const controls = {
   english: () => control(Topics.localization, { locale: "english" }),
   challengeActive: () => control(Topics.challengeCurrent, clone(fx.challengeCurrent)),
   challengeCompleted: () => control(Topics.challengeCurrent, { challenges: [], completedChallengeGuid: "ch-2" }),
+  notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["原始研究1"], itemId: 1 }),
+  notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
+  notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
 };
 export type TopicScenario = keyof typeof controls;
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
@@ -17,8 +16,6 @@ namespace Client.Game.InGame.UI.Inventory.Craft
 {
     public class ItemListView : MonoBehaviour
     {
-        public const string ItemRecipeListHighlightKey = "itemRecipeList:{0}";
-        
         [SerializeField] private RectTransform itemListParent;
         
         [Inject] private ILocalPlayerInventory _localPlayerInventory;
@@ -64,13 +61,6 @@ namespace Client.Game.InGame.UI.Inventory.Craft
                 var toolTipText = CraftInventoryView.GetMaterialTolTip(itemViewData);
                 itemSlotObject.SetItem(itemViewData, 0, toolTipText);
                 itemSlotObject.OnLeftClickUp.Subscribe(OnClickItemList);
-                _itemListObjects.Add(itemSlotObject);
-                
-                // ハイライトオブジェクトを設定
-                // Set the highlight object
-                var target = itemSlotObject.gameObject.AddComponent<UIHighlightTutorialTargetObject>();
-                target.Initialize(string.Format(ItemRecipeListHighlightKey, itemMaster.ItemGuid));
-                
                 _itemListObjects.Add(itemSlotObject);
             }
             

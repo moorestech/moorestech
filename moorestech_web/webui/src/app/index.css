@@ -59,6 +59,15 @@
   /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
   /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
   --block-panel-right-safe-area: 28px;
+  /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
+  /* World-pin HUD layer; kept below panel faces so open panels cover it */
+  --z-world-pin: 10;
+  /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
+  /* World-pin label and marker faces share the translucent navy family */
+  --world-pin-face: rgb(10 14 27 / 80%);
+  /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
+  /* Clamp off-screen arrows this fixed length inside the screen edge */
+  --world-pin-edge-margin: 28px;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;
@@ -81,6 +90,13 @@
   /* Research node card face and border, matching the GamePanel navy family */
   --research-node-face: rgb(10 14 27 / 80%);
   --research-node-border: rgb(104 106 120);
+  /* 通知行の面と枠（研究ノードカードと同族の半透明ネイビー+寒色枠） */
+  /* Notification row face and border, same navy-family face and cool border as research node cards */
+  --notification-face: rgb(10 14 27 / 80%);
+  --notification-border: rgb(104 106 120);
+  /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
+  /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
+  --notification-max-width: 20vw;
 
   /* スロット枠の既定(持ち物基準)。正本のスロット間ギャップ実測(パネル縁でなく格子中間で断面採取)は
      中間トーン2px+明灰2pxの2層のみ(暗リングは存在しない・パネル縁で見えた濃色帯は別要素)。カタログ/

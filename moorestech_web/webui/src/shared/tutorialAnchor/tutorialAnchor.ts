@@ -1,4 +1,6 @@
-export type TutorialAnchorId = `${Lowercase<string>}.${Lowercase<string>}`;
+import type { DynamicTutorialAnchorId, StaticTutorialAnchorId } from "./anchorIds";
+
+export type TutorialAnchorId = StaticTutorialAnchorId | DynamicTutorialAnchorId;
 export type AnchorId = TutorialAnchorId;
 
 export type TutorialAnchorAttributes = Readonly<{

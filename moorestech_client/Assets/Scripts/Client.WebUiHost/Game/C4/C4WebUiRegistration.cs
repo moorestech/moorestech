@@ -13,6 +13,7 @@ namespace Client.WebUiHost.Game
             // Register C4 presentation topics and intent actions at one boundary
             hub.RegisterTopic(GameStateTopic.TopicName, new GameStateTopic(hub));
             hub.RegisterTopic(TutorialPresentationTopic.TopicName, new TutorialPresentationTopic(hub));
+            hub.RegisterTopic(WorldPinTopic.TopicName, new WorldPinTopic(hub));
             hub.RegisterTopic(SkitPresentationTopic.TopicName, new SkitPresentationTopic(hub));
             hub.RegisterAction(new TutorialAnchorAckAction());
             hub.RegisterAction(new SkitAdvanceActionHandler(SkitPresentationStateStore.Instance));

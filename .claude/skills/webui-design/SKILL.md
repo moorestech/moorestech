@@ -100,7 +100,8 @@ description: |
 
 ## 8. 通知・情報表示
 
-- 一時通知は `ToastHost`、カーソル追従の説明は `CursorTooltip` を使う。機能側で独自トースト・独自ツールチップを作らない。
+- 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・5秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
+- **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrow`。
 
@@ -134,6 +135,14 @@ description: |
   - **レシピグリッド**: 解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid`（9列折返し）に列挙し、独自gridは作らない。
 - 選択中は ItemSlot の `selected`（SlotFrame の `data-selected`）で示し、新しい色相・光彩は足さない。
 - 左クリックで選択し、**選択と同時にインベントリタブへ切り替える**。右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`、ホバーは `onHoverChange` に従う。
+
+## 8.8 ワールドピンHUD（チュートリアルの位置誘導）
+
+- **座標の正はUnity。** Unityがワールド座標を正規化ビューポート座標（0..1、左上原点）と画面中心からの方向ベクトルへ毎フレーム射影し、`tutorial.world_pins` トピックで配信する。Web側は受信値を描くだけで、3D射影・カメラ知識を一切持たない。
+- 表示は常時表示HUD族（§1の例外）。パネル面を持たず「浮いている」表現とし、`pointer-events: none` で入力を素通しする。
+- **画面内ピン**: 指定座標にインラインSVGの下向きマーカー + 直上のテキストラベル。ラベル面は `--world-pin-face`（半透明ネイビー族）、文字は `--text-high-contrast`。マーカー先端が指定座標に一致するよう配置する。
+- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGシェブロンを置く。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
+- 色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
 
 ## 9. やらないことリスト（再掲・明示）
 

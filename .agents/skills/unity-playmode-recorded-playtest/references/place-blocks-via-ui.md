@@ -1,7 +1,7 @@
 # ユースケース: UI経路（ビルドメニュー→プレビュー→クリック/ドラッグ）でブロックを設置する
 
 実プレイヤーと同じキーマウ経路で構築し、UI・操作系・設置プレビュー系のバグをE2Eで捕まえる。
-**実証済み手本**: 本スキル同梱の `scenarios/belt-line-via-ui.cs`（direct版`belt-line.cs`と同一assertで全通過）。
+**実証済み手本**: 本スキル同梱の `scenarios/building/belt-line-via-ui.cs`（direct版`building/belt-line.cs`と同一assertで全通過）。
 
 ## 最小コード（このまま使う）
 

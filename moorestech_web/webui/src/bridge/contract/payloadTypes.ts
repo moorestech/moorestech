@@ -57,10 +57,12 @@ import type {
   TooltipDataSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
+  WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
   TrainPlatformDataSchema,
   TrainPlatformModeSchema,
+  NotificationDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -85,6 +87,7 @@ export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
+export type WorldPinPresentationData = z.infer<typeof WorldPinPresentationDataSchema>;
 export type SkitPresentationData = z.infer<typeof SkitPresentationDataSchema>;
 export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
@@ -126,3 +129,4 @@ export type ChallengeCategoryData = z.infer<typeof ChallengeCategoryDataSchema>;
 export type ChallengeTreeData = z.infer<typeof ChallengeTreeDataSchema>;
 export type CurrentChallengeData = z.infer<typeof CurrentChallengeDataSchema>;
 export type ChallengeCurrentData = z.infer<typeof ChallengeCurrentDataSchema>;
+export type NotificationData = z.infer<typeof NotificationDataSchema>;

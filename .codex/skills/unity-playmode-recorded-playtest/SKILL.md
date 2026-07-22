@@ -36,7 +36,7 @@ ls <repo-root>/moorestech_client/Assets/Scripts/Client.Playtest/ 2>/dev/null
 cd <repo-root>   # 必ずpwd確認（worktree頻用）
 SKILL=.claude/skills/unity-playmode-recorded-playtest
 uloop control-play-mode --project-path ./moorestech_client --action stop   # 前回状態の持ち越し防止
-"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/belt-line-via-ui.cs"
+"$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/building/belt-line-via-ui.cs"
 ```
 
 これが通れば環境は健全。通らなければ troubleshooting.md。
@@ -80,5 +80,5 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 
 - `scripts/run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]` — preflight→boot→シナリオ投入→result.json回収の一発実行
 - `scripts/preflight.sh <unity-project-path> [master-server-dir]` — 疎通/コンパイル/master実在/マスタロードドライラン/ポート空き（run-scenario.shが自動で呼ぶ。単体診断にも使える）
-- `scenarios/*.cs` — 実証済みシナリオ集。`belt-line.cs`(direct構築) / `belt-line-via-ui.cs`(UI経路) / `gear-chain-pole-via-ui.cs`(ホットバー駆動) / `gear-chain-connect-via-ui.cs`(クリック結線) / `train-rail-connect-via-ui.cs`(レール結線) / `blueprint-copy-paste-via-ui.cs`(BPコピー&ペースト) / `fps-build-mode-via-ui.cs`(FPS視点建設) / `sample-chest.cs`(最小例)。新規シナリオもここに追加する
+- `scenarios/<カテゴリ>/*.cs` — 実証済みシナリオ集（カテゴリ別サブディレクトリ: `building/`=設置・BP・スポイト・アンドゥ / `connect/`=手持ち/ツール結線 / `train/`=レール・列車 / `misc/`=サンプル・CEF・視点・cleanroom）。`building/belt-line.cs`(direct構築) / `building/belt-line-via-ui.cs`(UI経路) / `connect/gear-chain-pole-via-ui.cs`(ホットバー駆動) / `connect/gear-chain-connect-via-ui.cs`(クリック結線) / `train/train-rail-connect-via-ui.cs`(レール結線) / `building/blueprint-copy-paste-via-ui.cs`(BPコピー&ペースト) / `misc/fps-tps-view-toggle-via-ui.cs`(FPS視点切替) / `misc/sample-chest.cs`(最小例)。新規シナリオも適切なカテゴリへ追加する
 - `scripts/start-recording.sh` / `scripts/stop-recording.sh` — Recorder手動制御の参考実装（レガシー方式B用）

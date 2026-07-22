@@ -3,6 +3,7 @@ import { Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
 import { InventoryPanel, HotbarPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
+import { NotificationHost } from "@/features/notification";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryKeyHandler, BlockInventoryPanel } from "@/features/blockInventory";
@@ -17,7 +18,7 @@ import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { useI18n } from "@/shared/i18n";
 import { SkitPresentation } from "@/features/skit";
-import { TutorialOverlay } from "@/features/tutorial";
+import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
@@ -108,9 +109,11 @@ export default function App() {
       {(inventoryScreen || researchScreen) && <GrabOverlay />}
       <Portal>
         <ToastHost />
+        <NotificationHost />
         <CurrentChallengeHud />
         <SkitPresentation />
         <TutorialOverlay />
+        <WorldPinOverlay />
       </Portal>
       {/* 再接続中は全面オーバーレイで操作をブロックする（Overlay 自体が pointer を捕捉する） */}
       {/* While reconnecting, a full-screen overlay blocks input (the Overlay itself captures pointers) */}
