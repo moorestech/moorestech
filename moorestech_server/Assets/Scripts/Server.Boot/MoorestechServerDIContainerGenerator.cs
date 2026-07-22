@@ -240,6 +240,7 @@ namespace Server.Boot
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
+            services.AddSingleton<Server.Event.Notification.AchievementNotificationWiring>();
 
             //データのセーブシステム
             // Register data save helpers.
