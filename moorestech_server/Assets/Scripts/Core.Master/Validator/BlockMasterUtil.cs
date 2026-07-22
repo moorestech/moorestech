@@ -285,7 +285,7 @@ namespace Core.Master.Validator
                 var logs = string.Empty;
                 foreach (var block in blocks.Data)
                 {
-                    if (!MasterHolder.BlockCategoryMaster.Contains(block.Category, block.SubCategory))
+                    if (!MasterHolder.BuildMenuCategoryMaster.Contains(block.Category, block.SubCategory))
                         logs += $"[BlockMaster] Block:{block.Name} has undefined category pair. category:{block.Category} subCategory:{block.SubCategory}\n";
                 }
                 return logs;

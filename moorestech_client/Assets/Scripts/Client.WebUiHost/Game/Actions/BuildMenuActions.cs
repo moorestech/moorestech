@@ -45,11 +45,13 @@ namespace Client.WebUiHost.Game.Actions
             // Match against the current catalog by type+key, rejecting stale clicks (e.g. deleted blueprints)
             var entryType = (string)typeValue;
             var entryKey = (string)keyValue;
-            var entries = BuildMenuEntryCatalog.CreateEntries(_unlockState, _blueprintLibrary);
+            var entries = WebBuildMenuEntryCatalog.CreateEntries(_unlockState, _blueprintLibrary);
             var matched = entries.Where(e => BuildMenuEntryDtoFactory.GetEntryTypeName(e.Target) == entryType && BuildMenuEntryDtoFactory.GetEntryKey(e.Target) == entryKey).ToList();
             if (matched.Count == 0) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
-            _buildMenuView.SetSelectedEntry(matched[0]);
+            // uGUIの消費キューへはターゲットとラベルのみ渡す（uGUI表示は使われない）
+            // Feed only the target and label into the uGUI consume queue (its visual display is unused)
+            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(matched[0].Target, null, matched[0].Label));
             return UniTask.FromResult(ActionResult.Success());
         }
     }

@@ -186,9 +186,9 @@ properties:
     - key: category
       type: string
       foreignKey:
-        schemaId: blockCategories
-        foreignKeyIdPath: /data/[*]/name
-        displayElementPath: /data/[*]/name
+        schemaId: buildMenu
+        foreignKeyIdPath: /categories/[*]/name
+        displayElementPath: /categories/[*]/name
     - key: subCategory
       type: string
     # ElectricPoleとTrainRailはsortPriority最小（同値はname昇順）をコネクトツールで自動設置する

@@ -105,8 +105,8 @@ namespace Client.Game.InGame.UI.BuildMenu
 
                 // アイコン無しBPはテキスト表示
                 // Blueprint entries have no icon, so display them as text only
-                if (entry.IconView == null) slotView.SetTextOnly(entry.Label, entry.Label);
-                else slotView.SetItem(entry.IconView, 0, entry.Label);
+                if (entry.IconView == null) slotView.SetTextOnly(entry.ToolTipText, entry.ToolTipText);
+                else slotView.SetItem(entry.IconView, 0, entry.ToolTipText);
 
                 slotView.OnLeftClickUp.Subscribe(_ => _clickedEntry = entry).AddTo(slotView);
 

@@ -87,6 +87,7 @@ implementationInterface:
 
 ## Important Rules
 
+- **新しいトップ階層スキーマ（VanillaSchema直下のyml）の新設は原則禁止（CRITICAL）** — 新しい定義は既存のトップ階層スキーマ（blocks.yml, items.yml, buildMenu.yml等）のプロパティとして追加する。既存のどのトップ階層にも意味的に入れられない場合に限り新設を許可する。新設はcsc.rsp・MasterHolder・全modのJSONファイル追加を伴い、レビューで統合先の提示とともに差し戻される（PR1042でblockCategories.ymlがbuildMenu.ymlへ統合された実績）
 - **`optional: true` は原則禁止（CRITICAL）** — 新規フィールドは必須とし、`default` をYAMLに定義した上で全JSON（上記「更新対象のJSONデータ配置先」参照）へ値を追記するのが**正規手順**。optionalが正当なのは「存在しないことに意味がある」フィールド（コネクタ形状の `directions`/`shapeGuid` 等）のみで、数値パラメータのoptional化はほぼ常に誤り。「既存JSONを壊さないため」は理由にならない（後方互換は考慮不要・AGENTS.md）。optionalにすると読み取り側に `?? Default` フォールバックが増殖し、レビューで必須化+全JSON更新に差し戻される（PR978で44箇所修正の実績）。下記「生成コンストラクタ破壊」の対処が必要になった時点で、optionalが本当に正しいか疑うこと
 - C#側に `Default*` 定数や `?? Default` フォールバックを書いてマスタ欠損を吸収しない（欠損はスキーマとJSONで解決する）
 - 手動で `Mooresmaster.Model.*` クラスを作成しない
