@@ -9,6 +9,7 @@ using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.Notification;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly NotificationService _notificationService;
 
         public RailConnectionEditProtocol(ServiceProvider serviceProvider)
         {
@@ -29,6 +31,7 @@ namespace Server.Protocol.PacketResponse
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
+            _notificationService = serviceProvider.GetService<NotificationService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -39,7 +42,16 @@ namespace Server.Protocol.PacketResponse
 
             // 編集処理を実行
             // Execute edit operation
-            return ExecuteEdit(request);
+            var response = ExecuteEdit(request);
+
+            // 失敗応答はSendOnlyで破棄されるため、通知基盤経由でプレイヤーに理由を届ける
+            // Failure responses are discarded by SendOnly, so deliver the reason via the notification service
+            if (!response.Success)
+            {
+                _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied($"denied.railEdit.{response.FailureReason}", Array.Empty<string>()));
+            }
+
+            return response;
 
             #region Internal
 
