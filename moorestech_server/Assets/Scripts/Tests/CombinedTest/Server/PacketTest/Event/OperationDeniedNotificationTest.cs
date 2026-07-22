@@ -23,8 +23,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
-            // 素材ゼロの初期状態で研究完了を要求 → 失敗して拒否通知が飛ぶ
-            // Request research completion with an empty inventory → fails and fires a denied notification
+            // 素材ゼロで研究完了要求→拒否通知
+            // Request research completion with no materials → denied notification
             var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(PlayerId, Research1Guid);
             packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
 
@@ -54,8 +54,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packet, serviceProvider) = PlaceBlockProtocolTestSupport.CreateServer();
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlaceBlockProtocolTestSupport.PlayerId);
 
-            // 初期ロック状態のブロックを設置要求 → スキップされ未解放通知が1件飛ぶ
-            // Request placing a block that starts locked → the cell is skipped and one not-unlocked notification fires
+            // 未解放ブロック設置→未解放通知
+            // Request placing a locked block → not-unlocked notification
             var blockId = Tests.Module.TestMod.ForUnitTestModBlockId.LockedElectricPoleId;
             var payload = PlaceBlockProtocolTestSupport.CreatePlaceBlockPayload(blockId, (0, 0));
             packet.GetPacketResponse(payload, new PacketResponseContext(null));
@@ -70,8 +70,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var environment = TrainTestHelper.CreateEnvironment();
             var sink = EventTestUtil.RegisterCaptureSink(environment.ServiceProvider, PlayerId);
 
-            // 存在しないノード同士の接続要求 → InvalidNodeの拒否通知
-            // Request connecting nonexistent nodes → InvalidNode denied notification
+            // 存在しないノード接続→拒否通知
+            // Request connecting nonexistent nodes → denied notification
             var request = RailConnectionEditProtocol.RailConnectionEditRequest.CreateConnectRequest(
                 PlayerId, 999999, Guid.NewGuid(), 999998, Guid.NewGuid(), Guid.NewGuid());
             environment.PacketResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));

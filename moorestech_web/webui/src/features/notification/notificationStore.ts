@@ -22,8 +22,8 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   addNotification: (n) => {
     const id = nextId++;
     set((s) => ({ notifications: [...s.notifications, { ...n, id }] }));
-    // 5秒で自動消滅（toastStoreと同型の表示寿命）
-    // Auto-dismiss after 5s (same display lifetime shape as toastStore)
+    // 5秒で自動消滅
+    // Auto-dismiss after 5s
     setTimeout(() => set((s) => ({ notifications: s.notifications.filter((x) => x.id !== id) })), DISPLAY_MS);
   },
   removeNotification: (id) => set((s) => ({ notifications: s.notifications.filter((x) => x.id !== id) })),
