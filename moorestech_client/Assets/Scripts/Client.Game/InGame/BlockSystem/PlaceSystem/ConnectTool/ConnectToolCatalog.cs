@@ -3,7 +3,7 @@ using System.Linq;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.ConnectToolsModule;
+using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool
 {

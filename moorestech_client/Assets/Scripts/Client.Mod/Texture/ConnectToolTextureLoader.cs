@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Core.Master;
 using Mod.Loader;
-using Mooresmaster.Model.ConnectToolsModule;
+using Mooresmaster.Model.BuildMenuModule;
 
 namespace Client.Mod.Texture
 {

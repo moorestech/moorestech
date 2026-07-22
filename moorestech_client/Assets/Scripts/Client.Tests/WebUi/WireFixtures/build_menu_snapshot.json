@@ -1,9 +1,15 @@
 {
+  "categories": [
+    { "name": "物流", "subCategories": ["チェスト"] },
+    { "name": "輸送", "subCategories": ["鉄道", "車両"] },
+    { "name": "ツール", "subCategories": ["接続", "ブループリント"] },
+    { "name": "ブループリント", "subCategories": ["保存済み"] }
+  ],
   "entries": [
-    { "entryType": "block", "entryKey": "1", "label": "鉄の機械", "tooltip": "鉄の機械\n鉄インゴット x5", "iconUrl": "/api/block-icons/1.png" },
-    { "entryType": "trainCar", "entryKey": "11111111-2222-3333-4444-555555555555", "label": "貨物車", "tooltip": "貨物車", "iconUrl": "/api/train-car-icons/11111111-2222-3333-4444-555555555555.png" },
-    { "entryType": "connectTool", "entryKey": "BeltConveyor", "label": "ベルトコンベア", "tooltip": "ベルトコンベア", "iconUrl": "/api/icons/3.png" },
-    { "entryType": "blueprintCopy", "entryKey": "", "label": "ブループリントコピー", "tooltip": "ブループリントコピー" },
-    { "entryType": "blueprint", "entryKey": "家", "label": "家", "tooltip": "家" }
+    { "entryType": "block", "entryKey": "1", "label": "鉄の機械", "category": "物流", "subCategory": "チェスト", "requiredItems": [{ "itemId": 3, "count": 5 }], "iconUrl": "/api/block-icons/1.png" },
+    { "entryType": "trainCar", "entryKey": "8f9c2a51-0000-0000-0000-000000000001", "label": "貨物車両", "category": "輸送", "subCategory": "車両", "requiredItems": [{ "itemId": 7, "count": 2 }], "iconUrl": "/api/train-car-icons/8f9c2a51-0000-0000-0000-000000000001.png" },
+    { "entryType": "connectTool", "entryKey": "BeltConveyor", "label": "接続ツール", "category": "ツール", "subCategory": "接続", "requiredItems": [], "iconUrl": "/api/connect-tool-icons/3.png" },
+    { "entryType": "blueprintCopy", "entryKey": "", "label": "ブループリントコピー", "category": "ツール", "subCategory": "ブループリント", "requiredItems": [] },
+    { "entryType": "blueprint", "entryKey": "starter-base", "label": "starter-base", "category": "ブループリント", "subCategory": "保存済み", "requiredItems": [] }
   ]
 }

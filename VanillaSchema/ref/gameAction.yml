@@ -86,9 +86,9 @@ items:
         items:
           type: uuid
           foreignKey:
-            schemaId: connectTools
-            foreignKeyIdPath: /data/[*]/connectToolGuid
-            displayElementPath: /data/[*]/name
+            schemaId: buildMenu
+            foreignKeyIdPath: /connectTools/[*]/connectToolGuid
+            displayElementPath: /connectTools/[*]/name
     - when: unlockTrainCar
       type: object
       isDefaultOpen: true

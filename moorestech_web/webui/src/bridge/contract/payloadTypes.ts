@@ -5,9 +5,11 @@ import type {
   BlockInventoryDataSchema,
   BlockInventoryOpenSchema,
   BlockSlotRefSchema,
+  BuildMenuCategorySchema,
   BuildMenuDataSchema,
   BuildMenuEntryDataSchema,
   BuildMenuEntryTypeSchema,
+  BuildMenuRequiredItemSchema,
   CraftRecipeSchema,
   CraftRecipesDataSchema,
   ElectricNetworkDataSchema,
@@ -121,6 +123,8 @@ export type ResearchNodeState = z.infer<typeof ResearchNodeStateSchema>;
 export type ResearchNodeData = z.infer<typeof ResearchNodeDataSchema>;
 export type ResearchTreeData = z.infer<typeof ResearchTreeDataSchema>;
 export type BuildMenuEntryType = z.infer<typeof BuildMenuEntryTypeSchema>;
+export type BuildMenuRequiredItem = z.infer<typeof BuildMenuRequiredItemSchema>;
+export type BuildMenuCategory = z.infer<typeof BuildMenuCategorySchema>;
 export type BuildMenuEntryData = z.infer<typeof BuildMenuEntryDataSchema>;
 export type BuildMenuData = z.infer<typeof BuildMenuDataSchema>;
 export type ChallengeNodeState = z.infer<typeof ChallengeNodeStateSchema>;

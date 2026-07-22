@@ -126,9 +126,7 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitEnvironmentRoot>(environmentRoot);
                 builder.RegisterInstance<ISkitBlockObjectControl>(blockGameObjectDataStore);
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform));
-                // コマンド側はISkitActionContextで解決するため両インターフェースで登録
-                // Register under both interfaces because commands resolve ISkitActionContext
-                builder.RegisterInstance(_skitActionController).As<ISkitActionController>().As<ISkitActionContext>();
+                builder.RegisterInstance<ISkitActionContext>(_skitActionController);
                 builder.RegisterInstance(new SkitPresentationMode(webUiMode));
                 
                 return new StoryContext(builder.Build());

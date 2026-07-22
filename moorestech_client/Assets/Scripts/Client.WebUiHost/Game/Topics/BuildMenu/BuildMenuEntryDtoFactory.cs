@@ -1,35 +1,49 @@
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.UI.BuildMenu;
 using Core.Master;
 using Game.UnlockState;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
     /// <summary>
-    /// BuildMenuEntryCatalog の合成結果を web 配信用 DTO へ変換する
-    /// Converts the BuildMenuEntryCatalog composition into web-delivery DTOs
+    /// WebBuildMenuEntryCatalog の合成結果を web 配信用 DTO へ変換する
+    /// Converts the WebBuildMenuEntryCatalog composition into web-delivery DTOs
     /// </summary>
     public static class BuildMenuEntryDtoFactory
     {
         public static List<BuildMenuEntryDto> CreateDtos(IGameUnlockStateData unlockState, ClientBlueprintLibrary blueprintLibrary)
         {
             var dtos = new List<BuildMenuEntryDto>();
-            foreach (var entry in BuildMenuEntryCatalog.CreateEntries(unlockState, blueprintLibrary))
+            // カテゴリ整合はマスタロード時に検証済み（block参照はBlockMasterUtil・非ブロックはentrySource必須定義）
+            // Category consistency is validated at master load (block refs by BlockMasterUtil, non-blocks by required entrySource)
+            foreach (var entry in WebBuildMenuEntryCatalog.CreateEntries(unlockState, blueprintLibrary))
             {
                 dtos.Add(new BuildMenuEntryDto
                 {
                     EntryType = GetEntryTypeName(entry.Target),
                     EntryKey = GetEntryKey(entry.Target),
-                    // ラベルはツールチップ1行目（ブロック名等）を使う
-                    // The label is the tooltip's first line (block name etc.)
-                    Label = entry.ToolTipText.Split('\n')[0],
-                    Tooltip = entry.ToolTipText,
+                    Label = entry.Label,
+                    Category = entry.Category,
+                    SubCategory = entry.SubCategory,
+                    RequiredItems = entry.RequiredItems.Select(r => new BuildMenuRequiredItemDto { ItemId = r.ItemId.AsPrimitive(), Count = r.Count }).ToList(),
                     IconUrl = CreateIconUrl(entry.Target),
                 });
             }
             return dtos;
+        }
+
+        public static List<BuildMenuCategoryDto> CreateCategoryDtos()
+        {
+            // buildMenuマスタcategoriesの配列順そのままが表示順の正
+            // The array order of the buildMenu master's categories is the source of truth for display order
+            return MasterHolder.BuildMenuCategoryMaster.Categories
+                .Select(c => new BuildMenuCategoryDto
+                {
+                    Name = c.Name,
+                    SubCategories = c.SubCategories.Select(s => s.Name).ToList(),
+                }).ToList();
         }
 
         // web契約の entryType 文字列（select アクションの照合と共有する）
