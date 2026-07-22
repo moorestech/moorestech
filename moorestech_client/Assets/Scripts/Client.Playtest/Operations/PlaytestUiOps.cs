@@ -63,7 +63,15 @@ namespace Client.Playtest.Operations
             var useWebUi = CefScreenMapper.IsWebUiAvailable();
             var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
             var webUiTestid = $"build-menu-entry-block-{blockId.AsPrimitive()}";
-            if (useWebUi) await PlaytestWebUiOps.WaitWebUiElement("build-menu-panel", 15f);
+            if (useWebUi)
+            {
+                await PlaytestWebUiOps.WaitWebUiElement("build-menu-panel", 15f);
+
+                // 新ビルドメニューは選択中カテゴリのセクションしか描画しないため、対象ブロックのカテゴリへ切り替える
+                // The new build menu only renders the selected category's sections, so switch to the target block's category first
+                var category = MasterHolder.BlockMaster.GetBlockMaster(blockId).Category;
+                await PlaytestWebUiOps.ClickWebUi($"build-menu-category-{category}", 15f);
+            }
 
             // 非同期BPライブラリ更新が選択を破棄するレースに備え、PlaceBlock遷移までクリックを繰り返す
             // Retry clicks until PlaceBlock to survive an async blueprint-library rebuild discarding selection

@@ -14,12 +14,18 @@ type Props = {
   options: ModeSwitchOption[];
   onChange: (value: string) => void;
   orientation?: "horizontal" | "vertical";
+  disabled?: boolean;
   testId?: string;
 };
 
-export default function ModeSwitch({ value, options, onChange, orientation = "horizontal", testId }: Props) {
+export default function ModeSwitch({ value, options, onChange, orientation = "horizontal", disabled, testId }: Props) {
   return (
-    <div className={styles.root} data-orientation={orientation} data-testid={testId}>
+    <div
+      className={styles.root}
+      data-orientation={orientation}
+      data-disabled={disabled || undefined}
+      data-testid={testId}
+    >
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -30,6 +36,7 @@ export default function ModeSwitch({ value, options, onChange, orientation = "ho
             aria-pressed={selected}
             key={option.value}
             type="button"
+            disabled={disabled}
             onClick={() => onChange(option.value)}
           >
             {option.label}

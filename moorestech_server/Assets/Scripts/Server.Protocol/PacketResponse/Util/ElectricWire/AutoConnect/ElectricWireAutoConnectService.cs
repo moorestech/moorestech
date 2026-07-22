@@ -9,7 +9,7 @@ using Game.Context;
 using Game.EnergySystem;
 using Core.Inventory;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.ConnectToolsModule;
+using Mooresmaster.Model.BuildMenuModule;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ConnectTool;
