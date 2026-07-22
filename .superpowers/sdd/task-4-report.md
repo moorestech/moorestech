@@ -1,68 +1,49 @@
-# Task 4（＋Task 5）レポート: 接続消費のconnectToolマスタ駆動・複数素材化
+# Task 4 実装レポート: 撤去側の記録フック
 
-## Status: DONE
+## ステータス
+完了
 
-main裁定（選択肢C）によりTask 4（サーバー）とTask 5（クライアント）を一括担当。`uloop compile` エラー0（client込み）、対象テスト `ElectricWire|Rail|GearChain|ConnectTool` **175/175 PASS**。
+## コミット
+`f1f77ecb8` feat(client): 撤去バッチのUndo履歴記録
 
-## コミット（範囲: 46651d1 → 2e173cc）
-- `46651d1` wip: サーバー実装＋クライアント一部（未コンパイル中間チェックポイント）
-- `f865c54` feat: 接続消費をconnectToolマスタ駆動の複数素材へ統一（サーバー＋クライアント）
-- `0498367` test: 接続系テストをconnectTool複数素材へ追従（rail橋脚除く）
-- `2e173cc` test: rail橋脚・電線自動接続・チェーン評価器テストをGREEN化
+## 変更ファイル
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DragDeleteSelection.cs`
+  - `CommitDelete()` を `void` → `List<IDeleteTarget>` に変更。コミットした対象のスナップショットを取ってから削除処理し、そのリストを返す。
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs`
+  - `BuildOperationHistory` をctor注入するフィールドを追加。
+  - `HandleRelease` 内の直接 `CommitDelete()` 呼び出しを `RecordAndCommitDelete()` ローカル関数経由に変更。
+  - `RecordAndCommitDelete()` は `CommitDelete()` の戻り値から `BlockGameObjectChild` のみを抽出し `RemovedBlockInfo`（`OriginalPos`/`BlockId`/`BlockDirection`）のリストを構築、非空なら `RemoveOperationRecord` として `BuildOperationHistory.Push` する。
+  - using追加: `Client.Game.InGame.Block`, `Client.Game.InGame.BlockSystem.PlaceSystem.Undo`, `System.Collections.Generic`。
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs`
+  - `_deleteObjectService` フィールドをフィールド初期化子からctor内初期化に変更。
+  - ctorに4つ目の引数 `BuildOperationHistory buildOperationHistory` を追加し、`new DeleteObjectService(buildOperationHistory)` として生成。
+  - using追加: `Client.Game.InGame.BlockSystem.PlaceSystem.Undo`。
+- `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateCameraInteractionTest.cs`
+  - `new DeleteObjectState(deleteObject, null, applier)` → `new DeleteObjectState(deleteObject, null, applier, new BuildOperationHistory())`。using追加。
+- `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateFocusRestorationTest.cs`
+  - 同上の4引数化。using追加。
 
-## 実装概要（サーバー）
-- 新規: `Core.Master/ConnectToolMaterialCost.cs`（共有素材コスト構造体）、`Util/ConnectTool/`（`ConnectToolCostCalculator`=units×count算出, `ConnectToolMaterialConsumer`=検証/消費/返却, `ConnectToolSelector`=解放判定・ToolType別SortPriority昇順選択）
-- ConnectionCost複数素材化: `ElectricWireConnectionCost`/`GearChainConnectionCost` を `IReadOnlyList<ConnectToolMaterialCost> Materials`（＋`HasMaterials`/`TotalCount`/`Empty`）へ。`IElectricWireConnector`/`IGearChainPole` の型はそのまま（構造体内部のみ変更）
-- 永続化追従: `ElectricWireSaveDataJsonObject`/`GearChainPoleSaveDataJsonObject` を各接続が素材リスト（`ConnectToolMaterialSaveJsonObject`=ItemGuid保存）を持つ形へ。ロード時 `GetItemId(guid)` 解決。GetRefundItemsも複数素材展開
-- 6プロトコルRequestの素材指定を `Guid ConnectToolGuid` に統一（電線/チェーン/レール接続編集・電線/チェーン延長・レール橋脚）
-- 消費一般化: `ElectricWirePlacementEvaluator`/`GearChainPlacementEvaluator`/`RailConnectionEditProtocol.EvaluatePlacement` が connectToolGuid から複数素材コストを算出。延長系の建設コスト予約（同一素材の上乗せ判定）は温存
-- 未解放拒否: 6経路すべてで `ConnectToolUnlockStateInfos[guid].IsUnlocked` を確認（延長系は設置前ガード）
-- 電線自動接続 `ElectricWireAutoConnectService`: 解放済みelectricWire connectToolをSortPriority昇順で選択・複数素材消費。**未解放時は配線せず設置のみ許可**（設置自体はブロックしない）
-- RailGraphの `RailTypeGuid` スロットにconnectToolGuidを格納（構造不変）。`RailConnectionEditProtocol.cs:83` の残存Debug.Log削除
+## brief照合
+- Step 1〜4の指示コードをほぼ逐語で反映（brief記載のコードブロックと完全一致）。
+- Produces欄の `DeleteObjectState(DeleteBarObject, RailGraphClientCache, IPlayerCameraInteractionApplier, BuildOperationHistory)` 4引数ctorを実装。`BuildUndoService` は本タスクでは追加していない（Task 5予定通り）。
+- Task 3で `BuildOperationHistory` はVContainerに登録済みのため、`DeleteObjectState` ctorへのDI解決はコンテナが自動で行う想定（本タスクでは呼び出し側のコンテナ設定を変更していない＝brief通り変更対象外）。
+- 既存のDIコンテナからの `DeleteObjectState` 生成箇所以外に `new DeleteObjectState(...)` の呼び出しは無いことを確認済み（テスト2ファイルのみ）。
 
-## 実装概要（クライアント＝元Task 5）
-- `ConnectToolPlacementTarget` を `Guid ConnectToolGuid` 保持へ。`BuildMenuEntryCatalog` を解放済みconnectTool単位表示（SortPriority順・未解放非掲載・アイコンは先頭requiredItem）
-- `PlaceSystemSelector` はマスタのToolTypeで振り分け。各PlaceSystem/PreviewCalculator/RequestSender/VanillaApi をguid伝搬へ（電線/レール/チェーン）
-- `ConnectToolCatalog` に ToolType↔enum写像・`ResolveDefaultConnectToolGuid`（ブロック設置延長時の種別解決）追加
-- `PlacementTargetPickService`（吸取）・WebUI（`BuildMenuEntryDtoFactory`/`PlacementModeTopic`）をguid駆動へ
-- ドラッグ設置プレビュー `ElectricWireAutoConnectPreview`＋VirtualInventory を複数素材モデルへ改修
+## コンパイル・テスト結果
+- `uloop compile --project-path ./moorestech_client` → `Success: true, ErrorCount: 0, WarningCount: 98`（既存warningのみ、本タスクの変更由来のwarningなし）
+- `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DragDeleteSelection|UIStateCameraInteraction|UIStateFocusRestoration"` → `Success: true, TestCount: 22, PassedCount: 22, FailedCount: 0`
 
-## TDD Evidence
-- RED: connectToolGuid化・複数素材化でシグネチャ/構造が変わり、全接続系テストがCS/実行時失敗（ItemId→Guid・`.Count`/`.ItemId`廃止・未解放拒否・MaxStack超過）
-- GREEN: シグネチャ追従＋解放セットアップ＋期待消費数(units×count)更新で 175/175 PASS
-- 新規テスト: 未解放connectTool拒否（電線接続・レール橋脚）、複数素材の距離比例消費（rail: 補強棒材12×units＋鉄板5×units＋橋脚コスト鉄板2の合算）、片素材不足での失敗＋ロールバック
+## 自己レビュー（規約チェック）
+- **行数**: `DeleteObjectState.cs` 108行、`DragDeleteSelection.cs` 119行、`DeleteObjectService.cs` 185行。全て200行以下。
+- **日英2行コメント**: 追加した `RecordAndCommitDelete` 内のコメント、`CommitDelete` の変更コメントはすべて日本語1行→英語1行のセットで記述、それぞれ1行に収まっている。
+- **`#region Internal`規約**: `DeleteObjectService.Update()` メソッド内の既存 `#region Internal` ブロックに `RecordAndCommitDelete` ローカル関数を追加した形。クラス直下でのprivateメソッド群の囲みには使っていない。既存の他ローカル関数（`HandleDragStart`等）と同じ配置パターンを踏襲。
+- **partial**: 使用なし。
+- **デフォルト引数**: 使用なし。ctorへの引数追加は全呼び出し側（本体2ファイル・テスト2ファイル）を変更済み。
+- **getter/setter**: 単純プロパティの新規追加なし（既存の `BlockGameObject`/`BlockPosInfo`/`BlockId` は既存コードで `{ get; private set; }` 形式、本タスクでの新規追加ではない）。
+- **null チェック**: `BlockGameObject`（`BlockGameObjectChild.BlockGameObject`）はAwake相当の`Init`で設定保証済みのためnullチェック無しでアクセス。設計上問題なし。
+- **命名**: `RecordAndCommitDelete`、`removedBlocks`、`blockGameObject` 等、既存の命名規約（意味の通る名前・abbreviation回避）に整合。
+- **イベント発火**: 本タスクでは新規イベント発火なし（`BuildOperationHistory.Push` は同期呼び出し、UniRx対象外）。
 
-## 実装分担
-コード記述は多くを自分で直接実装。サーバーテスト14ファイルのシグネチャ追従＋新規テストはcodex(gpt-5.6-sol)へ委譲、自分がレビュー＋実行検証。失敗した6テスト（未解放セットアップ漏れ・期待値・MaxStack超過）は自分で修正。
-
-## セルフレビュー・懸念
-1. **auto-connectの解放ゲート（設計判断・要確認）**: ブロック設置時の電線自動接続は解放済みelectricWire connectToolが必要。未解放なら配線せず設置のみ（設置は失敗させない）。「解放済みentryのSortPriority最小を選択」の指示に沿うが、旧挙動（アイテム所持のみで配線）からの挙動変化。裁定が必要なら連絡を。
-2. **クライアント既存auto-selector残置**: `ElectricWireItemAutoSelector`/`GearChainPoleItemFinder`/`TrainRailItemAutoSelector` は未使用化したが旧配列参照で残存（Task 6のスキーマ削除で露出・撤去予定）。
-3. **プレビューの解放非考慮**: `ResolveDefaultConnectToolGuid`・`ElectricWireAutoConnectPreview` はSortPriority最小を解放状態非依存で選ぶ（サーバーが最終権威。プレビューは近似）。多connectTool/種別のUX厳密化は以降タスクで。
-4. **wip中間コミット(46651d1)は非コンパイル**: bisect時の注意。必要なら `f865c54` へsquash可。
-5. マスタ由来値(LengthPerUnit等)はセーブせず、揮発ItemIdも保存していない（ItemGuid保存・ロード時解決）。
-
----
-
-## レビュー指摘修正（Fix 1 + Fix 2）2026-07-19
-
-### Fix 1（CLIENT/Important）: connectToolのimagePathアイコンを実装
-死にデータだった`connectTools.yml`の`imagePath`を実アイコン経路に接続。ItemTextureLoader/ItemImageContainer/ItemIconEndpointと同型で3層を新設し、素材アイコンフォールバックを撤去。
-- 新規 `ConnectToolTextureLoader`（Client.Mod/Texture）: connectToolのimagePathからTexture2D→ItemViewDataを生成。imagePath空なら`assets/connectTool/{name}.png`へフォールバック。画像欠落時は`GetExtractedZipTexture.Get`がnull→`ToSprite`がnull安全のため落ちない。
-- 新規 `ConnectToolImageContainer`（Client.Game/InGame/Context）: connectToolGuid→ItemViewData辞書。`ClientContext.ConnectToolImageContainer`で保持。ModAssetLoaderの並列ロードに`LoadConnectToolAssets`を追加。
-- 新規 `ConnectToolIconEndpoint`（WebUI, `/api/connect-tool-icons/{guid}.png`）: TrainCarIconEndpointと同型。WebUiEndpointsにルート登録。
-- `BuildMenuEntryCatalog`（uGUI）と`BuildMenuEntryDtoFactory.CreateIconUrl`（WebUI）をconnectToolGuid由来アイコンへ変更。
-- 死んだ`ConnectToolCatalog.SelectIconItemGuid(ConnectToolMasterElement)`（素材アイコンフォールバック）を撤去。ConnectToolType overload・auto-selector群はTask 6へ委譲（スコープ非拡大）。
-
-### Fix 2（SERVER/Important）: rail 2経路のGuid.Empty無料接続を是正
-**調査結果**: `RailConnectionEditProtocol`/`RailConnectWithPlacePierProtocol`にEmptyを送る正当な内部呼び出し元は存在しない。station内部レール等は`RailComponentUtility.ConnectRailComponent`で直接生成し当プロトコルを通らない。クライアントは`target.ConnectToolGuid`（実マスタGuid）のみ送る。→escalate不要と判断し対称化。
-- 両rail経路のガードを`if (!ConnectToolSelector.IsUnlocked(guid))`へ変更（`!= Guid.Empty &&`を除去）。Empty=`NotUnlocked`で拒否、electricWire/gearChainの4経路と対称。
-- 拒否テスト追加: `RailConnectionEditProtocolTest.connectToolGuidがEmptyの接続要求は無料設置扱いされず拒否される`（NotUnlocked＋無消費）、`RailConnectWithPlacePierProtocolTest.connectToolGuidがEmptyの接続要求は無料設置扱いされず失敗応答を返す`（橋脚非設置＋無消費）。
-
-### 検証
-- `uloop compile --project-path ./moorestech_client`: Errors 0 / Warnings 0
-- `uloop run-tests ... "RailConnectionEditProtocolTest|RailConnectWithPlacePierProtocolTest|ConnectToolCatalogTest"`: 15/15 passed
-- `uloop run-tests ... "ElectricWire|Rail|GearChain|ConnectTool|BuildMenu"`: 179/179 passed
-
-### 残懸念
-- `RailConnectWithPlacePierProtocol`の`if (ConnectToolGuid != Guid.Empty)`ブロックとEvaluatePlacementのEmpty=無コスト分岐はEmpty拒否後に到達不能な残存コード。害はないためスコープ非拡大で残置（クライアントプレビューは実Guidのみ渡すため実挙動不変）。
+## 懸念点
+- `RemoveOperationRecord` は撤去失敗セルを楽観的に記録し、Undo側（未実装のTask以降）の「空き座標ガード」で無効化される設計。本タスクの範囲では撤去失敗時の記録除外は行っていない（brief通りの意図的な仕様）。
+- `DeleteObjectState` への `BuildOperationHistory` 注入はVContainerの自動解決に依存しており、本タスク側でDI登録の確認・追加テストは行っていない（Task 3の責務）。
