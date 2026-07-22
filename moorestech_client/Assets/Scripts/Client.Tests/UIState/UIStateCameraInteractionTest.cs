@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Challenge;
@@ -87,7 +88,7 @@ namespace Client.Tests.UIState
             SetUpMouseCursorTooltip();
             var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new DeleteObjectState(deleteObject, null, applier);
+            var state = new DeleteObjectState(deleteObject, null, applier, new BuildOperationHistory());
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Cursor:True", "Rotatable:False" }, applier.Calls);
 

@@ -1,7 +1,10 @@
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using System;
+using System.Collections.Generic;
 using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete
@@ -11,6 +14,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     public class DeleteObjectService
     {
         private readonly DragDeleteSelection _selection = new();
+        private readonly BuildOperationHistory _buildOperationHistory;
         private IDeleteTarget _deleteTargetObject;
         private bool _isRemoveDeniedReasonShown;
         private bool _isDragging;
@@ -18,6 +22,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
         public IObservable<string> OnUnavailableReasonChanged => _unavailableReason;
         public string GetUnavailableReason() => _unavailableReason.Value;
+
+        public DeleteObjectService(BuildOperationHistory buildOperationHistory)
+        {
+            _buildOperationHistory = buildOperationHistory;
+        }
 
         public void Update()
         {
@@ -117,8 +126,27 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
 
-                if (_isDragging && _selection.CanCommit()) _selection.CommitDelete();
+                if (_isDragging && _selection.CanCommit()) RecordAndCommitDelete();
                 _isDragging = false;
+            }
+
+            void RecordAndCommitDelete()
+            {
+                var committed = _selection.CommitDelete();
+
+                // ブロック対象だけをCtrl+Z用に楽観的記録（撤去失敗セルはUndo時の空き座標ガードで自然に無効化）
+                // Optimistically record block targets for Ctrl+Z (failed removals are neutralized by the empty-cell guard on undo)
+                var removedBlocks = new List<RemovedBlockInfo>();
+                foreach (var target in committed)
+                {
+                    if (target is not BlockGameObjectChild blockChild) continue;
+                    var blockGameObject = blockChild.BlockGameObject;
+                    removedBlocks.Add(new RemovedBlockInfo(
+                        blockGameObject.BlockPosInfo.OriginalPos,
+                        blockGameObject.BlockId,
+                        blockGameObject.BlockPosInfo.BlockDirection));
+                }
+                if (removedBlocks.Count != 0) _buildOperationHistory.Push(new RemoveOperationRecord(removedBlocks));
             }
 
             #endregion
