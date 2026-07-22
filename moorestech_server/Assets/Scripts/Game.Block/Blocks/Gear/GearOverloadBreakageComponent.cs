@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.Gear
 
             // 過負荷設定を持つ場合のみsweep対象として登録する
             // Register into the sweep only when overload params are effective
-            if (_overloadEnabled) GearNetworkDatastore.RegisterOverloadTickTarget(this);
+            if (_overloadEnabled) ServerContext.GetService<IGearNetworkDatastore>().RegisterOverloadTickTarget(this);
         }
 
         public void TickOverloadCheck()
@@ -74,8 +74,10 @@ namespace Game.Block.Blocks.Gear
 
             void RequestRemove()
             {
+                // 破壊はその場で行わず予約する。このtickの計算には最後まで参加し、tick末尾に一括反映される
+                // Reserve the destruction instead of applying it in place; the block participates in this tick fully and is removed at tick end
                 _isDestroyed = true;
-                ServerContext.WorldBlockDatastore.RemoveBlock(_blockInstanceId, BlockRemoveReason.Broken);
+                ServerContext.GetService<IBlockRemovalReservationService>().ReserveRemoval(_blockInstanceId, BlockRemoveReason.Broken);
             }
 
             #endregion
@@ -88,7 +90,7 @@ namespace Game.Block.Blocks.Gear
             // 破断経由(RequestRemoveで_isDestroyed済み)でも必ず登録解除する。HashSetのRemoveなので重複解除は無害
             // Always unregister, including the breakage path (where RequestRemove already set _isDestroyed); duplicate removal from the HashSet is harmless
             _isDestroyed = true;
-            if (_overloadEnabled) GearNetworkDatastore.UnregisterOverloadTickTarget(this);
+            if (_overloadEnabled) ServerContext.GetService<IGearNetworkDatastore>().UnregisterOverloadTickTarget(this);
         }
     }
 }

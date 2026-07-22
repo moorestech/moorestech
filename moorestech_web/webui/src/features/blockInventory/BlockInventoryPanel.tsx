@@ -5,7 +5,7 @@ import styles from "./style.module.css";
 import BlockItemGrid from "./BlockItemGrid";
 import { buildMachineRecipeSelectionRows } from "./details/machine/machineRecipeSelectionLogic";
 import { useI18n } from "@/shared/i18n";
-import { tutorialAnchor } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 
 // ブロック UI のオーバーレイ。uGUI の SubInventoryState 相当で、blockType から中身を静的解決する
 // Block UI overlay; the SubInventoryState equivalent, statically resolving the body from blockType
@@ -65,7 +65,7 @@ export default function BlockInventoryPanel() {
         }}
         ariaLabel={t("Close")}
         testId="block-inventory-close"
-        {...tutorialAnchor("inventory.close-button")}
+        {...tutorialAnchor(TutorialAnchorIds.inventoryCloseButton)}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
@@ -10,7 +11,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     // Service owning destroy-mode delete interaction (hover, drag selection, bulk delete, ESC cancel)
     public class DeleteObjectService
     {
-        private readonly DragDeleteSelection _selection = new();
+        private readonly DragDeleteSelection _selection;
         private IDeleteTarget _deleteTargetObject;
         private bool _isRemoveDeniedReasonShown;
         private bool _isDragging;
@@ -18,6 +19,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
         public IObservable<string> OnUnavailableReasonChanged => _unavailableReason;
         public string GetUnavailableReason() => _unavailableReason.Value;
+
+        public DeleteObjectService(BuildOperationHistory buildOperationHistory)
+        {
+            _selection = new DragDeleteSelection(buildOperationHistory);
+        }
 
         public void Update()
         {

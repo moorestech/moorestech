@@ -137,10 +137,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                     ConnectToolMaterialConsumer.Consume(cost.Materials, inventory);
                 }
 
-                // 建設コストを消費してから再構築を予約する
-                // Consume the construction cost, then mark topology for the next tick rebuild
+                // 建設コストを消費する（dirty化は接続処理内で行われる）
+                // Consume the construction cost; the connection mutation itself marks the topology dirty
                 ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
-                ServerContext.GetService<IElectricWireNetworkDatastore>().MarkTopologyDirty();
 
                 return ExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
 

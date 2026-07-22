@@ -6,7 +6,6 @@ using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Mooresmaster.Model.ChallengesModule;
-using TMPro;
 using UniRx;
 using UnityEngine;
 using VContainer;
@@ -24,8 +23,6 @@ namespace Client.Game.InGame.Tutorial
         // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
         private const string WebPinId = "map-object-pin";
 
-        [SerializeField] private TMP_Text pinText;
-
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
 
@@ -36,13 +33,6 @@ namespace Client.Game.InGame.Tutorial
         {
             _inGameCameraController = inGameCameraController;
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
-
-            // Webモードでは矢印もWebオーバーレイが担うため、uGUIのHudArrowは登録しない
-            // In web mode the overlay also renders the arrow, so skip the uGUI HudArrow registration
-            if (WebUiScreenGate.IsWebUiMode) return;
-
-            var options = new HudArrowOptions(hideWhenTargetInactive: true);
-            HudArrowManager.RegisterHudArrowTarget(gameObject, options);
         }
 
         private void Update()
@@ -93,35 +83,11 @@ namespace Client.Game.InGame.Tutorial
         {
             _currentTutorialParam = (MapObjectPinTutorialParam)param;
 
-
-            // ピンのテキストを設定
-            pinText.text = _currentTutorialParam.PinText;
-
+            // 追跡と射影配信のみ行う（表示はWebオーバーレイが担う）
+            // Only tracking and projection publishing happen here; display lives on the web overlay
             SetActive(true);
 
-            // Webモードでは3D表示を隠し、追跡と射影配信だけを行う
-            // In web mode hide the 3D visuals; this object only tracks and publishes projections
-            if (WebUiScreenGate.IsWebUiMode) SetVisualsVisible(false);
-
             return this;
-
-            #region Internal
-
-            void SetVisualsVisible(bool visible)
-            {
-                // ピン表示はworld-space Canvas構成のためCanvasを無効化する（Renderer系も併せて対象）
-                // The pin visuals live on a world-space Canvas, so toggle Canvas (and any Renderer) components
-                foreach (var childCanvas in GetComponentsInChildren<Canvas>(true))
-                {
-                    childCanvas.enabled = visible;
-                }
-                foreach (var childRenderer in GetComponentsInChildren<Renderer>(true))
-                {
-                    childRenderer.enabled = visible;
-                }
-            }
-
-            #endregion
         }
 
         public void CompleteTutorial()
@@ -146,7 +112,6 @@ namespace Client.Game.InGame.Tutorial
         private void OnDestroy()
         {
             WorldPinStateStore.Instance.RemovePin(WebPinId);
-            HudArrowManager.UnregisterHudArrowTarget(gameObject);
         }
     }
 }

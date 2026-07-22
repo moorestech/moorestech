@@ -7,6 +7,7 @@ using Game.Gear.Common;
 using Mooresmaster.Model.GearConsumptionModule;
 using UniRx;
 using UnityEngine;
+using Game.Context;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -37,7 +38,7 @@ namespace Game.Block.Blocks.Gear
             BlockInstanceId = blockInstanceId;
             _simpleGearService = new SimpleGearService(this, connectorComponent);
 
-            GearNetworkDatastore.AddGear(this);
+            ServerContext.GetService<IGearNetworkDatastore>().AddGear(this);
         }
 
         public void SetTorqueRequestRate(float rate)
@@ -46,7 +47,7 @@ namespace Game.Block.Blocks.Gear
             // Notify the owning network of the demand change only when the rate actually changes, scheduling recalculation
             if (Mathf.Approximately(_torqueRequestRate, rate)) return;
             _torqueRequestRate = rate;
-            GearNetworkDatastore.NotifyConsumerDemandChanged(this);
+            ServerContext.GetService<IGearNetworkDatastore>().NotifyConsumerDemandChanged(this);
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -89,7 +90,7 @@ namespace Game.Block.Blocks.Gear
         public void Destroy()
         {
             IsDestroy = true;
-            GearNetworkDatastore.RemoveGear(this);
+            ServerContext.GetService<IGearNetworkDatastore>().RemoveGear(this);
             _simpleGearService.Destroy();
         }
     }

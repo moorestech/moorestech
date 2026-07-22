@@ -15,7 +15,7 @@ import argparse, json, sys
 from collections import defaultdict
 from pathlib import Path
 
-X_SPACING = 500
+X_SPACING = 170
 GROUP_Y = {"main": 0, "upper": 200, "lower": -200}
 
 

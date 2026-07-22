@@ -105,9 +105,13 @@ namespace Tests.CombinedTest.Core
             fullBreakage.TickOverloadCheck();
             idleBreakage.TickOverloadCheck();
 
+            // 破断判定は即時、ブロック破壊は予約されtick末尾の一括反映で確定する
+            // The breakage decision is immediate while the block removal is reserved and committed at tick end
             Assert.IsTrue(fullBreakage.IsDestroy);
-            Assert.IsFalse(world.Exists(fullPosition));
             Assert.IsFalse(idleBreakage.IsDestroy);
+            Assert.IsTrue(world.Exists(fullPosition));
+            GameUpdater.UpdateOneTick();
+            Assert.IsFalse(world.Exists(fullPosition));
             Assert.IsTrue(world.Exists(idlePosition));
             fullBreakage.Destroy();
             idleBreakage.Destroy();
