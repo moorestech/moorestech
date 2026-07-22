@@ -62,6 +62,7 @@ import type {
   TrainRidingDataSchema,
   TrainPlatformDataSchema,
   TrainPlatformModeSchema,
+  NotificationDataSchema,
 } from "./schemas";
 
 // 公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ
@@ -128,3 +129,4 @@ export type ChallengeCategoryData = z.infer<typeof ChallengeCategoryDataSchema>;
 export type ChallengeTreeData = z.infer<typeof ChallengeTreeDataSchema>;
 export type CurrentChallengeData = z.infer<typeof CurrentChallengeDataSchema>;
 export type ChallengeCurrentData = z.infer<typeof ChallengeCurrentDataSchema>;
+export type NotificationData = z.infer<typeof NotificationDataSchema>;

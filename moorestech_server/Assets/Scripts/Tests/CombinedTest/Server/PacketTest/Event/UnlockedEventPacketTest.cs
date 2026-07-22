@@ -44,10 +44,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // 
             unlockStateDatastore.UnlockItem(ItemId4);
             
-            // イベントを受け取り、テストする
-            // Receive and test the event
-            var events = sink.TakeAll();
-            
+            // アンロックイベントのみ取り出してテストする（達成通知イベントは除外）
+            // Take only unlock events, excluding achievement notification events
+            var events = sink.TakeAll().Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList();
+
             // イベントがあることを確認する
             // Make sure there are events
             Assert.AreEqual(2, events.Count);
@@ -81,9 +81,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var unlockStateDatastore = serviceProvider.GetService<IGameUnlockStateDataController>();
             unlockStateDatastore.UnlockConnectTool(electricWireGuid);
 
-            // 解放イベントを受け取り検証する
-            // Receive and verify the unlock event
-            var events = sink.TakeAll();
+            // 解放イベントのみ取り出して検証する（達成通知イベントは除外）
+            // Take only unlock events, excluding achievement notification events
+            var events = sink.TakeAll().Where(e => e.Tag == UnlockedEventPacket.EventTag).ToList();
             Assert.AreEqual(1, events.Count);
 
             var data = MessagePackSerializer.Deserialize<UnlockEventMessagePack>(events[0].Payload);

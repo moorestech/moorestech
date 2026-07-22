@@ -54,6 +54,7 @@ using Mod.Loader;
 using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
+using Server.Event.Notification;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
 using Server.Protocol.PacketResponse.Util.InventoryService;
@@ -140,6 +141,7 @@ namespace Server.Boot
             //ゲームプレイに必要なクラスのインスタンスを生成
             // Register gameplay services.
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
+            services.AddSingleton<NotificationService>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
@@ -240,6 +242,7 @@ namespace Server.Boot
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
+            services.AddSingleton<AchievementNotificationWiring>();
 
             //データのセーブシステム
             // Register data save helpers.
