@@ -140,6 +140,7 @@ namespace Server.Boot
             //ゲームプレイに必要なクラスのインスタンスを生成
             // Register gameplay services.
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
+            services.AddSingleton<Server.Event.Notification.NotificationService>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
