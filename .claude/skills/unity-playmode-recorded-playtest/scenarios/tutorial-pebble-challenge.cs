@@ -94,8 +94,10 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     p.Assert(c3Unlocked, "チャレンジ#3(伐採)が解放された");
 
     p.Note("木ピンの表示を待つ(mapObject「木」の解決検証)");
-    var treePinShown = await PollUntil(() => pinStore.GetCurrent().Pins.Any(x => x.PinId == "map-object-pin"), 30);
-    p.Assert(treePinShown, "木ピン(map-object-pin)が表示された");
+    // ピンIDは全mapObjectPin共通の固定値のため、小石ピン残留と区別するテキストも照合する
+    // The pin id is shared by every mapObjectPin, so also match the text to rule out a stale pebble pin
+    var treePinShown = await PollUntil(() => pinStore.GetCurrent().Pins.Any(x => x.PinId == "map-object-pin" && x.Text.Contains("伐採")), 30);
+    p.Assert(treePinShown, "木ピン(map-object-pin)が伐採テキストで表示された");
     await p.Screenshot("04-tree-pin");
 
     // 検証6: 実際に木を攻撃して原木ドロップ→#3完了（サーバー側VanillaStaticMapObjectの解決検証）
