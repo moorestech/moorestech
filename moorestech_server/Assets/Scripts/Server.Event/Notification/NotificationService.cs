@@ -20,6 +20,10 @@ namespace Server.Event.Notification
         private readonly Dictionary<(int playerId, NotificationCategory category, string messageId), DateTime> _lastSentUtc = new();
         private TimeSpan _cooldownDuration = TimeSpan.FromSeconds(3);
 
+        // クールダウン辞書への同時アクセスを防ぐロック
+        // Lock guarding concurrent access to the cooldown dictionary
+        private readonly object _lock = new();
+
         public NotificationService(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
@@ -48,9 +52,14 @@ namespace Server.Event.Notification
         {
             var key = (playerId, notification.Category, notification.MessageId);
             var now = DateTime.UtcNow;
-            if (_lastSentUtc.TryGetValue(key, out var last) && now - last < _cooldownDuration) return false;
-            _lastSentUtc[key] = now;
-            return true;
+            // 判定と更新を1トランザクションとしてロックし競合更新を防ぐ
+            // Lock the check-and-set as one transaction to prevent racing updates
+            lock (_lock)
+            {
+                if (_lastSentUtc.TryGetValue(key, out var last) && now - last < _cooldownDuration) return false;
+                _lastSentUtc[key] = now;
+                return true;
+            }
         }
     }
 }
