@@ -32,7 +32,7 @@
 |---|---|
 | `BuildOperationHistory` | 履歴スタック本体。上限32エントリのLIFO。`Push(IBuildOperationRecord)` / `TryPop(out record)` のみ |
 | `PlaceOperationRecord` | 設置1バッチの記録。送信した `List<PlaceInfo>` のスナップショット（Position / BlockId / Direction / VerticalDirection） |
-| `RemoveOperationRecord` | 撤去1バッチの記録。撤去成功した各ブロックの `Position / BlockId / BlockDirection` のリスト。撤去は1ブロックずつ非同期に成否が返るため、コミット時にレコードを作り成功セルを追記していく |
+| `RemoveOperationRecord` | 撤去1バッチの記録。コミット時点で選択されていた各ブロックの `Position / BlockId / BlockDirection` のリスト（**楽観的記録**。撤去の成否は追わず、失敗セルはUndo時の照合ガード＝「座標が空でなければ再設置しない」で自然に無効化される） |
 | `BuildUndoService` | Ctrl+Z受付とUndo実行。照合ガード→逆操作プロトコル発行。実行中の再入は無視（bool ガード） |
 
 インスタンスはシングルトンにせず、既存の建築UI系の生成経路（`ClientDIContext` / UIState構築）でDIする。イベントにはUniRxを使う（規約）。
@@ -40,7 +40,7 @@
 ### 記録フック（2箇所）
 
 1. **設置**: `PlaceSystemUtil.SendPlaceBlockProtocol` 内で、送信した `PlaceInfo` リストのディープコピーを `PlaceOperationRecord` として `Push`。`Placeable == false` のセルは除外して記録する
-2. **撤去**: `DragDeleteSelection.CommitDelete()` 時に空の `RemoveOperationRecord` を作成して `Push` し、各 `BlockGameObjectChild.DeleteAsync()` が **成功レスポンスを受けた時点**で撤去前に控えた `Position / BlockId / BlockDirection` をレコードへ追記する。全セル失敗ならレコードは空のまま（Undo時に何もしない）。`IDeleteTarget` のうち `BlockGameObjectChild` 以外（レールノード等の特殊対象）は記録対象外
+2. **撤去**: `DragDeleteSelection.CommitDelete()` がコミットした対象リストを返すよう変更し、呼び出し側の `DeleteObjectService` が `BlockGameObjectChild` 対象から `Position / BlockId / BlockDirection` を控えて `RemoveOperationRecord` として `Push` する（コミット時の楽観的記録。`DeleteAsync` の成否には触れない）。`IDeleteTarget` のうち `BlockGameObjectChild` 以外（レールノード・列車車両等）は記録対象外
 
 ### Undo実行フロー（Ctrl+Z 1回）
 
@@ -93,4 +93,20 @@ Ctrl+Z → BuildUndoService.TryUndo()
 
 - **「設置が全セル失敗した直後のCtrl+Z」**: 履歴には積まれるが、照合ガード（同座標同BlockId現存チェック）が全セル不一致となり、撤去リクエストは1件も発行されない。他人のブロックや地形上の別ブロックを誤爆しない ✓
 - **「設置→他プレイヤーが同座標を撤去→別ブロックを設置→Ctrl+Z」**: BlockId不一致でガードが弾く。ただしBlockIdまで同一の場合は他人のブロックを撤去してしまう。BlockInstanceIdでの照合強化は可能（設置イベントに含まれる）が、fire-and-forget設置では自分の設置とInstanceIdの対応付け自体が座標マッチング頼みになるため、初期実装ではBlockId照合までとする（シングルプレイ主体の現状で許容）
-- **「ドラッグ削除の応答が返り切る前のCtrl+Z」**: RemoveOperationRecordには成功済みセルだけが入っているため、その時点までに成功したセルだけが再設置される。以降に成功した撤去セルはUndo対象から漏れる（許容。撤去応答は通常即時）
+- **「ドラッグ削除の応答が返り切る前のCtrl+Z」**: 撤去イベントが未反映のセルはクライアント上ではまだブロックが存在するため、「座標が空」ガードで再設置がスキップされ、そのセルのUndoは失われる（許容。撤去応答は通常即時であり、誤って二重ブロックが生まれる方向には倒れない）
+- **「撤去に失敗したセル（列車使用中レール・インベントリ満杯）を含むバッチのCtrl+Z」**: 楽観的記録により失敗セルもレコードに入るが、ブロックが現存するため「座標が空」ガードで再設置は発行されない ✓
+
+## 9. 配置と前例（spec-architecture-review済み）
+
+| 配置決定 | 前例（引用） |
+|---|---|
+| 新規5ファイルを `Client.Game/InGame/BlockSystem/PlaceSystem/Undo/` に新設 | PlaceSystem配下のサブディレクトリ構成（`Common/` `Blueprint/` 等） |
+| `BuildUndoService` はUIステートの `GetNextUpdate()` から毎フレーム `ManualUpdate()` で明示駆動し、Ctrl+Z判定はサービス内部に閉じる（ステート側にキー判定を書かない） | `PlaceBlockState`→`PlaceSystemStateController.ManualUpdate()`（制御参加者はステート駆動・入力判定はサービス内部の規約） |
+| `BuildOperationHistory` / `BuildUndoService` はVContainerに `Lifetime.Singleton` 登録し、ステートへコンストラクタ注入 | `MainGameStarter.cs:216-227` の各State登録 |
+| 静的ユーティリティ `PlaceSystemUtil` からの履歴アクセスは `ClientDIContext` の static プロパティ経由 | `ClientDIContext.BlockGameObjectDataStore`（DI解決物のstatic公開の既存前例） |
+| Ctrl+Z検知は `HybridInput.GetKey(修飾キー)+GetKeyDown(KeyCode.Z)` の直接キー参照 | `WebUiCefToggle.cs:34`（Ctrl+I）・`UIRoot.cs:27`（Ctrl+U） |
+| `HybridInput.ToInputSystemKey` に `Z`/`LeftCommand` のマッピング追加（プレイテストDSLのキー注入対応に必須） | 同メソッド内の既存マッピング群 |
+| 新プロトコル・新イベント・サーバー変更なし。Undoは既存 `va:removeBlock` / `va:placeBlock` の逆操作発行のみ | 同期3点セットの適用外（新規サーバー可変状態を作らないため。履歴はクライアントローカルの入力状態） |
+| 通知系の新設なし（UniRx Subject追加不要。ブロックの出現・消滅は既存の `BlockGameObjectDataStore.OnBlockPlaced/OnBlockRemoved` が既に流している） | — |
+
+機能パリティ（死活表）: 本機能は純追加であり、既存の入力キー・UI・遷移はすべて無変更で生存する。Zキー・Ctrl+Z/Cmd+Zの既存割当は無し（grep確認済み。既存のCtrl系はCtrl+I/Ctrl+Uのみ）。`DragDeleteSelection.CommitDelete()` の戻り値変更（void→コミット済みリスト）は既存呼び出し側1箇所・既存テストとも互換。
