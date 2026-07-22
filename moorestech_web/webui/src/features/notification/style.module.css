@@ -1,0 +1,46 @@
+/* 画面左端・上端を画面中央に固定し下方向へ積む。新着(DOM末尾)をcolumn-reverseで常に最上段=中央線に出す */
+/* Pinned to the left edge with the stack top at mid-screen, growing downward; column-reverse keeps the newest (last DOM child) at the top, on the center line */
+.host {
+  position: fixed;
+  top: 50%;
+  left: 1rem;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  z-index: var(--z-toast);
+  pointer-events: none;
+}
+
+/* 研究ノードカード同族の半透明ネイビー面+1px寒色枠（直角・影なし）。文字影は世界が透ける面上の可読性補助 */
+/* Navy-family translucent face with a 1px cool border (square, shadowless), same family as research node cards; the text shadow aids legibility over the see-through face */
+.notification {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  max-width: var(--notification-max-width);
+  background: var(--notification-face);
+  border: 1px solid var(--notification-border);
+  font-size: 15px;
+  line-height: 1.2;
+  letter-spacing: 0.055em;
+  font-weight: 500;
+  color: var(--text-high-contrast);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0.35px 0.35px 0 rgb(0 0 0 / 80%);
+}
+
+/* 操作拒否は共通の警告色で区別する */
+/* Denied operations use the shared warning color */
+.notification[data-category="operationDenied"] {
+  color: var(--text-insufficient);
+}
+
+/* アイテムアイコンは1行の文字高に収める */
+/* Keep the item icon within the single line's text height */
+.icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}

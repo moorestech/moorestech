@@ -1,5 +1,5 @@
 import type { WebSocket } from "ws";
-import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryData, ModalRequest, UiStateData, ResearchTreeData, GameStateData, SkitPresentationData, TrainRidingData, PlayerInventoryData, WorldPinPresentationData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { clone } from "./wire";
 
@@ -28,6 +28,7 @@ export const state = {
   researchTree: clone(fx.researchTree) as ResearchTreeData,
   gameState: clone(fx.gameState) as GameStateData,
   skitPresentation: clone(fx.skitPresentation) as SkitPresentationData,
+  worldPins: clone(fx.worldPins) as WorldPinPresentationData,
   trainRiding: clone(fx.trainRiding) as TrainRidingData,
   topicOverrides: new Map<string, unknown>(),
   injectedActionError: null as { type: string; error: string } | null,

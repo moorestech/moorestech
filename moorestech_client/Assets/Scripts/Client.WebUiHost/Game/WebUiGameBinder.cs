@@ -107,6 +107,10 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, CrosshairView.Instance));
             hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, UIRoot.Instance));
 
+            // 通知トピックを登録
+            // Register the notification topic
+            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub));
+
             // 直接採掘HUDを固定間隔サンプリングTopicへ接続する
             // Connect direct-mining HUD state to a fixed-interval sampled topic
             hub.RegisterTopic(MiningHudTopic.TopicName, new MiningHudTopic(hub, resolver.Resolve<MapObjectMiningController>()));

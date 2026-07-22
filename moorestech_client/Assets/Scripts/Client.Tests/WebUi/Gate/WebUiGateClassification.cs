@@ -83,8 +83,6 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Inventory/Train/TrainInventoryView.cs", Category.GatedRoot, "列車インベントリ (C3)"),
             new Rule("Client.Game/InGame/BackgroundSkit/BackgroundSkitManager.cs", Category.GatedRoot, "背景スキット (C4/S1)"),
             new Rule("Client.Game/Skit/SkitManager.cs", Category.GatedRoot, "通常スキット UI Toolkit 抑止 (C4/S2)"),
-            new Rule("Client.Game/InGame/Tutorial/UIHighlight/UIHighlightTutorialManager.cs", Category.GatedRoot, "DOM UIハイライト (C4/T3)"),
-            new Rule("Client.Game/InGame/Tutorial/UIHighlight/ItemViewHighLightTutorialManager.cs", Category.GatedRoot, "DOM itemハイライト (C4/T3)"),
             new Rule("Client.Game/InGame/Tutorial/KeyControlTutorialManager.cs", Category.GatedRoot, "共通key hint統合 (C4/T4)"),
 
             // --- ルート配下 / Covered by roots
@@ -106,9 +104,8 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.CoveredByRoot, "PauseMenuStateService/NetworkDisconnectPresenterで抑止 (C2)"),
             new Rule("Client.Game/InGame/BackgroundSkit", Category.CoveredByRoot, "BackgroundSkitManagerでWeb文字表示を抑止（音声はUnity維持） (C4/S1)"),
             new Rule("Client.Game/InGame/Mining", Category.Excluded, "ワールド空間表示のためUnity残置。画面固定HUDはWeb側ui.mining_hudで新設 (C2)"),
-            new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.CoveredByRoot, "UIHighlight managerでWeb表示へ切替 (C4/T3)"),
+            new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "uGUIフォールバック撤去済み・DOMハイライト一本化 (C4/T3)"),
             new Rule("Client.Game/InGame/Tutorial/MapObjectPin.cs", Category.Excluded, "ワールド座標ピンのためUnity残置"),
-            new Rule("Client.Game/InGame/Tutorial/HudArrow", Category.Excluded, "Camera依存のワールド矢印のためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialManager.cs", Category.Excluded, "3D配置previewのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/TutorialBlock", Category.Excluded, "3D配置preview配下"),
             new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),

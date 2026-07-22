@@ -54,6 +54,7 @@ using Mod.Loader;
 using Newtonsoft.Json;
 using Server.Event;
 using Server.Event.EventReceive;
+using Server.Event.Notification;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Protocol;
 using Server.Protocol.PacketResponse.Util.InventoryService;
@@ -140,6 +141,7 @@ namespace Server.Boot
             //ゲームプレイに必要なクラスのインスタンスを生成
             // Register gameplay services.
             services.AddSingleton<EventProtocolProvider, EventProtocolProvider>();
+            services.AddSingleton<NotificationService>();
             services.AddSingleton<IWorldSettingsDatastore, WorldSettingsDatastore>();
             services.AddSingleton<IPlayerInventorySlotLevelDataStore, PlayerInventorySlotLevelDataStore>();
             services.AddSingleton<IPlayerInventoryDataStore, PlayerInventoryDataStore>();
@@ -196,6 +198,7 @@ namespace Server.Boot
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
             services.AddSingleton<MasterTickUpdater>();
+            services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
 
             // 乗車コア。実接続レジストリを IPlayerConnectionChecker として共有する。
             // Riding core. Shares the real connection registry as IPlayerConnectionChecker.
@@ -239,6 +242,7 @@ namespace Server.Boot
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
+            services.AddSingleton<AchievementNotificationWiring>();
 
             //データのセーブシステム
             // Register data save helpers.
@@ -255,6 +259,10 @@ namespace Server.Boot
             // The tick order (spec 2.1) lives in MasterTickUpdater; register just that one entry here
             GameUpdater.AdditionalUpdates.Add(serviceProvider.GetRequiredService<MasterTickUpdater>().Update);
 
+            // tick末尾: 予約された破壊を一括確定する。派生する網の再構築は次tick先頭のRebuildIfDirtyに委ねる
+            // Tick end: commit reserved removals in batch; derived network rebuilding is deferred to RebuildIfDirty at the next tick head
+            GameUpdater.TickEndUpdates.Add(serviceProvider.GetRequiredService<IBlockRemovalReservationService>().ApplyReservedRemovals);
+
             //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
             // Create all IBootInitializable implementations and invoke their boot-time Load.
             foreach (var bootInitializable in serviceProvider.GetServices<IBootInitializable>()) bootInitializable.Load();
@@ -262,7 +270,6 @@ namespace Server.Boot
             //IPostLoadInitializable実装は生成のみ行う（Loadは初期ロード完了後にServerInstanceManagerが呼ぶ）
             // IPostLoadInitializable implementations are only created here; ServerInstanceManager invokes their Load after initial load.
             serviceProvider.GetServices<IPostLoadInitializable>();
-
             serverContext.SetMainServiceProvider(serviceProvider);
 
             // MessagePackResolverを登録

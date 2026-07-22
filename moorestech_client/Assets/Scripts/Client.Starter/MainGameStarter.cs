@@ -14,6 +14,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
@@ -225,6 +226,8 @@ namespace Client.Starter
             builder.Register<DebugBlockInfoState>(Lifetime.Singleton);
             builder.Register<TrainHUDScreenState>(Lifetime.Singleton);
             builder.Register<BuildMenuState>(Lifetime.Singleton);
+            builder.Register<BuildOperationHistory>(Lifetime.Singleton);
+            builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
