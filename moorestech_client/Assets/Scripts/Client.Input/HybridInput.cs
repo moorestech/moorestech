@@ -98,6 +98,8 @@ namespace Client.Input
                 KeyCode.F3 => Key.F3,
                 KeyCode.LeftShift => Key.LeftShift,
                 KeyCode.LeftControl => Key.LeftCtrl,
+                KeyCode.LeftCommand => Key.LeftCommand,
+                KeyCode.Z => Key.Z,
                 _ => null,
             };
         }
