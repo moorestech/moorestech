@@ -1,8 +1,9 @@
-/* 画面右上固定。トースト(右下)と重ならない位置。z-indexはtoastと同じ一時オーバーレイ層を共有 */
-/* Pinned to the top-right so it never overlaps the toast (bottom-right); shares the same transient-overlay z-layer as toast */
+/* 画面左端・縦中央固定。中央を基準に上下へスタックする。z-indexはtoastと同じ一時オーバーレイ層を共有 */
+/* Pinned to the left edge, vertically centered; the stack grows around the middle. Shares the transient-overlay z-layer with toast */
 .host {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
   z-index: var(--z-toast);
 }
