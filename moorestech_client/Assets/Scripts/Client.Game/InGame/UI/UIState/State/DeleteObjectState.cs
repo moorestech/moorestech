@@ -1,4 +1,5 @@
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -14,15 +15,16 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly DeleteBarObject _deleteBarObject;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
-        private readonly DeleteObjectService _deleteObjectService = new();
+        private readonly DeleteObjectService _deleteObjectService;
 
         public IObservable<string> OnUnavailableReasonChanged => _deleteObjectService.OnUnavailableReasonChanged;
         public string GetUnavailableReason() => _deleteObjectService.GetUnavailableReason();
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, IPlayerCameraInteractionApplier cameraInteractionApplier)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildOperationHistory buildOperationHistory)
         {
             _deleteBarObject = deleteBarObject;
             _cameraInteractionApplier = cameraInteractionApplier;
+            _deleteObjectService = new DeleteObjectService(buildOperationHistory);
             deleteBarObject.gameObject.SetActive(false);
         }
 

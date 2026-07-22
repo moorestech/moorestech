@@ -82,13 +82,14 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _sessionCategory = null;
         }
 
-        // 選択対象を全て削除しMaterialを戻して選択を空にする（マウス離し操作）
-        // Delete all selected targets, reset materials, then clear selection (mouse release)
-        public void CommitDelete()
+        // 選択対象を全て削除しMaterialを戻して選択を空にする。コミットした対象を履歴記録用に返す
+        // Delete all selected targets, reset materials, clear the selection, and return the committed targets for history recording
+        public List<IDeleteTarget> CommitDelete()
         {
-            if (_canceled) return;
+            if (_canceled) return new List<IDeleteTarget>();
 
-            foreach (var target in _selectedTargets.Values)
+            var committed = new List<IDeleteTarget>(_selectedTargets.Values);
+            foreach (var target in committed)
             {
                 // Delete はサーバー往復の非同期なので即座に赤プレビューだけ戻す
                 // Delete is async over the server, so we just clear the red preview immediately
@@ -98,6 +99,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             _selectedTargets.Clear();
             _sessionCategory = null;
+            return committed;
         }
 
         // キャンセルされていない場合のみ削除確定を許可する
