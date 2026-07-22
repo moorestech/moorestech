@@ -16,6 +16,7 @@ namespace Core.Master.Validator
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
             errorLogs += BlockCategoryReferenceValidation();
+            errorLogs += ReplaceFamilyValidator.Validate(blocks, MasterHolder.BuildMenuCategoryMaster.ReplaceFamilies);
             errorLogs += ConnectorSettingsValidation();
             errorLogs += ConnectorShapeGuidValidation();
             errorLogs += MeshingAxisValidation();

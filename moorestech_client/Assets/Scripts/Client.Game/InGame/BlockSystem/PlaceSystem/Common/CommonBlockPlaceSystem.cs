@@ -140,7 +140,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 // 天面レイヒットで浮いた起点を直下の既存ファミリーブロックへ引き戻して判定する（1x1のみ対象）
                 // Resolve the ray-floated start cell down to the family block below before judging (1x1 blocks only)
-                var startCell = ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, placePoint);
+                var startCell = ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, target.BlockId, placePoint);
                 _isReplaceDrag = holdingBlockMaster.BlockSize == Vector3Int.one
                                  && ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, startCell);
 
@@ -204,7 +204,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // リプレースドラッグ中は終点も直下の既存ファミリーブロックへ引き戻す（通常設置は生placePoint）
                 // During a replace drag, also pull the endpoint down to the family block below (normal placement keeps raw placePoint)
-                var endPoint = _isReplaceDrag ? ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, placePoint) : placePoint;
+                var endPoint = _isReplaceDrag ? ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, target.BlockId, placePoint) : placePoint;
                 _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(startPoint, endPoint, _currentBlockDirection, holdingBlockMaster);
             }
 

@@ -1,5 +1,4 @@
 using Core.Master;
-using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Interface.Extension
 {
@@ -9,14 +8,29 @@ namespace Game.Block.Interface.Extension
     /// </summary>
     public static class BlockReplaceFamilyUtil
     {
-        public static bool IsReplaceFamily(BlockId blockId)
+        public static bool IsSameReplaceFamily(BlockId blockIdA, BlockId blockIdB)
         {
-            // ベルト系3タイプのみ相互リプレース可能とする
-            // Only the three belt-type blocks are mutually replaceable
-            var blockType = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockType;
-            return blockType == BlockMasterElement.BlockTypeConst.BeltConveyor ||
-                   blockType == BlockMasterElement.BlockTypeConst.GearBeltConveyor ||
-                   blockType == BlockMasterElement.BlockTypeConst.FilterSplitter;
+            // 両ブロックが同一のreplaceFamiliesエントリに属する場合のみ相互リプレース可
+            // Mutually replaceable only when both blocks belong to the same replaceFamilies entry
+            var blockGuidA = MasterHolder.BlockMaster.GetBlockMaster(blockIdA).BlockGuid;
+            var blockGuidB = MasterHolder.BlockMaster.GetBlockMaster(blockIdB).BlockGuid;
+
+            // 1ブロック1ファミリー所属はバリデーション済みのため、片方を含む最初のエントリで確定する
+            // One family per block is validated, so the first entry containing either block decides
+            foreach (var family in MasterHolder.BuildMenuCategoryMaster.ReplaceFamilies)
+            {
+                var containsA = false;
+                var containsB = false;
+                foreach (var target in family.TargetBlocks)
+                {
+                    if (target.BlockGuid == blockGuidA) containsA = true;
+                    if (target.BlockGuid == blockGuidB) containsB = true;
+                }
+
+                if (containsA || containsB) return containsA && containsB;
+            }
+
+            return false;
         }
     }
 }
