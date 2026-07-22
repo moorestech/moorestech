@@ -1,0 +1,8 @@
+/* 画面右上固定。トースト(右下)と重ならない位置。z-indexはtoastと同じ一時オーバーレイ層を共有 */
+/* Pinned to the top-right so it never overlaps the toast (bottom-right); shares the same transient-overlay z-layer as toast */
+.host {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: var(--z-toast);
+}
