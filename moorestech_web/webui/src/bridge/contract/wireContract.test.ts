@@ -21,6 +21,7 @@ describe("wire contract fixtures (shared with C#)", () => {
   it("accepts Phase C4 presentation fixtures", () => {
     expect(validateTopicPayload(Topics.gameState, loadFixture("game_state.json"))).toBe(true);
     expect(validateTopicPayload(Topics.tutorialPresentation, loadFixture("tutorial_presentation.json"))).toBe(true);
+    expect(validateTopicPayload(Topics.worldPins, loadFixture("world_pins.json"))).toBe(true);
     expect(validateTopicPayload(Topics.skitPresentation, loadFixture("skit_presentation.json"))).toBe(true);
   });
   it("topic envelope requires a non-negative revision", () => {

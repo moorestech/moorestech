@@ -23,6 +23,7 @@ import {
   TooltipDataSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
+  WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
 } from "./schemas";
@@ -56,6 +57,7 @@ const topicSchemas = {
   [Topics.tooltip]: TooltipDataSchema,
   [Topics.gameState]: GameStateDataSchema,
   [Topics.tutorialPresentation]: TutorialPresentationDataSchema,
+  [Topics.worldPins]: WorldPinPresentationDataSchema,
   [Topics.skitPresentation]: SkitPresentationDataSchema,
   [Topics.trainRiding]: TrainRidingDataSchema,
 } satisfies TopicSchemaRegistry;

@@ -2,7 +2,7 @@ import { Tooltip } from "@mantine/core";
 import type { BuildMenuEntryData } from "@/bridge";
 import { useSlotMouse } from "@/shared/ui";
 import styles from "./style.module.css";
-import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor";
 
 type Props = {
   entry: BuildMenuEntryData;
@@ -22,7 +22,7 @@ export default function BuildMenuSlot({ entry, onLeftClick, onRightClick }: Prop
       <div
         className={styles.slot}
         data-testid={`build-menu-entry-${entry.entryType}-${entry.entryKey}`}
-        {...tutorialAnchor(`build-menu.entry-${entry.entryType}-${entry.entryKey}`.toLowerCase() as AnchorId)}
+        {...tutorialAnchor(buildMenuEntryAnchorId(entry.entryType, entry.entryKey))}
         onMouseDown={slotMouse.onMouseDown}
         onContextMenu={slotMouse.onContextMenu}
       >

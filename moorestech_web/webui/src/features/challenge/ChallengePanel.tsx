@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, Group, Title } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import { TreeView } from "@/shared/treeView";
-import { tutorialAnchor } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { useI18n } from "@/shared/i18n";
 import ChallengeNodeCard from "./ChallengeNodeCard";
 import styles from "./style.module.css";
@@ -19,9 +19,9 @@ export default function ChallengePanel() {
   }, [selected, selectedGuid]);
 
   return (
-    <section className={styles.panel} data-testid="challenge-panel" {...tutorialAnchor("challenge.panel")}>
+    <section className={styles.panel} data-testid="challenge-panel" {...tutorialAnchor(TutorialAnchorIds.challengePanel)}>
       <Title order={2}>{t("challenge.title")}</Title>
-      <Group className={styles.categories} {...tutorialAnchor("challenge.categories")}>
+      <Group className={styles.categories} {...tutorialAnchor(TutorialAnchorIds.challengeCategories)}>
         {categories.map((category) => (
           <Button key={category.guid} variant={category.guid === selected?.guid ? "filled" : "subtle"}
             onClick={() => setSelectedGuid(category.guid)} data-testid={`challenge-category-${category.guid}`}>

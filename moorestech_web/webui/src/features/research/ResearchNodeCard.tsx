@@ -2,7 +2,7 @@ import type { ResearchNodeData } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import { deriveNodeCardState } from "./researchLogic";
 import styles from "./style.module.css";
-import { tutorialAnchor, type AnchorId } from "@/shared/tutorialAnchor";
+import { tutorialAnchor, researchNodeAnchorId } from "@/shared/tutorialAnchor";
 
 type Props = {
   node: ResearchNodeData;
@@ -27,7 +27,7 @@ export default function ResearchNodeCard({ node, left, top, selected, onSelect }
       data-locked={cardState.locked || undefined}
       data-testid={`research-node-${node.guid}`}
       onClick={() => onSelect(node.guid)}
-      {...tutorialAnchor(`research.node-${node.guid}`.toLowerCase() as AnchorId)}
+      {...tutorialAnchor(researchNodeAnchorId(node.guid))}
     >
       <span className={styles.nodeName}>{node.name}</span>
       <ItemSlot itemId={node.iconItemId} />

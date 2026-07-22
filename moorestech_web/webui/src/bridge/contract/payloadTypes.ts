@@ -57,6 +57,7 @@ import type {
   TooltipDataSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
+  WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
   TrainPlatformDataSchema,
@@ -85,6 +86,7 @@ export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
+export type WorldPinPresentationData = z.infer<typeof WorldPinPresentationDataSchema>;
 export type SkitPresentationData = z.infer<typeof SkitPresentationDataSchema>;
 export type TrainRidingData = z.infer<typeof TrainRidingDataSchema>;
 export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
