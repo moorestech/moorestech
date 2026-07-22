@@ -1,12 +1,11 @@
-/* 画面左端・下端を画面中央に固定し上方向へ積む(中央下のキーヒント一覧と重ねない)。z-indexはtoastと同層 */
-/* Pinned to the left edge with the stack bottom at mid-screen, growing upward (clear of the key-hint list below); same z-layer as toast */
+/* 画面左端・上端を画面中央に固定し下方向へ積む。新着(DOM末尾)をcolumn-reverseで常に最上段=中央線に出す */
+/* Pinned to the left edge with the stack top at mid-screen, growing downward; column-reverse keeps the newest (last DOM child) at the top, on the center line */
 .host {
   position: fixed;
   top: 50%;
   left: 1rem;
-  transform: translateY(-100%);
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 10px;
   z-index: var(--z-toast);
   pointer-events: none;
