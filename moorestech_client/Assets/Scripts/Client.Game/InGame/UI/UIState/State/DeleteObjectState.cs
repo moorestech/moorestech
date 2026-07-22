@@ -1,4 +1,5 @@
 using Client.Game.InGame.Train.RailGraph;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -14,15 +15,18 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly DeleteBarObject _deleteBarObject;
         private readonly IPlayerCameraInteractionApplier _cameraInteractionApplier;
 
-        private readonly DeleteObjectService _deleteObjectService = new();
+        private readonly DeleteObjectService _deleteObjectService;
+        private readonly BuildUndoService _buildUndoService;
 
         public IObservable<string> OnUnavailableReasonChanged => _deleteObjectService.OnUnavailableReasonChanged;
         public string GetUnavailableReason() => _deleteObjectService.GetUnavailableReason();
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, IPlayerCameraInteractionApplier cameraInteractionApplier)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, IPlayerCameraInteractionApplier cameraInteractionApplier, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService)
         {
             _deleteBarObject = deleteBarObject;
             _cameraInteractionApplier = cameraInteractionApplier;
+            _deleteObjectService = new DeleteObjectService(buildOperationHistory);
+            _buildUndoService = buildUndoService;
             deleteBarObject.gameObject.SetActive(false);
         }
 
@@ -34,7 +38,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraInteractionApplier.SetCameraRotatable(false);
 
             _deleteBarObject.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
-            KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ");
+            KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nTab: インベントリ\nCtrl+Z: 元に戻す");
         }
 
         public UITransitContext GetNextUpdate()
@@ -51,6 +55,10 @@ namespace Client.Game.InGame.UI.UIState.State
             // 削除インタラクションはサービスに委譲する
             // Delegate the delete interaction to the service
             _deleteObjectService.Update();
+
+            // Ctrl+Z判定はサービス内部
+            // Ctrl+Z detection lives inside the service
+            _buildUndoService.ManualUpdate();
 
             return null;
 
