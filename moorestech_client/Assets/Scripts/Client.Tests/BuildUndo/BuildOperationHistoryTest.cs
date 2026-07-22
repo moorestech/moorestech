@@ -34,9 +34,9 @@ namespace Client.Tests.BuildUndo
                 history.Push(record);
             }
 
-            // 33件Pushすると最初の1件だけが落ち、32件がLIFOで取り出せる
-            // After 33 pushes only the first record is dropped; 32 pop in LIFO order
-            for (var i = 32; i >= 1; i--)
+            // 最古1件だけ落ち32件がLIFOで残る
+            // Only the oldest drops; 32 remain in LIFO order
+            for (var i = 32; 1 <= i; i--)
             {
                 Assert.IsTrue(history.TryPop(out var popped));
                 Assert.AreSame(records[i], popped);

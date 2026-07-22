@@ -23,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
         ///     有効セルが1件以上あるか（空バッチをPushしないためのガード）
         ///     Whether the record has any cells (guards against pushing an empty batch)
         /// </summary>
-        public bool HasCells => _cells.Count > 0;
+        public bool HasCells => 0 < _cells.Count;
 
         public static PlaceOperationRecord CreateFrom(List<PlaceInfo> placeInfos)
         {

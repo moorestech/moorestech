@@ -91,8 +91,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _placeSystemStateController.ManualUpdate();
 
-            // Ctrl+Zで直前の建築操作を取り消す（判定はサービス内部）
-            // Undo the latest build operation on Ctrl+Z (detection lives inside the service)
+            // Ctrl+Z判定はサービス内部
+            // Ctrl+Z detection lives inside the service
             _buildUndoService.ManualUpdate();
 
             // 実設置系と同じ入力でHUDの高さ表示を更新する

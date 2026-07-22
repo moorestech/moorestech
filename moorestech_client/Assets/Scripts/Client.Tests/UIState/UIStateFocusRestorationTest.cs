@@ -76,7 +76,10 @@ namespace Client.Tests.UIState
             SetUpMouseCursorTooltip();
             var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new DeleteObjectState(deleteObject, null, applier, new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null));
+            // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
+            // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
+            var buildOperationHistory = new BuildOperationHistory();
+            var state = new DeleteObjectState(deleteObject, null, applier, buildOperationHistory, new BuildUndoService(buildOperationHistory, null));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             Press(_mouse.rightButton);
             state.GetNextUpdate();
