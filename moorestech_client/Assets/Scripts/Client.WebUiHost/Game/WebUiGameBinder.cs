@@ -107,8 +107,8 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, CrosshairView.Instance));
             hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, UIRoot.Instance));
 
-            // サーバー通知（達成・拒否）をWebへ中継するトピックを登録
-            // Register the topic that relays server notifications (achievement/denied) to the web
+            // 通知トピックを登録
+            // Register the notification topic
             hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub));
 
             // 直接採掘HUDを固定間隔サンプリングTopicへ接続する

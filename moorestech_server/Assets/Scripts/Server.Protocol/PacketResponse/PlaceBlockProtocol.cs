@@ -46,8 +46,8 @@ namespace Server.Protocol.PacketResponse
             // Debug: free block placement toggle (read once to avoid per-cell file IO)
             var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
-            // セル単位のスキップ理由を集約しリクエスト末尾で1回ずつ通知する
-            // Aggregate per-cell skip reasons and notify once per reason at the end of the request
+            // スキップ理由を集約し末尾で通知
+            // Aggregate skip reasons and notify at the end
             var notUnlockedCount = 0;
             var costShortageCount = 0;
             var wireShortageCount = 0;

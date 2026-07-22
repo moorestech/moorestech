@@ -38,8 +38,8 @@ namespace Server.Protocol.PacketResponse
             var playerInventory = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
             var mainInventory = playerInventory.MainOpenableInventory;
 
-            // クラフト不可の理由を判別して通知し中断する
-            // Identify why crafting is impossible, notify the player, and abort
+            // 不可理由を判別し通知して中断
+            // Identify the reason, notify, and abort
             if (!CanInsertResult())
             {
                 _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.craftResultFull", Array.Empty<string>()));
@@ -69,7 +69,6 @@ namespace Server.Protocol.PacketResponse
             // Move the existing IsCraftable's InsertionCheck part verbatim
             bool CanInsertResult()
             {
-                //クラフト結果のアイテムをインサートできるかどうかをチェックする
                 var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.CraftResultItemGuid, craftConfig.CraftResultCount);
                 var resultItemList = new List<IItemStack> { resultItem };
                 return mainInventory.InsertionCheck(resultItemList);
@@ -96,7 +95,6 @@ namespace Server.Protocol.PacketResponse
                     }
                 }
 
-                //クラフトに必要なアイテムを持っているか確認する
                 var checkResult = new Dictionary<ItemId, int>();
                 foreach (var itemStack in mainInventory.InventoryItems)
                 {
@@ -108,7 +106,7 @@ namespace Server.Protocol.PacketResponse
                         checkResult[itemStack.Id] = itemStack.Count;
                 }
 
-                //必要なアイテムを持っていない場合はクラフトできない
+                //所持不足ならクラフト不可
                 foreach (var requiredItem in requiredItems)
                 {
                     if (!checkResult.ContainsKey(requiredItem.Key)) return false;

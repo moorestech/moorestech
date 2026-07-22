@@ -5,15 +5,15 @@ using MessagePack;
 namespace Server.Event.Notification
 {
     /// <summary>
-    /// サーバー内の任意システムからプレイヤー画面へ通知を送る汎用サービス
-    /// Generic service that lets any server system push a notification to the player's screen
+    /// 汎用通知送信サービス
+    /// Generic service that sends notifications
     /// </summary>
     public class NotificationService
     {
         public const string EventTag = "va:event:notification";
 
-        // ブロードキャストのクールダウンキー用の擬似プレイヤーID
-        // Pseudo player id used as the cooldown key for broadcasts
+        // ブロードキャスト用擬似プレイヤーID
+        // Pseudo player id for broadcasts
         private const int BroadcastPlayerId = -1;
 
         private readonly EventProtocolProvider _eventProtocolProvider;

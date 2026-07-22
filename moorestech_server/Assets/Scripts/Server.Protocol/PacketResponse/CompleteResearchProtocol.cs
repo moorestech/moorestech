@@ -29,8 +29,8 @@ namespace Server.Protocol.PacketResponse
             var isSuccess = _researchDataStore.CompleteResearch(request.ResearchGuid, request.PlayerId);
             var nodeStates = _researchDataStore.GetResearchNodeStates(request.PlayerId);
 
-            // 失敗（前提未達・素材不足等）は通知基盤経由でプレイヤーに知らせる
-            // Report failure (prerequisites unmet, materials short, etc.) via the notification service
+            // 失敗は通知基盤で知らせる
+            // Report failure via the notification service
             if (!isSuccess) _notificationService.Notify(request.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", Array.Empty<string>()));
 
             return new ResponseCompleteResearchMessagePack(isSuccess, request.ResearchGuid.ToString(), nodeStates);

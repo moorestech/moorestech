@@ -69,8 +69,8 @@ export const Topics = {
   // プレイテスト要求は snapshot を持たない一時イベントとして扱う
   // Playtest requests are transient events without snapshots
   playtestDomQuery: "playtest.dom_query",
-  // ゲーム内通知（実績・操作拒否）も snapshot を持たない一時イベント
-  // In-game notifications (achievements / operation denials) are also transient events without snapshots
+  // ゲーム内通知も一時イベント
+  // In-game notifications are also transient events
   notification: "notification.events",
 } as const;
 

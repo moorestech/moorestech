@@ -1,7 +1,7 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
-// キーはi18n辞書キーとしても機能する（key=原文運用。{p0}等はparamsで補間）
-// The key doubles as the i18n dictionary key (key-as-source-text); {p0} etc. are filled from params
+// keyはi18n辞書キーも兼ねる（{p0}等はparamsで補間）
+// The key also doubles as the i18n dictionary key; {p0} etc. are filled from params
 const templates: Record<string, string> = {
   "achievement.researchCompleted": "Research completed: {p0}",
   "achievement.challengeCompleted": "Challenge completed: {p0}",
@@ -29,8 +29,8 @@ const templates: Record<string, string> = {
   "denied.railEdit.UnknownError": "Rail edit failed",
 };
 
-// 未知のmessageIdはID文字列をそのまま表示して欠落を可視化する
-// Unknown messageIds fall back to the raw id string to surface gaps
+// 未知IDはそのまま表示し欠落可視化
+// Unknown ids are shown as-is to surface gaps
 export function resolveNotificationTemplate(messageId: string): string {
   return templates[messageId] ?? messageId;
 }
