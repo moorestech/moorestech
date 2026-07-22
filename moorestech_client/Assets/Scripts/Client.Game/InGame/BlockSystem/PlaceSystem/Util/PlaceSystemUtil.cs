@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.SoundEffect;
@@ -151,6 +152,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // セル毎BlockId付きでPlaceInfoをサーバーに送信
             // Send PlaceInfo to server; each cell already carries its own BlockId
             ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
+
+            // Ctrl+Z用に設置バッチを履歴へ記録する（全セル設置不能の空バッチは積まない）
+            // Record the place batch into the undo history for Ctrl+Z (skip empty batches where no cell was placeable)
+            var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
+            if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
+
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
     }
