@@ -10,11 +10,7 @@ namespace Game.Block.Interface
         
         // 手動削除（プレイヤーによる削除）
         // Manual removal (by player)
-        ManualRemove,
-
-        // リプレース設置による置き換え撤去
-        // Removed by replace-placement
-        Replace
+        ManualRemove
     }
 }
 

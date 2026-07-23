@@ -75,24 +75,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfos));
         }
 
-        public static byte[] CreateReplacePayload(BlockId blockId, Vector3Int position, BlockDirection direction)
-        {
-            // リプレースフラグ付きの単一セルペイロードを生成する
-            // Build a single-cell payload flagged for replace placement
-            var placeInfos = new List<PlaceInfo>
-            {
-                new()
-                {
-                    Position = position,
-                    Direction = direction,
-                    VerticalDirection = BlockVerticalDirection.Horizontal,
-                    BlockId = blockId,
-                    IsReplace = true,
-                },
-            };
-            return CreatePlacePayload(placeInfos);
-        }
-
         public static void GrantRequiredItems(ServiceProvider serviceProvider, BlockId blockId, int costSets)
         {
             var inventory = GetInventory(serviceProvider);
@@ -111,29 +93,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             foreach (var requiredItem in blockMaster.RequiredItems)
             {
                 Assert.AreEqual(0, GetItemCount(inventory, requiredItem.ItemGuid));
-            }
-        }
-
-        public static void AssertRequiredItemsCount(ServiceProvider serviceProvider, BlockId blockId, int costSets)
-        {
-            // ブロックの必要素材が指定セット分だけインベントリに存在することを検証する
-            // Assert the block's required items are present in the inventory for the given number of cost sets
-            var inventory = GetInventory(serviceProvider);
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            foreach (var requiredItem in blockMaster.RequiredItems)
-            {
-                Assert.AreEqual(requiredItem.Count * costSets, GetItemCount(inventory, requiredItem.ItemGuid));
-            }
-        }
-
-        public static void OccupyAllInventorySlots(ServiceProvider serviceProvider, ItemId fillerItemId)
-        {
-            // 全スロットをコスト外アイテムで埋め、返却挿入の空きを無くす
-            // Occupy every slot with a non-cost item so no room remains for refund insertion
-            var inventory = GetInventory(serviceProvider);
-            for (var i = 0; i < inventory.GetSlotSize(); i++)
-            {
-                inventory.SetItem(i, ServerContext.ItemStackFactory.Create(fillerItemId, 1));
             }
         }
 

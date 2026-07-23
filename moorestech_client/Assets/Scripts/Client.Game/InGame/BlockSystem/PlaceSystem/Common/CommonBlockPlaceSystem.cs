@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -32,14 +31,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
-        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
         private int _clickStartHeightOffset;
         private List<PlaceInfo> _currentPlaceInfos = new();
         private BlockId? _previousSelectedBlockId;
-        private bool _isReplaceDrag;
 
         private int _heightOffset;
 
@@ -48,7 +45,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
-            _blockGameObjectDataStore = blockGameObjectDataStore;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
             _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore);
         }
@@ -69,7 +65,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // 連続設置状態をリセット
             _clickStartPosition = null;
-            _isReplaceDrag = false;
             _currentPlaceInfos.Clear();
         }
         
@@ -119,7 +114,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 _clickStartPosition = null;
                 _clickStartHeightOffset = _heightOffset;
-                _isReplaceDrag = false;
             }
             _previousSelectedBlockId = target.BlockId;
 
@@ -138,25 +132,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
-                // 天面レイヒットで浮いた起点を直下の既存ファミリーブロックへ引き戻して判定する（1x1のみ対象）
-                // Resolve the ray-floated start cell down to the family block below before judging (1x1 blocks only)
-                var startCell = ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, target.BlockId, placePoint);
-                _isReplaceDrag = holdingBlockMaster.BlockSize == Vector3Int.one
-                                 && ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, startCell);
-
-                // リプレースドラッグ時のみ解決後セルを起点にし、通常設置は従来通り生placePointを使う
-                // Use the resolved cell only for replace drags; normal placement keeps the raw placePoint
-                _clickStartPosition = _isReplaceDrag ? startCell : placePoint;
+                _clickStartPosition = placePoint;
                 _clickStartHeightOffset = _heightOffset;
             }
-
+            
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
-
-            // リプレースドラッグ中は既存ファミリーブロック重なりセルを設置可へ復活させる
-            // During a replace drag, revive cells overlapping an existing family block as placeable
-            if (_isReplaceDrag) MarkReplaceCells();
 
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
@@ -201,24 +183,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             void SetCurrentPlaceInfo()
             {
                 var startPoint = _clickStartPosition ?? placePoint;
-
-                // リプレースドラッグ中は終点も直下の既存ファミリーブロックへ引き戻す（通常設置は生placePoint）
-                // During a replace drag, also pull the endpoint down to the family block below (normal placement keeps raw placePoint)
-                var endPoint = _isReplaceDrag ? ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, target.BlockId, placePoint) : placePoint;
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(startPoint, endPoint, _currentBlockDirection, holdingBlockMaster);
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(startPoint, placePoint, _currentBlockDirection, holdingBlockMaster);
             }
-
-            void MarkReplaceCells()
-            {
-                // 既存ブロック重なりが原因で不可のセルだけをリプレース判定にかける
-                // Only run replace judgement on cells blocked by an overlapping existing block
-                foreach (var info in _currentPlaceInfos)
-                {
-                    if (info.Placeable) continue;
-                    ReplacePlacementJudge.TryMarkReplace(_blockGameObjectDataStore, info);
-                }
-            }
-
+            
             void PlaceBlock()
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
@@ -236,7 +203,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Do not place over UI or without enough wire
                 if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return;
 
-                SendPlaceBlockProtocol(_currentPlaceInfos.Where(info => info.Placeable).ToList());
+                SendPlaceBlockProtocol(_currentPlaceInfos);
 
                 // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the auto-connect evaluation cache

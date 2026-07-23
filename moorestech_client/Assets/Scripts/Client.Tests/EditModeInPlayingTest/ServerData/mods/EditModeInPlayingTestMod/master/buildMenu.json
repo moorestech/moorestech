@@ -85,31 +85,6 @@
       ]
     }
   ],
-  "replaceFamilies": [
-    {
-      "familyName": "ベルトコンベア",
-      "targetBlocks": [
-        {
-          "blockGuid": "67255c7b-135d-4c46-95e8-fcf01f151580"
-        },
-        {
-          "blockGuid": "11c8a7c9-b4c9-41c6-b52e-4f7b78d7e51d"
-        },
-        {
-          "blockGuid": "c568f762-ee82-4e5f-8c80-0d70e3cbd8a2"
-        },
-        {
-          "blockGuid": "1833dd62-501a-403d-812f-334ecdc47fd0"
-        },
-        {
-          "blockGuid": "34e6a343-8b3a-4cee-80ef-7bc16a5ae6d0"
-        },
-        {
-          "blockGuid": "24d1bb84-d44a-43e6-8c78-d886c140085f"
-        }
-      ]
-    }
-  ],
   "connectTools": [
     {
       "connectToolGuid": "c0000000-0000-0000-0000-000000000001",
