@@ -28,9 +28,10 @@ You MUST create a task for each of these items and complete them in order:
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **Generate review infographic** — invoke the create-infographic-light skill on the spec (and the plan, once written) and `open` it, so the user can review visually and attach comments
-9. **User reviews written spec** — ask user to review the spec file before proceeding
-10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+8. **Lens review + 判断記録（ADR）** — invoke the spec-plan-review skill (spec mode): parallel観点別レンズでCriticalを修正し、C型裁定・B型前提宣言を `## 判断記録（ADR）` セクションとしてspec末尾に記録する
+9. **Generate review infographic** — invoke the create-infographic-light skill on the spec (and the plan, once written) and `open` it, so the user can review visually and attach comments
+10. **User reviews written spec** — ask user to review the spec file before proceeding
+11. **Transition to implementation** — invoke writing-plans skill to create implementation plan
 
 ## Process Flow
 
@@ -53,8 +54,10 @@ digraph brainstorming {
     "User approves design?" -> "Present design sections" [label="no, revise"];
     "User approves design?" -> "Write design doc" [label="yes"];
     "Write design doc" -> "Spec self-review\n(fix inline)";
+    "Lens review + ADR\n(spec-plan-review)" [shape=box];
     "Generate review infographic\n(create-infographic-light)" [shape=box];
-    "Spec self-review\n(fix inline)" -> "Generate review infographic\n(create-infographic-light)";
+    "Spec self-review\n(fix inline)" -> "Lens review + ADR\n(spec-plan-review)";
+    "Lens review + ADR\n(spec-plan-review)" -> "Generate review infographic\n(create-infographic-light)";
     "Generate review infographic\n(create-infographic-light)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
@@ -130,6 +133,12 @@ After writing the spec document, look at it with fresh eyes:
 5. **Evidence scope check:** Every "verified/tested/実装済み" claim must not exceed what was actually checked — write "X is tested" only if a test exercises X itself; if it's a sibling going through the same path, say that instead (e.g. "same code path is tested with a machine block, chest itself untested").
 
 Fix any issues inline. No need to re-review — just fix and move on.
+
+**Lens Review + 判断記録（ADR）(required):**
+Self-Review（内容）と spec-architecture-review（構造）の後、インフォグラフィック生成の**前**に spec-plan-review スキルを実行する（spec mode）:
+
+- 観点別レンズ（複雑性の封じ込め・真実源一元化・前提裏取り・スコープ確定）をサブエージェント並列で発火し、Criticalをインライン修正、設計判断はAskUserQuestionで裁定を得る。レンズ起動時はmodelを必ず明示（Fable継承禁止）。
+- spec末尾に `## 判断記録（ADR）` セクションを置き、対話中のC型ユーザー裁定（AskUserQuestion結果は全件）・B型前提宣言（適用原則名付き）・機構比較の結論を記録する。書式は spec-plan-review スキルのADR仕様が正。判断をdiffやコミットメッセージに埋没させない。
 
 **Review Infographic (required):**
 After the spec review loop passes, invoke the create-infographic-light skill (in this repo: `.claude/skills/create-infographic-light`) with the spec as the source document, and `open` the generated HTML. The user reviews the spec through the infographic and can attach comments via its comment feature ("すべてコピー" Markdown gets pasted back for you to apply). Do the same for the implementation plan after writing-plans completes.
