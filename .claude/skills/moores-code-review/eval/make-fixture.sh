@@ -15,8 +15,14 @@ gen() {
     local label="$1" review="$2" merge="$3"
     # マージコミットの第1親=当時のベース先端。そのfork点からreview時点までがPR diff
     # First parent of the merge commit = base tip at merge; diff from its fork point to the reviewed commit
+    # 未マージPRは merge 列に base=<commit> でベースを直指定する
+    # For unmerged PRs, the merge column carries base=<commit> to pin the base directly
     local base
-    base=$(git merge-base "${merge}^1" "$review")
+    if [[ "$merge" == base=* ]]; then
+        base="${merge#base=}"
+    else
+        base=$(git merge-base "${merge}^1" "$review")
+    fi
     git diff "$base" "$review" > "$OUT_DIR/$label.diff"
     echo "$OUT_DIR/$label.diff ($(wc -l < "$OUT_DIR/$label.diff") lines)"
 }

@@ -81,3 +81,15 @@
 | # | 指摘 | 対象 | 検出器 |
 |---|---|---|---|
 | 27 | set-once依存EventSinkの可変setter注入（生成直後1回のみ・不変条件がコメント頼み）をコンストラクタ注入へ | PacketResponseContext.cs:53（SetEventSink）/ ServerListenAcceptor.cs:36 | set-once-dependency-injection |
+
+## pr1045（人間レビューコメント 2026-07-22・未マージのためbase直指定fixture）
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 28 | マーカーinterface＋型switchでなくUndoAsyncの多態化 | BuildUndoService.cs / IBuildOperationRecord.cs | type-driven-structure（基準5）。「spec記載＝合意」シールドで抑制されないこと（合意ガード） |
+| 29 | CommitDelete戻り値廃止・履歴記録をCommitDelete内部へ（最終形はRemoveOperationRecord.CreateFrom化＝5f1876cda。「ビュー結合増」却下より兄弟型対称が優先） | DragDeleteSelection.cs / DeleteObjectService.cs | core-cs-caller-orchestration-minimization（基準4＋移動先判定手続き） |
+| 30 | DI分割コミットのrevert | MainGameStarter.cs | （検出対象外＝スコープ規律。検出系統が未実装） |
+| 31 | _isUndoing解放が復元観測前（連続Undo競合） | RemoveOperationRecord.cs:47 | （検出対象外＝CodeRabbit検出。非同期再入reviewerは未実装） |
+| 32 | 兄弟型API対称化: RemoveOperationRecordをCreateFrom(List\<IDeleteTarget\>)+HasCells形式へ（fixture: pr1045-r2） | RemoveOperationRecord.cs:21 / DragDeleteSelection.cs:116-131 | precedent-alignment（兄弟型間API形状非対称基準） |
+
+注: #28/#29は最低ラインが `設計判断: あり`（AskUserQuestion送り）。Criticalでも可。備考落ち・シロ判定はリプレイ失敗。
