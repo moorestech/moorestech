@@ -1,0 +1,44 @@
+diff --git a/soundtrack_engine/Assets/Scripts/Audio.Playback/TrackPlayerSelector.cs b/soundtrack_engine/Assets/Scripts/Audio.Playback/TrackPlayerSelector.cs
+new file mode 100644
+index 000000000..b2c3d4e5f
+--- /dev/null
++++ b/soundtrack_engine/Assets/Scripts/Audio.Playback/TrackPlayerSelector.cs
+@@ -0,0 +1,34 @@
++using Audio.Catalog;
++using Soundmaster.Model.TracksModule;
++
++namespace Audio.Playback
++{
++    /// <summary>
++    /// トラック種別ごとに再生プレイヤー実装を振り分ける
++    /// Routes each track kind to its player implementation
++    /// </summary>
++    public class TrackPlayerSelector
++    {
++        private readonly LoopingTrackPlayer _loopPlayer;
++        private readonly OneShotTrackPlayer _stingerPlayer;
++        private readonly FallbackTrackPlayer _defaultPlayer;
++
++        public TrackPlayerSelector(LoopingTrackPlayer loopPlayer, OneShotTrackPlayer stingerPlayer, FallbackTrackPlayer defaultPlayer)
++        {
++            _loopPlayer = loopPlayer;
++            _stingerPlayer = stingerPlayer;
++            _defaultPlayer = defaultPlayer;
++        }
++
++        public ITrackPlayer SelectPlayer(TrackId trackId)
++        {
++            // 種別ごとの再生実装へ振り分ける
++            // Dispatch to the player implementation per kind
++            var trackKind = CatalogHolder.TrackCatalog.GetTrackEntry(trackId).TrackKind;
++            return trackKind switch
++            {
++                TrackEntryElement.TrackKindConst.ForestLoop => _loopPlayer,
++                TrackEntryElement.TrackKindConst.CaveLoop => _loopPlayer,
++                TrackEntryElement.TrackKindConst.BattleStinger => _stingerPlayer,
++                TrackEntryElement.TrackKindConst.MenuJingle => _stingerPlayer,
++                _ => _defaultPlayer
++            };
++        }
++    }
++}
