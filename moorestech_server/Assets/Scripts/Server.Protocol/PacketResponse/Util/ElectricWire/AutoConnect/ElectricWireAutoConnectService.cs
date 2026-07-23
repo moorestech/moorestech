@@ -27,12 +27,13 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
         public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
 
             // 電柱設置か機械/発電機設置かで対象選定ロジックが異なる
             // Target selection differs between pole placement and machine/generator placement
             var candidates = blockMaster.BlockParam is ElectricPoleBlockParam poleParam
-                ? ElectricWireAutoConnectTargetCollector.CollectPoleTargets(poleParam, position)
-                : CollectMachineTargets(blockMaster, position, direction);
+                ? ElectricWireAutoConnectTargetCollector.CollectPoleTargets(poleParam, ownInfo)
+                : CollectMachineTargets(blockMaster, ownInfo);
 
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
@@ -54,14 +55,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 
             #region Internal
 
-            List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement master, Vector3Int pos, BlockDirection dir)
+            List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement master, BlockPositionInfo info)
             {
                 // 自身の接続容量が0なら探索するまでもなく対象なし
                 // No point searching when this block has zero connection capacity
-                if (!ElectricWireBlockParamResolver.TryGetWireParam(master.BlockParam, out var ownCapacity, out var ownMaxWireLength) || ownCapacity <= 0)
+                if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(master.BlockParam, out var ownCapacity, out _, out _) || ownCapacity <= 0)
                     return new List<(BlockInstanceId, IElectricWireConnector, float)>();
 
-                return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, pos, dir, ownMaxWireLength);
+                return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, info);
             }
 
             // 距離を満たすconnectToolをSortPriority昇順で探す

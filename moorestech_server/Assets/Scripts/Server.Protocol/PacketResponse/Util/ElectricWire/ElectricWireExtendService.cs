@@ -97,7 +97,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
                 // 起点接続で1本使う前提で残り本数まで未接続機械を収集する
                 // Collect unconnected machines up to remaining capacity, accounting for the origin wire slot
-                var machineTargets = ElectricWireAutoConnectTargetCollector.CollectPoleMachineTargets(poleParam, polePlaceInfo.Position, 1);
+                var poleGhostInfo = new BlockPositionInfo(polePlaceInfo.Position, polePlaceInfo.Direction, blockMaster.BlockSize);
+                var machineTargets = ElectricWireAutoConnectTargetCollector.CollectPoleMachineTargets(poleParam, poleGhostInfo, 1);
                 foreach (var machineTarget in machineTargets)
                 {
                     // 起点自身が未接続機械として再収集された場合は除外する（二重接続・二重計上の防止）
