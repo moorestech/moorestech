@@ -15,3 +15,4 @@
 | 2026-07-09 | #996 | 3 | F1×2, F2×1 | 0（ハーネス導入前） | - | ベースライン。god-context・DTO配置 |
 | 2026-07-09 | #1000 | 1 | F1×1 | 0（ハーネス導入前） | - | ベースライン。委譲漏れ重複 |
 | 2026-07-22 | #1045 | 7 | 裁定翻意×2(多態化/DI分割), 設計趣向×3(呼出元最小・CreateFrom対称), 派生×2 | 1（多態化はarchitecture-lifecycleが検出→誤推奨で現状維持裁定→翻意） | 1（region-internal） | [記録](../records/2026-07-22-build-undo-ctrl-z.md)。事後にレンズ改修＋リプレイで②〜⑦全件検知化 |
+| 2026-07-23 | replace-family(セッション指摘) | 1 | F1×1(同dirマスタ駆動前例からの無言乖離) | 二値契約時代のリプレイでopus/sonnet9系統+Codex素通し・fable precedent-alignmentの設計判断出口のみ検知 | - | 対策: 3段階セベリティ化＋hardcoded-content-enumeration(opus)新設。3段階検証合格(selector発火/由来diffサニティCritical/ブラインド陽陰2026-07-23 opus) |
