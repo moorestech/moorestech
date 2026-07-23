@@ -1,17 +1,21 @@
+using System.IO;
 using System.Threading;
 using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
 
 namespace Game.SaveLoad
 {
     public sealed class WorldSaveCoordinator : IWorldSaveRequest
     {
-        private readonly IWorldSaveDataSaver _worldSaveDataSaver;
+        private readonly AssembleSaveJsonText _assembleSaveJsonText;
+        private readonly SaveJsonFilePath _filePath;
         private long _requestedGeneration;
         private long _completedGeneration;
 
-        public WorldSaveCoordinator(IWorldSaveDataSaver worldSaveDataSaver)
+        public WorldSaveCoordinator(SaveJsonFilePath filePath, AssembleSaveJsonText assembleSaveJsonText)
         {
-            _worldSaveDataSaver = worldSaveDataSaver;
+            _filePath = filePath;
+            _assembleSaveJsonText = assembleSaveJsonText;
         }
 
         public void RequestSave()
@@ -28,9 +32,33 @@ namespace Game.SaveLoad
 
             // 保存が完了した場合だけ、固定した要求番号までを処理済みにする
             // Mark only the frozen generation complete after the save operation succeeds
-            _worldSaveDataSaver.Save();
+            Save();
             Volatile.Write(ref _completedGeneration, targetGeneration);
             UnityEngine.Debug.Log("ワールドを保存しました");
+        }
+
+        private void Save()
+        {
+            // 書き込み途中のクラッシュでセーブが破損しないようアトミックに書き込む
+            // Write atomically so a mid-write crash cannot corrupt the save file
+            var targetPath = _filePath.Path;
+            var tmpPath = targetPath + ".tmp";
+            var backupPath = targetPath + ".bak";
+
+            // まず一時ファイルへ全内容を書き切る
+            // First write the full contents to a temporary file
+            File.WriteAllText(tmpPath, _assembleSaveJsonText.AssembleSaveJson());
+
+            // 既存ファイルがあれば直前バックアップ付きで置換、無ければ単純に移動
+            // Replace existing file with a prior-version backup, or move directly on first save
+            if (File.Exists(targetPath))
+            {
+                File.Replace(tmpPath, targetPath, backupPath);
+            }
+            else
+            {
+                File.Move(tmpPath, targetPath);
+            }
         }
     }
 }
