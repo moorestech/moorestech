@@ -54,12 +54,12 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 電線不足の延長は失敗し状態が一切変化しない()
         {
-            // 必要数6に対して電線を3本しか持たない
-            // Hold only three wires against the required six
+            // 範囲内座標(起点距離3+機械距離2=必要数5)に対して電線を3本しか持たず、範囲判定を通過した上で電線不足に到達させる
+            // Use in-range coordinates (origin distance 3 + machine distance 2 = required 5) with only 3 wires, so the range check passes and the wire shortage path is reached
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var fromPos = Vector3Int.zero;
-            var newPolePos = new Vector3Int(4, 0, 0);
-            var machinePos = new Vector3Int(6, 0, 0);
+            var newPolePos = new Vector3Int(3, 0, 0);
+            var machinePos = new Vector3Int(5, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 
@@ -67,6 +67,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var response = SendExtend(fromPos, newPolePos, ForUnitTestModBlockId.ElectricPoleId);
 
             Assert.IsFalse(response.IsSuccess);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.NoWireItem, response.FailureReason);
             Assert.IsFalse(worldBlockDatastore.Exists(newPolePos));
             Assert.AreEqual(1, CountItem(inventory, _materialItemId));
             Assert.AreEqual(3, CountItem(inventory, _wireItemId));
