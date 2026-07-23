@@ -289,6 +289,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
       - when: ElectricPole
         type: object
         properties:
@@ -377,6 +383,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
       - when: ElectricMiner
         type: object
         implementationInterface:
@@ -402,6 +414,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
       - when: Gear
         type: object
         implementationInterface:
@@ -877,6 +895,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
       - when: GearToElectricGenerator
         type: object
         implementationInterface:
@@ -898,6 +922,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
       - when: ElectricToGearGenerator
         type: object
         implementationInterface:
@@ -928,6 +958,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
       - when: FilterSplitter
         type: object
         implementationInterface:
@@ -980,6 +1016,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
       - when: CleanRoomMachine
         type: object
         implementationInterface:
@@ -1020,6 +1062,12 @@ properties:
         - key: maxWireLength
           type: number
           default: 8
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
 
 # ベルトコンベアの設置ファミリー定義。1エントリが直線と任意の上り/下りからなる1つの敷設グループを表す。
 # Belt conveyor placement families; each entry groups one straight block with optional up/down blocks.

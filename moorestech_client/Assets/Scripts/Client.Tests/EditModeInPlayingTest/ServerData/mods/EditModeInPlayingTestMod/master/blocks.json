@@ -33,7 +33,9 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "maxWireLength": 8,
+        "connectionRange": 30,
+        "connectionHeightRange": 20
       },
       "blockGuid": "3d3fdac0-4dce-4bd0-adda-827a3b67feb9",
       "blockPrefabAddressablesPath": "Vanilla/Block/campfier",
@@ -519,7 +521,9 @@
         "outputTankCount": 0,
         "inputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "maxWireLength": 8,
+        "connectionRange": 30,
+        "connectionHeightRange": 20
       },
       "blockGuid": "95932dae-27c5-48b1-a4fe-dd5b08f32945",
       "blockPrefabAddressablesPath": "Vanilla/Block/Charcoal_Kiln",
@@ -2424,7 +2428,9 @@
           ]
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "maxWireLength": 8,
+        "connectionRange": 30,
+        "connectionHeightRange": 20
       },
       "blockGuid": "00000000-0000-0000-0000-0000000000a1",
       "blockPrefabAddressablesPath": "Vanilla/Block/Shaft Box",
