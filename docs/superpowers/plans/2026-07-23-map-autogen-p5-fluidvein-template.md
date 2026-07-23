@@ -9,7 +9,7 @@
 **Tech Stack:** Unity 6 / C# / NUnit / jq（実データ検証）
 
 **親スペック:** `docs/plans/map-autogen-world-design.md` §2（流体鉱脈）§6 P5行
-**前提:** P1〜P3完了・masterマージ済み（P4とは独立）。作業ブランチ: `feat/map-autogen-p5`
+**前提:** P1〜P3完了・masterマージ済み（P4は凍結済み・依存なし。generatedワールドの起動はCLI引数/エディタ経由）。作業ブランチ: `feat/map-autogen-p5`
 
 ## Global Constraints
 
@@ -48,7 +48,7 @@
 | 現在使える操作 | P5後 | 根拠 |
 |---|---|---|
 | 現行v8マップのポンプ採取（fluidVeins 383件） | 生存 | templateモードのmap.jsonは無変更コピー |
-| generatedワールドのポンプ採取 | **新規に生存** | 本プランの成果。P4までは generated に流体鉱脈が無かった |
+| generatedワールドのポンプ採取 | **新規に生存** | 本プランの成果。P3完了時点では generated に流体鉱脈が無かった |
 | 既存テスト群 | 生存 | 既存Datastore/ブロック機構は無改修 |
 
 ---
