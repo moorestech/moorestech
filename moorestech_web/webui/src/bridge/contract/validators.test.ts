@@ -10,7 +10,7 @@ const openBase = {
 describe("placement mode schema", () => {
   it("requires every HUD field", () => {
     expect(validateTopicPayload(Topics.placementMode, {
-      selectedName: "Conveyor Belt", height: 2, unavailableReason: "", energizedRangeVisible: true,
+      selectedName: "Conveyor Belt", height: 2, unavailableReason: "",
     })).toBe(true);
     expect(validateTopicPayload(Topics.placementMode, { selectedName: "Conveyor Belt" })).toBe(false);
   });
