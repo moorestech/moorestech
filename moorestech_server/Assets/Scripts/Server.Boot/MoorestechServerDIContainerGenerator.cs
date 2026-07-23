@@ -209,7 +209,6 @@ namespace Server.Boot
             //JSONファイルのセーブシステムの読み込み
             // Register JSON save system services.
             services.AddSingleton(modResource);
-            services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(options.saveJsonFilePath);
             // セーブ要求（オートセーブ・クライアント要求）はcoordinatorへ集約し、実行はtick末尾の安定点のみ

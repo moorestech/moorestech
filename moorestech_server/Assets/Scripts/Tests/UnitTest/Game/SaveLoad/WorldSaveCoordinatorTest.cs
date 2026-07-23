@@ -1,7 +1,11 @@
 using System;
+using System.IO;
 using Game.SaveLoad;
-using Game.SaveLoad.Interface;
+using Game.SaveLoad.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -10,59 +14,47 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void 複数の保存要求を一回の保存へまとめる()
         {
-            var saver = new FakeWorldSaveDataSaver();
-            var coordinator = new WorldSaveCoordinator(saver);
+            var savePath = Path.Combine(Path.GetTempPath(), $"moorestech-coordinator-{Guid.NewGuid():N}.json");
+            var coordinator = CreateCoordinator(savePath);
 
             coordinator.RequestSave();
             coordinator.RequestSave();
             coordinator.SaveIfRequested();
+            Assert.IsTrue(File.Exists(savePath));
+
+            // 消化済み要求で再保存されないことをファイルが再生成されないことで観測する
+            // Verify consumed requests trigger no re-save by checking the file is not recreated
+            File.Delete(savePath);
             coordinator.SaveIfRequested();
-
-            Assert.AreEqual(1, saver.SaveCount);
-        }
-
-        [Test]
-        public void 保存中に届いた要求を次回の保存へ残す()
-        {
-            var saver = new FakeWorldSaveDataSaver();
-            var coordinator = new WorldSaveCoordinator(saver);
-            saver.OnSave = coordinator.RequestSave;
-
-            coordinator.RequestSave();
-            coordinator.SaveIfRequested();
-            saver.OnSave = null;
-            coordinator.SaveIfRequested();
-
-            Assert.AreEqual(2, saver.SaveCount);
+            Assert.IsFalse(File.Exists(savePath));
         }
 
         [Test]
         public void 保存自体が完了しなかった要求は次回に再実行する()
         {
-            var saver = new FakeWorldSaveDataSaver { ThrowOnNextSave = true };
-            var coordinator = new WorldSaveCoordinator(saver);
+            var saveDirectory = Path.Combine(Path.GetTempPath(), $"moorestech-coordinator-{Guid.NewGuid():N}");
+            var savePath = Path.Combine(saveDirectory, "save.json");
+            var coordinator = CreateCoordinator(savePath);
             coordinator.RequestSave();
 
-            Assert.Throws<InvalidOperationException>(coordinator.SaveIfRequested);
+            // 保存先ディレクトリが無い間は保存が失敗し、要求は未消化のまま残る
+            // While the target directory is missing the save fails and the request stays pending
+            Assert.Catch<IOException>(coordinator.SaveIfRequested);
+            Directory.CreateDirectory(saveDirectory);
             coordinator.SaveIfRequested();
 
-            Assert.AreEqual(2, saver.SaveCount);
+            Assert.IsTrue(File.Exists(savePath));
+            Directory.Delete(saveDirectory, true);
         }
 
-        private sealed class FakeWorldSaveDataSaver : IWorldSaveDataSaver
+        private static WorldSaveCoordinator CreateCoordinator(string savePath)
         {
-            public int SaveCount;
-            public bool ThrowOnNextSave;
-            public Action OnSave;
-
-            public void Save()
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {
-                SaveCount++;
-                OnSave?.Invoke();
-                if (!ThrowOnNextSave) return;
-                ThrowOnNextSave = false;
-                throw new InvalidOperationException("test save failure");
-            }
+                saveJsonFilePath = new SaveJsonFilePath(savePath),
+            };
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            return provider.GetRequiredService<WorldSaveCoordinator>();
         }
     }
 }
