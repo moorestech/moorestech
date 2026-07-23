@@ -10,3 +10,4 @@ pr1000	081704ebc	df594e403	PR1000 GearChainPole重複・_gearService委譲 comme
 # pr1027	35766cfdd	<merge_commit>	PR1027 SetEventSinkのset-once setter注入（マージ後にmerge_commit埋めて有効化）
 pr1045	c628856aa	base=353c29f50	PR1045 Ctrl+Zアンドゥ（型switch多態化・CommitDelete戻り値・spec合意シールド）未マージのためbase直指定
 pr1045-r2	96da28855	base=353c29f50	PR1045第2ラウンド（兄弟型API対称CreateFrom化・コメント#7時点の状態）
+replace-family	fc61eaa5e	698bf36b9	リプレースファミリーBlockType列挙（マスタ移行3ad0cd5c0の前状態）hardcoded-content-enumeration由来

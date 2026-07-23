@@ -82,6 +82,29 @@ digraph process {
 }
 ```
 
+## Final Whole-Branch Review Is a Mandatory, Automatic Gate
+
+The final moores-code-review pass runs **automatically, unconditionally, and
+without asking**, the moment the last task completes. It is part of this
+process, not part of the goal statement:
+
+- A goal phrased as "playtestまで実行", "テストが通るまで", or any other
+  milestone does **not** exempt the review. Goal wording bounds the feature
+  work; it never bounds this gate. Reasoning "the goal boundary was reached,
+  the review is a next step" is explicitly forbidden — that exact reasoning
+  let a plan-mandated hardcode (`BlockReplaceFamilyUtil`, replace-family
+  BlockType列挙) ship unreviewed and get caught by the human instead
+  (reworked in `3ad0cd5c0`).
+- Never end the session with "moores-code-review 1パス推奨です・必要なら実行
+  します". Recommending the review instead of running it counts as skipping
+  it.
+- The only way to skip: the human explicitly says to skip it, in their own
+  words, this session. Record that instruction in the progress ledger.
+- When writing or reviewing a plan, make sure its task list ends with an
+  explicit final task: 「必ず最後にmoores-code-reviewスキルで全ブランチ
+  レビューを実行する」. If the plan lacks it, add it to your todo list
+  yourself — a missing task line does not waive the gate.
+
 ## Pre-Flight Plan Review
 
 Before dispatching Task 1, scan the plan once for conflicts:
@@ -209,7 +232,9 @@ final whole-branch review. When you fill a reviewer template:
   Do not dismiss the finding because the plan mandates it, and do not
   dispatch a fix that contradicts the plan without asking.
 - The final whole-branch review is the **moores-code-review skill** (invoke it
-  via the Skill tool, not a single reviewer subagent): it runs the
+  via the Skill tool, not a single reviewer subagent), and it is a mandatory
+  automatic gate — see "Final Whole-Branch Review Is a Mandatory, Automatic
+  Gate" above. It runs the
   deterministic checks plus the moorestech design lenses in parallel and
   integrates the findings. Generate the branch diff first with
   `scripts/review-package MERGE_BASE HEAD` (MERGE_BASE = the commit the
