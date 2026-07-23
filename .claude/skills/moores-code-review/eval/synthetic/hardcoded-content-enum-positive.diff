@@ -1,0 +1,42 @@
+diff --git a/soundtrack_engine/Assets/Scripts/Audio.Playback/Extension/AmbientLoopTrackUtil.cs b/soundtrack_engine/Assets/Scripts/Audio.Playback/Extension/AmbientLoopTrackUtil.cs
+new file mode 100644
+index 000000000..a1b2c3d4e
+--- /dev/null
++++ b/soundtrack_engine/Assets/Scripts/Audio.Playback/Extension/AmbientLoopTrackUtil.cs
+@@ -0,0 +1,22 @@
++using Audio.Catalog;
++using Soundmaster.Model.TracksModule;
++
++namespace Audio.Playback.Extension
++{
++    /// <summary>
++    /// 環境ループ再生で自動フェード対象になるトラック判定
++    /// Determines tracks eligible for auto-fade ambient looping
++    /// </summary>
++    public static class AmbientLoopTrackUtil
++    {
++        public static bool IsAmbientLoopTrack(TrackId trackId)
++        {
++            // 環境系3種のみ自動フェード対象とする
++            // Only the three ambient kinds are auto-fade eligible
++            var trackKind = CatalogHolder.TrackCatalog.GetTrackEntry(trackId).TrackKind;
++            return trackKind == TrackEntryElement.TrackKindConst.ForestLoop ||
++                   trackKind == TrackEntryElement.TrackKindConst.CaveLoop ||
++                   trackKind == TrackEntryElement.TrackKindConst.OceanLoop;
++        }
++    }
++}
+diff --git a/soundtrack_engine/Assets/Scripts/Audio.Playback/AmbientFadeService.cs b/soundtrack_engine/Assets/Scripts/Audio.Playback/AmbientFadeService.cs
+index 1234567ab..89abcdef0 100644
+--- a/soundtrack_engine/Assets/Scripts/Audio.Playback/AmbientFadeService.cs
++++ b/soundtrack_engine/Assets/Scripts/Audio.Playback/AmbientFadeService.cs
+@@ -18,6 +18,10 @@ namespace Audio.Playback
+         public bool TryBeginAutoFade(TrackId currentTrackId, TrackId nextTrackId)
+         {
++            // 両トラックが自動フェード対象のときだけクロスフェードする
++            // Cross-fade only when both tracks are auto-fade eligible
++            if (!AmbientLoopTrackUtil.IsAmbientLoopTrack(currentTrackId)) return false;
++            if (!AmbientLoopTrackUtil.IsAmbientLoopTrack(nextTrackId)) return false;
+             _fadeMixer.BeginCrossFade(currentTrackId, nextTrackId);
+             return true;
+         }
