@@ -49,10 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 var isGroundDetected = previewBlock.IsCollisionGround;
                 isGroundDetectedList.Add(isGroundDetected);
 
-                // 地面接触時は設置不可扱いとして色分岐に渡す
-                // Treat ground-collided cells as not placeable when deciding preview color
-                var groundAwarePlaceInfo = new PlaceInfo { Placeable = !isGroundDetected && placeInfo.Placeable, IsReplace = placeInfo.IsReplace };
-                previewBlock.SetPreviewColor(groundAwarePlaceInfo);
+                previewBlock.SetPlaceableColor(!isGroundDetected && placeInfo.Placeable);
                 previewBlock.SetPreviewStateDetail(placeInfo);
             }
 
@@ -63,7 +60,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         {
             for (var i = 0; i < _activePreviewBlocks.Count && i < placeInfos.Count; i++)
             {
-                _activePreviewBlocks[i].SetPreviewColor(placeInfos[i]);
+                _activePreviewBlocks[i].SetPlaceableColor(placeInfos[i].Placeable);
             }
         }
 

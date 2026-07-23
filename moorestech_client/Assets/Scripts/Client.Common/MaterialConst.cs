@@ -18,9 +18,6 @@ namespace Client.Common
         public const string PreviewColorPropertyName = "_PreviewColor";
         public static readonly Color PlaceableColor = new(0.41f,0.59f,0.86f,1f);
         public static readonly Color NotPlaceableColor = new(0.9f,0.25f,0.16f,1);
-        // リプレース設置対象セル用のシアン系プレビュー色
-        // Cyan preview color for replace-target cells
-        public static readonly Color ReplacePreviewColor = new(0.3f,0.8f,1f,1f);
 
         public static Material GetPreviewPlaceBlockMaterial()
         {

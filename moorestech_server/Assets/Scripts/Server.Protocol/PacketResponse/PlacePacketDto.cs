@@ -23,8 +23,6 @@ namespace Server.Protocol.PacketResponse
         [Key(4)] public int BlockIdInt { get; set; }
         [IgnoreMember] public BlockId BlockId => new(BlockIdInt);
 
-        [Key(5)] public bool IsReplace { get; set; }
-
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PlaceInfoMessagePack() { }
 
@@ -35,7 +33,6 @@ namespace Server.Protocol.PacketResponse
             Direction = placeInfo.Direction;
             VerticalDirection = placeInfo.VerticalDirection;
             BlockIdInt = placeInfo.BlockId.AsPrimitive();
-            IsReplace = placeInfo.IsReplace;
         }
     }
 
@@ -63,8 +60,6 @@ namespace Server.Protocol.PacketResponse
         public BlockId BlockId;
 
         public bool Placeable { get; set; }
-
-        public bool IsReplace { get; set; }
 
         public BlockCreateParam[] CreateParams { get; set; } = Array.Empty<BlockCreateParam>();
 

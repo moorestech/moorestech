@@ -31,7 +31,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
-        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private Vector3Int? _clickStartPosition;
@@ -39,7 +38,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
         private BlockId? _previousSelectedBlockId;
-        private bool _isReplaceDrag;
 
         private int _heightOffset;
 
@@ -48,7 +46,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
-            _blockGameObjectDataStore = blockGameObjectDataStore;
             _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
         }
 
@@ -63,7 +60,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // 連続設置状態をリセット
             _clickStartPosition = null;
             _isStartZDirection = null;
-            _isReplaceDrag = false;
             _currentPlaceInfos.Clear();
         }
 
@@ -82,7 +78,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             {
                 _clickStartPosition = null;
                 _clickStartHeightOffset = _heightOffset;
-                _isReplaceDrag = false;
             }
             _previousSelectedBlockId = target.BlockId;
 
@@ -105,24 +100,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
             if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
             {
-                // 天面レイヒットで浮いた起点を直下の既存ファミリーブロックへ引き戻して判定する
-                // Resolve the ray-floated start cell down to the family block below before judging
-                var startCell = ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, target.BlockId, placePoint);
-                _isReplaceDrag = ReplacePlacementJudge.IsReplaceDragStart(_blockGameObjectDataStore, target.BlockId, startCell);
-
-                // リプレースドラッグ時のみ解決後セルを起点にし、通常設置は従来通り生placePointを使う
-                // Use the resolved cell only for replace drags; normal placement keeps the raw placePoint
-                _clickStartPosition = _isReplaceDrag ? startCell : placePoint;
+                _clickStartPosition = placePoint;
                 _clickStartHeightOffset = _heightOffset;
             }
 
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
             SetCurrentPlaceInfo();
-
-            // リプレースドラッグ中は既存ファミリーブロック重なりセルを設置可へ復活させる
-            // During a replace drag, revive cells overlapping an existing family block as placeable
-            if (_isReplaceDrag) MarkReplaceCells();
 
             var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
@@ -162,44 +146,29 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             void SetCurrentPlaceInfo()
             {
-                // リプレースドラッグ中は終点も直下の既存ファミリーブロックへ引き戻す（通常設置は生placePoint）
-                // During a replace drag, also pull the endpoint down to the family block below (normal placement keeps raw placePoint)
-                var endPoint = _isReplaceDrag ? ReplacePlacementJudge.ResolveReplaceCell(_blockGameObjectDataStore, target.BlockId, placePoint) : placePoint;
-
                 List<PlaceInfo> cellInfos;
                 if (_clickStartPosition.HasValue)
                 {
-                    if (_clickStartPosition.Value == endPoint)
+                    if (_clickStartPosition.Value == placePoint)
                     {
                         _isStartZDirection = null;
                     }
                     else if (!_isStartZDirection.HasValue)
                     {
-                        _isStartZDirection = Mathf.Abs(endPoint.z - _clickStartPosition.Value.z) > Mathf.Abs(endPoint.x - _clickStartPosition.Value.x);
+                        _isStartZDirection = Mathf.Abs(placePoint.z - _clickStartPosition.Value.z) > Mathf.Abs(placePoint.x - _clickStartPosition.Value.x);
                     }
 
-                    cellInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, endPoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster, _isReplaceDrag);
+                    cellInfos = _blockPlacePointCalculator.CalculatePoint(_clickStartPosition.Value, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster);
                 }
                 else
                 {
                     _isStartZDirection = null;
-                    cellInfos = _blockPlacePointCalculator.CalculatePoint(endPoint, endPoint, true, _currentBlockDirection, holdingBlockMaster, _isReplaceDrag);
+                    cellInfos = _blockPlacePointCalculator.CalculatePoint(placePoint, placePoint, true, _currentBlockDirection, holdingBlockMaster);
                 }
 
                 // セル列へ直線・坂ブロックを1対1で割り当てる
                 // Assign straight and slope blocks to cells one-to-one
                 _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family);
-            }
-
-            void MarkReplaceCells()
-            {
-                // 既存ブロック重なりが原因で不可のセルだけをリプレース判定にかける
-                // Only run replace judgement on cells blocked by an overlapping existing block
-                foreach (var info in _currentPlaceInfos)
-                {
-                    if (info.Placeable) continue;
-                    ReplacePlacementJudge.TryMarkReplace(_blockGameObjectDataStore, info);
-                }
             }
 
             void PlaceBlock()

@@ -77,16 +77,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             var color = isPlaceable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
         }
-
-        public void SetPreviewColor(PlaceInfo placeInfo)
-        {
-            // リプレース設置は専用色、それ以外は従来の設置可否色
-            // Replace placement gets a dedicated color, otherwise standard placeable/not colors
-            var color = placeInfo.IsReplace && placeInfo.Placeable ? MaterialConst.ReplacePreviewColor
-                : placeInfo.Placeable ? MaterialConst.PlaceableColor
-                : MaterialConst.NotPlaceableColor;
-            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
-        }
         
         public void SetTriggerCollider(bool isTrigger)
         {

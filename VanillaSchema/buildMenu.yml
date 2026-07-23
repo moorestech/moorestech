@@ -36,28 +36,6 @@ properties:
           - blueprintCopyTool
           - savedBlueprints
           default: blocks
-# リプレース設置で相互置き換え可能なブロック群。同一ファミリー内のブロックのみ相互リプレース可
-# Replace-placement families; only blocks within the same family are mutually replaceable
-- key: replaceFamilies
-  type: array
-  overrideCodeGeneratePropertyName: ReplaceFamilyElement
-  items:
-    type: object
-    properties:
-    - key: familyName
-      type: string
-    - key: targetBlocks
-      type: array
-      overrideCodeGeneratePropertyName: ReplaceFamilyTargetBlockElement
-      items:
-        type: object
-        properties:
-        - key: blockGuid
-          type: uuid
-          foreignKey:
-            schemaId: blocks
-            foreignKeyIdPath: /data/[*]/blockGuid
-            displayElementPath: /data/[*]/name
 - key: connectTools
   type: array
   openedByDefault: true
