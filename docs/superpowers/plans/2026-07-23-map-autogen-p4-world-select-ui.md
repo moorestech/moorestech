@@ -1,5 +1,10 @@
 # マップ自動生成 P4（ワールド選択・新規作成UI＋複数ワールド対応）Implementation Plan
 
+> **⚠️ 凍結（2026-07-23 ユーザー裁定）: このプランは現段階では実装しない。**
+> ワールド管理・複数セーブデータ管理はマップ自動生成の受け入れに不要（生成ワールドの起動はP1の `StartServerSettings` CLI引数/エディタ経由で足りる）。P5はP1のみに依存するため本凍結の影響を受けない。将来ワールド管理機能を作る際に本プランを解凍・整合確認のうえ再利用する。
+>
+> **判断記録（ADR）**: 「マップ自動生成において現段階でワールド管理は不要」とのユーザー指摘に対し、P4の中身（saves/列挙・MainMenu CEF起動・worldSelect feature・連番採番・最終プレイ記録）が生成・転送・実行時構築のいずれとも結合せず、各フェーズ受け入れ条件もUIを要求しないことを確認して凍結を決定。棄却案: 完全削除（プランは独立性が高く将来再利用可能なため凍結が上位互換）／最小限のseed入力UIだけ先行実装（検証は開発内部のCLIで足りるためYAGNI）。`StartLocal` は現行挙動のまま無改修。「新規プレイヤーの初回起動をgeneratedにするか」は生成品質確定後・ワールド管理実装時に判断する。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** メインメニューでワールド一覧の表示・新規作成（seed入力・mapMode選択）・選択起動をWeb UIで行えるようにし、`saves/` 配下の複数ワールドディレクトリを切り替えてプレイできるようにする。
