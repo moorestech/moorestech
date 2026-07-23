@@ -37,7 +37,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
     public enum ElectricWirePlacementFailureReason
     {
         None,
-        TooFar,
+        OutOfRange,
         AlreadyConnected,
         ConnectionLimit,
         NoWireItem,

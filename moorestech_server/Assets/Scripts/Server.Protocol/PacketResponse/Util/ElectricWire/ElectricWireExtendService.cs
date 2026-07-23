@@ -16,6 +16,7 @@ using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire
@@ -76,9 +77,16 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 if (!ElectricWireSystemUtil.TryGetWireConnector(fromPos, out var fromConnector))
                     return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
 
+                var poleGhostInfo = new BlockPositionInfo(polePlaceInfo.Position, polePlaceInfo.Direction, blockMaster.BlockSize);
+
+                // 起点と新設電柱の相互範囲判定を行う。距離はコスト計算専用に残す
+                // Mutual range check between origin and the new pole; distance remains for cost only
+                var fromBlock = ServerContext.WorldBlockDatastore.GetBlock(fromConnector.BlockInstanceId);
+                if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(fromBlock.BlockMasterElement.BlockParam, out _, out var fromProfile, out var fromIsPole))
+                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
+                if (!ElectricConnectionRangeService.IsMutuallyConnectable(fromBlock.BlockPositionInfo, fromProfile, fromIsPole, poleGhostInfo, ConnectionRangeProfile.CreatePole(poleParam), true))
+                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.OutOfRange);
                 var distance = Vector3Int.Distance(fromPos, polePlaceInfo.Position);
-                if (Mathf.Min(fromConnector.MaxWireLength, poleParam.MaxWireLength) < distance)
-                    return ExtendResult.Failure(ElectricWirePlacementFailureReason.TooFar);
                 if (fromConnector.IsWireConnectionFull)
                     return ExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
 
@@ -97,7 +105,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
 
                 // 起点接続で1本使う前提で残り本数まで未接続機械を収集する
                 // Collect unconnected machines up to remaining capacity, accounting for the origin wire slot
-                var poleGhostInfo = new BlockPositionInfo(polePlaceInfo.Position, polePlaceInfo.Direction, blockMaster.BlockSize);
                 var machineTargets = ElectricWireAutoConnectTargetCollector.CollectPoleMachineTargets(poleParam, poleGhostInfo, 1);
                 foreach (var machineTarget in machineTargets)
                 {

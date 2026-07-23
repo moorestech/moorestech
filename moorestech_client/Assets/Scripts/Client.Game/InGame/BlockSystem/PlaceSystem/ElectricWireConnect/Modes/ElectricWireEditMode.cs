@@ -43,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             // 電気系ブロックにヒットしたら起点として選択する
             // Select as origin when an electric block is hit
             if (BlockClickDetectUtil.TryGetCursorOnBlock(out var block) &&
-                ElectricWireExtendPreviewCalculator.TryResolveWireParam(block, out _, out _))
+                ElectricWireExtendPreviewCalculator.TryResolveWireParam(block, out _, out _, out _))
             {
                 return block;
             }
