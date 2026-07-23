@@ -57,7 +57,8 @@
 - Burst/Collections/Mathematics はサーバープロジェクトのmanifestに追加（クライアントは既存確認）
 - **鉱脈の変換**: Stage6のクラスタ（中心＋メンバー座標）→ クラスタごとのAABBを整数グリッドにスナップして `ItemMapVeinInfoJson` 化。地表の鉱石見た目プレハブ相当は `mapObjects` として出力（地表採取と地中鉱脈採掘の2系統に対応）
 - **GUIDマッピング**: `OreEntry`/`ObjectEntry`/`TreePrototypeEntry` に `mapObjectGuid`/`veinItemGuid`/`veinFluidGuid` フィールドを追加（マスターデータのGUIDを直接持たせる。生成設定スキーマの `foreignKey` で実在検証）。プレハブ解決は mapObjects マスタの `addressablePath` 経由でクライアントが行う（§5-1）
-- **生成設定はMooresmaster管理**: `VanillaSchema/generation.yml` を新設し、生成パラメータ（バイオーム・高さ・木/オブジェクト配置・鉱脈）を他マスタ同様の4段階管理（YAMLスキーマ→SourceGenerator→mod内JSON→MasterHolder）に載せる。mooreseditorで編集可能にする。MapMaking側SOの現行値はエディタ用エクスポータで初回JSON化してブートストラップ（手書きPOCO+JSON案はユーザー裁定で棄却）
+- **生成設定はMooresmaster管理**: `VanillaSchema/generation.yml` を新設し、他マスタ同様の4段階管理（YAMLスキーマ→SourceGenerator→mod内JSON→MasterHolder）に載せる。mooreseditorで編集可能にする。MapMaking側SOの現行値はエディタ用エクスポータで初回JSON化してブートストラップ（手書きPOCO+JSON案はユーザー裁定で棄却）
+- **複数mod対応（generation.ymlの3要素構造）**: modは複数導入できるため、生成設定も複数存在しうる。`generation.yml` は「**生成アルゴリズム**（enum）・**生成パラメーター**（`switch: ./algorithm` でアルゴリズム別に切り替わるcase別パラメータ。前例: blocks.yml の blockParam switch）・**優先度**（int）」の3要素で管理する。採用規則: **優先度が最も高いmodの設定を1件だけ採用**し、同優先度なら **mod id 文字列の昇順（Ordinal比較）で若いもの**を採用する（`MasterJsonContents.ModId` で判定可能）。採用したアルゴリズムenumを**アルゴリズムID→実装のテーブル**で引き、対応する生成器にcase別パラメータを渡して生成する
 - **流体鉱脈**: `OreEntry` を汎化し `FluidVeinEntry` を追加（配置ロジック共通、出力先が `fluidVeins`）
 - instanceId採番は生成時に確定し map.json に書き込む（現行 `MapExportAndSetting` の採番処理と同等）
 
