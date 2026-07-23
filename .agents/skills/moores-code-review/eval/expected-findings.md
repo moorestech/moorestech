@@ -93,3 +93,11 @@
 | 32 | 兄弟型API対称化: RemoveOperationRecordをCreateFrom(List\<IDeleteTarget\>)+HasCells形式へ（fixture: pr1045-r2） | RemoveOperationRecord.cs:21 / DragDeleteSelection.cs:116-131 | precedent-alignment（兄弟型間API形状非対称基準） |
 
 注: #28/#29は最低ラインが `設計判断: あり`（AskUserQuestion送り）。Criticalでも可。備考落ち・シロ判定はリプレイ失敗。
+
+## replace-family（セッション指摘 2026-07-23・当時ブランチdiff直指定fixture）
+
+| # | 指摘 | 対象 | 検出器 |
+|---|---|---|---|
+| 33 | リプレースファミリーのBlockTypeConst 3種コード内列挙→buildMenuマスタ定義へ（最終形=3ad0cd5c0のreplaceFamilies＋ReplaceFamilyValidator） | BlockReplaceFamilyUtil.cs:29-32 | hardcoded-content-enumeration（基準1+2。同dirマスタ駆動前例BeltConveyorPlaceFamilyUtilからの無言乖離）。precedent-alignment（fable）の設計判断出口は補助線 |
+
+注: #33はhardcoded-content-enumeration（opus）の**Critical**が最低ライン（fable依存の検知をopus側へ降ろした第1号。二値時代のリプレイでopus/sonnet 9系統が素通しした実績あり）。
