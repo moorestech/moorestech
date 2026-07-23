@@ -1,78 +1,35 @@
-# Task 1 報告: マスターデータ生成スクリプト（チュートリアル/ストーリーのv8移植）
+# Task 1 Report: connectionRange/connectionHeightRange スキーマ追加
 
-## 概要
-`../moorestech_master/tools/tutorial_v3_port/generate_challenges.py` をブリーフ記載の内容そのまま転写して作成し、実行してマスターデータ2ファイル（challenges.json, characters.json）を生成。機械検証（獲得手段の到達可能性チェック）を通過し、スキーマ目視突合・冪等性確認を経て、マスターデータリポジトリ側（feature/connect-tool-migration ブランチ）でコミットした。
+## Codex delegation
 
-## 作業ディレクトリ確認
-- 本体: `/Users/katsumi/moorestech`
-- マスター: `/Users/katsumi/moorestech_master`（作業開始時 pwd で確認）
-- ブランチ: `feature/connect-tool-migration`（変更なし）
-- 開始時点の git status: `server_v8/mods/moorestechAlphaMod_8/master/mapObjects.json` のみ変更あり（ユーザー作業・ブッシュのearnItems空化、未コミット）→ この変更には一切触れず、add対象からも除外した。
+- Session UUID: `019f8d39-a3a9-7fa0-ae64-7d44a80d4986`
+- Delegated: blocks.yml の8機械when句への `connectionRange`/`connectionHeightRange` プロパティ追加、forUnitTest blocks.json 16エントリ更新、EditModeInPlayingTestMod blocks.json 3エントリ更新。maxWireLength削除禁止、対象3ファイル以外変更禁止、コミット禁止を明記。
+- Codex self-report: 3ファイルとも完了、maxWireLength保持、ElectricPole未変更、JSON構文チェック済み、対象ファイル以外の変更なし。
 
-## Step 1: スクリプト作成
-`tools/tutorial_v3_port/generate_challenges.py` をブリーフのコードをそのまま転写して作成（構文エラーなし、修正不要）。
+## Own verification
 
-## Step 2: 実行・機械検証
-```
-$ cd ../moorestech_master && python3 tools/tutorial_v3_port/generate_challenges.py
-OK: 20 challenges, 3 characters
-```
-期待出力と完全一致。到達可能性検証（`errors` リスト）でエラーなし＝全チャレンジのターゲットアイテム/ブロックに序盤の獲得手段（初期解放クラフト・マップドロップ・地中鉱脈×掘削機・機械レシピ出力・研究解放）が存在することを確認。
+1. **git diff review (full)**: 全3ファイルのdiffを目視確認。
+   - `VanillaSchema/blocks.yml`: 8箇所（ElectricMachine, ElectricGenerator, ElectricMiner, ElectricPump, GearToElectricGenerator, ElectricToGearGenerator, CleanRoomAirFilter, CleanRoomMachine）に `connectionRange: type integer default 30` / `connectionHeightRange: type integer default 20` を追加。`ElectricPole` のwhen句は無変更を確認。
+   - `forUnitTest/blocks.json`: `connectionRange: 9`/`connectionHeightRange: 9` の追加が過不足なく16件（grep -c で確認）。`maxWireLength` エントリは18件のまま維持（16+ElectricPole2件）。TestElectricPole/TestLockedElectricPoleは未変更（python検証で `connectionRange` 不在を確認）。
+   - `EditModeInPlayingTestMod/blocks.json`: `connectionRange: 30`/`connectionHeightRange: 20` を3エントリ（キャンプファイア/釜/TestElectricToGearGeneratorUI）に追加。
+2. **JSON構文検証**: `python3 -c "json.load(...)"` で両JSONファイルとも正常パース確認。`git diff --check` も0件。
+3. **SourceGenerator再生成**: `_CompileRequester.cs` の `dummyText` を更新してトリガー。
+4. **コンパイル**: `uloop compile --project-path ./moorestech_client --force-recompile true --wait-for-domain-reload true` → `Success: true, ErrorCount: 0, WarningCount: 0`。
+   - 途中 `UnityMcpSettings.json not found` エラーが発生（既知の.bak問題）。`UnityMcpSettings.json.bak` を `UnityMcpSettings.json` にコピーして復旧。
+5. **生成コード確認**: `uloop execute-dynamic-code` で `Mooresmaster.Model.BlocksModule.ElectricMachineBlockParam` の全プロパティ名をリフレクション取得し、`ConnectionRange` / `ConnectionHeightRange` が `MaxWireLength` と共存していることを実行時に確認した。
+   出力: `RequiredPower,IdlePowerRate,InputSlotCount,OutputSlotCount,InventoryConnectors,InputTankCount,OutputTankCount,InnerTankCapacity,ModuleSlotCount,FluidInventoryConnectors,MaxWireConnectionCount,MaxWireLength,ConnectionRange,ConnectionHeightRange`
+   （ファイルシステム上に生成.csファイルが存在しない＝インメモリRoslyn SourceGeneratorのため、静的grepでの確認は不可能だった。実行時リフレクションで代替検証。）
 
-## Step 3: スキーマ目視突合
-以下4スキーマファイルと生成JSONのキー名を照合し、全て一致を確認:
-- `/Users/katsumi/moorestech/VanillaSchema/challenges.yml` — categoryGuid/categoryName/categoryDescription/displayOrder/IconItem/initialUnlocked/challenges配下の challengeGuid/unlockAllPreviousChallengeComplete/prevChallengeGuids/title/summary/taskCompletionType/taskParam（switch: createItem→itemGuid、inInventoryItem→itemGuid+itemCount、blockPlace→blockGuid+itemCount）/tutorials（switch: mapObjectPin→mapObjectGuid+pinText、uiHighLight→highLightUIObjectId+highLightText、itemViewHighLight→highLightItemGuid+highLightText、keyControl→uiState+controlText）/startedActions・clearedActions（ref: gameAction）/displayListParam（ref: graphViewSettings）
-- `/Users/katsumi/moorestech/VanillaSchema/ref/gameAction.yml` — playSkit時のgameActionParam: skitAddressablePath/playSortPriority/playSkitType が生成JSONと一致
-- `/Users/katsumi/moorestech/VanillaSchema/ref/graphViewSettings.yml` — UIPosition(vector2)/UIScale(vector3)/IconItem が displayListParam と一致
-- `/Users/katsumi/moorestech/VanillaSchema/characters.yml` — characterId/displayName/modelAddresablePath/skitModelAddresablePath の4フィールドが生成 characters.json と完全一致（余分・欠落なし）
+## Files changed / commit
 
-生成JSON実物も直接確認（challenges.json先頭チャレンジ1件、characters.json全体）— 全キー・型が上記スキーマと整合。
+- `VanillaSchema/blocks.yml`
+- `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json`
+- `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json`
+- `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`（SourceGenerator再生成トリガー、dummyText更新）
 
-## Step 4: 冪等性確認
-```
-$ cd ../moorestech_master && python3 tools/tutorial_v3_port/generate_challenges.py && git diff --stat
-OK: 20 challenges, 3 characters
- .../moorestechAlphaMod_8/master/challenges.json    | 674 ++++++++++++++++++++-
- .../moorestechAlphaMod_8/master/characters.json    |  23 +-
- 2 files changed, 693 insertions(+), 4 deletions(-)
-```
-1回目実行後の diff --stat と2回目実行後の diff --stat が完全に同一（693 insertions(+), 4 deletions(-)）＝2回目実行による差分ゼロ。冪等性確認済み。GUIDは uuid5（決定的ハッシュ）採用のため再実行しても同一値が生成される設計。
+Commit: `5a4e46587` "feat: 機械系ブロックにconnectionRange/connectionHeightRangeスキーマを追加"
 
-## Step 5: コミット
-明示パス3つのみを `git add`（`git add -A` 等は不使用）:
-```
-git add tools/tutorial_v3_port/generate_challenges.py \
-        server_v8/mods/moorestechAlphaMod_8/master/challenges.json \
-        server_v8/mods/moorestechAlphaMod_8/master/characters.json
-```
-add後の git status で `mapObjects.json` が引き続き未ステージ（unstaged）のままであることを確認してからコミット。
+## Issues / concerns
 
-コミットハッシュ: `88411e1285e89af71364009b6b3695c133ae7a36`
-
-```
-$ git log --stat -1
-commit 88411e1285e89af71364009b6b3695c133ae7a36
-Author: sakastudio <sakastudio100@gmail.com>
-
-    feat(v8): チュートリアル/ストーリーをv3からv8進行に合わせて移植（チャレンジ20個+キャラ3体）
-
-    Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
-
- .../moorestechAlphaMod_8/master/challenges.json    | 674 ++++++++++++++++++++-
- .../moorestechAlphaMod_8/master/characters.json    |  23 +-
- tools/tutorial_v3_port/generate_challenges.py      | 175 ++++++
- 3 files changed, 868 insertions(+), 4 deletions(-)
-```
-コミットに含まれるファイルは上記3件のみであることを確認済み（`mapObjects.json`は含まれない）。
-
-コミット後の `git status --short`:
-```
- M server_v8/mods/moorestechAlphaMod_8/master/mapObjects.json
-```
-ユーザーの未コミット作業（mapObjects.json）は無傷で維持されている。
-
-## 検証結果まとめ
-OK: 20 challenges, 3 characters / 到達可能性検証エラーなし / スキーマキー名完全一致 / 冪等性差分ゼロ / mapObjects.json混入なし
-
-## 懸念事項
-特になし。
+- コミット前後で `.moorestech-external-revisions.json` が意図せず変更された（`moorestech_master` の外部リビジョンピンがUnity/uloop実行中に自動更新されたと思われる、commitHashが `b5d4454bc...` → `c80cee8ba...` に変化）。Task 1のスコープ外のためコミットに含めず、作業ツリーに未コミットのまま残置している（他タスクとの干渉は想定していないが、要注意）。
+- `UnityMcpSettings.json` が実行中に消失/欠損した（既知の環境問題、過去メモリの `uloop-mcp-settings-bak` と同一事象）。`.bak` から復元して対処済み。後続タスクでも同様の事象が起きうる。
