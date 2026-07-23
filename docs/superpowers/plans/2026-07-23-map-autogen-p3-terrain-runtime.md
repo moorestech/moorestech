@@ -53,7 +53,7 @@
 ### 新規パターン（ユーザーレビュー注目点）
 
 1. **大容量バイナリの分割転送は前例なし**（調査で確認済み: byte[]フィールド前例はあるがチャンク分割プロトコルは初）。チャンクサイズ256KB（GZip後）・チャンク総数はLayoutメタで通知・順次リクエスト方式（クライアント主導pull。サーバーpushは既存プロトコル機構に無いため採らない）
-2. **クライアントローカルキャッシュの新設**（`GameSystemDirectory/cache/worlds/<worldId>/`）: worldIdはLayoutメタで受け取る（world.jsonのseed＋createdAtから生成した安定ID）。キャッシュヒット時はチャンク取得を全スキップ。キャッシュは削除可能（欠損時は無条件再取得・再構築）
+2. **クライアントローカルキャッシュの新設**（`GameSystemDirectory/cache/worlds/<worldId>/`）: worldIdはLayoutメタで受け取る（world.jsonのseed＋createdAtから生成した安定ID）。キャッシュヒット判定は**ローカルterrainファイルの連結SHA256とLayoutメタ `TerrainHash` の照合**で行い、一致時はチャンク取得を全スキップ。不一致・欠損は区別せず無条件に全再取得（完了マーカーファイルは持たない——ハッシュ照合が完全性・鮮度・破損検出を兼ねる）。キャッシュは削除可能
 
 ### 機能パリティ（死活表）
 
@@ -83,6 +83,8 @@
 [Key(9)] public int TerrainTileCount { get; set; }
 [Key(10)] public int TerrainChunkTotal { get; set; }    // 全タイル合計チャンク数
 ```
+
+（`[Key(11)] TerrainHash` はチャンク論理ストリームの定義と同居させるため Task 2 で追加する）
 
 - [ ] **Step 1: テスト拡張**（generatedモードのTestModワールドでLayoutを取り、メタ5項目が world.json/terrainファイル実体と整合することをAssert）→ FAIL確認
 - [ ] **Step 2: 実装**（world.jsonは `WorldDataDirectory.WorldMetaFilePath` から読む。templateモードは TerrainResolution=0/ChunkTotal=0）→ PASS確認
@@ -119,10 +121,11 @@ public class ResponseMapDataTerrainChunkMessagePack : ProtocolMessagePackBase
 ```
 
 - チャンク定義: 全タイルの `height_x_y.r16` → `biome_x_y.bin` をタイル順に連結した論理ストリームを、**非圧縮256KB単位**でスライスし各スライスをGZip圧縮（`TerrainChunkReader.Read(WorldDataDirectory dir, int chunkIndex)`）。ChunkTotal＝ceil(総バイト/256KB)。並び順はLayoutメタの解像度・タイル数から復元可能（クライアント側で逆算）
+- **TerrainHash**: 同じ論理ストリーム（非圧縮連結バイト列）のSHA256を `TerrainChunkReader.ComputeStreamHash(WorldDataDirectory dir)` で計算し、Layout応答に `[Key(11)] public string TerrainHash` として後方追加（初回計算・メモリキャッシュ。world.jsonへの保存はしない——terrain/実ファイルが真実源であり、保存値は差し替え・再生成で乖離しうるため）。templateモードは空文字
 - 範囲外ChunkIndex・templateモードでのTerrainChunk要求は例外（サイレント空応答にしない）
 
-- [ ] **Step 1: TerrainChunkReaderTest を書く**（一時WorldDataDirectoryにP1の`TerrainFileWriter`で書き→全チャンク読み→解凍連結→元ファイルとバイト一致）→ FAIL → 実装 → PASS
-- [ ] **Step 2: PacketTest**（TerrainChunkリクエスト→レスポンス解凍→元terrainファイルと一致）→ FAIL → Protocol分岐実装 → PASS
+- [ ] **Step 1: TerrainChunkReaderTest を書く**（一時WorldDataDirectoryにP1の`TerrainFileWriter`で書き→全チャンク読み→解凍連結→元ファイルとバイト一致・`ComputeStreamHash` が連結バイト列のSHA256と一致）→ FAIL → 実装 → PASS
+- [ ] **Step 2: PacketTest**（TerrainChunkリクエスト→レスポンス解凍→元terrainファイルと一致・Layout応答の `TerrainHash` が実ファイルの再計算値と一致）→ FAIL → Protocol分岐実装 → PASS
 - [ ] **Step 3: コンパイル・コミット**
 
 ---
@@ -138,12 +141,12 @@ public class ResponseMapDataTerrainChunkMessagePack : ProtocolMessagePackBase
 **Interfaces:**
 - Produces:
   - `GameSystemPaths.GetWorldCacheDirectory(string worldId)` → `<GameSystemDirectory>/cache/worlds/<worldId>/`（DirectoryCreatorパターン）
-  - `TerrainDataFetcher.RunAsync(InitialHandshakeResponse handshake)` — Layoutメタを見て: template→即return / キャッシュ完備（`terrain.complete` マーカーファイル存在）→即return / それ以外→全チャンクを順次取得・解凍・`cache/worlds/<worldId>/terrain/` に元ファイル名で復元書込→完了マーカー書込
+  - `TerrainDataFetcher.RunAsync(InitialHandshakeResponse handshake)` — Layoutメタを見て: template→即return / ローカル `cache/worlds/<worldId>/terrain/` の連結SHA256（サーバーと同じ論理ストリーム順で再計算）が `Layout.TerrainHash` と一致→即return / それ以外→全チャンクを順次取得・解凍・元ファイル名で復元書込→**書込後に再ハッシュしてTerrainHashと照合、不一致なら例外で明示失敗**（転送破損をサイレント続行しない）
 - Consumes: `GetMapDataProtocol.ResponseMapDataTerrainChunkMessagePack`（Task 2）
 
 - [ ] **Step 1: GetTerrainChunk をクライアントAPIへ追加**（1プロトコル=1メソッド規約。Mode/ChunkIndexを積むだけ）
 - [ ] **Step 2: TerrainDataFetcher 実装**（ハンドシェイク完了後に開始する必要があるため、`InitializeScenePipeline` の WhenAll 構成を「serverInitializer完了 → fetcher開始」の継続に変更。sceneLoader/modAssetLoaderとは引き続き並列）
-- [ ] **Step 3: EditModeInPlayingTest**（generated小規模ワールドで起動→キャッシュディレクトリにterrainファイル復元＋マーカー生成→2回目起動でフェッチ0回（ログAssert））
+- [ ] **Step 3: EditModeInPlayingTest**（generated小規模ワールドで起動→キャッシュディレクトリにterrainファイル復元→2回目起動でフェッチ0回（ログAssert）→キャッシュファイル1個を破損させて3回目起動→全再取得が走ることをログAssert）
 - [ ] **Step 4: コンパイル・コミット**
 
 ---
@@ -205,7 +208,7 @@ templateモード分岐: `meta.MapMode == "template"` なら構築せず `Addres
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/Environment/Terrain/TerrainVisualCache.cs`
 
 **Interfaces:**
-- Produces: `TerrainVisualCache.TryLoad / Save`（`cache/worlds/<worldId>/visual/` に splatmap/detail配列を生バイナリ保存。ヒット時はSplatmap/Detail生成をスキップ）。キャッシュ無効判定はgenerationマスタのJSON文字列SHA256をキーに含める（マスタ変更で自動無効化）
+- Produces: `TerrainVisualCache.TryLoad / Save`（`cache/worlds/<worldId>/visual/` に splatmap/detail配列を生バイナリ保存。ヒット時はSplatmap/Detail生成をスキップ）。キャッシュ無効判定は**generationマスタのJSON文字列SHA256＋terrainHash（Task 2）**をキーに含める（マスタ変更・地形変更のどちらでも自動無効化。splatmapはheight+biome+マスタの派生物なので導出元を両方キーに含める）
 
 - [ ] **Step 1: 実装＋TerrainRuntimeBuilderへ組み込み**（構築時間を1回目/2回目でログ計測）
 - [ ] **Step 2: コンパイル・EditModeInPlayingTestで2回目起動の生成スキップをログAssert → コミット**
@@ -218,3 +221,14 @@ templateモード分岐: `meta.MapMode == "template"` なら構築せず `Addres
 - [ ] **Step 2: ロード時間実測**（現行ベイク比+10秒超ならalphamap構築のフレーム分散を追加投入）
 - [ ] **Step 3: 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 - [ ] **Step 4: 指摘反映 → pr-create**
+
+---
+
+## 判断記録（ADR）
+
+### ADR-1: terrainキャッシュの有効判定はworldIdではなくコンテンツハッシュ照合（2026-07-23 ユーザー裁定）
+
+- **経緯**: 当初設計は「worldIdディレクトリ＋`terrain.complete` マーカー存在」でキャッシュヒット判定。worldId（seed＋createdAt由来）が変わらないままサーバー側terrainが変わるケース（生成アルゴリズム更新での再生成等）と、マーカー書込後のファイル破損を検出できない欠陥をユーザーが指摘
+- **決定**: Layoutメタに `TerrainHash`（チャンク転送と同一の論理ストリームのSHA256）を追加し、クライアントはローカル再計算値との照合でヒット判定。`terrain.complete` マーカーは廃止（ハッシュ照合が完全性・鮮度・破損検出を兼ねる無料の上位互換）。ダウンロード直後にも再ハッシュ検証し転送破損を明示失敗にする
+- **付随決定**: ハッシュはworld.jsonへ保存せずterrain/実ファイルから起動時計算（保存値は差し替えで乖離しうる——導出可能テスト）。ストリーム順序定義はTask 2のチャンク定義と共有し二重定義しない。Task 7見た目キャッシュのキーにもterrainHashを追加（splatmapの導出元はマスタ＋地形の両方）
+- **棄却案**: world.jsonへのハッシュ永続化（乖離リスク）／マーカーとハッシュの併用（二重機構の理由なし）／ファイル単位ハッシュ（現規模数MBでは分割の必要なし。将来肥大時の逃げ道として言及のみ）

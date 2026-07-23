@@ -41,7 +41,7 @@
 
 - `world.json` の `mapMode`: `generated`（seed生成）| `template`（既成マップをコピー。現行v8手作りマップやテスト用マップはこちら）
 - テクスチャ配分（alphamap）や草花densityは権威データとしては保存しない。見た目はクライアントが `height+biome＋generationマスタの見た目設定` から決定論的に再構築し、**再構築結果は `cache/` にキャッシュとして保持する**（2回目以降の起動を高速化）。`cache/` は削除可能であることをREADME.txtで明示し、欠損時は無条件に再構築する（キャッシュ有無でゲームプレイが変わってはならない）
-- リモート接続クライアントはワールドディレクトリを持たないため、同等のキャッシュをクライアントローカル（`GameSystemPaths` 配下の `cache/worlds/<worldId>/`）に置く。受信したterrainチャンクもここにキャッシュする
+- リモート接続クライアントはワールドディレクトリを持たないため、同等のキャッシュをクライアントローカル（`GameSystemPaths` 配下の `cache/worlds/<worldId>/`）に置く。受信したterrainチャンクもここにキャッシュする。キャッシュの有効判定はworldIdのディレクトリ分離に加え、**terrain論理ストリームのSHA256（`Layout` メタで受領）とローカル再計算値の照合**で行う（サーバー側の地形再生成・部分ダウンロード・ファイル破損を同一機構で検出。完了マーカーファイルは持たない）
 - 永続化規約への準拠: `world.json`/`map.json` は可読JSON・GUID保存（`mapObjectGuid`/`veinItemGuid`/`veinFluidGuid`。揮発intのIDは保存しない）。`terrain/` のみ画像相当の生データ（数百万セルの高さ・バイオーム値）でありJSON化は非現実的なため、規約の例外としてバイナリを許容する。バイオーム値は生成コード定義の安定enum（マスタのロード順採番ではない）なのでintシリアライズ可
 - 開発フェーズのため旧 `save_1.json` からの移行・互換対応は行わない（新形式で作り直す）
 - CLIは `--saveFilePath` を `--worldDirectory` に置き換え（`SaveJsonFilePath` → `WorldDirectoryPath`）。テストコードの隔離セーブパス指定も同様に追従
