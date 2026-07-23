@@ -40,7 +40,7 @@
 ```
 
 - `world.json` の `mapMode`: `generated`（seed生成）| `template`（既成マップをコピー。現行v8手作りマップやテスト用マップはこちら）
-- テクスチャ配分（alphamap）や草花densityは権威データとしては保存しない。見た目はクライアントが `height+biome＋バイオームプリセット` から決定論的に再構築し、**再構築結果は `cache/` にキャッシュとして保持する**（2回目以降の起動を高速化）。`cache/` は削除可能であることをREADME.txtで明示し、欠損時は無条件に再構築する（キャッシュ有無でゲームプレイが変わってはならない）
+- テクスチャ配分（alphamap）や草花densityは権威データとしては保存しない。見た目はクライアントが `height+biome＋generationマスタの見た目設定` から決定論的に再構築し、**再構築結果は `cache/` にキャッシュとして保持する**（2回目以降の起動を高速化）。`cache/` は削除可能であることをREADME.txtで明示し、欠損時は無条件に再構築する（キャッシュ有無でゲームプレイが変わってはならない）
 - リモート接続クライアントはワールドディレクトリを持たないため、同等のキャッシュをクライアントローカル（`GameSystemPaths` 配下の `cache/worlds/<worldId>/`）に置く。受信したterrainチャンクもここにキャッシュする
 - 永続化規約への準拠: `world.json`/`map.json` は可読JSON・GUID保存（`mapObjectGuid`/`veinItemGuid`/`veinFluidGuid`。揮発intのIDは保存しない）。`terrain/` のみ画像相当の生データ（数百万セルの高さ・バイオーム値）でありJSON化は非現実的なため、規約の例外としてバイナリを許容する。バイオーム値は生成コード定義の安定enum（マスタのロード順採番ではない）なのでintシリアライズ可
 - 開発フェーズのため旧 `save_1.json` からの移行・互換対応は行わない（新形式で作り直す）
@@ -58,6 +58,7 @@
 - **鉱脈の変換**: Stage6のクラスタ（中心＋メンバー座標）→ クラスタごとのAABBを整数グリッドにスナップして `ItemMapVeinInfoJson` 化。地表の鉱石見た目プレハブ相当は `mapObjects` として出力（地表採取と地中鉱脈採掘の2系統に対応）
 - **GUIDマッピング**: `OreEntry`/`ObjectEntry`/`TreePrototypeEntry` に `mapObjectGuid`/`veinItemGuid`/`veinFluidGuid` フィールドを追加（マスターデータのGUIDを直接持たせる。生成設定スキーマの `foreignKey` で実在検証）。プレハブ解決は mapObjects マスタの `addressablePath` 経由でクライアントが行う（§5-1）
 - **生成設定はMooresmaster管理**: `VanillaSchema/generation.yml` を新設し、他マスタ同様の4段階管理（YAMLスキーマ→SourceGenerator→mod内JSON→MasterHolder）に載せる。mooreseditorで編集可能にする。MapMaking側SOの現行値はエディタ用エクスポータで初回JSON化してブートストラップ（手書きPOCO+JSON案はユーザー裁定で棄却）
+- **見た目設定も含めた全データ統合（ユーザー裁定済み）**: サーバー生成用（高さ・配置・鉱脈）だけでなく、**見た目系Config（BiomeTextureConfig/BiomeDetailConfig/DetailPrototypeConfig等のテクスチャ・草花系）も generation.yml に含める**。クライアント側アセット（SO）としての分離管理は禁止（複数箇所管理になるため）。データの真実源はgenerationマスタ、アセット実体（TerrainLayer/Texture2D/プレハブ）はAddressablesの2層のみで管理し、マスタ内のアセット参照フィールドは全て **Addressablesアドレス(string)** に置換する。クライアントはP3でこの見た目セクション＋Addressablesロードから地形の見た目を再構築する（サーバーの生成パイプラインは見た目セクションを読まない）
 - **複数mod対応（generation.ymlの3要素構造）**: modは複数導入できるため、生成設定も複数存在しうる。`generation.yml` は「**生成アルゴリズム**（enum）・**生成パラメーター**（`switch: ./algorithm` でアルゴリズム別に切り替わるcase別パラメータ。前例: blocks.yml の blockParam switch）・**優先度**（int）」の3要素で管理する。採用規則: **優先度が最も高いmodの設定を1件だけ採用**し、同優先度なら **mod id 文字列の昇順（Ordinal比較）で若いもの**を採用する（`MasterJsonContents.ModId` で判定可能）。採用したアルゴリズムenumを**アルゴリズムID→実装のテーブル**で引き、対応する生成器にcase別パラメータを渡して生成する。enumは `None | VanillaGenerator`（デフォルト None=生成器を提供しない・選択対象外、priority デフォルト 0）。現行MapMakingパイプラインは `VanillaGenerator` として登録し、v8 mod の実データは `algorithm: VanillaGenerator`・`priority: 1000` とする
 - **流体鉱脈**: `OreEntry` を汎化し `FluidVeinEntry` を追加（配置ロジック共通、出力先が `fluidVeins`）
 - instanceId採番は生成時に確定し map.json に書き込む（現行 `MapExportAndSetting` の採番処理と同等）
@@ -110,7 +111,7 @@ WorldProvisioner.EnsureWorld(worldDirectory, settings):
 ## 5. クライアント側改修
 
 1. **mapObjectの実行時生成**: `MapObjectGameObjectDatastore` をシーン事前ベイク（SerializeFieldリスト）方式から、`Layout` 応答の（guid, 座標, instanceId）で実行時Instantiateする方式へ変更。プレハブ解決は **mapObjects マスタの Addressables アドレス参照**で行う: `mapObjects.yml` に `addressablePath`(string) を追加（前例: `train.yml` の `addressablePath`・`items.yml` の `addressablePaths`）し、クライアントは guid→`MasterHolder.MapObjectMaster`→`addressablePath`→`AddressableLoader.LoadAsync<GameObject>` で解決する（マッピング用ScriptableObject案はユーザー裁定で棄却）。プレハブ実体は `moorestech_client/Assets/PersonalAssets/moorestech-client-private/Addressable/Environment/` を新設し、mapObject 1種につきラッパーPrefabを新規作成、その子に有料アセット側Prefabを1個配置してAddressablesアドレスを付与する。2011個規模の起動時スパイク対策としてフレーム分散Instantiate。以降の状態同期（instanceId突き合わせ・破壊/HP反映）は現行ロジックをそのまま使う
-2. **地形の実行時構築**: 受信した height+biome から `TerrainData` を実行時生成（MapMakingの `TerrainApplier` の適用部を移植）。テクスチャ・ディテール（草花）はバイオームプリセット（`BiomeTextureConfig`/`BiomeDetailConfig`、クライアント側アセット）から決定論生成
+2. **地形の実行時構築**: 受信した height+biome から `TerrainData` を実行時生成（MapMakingの `TerrainApplier` の適用部を移植）。テクスチャ・ディテール（草花）は `MasterHolder.GenerationMaster` の見た目セクション（BiomeTextureConfig/BiomeDetailConfig相当。generationマスタに統合済み・§2参照）から決定論生成し、テクスチャ実体はマスタ内のAddressablesアドレスでロードする（クライアント側SOアセットは持たない）
 3. **Environment.prefab の再編**: ベイク済みTerrain・木・石・ブッシュを撤去し、実行時構築のマウントポイント（EnvironmentRoot配下）に置き換える。テンプレートマップ（現行v8手作りマップ）も同じ実行時構築経路に載せる（map.json＋既存TerrainDataから構築）ことで経路を1本化
 
 ## 6. 実装フェーズ
