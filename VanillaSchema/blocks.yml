@@ -286,9 +286,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30
@@ -313,9 +310,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 8
-        - key: maxWireLength
-          type: number
-          default: 12
       - when: ElectricGenerator
         type: object
         implementationInterface:
@@ -380,9 +374,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30
@@ -411,9 +402,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30
@@ -892,9 +880,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30
@@ -919,9 +904,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30
@@ -955,9 +937,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30
@@ -1013,9 +992,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30
@@ -1059,9 +1035,6 @@ properties:
         - key: maxWireConnectionCount
           type: integer
           default: 2
-        - key: maxWireLength
-          type: number
-          default: 8
         - key: connectionRange
           type: integer
           default: 30

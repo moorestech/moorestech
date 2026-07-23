@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             // 電気→歯車変換はConsumer役をワイヤー端点に渡す
             // Electric-to-gear passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, component, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, component, componentStates);
 
             var components = new List<IBlockComponent>
             {

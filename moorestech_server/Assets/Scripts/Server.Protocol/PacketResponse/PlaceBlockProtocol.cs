@@ -96,7 +96,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
-                var isElectric = ElectricWireBlockParamResolver.TryGetWireParam(blockMaster.BlockParam, out _, out _);
+                var isElectric = ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
                 var plan = default(ElectricWireAutoConnectPlan);
                 if (isElectric)
                 {
