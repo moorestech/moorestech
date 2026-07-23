@@ -41,11 +41,25 @@ done
 両方に当てて「陽性=Critical あり／陰性=Critical なし」を確認する。
 現行: `set-once-setter-positive.diff`（チャレンジ報酬通知のset-once setter→ありが正）/
 `set-once-setter-negative.diff`（可変値SetHoge＋MonoBehaviour→なしが正）。2026-07-18 opusで両方合格。
+`hardcoded-content-enum-positive.diff`（オーディオトラック3種のKindConst列挙membership util→Criticalありが正）/
+`hardcoded-content-enum-negative.diff`（同ドメインの種別→プレイヤー実装ディスパッチswitch→Criticalなしが正）。
 
 ### spec段階のリプレイ
 PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-design.md`（「新規プロトコル・
 イベント・ハンドシェイク拡張は作らない」と明記）に現存する。spec-architecture-review を変更したら、
 このspecを入力に「サーバー状態同期の3点セット逸脱が新規パターン/裁定事項として検出されるか」を確認する。
+
+### 検知可否のフォレンジック・リプレイ（指摘を受けたら対策の前に必ず行う）
+
+人間指摘（PRレビュー・セッション内指摘とも）を受けたら、**観点を直す前に**「当時のdiffで現行ハーネスの何系統が検知できたか」を測る。診断なしの対策は、既に検知できていた観点の重複強化や、真の欠落系統の見逃しを生む。
+
+1. **当時のdiffを再現** — 指摘対象の修正コミットの**親**をheadに、`git merge-base origin/master <head>` をbaseにして `git diff -U10 <base> <head>` をfixture化。fixtures.tsvにも行を足す（セッション内指摘はPR番号の代わりにラベル＋base/head SHA直指定）。
+2. **当時コミットへピンしたworktreeを作る** — `git worktree add --detach <scratch>/replay-tree <head>`。レンズ・Codexはcwdの実コードを読むため、修正済みの現在ツリーを読ませると**正解が既に存在する状態**でのテストになり結果が汚染される。起動promptに「実コード照合はこのworktree内で行い、本体ツリーは読まない」を明記する。
+3. **忠実な4カテゴリcontextを再構築** — 当時のspec/planから書く。指摘の答え（正解形）をcontextに書いたら測定にならない。実装判断は「（自分の判断として）」でマークし、ユーザー合意と偽装しない（integration-rules §6）。
+4. **全系統を当てて検知マトリクスを作る** — select_lensesの発火レンズ全部＋Fable全般＋（可能なら）Codexを3行契約＋共通出力契約で並列起動し、系統×検知の表を作る。ここで初めて欠落が確定する: 全滅→新観点が必要／fable・Codexのみ検知→opus/sonnetへ降ろす（SKILL.md Gotcha「検知の主担保」）／opus/sonnet検知済み→配管・実行スキップ側の問題。
+5. **対策後に同じfixtureで再実行**し、期待検出をexpected-findings.mdへ、経緯をlog.mdへ1行記録する。新設・改稿観点は3段階検証（発火・サニティ・ブラインド陽陰）も完了させる。
+
+実例: 2026-07-23 replace-family指摘（リプレイでopus/sonnet 9系統+Codex素通し・fableのみ検知と診断→3段階セベリティ化＋hardcoded-content-enumeration(opus)新設）。
 
 ## Layer 2: 前向きログ（本命KPI）
 
