@@ -91,7 +91,7 @@ WorldProvisioner.EnsureWorld(worldDirectory, settings):
 
 ### 3-3. クライアント早期DI初期化の依存解消（要注意ポイント）
 
-`InitializeScenePipeline` はマスターデータロード目的でクライアント側でも `Create()` を呼ぶが、ここで map.json を読んでいる。リモート接続時クライアントにはワールドディレクトリが無いため、この経路の `MapInfoJson` 依存を外す（空登録 or マスターデータ初期化とマップ初期化の分離）。ローカル同居時はサーバー本体のDIが権威なので問題にならない。
+`InitializeScenePipeline` はマスターデータロード目的でクライアント側でも `Create()` を呼ぶが、ここで map.json を読んでいる。リモート接続時クライアントにはワールドディレクトリが無いため、この経路の `MapInfoJson` 依存を外す（空登録 or マスターデータ初期化とマップ初期化の分離）。ローカル同居時はサーバー本体のDIが権威なので問題にならない。→ **P1の `WorldDataDirectory.FromServerDataMap`（レガシー形状ファクトリ）で解消**: クライアント早期DIは従来どおり `ServerDataDirectory/map/map.json`（配布物に同梱のテンプレート）を読む形を維持するため、ワールドディレクトリ無しでも成立する。
 
 ## 4. プロトコル設計
 
@@ -116,13 +116,15 @@ WorldProvisioner.EnsureWorld(worldDirectory, settings):
 
 ## 6. 実装フェーズ
 
-| フェーズ | 内容 | 検証 |
-|---|---|---|
-| P1 | Game.MapGeneration移植＋WorldProvisioner。サーバー単体でseed→map.json生成→既存ローダー起動 | 生成map.jsonのロード・Datastore構築のユニットテスト、生成時間実測 |
-| P2 | `va:mapData` Layout追加＋クライアントmapObject実行時Instantiate化（地形は暫定で既存ベイクのまま） | ハンドシェイク〜採取動作のプレイテスト |
-| P3 | TerrainChunk転送＋地形実行時構築＋Environment.prefabベイク撤去 | seed違いで別地形が表示されること |
-| P4 | ワールド選択・新規作成UI（seed入力）＋複数ワールドディレクトリ対応（UIはWeb側） | 新規作成→別マップ→再起動で同一マップ |
-| P5 | 流体鉱脈エントリ追加、テンプレートマップ（現行v8手作りマップ）の共存整備 | template/generated両モードの起動確認 |
+| フェーズ | 内容 | 検証 | 実装プラン |
+|---|---|---|---|
+| P1 | Game.MapGeneration移植＋WorldProvisioner。サーバー単体でseed→map.json生成→既存ローダー起動 | 生成map.jsonのロード・Datastore構築のユニットテスト、生成時間実測 | `docs/superpowers/plans/2026-07-23-map-autogen-p1-server-generation.md` |
+| P2 | `va:mapData` Layout追加＋クライアントmapObject実行時Instantiate化（地形は暫定で既存ベイクのまま） | ハンドシェイク〜採取動作のプレイテスト | `docs/superpowers/plans/2026-07-23-map-autogen-p2-mapdata-protocol.md` |
+| P3 | TerrainChunk転送＋地形実行時構築＋Environment.prefabベイク撤去 | seed違いで別地形が表示されること | `docs/superpowers/plans/2026-07-23-map-autogen-p3-terrain-runtime.md` |
+| P4 | ワールド選択・新規作成UI（seed入力）＋複数ワールドディレクトリ対応（UIはWeb側）。P1完了後ならP2/P3と独立に実装可 | 新規作成→別マップ→再起動で同一マップ | `docs/superpowers/plans/2026-07-23-map-autogen-p4-world-select-ui.md` |
+| P5 | 流体鉱脈エントリ追加、テンプレートマップ（現行v8手作りマップ）の共存整備 | template/generated両モードの起動確認 | `docs/superpowers/plans/2026-07-23-map-autogen-p5-fluidvein-template.md` |
+
+各プランは執筆時点（P1未実施）のコード調査に基づく。**P2以降の各プラン着手時には、直前フェーズの成果物（生成型の実名・terrain実測サイズ・生成時間）との整合を冒頭で確認し、ズレがあればプランを先に改訂してから実装に入ること。**
 
 ## 7. リスク・未決事項
 
