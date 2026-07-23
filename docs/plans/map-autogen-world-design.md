@@ -56,7 +56,8 @@
   - ハイトマップ `float[]`／バイオームマップ `byte[]`（タイルごと）
 - Burst/Collections/Mathematics はサーバープロジェクトのmanifestに追加（クライアントは既存確認）
 - **鉱脈の変換**: Stage6のクラスタ（中心＋メンバー座標）→ クラスタごとのAABBを整数グリッドにスナップして `ItemMapVeinInfoJson` 化。地表の鉱石見た目プレハブ相当は `mapObjects` として出力（地表採取と地中鉱脈採掘の2系統に対応）
-- **GUIDマッピング**: `OreEntry`/`ObjectEntry`/`TreePrototypeEntry` に `mapObjectGuid`/`veinItemGuid`/`veinFluidGuid` フィールドを追加（マスターデータのGUIDを直接持たせる）。プレハブ参照はクライアント表示用マッピングに分離
+- **GUIDマッピング**: `OreEntry`/`ObjectEntry`/`TreePrototypeEntry` に `mapObjectGuid`/`veinItemGuid`/`veinFluidGuid` フィールドを追加（マスターデータのGUIDを直接持たせる。生成設定スキーマの `foreignKey` で実在検証）。プレハブ解決は mapObjects マスタの `addressablePath` 経由でクライアントが行う（§5-1）
+- **生成設定はMooresmaster管理**: `VanillaSchema/generation.yml` を新設し、生成パラメータ（バイオーム・高さ・木/オブジェクト配置・鉱脈）を他マスタ同様の4段階管理（YAMLスキーマ→SourceGenerator→mod内JSON→MasterHolder）に載せる。mooreseditorで編集可能にする。MapMaking側SOの現行値はエディタ用エクスポータで初回JSON化してブートストラップ（手書きPOCO+JSON案はユーザー裁定で棄却）
 - **流体鉱脈**: `OreEntry` を汎化し `FluidVeinEntry` を追加（配置ロジック共通、出力先が `fluidVeins`）
 - instanceId採番は生成時に確定し map.json に書き込む（現行 `MapExportAndSetting` の採番処理と同等）
 
@@ -79,6 +80,8 @@ WorldProvisioner.EnsureWorld(worldDirectory, settings):
 ```
 
 `MapInfoJson` のロードはDIコンテナ生成の冒頭で行われるため、この順序でロード経路（`MapInfoJson`→Datastore群）は完全無改修で済む。map.jsonのパス解決だけ `worldDirectory/map.json` に変更。
+
+生成設定がMooresmasterマスタになったため、`EnsureWorld`（generated時）は `MasterHolder.GenerationMaster` を必要とする。`ServerInstanceManager` で `EnsureWorld` 呼び出し前に `MasterJsonFileContainer` ロード＋`MasterHolder.Load` を先行実行する（`Create()` 内の再ロードは同一データの冪等な上書きで許容。二重ロードのコストは新規作成時1回のみ）。
 
 ### 3-2. seedの保存先
 
@@ -105,7 +108,7 @@ WorldProvisioner.EnsureWorld(worldDirectory, settings):
 
 ## 5. クライアント側改修
 
-1. **mapObjectの実行時生成**: `MapObjectGameObjectDatastore` をシーン事前ベイク（SerializeFieldリスト）方式から、`Layout` 応答の（guid, 座標, instanceId）で実行時Instantiateする方式へ変更。`mapObjectGuid`→プレハブのマッピング表（ScriptableObject、Addressables参照）を新設。2011個規模の起動時スパイク対策としてフレーム分散Instantiate。以降の状態同期（instanceId突き合わせ・破壊/HP反映）は現行ロジックをそのまま使う
+1. **mapObjectの実行時生成**: `MapObjectGameObjectDatastore` をシーン事前ベイク（SerializeFieldリスト）方式から、`Layout` 応答の（guid, 座標, instanceId）で実行時Instantiateする方式へ変更。プレハブ解決は **mapObjects マスタの Addressables アドレス参照**で行う: `mapObjects.yml` に `addressablePath`(string) を追加（前例: `train.yml` の `addressablePath`・`items.yml` の `addressablePaths`）し、クライアントは guid→`MasterHolder.MapObjectMaster`→`addressablePath`→`AddressableLoader.LoadAsync<GameObject>` で解決する（マッピング用ScriptableObject案はユーザー裁定で棄却）。プレハブ実体は `moorestech_client/Assets/PersonalAssets/moorestech-client-private/Addressable/Environment/` を新設し、mapObject 1種につきラッパーPrefabを新規作成、その子に有料アセット側Prefabを1個配置してAddressablesアドレスを付与する。2011個規模の起動時スパイク対策としてフレーム分散Instantiate。以降の状態同期（instanceId突き合わせ・破壊/HP反映）は現行ロジックをそのまま使う
 2. **地形の実行時構築**: 受信した height+biome から `TerrainData` を実行時生成（MapMakingの `TerrainApplier` の適用部を移植）。テクスチャ・ディテール（草花）はバイオームプリセット（`BiomeTextureConfig`/`BiomeDetailConfig`、クライアント側アセット）から決定論生成
 3. **Environment.prefab の再編**: ベイク済みTerrain・木・石・ブッシュを撤去し、実行時構築のマウントポイント（EnvironmentRoot配下）に置き換える。テンプレートマップ（現行v8手作りマップ）も同じ実行時構築経路に載せる（map.json＋既存TerrainDataから構築）ことで経路を1本化
 
@@ -122,6 +125,7 @@ WorldProvisioner.EnsureWorld(worldDirectory, settings):
 ## 7. リスク・未決事項
 
 - クライアント早期DIの `MapInfoJson` 依存解消の具体方法（3-3）は実装時に要精査
+- `generation.yml` はネストが深く大規模なスキーマになるため、mooreseditor のスキーマ駆動UIで実用的に編集できるかは実データ生成後に要確認（P1 Task 6で確認・不足はmooreseditor側の別課題化）
 - 生成時間の実測未了（Burst済みなので新規作成時の1回なら許容見込み）
 - 木の見た目とmapObject当たりの一致: 木もmapObjectとしてサーバー生成データに含めるため不一致は原理上発生しない（クライアントは受けた座標に描くだけ）
 - マスターデータ変更（mapObjectGuid廃止等）による既存ワールドとの不整合は現行の静的map.jsonと同等のリスクであり、本設計で悪化しない（GUID保存のためマスタの並び順・増減では化けない）
