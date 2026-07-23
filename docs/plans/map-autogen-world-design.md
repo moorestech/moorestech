@@ -62,6 +62,10 @@
 
 ## 3. サーバー側改修
 
+### 3-0. WorldDataDirectory（ワールドデータ統括クラス、Game.Paths）
+
+ワールドディレクトリ内の全ファイル配置（world.json / map.json / terrain/ / cache/ / save.json）の真実源となる値オブジェクト。プロビジョナ・DIコンテナ・セーブ/ロード・P2以降のプロトコル実装はすべてこのクラス経由でパスを得る（パスの文字列連結を各所に散らさない）。既存の `SaveJsonFilePath` はこのクラスに置換・吸収する。プロビジョニングは一時ディレクトリ（`<root>.provisioning`）に書き切ってから `Directory.Move` で確定し、world.jsonをコミットマーカーとして最後に書く（中断による壊れたワールドの残留を防ぐ）。
+
 ### 3-1. ワールドプロビジョニング（新設）
 
 DIコンテナ構築より前に実行する前処理。`ServerInstanceManager.Start()` で `StartServerSettings` 解析後、`Create()` 呼び出し前に挟む:
