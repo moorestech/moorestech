@@ -65,8 +65,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, info);
             }
 
-            // 距離を満たすconnectToolをSortPriority昇順で探す
-            // Search connectTools in ascending SortPriority for one covering all target distances
+            // 必要コストを賄えるconnectToolをSortPriority昇順で探す
+            // Search connectTools in ascending SortPriority for one covering all target costs
             bool TrySelectConnectTool(List<ConnectToolMasterElement> unlockedElements, out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out Guid selectedConnectToolGuid)
             {
                 foreach (var element in unlockedElements)

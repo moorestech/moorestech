@@ -16,8 +16,6 @@ namespace Game.Block.Blocks.ElectricWire
 {
     public class ElectricWireConnectorComponent : IElectricWireConnector, IBlockSaveState, IPostBlockLoad, IBlockStateObservable, IGetRefundItemsInfo
     {
-        // 最大接続数を保持する
-        // Hold max connection count
         private readonly int _maxWireConnectionCount;
 
         public BlockInstanceId BlockInstanceId { get; }

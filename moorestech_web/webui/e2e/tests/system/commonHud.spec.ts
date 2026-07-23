@@ -16,7 +16,6 @@ test("設置・削除モードtopicをHUDへ反映する", async ({ page }) => {
   const placement = page.locator('[data-tutorial-anchor="placement.hud"]');
   await expect(placement).toContainText("Assembler");
   await expect(placement).toContainText("3");
-  await expect(placement).toContainText("Energized Range");
 
   await setTopicScenario(page, "delete");
   await setUiState(page, "DeleteBar");

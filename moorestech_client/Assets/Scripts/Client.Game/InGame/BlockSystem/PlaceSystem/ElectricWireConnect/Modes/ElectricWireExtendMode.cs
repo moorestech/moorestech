@@ -37,8 +37,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
         /// </summary>
         public bool Update(PlaceSystemUpdateContext ctx, BlockGameObject source, int toolEpoch)
         {
-            // 起点の接続上限と最大長を解決
-            // Resolve the origin's connection limit and max wire length (do nothing when it is not electric)
+            // 起点の接続上限を解決（非電気系なら何もしない）
+            // Resolve the origin's connection limit (do nothing when it is not electric)
             if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out _, out _)) return false;
 
             // 選択中の電線connectToolのGuidを使う（未選択時はEmpty）
