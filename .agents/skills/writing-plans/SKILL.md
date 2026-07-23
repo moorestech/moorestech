@@ -76,6 +76,12 @@ include this section.]
 ---
 ```
 
+**Final task (moorestech, required):** every plan's task list ends with an
+explicit closing task — 「必ず最後にmoores-code-reviewスキルで全ブランチ
+レビューを実行すること（自動実行・ゴール文言による省略不可）」. The
+executor runs it unconditionally; omitting it from the plan does not waive
+the gate (see subagent-driven-development's mandatory-gate section).
+
 ## Task Structure
 
 ````markdown
