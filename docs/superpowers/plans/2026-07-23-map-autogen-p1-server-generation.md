@@ -325,10 +325,10 @@ git commit -m "feat: MapGenerator数値基盤(Jobs/Util/Biome列挙)をGame.MapG
 
 ```yaml
 # generation.yml のトップ構造（イメージ。詳細はedit-schemaスキル準拠で実装時に確定）
-- key: algorithm      # enum。P1では fBmBurstV1（現行MapMakingパイプライン）のみ
+- key: algorithm      # enum。P1では VanillaGenerator（現行MapMakingパイプライン）のみ
 - key: priority       # int。複数modの生成設定から1件選ぶための優先度
 - key: algorithmParam # switch: ./algorithm — アルゴリズム別パラメータ（前例: blocks.yml の blockParam switch）
-#   case fBmBurstV1: 高さ・配置・鉱脈系Config一式（TerrainGenerationConfig, OreEntry/OreBand,
+#   case VanillaGenerator: 高さ・配置・鉱脈系Config一式（TerrainGenerationConfig, OreEntry/OreBand,
 #                    TreePlacementConfig系, ObjectClusterEntry系, PlacementEntry/Filter/Noise,
 #                    BiomeBoundary/Shore, 各BiomeConfig をスキーマ化したツリー）
 ```
@@ -390,9 +390,9 @@ public class MapGenerationOutput
 public class PlacedMapObject { public string MapObjectGuid; public Vector3 Position; }
 public class PlacedVein { public string VeinGuid; public Vector3Int Min; public Vector3Int Max; }
 ```
-- `MapGenerationAlgorithmTable`: アルゴリズムenum→生成器実装のテーブル（ディスパッチの真実源）。P1では `fBmBurstV1` の1実装のみ登録。未登録enumは即例外
+- `MapGenerationAlgorithmTable`: アルゴリズムenum→生成器実装のテーブル（ディスパッチの真実源）。P1では `VanillaGenerator` の1実装のみ登録。未登録enumは即例外
 - エントリポイント: `public static MapGenerationOutput MapGenerationPipeline.Generate(GenerationMasterElement selected, int seed)` — `selected.Algorithm` でテーブルを引き、対応するcase別パラメータ（`AlgorithmParam`）を生成器に渡す
-- `TestGenerationConfigFactory.CreateSmall()`: 解像度129・1タイル・バイオーム2種・OreEntry1種（テスト用GUID固定文字列）の `GenerationMasterElement`（algorithm=fBmBurstV1）を返す static クラス（TestModの `generation.json` ロードか直構築。後続タスクのテストでも使用）
+- `TestGenerationConfigFactory.CreateSmall()`: 解像度129・1タイル・バイオーム2種・OreEntry1種（テスト用GUID固定文字列）の `GenerationMasterElement`（algorithm=VanillaGenerator）を返す static クラス（TestModの `generation.json` ロードか直構築。後続タスクのテストでも使用）
 
 - [ ] **Step 1: Generators/Spawn を移植**（Task 3 Step 1 と同じ要領。TreePlacementGenerator 内の TreePrototype/見た目参照はGUID化済みConfigに合わせて修正）
 - [ ] **Step 2: TerrainGenerator(約1880行) をステージ別クラスに分割移植**
