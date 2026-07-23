@@ -43,8 +43,12 @@ namespace Tests.CombinedTest.Game
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
             saveServiceProvider.GetService<IGameUnlockStateDataController>().UnlockConnectTool(ConnectToolGuid);
 
+            // pole-machine有効範囲は±2なのでposGeneratorはその境界(距離2)に、
+            // machine-machine有効範囲は±4なのでposMachineは境界(距離4)に配置する
+            // Pole-machine effective range is +-2 so posGenerator sits at that boundary (distance 2);
+            // machine-machine effective range is +-4 so posMachine sits at its boundary (distance 4)
             var posPole = Pos(0, 0);
-            var posGenerator = Pos(3, 0);
+            var posGenerator = Pos(2, 0);
             var posMachine = Pos(6, 0);
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ElectricPoleId, posPole, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pole);
