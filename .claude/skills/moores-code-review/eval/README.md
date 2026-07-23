@@ -41,6 +41,8 @@ done
 両方に当てて「陽性=Critical あり／陰性=Critical なし」を確認する。
 現行: `set-once-setter-positive.diff`（チャレンジ報酬通知のset-once setter→ありが正）/
 `set-once-setter-negative.diff`（可変値SetHoge＋MonoBehaviour→なしが正）。2026-07-18 opusで両方合格。
+`hardcoded-content-enum-positive.diff`（オーディオトラック3種のKindConst列挙membership util→Criticalありが正）/
+`hardcoded-content-enum-negative.diff`（同ドメインの種別→プレイヤー実装ディスパッチswitch→Criticalなしが正）。
 
 ### spec段階のリプレイ
 PR988の誤設計は `docs/superpowers/specs/2026-07-05-item-stack-upgrade-design.md`（「新規プロトコル・
