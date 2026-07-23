@@ -120,6 +120,8 @@ description: |
 
 - **GaugeBar**: 読み取り専用の水平ゲージ。溝は `--gauge-track`（半透明ネイビー）と `--bevel-c1` の薄い内周輪郭、充填は `--gauge-fill`（寒色グレー）を使い、青グラデは禁止。`value`（0..1）を描くだけでドメイン語彙を持たない。
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
+  - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
+  - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
 - **PanelCloseButton**: パネル右上の面を持たない×。インラインSVGまたはCSSで描画する。
 - **FadeRule**: 両端フェードする水平罫線（装飾語彙1）の単体部品。パネル内のセクション区切りに使う。GamePanel のタイトル罫線と同族の青灰グラデで、新しい色相は持たない。
 
@@ -143,6 +145,27 @@ description: |
 - **画面内ピン**: 指定座標にインラインSVGの下向きマーカー + 直上のテキストラベル。ラベル面は `--world-pin-face`（半透明ネイビー族）、文字は `--text-high-contrast`。マーカー先端が指定座標に一致するよう配置する。
 - **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGシェブロンを置く。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
 - 色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
+
+## 8.9 検索入力
+
+- Mantine `TextInput` は使わない。素の `<input>` に `--gauge-track` 同族の半透明面（GaugeBar の溝と同トーン）を背景として与える。
+- プレースホルダは `--text-muted`。フォーカス表現は ModeSwitch の `:focus-visible`（`--text-high-contrast` の outline）を踏襲し、新しいフォーカス様式を増やさない。
+- 幅・高さは固定長トークンで指定する（パネル幅比例の%指定は禁止・大原則参照）。
+
+## 8.10 カスタムスクロールバー
+
+- Mantine `ScrollArea` の `:global(.mantine-ScrollArea-*)` セレクタで上書きする（前例: `ItemListPanel.module.css:10-30`）。ScrollArea自体は使ってよいが、既定の白ノブ/透明トラックのまま出さない。
+- トラックは `var(--gauge-track)`、ノブは `var(--bevel-c2)` を基調にしたネイビートーンへ統一する（ItemListPanelの白ノブは持ち物一覧固有の正本合わせであり、他パネルではこのネイビートーンに従う）。
+- ノブ寸法はコンテンツ量から自然算出させ、固定pxで決め打ちしない。
+
+## 8.11 建設メニュー
+
+- **大型2列レイアウト**: `viewer-start / items-end` の2列を占有する `.panelLarge` 前例（§2.5・§8.7の機械大型パネルと同一の stage 配置）に従う。独自の固定配置・独自z-indexは禁止。
+- **縦ModeSwitchサイドバー**: カテゴリ切替は §8.6 の縦向き ModeSwitch を左サイドバーとして使う。幅は `--build-menu-sidebar-width`（固定長）。
+- **検索**: §8.9 の検索入力をサイドバー上部またはグリッド上部に置く。
+- **固定高プレビュー**: 選択中ブロックのプレビューは §8.7 の詳細プレビュー同様、高さを固定して内容でホバーが跳ねないようにする（`--build-menu-preview-height`）。
+- **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`（§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
+- グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。
 
 ## 9. やらないことリスト（再掲・明示）
 
