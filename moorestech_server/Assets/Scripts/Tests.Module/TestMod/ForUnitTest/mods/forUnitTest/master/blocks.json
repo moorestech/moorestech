@@ -111,7 +111,6 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -277,8 +276,7 @@
         "poleConnectionRange": 7,
         "poleConnectionHeightRange": 5,
         "machineConnectionHeightRange": 5,
-        "maxWireConnectionCount": 8,
-        "maxWireLength": 12
+        "maxWireConnectionCount": 8
       },
       "blockGuid": "00000000-0000-0000-0000-000000000004",
       "requiredItems": [
@@ -322,8 +320,7 @@
         "poleConnectionRange": 7,
         "poleConnectionHeightRange": 5,
         "machineConnectionHeightRange": 5,
-        "maxWireConnectionCount": 8,
-        "maxWireLength": 12
+        "maxWireConnectionCount": 8
       },
       "blockGuid": "00000000-0000-0000-0000-000000000101",
       "requiredItems": [
@@ -429,7 +426,6 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -508,7 +504,6 @@
           "inputConnects": []
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -731,7 +726,6 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -834,7 +828,6 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -925,7 +918,6 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -1026,7 +1018,6 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -2550,7 +2541,6 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -2669,7 +2659,6 @@
         "outputTankCount": 0,
         "inputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -2788,7 +2777,6 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -3496,7 +3484,6 @@
         "outputTankCount": 2,
         "inputTankCount": 3,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -3905,7 +3892,6 @@
           "inflowConnects": []
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -3976,7 +3962,6 @@
           "idlePowerRate": 0.2
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -4485,7 +4470,6 @@
           ]
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -4864,7 +4848,6 @@
         "filterItemGuid": "6e355e23-8e9e-46d2-9405-b0e6bb612890",
         "filterCapacity": 5000,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },
@@ -4960,7 +4943,6 @@
           "outflowConnects": []
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 9,
         "connectionHeightRange": 9
       },

@@ -33,7 +33,6 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 30,
         "connectionHeightRange": 20
       },
@@ -521,7 +520,6 @@
         "outputTankCount": 0,
         "inputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 30,
         "connectionHeightRange": 20
       },
@@ -2428,7 +2426,6 @@
           ]
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8,
         "connectionRange": 30,
         "connectionHeightRange": 20
       },
