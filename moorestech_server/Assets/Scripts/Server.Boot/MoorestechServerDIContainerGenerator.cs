@@ -151,7 +151,6 @@ namespace Server.Boot
             // The concrete type serves MasterTickUpdater's rebuild; the interface serves readers. Both share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
             services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
-            services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
