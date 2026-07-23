@@ -28,7 +28,7 @@ You MUST create a task for each of these items and complete them in order:
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **Lens review + 判断記録（ADR）** — invoke the spec-plan-review skill (spec mode): parallel観点別レンズでCriticalを修正し、C型裁定・B型前提宣言を `## 判断記録（ADR）` セクションとしてspec末尾に記録する
+8. **Lens review + 判断記録（ADR）** — このスキル内蔵の観点別レンズ（`lenses/`）を並列実行してCriticalを修正し、C型裁定・B型前提宣言を `## 判断記録（ADR）` セクションとしてspec末尾に記録する（see below）
 9. **Generate review infographic** — invoke the create-infographic-light skill on the spec (and the plan, once written) and `open` it, so the user can review visually and attach comments
 10. **User reviews written spec** — ask user to review the spec file before proceeding
 11. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -54,10 +54,10 @@ digraph brainstorming {
     "User approves design?" -> "Present design sections" [label="no, revise"];
     "User approves design?" -> "Write design doc" [label="yes"];
     "Write design doc" -> "Spec self-review\n(fix inline)";
-    "Lens review + ADR\n(spec-plan-review)" [shape=box];
+    "Lens review + ADR\n(lenses/)" [shape=box];
     "Generate review infographic\n(create-infographic-light)" [shape=box];
-    "Spec self-review\n(fix inline)" -> "Lens review + ADR\n(spec-plan-review)";
-    "Lens review + ADR\n(spec-plan-review)" -> "Generate review infographic\n(create-infographic-light)";
+    "Spec self-review\n(fix inline)" -> "Lens review + ADR\n(lenses/)";
+    "Lens review + ADR\n(lenses/)" -> "Generate review infographic\n(create-infographic-light)";
     "Generate review infographic\n(create-infographic-light)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
@@ -134,11 +134,38 @@ After writing the spec document, look at it with fresh eyes:
 
 Fix any issues inline. No need to re-review — just fix and move on.
 
-**Lens Review + 判断記録（ADR）(required):**
-Self-Review（内容）と spec-architecture-review（構造）の後、インフォグラフィック生成の**前**に spec-plan-review スキルを実行する（spec mode）:
+**Lens Review (required):**
+Spec Self-Review（内容）と spec-architecture-review（構造）の後、インフォグラフィック生成の**前**に、このスキル内蔵の観点別レンズ（`.claude/skills/brainstorming/lenses/`・spec段階のユーザー実指摘由来）を実行する:
 
-- 観点別レンズ（複雑性の封じ込め・真実源一元化・前提裏取り・スコープ確定）をサブエージェント並列で発火し、Criticalをインライン修正、設計判断はAskUserQuestionで裁定を得る。レンズ起動時はmodelを必ず明示（Fable継承禁止）。
-- spec末尾に `## 判断記録（ADR）` セクションを置き、対話中のC型ユーザー裁定（AskUserQuestion結果は全件）・B型前提宣言（適用原則名付き）・機構比較の結論を記録する。書式は spec-plan-review スキルのADR仕様が正。判断をdiffやコミットメッセージに埋没させない。
+1. 4カテゴリ文脈（ゴール/非目標/許容トレードオフ/制約）を `/tmp/spec-lens-context-<ts>.md` に書く。既存の判断記録（ADR）があれば内容を含める（裁定済み事項の蒸し返し防止）。
+2. `lenses/` の全レンズを**1メッセージで並列**Agent起動する。modelは各レンズfrontmatterの値を必ず明示（Fable継承禁止）。3行契約:
+   ```
+   Read this : <レンズの絶対パス>
+   Doc path : <specの絶対パス>
+   Context : /tmp/spec-lens-context-<ts>.md
+
+   出力契約: Critical: あり/なし（`- <セクション>: <欠陥と修正方針>` を列挙）/
+   Warning: 0行以上（確信一段弱い懸念）/ 設計判断: あり/なし（ユーザー裁定が要る分岐。選択肢付き）
+   ```
+3. Criticalはspec本文（必要ならリポジトリ）と照合し、正しければインライン修正。false positiveは破棄理由を1行残す。迷ったらWarningに倒す（レビューの信頼はfalse positiveで最も速く壊れる）。
+4. 各レンズの `設計判断: あり` は末尾でAskUserQuestionに一括集約し、裁定を判断記録（ADR）へ記録する。
+5. レンズが見逃した欠陥を後にユーザーへ指摘されたら、該当レンズに検査項目を追記する（採掘根拠と手法は `references/lens-mining-2026-07-23.md`）。
+
+**判断記録（ADR）(required):**
+spec末尾に `## 判断記録（ADR）` セクションを置き、ユーザーレビュー前に更新する。設計判断をdiffやコミットメッセージに埋没させない（棚卸し2026-07-23: 却下案の理由・裁定は現状コミットメッセージにしか残らず、次のレビュアーが再検証できない）:
+
+```markdown
+## 判断記録（ADR）
+
+| # | 判断 | 採用 | 却下案と理由 | 出所 |
+|---|---|---|---|---|
+| 1 | <何を決めたか1行> | <採用案1行> | <却下案>: <理由1行> | ユーザー裁定 YYYY-MM-DD / 原則(B: 適用原則名) / 調査(A: 根拠パス) |
+```
+
+- **載せるもの**: C型のユーザー裁定（AskUserQuestionの結果は必ず全件）、B型の前提宣言（適用した原則名付き）、機構選択比較（spec-architecture-review 検査4）の結論、機能パリティ死活表で裁定に出した項目の結果。
+- **載せないもの**: 自明な実装詳細、A型調査で確定しただけの事実（前例引用は「配置と前例」節が担当）。
+- 出所「ユーザー裁定」は**ユーザーが実際に答えた場合のみ**。自分の判断を裁定と偽装しない。
+- 裁定が覆ったら行を書き換えず新しい行を追加し、旧行に「→ #N で変更」と注記する（記録は追記型）。
 
 **Review Infographic (required):**
 After the spec review loop passes, invoke the create-infographic-light skill (in this repo: `.claude/skills/create-infographic-light`) with the spec as the source document, and `open` the generated HTML. The user reviews the spec through the infographic and can attach comments via its comment feature ("すべてコピー" Markdown gets pasted back for you to apply). Do the same for the implementation plan after writing-plans completes.
