@@ -67,6 +67,9 @@ public class BadExample
 ## Nullチェックに関する指針
 基本的にnullでない前提でコードを書いてください。nullチェックは外部データ（API・ユーザー入力）や非同期ロード結果（Addressable等）にのみ行い、MasterHolder等のコアコンポーネントやAwake/Start初期化済みオブジェクトなど設計上存在が保証されるものには不要
 
+## Funcの使用禁止
+`Func<>`の使用は禁止。コールバックや述語を渡したくなった時点で設計を見直すサインであり、`Action`やカスタムdelegateへ置き換えるだけの非本質的な対応に逃げてはいけない。interfaceの導入、依存関係の整理、呼び出し方向の変更（判断を具体側に移し、基盤へは`SetHoge(値)`でプッシュする等）といった本質的な設計変更を検討すること。
+
 ## その他の規約
 単純なgetter/setterプロパティは使用禁止、値のSetはpublic void SetHogeメソッドで行う
 [SerializeField]は_無しの小文字キャメルケース
