@@ -8,3 +8,4 @@ review / preanswer の全実行を記録する。損失関数の帳簿はユー�
 
 | 日付 | モード | 対象 | 的中 | FP | FN | 寄与知識 | 備考（外しはハンドオフID） |
 |---|---|---|---|---|---|---|---|
+| 2026-07-24 | review | specs/2026-07-24-electric-wire-param-interface-and-shared-collector-design.md | Warning2件適用（電柱同名キー並存明記・テスト配置先） | 0 | ユーザー反応待ち | moorestech-principles.md（先行パターン・YAGNI・SSOT）、裁定「前例はファイル配置の粒度まで調べる」、IMachineParam前例 | Critical/要裁定なし・opus反証未起動 |

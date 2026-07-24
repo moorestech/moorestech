@@ -34,6 +34,7 @@ PR1057レビュー（review 4772089898）の2指摘への対応設計。
 - 各ブロック種の `properties` から3キーを削除し、`implementationInterface` に `IElectricWireConnectParam` を追加する
 - interfaceプロパティは実装型へ注入されJSONキーは平坦なまま不変のため、**JSONデータ移行は不要**
 - ElectricPole は対電柱/対機械の非対称4キー（pole/machineConnection(Height)Range）＋接続上限という別形状のため、interfaceに含めない（単一実装のinterface新設はYAGNI）
+- 電柱は同名キー `maxWireConnectionCount`（default 8）を個別プロパティのまま残す。resolverの電柱分岐は個別プロパティ参照を維持する
 - スキーマ編集は edit-schema スキルの手順に従う
 
 ## 設計2: resolver縮約
@@ -99,7 +100,7 @@ switch (blockParam)
 
 ## テスト
 
-- **新設**: 選定コア単体テスト — 同距離tie-break（InstanceId順）、容量境界（残1本・残0本）、`usedCount` 差し引き、機械の未接続判定（接続済み機械の除外）、電柱優先順位
+- **新設**: 選定コア単体テスト — 同距離tie-break（InstanceId順）、容量境界（残1本・残0本）、`usedCount` 差し引き、機械の未接続判定（接続済み機械の除外）、電柱優先順位。配置は既存 `ElectricConnectionRangeServiceTest` と同じ `Tests/UnitTest/Server/`
 - **既存維持**: `ElectricWireAutoConnectPlaceTest` / `ElectricWireExtendProtocolTest` / `ElectricConnectionRangeServiceTest` がアダプタ化後もそのまま通ることで後方等価を担保
 - コンパイル: `uloop compile --project-path ./moorestech_client`（スキーマ再生成含む）
 
@@ -112,4 +113,5 @@ switch (blockParam)
 - **判定意味論はサーバー側に統一・電柱判定はresolverに一本化**（B: SSOT。サーバーが権威）
 - **案2（データソース抽象interface注入）不採用**（B: `IElectricWireConnector` のクライアント側ダミー実装が必要になり抽象が重い。案1が同効果を軽く達成 — 無料の上位互換）
 - **案3（現状維持＋同値性テスト）不採用**（B: ズレの検出はできても発生を防げず、二重ロジック指摘の解消にならない）
+- **電柱の同名キー並存・テスト配置先**: シミュレーターWarningをspecへ反映（出所: シミュレーター予測。前提の裏取りは全件成立・Critical指摘なし）
 - **設計一括承認**: 2026-07-24 ユーザー承認済み（出所: 設計提示→「ok」）
