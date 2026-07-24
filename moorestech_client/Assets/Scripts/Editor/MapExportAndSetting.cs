@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.Common;
+using Client.Common.Util;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.MapVein;
 using Game.Map.Interface.Json;
@@ -53,14 +54,14 @@ public class MapExportAndSetting : EditorWindow
         
         List<MapObjectInfoJson> SetUpMapObjectInfos()
         {
-            var datastore = FindObjectOfType<MapObjectGameObjectDatastore>();
-            datastore.FindMapObjects();
-            EditorUtility.SetDirty(datastore);
-            
+            // ベイク採取はdatastoreに依存せずシーンを直接走査する（datastoreは実行時Instantiate化済み）
+            // Bake collection scans the scene directly without the datastore (it is now runtime-instantiated)
+            var sceneMapObjects = HierarchyOrderUtility.SortByHierarchy(FindObjectsOfType<MapObjectGameObject>(true).ToList());
+
             var instanceId = 0;
             var result = new List<MapObjectInfoJson>();
-            
-            foreach (var mapObject in datastore.MapObjects)
+
+            foreach (var mapObject in sceneMapObjects)
             {
                 mapObject.SetMapObjectData(instanceId);
                 instanceId++;
