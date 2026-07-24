@@ -58,7 +58,8 @@ namespace Client.Network.API
                 GetChallengeResponse(ct),
                 GetUnlockState(ct),
                 GetPlayedSkitIds(ct),
-                GetResearchNodeStates(ct));
+                GetResearchNodeStates(ct),
+                GetMapData(ct));
 
             return new InitialHandshakeResponse(initialHandShake, responses);
         }
@@ -68,6 +69,14 @@ namespace Client.Network.API
             var request = new GetMapObjectInfoProtocol.RequestMapObjectInfosMessagePack();
             var response = await _packetExchangeManager.GetPacketResponse<GetMapObjectInfoProtocol.ResponseMapObjectInfosMessagePack>(request, ct);
             return response?.MapObjects;
+        }
+
+        // マップレイアウト（spawn/mapObjects/mapVeins）をハンドシェイク時に取得する
+        // Fetch the map layout (spawn/mapObjects/mapVeins) during the handshake
+        public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
+        {
+            var request = new GetMapDataProtocol.RequestMapDataMessagePack(GetMapDataProtocol.MapDataMode.Layout);
+            return await _packetExchangeManager.GetPacketResponse<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
         }
 
         // train/rail再同期の引き金を送る。snapshot本体はイベント経路で届く

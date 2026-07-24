@@ -3,57 +3,14 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
-using Game.PlayerRiding.Interface;
-using Game.Research;
 using Game.Train.Unit;
 using Mooresmaster.Model.ChallengesModule;
 using Server.Event.EventReceive;
 using Server.Util.MessagePack;
 using UnityEngine;
-using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
-using static Server.Protocol.PacketResponse.InitialHandshakeProtocol;
 
 namespace Client.Network.API
 {
-    public class InitialHandshakeResponse
-    {
-        public Vector3 PlayerPos { get; }
-        public WorldDataResponse WorldData { get; }
-        public List<MapObjectsInfoMessagePack> MapObjects { get; }
-        public PlayerInventoryResponse Inventory { get; }
-        public List<ChallengeCategoryResponse> Challenges { get; }
-        public UnlockStateResponse UnlockState { get; }
-        public List<string> PlayedSkitIds { get; }
-        public Dictionary<Guid, ResearchNodeState> ResearchNodeStates { get; }
-        // ログイン時の乗車復帰情報（未乗車なら RidingTarget は null）。
-        // Login-time riding restore info (RidingTarget is null when not riding).
-        public RidableIdentifierMessagePack RidingTarget { get; }
-        public int RidingSeatIndex { get; }
-
-        public InitialHandshakeResponse(
-            ResponseInitialHandshakeMessagePack initialHandshake,
-            (
-                List<MapObjectsInfoMessagePack> mapObjects, 
-                WorldDataResponse worldData, 
-                PlayerInventoryResponse inventory,
-                List<ChallengeCategoryResponse> challenges, 
-                UnlockStateResponse unlockState,
-                List<string> playedSkitIds,
-                Dictionary<Guid, ResearchNodeState> researchNodeStates) responses)
-        {
-            PlayerPos = initialHandshake.PlayerPos;
-            WorldData = responses.worldData;
-            MapObjects = responses.mapObjects;
-            Inventory = responses.inventory;
-            Challenges = responses.challenges;
-            UnlockState = responses.unlockState;
-            PlayedSkitIds = responses.playedSkitIds;
-            ResearchNodeStates = responses.researchNodeStates;
-            RidingTarget = initialHandshake.RidingTarget;
-            RidingSeatIndex = initialHandshake.RidingSeatIndex;
-        }
-    }
-    
     public class PlayerInventoryResponse
     {
         public PlayerInventoryResponse(List<IItemStack> mainInventory, IItemStack grabItem)

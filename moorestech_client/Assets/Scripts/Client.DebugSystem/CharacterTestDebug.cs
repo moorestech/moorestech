@@ -45,6 +45,7 @@ namespace Client.DebugSystem
                 var challenges = new List<ChallengeCategoryResponse>();
                 var playedSkitIds = new List<string>();
                 var researchNodeStates = new Dictionary<Guid, ResearchNodeState>();
+                var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero), new List<GetMapDataProtocol.MapObjectLayoutMessagePack>(), new List<GetMapDataProtocol.VeinLayoutMessagePack>());
 
                 var responses = (
                     mapObjects,
@@ -53,7 +54,8 @@ namespace Client.DebugSystem
                     challenges,
                     unlockState,
                     playedSkitIds,
-                    researchNodeStates);
+                    researchNodeStates,
+                    mapLayout);
                 
                 return new InitialHandshakeResponse(handshake, responses);
             }
