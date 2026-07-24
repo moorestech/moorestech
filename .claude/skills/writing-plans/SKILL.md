@@ -159,41 +159,12 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
-## Lens Review — required, after Self-Review
+## Lens Review + 判断記録（ADR）— required, after Self-Review
 
-Self-Review（内容）と spec-architecture-review（構造）を終えたら、Execution Handoff の**前**に、このスキル内蔵の観点別レンズ（`.claude/skills/writing-plans/lenses/`・plan段階の実手戻り由来: 前提裏取り・波及棚卸し・検証カバレッジ）を実行する:
+Self-Review（内容）と spec-architecture-review（構造）を終えたら、Execution Handoff の**前**に必ず:
 
-1. 4カテゴリ文脈（ゴール/非目標/許容トレードオフ/制約）を `/tmp/plan-lens-context-<ts>.md` に書く。**specの判断記録（ADR）を必ず含める**（裁定済み事項の蒸し返し防止）。
-2. `lenses/` の全レンズを**1メッセージで並列**Agent起動する。modelは各レンズfrontmatterの値を必ず明示（Fable継承禁止）。3行契約:
-   ```
-   Read this : <レンズの絶対パス>
-   Doc path : <planの絶対パス>
-   Context : /tmp/plan-lens-context-<ts>.md
-
-   出力契約: Critical: あり/なし（`- <タスク/セクション>: <欠陥と修正方針>` を列挙）/
-   Warning: 0行以上（確信一段弱い懸念）/ 設計判断: あり/なし（ユーザー裁定が要る分岐。選択肢付き）
-   ```
-3. Criticalはplan本文とリポジトリ実態（Grepヒット数等）に照合し、正しければインライン修正（脱落タスクは実コード付きで追加）。false positiveは破棄理由を1行残す。迷ったらWarningに倒す。
-4. 各レンズの `設計判断: あり` は末尾でAskUserQuestionに一括集約し、裁定を判断記録（ADR）へ記録する。
-5. レンズが見逃した計画欠陥が実装中・レビューで発覚したら、該当レンズに検査項目を追記する（採掘根拠と手法は `references/lens-mining-2026-07-23.md`）。
-
-## 判断記録（ADR）— required
-
-plan末尾に `## 判断記録（ADR）` セクションを置く。1行目にspecのADRへのリンクを書き、planning中に新たに生じた判断（タスク分割・機構比較・レンズ裁定・波及の対象外決定）を追記する:
-
-```markdown
-## 判断記録（ADR）
-
-specのADR: `docs/superpowers/specs/<spec>.md` の判断記録を前提とする（裁定済み事項はこちらに再掲しない）。
-
-| # | 判断 | 採用 | 却下案と理由 | 出所 |
-|---|---|---|---|---|
-| 1 | <何を決めたか1行> | <採用案1行> | <却下案>: <理由1行> | ユーザー裁定 YYYY-MM-DD / 原則(B: 適用原則名) / 調査(A: 根拠パス) |
-```
-
-- 出所「ユーザー裁定」は**ユーザーが実際に答えた場合のみ**。自分の判断を裁定と偽装しない。
-- 裁定が覆ったら行を書き換えず新しい行を追加し、旧行に「→ #N で変更」と注記する（記録は追記型）。
-- 実装フェーズ（subagent-driven-development等）で計画変更の裁定が出たら、このセクションに追記してから実装を続ける。
+1. **spec-plan-review スキルを実行する**（plan mode）— 観点別レンズ（複雑性・真実源・前提裏取り・スコープ確定・波及棚卸し・検証カバレッジ）をサブエージェント並列で発火し、Criticalをインライン修正、設計判断はAskUserQuestionで裁定を得る。レンズ起動時はmodelを必ず明示（表の値。Fable継承禁止）。specのADRをContextに含め、裁定済み事項を蒸し返させない。
+2. **plan末尾に `## 判断記録（ADR）` を置く** — specのADRへのリンク1行＋planning中に新たに生じた判断（タスク分割・機構比較・レンズ裁定）を追記する。書式は spec-plan-review スキルのADR仕様が正。
 
 ## Execution Handoff
 

@@ -1,11 +1,12 @@
 ---
+applies: spec+plan
 model: opus
 ---
 
-# Lens: 真実源一元化（見た目Config却下・ベルト長導出却下由来）
+# Lens: 真実源一元化（見た目Config却下・ベルト長導出却下・WorldDataDirectory由来）
 
 ## あなたの役割
-Doc path のspec（設計書）を読み、**データ・設定・リソースの置き場と導出が単一真実源（SSOT）を壊している設計**のCriticalのみを返す。
+Doc path のspec/planを読み、**データ・設定・リソースの置き場と導出が単一真実源（SSOT）を壊している設計**のCriticalのみを返す。
 
 ## 検査項目
 
