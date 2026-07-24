@@ -13,13 +13,22 @@ namespace Game.MapGeneration.Pipeline.Runtime
     internal static class RuntimeConvert
     {
         // Mooresmaster は enum をオプション名の文字列で生成するため、名前で POCO enum へパースする。
+        // 不正名はサイレント既定化せず、違反名を添えて即例外にする（マスタデータ防御）。
         // Mooresmaster emits enums as option-name strings, so parse by name into the POCO enums.
+        // Invalid names fail loud with the offending value instead of silently defaulting.
         public static MapNoiseType ToMapNoiseType(string generatedNoiseType) =>
-            Enum.TryParse<MapNoiseType>(generatedNoiseType, out var v) ? v : MapNoiseType.None;
+            ParseEnum<MapNoiseType>(generatedNoiseType, "noiseType");
         public static NoiseOp ToNoiseOp(string generatedNoiseOp) =>
-            Enum.TryParse<NoiseOp>(generatedNoiseOp, out var v) ? v : NoiseOp.Multiply;
+            ParseEnum<NoiseOp>(generatedNoiseOp, "noiseOp");
         public static SecondaryPlacementMode ToSecondaryMode(string generatedMode) =>
-            Enum.TryParse<SecondaryPlacementMode>(generatedMode, out var v) ? v : SecondaryPlacementMode.Ring;
+            ParseEnum<SecondaryPlacementMode>(generatedMode, "secondaryPlacementMode");
+
+        static T ParseEnum<T>(string name, string fieldName) where T : struct
+        {
+            if (Enum.TryParse<T>(name, out var v)) return v;
+            throw new InvalidOperationException(
+                $"[GenerationRuntimeConfig] '{fieldName}' has an unrecognized enum value: '{name}' (expected a {typeof(T).Name} option name).");
+        }
 
         // uuid(Guid) 配列 → mapObjectGuid 文字列配列（空要素はそのまま保持）。
         // uuid(Guid) array to mapObjectGuid string array (preserving element order).
@@ -62,7 +71,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
         // resolutionPreset 生成 enum（_256/_512/_1024/_2048、宣言順 0..3）→ POCO enum。
         // resolutionPreset generated enum (_256/_512/_1024/_2048, order 0..3) to POCO enum.
         public static TerrainResolutionPreset ToResolutionPreset(string name) =>
-            Enum.TryParse<TerrainResolutionPreset>(name, out var v) ? v : TerrainResolutionPreset._256;
+            ParseEnum<TerrainResolutionPreset>(name, "resolutionPreset");
 
         // keyframe 配列 → UnityEngine.AnimationCurve（空配列は null＝線形）。
         // keyframe array to UnityEngine.AnimationCurve (empty array yields null = linear).
