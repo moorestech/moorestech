@@ -14,6 +14,7 @@ namespace Core.Master
         public static MachineRecipesMaster MachineRecipesMaster { get; private set; }
         public static MapObjectMaster MapObjectMaster { get; private set; }
         public static MapVeinMaster MapVeinMaster { get; private set; }
+        public static GenerationMaster GenerationMaster { get; private set; }
         public static FluidMaster FluidMaster { get; private set; }
         public static CharacterMaster CharacterMaster { get; private set; }
         public static ResearchMaster ResearchMaster { get; private set; }
@@ -63,6 +64,13 @@ namespace Core.Master
             // Depends on ItemMaster, FluidMaster (validates veinParam itemGuid/fluidGuid)
             MapVeinMaster = new MapVeinMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
             InitializeMaster(MapVeinMaster);
+
+            // MapVeinMaster依存（VeinGuidのveinType一致を検証）。generation.jsonを持たないModは空マスタで代替する
+            // Depends on MapVeinMaster (validates VeinGuid veinType match). Mods without generation.json fall back to an empty master
+            GenerationMaster = TryGetJson(masterJsonFileContainer, new JsonFileName("generation"), out var generationJson)
+                ? new GenerationMaster(generationJson, masterJsonFileContainer.ConfigJsons[0].ModId.AsPrimitive())
+                : GenerationMaster.CreateEmpty();
+            InitializeMaster(GenerationMaster);
 
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")));
             InitializeMaster(TrainUnitMaster);
