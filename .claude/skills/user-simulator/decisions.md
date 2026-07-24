@@ -12,3 +12,4 @@
 | 4 | preanswerを基本モードに | C型質問は判事の予測を通し、確信高は前提宣言へ降格・中は予測注記付き質問。採点はmisses.mdが自動で持つ | 質問をそのまま出す: ユーザーの読む量・答える量が純増する | ユーザー裁定 2026-07-24 | [v2再構成](decisions/2026-07-24-v2-redesign.md) |
 | 5 | 構成 | SKILL.md薄く・本質はagents/・モード別modes/・共有知識knowledge/・スキル自身のADR=本ファイル | 全部SKILL.mdに書く: 常時ロードが太る。モード横断資産をmodes/配下に重複配置: 共有物はagents/knowledge/に一本化 | ユーザー裁定 2026-07-24 | [v2再構成](decisions/2026-07-24-v2-redesign.md) |
 | 6 | 知識の複製禁止 | moorestech-principles等の既存成文はindex.mdからポインタ参照 | knowledge/へコピー: 二重管理でズレる（single-source原則） | 原則(B: 情報一元化) | [v2再構成](decisions/2026-07-24-v2-redesign.md) |
+| 7 | reviewの強制発動 | brainstorming/writing-plansのfrontmatter hooks（発動セッション限定）で追跡＋Stop関所。misses.md追記で解除・自前カウンタ2回でフェイルオープン・スキップはmisses.md記録で通過 | settings.json常設フック: 無関係セッションを巻き込む／preanswerの強制: AskUserQuestionは裁定以外にも使い誤ブロックが多い（指示ベース維持） | ユーザー裁定 2026-07-24 | scripts/sim-gate.sh |
