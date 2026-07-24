@@ -9,6 +9,7 @@ using Game.Context;
 using Game.Entity.Interface;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
+using Game.Paths;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.SaveLoad.Interface;
@@ -32,7 +33,7 @@ namespace Game.SaveLoad.Json
         private readonly IMapObjectDatastore _mapObjectDatastore;
         private readonly MapInfoJson _mapInfoJson;
         
-        private readonly SaveJsonFilePath _saveJsonFilePath;
+        private readonly WorldDataDirectory _worldDataDirectory;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
@@ -46,7 +47,7 @@ namespace Game.SaveLoad.Json
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
 
-        public WorldLoaderFromJson(SaveJsonFilePath saveJsonFilePath,
+        public WorldLoaderFromJson(WorldDataDirectory worldDataDirectory,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
@@ -56,7 +57,7 @@ namespace Game.SaveLoad.Json
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
 
-            _saveJsonFilePath = saveJsonFilePath;
+            _worldDataDirectory = worldDataDirectory;
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
             _worldSettingsDatastore = worldSettingsDatastore;
@@ -76,9 +77,9 @@ namespace Game.SaveLoad.Json
         
         public void LoadOrInitialize()
         {
-            if (File.Exists(_saveJsonFilePath.Path))
+            if (File.Exists(_worldDataDirectory.SaveJsonFilePath))
             {
-                var json = File.ReadAllText(_saveJsonFilePath.Path);
+                var json = File.ReadAllText(_worldDataDirectory.SaveJsonFilePath);
                 try
                 {
                     Load(json);
@@ -89,7 +90,7 @@ namespace Game.SaveLoad.Json
                 {
                     //TODO ログ基盤
                     Debug.Log("セーブデータが破損していたか古いバージョンでした。削除したら治る可能性があります。\nサポートが必要な場合はDiscordサーバー ( https://discord.gg/ekFYmY3rDP ) にて連絡をお願いします。");
-                    Debug.Log($"セーブファイルパス {_saveJsonFilePath.Path}");
+                    Debug.Log($"セーブファイルパス {_worldDataDirectory.SaveJsonFilePath}");
                     throw new Exception(
                         $"セーブファイルのロードに失敗しました。セーブファイルを確認してください。\n Message : {e.Message} \n StackTrace : {e.StackTrace}");
                 }

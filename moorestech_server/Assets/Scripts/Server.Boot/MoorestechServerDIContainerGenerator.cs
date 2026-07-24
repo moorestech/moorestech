@@ -69,11 +69,12 @@ namespace Server.Boot
         public readonly string ServerDataDirectory;
 
         public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json");
-        public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
+        public WorldDataDirectory worldDataDirectory { get; set; }
 
         public MoorestechServerDIContainerOptions(string serverDataDirectory)
         {
             ServerDataDirectory = serverDataDirectory;
+            worldDataDirectory = WorldDataDirectory.FromServerDataMap(serverDataDirectory, DefaultSaveJsonFilePath);
         }
     }
 
@@ -123,7 +124,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IRailGraphNodeRemovalListener>(provider => provider.GetService<TrainDiagramManager>());
             initializerCollection.AddSingleton<IRailGraphNodeRemovalListener>(provider => provider.GetService<TrainRailPositionManager>());
 
-            var mapPath = Path.Combine(options.ServerDataDirectory, "map", "map.json");
+            var mapPath = options.worldDataDirectory.MapJsonFilePath;
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IItemMapVeinDatastore, ItemMapVeinDatastore>();
             initializerCollection.AddSingleton<IFluidMapVeinDatastore, FluidMapVeinDatastore>();
@@ -212,7 +213,7 @@ namespace Server.Boot
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataSaver, WorldSaverForJson>();
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(options.saveJsonFilePath);
+            services.AddSingleton(options.worldDataDirectory);
 
             //イベントを登録
             // Register events.

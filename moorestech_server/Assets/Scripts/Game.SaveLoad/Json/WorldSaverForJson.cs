@@ -1,4 +1,5 @@
 using System.IO;
+using Game.Paths;
 using Game.SaveLoad.Interface;
 
 namespace Game.SaveLoad.Json
@@ -6,19 +7,19 @@ namespace Game.SaveLoad.Json
     public class WorldSaverForJson : IWorldSaveDataSaver
     {
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
-        private readonly SaveJsonFilePath _filePath;
-        
-        public WorldSaverForJson(SaveJsonFilePath filePath, AssembleSaveJsonText assembleSaveJsonText)
+        private readonly WorldDataDirectory _worldDataDirectory;
+
+        public WorldSaverForJson(WorldDataDirectory worldDataDirectory, AssembleSaveJsonText assembleSaveJsonText)
         {
-            _filePath = filePath;
+            _worldDataDirectory = worldDataDirectory;
             _assembleSaveJsonText = assembleSaveJsonText;
         }
-        
+
         public void Save()
         {
             // 書き込み途中のクラッシュでセーブが破損しないようアトミックに書き込む
             // Write atomically so a mid-write crash cannot corrupt the save file
-            var targetPath = _filePath.Path;
+            var targetPath = _worldDataDirectory.SaveJsonFilePath;
             var tmpPath = targetPath + ".tmp";
             var backupPath = targetPath + ".bak";
 
