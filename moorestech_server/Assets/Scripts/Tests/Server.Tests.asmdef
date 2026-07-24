@@ -21,6 +21,7 @@
         "Game.Entity.Interface",
         "Game.Map",
         "Game.Map.Interface",
+        "Game.MapGeneration",
         "Game.Paths",
         "Game.PlayerInventory",
         "Game.PlayerInventory.Interface",

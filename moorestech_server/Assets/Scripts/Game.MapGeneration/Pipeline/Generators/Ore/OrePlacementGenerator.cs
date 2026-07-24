@@ -49,6 +49,11 @@ namespace Game.MapGeneration.Pipeline.Generators
                     if (b != null) centerSpacing = Mathf.Max(centerSpacing, b.clusterRadius * 2.5f);
             }
 
+            // クラスター識別子はこの生成呼び出し内で 0 から採番する決定論ローカルカウンタ。
+            // 同一 seed 再現のためグローバル NextClusterId には依存しない（AABB グルーピングの鍵）。
+            // Cluster ids come from a deterministic local counter starting at 0 per Generate call,
+            // never the global NextClusterId, so same-seed output stays identical (AABB grouping key).
+            int nextClusterId = 0;
             for (int i = 0; i < entries.Length; i++)
             {
                 var entry = entries[i];
@@ -56,7 +61,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                 if (entryMasks == null || i >= entryMasks.Length || entryMasks[i] == null) continue;
                 OreEntryPlacer.Place(entry, entryMasks[i], heights, dims, rng,
                     borderPx, treeSpatialGrid, objectSpatialGrid,
-                    oreGrid, clusterCenterGrid, centerSpacing, result);
+                    oreGrid, clusterCenterGrid, centerSpacing, result, ref nextClusterId);
             }
 
             return result;

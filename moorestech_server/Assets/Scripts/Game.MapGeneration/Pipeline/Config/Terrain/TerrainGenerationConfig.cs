@@ -98,5 +98,11 @@ namespace Game.MapGeneration.Pipeline.Config
         public AlpineBiomeConfig alpine = new AlpineBiomeConfig();
         public JungleBiomeConfig jungle = new JungleBiomeConfig();
         public WoodsBiomeConfig woods = new WoodsBiomeConfig();
+
+        // スポーン窓分類のため寸法・解像度・オフセットだけ差し替えた浅い複製を作る。
+        // ネストした Config 参照は読み取り専用に共有され、複製側が汚さない前提。
+        // Shallow copy overriding only size/resolution/offset for the spawn-window classification;
+        // nested config references are shared read-only and the copy must not mutate them.
+        public TerrainGenerationConfig ShallowCopy() => (TerrainGenerationConfig)MemberwiseClone();
     }
 }
