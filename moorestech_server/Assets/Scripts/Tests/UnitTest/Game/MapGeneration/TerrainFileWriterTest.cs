@@ -59,5 +59,45 @@ namespace Tests.UnitTest.Game.MapGeneration
             var readmeText = File.ReadAllText(worldDataDirectory.CacheReadmeFilePath);
             Assert.That(readmeText, Is.EqualTo("このディレクトリは削除可能です。削除しても次回起動時に自動で再構築されます。"));
         }
+
+        [Test]
+        public void EncodesKnownHeightsToExpectedUshortValues()
+        {
+            // 既知の高さ値(0/0.5/1.0)がr16へ正しく符号化されることを検証する(丸め・クランプの回帰防止)。
+            // Verify known height values (0/0.5/1.0) encode correctly to r16 (guards rounding/clamp regressions).
+            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(_tempWorldRoot);
+            const int resolution = 2;
+            var output = new MapGenerationOutput
+            {
+                Heights = new[] { 0f, 0.5f, 1.0f, 1.0000003f },
+                BiomeIndices = new byte[resolution * resolution],
+                Resolution = resolution,
+                SpawnPoint = Vector3.zero,
+                MapObjects = new List<PlacedMapObject>(),
+                ItemVeins = new List<PlacedVein>(),
+            };
+
+            TerrainFileWriter.Write(worldDataDirectory, output);
+
+            var heightFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "height_0_0.r16");
+            var bytes = File.ReadAllBytes(heightFilePath);
+
+            Assert.That(DecodeUshortLittleEndian(bytes, 0), Is.EqualTo(0));
+            Assert.That(DecodeUshortLittleEndian(bytes, 1), Is.EqualTo(32768));
+            Assert.That(DecodeUshortLittleEndian(bytes, 2), Is.EqualTo(65535));
+            // わずかに1.0を超える値もクランプにより65535に丸まりラップしないことを確認
+            // A value slightly above 1.0 clamps to 65535 rather than wrapping
+            Assert.That(DecodeUshortLittleEndian(bytes, 3), Is.EqualTo(65535));
+        }
+
+        #region Internal
+
+        private static ushort DecodeUshortLittleEndian(byte[] bytes, int index)
+        {
+            var offset = index * 2;
+            return (ushort)(bytes[offset] | (bytes[offset + 1] << 8));
+        }
+
+        #endregion
     }
 }

@@ -1,6 +1,7 @@
 using System.IO;
 using Game.MapGeneration.Pipeline;
 using Game.Paths;
+using UnityEngine;
 
 namespace Game.MapGeneration.Export
 {
@@ -24,13 +25,15 @@ namespace Game.MapGeneration.Export
             static void WriteHeightFile(WorldDataDirectory worldDataDirectory, MapGenerationOutput output)
             {
                 // 0-1正規化高さをushortへ変換しリトルエンディアンで書き込む(r16フォーマット)。
+                // ノイズの浮動小数点誤差で範囲外(例:1.0000003)になり得るためクランプ後に四捨五入する。
                 // Convert normalized 0-1 height to ushort and write little-endian (r16 format).
+                // Clamp before rounding: noise drift can push values slightly out of [0,1].
                 var heightFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "height_0_0.r16");
                 var buffer = new byte[output.Heights.Length * 2];
                 for (var i = 0; i < output.Heights.Length; i++)
                 {
-                    var normalized = output.Heights[i];
-                    var value = (ushort)(normalized * ushort.MaxValue);
+                    var clamped = Mathf.Clamp01(output.Heights[i]);
+                    var value = (ushort)Mathf.Clamp(Mathf.RoundToInt(clamped * ushort.MaxValue), 0, ushort.MaxValue);
                     buffer[i * 2] = (byte)(value & 0xFF);
                     buffer[i * 2 + 1] = (byte)(value >> 8);
                 }
