@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# Extract one task's full text from an implementation plan into a file the
-# implementer reads in one call, so the task text never has to be pasted
-# through the controller's context.
+# 実装計画から1タスク分の全文を抽出し、実装者が1回のReadで読める
+# ファイルへ書き出す。これによりタスク本文がコントローラのコンテキストを
+# 経由してペーストされることがなくなる。
 #
-# Usage: task-brief PLAN_FILE TASK_NUMBER [OUTFILE]
-# Default OUTFILE: <repo-root>/.superpowers/sdd/task-<N>-brief.md
-# (per worktree; concurrent runs in the same working tree share it).
+# 使い方: task-brief PLAN_FILE TASK_NUMBER [OUTFILE]
+# デフォルトOUTFILE: <repo-root>/.superpowers/sdd/task-<N>-brief.md
+# （worktreeごと。同一ワーキングツリー内の同時実行は共有する）
 set -euo pipefail
 
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-  echo "usage: task-brief PLAN_FILE TASK_NUMBER [OUTFILE]" >&2
+  echo "使い方: task-brief PLAN_FILE TASK_NUMBER [OUTFILE]" >&2
   exit 2
 fi
 
 plan=$1
 n=$2
-[ -f "$plan" ] || { echo "no such plan file: $plan" >&2; exit 2; }
+[ -f "$plan" ] || { echo "そのようなプランファイルはありません: $plan" >&2; exit 2; }
 
 if [ $# -eq 3 ]; then
   out=$3
@@ -33,8 +33,8 @@ awk -v n="$n" '
 ' "$plan" > "$out"
 
 if [ ! -s "$out" ]; then
-  echo "task ${n} not found in ${plan} (no heading matching 'Task ${n}')" >&2
+  echo "task ${n} が ${plan} 内に見つかりません（'Task ${n}' に一致する見出しなし）" >&2
   exit 3
 fi
 
-echo "wrote ${out}: $(wc -l < "$out" | tr -d ' ') lines"
+echo "書き込み完了 ${out}: $(wc -l < "$out" | tr -d ' ') 行"
