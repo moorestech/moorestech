@@ -447,8 +447,8 @@ namespace Tests.CombinedTest.Core
         }
 
         /// <summary>
-        ///     FluidPipeのIBlockStateObservableの実装のテスト。通知はtick末尾に変化したパイプへ1回ずつバッチ発火される
-        ///     IBlockStateObservable test: notifications fire batched, once per changed pipe at the tick tail
+        ///     FluidPipeのIBlockStateObservableの実装のテスト。通知はtick末尾に全パイプへ毎tick1回ずつバッチ発火される
+        ///     IBlockStateObservable test: notifications fire batched, once per pipe every tick at the tick tail
         /// </summary>
         [Test]
         public void FluidPipeNetworkTest()
@@ -483,8 +483,8 @@ namespace Tests.CombinedTest.Core
             // Each frame advances exactly 1 tick
             for (var i = 0; i < steps; i++) GameUpdater.RunFrames(1);
 
-            // 水位差がある間は毎tick両パイプの内容量が変化し、それぞれ1回ずつ通知される（2回/tick × 10tick）
-            // While levels differ, both pipes change every tick and notify once each: 2 per tick over 10 ticks
+            // 毎tick両パイプへ1回ずつ通知される（2回/tick × 10tick。差分化は将来のtick差分同期で行う）
+            // Both pipes notify once every tick: 2 per tick over 10 ticks (diffing is deferred to the future tick-diff sync)
             Assert.AreEqual(20, callCount);
         }
     }

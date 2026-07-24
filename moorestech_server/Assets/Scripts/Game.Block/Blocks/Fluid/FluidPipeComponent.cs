@@ -39,9 +39,6 @@ namespace Game.Block.Blocks.Fluid
         // Loaded initial face velocities (canonical direction → velocity), consumed by the first topology rebuild
         private Dictionary<Vector3Int, double> _loadedFaceVelocities;
 
-        private double _lastNotifiedAmount;
-        private FluidId _lastNotifiedFluidId;
-
         public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent, float capacity, Dictionary<string, string> componentStates)
         {
             Node = new FluidSimNode(blockPositionInfo.OriginalPos, capacity);
@@ -56,9 +53,6 @@ namespace Game.Block.Blocks.Fluid
                 Node.FluidId = jsonObject.FluidId;
                 _loadedFaceVelocities = jsonObject.ToFaceVelocityDictionary();
             }
-
-            _lastNotifiedAmount = Node.Amount;
-            _lastNotifiedFluidId = Node.FluidId;
 
             ServerContext.GetService<IFluidNetworkDatastore>().AddPipe(this);
         }
@@ -87,15 +81,10 @@ namespace Game.Block.Blocks.Fluid
             return new[] { new BlockStateDetail(FluidPipeStateDetail.BlockStateDetailKey, serialized) };
         }
 
-        // tick末尾にFluidNetworkDatastoreから呼ばれ、前回通知から変化があった時だけ状態変更を発火する
-        // Called by FluidNetworkDatastore at the tick tail; fires only when the state changed since the last notification
-        internal void NotifyStateIfChanged()
+        // tick末尾にFluidNetworkDatastoreから呼ばれ、毎tick状態を発火する（差分化はクライアント同時tick計算のtick差分同期で行う予定）
+        // Called by FluidNetworkDatastore at the tick tail; fires every tick (diffing is deferred to the future tick-diff sync)
+        internal void NotifyState()
         {
-            var amountChanged = FluidSimulationConstants.AmountEpsilon < Math.Abs(Node.Amount - _lastNotifiedAmount);
-            if (!amountChanged && Node.FluidId == _lastNotifiedFluidId) return;
-
-            _lastNotifiedAmount = Node.Amount;
-            _lastNotifiedFluidId = Node.FluidId;
             _onChangeBlockState.OnNext(Unit.Default);
         }
 

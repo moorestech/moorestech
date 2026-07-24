@@ -30,7 +30,7 @@ namespace Game.Block.Blocks.Fluid
 
             // 内容量が変化したパイプの状態通知をまとめて発火する
             // Fire batched state notifications for pipes whose amount changed
-            _fluidNetworkDatastore.NotifyChangedPipeStates();
+            _fluidNetworkDatastore.NotifyPipeStates();
         }
     }
 }
