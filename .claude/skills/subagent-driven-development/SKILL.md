@@ -1,22 +1,21 @@
 ---
 name: subagent-driven-development
-description: Use when executing implementation plans with independent tasks in the current session
+description: 現在のセッションで、独立したタスクからなる実装計画を実行する際に使用する
 ---
 
 # Subagent-Driven Development
 
-Execute plan by dispatching a fresh implementer subagent per task, a task review (spec compliance + code quality) after each, and a broad whole-branch review at the end.
+計画を実行する際、タスクごとに新しいimplementer subagentを派遣し、各タスク後にタスクレビュー（spec準拠＋コード品質）を行い、最後に広範なブランチ全体レビューを行う。
 
-**Why subagents:** You delegate tasks to specialized agents with isolated context. By precisely crafting their instructions and context, you ensure they stay focused and succeed at their task. They should never inherit your session's context or history — you construct exactly what they need. This also preserves your own context for coordination work.
+**なぜsubagentを使うのか:** 隔離されたコンテキストを持つ専門エージェントにタスクを委譲する。指示とコンテキストを精密に組み立てることで、彼らが集中してタスクを成功させることを保証する。彼らは自分のセッションのコンテキストや履歴を継承すべきではなく、必要なものだけを正確に構築して渡す。これにより自分自身のコンテキストも調整作業のために温存される。
 
-**Core principle:** Fresh subagent per task + task review (spec + quality) + broad final review = high quality, fast iteration
+**核となる原則:** タスクごとの新規subagent + タスクレビュー（spec + 品質） + 広範な最終レビュー = 高品質・高速なイテレーション
 
-**Narration:** between tool calls, narrate at most one short line — the
-ledger and the tool results carry the record.
+**ナレーション:** ツール呼び出しの間は最大1行だけ短く実況する。台帳とツール結果が記録を担う。
 
-**Continuous execution:** Do not pause to check in with your human partner between tasks. Execute all tasks from the plan without stopping. The only reasons to stop are: BLOCKED status you cannot resolve, ambiguity that genuinely prevents progress, or all tasks complete. "Should I continue?" prompts and progress summaries waste their time — they asked you to execute the plan, so execute it.
+**継続実行:** タスクの合間に人間パートナーへ確認を取るために止まらない。計画の全タスクを止まらずに実行する。止まってよい理由は、解決できないBLOCKED状態、真に進行を妨げる曖昧さ、または全タスク完了のみ。「続けてよいですか？」という確認や進捗サマリーは相手の時間の無駄になる — 彼らは計画の実行を依頼したのだから、実行せよ。
 
-## When to Use
+## 使用場面
 
 ```dot
 digraph when_to_use {
@@ -36,13 +35,13 @@ digraph when_to_use {
 }
 ```
 
-**vs. Executing Plans (parallel session):**
-- Same session (no context switch)
-- Fresh subagent per task (no context pollution)
-- Review after each task (spec compliance + code quality), broad review at the end
-- Faster iteration (no human-in-loop between tasks)
+**vs. Executing Plans（並列セッション）:**
+- 同一セッション（コンテキスト切り替えなし）
+- タスクごとに新規subagent（コンテキスト汚染なし）
+- 各タスク後にレビュー（spec準拠＋コード品質）、最後に広範なレビュー
+- 高速なイテレーション（タスク間でhuman-in-loopなし）
 
-## The Process
+## プロセス
 
 ```dot
 digraph process {
@@ -82,373 +81,253 @@ digraph process {
 }
 ```
 
-## Final Whole-Branch Review Is a Mandatory, Automatic Gate
+## 最終ブランチ全体レビューは必須の自動ゲートである
 
-The final moores-code-review pass runs **automatically, unconditionally, and
-without asking**, the moment the last task completes. It is part of this
-process, not part of the goal statement:
+最終moores-code-reviewパスは、最後のタスクが完了した瞬間、**自動的・無条件・確認なし**に実行される。これはこのプロセスの一部であり、ゴール記述の一部ではない:
 
-- A goal phrased as "playtestまで実行", "テストが通るまで", or any other
-  milestone does **not** exempt the review. Goal wording bounds the feature
-  work; it never bounds this gate. Reasoning "the goal boundary was reached,
-  the review is a next step" is explicitly forbidden — that exact reasoning
-  let a plan-mandated hardcode (`BlockReplaceFamilyUtil`, replace-family
-  BlockType列挙) ship unreviewed and get caught by the human instead
-  (reworked in `3ad0cd5c0`).
-- Never end the session with "moores-code-review 1パス推奨です・必要なら実行
-  します". Recommending the review instead of running it counts as skipping
-  it.
-- The only way to skip: the human explicitly says to skip it, in their own
-  words, this session. Record that instruction in the progress ledger.
-- When writing or reviewing a plan, make sure its task list ends with an
-  explicit final task: 「必ず最後にmoores-code-reviewスキルで全ブランチ
-  レビューを実行する」. If the plan lacks it, add it to your todo list
-  yourself — a missing task line does not waive the gate.
+- 「playtestまで実行」「テストが通るまで」といった形で表現されたゴールは、レビューを免除**しない**。ゴールの文言は機能実装の範囲を定めるものであり、このゲートを制限するものでは決してない。「ゴール境界に到達したから、レビューは次のステップだ」という推論は明示的に禁止されている — まさにこの推論によって、計画で義務付けられたハードコード（`BlockReplaceFamilyUtil`、replace-family
+  BlockType列挙）がレビューされずに出荷され、人間によって捕捉された（`3ad0cd5c0`で修正）。
+- 「moores-code-review 1パス推奨です・必要なら実行します」という言葉でセッションを終えてはならない。レビューを実行する代わりに推奨することは、それをスキップしたことになる。
+- スキップできる唯一の方法は、人間がこのセッション内で自分の言葉で明示的にスキップを指示した場合のみ。その指示を進捗台帳に記録すること。
+- 計画を書く・レビューする際は、タスクリストの末尾に明示的な最終タスクがあることを確認する: 「必ず最後にmoores-code-reviewスキルで全ブランチ
+  レビューを実行する」。計画にこれが無い場合は自分のtodoリストに追加すること — タスク行の欠落はゲートを免除しない。
 
-## Pre-Flight Plan Review
+## 事前計画レビュー
 
-Before dispatching Task 1, scan the plan once for conflicts:
+タスク1を派遣する前に、計画を一度スキャンして矛盾を確認する:
 
-- tasks that contradict each other or the plan's Global Constraints
-- anything the plan explicitly mandates that the review rubric treats as a
-  defect (a test that asserts nothing, verbatim duplication of a logic block)
-- **moorestech design lenses**: check the plan against
-  `.claude/skills/moores-code-review/references/lens-digest.md`. A plan that
-  mandates a lens violation (e.g. "derive state from existing responses
-  instead of a new event packet", "make the schema field optional to avoid
-  JSON updates", "inject an isActive predicate into the base component") is a
-  design-stage defect — catching it here is 10x cheaper than at final review.
-  If the plan skipped spec-architecture-review (no 配置と前例 section), run
-  that scan now using `.claude/skills/writing-plans/references/moorestech-layer-map.md`.
+- タスク同士、あるいはタスクと計画のGlobal Constraintsとが矛盾している箇所
+- 計画が明示的に義務付けているが、レビューの基準では欠陥とみなされるもの（何も検証しないテスト、ロジックブロックの逐語的な重複）
+- **moorestech設計レンズ:** 計画を`.claude/skills/moores-code-review/references/lens-digest.md`と照合する。計画がレンズ違反を義務付けている場合（例:「新しいイベントパケットの代わりに既存レスポンスから状態を導出する」「JSON更新を避けるためスキーマフィールドをoptionalにする」「isActive述語を基底コンポーネントに注入する」）は設計段階の欠陥であり、ここで捕捉する方が最終レビューで捕捉するより10倍安く済む。
+  計画がspec-architecture-reviewを飛ばしている場合（配置と前例のセクションが無い場合）は、`.claude/skills/writing-plans/references/moorestech-layer-map.md`を使って今そのスキャンを実行する。
 
-Present everything you find to your human partner as one batched question —
-each finding beside the plan text that mandates it, asking which governs —
-before execution begins, not one interrupt per discovery mid-plan. If the
-scan is clean, proceed without comment. The review loop remains the net for
-conflicts that only emerge from implementation.
+見つけたものはすべて一括した質問として人間パートナーに提示する — それを義務付ける計画テキストの隣に各所見を並べ、どちらを優先すべきか尋ねる — 実行開始前に行い、計画実行中の発見ごとに1つずつ割り込むのではない。スキャンが問題なければ、コメントなしで進める。実装からのみ明らかになる矛盾については、レビューループが引き続き網の役割を果たす。
 
-## Model Selection
+## モデル選定
 
-Use the least powerful model that can handle each role to conserve cost and increase speed.
+コストを抑え速度を高めるため、各役割をこなせる最も非力なモデルを使うこと。
 
-**Mechanical implementation tasks** (isolated functions, clear specs, 1-2 files): use a fast, cheap model. Most implementation tasks are mechanical when the plan is well-specified.
+**機械的な実装タスク**（孤立した関数、明確なspec、1〜2ファイル）: 高速で安価なモデルを使う。計画がよく記述されていれば、ほとんどの実装タスクは機械的である。
 
-**Integration and judgment tasks** (multi-file coordination, pattern matching, debugging): use a standard model.
+**統合・判断タスク**（複数ファイルにまたがる調整、パターンマッチング、デバッグ）: 標準モデルを使う。
 
-**Architecture and design tasks**: use the most capable available model.
-The final whole-branch review is one of these — dispatch it on the most
-capable available model, not the session default.
+**アーキテクチャ・設計タスク:** 利用可能な最も高性能なモデルを使う。
+最終ブランチ全体レビューはこれに該当する — セッションのデフォルトではなく、利用可能な最も高性能なモデルで派遣すること。
 
-**Review tasks**: choose the model with the same judgment, scaled to the
-diff's size, complexity, and risk. A small mechanical diff does not need the
-most capable model; a subtle concurrency change does.
+**レビュータスク:** diffの規模・複雑さ・リスクに応じて、同じ判断基準でモデルを選ぶ。小さく機械的なdiffには最も高性能なモデルは不要だが、微妙な並行処理の変更には必要。
 
-**Always specify the model explicitly when dispatching a subagent.** An
-omitted model inherits your session's model — often the most capable and
-most expensive — which silently defeats this section.
+**subagentを派遣する際は常にモデルを明示的に指定すること。** モデル未指定はセッションのモデル（多くの場合最も高性能かつ高価）を暗黙に継承し、この節を無言のうちに無効化する。
 
-**Turn count beats token price.** Wall-clock and context cost scale with how
-many turns a subagent takes, and the cheapest models routinely take 2-3× the
-turns on multi-step work — costing more overall. Use a mid-tier model as the
-floor for reviewers and for implementers working from prose descriptions.
-When the task's plan text contains the complete code to write, the
-implementation is transcription plus testing: use the cheapest tier for
-that implementer. Single-file mechanical fixes also take the cheapest tier.
+**ターン数はトークン単価に勝る。** 経過時間とコンテキストコストは、subagentが何ターン要するかに比例してスケールする。安価なモデルは多段階の作業で常習的に2〜3倍のターン数を要し、結果的により高くつくことがある。レビュアーおよびプロース記述から作業するimplementerには、中位モデルを下限として使うこと。タスクの計画テキストに書くべきコードそのものが含まれている場合、実装は転記＋テストに過ぎないため、そのimplementerには最安ティアを使う。単一ファイルの機械的な修正も最安ティアでよい。
 
-**Task complexity signals (implementation tasks):**
-- Touches 1-2 files with a complete spec → cheap model
-- Touches multiple files with integration concerns → standard model
-- Requires design judgment or broad codebase understanding → most capable model
+**タスク複雑度のシグナル（実装タスク）:**
+- 完全なspecがあり1〜2ファイルに触れる → 安価なモデル
+- 統合上の懸念がある複数ファイルに触れる → 標準モデル
+- 設計判断や広範なコードベース理解を要する → 最も高性能なモデル
 
-## Handling Implementer Status
+## Implementerのステータス対応
 
-Implementer subagents report one of four statuses. Handle each appropriately:
+Implementer subagentは4つのステータスのいずれかを報告する。それぞれ適切に対応すること:
 
-**DONE:** Generate the review package (`scripts/review-package BASE HEAD`, from this skill's directory — it prints the unique file path it wrote; BASE is the commit you recorded before dispatching the implementer — never `HEAD~1`, which silently drops all but the last commit of a multi-commit task), then dispatch the task reviewer with the printed path.
+**DONE:** レビューパッケージを生成し（このスキルのディレクトリから`scripts/review-package BASE HEAD` — 書き出した一意のファイルパスを表示する。BASEはimplementerを派遣する前に記録したコミットであり、決して`HEAD~1`ではない — これは複数コミットタスクの最後以外を無言で切り捨ててしまう）、表示されたパスでタスクレビュアーを派遣する。
 
-**DONE_WITH_CONCERNS:** The implementer completed the work but flagged doubts. Read the concerns before proceeding. If the concerns are about correctness or scope, address them before review. If they're observations (e.g., "this file is getting large"), note them and proceed to review.
+**DONE_WITH_CONCERNS:** implementerは作業を完了したが懸念を報告した。進める前に懸念を読むこと。懸念が正しさやスコープに関するものであれば、レビュー前に対処する。単なる所見（例:「このファイルが大きくなりつつある」）であればメモしてレビューに進む。
 
-**NEEDS_CONTEXT:** The implementer needs information that wasn't provided. Provide the missing context and re-dispatch.
+**NEEDS_CONTEXT:** implementerが提供されていない情報を必要としている。不足しているコンテキストを提供して再派遣する。
 
-**BLOCKED:** The implementer cannot complete the task. Assess the blocker:
-1. If it's a context problem, provide more context and re-dispatch with the same model
-2. If the task requires more reasoning, re-dispatch with a more capable model
-3. If the task is too large, break it into smaller pieces
-4. If the plan itself is wrong, escalate to the human
+**BLOCKED:** implementerがタスクを完了できない。ブロッカーを評価する:
+1. コンテキストの問題であれば、より多くのコンテキストを提供し同じモデルで再派遣する
+2. タスクがより多くの推論を要する場合、より高性能なモデルで再派遣する
+3. タスクが大きすぎる場合、より小さな単位に分割する
+4. 計画自体が誤っている場合、人間にエスカレーションする
 
-**Never** ignore an escalation or force the same model to retry without changes. If the implementer said it's stuck, something needs to change.
+**エスカレーションを無視したり、変更なく同じモデルにリトライを強制したりすることは決してしないこと。** implementerが行き詰まったと言ったなら、何かを変える必要がある。
 
-## Handling Reviewer ⚠️ Items
+## レビュアーの⚠️項目への対応
 
-The task reviewer may report "⚠️ Cannot verify from diff" items — requirements
-that live in unchanged code or span tasks. These do not block the rest of the
-review, but you must resolve each one yourself before marking the task
-complete: you hold the plan and cross-task context the reviewer
-lacks. If you confirm an item is a real gap, treat it as a failed spec
-review — send it back to the implementer and re-review.
+タスクレビュアーは「⚠️ diffからは検証不能」という項目を報告することがある — 未変更のコードに存在する、またはタスクをまたぐ要件。これらは残りのレビューをブロックしないが、タスク完了とマークする前に自分自身で各項目を解決しなければならない: 計画とタスク横断のコンテキストを持つのはあなたであり、レビュアーはそれを持たない。項目が実際のギャップだと確認したら、失敗したspecレビューとして扱う — implementerに差し戻し再レビューする。
 
-## Constructing Reviewer Prompts
+## レビュアープロンプトの組み立て
 
-Per-task reviews are task-scoped gates. The broad review happens once, at the
-final whole-branch review. When you fill a reviewer template:
+タスクごとのレビューはタスク単位のゲートである。広範なレビューは1回、最終ブランチ全体レビューでのみ行われる。レビュアーテンプレートを埋める際:
 
-- Do not add open-ended directives like "check all uses" or "run race tests
-  if useful" without a concrete, task-specific reason
-- Do not ask a reviewer to re-run tests the implementer already ran on the
-  same code — the implementer's report carries the test evidence
-- Do not pre-judge findings for the reviewer — never instruct a reviewer to
-  ignore or not flag a specific issue. If you believe a finding would be a
-  false positive, let the reviewer raise it and adjudicate it in the review
-  loop. If the prompt you are writing contains "do not flag," "don't treat X
-  as a defect," "at most Minor," or "the plan chose" — stop: you are
-  pre-judging, usually to spare yourself a review loop.
-- The global-constraints block you hand the reviewer is its attention
-  lens. Copy the binding requirements verbatim from the plan's Global
-  Constraints section or the spec: exact values, exact formats, and the
-  stated relationships between components ("same layout as X", "matches
-  Y"). The reviewer's template already carries the process rules (YAGNI,
-  test hygiene, review method) — the constraints block is for what THIS
-  project's spec demands.
-- Hand the reviewer its diff as a file: run this skill's
-  `scripts/review-package BASE HEAD` and pass the reviewer the file path
-  it prints (or, without bash: `git log --oneline`, `git diff --stat`,
-  and `git diff -U10` for the range, redirected to one uniquely named
-  file). The output never enters your own context, and the reviewer sees
-  the commit list, stat summary, and full diff with context in one Read
-  call. Use the BASE you recorded before dispatching the implementer —
-  never `HEAD~1`, which silently truncates multi-commit tasks.
-- A dispatch prompt describes one task, not the session's history. Do not
-  paste accumulated prior-task summaries ("state after Tasks 1-3") into
-  later dispatches — a real session's dispatch hit 42k chars of which 99%
-  was pasted history. A fresh subagent needs its task, the interfaces it
-  touches, and the global constraints. Nothing else.
-- Dispatch fix subagents for Critical and Important findings. Record Minor
-  findings in the progress ledger as you go, and point the final
-  whole-branch review at that list so it can triage which must be fixed
-  before merge. A roll-up nobody reads is a silent discard.
-- A finding labeled plan-mandated — or any finding that conflicts with
-  what the plan's text requires — is the human's decision, like any plan
-  contradiction: present the finding and the plan text, ask which governs.
-  Do not dismiss the finding because the plan mandates it, and do not
-  dispatch a fix that contradicts the plan without asking.
-- The final whole-branch review is the **moores-code-review skill** (invoke it
-  via the Skill tool, not a single reviewer subagent), and it is a mandatory
-  automatic gate — see "Final Whole-Branch Review Is a Mandatory, Automatic
-  Gate" above. It runs the
-  deterministic checks plus the moorestech design lenses in parallel and
-  integrates the findings. Generate the branch diff first with
-  `scripts/review-package MERGE_BASE HEAD` (MERGE_BASE = the commit the
-  branch started from, e.g. `git merge-base main HEAD`) and use the printed
-  file as the skill's PATCH_PATH. Feed the Minor-findings ledger into its
-  4-category context so the lens agents can triage it.
-- Every fix dispatch carries the implementer contract: the fix subagent
-  re-runs the tests covering its change and reports the results. Name the
-  covering test files in the dispatch — a one-line fix does not need the
-  whole suite. Before re-dispatching the reviewer, confirm the fix report
-  contains the covering tests, the command run, and the output; dispatch
-  the re-review once all three are present.
-- If the final whole-branch review returns findings, dispatch ONE fix
-  subagent with the complete findings list — not one fixer per finding.
-  Per-finding fixers each rebuild context and re-run suites; a real
-  session's final-review fix wave cost more than all its tasks combined.
+- 「すべての用途を確認せよ」「役立つならrace testを実行せよ」といった、具体的でタスク固有の理由のない自由裁量の指示を追加しないこと
+- implementerがすでに同じコードに対して実行したテストを、レビュアーに再実行させないこと — implementerの報告がテスト証拠を担う
+- レビュアーに対して所見を先取りして判断しないこと — 特定の問題を無視するよう、あるいはフラグを立てないよう指示することは決してしない。ある所見が偽陽性だと思うなら、レビュアーに提起させ、レビューループの中で裁定する。書いているプロンプトに「フラグを立てるな」「Xを欠陥として扱うな」「最大でもMinor」「計画が選んだ」といった文言が含まれているなら止まること — それは先取り判断であり、通常は自分がレビューループを避けたいだけである。
+- レビュアーに渡すglobal-constraintsブロックは彼らの注意のレンズである。計画のGlobal Constraintsセクションまたはspecから、拘束力ある要件を逐語的にコピーすること: 正確な値、正確なフォーマット、コンポーネント間で述べられている関係性（「Xと同じレイアウト」「Yと一致」）。レビュアーのテンプレートにはすでにプロセスのルール（YAGNI、テスト衛生、レビュー手法）が含まれている — constraintsブロックはこのプロジェクトのspecが要求する内容のためのものである。
+- レビュアーにはdiffをファイルとして渡すこと: このスキルの`scripts/review-package BASE HEAD`を実行し、表示されたファイルパスをレビュアーに渡す（bashが無い場合は`git log --oneline`、`git diff --stat`、範囲に対する`git diff -U10`を、一意な名前の1ファイルにリダイレクトする）。出力は自分自身のコンテキストには一切入らず、レビュアーはコミット一覧・stat要約・コンテキスト付き全diffを1回のRead呼び出しで見られる。implementerを派遣する前に記録したBASEを使うこと — 決して`HEAD~1`ではない。これは複数コミットタスクを無言で切り詰める。
+- 派遣プロンプトは1つのタスクを記述するものであり、セッションの履歴ではない。蓄積された前タスクの要約（「タスク1〜3後の状態」）を後続の派遣に貼り付けないこと — 実セッションのある派遣は42k文字に達し、その99%が貼り付けられた履歴だった。新規subagentが必要とするのは自分のタスク、触れるインターフェース、global constraintsだけである。それ以外は不要。
+- Critical・Important所見にはfix subagentを派遣すること。Minor所見は進捗台帳に記録し、最終ブランチ全体レビューにそのリストを参照させ、マージ前に修正すべきものを判定させる。誰も読まないロールアップは無言の握りつぶしである。
+- plan-mandatedとラベル付けされた所見 — あるいは計画のテキストが要求する内容と矛盾する所見 — は、あらゆる計画との矛盾と同様に人間の判断事項である: 所見と計画テキストを提示し、どちらを優先するか尋ねる。計画が義務付けているという理由で所見を却下したり、計画と矛盾する修正を確認なしに派遣したりしないこと。
+- 最終ブランチ全体レビューは**moores-code-reviewスキル**である（単一のレビュアーsubagentではなくSkillツール経由で呼び出す）。これは必須の自動ゲートである — 上記「最終ブランチ全体レビューは必須の自動ゲートである」を参照。決定論チェックとmoorestech設計レンズを並列実行し、所見を統合する。まずブランチdiffを`scripts/review-package MERGE_BASE HEAD`で生成し（MERGE_BASE = ブランチが分岐したコミット、例: `git merge-base main HEAD`）、表示されたファイルをスキルのPATCH_PATHとして使う。Minor所見台帳をレンズエージェント群の4カテゴリコンテキストに投入し、トリアージさせること。
+- すべてのfix派遣はimplementer契約を担う: fix subagentは自分の変更をカバーするテストを再実行し結果を報告する。派遣時にカバーするテストファイル名を挙げること — 1行の修正にスイート全体は不要。レビュアーを再派遣する前に、fix報告にカバーするテスト・実行したコマンド・出力が含まれていることを確認し、この3つが揃ってから再レビューを派遣する。
+- 最終ブランチ全体レビューで所見が返ってきた場合、所見1件につき1体ではなく、完全な所見リストを持った**単一の**fix subagentを派遣すること。所見ごとのfixerはそれぞれコンテキストを再構築しスイートを再実行するため、実セッションのある最終レビューのfix waveは全タスク合計より高コストになった。
 
-## File Handoffs
+## ファイルハンドオフ
 
-Everything you paste into a dispatch prompt — and everything a subagent
-prints back — stays resident in your context for the rest of the session
-and is re-read on every later turn. Hand artifacts over as files:
+派遣プロンプトに貼り付けたものすべて — そしてsubagentが返すものすべて — はセッション残り期間コンテキストに常駐し、以降の全ターンで再読込される。成果物はファイルとして受け渡すこと:
 
-- **Task brief:** before dispatching an implementer, run this skill's
-  `scripts/task-brief PLAN_FILE N` — it extracts the task's full text to a
-  uniquely named file and prints the path. Compose the dispatch so the
-  brief stays the single source of requirements. Your dispatch should
-  contain: (1) one line on where this task fits in the project; (2) the
-  brief path, introduced as "read this first — it is your requirements,
-  with the exact values to use verbatim"; (3) interfaces and decisions
-  from earlier tasks that the brief cannot know; (4) your resolution of
-  any ambiguity you noticed in the brief; (5) the report-file path and
-  report contract. Exact values (numbers, magic strings, signatures, test
-  cases) appear only in the brief.
-- **Report file:** name the implementer's report file after the brief
-  (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
-  the dispatch prompt. The implementer writes the full report there and
-  returns only status, commits, a one-line test summary, and concerns.
-- **Reviewer inputs:** the task reviewer gets three paths — the same brief
-  file, the report file, and the review package — plus the global
-  constraints that bind the task.
-- Fix dispatches append their fix report (with test results) to the same
-  report file and return a short summary; re-reviews read the updated file.
+- **タスクブリーフ:** implementerを派遣する前に、このスキルの`scripts/task-brief PLAN_FILE N`を実行する — タスクの全文を一意な名前のファイルに抽出し、パスを表示する。ブリーフを唯一の要件ソースとして保つよう派遣を組み立てる。派遣内容には次を含めること: (1) このタスクがプロジェクトのどこに位置するかの1行、(2) ブリーフのパス（「まずこれを読め — あなたの要件であり、値はそのまま使うこと」として紹介）、(3) ブリーフが知り得ない、前タスクからのインターフェースと決定事項、(4) ブリーフで気づいた曖昧さに対する自分の解消、(5) 報告ファイルのパスと報告契約。正確な値（数値、マジックストリング、シグネチャ、テストケース）はブリーフにのみ現れる。
+- **報告ファイル:** implementerの報告ファイルはブリーフに合わせた名前にし（ブリーフ`…/task-N-brief.md` → 報告`…/task-N-report.md`）、派遣プロンプトに記載する。implementerは完全な報告をそこに書き、返答ではステータス・コミット・1行のテスト要約・懸念のみを返す。
+- **レビュアーの入力:** タスクレビュアーには3つのパス — 同じブリーフファイル、報告ファイル、レビューパッケージ — に加え、タスクを拘束するglobal constraintsを渡す。
+- fix派遣は同じ報告ファイルにfix報告（テスト結果込み）を追記し、短い要約を返す。再レビューは更新されたファイルを読む。
 
-## Durable Progress
+## 永続的な進捗管理
 
-Conversation memory does not survive compaction. In real sessions,
-controllers that lost their place have re-dispatched entire completed task
-sequences — the single most expensive failure observed. Track progress in
-a ledger file, not only in todos.
+会話メモリはcompactionを跨いで残らない。実セッションでは、自分の位置を見失ったコントローラーが完了済みのタスク列全体を再派遣してしまうことがあった — 観測された中で最も高くつく失敗だった。進捗はtodoだけでなく台帳ファイルで追跡すること。
 
-- At skill start, check for a ledger:
-  `cat "$(git rev-parse --show-toplevel)/.superpowers/sdd/progress.md"`. Tasks listed there
-  as complete are DONE — do not re-dispatch them; resume at the first task
-  not marked complete.
-- When a task's review comes back clean, append one line to the ledger in
-  the same message as your other bookkeeping:
-  `Task N: complete (commits <base7>..<head7>, review clean)`.
-- The ledger is your recovery map: the commits it names exist in git even
-  when your context no longer remembers creating them. After compaction,
-  trust the ledger and `git log` over your own recollection.
-- `git clean -fdx` will destroy the ledger (it's git-ignored scratch); if
-  that happens, recover from `git log`.
+- スキル開始時、台帳を確認する:
+  `cat "$(git rev-parse --show-toplevel)/.superpowers/sdd/progress.md"`。そこに完了と記載されているタスクはDONEである — 再派遣せず、完了マークの無い最初のタスクから再開する。
+- タスクのレビューがクリーンで返ってきたら、他の記帳と同じメッセージで台帳に1行追記する:
+  `Task N: complete (commits <base7>..<head7>, review clean)`。
+- 台帳は復旧マップである: そこに記載されたコミットは、自分のコンテキストがそれらを作成したことを覚えていなくてもgitに存在する。compaction後は自分の記憶よりも台帳と`git log`を信頼すること。
+- `git clean -fdx`は台帳を破壊する（git-ignoreされたスクラッチのため）。発生した場合は`git log`から復旧すること。
 
-## Prompt Templates
+## プロンプトテンプレート
 
-- [implementer-prompt.md](implementer-prompt.md) - Dispatch implementer subagent
-- [task-reviewer-prompt.md](task-reviewer-prompt.md) - Dispatch task reviewer subagent (spec compliance + code quality)
-- Final whole-branch review: use superpowers:requesting-code-review's [code-reviewer.md](../requesting-code-review/code-reviewer.md)
+- [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣
+- [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（spec準拠＋コード品質）
+- 最終ブランチ全体レビュー: superpowers:requesting-code-reviewの[code-reviewer.md](../requesting-code-review/code-reviewer.md)を使用
 
-## Example Workflow
+## ワークフロー例
 
 ```
-You: I'm using Subagent-Driven Development to execute this plan.
+You: この計画をSubagent-Driven Developmentで実行します。
 
-[Read plan file once: docs/superpowers/plans/feature-plan.md]
-[Create todos for all tasks]
+[計画ファイルを一度だけ読む: docs/superpowers/plans/feature-plan.md]
+[全タスクのtodoを作成]
 
-Task 1: Hook installation script
+Task 1: Hookインストールスクリプト
 
-[Run task-brief for Task 1; dispatch implementer with brief + report paths + context]
+[Task 1のtask-briefを実行。ブリーフ+報告パス+コンテキストでimplementerを派遣]
 
-Implementer: "Before I begin - should the hook be installed at user or system level?"
+Implementer: 「開始前に確認です — このhookはuserレベル・systemレベルのどちらに
+インストールすべきですか？」
 
-You: "User level (~/.config/superpowers/hooks/)"
+You: 「userレベル（~/.config/superpowers/hooks/）」
 
-Implementer: "Got it. Implementing now..."
-[Later] Implementer:
-  - Implemented install-hook command
-  - Added tests, 5/5 passing
-  - Self-review: Found I missed --force flag, added it
-  - Committed
+Implementer: 「了解しました。実装を開始します…」
+[しばらくして] Implementer:
+  - install-hookコマンドを実装
+  - テストを追加、5/5 passing
+  - 自己レビュー: --forceフラグの見落としに気づき追加
+  - コミット済み
 
-[Run review-package, dispatch task reviewer with the printed path]
-Task reviewer: Spec ✅ - all requirements met, nothing extra.
-  Strengths: Good test coverage, clean. Issues: None. Task quality: Approved.
+[review-packageを実行し、表示されたパスでタスクレビュアーを派遣]
+Task reviewer: Spec ✅ - 要件はすべて満たされ、余分なものもなし。
+  強み: 良いテストカバレッジ、クリーン。問題: なし。Task quality: Approved。
 
-[Mark Task 1 complete]
+[Task 1を完了とマーク]
 
-Task 2: Recovery modes
+Task 2: リカバリーモード
 
-[Run task-brief for Task 2; dispatch implementer with brief + report paths + context]
+[Task 2のtask-briefを実行。ブリーフ+報告パス+コンテキストでimplementerを派遣]
 
-Implementer: [No questions, proceeds]
+Implementer: [質問なし、そのまま進める]
 Implementer:
-  - Added verify/repair modes
+  - verify/repairモードを追加
   - 8/8 tests passing
-  - Self-review: All good
-  - Committed
+  - 自己レビュー: 問題なし
+  - コミット済み
 
-[Run review-package, dispatch task reviewer with the printed path]
+[review-packageを実行し、表示されたパスでタスクレビュアーを派遣]
 Task reviewer: Spec ❌:
-  - Missing: Progress reporting (spec says "report every 100 items")
-  - Extra: Added --json flag (not requested)
-  Issues (Important): Magic number (100)
+  - 欠落: 進捗報告（specは「100件ごとに報告」と指定）
+  - 余分: --jsonフラグを追加（依頼されていない）
+  Issues (Important): マジックナンバー（100）
 
-[Dispatch fix subagent with all findings]
-Fixer: Removed --json flag, added progress reporting, extracted PROGRESS_INTERVAL constant
+[全所見でfix subagentを派遣]
+Fixer: --jsonフラグを削除、進捗報告を追加、PROGRESS_INTERVAL定数を抽出
 
-[Task reviewer reviews again]
-Task reviewer: Spec ✅. Task quality: Approved.
+[タスクレビュアーが再度レビュー]
+Task reviewer: Spec ✅。Task quality: Approved。
 
-[Mark Task 2 complete]
+[Task 2を完了とマーク]
 
-...
+…
 
-[After all tasks]
-[Dispatch final code-reviewer]
-Final reviewer: All requirements met, ready to merge
+[全タスク完了後]
+[最終code-reviewerを派遣]
+Final reviewer: 全要件を満たし、マージ可能
 
-Done!
+完了！
 ```
 
-## Advantages
+## 利点
 
-**vs. Manual execution:**
-- Subagents follow TDD naturally
-- Fresh context per task (no confusion)
-- Parallel-safe (subagents don't interfere)
-- Subagent can ask questions (before AND during work)
+**vs. 手動実行:**
+- Subagentは自然にTDDに従う
+- タスクごとに新しいコンテキスト（混乱なし）
+- 並列安全（subagent同士が干渉しない）
+- Subagentは質問できる（作業前・作業中の両方）
 
 **vs. Executing Plans:**
-- Same session (no handoff)
-- Continuous progress (no waiting)
-- Review checkpoints automatic
+- 同一セッション（引き継ぎなし）
+- 継続的な進行（待機なし）
+- レビューチェックポイントが自動
 
-**Efficiency gains:**
-- Controller curates exactly what context is needed; bulk artifacts move
-  as files, not pasted text
-- Subagent gets complete information upfront
-- Questions surfaced before work begins (not after)
+**効率の向上:**
+- コントローラーが必要なコンテキストを正確にキュレーションする。大量の成果物は貼り付けテキストではなくファイルとして移動する
+- Subagentは完全な情報を最初から受け取る
+- 質問は作業開始前に表面化する（後からではない）
 
-**Quality gates:**
-- Self-review catches issues before handoff
-- Task review carries two verdicts: spec compliance and code quality
-- Review loops ensure fixes actually work
-- Spec compliance prevents over/under-building
-- Code quality ensures implementation is well-built
+**品質ゲート:**
+- 自己レビューがハンドオフ前に問題を捕捉する
+- タスクレビューはspec準拠とコード品質の2つの判定を担う
+- レビューループが修正の実効性を保証する
+- Spec準拠が過剰・過小構築を防ぐ
+- コード品質が実装の良好な構築を保証する
 
-**Cost:**
-- More subagent invocations (implementer + reviewer per task)
-- Controller does more prep work (extracting all tasks upfront)
-- Review loops add iterations
-- But catches issues early (cheaper than debugging later)
+**コスト:**
+- Subagent呼び出しが増える（タスクごとにimplementer + reviewer）
+- コントローラーの準備作業が増える（全タスクの事前抽出）
+- レビューループがイテレーションを追加する
+- しかし問題を早期に捕捉する（後でデバッグするより安価）
 
-## Red Flags
+## 危険信号
 
-**Never:**
-- Start implementation on main/master branch without explicit user consent
-- Skip task review, or accept a report missing either verdict (spec compliance AND task quality are both required)
-- Proceed with unfixed issues
-- Dispatch multiple implementation subagents in parallel (conflicts)
-- Make a subagent read the whole plan file (hand it its task brief —
-  `scripts/task-brief` — instead)
-- Skip scene-setting context (subagent needs to understand where task fits)
-- Ignore subagent questions (answer before letting them proceed)
-- Accept "close enough" on spec compliance (reviewer found spec issues = not done)
-- Skip review loops (reviewer found issues = implementer fixes = review again)
-- Let implementer self-review replace actual review (both are needed)
-- Tell a reviewer what not to flag, or pre-rate a finding's severity in the
-  dispatch prompt ("treat it as Minor at most") — the plan's example code is
-  a starting point, not evidence that its weaknesses were chosen
-- Dispatch a task reviewer without a diff file — generate it first
-  (`scripts/review-package BASE HEAD`) and name the printed path in the
-  prompt
-- Move to next task while the review has open Critical/Important issues
-- Re-dispatch a task the progress ledger already marks complete — check
-  the ledger (and `git log`) after any compaction or resume
+**絶対にしないこと:**
+- 明示的なユーザー同意なしにmain/masterブランチで実装を開始する
+- タスクレビューをスキップする、または片方の判定（spec準拠とタスク品質の両方が必須）を欠く報告を受け入れる
+- 未修正の問題を抱えたまま進める
+- 複数の実装subagentを並列に派遣する（衝突する）
+- subagentに計画ファイル全体を読ませる（代わりにタスクブリーフ — `scripts/task-brief` — を渡す）
+- 状況説明コンテキストを省略する（subagentはタスクがどこに位置するか理解する必要がある）
+- subagentの質問を無視する（進める前に回答する）
+- spec準拠について「まあ十分」を受け入れる（レビュアーがspec問題を見つけた = 未完了）
+- レビューループをスキップする（レビュアーが問題を見つけた = implementerが修正 = 再レビュー）
+- implementerの自己レビューを実際のレビューの代替にする（両方が必要）
+- レビュアーに何をフラグ立てしないか指示する、または派遣プロンプトで所見の深刻度を先取り評価する（「最大でもMinorとして扱え」）— 計画のサンプルコードは出発点であり、その弱点が意図的に選ばれた証拠ではない
+- diffファイルなしでタスクレビュアーを派遣する — 先に生成すること
+  （`scripts/review-package BASE HEAD`）、表示されたパスをプロンプトに記載する
+- レビューにオープンなCritical/Important問題がある間に次のタスクへ進む
+- 進捗台帳がすでに完了とマークしているタスクを再派遣する — compactionや再開の後は台帳（と`git log`）を確認する
 
-**If subagent asks questions:**
-- Answer clearly and completely
-- Provide additional context if needed
-- Don't rush them into implementation
+**subagentが質問してきた場合:**
+- 明確かつ完全に回答する
+- 必要なら追加のコンテキストを提供する
+- 実装を急かさない
 
-**If reviewer finds issues:**
-- Implementer (same subagent) fixes them
-- Reviewer reviews again
-- Repeat until approved
-- Don't skip the re-review
+**レビュアーが問題を見つけた場合:**
+- Implementer（同じsubagent）が修正する
+- レビュアーが再度レビューする
+- 承認されるまで繰り返す
+- 再レビューをスキップしない
 
-**If subagent fails task:**
-- Dispatch fix subagent with specific instructions
-- Don't try to fix manually (context pollution)
+**subagentがタスクに失敗した場合:**
+- 具体的な指示を持つfix subagentを派遣する
+- 手動で修正しようとしない（コンテキスト汚染）
 
-## Integration
+## 統合
 
-**Required workflow skills:**
-- **superpowers:using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
-- **superpowers:writing-plans** - Creates the plan this skill executes
-- **superpowers:requesting-code-review** - Code review template for the final whole-branch review
-- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+**必須のワークフロースキル:**
+- **superpowers:using-git-worktrees** - 隔離されたワークスペースを保証する（作成または既存のものを検証する）
+- **superpowers:writing-plans** - このスキルが実行する計画を作成する
+- **superpowers:requesting-code-review** - 最終ブランチ全体レビュー用のコードレビューテンプレート
+- **superpowers:finishing-a-development-branch** - 全タスク完了後の開発を仕上げる
 
-**Subagents should use:**
-- **superpowers:test-driven-development** - Subagents follow TDD for each task
+**Subagentが使うべきもの:**
+- **superpowers:test-driven-development** - Subagentは各タスクでTDDに従う
 
-**Alternative workflow:**
-- **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+**代替ワークフロー:**
+- **superpowers:executing-plans** - 同一セッション実行の代わりに並列セッションで使用する

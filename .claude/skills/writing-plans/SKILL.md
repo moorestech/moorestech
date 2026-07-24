@@ -1,86 +1,91 @@
 ---
 name: writing-plans
-description: Use when you have a spec or requirements for a multi-step task, before touching code
+description: マルチステップタスクのspecや要件が揃っていて、コードに着手する前に使う
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh track"
+  Stop:
+    - hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh stop"
 ---
 
 # Writing Plans
 
-## Overview
+## 概要
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
+このコードベースについて前提知識ゼロで、しかもセンスが怪しいエンジニアを想定して、包括的な実装計画を書く。各タスクでどのファイルを触るか、コード、テスト、確認すべきドキュメント、テスト方法まで、必要なことをすべて記述する。plan全体を一口サイズのタスクとして渡す。DRY。YAGNI。TDD。頻繁なコミット。
 
-Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+対象は熟練の開発者だが、このツールセットや問題ドメインについてはほぼ何も知らないと想定する。良いテスト設計にもあまり詳しくないと想定する。
 
-**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+**開始時に宣言:** 「writing-plansスキルを使って実装計画を作成します」
 
-**Context:** If working in an isolated worktree, it should have been created via the `superpowers:using-git-worktrees` skill at execution time.
+**Context:** 独立したworktreeで作業する場合、実行時に`superpowers:using-git-worktrees`スキル経由で作成されているはず。
 
-**Save plans to:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
-- (User preferences for plan location override this default)
+**plan保存先:** `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`
+- （plan保存場所についてユーザーの指定がある場合はそちらを優先）
 
 ## Scope Check
 
-If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
+specが複数の独立したサブシステムにまたがる場合、brainstorming段階でサブプロジェクトごとのspecに分割されているはず。分割されていなければ、サブシステムごとに別々のplanへ分けることを提案する。各planはそれ単体で動作しテスト可能なソフトウェアを生み出すべき。
 
 ## File Structure
 
-Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
+タスクを定義する前に、どのファイルを新規作成・変更するか、各ファイルが何の責務を持つかをマップしておく。ここで分解の判断が固まる。
 
-- Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.
-- You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
-- Files that change together should live together. Split by responsibility, not by technical layer.
-- In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
+- 明確な境界と定義済みのインターフェースを持つ単位として設計する。各ファイルは明確な単一責務を持つべき。
+- 一度にcontextへ収まるコードほど的確に推論でき、ファイルが焦点を絞られているほど編集の信頼性が上がる。何でもやる大きなファイルより、小さく焦点を絞ったファイルを優先する。
+- 一緒に変わるファイルは一緒に置く。技術レイヤーではなく責務で分割する。
+- 既存のコードベースでは、確立されたパターンに従う。コードベースが大きなファイルを使う流儀なら独断で再構成しない。ただし変更対象のファイルが肥大化している場合は、planに分割を含めるのは妥当。
 
-This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
+この構造がタスク分解の指針になる。各タスクは、それ単体で意味の通る自己完結した変更を生み出すべき。
 
 ## Task Right-Sizing
 
-A task is the smallest unit that carries its own test cycle and is worth a
-fresh reviewer's gate. When drawing task boundaries: fold setup,
-configuration, scaffolding, and documentation steps into the task whose
-deliverable needs them; split only where a reviewer could meaningfully
-reject one task while approving its neighbor. Each task ends with an
-independently testable deliverable.
+タスクとは、それ自体のテストサイクルを持ち、新規レビュアーのゲートに値する最小単位である。タスクの境界を引く際は、セットアップ・設定・足場・ドキュメント作成のステップは、それを必要とする成果物のタスクへ畳み込む。分割してよいのは、あるタスクを却下しつつ隣のタスクを承認することがレビュアーにとって意味を持つ場合のみ。各タスクは独立してテスト可能な成果物で終わる。
 
 ## Bite-Sized Task Granularity
 
-**Each step is one action (2-5 minutes):**
-- "Write the failing test" - step
-- "Run it to make sure it fails" - step
-- "Implement the minimal code to make the test pass" - step
-- "Run the tests and make sure they pass" - step
-- "Commit" - step
+**各ステップは1アクション（2〜5分）:**
+- 「失敗するテストを書く」— ステップ
+- 「実行して失敗することを確認する」— ステップ
+- 「テストを通す最小限のコードを実装する」— ステップ
+- 「テストを実行して通ることを確認する」— ステップ
+- 「コミットする」— ステップ
 
 ## Plan Document Header
 
-**Every plan MUST start with this header:**
+**すべてのplanは必ずこのヘッダーから始める:**
 
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development（推奨）または superpowers:executing-plans を使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
 
-**Goal:** [One sentence describing what this builds]
+**Goal:** [これが何を構築するかを1文で説明]
 
-**Architecture:** [2-3 sentences about approach]
+**Architecture:** [アプローチについて2〜3文]
 
-**Tech Stack:** [Key technologies/libraries]
+**Tech Stack:** [主要な技術/ライブラリ]
 
 ## Global Constraints
 
-[The spec's project-wide requirements — version floors, dependency limits,
-naming and copy rules, platform requirements — one line each, with exact
-values copied verbatim from the spec. Every task's requirements implicitly
-include this section.]
+[specのプロジェクト全体の要件 — バージョン下限、依存関係の制限、
+命名・表記のルール、プラットフォーム要件 — specから正確な値を
+逐語的にコピーし1行ずつ記載する。すべてのタスクの要件は暗黙的に
+このセクションを含む]
 
 ---
 ```
 
 **Final task (moorestech, required):** every plan's task list ends with an
 explicit closing task — 「必ず最後にmoores-code-reviewスキルで全ブランチ
-レビューを実行すること（自動実行・ゴール文言による省略不可）」. The
-executor runs it unconditionally; omitting it from the plan does not waive
-the gate (see subagent-driven-development's mandatory-gate section).
+レビューを実行すること（自動実行・ゴール文言による省略不可）」。実行者は
+これを無条件に実行する。planから省略してもゲートは免除されない
+（subagent-driven-developmentのmandatory-gateセクション参照）。
 
 ## Task Structure
 
@@ -93,12 +98,12 @@ the gate (see subagent-driven-development's mandatory-gate section).
 - Test: `tests/exact/path/to/test.py`
 
 **Interfaces:**
-- Consumes: [what this task uses from earlier tasks — exact signatures]
-- Produces: [what later tasks rely on — exact function names, parameter
-  and return types. A task's implementer sees only their own task; this
-  block is how they learn the names and types neighboring tasks use.]
+- Consumes: [このタスクが前段のタスクから使うもの — 正確なシグネチャ]
+- Produces: [後段のタスクが依存するもの — 正確な関数名、引数と戻り値の型。
+  タスクの実装者は自分のタスクしか見ないため、隣接タスクが使う名前・型を
+  知る手段はこのブロックだけである]
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: 失敗するテストを書く**
 
 ```python
 def test_specific_behavior():
@@ -106,24 +111,24 @@ def test_specific_behavior():
     assert result == expected
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 2: テストを実行して失敗を確認する**
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: FAIL with "function not defined"
 
-- [ ] **Step 3: Write minimal implementation**
+- [ ] **Step 3: 最小限の実装を書く**
 
 ```python
 def function(input):
     return expected
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 4: テストを実行して通ることを確認する**
 
 Run: `pytest tests/path/test.py::test_name -v`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: コミットする**
 
 ```bash
 git add tests/path/test.py src/path/file.py
@@ -133,51 +138,58 @@ git commit -m "feat: add specific feature"
 
 ## No Placeholders
 
-Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
-- "TBD", "TODO", "implement later", "fill in details"
-- "Add appropriate error handling" / "add validation" / "handle edge cases"
-- "Write tests for the above" (without actual test code)
-- "Similar to Task N" (repeat the code — the engineer may be reading tasks out of order)
-- Steps that describe what to do without showing how (code blocks required for code steps)
-- References to types, functions, or methods not defined in any task
+各ステップにはエンジニアが必要とする実際の内容を含めなければならない。以下は**planの失敗**であり、絶対に書いてはならない:
+- 「TBD」「TODO」「後で実装」「詳細は後で埋める」
+- 「適切なエラーハンドリングを追加」「バリデーションを追加」「エッジケースに対応」
+- 「上記についてテストを書く」（実際のテストコードなし）
+- 「Task Nと同様」（コードを再掲する — エンジニアはタスクを順不同で読む可能性がある）
+- 何をすべきかを説明するだけでどうやるかを示さないステップ（コードステップにはコードブロックが必須）
+- どのタスクにも定義されていない型・関数・メソッドへの参照
 
 ## Remember
-- Exact file paths always
-- Complete code in every step — if a step changes code, show the code
-- Exact commands with expected output
-- DRY, YAGNI, TDD, frequent commits
+- 常に正確なファイルパス
+- 各ステップに完全なコードを — ステップがコードを変更するなら、そのコードを示す
+- 期待される出力付きの正確なコマンド
+- DRY、YAGNI、TDD、頻繁なコミット
 
 ## Self-Review
 
-After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
+完全なplanを書き終えたら、specを新鮮な目で見直し、planと突き合わせる。これは自分自身で実行するチェックリストであり、subagentへの委譲ではない。
 
-**1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
+**1. Spec coverage:** specの各セクション・要件をざっと確認する。それを実装するタスクを指し示せるか？漏れがあれば列挙する。
 
-**2. Placeholder scan:** Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
+**2. Placeholder scan:** 上記「No Placeholders」セクションのパターンに該当する危険信号がないか、planを検索する。見つけたら修正する。
 
-**3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
+**3. Type consistency:** 後段のタスクで使った型・メソッドシグネチャ・プロパティ名は、前段のタスクで定義したものと一致しているか？Task 3では`clearLayers()`、Task 7では`clearFullLayers()`という関数名になっているのはバグである。
 
-If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
+問題を見つけたらその場で修正する。再レビューは不要 — 修正して次に進む。specの要件に対応するタスクが見つからなければ、タスクを追加する。
+
+## Simulator Review + 判断記録（ADR）— required, after Self-Review
+
+Self-Review（内容）と spec-architecture-review（構造）を終えたら、Execution Handoff の**前**に必ず:
+
+1. **user-simulator スキルを実行する**（reviewモード）— `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。specのADRをcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外し（追加指摘/誤検知）は即ハンドオフ発行。
+2. **plan末尾に `## 判断記録（ADR）` を置く** — specのADRへのリンク1行＋planning中に新たに生じた判断（タスク分割・機構比較・シミュレーター裁定）を追記する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。
 
 ## Execution Handoff
 
-After saving the plan, offer execution choice:
+planを保存したら、実行方法の選択肢を提示する:
 
-**"Plan complete and saved to `docs/superpowers/plans/<filename>.md`. Two execution options:**
+**「planが完成し`docs/superpowers/plans/<filename>.md`に保存されました。実行方法は2つ:**
 
-**1. Subagent-Driven (recommended)** - I dispatch a fresh subagent per task, review between tasks, fast iteration
+**1. Subagent-Driven（推奨）** — タスクごとに新規subagentを起動し、タスク間でレビューを行い、高速に反復する
 
-**2. Inline Execution** - Execute tasks in this session using executing-plans, batch execution with checkpoints
+**2. Inline Execution** — このセッション内でexecuting-plansを使ってタスクを実行し、チェックポイント付きでバッチ実行する
 
-**Which approach?"**
+**どちらの方法にしますか？」**
 
-**If Subagent-Driven chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-- Fresh subagent per task + two-stage review
+**Subagent-Drivenを選んだ場合:**
+- **REQUIRED SUB-SKILL:** superpowers:subagent-driven-developmentを使う
+- タスクごとに新規subagent＋二段階レビュー
 
-**If Inline Execution chosen:**
-- **REQUIRED SUB-SKILL:** Use superpowers:executing-plans
-- Batch execution with checkpoints for review
+**Inline Executionを選んだ場合:**
+- **REQUIRED SUB-SKILL:** superpowers:executing-plansを使う
+- レビュー用チェックポイント付きのバッチ実行
 
 # 追加SKILL:spec-architecture-review
 
