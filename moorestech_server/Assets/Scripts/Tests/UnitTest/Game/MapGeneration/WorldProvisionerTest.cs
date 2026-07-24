@@ -109,8 +109,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.Throws<InvalidOperationException>(() => WorldProvisioner.EnsureWorld(settings));
         }
 
-        #region Internal
-
         private static void LoadMasterHolderForGeneration()
         {
             // generated modeはMasterHolder.GenerationMaster.SelectedGenerationを要求するため、
@@ -120,7 +118,5 @@ namespace Tests.UnitTest.Game.MapGeneration
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
         }
-
-        #endregion
     }
 }

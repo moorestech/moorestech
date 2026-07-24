@@ -14,8 +14,10 @@ namespace Game.MapGeneration.Provisioning
     // Directory.Move rename (atomic). Root present without world.json is treated as corruption.
     public static class WorldProvisioner
     {
-        private const string TemplateMapMode = "template";
-        private const string GeneratedMapMode = "generated";
+        // mapModeの唯一の定義。boot(StartServerSettings/ServerInstanceManager)もこれを参照する
+        // Single source of truth for map mode names; boot code references these too
+        public const string TemplateMapMode = "template";
+        public const string GeneratedMapMode = "generated";
         private const string GeneratorVersion = "1.0.0";
         private const string CacheReadmeText = "このディレクトリは削除可能です。削除しても次回起動時に自動で再構築されます。";
 
@@ -88,7 +90,7 @@ namespace Game.MapGeneration.Provisioning
 
             static WorldMetaJson BuildTemplate(WorldDataDirectory tempDataDirectory, WorldProvisionSettings settings)
             {
-                var sourceMapJsonPath = Path.Combine(settings.ServerDataDirectory, "map", "map.json");
+                var sourceMapJsonPath = WorldDataDirectory.ServerDataMapJsonPath(settings.ServerDataDirectory);
                 Directory.CreateDirectory(tempDataDirectory.CacheDirectory);
                 File.Copy(sourceMapJsonPath, tempDataDirectory.MapJsonFilePath);
                 File.WriteAllText(tempDataDirectory.CacheReadmeFilePath, CacheReadmeText);

@@ -72,10 +72,10 @@ namespace Game.MapGeneration.Pipeline.Stages
                 {
                     int px = cx + dx;
                     int pz = cz + dz;
-                    if (px < 0 || px >= res || pz < 0 || pz >= res) continue;
+                    if (px < 0 || res <= px || pz < 0 || res <= pz) continue;
 
                     float dist = Mathf.Sqrt(dx * dx + dz * dz);
-                    if (dist > radiusPixels) continue;
+                    if (radiusPixels < dist) continue;
 
                     float sigma = radiusPixels / 3f;
                     float falloff = Mathf.Exp(-(dist * dist) / (2f * sigma * sigma));

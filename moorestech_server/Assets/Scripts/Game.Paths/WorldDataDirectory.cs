@@ -28,20 +28,30 @@ namespace Game.Paths
             ProvisioningTempDirectory = provisioningTempDirectory;
         }
 
+        // テンプレートマップの配置(ServerDataDirectory/map/map.json)を一元定義する
+        // Single definition of the template map location (ServerDataDirectory/map/map.json)
+        public static string ServerDataMapJsonPath(string serverDataDirectory)
+        {
+            return Path.Combine(serverDataDirectory, "map", "map.json");
+        }
+
         // 本来形: ワールドディレクトリのルートから全レイアウトを導出する
         // Canonical form: derive the full layout from a world root directory
         public static WorldDataDirectory FromWorldRoot(string worldRootDirectory)
         {
-            var cacheDirectory = Path.Combine(worldRootDirectory, "cache");
+            // 末尾区切りを除去して.provisioningが確定先の内側に潜り込むのを防ぐ
+            // Trim any trailing separator so ".provisioning" never nests inside the target root
+            var normalizedRoot = worldRootDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var cacheDirectory = Path.Combine(normalizedRoot, "cache");
             return new WorldDataDirectory(
-                worldRootDirectory,
-                Path.Combine(worldRootDirectory, "world.json"),
-                Path.Combine(worldRootDirectory, "map.json"),
-                Path.Combine(worldRootDirectory, "save.json"),
-                Path.Combine(worldRootDirectory, "terrain"),
+                normalizedRoot,
+                Path.Combine(normalizedRoot, "world.json"),
+                Path.Combine(normalizedRoot, "map.json"),
+                Path.Combine(normalizedRoot, "save.json"),
+                Path.Combine(normalizedRoot, "terrain"),
                 cacheDirectory,
                 Path.Combine(cacheDirectory, "README.txt"),
-                worldRootDirectory + ".provisioning");
+                normalizedRoot + ".provisioning");
         }
 
         // レガシー形: ワールドディレクトリを持たない構成(テスト427箇所・クライアント早期DI)。
@@ -52,7 +62,7 @@ namespace Game.Paths
             return new WorldDataDirectory(
                 null,
                 null,
-                Path.Combine(serverDataDirectory, "map", "map.json"),
+                ServerDataMapJsonPath(serverDataDirectory),
                 saveJsonFilePath,
                 null,
                 null,

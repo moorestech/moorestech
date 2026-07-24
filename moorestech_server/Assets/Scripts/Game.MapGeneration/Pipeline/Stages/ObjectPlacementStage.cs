@@ -28,7 +28,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             {
                 var oc = helper.GetObjectConfig(biomeTypes[b]);
                 if (oc == null) continue;
-                bool hasAny = (oc.entries?.Length > 0) || (oc.clusterEntries?.Length > 0);
+                bool hasAny = (0 < oc.entries?.Length) || (0 < oc.clusterEntries?.Length);
                 if (!hasAny) continue;
 
                 float wm = helper.GetShoreConfig(biomeTypes[b]).waterMargin;

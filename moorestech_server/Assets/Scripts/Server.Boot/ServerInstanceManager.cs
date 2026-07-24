@@ -53,7 +53,7 @@ namespace Server.Boot
 
             // generatedモードでシード未指定なら実行ごとに採番する
             // Assign a fresh seed per run when generated mode leaves it unspecified
-            var seed = settings.MapMode == "generated" && settings.Seed == 0 ? Guid.NewGuid().GetHashCode() : settings.Seed;
+            var seed = settings.MapMode == WorldProvisioner.GeneratedMapMode && settings.Seed == 0 ? Guid.NewGuid().GetHashCode() : settings.Seed;
 
             // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
             // Provision the world directory before DI container construction

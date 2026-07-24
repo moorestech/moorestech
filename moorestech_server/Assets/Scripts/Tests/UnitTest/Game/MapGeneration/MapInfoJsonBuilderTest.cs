@@ -54,8 +54,6 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(mapInfoJson.DefaultSpawnPointJson.Position, Is.EqualTo(output.SpawnPoint));
         }
 
-        #region Internal
-
         private static MapGenerationOutput CreateDummyOutput()
         {
             return new MapGenerationOutput
@@ -87,7 +85,5 @@ namespace Tests.UnitTest.Game.MapGeneration
                 },
             };
         }
-
-        #endregion
     }
 }
