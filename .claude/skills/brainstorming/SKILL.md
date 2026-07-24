@@ -2,6 +2,11 @@
 name: brainstorming
 description: "創作的な作業（機能の作成、コンポーネントの構築、機能追加、挙動の変更）の前には必ずこのスキルを使用すること。設計相談でも発火する — 壁打ち / 仕様相談 / 「これどうしたらいい？」型の相談: 自分の返答が設計・アプローチ・修正方針を提案するものになるなら、直接答える前にまずこれを呼び出す（会話の途中でも同様に適用する）。実装前にユーザーの意図・要件・設計を掘り下げる。"
 hooks:
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh preask"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
