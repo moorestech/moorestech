@@ -3,7 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-// ========== WebSocket Protocol (RFC 6455) ==========
+// ========== WebSocketプロトコル (RFC 6455) ==========
 
 const OPCODES = { TEXT: 0x01, CLOSE: 0x08, PING: 0x09, PONG: 0x0A };
 const WS_MAGIC = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
@@ -80,10 +80,13 @@ function decodeFrame(buffer) {
   return { opcode, payload: data, bytesConsumed: totalLen };
 }
 
-// ========== Configuration ==========
+// ========== 設定 ==========
 
 const PORT_FILE = process.env.BRAINSTORM_PORT_FILE || null;
 const randomPort = () => 49152 + Math.floor(Math.random() * 16383);
+// 明示的なポートを優先し、無ければこのセッションが前回束縛したポート（再起動時に
+// 再利用され既に開いているブラウザタブが再接続できるように）、それも無ければ
+// ランダムな高位ポートを使う。
 // Prefer an explicit port, else the port this session last bound (so a restart
 // reuses it and an already-open browser tab reconnects), else a random high port.
 function preferredPort() {
@@ -92,7 +95,7 @@ function preferredPort() {
     try {
       const p = Number(fs.readFileSync(PORT_FILE, 'utf-8').trim());
       if (Number.isInteger(p) && p > 1023 && p < 65536) return p;
-    } catch (e) { /* no prior port recorded */ }
+    } catch (e) { /* 記録済みポートなし */ }
   }
   return randomPort();
 }
@@ -112,6 +115,14 @@ const TELEMETRY_DISABLE_ENV_VARS = [
 const SUPERPOWERS_TELEMETRY_DISABLED = TELEMETRY_DISABLE_ENV_VARS.some(name => isTruthyEnv(process.env[name]));
 let ownerPid = process.env.BRAINSTORM_OWNER_PID ? Number(process.env.BRAINSTORM_OWNER_PID) : null;
 
+// セッションごとの秘密鍵。コンパニオンはローカルの任意のブラウザタブから到達
+// でき、非ループバックホストに束縛されている場合は経路が通る任意のホストから
+// も到達できる。この鍵は、Host/Originの許可リストでは防げないループバック・
+// トンネル・リモート束縛のすべてで実クライアントを一様に認証し、DNSリバイン
+// ディングも防ぐ。配信URLに?key=として乗り、初回ロード時にCookieへも複製され
+// るため、同一オリジンのサブリソースとWebSocketは自動的にこれを運ぶ。
+// ポートと一緒に永続化される（BRAINSTORM_TOKEN_FILE）ため、再起動しても同じ
+// 鍵が維持され、既に開いているタブのCookieも引き続き有効になる。
 // Per-session secret key. The companion is reachable by any local browser tab
 // and, when bound to a non-loopback host, by any host that can route to it.
 // The key authenticates the real client uniformly across loopback, tunnel, and
@@ -126,7 +137,7 @@ function generateToken() {
 }
 
 function chmodOwnerOnly(file) {
-  try { fs.chmodSync(file, 0o600); } catch (e) { /* best effort */ }
+  try { fs.chmodSync(file, 0o600); } catch (e) { /* ベストエフォート */ }
 }
 
 function initialToken() {
@@ -140,7 +151,7 @@ function initialToken() {
         chmodOwnerOnly(TOKEN_FILE);
         return { value: t, source: 'file' };
       }
-    } catch (e) { /* no prior token recorded */ }
+    } catch (e) { /* 記録済みトークンなし */ }
   }
   return { value: generateToken(), source: 'generated' };
 }
@@ -156,7 +167,7 @@ const MIME_TYPES = {
   '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.svg': 'image/svg+xml'
 };
 
-// ========== Templates and Constants ==========
+// ========== テンプレートと定数 ==========
 
 function waitingPage() {
   return renderBranding(`<!DOCTYPE html>
@@ -172,7 +183,7 @@ h1 { color: #333; } p { color: #666; }
 </style>
 </head>
 <body><!-- BRANDING --><h1>Brainstorm Companion</h1>
-<p>Waiting for the agent to push a screen...</p></body></html>`);
+<p>エージェントが画面を送信するのを待っています...</p></body></html>`);
 }
 
 const FORBIDDEN_PAGE = `<!DOCTYPE html>
@@ -181,9 +192,9 @@ const FORBIDDEN_PAGE = `<!DOCTYPE html>
 <style>body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 800px; margin: 0 auto; }
 h1 { color: #333; } p { color: #666; } code { background: #f0f0f0; padding: 0.1em 0.3em; border-radius: 4px; }</style>
 </head>
-<body><h1>Session key required</h1>
-<p>This page needs the full URL your coding agent gave you, including the
-<code>?key=&hellip;</code> part. Copy the complete URL and open it again.</p></body></html>`;
+<body><h1>セッションキーが必要です</h1>
+<p>このページには、コーディングエージェントから渡された完全なURL（
+<code>?key=&hellip;</code> の部分を含む）が必要です。完全なURLをコピーして再度開いてください。</p></body></html>`;
 
 function bootstrapPage(key) {
   const jsonKey = JSON.stringify(String(key));
@@ -203,7 +214,7 @@ const frameTemplate = fs.readFileSync(path.join(__dirname, 'frame-template.html'
 const helperScript = fs.readFileSync(path.join(__dirname, 'helper.js'), 'utf-8');
 const helperInjection = '<script>\n' + helperScript + '\n</script>';
 
-// ========== Helper Functions ==========
+// ========== ヘルパー関数 ==========
 
 function readSuperpowersVersion() {
   const root = path.join(__dirname, '../../..');
@@ -217,6 +228,7 @@ function readSuperpowersVersion() {
       const data = JSON.parse(fs.readFileSync(manifest, 'utf-8'));
       if (data.version) return String(data.version);
     } catch (e) {
+      // パッケージ化されたCodexプラグインはpackage.jsonを省略するため、次のマニフェストを試す。
       // Packaged Codex plugins omit package.json; try the next manifest.
     }
   }
@@ -316,7 +328,7 @@ function isRegularFileInsideContentDir(filePath) {
   return realFilePath.startsWith(realContentDir + path.sep);
 }
 
-// ========== Authentication ==========
+// ========== 認証 ==========
 
 function timingSafeEqualStr(a, b) {
   const ab = Buffer.from(String(a));
@@ -336,6 +348,8 @@ function parseCookies(header) {
   return out;
 }
 
+// リクエストは、セッションキーを?key=として、またはセッションCookieとして
+// 保持していれば認可される。両方とも定数時間で比較する。
 // A request is authorized if it carries the session key as ?key= or as the
 // session cookie. Both are compared in constant time.
 function isAuthorized(req) {
@@ -382,7 +396,7 @@ function isAllowedWebSocketOrigin(req) {
   return origin === 'http://' + host;
 }
 
-// ========== HTTP Request Handler ==========
+// ========== HTTPリクエストハンドラー ==========
 
 function handleRequest(req, res) {
   if (!isAuthorized(req)) {
@@ -390,8 +404,11 @@ function handleRequest(req, res) {
     res.end(FORBIDDEN_PAGE);
     return;
   }
-  touchActivity(); // only authorized requests count as activity
+  touchActivity(); // 認可済みリクエストのみアクティビティとしてカウントする
 
+  // 同一オリジンのサブリソース（/files/*）がブートストラップ後も認証できる
+  // よう、キーをCookieへ複製する。HttpOnlyによりページスクリプトから隔離され、
+  // クロスオリジンのlocalhost注入をブロックするのは下記のWebSocket Originチェック。
   // Mirror the key into a cookie so same-origin subresources (/files/*) can
   // authenticate after bootstrap. HttpOnly keeps it away from page scripts; the
   // WebSocket Origin check below is what blocks cross-origin localhost injection.
@@ -420,6 +437,8 @@ function handleRequest(req, res) {
   } else if (req.method === 'GET' && pathname.startsWith('/files/')) {
     const fileName = path.basename(pathname.slice(7));
     const filePath = path.join(CONTENT_DIR, fileName);
+    // 空/ドットファイル名や通常ファイルでないものを拒否する ——
+    // `/files/`は放置するとCONTENT_DIRに解決されreadFileSyncがクラッシュする（EISDIR）。
     // Reject empty/dotfile names and anything that isn't a regular file —
     // `/files/` would otherwise resolve to CONTENT_DIR and crash readFileSync (EISDIR).
     if (!fileName || fileName.startsWith('.') || !isRegularFileInsideContentDir(filePath)) {
@@ -437,7 +456,7 @@ function handleRequest(req, res) {
   }
 }
 
-// ========== WebSocket Connection Handling ==========
+// ========== WebSocket接続処理 ==========
 
 const clients = new Set();
 
@@ -505,7 +524,7 @@ function handleMessage(text) {
   try {
     event = JSON.parse(text);
   } catch (e) {
-    console.error('Failed to parse WebSocket message:', e.message);
+    console.error('WebSocketメッセージのパースに失敗:', e.message);
     return;
   }
   touchActivity();
@@ -523,6 +542,10 @@ function broadcast(msg) {
   }
 }
 
+// ベストエフォート: 実際に表示可能な画面が最初にできたタイミングでユーザーの
+// ブラウザを開く。無効化されている場合、非ループバック（リモート）束縛の場合、
+// または既にブラウザが接続済みの場合はスキップする。起動コマンドは
+// BRAINSTORM_OPEN_CMDで上書きできる。
 // Best-effort: open the user's browser the first time a screen is actually ready
 // to show. Skips when disabled, on a non-loopback (remote) bind, or when a
 // browser is already connected. Override the launcher with BRAINSTORM_OPEN_CMD.
@@ -530,31 +553,38 @@ let browserOpened = false;
 function maybeOpenBrowser() {
   if (browserOpened) return;
   browserOpened = true;
-  if (!process.env.BRAINSTORM_OPEN) return; // opt-in: only after the user approves the companion
+  if (!process.env.BRAINSTORM_OPEN) return; // オプトイン: ユーザーがコンパニオンを承認した後のみ
   if (HOST !== '127.0.0.1' && HOST !== 'localhost') return;
-  if (clients.size > 0) return; // the user already opened it
-  const url = companionUrl(); // must carry the key or the gate 403s it
+  if (clients.size > 0) return; // ユーザーが既に開いている
+  const url = companionUrl(); // キーを含んでいないとゲートが403を返す
   const cp = require('child_process');
+  // オペレーター指定の起動コマンド: そのまま実行する（この環境変数は信頼されたオペレーター入力）。
   // Operator-provided launcher: run as given (this env var is trusted operator input).
   if (process.env.BRAINSTORM_OPEN_CMD) {
-    try { cp.exec(process.env.BRAINSTORM_OPEN_CMD + ' ' + JSON.stringify(url), () => {}); } catch (e) { /* best effort */ }
+    try { cp.exec(process.env.BRAINSTORM_OPEN_CMD + ' ' + JSON.stringify(url), () => {}); } catch (e) { /* ベストエフォート */ }
     return;
   }
+  // プラットフォーム別起動: URLをexecFile経由でargv要素として渡す（シェル無し）ため、
+  // url-hostにシェルメタ文字が含まれていてもコマンドインジェクションできない。
   // Platform launchers: pass the URL as an argv element via execFile (no shell),
   // so a url-host containing shell metacharacters can't inject a command.
   const launcher = browserLauncherForPlatform(url);
-  if (!launcher) return; // headless: nothing to open
-  try { cp.execFile(launcher.bin, launcher.args, () => {}); } catch (e) { /* best effort */ }
+  if (!launcher) return; // ヘッドレス: 開くものが無い
+  try { cp.execFile(launcher.bin, launcher.args, () => {}); } catch (e) { /* ベストエフォート */ }
 }
 
-// ========== Activity Tracking ==========
+// ========== アクティビティ追跡 ==========
 
+// アイドルタイムアウト: この時間アクティビティが無ければシャットダウンする。デフォルト4時間。
+// BRAINSTORM_IDLE_TIMEOUT_MSで上書き可能（start-server.sh: --idle-timeout-minutes）。
 // Idle timeout: shut down after this long with no activity. Default 4 hours;
 // override with BRAINSTORM_IDLE_TIMEOUT_MS (start-server.sh: --idle-timeout-minutes).
 const IDLE_TIMEOUT_MS = (() => {
   const ms = Number(process.env.BRAINSTORM_IDLE_TIMEOUT_MS);
   return Number.isFinite(ms) && ms > 0 ? ms : 4 * 60 * 60 * 1000;
 })();
+// ウォッチドッグがオーナープロセスの死活・アイドル状態を確認する頻度。主に
+// テストを高速化するために設定可能にしている。本番デフォルトは60秒。
 // How often the watchdog checks for owner-death / idleness. Configurable mainly
 // so tests can run fast; production default is 60s.
 const LIFECYCLE_CHECK_MS = (() => {
@@ -567,16 +597,19 @@ function touchActivity() {
   lastActivity = Date.now();
 }
 
-// ========== File Watching ==========
+// ========== ファイル監視 ==========
 
 const debounceTimers = new Map();
 
-// ========== Server Startup ==========
+// ========== サーバー起動 ==========
 
 function startServer() {
   if (!fs.existsSync(CONTENT_DIR)) fs.mkdirSync(CONTENT_DIR, { recursive: true });
   if (!fs.existsSync(STATE_DIR)) fs.mkdirSync(STATE_DIR, { recursive: true });
 
+  // 新規画面と更新を区別するため既知ファイルを追跡する。
+  // macOSのfs.watchは新規ファイルと上書きの両方で'rename'を報告するため、
+  // eventTypeだけには頼れない。
   // Track known files to distinguish new screens from updates.
   // macOS fs.watch reports 'rename' for both new files and overwrites,
   // so we can't rely on eventType alone.
@@ -595,7 +628,7 @@ function startServer() {
       debounceTimers.delete(filename);
       const filePath = path.join(CONTENT_DIR, filename);
 
-      if (!fs.existsSync(filePath)) return; // file was deleted
+      if (!fs.existsSync(filePath)) return; // ファイルは削除された
       touchActivity();
 
       if (!knownFiles.has(filename)) {
@@ -611,7 +644,7 @@ function startServer() {
       broadcast({ type: 'reload' });
     }, 100));
   });
-  watcher.on('error', (err) => console.error('fs.watch error:', err.message));
+  watcher.on('error', (err) => console.error('fs.watchエラー:', err.message));
 
   function shutdown(reason) {
     console.log(JSON.stringify({ type: 'server-stopped', reason }));
@@ -623,10 +656,12 @@ function startServer() {
     );
     watcher.close();
     clearInterval(lifecycleCheck);
+    // server.close()が完了しプロセスが開いた接続に居残らず確実に終了するよう、
+    // アップグレード済みのWebSocketソケットを全て閉じる。
     // Close any upgraded WebSocket sockets so server.close() can complete and
     // the process actually exits instead of lingering on an open connection.
     for (const socket of clients) {
-      try { socket.destroy(); } catch (e) { /* already gone */ }
+      try { socket.destroy(); } catch (e) { /* 既に消滅済み */ }
     }
     server.close(() => process.exit(0));
   }
@@ -636,6 +671,7 @@ function startServer() {
     try { process.kill(ownerPid, 0); return true; } catch (e) { return e.code === 'EPERM'; }
   }
 
+  // オーナープロセスが死んだ、またはアイドルが長すぎる場合は定期的に終了する。
   // Periodically exit if the owner process died or we've been idle too long.
   const lifecycleCheck = setInterval(() => {
     if (!ownerAlive()) shutdown('owner process exited');
@@ -643,6 +679,9 @@ function startServer() {
   }, LIFECYCLE_CHECK_MS);
   lifecycleCheck.unref();
 
+  // 起動時にオーナーPIDを検証する。既に死んでいる場合、PID解決が誤っていた
+  // ということ（WSL・Tailscale SSH・クロスユーザーのシナリオで多い）。
+  // その場合は監視を無効化しアイドルタイムアウトのみに頼る。
   // Validate owner PID at startup. If it's already dead, the PID resolution
   // was wrong (common on WSL, Tailscale SSH, and cross-user scenarios).
   // Disable monitoring and rely on the idle timeout instead.
@@ -656,26 +695,36 @@ function startServer() {
     }
   }
 
+  // 優先ポートが既に使われている場合（例：以前のサーバーがまだ生きている）、
+  // 失敗する代わりに一度だけランダムポートへフォールバックする。
   // If the preferred port is already taken (e.g. a previous server is still
   // alive), fall back to a random port once instead of failing.
   let triedFallback = false;
 
   function onListen() {
+    // Cookie名は実際に束縛されたポート（EADDRINUSEフォールバック後は優先ポートと
+    // 異なることがある）をキーにし、共有localhost jar内で他サーバーのCookieと
+    // 衝突しないようにする。
     // Cookie name keys on the ACTUAL bound port (may differ from the preferred
     // one after an EADDRINUSE fallback) so it can't collide with another server's
     // cookie in the shared localhost jar.
     COOKIE_NAME = 'brainstorm-key-' + PORT;
+    // 束縛ポートとトークンの両方を記録し、このセッションの次回再起動時に
+    // 再利用できるようにする —— ただし優先ポートを取得できた場合のみ。
+    // フォールバック時は誰かが優先ポートを保持しているため*別の*ポートに
+    // 束縛しており、永続化すると共有ファイルを上書きしてその別セッションの
+    // 開いているタブを孤立させてしまう。
     // Record the bound port AND token so the next restart of this session reuses
     // them — but ONLY when we got our preferred port. On a fallback we bound a
     // *different* port because someone else holds the preferred one; persisting
     // would overwrite the shared files and strand that other session's open tab.
     if (PORT_FILE && !triedFallback) {
-      try { fs.writeFileSync(PORT_FILE, String(PORT)); } catch (e) { /* best effort */ }
+      try { fs.writeFileSync(PORT_FILE, String(PORT)); } catch (e) { /* ベストエフォート */ }
       if (TOKEN_FILE) {
         try {
           fs.writeFileSync(TOKEN_FILE, TOKEN, { mode: 0o600 });
           chmodOwnerOnly(TOKEN_FILE);
-        } catch (e) { /* best effort */ }
+        } catch (e) { /* ベストエフォート */ }
       }
     }
     const info = JSON.stringify({
@@ -684,6 +733,7 @@ function startServer() {
       screen_dir: CONTENT_DIR, state_dir: STATE_DIR, idle_timeout_ms: IDLE_TIMEOUT_MS
     });
     console.log(info);
+    // server-infoは鍵を埋め込んでいる — オーナー専用のままにしておく。
     // server-info embeds the key — keep it owner-only.
     fs.writeFileSync(path.join(STATE_DIR, 'server-info'), info + '\n', { mode: 0o600 });
   }
@@ -691,7 +741,7 @@ function startServer() {
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE' && !triedFallback) {
       if (tokenSource === 'env') {
-        console.error('Server failed to bind: preferred port is in use and BRAINSTORM_TOKEN is set; refusing fallback with explicit token');
+        console.error('サーバーの束縛に失敗: 優先ポートが使用中でBRAINSTORM_TOKENが設定されているため、明示トークンでのフォールバックを拒否します');
         process.exit(1);
       }
       triedFallback = true;
@@ -702,7 +752,7 @@ function startServer() {
       }
       server.listen(PORT, HOST, onListen);
     } else {
-      console.error('Server failed to bind:', err.message);
+      console.error('サーバーの束縛に失敗:', err.message);
       process.exit(1);
     }
   });

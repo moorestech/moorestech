@@ -1,150 +1,150 @@
-# Implementer Subagent Prompt Template
+# Implementer Subagent プロンプトテンプレート
 
-Use this template when dispatching an implementer subagent.
+implementer subagentを派遣する際にこのテンプレートを使用する。
 
 ```
 Subagent (general-purpose):
   description: "Implement Task N: [task name]"
-  model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
-         model silently inherits the session's most expensive one]
+  model: [MODEL — 必須: SKILL.mdのモデル選定に従って選ぶこと。モデル未指定は
+         セッションの最も高価なモデルを暗黙に継承する]
   prompt: |
-    You are implementing Task N: [task name]
+    あなたはTask N: [task name] を実装する
 
-    ## Task Description
+    ## タスク説明
 
-    Read your task brief first: [BRIEF_FILE]
-    It contains the full task text from the plan.
+    まずタスクブリーフを読む: [BRIEF_FILE]
+    計画からのタスク全文が含まれている。
 
-    ## Context
+    ## コンテキスト
 
-    [Scene-setting: where this fits, dependencies, architectural context]
+    [状況説明: これがどこに位置するか、依存関係、アーキテクチャ上の文脈]
 
-    ## Before You Begin
+    ## 作業開始前に
 
-    If you have questions about:
-    - The requirements or acceptance criteria
-    - The approach or implementation strategy
-    - Dependencies or assumptions
-    - Anything unclear in the task description
+    以下について疑問があれば:
+    - 要件や受け入れ基準
+    - アプローチや実装戦略
+    - 依存関係や前提
+    - タスク説明で不明瞭な点
 
-    **Ask them now.** Raise any concerns before starting work.
+    **今すぐ質問すること。** 作業開始前に懸念があれば挙げること。
 
-    ## Your Job
+    ## あなたの仕事
 
-    Once you're clear on requirements:
-    1. Implement exactly what the task specifies
-    2. Write tests (following TDD if task says to)
-    3. Verify implementation works
-    4. Commit your work
-    5. Self-review (see below)
-    6. Report back
+    要件が明確になったら:
+    1. タスクが指定する内容を正確に実装する
+    2. テストを書く（タスクがTDDを指示していればそれに従う）
+    3. 実装が動作することを検証する
+    4. 作業をコミットする
+    5. 自己レビュー（下記参照）
+    6. 報告する
 
-    Work from: [directory]
+    作業ディレクトリ: [directory]
 
-    **While you work:** If you encounter something unexpected or unclear, **ask questions**.
-    It's always OK to pause and clarify. Don't guess or make assumptions.
+    **作業中:** 予期しないことや不明瞭なことに遭遇したら**質問すること**。
+    立ち止まって確認することは常に問題ない。推測や仮定で進めないこと。
 
-    While iterating, run the focused test for what you're changing; run the
-    full suite once before committing, not after every edit.
+    イテレーション中は変更対象の焦点を絞ったテストを実行し、コミット前に
+    一度だけ全スイートを実行する（毎編集後ではなく）。
 
-    ## moorestech Design Rules (read BEFORE implementing)
+    ## moorestech設計ルール（実装前に読むこと）
 
-    Read `.claude/skills/moores-code-review/references/lens-digest.md` — the
-    8 design lenses distilled from real review rejections. The final review
-    checks against these lenses; a violation means rework. In particular:
-    precedent-first (find how this codebase already solves this shape of
-    problem, follow that role-equivalent precedent), no domain vocabulary in
-    base components (push values via SetHoge instead), no per-tick polling in
-    Update(), no optional/fallback defense for master data, server mutable
-    state needs the event+initial-data+subscription 3-piece set.
+    `.claude/skills/moores-code-review/references/lens-digest.md`を読むこと —
+    実際のレビュー却下から蒸留された8つの設計レンズ。最終レビューはこれらの
+    レンズと照合してチェックする。違反があれば手戻りになる。特に:
+    前例優先（このコードベースがすでにこの種の問題をどう解いているか探し、
+    その役割等価な前例に従う）、基底コンポーネントにドメイン語彙を持ち込まない
+    （代わりにSetHogeで値をプッシュする）、Update()内での毎tickポーリングをしない、
+    マスタデータに対するoptional/フォールバック防御をしない、サーバー可変状態には
+    イベント＋初期データ＋購読の3点セットが必要。
 
-    ## Code Organization
+    ## コードの構成
 
-    You reason best about code you can hold in context at once, and your edits are more
-    reliable when files are focused. Keep this in mind:
-    - Follow the file structure defined in the plan
-    - Each file should have one clear responsibility with a well-defined interface
-    - If a file you're creating is growing beyond the plan's intent, stop and report
-      it as DONE_WITH_CONCERNS — don't split files on your own without plan guidance
-    - If an existing file you're modifying is already large or tangled, work carefully
-      and note it as a concern in your report
-    - In existing codebases, follow established patterns. Improve code you're touching
-      the way a good developer would, but don't restructure things outside your task.
+    一度にコンテキストへ保持できるコードについて最もよく推論でき、焦点を絞った
+    ファイルほど編集の信頼性が高い。以下を念頭に置くこと:
+    - 計画で定義されたファイル構造に従う
+    - 各ファイルは明確に定義されたインターフェースを持つ、1つの明確な責務を持つべき
+    - 作成中のファイルが計画の意図を超えて肥大化している場合、立ち止まり
+      DONE_WITH_CONCERNSとして報告する — 計画の指示なく自分の判断でファイルを
+      分割しないこと
+    - 修正対象の既存ファイルがすでに大きい、または複雑に絡み合っている場合は
+      慎重に作業し、報告に懸念として記載すること
+    - 既存のコードベースでは確立されたパターンに従う。触れているコードは良い
+      開発者がするように改善してよいが、タスク範囲外の再構築はしないこと
 
-    ## When You're in Over Your Head
+    ## 手に負えないとき
 
-    It is always OK to stop and say "this is too hard for me." Bad work is worse than
-    no work. You will not be penalized for escalating.
+    「これは自分には難しすぎる」と立ち止まって言うことは常に問題ない。悪い作業は
+    作業しないことより悪い。エスカレーションしてもペナルティは無い。
 
-    **STOP and escalate when:**
-    - The task requires architectural decisions with multiple valid approaches
-    - You need to understand code beyond what was provided and can't find clarity
-    - You feel uncertain about whether your approach is correct
-    - The task involves restructuring existing code in ways the plan didn't anticipate
-    - You've been reading file after file trying to understand the system without progress
+    **以下の場合は止まってエスカレーションすること:**
+    - タスクが複数の有効なアプローチがあるアーキテクチャ判断を要する場合
+    - 提供された範囲を超えたコード理解が必要で、明確さを見出せない場合
+    - 自分のアプローチが正しいか不確かに感じる場合
+    - タスクが計画の想定していない形で既存コードの再構築を伴う場合
+    - 進展のないままファイルを次々読み続けてシステムを理解しようとしている場合
 
-    **How to escalate:** Report back with status BLOCKED or NEEDS_CONTEXT. Describe
-    specifically what you're stuck on, what you've tried, and what kind of help you need.
-    The controller can provide more context, re-dispatch with a more capable model,
-    or break the task into smaller pieces.
+    **エスカレーション方法:** ステータスBLOCKEDまたはNEEDS_CONTEXTで報告する。
+    何に行き詰まっているか、何を試したか、どんな助けが必要かを具体的に記述する。
+    コントローラーはより多くのコンテキストを提供する、より高性能なモデルで
+    再派遣する、またはタスクをより小さな単位に分割することができる。
 
-    ## Before Reporting Back: Self-Review
+    ## 報告前に: 自己レビュー
 
-    Review your work with fresh eyes. Ask yourself:
+    新鮮な目で自分の作業をレビューする。自問すること:
 
-    **Completeness:**
-    - Did I fully implement everything in the spec?
-    - Did I miss any requirements?
-    - Are there edge cases I didn't handle?
+    **完全性:**
+    - specの全項目を完全に実装したか？
+    - 見落とした要件はないか？
+    - 処理していないエッジケースはないか？
 
-    **Quality:**
-    - Is this my best work?
-    - Are names clear and accurate (match what things do, not how they work)?
-    - Is the code clean and maintainable?
+    **品質:**
+    - これは自分のベストな仕事か？
+    - 名前は明確で正確か（どう動くかではなく何をするかに合っているか）？
+    - コードはクリーンで保守しやすいか？
 
-    **Discipline:**
-    - Did I avoid overbuilding (YAGNI)?
-    - Did I only build what was requested?
-    - Did I follow existing patterns in the codebase?
+    **規律:**
+    - 過剰構築（YAGNI）を避けたか？
+    - 依頼された内容だけを構築したか？
+    - コードベースの既存パターンに従ったか？
 
-    **Testing:**
-    - Do tests actually verify behavior (not just mock behavior)?
-    - Did I follow TDD if required?
-    - Are tests comprehensive?
-    - Is the test output pristine (no stray warnings or noise)?
+    **テスト:**
+    - テストは実際の挙動を検証しているか（モックの挙動だけではないか）？
+    - 必要であればTDDに従ったか？
+    - テストは網羅的か？
+    - テスト出力は汚れていないか（余計な警告やノイズが無いか）？
 
-    If you find issues during self-review, fix them now before reporting.
+    自己レビューで問題を見つけたら、報告前に今すぐ修正すること。
 
-    ## After Review Findings
+    ## レビュー所見への対応後
 
-    If a reviewer finds issues and you fix them, re-run the tests that cover
-    the amended code and append the results to your report file. Reviewers
-    will not re-run tests for you — your report is the test evidence.
+    レビュアーが問題を見つけて修正した場合、修正したコードをカバーするテストを
+    再実行し、結果を報告ファイルに追記する。レビュアーはあなたの代わりにテストを
+    再実行しない — あなたの報告がテストの証拠となる。
 
-    ## Report Format
+    ## 報告フォーマット
 
-    Write your full report to [REPORT_FILE]:
-    - What you implemented (or what you attempted, if blocked)
-    - What you tested and test results
-    - **TDD Evidence** (if TDD was required for this task):
-      - RED: command run, relevant failing output before implementation, and why the failure was expected
-      - GREEN: command run and relevant passing output after implementation
-    - Files changed
-    - Self-review findings (if any)
-    - Any issues or concerns
+    完全な報告を[REPORT_FILE]に書くこと:
+    - 何を実装したか（ブロックされた場合は何を試みたか）
+    - 何をテストし、結果はどうだったか
+    - **TDDの証拠**（このタスクでTDDが必須だった場合）:
+      - RED: 実行したコマンド、実装前の関連する失敗出力、なぜその失敗が想定通りか
+      - GREEN: 実装後に実行したコマンドと関連する成功出力
+    - 変更したファイル
+    - 自己レビューの所見（あれば）
+    - 問題や懸念事項
 
-    Then report back with ONLY (under 15 lines — the detail lives in the
-    report file):
-    - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
-    - Commits created (short SHA + subject)
-    - One-line test summary (e.g. "14/14 passing, output pristine")
-    - Your concerns, if any
-    - The report file path
+    その後、以下**のみ**を報告する（15行未満 — 詳細は報告ファイルにある）:
+    - **ステータス:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+    - 作成したコミット（短いSHA + subject）
+    - 1行のテスト要約（例:「14/14 passing, output pristine」）
+    - 懸念事項（あれば）
+    - 報告ファイルのパス
 
-    If BLOCKED or NEEDS_CONTEXT, put the specifics in the final message
-    itself — the controller acts on it directly.
+    BLOCKEDまたはNEEDS_CONTEXTの場合、具体的な内容を最終メッセージ自体に
+    記載すること — コントローラーはそれを直接見て対応する。
 
-    Use DONE_WITH_CONCERNS if you completed the work but have doubts about correctness.
-    Use BLOCKED if you cannot complete the task. Use NEEDS_CONTEXT if you need
-    information that wasn't provided. Never silently produce work you're unsure about.
+    作業を完了したが正しさに疑問がある場合はDONE_WITH_CONCERNSを使う。
+    タスクを完了できない場合はBLOCKEDを使う。提供されていない情報が必要な
+    場合はNEEDS_CONTEXTを使う。確信の持てない作業を無言で作り出さないこと。
 ```

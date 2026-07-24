@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
-# Generate a review package: commit list, stat summary, and the net
-# diff with extended context, written to a file the reviewer reads in one
-# call. Using the recorded per-task BASE (not HEAD~1) keeps multi-commit
-# tasks intact.
+# レビューパッケージ（コミット一覧・stat要約・拡張コンテキスト付き差分）を生成し
+# レビュアーが1回のReadで読める1ファイルへ書き出す。タスクごとに記録した
+# BASE（HEAD~1ではなく）を使うことで、複数コミットにまたがるタスクも欠落しない。
 #
-# Usage: review-package BASE HEAD [OUTFILE]
-# Default OUTFILE: <repo-root>/.superpowers/sdd/review-<base7>..<head7>.diff
-# (named per range, so a re-review after fixes gets a distinct fresh file).
+# 使い方: review-package BASE HEAD [OUTFILE]
+# デフォルトOUTFILE: <repo-root>/.superpowers/sdd/review-<base7>..<head7>.diff
+# （範囲ごとに命名するため、修正後の再レビューでも別ファイルになる）
 set -euo pipefail
 
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-  echo "usage: review-package BASE HEAD [OUTFILE]" >&2
+  echo "使い方: review-package BASE HEAD [OUTFILE]" >&2
   exit 2
 fi
 
 base=$1
 head=$2
 
-git rev-parse --verify --quiet "$base" >/dev/null || { echo "bad BASE: $base" >&2; exit 2; }
-git rev-parse --verify --quiet "$head" >/dev/null || { echo "bad HEAD: $head" >&2; exit 2; }
+git rev-parse --verify --quiet "$base" >/dev/null || { echo "不正なBASE: $base" >&2; exit 2; }
+git rev-parse --verify --quiet "$head" >/dev/null || { echo "不正なHEAD: $head" >&2; exit 2; }
 
 if [ $# -eq 3 ]; then
   out=$3
@@ -28,17 +27,17 @@ else
 fi
 
 {
-  echo "# Review package: ${base}..${head}"
+  echo "# レビューパッケージ: ${base}..${head}"
   echo
-  echo "## Commits"
+  echo "## コミット一覧"
   git log --oneline "${base}..${head}"
   echo
-  echo "## Files changed"
+  echo "## 変更ファイル"
   git diff --stat "${base}..${head}"
   echo
-  echo "## Diff"
+  echo "## 差分"
   git diff -U10 "${base}..${head}"
 } > "$out"
 
 commits=$(git rev-list --count "${base}..${head}")
-echo "wrote ${out}: ${commits} commit(s), $(wc -c < "$out" | tr -d ' ') bytes"
+echo "書き込み完了 ${out}: ${commits} commit(s), $(wc -c < "$out" | tr -d ' ') bytes"
