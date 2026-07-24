@@ -159,12 +159,12 @@ After writing the complete plan, look at the spec with fresh eyes and check the 
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 
-## Lens Review + 判断記録（ADR）— required, after Self-Review
+## Simulator Review + 判断記録（ADR）— required, after Self-Review
 
 Self-Review（内容）と spec-architecture-review（構造）を終えたら、Execution Handoff の**前**に必ず:
 
-1. **spec-plan-review スキルを実行する**（plan mode）— 観点別レンズ（複雑性・真実源・前提裏取り・スコープ確定・波及棚卸し・検証カバレッジ）をサブエージェント並列で発火し、Criticalをインライン修正、設計判断はAskUserQuestionで裁定を得る。レンズ起動時はmodelを必ず明示（表の値。Fable継承禁止）。specのADRをContextに含め、裁定済み事項を蒸し返させない。
-2. **plan末尾に `## 判断記録（ADR）` を置く** — specのADRへのリンク1行＋planning中に新たに生じた判断（タスク分割・機構比較・レンズ裁定）を追記する。書式は spec-plan-review スキルのADR仕様が正。
+1. **user-simulator スキルを実行する**（reviewモード）— `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。specのADRをcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外し（追加指摘/誤検知）は即ハンドオフ発行。
+2. **plan末尾に `## 判断記録（ADR）` を置く** — specのADRへのリンク1行＋planning中に新たに生じた判断（タスク分割・機構比較・シミュレーター裁定）を追記する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。
 
 ## Execution Handoff
 
