@@ -171,16 +171,16 @@ namespace Game.Block.Blocks.Fluid
             #endregion
         }
 
-        // 内容量が変化したパイプのBlockState通知をまとめて発火する
-        // Fire batched BlockState notifications for pipes whose amount changed
-        internal void NotifyChangedPipeStates()
+        // 全パイプのBlockState通知を毎tickまとめて発火する（差分化は将来のtick差分同期で行う）
+        // Fire batched BlockState notifications for all pipes every tick (diffing is deferred to the future tick-diff sync)
+        internal void NotifyPipeStates()
         {
             foreach (var pipe in _sortedPipes)
             {
                 // tick途中で破壊されたパイプへの通知はスキップする（gearと同じガード）
                 // Skip pipes destroyed mid tick, mirroring the gear guard
                 if (pipe.IsDestroy) continue;
-                pipe.NotifyStateIfChanged();
+                pipe.NotifyState();
             }
         }
     }
