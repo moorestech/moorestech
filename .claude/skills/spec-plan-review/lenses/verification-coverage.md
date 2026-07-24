@@ -1,11 +1,12 @@
 ---
+applies: plan
 model: sonnet
 ---
 
 # Lens: 検証カバレッジ（web本番static無言フォールバック・train同期境界assert由来）
 
 ## あなたの役割
-Doc path のplan（実装計画）を読み、**検証手順が正常系・モックに偏り、実際にバグが出た類型の検証が計画に無い**Criticalのみを返す。
+Doc path のplanを読み、**検証手順が正常系・モックに偏り、実際にバグが出た類型の検証が計画に無い**Criticalのみを返す。
 
 ## 検査項目
 
