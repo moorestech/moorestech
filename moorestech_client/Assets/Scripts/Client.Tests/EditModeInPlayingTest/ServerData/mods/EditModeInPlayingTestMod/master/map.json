@@ -150,6 +150,30 @@
       "veinParam": {
         "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
       }
+    },
+    {
+      "veinGuid": "22222222-0000-0000-0000-000000000002",
+      "veinName": "test:ItemVeinStone",
+      "veinType": "item",
+      "veinParam": {
+        "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+      }
+    },
+    {
+      "veinGuid": "22222222-0000-0000-0000-000000000003",
+      "veinName": "test:ItemVeinB",
+      "veinType": "item",
+      "veinParam": {
+        "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
+      }
+    },
+    {
+      "veinGuid": "22222222-0000-0000-0000-000000000004",
+      "veinName": "test:ItemVeinTree",
+      "veinType": "item",
+      "veinParam": {
+        "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
+      }
     }
   ]
 }

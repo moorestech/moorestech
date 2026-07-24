@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.Vein;
+using Mooresmaster.Model.MapModule;
 using UnityEngine;
 
 namespace Game.Map
@@ -12,17 +13,28 @@ namespace Game.Map
 
         public ItemMapVeinDatastore(MapInfoJson mapInfoJson)
         {
-            // configからアイテム鉱脈を生成。GUIDが解決できない場合はスキップ
-            // Generate item veins from config; skip entries whose GUID cannot be resolved
-            foreach (var veinJson in mapInfoJson.ItemMapVeins)
+            // mapVeins配列を走査し、マスタでitem種別の鉱脈だけを対象itemGuidを導出して生成する
+            // Iterate mapVeins; build veins only for item-type entries, deriving target itemGuid from master
+            foreach (var veinJson in mapInfoJson.MapVeins)
             {
-                if (!MasterHolder.ItemMaster.ExistItemId(veinJson.VeinItemGuid))
+                var element = MasterHolder.MapVeinMaster.GetElementOrNull(veinJson.VeinGuid);
+                if (element == null)
                 {
-                    Debug.LogError($"GUID:{veinJson.VeinItemGuid}に対応するItemIdが存在しません。鉱脈の生成をスキップします。");
+                    Debug.LogError($"veinGuid:{veinJson.VeinGuid}に対応するMapVeinマスタが存在しません。鉱脈の生成をスキップします。");
                     continue;
                 }
 
-                var itemId = MasterHolder.ItemMaster.GetItemId(veinJson.VeinItemGuid);
+                // item鉱脈以外はこのDatastoreの対象外なので静かにスキップ
+                // Non-item veins belong to the fluid datastore; skip silently
+                if (element.VeinParam is not ItemVeinParam itemVeinParam) continue;
+
+                if (!MasterHolder.ItemMaster.ExistItemId(itemVeinParam.ItemGuid))
+                {
+                    Debug.LogError($"ItemGuid:{itemVeinParam.ItemGuid}に対応するItemIdが存在しません。鉱脈の生成をスキップします。");
+                    continue;
+                }
+
+                var itemId = MasterHolder.ItemMaster.GetItemId(itemVeinParam.ItemGuid);
                 var vein = new ItemMapVein(itemId, veinJson.MinPosition, veinJson.MaxPosition);
                 _mapVeins.Add(vein);
             }
