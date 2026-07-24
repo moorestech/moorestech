@@ -114,7 +114,10 @@ namespace Tests.CombinedTest.Core
             world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             block.GetComponent<ElectricToGearGeneratorComponent>().SetSelectedMode(2);
 
-            saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
+            // 保存パスは options の worldDataDirectory(=savePath)で設定済み。coordinatorへ要求しtick末尾で実行
+            // The save path is set via options' worldDataDirectory (=savePath); request the coordinator and run at tick end
+            saveServiceProvider.GetRequiredService<IWorldSaveRequest>().RequestSave();
+            GameUpdater.UpdateOneTick();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {

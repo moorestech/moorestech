@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Paths;
@@ -40,7 +41,8 @@ namespace Tests.CombinedTest.Game
             worldBlockDatastore.TryAddBlock((BlockId)2, new Vector3Int(0, 1), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var block1);
             worldBlockDatastore.TryAddBlock((BlockId)3, new Vector3Int(30, -10), BlockDirection.West, Array.Empty<BlockCreateParam>(), out var block2);
 
-            saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
+            saveServiceProvider.GetRequiredService<IWorldSaveRequest>().RequestSave();
+            GameUpdater.UpdateOneTick();
 
 
             var (_, loadServiceProvider) =
