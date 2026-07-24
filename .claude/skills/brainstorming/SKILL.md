@@ -28,7 +28,7 @@ You MUST create a task for each of these items and complete them in order:
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **Lens review + 判断記録（ADR）** — invoke the spec-plan-review skill (spec mode): parallel観点別レンズでCriticalを修正し、C型裁定・B型前提宣言を `## 判断記録（ADR）` セクションとしてspec末尾に記録する
+8. **Simulator review + 判断記録（ADR）** — invoke the user-simulator skill (reviewモード): Fable判事の予測レポートでCriticalを修正し、C型裁定・B型前提宣言を `## 判断記録（ADR）` セクションとしてspec末尾に記録する。C型質問は毎回preanswerモードを通す（確信高は前提宣言に降格）
 9. **Generate review infographic** — invoke the create-infographic-light skill on the spec (and the plan, once written) and `open` it, so the user can review visually and attach comments
 10. **User reviews written spec** — ask user to review the spec file before proceeding
 11. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -54,10 +54,10 @@ digraph brainstorming {
     "User approves design?" -> "Present design sections" [label="no, revise"];
     "User approves design?" -> "Write design doc" [label="yes"];
     "Write design doc" -> "Spec self-review\n(fix inline)";
-    "Lens review + ADR\n(spec-plan-review)" [shape=box];
+    "Lens review + ADR\n(user-simulator)" [shape=box];
     "Generate review infographic\n(create-infographic-light)" [shape=box];
-    "Spec self-review\n(fix inline)" -> "Lens review + ADR\n(spec-plan-review)";
-    "Lens review + ADR\n(spec-plan-review)" -> "Generate review infographic\n(create-infographic-light)";
+    "Spec self-review\n(fix inline)" -> "Lens review + ADR\n(user-simulator)";
+    "Lens review + ADR\n(user-simulator)" -> "Generate review infographic\n(create-infographic-light)";
     "Generate review infographic\n(create-infographic-light)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
@@ -78,6 +78,7 @@ digraph brainstorming {
 - When the options are discrete (2-4 choices), use the AskUserQuestion tool — do NOT present numbered options as plain text (inconsistent across sessions and harder for the user to answer)
 - One AskUserQuestion call = ONE question. Never bundle multiple questions into the questions array — that is a "one question at a time" violation even though the tool allows it
 - Final litmus before sending any AskUserQuestion: if an option is marked (推奨/Recommended) and the recommendation rests on a principle or investigation fact (not user preference), the question is type-B — delete it and fold the recommendation into the premise declaration instead
+- Litmus通過後のC型質問は、送信前に user-simulator の **preanswerモード**を通す（`user-simulator/modes/preanswer/protocol.md`）: 確信高の予測は質問せず前提宣言（拒否権つき）へ降格、確信中は予測注記付きで質問、採点は misses.md へ自動記録
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
 
@@ -134,11 +135,11 @@ After writing the spec document, look at it with fresh eyes:
 
 Fix any issues inline. No need to re-review — just fix and move on.
 
-**Lens Review + 判断記録（ADR）(required):**
-Self-Review（内容）と spec-architecture-review（構造）の後、インフォグラフィック生成の**前**に spec-plan-review スキルを実行する（spec mode）:
+**Simulator Review + 判断記録（ADR）(required):**
+Self-Review（内容）と spec-architecture-review（構造）の後、インフォグラフィック生成の**前**に user-simulator スキルを実行する（reviewモード）:
 
-- 観点別レンズ（複雑性の封じ込め・真実源一元化・前提裏取り・スコープ確定）をサブエージェント並列で発火し、Criticalをインライン修正、設計判断はAskUserQuestionで裁定を得る。レンズ起動時はmodelを必ず明示（Fable継承禁止）。
-- spec末尾に `## 判断記録（ADR）` セクションを置き、対話中のC型ユーザー裁定（AskUserQuestion結果は全件）・B型前提宣言（適用原則名付き）・機構比較の結論を記録する。書式は spec-plan-review スキルのADR仕様が正。判断をdiffやコミットメッセージに埋没させない。
+- `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。specのADRをcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外しは即ハンドオフ発行。
+- spec末尾に `## 判断記録（ADR）` セクションを置き、対話中のC型ユーザー裁定（AskUserQuestion結果は全件）・B型前提宣言（適用原則名付き）・機構比較の結論を記録する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。判断をdiffやコミットメッセージに埋没させない。
 
 **Review Infographic (required):**
 After the spec review loop passes, invoke the create-infographic-light skill (in this repo: `.claude/skills/create-infographic-light`) with the spec as the source document, and `open` the generated HTML. The user reviews the spec through the infographic and can attach comments via its comment feature ("すべてコピー" Markdown gets pasted back for you to apply). Do the same for the implementation plan after writing-plans completes.

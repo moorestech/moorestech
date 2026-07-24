@@ -1,70 +1,16 @@
 ---
 name: spec-plan-review
 description: |
-  spec（設計書）・plan（実装計画）をユーザーレビューに出す直前に、moores-code-review同様の観点別レンズを並列実行し、
-  さらに設計判断を「判断記録（ADR）」としてドキュメント内に強制記録するレビュースキル。
-  既存の spec-architecture-review（構造・配置検査）/ design-question-triage（質問トリアージ）と役割分担し、
-  このスキルは「内容の欠陥」（複雑性・真実源・スコープ・前提・波及・検証）と「判断の記録漏れ」を見る。
-  Use when:
-  1. brainstorming の Spec Self-Review が終わり、ユーザーレビュー依頼に出す直前（毎回必須）
-  2. writing-plans の Self-Review が終わり、実行ハンドオフに進む直前（毎回必須）
-  3. 「レンズでspecレビューして」「ADR残して」と言われた時
+  【廃止・後継: user-simulator】旧・観点別レンズ並列レビュー。2026-07-24のユーザー裁定で
+  ユーザーシミュレーター方式（単一Fable判事＋sonnet斥候＋opus反証役）に再構成された。
+  Use when: 「spec-plan-reviewで」と言われた時（user-simulatorのreviewモードへ委譲する）。
 ---
 
-# spec-plan-review — 観点別レンズ＋判断記録（ADR）
+# spec-plan-review（廃止）→ user-simulator へ
 
-過去セッション採掘（2026-07-23・spec 81セッション/plan 77セッション）で「ユーザー本人の指摘でしか発覚しなかった」欠陥類型をレンズ化した第一弾。
-spec-architecture-review（配置・前例・機構選択）が構造を見るのに対し、このスキルは**内容の欠陥と判断の記録**を見る。両方やる。
+このスキルは **user-simulator** に置き換えられた。呼ばれたら `.claude/skills/user-simulator/SKILL.md` を読み、
+**reviewモード**を実行すること。
 
-## 実行手順
-
-1. **対象と文脈を確定** — レビュー対象doc（specまたはplan）の絶対パスと、4カテゴリ文脈（ゴール/非目標/許容トレードオフ/制約）を `/tmp/spec-review-context-<ts>.md` に書く。ユーザー発言由来と自分の判断を区別して書く。
-2. **レンズを1メッセージで並列起動** — 下表の `applies` が合致するレンズを全部、**modelを必ず明示**してAgent起動する（Fable継承禁止）。3行契約:
-   ```
-   Read this : <レンズの絶対パス>
-   Doc path : <対象docの絶対パス>
-   Context : /tmp/spec-review-context-<ts>.md
-
-   出力契約: Critical: あり/なし（確信ある欠陥。`- <セクション>: <欠陥と修正方針>` を列挙）/
-   Warning: 0行以上（確信一段弱い懸念）/ 設計判断: あり/なし（ユーザー裁定が要る分岐。選択肢付き）
-   ```
-3. **回収・照合・修正** — 各レンズのCriticalはdoc本文と（必要ならリポジトリと）照合し、正しければインライン修正。false positiveと判断したら破棄理由を1行残す。迷ったらWarning扱い（レビューの信頼はfalse positiveで最も速く壊れる）。
-4. **設計判断はAskUserQuestionに集約** — 各レンズの `設計判断: あり` と、修正の中で生じた分岐を末尾で一括提示。途中で割り込まない。
-5. **判断記録（ADR）を更新** — 下記仕様の `## 判断記録（ADR）` セクションをdocに書き（無ければ新設）、今回の裁定・宣言を追記してからユーザーレビューに出す。
-
-## レンズ一覧（第一弾）
-
-| レンズ | applies | model | 見るもの（採掘由来） |
-|---|---|---|---|
-| complexity-containment | spec+plan | opus | 戻り値引き回し・共有可変インスタンス授受・型switch・無用な中間構造（PR1045ほか） |
-| ssot-data-placement | spec+plan | opus | 権威ソース外のデータ置き場・別ドメイン値からの導出結合・統括クラス不在 |
-| premise-verification | spec+plan | opus | 依存する仕様・データ意味の裏取り・「欲しい価値」との照合（ブッシュ前提事故ほか） |
-| scope-resolution | spec+plan | sonnet | A案/B案残置・YAGNIによる要件削り・二経路併存・含める/含めないの境界未確認 |
-| blast-radius-enumeration | plan | sonnet | 呼び出し側の数え上げ・第2利用者・対応マスタ更新・失敗/中断経路の脱落 |
-| verification-coverage | plan | sonnet | モック全依存・本番構成でしか通らない経路・境界/異常系assertの欠落 |
-
-## 判断記録（ADR）仕様
-
-spec/planのユーザーレビュー前に、doc末尾へ次のセクションを必ず置く。**設計判断はdiffとコミットメッセージに埋没させない**
-（棚卸し2026-07-23: 却下案の理由・裁定は現状ドキュメントに残らず、次のレビュアーが再検証できない）。
-
-```markdown
-## 判断記録（ADR）
-
-| # | 判断 | 採用 | 却下案と理由 | 出所 |
-|---|---|---|---|---|
-| 1 | <何を決めたか1行> | <採用案1行> | <却下案>: <理由1行> | ユーザー裁定 YYYY-MM-DD / 原則(B: 適用原則名) / 調査(A: 根拠パス) |
-```
-
-- **載せるもの**: C型のユーザー裁定（AskUserQuestionの結果は必ず全件）、B型の前提宣言（適用した原則名付き）、
-  spec-architecture-review 検査4の機構比較の結論、機能パリティ死活表で裁定に出した項目の結果。
-- **載せないもの**: 自明な実装詳細、A型調査で確定しただけの事実（前例引用は「配置と前例」節が担当）。
-- 出所が「ユーザー裁定」の行は**ユーザーが実際に答えた場合のみ**書く。自分の判断を裁定と偽装しない。
-- 裁定が覆ったら行を書き換えず、新しい行を追加して旧行に「→ #N で変更」と注記する（記録は追記型）。
-
-## Gotchas
-
-- **既存セルフレビューの代替ではない** — spec-architecture-review（構造）・spec/plan self-review（プレースホルダ等）を済ませてから実行する。重複指摘は構造側の裁定を優先。
-- **レンズのmodelは表の値を必ずAgentに渡す** — 省略するとFableを継承する。探索的な補助調査を追加で出す場合もsonnet。
-- **specで指摘済みの欠陥をplanで再指摘しない** — plan時はspecのADRを各レンズのContextに含め、裁定済み事項を蒸し返させない。
-- **第一弾の育て方** — ユーザー指摘でレンズが見逃した欠陥が出たら、該当レンズに検査項目を追記するか新レンズを起票する（moores-code-review の skill-improvement と同じ発想。採掘スクリプトは scratchpad/mine.py 系を再利用可）。
+- 旧レンズ6本は `user-simulator/knowledge/lenses/` に検査観点ファイルとして移設済み（エージェントとしては廃止）
+- ADR（判断記録）仕様は各docのADRセクション運用として継続。スキル自身の判断は `user-simulator/decisions.md`
+- 再構成の経緯・却下案は `user-simulator/decisions.md` #1〜#5 を参照
