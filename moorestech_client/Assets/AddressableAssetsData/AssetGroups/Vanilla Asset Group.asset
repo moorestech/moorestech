@@ -255,6 +255,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 34746208c3cbc4521a70100afca9792d
+    m_Address: Vanilla/Environment/CoalVein
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 35e588632b9ea984baf4cb1175c069ee
     m_Address: Vanilla/Train/Locomotive_CombinedStaticMeshes
     m_ReadOnly: 0
@@ -705,6 +710,16 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 94bd2d22aae504174a9badf476bcb27e
+    m_Address: Vanilla/Environment/Tree
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 94c69fa92196340a58a96a5b7e38fd20
+    m_Address: Vanilla/Environment/StoneVein
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 967c750133df84cf89d64c017dfc73f4
     m_Address: Vanilla/Block/BigGear_Iron
     m_ReadOnly: 0
@@ -712,6 +727,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 993e71dd9c6b24893b2ae97dfb5842d9
     m_Address: Vanilla/Block/OilWell
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 998801f5437ce4306bb906c0f1aa80ff
+    m_Address: Vanilla/Environment/IronVein
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -807,6 +827,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a9ec6a2b0adb44ff3934771ef5d2c77a
     m_Address: Vanilla/Block/Oxygen_generator
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa6441e733fda49988fc9cb5b2717b66
+    m_Address: Vanilla/Environment/LogVein
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -932,6 +957,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c7d31de868216fa449519e33ab7fcad0
     m_Address: Vanilla/Block/PipeStraight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c95e87d74013e4bc1898135420e4215b
+    m_Address: Vanilla/Environment/Bush
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1157,6 +1187,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f6f44bccd741d48e5ab61feeca991a20
     m_Address: Vanilla/Item/StonePickaxe
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f992b7e8076e24bd89f9631bb1041d83
+    m_Address: Vanilla/Environment/Pebble
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
