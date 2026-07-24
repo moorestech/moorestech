@@ -5,21 +5,28 @@
   <title>Superpowers Brainstorming</title>
   <style>
     /*
+     * ブレインストーム・コンパニオン フレームテンプレート
      * BRAINSTORM COMPANION FRAME TEMPLATE
      *
+     * このテンプレートは以下を備えた統一フレームを提供する。
      * This template provides a consistent frame with:
+     * - OSに追従したライト/ダークテーマ
      * - OS-aware light/dark theming
+     * - ヘッダーのブランディングと接続状態表示
      * - Header branding and connection status
+     * - スクロール可能なメインコンテンツ領域
      * - Scrollable main content area
+     * - 共通UIパターン用のCSSヘルパー
      * - CSS helpers for common UI patterns
      *
+     * コンテンツは#frame-content内のプレースホルダーコメント経由で注入される。
      * Content is injected via placeholder comment in #frame-content.
      */
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; overflow: hidden; }
 
-    /* ===== THEME VARIABLES ===== */
+    /* ===== テーマ変数 ===== */
     :root {
       --bg-primary: #f5f5f7;
       --bg-secondary: #ffffff;
@@ -62,7 +69,7 @@
       line-height: 1.5;
     }
 
-    /* ===== FRAME STRUCTURE ===== */
+    /* ===== フレーム構造 ===== */
     .brand { display: flex; align-items: center; min-width: 0; overflow: hidden; color: var(--text-secondary); line-height: 1; }
     .brand a { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; min-width: 0; max-width: 100%; line-height: 1; }
     .brand-copy { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1; transform: translateY(-1px); }
@@ -98,14 +105,14 @@
       font-weight: 500;
     }
 
-    /* ===== TYPOGRAPHY ===== */
+    /* ===== タイポグラフィ ===== */
     h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
     h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
     .subtitle { color: var(--text-secondary); margin-bottom: 1.5rem; }
     .section { margin-bottom: 2rem; }
     .label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
 
-    /* ===== OPTIONS (for A/B/C choices) ===== */
+    /* ===== オプション（A/B/C選択肢用） ===== */
     .options { display: flex; flex-direction: column; gap: 0.75rem; }
     .option {
       background: var(--bg-secondary);
@@ -133,7 +140,7 @@
     .option .content h3 { font-size: 0.95rem; margin-bottom: 0.15rem; }
     .option .content p { color: var(--text-secondary); font-size: 0.85rem; margin: 0; }
 
-    /* ===== CARDS (for showing designs/mockups) ===== */
+    /* ===== カード（デザイン/モックアップ表示用） ===== */
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
     .card {
       background: var(--bg-secondary);
@@ -150,7 +157,7 @@
     .card-body h3 { margin-bottom: 0.25rem; }
     .card-body p { color: var(--text-secondary); font-size: 0.85rem; }
 
-    /* ===== MOCKUP CONTAINER ===== */
+    /* ===== モックアップコンテナ ===== */
     .mockup {
       background: var(--bg-secondary);
       border: 1px solid var(--border);
@@ -167,11 +174,11 @@
     }
     .mockup-body { padding: 1.5rem; }
 
-    /* ===== SPLIT VIEW (side-by-side comparison) ===== */
+    /* ===== 分割ビュー（左右並べ比較） ===== */
     .split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     @media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
 
-    /* ===== PROS/CONS ===== */
+    /* ===== 賛成/反対 ===== */
     .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
     .pros, .cons { background: var(--bg-secondary); border-radius: 8px; padding: 1rem; }
     .pros h4 { color: var(--success); font-size: 0.85rem; margin-bottom: 0.5rem; }
@@ -179,7 +186,7 @@
     .pros ul, .cons ul { margin-left: 1.25rem; font-size: 0.85rem; color: var(--text-secondary); }
     .pros li, .cons li { margin-bottom: 0.25rem; }
 
-    /* ===== PLACEHOLDER (for mockup areas) ===== */
+    /* ===== プレースホルダー（モックアップ領域用） ===== */
     .placeholder {
       background: var(--bg-tertiary);
       border: 2px dashed var(--border);
@@ -189,7 +196,7 @@
       color: var(--text-tertiary);
     }
 
-    /* ===== INLINE MOCKUP ELEMENTS ===== */
+    /* ===== インラインモックアップ要素 ===== */
     .mock-nav { background: var(--accent); color: white; padding: 0.75rem 1rem; display: flex; gap: 1.5rem; font-size: 0.9rem; }
     .mock-sidebar { background: var(--bg-tertiary); padding: 1rem; min-width: 180px; }
     .mock-content { padding: 1.5rem; flex: 1; }
@@ -200,7 +207,7 @@
 <body>
   <div class="header">
     <!-- BRANDING -->
-    <div class="status">Connecting…</div>
+    <div class="status">接続中…</div>
   </div>
 
   <div class="main">

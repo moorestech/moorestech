@@ -2,6 +2,11 @@
 name: writing-plans
 description: マルチステップタスクのspecや要件が揃っていて、コードに着手する前に使う
 hooks:
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh preask"
   PostToolUse:
     - matcher: "Write|Edit"
       hooks:
