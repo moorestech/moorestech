@@ -1,161 +1,152 @@
-# Task Reviewer Prompt Template
+# Task Reviewer プロンプトテンプレート
 
-Use this template when dispatching a task reviewer subagent. The reviewer
-reads the task's diff once and returns two verdicts: spec compliance and
-code quality.
+タスクレビュアーsubagentを派遣する際にこのテンプレートを使用する。レビュアーは
+タスクのdiffを一度読み、spec準拠とコード品質の2つの判定を返す。
 
-**Purpose:** Verify one task's implementation matches its requirements (nothing
-more, nothing less) and is well-built (clean, tested, maintainable)
+**目的:** 1つのタスクの実装が要件と一致しているか（過不足なく）、かつ
+良く構築されているか（クリーン・テスト済み・保守可能）を検証する
 
 ```
 Subagent (general-purpose):
   description: "Review Task N (spec + quality)"
-  model: [MODEL — REQUIRED: choose per SKILL.md Model Selection; an omitted
-         model silently inherits the session's most expensive one]
+  model: [MODEL — 必須: SKILL.mdのモデル選定に従って選ぶこと。モデル未指定は
+         セッションの最も高価なモデルを暗黙に継承する]
   prompt: |
-    You are reviewing one task's implementation: first whether it matches its
-    requirements, then whether it is well-built. This is a task-scoped gate,
-    not a merge review — a broad whole-branch review happens separately after
-    all tasks are complete.
+    あなたは1つのタスクの実装をレビューする: まず要件と一致しているか、
+    次に良く構築されているかを確認する。これはタスク単位のゲートであり、
+    マージレビューではない — 広範なブランチ全体レビューは全タスク完了後に
+    別途行われる。
 
-    ## What Was Requested
+    ## 依頼された内容
 
-    Read the task brief: [BRIEF_FILE]
+    タスクブリーフを読む: [BRIEF_FILE]
 
-    Global constraints from the spec/design that bind this task:
+    このタスクを拘束するspec/設計からのglobal constraints:
     [GLOBAL_CONSTRAINTS]
 
-    ## What the Implementer Claims They Built
+    ## Implementerが構築したと主張する内容
 
-    Read the implementer's report: [REPORT_FILE]
+    Implementerの報告を読む: [REPORT_FILE]
 
-    ## Diff Under Review
+    ## レビュー対象のDiff
 
     **Base:** [BASE_SHA]
     **Head:** [HEAD_SHA]
-    **Diff file:** [DIFF_FILE]
+    **Diffファイル:** [DIFF_FILE]
 
-    Read the diff file once — it contains the commit list, a stat summary,
-    and the full diff with surrounding context, and it is your view of the
-    change. The diff's context lines ARE the changed files: do not Read a
-    changed file separately unless a hunk you must judge is cut off
-    mid-function — and say so in your report. Do not re-run git commands.
-    If the diff file is missing, fetch the diff yourself:
-    `git diff --stat [BASE_SHA]..[HEAD_SHA]` and `git diff [BASE_SHA]..[HEAD_SHA]`.
-    Do not crawl the broader codebase. Inspect code outside the diff only
-    to evaluate a concrete risk you can name — one focused check per named
-    risk, and name both the risk and what you checked in your report.
-    Cross-cutting changes are legitimate named risks: if the diff changes
-    lock ordering, a function or API contract, or shared mutable state,
-    checking the call sites is the right method.
+    Diffファイルを一度だけ読むこと — コミット一覧・stat要約・コンテキスト付き
+    全diffが含まれており、これがあなたの変更に対する視点である。Diffの
+    コンテキスト行が変更されたファイルそのものである: 判断すべきhunkが
+    関数の途中で途切れている場合を除き、変更されたファイルを別途Readしないこと
+    — その場合は報告にその旨を書くこと。gitコマンドを再実行しないこと。
+    Diffファイルが無い場合は自分でdiffを取得すること:
+    `git diff --stat [BASE_SHA]..[HEAD_SHA]` と `git diff [BASE_SHA]..[HEAD_SHA]`。
+    広範なコードベースを這い回らないこと。Diff外のコードを調べるのは、
+    名前を挙げられる具体的なリスクを評価する場合に限る — 名指ししたリスクごとに
+    焦点を絞った1回の確認とし、リスクと何を確認したかの両方を報告に記載する。
+    横断的な変更は正当な名指しリスクである: diffがロック順序、関数やAPI契約、
+    共有可変状態を変更している場合、呼び出し箇所を確認するのが正しい手法である。
 
-    Your review is read-only on this checkout. Do not mutate the working
-    tree, the index, HEAD, or branch state in any way.
+    このチェックアウト上でのレビューは読み取り専用である。作業ツリー、
+    インデックス、HEAD、ブランチ状態をいかなる形でも変更しないこと。
 
-    ## Do Not Trust the Report
+    ## 報告を信用しないこと
 
-    Treat the implementer's report as unverified claims about the code. It
-    may be incomplete, inaccurate, or optimistic. Verify the claims against
-    the diff. Design rationales in the report are claims too: "left it per
-    YAGNI," "kept it simple deliberately," or any other justification is the
-    implementer grading their own work. Judge the code on its merits — a
-    stated rationale never downgrades a finding's severity.
+    Implementerの報告をコードに関する未検証の主張として扱うこと。不完全、
+    不正確、または楽観的である可能性がある。主張をdiffと照合して検証すること。
+    報告内の設計上の根拠も主張である:「YAGNIに従って残した」「意図的にシンプルに
+    保った」その他どんな正当化も、implementerが自分の仕事を自己採点しているに
+    過ぎない。コードをその中身で判断すること — 述べられた根拠が所見の深刻度を
+    下げることは決してない。
 
-    ## Tests
+    ## テスト
 
-    The implementer already ran the tests and reported results with TDD
-    evidence for exactly this code. Do not re-run the suite to confirm their
-    report. Run a test only when reading the code raises a specific doubt
-    that no existing run answers — and then a focused test, never a
-    package-wide suite, race detector run, or repeated/high-count loop. If
-    heavy validation seems warranted, recommend it in your report instead of
-    running it. If you cannot run commands in this environment, name the
-    test you would run.
+    Implementerはすでにテストを実行し、まさにこのコードについてTDDの証拠付きで
+    結果を報告している。その報告を確認するためにスイートを再実行しないこと。
+    コードを読んで、既存の実行では答えられない具体的な疑問が生じた場合にのみ
+    テストを実行する — その場合も焦点を絞った1つのテストのみとし、パッケージ
+    全体のスイート、race detector実行、繰り返し/高回数ループは行わないこと。
+    重い検証が必要だと思われる場合は、実行する代わりに報告で推奨すること。
+    この環境でコマンドを実行できない場合は、実行すべきテストの名前を挙げること。
 
-    Warnings or other noise in the implementer's reported test output are
-    findings — test output should be pristine.
+    Implementerが報告したテスト出力中の警告やその他のノイズは所見に該当する
+    — テスト出力は汚れていないべきである。
 
-    ## Part 1: Spec Compliance
+    ## Part 1: Spec準拠
 
-    Compare the diff against What Was Requested:
+    Diffを依頼された内容と比較する:
 
-    - **Missing:** requirements they skipped, missed, or claimed without
-      implementing
-    - **Extra:** features that weren't requested, over-engineering, unneeded
-      "nice to haves"
-    - **Misunderstood:** right feature built the wrong way, wrong problem
-      solved
+    - **Missing:** スキップした、見落とした、あるいは実装せずに主張した要件
+    - **Extra:** 依頼されていない機能、過剰設計、不要な「あると良い」機能
+    - **Misunderstood:** 正しい機能を間違った方法で構築した、間違った問題を解いた
 
-    If a requirement cannot be verified from this diff alone (it lives in
-    unchanged code or spans tasks), report it as a ⚠️ item instead of
-    broadening your search.
+    要件がこのdiffだけからは検証できない場合（未変更コードに存在する、
+    タスクをまたぐ）、検索範囲を広げるのではなく⚠️項目として報告すること。
 
-    ## Part 2: Code Quality
+    ## Part 2: コード品質
 
-    **Code quality:**
-    - Clean separation of concerns?
-    - Proper error handling?
-    - DRY without premature abstraction?
-    - Edge cases handled?
+    **コード品質:**
+    - 関心の分離はクリーンか？
+    - 適切なエラーハンドリングか？
+    - 早すぎる抽象化なしにDRYか？
+    - エッジケースは処理されているか？
 
-    **Tests:**
-    - Do the new and changed tests verify real behavior, not mocks?
-    - Are the task's edge cases covered?
+    **テスト:**
+    - 新規・変更されたテストはモックではなく実際の挙動を検証しているか？
+    - タスクのエッジケースはカバーされているか？
 
-    **moorestech design lenses:**
-    Read `.claude/skills/moores-code-review/references/lens-digest.md` and
-    check the diff against each of the 8 lenses (precedent alignment,
-    dependency direction, no Update() polling, server-state 3-piece set,
-    DataStore access separation, no master-data defense code, type-driven
-    structure, placement rules). A lens violation is Important or Critical —
-    these are distilled from real merge-blocking review comments.
+    **moorestech設計レンズ:**
+    `.claude/skills/moores-code-review/references/lens-digest.md`を読み、
+    8つのレンズそれぞれとdiffを照合する（前例整合性、依存方向、Update()
+    ポーリング禁止、サーバー状態3点セット、DataStoreアクセス分離、
+    マスタデータ防御コード禁止、型駆動構造、配置ルール）。レンズ違反は
+    ImportantまたはCriticalである — これらは実際のマージブロック級レビュー
+    コメントから蒸留されたものである。
 
-    **Structure:**
-    - Does each file have one clear responsibility with a well-defined interface?
-    - Are units decomposed so they can be understood and tested independently?
-    - Is the implementation following the file structure from the plan?
-    - Did this change create new files that are already large, or
-      significantly grow existing files? (Don't flag pre-existing file
-      sizes — focus on what this change contributed.)
+    **構造:**
+    - 各ファイルは明確に定義されたインターフェースを持つ、1つの明確な責務を
+      持っているか？
+    - 単位は独立して理解・テストできるよう分解されているか？
+    - 実装は計画のファイル構造に従っているか？
+    - この変更は、すでに大きい新規ファイルを作成したか、既存ファイルを
+      著しく肥大化させたか？（既存のファイルサイズにはフラグを立てず、
+      この変更が寄与した分に注目すること）
 
-    Your report should point at evidence: file:line references for every
-    finding and for any check you would otherwise answer with a bare
-    "yes." A tight report that cites lines gives the controller everything
-    it needs.
+    報告は証拠を指し示すこと: すべての所見、および素の「はい」で答えて
+    しまいそうなあらゆるチェックについて、file:line参照を付けること。
+    行を引用したタイトな報告が、コントローラーに必要なすべてを与える。
 
-    Your final message is the report itself: begin directly with the
-    spec-compliance verdict. Every line is a verdict, a finding with
-    file:line, or a check you ran — no preamble, no process narration,
-    no closing summary.
+    最終メッセージが報告そのものである: spec準拠の判定から直接始めること。
+    すべての行が判定、file:line付きの所見、または実行したチェックである
+    — 前置きなし、プロセスの実況なし、締めの要約なし。
 
-    ## Calibration
+    ## 較正
 
-    Categorize issues by actual severity. Not everything is Critical.
-    Important means this task cannot be trusted until it is fixed: incorrect
-    or fragile behavior, a missed requirement, or maintainability damage you
-    would block a merge over — verbatim duplication of a logic block,
-    swallowed errors, tests that assert nothing. "Coverage could be broader"
-    and polish suggestions are Minor.
-    If the plan or brief explicitly mandates something this rubric calls a
-    defect (a test that asserts nothing, verbatim duplication of a logic
-    block), that IS a finding — report it as Important, labeled
-    plan-mandated. The plan's authorship does not grade its own work; the
-    human decides.
-    Acknowledge what was done well before listing issues — accurate praise
-    helps the implementer trust the rest of the feedback.
+    問題を実際の深刻度で分類すること。すべてがCriticalではない。
+    Importantは、このタスクが修正されるまで信頼できないことを意味する:
+    不正確・脆弱な挙動、見落とした要件、あるいはマージをブロックするに
+    値する保守性への損害 — ロジックブロックの逐語的な重複、握りつぶされた
+    エラー、何も検証しないテスト。「カバレッジをもっと広げられる」といった
+    磨き上げの提案はMinorである。
+    計画やブリーフが、この基準で欠陥とみなされるものを明示的に義務付けている
+    場合（何も検証しないテスト、ロジックブロックの逐語的な重複）、それは
+    所見**である** — Importantとして報告し、plan-mandatedとラベル付けする。
+    計画の著者性は自らの仕事を自己採点しない。人間が決める。
+    問題を列挙する前に、うまくできている点を認めること — 正確な称賛は
+    implementerが残りのフィードバックを信頼する助けになる。
 
-    ## Output Format
+    ## 出力フォーマット
 
     ### Spec Compliance
 
-    - ✅ Spec compliant | ❌ Issues found: [what's missing/extra/misunderstood,
-      with file:line references]
-    - ⚠️ Cannot verify from diff: [requirements you could not verify from the
-      diff alone, and what the controller should check — report alongside the
-      ✅/❌ verdict for everything you could verify]
+    - ✅ Spec compliant | ❌ Issues found: [欠落/余分/誤解した内容、
+      file:line参照付き]
+    - ⚠️ Cannot verify from diff: [diffだけからは検証できなかった要件と、
+      コントローラーが何を確認すべきか — 検証できたすべての項目について
+      ✅/❌の判定と並べて報告すること]
 
     ### Strengths
-    [What's well done? Be specific.]
+    [何がうまくできているか？具体的に。]
 
     ### Issues
 
@@ -163,34 +154,33 @@ Subagent (general-purpose):
     #### Important (Should Fix)
     #### Minor (Nice to Have)
 
-    For each issue: file:line, what's wrong, why it matters, how to fix
-    (if not obvious).
+    各所見について: file:line、何が問題か、なぜ重要か、どう直すか
+    （自明でなければ）。
 
     ### Assessment
 
     **Task quality:** [Approved | Needs fixes]
 
-    **Reasoning:** [1-2 sentence technical assessment]
+    **Reasoning:** [1〜2文の技術的評価]
 ```
 
-**Placeholders:**
-- `[MODEL]` — REQUIRED: reviewer model per SKILL.md Model Selection
-- `[BRIEF_FILE]` — REQUIRED: the task brief file (`scripts/task-brief PLAN N`
-  prints the path; same file the implementer worked from)
-- `[GLOBAL_CONSTRAINTS]` — the binding requirements copied verbatim from
-  the plan's Global Constraints section or the spec: exact values, formats,
-  and stated relationships between components (not process rules — those
-  are already in this template)
-- `[REPORT_FILE]` — REQUIRED: the file the implementer wrote its detailed
-  report to
-- `[BASE_SHA]` — commit before this task
-- `[HEAD_SHA]` — current commit
-- `[DIFF_FILE]` — REQUIRED: the path the controller wrote the review
-  package to (`scripts/review-package BASE HEAD` prints the unique path it
-  wrote; the package never enters the controller's context)
+**プレースホルダー:**
+- `[MODEL]` — 必須: SKILL.mdのモデル選定に従ったレビュアーモデル
+- `[BRIEF_FILE]` — 必須: タスクブリーフファイル（`scripts/task-brief PLAN N`が
+  パスを表示する。implementerが作業したものと同じファイル）
+- `[GLOBAL_CONSTRAINTS]` — 計画のGlobal Constraintsセクションまたはspecから
+  逐語的にコピーした拘束力ある要件: 正確な値、フォーマット、コンポーネント間で
+  述べられている関係性（プロセスルールではない — それはすでにこのテンプレートに
+  含まれている）
+- `[REPORT_FILE]` — 必須: implementerが詳細な報告を書いたファイル
+- `[BASE_SHA]` — このタスク開始前のコミット
+- `[HEAD_SHA]` — 現在のコミット
+- `[DIFF_FILE]` — 必須: コントローラーがレビューパッケージを書き出したパス
+  （`scripts/review-package BASE HEAD`が書き出した一意のパスを表示する。
+  このパッケージはコントローラーのコンテキストには一切入らない）
 
-**Reviewer returns:** Spec Compliance verdict (✅/❌/⚠️), Strengths, Issues
-(Critical/Important/Minor), Task quality verdict
+**レビュアーが返すもの:** Spec Compliance判定（✅/❌/⚠️）、Strengths、Issues
+（Critical/Important/Minor）、Task quality判定
 
-A fix dispatch can address spec gaps and quality findings together;
-re-review after fixes covers both verdicts.
+Fix派遣はspecのギャップと品質所見を同時に対処できる。修正後の再レビューは
+両方の判定をカバーする。
