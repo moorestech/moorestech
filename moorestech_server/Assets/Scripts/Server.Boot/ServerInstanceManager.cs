@@ -1,14 +1,18 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Core.Master;
 using Game.PlayerConnection;
 using Core.Update;
 using Game.Context;
+using Game.MapGeneration.Provisioning;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
+using Mod.Config;
 using Mod.Loader;
 using Server.Boot.Args;
 using Server.Boot.Loop;
@@ -37,18 +41,31 @@ namespace Server.Boot
         
         private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource) Start(string[] args)
         {
-            // これはコンパイルエラーを避ける仮対応
+            // 起動引数からワールドディレクトリのルートを解決する
+            // Resolve the world directory root from launch arguments
             var settings = CliConvert.Parse<StartServerSettings>(args);
-            
-            //カレントディレクトリを表示
+            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(settings.WorldDirectory);
+
+            // 生成設定はマスタなのでプロビジョニング前にマスタをロードする（Create()内の再ロードは冪等）
+            // Generation config lives in master data, so load masters before provisioning (reload in Create() is idempotent)
+            var modResource = new ModsResource(Path.Combine(settings.ServerDataDirectory, "mods"));
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
+
+            // generatedモードでシード未指定なら実行ごとに採番する
+            // Assign a fresh seed per run when generated mode leaves it unspecified
+            var seed = settings.MapMode == "generated" && settings.Seed == 0 ? Guid.NewGuid().GetHashCode() : settings.Seed;
+
+            // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
+            // Provision the world directory before DI container construction
+            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
+                worldDataDirectory, settings.ServerDataDirectory, settings.MapMode, seed));
+
             var serverDirectory = settings.ServerDataDirectory;
             var options = new MoorestechServerDIContainerOptions(serverDirectory)
                 {
-                    // 暫定: ワールドルート導線はTask 9でFromWorldRootへ切り替える
-                    // Temporary bridge: switches to FromWorldRoot in Task 9
-                    worldDataDirectory = WorldDataDirectory.FromServerDataMap(settings.ServerDataDirectory, settings.SaveFilePath),
+                    worldDataDirectory = worldDataDirectory,
                 };
-            
+
             Debug.Log("データをロードします　パス:" + serverDirectory);
             
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
