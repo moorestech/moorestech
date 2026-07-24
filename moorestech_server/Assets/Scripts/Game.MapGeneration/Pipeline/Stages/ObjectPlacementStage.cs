@@ -24,6 +24,9 @@ namespace Game.MapGeneration.Pipeline.Stages
             // Build the distance-check grid from stage-3 trees (consumed by object placement).
             var treeSpatialGrid = SpatialGrid.FromPlacements(treeEntries, config.terrainWidth, config.terrainLength, 0f);
 
+            // クラスター採番は生成コンテキストのローカル状態。全バイオームを通して連番になる（元のグローバル採番と等価）。
+            // Cluster numbering is generation-local state, sequential across all biomes (equivalent to the old global counter).
+            int nextClusterId = 0;
             for (int b = 0; b < biomeCount; b++)
             {
                 var oc = helper.GetObjectConfig(biomeTypes[b]);
@@ -34,7 +37,7 @@ namespace Game.MapGeneration.Pipeline.Stages
                 float wm = helper.GetShoreConfig(biomeTypes[b]).waterMargin;
                 var dims = TerrainDimensions.From(config, wm);
                 var objRng = new System.Random(config.seed + 4000 + b * 100);
-                var entries = ObjectPlacementGenerator.GenerateForBiome(masks[b], heights2D, dims, oc, objRng, treeSpatialGrid);
+                var entries = ObjectPlacementGenerator.GenerateForBiome(masks[b], heights2D, dims, oc, objRng, treeSpatialGrid, ref nextClusterId);
                 objectEntries.AddRange(entries);
             }
 

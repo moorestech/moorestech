@@ -80,7 +80,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             BiomeObjectConfig.ObjectEntry entry, TerrainDimensions dims,
             float[,] heights, int hRes, bool[,] mask, float borderMarginPx,
             System.Random rng, Vector2[] noiseOffsets, List<PlacementEntry> placements,
-            SpatialGrid treeSpatialGrid, ObjectAlgorithmConfig objAlgCfg)
+            SpatialGrid treeSpatialGrid, ObjectAlgorithmConfig objAlgCfg, ref int nextClusterId)
         {
             float w = dims.TerrainWidth, l = dims.TerrainLength;
             float centerMinDist = Mathf.Sqrt(w * l / entry.clusterCount * objAlgCfg.clusterSpacingFactor);
@@ -102,7 +102,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                 }
 
                 placed++;
-                int clusterId = ObjectPlacementMath.NextClusterId++;
+                int clusterId = nextClusterId++;
                 int boneCount = Mathf.Min(3 + rng.Next(3), entry.objectsPerCluster);
                 float backboneAngle = (float)rng.NextDouble() * Mathf.PI;
                 float halfLen = entry.clusterRadius * 0.5f;

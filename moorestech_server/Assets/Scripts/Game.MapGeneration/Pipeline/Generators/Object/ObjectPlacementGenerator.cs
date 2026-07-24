@@ -18,7 +18,8 @@ namespace Game.MapGeneration.Pipeline.Generators
             TerrainDimensions dims,
             BiomeObjectConfig objConfig,
             System.Random rng,
-            SpatialGrid treeSpatialGrid)
+            SpatialGrid treeSpatialGrid,
+            ref int nextClusterId)
         {
             var placements = new List<PlacementEntry>();
             int hRes = dims.Resolution;
@@ -40,7 +41,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     if (cluster.primary == null || cluster.primary.Length == 0) continue;
                     ObjectClusterPlacer.GeneratePrimaryClusters(cluster, dims, heights, hRes,
                         mask, borderMarginPx, rng, noiseOffsets, placements, clusterInfos,
-                        treeSpatialGrid, objAlgCfg);
+                        treeSpatialGrid, objAlgCfg, ref nextClusterId);
                     if (cluster.secondaries != null)
                     {
                         foreach (var sec in cluster.secondaries)
@@ -73,7 +74,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                     if (entry.mapObjectGuids == null || entry.mapObjectGuids.Length == 0 || entry.density <= 0.001f) continue;
                     if (entry.useClusterMode)
                         ObjectIndependentPlacer.GenerateClusterObjects(entry, dims, heights, hRes,
-                            mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid, objAlgCfg);
+                            mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid, objAlgCfg, ref nextClusterId);
                     else
                         ObjectIndependentPlacer.GenerateIndependent(entry, dims, heights, hRes,
                             mask, borderMarginPx, rng, noiseOffsets, placements, treeSpatialGrid);
