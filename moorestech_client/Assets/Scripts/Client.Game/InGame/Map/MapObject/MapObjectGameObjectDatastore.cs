@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common.Asset;
+using Client.Game.Common;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using Core.Master;
@@ -17,10 +18,18 @@ namespace Client.Game.InGame.Map.MapObject
     ///     mapObjectをLayout応答から実行時Instantiateし、破壊/HPの状態同期を担うデータストア
     ///     Instantiates map objects at runtime from the layout response and keeps their destroy/HP state synced
     /// </summary>
-    public class MapObjectGameObjectDatastore : MonoBehaviour
+    public class MapObjectGameObjectDatastore : MonoBehaviour, IInitialEventApplyWaitTarget
     {
+        // 2011個規模の起動スパイクを避けるためこの個数ごとにフレームを跨ぐ
+        // Cross a frame every this many objects to avoid a startup spike at the ~2011-object scale
+        private const int FrameYieldObjectInterval = 100;
+
         private readonly Dictionary<int, MapObjectGameObject> _allMapObjects = new();
         private readonly Dictionary<Guid, GameObject> _prefabCacheByMapObjectGuid = new();
+
+        // 生成ループ完走で初期化ゲートを解除する。InitializeScenePipelineがtrueを無限ポーリング待機するため必ず立てる
+        // Loop completion releases the init gate; InitializeScenePipeline polls this in an unbounded wait so it must be set
+        public bool IsInitialEventApplied { get; private set; }
 
         [Inject]
         public void Construct(InitialHandshakeResponse handshakeResponse)
@@ -28,49 +37,95 @@ namespace Client.Game.InGame.Map.MapObject
             // イベント購読は同期で確定させ、生成本体はフレーム分散のfire-and-forgetへ委譲する
             // Subscribe synchronously, then delegate the instantiation itself to a frame-distributed fire-and-forget
             ClientContext.VanillaApi.Event.SubscribeEventResponse(MapObjectUpdateEventPacket.EventTag, OnUpdateMapObject);
-            InstantiateMapObjectsFromLayoutAsync(handshakeResponse).Forget();
-        }
-
-        private async UniTask InstantiateMapObjectsFromLayoutAsync(InitialHandshakeResponse handshakeResponse)
-        {
-            // 破壊/HPの初期状態はva:mapObjectInfoスナップショットをinstanceIdで引く（Layoutと同一集合が前提）
-            // Initial destroy/HP state comes from the va:mapObjectInfo snapshot keyed by instanceId (same set as the layout)
-            var snapshotByInstanceId = handshakeResponse.MapObjects.ToDictionary(info => info.InstanceId);
-            var cancellationToken = this.GetCancellationTokenOnDestroy();
-
-            var processedCount = 0;
-            foreach (var layout in handshakeResponse.MapLayout.MapObjects)
-            {
-                // guid→master→addressablePathでプレハブ解決し、Layout座標へ生成する
-                // Resolve the prefab via guid→master→addressablePath and instantiate it at the layout position
-                var mapObjectGuid = new Guid(layout.MapObjectGuid);
-                var prefab = ResolvePrefab(mapObjectGuid);
-                var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), Quaternion.identity, transform);
-
-                var mapObject = instance.GetComponent<MapObjectGameObject>();
-                if (mapObject == null) throw new InvalidOperationException($"MapObject prefab has no MapObjectGameObject on root. MapObjectGuid:{mapObjectGuid}");
-
-                // 実行時IDを注入し、登録後にスナップショットで初期状態を適用する
-                // Inject the runtime identity, then apply the initial state from the snapshot after registration
-                mapObject.SetRuntimeIdentity(layout.InstanceId, layout.MapObjectGuid);
-                _allMapObjects.Add(layout.InstanceId, mapObject);
-                mapObject.Initialize(snapshotByInstanceId[layout.InstanceId]);
-
-                // 2011個規模の起動スパイクを避けるため100個ごとにフレームを跨ぐ
-                // Cross a frame every 100 objects to avoid a startup spike at the ~2011-object scale
-                processedCount++;
-                if (processedCount % 100 == 0) await UniTask.Yield(cancellationToken);
-            }
+            InstantiateMapObjectsFromLayoutAsync().Forget();
 
             #region Internal
 
-            GameObject ResolvePrefab(Guid mapObjectGuid)
+            async UniTask InstantiateMapObjectsFromLayoutAsync()
+            {
+                // 破壊/HPの初期状態はva:mapObjectInfoスナップショットをinstanceIdで引く（Layoutと同一集合が前提）
+                // Initial destroy/HP state comes from the va:mapObjectInfo snapshot keyed by instanceId (same set as the layout)
+                var snapshotByInstanceId = handshakeResponse.MapObjects.ToDictionary(info => info.InstanceId);
+                var cancellationToken = this.GetCancellationTokenOnDestroy();
+
+                var processedCount = 0;
+                foreach (var layout in handshakeResponse.MapLayout.MapObjects)
+                {
+                    // guidは正常データ前提でparseする（不正guidはT8のデータ修正対象・ここでの防御は過剰）
+                    // Parse guid assuming valid data (malformed guids are a T8 data fix; defending here is overkill)
+                    var mapObjectGuid = new Guid(layout.MapObjectGuid);
+
+                    // master欠落・load失敗はResolvePrefabOrNull内でLogError済み。個体だけskipし残りは生成しきる
+                    // Master-missing or load-failure is already logged inside; skip just this one and keep generating the rest
+                    var prefab = ResolvePrefabOrNull(mapObjectGuid);
+                    if (prefab == null) continue;
+
+                    // スナップショット欠落はInstantiate前に検出し、orphan instanceを作らずskipする
+                    // Detect a missing snapshot before Instantiate so no orphan instance is created, then skip
+                    if (!snapshotByInstanceId.TryGetValue(layout.InstanceId, out var snapshot))
+                    {
+                        Debug.LogError($"MapObject snapshot missing. InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
+                        continue;
+                    }
+
+                    var instance = Instantiate(prefab, new Vector3(layout.X, layout.Y, layout.Z), Quaternion.identity, transform);
+
+                    // rootにMapObjectGameObjectが無いのはprefab authoring不正。生成物を破棄してskipする
+                    // Missing MapObjectGameObject on root is invalid prefab authoring; destroy the instance and skip
+                    var mapObject = instance.GetComponent<MapObjectGameObject>();
+                    if (mapObject == null)
+                    {
+                        Debug.LogError($"MapObject prefab has no MapObjectGameObject on root. MapObjectGuid:{mapObjectGuid}");
+                        Destroy(instance);
+                        continue;
+                    }
+
+                    // instanceId重複はTryAddで検出し、重複個体を破棄してskipする（Addのthrowは起動ハングを招くため不可）
+                    // Detect duplicate instanceId via TryAdd; destroy the duplicate and skip (Add's throw would hang startup)
+                    mapObject.SetRuntimeIdentity(layout.InstanceId, layout.MapObjectGuid);
+                    if (!_allMapObjects.TryAdd(layout.InstanceId, mapObject))
+                    {
+                        Debug.LogError($"MapObject duplicate InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
+                        Destroy(instance);
+                        continue;
+                    }
+
+                    // 登録後にスナップショットで初期状態（破壊/HP）を適用する
+                    // Apply the initial state (destroy/HP) from the snapshot after registration
+                    mapObject.Initialize(snapshot);
+
+                    // フレーム分散でInstantiateし、起動時の描画スパイクを抑える
+                    // Instantiate spread across frames to suppress the render spike at startup
+                    processedCount++;
+                    if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
+                }
+
+                // 全個体を処理しきった（失敗はskip済み）→初期化ゲートを解除し起動待機を進める
+                // Every object processed (failures skipped) → release the init gate to advance startup
+                IsInitialEventApplied = true;
+            }
+
+            GameObject ResolvePrefabOrNull(Guid mapObjectGuid)
             {
                 if (_prefabCacheByMapObjectGuid.TryGetValue(mapObjectGuid, out var cachedPrefab)) return cachedPrefab;
 
-                var element = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
+                // master欠落はLogError+nullでskipさせる（サーバMapObjectDatastoreと対称）
+                // Master-missing returns null after LogError to skip (symmetric with server MapObjectDatastore)
+                var element = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectGuid);
+                if (element == null)
+                {
+                    Debug.LogError($"MapObject master missing. MapObjectGuid:{mapObjectGuid}");
+                    return null;
+                }
+
+                // load失敗（有料アセット不在等）もLogError+nullでskipさせる
+                // Load failure (e.g. missing paid asset) also returns null after LogError to skip
                 var loaded = AddressableLoader.LoadDefault<GameObject>(element.AddressablePath);
-                if (loaded == null) throw new InvalidOperationException($"MapObject prefab load failed. AddressablePath:{element.AddressablePath}");
+                if (loaded == null)
+                {
+                    Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{mapObjectGuid} AddressablePath:{element.AddressablePath}");
+                    return null;
+                }
 
                 _prefabCacheByMapObjectGuid[mapObjectGuid] = loaded;
                 return loaded;
