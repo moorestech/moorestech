@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Resolve and ensure the working-tree directory SDD uses for its short-lived
-# artifacts: task briefs, implementer reports, review packages, and the
-# progress ledger. Print the directory's absolute path.
+# SDDが短命な成果物（タスクブリーフ・実装者レポート・レビューパッケージ・
+# 進捗台帳）に使うワーキングツリー配下のディレクトリを解決・確保する。
+# ディレクトリの絶対パスを標準出力へ表示する。
 #
-# The workspace lives in the working tree (not under .git/) because Claude Code
-# treats .git/ as a protected path and denies agent writes there — which blocks
-# an implementer subagent from writing its report file. A self-ignoring
-# .gitignore keeps the workspace out of `git status` and out of accidental
-# commits without modifying any tracked file.
+# ワークスペースは（.git/配下ではなく）ワーキングツリー内に置く。Claude Codeは
+# .git/を保護対象パスとみなしエージェントの書き込みを拒否するため、
+# 実装者サブエージェントがレポートファイルを書けなくなってしまう。
+# 自己無視の.gitignoreにより、追跡対象ファイルを変更せずとも
+# `git status`や誤コミットからワークスペースを除外できる。
 #
-# Single source of truth for the workspace location, so task-brief and
-# review-package cannot drift to different directories.
+# ワークスペースの場所を一元管理する単一の情報源とすることで、
+# task-briefとreview-packageが別々のディレクトリへずれるのを防ぐ。
 #
-# Usage: sdd-workspace
+# 使い方: sdd-workspace
 set -euo pipefail
 
 root=$(git rev-parse --show-toplevel)
