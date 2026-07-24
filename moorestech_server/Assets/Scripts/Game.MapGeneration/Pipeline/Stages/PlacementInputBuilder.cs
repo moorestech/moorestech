@@ -27,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Stages
                 float shore = shoreMask[i];
                 float beach = beachFactor[i];
                 result[i, 0] = shore < 0.005f ? 1f : 0f;
-                result[i, 1] = beach > 0.2f ? beach : 0f;
+                result[i, 1] = 0.2f < beach ? beach : 0f;
 
                 float contentSum = 0f;
                 for (int b = 0; b < bc; b++)
@@ -38,7 +38,7 @@ namespace Game.MapGeneration.Pipeline.Stages
                 }
 
                 float oceanBeach = result[i, 0] + result[i, 1];
-                if (oceanBeach > 0f && contentSum > 0f)
+                if (0f < oceanBeach && 0f < contentSum)
                 {
                     float scale = Mathf.Max(0f, 1f - oceanBeach);
                     for (int b = 0; b < bc; b++)
@@ -72,9 +72,9 @@ namespace Game.MapGeneration.Pipeline.Stages
             for (int i = 0; i < pixelCount; i++)
             {
                 if (landMask[i] <= 0.5f) { result[i] = (byte)BiomeType.Ocean; continue; }
-                if (beachFactor[i] > 0.2f) { result[i] = (byte)BiomeType.Beach; continue; }
+                if (0.2f < beachFactor[i]) { result[i] = (byte)BiomeType.Beach; continue; }
                 int w = winnerBiomeIndex[i];
-                result[i] = (w >= 0 && w < biomeTypes.Length) ? (byte)biomeTypes[w] : (byte)BiomeType.Grassland;
+                result[i] = (0 <= w && w < biomeTypes.Length) ? (byte)biomeTypes[w] : (byte)BiomeType.Grassland;
             }
             return result;
         }

@@ -64,7 +64,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             // Job 2a-blur: 高さマップのガウシアンブラー（Jungle段差平滑化）
             // Job 2a-blur: gaussian blur for jungle terrace smoothing
             int heightBlurRadius = GetHeightBlurRadius(buffers.biomeParams);
-            if (heightBlurRadius > 0)
+            if (0 < heightBlurRadius)
             {
                 new HeightBlurHorizontalJob
                 {
@@ -86,7 +86,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             // Job 2a-slope: ランダム地点を中心に追加平滑化
             // Job 2a-slope: extra smoothing centered on random points
             var slope = GetSlopeParams(buffers.biomeParams);
-            if (slope.Density > 0f && slope.Radius > 0 && slope.BlendStrength > 0f)
+            if (0f < slope.Density && 0 < slope.Radius && 0f < slope.BlendStrength)
             {
                 NativeArray<float>.Copy(buffers.heights, 0, buffers.blurTemp, 0, pixelCount);
                 new HeightSlopeJob
@@ -105,7 +105,7 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             // Job 2a-noise: ブラー後の崖面を侵食ノイズで削る
             // Job 2a-noise: erode post-blur cliffs with boundary noise
-            if (config.jungleEnabled && config.jungle.boundaryNoiseStrength > 0f)
+            if (config.jungleEnabled && 0f < config.jungle.boundaryNoiseStrength)
             {
                 NativeArray<float>.Copy(buffers.heights, 0, buffers.blurTemp, 0, pixelCount);
                 new BoundaryNoiseJob
@@ -135,10 +135,10 @@ namespace Game.MapGeneration.Pipeline.Stages
             for (int i = 0; i < biomeParams.Length; i++)
             {
                 var bp = biomeParams[i];
-                if (bp.biomeType == 8 && bp.terraceSharpness > 0f)
+                if (bp.biomeType == 8 && 0f < bp.terraceSharpness)
                 {
                     int r = (int)(bp.terraceSharpness * 20f);
-                    if (r > maxRadius) maxRadius = r;
+                    if (maxRadius < r) maxRadius = r;
                 }
             }
             return maxRadius;
@@ -163,7 +163,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             for (int i = 0; i < biomeParams.Length; i++)
             {
                 var bp = biomeParams[i];
-                if (bp.canyonOctaves > 0 && bp.secondaryAmplitude > 0f)
+                if (0 < bp.canyonOctaves && 0f < bp.secondaryAmplitude)
                     return new SlopeInfo(bp.secondaryAmplitude, bp.secondaryFrequency, bp.canyonOctaves, bp.absSmoothing);
             }
             return default;

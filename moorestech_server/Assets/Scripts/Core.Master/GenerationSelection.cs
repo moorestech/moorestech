@@ -35,7 +35,7 @@ namespace Core.Master
             bool IsBetter((Generation Element, string ModId) candidate)
             {
                 if (selected == null) return true;
-                if (candidate.Element.Priority != selected.Priority) return candidate.Element.Priority > selected.Priority;
+                if (candidate.Element.Priority != selected.Priority) return selected.Priority < candidate.Element.Priority;
                 return string.CompareOrdinal(candidate.ModId, selectedModId) < 0;
             }
 

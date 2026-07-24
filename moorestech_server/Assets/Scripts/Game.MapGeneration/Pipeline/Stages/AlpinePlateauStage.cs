@@ -84,7 +84,7 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             // 2d-post-2: 台地内部のスパイク除去（同一領域ボックスブラー）
             // 2d-post-2: remove intra-plateau spikes via same-region box blur
-            if (config.alpine.smoothRadius > 0 && config.alpine.smoothIterations > 0)
+            if (0 < config.alpine.smoothRadius && 0 < config.alpine.smoothIterations)
             {
                 var tempHeights = new NativeArray<float>(pixelCount, Allocator.TempJob);
                 for (int iter = 0; iter < config.alpine.smoothIterations; iter++)

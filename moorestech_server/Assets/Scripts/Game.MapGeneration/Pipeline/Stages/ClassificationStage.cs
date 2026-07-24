@@ -55,7 +55,7 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             // Job 1a-post: 小さな海領域を陸に変換（ビーチ判定前）
             // Job 1a-post: convert tiny sea regions to land before beach detection
-            if (shoreConfig.minSeaRegionSize > 0)
+            if (0 < shoreConfig.minSeaRegionSize)
             {
                 new SmallSeaRemovalJob
                 {

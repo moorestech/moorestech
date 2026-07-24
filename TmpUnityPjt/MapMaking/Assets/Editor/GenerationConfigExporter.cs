@@ -56,10 +56,10 @@ namespace MapGenerator.EditorExport
         {
             // P1では未整備のアドレス欄と未解決プレハブを警告として明示する
             // Warn-logs the not-yet-populated address fields and unresolved prefabs (P1 scope).
-            if (serializer.EmptyAssetFields.Count > 0)
+            if (0 < serializer.EmptyAssetFields.Count)
                 Debug.LogWarning($"[GenerationConfigExporter] Empty addressablePath fields ({serializer.EmptyAssetFields.Count}): "
                                  + string.Join(", ", serializer.EmptyAssetFields));
-            if (serializer.UnmatchedPrefabs.Count > 0)
+            if (0 < serializer.UnmatchedPrefabs.Count)
                 Debug.LogWarning($"[GenerationConfigExporter] Unmatched prefabs -> empty guid ({serializer.UnmatchedPrefabs.Count}): "
                                  + string.Join(", ", serializer.UnmatchedPrefabs));
         }

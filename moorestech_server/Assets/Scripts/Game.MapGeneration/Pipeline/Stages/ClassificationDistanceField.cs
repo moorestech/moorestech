@@ -15,7 +15,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             int n = res * res;
             var field = new float[n];
             for (int i = 0; i < n; i++)
-                field[i] = ((mask[i] > 0.5f) == findSeed) ? 0f : INF;
+                field[i] = ((0.5f < mask[i]) == findSeed) ? 0f : INF;
 
             // Pass 1: 行方向 EDT
             // Pass 1: row-direction EDT
@@ -64,7 +64,7 @@ namespace Game.MapGeneration.Pipeline.Stages
                     int vk = v[k];
                     float fvk = f[offset + vk];
                     s = ((fq + (float)q * q) - (fvk + (float)vk * vk)) / (2f * (q - vk));
-                    if (k == 0 || s > z[k]) break;
+                    if (k == 0 || z[k] < s) break;
                     k--;
                 }
                 k++;

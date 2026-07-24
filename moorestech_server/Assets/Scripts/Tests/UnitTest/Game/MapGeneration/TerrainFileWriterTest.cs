@@ -90,14 +90,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(DecodeUshortLittleEndian(bytes, 3), Is.EqualTo(65535));
         }
 
-        #region Internal
-
         private static ushort DecodeUshortLittleEndian(byte[] bytes, int index)
         {
             var offset = index * 2;
             return (ushort)(bytes[offset] | (bytes[offset + 1] << 8));
         }
-
-        #endregion
     }
 }
