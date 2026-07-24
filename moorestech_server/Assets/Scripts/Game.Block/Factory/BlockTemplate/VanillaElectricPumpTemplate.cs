@@ -36,7 +36,7 @@ namespace Game.Block.Factory.BlockTemplate
             var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), param.IdlePowerRate, processorComponent);
             // ポンプはConsumer役をワイヤー端点に渡す
             // Pump passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, electricComponent, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, electricComponent, componentStates);
 
             // 供給読み取り(electricComponent)を生成判定(processorComponent)より先に更新させるため、この並び順を維持すること
             // Keep this order: the supply reader (electricComponent) must update before the pump processor

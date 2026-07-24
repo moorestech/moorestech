@@ -14,7 +14,6 @@ using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.Electric;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Tooltip;
@@ -91,10 +90,10 @@ namespace Client.WebUiHost.Game
             var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectPresenter);
             hub.RegisterTopic(PauseMenuTopic.TopicName, pauseMenuTopic);
 
-            // 設置モードHUDを既存の設置状態と給電範囲へ接続する
-            // Connect the placement HUD to the existing placement state and energized range
+            // 設置モードHUDを既存の設置状態へ接続する
+            // Connect the placement HUD to the existing placement state
             var placementModeTopic = new PlacementModeTopic(hub, resolver.Resolve<PlaceSystemStateController>(),
-                resolver.Resolve<PlaceBlockState>(), resolver.Resolve<DisplayEnergizedRange>());
+                resolver.Resolve<PlaceBlockState>());
             hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
 
             // 削除可否理由を削除HUDへ配信する

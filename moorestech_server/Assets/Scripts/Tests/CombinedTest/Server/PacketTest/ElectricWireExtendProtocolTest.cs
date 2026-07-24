@@ -54,10 +54,12 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             // 起点電柱と未接続機械を用意する
             // Prepare an origin pole and an unconnected machine
+            // pole-pole有効範囲は±3なので起点距離は境界の3に、pole-machine有効範囲は±2なので機械距離は境界の2に配置する
+            // Pole-pole effective range is +-3 so the origin distance sits at that boundary (3); pole-machine effective range is +-2 so the machine distance sits at its boundary (2)
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var fromPos = Vector3Int.zero;
-            var newPolePos = new Vector3Int(4, 0, 0);
-            var machinePos = new Vector3Int(6, 0, 0);
+            var newPolePos = new Vector3Int(3, 0, 0);
+            var machinePos = new Vector3Int(5, 0, 0);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, fromPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fromPole);
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
 
@@ -65,8 +67,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var fromConnector = fromPole.GetComponent<IElectricWireConnector>();
             var machineConnector = machine.GetComponent<IElectricWireConnector>();
 
-            // 起点あり延長を実行する（起点距離4＋機械距離2＝電線6）
-            // Run extend with origin (origin distance 4 + machine distance 2 = 6 wires)
+            // 起点あり延長を実行する（起点距離3＋機械距離2＝電線5）
+            // Run extend with origin (origin distance 3 + machine distance 2 = 5 wires)
             var response = SendExtend(fromPos, newPolePos);
 
             Assert.IsTrue(response.IsSuccess, response.FailureReason.ToString());
@@ -82,7 +84,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(newConnector.ContainsWireConnection(machineConnector.BlockInstanceId));
             Assert.IsTrue(machineConnector.ContainsWireConnection(newConnector.BlockInstanceId));
             Assert.AreEqual(2, newConnector.WireConnections.Count);
-            Assert.AreEqual(4, CountItem(inventory, _wireItemId));
+            Assert.AreEqual(5, CountItem(inventory, _wireItemId));
             Assert.AreEqual(0, CountItem(inventory, _materialItemId));
         }
 

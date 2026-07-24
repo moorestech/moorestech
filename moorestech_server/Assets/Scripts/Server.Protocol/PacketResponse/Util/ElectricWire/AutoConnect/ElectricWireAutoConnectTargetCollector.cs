@@ -1,36 +1,35 @@
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item.Interface;
-using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
-using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
-using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
     /// 設置位置の周辺から自動接続対象の候補を収集する。電柱設置と機械設置で選定ルールが異なる
     /// Collects auto-connect target candidates around a placement position; rules differ for pole vs machine
+    /// 判定はワールド全コネクタ列挙＋範囲ボックス相互判定。距離は最寄り順序付けとコスト計算にのみ使う
+    /// Judged by enumerating all world connectors with mutual range boxes; distance is used only for ordering and cost
     /// </summary>
     public static class ElectricWireAutoConnectTargetCollector
     {
-        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectPoleTargets(ElectricPoleBlockParam ownParam, Vector3Int position)
+        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectPoleTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo)
         {
             var results = new List<(BlockInstanceId, IElectricWireConnector, float)>();
             var usedCount = 0;
+            var ownProfile = ConnectionRangeProfile.CreatePole(ownParam);
 
-            // ①範囲内で接続可能な最寄り電柱1本
-            // Nearest connectable pole within pole range
-            var nearestPole = CollectConnectors(ElectricConnectionRangeService.EnumeratePoleRange(position, ownParam))
+            // ①相互範囲内で接続可能な最寄り電柱1本
+            // Nearest mutually-in-range connectable pole
+            var nearestPole = EnumerateConnectableCandidates(ownInfo, ownProfile, true)
                 .Where(c => c.Connector.EnergyRole is IElectricTransformer)
-                .Select(c => (c.Connector, Distance: Vector3Int.Distance(position, c.Position)))
-                .Where(c => IsGeometricallyConnectable(c.Distance, ownParam.MaxWireLength, c.Connector))
+                .Where(c => !c.Connector.IsWireConnectionFull)
                 .OrderBy(c => c.Distance).ThenBy(c => c.Connector.BlockInstanceId.AsPrimitive())
                 .FirstOrDefault();
 
@@ -40,25 +39,25 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 usedCount++;
             }
 
-            // ②範囲内の未接続機械/発電機を残数まで収集
-            // Collect unconnected machines/generators within range up to remaining capacity
-            results.AddRange(CollectPoleMachineTargets(ownParam, position, usedCount));
+            // ②相互範囲内の未接続機械/発電機を残数まで収集
+            // Collect unconnected machines/generators mutually in range up to remaining capacity
+            results.AddRange(CollectPoleMachineTargets(ownParam, ownInfo, usedCount));
 
             return results;
         }
 
         // レール式延長で使う。起点との明示接続分を差し引いた残り本数で機械のみを収集する
         // Used by rail-style extend; collects machines only, given the capacity already spent on the explicit origin wire
-        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectPoleMachineTargets(ElectricPoleBlockParam ownParam, Vector3Int position, int usedCount)
+        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectPoleMachineTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount)
         {
             var results = new List<(BlockInstanceId, IElectricWireConnector, float)>();
+            var ownProfile = ConnectionRangeProfile.CreatePole(ownParam);
 
-            // 範囲内の未接続機械/発電機を近い順に残数まで
-            // Unconnected machines/generators within machine range, nearest first, up to remaining capacity
-            var machineCandidates = CollectConnectors(ElectricConnectionRangeService.EnumerateMachineRange(position, ownParam))
+            // 相互範囲内の未接続機械/発電機を近い順に残数まで
+            // Unconnected machines/generators mutually in range, nearest first, up to remaining capacity
+            var machineCandidates = EnumerateConnectableCandidates(ownInfo, ownProfile, true)
                 .Where(c => c.Connector.EnergyRole is IElectricConsumer or IElectricGenerator && c.Connector.WireConnections.Count == 0)
-                .Select(c => (c.Connector, Distance: Vector3Int.Distance(position, c.Position)))
-                .Where(c => IsGeometricallyConnectable(c.Distance, ownParam.MaxWireLength, c.Connector))
+                .Where(c => !c.Connector.IsWireConnectionFull)
                 .OrderBy(c => c.Distance).ThenBy(c => c.Connector.BlockInstanceId.AsPrimitive());
 
             foreach (var candidate in machineCandidates)
@@ -71,71 +70,41 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             return results;
         }
 
-        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement blockMaster, Vector3Int position, BlockDirection direction, float ownMaxWireLength)
+        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement blockMaster, BlockPositionInfo ownInfo)
         {
-            var datastore = ServerContext.WorldBlockDatastore;
-            var maxRange = ServerContext.GetService<MaxElectricPoleMachineConnectionRange>();
-            var machinePositionInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
+            // 自身の範囲プロファイルを解決する（非電気系は対象なし）
+            // Resolve own range profile (non-electric yields no targets)
+            if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out var ownProfile, out var ownIsPole))
+                return new List<(BlockInstanceId, IElectricWireConnector, float)>();
 
-            // 接続可能な最寄り電柱1本を対象にする
-            // Only the nearest connectable pole whose machine range covers this position
-            var nearestPole = ElectricConnectionRangeService
-                .EnumerateCandidatePolePositions(machinePositionInfo, maxRange.GetHorizontal(), maxRange.GetHeight())
-                .SelectMany(polePos => ResolvePoleAt(polePos))
-                .Where(c => ElectricConnectionRangeService.IsWithinMachineRange(machinePositionInfo, datastore.GetBlockPosition(c.Connector.BlockInstanceId), c.PoleParam))
-                .Select(c => (c.Connector, Distance: Vector3Int.Distance(position, datastore.GetBlockPosition(c.Connector.BlockInstanceId))))
-                .Where(c => IsGeometricallyConnectable(c.Distance, ownMaxWireLength, c.Connector))
+            // 相互範囲内で接続可能な最寄り電柱1本のみ
+            // Only the nearest mutually-in-range connectable pole
+            var nearestPole = EnumerateConnectableCandidates(ownInfo, ownProfile, ownIsPole)
+                .Where(c => c.Connector.EnergyRole is IElectricTransformer)
+                .Where(c => !c.Connector.IsWireConnectionFull)
                 .OrderBy(c => c.Distance).ThenBy(c => c.Connector.BlockInstanceId.AsPrimitive())
                 .FirstOrDefault();
 
             if (nearestPole.Connector == null) return new List<(BlockInstanceId, IElectricWireConnector, float)>();
 
             return new List<(BlockInstanceId, IElectricWireConnector, float)> { (nearestPole.Connector.BlockInstanceId, nearestPole.Connector, nearestPole.Distance) };
-
-            #region Internal
-
-            IEnumerable<(IElectricWireConnector Connector, ElectricPoleBlockParam PoleParam)> ResolvePoleAt(Vector3Int polePos)
-            {
-                if (!datastore.TryGetBlock<IElectricWireConnector>(polePos, out var connector) || connector.EnergyRole is not IElectricTransformer)
-                    yield break;
-
-                var poleParam = datastore.GetBlock(connector.BlockInstanceId).BlockMasterElement.BlockParam as ElectricPoleBlockParam;
-                if (poleParam == null) yield break;
-
-                yield return (connector, poleParam);
-            }
-
-            #endregion
         }
 
-        // 距離・両端の最大接続距離・接続数上限のみを純粋判定に委ねる。所持アイテムはダミー値で無視する
-        // Delegate distance/max-length/capacity checks to the pure evaluator; item availability is probed away
-        private static bool IsGeometricallyConnectable(float distance, float selfMaxWireLength, IElectricWireConnector target)
-        {
-            var probe = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, selfMaxWireLength, target.MaxWireLength,
-                false, target.IsWireConnectionFull,
-                System.Guid.Empty, System.Array.Empty<IItemStack>(), null);
-
-            return probe.FailureReason is not (
-                ElectricWirePlacementFailureReason.TooFar
-                or ElectricWirePlacementFailureReason.AlreadyConnected
-                or ElectricWirePlacementFailureReason.ConnectionLimit);
-        }
-
-        // 範囲内を走査し重複を除いた端点を収集する
-        // Scan grid positions in range and collect deduplicated wire endpoints
-        private static List<(Vector3Int Position, IElectricWireConnector Connector)> CollectConnectors(IEnumerable<Vector3Int> range)
+        // ワールド全ブロックから、自分と相互範囲内にあるワイヤー端点を距離付きで列挙する
+        // Enumerate wire endpoints mutually in range with self from all world blocks, with distances
+        private static IEnumerable<(IElectricWireConnector Connector, float Distance)> EnumerateConnectableCandidates(BlockPositionInfo ownInfo, ConnectionRangeProfile ownProfile, bool ownIsPole)
         {
             var datastore = ServerContext.WorldBlockDatastore;
-            var found = new Dictionary<BlockInstanceId, IElectricWireConnector>();
-            foreach (var pos in range)
+            foreach (var worldBlock in datastore.BlockMasterDictionary.Values)
             {
-                if (!datastore.TryGetBlock<IElectricWireConnector>(pos, out var connector)) continue;
-                found.TryAdd(connector.BlockInstanceId, connector);
-            }
+                if (!worldBlock.Block.TryGetComponent<IElectricWireConnector>(out var connector)) continue;
+                if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(worldBlock.Block.BlockMasterElement.BlockParam, out _, out var targetProfile, out var targetIsPole)) continue;
+                if (!ElectricConnectionRangeService.IsMutuallyConnectable(ownInfo, ownProfile, ownIsPole, worldBlock.BlockPositionInfo, targetProfile, targetIsPole)) continue;
 
-            return found.Values.Select(c => (datastore.GetBlockPosition(c.BlockInstanceId), c)).ToList();
+                // 距離は原点座標同士。順序付けとコスト計算にのみ使う
+                // Distance between origin cells; used only for ordering and cost
+                yield return (connector, Vector3Int.Distance(ownInfo.OriginalPos, worldBlock.BlockPositionInfo.OriginalPos));
+            }
         }
     }
 }

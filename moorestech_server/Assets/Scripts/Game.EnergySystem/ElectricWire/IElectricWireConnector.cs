@@ -11,7 +11,6 @@ namespace Game.EnergySystem
     public interface IElectricWireConnector : IBlockComponent
     {
         BlockInstanceId BlockInstanceId { get; }
-        float MaxWireLength { get; }
         bool IsWireConnectionFull { get; }
 
         // このブロックが持つ電力上の役割。必ず消費・発電・送電のいずれかに紐づく

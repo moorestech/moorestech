@@ -49,7 +49,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // 電気系でなければワイヤー表示は行わず、設置はそのまま許可する
             // Non-electric blocks show no wires and placement stays allowed
-            if (!ElectricWireBlockParamResolver.TryGetWireParam(blockMaster.BlockParam, out _, out _))
+            if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _))
             {
                 Hide();
                 return true;

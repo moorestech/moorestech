@@ -26,7 +26,7 @@ namespace Game.Block.Factory.BlockTemplate
             var transformer = new VanillaElectricPoleComponent(blockInstanceId);
             // 電柱はTransformer役のみをワイヤー端点に渡す
             // Pole passes only the transformer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, transformer, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, transformer, componentStates);
             var components = new List<IBlockComponent>
             {
                 transformer,

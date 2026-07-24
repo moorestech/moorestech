@@ -132,6 +132,30 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0, machine.GetComponent<IElectricWireConnector>().WireConnections.Count);
         }
 
+        [Test]
+        public void クリーンルーム機械も電柱の自動接続対象になる()
+        {
+            // 電柱の機械範囲(±2)内にクリーンルーム機械を置いてから電柱をプロトコル経由で設置する
+            // Place a clean room machine within the pole's machine range (+-2), then place the pole via the protocol
+            var (packet, serviceProvider) = CreateServer();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.CleanRoomMachineId, new Vector3Int(1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var cleanRoomMachine);
+
+            SetupWire(serviceProvider, 5);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
+            PlaceBlock(packet, ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0, 0));
+
+            // 旧resolverはCleanRoom未対応で自動接続されなかった。新resolverで接続されることを確認する
+            // The old resolver skipped CleanRoom blocks; verify the new resolver wires them up
+            var pole = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, 0));
+            var poleConnector = pole.GetComponent<IElectricWireConnector>();
+            var machineConnector = cleanRoomMachine.GetComponent<IElectricWireConnector>();
+
+            Assert.IsTrue(poleConnector.ContainsWireConnection(machineConnector.BlockInstanceId));
+            Assert.IsTrue(machineConnector.ContainsWireConnection(poleConnector.BlockInstanceId));
+        }
+
         #region TestUtil
 
         private static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()

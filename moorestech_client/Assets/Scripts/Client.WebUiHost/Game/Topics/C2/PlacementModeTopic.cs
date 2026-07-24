@@ -1,7 +1,6 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Electric;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -18,21 +17,18 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly PlaceSystemStateController _controller;
         private readonly PlaceBlockState _state;
-        private readonly DisplayEnergizedRange _range;
         private readonly CompositeDisposable _subscriptions = new();
 
-        public PlacementModeTopic(WebSocketHub hub, PlaceSystemStateController controller, PlaceBlockState state, DisplayEnergizedRange range)
+        public PlacementModeTopic(WebSocketHub hub, PlaceSystemStateController controller, PlaceBlockState state)
         {
             _hub = hub;
             _controller = controller;
             _state = state;
-            _range = range;
 
             // HUD入力の変化だけを購読して完全snapshotを再配信する
             // Republish the complete snapshot only when a HUD input changes
             controller.OnTargetChanged.Subscribe(_ => Publish()).AddTo(_subscriptions);
             state.OnPlacementHeightChanged.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
-            range.OnRangeVisibleChanged.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
         }
 
         public UniTask<string> GetSnapshotJsonAsync() => UniTask.FromResult(BuildJson());
@@ -48,7 +44,6 @@ namespace Client.WebUiHost.Game.Topics
                 SelectedName = selectedName,
                 Height = _state.GetPlacementHeight(),
                 UnavailableReason = "",
-                EnergizedRangeVisible = _range.IsRangeVisible(),
             });
 
             #region Internal
@@ -73,6 +68,5 @@ namespace Client.WebUiHost.Game.Topics
         public string SelectedName;
         public int Height;
         public string UnavailableReason;
-        public bool EnergizedRangeVisible;
     }
 }
