@@ -111,7 +111,8 @@ namespace Tests.CombinedTest.Core
             block.GetComponent<ElectricToGearGeneratorComponent>().SetSelectedMode(2);
 
             ChangeFilePath(saveServiceProvider.GetService<SaveJsonFilePath>(), "ElectricToGearSaveLoadTest.json");
-            saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
+            saveServiceProvider.GetRequiredService<IWorldSaveRequest>().RequestSave();
+            GameUpdater.UpdateOneTick();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             ChangeFilePath(loadServiceProvider.GetService<SaveJsonFilePath>(), "ElectricToGearSaveLoadTest.json");
