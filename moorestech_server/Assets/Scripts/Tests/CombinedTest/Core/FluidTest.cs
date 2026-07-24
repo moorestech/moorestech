@@ -370,9 +370,9 @@ namespace Tests.CombinedTest.Core
             const double amount = 10d;
             fluidPipe0.AddLiquid(new FluidStack(amount, FluidId), default);
 
-            // 静定まで進める（10秒 = 200 tick）
-            // Advance until settled (10 seconds = 200 ticks)
-            for (var i = 0; i < 200; i++)
+            // 静定まで進める（Damping=0.002では振幅が1/50になるまで約2000tick要する）
+            // Advance until settled (with Damping=0.002 the amplitude needs ~2000 ticks to shrink to 1/50)
+            for (var i = 0; i < 2500; i++)
             {
                 GameUpdater.RunFrames(1);
             }

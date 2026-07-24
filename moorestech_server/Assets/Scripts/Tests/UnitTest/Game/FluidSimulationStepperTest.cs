@@ -28,7 +28,9 @@ namespace Tests.UnitTest.Game
             var faces = new List<FluidSimFace> { face };
             var ports = new List<IFluidBoundaryPort>();
 
-            for (var i = 0; i < 200; i++)
+            // Damping=0.002では静定に約2000step要する
+            // With Damping=0.002 settling takes about 2000 steps
+            for (var i = 0; i < 2500; i++)
             {
                 FluidSimulationStepper.Step(nodes, faces, ports);
             }

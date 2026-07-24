@@ -13,11 +13,11 @@ namespace Game.Fluid.Simulation
         // リープフロッグの安定条件はおよそ1以下。大きいほど波が速く、小さいほど流れが緩やかになる
         // Pressure gain: coefficient of per-tick velocity gain from fill-rate difference times pressure scale (min neighbor capacity)
         // Leapfrog stability requires roughly <= 1; higher means faster waves, lower means gentler flow
-        public const double PressureGain = 0.02;
+        public const double PressureGain = 0.12;
 
         // 減衰（粘性）: 毎tick速度に掛かる摩擦。0にするとスロッシングが永久に減衰しなくなる
         // Damping (viscosity): per-tick friction on velocity; at zero, sloshing never settles
-        public const double Damping = 0.05;
+        public const double Damping = 0.002;
 
         // 量ゼロ判定のイプシロン
         // Epsilon for zero-amount checks
