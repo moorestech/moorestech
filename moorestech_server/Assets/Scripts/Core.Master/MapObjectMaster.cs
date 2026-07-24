@@ -1,28 +1,28 @@
 using System;
 using Core.Master.Validator;
-using Mooresmaster.Loader.MapObjectsModule;
-using Mooresmaster.Model.MapObjectsModule;
+using Mooresmaster.Loader.MapModule;
+using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json.Linq;
 
 namespace Core.Master
 {
     public class MapObjectMaster : IMasterValidator
     {
-        public readonly MapObjects MapObjects;
+        public readonly Map Map;
 
         public MapObjectMaster(JToken jToken)
         {
-            MapObjects = MapObjectsLoader.Load(jToken);
+            Map = MapLoader.Load(jToken);
         }
 
         public bool Validate(out string errorLogs)
         {
-            return MapObjectMasterUtil.Validate(MapObjects, out errorLogs);
+            return MapObjectMasterUtil.Validate(Map, out errorLogs);
         }
 
         public void Initialize()
         {
-            MapObjectMasterUtil.Initialize(MapObjects);
+            MapObjectMasterUtil.Initialize(Map);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Core.Master
         /// </summary>
         public MapObjectMasterElement GetMapObjectElementOrNull(Guid guid)
         {
-            return Array.Find(MapObjects.Data, x => x.MapObjectGuid == guid);
+            return Array.Find(Map.MapObjects, x => x.MapObjectGuid == guid);
         }
     }
 }

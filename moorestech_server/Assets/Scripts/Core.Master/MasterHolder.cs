@@ -13,6 +13,7 @@ namespace Core.Master
         public static CraftRecipeMaster CraftRecipeMaster { get; private set; }
         public static MachineRecipesMaster MachineRecipesMaster { get; private set; }
         public static MapObjectMaster MapObjectMaster { get; private set; }
+        public static MapVeinMaster MapVeinMaster { get; private set; }
         public static FluidMaster FluidMaster { get; private set; }
         public static CharacterMaster CharacterMaster { get; private set; }
         public static ResearchMaster ResearchMaster { get; private set; }
@@ -55,8 +56,13 @@ namespace Core.Master
             ConnectToolMaster = new ConnectToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(ConnectToolMaster);
 
-            MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("mapObjects")));
+            MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
             InitializeMaster(MapObjectMaster);
+
+            // ItemMaster, FluidMaster依存（veinParamのitemGuid/fluidGuidを検証）
+            // Depends on ItemMaster, FluidMaster (validates veinParam itemGuid/fluidGuid)
+            MapVeinMaster = new MapVeinMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
+            InitializeMaster(MapVeinMaster);
 
             TrainUnitMaster = new TrainUnitMaster(GetJson(masterJsonFileContainer, new JsonFileName("train")));
             InitializeMaster(TrainUnitMaster);

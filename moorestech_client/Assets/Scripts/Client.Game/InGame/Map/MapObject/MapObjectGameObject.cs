@@ -1,6 +1,6 @@
 ﻿using System;
 using Core.Master;
-using Mooresmaster.Model.MapObjectsModule;
+using Mooresmaster.Model.MapModule;
 using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;

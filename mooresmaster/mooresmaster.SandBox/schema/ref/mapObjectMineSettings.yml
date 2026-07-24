@@ -7,9 +7,9 @@ items:
     - key: mapObjectGuid
       type: uuid
       foreignKey:
-        schemaId: mapObjects
-        foreignKeyIdPath: /data/[*]/mapObjectGuid
-        displayElementPath: /data/[*]/mapObjectName
+        schemaId: map
+        foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
+        displayElementPath: /mapObjects/[*]/mapObjectName
     - key: miningTime
       type: number
       default: 1
