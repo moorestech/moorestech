@@ -1,10 +1,10 @@
-using Mooresmaster.Model.MapObjectsModule;
+using Mooresmaster.Model.MapModule;
 
 namespace Core.Master.Validator
 {
     public static class MapObjectMasterUtil
     {
-        public static bool Validate(MapObjects mapObjects, out string errorLogs)
+        public static bool Validate(Map map, out string errorLogs)
         {
             errorLogs = "";
             errorLogs += ItemGuidValidation();
@@ -15,7 +15,7 @@ namespace Core.Master.Validator
             string ItemGuidValidation()
             {
                 var logs = "";
-                foreach (var mapObjectElement in mapObjects.Data)
+                foreach (var mapObjectElement in map.MapObjects)
                 {
                     foreach (var earnItemsElement in mapObjectElement.EarnItems)
                     {
@@ -46,7 +46,7 @@ namespace Core.Master.Validator
             #endregion
         }
 
-        public static void Initialize(MapObjects mapObjects)
+        public static void Initialize(Map map)
         {
             // MapObjectMasterは追加の初期化処理がないため、空実装
             // MapObjectMaster has no additional initialization, so empty implementation

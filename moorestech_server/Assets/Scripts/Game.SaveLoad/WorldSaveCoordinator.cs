@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading;
+using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 
@@ -8,13 +9,13 @@ namespace Game.SaveLoad
     public sealed class WorldSaveCoordinator : IWorldSaveRequest
     {
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
-        private readonly SaveJsonFilePath _filePath;
+        private readonly WorldDataDirectory _worldDataDirectory;
         private long _requestedGeneration;
         private long _completedGeneration;
 
-        public WorldSaveCoordinator(SaveJsonFilePath filePath, AssembleSaveJsonText assembleSaveJsonText)
+        public WorldSaveCoordinator(WorldDataDirectory worldDataDirectory, AssembleSaveJsonText assembleSaveJsonText)
         {
-            _filePath = filePath;
+            _worldDataDirectory = worldDataDirectory;
             _assembleSaveJsonText = assembleSaveJsonText;
         }
 
@@ -41,7 +42,7 @@ namespace Game.SaveLoad
         {
             // 書き込み途中のクラッシュでセーブが破損しないようアトミックに書き込む
             // Write atomically so a mid-write crash cannot corrupt the save file
-            var targetPath = _filePath.Path;
+            var targetPath = _worldDataDirectory.SaveJsonFilePath;
             var tmpPath = targetPath + ".tmp";
             var backupPath = targetPath + ".bak";
 

@@ -19,8 +19,7 @@ public class MapExportAndSetting : EditorWindow
         {
             DefaultSpawnPointJson = GetSpawnPointJson(),
             MapObjects = SetUpMapObjectInfos(),
-            ItemMapVeins = GetItemMapVeinInfo(),
-            FluidVeins = GetFluidVeinInfo(),
+            MapVeins = GetMapVeinInfo(),
         };
         
         // jsonに変換
@@ -80,52 +79,33 @@ public class MapExportAndSetting : EditorWindow
             return result;
         }
         
-        List<ItemMapVeinInfoJson> GetItemMapVeinInfo()
+        List<MapVeinInfoJson> GetMapVeinInfo()
         {
-            var veins = FindObjectsOfType<ItemMapVeinGameObject>(true);
-            var result = new List<ItemMapVeinInfoJson>();
+            // item/fluid両authoringを1配列へ集約。veinGuidのみ書き出し、種別はマスタが持つ
+            // Merge item/fluid authoring into one array; write veinGuid only, type lives in master
+            var result = new List<MapVeinInfoJson>();
 
-            foreach (var vein in veins)
-            {
-                var config = new ItemMapVeinInfoJson
-                {
-                    VeinItemGuidStr = vein.VeinItemGuid.ToString(),
-                    MinX = vein.MinPosition.x,
-                    MinY = vein.MinPosition.y,
-                    MinZ = vein.MinPosition.z,
+            foreach (var vein in FindObjectsOfType<ItemMapVeinGameObject>(true))
+                result.Add(BuildVeinInfo(vein.VeinGuid.ToString(), vein.MinPosition, vein.MaxPosition));
 
-                    MaxX = vein.MaxPosition.x,
-                    MaxY = vein.MaxPosition.y,
-                    MaxZ = vein.MaxPosition.z,
-                };
-                result.Add(config);
-            }
+            foreach (var vein in FindObjectsOfType<FluidMapVeinGameObject>(true))
+                result.Add(BuildVeinInfo(vein.VeinGuid.ToString(), vein.MinPosition, vein.MaxPosition));
 
             return result;
         }
 
-        List<FluidVeinInfoJson> GetFluidVeinInfo()
+        MapVeinInfoJson BuildVeinInfo(string veinGuid, Vector3Int min, Vector3Int max)
         {
-            var veins = FindObjectsOfType<FluidMapVeinGameObject>(true);
-            var result = new List<FluidVeinInfoJson>();
-
-            foreach (var vein in veins)
+            return new MapVeinInfoJson
             {
-                var config = new FluidVeinInfoJson
-                {
-                    VeinFluidGuidStr = vein.VeinFluidGuid.ToString(),
-                    MinX = vein.MinPosition.x,
-                    MinY = vein.MinPosition.y,
-                    MinZ = vein.MinPosition.z,
-
-                    MaxX = vein.MaxPosition.x,
-                    MaxY = vein.MaxPosition.y,
-                    MaxZ = vein.MaxPosition.z,
-                };
-                result.Add(config);
-            }
-
-            return result;
+                VeinGuidStr = veinGuid,
+                MinX = min.x,
+                MinY = min.y,
+                MinZ = min.z,
+                MaxX = max.x,
+                MaxY = max.y,
+                MaxZ = max.z,
+            };
         }
 
         #endregion

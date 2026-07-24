@@ -5,7 +5,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
 using Game.Map.Interface.MapObject;
-using Mooresmaster.Model.MapObjectsModule;
+using Mooresmaster.Model.MapModule;
 using UnityEngine;
 using Random = System.Random;
 

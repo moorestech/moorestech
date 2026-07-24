@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using Game.Paths;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -433,14 +434,14 @@ namespace Tests.UnitTest.Server
         {
             var original = new StartServerSettings
             {
-                SaveFilePath = "/custom/save.json",
+                WorldDirectory = "/custom/world",
                 AutoSave = false
             };
-            
+
             var serialized = CliConvert.Serialize(original);
             var parsed = CliConvert.Parse<StartServerSettings>(serialized);
-            
-            Assert.AreEqual(original.SaveFilePath, parsed.SaveFilePath);
+
+            Assert.AreEqual(original.WorldDirectory, parsed.WorldDirectory);
             Assert.AreEqual(original.AutoSave, parsed.AutoSave);
         }
         
@@ -884,18 +885,41 @@ namespace Tests.UnitTest.Server
             var args = new string[0];
             var result = CliConvert.Parse<StartServerSettings>(args);
             
-            Assert.AreEqual(MoorestechServerDIContainerOptions.DefaultSaveJsonFilePath, result.SaveFilePath);
+            Assert.AreEqual(GameSystemPaths.GetSaveFilePath("world_1"), result.WorldDirectory);
+            Assert.AreEqual("template", result.MapMode);
+            // 未指定は null（0 は有効な seed 値なので既定値には使わない）
+            // Unspecified is null (0 is a valid seed, so it is not the default sentinel)
+            Assert.IsNull(result.Seed);
             Assert.AreEqual(true, result.AutoSave);
         }
-        
+
         [Test]
-        public void Parse_StartServerSettings_CustomSavePath()
+        public void Parse_StartServerSettings_ExplicitZeroSeedIsPreserved()
         {
-            var args = new[] { "--saveFilePath", "/custom/path/save.json" };
+            // --seed 0 を明示指定したら 0 のまま(黙ってランダム化しない・決定論)
+            // An explicit --seed 0 stays 0 (never silently randomized; determinism)
+            var result = CliConvert.Parse<StartServerSettings>(new[] { "--seed", "0" });
+            Assert.AreEqual(0, result.Seed);
+        }
+
+        [Test]
+        public void Parse_StartServerSettings_CustomWorldDirectory()
+        {
+            var args = new[] { "--worldDirectory", "/custom/path/world" };
             var result = CliConvert.Parse<StartServerSettings>(args);
-            
-            Assert.AreEqual("/custom/path/save.json", result.SaveFilePath);
+
+            Assert.AreEqual("/custom/path/world", result.WorldDirectory);
             Assert.AreEqual(true, result.AutoSave);
+        }
+
+        [Test]
+        public void Parse_StartServerSettings_MapModeAndSeed()
+        {
+            var args = new[] { "--mapMode", "generated", "--seed", "42" };
+            var result = CliConvert.Parse<StartServerSettings>(args);
+
+            Assert.AreEqual("generated", result.MapMode);
+            Assert.AreEqual(42, result.Seed);
         }
         
         [Test]
@@ -911,20 +935,20 @@ namespace Tests.UnitTest.Server
         [Test]
         public void Parse_StartServerSettings_ShortForms()
         {
-            var args = new[] { "-s", "/short/save.json", "-a", "true" };
+            var args = new[] { "-w", "/short/world", "-a", "true" };
             var result = CliConvert.Parse<StartServerSettings>(args);
-            
-            Assert.AreEqual("/short/save.json", result.SaveFilePath);
+
+            Assert.AreEqual("/short/world", result.WorldDirectory);
             Assert.AreEqual(true, result.AutoSave);
         }
         
         [Test]
         public void Parse_StartServerSettings_ComplexScenario()
         {
-            var args = new[] { "-a", "true", "--saveFilePath", "/complex/save.json" };
+            var args = new[] { "-a", "true", "--worldDirectory", "/complex/world" };
             var result = CliConvert.Parse<StartServerSettings>(args);
-            
-            Assert.AreEqual("/complex/save.json", result.SaveFilePath);
+
+            Assert.AreEqual("/complex/world", result.WorldDirectory);
             Assert.AreEqual(true, result.AutoSave);
         }
         

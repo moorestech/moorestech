@@ -22,6 +22,7 @@
         "Game.Entity",
         "Game.Map.Interface",
         "Game.Map",
+        "Game.MapGeneration",
         "Game.SaveLoad",
         "Mod.Base",
         "Core.Update",

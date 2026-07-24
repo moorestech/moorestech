@@ -70,11 +70,12 @@ namespace Server.Boot
         public readonly string ServerDataDirectory;
 
         public static readonly string DefaultSaveJsonFilePath = GameSystemPaths.GetSaveFilePath("save_1.json");
-        public SaveJsonFilePath saveJsonFilePath { get; set; } = new(DefaultSaveJsonFilePath);
+        public WorldDataDirectory worldDataDirectory { get; set; }
 
         public MoorestechServerDIContainerOptions(string serverDataDirectory)
         {
             ServerDataDirectory = serverDataDirectory;
+            worldDataDirectory = WorldDataDirectory.FromServerDataMap(serverDataDirectory, DefaultSaveJsonFilePath);
         }
     }
 
@@ -124,7 +125,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IRailGraphNodeRemovalListener>(provider => provider.GetService<TrainDiagramManager>());
             initializerCollection.AddSingleton<IRailGraphNodeRemovalListener>(provider => provider.GetService<TrainRailPositionManager>());
 
-            var mapPath = Path.Combine(options.ServerDataDirectory, "map", "map.json");
+            var mapPath = options.worldDataDirectory.MapJsonFilePath;
             initializerCollection.AddSingleton(JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(mapPath)));
             initializerCollection.AddSingleton<IItemMapVeinDatastore, ItemMapVeinDatastore>();
             initializerCollection.AddSingleton<IFluidMapVeinDatastore, FluidMapVeinDatastore>();
@@ -212,7 +213,7 @@ namespace Server.Boot
             // Register JSON save system services.
             services.AddSingleton(modResource);
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
-            services.AddSingleton(options.saveJsonFilePath);
+            services.AddSingleton(options.worldDataDirectory);
             // セーブ要求（オートセーブ・クライアント要求）はcoordinatorへ集約し、実行はtick末尾の安定点のみ
             // Save requests (auto-save and client requests) funnel into the coordinator; execution happens only at the tick-end stable point
             services.AddSingleton<WorldSaveCoordinator>();

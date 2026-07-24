@@ -9,8 +9,10 @@ namespace Client.Game.InGame.Map.MapVein
         public Vector3Int MinPosition => Service.MinPosition(bounds);
         public Vector3Int MaxPosition => Service.MaxPosition(bounds);
 
-        public Guid VeinItemGuid => Guid.Parse(veinItemGuid);
-        [SerializeField] private string veinItemGuid;
+        // mapVeinsマスタのveinGuidを参照。item/fluidの区別はマスタ側のveinTypeが持つ
+        // References a veinGuid in the mapVeins master; item/fluid distinction lives in the master's veinType
+        public Guid VeinGuid => Guid.Parse(veinGuid);
+        [SerializeField] private string veinGuid;
 
         public Bounds Bounds => bounds;
         [SerializeField] private Bounds bounds = new(Vector3.zero, Vector3.one);

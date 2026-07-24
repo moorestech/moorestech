@@ -200,10 +200,10 @@ namespace Client.Starter
         {
             if (!UnityEditor.SessionState.GetBool(SkipSaveLoadSessionKey, false)) return;
 
-            // 存在しないセーブファイルを指定してロードを回避し、オートセーブも無効化する
-            // Point to a non-existent save file to skip loading, and disable auto-save
+            // 存在しない一時ワールドディレクトリを指定してロードを回避し、オートセーブも無効化する
+            // Point to a non-existent temporary world directory to skip loading, and disable auto-save
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
-            settings.SaveFilePath = $"no_save_play_mode_{Guid.NewGuid()}.json";
+            settings.WorldDirectory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"no_save_play_mode_{Guid.NewGuid()}");
             settings.AutoSave = false;
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
         }

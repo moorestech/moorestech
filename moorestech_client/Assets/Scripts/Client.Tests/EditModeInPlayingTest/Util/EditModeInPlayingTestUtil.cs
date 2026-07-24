@@ -38,9 +38,11 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             AssetBundle.UnloadAllAssetBundles(true);
         }
         
-        public static async UniTask LoadMainGame(string serverDirectory = null, string saveFilePath = null)
+        public static async UniTask LoadMainGame(string serverDirectory = null, string worldDirectory = null)
         {
-            saveFilePath ??= $"dummy_play_mode_test_{Guid.NewGuid()}.json";
+            // テストごとに未使用の一時ワールドディレクトリを割り当てて隔離する
+            // Isolate each test with an unused temporary world directory
+            worldDirectory ??= Path.Combine(Path.GetTempPath(), $"moorestech_play_mode_test_{Guid.NewGuid()}");
             serverDirectory ??= EditModeInPlayingTestServerDirectoryPath;
             
             // 初期化シーンをロード
@@ -68,7 +70,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 var defaultProperties = InitializeProprieties.CreateDefault();
                 var properties = new StartServerSettings
                 {
-                    SaveFilePath = saveFilePath,
+                    WorldDirectory = worldDirectory,
                     AutoSave = false,
                     ServerDataDirectory = serverDirectory,
                 };

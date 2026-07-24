@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.Vein;
+using Mooresmaster.Model.MapModule;
 using UnityEngine;
 
 namespace Game.Map
@@ -12,14 +13,25 @@ namespace Game.Map
 
         public FluidMapVeinDatastore(MapInfoJson mapInfoJson)
         {
-            // configから液体鉱脈を生成。GUIDが解決できない場合はスキップ
-            // Generate fluid veins from config; skip entries whose GUID cannot be resolved
-            foreach (var veinJson in mapInfoJson.FluidVeins)
+            // mapVeins配列を走査し、マスタでfluid種別の鉱脈だけを対象fluidGuidを導出して生成する
+            // Iterate mapVeins; build veins only for fluid-type entries, deriving target fluidGuid from master
+            foreach (var veinJson in mapInfoJson.MapVeins)
             {
-                var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(veinJson.VeinFluidGuid);
+                var element = MasterHolder.MapVeinMaster.GetElementOrNull(veinJson.VeinGuid);
+                if (element == null)
+                {
+                    Debug.LogError($"veinGuid:{veinJson.VeinGuid}に対応するMapVeinマスタが存在しません。液体鉱脈の生成をスキップします。");
+                    continue;
+                }
+
+                // fluid鉱脈以外はこのDatastoreの対象外なので静かにスキップ
+                // Non-fluid veins belong to the item datastore; skip silently
+                if (element.VeinParam is not FluidVeinParam fluidVeinParam) continue;
+
+                var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(fluidVeinParam.FluidGuid);
                 if (fluidId == null)
                 {
-                    Debug.LogError($"GUID:{veinJson.VeinFluidGuid}に対応するFluidIdが存在しません。液体鉱脈の生成をスキップします。");
+                    Debug.LogError($"FluidGuid:{fluidVeinParam.FluidGuid}に対応するFluidIdが存在しません。液体鉱脈の生成をスキップします。");
                     continue;
                 }
 
