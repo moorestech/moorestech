@@ -1,6 +1,16 @@
 ---
 name: writing-plans
 description: マルチステップタスクのspecや要件が揃っていて、コードに着手する前に使う
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh track"
+  Stop:
+    - hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh stop"
 ---
 
 # Writing Plans

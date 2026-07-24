@@ -2,6 +2,10 @@
 
 brainstorming（spec）/ writing-plans（plan）の完了後・ユーザーレビュー依頼の**前**に必ず実施する。
 
+**フック関所**: 両スキルのfrontmatter hooksが `scripts/sim-gate.sh` を配線しており、spec/planを書いた
+セッションは `modes/improve/misses.md` への採点追記（＝手順5）が行われるまでターン終了がブロックされる。
+ユーザーが明示的にreviewのスキップを指示した場合も、その旨をmisses.mdに1行記録して通過する。
+
 ## メインセッションの手順
 
 1. 4カテゴリ文脈（ゴール/非目標/許容トレードオフ/制約。ユーザー発言由来と自分の判断を区別）を
