@@ -18,6 +18,8 @@ properties:
     - key: mapObjectName
       type: string
       default: mapObjectName
+    - key: addressablePath
+      type: string
     - key: hp
       type: integer
       default: 100
