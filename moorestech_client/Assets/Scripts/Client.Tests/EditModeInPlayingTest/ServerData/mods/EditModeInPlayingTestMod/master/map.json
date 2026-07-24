@@ -5,6 +5,7 @@
       "earnItemHpInterval": 1,
       "hp": 1,
       "mapObjectName": "Pebble",
+      "addressablePath": "Vanilla/Environment/Pebble",
       "earnItems": [
         {
           "maxCount": 1,
@@ -21,6 +22,7 @@
       "earnItemHpInterval": 10,
       "hp": 10,
       "mapObjectName": "Bush",
+      "addressablePath": "Vanilla/Environment/Bush",
       "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
@@ -58,6 +60,7 @@
       "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "Tree",
+      "addressablePath": "Vanilla/Environment/Tree",
       "earnItems": [
         {
           "maxCount": 3,
@@ -92,6 +95,7 @@
       "earnItemHpInterval": 10,
       "hp": 20,
       "mapObjectName": "Stone",
+      "addressablePath": "Vanilla/Environment/Stone",
       "miningType": "Mining",
       "soundEffectType": "stone",
       "miningParam": {
@@ -121,6 +125,7 @@
       "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "clay",
+      "addressablePath": "Vanilla/Environment/clay",
       "earnItems": [
         {
           "maxCount": 3,

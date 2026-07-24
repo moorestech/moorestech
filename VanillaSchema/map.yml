@@ -20,6 +20,7 @@ properties:
       default: mapObjectName
     - key: addressablePath
       type: string
+      default: Vanilla/Environment/
     - key: hp
       type: integer
       default: 100
