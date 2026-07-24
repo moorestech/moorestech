@@ -15,7 +15,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             float[,] heights, int hRes, bool[,] mask, float borderMarginPx,
             System.Random rng, Vector2[] noiseOffsets,
             List<PlacementEntry> placements, List<RockClusterInfo> clusterInfos,
-            SpatialGrid treeSpatialGrid, ObjectAlgorithmConfig objAlgCfg)
+            SpatialGrid treeSpatialGrid, ObjectAlgorithmConfig objAlgCfg, ref int nextClusterId)
         {
             float w = dims.TerrainWidth, l = dims.TerrainLength;
             float centerMinDist = Mathf.Sqrt(w * l / cluster.clusterCount * objAlgCfg.clusterSpacingFactor);
@@ -38,7 +38,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                 }
 
                 placed++;
-                int clusterId = ObjectPlacementMath.NextClusterId++;
+                int clusterId = nextClusterId++;
                 int memberCount = Mathf.Clamp(cluster.objectsPerCluster, 1, 5);
                 float radius = cluster.clusterRadius;
 

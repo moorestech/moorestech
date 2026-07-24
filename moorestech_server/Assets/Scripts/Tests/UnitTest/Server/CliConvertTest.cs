@@ -887,8 +887,19 @@ namespace Tests.UnitTest.Server
             
             Assert.AreEqual(GameSystemPaths.GetSaveFilePath("world_1"), result.WorldDirectory);
             Assert.AreEqual("template", result.MapMode);
-            Assert.AreEqual(0, result.Seed);
+            // 未指定は null（0 は有効な seed 値なので既定値には使わない）
+            // Unspecified is null (0 is a valid seed, so it is not the default sentinel)
+            Assert.IsNull(result.Seed);
             Assert.AreEqual(true, result.AutoSave);
+        }
+
+        [Test]
+        public void Parse_StartServerSettings_ExplicitZeroSeedIsPreserved()
+        {
+            // --seed 0 を明示指定したら 0 のまま(黙ってランダム化しない・決定論)
+            // An explicit --seed 0 stays 0 (never silently randomized; determinism)
+            var result = CliConvert.Parse<StartServerSettings>(new[] { "--seed", "0" });
+            Assert.AreEqual(0, result.Seed);
         }
 
         [Test]

@@ -17,10 +17,10 @@ namespace Server.Boot
         [Option(isFlag: false, "--mapMode")]
         public string MapMode { get; set; } = WorldProvisioner.TemplateMapMode;
 
-        // generatedモードのシード。0のままなら生成時に採番する
-        // Seed for generated mode; assigned at provisioning time when left at 0
+        // generatedモードのシード。未指定(null)なら生成時に採番する。0も有効なseed値として扱う
+        // Seed for generated mode; assigned at provisioning time only when unspecified (null). 0 is a valid seed
         [Option(isFlag: false, "--seed")]
-        public int Seed { get; set; } = 0;
+        public int? Seed { get; set; } = null;
 
         [Option(isFlag: false, "--autoSave", "-a")]
         public bool AutoSave { get; set; } = true;

@@ -121,7 +121,7 @@ namespace Server.Boot.Args
         private static object? ConvertSimple(string raw, Type target)
         {
             if (target == typeof(string)) return raw;
-            if (target == typeof(int)) return int.Parse(raw);
+            if (target == typeof(int) || target == typeof(int?)) return int.Parse(raw);
             if (target == typeof(bool)) return bool.Parse(raw);
             if (target.IsEnum) return Enum.Parse(target, raw, ignoreCase: true);
             // 必要に応じて型を追加

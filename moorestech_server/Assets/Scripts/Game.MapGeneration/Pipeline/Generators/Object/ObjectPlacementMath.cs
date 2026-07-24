@@ -2,16 +2,12 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
 {
-    // オブジェクト配置の共通計算（高さ・傾斜追従・傾斜フィルタ・法線・GUID 抽選）と
-    // クラスター ID 採番カウンタ。
-    // Shared object-placement math (height, slope alignment, slope filter, normal, GUID pick)
-    // and the cluster-id counter.
+    // オブジェクト配置の共通計算（高さ・傾斜追従・傾斜フィルタ・法線・GUID 抽選）。
+    // クラスター ID は生成コンテキストのローカル状態(ref)で採番する（ore 側と対称・並列安全）。
+    // Shared object-placement math (height, slope alignment, slope filter, normal, GUID pick).
+    // Cluster ids are numbered via generation-local state (ref), symmetric with the ore path.
     internal static class ObjectPlacementMath
     {
-        // 元実装同様プロセス内で単調増加（リセットしない）。ClusterId は配置座標に影響しない。
-        // Monotonic within the process like the original (never reset). ClusterId does not affect positions.
-        public static int NextClusterId;
-
         public static float SampleHeight(float[,] heights, float localX, float localZ,
             float w, float l, int hRes)
         {

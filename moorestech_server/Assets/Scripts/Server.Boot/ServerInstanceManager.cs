@@ -53,7 +53,9 @@ namespace Server.Boot
 
             // generatedモードでシード未指定なら実行ごとに採番する
             // Assign a fresh seed per run when generated mode leaves it unspecified
-            var seed = settings.MapMode == WorldProvisioner.GeneratedMapMode && settings.Seed == 0 ? Guid.NewGuid().GetHashCode() : settings.Seed;
+            // 未指定(null)のときだけ採番する。明示指定なら0も含めそのまま使う(決定論)
+            // Assign a seed only when unspecified (null); an explicit value (0 included) is used as-is (determinism)
+            var seed = settings.Seed ?? (settings.MapMode == WorldProvisioner.GeneratedMapMode ? Guid.NewGuid().GetHashCode() : 0);
 
             // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
             // Provision the world directory before DI container construction
