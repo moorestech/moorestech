@@ -1,4 +1,5 @@
 /additionalfile:Assets/../../VanillaSchema/map.yml
+/additionalfile:Assets/../../VanillaSchema/generation.yml
 /additionalfile:Assets/../../VanillaSchema/machineRecipes.yml
 /additionalfile:Assets/../../VanillaSchema/craftRecipes.yml
 /additionalfile:Assets/../../VanillaSchema/items.yml
@@ -21,3 +22,13 @@
 /additionalfile:Assets/../../VanillaSchema/ref/gameAction.yml
 /additionalfile:Assets/../../VanillaSchema/ref/graphViewSettings.yml
 /additionalfile:Assets/../../VanillaSchema/ref/gearConsumption.yml
+/additionalfile:Assets/../../VanillaSchema/ref/placementNoise.yml
+/additionalfile:Assets/../../VanillaSchema/ref/placementFilter.yml
+/additionalfile:Assets/../../VanillaSchema/ref/detailNoiseLayer.yml
+/additionalfile:Assets/../../VanillaSchema/ref/detailFilter.yml
+/additionalfile:Assets/../../VanillaSchema/ref/biomeShoreConfig.yml
+/additionalfile:Assets/../../VanillaSchema/ref/biomeBoundaryConfig.yml
+/additionalfile:Assets/../../VanillaSchema/ref/biomeTextureConfig.yml
+/additionalfile:Assets/../../VanillaSchema/ref/treePlacementConfig.yml
+/additionalfile:Assets/../../VanillaSchema/ref/biomeObjectConfig.yml
+/additionalfile:Assets/../../VanillaSchema/ref/biomeDetailConfig.yml
