@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Game.PlayerConnection;
 using Core.Update;
 using Game.Context;
+using Game.Paths;
 using Game.SaveLoad.Interface;
-using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Loader;
@@ -44,7 +44,9 @@ namespace Server.Boot
             var serverDirectory = settings.ServerDataDirectory;
             var options = new MoorestechServerDIContainerOptions(serverDirectory)
                 {
-                    saveJsonFilePath = new SaveJsonFilePath(settings.SaveFilePath),
+                    // 暫定: ワールドルート導線はTask 9でFromWorldRootへ切り替える
+                    // Temporary bridge: switches to FromWorldRoot in Task 9
+                    worldDataDirectory = WorldDataDirectory.FromServerDataMap(settings.ServerDataDirectory, settings.SaveFilePath),
                 };
             
             Debug.Log("データをロードします　パス:" + serverDirectory);

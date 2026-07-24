@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Reflection;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.ElectricToGear;
@@ -9,8 +8,8 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.Paths;
 using Game.SaveLoad.Interface;
-using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -105,20 +104,26 @@ namespace Tests.CombinedTest.Core
         [Test]
         public void SelectedIndexSurvivesSaveLoad()
         {
-            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var savePath = Path.Combine(Environment.CurrentDirectory, "../", "moorestech_server", "ElectricToGearSaveLoadTest.json");
+
+            var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
+            });
             var world = ServerContext.WorldBlockDatastore;
             world.TryAddBlock(ForUnitTestModBlockId.TestElectricToGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             block.GetComponent<ElectricToGearGeneratorComponent>().SetSelectedMode(2);
 
-            ChangeFilePath(saveServiceProvider.GetService<SaveJsonFilePath>(), "ElectricToGearSaveLoadTest.json");
             saveServiceProvider.GetService<IWorldSaveDataSaver>().Save();
 
-            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            ChangeFilePath(loadServiceProvider.GetService<SaveJsonFilePath>(), "ElectricToGearSaveLoadTest.json");
+            var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
+            });
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
             var reloaded = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
-            File.Delete(saveServiceProvider.GetService<SaveJsonFilePath>().Path);
+            File.Delete(savePath);
 
             Assert.AreEqual(2, reloaded.GetComponent<ElectricToGearGeneratorComponent>().SelectedIndex);
         }
@@ -177,14 +182,6 @@ namespace Tests.CombinedTest.Core
             var before = fired;
             block.GetComponent<ElectricToGearGeneratorComponent>().SetSelectedMode(2);
             Assert.Greater(fired, before, "SetSelectedMode で OnChangeBlockState が発火していない");
-        }
-
-        private void ChangeFilePath(SaveJsonFilePath instance, string fileName)
-        {
-            var fieldInfo = typeof(SaveJsonFilePath).GetField("<Path>k__BackingField",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var path = Path.Combine(Environment.CurrentDirectory, "../", "moorestech_server", fileName);
-            fieldInfo.SetValue(instance, path);
         }
     }
 }
