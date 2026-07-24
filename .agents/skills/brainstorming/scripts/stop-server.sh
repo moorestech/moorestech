@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
+# ブレインストームサーバーを停止しクリーンアップする
 # Stop the brainstorm server and clean up
 # Usage: stop-server.sh <session_dir>
 #
+# サーバープロセスを終了させる。/tmp配下（一時的）の場合のみセッション
+# ディレクトリを削除する。永続ディレクトリ（.superpowers/）は後でモック
+# アップをレビューできるよう残す。
 # Kills the server process. Only deletes session directory if it's
 # under /tmp (ephemeral). Persistent directories (.superpowers/) are
 # kept so mockups can be reviewed later.
@@ -60,6 +64,9 @@ command_has_server_id() {
   esac
 }
 
+# PIDが単に見覚えのあるプロセス名ではなく、このセッションの起動ごとの
+# インスタンスIDを持っていることを確認する。曖昧な、または旧式のメタデータは
+# フェイルクローズでstale_pidとして扱う。
 # Confirm a PID has this session's per-start instance id, not just a familiar
 # process name. Ambiguous or legacy metadata fails closed as stale_pid.
 is_brainstorm_server() {
@@ -73,6 +80,8 @@ is_brainstorm_server() {
 if [[ -f "$PID_FILE" ]]; then
   pid=$(cat "$PID_FILE")
 
+  # 自分のサーバーだと証明できないPIDへのシグナル送信は拒否する。再起動や
+  # PIDのラップアラウンド後、古いpidファイルは無関係なプロセスを指している場合がある。
   # Refuse to signal a PID we can't prove is our server. A stale pid file may
   # point at an unrelated process after a reboot/PID wraparound.
   if ! is_brainstorm_server "$pid"; then
@@ -82,9 +91,11 @@ if [[ -f "$PID_FILE" ]]; then
     exit 0
   fi
 
+  # まず正常終了を試み、まだ生きていれば強制終了にフォールバックする
   # Try to stop gracefully, fallback to force if still alive
   kill "$pid" 2>/dev/null || true
 
+  # 正常なシャットダウンを待つ（最大約2秒）
   # Wait for graceful shutdown (up to ~2s)
   for _ in {1..20}; do
     if ! kill -0 "$pid" 2>/dev/null; then
@@ -93,10 +104,12 @@ if [[ -f "$PID_FILE" ]]; then
     sleep 0.1
   done
 
+  # まだ実行中ならSIGKILLへエスカレーションする
   # If still running, escalate to SIGKILL
   if kill -0 "$pid" 2>/dev/null; then
     kill -9 "$pid" 2>/dev/null || true
 
+    # SIGKILLが効くまで少し待つ
     # Give SIGKILL a moment to take effect
     sleep 0.1
   fi
@@ -109,6 +122,7 @@ if [[ -f "$PID_FILE" ]]; then
   rm -f "$PID_FILE" "$SERVER_ID_FILE" "${STATE_DIR}/server.log"
   mark_stopped "stop-server.sh"
 
+  # 一時的な/tmpディレクトリのみ削除する
   # Only delete ephemeral /tmp directories
   if [[ "$SESSION_DIR" == /tmp/* ]]; then
     rm -rf "$SESSION_DIR"
