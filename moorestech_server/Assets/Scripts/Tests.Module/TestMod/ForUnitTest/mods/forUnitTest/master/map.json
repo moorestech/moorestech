@@ -1,5 +1,5 @@
 {
-  "data": [
+  "mapObjects": [
     {
       "earnItemHpInterval": 10,
       "hp": 30,
@@ -39,6 +39,24 @@
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
       "miningParam": {},
       "miningTools": []
+    }
+  ],
+  "mapVeins": [
+    {
+      "veinGuid": "11111111-0000-0000-0000-000000000001",
+      "veinName": "test:IronVein",
+      "veinType": "item",
+      "veinParam": {
+        "itemGuid": "00000000-0000-0000-1234-000000000001"
+      }
+    },
+    {
+      "veinGuid": "11111111-0000-0000-0000-000000000002",
+      "veinName": "test:WaterVein",
+      "veinType": "fluid",
+      "veinParam": {
+        "fluidGuid": "00000000-0000-0000-1234-000000000001"
+      }
     }
   ]
 }

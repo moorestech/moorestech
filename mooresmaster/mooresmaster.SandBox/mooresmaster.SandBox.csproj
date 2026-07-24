@@ -37,7 +37,7 @@
         <None Update="TestMod\machineRecipes.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="TestMod\mapObjects.json">
+        <None Update="TestMod\map.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>

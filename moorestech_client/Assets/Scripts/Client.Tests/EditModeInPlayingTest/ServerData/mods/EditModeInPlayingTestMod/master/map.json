@@ -1,5 +1,5 @@
 {
-  "data": [
+  "mapObjects": [
     {
       "maxStack": 100,
       "earnItemHpInterval": 1,
@@ -140,6 +140,16 @@
       },
       "mapObjectGuid": "e76e6b65-88db-4ee7-a806-8e65ba859556",
       "soundEffectType": "stone"
+    }
+  ],
+  "mapVeins": [
+    {
+      "veinGuid": "22222222-0000-0000-0000-000000000001",
+      "veinName": "test:ItemVein",
+      "veinType": "item",
+      "veinParam": {
+        "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
+      }
     }
   ]
 }
