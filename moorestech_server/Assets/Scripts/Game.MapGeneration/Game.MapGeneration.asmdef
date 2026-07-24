@@ -2,6 +2,7 @@
   "name": "Game.MapGeneration",
   "rootNamespace": "",
   "references": [
+    "Core.Master",
     "Game.Map.Interface",
     "Game.Paths",
     "Unity.Burst",
