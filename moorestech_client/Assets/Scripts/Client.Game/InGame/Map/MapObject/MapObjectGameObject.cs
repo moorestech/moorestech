@@ -107,18 +107,5 @@ namespace Client.Game.InGame.Map.MapObject
                 hpBarView.SetHp(CurrentHp, MapObjectMasterElement.Hp);
             }
         }
-        
-#if UNITY_EDITOR
-        public void SetMapObjectData(int instanceId)
-        {
-            UnityEditor.Undo.RecordObject(this, "SetMapObjectData");
-            
-            this.instanceId = instanceId;
-            
-            //Dirtyフラグを立てる
-            UnityEditor.EditorUtility.SetDirty(this);
-        }
-        
-#endif
     }
 }
