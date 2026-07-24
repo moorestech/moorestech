@@ -1,38 +1,54 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. ALSO fires on design consultations — 壁打ち / 仕様相談 / 「これどうしたらいい？」型の相談: if your reply would propose a design, approach, or fix strategy, invoke this FIRST instead of answering directly (applies mid-conversation too, not just fresh requests). Explores user intent, requirements and design before implementation."
+description: "創作的な作業（機能の作成、コンポーネントの構築、機能追加、挙動の変更）の前には必ずこのスキルを使用すること。設計相談でも発火する — 壁打ち / 仕様相談 / 「これどうしたらいい？」型の相談: 自分の返答が設計・アプローチ・修正方針を提案するものになるなら、直接答える前にまずこれを呼び出す（会話の途中でも同様に適用する）。実装前にユーザーの意図・要件・設計を掘り下げる。"
+hooks:
+  PreToolUse:
+    - matcher: "AskUserQuestion"
+      hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh preask"
+  PostToolUse:
+    - matcher: "Write|Edit"
+      hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh track"
+  Stop:
+    - hooks:
+        - type: command
+          command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh stop"
 ---
 
-# Brainstorming Ideas Into Designs
+# アイデアを設計へ変えるブレインストーミング
 
-Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
+自然な対話を通じて、アイデアを完成された設計とspecへ変えていく手助けをする。
 
-Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+まず現在のプロジェクトの状況を理解し、次にアイデアを磨き上げるための質問を一度に一つずつ行う。何を作るべきか理解できたら、設計を提示してユーザーの承認を得る。
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+設計を提示しユーザーの承認を得るまでは、いかなる実装スキルの呼び出し・コードの記述・プロジェクトの雛形作成・実装行為も行ってはならない。これは「シンプルに見える」プロジェクトであっても、あらゆるプロジェクトに適用される。
 </HARD-GATE>
 
-## Anti-Pattern: "This Is Too Simple To Need A Design"
+## アンチパターン: 「これは単純すぎて設計は不要」
 
-Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.
+あらゆるプロジェクトがこのプロセスを通る。TODOリスト、単一関数のユーティリティ、設定変更 — すべて例外はない。「単純」に見えるプロジェクトこそ、検証されていない前提が最も多くの手戻りを生む。設計は短くてよい（本当に単純なプロジェクトなら数文で足りる）が、必ず提示してユーザーの承認を得なければならない。
 
-## Checklist
+## チェックリスト
 
-You MUST create a task for each of these items and complete them in order:
+以下の各項目についてタスクを作成し、この順序で完了させなければならない：
 
-1. **Explore project context** — check files, docs, recent commits
-2. **Offer the visual companion just-in-time** — NOT upfront. The first time a question would genuinely be clearer shown than described, offer it then (its own message); on approval its browser tab opens for you. If no visual question ever arises, never offer it. See the Visual Companion section below.
-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **Generate review infographic** — invoke the create-infographic-light skill on the spec (and the plan, once written) and `open` it, so the user can review visually and attach comments
-9. **User reviews written spec** — ask user to review the spec file before proceeding
-10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+1. **プロジェクトの状況を調べる** — ファイル・ドキュメント・直近のコミットを確認する
+2. **ビジュアルコンパニオンをジャストインタイムで提案する** — 最初から提案しない。「見せた方が明らかに伝わりやすい質問」が実際に発生した最初のタイミングで、その時点で提案する（独立したメッセージとして）。承認されればブラウザタブが開かれる。ビジュアルな質問が一度も発生しなければ、一切提案しない。詳細は下記のビジュアルコンパニオンのセクションを参照。
+3. **明確化のための質問をする** — 一度に一つずつ、目的・制約・成功基準を理解する
+4. **2〜3のアプローチを提案する** — トレードオフと推奨案を添えて
+5. **設計を提示する** — 複雑度に応じたセクション単位で、各セクションごとにユーザーの承認を得る
+6. **設計ドキュメントを書く** — `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` に保存しコミットする
+7. **specのセルフレビュー** — プレースホルダー・矛盾・曖昧さ・スコープを手早くインラインで確認する（下記参照）
+8. **Simulator review + 判断記録（ADR）** — user-simulator スキル（reviewモード）を呼び出す: Fable判事の予測レポートでCriticalを修正し、C型裁定・B型前提宣言を `## 判断記録（ADR）` セクションとしてspec末尾に記録する。C型質問は毎回preanswerモードを通す（確信高は前提宣言に降格）
+9. **レビュー用インフォグラフィックを生成する** — create-infographic-light スキルをspec（および執筆後のplan）に対して呼び出し `open` する。ユーザーはこれを見て視覚的にレビューし、コメントを付けられる
+10. **ユーザーが書かれたspecをレビューする** — 先へ進む前にspecファイルをレビューしてもらう
+11. **実装への移行** — writing-plans スキルを呼び出し実装計画を作成する
 
-## Process Flow
+## プロセスフロー
 
 ```dot
 digraph brainstorming {
@@ -53,125 +69,134 @@ digraph brainstorming {
     "User approves design?" -> "Present design sections" [label="no, revise"];
     "User approves design?" -> "Write design doc" [label="yes"];
     "Write design doc" -> "Spec self-review\n(fix inline)";
+    "Lens review + ADR\n(user-simulator)" [shape=box];
     "Generate review infographic\n(create-infographic-light)" [shape=box];
-    "Spec self-review\n(fix inline)" -> "Generate review infographic\n(create-infographic-light)";
+    "Spec self-review\n(fix inline)" -> "Lens review + ADR\n(user-simulator)";
+    "Lens review + ADR\n(user-simulator)" -> "Generate review infographic\n(create-infographic-light)";
     "Generate review infographic\n(create-infographic-light)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+**終端状態は writing-plans の呼び出しである。** frontend-design、mcp-builder、その他の実装スキルは呼び出さない。ブレインストーミングの後に呼び出してよいスキルは writing-plans だけである。
 
-## The Process
+## プロセス
 
-**Understanding the idea:**
+**アイデアを理解する:**
 
-- Check out the current project state first (files, docs, recent commits)
-- Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
-- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
-- For appropriately-scoped projects, ask questions one at a time to refine the idea
-- Prefer multiple choice questions when possible, but open-ended is fine too
-- When the options are discrete (2-4 choices), use the AskUserQuestion tool — do NOT present numbered options as plain text (inconsistent across sessions and harder for the user to answer)
-- One AskUserQuestion call = ONE question. Never bundle multiple questions into the questions array — that is a "one question at a time" violation even though the tool allows it
-- Final litmus before sending any AskUserQuestion: if an option is marked (推奨/Recommended) and the recommendation rests on a principle or investigation fact (not user preference), the question is type-B — delete it and fold the recommendation into the premise declaration instead
-- Only one question per message - if a topic needs more exploration, break it into multiple questions
-- Focus on understanding: purpose, constraints, success criteria
+- まず現在のプロジェクトの状況（ファイル・ドキュメント・直近のコミット）を確認する
+- 詳細な質問をする前にスコープを見極める: もし依頼が複数の独立したサブシステムを述べている場合（例：「チャット・ファイルストレージ・課金・分析を備えたプラットフォームを作りたい」）、直ちにそれを指摘する。分解が必要なプロジェクトの細部を質問で詰めることに時間を使わない。
+- プロジェクトが一つのspecには大きすぎる場合、ユーザーがサブプロジェクトへ分解するのを手伝う: 独立した部分は何か、どう関連するか、どの順序で作るべきか？その上で最初のサブプロジェクトを通常の設計フローでブレインストーミングする。各サブプロジェクトはそれぞれ独自のspec→plan→実装サイクルを持つ
+- 適切な粒度のプロジェクトについては、アイデアを磨くための質問を一度に一つずつ行う
+- 可能であれば多肢選択式の質問を優先するが、自由記述でもよい
+- 選択肢が離散的（2〜4択）な場合は AskUserQuestion ツールを使う — 番号付き選択肢をプレーンテキストで提示しない（セッションをまたぐと一貫性がなく、ユーザーにとっても回答しづらい）
+- AskUserQuestion 1回の呼び出し = 質問1つ。questions 配列に複数の質問を詰め込んではならない — ツールが許容していても、それは「一度に一つずつ」の違反である
+- AskUserQuestion を送る前の最終リトマス試験: ある選択肢に（推奨）と印がついていて、その推奨がユーザーの好みではなく原則や調査事実に基づくものであれば、その質問はB型である — 質問を削除し、推奨内容を前提宣言に畳み込む
+- Litmus通過後のC型質問は、送信前に user-simulator の **preanswerモード**を通す（`user-simulator/modes/preanswer/protocol.md`）: 確信高の予測は質問せず前提宣言（拒否権つき）へ降格、確信中は予測注記付きで質問、採点は misses.md へ自動記録
+- 1メッセージにつき質問は一つだけ - あるトピックにさらなる掘り下げが必要なら、複数の質問に分割する
+- 理解に集中する対象: 目的、制約、成功基準
 
-**Exploring approaches:**
+**アプローチを検討する:**
 
-- Propose 2-3 different approaches with trade-offs
-- Present options conversationally with your recommendation and reasoning
-- Lead with your recommended option and explain why
+- トレードオフを添えて2〜3の異なるアプローチを提案する
+- 選択肢は対話調で、推奨とその理由とともに提示する
+- 推奨案を先頭に置き、理由を説明する
 
-**Self-refutation before presenting (required):**
+**提示前のセルフ反証（必須）:**
 
-- Before presenting any design, attack it yourself: construct at least one concrete input that must NOT work (rotation/orientation, multi-cell, boundary, scale, concurrent state) and verify the design rejects it. If the design cannot express the rejection, that is the signal to add an extension point — do not ship the design without resolving it.
-- Include the strongest counterexample and how the design handles it in the presentation. Finding your design's fatal case before the user does is the single highest-trust move in a design dialogue.
-- When a premise asserts game/physics behavior (e.g. "perpendicular gears never mesh"), check whether a real-world exception exists (e.g. bevel gears) — if the design would collapse when the assertion is wrong, confirm it with the user as a type-C question.
+- 設計を提示する前に、自分自身でそれを攻撃する: 「動いてはならない」具体的な入力を少なくとも一つ構築し（回転・向き、複数セル、境界、スケール、並行状態など）、設計がそれを正しく拒否することを確認する。設計がその拒否を表現できないなら、それは拡張ポイントを追加すべきという合図である — 解決しないまま設計を出荷しない
+- 提示の中に、最も強力な反例とそれに対する設計の対処方法を含める。ユーザーより先に自分の設計の致命的なケースを見つけることは、設計対話における最も信頼を得られる一手である
+- 前提がゲーム/物理挙動を主張している場合（例:「垂直な歯車は絶対に噛み合わない」）、現実の例外が存在しないか確認する（例：かさ歯車）。その主張が誤っていた場合に設計が破綻するなら、C型の質問としてユーザーに確認する
 
-**Presenting the design:**
+**設計を提示する:**
 
-- Once you believe you understand what you're building, present the design
-- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far (small designs that fit in one message may be presented and approved as a whole)
-- Cover: architecture, components, data flow, error handling, testing
-- Be ready to go back and clarify if something doesn't make sense
+- 何を作るべきか理解できたと確信したら、設計を提示する
+- 各セクションは複雑さに応じたスケールにする: 単純なら数文、込み入っているなら200〜300語まで
+- 各セクションの後、ここまで問題ないか確認する（1メッセージに収まる小さな設計は、一括で提示・承認してもよい）
+- カバーすべき範囲: アーキテクチャ、コンポーネント、データフロー、エラーハンドリング、テスト
+- 何かつじつまが合わなければ、いつでも戻って確認する準備をしておく
 
-**Design for isolation and clarity:**
+**分離と明確さのための設計:**
 
-- Break the system into smaller units that each have one clear purpose, communicate through well-defined interfaces, and can be understood and tested independently
-- For each unit, you should be able to answer: what does it do, how do you use it, and what does it depend on?
-- Can someone understand what a unit does without reading its internals? Can you change the internals without breaking consumers? If not, the boundaries need work.
-- Smaller, well-bounded units are also easier for you to work with - you reason better about code you can hold in context at once, and your edits are more reliable when files are focused. When a file grows large, that's often a signal that it's doing too much.
+- システムを、それぞれが一つの明確な目的を持ち、明確に定義されたインターフェースを通じて通信し、独立して理解・テストできる小さな単位に分割する
+- 各単位について「何をするか」「どう使うか」「何に依存するか」に答えられるようにする
+- 内部を読まなくても、ある単位が何をするか理解できるか？内部を変更しても呼び出し側を壊さずに済むか？できないなら、境界の見直しが必要である
+- 小さく、境界の明確な単位は自分にとっても扱いやすい - 一度にコンテキストへ収まるコードの方が推論しやすく、ファイルが焦点を絞られているほど編集の信頼性も高まる。ファイルが肥大化してきたら、それは責務を持ちすぎているサインであることが多い
 
-**Working in existing codebases:**
+**既存コードベースでの作業:**
 
-- Explore the current structure before proposing changes. Follow existing patterns.
-- Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
-- Don't propose unrelated refactoring. Stay focused on what serves the current goal.
+- 変更を提案する前に現在の構造を調べる。既存のパターンに従う
+- 既存コードに作業へ影響する問題がある場合（肥大化しすぎたファイル、不明瞭な境界、絡み合った責務など）、良い開発者が作業対象のコードを改善するのと同じように、対象を絞った改善を設計に含める
+- 無関係なリファクタリングは提案しない。現在の目的に資することに集中する
 
-## After the Design
+## 設計の後
 
-**Documentation:**
+**ドキュメント化:**
 
-- Write the validated design (spec) to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
-  - (User preferences for spec location override this default)
-- Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
+- 承認済みの設計（spec）を `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` に書き込む
+  - （spec配置場所についてユーザーの希望があればそちらを優先する）
+- 利用可能であれば elements-of-style:writing-clearly-and-concisely スキルを使う
+- 設計ドキュメントをgitにコミットする
 
-**Spec Self-Review:**
-After writing the spec document, look at it with fresh eyes:
+**Specセルフレビュー:**
+spec文書を書いた後、新鮮な目で見直す：
 
-1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
-2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
-3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
-4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
-5. **Evidence scope check:** Every "verified/tested/実装済み" claim must not exceed what was actually checked — write "X is tested" only if a test exercises X itself; if it's a sibling going through the same path, say that instead (e.g. "same code path is tested with a machine block, chest itself untested").
+1. **プレースホルダー走査:** 「TBD」「TODO」、未完成セクション、曖昧な要件はないか？あれば修正する
+2. **内部整合性:** セクション間で矛盾していないか？アーキテクチャは機能の説明と一致しているか？
+3. **スコープチェック:** これは一つの実装計画にちょうど収まる粒度か、それとも分解が必要か？
+4. **曖昧さチェック:** どれかの要件が二通りに解釈できないか？できるなら、一つを選び明示する
+5. **証拠範囲チェック:** 「verified/tested/実装済み」というあらゆる主張は、実際に確認した範囲を超えてはならない — 「Xはテスト済み」と書けるのは、テストがX自体を通す場合のみ。同じ経路を通る兄弟要素の話であれば、そう明記する（例：「同じコード経路が機械ブロックでテスト済み、チェスト自体は未テスト」）
 
-Fix any issues inline. No need to re-review — just fix and move on.
+問題はすべてインラインで修正する。再レビューは不要 — 修正したら次に進む。
 
-**Review Infographic (required):**
-After the spec review loop passes, invoke the create-infographic-light skill (in this repo: `.claude/skills/create-infographic-light`) with the spec as the source document, and `open` the generated HTML. The user reviews the spec through the infographic and can attach comments via its comment feature ("すべてコピー" Markdown gets pasted back for you to apply). Do the same for the implementation plan after writing-plans completes.
+**Simulator Review + 判断記録（ADR）（必須）:**
+Self-Review（内容）と spec-architecture-review（構造）の後、インフォグラフィック生成の**前**に user-simulator スキルを実行する（reviewモード）:
 
-**User Review Gate:**
-After the spec review loop passes, ask the user to review the written spec before proceeding:
+- `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。specのADRをcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外しは即ハンドオフ発行。
+- spec末尾に `## 判断記録（ADR）` セクションを置き、対話中のC型ユーザー裁定（AskUserQuestion結果は全件）・B型前提宣言（適用原則名付き）・機構比較の結論を記録する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。判断をdiffやコミットメッセージに埋没させない。
 
-> "Spec written and committed to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
+**レビュー用インフォグラフィック（必須）:**
+specレビューのループが通ったら、create-infographic-light スキル（本リポジトリでは `.claude/skills/create-infographic-light`）をspecをソース文書として呼び出し、生成されたHTMLを `open` する。ユーザーはインフォグラフィックを通じてspecをレビューし、コメント機能でコメントを付けられる（「すべてコピー」で得られるMarkdownを貼り戻せば適用できる）。writing-plans完了後の実装計画についても同様に行う。
 
-Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+**ユーザーレビューゲート:**
+specレビューのループが通ったら、先へ進む前に書かれたspecをレビューしてもらう：
 
-**Implementation:**
+> 「specを `<path>` に書いてコミットしました。実装計画を書き始める前に、内容を確認して変更したい点があれば教えてください。」
 
-- Invoke the writing-plans skill to create a detailed implementation plan
-- Do NOT invoke any other skill. writing-plans is the next step.
+ユーザーの返答を待つ。変更を要求されたら反映し、specレビューのループを再実行する。ユーザーが承認して初めて先へ進む。
 
-## Key Principles
+**実装:**
 
-- **One question at a time** - Don't overwhelm with multiple questions
-- **Multiple choice preferred** - Easier to answer than open-ended when possible
-- **YAGNI ruthlessly** - Remove unnecessary features from all designs
-- **Explore alternatives** - Always propose 2-3 approaches before settling
-- **Incremental validation** - Present design, get approval before moving on
-- **Be flexible** - Go back and clarify when something doesn't make sense
+- writing-plans スキルを呼び出し、詳細な実装計画を作成する
+- 他のスキルは呼び出さない。次のステップは writing-plans である。
 
-## Visual Companion
+## 主要な原則
 
-A browser-based companion for showing mockups, diagrams, and visual options during brainstorming. Available as a tool — not a mode. Accepting the companion means it's available for questions that benefit from visual treatment; it does NOT mean every question goes through the browser.
+- **一度に一つの質問** - 複数の質問で圧倒しない
+- **多肢選択を優先** - 可能なら自由記述より答えやすい
+- **YAGNIを徹底する** - すべての設計から不要な機能を取り除く
+- **代替案を検討する** - 決定する前に必ず2〜3のアプローチを提案する
+- **段階的な検証** - 設計を提示し、先へ進む前に承認を得る
+- **柔軟であること** - つじつまが合わなければ戻って確認する
 
-**Offering the companion (just-in-time):** Do NOT offer it upfront. Wait until a question would genuinely be clearer shown than told — a real mockup / layout / diagram question, not merely a UI *topic*. The first time that happens, offer it then, as its own message:
-> "This next part might be easier if I show you — I can put together mockups, diagrams, and comparisons in a browser tab as we go. It's still new and can be token-intensive. Want me to? I'll open it for you."
+## ビジュアルコンパニオン
 
-**This offer MUST be its own message.** Only the offer — no clarifying question, summary, or other content. Wait for the user's response. If they accept, start the server with `--open` so their browser opens to the first screen automatically. If they decline, continue text-only and don't offer again unless they raise it.
+ブレインストーミング中にモックアップ・図・視覚的な選択肢を見せるための、ブラウザベースのコンパニオン。モードではなくツールとして利用可能。コンパニオンを受け入れるということは、視覚的な扱いが有益な質問でそれが使えるようになるという意味であり、すべての質問がブラウザ経由になるという意味ではない。
 
-**Per-question decision:** Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: **would the user understand this better by seeing it than reading it?**
+**コンパニオンの提案（ジャストインタイム）:** 最初から提案しない。実際にモックアップ／レイアウト／図の質問が発生し、見せた方が明らかに伝わりやすいと分かるまで待つ（単なるUIの*話題*だけでは足りない）。それが最初に発生したタイミングで、独立したメッセージとして提案する：
+> 「この先の部分は、実際にお見せした方が分かりやすいかもしれません — ブラウザタブでモックアップ・図・比較案をまとめてお見せできます。まだ新しい機能でトークン消費が大きめですが、使いますか？私の方で開いておきます。」
 
-- **Use the browser** for content that IS visual — mockups, wireframes, layout comparisons, architecture diagrams, side-by-side visual designs
-- **Use the terminal** for content that is text — requirements questions, conceptual choices, tradeoff lists, A/B/C/D text options, scope decisions
+**この提案は必ず独立したメッセージでなければならない。** 提案のみを含み、確認の質問や要約など他の内容を含めない。ユーザーの返答を待つ。承認されたら `--open` 付きでサーバーを起動し、最初の画面が自動的にブラウザで開くようにする。断られたらテキストのみで続行し、ユーザーから改めて言及されない限り再提案しない。
 
-A question about a UI topic is not automatically a visual question. "What does personality mean in this context?" is a conceptual question — use the terminal. "Which wizard layout works better?" is a visual question — use the browser.
+**質問ごとの判断:** ユーザーが承認した後も、質問ごとにブラウザを使うかターミナルを使うか判断する。判断基準：**見せた方が読むよりも理解しやすいか？**
 
-If they agree to the companion, read the detailed guide before proceeding:
+- **ブラウザを使う** — 内容自体が視覚的なもの（モックアップ、ワイヤーフレーム、レイアウト比較、アーキテクチャ図、視覚デザインの並列比較）
+- **ターミナルを使う** — 内容がテキストであるもの（要件の質問、概念的な選択、トレードオフの一覧、A/B/C/Dのテキスト選択肢、スコープの決定）
+
+UIに関する話題の質問が、自動的に視覚的な質問になるわけではない。「このコンテキストにおける『パーソナリティ』とは何を意味するか？」は概念的な質問 — ターミナルを使う。「どちらのウィザードのレイアウトの方が良いか？」は視覚的な質問 — ブラウザを使う。
+
+コンパニオンに同意が得られたら、先へ進む前に詳細ガイドを読む：
 `skills/brainstorming/visual-companion.md`
 
 # 追加SKILL:design-question-triage
