@@ -10,9 +10,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
     /// 自動接続の候補選定アルゴリズム本体。サーバー/クライアント双方から使う純粋ロジック
-    /// The auto-connect selection algorithm itself; pure logic shared by server and client
     /// 選定ルール: 最寄り電柱1本→未接続機械を残容量まで。順序は距離昇順→InstanceId昇順
+    /// candidatesには自ブロック自身を含めてはならない（含めると距離0で必ず最優先に選ばれる）
+    /// The auto-connect selection algorithm itself; pure logic shared by server and client
     /// Rule: nearest pole first, then unconnected machines up to remaining capacity, ordered by distance then id
+    /// candidates must never include the caller's own block (it would win priority at distance 0)
     /// </summary>
     public static class ElectricWireAutoConnectSelector
     {
@@ -28,16 +30,15 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             // The single nearest mutually-in-range connectable pole
             var nearestPole = EnumerateConnectable(ownInfo, ownProfile, true, candidates)
                 .Where(c => c.IsPole)
-                .OrderBy(c => c.Distance).ThenBy(c => c.InstanceId.AsPrimitive())
                 .Take(1).ToList();
 
-            if (nearestPole.Count == 1 && usedCount < ownParam.MaxWireConnectionCount)
+            if (nearestPole.Count == 1 && ownParam.MaxWireConnectionCount > usedCount)
             {
                 results.Add((nearestPole[0].InstanceId, nearestPole[0].Distance));
                 usedCount++;
             }
 
-            results.AddRange(SelectPoleMachineTargets(ownParam, ownInfo, usedCount, candidates));
+            results.AddRange(SelectPoleMachineTargetsCore(ownParam, ownInfo, usedCount, candidates, ownProfile));
             return results;
         }
 
@@ -45,14 +46,36 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
         // Also used by rail-style extend; collects machines only, within the capacity left after usedCount
         public static List<(BlockInstanceId TargetId, float Distance)> SelectPoleMachineTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount, IReadOnlyList<ElectricWireConnectCandidate> candidates)
         {
+            return SelectPoleMachineTargetsCore(ownParam, ownInfo, usedCount, candidates, ConnectionRangeProfile.CreatePole(ownParam));
+        }
+
+        // 機械設置: 相互範囲内の最寄り電柱1本のみ
+        // Machine placement: only the nearest mutually-in-range pole
+        public static List<(BlockInstanceId TargetId, float Distance)> SelectMachineTargets(IBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)
+        {
+            // 自分は設置直後で接続数0固定。電柱側の残容量判定と表現を揃える
+            // Self is freshly placed with zero existing connections; mirrors the pole-side remaining-capacity check
+            var ownUsedCount = 0;
+            if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(ownParam, out var ownCapacity, out var ownProfile, out var ownIsPole) || ownCapacity <= ownUsedCount)
+                return new List<(BlockInstanceId, float)>();
+
+            return EnumerateConnectable(ownInfo, ownProfile, ownIsPole, candidates)
+                .Where(c => c.IsPole)
+                .Take(1)
+                .Select(c => (c.InstanceId, c.Distance))
+                .ToList();
+        }
+
+        // 使用済み本数を差し引いた残容量で、組み立て済みのプロファイルを使い回して機械のみを収集する
+        // Collects machines only, within remaining capacity, reusing an already-built profile
+        private static List<(BlockInstanceId, float)> SelectPoleMachineTargetsCore(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount, IReadOnlyList<ElectricWireConnectCandidate> candidates, ConnectionRangeProfile ownProfile)
+        {
             var results = new List<(BlockInstanceId, float)>();
-            var ownProfile = ConnectionRangeProfile.CreatePole(ownParam);
 
             // 相互範囲内の未接続機械を近い順に残容量まで
             // Unconnected machines mutually in range, nearest first, up to remaining capacity
             var machines = EnumerateConnectable(ownInfo, ownProfile, true, candidates)
-                .Where(c => !c.IsPole && c.ConnectionCount == 0)
-                .OrderBy(c => c.Distance).ThenBy(c => c.InstanceId.AsPrimitive());
+                .Where(c => !c.IsPole && c.ConnectionCount == 0);
 
             foreach (var machine in machines)
             {
@@ -64,27 +87,12 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             return results;
         }
 
-        // 機械設置: 相互範囲内の最寄り電柱1本のみ
-        // Machine placement: only the nearest mutually-in-range pole
-        public static List<(BlockInstanceId TargetId, float Distance)> SelectMachineTargets(IBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)
+        // 候補列から、相互範囲内で容量未満のワイヤー端点を、距離→InstanceId順の全順序で列挙する
+        // Enumerate endpoints mutually in range and below capacity, in full order by distance then id
+        private static IReadOnlyList<(BlockInstanceId InstanceId, bool IsPole, int ConnectionCount, float Distance)> EnumerateConnectable(BlockPositionInfo ownInfo, ConnectionRangeProfile ownProfile, bool ownIsPole, IReadOnlyList<ElectricWireConnectCandidate> candidates)
         {
-            // 自分が電気系でない・容量0なら対象なし
-            // Non-electric or zero-capacity self yields no targets
-            if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(ownParam, out var ownCapacity, out var ownProfile, out var ownIsPole) || ownCapacity <= 0)
-                return new List<(BlockInstanceId, float)>();
+            var results = new List<(BlockInstanceId InstanceId, bool IsPole, int ConnectionCount, float Distance)>();
 
-            return EnumerateConnectable(ownInfo, ownProfile, ownIsPole, candidates)
-                .Where(c => c.IsPole)
-                .OrderBy(c => c.Distance).ThenBy(c => c.InstanceId.AsPrimitive())
-                .Take(1)
-                .Select(c => (c.InstanceId, c.Distance))
-                .ToList();
-        }
-
-        // 候補列から、相互範囲内で容量未満のワイヤー端点を距離付きで列挙する
-        // Enumerate endpoints mutually in range and below capacity, with distances
-        private static IEnumerable<(BlockInstanceId InstanceId, bool IsPole, int ConnectionCount, float Distance)> EnumerateConnectable(BlockPositionInfo ownInfo, ConnectionRangeProfile ownProfile, bool ownIsPole, IReadOnlyList<ElectricWireConnectCandidate> candidates)
-        {
             foreach (var candidate in candidates)
             {
                 if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(candidate.BlockParam, out var capacity, out var profile, out var isPole)) continue;
@@ -93,8 +101,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 
                 // 距離は原点座標同士。順序付けとコスト計算にのみ使う
                 // Distance between origin cells; used only for ordering and cost
-                yield return (candidate.InstanceId, isPole, candidate.CurrentConnectionCount, Vector3Int.Distance(ownInfo.OriginalPos, candidate.PositionInfo.OriginalPos));
+                results.Add((candidate.InstanceId, isPole, candidate.CurrentConnectionCount, Vector3Int.Distance(ownInfo.OriginalPos, candidate.PositionInfo.OriginalPos)));
             }
+
+            return results.OrderBy(c => c.Distance).ThenBy(c => c.InstanceId.AsPrimitive()).ToList();
         }
     }
 }

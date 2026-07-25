@@ -12,8 +12,10 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 namespace Tests.UnitTest.Server
 {
     /// <summary>
-    /// 自動接続候補選定コアの純粋単体テスト。ワールド状態には依存しない
-    /// Pure unit tests for the auto-connect selection core; no world state involved
+    /// 自動接続候補選定コアの純粋単体テスト。選定ロジック自体はワールド状態を参照しない
+    /// SetUpのDIコンテナ構築はマスタ実値（電柱/機械パラメータ）を取得するためだけに行う
+    /// Pure unit tests for the auto-connect selection core; the selection logic itself never touches world state
+    /// SetUp only builds the DI container to fetch real master values (pole/machine params)
     /// </summary>
     public class ElectricWireAutoConnectSelectorTest
     {
@@ -93,6 +95,33 @@ namespace Tests.UnitTest.Server
             var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(0, result.Count);
+        }
+
+        [Test]
+        public void 残容量1の電柱は選ばれる()
+        {
+            // 電柱上限8のうち7本使用済みでも残り1本なら接続可能
+            // A pole with 7 of 8 connections used still has one slot left and is selectable
+            var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 7) };
+
+            var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
+
+            Assert.AreEqual(1, result.Count);
+            Assert.AreEqual(new BlockInstanceId(10), result[0].TargetId);
+        }
+
+        [Test]
+        public void 同距離の機械はInstanceId昇順で選ばれる()
+        {
+            // X=+2とX=-2は同距離2。列挙順は21が先だがID順は20が先
+            // X=+2 and X=-2 tie at distance 2; machine 21 is enumerated first but id-order puts 20 first
+            var candidates = new List<ElectricWireConnectCandidate> { Machine(21, 2, 0), Machine(20, -2, 0) };
+
+            var result = ElectricWireAutoConnectSelector.SelectPoleMachineTargets(_poleParam, Cell(0, 0, 0), 0, candidates);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.AreEqual(new BlockInstanceId(20), result[0].TargetId);
+            Assert.AreEqual(new BlockInstanceId(21), result[1].TargetId);
         }
 
         [Test]
