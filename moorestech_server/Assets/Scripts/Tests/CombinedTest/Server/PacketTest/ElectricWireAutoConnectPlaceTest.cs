@@ -156,6 +156,44 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(machineConnector.ContainsWireConnection(poleConnector.BlockInstanceId));
         }
 
+        [Test]
+        public void 既に電柱と接続済みの機械は別の電柱設置で再接続されない()
+        {
+            // 機械を電柱Aに接続済みにしてから、機械の範囲内に電柱Bを設置する
+            // Connect a machine to pole A first, then place pole B within the machine's range
+            var (packet, serviceProvider) = CreateServer();
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+
+            SetupWire(serviceProvider, 10);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
+            PlaceBlock(packet, ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(1, 0, 0));
+
+            var poleA = worldBlockDatastore.GetBlock(new Vector3Int(1, 0, 0));
+            var machineConnector = machine.GetComponent<IElectricWireConnector>();
+            var poleAConnector = poleA.GetComponent<IElectricWireConnector>();
+
+            // 前提: 電柱Aへの自動接続で機械の接続数が1になっている
+            // Precondition: auto-connect to pole A brought the machine's connection count to 1
+            Assert.IsTrue(machineConnector.ContainsWireConnection(poleAConnector.BlockInstanceId));
+            Assert.AreEqual(1, machineConnector.WireConnections.Count);
+
+            // 機械の上限は2なので、接続数を常に0とみなす実装だと容量フィルタだけでは弾けない配置
+            // The machine's cap is 2, so an implementation that always reports 0 connections would slip past the capacity filter alone
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
+            PlaceBlock(packet, ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(0, 0, -1));
+
+            var poleB = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, -1));
+            var poleBConnector = poleB.GetComponent<IElectricWireConnector>();
+
+            // 電柱Bは最寄り電柱として電柱Aには繋がってよいが、機械には再接続されてはいけない
+            // Pole B may connect to pole A as the nearest pole, but must not reconnect to the machine
+            Assert.IsTrue(poleAConnector.ContainsWireConnection(poleBConnector.BlockInstanceId));
+            Assert.IsFalse(machineConnector.ContainsWireConnection(poleBConnector.BlockInstanceId));
+            Assert.AreEqual(1, machineConnector.WireConnections.Count);
+        }
+
         #region TestUtil
 
         private static (PacketResponseCreator packet, ServiceProvider serviceProvider) CreateServer()
