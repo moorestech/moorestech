@@ -9,10 +9,10 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
-    /// 自動接続の候補選定アルゴリズム本体。サーバー/クライアント双方から使う純粋ロジック
+    /// 選定アルゴリズム本体。サーバー/クライアント共用純粋ロジック
     /// 選定ルール: 最寄り電柱1本→未接続機械を残容量まで。順序は距離昇順→InstanceId昇順
     /// candidatesには自ブロック自身を含めてはならない（含めると距離0で必ず最優先に選ばれる）
-    /// The auto-connect selection algorithm itself; pure logic shared by server and client
+    /// Auto-connect selection algorithm; pure logic shared by server and client
     /// Rule: nearest pole first, then unconnected machines up to remaining capacity, ordered by distance then id
     /// candidates must never include the caller's own block (it would win priority at distance 0)
     /// </summary>
@@ -32,7 +32,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 .Where(c => c.IsPole)
                 .Take(1).ToList();
 
-            if (nearestPole.Count == 1 && ownParam.MaxWireConnectionCount > usedCount)
+            if (nearestPole.Count == 1 && usedCount < ownParam.MaxWireConnectionCount)
             {
                 results.Add((nearestPole[0].InstanceId, nearestPole[0].Distance));
                 usedCount++;
@@ -42,8 +42,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             return results;
         }
 
-        // レール式延長でも使う。使用済み本数を差し引いた残容量で機械のみを収集する
-        // Also used by rail-style extend; collects machines only, within the capacity left after usedCount
+        // レール延長でも使用。残容量で機械のみ収集
+        // Also used by rail extend; collects machines within remaining capacity
         public static List<(BlockInstanceId TargetId, float Distance)> SelectPoleMachineTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount, IReadOnlyList<ElectricWireConnectCandidate> candidates)
         {
             return SelectPoleMachineTargetsCore(ownParam, ownInfo, usedCount, candidates, ConnectionRangeProfile.CreatePole(ownParam));
@@ -66,14 +66,14 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 .ToList();
         }
 
-        // 使用済み本数を差し引いた残容量で、組み立て済みのプロファイルを使い回して機械のみを収集する
-        // Collects machines only, within remaining capacity, reusing an already-built profile
+        // 残容量で、既存プロファイルを使い回し機械のみ収集
+        // Collects machines within remaining capacity, reusing the built profile
         private static List<(BlockInstanceId, float)> SelectPoleMachineTargetsCore(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount, IReadOnlyList<ElectricWireConnectCandidate> candidates, ConnectionRangeProfile ownProfile)
         {
             var results = new List<(BlockInstanceId, float)>();
 
-            // 相互範囲内の未接続機械を近い順に残容量まで
-            // Unconnected machines mutually in range, nearest first, up to remaining capacity
+            // 範囲内未接続機械を近い順に残容量まで
+            // Unconnected machines in range, nearest first, up to capacity
             var machines = EnumerateConnectable(ownInfo, ownProfile, true, candidates)
                 .Where(c => !c.IsPole && c.ConnectionCount == 0);
 

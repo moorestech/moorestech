@@ -159,8 +159,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 既に電柱と接続済みの機械は別の電柱設置で再接続されない()
         {
-            // 機械を電柱Aに接続済みにしてから、機械の範囲内に電柱Bを設置する
-            // Connect a machine to pole A first, then place pole B within the machine's range
+            // 電柱A接続済み機械の範囲内に電柱Bを設置
+            // Connect machine to pole A, then place pole B in its range
             var (packet, serviceProvider) = CreateServer();
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
 
@@ -174,8 +174,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var machineConnector = machine.GetComponent<IElectricWireConnector>();
             var poleAConnector = poleA.GetComponent<IElectricWireConnector>();
 
-            // 前提: 電柱Aへの自動接続で機械の接続数が1になっている
-            // Precondition: auto-connect to pole A brought the machine's connection count to 1
+            // 前提: 電柱A接続で機械の接続数=1
+            // Precondition: auto-connect to pole A set connection count to 1
             Assert.IsTrue(machineConnector.ContainsWireConnection(poleAConnector.BlockInstanceId));
             Assert.AreEqual(1, machineConnector.WireConnections.Count);
 
@@ -187,8 +187,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var poleB = worldBlockDatastore.GetBlock(new Vector3Int(0, 0, -1));
             var poleBConnector = poleB.GetComponent<IElectricWireConnector>();
 
-            // 電柱Bは最寄り電柱として電柱Aには繋がってよいが、機械には再接続されてはいけない
-            // Pole B may connect to pole A as the nearest pole, but must not reconnect to the machine
+            // 電柱Bは電柱A接続可、機械へ再接続不可
+            // Pole B may connect to pole A but must not reconnect to the machine
             Assert.IsTrue(poleAConnector.ContainsWireConnection(poleBConnector.BlockInstanceId));
             Assert.IsFalse(machineConnector.ContainsWireConnection(poleBConnector.BlockInstanceId));
             Assert.AreEqual(1, machineConnector.WireConnections.Count);

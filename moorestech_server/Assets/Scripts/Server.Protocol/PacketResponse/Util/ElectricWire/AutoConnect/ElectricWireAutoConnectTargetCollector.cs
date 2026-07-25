@@ -9,8 +9,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
-    /// ワールド全ブロックから候補を組み立て、選定はElectricWireAutoConnectSelectorに委譲する
-    /// Builds candidates from all world blocks and delegates selection to ElectricWireAutoConnectSelector
+    /// ワールド全ブロックから候補構築、選定はSelectorへ委譲
+    /// Builds candidates from world blocks; delegates selection to Selector
     /// </summary>
     public static class ElectricWireAutoConnectTargetCollector
     {
@@ -32,8 +32,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             return ToConnectorResults(ElectricWireAutoConnectSelector.SelectMachineTargets(blockMaster.BlockParam, ownInfo, candidates), connectors);
         }
 
-        // ワールド全ブロックからワイヤー端点候補とConnector逆引き表を組み立てる
-        // Build endpoint candidates and a connector lookup from all world blocks
+        // 全ブロックから候補とConnector逆引き表を構築
+        // Build candidates and a connector lookup from world blocks
         private static (List<ElectricWireConnectCandidate> Candidates, Dictionary<BlockInstanceId, IElectricWireConnector> Connectors) BuildWorldCandidates()
         {
             var candidates = new List<ElectricWireConnectCandidate>();
@@ -50,9 +50,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             return (candidates, connectors);
         }
 
-        // 選定結果のInstanceIdをConnector付きタプルへ復元する
-        // Restore selected instance ids into connector-bearing tuples
-        private static List<(BlockInstanceId, IElectricWireConnector, float)> ToConnectorResults(List<(BlockInstanceId TargetId, float Distance)> selected, Dictionary<BlockInstanceId, IElectricWireConnector> connectors)
+        // 選定結果をConnector付きタプルへ復元
+        // Restore selected ids into connector-bearing tuples
+        private static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> ToConnectorResults(List<(BlockInstanceId TargetId, float Distance)> selected, Dictionary<BlockInstanceId, IElectricWireConnector> connectors)
         {
             return selected.Select(s => (s.TargetId, connectors[s.TargetId], s.Distance)).ToList();
         }

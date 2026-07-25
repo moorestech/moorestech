@@ -17,16 +17,18 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
         {
             switch (blockParam)
             {
+                // 電柱は将来IElectricWireConnectParamを実装しても機械側へ落ちてはならないため必ず先頭
+                // The pole case must stay first even if it ever implements IElectricWireConnectParam
                 case ElectricPoleBlockParam pole:
                     maxWireConnectionCount = pole.MaxWireConnectionCount;
                     rangeProfile = ConnectionRangeProfile.CreatePole(pole);
                     isPole = true;
                     return true;
-                case IElectricWireConnectParam machine:
-                    // 機械系8種はスキーマinterface経由で一括処理する
-                    // All 8 machine-side params are handled via the schema interface
-                    maxWireConnectionCount = machine.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(machine.ConnectionRange, machine.ConnectionHeightRange);
+                case IElectricWireConnectParam wireConnectParam:
+                    // 電柱以外はinterface経由で一括処理
+                    // Non-pole electric params are handled via the schema interface
+                    maxWireConnectionCount = wireConnectParam.MaxWireConnectionCount;
+                    rangeProfile = ConnectionRangeProfile.CreateUniform(wireConnectParam.ConnectionRange, wireConnectParam.ConnectionHeightRange);
                     isPole = false;
                     return true;
                 default:

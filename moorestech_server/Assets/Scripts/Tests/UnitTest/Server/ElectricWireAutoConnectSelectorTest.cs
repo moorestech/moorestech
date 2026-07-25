@@ -12,10 +12,10 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
 namespace Tests.UnitTest.Server
 {
     /// <summary>
-    /// 自動接続候補選定コアの純粋単体テスト。選定ロジック自体はワールド状態を参照しない
-    /// SetUpのDIコンテナ構築はマスタ実値（電柱/機械パラメータ）を取得するためだけに行う
-    /// Pure unit tests for the auto-connect selection core; the selection logic itself never touches world state
-    /// SetUp only builds the DI container to fetch real master values (pole/machine params)
+    /// 選定コアの純粋単体テスト。ワールド状態非参照
+    /// SetUpはマスタ実値取得のみ目的
+    /// Pure unit tests for the selection core; never touches world state
+    /// SetUp builds the DI container only to fetch real master values
     /// </summary>
     public class ElectricWireAutoConnectSelectorTest
     {
@@ -25,8 +25,8 @@ namespace Tests.UnitTest.Server
         [SetUp]
         public void SetUp()
         {
-            // マスタデータを含むサーバーコンテキストを構築する
-            // Build server context including master data
+            // マスタ含むサーバーコンテキスト構築
+            // Build server context with master data
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _poleParam = (ElectricPoleBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPoleId).BlockParam;
             _machineParam = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockParam;
@@ -50,8 +50,8 @@ namespace Tests.UnitTest.Server
         [Test]
         public void 電柱設置は最寄り電柱1本と未接続機械を距離順に選ぶ()
         {
-            // 電柱(d3)＋機械2台(d1, d2)。結果は電柱→機械を距離順
-            // One pole (d3) and two machines (d1, d2); expect pole first then machines by distance
+            // 電柱d3+機械d1,d2。結果は電柱→機械順
+            // Pole(d3)+2 machines(d1,d2); pole then machines by distance
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 0), Machine(20, 2, 0), Machine(21, -1, 0) };
 
             var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
@@ -65,8 +65,8 @@ namespace Tests.UnitTest.Server
         [Test]
         public void 同距離の電柱はInstanceId昇順で選ばれる()
         {
-            // X=+3とX=-3は同距離3。ID小の11が最寄り扱いになる
-            // X=+3 and X=-3 tie at distance 3; the lower id 11 wins
+            // X±3同距離、ID小11が優先
+            // X=+3/-3 tie at distance 3; lower id 11 wins
             var candidates = new List<ElectricWireConnectCandidate> { Pole(12, 3, 0), Pole(11, -3, 0) };
 
             var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
@@ -100,7 +100,7 @@ namespace Tests.UnitTest.Server
         [Test]
         public void 残容量1の電柱は選ばれる()
         {
-            // 電柱上限8のうち7本使用済みでも残り1本なら接続可能
+            // 電柱上限8中7本使用でも残1本で接続可
             // A pole with 7 of 8 connections used still has one slot left and is selectable
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 7) };
 
@@ -113,7 +113,7 @@ namespace Tests.UnitTest.Server
         [Test]
         public void 同距離の機械はInstanceId昇順で選ばれる()
         {
-            // X=+2とX=-2は同距離2。列挙順は21が先だがID順は20が先
+            // X±2同距離、列挙は21先だがID順20先
             // X=+2 and X=-2 tie at distance 2; machine 21 is enumerated first but id-order puts 20 first
             var candidates = new List<ElectricWireConnectCandidate> { Machine(21, 2, 0), Machine(20, -2, 0) };
 
@@ -127,8 +127,8 @@ namespace Tests.UnitTest.Server
         [Test]
         public void usedCountが残容量から差し引かれる()
         {
-            // 上限8のうち7本使用済みなら機械は1台しか選ばれない
-            // With 7 of 8 connections used, only one machine is selected
+            // 上限8中7本使用済みで機械1台のみ選出
+            // With 7/8 used, only one machine is selected
             var candidates = new List<ElectricWireConnectCandidate> { Machine(20, 1, 0), Machine(21, 2, 0) };
 
             var result = ElectricWireAutoConnectSelector.SelectPoleMachineTargets(_poleParam, Cell(0, 0, 0), 7, candidates);
@@ -140,8 +140,8 @@ namespace Tests.UnitTest.Server
         [Test]
         public void 機械設置は最寄り電柱1本のみを選ぶ()
         {
-            // 電柱の対機械範囲5(±2)内。他の機械は対象外
-            // Within the pole's machine range 5 (±2); other machines are never selected
+            // 電柱対機械範囲5(±2)内、他機械対象外
+            // Within pole's machine range 5(±2); others excluded
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 2, 0), Machine(20, 1, 0) };
 
             var result = ElectricWireAutoConnectSelector.SelectMachineTargets(_machineParam, Cell(0, 0, 0), candidates);
@@ -153,8 +153,8 @@ namespace Tests.UnitTest.Server
         [Test]
         public void 相互範囲外の電柱は選ばれない()
         {
-            // 電柱の対機械範囲5(±2)に対しX差3は範囲外
-            // X distance 3 exceeds the pole's machine range 5 (±2)
+            // 対機械範囲5(±2)に対しX差3は範囲外
+            // X distance 3 exceeds pole's machine range 5(±2)
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 0) };
 
             var result = ElectricWireAutoConnectSelector.SelectMachineTargets(_machineParam, Cell(0, 0, 0), candidates);

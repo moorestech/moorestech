@@ -33,7 +33,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             // Target selection differs between pole placement and machine/generator placement
             var candidates = blockMaster.BlockParam is ElectricPoleBlockParam poleParam
                 ? ElectricWireAutoConnectTargetCollector.CollectPoleTargets(poleParam, ownInfo)
-                : CollectMachineTargets(blockMaster, ownInfo);
+                : ElectricWireAutoConnectTargetCollector.CollectMachineTargets(blockMaster, ownInfo);
 
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
@@ -54,16 +54,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 : ElectricWireAutoConnectPlan.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             #region Internal
-
-            List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement master, BlockPositionInfo info)
-            {
-                // 自身の接続容量が0なら探索するまでもなく対象なし
-                // No point searching when this block has zero connection capacity
-                if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(master.BlockParam, out var ownCapacity, out _, out _) || ownCapacity <= 0)
-                    return new List<(BlockInstanceId, IElectricWireConnector, float)>();
-
-                return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, info);
-            }
 
             // 必要コストを賄えるconnectToolをSortPriority昇順で探す
             // Search connectTools in ascending SortPriority for one covering all target costs

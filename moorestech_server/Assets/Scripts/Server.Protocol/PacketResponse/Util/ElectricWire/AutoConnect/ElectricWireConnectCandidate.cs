@@ -4,8 +4,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
-    /// 自動接続選定コアへ渡すワイヤー端点候補。サーバー/クライアントが各自の状態から組み立てる
-    /// A wire endpoint candidate fed into the selection core; each side builds it from its own state
+    /// 選定コアへ渡す端点候補。サーバー/クライアント各自組立
+    /// An endpoint candidate for the selection core; each side builds it
     /// </summary>
     public readonly struct ElectricWireConnectCandidate
     {
