@@ -22,44 +22,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                     rangeProfile = ConnectionRangeProfile.CreatePole(pole);
                     isPole = true;
                     return true;
-                case ElectricMachineBlockParam machine:
+                case IElectricWireConnectParam machine:
+                    // 機械系8種はスキーマinterface経由で一括処理する
+                    // All 8 machine-side params are handled via the schema interface
                     maxWireConnectionCount = machine.MaxWireConnectionCount;
                     rangeProfile = ConnectionRangeProfile.CreateUniform(machine.ConnectionRange, machine.ConnectionHeightRange);
-                    isPole = false;
-                    return true;
-                case ElectricGeneratorBlockParam generator:
-                    maxWireConnectionCount = generator.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(generator.ConnectionRange, generator.ConnectionHeightRange);
-                    isPole = false;
-                    return true;
-                case ElectricMinerBlockParam miner:
-                    maxWireConnectionCount = miner.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(miner.ConnectionRange, miner.ConnectionHeightRange);
-                    isPole = false;
-                    return true;
-                case ElectricPumpBlockParam pump:
-                    maxWireConnectionCount = pump.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(pump.ConnectionRange, pump.ConnectionHeightRange);
-                    isPole = false;
-                    return true;
-                case GearToElectricGeneratorBlockParam gearToElectric:
-                    maxWireConnectionCount = gearToElectric.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(gearToElectric.ConnectionRange, gearToElectric.ConnectionHeightRange);
-                    isPole = false;
-                    return true;
-                case ElectricToGearGeneratorBlockParam electricToGear:
-                    maxWireConnectionCount = electricToGear.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(electricToGear.ConnectionRange, electricToGear.ConnectionHeightRange);
-                    isPole = false;
-                    return true;
-                case CleanRoomAirFilterBlockParam airFilter:
-                    maxWireConnectionCount = airFilter.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(airFilter.ConnectionRange, airFilter.ConnectionHeightRange);
-                    isPole = false;
-                    return true;
-                case CleanRoomMachineBlockParam cleanRoomMachine:
-                    maxWireConnectionCount = cleanRoomMachine.MaxWireConnectionCount;
-                    rangeProfile = ConnectionRangeProfile.CreateUniform(cleanRoomMachine.ConnectionRange, cleanRoomMachine.ConnectionHeightRange);
                     isPole = false;
                     return true;
                 default:

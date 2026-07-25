@@ -81,6 +81,17 @@ defineInterface:
   properties:
   - key: fuelItemSlotCount
     type: integer
+- interfaceName: IElectricWireConnectParam
+  properties:
+  - key: maxWireConnectionCount
+    type: integer
+    default: 2
+  - key: connectionRange
+    type: integer
+    default: 30
+  - key: connectionHeightRange
+    type: integer
+    default: 20
 
 properties:
 - key: connectorSettings
@@ -254,6 +265,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IMachineParam
+        - IElectricWireConnectParam
         properties:
         - key: requiredPower
           type: number
@@ -315,6 +327,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IFuelItemSlotParam
+        - IElectricWireConnectParam
         properties:
         - key: fuelItemSlotCount
           type: integer
@@ -385,6 +398,7 @@ properties:
         implementationInterface:
         - IMinerParam
         - IInventoryConnectors
+        - IElectricWireConnectParam
         properties:
         - key: requiredPower
           type: number
@@ -863,6 +877,8 @@ properties:
           ref: gear
       - when: ElectricPump
         type: object
+        implementationInterface:
+        - IElectricWireConnectParam
         properties:
         - key: generateFluid
           ref: generateFluids
@@ -890,6 +906,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IElectricWireConnectParam
         properties:
         - key: teethCount
           type: integer
@@ -914,6 +931,7 @@ properties:
         type: object
         implementationInterface:
         - IGearConnectors
+        - IElectricWireConnectParam
         properties:
         - key: teethCount
           type: integer
@@ -973,6 +991,8 @@ properties:
           ref: fluidInventoryConnects
       - when: CleanRoomAirFilter
         type: object
+        implementationInterface:
+        - IElectricWireConnectParam
         properties:
         - key: requiredPower
           type: number
@@ -1003,6 +1023,7 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IMachineParam
+        - IElectricWireConnectParam
         properties:
         - key: requiredPower
           type: number
