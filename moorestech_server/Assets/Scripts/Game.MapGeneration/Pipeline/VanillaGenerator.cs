@@ -12,9 +12,9 @@ namespace Game.MapGeneration.Pipeline
 {
     // VanillaGenerator アルゴリズムの本体。ステージ(分類→高さ→木→オブジェクト→鉱脈)を順に呼ぶ。
     // The VanillaGenerator algorithm body: runs stages in order (classify, height, tree, object, ore).
-    public static class VanillaGenerator
+    public class VanillaGenerator : IMapGenerator
     {
-        public static MapGenerationOutput Generate(TerrainGenerationConfig config)
+        public MapGenerationOutput Generate(TerrainGenerationConfig config)
         {
             var helper = new BiomePlacementHelper(config);
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);

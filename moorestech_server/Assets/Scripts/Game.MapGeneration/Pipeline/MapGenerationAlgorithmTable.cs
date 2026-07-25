@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Pipeline.Config;
 using Mooresmaster.Model.GenerationModule;
 
 namespace Game.MapGeneration.Pipeline
@@ -11,13 +10,13 @@ namespace Game.MapGeneration.Pipeline
     // P1 registers only VanillaGenerator; unregistered names throw immediately.
     public static class MapGenerationAlgorithmTable
     {
-        static readonly IReadOnlyDictionary<string, Func<TerrainGenerationConfig, MapGenerationOutput>> Generators =
-            new Dictionary<string, Func<TerrainGenerationConfig, MapGenerationOutput>>
+        static readonly IReadOnlyDictionary<string, IMapGenerator> Generators =
+            new Dictionary<string, IMapGenerator>
             {
-                { Generation.AlgorithmConst.VanillaGenerator, VanillaGenerator.Generate },
+                { Generation.AlgorithmConst.VanillaGenerator, new VanillaGenerator() },
             };
 
-        public static Func<TerrainGenerationConfig, MapGenerationOutput> Resolve(string algorithm)
+        public static IMapGenerator Resolve(string algorithm)
         {
             if (Generators.TryGetValue(algorithm, out var generator)) return generator;
             throw new InvalidOperationException(

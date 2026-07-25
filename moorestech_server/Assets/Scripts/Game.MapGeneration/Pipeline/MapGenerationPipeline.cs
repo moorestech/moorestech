@@ -16,7 +16,7 @@ namespace Game.MapGeneration.Pipeline
             config.seed = seed;
 
             var generator = MapGenerationAlgorithmTable.Resolve(selected.Algorithm);
-            return generator(config);
+            return generator.Generate(config);
         }
     }
 }
