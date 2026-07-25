@@ -31,8 +31,9 @@ PR1057レビュー（review 4772089898）の2指摘への対応設計。
 ```
 
 - 適用対象8種: ElectricMachine / ElectricGenerator / ElectricMiner / ElectricPump / GearToElectricGenerator / ElectricToGearGenerator / CleanRoomAirFilter / CleanRoomMachine
-- 各ブロック種の `properties` から3キーを削除し、`implementationInterface` に `IElectricWireConnectParam` を追加する
-- interfaceプロパティは実装型へ注入されJSONキーは平坦なまま不変のため、**JSONデータ移行は不要**
+- 各ブロック種の `implementationInterface` に `IElectricWireConnectParam` を追加する。**3キーの定義は各ケースに残す** — 生成器はinterfaceプロパティを実装型へ注入せず、実装ケース側の同名キー宣言でinterfaceメンバーが満たされる（IMachineParam実装のElectricMachineが全キーを自前宣言している前例と同形）
+- プロパティ定義・JSONキーとも不変のため、**JSONデータ移行は不要**
+- したがって指摘①の実利は**C#側の共通化**（resolver縮約＋今後の電気ブロック追加がinterface付与だけで済む）であり、yaml上のキー重複自体は現行生成器では残る
 - ElectricPole は対電柱/対機械の非対称4キー（pole/machineConnection(Height)Range）＋接続上限という別形状のため、interfaceに含めない（単一実装のinterface新設はYAGNI）
 - 電柱は同名キー `maxWireConnectionCount`（default 8）を個別プロパティのまま残す。resolverの電柱分岐は個別プロパティ参照を維持する
 - スキーマ編集は edit-schema スキルの手順に従う
@@ -75,15 +76,17 @@ switch (blockParam)
 - サーバー `ElectricWireAutoConnectTargetCollector`: ワールド全ブロック列挙 → struct変換（接続数は `IElectricWireConnector.WireConnections.Count`）→ コア呼び出し → InstanceId から Connector を復元して返す
 - クライアント `ClientElectricWireAutoConnectCollector`: 受信ブロック列挙 → struct変換（接続数は `ElectricWireStateChangeProcessor.CurrentPartnerIds.Count`）→ コア呼び出し → 座標に変換して返す
 
-### 判定意味論の統一（現状のズレの解消）
+### 判定意味論の一本化（判定源の統一）
+
+現サーバーと現クライアントの判定は**結果としては等価**（機械の未接続=接続数0かつ容量未満、容量判定=満杯除外を両者とも実装済み）だが、判定源と実装が二重化している:
 
 | 判定 | 現サーバー | 現クライアント | 統一後（コア） |
 |---|---|---|---|
-| 機械の未接続 | 接続数0 かつ 容量未満 | 接続数0のみ | 接続数0 かつ 容量未満 |
 | 電柱かどうか | `EnergyRole is IElectricTransformer`（実行時コンポーネント） | resolver（マスタ由来） | resolver に一本化 |
-| 容量判定 | `IsWireConnectionFull` | `capacity <= count` | コア内で `count < capacity` |
+| 容量判定 | `IsWireConnectionFull`（コンポーネント実装） | `capacity <= count`（コレクタ内） | コア内で `count < capacity` |
+| 機械の未接続 | `WireConnections.Count == 0` | `GetPartnerCount == 0` | コア内で `ConnectionCount == 0` |
 
-`EnergyRole` 参照とクライアント独自判定は廃止し、判定源をマスタパラメータ（resolver）1つにする。
+挙動変化はなく、`EnergyRole` 参照と両側の個別実装を廃止して判定源をコア1箇所（マスタパラメータ＋resolver）にする構造的一本化である（`IElectricTransformer` 実装は電柱1種のみで等価性を裏取り済み）。
 
 ## セルフ反証
 
@@ -114,4 +117,6 @@ switch (blockParam)
 - **案2（データソース抽象interface注入）不採用**（B: `IElectricWireConnector` のクライアント側ダミー実装が必要になり抽象が重い。案1が同効果を軽く達成 — 無料の上位互換）
 - **案3（現状維持＋同値性テスト）不採用**（B: ズレの検出はできても発生を防げず、二重ロジック指摘の解消にならない）
 - **電柱の同名キー並存・テスト配置先**: シミュレーターWarningをspecへ反映（出所: シミュレーター予測。前提の裏取りは全件成立・Critical指摘なし）
+- **「interfaceプロパティは実装型へ注入される」前提の撤回**: mooresmaster生成器はinterface実装の名前付与のみ行い、プロパティは各ケースの自前宣言が必須（ElectricMachineのIMachineParam実装で確認）。3キーは各ケースに残し、interface付与のみ行う（出所: plan段階のシミュレーター反証→実コード検証で確定）
+- **yaml上の3キー×8箇所はあるべき姿であり問題ではない**: 各ブロック種がプロパティを明示宣言する現行スキーマの形が意図されたもの。生成器へのプロパティ注入機能追加は不要。指摘①の解消対象はC#側の分岐重複（resolver switch）のみ（出所: 2026-07-25 ユーザー裁定）
 - **設計一括承認**: 2026-07-24 ユーザー承認済み（出所: 設計提示→「ok」）
