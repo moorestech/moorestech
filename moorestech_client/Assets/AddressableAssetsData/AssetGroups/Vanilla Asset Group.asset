@@ -795,6 +795,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a637ecd286cf94155bed027ae5230321
+    m_Address: Vanilla/Environment/BushPlaceholder
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a65bf85d5ada24b82a2121b15422b180
     m_Address: Vanilla/Character/SkitChr003
     m_ReadOnly: 0

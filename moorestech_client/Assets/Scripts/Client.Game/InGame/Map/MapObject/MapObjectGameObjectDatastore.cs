@@ -107,6 +107,8 @@ namespace Client.Game.InGame.Map.MapObject
 
             GameObject ResolvePrefabOrNull(Guid mapObjectGuid)
             {
+                // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶため同期loadとLogErrorはguidごと1回に抑える
+                // Failures are cached as null too; a guid can repeat by the thousand so keep the sync load and LogError once per guid
                 if (_prefabCacheByMapObjectGuid.TryGetValue(mapObjectGuid, out var cachedPrefab)) return cachedPrefab;
 
                 // master欠落はLogError+nullでskipさせる（サーバMapObjectDatastoreと対称）
@@ -115,6 +117,7 @@ namespace Client.Game.InGame.Map.MapObject
                 if (element == null)
                 {
                     Debug.LogError($"MapObject master missing. MapObjectGuid:{mapObjectGuid}");
+                    _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
                     return null;
                 }
 
@@ -124,6 +127,7 @@ namespace Client.Game.InGame.Map.MapObject
                 if (loaded == null)
                 {
                     Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{mapObjectGuid} AddressablePath:{element.AddressablePath}");
+                    _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
                     return null;
                 }
 

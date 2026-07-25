@@ -22,7 +22,7 @@
       "earnItemHpInterval": 10,
       "hp": 10,
       "mapObjectName": "Bush",
-      "addressablePath": "Vanilla/Environment/Bush",
+      "addressablePath": "Vanilla/Environment/BushPlaceholder",
       "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
@@ -95,7 +95,7 @@
       "earnItemHpInterval": 10,
       "hp": 20,
       "mapObjectName": "Stone",
-      "addressablePath": "Vanilla/Environment/Stone",
+      "addressablePath": "Vanilla/Environment/StoneVein",
       "miningType": "Mining",
       "soundEffectType": "stone",
       "miningParam": {
@@ -120,31 +120,6 @@
         }
       ],
       "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165"
-    },
-    {
-      "earnItemHpInterval": 10,
-      "hp": 30,
-      "mapObjectName": "clay",
-      "addressablePath": "Vanilla/Environment/clay",
-      "earnItems": [
-        {
-          "maxCount": 3,
-          "minCount": 1,
-          "itemGuid": "b6ac41f7-89e1-45c8-8f2d-128105cb5063"
-        }
-      ],
-      "miningType": "Mining",
-      "miningParam": {
-        "miningTools": [
-          {
-            "attackSpeed": 4,
-            "damage": 10,
-            "toolItemGuid": "945912f1-d1ca-42ec-aff8-5e6a00e4a544"
-          }
-        ]
-      },
-      "mapObjectGuid": "e76e6b65-88db-4ee7-a806-8e65ba859556",
-      "soundEffectType": "stone"
     }
   ],
   "mapVeins": [
