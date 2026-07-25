@@ -18,7 +18,7 @@ moorestechのコードレビューを **決定論チェック → 5系統の並�
 
 ## 5系統の構成
 
-1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・schema_optional_true・event_tag_sync）。0トークン。
+1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・schema_optional_true・event_tag_sync）。0トークン。
 2. **moores設計レンズ群**（`lenses/`・9本）— moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000）由来。
 3. **汎用reviewer群**（`reviewers/`・23本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外。根拠は `scripts/model_map.json` の `_excluded_from_port`）。
 4. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
@@ -43,7 +43,7 @@ AskUserQuestionは**最後の報告フェーズに集約**する。修正適用�
 python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "<PATCH_PATH>" --repo-root "$(pwd)" > /tmp/moores-review-detchecks-<ts>.json
 ```
 
-- **`confirmed`**（partial・try-catch・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。
+- **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。
 - **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制せず、AskUserQuestionにも**絶対に**載せない（ユーザー裁定 2026-07-23）。
 - **`candidates.comparison_operator`** — 1件以上あればStep 3で比較演算子verifier（sonnet）を並列起動。0件なら起動しない。
 - **`candidates.comment_length` / `region_internal`** — この時点では保持のみ（commentはStep 5.5で最終diffに再計測、regionはregion-internal reviewerの裏付け）。
