@@ -32,11 +32,11 @@
   - `[ADR: <spec名>#<台帳項目>]`（変更3の判断台帳から引く。台帳がSSOT）
   - `[agent前提]`
 - ラベル無し・引用不能な行は**自動的に `[agent前提]` 扱い**（「合意済み」という語をagentが自力で書ける経路を消す）
-- 執行: `scripts/deterministic_checks.py` に `--context <USER_PROMPT_PATH>` を追加し、トレードオフ/非目標行の出所ラベル欠落を `confirmed` として検出する
+- 執行: `scripts/deterministic_checks.py` に `--context <USER_PROMPT_PATH>` を追加し、トレードオフ/非目標行の出所ラベル欠落を `confirmed` として検出する。**all-code-review が自前保有する `scripts/deterministic_checks.py` にも同検査を入れる**（片側だけだと汎用側の担保が指示文のみになり「担保はスクリプトが持つ」原則と矛盾）
 
 ## 変更2: 免責は降格＋可視化（原則②）
 
-対象: 全レンズ・reviewer の「依頼動詞優先ガード」文言（`lenses/domain-boundary.md:45` 等の同型記述を横断置換）/ `references/integration-rules.md` の統合・報告規約。
+対象: 全レンズ・reviewer の「依頼動詞優先ガード」文言（`lenses/domain-boundary.md:45` 等の同型記述を横断置換。**`~/.agents/skills/all-code-review/reviewers/*.md` に実在する25本の同ガード節も含む** — ユーザーゴールは「moores-code-reviewやall-code-review」と両機構を名指ししており、片方に消音経路を残さない）/ 両スキルの `references/integration-rules.md` 相当の統合・報告規約。
 
 - レンズ側の新文言: 「**ユーザー裁定/ADR出所**のトレードオフに合致する指摘は、破棄せず `suppressed-by: <トレードオフ, 出所>` タグ付きで重大度を保持したまま返す。**`[agent前提]` 出所は免責事由にならない**（通常のCritical/Warningとして返す）」
 - 統合側: suppressedタグ付きCritical/Warning級は最終報告の**「免責で消された指摘」専用セクション**に必ず列挙（1行＋出所）。Info級は列挙しない（ノイズ化防止）
@@ -51,8 +51,11 @@
   - (b) agent前提 — 1行・アーキテクチャ級/不可逆級のみ・拒否権注記つき
 - ユーザーレビュー依頼時、**台帳をメッセージ本文に直接貼る**（spec本文はリンクのみ）。「ok」の形式的意味は台帳項目の承認に限定
 - writing-plans: task briefの `Modify:` 対象に**複数ドメインから参照されるファイルを含む判断は台帳掲載必須**。掲載判定は裁量（「重要か」）ではなく機械条件: **対象パスが `lenses/*.md` の `paths` 正規表現にマッチするか**
+- **優先順位**: pathsマッチは (b) の「アーキテクチャ級」判定の**機械的下限**であり、マッチした項目は級の自己判定によらず掲載必須（機械条件と級限定の衝突はマッチ側が勝つ）。逆にマッチしない項目の掲載は従来どおり (b) の裁量判定
+- **カバー範囲の明記**: 機械条件が実効なのは paths 発火型レンズ（domain-boundary 等4本）のみ。keywords 発火型レンズ（set-once/type-driven 等6本）は plan 時点の `Modify:` パスから判定不能で、ledger-gate の守備範囲外（レビュー段階の変更2で捕捉する）
 - 台帳に無い判断はレビュー免責力ゼロ
 - 執行: **`ledger-gate` スクリプトを新設**（`moores-code-review/scripts/ledger_gate.py`。lenses pathsを読むため同居）。plan/task briefの `Modify:` 対象を抽出し lenses paths と突き合わせ、マッチしたのに spec の判断台帳に対応項目が無ければ exit 2 でブロック。`sim-gate.sh` と同パターンで writing-plans の frontmatter hooks に配線する
+- **plan→spec対応の特定規則**: plan の frontmatter に対応 spec の相対パスを必須項目として持たせる（ledger_gate.py が台帳の所在を機械的に特定できるようにする。sim-gate.sh は対応関係を持たないため新規に定める）
 
 ## 変更4: domain-boundary レンズの個別穴塞ぎ
 
@@ -77,4 +80,4 @@
 - **agent前提の提示方式 = 台帳承認方式**: spec/plan承認時に判断台帳だけを見せる。前提は黙認でも免責力を持たず、レビュー指摘時は必ず表面化。割り込み回数は現状と同じ（出所: シミュレーター予測→ユーザー承認 2026-07-26。根拠: 裁定#4「読む量・答える量の純増」却下）
 - **原則①②は提示方式によらず共通実施**（出所: AskUserQuestion質問文の共通前提としてユーザー承認 2026-07-26）
 - **執行レイヤー（script/hooks）の追加**: 「機械条件＝hooksを使うのか」というユーザー質問を受け、指示文レイヤーだけでは今回の事故（指示があったのに骨抜き）を防げないと判断し、sim-gate.sh前例踏襲の物理ブロックを設計に追加（出所: ユーザー指摘 2026-07-26 →設計反映後「ok」承認）
-- **agent前提（拒否権つき）**: ledger_gate.py の設置場所は moorestech リポジトリ内 `moores-code-review/scripts/`（lenses pathsを読むため同居が自然）。all-code-review（~/.agents/skills）側は context 書式のみ変更し、ledger-gate 配線は moorestech 専用とする
+- **agent前提（拒否権つき）**: ledger_gate.py の設置場所は moorestech リポジトリ内 `moores-code-review/scripts/`（lenses pathsを読むため同居が自然）。**moorestech 専用なのは ledger-gate 配線のみ**で、all-code-review 側にも出所ラベル（context書式＋自前deterministic_checks検査）と依頼動詞優先ガード25本の suppressed 化は適用する（simulator review指摘の適用 2026-07-26）
