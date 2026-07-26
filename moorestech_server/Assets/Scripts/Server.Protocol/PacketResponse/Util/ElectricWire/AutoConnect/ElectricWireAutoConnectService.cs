@@ -29,11 +29,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
 
-            // 電柱設置か機械/発電機設置かで対象選定ロジックが異なる
-            // Target selection differs between pole placement and machine/generator placement
-            var candidates = blockMaster.BlockParam is ElectricPoleBlockParam poleParam
-                ? ElectricWireAutoConnectTargetCollector.CollectPoleTargets(poleParam, ownInfo)
-                : ElectricWireAutoConnectTargetCollector.CollectMachineTargets(blockMaster, ownInfo);
+            // 電柱/機械の振り分けは選定コアが担う
+            // The selection core dispatches pole vs machine placement
+            var candidates = ElectricWireAutoConnectTargetCollector.CollectTargets(blockMaster, ownInfo);
 
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);

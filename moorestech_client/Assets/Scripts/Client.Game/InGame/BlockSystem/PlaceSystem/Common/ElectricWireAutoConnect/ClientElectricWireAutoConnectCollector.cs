@@ -25,18 +25,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
             var (candidates, positions) = BuildReceivedCandidates();
 
-            // 電柱/機械設置で選定ルールを切替
-            // Switch selection rules by placement type
-            var selected = blockMaster.BlockParam is ElectricPoleBlockParam poleParam
-                ? ElectricWireAutoConnectSelector.SelectPoleTargets(poleParam, ownInfo, candidates)
-                : ElectricWireAutoConnectSelector.SelectMachineTargets(blockMaster.BlockParam, ownInfo, candidates);
+            var selected = ElectricWireAutoConnectSelector.SelectPlacementTargets(blockMaster.BlockParam, ownInfo, candidates);
 
             return selected.Select(s => (positions[s.TargetId], s.Distance)).ToList();
 
             #region Internal
 
-            // 受信ブロックから候補と逆引き表を構築
-            // Build candidates and a position lookup from received blocks
+            // ワイヤー状態を持つ受信ブロックのみ候補化
+            // Only received blocks carrying the wire state processor become candidates
             (List<ElectricWireConnectCandidate> Candidates, Dictionary<BlockInstanceId, Vector3Int> Positions) BuildReceivedCandidates()
             {
                 var built = new List<ElectricWireConnectCandidate>();
@@ -44,9 +40,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
                 foreach (var block in blockDataStore.BlockGameObjectByInstanceIdDictionary.Values)
                 {
-                    var connectionCount = block.TryGetComponent<ElectricWireStateChangeProcessor>(out var processor) ? processor.CurrentPartnerIds.Count : 0;
+                    if (!block.TryGetComponent<ElectricWireStateChangeProcessor>(out var processor)) continue;
 
-                    built.Add(new ElectricWireConnectCandidate(block.BlockInstanceId, block.BlockMasterElement.BlockParam, block.BlockPosInfo, connectionCount));
+                    built.Add(new ElectricWireConnectCandidate(block.BlockInstanceId, block.BlockMasterElement.BlockParam, block.BlockPosInfo, processor.CurrentPartnerIds.Count));
                     builtPositions[block.BlockInstanceId] = block.BlockPosInfo.OriginalPos;
                 }
 

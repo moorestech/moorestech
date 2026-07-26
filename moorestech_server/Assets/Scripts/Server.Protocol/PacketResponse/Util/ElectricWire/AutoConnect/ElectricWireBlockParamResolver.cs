@@ -25,7 +25,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                     isPole = true;
                     return true;
                 case IElectricWireConnectParam wireConnectParam:
-                    // 電柱以外はinterface経由で一括処理
+                    // 電柱以外はinterfaceで一括処理
                     // Non-pole electric params are handled via the schema interface
                     maxWireConnectionCount = wireConnectParam.MaxWireConnectionCount;
                     rangeProfile = ConnectionRangeProfile.CreateUniform(wireConnectParam.ConnectionRange, wireConnectParam.ConnectionHeightRange);

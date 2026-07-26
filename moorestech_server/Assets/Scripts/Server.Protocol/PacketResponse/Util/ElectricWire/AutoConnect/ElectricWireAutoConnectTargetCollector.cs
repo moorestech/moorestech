@@ -14,22 +14,16 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
     /// </summary>
     public static class ElectricWireAutoConnectTargetCollector
     {
-        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectPoleTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo)
+        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectTargets(BlockMasterElement blockMaster, BlockPositionInfo ownInfo)
         {
             var (candidates, connectors) = BuildWorldCandidates();
-            return ToConnectorResults(ElectricWireAutoConnectSelector.SelectPoleTargets(ownParam, ownInfo, candidates), connectors);
+            return ToConnectorResults(ElectricWireAutoConnectSelector.SelectPlacementTargets(blockMaster.BlockParam, ownInfo, candidates), connectors);
         }
 
         public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectPoleMachineTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, int usedCount)
         {
             var (candidates, connectors) = BuildWorldCandidates();
             return ToConnectorResults(ElectricWireAutoConnectSelector.SelectPoleMachineTargets(ownParam, ownInfo, usedCount, candidates), connectors);
-        }
-
-        public static List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement blockMaster, BlockPositionInfo ownInfo)
-        {
-            var (candidates, connectors) = BuildWorldCandidates();
-            return ToConnectorResults(ElectricWireAutoConnectSelector.SelectMachineTargets(blockMaster.BlockParam, ownInfo, candidates), connectors);
         }
 
         // 全ブロックから候補とConnector逆引き表を構築

@@ -18,9 +18,18 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
     /// </summary>
     public static class ElectricWireAutoConnectSelector
     {
+        // 設置時の選定入口。電柱か機械かの分岐はここ1箇所に閉じる
+        // The placement entry point; the pole-vs-machine branch lives only here
+        public static List<(BlockInstanceId TargetId, float Distance)> SelectPlacementTargets(IBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)
+        {
+            return ownParam is ElectricPoleBlockParam poleParam
+                ? SelectPoleTargets(poleParam, ownInfo, candidates)
+                : SelectMachineTargets(ownParam, ownInfo, candidates);
+        }
+
         // 電柱設置: 最寄り電柱1本＋未接続機械を残容量まで
         // Pole placement: nearest pole plus unconnected machines up to remaining capacity
-        public static List<(BlockInstanceId TargetId, float Distance)> SelectPoleTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)
+        private static List<(BlockInstanceId TargetId, float Distance)> SelectPoleTargets(ElectricPoleBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)
         {
             var results = new List<(BlockInstanceId, float)>();
             var ownProfile = ConnectionRangeProfile.CreatePole(ownParam);
@@ -51,7 +60,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 
         // 機械設置: 相互範囲内の最寄り電柱1本のみ
         // Machine placement: only the nearest mutually-in-range pole
-        public static List<(BlockInstanceId TargetId, float Distance)> SelectMachineTargets(IBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)
+        private static List<(BlockInstanceId TargetId, float Distance)> SelectMachineTargets(IBlockParam ownParam, BlockPositionInfo ownInfo, IReadOnlyList<ElectricWireConnectCandidate> candidates)
         {
             // 自分は設置直後で接続数0固定。電柱側の残容量判定と表現を揃える
             // Self is freshly placed with zero existing connections; mirrors the pole-side remaining-capacity check

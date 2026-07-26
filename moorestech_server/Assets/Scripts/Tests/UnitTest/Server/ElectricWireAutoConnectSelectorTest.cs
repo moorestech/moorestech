@@ -54,7 +54,7 @@ namespace Tests.UnitTest.Server
             // Pole(d3)+2 machines(d1,d2); pole then machines by distance
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 0), Machine(20, 2, 0), Machine(21, -1, 0) };
 
-            var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_poleParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(3, result.Count);
             Assert.AreEqual(new BlockInstanceId(10), result[0].TargetId);
@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Server
             // X=+3/-3 tie at distance 3; lower id 11 wins
             var candidates = new List<ElectricWireConnectCandidate> { Pole(12, 3, 0), Pole(11, -3, 0) };
 
-            var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_poleParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(new BlockInstanceId(11), result[0].TargetId);
@@ -80,7 +80,7 @@ namespace Tests.UnitTest.Server
         {
             var candidates = new List<ElectricWireConnectCandidate> { Machine(20, 2, 1) };
 
-            var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_poleParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(0, result.Count);
         }
@@ -92,7 +92,7 @@ namespace Tests.UnitTest.Server
             // A pole already at its capacity of 8 is not connectable
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 8) };
 
-            var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_poleParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(0, result.Count);
         }
@@ -104,7 +104,7 @@ namespace Tests.UnitTest.Server
             // A pole with 7 of 8 connections used still has one slot left and is selectable
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 7) };
 
-            var result = ElectricWireAutoConnectSelector.SelectPoleTargets(_poleParam, Cell(0, 0, 0), candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_poleParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(new BlockInstanceId(10), result[0].TargetId);
@@ -144,7 +144,7 @@ namespace Tests.UnitTest.Server
             // Within pole's machine range 5(±2); others excluded
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 2, 0), Machine(20, 1, 0) };
 
-            var result = ElectricWireAutoConnectSelector.SelectMachineTargets(_machineParam, Cell(0, 0, 0), candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_machineParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(new BlockInstanceId(10), result[0].TargetId);
@@ -157,7 +157,7 @@ namespace Tests.UnitTest.Server
             // X distance 3 exceeds pole's machine range 5(±2)
             var candidates = new List<ElectricWireConnectCandidate> { Pole(10, 3, 0) };
 
-            var result = ElectricWireAutoConnectSelector.SelectMachineTargets(_machineParam, Cell(0, 0, 0), candidates);
+            var result = ElectricWireAutoConnectSelector.SelectPlacementTargets(_machineParam, Cell(0, 0, 0), candidates);
 
             Assert.AreEqual(0, result.Count);
         }
