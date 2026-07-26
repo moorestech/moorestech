@@ -1,3 +1,4 @@
+using Game.Paths;
 using System;
 using System.IO;
 using Core.Update;
@@ -25,7 +26,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var savePath = Path.Combine(Path.GetTempPath(), $"moorestech-tick-end-{Guid.NewGuid():N}.json");
             var saveOptions = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {
-                saveJsonFilePath = new SaveJsonFilePath(savePath),
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
             };
             var (packet, saveProvider) = new MoorestechServerDIContainerGenerator().Create(saveOptions);
             GrantRequiredItems(saveProvider, ForUnitTestModBlockId.BlockId, 1);
@@ -46,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Load a fresh world and verify the block and charged inventory came from one boundary
             var loadOptions = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {
-                saveJsonFilePath = new SaveJsonFilePath(savePath),
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
             };
             var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(loadOptions);
             loadProvider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();

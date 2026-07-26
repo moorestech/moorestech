@@ -2,7 +2,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.SoundEffect;
 using Common.Debug;
-using Mooresmaster.Model.MapObjectsModule;
+using Mooresmaster.Model.MapModule;
 using UnityEngine;
 
 namespace Client.Game.InGame.Mining

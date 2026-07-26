@@ -2,7 +2,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
 using Common.Debug;
-using Mooresmaster.Model.MapObjectsModule;
+using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
 {

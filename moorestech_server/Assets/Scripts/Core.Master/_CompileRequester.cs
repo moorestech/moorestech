@@ -5,5 +5,5 @@ public class CompileRequester
 {
 // スキーマを更新したら、こちらの更新もコミットしてください。
 // If you update the schema, please also commit this update.
-    private const string dummyText = "electric-wire-connect-param-interface";
+    private const string dummyText = "2026/07/25 21:05:00";
 }

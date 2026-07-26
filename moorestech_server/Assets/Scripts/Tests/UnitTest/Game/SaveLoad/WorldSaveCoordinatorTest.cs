@@ -1,3 +1,4 @@
+using Game.Paths;
 using System;
 using System.IO;
 using Game.SaveLoad;
@@ -51,7 +52,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {
-                saveJsonFilePath = new SaveJsonFilePath(savePath),
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
             };
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
             return provider.GetRequiredService<WorldSaveCoordinator>();

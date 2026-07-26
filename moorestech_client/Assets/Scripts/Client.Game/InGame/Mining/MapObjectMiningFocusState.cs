@@ -4,7 +4,7 @@ using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Core.Master;
 using Game.PlayerInventory.Interface;
-using Mooresmaster.Model.MapObjectsModule;
+using Mooresmaster.Model.MapModule;
 
 namespace Client.Game.InGame.Mining
 {

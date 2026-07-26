@@ -119,9 +119,9 @@ properties:
                       - key: mapObjectGuid
                         type: uuid
                         foreignKey:
-                          schemaId: mapObjects
-                          foreignKeyIdPath: /data/[*]/mapObjectGuid
-                          displayElementPath: /data/[*]/mapObjectName
+                          schemaId: map
+                          foreignKeyIdPath: /mapObjects/[*]/mapObjectGuid
+                          displayElementPath: /mapObjects/[*]/mapObjectName
                       - key: pinText
                         type: string
                         default: pin text
