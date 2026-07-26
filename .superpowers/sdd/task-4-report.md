@@ -1,32 +1,67 @@
-# Task 4 実装レポート: BlockCategoryMaster新設 + MasterHolder登録 + ロード時バリデーション
+# Task 4 報告: クライアントコレクタのアダプタ化
 
-## ステータス
-完了
+（注: このファイルには2026-07-23の旧タスク体系の内容が残っていたため、現行ブリーフの内容で上書きした）
 
-## 実装内容
-- `BlockCategoryMaster.cs` を新設。brief記載コードを逐語ベースで実装（生成型のプロパティ名 `Data`/`Name`/`SubCategories` はそのままコンパイル通過）
-- `MasterHolder.cs`: `BlockCategoryMaster` staticプロパティ追加、`Load()` 内で `CharacterMaster` の直後・`BlockMaster` の直前にロード+初期化を追加。依存コメントを更新
-- `BlockMasterUtil.cs`: `BlockCategoryReferenceValidation()` ローカル関数を `BlockDestructionCategoryValidation()` と同じ形式で追加し、`Validate()` の合算に組み込み
-- テスト: `Tests/UnitTest/Core/Block/BlockCategoryMasterTest.cs`（既存の `BlockDestructionCategoryMasterDataTest.cs` の隣に配置。creating-server-testsスキルの規約に従いUnitTest/Core/Block配下）
+**経緯**: 実装subagent（impl-task4）がファイル編集後に無応答となり、コンパイル・テスト・コミットが未実行のまま停止した（Task 3と同じ停止パターン）。編集内容はブリーフ記載のコードと完全一致していたため、オーケストレーターが検証とコミットを代行した。
 
-## TDDフロー
-1. brief記載の失敗テストを先に作成
-2. `uloop compile --force-recompile` でコンパイルエラー（`BlockCategoryMaster` 未定義）を確認
-3. 実装3ファイルを追加
-4. 再コンパイルで成功（0 errors/0 warnings）を確認
-5. `BlockCategoryMasterTest` 実行 → 3/3 PASS
+## 何を実装したか
 
-## 広めのテスト実行結果
-- `Tests\.(UnitTest|CombinedTest)\.` で919件実行 → 全PASS（MooresmasterLoaderException等の異常なし）
-- 個別にも `Tests\.CombinedTest\.Core\.`（171件）、`ConnectorShapeMasterTest|BlockDestructionCategoryMasterDataTest|CleanRoomMasterTest`（7件）で確認済み、全PASS
+`ClientElectricWireAutoConnectCollector.cs` を全面書き換えし、選定ロジックを `ElectricWireAutoConnectSelector`（Task 2の純粋コア）へ委譲する薄いアダプタにした。これによりサーバー/クライアント間の選定ロジック二重実装が完全に解消された。
 
-## コミット
-- `71a8814de` feat(master): BlockCategoryMasterとcategory参照バリデーションを追加
-- 含まれるファイル: brief記載3ファイル + テスト.cs/.meta + Task3由来のblockCategories.json×2の.meta（Unity自動生成分）
-- `.moorestech-external-revisions.json` の変更は無関係のバックグラウンド差分のため未コミット（意図的に除外）
+- `BuildReceivedCandidates()`: `blockDataStore.BlockGameObjectByInstanceIdDictionary` を列挙し、`ElectricWireStateChangeProcessor.CurrentPartnerIds.Count`（未所持なら0）を接続数として `ElectricWireConnectCandidate` を組み立て、あわせて InstanceId → 座標 の逆引き辞書を返す
+- `Collect()` は電柱設置か機械設置かで `SelectPoleTargets` / `SelectMachineTargets` を呼び分け、結果の InstanceId を座標へ復元して返す
+- 旧実装が持っていたクライアント独自ロジックはすべて削除:
+  - 非電気系ブロックの事前フィルタ（`TryGetWireRangeParam` による除外）→ コアのresolver判定に一本化
+  - 容量判定 `capacity <= GetPartnerCount(block)` → コア内 `capacity <= CurrentConnectionCount`
+  - 電柱/機械の振り分けと選定（`CollectPoleTargets` / `CollectMachineTargets` のクライアント版）→ コアへ
+  - 距離順→InstanceId順ソート → コアへ
+  - `EnumerateConnectableCandidates` / `GetPartnerCount` ヘルパ → 削除
 
-## 懸念
-特になし。全体テストにも異常なし。
+## 公開APIシグネチャ（不変）
 
----
-（このファイルは以前の別タスク番号「Task 4」（connectToolマスタ駆動化）のレポートを上書きしている。旧内容はコミット履歴で参照可能）
+呼び出し側 `ElectricWireAutoConnectPreview.cs` は**無変更**:
+- `Collect(BlockId blockId, Vector3Int position, BlockDirection direction, BlockGameObjectDataStore blockDataStore)` → `List<(Vector3Int TargetPos, float Distance)>`
+
+## 検証
+
+コンパイル:
+```
+uloop compile --project-path ./moorestech_client
+→ Success: true, ErrorCount: 0, WarningCount: 0
+```
+
+テスト:
+```
+uloop run-tests --project-path ./moorestech_client --filter-type regex \
+  --filter-value "ElectricWire|ElectricConnectionRange|WireContract"
+→ Test execution completed with status: Passed
+→ TestCount: 93, PassedCount: 93, FailedCount: 0, SkippedCount: 0
+```
+
+テスト側の変更は一切していない。
+
+## 変更したファイル
+
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ElectricWireAutoConnect/ClientElectricWireAutoConnectCollector.cs`（+21 / -72）
+
+コミット: `0d4851e4c` クライアント自動接続コレクタを選定コア委譲のアダプタへ書き換え
+
+## 自ブロック除外（コアの契約）
+
+クライアント側は設置プレビュー（まだ設置されていないゴースト）の候補を計算するため、`BlockGameObjectDataStore` に自ブロックは存在しない。本アダプタは受信済みブロックを列挙するだけで、この性質を壊す改変はしていない。
+
+## サーバー側との対称性
+
+Task 3のサーバーアダプタと構造が対称になっている:
+
+| | サーバー（Task 3） | クライアント（Task 4） |
+|---|---|---|
+| 列挙元 | `ServerContext.WorldBlockDatastore.BlockMasterDictionary` | `blockDataStore.BlockGameObjectByInstanceIdDictionary` |
+| 接続数の源 | `connector.WireConnections.Count` | `processor.CurrentPartnerIds.Count`（未所持なら0） |
+| 逆引き表 | InstanceId → `IElectricWireConnector` | InstanceId → `Vector3Int`（座標） |
+| 選定 | コアに委譲 | コアに委譲 |
+
+## 懸念事項
+
+- 実装subagentの停止によりTDDサイクルの実演はない。本タスクはブリーフ上もTDD指定ではなく、既存テスト93件の全PASSで後方等価を担保する設計。
+- クライアント側の選定結果を直接検証する自動テストは存在しない（プレビュー表示のためUI経路）。ロジック自体はサーバーと同一ソースを共有するようになったため、コア単体テスト9件が両側を同時に守る形になっている。

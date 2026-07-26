@@ -111,7 +111,8 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-000000000001",
       "category": "テスト",
@@ -275,8 +276,7 @@
         "poleConnectionRange": 7,
         "poleConnectionHeightRange": 5,
         "machineConnectionHeightRange": 5,
-        "maxWireConnectionCount": 8,
-        "maxWireLength": 12
+        "maxWireConnectionCount": 8
       },
       "blockGuid": "00000000-0000-0000-0000-000000000004",
       "requiredItems": [
@@ -320,8 +320,7 @@
         "poleConnectionRange": 7,
         "poleConnectionHeightRange": 5,
         "machineConnectionHeightRange": 5,
-        "maxWireConnectionCount": 8,
-        "maxWireLength": 12
+        "maxWireConnectionCount": 8
       },
       "blockGuid": "00000000-0000-0000-0000-000000000101",
       "requiredItems": [
@@ -427,7 +426,8 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-000000000005",
       "category": "テスト",
@@ -504,7 +504,8 @@
           "inputConnects": []
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-000000000006",
       "category": "テスト",
@@ -725,7 +726,8 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-000000000008",
       "category": "テスト",
@@ -826,7 +828,8 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "category": "テスト",
       "subCategory": "ElectricGenerator"
@@ -915,7 +918,8 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "category": "テスト",
       "subCategory": "ElectricGenerator"
@@ -1014,7 +1018,8 @@
           }
         ],
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "category": "テスト",
       "subCategory": "ElectricGenerator"
@@ -2536,7 +2541,8 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-000000000019",
       "category": "テスト",
@@ -2653,7 +2659,8 @@
         "outputTankCount": 0,
         "inputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
       "category": "テスト",
@@ -2770,7 +2777,8 @@
         "inputTankCount": 0,
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
       "category": "テスト",
@@ -3476,7 +3484,8 @@
         "outputTankCount": 2,
         "inputTankCount": 3,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
       "category": "テスト",
@@ -3883,7 +3892,8 @@
           "inflowConnects": []
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "category": "テスト",
       "subCategory": "ElectricPump"
@@ -3952,7 +3962,8 @@
           "idlePowerRate": 0.2
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "category": "テスト",
       "subCategory": "GearToElectricGenerator"
@@ -4459,7 +4470,8 @@
           ]
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "category": "テスト",
       "subCategory": "ElectricToGearGenerator"
@@ -4836,7 +4848,8 @@
         "filterItemGuid": "6e355e23-8e9e-46d2-9405-b0e6bb612890",
         "filterCapacity": 5000,
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockSize": [
         1,
@@ -4930,7 +4943,8 @@
           "outflowConnects": []
         },
         "maxWireConnectionCount": 2,
-        "maxWireLength": 8
+        "connectionRange": 9,
+        "connectionHeightRange": 9
       },
       "blockSize": [
         1,

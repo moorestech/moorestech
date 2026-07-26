@@ -34,7 +34,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             // 清浄機はConsumer役をワイヤー端点に渡す
             // The purifier passes the consumer role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, filterComponent, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, filterComponent, componentStates);
 
             var components = new List<IBlockComponent>
             {

@@ -20,7 +20,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
-using Client.Game.InGame.Electric;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
@@ -130,8 +129,6 @@ namespace Client.Starter
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private SkitUI skitUI;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
-        
-        [SerializeField] private DisplayEnergizedRange displayEnergizedRange;
         
         [SerializeField] private InGameCameraController inGameCameraController;
         
@@ -285,7 +282,6 @@ namespace Client.Starter
             builder.RegisterComponent(networkDisconnectPresenter);
             builder.RegisterComponent(mapObjectMiningController);
             
-            builder.RegisterComponent(displayEnergizedRange);
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(trainCarObjectDatastore);
             builder.RegisterComponent(playerInventoryViewController);
@@ -323,7 +319,6 @@ namespace Client.Starter
             _resolver = builder.Build();
             _resolver.Resolve<BlockGameObjectDataStore>();
             _resolver.Resolve<UIStateControl>();
-            _resolver.Resolve<DisplayEnergizedRange>();
             _resolver.Resolve<EntityObjectDatastore>();
             _resolver.Resolve<TrainCarObjectDatastore>();
             _resolver.Resolve<ChallengeManager>();

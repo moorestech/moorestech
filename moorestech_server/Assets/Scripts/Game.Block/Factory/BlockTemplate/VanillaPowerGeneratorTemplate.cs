@@ -35,7 +35,7 @@ namespace Game.Block.Factory.BlockTemplate
 
             // 発電機はGenerator役をワイヤー端点に渡す
             // Generator passes the generator role to the wire endpoint
-            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, param.MaxWireLength, blockInstanceId, generatorComponent, componentStates);
+            var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, generatorComponent, componentStates);
 
             var components = new List<IBlockComponent>
             {

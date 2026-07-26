@@ -67,6 +67,9 @@ public class BadExample
 ## Nullチェックに関する指針
 基本的にnullでない前提でコードを書いてください。nullチェックは外部データ（API・ユーザー入力）や非同期ロード結果（Addressable等）にのみ行い、MasterHolder等のコアコンポーネントやAwake/Start初期化済みオブジェクトなど設計上存在が保証されるものには不要
 
+## Funcの使用禁止
+
+
 ## その他の規約
 単純なgetter/setterプロパティは使用禁止、値のSetはpublic void SetHogeメソッドで行う
 [SerializeField]は_無しの小文字キャメルケース
@@ -123,11 +126,12 @@ public class MySingleton : MonoBehaviour
 # 絶対に守る指示
 コードを書き終わったら必ずコンパイルを実行する(.csファイル変更限定)
 .metaファイルは絶対に手動作成しない。Unity自動生成のため。Unity起動で作成された.metaのコミットは可
-Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）をテキストエディタや`Write`/`Edit`ツールで直接編集することは禁止。整合性が壊れるため。ただし`uloop execute-dynamic-code`によるUnity Editor経由の変更は正規ルートとして許容（Unity自身がシリアライズするため整合性が保たれる）。手で書き換える必要があるケースのみユーザーに指示すること。
+Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）をテキストエディタや`Write`/`Edit`ツールで直接編集することは禁止。整合性が壊れるため。ただし`uloop execute-dynamic-code`によるUnity Editor経由の変更は正規ルートとして許容（Unity自身がシリアライズするため整合性が保たれる）手で書き換える必要があるケースのみユーザーに指示すること
 Library/ディレクトリは絶対に削除禁止。再インポートに膨大な時間がかかるため
 try-catchは基本的に使用禁止。エラーハンドリングは条件分岐やnullチェックで対応。例外として、外部境界（外部プロセス起動、WebSocket等のネットワーク送受信、外部入力JSONのパース）の隔離目的に限り使用可。その場合は境界である根拠をコメントで明記すること
 git worktree頻用のため、最初に必ず`pwd`で現在ディレクトリを確認すること。タスク終了前に必ず全作業をコミットすること。作業消失防止
-partialは禁止。如何なる条件でもpartialを絶対に使ってはいけない。
+partialは禁止。如何なる条件でもpartialを絶対に使ってはいけない
+`Func<>`の使用は禁止。コールバックや述語を渡したくなった時点で設計を見直すサインであり、`Action`やカスタムdelegateへ置き換えるだけの非本質的な対応に逃げてはいけない。interfaceの導入、依存関係の整理、呼び出し方向の変更など本質的な設計変更を検討すること
 
 # 設計原則（実PRレビュー指摘由来・違反はレビューで必ず差し戻される）
 - **変更の波及を恐れない。** 正しい設計のためなら全JSON・全呼び出し側の一括更新を選ぶ。スキーマの`optional: true`・`?? Default`フォールバック・ローダーでの欠損補完で吸収するのは設計の敗北（PR978で全排除された）
