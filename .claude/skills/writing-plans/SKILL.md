@@ -12,10 +12,14 @@ hooks:
       hooks:
         - type: command
           command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh track"
+        - type: command
+          command: "python3 .claude/skills/moores-code-review/scripts/ledger_gate.py track"
   Stop:
     - hooks:
         - type: command
           command: "bash .claude/skills/user-simulator/scripts/sim-gate.sh stop"
+        - type: command
+          command: "python3 .claude/skills/moores-code-review/scripts/ledger_gate.py stop"
 ---
 
 # Writing Plans
@@ -63,7 +67,15 @@ specが複数の独立したサブシステムにまたがる場合、brainstorm
 
 ## Plan Document Header
 
-**すべてのplanは必ずこのヘッダーから始める:**
+**すべてのplanはファイル先頭に frontmatter で対応specパスを持つ**（ledger-gateが判断台帳の所在を特定する。必須）:
+
+```markdown
+---
+spec: docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md
+---
+```
+
+**続けて必ずこのヘッダーから始める:**
 
 ```markdown
 # [Feature Name] Implementation Plan
@@ -140,6 +152,8 @@ git add tests/path/test.py src/path/file.py
 git commit -m "feat: add specific feature"
 ```
 ````
+
+**判断台帳掲載義務（機械的下限）:** タスクの `Modify:`/`Create:` 対象が `.claude/skills/moores-code-review/lenses/*.md` の `paths` 正規表現にマッチする場合、その改修判断はspecの『## 判断記録（ADR）』への掲載が必須（級の自己判定によらない）。未掲載は ledger-gate（Stop hook）がブロックする。掲載なき判断はレビュー免責力を持たない。カバー範囲はpaths発火型レンズのみ — keywords発火型の観点はレビュー段階のsuppressed規則で捕捉される。**Files節の対象は必ずリポジトリ相対パスで書く**（裸のクラス名だけの表記はゲートの検査対象から漏れる）。
 
 ## No Placeholders
 
