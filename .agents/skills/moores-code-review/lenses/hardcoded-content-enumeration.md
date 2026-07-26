@@ -36,7 +36,7 @@ patchとcwdを読み、「どのコンテンツ（ブロック・アイテム・
 リプレース設置のファミリー判定が `BlockTypeConst` 3種のコード内列挙で実装され（`0561e2d26` の `BlockReplaceFamilyUtil.IsReplaceFamily`）、当時のレビュー系統を素通りしてユーザー指摘により `buildMenu.yml replaceFamilies` マスタ定義へ移行された（`3ad0cd5c0`）。同ディレクトリにマスタ駆動の兄弟前例 `BeltConveyorPlaceFamilyUtil` が存在していたのに参照されなかった。
 
 ## 依頼判断ガード
-起動prompt 3行目 `User prompt` をRead。「尊重すべき制約」等でコード内列挙が**ユーザーの発言として**合意済みの場合のみ抑制する。「（自分の判断として）」と明記された実装判断は合意ではなく、通常どおり指摘対象（integration-rules §6）。
+起動prompt 3行目 `User prompt` をRead。「許容するトレードオフ」「非目標」に合致する指摘は**破棄せず**、`suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて**重大度そのまま**で返す（統合側が報告の「免責で消された指摘」節に載せる）。suppressed化できるのは出所が `[ユーザー裁定: ...]` / `[ADR: ...]` の行だけ。`[agent前提]` またはラベル無しの行は免責事由にならない（通常のCritical/Warningとして返す）。
 
 ## 出力フォーマット
 Critical: あり/なし — ありなら `修正方針: - <ファイル:行>: <入れるべき既存スキーマと定義名＋走査utilの形＋Validator＋更新すべきJSON群>`
