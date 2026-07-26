@@ -12,9 +12,14 @@
 .claude/skills/moores-code-review/eval/make-fixture.sh all
 
 # 2. 決定論チェック（0トークン・まずこれだけでも回す）
+# 対応する synthetic/*-context.md があるfixtureは --context も付けて出所ラベル検査を通す
 for f in /tmp/moores-review-fixtures/*.diff; do
   echo "=== $f ==="
   python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "$f" --repo-root "$(pwd)"
+done
+for c in .claude/skills/moores-code-review/eval/synthetic/*-context.md; do
+  echo "=== $c ==="
+  python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py /dev/null --repo-root "$(pwd)" --context "$c"
 done
 
 # 3. selectorの発火確認（期待レンズが発火するか）

@@ -48,7 +48,7 @@ def main(argv: list[str]) -> int:
     context_findings: list[dict] = []
     if "--context" in argv:
         import checks_context
-        context_findings = checks_context.run(Path(argv[argv.index("--context") + 1]))
+        context_findings = checks_context.run(Path(argv[argv.index("--context") + 1]), repo_root)
     patch_text = patch_path.read_text(encoding="utf-8", errors="replace")
     files = parse_patch(patch_text)
     result = {

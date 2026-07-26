@@ -156,6 +156,7 @@ Self-Review（内容）と spec-architecture-review（構造）の後、ユー�
 - `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。specのADRをcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外しは即ハンドオフ発行。
 - spec末尾に `## 判断記録（ADR）` セクションを置き、対話中のC型ユーザー裁定（AskUserQuestion結果は全件）・B型前提宣言（適用原則名付き）・機構比較の結論を記録する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。判断をdiffやコミットメッセージに埋没させない。
 - ADRは**判断台帳**として扱う: (a) ユーザー裁定 — 発言引用またはAskUserQuestion結果・日付つき（全件） (b) agent前提 — 1行・拒否権注記つき。掲載対象は原則アーキテクチャ級/不可逆級だが、**Modify対象が moores-code-review レンズの paths にマッチする判断は級によらず掲載必須**（機械的下限。ledger-gateがブロックする）。台帳に無い判断はレビュー免責力を持たない。
+- 台帳項目は機械可読な種別を必ず含めて書く: ユーザー裁定項目は「ユーザー裁定」「AskUserQuestion」等の語＋日付、agent前提項目は「agent前提」の語を項目行に含める（checks_contextの `[ADR:]` 実解決がこの語で免責可否を判定する。agent前提項目を `[ADR:]` で参照しても免責力は付かない）。
 
 **レビュー用インフォグラフィック（任意）:**
 台帳提示が主・図解は補助。ユーザーが図解を希望した場合、またはspecが視覚化で明らかに伝わりやすい場合のみ、create-infographic-light スキル（本リポジトリでは `.claude/skills/create-infographic-light`）をspecをソース文書として呼び出し `open` する（デフォルトでは生成しない）。コメント機能の「すべてコピー」で得られるMarkdownを貼り戻せば適用できる。
