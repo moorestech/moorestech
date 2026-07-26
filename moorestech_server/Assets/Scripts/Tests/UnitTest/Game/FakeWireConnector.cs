@@ -27,7 +27,6 @@ namespace Tests.UnitTest.Game
         }
 
         public BlockInstanceId BlockInstanceId { get; }
-        public float MaxWireLength => 10f;
         public bool IsWireConnectionFull => false;
         public bool IsDestroy { get; private set; }
 

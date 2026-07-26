@@ -4,64 +4,82 @@ using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Core.Item.Interface;
-using Core.Master;
+using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
-    /// クライアント側でワイヤー接続可否を評価する。判定はサーバーと同じEvaluatorを共有する
-    /// Evaluate wire connection eligibility on the client, sharing the same server-side Evaluator
+    /// クライアント側でワイヤー接続可否を評価する。範囲相互判定と評価器はサーバーとソース共有
+    /// Evaluate wire connections on the client, sharing the mutual range check and evaluator with the server
     /// </summary>
     public static class ElectricWireExtendPreviewCalculator
     {
         /// <summary>
-        /// ブロックが電気系（ワイヤー端点）かを判定し、接続数上限と最大ワイヤー長を返す
-        /// Judge whether a block is electric (wire endpoint) and return its connection limit and max wire length
+        /// ブロックが電気系（ワイヤー端点）かを判定し、接続数上限と範囲プロファイルを返す
+        /// Judge whether a block is electric and return its connection limit and range profile
         /// </summary>
-        public static bool TryResolveWireParam(BlockGameObject block, out int maxWireConnectionCount, out float maxWireLength)
+        public static bool TryResolveWireParam(BlockGameObject block, out int maxWireConnectionCount, out ConnectionRangeProfile rangeProfile, out bool isPole)
         {
-            return TryResolveWireParam(block.BlockMasterElement, out maxWireConnectionCount, out maxWireLength);
+            return TryResolveWireParam(block.BlockMasterElement, out maxWireConnectionCount, out rangeProfile, out isPole);
         }
 
-        public static bool TryResolveWireParam(BlockMasterElement master, out int maxWireConnectionCount, out float maxWireLength)
+        public static bool TryResolveWireParam(BlockMasterElement master, out int maxWireConnectionCount, out ConnectionRangeProfile rangeProfile, out bool isPole)
         {
-            // 7種の電気系BlockParamから上限値を取り出す（非電気系はfalse）
-            // Extract limits from the 7 electric block params (non-electric returns false)
-            return ElectricWireBlockParamResolver.TryGetWireParam(master.BlockParam, out maxWireConnectionCount, out maxWireLength);
+            // 9種の電気系BlockParamから上限と範囲を取り出す（非電気系はfalse）
+            // Extract limits and ranges from the 9 electric block params (non-electric returns false)
+            return ElectricWireBlockParamResolver.TryGetWireRangeParam(master.BlockParam, out maxWireConnectionCount, out rangeProfile, out isPole);
         }
 
         /// <summary>
-        /// 既存ブロック同士の接続可否を評価する。既接続・接続上限は受信済みワイヤー状態から内部で判定する
-        /// Evaluate connecting two existing blocks; already-connected and full states are derived internally from received wire state
+        /// 既存ブロック同士の接続可否を評価する。範囲相互判定→評価器の順で判定する
+        /// Evaluate connecting two existing blocks: mutual range check first, then the evaluator
         /// </summary>
-        public static ElectricWirePlacementJudgement Evaluate(BlockGameObject source, BlockGameObject target, int sourceMaxConnectionCount, int targetMaxConnectionCount, float sourceMaxWireLength, float targetMaxWireLength, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems)
+        public static ElectricWirePlacementJudgement Evaluate(BlockGameObject source, BlockGameObject target, int sourceMaxConnectionCount, int targetMaxConnectionCount, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems)
         {
+            // 範囲相互判定に失敗したらOutOfRangeで確定する
+            // Fail fast with OutOfRange when the mutual range check does not pass
+            if (!IsMutuallyInRange(source, target)) return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.OutOfRange);
+
             var alreadyConnected = IsAlreadyConnected(source, target);
             var anyConnectionFull = IsConnectionFull(source, sourceMaxConnectionCount) || IsConnectionFull(target, targetMaxConnectionCount);
 
             return ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, sourceMaxWireLength, targetMaxWireLength,
-                alreadyConnected, anyConnectionFull,
-                connectToolGuid, inventoryItems, null);
+                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventoryItems, null);
         }
 
         /// <summary>
         /// 新設電柱への延長可否を評価する。新設側は未接続のため起点の状態のみ内部で判定する
         /// Evaluate extending to a newly placed pole; only the origin's state matters since the new pole has no connections
         /// </summary>
-        public static ElectricWirePlacementJudgement EvaluateNewPole(BlockGameObject source, int sourceMaxConnectionCount, float sourceMaxWireLength, float poleMaxWireLength, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems)
+        public static ElectricWirePlacementJudgement EvaluateNewPole(BlockGameObject source, int sourceMaxConnectionCount, ElectricPoleBlockParam poleParam, BlockPositionInfo poleGhostInfo, float distance, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems)
         {
+            // 起点と新設電柱ゴーストの範囲相互判定を行う
+            // Mutual range check between the origin and the new pole ghost
+            if (!TryResolveWireParam(source, out _, out var sourceProfile, out var sourceIsPole))
+                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.InvalidTarget);
+            if (!ElectricConnectionRangeService.IsMutuallyConnectable(source.BlockPosInfo, sourceProfile, sourceIsPole, poleGhostInfo, ConnectionRangeProfile.CreatePole(poleParam), true))
+                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.OutOfRange);
+
             var sourceFull = IsConnectionFull(source, sourceMaxConnectionCount);
 
             return ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, sourceMaxWireLength, poleMaxWireLength,
-                false, sourceFull,
-                connectToolGuid, inventoryItems, null);
+                distance, false, sourceFull, connectToolGuid, inventoryItems, null);
+        }
+
+        // 双方のプロファイルを解決して相互範囲判定にかける
+        // Resolve both profiles and run the mutual range check
+        private static bool IsMutuallyInRange(BlockGameObject blockA, BlockGameObject blockB)
+        {
+            if (!TryResolveWireParam(blockA, out _, out var profileA, out var isPoleA)) return false;
+            if (!TryResolveWireParam(blockB, out _, out var profileB, out var isPoleB)) return false;
+
+            return ElectricConnectionRangeService.IsMutuallyConnectable(blockA.BlockPosInfo, profileA, isPoleA, blockB.BlockPosInfo, profileB, isPoleB);
         }
 
         // どちらか一方の接続先集合に相手が含まれていれば接続済み

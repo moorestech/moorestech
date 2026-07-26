@@ -51,7 +51,7 @@ namespace Tests.UnitTest.Game
             // Inject fluid into the platform
             var waterFluidId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
             var addAmount = 500.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(addAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(addAmount, waterFluidId), default);
 
             Assert.IsNotNull(fluidContainerComponent.Container);
             Assert.AreEqual(addAmount, fluidContainerComponent.Container.Container.Amount, 0.001);
@@ -191,7 +191,7 @@ namespace Tests.UnitTest.Game
             // プラットフォームに液体を注入
             // Inject fluid into the platform
             var platformAmount = 300.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), default);
 
             // 列車カーを生成（既に液体が入っている）
             // Create train car already containing fluid
@@ -249,7 +249,7 @@ namespace Tests.UnitTest.Game
             // プラットフォームに水を注入
             // Inject water into the platform
             var platformAmount = 300.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), default);
 
             // 列車カーにSteamが入っている
             // Train car contains steam
@@ -303,7 +303,7 @@ namespace Tests.UnitTest.Game
 
             var waterFluidId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
             var platformAmount = 500.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), default);
 
             var entryNode = railComponents[0].FrontNode;
             var exitNode = railComponents[1].FrontNode;
@@ -373,7 +373,7 @@ namespace Tests.UnitTest.Game
             // プラットフォームに液体を注入
             // Inject fluid into the platform
             var platformAmount = 700.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(platformAmount, waterFluidId), default);
 
             // 容量制限のある列車カーを生成（既に液体が入っている）
             // Create train car with limited remaining capacity
@@ -438,7 +438,7 @@ namespace Tests.UnitTest.Game
             // プラットフォームに既存の液体を注入（容量1000のうち800）
             // Inject existing fluid into platform (800 of 1000 capacity)
             var platformExistingAmount = 800.0;
-            fluidContainerComponent.AddLiquid(new FluidStack(platformExistingAmount, waterFluidId), FluidContainer.Empty);
+            fluidContainerComponent.AddLiquid(new FluidStack(platformExistingAmount, waterFluidId), default);
 
             // 列車カーに液体を設定
             // Set fluid on train car

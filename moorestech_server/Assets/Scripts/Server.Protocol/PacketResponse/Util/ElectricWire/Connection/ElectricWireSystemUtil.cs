@@ -12,6 +12,8 @@ using Game.World.Interface.DataStore;
 using UnityEngine;
 
 using Server.Protocol.PacketResponse.Util.ConnectTool;
+using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Server.Protocol.PacketResponse.Util.ElectricWire.ConnectionRange;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
@@ -46,16 +48,32 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Connection
                 return false;
             }
 
-            // 距離・既存接続・所持アイテムを評価に渡す
-            // Feed distance, existing connection state and held items into the evaluation
+            // 双方の範囲ボックス相互判定を行う。範囲外なら接続不可
+            // Mutual range-box check between both endpoints; out of range fails
+            var datastore = ServerContext.WorldBlockDatastore;
+            var blockA = datastore.GetBlock(connectorA.BlockInstanceId);
+            var blockB = datastore.GetBlock(connectorB.BlockInstanceId);
+            if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(blockA.BlockMasterElement.BlockParam, out _, out var profileA, out var isPoleA) ||
+                !ElectricWireBlockParamResolver.TryGetWireRangeParam(blockB.BlockMasterElement.BlockParam, out _, out var profileB, out var isPoleB))
+            {
+                failureReason = ElectricWirePlacementFailureReason.InvalidTarget;
+                return false;
+            }
+            if (!ElectricConnectionRangeService.IsMutuallyConnectable(blockA.BlockPositionInfo, profileA, isPoleA, blockB.BlockPositionInfo, profileB, isPoleB))
+            {
+                failureReason = ElectricWirePlacementFailureReason.OutOfRange;
+                return false;
+            }
+
+            // 距離はコスト計算専用。既存接続・所持アイテムを評価に渡す
+            // Distance feeds cost only; pass existing connection state and held items to the evaluation
             var distance = Vector3Int.Distance(posA, posB);
             var alreadyConnected = connectorA.ContainsWireConnection(connectorB.BlockInstanceId) || connectorB.ContainsWireConnection(connectorA.BlockInstanceId);
             var anyConnectionFull = connectorA.IsWireConnectionFull || connectorB.IsWireConnectionFull;
             var inventory = ServerContext.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
 
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
-                distance, connectorA.MaxWireLength, connectorB.MaxWireLength,
-                alreadyConnected, anyConnectionFull, connectToolGuid, inventory.InventoryItems, null);
+                distance, alreadyConnected, anyConnectionFull, connectToolGuid, inventory.InventoryItems, null);
 
             if (!judgement.IsPlaceable)
             {

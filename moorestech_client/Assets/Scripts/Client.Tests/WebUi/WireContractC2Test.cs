@@ -12,7 +12,7 @@ namespace Client.Tests.WebUi
         [Test]
         public void PlacementModeMatchesFixture()
         {
-            AssertMatches(new PlacementModeDto { SelectedName = "Conveyor Belt", Height = 2, UnavailableReason = "", EnergizedRangeVisible = true }, "placement_mode.json");
+            AssertMatches(new PlacementModeDto { SelectedName = "Conveyor Belt", Height = 2, UnavailableReason = "" }, "placement_mode.json");
         }
 
         [Test]

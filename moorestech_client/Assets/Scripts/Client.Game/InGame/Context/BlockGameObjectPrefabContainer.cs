@@ -160,7 +160,7 @@ namespace Client.Game.InGame.Context
             // Determine whether the block param has an electric wire connector (delegates to the server-shared resolver)
             bool IsElectricWireConnectable(IBlockParam blockParam)
             {
-                return ElectricWireBlockParamResolver.TryGetWireParam(blockParam, out _, out _);
+                return ElectricWireBlockParamResolver.TryGetWireRangeParam(blockParam, out _, out _, out _);
             }
 
             #endregion

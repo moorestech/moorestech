@@ -1,6 +1,6 @@
 """moorestech 固有の決定論チェック。checks_static(汎用)が扱わない観点だけを持つ。
 
-partial・try-catch・200行・10ファイル・デフォルト引数・SerializeField 命名は
+partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField 命名は
 checks_static.py が包含するため、ここでは重複させない。ここが持つのは:
   confirmed  — master_default_fallback / packet_response_root
   candidate  — schema_optional_true / event_tag_sync

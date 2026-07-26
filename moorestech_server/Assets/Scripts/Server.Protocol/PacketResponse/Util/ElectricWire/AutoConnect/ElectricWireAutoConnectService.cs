@@ -27,12 +27,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
         public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
 
-            // 電柱設置か機械/発電機設置かで対象選定ロジックが異なる
-            // Target selection differs between pole placement and machine/generator placement
-            var candidates = blockMaster.BlockParam is ElectricPoleBlockParam poleParam
-                ? ElectricWireAutoConnectTargetCollector.CollectPoleTargets(poleParam, position)
-                : CollectMachineTargets(blockMaster, position, direction);
+            // 電柱/機械の振り分けは選定コアが担う
+            // The selection core dispatches pole vs machine placement
+            var candidates = ElectricWireAutoConnectTargetCollector.CollectTargets(blockMaster, ownInfo);
 
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
@@ -54,18 +53,8 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 
             #region Internal
 
-            List<(BlockInstanceId TargetId, IElectricWireConnector Connector, float Distance)> CollectMachineTargets(BlockMasterElement master, Vector3Int pos, BlockDirection dir)
-            {
-                // 自身の接続容量が0なら探索するまでもなく対象なし
-                // No point searching when this block has zero connection capacity
-                if (!ElectricWireBlockParamResolver.TryGetWireParam(master.BlockParam, out var ownCapacity, out var ownMaxWireLength) || ownCapacity <= 0)
-                    return new List<(BlockInstanceId, IElectricWireConnector, float)>();
-
-                return ElectricWireAutoConnectTargetCollector.CollectMachineTargets(master, pos, dir, ownMaxWireLength);
-            }
-
-            // 距離を満たすconnectToolをSortPriority昇順で探す
-            // Search connectTools in ascending SortPriority for one covering all target distances
+            // 必要コストを賄えるconnectToolをSortPriority昇順で探す
+            // Search connectTools in ascending SortPriority for one covering all target costs
             bool TrySelectConnectTool(List<ConnectToolMasterElement> unlockedElements, out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out Guid selectedConnectToolGuid)
             {
                 foreach (var element in unlockedElements)

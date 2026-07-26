@@ -124,11 +124,7 @@ namespace Tests.CombinedTest.Core
             // Helper to get the amount of fluid inside a pipe
             double GetPipeAmount(IBlock pipeBlock)
             {
-                var comp = pipeBlock.GetComponent<FluidPipeComponent>();
-                var field = typeof(FluidPipeComponent)
-                    .GetField("_fluidContainer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                var container = (FluidContainer)field.GetValue(comp);
-                return container.Amount;
+                return pipeBlock.GetComponent<FluidPipeComponent>().Node.Amount;
             }
 
             #endregion

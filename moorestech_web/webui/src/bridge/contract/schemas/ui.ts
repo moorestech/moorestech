@@ -30,7 +30,6 @@ export const PlacementModeDataSchema = z.object({
   selectedName: z.string(),
   height: z.number().int(),
   unavailableReason: z.string(),
-  energizedRangeVisible: z.boolean(),
 });
 export const DeleteModeDataSchema = z.object({ unavailableReason: z.string() });
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
