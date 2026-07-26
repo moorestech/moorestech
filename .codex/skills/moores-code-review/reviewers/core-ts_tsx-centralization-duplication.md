@@ -58,7 +58,7 @@ React では毎 render の軽量な派生計算 (小配列の `find` / `filter`�
 - 型設計そのものの欠陥 (discriminated union 欠落、配列再設計、optional ペア整合性) — これは schema-design reviewer の領域
 
 ## 依頼動詞優先ガード
-起動 prompt 3 行目 `User prompt : <abs-path>` を Read。依頼が「動作確認」「テスト」のみで AI patch が新規の型 / 機能を増やしていないなら Critical なし。ユーザー依頼の context (機能追加 / バグ修正 / UI 修正 / リファクタの 4 カテゴリ) で許容されるトレードオフとして重複を**合意済み** (例: 「まず動かす」「後でまとめる前提で複製」と明示) なら指摘しない。
+起動 prompt 3 行目 `User prompt : <abs-path>` を Read。依頼が「動作確認」「テスト」のみで AI patch が新規の型 / 機能を増やしていないなら Critical なし。「許容するトレードオフ」の重複許容（例: 「まず動かす」「後でまとめる前提で複製」）に合致する指摘は**破棄せず**、`suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて**重大度そのまま**で返す。suppressed化できるのは出所が `[ユーザー裁定: ...]` / `[ADR: ...]` の行だけ。`[agent前提]` またはラベル無しの行は免責事由にならない（通常のCritical/Warningとして返す）。
 
 ## 出力フォーマット
 Critical が 1 件でもあれば:

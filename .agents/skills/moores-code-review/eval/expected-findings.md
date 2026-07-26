@@ -101,3 +101,6 @@
 | 33 | リプレースファミリーのBlockTypeConst 3種コード内列挙→buildMenuマスタ定義へ（最終形=3ad0cd5c0のreplaceFamilies＋ReplaceFamilyValidator） | BlockReplaceFamilyUtil.cs:29-32 | hardcoded-content-enumeration（基準1+2。同dirマスタ駆動前例BeltConveyorPlaceFamilyUtilからの無言乖離）。precedent-alignment（fable）の設計判断出口は補助線 |
 
 注: #33はhardcoded-content-enumeration（opus）の**Critical**が最低ライン（fable依存の検知をopus側へ降ろした第1号。二値時代のリプレイでopus/sonnet 9系統が素通しした実績あり）。
+
+| 34 | 4カテゴリcontextの「許容するトレードオフ」「目指さない」行の出所ラベル欠落（散文・箇条書きとも）・カテゴリ見出し欠落・偽`[ADR:]`参照（台帳に非実在/参照先がagent前提）は confirmed（context-source-label）で検出される | synthetic/*-context.md | deterministic_checks --context（checks_context.py。LLM不要） |
+| 35 | トレードオフ合致の指摘は「指摘しない」でなく suppressed 節（`- [Critical|Warning] … / suppressed-by: <トレードオフ, 出所ラベル>`）で返る。沈黙（無出力で落とす）は失格。`[agent前提]`出所での suppressed 化も失格（通常Critical/Warningが正） | 全レンズ・reviewer共通契約 | 各観点の依頼動詞優先ガード＋integration-rules §2.6 |

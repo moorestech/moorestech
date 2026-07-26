@@ -2,7 +2,7 @@
 """moores-code-review 決定論チェック（汎用 + moorestech固有の統合版）。
 
 Usage:
-    python3 deterministic_checks.py <PATCH_PATH> [--repo-root <path>]
+    python3 deterministic_checks.py <PATCH_PATH> [--repo-root <path>] [--context <USER_PROMPT_PATH>]
 
 出力JSON:
     {
@@ -17,7 +17,8 @@ Usage:
     }
 
 confirmed は汎用(checks_static: partial・try-catch・デフォルト引数・SerializeField命名・200行・10ファイル)
-と moorestech固有(checks_moores: master_default_fallback・packet_response_root)の和。
+と moorestech固有(checks_moores: master_default_fallback・packet_response_root)、
+および --context 指定時の出所ラベル欠落(checks_context: context_source_label)の和。
 空リストは対応 verifier/レンズ裏付けを起動しない合図（0トークン）。
 """
 from __future__ import annotations
@@ -44,10 +45,14 @@ def main(argv: list[str]) -> int:
     repo_root = Path.cwd()
     if "--repo-root" in argv:
         repo_root = Path(argv[argv.index("--repo-root") + 1]).resolve()
+    context_findings: list[dict] = []
+    if "--context" in argv:
+        import checks_context
+        context_findings = checks_context.run(Path(argv[argv.index("--context") + 1]), repo_root)
     patch_text = patch_path.read_text(encoding="utf-8", errors="replace")
     files = parse_patch(patch_text)
     result = {
-        "confirmed": checks_static.run(files, repo_root) + checks_moores.run_confirmed(files),
+        "confirmed": checks_static.run(files, repo_root) + checks_moores.run_confirmed(files) + context_findings,
         "candidates": {
             "comparison_operator": checks_comparison.run(files),
             "comment_length": checks_comment_length.run(files),
