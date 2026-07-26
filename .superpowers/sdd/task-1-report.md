@@ -1,35 +1,96 @@
-# Task 1 Report: connectionRange/connectionHeightRange スキーマ追加
+# Task 1 報告: スキーマinterface化とresolver縮約
 
-## Codex delegation
+## 実施内容
 
-- Session UUID: `019f8d39-a3a9-7fa0-ae64-7d44a80d4986`
-- Delegated: blocks.yml の8機械when句への `connectionRange`/`connectionHeightRange` プロパティ追加、forUnitTest blocks.json 16エントリ更新、EditModeInPlayingTestMod blocks.json 3エントリ更新。maxWireLength削除禁止、対象3ファイル以外変更禁止、コミット禁止を明記。
-- Codex self-report: 3ファイルとも完了、maxWireLength保持、ElectricPole未変更、JSON構文チェック済み、対象ファイル以外の変更なし。
+ブリーフStep 1〜8を順に実施した。
 
-## Own verification
+1. `VanillaSchema/blocks.yml` の `defineInterface:` リストに `IElectricWireConnectParam`（`maxWireConnectionCount` / `connectionRange` / `connectionHeightRange`、各default付き）を追加。
+2. 対象8ブロック種（ElectricMachine, ElectricGenerator, ElectricMiner, ElectricPump, GearToElectricGenerator, ElectricToGearGenerator, CleanRoomAirFilter, CleanRoomMachine）の`implementationInterface:`に`IElectricWireConnectParam`を追記（ElectricPump/CleanRoomAirFilterは新設）。3キーのプロパティ定義は各caseからそのまま残置（削除していない）。ElectricPoleは触っていない。
+3. Step 3のgrep検証を実施（下記「検証」参照）。
+4. `_CompileRequester.cs` の `dummyText` を `"electric-wire-connect-param-interface"` に変更しSourceGeneratorをトリガー。
+5. `uloop compile` でエラー0を確認（生成interfaceの成立確認）。
+6. `ElectricWireBlockParamResolver.TryGetWireRangeParam` のswitchを、`ElectricPoleBlockParam` / `IElectricWireConnectParam` / `default` の3分岐へ縮約（ブリーフ記載コードをそのまま適用）。シグネチャは不変。
+7. 再度 `uloop compile` でエラー0、`uloop run-tests --filter-value "ElectricWire|ElectricConnectionRange"` で52件全PASSを確認。
+8. ブリーフ指定の3ファイルのみをstageしてコミット。
 
-1. **git diff review (full)**: 全3ファイルのdiffを目視確認。
-   - `VanillaSchema/blocks.yml`: 8箇所（ElectricMachine, ElectricGenerator, ElectricMiner, ElectricPump, GearToElectricGenerator, ElectricToGearGenerator, CleanRoomAirFilter, CleanRoomMachine）に `connectionRange: type integer default 30` / `connectionHeightRange: type integer default 20` を追加。`ElectricPole` のwhen句は無変更を確認。
-   - `forUnitTest/blocks.json`: `connectionRange: 9`/`connectionHeightRange: 9` の追加が過不足なく16件（grep -c で確認）。`maxWireLength` エントリは18件のまま維持（16+ElectricPole2件）。TestElectricPole/TestLockedElectricPoleは未変更（python検証で `connectionRange` 不在を確認）。
-   - `EditModeInPlayingTestMod/blocks.json`: `connectionRange: 30`/`connectionHeightRange: 20` を3エントリ（キャンプファイア/釜/TestElectricToGearGeneratorUI）に追加。
-2. **JSON構文検証**: `python3 -c "json.load(...)"` で両JSONファイルとも正常パース確認。`git diff --check` も0件。
-3. **SourceGenerator再生成**: `_CompileRequester.cs` の `dummyText` を更新してトリガー。
-4. **コンパイル**: `uloop compile --project-path ./moorestech_client --force-recompile true --wait-for-domain-reload true` → `Success: true, ErrorCount: 0, WarningCount: 0`。
-   - 途中 `UnityMcpSettings.json not found` エラーが発生（既知の.bak問題）。`UnityMcpSettings.json.bak` を `UnityMcpSettings.json` にコピーして復旧。
-5. **生成コード確認**: `uloop execute-dynamic-code` で `Mooresmaster.Model.BlocksModule.ElectricMachineBlockParam` の全プロパティ名をリフレクション取得し、`ConnectionRange` / `ConnectionHeightRange` が `MaxWireLength` と共存していることを実行時に確認した。
-   出力: `RequiredPower,IdlePowerRate,InputSlotCount,OutputSlotCount,InventoryConnectors,InputTankCount,OutputTankCount,InnerTankCapacity,ModuleSlotCount,FluidInventoryConnectors,MaxWireConnectionCount,MaxWireLength,ConnectionRange,ConnectionHeightRange`
-   （ファイルシステム上に生成.csファイルが存在しない＝インメモリRoslyn SourceGeneratorのため、静的grepでの確認は不可能だった。実行時リフレクションで代替検証。）
+## テストと結果（実出力）
 
-## Files changed / commit
+### Step 3 grep検証
 
-- `VanillaSchema/blocks.yml`
-- `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json`
-- `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/blocks.json`
-- `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`（SourceGenerator再生成トリガー、dummyText更新）
+```
+$ grep -c "key: connectionRange" VanillaSchema/blocks.yml
+9
+$ grep -c "key: maxWireConnectionCount" VanillaSchema/blocks.yml
+10
+$ grep -c "IElectricWireConnectParam" VanillaSchema/blocks.yml
+9
+```
 
-Commit: `5a4e46587` "feat: 機械系ブロックにconnectionRange/connectionHeightRangeスキーマを追加"
+期待値（9 / 10 / 9）と完全一致。
 
-## Issues / concerns
+### Step 5 コンパイル（スキーマ変更直後）
 
-- コミット前後で `.moorestech-external-revisions.json` が意図せず変更された（`moorestech_master` の外部リビジョンピンがUnity/uloop実行中に自動更新されたと思われる、commitHashが `b5d4454bc...` → `c80cee8ba...` に変化）。Task 1のスコープ外のためコミットに含めず、作業ツリーに未コミットのまま残置している（他タスクとの干渉は想定していないが、要注意）。
-- `UnityMcpSettings.json` が実行中に消失/欠損した（既知の環境問題、過去メモリの `uloop-mcp-settings-bak` と同一事象）。`.bak` から復元して対処済み。後続タスクでも同様の事象が起きうる。
+```json
+{
+  "Success": true,
+  "ErrorCount": 0,
+  "WarningCount": 0,
+  "Errors": [],
+  "Warnings": [],
+  "Message": null,
+  "Ver": "1.6.3"
+}
+```
+
+### Step 7 コンパイル（resolver変更後、force-recompile）
+
+```json
+{
+  "Success": true,
+  "ErrorCount": 0,
+  "WarningCount": 0,
+  "Errors": [],
+  "Warnings": [],
+  "Message": null,
+  "Ver": "1.6.3"
+}
+```
+
+### Step 7 テスト（ElectricWire|ElectricConnectionRange）
+
+```json
+{
+  "Success": true,
+  "Message": "Test execution completed with status: Passed",
+  "TestCount": 52,
+  "PassedCount": 52,
+  "FailedCount": 0,
+  "SkippedCount": 0
+}
+```
+
+52件全PASS、失敗0。
+
+## 変更ファイル
+
+- `VanillaSchema/blocks.yml`（+21行、defineInterface追加＋8ケースへのimplementationInterface追記）
+- `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`（dummyText変更）
+- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/ElectricWire/AutoConnect/ElectricWireBlockParamResolver.cs`（9分岐→3分岐）
+
+コミット: `eb837a7cf` 「電気系8ブロックにIElectricWireConnectParamを実装させresolverを3分岐へ縮約」
+
+## 自己レビュー所見
+
+- **完全性**: Step1〜8を全て実施。ElectricPoleは意図通り未変更（`sed -n`で確認、poleConnectionRange等4キー＋maxWireConnectionCount(default 8)のみ残存）。
+- **品質**: resolverの新コメントはブリーフ記載の日本語・英語2行セット（各1行）をそのまま採用。命名変更なし。
+- **規律**: ブリーフ範囲外の変更なし。3キーの削除は行っていない（ユーザー裁定通り）。
+- **検証**: grep期待値・コンパイル・テストすべて実出力で確認済み。
+
+## 環境上の注意（作業メモ、コード変更ではない）
+
+- このworktree（tree1, port 8711）は `UnityMcpSettings.json` が `.json.bak` にリネームされておりUnity CLI Loopが未起動の状態だった。`.bak`を復元せず、`uloop launch`でUnity Editorを起動し`--port 8711`を明示指定して接続した（プロジェクトpathでの自動検出はmoorestech_client/moorestech_serverの2プロジェクトが子ディレクトリにあり警告が出るため）。
+- 作業開始時点で `git status` に `.moorestech-external-revisions.json` の未staged変更が既に存在していた。これは本タスク開始前の別作業（`task-1-report.md` に残っていた旧内容、コミット`5a4e46587`「connectionRange/connectionHeightRangeスキーマ追加」）由来のものであり、本タスクの変更ではないためコミットに含めていない。旧`task-1-report.md`は本タスクの内容で上書きした。
+
+## 懸念事項
+
+- `.moorestech-external-revisions.json` の未コミット変更が作業ツリーに残ったままである（本タスク開始前から存在、本タスクの変更ではない）。後続タスク・最終レビュー時に混入しないよう注意が必要。

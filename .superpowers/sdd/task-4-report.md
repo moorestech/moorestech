@@ -1,39 +1,67 @@
-# Task 4 Report: サーバー自動接続の収集を全コネクタ列挙+相互判定へ転換
+# Task 4 報告: クライアントコレクタのアダプタ化
 
-## Execution mode
-Implemented directly (no codex delegation) — the brief already contained the exact, complete code for
-`ElectricWireAutoConnectTargetCollector.cs`, and the required edits to the other two files were small,
-mechanical, and needed close cross-referencing with existing extension-method signatures. No codex UUID.
+（注: このファイルには2026-07-23の旧タスク体系の内容が残っていたため、現行ブリーフの内容で上書きした）
 
-## Files changed
-- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/ElectricWire/AutoConnect/ElectricWireAutoConnectTargetCollector.cs` — full rewrite per brief Step 1
-- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/ElectricWire/AutoConnect/ElectricWireAutoConnectService.cs` — `EvaluateAutoConnect` now builds a `BlockPositionInfo` and calls the new collector signatures; local `CollectMachineTargets` switched from `TryGetWireParam` to `TryGetWireRangeParam`
-- `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/ElectricWire/ElectricWireExtendService.cs` — `ExecuteExtendWithOrigin` builds a `poleGhostInfo` (`BlockPositionInfo`) and passes it to `CollectPoleMachineTargets`
+**経緯**: 実装subagent（impl-task4）がファイル編集後に無応答となり、コンパイル・テスト・コミットが未実行のまま停止した（Task 3と同じ停止パターン）。編集内容はブリーフ記載のコードと完全一致していたため、オーケストレーターが検証とコミットを代行した。
 
-## Extension-method verification
-Read `ElectricWireSystemUtil.TryGetWireConnector` (`.../ElectricWire/Connection/ElectricWireSystemUtil.cs`): it resolves via `block.GetComponent<IElectricWireConnector>()` (returns null if absent), not a `TryGetComponent` pattern. I additionally read `Game.Block.Interface.Extension.BlockExtension`, which defines both `GetComponent<T>` and `TryGetComponent<T>(out T)` as extensions on `IBlock`. The brief's code already used `worldBlock.Block.TryGetComponent<IElectricWireConnector>(out var connector)`, which is a real, existing extension method — matches. One addition beyond the brief's literal snippet: the brief's `using` list omitted `Game.Block.Interface.Extension`, which is required for `TryGetComponent` to resolve; I added it to the file's usings.
+## 何を実装したか
 
-## ElectricWireExtendService.cs call-site audit
-Read the file in full. Only one `ElectricWireAutoConnectTargetCollector` call site needed updating: `CollectPoleMachineTargets` inside `ExecuteExtendWithOrigin` (previously ~line 100). `ExecuteIsolatedPlace` does not call the collector directly — it delegates to `ElectricWireAutoConnectService.EvaluateAutoConnect`, which was already updated in Step 2. The old direct-distance gate (`Mathf.Min(fromConnector.MaxWireLength, poleParam.MaxWireLength) < distance`, ~lines 79-81) was left untouched, per the brief (Task 5 scope).
+`ClientElectricWireAutoConnectCollector.cs` を全面書き換えし、選定ロジックを `ElectricWireAutoConnectSelector`（Task 2の純粋コア）へ委譲する薄いアダプタにした。これによりサーバー/クライアント間の選定ロジック二重実装が完全に解消された。
 
-## Diff review findings
-- No behavioral surprises versus the brief's supplied code — implemented essentially verbatim.
-- Confirmed `IWorldBlockDatastore.BlockMasterDictionary` (`IReadOnlyDictionary<BlockInstanceId, WorldBlockData>`) and `WorldBlockData.Block` / `.BlockPositionInfo` exist with the exact shapes the brief assumed.
-- Confirmed `BlockPositionInfo.OriginalPos`, `.MinPos`, `.MaxPos` exist (used by `ElectricConnectionRangeService.IsMutuallyConnectable`/`Covers` and by the new collector's distance calc).
-- `ElectricWireBlockParamResolver.TryGetWireParam` (the old, non-range-profile resolver) is still used elsewhere (`PlaceBlockProtocol.cs:99`) — left untouched, out of scope.
+- `BuildReceivedCandidates()`: `blockDataStore.BlockGameObjectByInstanceIdDictionary` を列挙し、`ElectricWireStateChangeProcessor.CurrentPartnerIds.Count`（未所持なら0）を接続数として `ElectricWireConnectCandidate` を組み立て、あわせて InstanceId → 座標 の逆引き辞書を返す
+- `Collect()` は電柱設置か機械設置かで `SelectPoleTargets` / `SelectMachineTargets` を呼び分け、結果の InstanceId を座標へ復元して返す
+- 旧実装が持っていたクライアント独自ロジックはすべて削除:
+  - 非電気系ブロックの事前フィルタ（`TryGetWireRangeParam` による除外）→ コアのresolver判定に一本化
+  - 容量判定 `capacity <= GetPartnerCount(block)` → コア内 `capacity <= CurrentConnectionCount`
+  - 電柱/機械の振り分けと選定（`CollectPoleTargets` / `CollectMachineTargets` のクライアント版）→ コアへ
+  - 距離順→InstanceId順ソート → コアへ
+  - `EnumerateConnectableCandidates` / `GetPartnerCount` ヘルパ → 削除
 
-## Test results
-Compile: `uloop compile --project-path ./moorestech_client` → `Success: true, ErrorCount: 0` (162 pre-existing, unrelated warnings).
+## 公開APIシグネチャ（不変）
 
-Tests: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ElectricWireAutoConnectPlaceTest"` → `Success: true, TestCount: 4, PassedCount: 4, FailedCount: 0`. No coordinate relocations were necessary — all 4 existing test scenarios already sit within the new mutual-range boxes.
+呼び出し側 `ElectricWireAutoConnectPreview.cs` は**無変更**:
+- `Collect(BlockId blockId, Vector3Int position, BlockDirection direction, BlockGameObjectDataStore blockDataStore)` → `List<(Vector3Int TargetPos, float Distance)>`
 
-One environment hiccup during test execution: `uloop run-tests` failed with "Unity CLI Loop is not installed in this project (UserSettings/UnityMcpSettings.json not found)" after a domain-reload wait; restored via `cp moorestech_client/UserSettings/UnityMcpSettings.json.bak moorestech_client/UserSettings/UnityMcpSettings.json`, then the run succeeded. No code implication.
+## 検証
 
-## Commit
-`b282135e5` — "refactor: 自動接続候補収集を全コネクタ列挙+相互範囲判定へ転換" (scoped to `moorestech_server/Assets/Scripts` only; two unrelated dirty files from other in-flight tasks, `.moorestech-external-revisions.json` and `.superpowers/sdd/task-1-report.md`, were left untouched/unstaged).
+コンパイル:
+```
+uloop compile --project-path ./moorestech_client
+→ Success: true, ErrorCount: 0, WarningCount: 0
+```
 
-## Concerns
-None blocking. Minor note: the brief's Step 1 code snippet omitted the `Game.Block.Interface.Extension` using directive needed for `TryGetComponent`; added it without altering any other logic. No other deviations from the brief.
+テスト:
+```
+uloop run-tests --project-path ./moorestech_client --filter-type regex \
+  --filter-value "ElectricWire|ElectricConnectionRange|WireContract"
+→ Test execution completed with status: Passed
+→ TestCount: 93, PassedCount: 93, FailedCount: 0, SkippedCount: 0
+```
 
----
-（このファイルは以前の別タスク番号「Task 4」（BlockCategoryMaster新設）のレポートを上書きしている。旧内容はコミット履歴で参照可能）
+テスト側の変更は一切していない。
+
+## 変更したファイル
+
+- `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/ElectricWireAutoConnect/ClientElectricWireAutoConnectCollector.cs`（+21 / -72）
+
+コミット: `0d4851e4c` クライアント自動接続コレクタを選定コア委譲のアダプタへ書き換え
+
+## 自ブロック除外（コアの契約）
+
+クライアント側は設置プレビュー（まだ設置されていないゴースト）の候補を計算するため、`BlockGameObjectDataStore` に自ブロックは存在しない。本アダプタは受信済みブロックを列挙するだけで、この性質を壊す改変はしていない。
+
+## サーバー側との対称性
+
+Task 3のサーバーアダプタと構造が対称になっている:
+
+| | サーバー（Task 3） | クライアント（Task 4） |
+|---|---|---|
+| 列挙元 | `ServerContext.WorldBlockDatastore.BlockMasterDictionary` | `blockDataStore.BlockGameObjectByInstanceIdDictionary` |
+| 接続数の源 | `connector.WireConnections.Count` | `processor.CurrentPartnerIds.Count`（未所持なら0） |
+| 逆引き表 | InstanceId → `IElectricWireConnector` | InstanceId → `Vector3Int`（座標） |
+| 選定 | コアに委譲 | コアに委譲 |
+
+## 懸念事項
+
+- 実装subagentの停止によりTDDサイクルの実演はない。本タスクはブリーフ上もTDD指定ではなく、既存テスト93件の全PASSで後方等価を担保する設計。
+- クライアント側の選定結果を直接検証する自動テストは存在しない（プレビュー表示のためUI経路）。ロジック自体はサーバーと同一ソースを共有するようになったため、コア単体テスト9件が両側を同時に守る形になっている。
