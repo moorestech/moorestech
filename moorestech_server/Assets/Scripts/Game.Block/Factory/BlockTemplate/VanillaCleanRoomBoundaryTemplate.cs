@@ -15,10 +15,9 @@ namespace Game.Block.Factory.BlockTemplate
     /// </summary>
     public class VanillaCleanRoomBoundaryTemplate : IBlockTemplate
     {
-        // パイプハッチは鉄のパイプ相当の容量・詰まり再試行で固定構成にする
-        // The pipe hatch uses fixed capacity and blocked-retry matching the iron pipe
+        // パイプハッチは鉄のパイプ相当の容量で固定構成にする
+        // The pipe hatch uses a fixed capacity matching the iron pipe
         private const float PipeHatchFluidCapacity = 100f;
-        private const int PipeHatchBlockedRetryTicks = 3;
 
         private readonly CleanRoomBoundaryKind _boundaryKind;
 
@@ -81,7 +80,7 @@ namespace Game.Block.Factory.BlockTemplate
                 // Mount the fluid pipe implementation as-is to form a fluid-passing boundary
                 var param = (CleanRoomPipeHatchBlockParam)blockMasterElement.BlockParam;
                 var connectorComponent = IFluidInventory.CreateFluidInventoryConnector(param.FluidInventoryConnectors, blockPositionInfo);
-                var pipeComponent = new FluidPipeComponent(blockPositionInfo, connectorComponent, PipeHatchFluidCapacity, PipeHatchBlockedRetryTicks, componentStates);
+                var pipeComponent = new FluidPipeComponent(blockPositionInfo, connectorComponent, PipeHatchFluidCapacity, componentStates);
 
                 components.Add(pipeComponent);
                 components.Add(connectorComponent);
