@@ -13,6 +13,7 @@ from patch_util import FileDiff
 import re
 
 PARTIAL_RE = re.compile(r"\bpartial\s+(?:class|struct|interface|record)\b")
+FUNC_RE = re.compile(r"\bFunc\s*<")
 CATCH_RE = re.compile(r"\bcatch\b\s*(?:$|[({])")
 DEFAULT_ARG_RE = re.compile(
     r"^\s*(?:\[[^\]]*\]\s*)*(?:public|private|protected|internal)\b[^=;{]*\([^)]*=[^=]"
@@ -42,6 +43,9 @@ def _added_line_rules(files: list[FileDiff]) -> list[dict]:
             if PARTIAL_RE.search(code):
                 findings.append(_finding("partial-forbidden", f.path, lineno, text,
                                          "partial は如何なる条件でも禁止 (AGENTS.md)"))
+            if FUNC_RE.search(code):
+                findings.append(_finding("func-forbidden", f.path, lineno, text,
+                                         "Func<> は禁止。Action/delegate への置換に逃げず、interface導入・依存関係の整理・呼び出し方向の変更で解決 (AGENTS.md)"))
             if CATCH_RE.search(code):
                 findings.append(_finding("try-catch-forbidden", f.path, lineno, text,
                                          "try-catch は基本禁止。条件分岐/null チェックで代替 (AGENTS.md)"))
