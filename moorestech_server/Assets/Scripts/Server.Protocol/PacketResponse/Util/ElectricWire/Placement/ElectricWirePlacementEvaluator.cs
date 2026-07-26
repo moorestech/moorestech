@@ -5,7 +5,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.EnergySystem;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
 {
@@ -15,20 +14,18 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
     /// </summary>
     public static class ElectricWirePlacementEvaluator
     {
+        /// <summary>
+        /// distanceはコスト計算専用。接続可否の範囲判定は呼び出し側がIsMutuallyConnectableで行う
+        /// distance is for cost only; range judgement is the caller's duty via IsMutuallyConnectable
+        /// </summary>
         public static ElectricWirePlacementJudgement EvaluateWireConnection(
             float distance,
-            float fromMaxWireLength,
-            float toMaxWireLength,
             bool alreadyConnected,
             bool anyConnectionFull,
             Guid connectToolGuid,
             IEnumerable<IItemStack> inventoryItems,
             IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
-            // 距離・既存接続・接続数上限を先に確認する
-            // Check distance, existing connection and capacity first
-            var maxDistance = Mathf.Min(fromMaxWireLength, toMaxWireLength);
-            if (maxDistance < distance) return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.TooFar);
             if (alreadyConnected) return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.AlreadyConnected);
             if (anyConnectionFull) return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
 

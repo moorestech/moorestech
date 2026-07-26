@@ -16,12 +16,9 @@ namespace Game.Block.Blocks.ElectricWire
 {
     public class ElectricWireConnectorComponent : IElectricWireConnector, IBlockSaveState, IPostBlockLoad, IBlockStateObservable, IGetRefundItemsInfo
     {
-        // 最大接続数と最大接続距離を保持する
-        // Hold max connection count and max connection distance
         private readonly int _maxWireConnectionCount;
 
         public BlockInstanceId BlockInstanceId { get; }
-        public float MaxWireLength { get; }
         public bool IsWireConnectionFull => _maxWireConnectionCount <= _wireConnections.Count;
 
         // このブロックが持つ電力上の役割。必ず消費・発電・送電のいずれかに紐づく
@@ -36,7 +33,7 @@ namespace Game.Block.Blocks.ElectricWire
         private readonly Subject<Unit> _onChangeBlockState = new();
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        public ElectricWireConnectorComponent(int maxWireConnectionCount, float maxWireLength, BlockInstanceId blockInstanceId, IElectricEnergyRole energyRole, Dictionary<string, string> componentStates)
+        public ElectricWireConnectorComponent(int maxWireConnectionCount, BlockInstanceId blockInstanceId, IElectricEnergyRole energyRole, Dictionary<string, string> componentStates)
         {
             // 役割なしのワイヤー端点は許容しない
             // A wire endpoint without an energy role is not allowed
@@ -45,7 +42,6 @@ namespace Game.Block.Blocks.ElectricWire
             // 基本状態を初期化する
             // Initialize base state
             _maxWireConnectionCount = maxWireConnectionCount;
-            MaxWireLength = maxWireLength;
             BlockInstanceId = blockInstanceId;
             EnergyRole = energyRole;
 

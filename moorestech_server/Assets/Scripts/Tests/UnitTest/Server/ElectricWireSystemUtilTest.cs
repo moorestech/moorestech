@@ -42,19 +42,51 @@ namespace Tests.UnitTest.Server
         }
 
         [Test]
-        public void 距離が離れすぎると接続に失敗する()
+        public void 電柱の相互範囲外だと接続に失敗する()
         {
-            // maxWireLength(12)を超える距離に電柱を置く
-            // Place poles farther apart than maxWireLength (12)
+            // poleConnectionRange(7)=±3の外（X差4）に電柱を置く
+            // Place poles outside poleConnectionRange 7 (±3): X distance 4
             var posA = Vector3Int.zero;
-            var posB = new Vector3Int(30, 0, 0);
+            var posB = new Vector3Int(4, 0, 0);
             PlaceTwoPoles(posA, posB);
             GiveWire(50);
 
             var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
 
             Assert.IsFalse(connected);
-            Assert.AreEqual(ElectricWirePlacementFailureReason.TooFar, error);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.OutOfRange, error);
+        }
+
+        [Test]
+        public void 電柱の範囲境界ちょうどは接続できる()
+        {
+            // poleConnectionRange(7)=±3の境界（X差3）は接続可能
+            // The boundary of poleConnectionRange 7 (±3), X distance 3, connects
+            var posA = Vector3Int.zero;
+            var posB = new Vector3Int(3, 0, 0);
+            var (connectorA, connectorB) = PlaceTwoPoles(posA, posB);
+            GiveWire(50);
+
+            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out _);
+
+            Assert.IsTrue(connected);
+            Assert.IsTrue(connectorA.ContainsWireConnection(connectorB.BlockInstanceId));
+        }
+
+        [Test]
+        public void 高さ範囲外の電柱同士は接続できない()
+        {
+            // 電柱は高さ3ブロック分。占有分を含めるとpoleConnectionHeightRange(5)=±2の外になるにはY差5必要
+            // The pole occupies 3 blocks tall; accounting for that, Y distance 5 is needed to exceed poleConnectionHeightRange 5 (±2)
+            var posA = Vector3Int.zero;
+            var posB = new Vector3Int(0, 5, 0);
+            PlaceTwoPoles(posA, posB);
+            GiveWire(50);
+
+            var connected = ElectricWireSystemUtil.TryConnect(posA, posB, PlayerId, ConnectToolGuid, out var error);
+
+            Assert.IsFalse(connected);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.OutOfRange, error);
         }
 
         [Test]

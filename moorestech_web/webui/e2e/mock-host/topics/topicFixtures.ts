@@ -21,7 +21,7 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.challengeTree) return fx.challengeTree;
   if (topic === Topics.challengeCurrent) return fx.challengeCurrent;
   if (topic === Topics.pauseMenu) return { disconnected: false };
-  if (topic === Topics.placementMode) return { selectedName: "", height: 0, unavailableReason: "", energizedRangeVisible: false };
+  if (topic === Topics.placementMode) return { selectedName: "", height: 0, unavailableReason: "" };
   if (topic === Topics.deleteMode) return { unavailableReason: "" };
   if (topic === Topics.crosshair) return { visible: true };
   if (topic === Topics.uiVisibility) return { visible: true };

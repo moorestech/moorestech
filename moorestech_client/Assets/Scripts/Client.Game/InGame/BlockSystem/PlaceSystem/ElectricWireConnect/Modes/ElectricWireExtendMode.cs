@@ -8,6 +8,7 @@ using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
 using Game.Block.Interface;
+using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
 
@@ -36,9 +37,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
         /// </summary>
         public bool Update(PlaceSystemUpdateContext ctx, BlockGameObject source, int toolEpoch)
         {
-            // 起点の接続上限と最大長を解決
-            // Resolve the origin's connection limit and max wire length (do nothing when it is not electric)
-            if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out var sourceMaxLength)) return false;
+            // 起点の接続上限を解決（非電気系なら何もしない）
+            // Resolve the origin's connection limit (do nothing when it is not electric)
+            if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(source, out var sourceMaxCount, out _, out _)) return false;
 
             // 選択中の電線connectToolのGuidを使う（未選択時はEmpty）
             // Use the selected wire connectTool's Guid (Empty when nothing is selected)
@@ -49,9 +50,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             // Connect mode when a different electric block is under the cursor
             if (BlockClickDetectUtil.TryGetCursorOnBlock(out var target) &&
                 target.BlockInstanceId != source.BlockInstanceId &&
-                ElectricWireExtendPreviewCalculator.TryResolveWireParam(target, out var targetMaxCount, out var targetMaxLength))
+                ElectricWireExtendPreviewCalculator.TryResolveWireParam(target, out var targetMaxCount, out _, out _))
             {
-                ConnectToTarget(target, targetMaxCount, targetMaxLength);
+                ConnectToTarget(target, targetMaxCount);
                 return false;
             }
 
@@ -61,7 +62,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
             #region Internal
 
-            void ConnectToTarget(BlockGameObject targetBlock, int targetMaxConnectionCount, float targetMaxWireLength)
+            void ConnectToTarget(BlockGameObject targetBlock, int targetMaxConnectionCount)
             {
                 _context.PreviewBlockController.SetActive(false);
 
@@ -69,7 +70,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Already-connected and connection-full judgements are delegated to the calculator
                 var toPos = targetBlock.BlockPosInfo.OriginalPos;
                 var distance = Vector3Int.Distance(fromPos, toPos);
-                var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, sourceMaxLength, targetMaxWireLength, distance, connectToolGuid, _context.Inventory);
+                var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory);
 
                 _context.WirePreview.Show(fromPos, toPos, judgement.IsPlaceable, ResolveCostCount(judgement, distance));
 
@@ -101,7 +102,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                     return false;
                 }
 
-                if (!ElectricWireExtendPreviewCalculator.TryResolveWireParam(poleMaster, out _, out var poleMaxLength))
+                if (poleMaster.BlockParam is not ElectricPoleBlockParam poleParam)
                 {
                     HidePreview();
                     return false;
@@ -121,8 +122,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Judgement for the newly placed pole is delegated to the calculator
                 // 電柱は建設コスト充足を別途判定するためワイヤー判定へはポールアイテム所持前提を渡さない
                 // Pole affordability is judged separately, so the wire judgement receives no pole-item assumption
+                // 新設電柱の仮AABBを構築して範囲相互判定込みで評価する
+                // Build the new pole's ghost AABB and evaluate including the mutual range check
+                var poleGhostInfo = new BlockPositionInfo(placeInfo.Position, BlockDirection.North, poleMaster.BlockSize);
                 var distance = Vector3Int.Distance(fromPos, placeInfo.Position);
-                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, sourceMaxLength, poleMaxLength, distance, connectToolGuid, _context.Inventory);
+                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, poleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory);
                 var placeable = placeInfo.Placeable && judgement.IsPlaceable && canAffordPole;
 
                 // ゴーストとワイヤー線を可否色で表示する

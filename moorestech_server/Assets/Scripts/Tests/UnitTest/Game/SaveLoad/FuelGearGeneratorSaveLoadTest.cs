@@ -138,7 +138,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
                     var steamStack = new FluidStack(10000d, FuelGearGeneratorTest.SteamFluidId);
-                    pipe.AddLiquid(steamStack, FluidContainer.Empty);
+                    pipe.AddLiquid(steamStack, default);
                 }
             }
             
@@ -272,7 +272,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                 {
                     var pipe = pipeBlock.GetComponent<FluidPipeComponent>();
                     var steamStack = new FluidStack(10000d, FuelGearGeneratorTest.SteamFluidId);
-                    pipe.AddLiquid(steamStack, FluidContainer.Empty);
+                    pipe.AddLiquid(steamStack, default);
                 }
             }
             

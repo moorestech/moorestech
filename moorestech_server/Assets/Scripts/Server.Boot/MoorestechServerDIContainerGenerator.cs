@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Action;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Event;
 using Game.Block.Factory;
 using Game.Block.Interface;
@@ -114,6 +115,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IWorldBlockUpdateEvent, WorldBlockUpdateEvent>();
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
+            initializerCollection.AddSingleton<FluidNetworkDatastore>();
             initializerCollection.AddSingleton<CleanRoomDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());
@@ -153,13 +155,14 @@ namespace Server.Boot
             // The concrete type serves MasterTickUpdater's rebuild; the interface serves readers. Both share one instance
             services.AddSingleton<ElectricWireNetworkDatastore>();
             services.AddSingleton<IElectricWireNetworkDatastore>(provider => provider.GetRequiredService<ElectricWireNetworkDatastore>());
-            services.AddSingleton<MaxElectricPoleMachineConnectionRange, MaxElectricPoleMachineConnectionRange>();
             services.AddSingleton<IEntitiesDatastore, EntitiesDatastore>();
             services.AddSingleton<IEntityFactory, EntityFactory>(); // TODO これを削除してContext側に加える？
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
+            services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());
+            services.AddSingleton<IFluidNetworkDatastore>(provider => provider.GetRequiredService<FluidNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<CleanRoomDatastore>());
             services.AddSingleton(railGraphDatastore);
             services.AddSingleton<IRailGraphDatastore>(railGraphDatastore);
@@ -195,10 +198,11 @@ namespace Server.Boot
             services.AddSingleton<TrainCarRidingManualCommandResolver>();
             services.AddSingleton<TrainUpdateService>();
 
-            // 電力・gearのtick更新をDIから登録する
-            // Register electric and gear tick updates through DI.
+            // 電力・gear・流体のtick更新をDIから登録する
+            // Register electric, gear and fluid tick updates through DI.
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
+            services.AddSingleton<FluidTickUpdater>();
             services.AddSingleton<MasterTickUpdater>();
             services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
 

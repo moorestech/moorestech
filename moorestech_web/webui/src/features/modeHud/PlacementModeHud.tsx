@@ -12,7 +12,6 @@ export function PlacementModeHud() {
   const title = t("Placement Mode");
   const selected = t("Selected: {name}", { name: data.selectedName });
   const height = t("Height: {height}", { height: data.height });
-  const energized = t("Energized Range");
   const unavailableColor = "red";
 
   return (
@@ -21,7 +20,6 @@ export function PlacementModeHud() {
         <Title order={2} size="h4">{title}</Title>
         <Text>{selected}</Text>
         <Text>{height}</Text>
-        {data.energizedRangeVisible && <Text>{energized}</Text>}
         {data.unavailableReason.length > 0 && <Text c={unavailableColor}>{data.unavailableReason}</Text>}
       </Stack>
     </Paper>
