@@ -44,8 +44,8 @@ hooks:
 6. **設計ドキュメントを書く** — `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` に保存しコミットする
 7. **specのセルフレビュー** — プレースホルダー・矛盾・曖昧さ・スコープを手早くインラインで確認する（下記参照）
 8. **Simulator review + 判断記録（ADR）** — user-simulator スキル（reviewモード）を呼び出す: Fable判事の予測レポートでCriticalを修正し、C型裁定・B型前提宣言を `## 判断記録（ADR）` セクションとしてspec末尾に記録する。C型質問は毎回preanswerモードを通す（確信高は前提宣言に降格）
-9. **レビュー用インフォグラフィックを生成する** — create-infographic-light スキルをspec（および執筆後のplan）に対して呼び出し `open` する。ユーザーはこれを見て視覚的にレビューし、コメントを付けられる
-10. **ユーザーが書かれたspecをレビューする** — 先へ進む前にspecファイルをレビューしてもらう
+9. **レビュー用インフォグラフィックを生成する（ユーザー希望時のみ）** — 台帳提示が主・図解は補助。ユーザーが図解を希望した場合のみ create-infographic-light スキルを呼び出し `open` する
+10. **ユーザーが判断台帳をレビューする** — 台帳をメッセージ本文に貼り、承認を得てから先へ進む（下記「ユーザーレビューゲート（台帳承認方式）」参照）
 11. **実装への移行** — writing-plans スキルを呼び出し実装計画を作成する
 
 ## プロセスフロー
@@ -70,10 +70,10 @@ digraph brainstorming {
     "User approves design?" -> "Write design doc" [label="yes"];
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Lens review + ADR\n(user-simulator)" [shape=box];
-    "Generate review infographic\n(create-infographic-light)" [shape=box];
+    "Generate review infographic\n(optional, on user request)" [shape=box];
     "Spec self-review\n(fix inline)" -> "Lens review + ADR\n(user-simulator)";
-    "Lens review + ADR\n(user-simulator)" -> "Generate review infographic\n(create-infographic-light)";
-    "Generate review infographic\n(create-infographic-light)" -> "User reviews spec?";
+    "Lens review + ADR\n(user-simulator)" -> "Generate review infographic\n(optional, on user request)";
+    "Generate review infographic\n(optional, on user request)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
     "User reviews spec?" -> "Invoke writing-plans skill" [label="approved"];
 }
@@ -151,20 +151,24 @@ spec文書を書いた後、新鮮な目で見直す：
 問題はすべてインラインで修正する。再レビューは不要 — 修正したら次に進む。
 
 **Simulator Review + 判断記録（ADR）（必須）:**
-Self-Review（内容）と spec-architecture-review（構造）の後、インフォグラフィック生成の**前**に user-simulator スキルを実行する（reviewモード）:
+Self-Review（内容）と spec-architecture-review（構造）の後、ユーザーレビューゲートの**前**に user-simulator スキルを実行する（reviewモード）:
 
 - `user-simulator/modes/review/protocol.md` に従いFable判事を起動し、予測レポート（元々の想定/適用済み指摘/要裁定/見なかった領域）を受けてCriticalをインライン修正、要裁定はpreanswerを通してAskUserQuestionへ。specのADRをcontextに含め、裁定済み事項を蒸し返させない。実行結果の採点を misses.md に記録し、外しは即ハンドオフ発行。
 - spec末尾に `## 判断記録（ADR）` セクションを置き、対話中のC型ユーザー裁定（AskUserQuestion結果は全件）・B型前提宣言（適用原則名付き）・機構比較の結論を記録する。シミュレーター予測を承認させた裁定は出所「シミュレーター予測→ユーザー承認」と書く。判断をdiffやコミットメッセージに埋没させない。
+- ADRは**判断台帳**として扱う: (a) ユーザー裁定 — 発言引用またはAskUserQuestion結果・日付つき（全件） (b) agent前提 — 1行・拒否権注記つき。掲載対象は原則アーキテクチャ級/不可逆級だが、**Modify対象が moores-code-review レンズの paths にマッチする判断は級によらず掲載必須**（機械的下限。ledger-gateがブロックする）。台帳に無い判断はレビュー免責力を持たない。
 
-**レビュー用インフォグラフィック（必須）:**
-specレビューのループが通ったら、create-infographic-light スキル（本リポジトリでは `.claude/skills/create-infographic-light`）をspecをソース文書として呼び出し、生成されたHTMLを `open` する。ユーザーはインフォグラフィックを通じてspecをレビューし、コメント機能でコメントを付けられる（「すべてコピー」で得られるMarkdownを貼り戻せば適用できる）。writing-plans完了後の実装計画についても同様に行う。
+**レビュー用インフォグラフィック（任意）:**
+台帳提示が主・図解は補助。ユーザーが図解を希望した場合、またはspecが視覚化で明らかに伝わりやすい場合のみ、create-infographic-light スキル（本リポジトリでは `.claude/skills/create-infographic-light`）をspecをソース文書として呼び出し `open` する（デフォルトでは生成しない）。コメント機能の「すべてコピー」で得られるMarkdownを貼り戻せば適用できる。
 
-**ユーザーレビューゲート:**
-specレビューのループが通ったら、先へ進む前に書かれたspecをレビューしてもらう：
+**ユーザーレビューゲート（台帳承認方式）:**
+specレビューのループが通ったら、**判断台帳をメッセージ本文に直接貼って**レビューを依頼する。spec本文はパスのみ示す（全文読了を承認の前提にしない）:
 
-> 「specを `<path>` に書いてコミットしました。実装計画を書き始める前に、内容を確認して変更したい点があれば教えてください。」
+> 「specを `<path>` に書いてコミットしました。**あなたの承認対象は以下の判断台帳です**（spec本文は読みたい場合のみ）。
+> **ユーザー裁定済み**: <各1行>
+> **agent前提（1行・拒否権つき — 黙認しても免責力は持ちません）**: <各1行>
+> 問題なければ先へ進みます。」
 
-ユーザーの返答を待つ。変更を要求されたら反映し、specレビューのループを再実行する。ユーザーが承認して初めて先へ進む。
+「ok」の形式的意味は**台帳項目の承認**に限定される。spec本文にのみ書かれ台帳に無い判断は、承認後もagent前提のまま残る。ユーザーの返答を待ち、拒否・変更要求があれば反映してspecレビューのループを再実行する。ユーザーが承認して初めて先へ進む。
 
 **実装:**
 
