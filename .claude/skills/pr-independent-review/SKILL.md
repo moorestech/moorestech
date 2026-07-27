@@ -34,9 +34,10 @@ description: |
 
 ## Step 1: PR取得
 
-`gh pr view <番号> --repo moorestech/moorestech --json number,title,body,baseRefName,headRefName,additions,deletions,files,state,mergeCommit`
+`gh pr view <番号> --repo moorestech/moorestech --json number,title,body,baseRefName,headRefName,headRefOid,additions,deletions,files,state,mergeCommit`
 で取得。失敗（未認証・不存在）は即エラー終了し理由を報告する。黙って縮退しない。
 `state` と `mergeCommit` は次節の `BASE_REF` 確定に必須なので、必ずこの1回で一緒に取る。
+`headRefOid` はStep 2末尾のcheckout整合確認に使うので同時に取る（後から取り直さない）。
 
 ## Step 1.5: BASE_REF の確定（base参照はここで一度だけ決める）
 
@@ -47,6 +48,12 @@ description: |
   - **`state=OPEN`** → `BASE_REF = origin/<baseRefName>`
   - **`state=MERGED`** → `BASE_REF = <mergeCommit>^1`（マージコミットの第1親）
   - `state=CLOSED`（未マージclose）は独立レビューの対象外。即エラー終了する
+- **`<mergeCommit>` はSHA文字列ではない（本スキル全体の共通規約・ここで一度だけ定義する）**:
+  `gh pr view --json mergeCommit` は `{"oid":"<40桁SHA>"}` という**オブジェクト**を返す。
+  以降のStep（Step 2のフォールバックcheckout・`fetch origin <mergeCommit>`・エラー処理節を含む）で
+  `<mergeCommit>` と書いてある箇所は**すべて `.mergeCommit.oid` の値（40桁SHA）に展開して使う**。
+  オブジェクトのまま（`map[oid:...]` や `{"oid":...}`）をコマンドへ渡すと `unknown revision` で落ちる。
+  `--jq '.mergeCommit.oid'` で取り出すのが確実
 - **マージ済みPRで `origin/<baseRefName>` を使ってはいけない**: マージ済みHEADは `origin/<baseRefName>` の祖先に
   なるため三点diffのmerge-baseがHEAD自身と一致し、**patchが空・新規性ゲートが全空JSON・どちらもexit 0**という
   沈黙故障になる。verdictが「Critical 0・新形0 → 自動マージ可」に化けて見逃し率実測が壊れる（PR #1041で実測）
@@ -64,7 +71,10 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
   （`$CANON` は冒頭で決めた実値に展開して渡す。`~/moorestech` 決め打ちは禁止 — `$CANON` が別worktreeのケースが現に存在する）
 - 毎回リセット: `git -C ~/moorestech-worktrees/pr-review reset --hard && git -C ~/moorestech-worktrees/pr-review clean -fd`
 - base最新化: `git -C ~/moorestech-worktrees/pr-review fetch origin <baseRefName>`
-  （MERGEDでも実行する。`<mergeCommit>` とその第1親をローカルへ持ってくるため）
+  （MERGEDでも実行する。`<mergeCommit>` とその第1親をローカルへ持ってくるため。
+  本節以降の `<mergeCommit>` はすべてStep 1.5の規約どおり `.mergeCommit.oid` の40桁SHAへ展開して書く）。
+  **このfetchの失敗ではエラー終了しない** — マージ後にbaseブランチが削除されているとremote refが無く落ちるが、
+  下の「BASE_REF の解決確認」のフォールバック（`fetch origin <mergeCommit>`）で回収できるため、そこまで進んで判定する
 - checkout（`state` で分岐）:
   - **OPEN**: `cd ~/moorestech-worktrees/pr-review && gh pr checkout <番号> --detach`
     （--detach必須: PRブランチは実装worktreeが保持していることが多くブランチロックで失敗する。
@@ -74,12 +84,18 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
         git -C ~/moorestech-worktrees/pr-review fetch origin pull/<番号>/head && \
           git -C ~/moorestech-worktrees/pr-review checkout --detach FETCH_HEAD
 
-    それも失敗する場合は `<mergeCommit>` 自体をcheckoutする（`git -C ~/moorestech-worktrees/pr-review checkout --detach <mergeCommit>`）。
+    それも失敗する場合は `<mergeCommit>` 自体をcheckoutする（`git -C ~/moorestech-worktrees/pr-review checkout --detach <mergeCommit>`。
+    `<mergeCommit>` はStep 1.5の規約どおり `.mergeCommit.oid` のSHA）。
     差分は `BASE_REF`＝`<mergeCommit>^1` との比較なので、PRの変更集合としては同じものが取れる
 - **BASE_REF の解決確認（ここで必ず行う）**: `git -C ~/moorestech-worktrees/pr-review rev-parse --verify "<BASE_REF>^{commit}"`
   が成功することを確かめる。MERGEDで `<mergeCommit>` がローカルに無くて失敗した場合のみ
-  `git -C ~/moorestech-worktrees/pr-review fetch origin <mergeCommit>` を挟んで再確認する。
+  `git -C ~/moorestech-worktrees/pr-review fetch origin <mergeCommit>`（同じく `.mergeCommit.oid` のSHA）を挟んで再確認する。
   それでも解決できなければ即エラー終了（不正・未解決のbaseのまま先へ進まない）
+- **checkout整合の確認（ここで必ず行う）**: `git -C ~/moorestech-worktrees/pr-review rev-parse HEAD` の出力が
+  Step 1で取った `headRefOid` と一致することを確かめる。一致すればPRのhead実体をレビューしている。
+  第3フォールバック（`<mergeCommit>` 自体をcheckoutした経路）では一致しない — その場合は先へ進んでよいが、
+  **`records/pr-<番号>.md` の `- checkout:` 行に「headRefOid不一致・mergeCommit検査」と明記する**
+  （マージ結果ツリーを見ているのであってhead実体ではない、と後から分かるようにするため）
 
 ## Step 3: patch生成（exclude方式）
 
@@ -265,6 +281,8 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       - PRタイトル: <PRタイトル>
       - BASE_REF: <実値>
       - 実施日: YYYY-MM-DD
+      - checkout: <headRefOid一致|headRefOid不一致・mergeCommit検査>
+      - 縮退: <なし（5系統フル実行）|<縮退内容。例: codex不在>|スタブ（Step 6未実行）>
 
       ## 新形
       <新形フラグ1件1行（系統名・ファイル:行・要点）>
@@ -276,7 +294,9 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       <1件1行（ファイル:行・指摘要点・suppressed-by出所）>
 
 - シャドー台帳 `$CANON/.claude/skills/pr-independent-review/records/shadow-ledger.md` に1行追記:
-  `| 日付 | PR番号 | verdict | 新形数 | suppressed数 | あなたの実判断（空欄） | 一致（空欄） |`
+  `| 日付 | PR番号 | verdict | 新形数 | suppressed数 | 縮退 | あなたの実判断（空欄） | 一致（空欄） |`
+  - `縮退` 列は records の `- 縮退:` と同じ値（`なし（5系統フル実行）` / 縮退内容 / `スタブ`）。
+    verdictを額面どおり見逃し率へ数えてよいかがこの列だけで判別できるようにするため、空欄にしない
 - 正典treeでの記録類のコミットはユーザーに委ねる（独立セッションは正典treeへ書き込むが勝手にcommitしない）
 
 ## verdict判定規則
@@ -294,6 +314,11 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 ## エラー処理
 
 - gh未認証・PR不存在・checkout失敗（MERGED分岐のフォールバックも尽きた場合）: 即エラー終了・理由報告
+- `git fetch origin <baseRefName>` の失敗（MERGED後にbaseブランチが削除されている等でremote refが無い場合）:
+  これ単独ではエラー終了しない。Step 2末尾の **BASE_REF解決確認**まで進み、そこで失敗したら
+  同節のフォールバック `git -C ~/moorestech-worktrees/pr-review fetch origin <mergeCommit>`
+  （`.mergeCommit.oid` のSHA）で `BASE_REF`＝`<mergeCommit>^1` を取り寄せて継続する。
+  そのフォールバックでも解決できなければ即エラー終了
 - `state=CLOSED`（未マージclose）・`BASE_REF` が解決できない: 即エラー終了・理由報告（Step 1.5 / Step 2参照）
 - patchが空（`grep -c '^diff'` が0）: 即エラー終了・理由報告（Step 3参照）。空patchのまま後続Stepへ進まない
 - 新規性ゲートの非ゼロexit: 即エラー終了・理由報告（Step 5参照）
