@@ -1,0 +1,1 @@
+{"idx":23,"predictions":[{"header":"ツールの定義","predicted_label":"buildMenu.yml に buildTools 配列を新設（推奨）","rationale":"裁定「新yaml禁止・既存ドメインスキーマのトップレベル配列として統合（blockCategories→buildMenu統合, ConnectToolMaster同型ラッパー）」に完全一致し、buildMenu.ymlには既にbuildMenuCategories/connectToolsのトップレベル配列前例がある。コード内固定GUIDは「権威ソース外の置き場新設」で却下される側。","confidence":"高"}]}

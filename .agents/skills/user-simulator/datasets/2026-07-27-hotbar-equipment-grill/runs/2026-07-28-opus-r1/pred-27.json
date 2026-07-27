@@ -1,0 +1,1 @@
+{"idx":27,"predictions":[{"header":"plan分割","predicted_label":"3本に分け、まずAだけ書く","rationale":"ユーザー自ら「まずID/キーの仕組みを策定したほうが良い」と土台先行を要求済みで、過去5featureの初回plan1本のみの前例とも一致（scope-resolution観点4の『P2以降はどこに書いてある？』通り後続扱いの明記は要求される見込み）","confidence":"中"}]}

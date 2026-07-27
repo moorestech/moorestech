@@ -17,8 +17,12 @@ misses.mdに記録する。発動はuser-simulator本体のモード判定表か
 
 ### 2. 質問・実回答ペアの抽出と盲検タスク生成
 
+出力先は使い捨てのscratchpadではなく、**永続データセットdir** `<このスキルdir>/datasets/<YYYY-MM-DD>-<slug>/` を作ってそこに置く
+（tasks/とgold.jsonは凍結データセットとして以後変更しない）:
+
 ```bash
-python3 <このスキルdir>/modes/shadow/scripts/extract_tasks.py <transcript.jsonl> <出力dir(scratchpad推奨)>
+python3 <このスキルdir>/modes/shadow/scripts/extract_tasks.py <transcript.jsonl> <データセットdir>
+mkdir <データセットdir>/tasks && mv <データセットdir>/task-*.md <データセットdir>/tasks/
 ```
 
 - AskUserQuestionのtool_useとtool_resultを突き合わせ、`task-XX.md`（元タスク文＋**その質問より前の**Q&A履歴＋今回の質問と選択肢）と`gold.json`（実回答）を生成する
@@ -48,10 +52,35 @@ python3 <このスキルdir>/modes/shadow/scripts/score.py <出力dir>
 - 確信度別の校正（高/中/低それぞれの的中率）を出す。Phase2昇格（確信高の自動回答）判断の根拠になる
 - 自由回答・枠破り（質問の前提自体への逆提案）は自動判定できないので目視で確定する
 
-### 5. 記録と還流
+### 5. 永続化（機械学習的に再チェック可能な形で格納・CRITICAL）
 
-- misses.mdに1行で記録: 的中率・ベースライン比・逸脱問的中数・確信校正・学び（初回実証行の書式に倣う）
+採点結果の要約だけ残して素材を捨てると、後から振り返れず再評価もできない（初期のmisses.md行形式の失敗）。
+データセットdirに以下を必ず封入する。**参照ではなくコピー封入**（scratchpad・task出力・transcriptは数日で消える。
+リポジトリ内ファイルはgitが持つのでHEAD記録で足りる）:
+
+```
+datasets/<YYYY-MM-DD>-<slug>/
+  README.md              # 数行: 経緯・予測と実測サマリ・学び・再チェック手順
+  tasks/task-XX.md       # 盲検入力（凍結）
+  gold.json              # 実回答ラベル（凍結）
+  runs/<日付-ラベル>/     # 実行1回分: pred-XX.json + gold.json + score.txt。再チェックごとに増える
+  transcripts/*.jsonl    # 匿名化済みセッションログ全量（本体＋圧縮継続。sedで /Users/<name>→/Users/USER・メール置換）
+  HEAD.txt               # セッションが見ていたリポジトリ状態（コミット範囲・worktree・期間）
+  dirty.patch            # セッション中に未コミットの参照物があった場合のみ（git diff HEAD）
+```
+
+- misses.mdには1行だけ記録: 的中率・ベースライン比・逸脱問的中数・確信校正・学び＋**データセットdirへのリンク**
+  （misses.mdはインデックス兼スコアボード。実体・考古学はデータセットdirが持つ）
 - 外れが特定領域に偏っていたら、improveハンドオフを発行して知識ベースへ逸脱パターンを追記する
+
+### 6. 再チェック（回帰評価）
+
+知識ベース改善後、凍結済みデータセットに対して再予測して改善を測る:
+
+1. `tasks/` の各taskを手順3の型で盲検再予測（実回答遮断は同じ）
+2. `runs/<新日付-ラベル>/` に pred-XX.json と gold.json を置き `score.py` で採点
+3. 旧runと比較（exact・ベースライン比・逸脱問的中・確信校正）。改善指標は「ベースライン超え」「逸脱問1問以上的中」
+4. 比較結果をmisses.mdに1行追記（同一データセットの再評価であることを明記）
 
 ## 昇格ラダー（このスキルが支える運用）
 

@@ -1,0 +1,1 @@
+{"idx":16,"predictions":[{"header":"トピック分割","predicted_label":"装備はinventory、ホットバーは新トピック（推奨）","rationale":"「プロトコルは1ドメイン1本」＝ドメイン境界でトピックを切る流儀に合致し、装備は既に選んだ独立IOpenableInventory＝player slotsでinventoryトピックの器に収まる。ただしbuildMenuトピック（entryType/entryKeyで設置対象を配信済み）が既存のため、adjudications「新規の器を増やさず既存ドメインに統合」の流儀から『新トピックでなくbuildMenuに入れれば？』と其他回答になる筋も残る","confidence":"中"}]}
