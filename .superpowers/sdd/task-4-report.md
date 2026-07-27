@@ -258,3 +258,43 @@ verdict判定規則には「設計判断: あり」という第3の分類があ�
 | `.claude/skills/pr-independent-review/records/pr-1041.md` | Step 8 md版サマリ（スタブ明記） |
 | `.claude/skills/pr-independent-review/records/shadow-ledger.md` | Step 8 台帳1行追記 |
 | `/Users/katsumi/moorestech-worktrees/pr-review` | レビューworktree（新規作成・PR #1041 のheadをdetachedで保持） |
+
+---
+
+# 追記: 本報告のSKILL.mdへの反映（fix subagent・2026-07-27）
+
+コミット `010cc3e5ae49e73fb762f524ec44bc1df1c42798`（変更は `.claude/skills/pr-independent-review/SKILL.md` のみ・301行）。
+
+## A（致命度高・沈黙故障連鎖）の反映
+
+| 所見 | 反映内容 |
+|---|---|
+| A-1 / 推奨1 | **Step 1.5「BASE_REF の確定」を新設**。`gh pr view` のjsonに `state,mergeCommit` を追加し、`OPEN → origin/<baseRefName>` / `MERGED → <mergeCommit>^1` / `CLOSED → 即エラー終了` で分岐。マージ済みで `origin/<base>` を使うと何が起きるか（三点diffのmerge-baseがHEAD自身・PR #1041実測）を根拠つきで明記 |
+| A-1 | **Step 2にMERGED分岐**を追加。`fatal: couldn't find remote ref` / exit 128 のケースで `git -C <wt> fetch origin pull/<番号>/head && git -C <wt> checkout --detach FETCH_HEAD`、それも失敗すれば `<mergeCommit>` 自体をcheckout。さらにStep 2末尾に **BASE_REF解決確認**（`rev-parse --verify "<BASE_REF>^{commit}"`・未取得なら `fetch origin <mergeCommit>` 後に再確認・それでも駄目なら即エラー終了）を追加 |
+| A-2 / 推奨2 | **Step 3に必須ガード**を追加。`grep -c '^diff' <patch>` が1以上を成功条件とし、0なら「base指定ミスまたは取得失敗」で即エラー終了。`git diff` がこの場合もexit 0を返すため**このgrepが唯一の検知点**である旨を明記 |
+| A-3 / 推奨3 | **Step 5に空出力ガード**を追加。patch非空なのに `new_edges`/`asmdef_refs`/`grammar` 全空なら、(1)第2引数がBASE_REF実値か (2)`merge-base <BASE_REF> HEAD` がHEADと一致しないか、の2点を確認してから継続。確認前に「新形0件」と断ずるのを禁止 |
+| 推奨4 / B | Step 3・Step 5・Step 6（codexテンプレ）のベタ書き `origin/<baseRefName>` を**全て `BASE_REF` 参照へ統一**。`grep 'origin/<baseRefName>'` の残存は「使ってはいけない」旨の注意書き文脈のみ |
+
+`エラー処理` 節にも CLOSED / BASE_REF未解決 / patch空 / 3系統全空 の4行を追加し、各Stepのガードと索引が一致するようにした。
+
+## C〜Gの反映
+
+- **C**: Step 3の見出しを「成功条件＝patch非空（必須ガード・省略禁止）」として明文化（上表A-2と同一箇所）
+- **D**: Step 2冒頭に「`git -C` 形式か `cd` を同一コマンド内に含める。agent実行系はbash呼び出し間でcwdがリセットされる」を追記。`gh pr checkout` は `-C` にできない事情も併記。base最新化も `git -C <wt> fetch origin <baseRefName>` へ書き換え
+- **E**: Step 7に「suppressed 0件でもセクション見出しは残し、中身は『該当なし（0件）』の1行（カードは作らない）」を追記
+- **F**: Step 7に「設計判断カードは `badge-new` のclassを流用し表示文言のみ『設計判断』とする。テンプレ側にclassを追加する改変はしない」を追記
+- **G**: Step 8に `records/pr-<番号>.md` の固定書式を規定（`# PR <番号> 独立レビュー` 見出し＋`verdict`/`PRタイトル`/`BASE_REF`/`実施日` の4行＋`## 新形`／`## 裁定`／`## suppressed` の3セクション。0件セクションも省略しない）
+
+## Task 3レビューのnit 3件
+
+- codex-audit-template参照を `$CANON/.claude/skills/moores-code-review/scripts/codex-audit-template.md`（実値の絶対パスへ展開してRead）へ修正
+- 「冒頭2行を差し替え」→「**2行目**（『レビュー対象は、このセッションで私が作業した成果物だけです。』の行）を差し替え。1行目の役割宣言行はそのまま使う」へ修正
+- comment-convention-guardの理由付けを「**修正適用が無いため最終diff＝Step 3のpatchであり、Step 6冒頭のdetchecks出力がそのまま最終値**になる。よって `deterministic_checks.py` の再実行はしない」へ修正
+
+## 検証（fresh視点での全文通読）
+
+- `BASE_REF` の一本道: Step 1（`state`/`mergeCommit` 取得）→ Step 1.5（定義）→ Step 2（分岐checkout＋解決確認）→ Step 3（diff＋非空ガード）→ Step 5（gate＋全空ガード）→ Step 6（codexテンプレ）。途中で別名・別値に化ける箇所なし
+- `grep -o 'Step [0-9.]*'` の全参照先が実在見出しか本体スキル（`本体Step N` と明示）に解決。未定義参照なし
+- base参照の残存ベタ書きなし（`origin/master` の1件はレビューworktree初回作成のbootstrap refで、PRのbaseとは無関係）
+- 既存記述との矛盾なし。`$CANON` と同じく `BASE_REF` も「ドキュメント上のプレースホルダでありシェル変数ではない」と明記して展開忘れ事故を予防
+- Step 4・Step 6本体・Step 7の既存規約は今回の変更で意味が変わっていないことを確認
