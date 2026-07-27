@@ -79,15 +79,18 @@ description: |
 - アクセントの青グラデ（`--recipe-action-background`）は**主要アクションボタン限定**。装飾や面には使わない。
 - 面は必ず半透明。不透明100%の面は作らない（世界が透けるのが前提のため）。
 - `index.css` の `--text-muted` は従属テキスト、`--text-insufficient` は不足/警告、`--gauge-track` はゲージの溝、`--gauge-fill` はゲージの充填に使う。
+- **選択・強調のシアンは `--select-cyan`（`rgb(0 221 255)`、uGUI `frame_select.png` / `nav_arrow.png` 由来）。** 用途はスロット選択枠とスキットの送り待ちマーカー・選択肢ホバー/押下に限る。青グラデ（`--recipe-action-background`）とは別語彙であり、面の常時装飾には使わない。
 - 機能側への色ハードコードは引き続き禁止し、これらの色も必ずトークン経由で参照する。
 
 ## 6. 装飾
 
 - **UI装飾の画像アセット化は禁止。** 枠・罫線・文字・グリップ等はCSS/DOM/インラインSVGで再現する。（例外はテスト用モックの世界背景のみ）
-- 装飾語彙は既存の3つに限る:
+- 装飾語彙は以下の5つに限る:
   1. 両端フェードする水平罫線（タイトル上下の2本線）
   2. 下向き三角の底面テクスチャ（default パネル下部）
   3. 右下三角グリップ（craft パネル）
+  4. 両端の菱形マーカー（uGUI `btn__select_*.png` 由来。**スキット選択肢限定**・§8.12）
+  5. シアンの下向きシェブロン=送り待ちマーカー（uGUI `nav_arrow.png` 由来。**スキット会話窓限定**・§8.12。光彩は付けない）
 - 新しい装飾モチーフ（光彩、パーティクル、角丸カード、ドロップシャドウの多用等）を増やさない。
 - 装飾アニメーションは基本入れない。トランジションを入れる場合もe2eが同期検証できること（モーダルは duration 0）。
 
@@ -167,9 +170,68 @@ description: |
 - **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`（§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
 - グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。
 
+## 8.12 スキット会話UI
+
+- **見た目の正はUnityのスキットUI**（`SkitUI.uxml`/`SkitUI.uss` と `MainGameUI.prefab` の `BackgroundText`）。
+  Web はそれをCSS/DOM/インラインSVGで再現する。PNGアセットの移植は §6 のとおり禁止。
+- **配置は `.stage` 内の絶対配置**（前例: HotbarPanel）。UnityのPanelSettingsは画面幅比例拡縮のため、
+  Portal直下の固定pxでは解像度で崩れる。stage内なら1280基準の固定長トークンがそのまま設計単位になる。
+  1920設計px から stage px への換算は一律 2/3。`position: fixed` は stage の transform で包含ブロックが
+  変わり混乱するため使わず、`position: absolute` で統一する。
+
+### 通常スキット（blocking）
+
+- **会話窓は `GamePanel variant="skit"`**。画面下部・**全幅ブリード**の帯（高さ `--skit-window-height`）で、
+  面は `--skit-window-face`、**上端のみ** `--skit-window-top-fade`（固定長）で世界へ縦フェードする。
+  左右・下端はフェードせず、タイトル罫線・下向き三角・右下グリップは持たない。角丸・外枠は付けない。
+- 中身は縦に「話者名 → `FadeRule` → 本文 → 送り待ちマーカー」。話者名・本文とも `--text-high-contrast`。
+  階層は合成boldでなく**フォントサイズ差**（話者名 `--skit-speaker-font-size` > 本文 `--skit-body-font-size`）で作る（§7）。
+- 文字が上端フェード帯に載らないよう、窓の縁に `--skit-window-edge-safe-area` の安全余白を確保する（§2の安全帯前例と同族）。
+- 区切り罫線は §6 装飾語彙1 そのもの。専用CSSを書かず `FadeRule` を使い、幅だけ `--skit-rule-inset` で絞る。
+- 送り待ちマーカーは本文右下のインラインSVG下向きシェブロン（§6 装飾語彙5）。色は `--select-cyan`。光彩・点滅は付けない。
+- **選択肢は会話窓の上・右寄せで下から積み上げる。** 各行は固定寸法（`--skit-choice-width` × `--skit-choice-height`）の
+  板で、面は `--gauge-track`、左右 `--skit-choice-edge-fade` の水平フェードマスク、上下に `--bevel-c1` の1px線、
+  両端に `--bevel-c2` の菱形マーカー（§6 装飾語彙4・インラインSVG・`aria-hidden`）、ラベルは板の中央。
+  ホバーは線と菱形を `--select-cyan` へ、押下は面を `--gauge-track` と `--select-cyan` の混色
+  （混色比 `--skit-choice-active-mix`、ModeSwitch の selected-mix 前例に倣う）へ切り替える。新しい色相は足さない。
+  ラベルは板に収まるよう本文より一段小さい `--skit-choice-font-size`。
+  （Unity実機は板とラベルの位置が未整合の未完成状態のため、「固定寸法の板＋中央ラベル」という意図を正とする）
+- **ツールボタン（Auto / Skip / UI非表示）は画面右上に横並びの、面を持たないアイコンボタン**とする
+  （`PanelCloseButton` と同族の様式）。アイコンはインラインSVG、既定不透明度は `--skit-tool-icon-opacity`。
+  Auto の on/off は同一SVGの `data-enabled` による色切替で表し、アイコン自体を差し替えない。
+  テキストラベルのボタンにはしない。
+- Unity にある Log ボタンは本体機能が未配線（`SkitUITools.cs`）のため Web では出さない。
+- **UI非表示からの復帰ボタンは Web 専用に置いてよい。** Unity は Escape キーで復帰するが、CEF は
+  スキット中にキー入力主権を持たないため。面を持たない浮遊アイコンとし、ツールボタンと同じ右上に置く。
+
+### 背景スキット（background）
+
+- **面も枠も持たない。** 画面下部中央に「話者名 : 本文」の1行を中央揃えで置くだけ
+  （正本 `BackgroundText` と同じ）。文字色は `--text-high-contrast`、サイズ（`--skit-background-font-size`）と
+  下端距離（`--skit-background-bottom`）は固定長トークン。
+- 会話ボックス・カード・角丸は作らない。
+- **`pointer-events: none` を必ず維持する。** 背景スキットはゲームプレイ中に出るため、
+  面が入力を捕まえると採掘・設置が死ぬ（`isPointerOverWebUi` の判定対象になるため）。
+
+### トランジション（暗転）
+
+- **§1「画面全体を不透明な面で塗り潰す禁止」の唯一の例外とする。** web モード中は Unity が
+  自前のスキットUIを丸ごと無効化する（`SkitManager` の `skitUI.SetActive(!webUiMode)`）ため、
+  Web が描かないと暗転演出が消えるため。
+- 全画面の不透明黒（`--skit-transition-face`）・`pointer-events: none`・**会話窓より上**（正本 uxml でも Transition は Root の後）に置く。
+  レターボックス帯も覆うため stage ではなく Portal に置き、z層は `--z-skit-transition`。
+- フェード時間は契約に無いので即時切替とする（duration を契約へ足す場合は別裁定）。
+
+### 共通
+
+- 色・寸法・z層はすべて `index.css` のトークン経由。`--z-skit`（stage内の層序）と `--z-skit-transition` を定義し、
+  フォールバック付きの未定義トークン参照（`var(--z-skit, 500)` 等）はしない。
+- stage は独自スタッキングコンテキストのため、Portal側の `ModalHost`(`--z-modal`) / `ToastHost`(`--z-toast`) は
+  常にスキットより上に来る。スキット中にモーダルは出ない想定であり、これを許容する。
+
 ## 9. やらないことリスト（再掲・明示）
 
-- 全画面UI・不透明な面での塗り潰し
+- 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）
 - Mantine標準テーマ剥き出しの見た目
 - UI装飾のための画像アセット追加
 - GamePanel 以外のパネル背景 / shared/ui 以外のスロット表現

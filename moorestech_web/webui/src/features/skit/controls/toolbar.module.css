@@ -1,0 +1,60 @@
+/* ツールボタンは画面右上に並ぶ面を持たない浮遊アイコン（PanelCloseButton同族） */
+/* Tool buttons are faceless floating icons in the screen's top-right, from the PanelCloseButton family */
+.toolbar {
+  position: absolute;
+  top: var(--skit-toolbar-inset-top);
+  right: var(--skit-toolbar-inset-right);
+  display: flex;
+  gap: var(--skit-tool-gap);
+  pointer-events: auto;
+}
+
+.toolButton {
+  display: grid;
+  width: var(--skit-tool-button-size);
+  height: var(--skit-tool-button-size);
+  padding: 0;
+  color: var(--text-default);
+  opacity: var(--skit-tool-icon-opacity);
+  cursor: pointer;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  place-items: center;
+}
+
+.toolButton svg {
+  width: calc(var(--skit-tool-button-size) * 0.6);
+  height: calc(var(--skit-tool-button-size) * 0.6);
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.toolButton:hover,
+.toolButton:focus-visible {
+  color: var(--text-high-contrast);
+  opacity: 1;
+}
+
+.toolButton:focus-visible {
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}
+
+/* 自動送りONだけシアンで灯す。アイコン自体は差し替えない */
+/* Only auto-advance ON lights up cyan; the icon itself is never swapped */
+.toolButton[data-enabled="true"] {
+  color: var(--select-cyan);
+  opacity: 1;
+}
+
+/* 無効時は従属テキストへ減衰させ、ホバーの持ち上げも打ち消す */
+/* Disabled buttons fade to secondary text and cancel the hover lift */
+.toolButton:disabled {
+  color: var(--text-muted);
+  cursor: default;
+  opacity: var(--skit-tool-icon-opacity);
+}

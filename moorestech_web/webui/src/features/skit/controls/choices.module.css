@@ -1,0 +1,89 @@
+/* 選択肢は会話窓の上・右端で下から積み上げる */
+/* Choices stack upward just above the window, aligned to its right edge */
+.choices {
+  position: absolute;
+  right: var(--skit-choices-right-inset);
+  bottom: calc(var(--skit-window-height) + var(--skit-choice-gap));
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--skit-choice-gap);
+  pointer-events: auto;
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: var(--skit-choice-width);
+  height: var(--skit-choice-height);
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-high-contrast);
+  font: inherit;
+  font-size: var(--skit-choice-font-size);
+  cursor: pointer;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+/* 板の面は::beforeが描き、左右だけ水平フェードで世界へ溶かす */
+/* ::before draws the plate face and fades only its left and right ends into the world */
+.choice::before {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border-top: 1px solid var(--bevel-c1);
+  border-bottom: 1px solid var(--bevel-c1);
+  background: var(--gauge-track);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--skit-choice-edge-fade), #000 calc(100% - var(--skit-choice-edge-fade)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--skit-choice-edge-fade), #000 calc(100% - var(--skit-choice-edge-fade)), transparent 100%);
+  content: "";
+}
+
+/* 菱形マーカーはフェード帯の上に載るため、面とは別要素として全不透明で描く */
+/* The diamond markers overlap the fade band, so they draw at full opacity as elements separate from the face */
+.choice svg {
+  position: absolute;
+  width: calc(var(--skit-choice-height) / 3);
+  height: calc(var(--skit-choice-height) / 3);
+  fill: none;
+  stroke: var(--bevel-c2);
+  stroke-width: 1.2;
+}
+
+.choice svg:first-of-type {
+  left: 0;
+}
+
+.choice svg:last-of-type {
+  right: 0;
+}
+
+/* ラベルは両端の菱形を避けた幅で板の中央へ置く */
+/* The label centers on the plate within a width that clears the diamonds at both ends */
+.choiceLabel {
+  position: relative;
+  max-width: calc(100% - var(--skit-choice-height));
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ホバー/フォーカスは線と菱形をシアンへ、押下は面をシアン寄りへ寄せる。新しい色相は足さない */
+/* Hover/focus turns the rules and diamonds cyan and pressing pushes the face toward cyan; no new hues */
+.choice:hover::before,
+.choice:focus-visible::before {
+  border-top-color: var(--select-cyan);
+  border-bottom-color: var(--select-cyan);
+}
+
+.choice:hover svg,
+.choice:focus-visible svg {
+  stroke: var(--select-cyan);
+}
+
+.choice:active::before {
+  background: color-mix(in srgb, var(--gauge-track), var(--select-cyan) var(--skit-choice-active-mix));
+}
