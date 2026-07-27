@@ -15,13 +15,17 @@
   overflow: visible;
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 45%));
 }
-/* 溝と充填はGaugeBarと同じゲージ2トーン。矢印だからといって別色を起こさない */
-/* Track and fill reuse GaugeBar's gauge tone pair; being an arrow is no reason for a new hue */
+/* 溝はGaugeBarと同じ--gauge-track。空の器であることが他のゲージと同じトーンで読める */
+/* The track reuses GaugeBar's --gauge-track so an empty vessel reads in the same tone as every other gauge */
 .craftArrowTrack {
   fill: var(--gauge-track);
 }
+/* 充填だけは--gauge-fillでなく正本の白を引き継ぐ。uGUI正本の白矢印がクラフト完了状態の見た目そのものであり、
+   value=1で正本と完全一致させるため（ユーザー裁定・webui-design §8.12） */
+/* The fill keeps the reference white instead of --gauge-fill: uGUI's white arrow *is* the completed-craft look,
+   so value=1 must match the reference exactly (user ruling, webui-design §8.12) */
 .craftArrowFill {
-  fill: var(--gauge-fill);
+  fill: var(--color-content-primary);
 }
 /* 輪郭は塗りを持たず、溝でも充填でも矢印の形が読めるようにする */
 /* The outline carries no fill so the silhouette stays readable over both track and fill */

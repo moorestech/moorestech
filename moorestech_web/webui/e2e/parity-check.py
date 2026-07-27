@@ -165,7 +165,12 @@ def main() -> int:
     check_bbox("key-hints", bbox_of(zone_mask(im.min(axis=2) > 170, 0, 1620, 1000, 1830)))
     check_bbox("hotbar-ring", bbox_of(zone_mask((B > 150) & (G > 120) & (B > R + 30), 950, 1680, 1180, 1844)))
     check_bbox("scroll-knob", bbox_of(zone_mask(im.min(axis=2) > 150, 3060, 400, 3140, 1400)))
-    check_bbox("craft-arrow-time", bbox_of(zone_mask(im.min(axis=2) > 190, 1520, 510, 1790, 660)))
+    # 明ピクセル(=クラフト時間の文字と充填済みの矢印)とシアン(=矢印の輪郭)の和で矢印+時間の外接を測る。
+    # 時間の文言・数値は§3.2で採点対象外のため、両者を分離せず外接1個で位置だけを拘束する
+    # Union of bright pixels (the craft-time text and any filled arrow) and cyan (the arrow outline). The time
+    # string itself is excluded from scoring by §3.2, so the two stay merged into one bbox constraining position
+    arrow_zone = zone_mask((im.min(axis=2) > 190) | ((B > 150) & (B > R + 30)), 1520, 510, 1790, 660)
+    check_bbox("craft-arrow-time", bbox_of(arrow_zone))
 
     ok_count = sum(1 for _, ok, _ in results if ok)
     print(f"\n== {ok_count}/{len(results)} checks passed ==")
