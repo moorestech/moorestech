@@ -1,0 +1,123 @@
+/* CEF は常時表示の透明オーバーレイのため body は完全透過（dim は App の screen バックドロップが担う） */
+/* The body is fully transparent since CEF is an always-on overlay; dimming is done by App's screen backdrop */
+/* Mantine のグローバル body 背景（--mantine-color-body）を import 順で上書きする */
+/* Overrides Mantine's global body background (--mantine-color-body) via import order */
+:root {
+  --slot-size: 3rem;
+  /* 面の左右フェード幅。%指定はパネル幅で伸びるため固定長で統一 */
+  /* Horizontal face-fade span; fixed length so it never scales with panel width */
+  --panel-edge-fade: 12px;
+  --font-ui: "MooresUI", "MooresUI JP", sans-serif;
+  /* 画面レイヤーの層序を一元化し、各オーバーレイの前後関係を固定する */
+  /* Centralize the screen layer order to keep every overlay's stacking relationship fixed */
+  --z-screen: 20;
+  --z-overlay-panel: 30;
+  --z-grab: 40;
+  --z-modal: 200;
+  --z-toast: 300;
+  --z-reconnect: 2000;
+  --text-default: #eee;
+  --text-high-contrast: #fff;
+  /* 従属テキストには通常テキストより抑えた寒色グレーを使う */
+  /* Use a subdued cool gray for secondary text */
+  --text-muted: #a6a7ab;
+  /* 不足や警告を示す文字には共通の赤を使う */
+  /* Use the shared red for insufficient or warning text */
+  --text-insufficient: #ff6b6b;
+  --color-content-primary: #f2f3f7;
+  --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
+  /* 常駐チャレンジHUDの配置と文字階層は世界背景に左右されない固定長で揃える */
+  /* Keep the resident challenge HUD's placement and type hierarchy at fixed lengths independent of the world backdrop */
+  --challenge-hud-left: 24px;
+  --challenge-hud-top: 24px;
+  --challenge-hud-width: 288px;
+  --challenge-hud-label-font-size: 12px;
+  --challenge-hud-objective-font-size: 17px;
+  --challenge-hud-label-rule-gap: 5px;
+  --challenge-hud-rule-list-gap: 8px;
+  --challenge-hud-objective-gap: 5px;
+  --challenge-hud-letter-spacing: 1px;
+  --challenge-hud-objective-line-height: 25px;
+  --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+  /* ゲージの溝は世界が透ける半透明ネイビー面にする */
+  /* Use a translucent navy face for gauge tracks so the world remains visible */
+  --gauge-track: rgb(10 14 27 / 80%);
+  /* ゲージの充填は主要アクションと競合しない寒色グレーにする */
+  /* Use a cool gray for gauge fills so they do not compete with primary actions */
+  --gauge-fill: rgb(104 106 120);
+  /* ゲージの器は寒色リングが判別できる最小幅で縁取る */
+  /* Outline gauge vessels with the minimum visible width for a cool ring */
+  --gauge-outline-width: 1px;
+  /* ブロックパネルの下向き三角と内容を分離する安全帯を確保する */
+  /* Reserves a safe area between block-panel content and the downward triangle */
+  --block-panel-bottom-safe-area: 58px;
+  /* 内容量で幅が決まる小型ブロックパネルの右余白を左インデントと対称にする */
+  /* Mirrors the left inset on content-sized block panels so the right edge gets equal padding */
+  --block-panel-right-safe-area: 28px;
+  /* 建設メニュー: サイドバー幅・プレビュー高・フェード帯と内容の安全余白（固定長。%は破綻源） */
+  /* Construction menu: sidebar width, preview height, and edge safe area (fixed length; % is a failure source) */
+  --build-menu-sidebar-width: 8.5rem;
+  --build-menu-preview-height: calc(var(--slot-size) + 8px);
+  --build-menu-edge-safe-area: 16px;
+  /* ワールドピンHUDの層。パネル面より下に置き、開いたパネルの背後に隠れる */
+  /* World-pin HUD layer; kept below panel faces so open panels cover it */
+  --z-world-pin: 10;
+  /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
+  /* World-pin label and marker faces share the translucent navy family */
+  --world-pin-face: rgb(10 14 27 / 80%);
+  /* 画面外矢印は旧シェブロンの2倍幅にし、チュートリアル誘導として見落としにくくする */
+  /* Double the old chevron size so the off-screen tutorial cue is hard to miss */
+  --world-pin-arrow-size: 56px;
+  /* 明るい矢印を世界背景から分離する最小限の影 */
+  /* Minimal shadow separating the bright arrow from the world background */
+  --world-pin-arrow-shadow: rgb(0 0 0 / 65%);
+  /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
+  /* Clamp off-screen arrows this fixed length inside the screen edge */
+  --world-pin-edge-margin: 40px;
+  /* モード選択肢を独立したボタンとして見せる間隔を確保する */
+  /* Separates mode options so each reads as an independent button */
+  --mode-switch-gap: 4px;
+  /* モード選択肢の文字が縦につぶれない余白を確保する */
+  /* Preserves vertical breathing room around mode option labels */
+  --mode-switch-padding-block: 5px;
+  /* 横並びのモード選択肢をコンパクトに保つ */
+  /* Keeps horizontally arranged mode options compact */
+  --mode-switch-padding-inline: 0.6rem;
+  /* 選択中の寒色面を非選択面より一段明るくする */
+  /* Makes the selected cool face one step brighter than unselected faces */
+  --mode-switch-selected-mix: 30%;
+  /* 進捗矢印の既定幅を共有トークンで管理する */
+  /* Controls the default progress-arrow width through a shared token */
+  --progress-arrow-width: 4rem;
+  /* 進捗矢印の既定高を共有トークンで管理する */
+  /* Controls the default progress-arrow height through a shared token */
+  --progress-arrow-height: 0.75rem;
+  /* クラフト矢印の輪郭。溝と充填のどちらでも矢印の形が読めるシアン */
+  /* Craft-arrow outline; a cyan that keeps the arrow silhouette readable over both track and fill */
+  --craft-arrow-outline: rgb(79 224 244 / 70%);
+  /* クラフト矢印の描画寸法（正本の白矢印から引き継いだ固定長） */
+  /* Craft-arrow render size, carried over as fixed lengths from the reference white arrow */
+  --craft-arrow-width: 53.622px;
+  --craft-arrow-height: 30.53px;
+  /* 行のcenter揃えに対する矢印の上寄せ量。正本の矢印位置を保つ固定長 */
+  /* Upward nudge against the row's center alignment; a fixed length that holds the reference arrow position */
+  --craft-arrow-offset-y: -12.218px;
+  /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
+  /* Research node card face and border, matching the GamePanel navy family */
+  --research-node-face: rgb(10 14 27 / 80%);
+  --research-node-border: rgb(104 106 120);
+  /* 通知行の面と枠（研究ノードカードと同族の半透明ネイビー+寒色枠） */
+  /* Notification row face and border, same navy-family face and cool border as research node cards */
+  --notification-face: rgb(10 14 27 / 80%);
+  --notification-border: rgb(104 106 120);
+  /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
+  /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
+  --notification-max-width: 20vw;
+  /* 選択・強調のシアン（uGUI frame_select.png / nav_arrow.png 由来）。スロット選択枠とスキットの強調に限る */
+  /* Selection cyan from uGUI frame_select.png / nav_arrow.png; limited to slot selection frames and skit highlights */
+  --select-cyan: rgb(0 221 255);
+  /* 面を持たない共通アイコンボタンの既定寸法。用途ごとに局所上書きする */
+  /* Default size of the shared faceless icon button; each use overrides it locally */
+  --icon-button-size: calc(var(--slot-size) / 2);
+  --icon-button-icon-size: calc(var(--slot-size) / 3);
+}
