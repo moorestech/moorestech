@@ -28,7 +28,6 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.deleteMode) return { unavailableReason: "" };
   if (topic === Topics.crosshair) return { visible: true };
   if (topic === Topics.uiVisibility) return { visible: true };
-  if (topic === Topics.miningHud) return { visible: false, targetName: "", mining: false, progress: 0 };
   if (topic === Topics.tooltip) return { visible: false, textKey: "", fontSize: 14 };
   if (topic === Topics.gameState) return state.gameState;
   if (topic === Topics.tutorialPresentation) return fx.tutorialPresentation;

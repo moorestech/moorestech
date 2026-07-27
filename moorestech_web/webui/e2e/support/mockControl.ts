@@ -50,6 +50,11 @@ export async function setTopicScenario(page: Page, scenario: TopicScenario) {
   if (!response.ok()) throw new Error(`topic control failed: ${response.status()}`);
 }
 
+export async function setMiningProgress(page: Page, progress: number) {
+  const response = await page.request.get(`/__topic-control?scenario=mining&progress=${progress}`);
+  if (!response.ok()) throw new Error(`mining progress control failed: ${response.status()}`);
+}
+
 export async function injectTopicSnapshot(page: Page, scenario: TopicScenario, revision: number, progress: number) {
   const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&progress=${progress}`);
   if (!response.ok()) throw new Error(`topic snapshot control failed: ${response.status()}`);

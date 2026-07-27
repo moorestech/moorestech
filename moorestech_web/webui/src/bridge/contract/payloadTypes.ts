@@ -55,7 +55,6 @@ import type {
   DeleteModeDataSchema,
   CrosshairDataSchema,
   UiVisibilityDataSchema,
-  MiningHudDataSchema,
   TooltipDataSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
@@ -85,7 +84,6 @@ export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
 export type DeleteModeData = z.infer<typeof DeleteModeDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
 export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
-export type MiningHudData = z.infer<typeof MiningHudDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
