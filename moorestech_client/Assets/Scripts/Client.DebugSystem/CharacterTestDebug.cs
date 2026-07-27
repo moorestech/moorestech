@@ -9,6 +9,7 @@ using Game.MapGeneration.Transfer;
 using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
 using UnityEngine;
@@ -46,7 +47,7 @@ namespace Client.DebugSystem
                 var challenges = new List<ChallengeCategoryResponse>();
                 var playedSkitIds = new List<string>();
                 var researchNodeStates = new Dictionary<Guid, ResearchNodeState>();
-                var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero), new List<GetMapDataProtocol.MapObjectLayoutMessagePack>(), new List<GetMapDataProtocol.VeinLayoutMessagePack>(), TerrainTransferMeta.CreateWithoutWorldDirectory());
+                var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero), new List<MapObjectLayoutMessagePack>(), new List<VeinLayoutMessagePack>(), TerrainTransferMeta.CreateWithoutWorldDirectory(), string.Empty);
 
                 var responses = (
                     mapObjects,

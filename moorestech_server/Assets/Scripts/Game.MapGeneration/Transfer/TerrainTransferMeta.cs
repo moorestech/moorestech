@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Provisioning;
+using Game.Paths;
 
 namespace Game.MapGeneration.Transfer
 {
@@ -31,6 +32,11 @@ namespace Game.MapGeneration.Transfer
         // Tile order composing the logical stream: a square grid of side sqrt(TileCount), scanned row (z) then column (x)
         public static List<(int TileX, int TileZ)> EnumerateTileCoordinates(int terrainTileCount)
         {
+            // 0以下は完全平方判定を素通りしてチャンク0本のワイヤ値になる。地形を持つ前提の呼び出しなので例外にする
+            // Non-positive counts slip past the square check and yield a zero-chunk wire value; callers assume terrain exists
+            if (terrainTileCount <= 0)
+                throw new InvalidOperationException($"Terrain tile count must be positive, but was {terrainTileCount}.");
+
             // 正方格子でないタイル数は並び順が定義できない。推測で補正せず例外にする
             // A non-square tile count has no defined ordering; throw instead of guessing a correction
             var tilesPerSide = (int)Math.Round(Math.Sqrt(terrainTileCount));
@@ -42,6 +48,17 @@ namespace Game.MapGeneration.Transfer
             for (var tileX = 0; tileX < tilesPerSide; tileX++)
                 tileCoordinates.Add((tileX, tileZ));
             return tileCoordinates;
+        }
+
+        // 論理ストリームを構成するファイルの並び。タイル順にheight→biomeを交互に並べる
+        // File order composing the logical stream: per tile, height then biome, interleaved
+        public static IEnumerable<string> EnumerateStreamFilePaths(WorldDataDirectory worldDataDirectory, int terrainTileCount)
+        {
+            foreach (var tile in EnumerateTileCoordinates(terrainTileCount))
+            {
+                yield return worldDataDirectory.TerrainHeightFilePath(tile.TileX, tile.TileZ);
+                yield return worldDataDirectory.TerrainBiomeFilePath(tile.TileX, tile.TileZ);
+            }
         }
 
         // ワールドディレクトリを持たない構成(テスト・クライアント単体デバッグ)用。地形もワールド同一性も存在しない

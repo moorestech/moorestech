@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // va:mapData Layoutをリクエストしてレスポンスを取得
             // Request va:mapData Layout and obtain the response
-            var request = new RequestMapDataMessagePack(MapDataMode.Layout);
+            var request = RequestMapDataMessagePack.CreateLayoutRequest();
             var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null))[0];
             var response = MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
 
@@ -185,7 +185,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             };
             var (packet, _) = new MoorestechServerDIContainerGenerator().Create(options);
 
-            var request = new RequestMapDataMessagePack(MapDataMode.Layout);
+            var request = RequestMapDataMessagePack.CreateLayoutRequest();
             var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null))[0];
             return MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
         }

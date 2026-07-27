@@ -75,7 +75,7 @@ namespace Client.Network.API
         // Fetch the map layout (spawn/mapObjects/mapVeins) during the handshake
         public async UniTask<GetMapDataProtocol.ResponseMapDataMessagePack> GetMapData(CancellationToken ct)
         {
-            var request = new GetMapDataProtocol.RequestMapDataMessagePack(GetMapDataProtocol.MapDataMode.Layout);
+            var request = GetMapDataProtocol.RequestMapDataMessagePack.CreateLayoutRequest();
             return await _packetExchangeManager.GetPacketResponse<GetMapDataProtocol.ResponseMapDataMessagePack>(request, ct);
         }
 

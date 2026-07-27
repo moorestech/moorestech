@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
@@ -62,6 +63,31 @@ namespace Tests.UnitTest.Game.MapGeneration
             var tileCoordinates = TerrainTransferMeta.EnumerateTileCoordinates(4);
 
             Assert.AreEqual(new[] { (0, 0), (1, 0), (0, 1), (1, 1) }, tileCoordinates);
+        }
+
+        [Test]
+        public void 論理ストリームのファイル列はタイル順にheightとbiomeを交互に並べる()
+        {
+            // この並びがチャンク境界の定義そのもの。取り違えても総バイト数は変わらないためここで固定する
+            // This order defines the chunk boundaries; a swap keeps the byte total identical, so pin it here
+            var expectedFilePaths = new[]
+            {
+                _worldDataDirectory.TerrainHeightFilePath(0, 0), _worldDataDirectory.TerrainBiomeFilePath(0, 0),
+                _worldDataDirectory.TerrainHeightFilePath(1, 0), _worldDataDirectory.TerrainBiomeFilePath(1, 0),
+                _worldDataDirectory.TerrainHeightFilePath(0, 1), _worldDataDirectory.TerrainBiomeFilePath(0, 1),
+                _worldDataDirectory.TerrainHeightFilePath(1, 1), _worldDataDirectory.TerrainBiomeFilePath(1, 1),
+            };
+
+            Assert.AreEqual(expectedFilePaths, TerrainTransferMeta.EnumerateStreamFilePaths(_worldDataDirectory, 4).ToArray());
+        }
+
+        [Test]
+        public void タイル数が0以下ならチャンク総数0を返さず例外を投げる()
+        {
+            // 0は完全平方数なので格子ガードを素通りする。無言でチャンク0本のワイヤ値を返させない
+            // Zero is a perfect square and slips past the grid guard; never let it silently yield a zero-chunk wire value
+            Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.EnumerateTileCoordinates(0));
+            Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.EnumerateTileCoordinates(-1));
         }
     }
 }
