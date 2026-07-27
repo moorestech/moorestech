@@ -96,6 +96,21 @@ def test_grammar_elements_detected(repo: Path):
     assert "schema_change" in kinds
 
 
+def test_new_file_under_datastore_directory_is_flagged(repo: Path):
+    # ファイル名にdatastoreを含まなくてもDataStoreディレクトリ配下の新規.csは新設扱い（PR実測の正しい挙動）
+    # A new .cs under a DataStore directory counts even when its file name lacks "datastore"
+    store_dir = repo / "Server.Core" / "DataStore"
+    store_dir.mkdir(parents=True)
+    (store_dir / "FooService.cs").write_text(
+        "namespace Server.Core.DataStore { class FooService {} }\n"
+    )
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "datastore dir file")
+    result = _run(repo)
+    stores = [g for g in result["grammar"] if g["kind"] == "new_datastore_file"]
+    assert [g["file"] for g in stores] == ["Server.Core/DataStore/FooService.cs"]
+
+
 def test_asmdef_reference_addition_detected(repo: Path):
     # asmdefはdiff行ではなくbase/HEADのJSONを読んで references の集合差を取る
     # asmdef refs come from the JSON at base vs HEAD, not from diff lines

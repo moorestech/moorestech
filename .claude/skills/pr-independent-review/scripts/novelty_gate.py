@@ -37,8 +37,8 @@ GENERIC_DIR_RES = [
 REPO_NS_RES = re.compile(r"^(Game|Core|Client|Server|Mooresmaster)\b")
 
 USING_RE = re.compile(r"^\s*using\s+([A-Za-z_][A-Za-z0-9_.]*)\s*;")
-# DataStore新設判定はパスのファイル名部分にのみ当てる（親ディレクトリ名での巻き込みを避ける）
-# New-DataStore detection matches the file name only, not parent directories
+# DataStore新設判定はパス全体に当てる（DataStoreディレクトリ配下の新規ファイルも対象）
+# New-DataStore detection matches the whole path, so files under a DataStore directory count too
 DATASTORE_FILE_RE = re.compile(r"datastore", re.I)
 GRAMMAR_RES = [
     ("interface", re.compile(r"\binterface\s+I[A-Z]")),
@@ -133,7 +133,7 @@ def collect_file_level_grammar(added, new_files):
             if "/Protocol/" in path:
                 seen_files.add(path)
                 findings.append({"file": path, "line": None, "kind": "new_protocol_file", "detail": "プロトコル新設"})
-            elif DATASTORE_FILE_RE.search(PurePosixPath(path).name):
+            elif DATASTORE_FILE_RE.search(path):
                 seen_files.add(path)
                 findings.append({"file": path, "line": None, "kind": "new_datastore_file", "detail": "DataStore新設"})
     return findings
