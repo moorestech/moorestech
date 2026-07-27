@@ -52,13 +52,12 @@ function EdgeArrow({ pin, width, height }: { pin: WorldPin; width: number; heigh
     <div className={styles.arrow} data-testid={`world-pin-arrow-${pin.pinId}`}
       style={{ left, top, transform: `translate(-50%, -50%) rotate(${angle}deg)` }}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M8 4 L18 12 L8 20" />
+        <path d="M2 8 H13 V3 L22 12 L13 21 V16 H2 Z" />
       </svg>
     </div>
   );
 }
 
-const FALLBACK_EDGE_MARGIN_PX = 28;
 let cachedEdgeMargin: number | null = null;
 
 // クランプ計算はJSで行うため、固定長トークンをCSS変数から読み取り単一の値源を保つ
@@ -68,7 +67,10 @@ let cachedEdgeMargin: number | null = null;
 function readEdgeMargin(): number {
   if (cachedEdgeMargin !== null) return cachedEdgeMargin;
   const raw = getComputedStyle(document.documentElement).getPropertyValue("--world-pin-edge-margin");
-  const value = Number.parseFloat(raw);
-  cachedEdgeMargin = Number.isNaN(value) ? FALLBACK_EDGE_MARGIN_PX : value;
+  const parsedMargin = Number.parseFloat(raw);
+  if (!Number.isFinite(parsedMargin) || parsedMargin <= 0) {
+    throw new Error("--world-pin-edge-margin must be a positive CSS length");
+  }
+  cachedEdgeMargin = parsedMargin;
   return cachedEdgeMargin;
 }

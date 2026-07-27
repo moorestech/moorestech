@@ -70,9 +70,15 @@
   /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
   /* World-pin label and marker faces share the translucent navy family */
   --world-pin-face: rgb(10 14 27 / 80%);
+  /* 画面外矢印は旧シェブロンの2倍幅にし、チュートリアル誘導として見落としにくくする */
+  /* Double the old chevron size so the off-screen tutorial cue is hard to miss */
+  --world-pin-arrow-size: 56px;
+  /* 明るい矢印を世界背景から分離する最小限の影 */
+  /* Minimal shadow separating the bright arrow from the world background */
+  --world-pin-arrow-shadow: rgb(0 0 0 / 65%);
   /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
   /* Clamp off-screen arrows this fixed length inside the screen edge */
-  --world-pin-edge-margin: 28px;
+  --world-pin-edge-margin: 40px;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;
