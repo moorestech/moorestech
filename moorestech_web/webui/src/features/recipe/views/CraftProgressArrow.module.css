@@ -1,38 +1,32 @@
-/* 素材→結果を示す白い矢印グリフ。長押し進捗は下の細いバーで控えめに示す。正本は121x78screenshot-px相当と大きい */
-/* White arrow glyph from materials to result; hold progress shows subtly in the thin bar below. The reference arrow is large (~121x78 screenshot px) */
-/* グリッド行のcenter揃えだと矢印の上端が正本より少し下がるため、上へ寄せる */
-/* Row-level center alignment leaves the arrow's top edge slightly low versus the reference, so nudge it upward */
+/* 素材→結果の矢印。矢印グリフ自体が長押し進捗のゲージで、下に別バーは敷かない（webui-design §8.12） */
+/* Arrow from materials to result; the glyph itself is the hold-progress gauge, with no separate bar beneath (webui-design §8.12) */
+/* 旧構成は矢印+下バーの2段で、行のcenter揃えとの差分をmargin-topで詰めていた。バー廃止で列が6px縮んだ分、
+   同じ見た目位置を保つため上寄せ量を倍にする（中央揃えの item は margin-top の半分だけ動くため） */
+/* The old layout stacked arrow + bar and used margin-top to offset row centering. Dropping the bar shrinks the
+   column by 6px, so the nudge doubles to hold the same visual position (a centered item moves half its margin-top) */
 .craftArrow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 53.622px;
-  margin-top: -6.218px;
+  width: var(--craft-arrow-width);
+  margin-top: -12.218px;
 }
-/* D11: 正本は太い単色でなくシアンの細い輪郭+弱い影。fillは白のまま保ちbbox検出(min>190)を崩さず、
-   輪郭だけ4方向1pxのシアンへ差し替える */
-/* D11: the reference reads as a thin cyan outline with a soft shadow rather than a thick flat fill; keep the
-   white fill so the bbox detector (min>190) still matches, swapping only the outline to a 4-direction 1px cyan */
 .craftArrowGlyph {
   display: block;
-  width: 53.622px;
-  height: 30.53px;
+  width: var(--craft-arrow-width);
+  height: var(--craft-arrow-height);
   overflow: visible;
-  fill: var(--color-content-primary);
-  stroke: rgb(79 224 244 / 70%);
-  stroke-width: 2px;
   filter: drop-shadow(0 1px 1px rgb(0 0 0 / 45%));
 }
+/* 溝と充填はGaugeBarと同じゲージ2トーン。矢印だからといって別色を起こさない */
+/* Track and fill reuse GaugeBar's gauge tone pair; being an arrow is no reason for a new hue */
 .craftArrowTrack {
-  width: 1.9rem;
-  height: 3px;
-  margin-top: 3px;
-  border-radius: 2px;
-  background: rgb(255 255 255 / 14%);
-  overflow: hidden;
+  fill: var(--gauge-track);
 }
 .craftArrowFill {
-  height: 100%;
-  background: var(--mantine-color-green-6);
+  fill: var(--gauge-fill);
+}
+/* 輪郭は塗りを持たず、溝でも充填でも矢印の形が読めるようにする */
+/* The outline carries no fill so the silhouette stays readable over both track and fill */
+.craftArrowOutline {
+  fill: none;
+  stroke: var(--craft-arrow-outline);
+  stroke-width: 2px;
 }

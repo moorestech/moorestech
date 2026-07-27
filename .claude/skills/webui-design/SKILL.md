@@ -103,7 +103,7 @@ description: |
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・5秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
-- 進捗矢印は `ProgressArrow`。
+- 進捗矢印は `ProgressArrow`（機械・採掘機・流体行の帯状ゲージ）。クラフト画面の矢印グリフ進捗だけは §8.12 の様式に従う。
 
 ## 8.5 グラフビュー（研究ツリー等のノードグラフ）
 
@@ -119,6 +119,7 @@ description: |
 ## 8.6 shared/ui の汎用表示部品
 
 - **GaugeBar**: 読み取り専用の水平ゲージ。溝は `--gauge-track`（半透明ネイビー）と `--bevel-c1` の薄い内周輪郭、充填は `--gauge-fill`（寒色グレー）を使い、青グラデは禁止。`value`（0..1）を描くだけでドメイン語彙を持たない。
+  - **ゲージは「溝＝`--gauge-track` / 充填＝`--gauge-fill`」の2トーンで表す。** 帯でも矢印でも器の形が変わるだけで、この2トーンの対は変えない。緑など新しい色相をゲージへ持ち込むのは禁止。
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
   - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
   - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
@@ -167,6 +168,18 @@ description: |
 - **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`（§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
 - グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。
 
+## 8.12 クラフト進捗矢印（矢印グリフ自体がゲージ）
+
+- **クラフト画面（`CraftRecipeView`）の素材→結果の矢印は、矢印グリフそのものが進捗ゲージ**。矢印の下に独立した細いバーを敷くのは禁止（旧 `.craftArrowTrack` / `.craftArrowFill` の緑バーは廃止した）。器＝矢印であり、ゲージを別の要素として増やさない。
+- **構造はインラインSVGの3層**（`CraftProgressArrow`）。同じ矢印 path を3回描く:
+  1. 溝レイヤー: `--gauge-track` で塗った矢印全体
+  2. 充填レイヤー: `--gauge-fill` で塗った矢印を `clipPath` の矩形で左から `value`（0..1）分だけ切り出す
+  3. 輪郭レイヤー: 塗り無し・`--craft-arrow-outline` のストロークのみ。**最上層に置いて clip を通さない**（輪郭が充填境界で途切れると矢印の形が壊れるため）
+- 色は §8.6 のゲージ2トーン（`--gauge-track` / `--gauge-fill`）をそのまま使う。矢印だからといって別色を起こさない。輪郭色はトークン `--craft-arrow-outline`（従来の白矢印から引き継いだシアン）。
+- **clipPath の id は `useId()` 由来で一意化する。** 同一ページに矢印が複数並ぶと固定 id は衝突して全部が同じ進捗になるため、固定文字列の id は禁止。
+- `value` は `clamp01` を通す（NaN は 0）。クリップ矩形は矢印 path の水平範囲（viewBox 座標系）に合わせ、`value=0` で完全に空、`value=1` で完全に充填になること。
+- 進捗はアニメーション（transition）を付けない。`useHoldCraft` の rAF が毎フレーム値を更新するため、補間は二重になる。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し
@@ -177,6 +190,7 @@ description: |
 - 新しい装飾モチーフ・装飾アニメーションの無断追加
 - 面フェード・余白の%指定（固定長トークンを使う。理由なき%は破綻源）
 - 用途の異なるスロット群の無札並置（ラベルか区切りで区別する）
+- ゲージ本体とは別に進捗表示用のバーを併設すること（器そのものを充填する・§8.12）
 - **このドキュメントに書かれていないパターンの使用**（必要なら先にここを更新する）
 
 ## 10. 実装後の目視QA（必須）
