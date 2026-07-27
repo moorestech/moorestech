@@ -1,6 +1,7 @@
 # チャレンジHUD表示改善 再レビュー記録 (2026-07-27)
 
 > 初回レビュー: [チャレンジHUD表示改善](2026-07-27-challenge-hud-visual.md)
+> ユーザー裁定後の再レビュー: [操作モードHUDのクラフト枠化](2026-07-27-challenge-hud-visual-r3.md)
 
 ## 対象
 - base: `4d492e0eef76d44d571a612068962e076bed37f4` / reviewed head: `4d492e0eef76d44d571a612068962e076bed37f4` + dirty（16 files、315 insertions、34 deletions）
