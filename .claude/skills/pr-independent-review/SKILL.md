@@ -23,8 +23,9 @@ description: |
 1. このSKILL.mdをReadしたときの絶対パスを取る（例: `/Users/katsumi/moorestech/.claude/worktrees/pr-independent-review/.claude/skills/pr-independent-review/SKILL.md`）
 2. その末尾から `/.claude/skills/pr-independent-review/SKILL.md` を**文字列として取り除いた**残りが `$CANON`
    （上例なら `/Users/katsumi/moorestech/.claude/worktrees/pr-independent-review`）
-3. 手順2の実値を展開した `ls <実値>/.claude/skills/moores-code-review/SKILL.md` で実在確認する。
-   失敗したら即エラー終了（$CANON誤決定のまま走らせない）
+3. 手順2の実値を展開した `ls <実値>/.claude/skills/pr-independent-review/scripts/novelty_gate.py` で実在確認する。
+   失敗したら即エラー終了（$CANON誤決定のまま走らせない）。**確認先はこのファイルでなければならない** —
+   `moores-code-review/SKILL.md` はレビューworktree側にも存在しうるため、誤決定した$CANONでも通ってしまい弁別にならない
 
 - **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
   ファイルパスに渡すときは**必ず手順2で得た実値の絶対パスへ展開して書く**。`$CANON` をリテラルのまま渡すと
@@ -62,7 +63,8 @@ yml/jsonは残す（master-data系レンズの守備範囲のため）。
 - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き・箇条書きの見出し代用は不可）。カテゴリ名は本体Step 1と同一の
   `## 目指す（ゴール）` / `## 目指さない（非目標）` / `## 許容するトレードオフ` / `## 尊重すべき制約` の4本を使う。
   `checks_context.py` は `許容するトレードオフ` と `目指さない（非目標）` の `##` 見出し欠落をfail-closedで
-  confirmed（＝Critical）にするため、書式を外すとverdictが自動でCritical差し戻しに化ける
+  confirmed（`context_source_label`）にするため、書式を外すと決定論チェックがそれで埋まり本来の検査が読めなくなる。
+  この検出はPRの欠陥ではないのでverdictには数えず（「verdict判定規則」参照）、contextを直して再実行する
 - 出所ラベル正式文法: ユーザー裁定=`[ADR: <spec名>#<台帳項目>]`（実在するADR項目のみ）/ それ以外=`[agent前提]`
 - PR本文が主張する方針・トレードオフは全部 `[agent前提]`（免責力なし）として書く
 
@@ -112,14 +114,31 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 - 本体Step 6.5のガード2本（comment-rationale-guard / comment-convention-guard）は**実行する**。
   適用がない以上最終diff＝Step 3のpatchなので、それをそのまま渡す。convention-guardの「機械的は自動適用」も
   report-onlyでは適用せず指摘として出す
-- **comment-convention-guardの `Candidates :` はStep 2で生成したdetchecks JSON**
+- **comment-convention-guardの `Candidates :` は本体Step 2相当（本スキルStep 6冒頭の決定論チェック）で生成したdetchecks JSON**
   （`/tmp/pr-review-<番号>-detchecks.json`）を渡す。本体は「最終diffで再計測したdetchecks-final」を渡す規定だが、
   report-onlyでは修正適用が無く最終diff＝Step 3のpatchなので、`deterministic_checks.py` の再実行はしない
   （再実行しても同一入力・同一出力）。4行契約の残り3行は `Read this : $CANON/.claude/skills/moores-code-review/post-checks/comment-convention-guard.md` /
-  `Patch path : <PATCH_PATH>` / `User prompt : <USER_PROMPT_PATH>`
+  `Patch path : <PATCH_PATH>` / `User prompt : <USER_PROMPT_PATH>`（いずれも実値の絶対パスへ展開。下記「subagent起動契約への必須追記」参照）
 - **`/tmp` の一時ファイル削除（本体Step 7の項目4）も行わない** — Step 3のpatchは後段のコード抜粋転記で読むため、
   ここで消すとダイジェストの実コードが作れなくなる
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ
+
+### Codex外部監査（本体Step 3）の起動手当て
+
+codexはプロンプトのテキストしか受け取らず、差分は**自分のcwdで**解決する。素直に起動するとこのセッションのcwd
+（＝`$CANON`）を監査してしまい、PRと無関係なコードに所見を出す。次を必ず守る:
+
+- **cwdをレビューworktreeへ移して起動する**（バックグラウンド起動は本体どおり）:
+
+      cd ~/moorestech-worktrees/pr-review && codex exec --sandbox read-only --skip-git-repo-check - < /tmp/pr-review-<番号>-audit.md
+
+- **audit-templateの差分指定欄を書き換える** — `scripts/codex-audit-template.md` は「レビュー対象は、このセッションで
+  私が作業した成果物だけです」＋コミット済み/staged/unstaged の3行構成だが、独立レビューでは作業成果物が存在しない
+  （worktreeはcleanなcheckout）。冒頭2行を「レビュー対象は PR #<番号> の差分だけです」に差し替え、3行を
+  `git diff origin/<baseRefName>...HEAD` の1行に置き換える。staged/unstaged 行は削除する（常に空で、
+  「変更なし＝問題なし」という誤結論を誘発する）
+- `## 目指す / 目指さない / 許容するトレードオフ / 尊重すべき制約` 欄にはStep 4のcontextをそのまま貼る
+- `which codex` が失敗したらスキップし、ダイジェストの折りたたみ参考節に縮退として明記する（本体規約どおり）
 
 ### subagent起動契約への必須追記
 
@@ -127,11 +146,18 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 （含め忘れると、subagentは自分のcwdや `$CANON` 配下のコードを読んでPRと無関係な箇所をレビューする）:
 
 ```
-対象コードのルート: ~/moorestech-worktrees/pr-review （絶対パス）。コードのReadは必ずこの配下で行う。
+対象コードのルート: <レビューworktreeの実値>（絶対パス）。コードのReadは必ずこの配下で行う。
 `.claude/` 配下のスキル・レンズ・post-checks・統合ルールの定義のReadは <$CANONの実値> 配下で行う。
 ```
 
-`<$CANONの実値>` は冒頭で決めた絶対パスへ展開して書く（リテラルの `$CANON` を渡さない）。
+- `<$CANONの実値>` は冒頭で決めた絶対パスへ展開して書く（リテラルの `$CANON` を渡さない）
+- `<レビューworktreeの実値>` も **`~` を展開した絶対パスで書く**（例: `echo ~/moorestech-worktrees/pr-review` の出力＝
+  `/Users/<ユーザー名>/moorestech-worktrees/pr-review`）。subagentのpromptは文字列であってシェルを通らないため、
+  `~` のまま渡すとリテラルの `~` ディレクトリを探して読めない
+- **全サブエージェント契約（レンズ・reviewer・Fable全般・verifier・comment-rationale-guard・comment-convention-guard）の
+  `Read this :` 行は `$CANON` 実値の絶対パスで書く** — 本体SKILL.mdの契約例は `.claude/skills/moores-code-review/...` の
+  相対パスなので、そのままコピペするとsubagentのcwd（＝レビューworktree）側のPR同梱スキルを読む。
+  `Candidates :` / `Patch path :` / `User prompt :` の各パス（`/tmp` 配下）も同様に絶対パスで書く
 
 ## Step 7: ダイジェストHTML生成
 
@@ -149,6 +175,8 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 - **プレースホルダ置換**: `{{TITLE}}`（hero・`<footer>`・`<title>` の計3箇所）/ `{{DATE}}` / `{{SUBTITLE}}` を実値へ置換する。
   `{{TITLE}}` = `独立レビュー: PR #<番号> <PRタイトル>`、`{{DATE}}` = レビュー実施日、`{{SUBTITLE}}` = verdict文字列。
   `<title>` の置換漏れはタブ名が `{{TITLE}}` のまま出荷される
+- **テンプレート冒頭の使い方コメントブロック（`<!DOCTYPE html>` 直後の `<!-- 使い方: ... -->`）は生成時に削除する**
+  （`{{TITLE}}` 等の文字列を含むため、残すと置換漏れの誤検知源になり成果物にも不要）
 - **`<h1>` はページに1個だけ**: テンプレートはhero（`{{TITLE}}`）と `.verdict-header` の両方が `h1` になっている。
   **heroのh1を唯一のh1とし、`.verdict-header` 側は `h2` へ落とす**。heroの見出しとverdictヘッダの見出しで
   同じ文言を二度出さない（verdictヘッダは `verdict: <判定>` ＋件数の1行サマリに徹する）
@@ -172,7 +200,12 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 
 ## verdict判定規則
 
-- **Critical差し戻し**: 統合後Criticalが1件以上（**決定論チェックの `confirmed` を含む**・**200行超過（file-too-long）は除外**＝努力目標）
+- **Critical差し戻し**: 統合後Criticalが1件以上（**決定論チェックの `confirmed` を含む**・
+  **200行超過（file-too-long）は除外**＝努力目標・**`context_source_label` も除外**）
+  - `context_source_label` はStep 4で**自分が書いた**contextファイルの `##` 見出し／出所ラベル欠落の検出であり、
+    PR側の欠陥ではない。検出時はcontextファイル（`/tmp/pr-review-<番号>-context.md`）を書式どおりに修正して
+    `deterministic_checks.py` を再実行し、消えたことを確認してから先へ進む。verdictには一切数えない
+    （PRを自分の書式ミスで差し戻すのは誤判定であり、見逃し率実測を壊す）
 - **新形につき裁定行き**: Criticalなし、かつ新形フラグ or `設計判断: あり` が1件以上
 - **自動マージ可**: 上記いずれも無し
 - suppressedはverdictに影響しない（ダイジェストに全件列挙）
