@@ -63,9 +63,9 @@ test("off-screen world pin renders a 56px filled shaft arrow at the screen edge"
     const style = getComputedStyle(svg);
     return { fill: style.fill, stroke: style.stroke, filter: style.filter };
   });
-  expect(visualStyle.fill).not.toBe("none");
-  expect(visualStyle.stroke).not.toBe("none");
-  expect(visualStyle.filter).not.toBe("none");
+  expect(visualStyle.fill).toBe("rgb(255, 255, 255)");
+  expect(visualStyle.stroke).toBe("rgba(10, 14, 27, 0.8)");
+  expect(visualStyle.filter).toBe("drop-shadow(rgba(0, 0, 0, 0.65) 0px 2px 3px)");
 });
 
 test("off-screen arrow follows a diagonal direction to the corner region", async ({ page, request }) => {

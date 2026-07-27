@@ -2,7 +2,7 @@
 // Capture the off-screen world-pin arrow across varied backgrounds and directions
 
 import { createHash } from "node:crypto";
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
@@ -45,6 +45,10 @@ async function main() {
   attachWsHandlers(wss);
   await new Promise<void>((resolve) => server.listen(PORT, resolve));
   await mkdir(OUT_DIR, { recursive: true });
+
+  // 旧manifestを先に無効化
+  // Invalidate any stale manifest before capture
+  await rm(join(OUT_DIR, "manifest.json"), { force: true });
 
   // HUD比率で購読開始を待つ
   // Open the Web UI at the real HUD aspect ratio and wait for subscriptions before publishing arrows
