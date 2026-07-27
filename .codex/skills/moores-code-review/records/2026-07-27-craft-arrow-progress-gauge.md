@@ -53,7 +53,10 @@ Codex High はオーケストレータが実画素で再検証: 差分1221px・�
 - rv-user-intent / rv-test-mutation の「`value=1` の白一致に自動ガードが無い」— 部分的に解消（クリップ全域被覆テストを追加）。色そのものの自動検証は parity の COLOR_POINTS に矢印の点が無いため未対応のまま。目視QA依存であることを記録に残す
 
 ## 事後結果（マージ後追記可）
-- （未記入）
+- 本レビューは PR #1077 としてマージ済み（マージコミット `402ae752e`）。同PRには別セッションのスキット再実装・チュートリアル暗転撤去・ワールドピン矢印が同梱された
+- **未回収だった `core-ts_tsx-centralization-duplication` の結果がマージ後に届き、Critical を1件検出した。** `e2e/mock-host/topics/topicFixtures.ts` の `Topics.notification` 分岐が2箇所に存在し、後段は到達不能な死んだ分岐。本ブランチの `e4fda1ed0` と `tree2` の `b6df4c7b3` が同一不具合を独立に修正し、逆マージ `2e678cf92` でコンフリクトにならず両方残ったもの。PR #1079（`6bca7da78`）で後段を削除して解消
+- **教訓: 未回収系統を「オーケストレータの自力確認で代替した」扱いにして締めるのは危険。** 今回は代替確認（矢印path・`useId` の重複無し）が当該系統の守備範囲を覆っておらず、その系統だけが見つけられる Critical を素通しした。逆マージ後に顕在化する重複は patch 単体では見えないため、**逆マージを含むブランチでは最終diffだけでなく作業ツリー実体を見る系統を必ず1本は完走させること**
+- 未対応で残した Warning 2件（同 reviewer・いずれも本件スコープ外の既存非対称）: `shared/ui/ProgressArrow` が `role="progressbar"`+aria3点を持たず GaugeBar / CraftProgressArrow と割れている / `GaugeBar` が `clamp01` を使わずクランプをインライン再実装している
 
 ## メタ
 - セッションID: 7c7c2c31-945c-4eb4-b0fa-e42a56ee1cd4
