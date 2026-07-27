@@ -2,6 +2,12 @@
 spec: docs/superpowers/specs/2026-07-27-pr-independent-review-design.md
 ---
 
+> **注記（2026-07-27追記）: 本planは歴史的文書であり、実行してはいけない。**
+> 実装済みスキルの契約は `.claude/skills/pr-independent-review/SKILL.md` が唯一の正である。
+> 本planに書かれた「exit 0契約」「base参照を `origin/<baseRefName>` に固定する手順」「旧シャドー台帳の列構成」は
+> いずれも実装過程で改定された（マージ済みPRでの沈黙故障・測定器メタデータの欠落が実測で判明したため）。
+> 齟齬があった場合はSKILL.mdを正とし、本planは当時の設計意図を辿る資料としてのみ読むこと。
+
 # pr-independent-review スキル Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development（推奨）または superpowers:executing-plans を使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。

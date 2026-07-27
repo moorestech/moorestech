@@ -32,6 +32,14 @@ description: |
   未定義変数で空文字に展開され、`/.claude/skills/...` という不存在パスを叩いて沈黙故障する
 - `$CANON` は `~/moorestech` とは限らない（worktreeから発火する運用が現にある）。`~/moorestech` を決め打ちしない
 
+## Step 0: 独立性の自己申告ガード
+
+**このセッションが対象PRの実装・レビュー・計画に何らかの形で関与していた場合は、ここで実行を中止する**（PRブランチで
+コードを書いた・その実装のspec/planを書いた・同じPRを既にレビューした・実装セッションからの引き継ぎcontextを受け取った、
+のいずれか）。独立レビューの値打ちは「実装の意図を知らない目で見る」ことにあり、関与済みセッションが走ると
+見逃し率の実測値がそのぶん楽観側へ歪む。中止時はユーザーへ「このセッションは対象PRに関与済みのため独立性を満たさない。
+新規セッションで起動されたい」と報告して終わる。判定は自己申告でよいが、迷ったら中止側に倒す。
+
 ## Step 1: PR取得
 
 `gh pr view <番号> --repo moorestech/moorestech --json number,title,body,baseRefName,headRefName,headRefOid,additions,deletions,files,state,mergeCommit`
@@ -70,8 +78,15 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 - 場所固定: `~/moorestech-worktrees/pr-review`。無ければ `git -C "$CANON" worktree add ~/moorestech-worktrees/pr-review origin/master --detach` で作成
   （`$CANON` は冒頭で決めた実値に展開して渡す。`~/moorestech` 決め打ちは禁止 — `$CANON` が別worktreeのケースが現に存在する）
 - 毎回リセット: `git -C ~/moorestech-worktrees/pr-review reset --hard && git -C ~/moorestech-worktrees/pr-review clean -fd`
-- base最新化: `git -C ~/moorestech-worktrees/pr-review fetch origin <baseRefName>`
-  （MERGEDでも実行する。`<mergeCommit>` とその第1親をローカルへ持ってくるため。
+- base最新化（**refspecを明示する**）:
+
+        git -C ~/moorestech-worktrees/pr-review fetch origin \
+          "+refs/heads/<baseRefName>:refs/remotes/origin/<baseRefName>"
+
+  引数なしの `fetch origin <baseRefName>` はremote-tracking ref（`refs/remotes/origin/<baseRefName>`）を
+  更新せずFETCH_HEADだけを書く設定があり得るため、`BASE_REF`＝`origin/<baseRefName>` が古いまま解決されて
+  base取り違えになる。refspecを明示すればtracking refの更新が保証される。
+  MERGEDでも実行する（`<mergeCommit>` とその第1親をローカルへ持ってくるため。
   本節以降の `<mergeCommit>` はすべてStep 1.5の規約どおり `.mergeCommit.oid` の40桁SHAへ展開して書く）。
   **このfetchの失敗ではエラー終了しない** — マージ後にbaseブランチが削除されているとremote refが無く落ちるが、
   下の「BASE_REF の解決確認」のフォールバック（`fetch origin <mergeCommit>`）で回収できるため、そこまで進んで判定する
@@ -93,18 +108,34 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
   それでも解決できなければ即エラー終了（不正・未解決のbaseのまま先へ進まない）
 - **checkout整合の確認（ここで必ず行う）**: `git -C ~/moorestech-worktrees/pr-review rev-parse HEAD` の出力が
   Step 1で取った `headRefOid` と一致することを確かめる。一致すればPRのhead実体をレビューしている。
-  第3フォールバック（`<mergeCommit>` 自体をcheckoutした経路）では一致しない — その場合は先へ進んでよいが、
-  **`records/pr-<番号>.md` の `- checkout:` 行に「headRefOid不一致・mergeCommit検査」と明記する**
-  （マージ結果ツリーを見ているのであってhead実体ではない、と後から分かるようにするため）
+  不一致のときの扱いは経路で分かれる（混同禁止）:
+  - **OPENの通常経路（`gh pr checkout` / `pull/<番号>/head` でcheckoutした場合）で不一致**: **即エラー終了する**。
+    レビュー実行中にPRへ新しいpushが入った（＝メタデータが陳腐化した）ことを意味し、そのまま進むと
+    「Step 1で取ったタイトル・base・差分規模」と「実際に読むコード」がずれた記録を残す。
+    ユーザーへ理由を報告し、**Step 1のメタデータ再取得からやり直す**（`headRefOid` を取り直して再実行）
+  - **第3フォールバック（`<mergeCommit>` 自体をcheckoutした経路）で不一致**: これは設計どおりなので先へ進んでよい。
+    ただし **`records/pr-<番号>.md` の `- checkout:` 行に「headRefOid不一致・mergeCommit検査」と明記する**
+    （マージ結果ツリーを見ているのであってhead実体ではない、と後から分かるようにするため）
 
 ## Step 3: patch生成（exclude方式）
 
-    git -C ~/moorestech-worktrees/pr-review diff <BASE_REF>...HEAD -- . \
+    git -C ~/moorestech-worktrees/pr-review -c core.quotepath=false diff \
+      --no-color --no-ext-diff --no-textconv --text --no-renames \
+      <BASE_REF>...HEAD -- . \
       ':(exclude)*.meta' ':(exclude)*.prefab' ':(exclude)*.asset' ':(exclude)*.unity' \
       ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.controller' ':(exclude)*.mat' ':(exclude)*.fbx' \
       > /tmp/pr-review-<番号>-patch.diff
 
 `<BASE_REF>` はStep 1.5で確定した実値。yml/jsonは残す（master-data系レンズの守備範囲のため）。
+
+**フラグは省略禁止（本体パーサ保護）** — このpatchは `deterministic_checks.py` とレンズ/reviewer/Codexが読む唯一の
+差分実体であり、次はいずれもユーザー側git設定で有効化され得て、**patchを静かに痩せさせる**:
+
+- `-c core.quotepath=false` — 非ASCIIパスが `"b/\346\226..."` とクォートされ、パス基準の判定が全て外れる
+- `--no-color` — `color.diff=always` のANSIが混入し全パターンが不一致になる
+- `--no-ext-diff` / `--no-textconv` — 外部diffドライバ・textconvが差分本文を別物に置き換える
+- `--text` — バイナリ判定された差分が `Binary files differ` の1行に潰れ、中身がレビューされない
+- `--no-renames` — 移動が `rename from/to` に圧縮され、移動先ファイルの中身が1行も現れない（＝丸ごと見逃す）
 
 **成功条件＝patch非空（必須ガード・省略禁止）**: 生成直後に
 
@@ -130,14 +161,25 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
 
 ## Step 5: 新規性ゲートL1
 
-    python3 "$CANON/.claude/skills/pr-independent-review/scripts/novelty_gate.py" ~/moorestech-worktrees/pr-review <BASE_REF>
+    python3 "$CANON/.claude/skills/pr-independent-review/scripts/novelty_gate.py" \
+      ~/moorestech-worktrees/pr-review <BASE_REF> > /tmp/pr-review-<番号>-novelty.json
 
 （`$CANON` は冒頭で決めた実値に展開して書く。リテラルのまま渡さない。第2引数はStep 1.5の `BASE_REF` の実値であり、
 `origin/<baseRefName>` のベタ書きではない）
 
+**出力は必ずこのファイルへ保存し、以降のStep（新形の数え上げ・裁定カード化・Step 8の記録）は
+`/tmp/pr-review-<番号>-novelty.json` を読み直して行う**。stdoutの見た目や記憶から新形を数えない
+（件数の写し間違いが台帳の実測値を直接汚す）。
+
+**保存直後の受け取り検査（必須・省略禁止）**: 次の1行で「JSONとしてパースできること」と
+「`new_edges` / `asmdef_refs` / `grammar` の3キーが揃っていること」を確認する。失敗したら即エラー終了する
+（ゲートが途中で壊れた出力を、空＝新形0件として受け取らないため）:
+
+    python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert {"new_edges","asmdef_refs","grammar"} <= d.keys(), d.keys(); print({k: len(d[k]) for k in ("new_edges","asmdef_refs","grammar")})' /tmp/pr-review-<番号>-novelty.json
+
 出力JSONのうち次を**新形フラグ**として数える（3系統で採用基準が違う。混同禁止）:
 
-- `new_edges` — **`generic_origin=true` のものだけ**（`false` は新形に数えない。下の参考情報行を参照）
+- `new_edges` — **`generic_origin=true` かつ `dir_is_new=false` のものだけ**（それ以外は新形に数えない。下の参考情報行を参照）
 - `asmdef_refs` — **全件**（generic_originによる絞り込みをしない）
 - `grammar` — **全件**（同上）
 
@@ -152,10 +194,17 @@ cwdがリセットされるため、単独の `cd` は次のコマンドに効�
      （一致＝HEADがbaseの祖先＝base取り違え。この場合は `BASE_REF` を直してStep 3からやり直す）
 
   両方通って初めて「本当に新形0件」と判断してよい。確認せずに0件として先へ進むのは禁止
-- **generic_origin=falseのnew_edgesは参考情報**: 新規ディレクトリを追加するPRでは配下の全usingがnew_edge化する。
-  主シグナルは `generic_origin=true` のみとし、falseのエッジは裁定カードにせずダイジェストの折りたたみ参考節へ回す
+- **generic_origin=falseのnew_edgesは参考情報**: 主シグナルは `generic_origin=true` のみとし、
+  falseのエッジは裁定カードにせずダイジェストの折りたたみ参考節へ回す
+- **`dir_is_new=true` のnew_edgesも参考情報**: そのディレクトリはbaseにusing記録が1件も無い＝新設であり、
+  配下の全usingが機械的に新エッジ化する（「新設だから新しい」だけで設計上の新形ではない）。
+  `generic_origin=true` であっても `dir_is_new=true` なら裁定カードにせず折りたたみ参考節へ回す。
+  ただし**件数はStep 8の記録に「うちdir_is_new N件」として残す**（黙って消さない）
 - **スキルミラーの除外**: `.claude/` `.agents/` `.codex/` 配下の `.cs` はプロダクトコードでないため、
   novelty_gate出力からファイルパスで除外して解釈する（新形にもverdictにも数えない）
+- **`line` が `null` の所見はファイル単位の所見**（`schema_change` / `new_protocol_file` / `new_datastore_file`）。
+  ダイジェスト・records の表記は `ファイル:行` ではなく**ファイルパスのみ**にする。`:1` や `:null` を書き足さない
+  （存在しない行番号を書くと、後から「その行を見た」という誤った痕跡になる）
 
 ## Step 6: moores-code-review本体をreport-onlyで発火
 
@@ -196,11 +245,18 @@ python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "
 ### Codex外部監査（本体Step 3）の起動手当て
 
 codexはプロンプトのテキストしか受け取らず、差分は**自分のcwdで**解決する。素直に起動するとこのセッションのcwd
-（＝`$CANON`）を監査してしまい、PRと無関係なコードに所見を出す。次を必ず守る:
+（＝`$CANON`）を監査してしまい、PRと無関係なコードに所見を出す。かといってレビューworktreeへ `cd` して起動すると、
+今度は**PR側の `AGENTS.md` / `CLAUDE.md` / `.codex/` をcodexが上位指示として読み込む**（＝レビュー対象が
+レビュアーの指示を書ける自己弱体化経路）。次を必ず守る:
 
-- **cwdをレビューworktreeへ移して起動する**（バックグラウンド起動は本体どおり）:
+- **中立ディレクトリ（`/tmp` 等・リポジトリ外）から起動し、対象は全部プロンプト内の絶対パスで渡す**
+  （バックグラウンド起動は本体どおり）:
 
-      cd ~/moorestech-worktrees/pr-review && codex exec --sandbox read-only --skip-git-repo-check - < /tmp/pr-review-<番号>-audit.md
+      cd /tmp && codex exec --sandbox read-only --skip-git-repo-check - < /tmp/pr-review-<番号>-audit.md
+
+  **レビューworktreeへ `cd` しない**。プロンプト内でリポジトリを参照する箇所は必ず
+  `git -C /Users/<ユーザー名>/moorestech-worktrees/pr-review ...` の形（`-C` に実値の絶対パス）で書き、
+  読ませたいファイルも絶対パスで指定する。`~` は展開して書く（プロンプトはシェルを通らない）
 
 - **audit-templateの差分指定欄を書き換える** — テンプレートは
   `$CANON/.claude/skills/moores-code-review/scripts/codex-audit-template.md`（`$CANON` は冒頭で決めた実値の絶対パスに
@@ -208,8 +264,10 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   3行構成だが、独立レビューでは作業成果物が存在しない（worktreeはcleanなcheckout）。
   **2行目（「レビュー対象は、このセッションで私が作業した成果物だけです。」の行）を「レビュー対象は PR #<番号> の
   差分だけです。」に差し替え**、続く3行（コミット済み／staged／unstaged）を
-  `- 差分: git diff <BASE_REF>...HEAD`（`BASE_REF` は実値へ展開）の1行に置き換える。
-  1行目の役割宣言行はそのまま使う。staged/unstaged 行を残してはいけない（常に空で「変更なし＝問題なし」という誤結論を誘発する）
+  `- 差分: git -C <レビューworktreeの実値> diff <BASE_REF>...HEAD`
+  （`BASE_REF` とworktreeパスはいずれも実値の絶対パスへ展開）の1行に置き換える。
+  1行目の役割宣言行はそのまま使う。staged/unstaged 行を残してはいけない（常に空で「変更なし＝問題なし」という誤結論を誘発する）。
+  **`-C` の省略も禁止** — 起動cwdが中立ディレクトリなので、省くと差分が1行も取れないまま監査が走る
 - `## 目指す / 目指さない / 許容するトレードオフ / 尊重すべき制約` 欄にはStep 4のcontextをそのまま貼る
 - `which codex` が失敗したらスキップし、ダイジェストの折りたたみ参考節に縮退として明記する（本体規約どおり）
 
@@ -250,9 +308,27 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   **`badge-new` のclassをそのまま流用し、表示文言だけ「設計判断」とする**（新形カードの文言は「新形」）。
   テンプレート側にclassを追加する改変はしない
 - 実コード抜粋はStep 3のpatchから機械的に転記する（創作・要約禁止）
+- **HTMLエスケープ契約（省略禁止）**: レビュー対象の文字列はそのままHTMLへ流し込むと壊れる。C#のジェネリクス
+  （`Subject<int>`・`List<Action>`）・XMLコメント・yml・PRタイトルはいずれも `<` `>` `&` `"` `'` を含み得る。
+  **PRタイトル・ファイルパス・コード抜粋・`data-label` などの動的文字列は、まず `&` `<` `>` `"` `'` を
+  `&amp;` `&lt;` `&gt;` `&quot;` `&#39;` へ置換し（`&` を最初に置換する）、その後に**行番号 `<span class="ln">`・
+  追加行 `<ins>`・問題行 `<span class="hl">` のマークアップを付与する。順序を逆にすると自分で付けたタグまで
+  エスケープされて `&lt;ins&gt;` が画面に出る。エスケープを怠ると `Subject<int>` の `<int>` がタグとして食われ、
+  **コード抜粋が黙って一部消える**（レビュー成果物としては致命傷。消えたことが画面から分からない）
+- **生成後検査3点（必須・全部通るまで出荷しない）**:
+  1. 未置換プレースホルダ0件 — `grep -c '{{' /tmp/pr-review-<番号>/index.html` が0
+  2. `<script>` 要素がちょうど1個 — `grep -c '<script' /tmp/pr-review-<番号>/index.html` が1
+     （コメント機能JSはverbatim維持＝増減しないのが正）
+  3. `code-card` 内に生の `<` タグが無い — `<pre class="code-card">` ブロックを目視し、
+     `<ins>` `</ins>` `<span class="ln">` `<span class="hl">` `</span>` 以外の `<` が残っていないことを確認する
+     （残っていればエスケープ漏れ＝抜粋欠落）
 - **プレースホルダ置換**: `{{TITLE}}`（hero・`<footer>`・`<title>` の計3箇所）/ `{{DATE}}` / `{{SUBTITLE}}` を実値へ置換する。
   `{{TITLE}}` = `独立レビュー: PR #<番号> <PRタイトル>`、`{{DATE}}` = レビュー実施日、`{{SUBTITLE}}` = verdict文字列。
   `<title>` の置換漏れはタブ名が `{{TITLE}}` のまま出荷される
+- **`.verdict-header` の `data-verdict` 属性を必ずverdictに合わせて設定する**（テンプレート既定値は `ruling` 固定）。
+  値は `auto`（自動マージ可）/ `ruling`（新形につき裁定行き）/ `reject`（Critical差し戻し）/
+  `stub`（未測定（スタブ））の4語のみ（「verdict判定規則」の語彙と1対1）。
+  表示には使われないが、成果物HTMLからverdictを機械抽出する唯一の口なので、見出し文言と食い違わせない
 - **テンプレート冒頭の使い方コメントブロック（`<!DOCTYPE html>` 直後の `<!-- 使い方: ... -->`）は生成時に削除する**
   （`{{TITLE}}` 等の文字列を含むため、残すと置換漏れの誤検知源になり成果物にも不要）
 - **`<h1>` はページに1個だけ**: テンプレートはhero（`{{TITLE}}`）と `.verdict-header` の両方が `h1` になっている。
@@ -264,7 +340,7 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
   1. Criticalの修正方針詳細（裁定カードは要点のみ・詳細はここ）
   2. **Warning全件**（1件1行・出所系統つき。要約による間引き禁止）
   3. Info一覧（圧縮列挙可）
-  4. `generic_origin=false` のnew_edges（参考情報。裁定カードにはしない）
+  4. 参考扱いのnew_edges（`generic_origin=false` のもの・`dir_is_new=true` のもの。裁定カードにはしない）
   5. 各系統（決定論／レンズ／reviewer／Codex／Fable／post-checksガード）の生所見要約を系統ごとに1ブロック。
      Codex不在等の縮退があればここに明記する
 
@@ -277,15 +353,22 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 
       # PR <番号> 独立レビュー
 
-      - verdict: <Critical差し戻し|新形につき裁定行き|自動マージ可>
+      - verdict: <Critical差し戻し|新形につき裁定行き|自動マージ可|未測定（スタブ）>
       - PRタイトル: <PRタイトル>
-      - BASE_REF: <実値>
+      - BASE_REF: <実値（式のまま。例: 8ce6f4dd...^1）>
       - 実施日: YYYY-MM-DD
       - checkout: <headRefOid一致|headRefOid不一致・mergeCommit検査>
       - 縮退: <なし（5系統フル実行）|<縮退内容。例: codex不在>|スタブ（Step 6未実行）>
+      - head: <レビューしたHEADの40桁SHA>
+      - base: <BASE_REFを解決した40桁SHA>
+      - canonical: <$CANONのHEAD SHA>（<clean|dirty>）
+      - 系統: <発火した系統名と各々の完了/縮退。例: 決定論=完了/レンズ3本=完了/reviewer5本=完了/Codex=縮退（不在）/Fable=完了>
+      - session: <このレビューセッションの識別子>
 
       ## 新形
-      <新形フラグ1件1行（系統名・ファイル:行・要点）>
+      <新形フラグ1件1行（系統名・ファイル:行（lineがnullならファイルのみ）・要点）>
+      - 系統別件数: new_edges（採用基準を満たすもの）N / asmdef_refs N / grammar N
+      - 参考（新形に数えない）: generic_origin=false N件 / dir_is_new=true N件
 
       ## 裁定
       <裁定カード1件1行（ファイル:行・指摘要点・代替案）>
@@ -293,8 +376,20 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
       ## suppressed
       <1件1行（ファイル:行・指摘要点・suppressed-by出所）>
 
+- **測定器メタデータ行（`head` / `base` / `canonical` / `系統` / `session`）は省略禁止**。
+  これらは「何を・どの測定器で測ったか」の記録であり、欠けると後からverdictの再現も、
+  測定器の版差による見逃し率の比較もできなくなる。`head` と `base` は
+  `git -C ~/moorestech-worktrees/pr-review rev-parse HEAD` / `rev-parse "<BASE_REF>^{commit}"` の実出力、
+  `canonical` は `git -C <$CANONの実値> rev-parse HEAD` と `git -C <$CANONの実値> status --porcelain`
+  （出力が空なら `clean`・非空なら `dirty`）で取る
+- **同一PRを再レビューしたときは `pr-<番号>.md` を上書きせず `pr-<番号>-r2.md`（以降 `-r3`…）を新規作成する**。
+  上書きは「前回何を見て何を見落としたか」を消す＝見逃し率の実測そのものを壊す。
+  台帳にも再レビュー分を別行として追記する
+
 - シャドー台帳 `$CANON/.claude/skills/pr-independent-review/records/shadow-ledger.md` に1行追記:
-  `| 日付 | PR番号 | verdict | 新形数 | suppressed数 | 縮退 | あなたの実判断（空欄） | 一致（空欄） |`
+  `| 日付 | PR番号 | head | verdict | 新形数 | suppressed数 | 縮退 | あなたの実判断（空欄） | 一致（空欄） |`
+  - `head` 列は records の `- head:` を**short SHA（先頭7桁）**にしたもの。同じPRを別headで再レビューした行を
+    区別するため空欄にしない
   - `縮退` 列は records の `- 縮退:` と同じ値（`なし（5系統フル実行）` / 縮退内容 / `スタブ`）。
     verdictを額面どおり見逃し率へ数えてよいかがこの列だけで判別できるようにするため、空欄にしない
 - 正典treeでの記録類のコミットはユーザーに委ねる（独立セッションは正典treeへ書き込むが勝手にcommitしない）
@@ -309,12 +404,22 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
     （PRを自分の書式ミスで差し戻すのは誤判定であり、見逃し率実測を壊す）
 - **新形につき裁定行き**: Criticalなし、かつ新形フラグ or `設計判断: あり` が1件以上
 - **自動マージ可**: 上記いずれも無し
+- **未測定（スタブ）**: Step 6（moores-code-review本体5系統）を実行していない場合は、上の3値を名乗ってはいけない。
+  Critical/Warning/Info/suppressedが未収集である以上「Criticalなし」は測定結果ではなく未測定であり、
+  `自動マージ可` や `新形につき裁定行き` を書くと台帳上は測定済みの1件として数えられてしまう。
+  配管スモークテスト等でStep 6を意図的に飛ばした場合は **verdictを `未測定（スタブ）` とし**、
+  新形フラグの件数だけを記録する（`- 縮退:` にも `スタブ（Step 6未実行）` を書く）
 - suppressedはverdictに影響しない（ダイジェストに全件列挙）
+- `data-verdict` 属性の値はこの語彙に対応させる: `reject` / `ruling` / `auto` / `stub`
 
 ## エラー処理
 
+- このセッションが対象PRに関与済み: レビューせず中止・理由報告（Step 0参照）
 - gh未認証・PR不存在・checkout失敗（MERGED分岐のフォールバックも尽きた場合）: 即エラー終了・理由報告
-- `git fetch origin <baseRefName>` の失敗（MERGED後にbaseブランチが削除されている等でremote refが無い場合）:
+- OPENの通常経路で `headRefOid` とcheckout結果が不一致: 即エラー終了・理由報告し、Step 1のメタデータ再取得から
+  やり直す（Step 2参照）。第3フォールバック経路の不一致は継続可
+- Step 2のbase最新化fetch（`+refs/heads/<baseRefName>:refs/remotes/origin/<baseRefName>`）の失敗
+  （MERGED後にbaseブランチが削除されている等でremote refが無い場合）:
   これ単独ではエラー終了しない。Step 2末尾の **BASE_REF解決確認**まで進み、そこで失敗したら
   同節のフォールバック `git -C ~/moorestech-worktrees/pr-review fetch origin <mergeCommit>`
   （`.mergeCommit.oid` のSHA）で `BASE_REF`＝`<mergeCommit>^1` を取り寄せて継続する。
@@ -322,5 +427,6 @@ codexはプロンプトのテキストしか受け取らず、差分は**自分�
 - `state=CLOSED`（未マージclose）・`BASE_REF` が解決できない: 即エラー終了・理由報告（Step 1.5 / Step 2参照）
 - patchが空（`grep -c '^diff'` が0）: 即エラー終了・理由報告（Step 3参照）。空patchのまま後続Stepへ進まない
 - 新規性ゲートの非ゼロexit: 即エラー終了・理由報告（Step 5参照）
+- 新規性ゲート出力の受け取り検査失敗（JSONパース不能・3キーのいずれか欠落）: 即エラー終了・理由報告（Step 5参照）
 - 新規性ゲートが3系統全空（patchは非空）: `BASE_REF` の妥当性を確認してから継続（Step 5参照）
 - codex不在などmoores-code-review内の縮退: 本体規約に従いダイジェストの参考節に明記

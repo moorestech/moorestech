@@ -97,8 +97,8 @@ def test_grammar_elements_detected(repo: Path):
 
 
 def test_asmdef_reference_addition_detected(repo: Path):
-    # 実際のasmdefは複数行配列。追加refは裸の文字列行として現れ、key行(`":`含む)は無視される
-    # Real asmdefs use multi-line arrays; added refs appear as bare string lines
+    # asmdefはdiff行ではなくbase/HEADのJSONを読んで references の集合差を取る
+    # asmdef refs come from the JSON at base vs HEAD, not from diff lines
     asmdef = repo / "Client.Game" / "Client.Game.asmdef"
     asmdef.write_text('{\n  "name": "Client.Game",\n  "references": [\n  ]\n}\n')
     _git(repo, "add", "-A")
@@ -123,20 +123,21 @@ def test_asmdef_guid_style_reference_detected(repo: Path):
     assert {"file": "Client.Game/Client.Game.asmdef", "ref": "GUID:abc123def"} in result["asmdef_refs"]
 
 
-def test_asmdef_single_line_references_detected(repo: Path):
-    # 1行形式 `"references": ["Game.Foo"]` からもrefが取れる / single-line references arrays are parsed
+def test_asmdef_new_file_reports_all_references(repo: Path):
+    # 新規asmdefはbase側を空集合として扱い、references全件が追加分になる（1行形式も同じ）
+    # A brand-new asmdef has an empty base set, so all its references count as additions
     asmdef = repo / "Client.Game" / "Client.Game.OneLine.asmdef"
     asmdef.write_text('{"name": "Client.Game", "references": ["Game.ElectricWire"]}\n')
     _git(repo, "add", "-A")
     _git(repo, "commit", "-m", "one-line asmdef")
     result = _run(repo)
     assert {"file": "Client.Game/Client.Game.OneLine.asmdef", "ref": "Game.ElectricWire"} in result["asmdef_refs"]
-    # 同一行のkey値("Client.Game")はコロン以降のみ走査するため拾われない / key value on the same line is excluded
+    # name等のkey値はJSONのreferences配列外なので原理的に混入しない / values outside references cannot leak in
     assert all(r["ref"] != "Client.Game" for r in result["asmdef_refs"])
 
 
-def test_asmdef_single_line_keys_after_references_are_excluded(repo: Path):
-    # references配列の後ろに続くkey値は走査範囲外（`]`で打ち切る） / keys after the array must not leak in
+def test_asmdef_other_keys_are_never_treated_as_references(repo: Path):
+    # references以外のkey（name / includePlatforms）の値はrefにならない / other keys never become refs
     asmdef = repo / "Client.Game" / "Client.Game.Tail.asmdef"
     asmdef.write_text('{"references": ["Game.Foo"], "name": "A", "includePlatforms": ["Editor"]}\n')
     _git(repo, "add", "-A")
@@ -146,11 +147,29 @@ def test_asmdef_single_line_keys_after_references_are_excluded(repo: Path):
     assert refs == ["Game.Foo"]
 
 
+def test_asmdef_include_platforms_only_change_yields_no_refs(repo: Path):
+    # includePlatformsへ1行追加しただけのPRではasmdef_refsが空（行パース時代の誤検知の回帰テスト）
+    # A PR that only appends to includePlatforms must yield zero asmdef refs
+    asmdef = repo / "Client.Game" / "Client.Game.Platform.asmdef"
+    asmdef.write_text(
+        '{\n  "name": "Client.Game",\n  "references": [\n    "Game.Existing"\n  ],\n'
+        '  "includePlatforms": [\n  ]\n}\n'
+    )
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "asmdef base")
+    _git(repo, "tag", "-f", "basetag")
+    asmdef.write_text(
+        '{\n  "name": "Client.Game",\n  "references": [\n    "Game.Existing"\n  ],\n'
+        '  "includePlatforms": [\n    "Editor"\n  ]\n}\n'
+    )
+    _git(repo, "commit", "-am", "add platform only")
+    result = _run(repo)
+    assert result["asmdef_refs"] == []
+
+
 def test_asmdef_multiline_other_array_elements_are_not_refs(repo: Path):
     # 複数行asmdefで includePlatforms の要素("Editor")がrefに混入しないこと
     # In a multi-line asmdef, includePlatforms elements must not leak into references
-    # 注意: basetag...HEADの正味diffではasmdef全行が追加行として現れ、key行も走査対象に入る
-    # Note: the net diff shows every asmdef line as added, so key lines are part of the scan
     asmdef = repo / "Client.Game" / "Client.Game.Multi.asmdef"
     asmdef.write_text('{\n  "name": "Client.Game",\n  "references": [],\n  "includePlatforms": []\n}\n')
     _git(repo, "add", "-A")
@@ -241,3 +260,39 @@ def test_forced_diff_color_does_not_silence_detection(repo: Path):
     edges = [e for e in result["new_edges"] if e["using"] == "Game.ElectricWire"]
     assert len(edges) == 1
     assert edges[0]["file"] == "Client.Game/BlockSystem/PlaceSystem/Common/CommonBlockPlaceSystem.cs"
+
+
+def test_pure_move_into_generic_dir_is_flagged(repo: Path):
+    # 純粋な移動はrename圧縮で内容行が消え偽クリーンになる。--no-renamesでusing行が追加行として見える
+    # A pure move is compacted into a rename with no content lines; --no-renames exposes its usings
+    _git(
+        repo, "mv",
+        "Client.Game/ElectricWire/WireView.cs",
+        "Client.Game/BlockSystem/PlaceSystem/Common/WireView.cs",
+    )
+    _git(repo, "commit", "-am", "move wire view into common")
+    result = _run(repo)
+    edges = [e for e in result["new_edges"] if e["using"] == "Game.ElectricWire"]
+    assert [e["file"] for e in edges] == ["Client.Game/BlockSystem/PlaceSystem/Common/WireView.cs"]
+    assert edges[0]["generic_origin"] is True
+
+
+def test_dir_is_new_distinguishes_brand_new_directories(repo: Path):
+    # base側にusing記録が皆無のディレクトリはdir_is_new=true（全usingが機械的に新エッジ化するため参考扱い）
+    # A directory with no using inventory at base is dir_is_new, since every using there is trivially novel
+    fresh = repo / "Client.Game" / "NewFeature" / "Common"
+    fresh.mkdir(parents=True)
+    (fresh / "NewFeatureService.cs").write_text(
+        "using Game.ElectricWire;\nnamespace Client.Game.NewFeature { class NewFeatureService {} }\n"
+    )
+    existing = repo / "Client.Game" / "BlockSystem" / "PlaceSystem" / "Common" / "CommonBlockPlaceSystem.cs"
+    existing.write_text(
+        "using UnityEngine;\nusing Game.ElectricWire;\n"
+        "namespace Client.Game.BlockSystem.PlaceSystem { class CommonBlockPlaceSystem {} }\n"
+    )
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "new dir and existing dir edges")
+    result = _run(repo)
+    by_file = {e["file"]: e for e in result["new_edges"] if e["using"] == "Game.ElectricWire"}
+    assert by_file["Client.Game/NewFeature/Common/NewFeatureService.cs"]["dir_is_new"] is True
+    assert by_file["Client.Game/BlockSystem/PlaceSystem/Common/CommonBlockPlaceSystem.cs"]["dir_is_new"] is False

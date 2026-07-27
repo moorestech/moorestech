@@ -15,12 +15,19 @@ import sys
 from collections import defaultdict
 from pathlib import PurePosixPath
 
+from git_query import (
+    DIFF_SAFE_FLAGS,
+    GIT_SAFE_CONFIG,
+    collect_asmdef_ref_additions,
+    git,
+)
+
 # 汎用層とみなすディレクトリ（generic_origin判定）。レンズpaths由来＋クライアント設置系
 # Directories treated as generic layer, seeded from lens paths + client place system
 GENERIC_DIR_RES = [
     re.compile(r"/Common/"),
     re.compile(r"/Base/"),
-    re.compile(r"Core\."),
+    re.compile(r"/Core\.[^/]*/"),
     re.compile(r"/Template/"),
     re.compile(r"PlaceSystem/"),
     re.compile(r"/Service/"),
@@ -30,21 +37,14 @@ GENERIC_DIR_RES = [
 REPO_NS_RES = re.compile(r"^(Game|Core|Client|Server|Mooresmaster)\b")
 
 USING_RE = re.compile(r"^\s*using\s+([A-Za-z_][A-Za-z0-9_.]*)\s*;")
+# DataStore新設判定はパスのファイル名部分にのみ当てる（親ディレクトリ名での巻き込みを避ける）
+# New-DataStore detection matches the file name only, not parent directories
+DATASTORE_FILE_RE = re.compile(r"datastore", re.I)
 GRAMMAR_RES = [
     ("interface", re.compile(r"\binterface\s+I[A-Z]")),
     ("abstract_class", re.compile(r"\babstract\s+class\s+")),
     ("subject", re.compile(r"\b(?:Replay)?Subject<")),
 ]
-
-
-# 非ASCIIパスのクォート（core.quotepath既定on）は`+++ b/`マッチを外し誤帰属を生むため呼び出し毎に打ち消す
-# core.quotepath defaults to on and would quote non-ASCII paths, breaking `+++ b/` and misattributing lines
-GIT_SAFE_CONFIG = ["-c", "core.quotepath=false"]
-
-
-def git(repo, *args):
-    cmd = ["git", "-C", repo, *GIT_SAFE_CONFIG, *args]
-    return subprocess.run(cmd, check=True, capture_output=True, text=True).stdout
 
 
 def build_base_pairs(repo, base_ref):
@@ -76,8 +76,7 @@ def build_base_pairs(repo, base_ref):
 def parse_diff(repo, base_ref):
     # 追加行を (file, new_line_no, content) で列挙し、新規ファイル集合も返す
     # Yield added lines with line numbers; also return the set of new files
-    # ANSI混入(color.diff=always)は全パターンを外すため--no-colorで殺す / kill forced color
-    out = git(repo, "diff", "--no-color", "--no-ext-diff", f"{base_ref}...HEAD", "--unified=0")
+    out = git(repo, "diff", *DIFF_SAFE_FLAGS, f"{base_ref}...HEAD", "--unified=0")
     added, new_files, cur, line_no = [], set(), None, 0
     in_hunk, is_new = False, False
     for raw in out.splitlines():
@@ -92,9 +91,13 @@ def parse_diff(repo, base_ref):
             if is_new and cur:
                 new_files.add(cur)
         elif raw.startswith("@@"):
+            # 新ファイル側の開始行が読めない場合は落とす。0で代替すると偽の行番号を全所見へ配る
+            # Abort when the new-side start line is unreadable; a 0 fallback would fake every line number
             in_hunk = True
             m = re.search(r"\+(\d+)", raw)
-            line_no = int(m.group(1)) if m else 0
+            if not m:
+                raise RuntimeError(f"unparsable hunk header: {raw!r}")
+            line_no = int(m.group(1))
         elif in_hunk and raw.startswith("+"):
             added.append((cur, line_no, raw[1:]))
             line_no += 1
@@ -118,35 +121,22 @@ def parse_plus_header(raw):
     )
 
 
-# asmdef走査の状態。裸の文字列行をrefとして拾ってよいのは「references配列の中」か「所属不明」のときだけ
-# asmdef scan states; bare string lines count as refs only inside references, or when membership is unknown
-ASMDEF_UNKNOWN, ASMDEF_IN_REFS, ASMDEF_IN_OTHER = "unknown", "in_refs", "in_other"
-# GUID形式（"GUID:9a3d..."）も参照として文字列のまま報告する
-# GUID-style references are reported verbatim, without resolving them
-ASMDEF_REF_RE = re.compile(r'"([A-Za-z0-9_.:]+)"')
-
-
-def scan_asmdef_line(content, state):
-    # 1行を走査し (拾ったref, 次の状態) を返す / scan one line, return (refs, next state)
-    if '"references"' in content:
-        colon = content.find(":", content.index('"references"'))
-        if colon == -1:
-            return [], ASMDEF_UNKNOWN
-        # 1行形式 `"references": ["A"]` は`]`まで、複数行形式は配列ブロックに入る
-        # Inline arrays end at `]`; otherwise we enter the references block
-        close = content.find("]", colon)
-        if close != -1:
-            return ASMDEF_REF_RE.findall(content[colon + 1: close + 1]), ASMDEF_UNKNOWN
-        return ASMDEF_REF_RE.findall(content[colon + 1:]), ASMDEF_IN_REFS
-    if '":' in content:
-        # references以外のkey行。配列が開きっぱなしならその要素は参照ではない
-        # A non-references key line; if its array stays open, its elements are not references
-        return [], ASMDEF_IN_OTHER if "[" in content and "]" not in content else ASMDEF_UNKNOWN
-    if state == ASMDEF_IN_OTHER:
-        return [], ASMDEF_UNKNOWN if "]" in content else ASMDEF_IN_OTHER
-    # 裸の文字列行。キー行がdiff外なら（配列途中への1行追加）所属不明のまま拾う＝偽陰性よりノイズを許容する
-    # Bare string line: if the key line is outside the diff we still collect, trading noise for no misses
-    return ASMDEF_REF_RE.findall(content), ASMDEF_UNKNOWN if "]" in content else state
+def collect_file_level_grammar(added, new_files):
+    # スキーマ変更・新規プロトコル/DataStoreファイルはファイル単位の所見（行番号を持たないのでline=null）
+    # Schema changes and new protocol/datastore files are per-file findings, hence line=null
+    findings, seen_files = [], set()
+    for path, _, _ in added:
+        if path.endswith((".yml", ".yaml")) and "VanillaSchema" in path and path not in seen_files:
+            seen_files.add(path)
+            findings.append({"file": path, "line": None, "kind": "schema_change", "detail": "スキーマyml変更"})
+        if path in new_files and path.endswith(".cs") and path not in seen_files:
+            if "/Protocol/" in path:
+                seen_files.add(path)
+                findings.append({"file": path, "line": None, "kind": "new_protocol_file", "detail": "プロトコル新設"})
+            elif DATASTORE_FILE_RE.search(PurePosixPath(path).name):
+                seen_files.add(path)
+                findings.append({"file": path, "line": None, "kind": "new_datastore_file", "detail": "DataStore新設"})
+    return findings
 
 
 def main():
@@ -155,30 +145,14 @@ def main():
     repo, base_ref = sys.argv[1], sys.argv[2]
     base_pairs = build_base_pairs(repo, base_ref)
     added, new_files = parse_diff(repo, base_ref)
-    result = {"new_edges": [], "asmdef_refs": [], "grammar": []}
+    result = {
+        "new_edges": [],
+        "asmdef_refs": collect_asmdef_ref_additions(repo, base_ref),
+        "grammar": collect_file_level_grammar(added, new_files),
+    }
 
-    # スキーマ変更・新規プロトコル/DataStoreファイルはファイル単位で判定する
-    # Schema changes and new protocol/datastore files are judged per file
-    seen_files = set()
+    # 行単位の所見: 依存新エッジと文法要素の新設 / per-line findings: new dependency edges and grammar elements
     for path, line_no, content in added:
-        if path.endswith((".yml", ".yaml")) and "VanillaSchema" in path and path not in seen_files:
-            seen_files.add(path)
-            result["grammar"].append({"file": path, "line": line_no, "kind": "schema_change", "detail": "スキーマyml変更"})
-        if path in new_files and path.endswith(".cs") and path not in seen_files:
-            if "/Protocol/" in path:
-                seen_files.add(path)
-                result["grammar"].append({"file": path, "line": 1, "kind": "new_protocol_file", "detail": "プロトコル新設"})
-            elif "DataStore" in path or "Datastore" in path:
-                seen_files.add(path)
-                result["grammar"].append({"file": path, "line": 1, "kind": "new_datastore_file", "detail": "DataStore新設"})
-
-    # asmdefは配列ブロックの所属をファイル単位の状態で追う / track array membership per asmdef file
-    asmdef_states = defaultdict(lambda: ASMDEF_UNKNOWN)
-    for path, line_no, content in added:
-        if path.endswith(".asmdef"):
-            refs, asmdef_states[path] = scan_asmdef_line(content, asmdef_states[path])
-            result["asmdef_refs"].extend({"file": path, "ref": ref} for ref in refs)
-            continue
         if not path.endswith(".cs"):
             continue
         m = USING_RE.match(content)
@@ -188,6 +162,9 @@ def main():
                 result["new_edges"].append({
                     "file": path, "line": line_no, "using": ns, "dir": d,
                     "generic_origin": any(r.search("/" + path) for r in GENERIC_DIR_RES),
+                    # baseにこのディレクトリのusing記録が皆無＝新設ディレクトリ。全usingが機械的に新エッジ化する
+                    # No using inventory at base means a brand-new directory, where every using is trivially novel
+                    "dir_is_new": not base_pairs.get(d),
                 })
         for kind, rx in GRAMMAR_RES:
             if rx.search(content):
