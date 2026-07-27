@@ -79,7 +79,7 @@ description: |
 - アクセントの青グラデ（`--recipe-action-background`）は**主要アクションボタン限定**。装飾や面には使わない。
 - 面は必ず半透明。不透明100%の面は作らない（世界が透けるのが前提のため）。
 - `index.css` の `--text-muted` は従属テキスト、`--text-insufficient` は不足/警告、`--gauge-track` はゲージの溝、`--gauge-fill` はゲージの充填に使う。
-- **選択・強調のシアンは `--select-cyan`（`rgb(0 221 255)`、uGUI `frame_select.png` / `nav_arrow.png` 由来）。** 用途はスロット選択枠とスキットの送り待ちマーカー・選択肢ホバー/押下に限る。青グラデ（`--recipe-action-background`）とは別語彙であり、面の常時装飾には使わない。
+- **選択・強調のシアンは `--select-cyan`（`rgb(0 221 255)`、uGUI `frame_select.png` / `nav_arrow.png` 由来）。** 用途はスロット選択枠とスキットの送り待ちマーカー・選択肢ホバー/押下・ツールボタンON状態の点灯に限る。青グラデ（`--recipe-action-background`）とは別語彙であり、面の常時装飾には使わない。
 - 機能側への色ハードコードは引き続き禁止し、これらの色も必ずトークン経由で参照する。
 
 ## 6. 装飾
@@ -226,8 +226,10 @@ description: |
 
 - 色・寸法・z層はすべて `index.css` のトークン経由。`--z-skit`（stage内の層序）と `--z-skit-transition` を定義し、
   フォールバック付きの未定義トークン参照（`var(--z-skit, 500)` 等）はしない。
-- stage は独自スタッキングコンテキストのため、Portal側の `ModalHost`(`--z-modal`) / `ToastHost`(`--z-toast`) は
-  常にスキットより上に来る。スキット中にモーダルは出ない想定であり、これを許容する。
+- stage は独自スタッキングコンテキストのため、Portal側の `ModalHost` / `ToastHost`(`--z-toast`=300) は
+  常に**会話窓**（stage内 `--z-skit`）より上に来る。スキット中にモーダルは出ない想定であり、これを許容する。
+- ただし暗転（`--z-skit-transition`=210）はPortal直下のためモーダルより上・トーストより下に載る。
+  モーダルの実効zはMantine既定の200で、`--z-modal` は定義のみの未配線トークンである点に注意する。
 
 ## 9. やらないことリスト（再掲・明示）
 

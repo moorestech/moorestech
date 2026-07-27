@@ -68,8 +68,11 @@
   right: 0;
   bottom: var(--skit-background-bottom);
   left: 0;
+  overflow: hidden;
   color: var(--text-high-contrast);
   font-size: var(--skit-background-font-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: center;
   pointer-events: none;
 }

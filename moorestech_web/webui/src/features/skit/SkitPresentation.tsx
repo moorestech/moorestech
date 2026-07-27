@@ -47,14 +47,16 @@ export function SkitPresentation() {
   }, [connectionStatus, data?.sessionId, state?.body, state?.textReveal.mode, state?.textReveal.intervalMs, bodyCharacters.length]);
 
   if (!data || !state || state.mode === "none") return null;
-  const allowedIntents = new Set<string>(data.allowedIntents);
+  const allowedIntents = new Set(data.allowedIntents);
   const base: ActionPayloads["skit.advance"] = { sessionId: data.sessionId, sceneRevision: data.sceneRevision };
   const visibleBody = bodyCharacters.slice(0, visibleCount).join("");
 
+  // クリックの帰結は単一評価器で1回だけ決め、挙動と送り待ちマーカー表示の両方で共有する
+  // Evaluate the click outcome once through the single evaluator and share it between behavior and the advance marker
+  const clickIntent = clickOutcome(visibleCount, bodyCharacters.length, allowedIntents.has("advance"));
   const handleTextIntent = () => {
-    const outcome = clickOutcome(visibleCount, bodyCharacters.length, allowedIntents.has("advance"));
-    if (outcome === "reveal") setVisibleCount(bodyCharacters.length);
-    if (outcome === "advance") void dispatchAction("skit.advance", base);
+    if (clickIntent === "reveal") setVisibleCount(bodyCharacters.length);
+    if (clickIntent === "advance") void dispatchAction("skit.advance", base);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -74,29 +76,32 @@ export function SkitPresentation() {
   // 背景スキットは面も枠も持たず、採掘・設置を殺さないよう入力を素通しする
   // Background skits carry no face or frame and pass input through so mining and placing keep working
   if (state.mode === "background") {
+    // 初回SetBackgroundText前の空snapshotでは行を出さない（正本は台詞が来るまで非表示）
+    // Skip the empty pre-SetBackgroundText snapshot; the reference shows nothing until the first line arrives
+    if (state.body === "") return null;
     return (
       <div className={styles.root}>
         <div className={styles.backgroundLine} data-testid="background-skit">
-          {state.speakerName + BACKGROUND_SEPARATOR + visibleBody}
+          {state.speakerName === "" ? visibleBody : state.speakerName + BACKGROUND_SEPARATOR + visibleBody}
         </div>
       </div>
     );
   }
-
-  const revealCompleted = visibleCount >= bodyCharacters.length;
 
   return (
     <div className={styles.root}>
       <GamePanel variant="skit">
         <section className={styles.window} data-testid="blocking-skit" tabIndex={0}
           onClick={handleTextIntent} onKeyDown={handleKeyDown}>
+          {/* 話者名・本文はUnity所有の表示データのためt()を通さない */}
+          {/* Speaker and body are Unity-owned display data and bypass t() */}
           <div className={styles.speaker}>{state.speakerName}</div>
           <div className={styles.rule}><FadeRule /></div>
           <div className={styles.body}>{visibleBody}</div>
-          {revealCompleted && allowedIntents.has("advance") && <AdvanceMarkerIcon />}
+          {clickIntent === "advance" && <AdvanceMarkerIcon />}
         </section>
       </GamePanel>
-      {state.choices.length > 0 && <SkitChoiceList choices={state.choices} base={base} />}
+      {state.choices.length > 0 && allowedIntents.has("select") && <SkitChoiceList choices={state.choices} base={base} />}
       <SkitToolbar base={base} allowedIntents={allowedIntents}
         autoEnabled={state.autoEnabled} skipActive={state.skipActive} />
     </div>

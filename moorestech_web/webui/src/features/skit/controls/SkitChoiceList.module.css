@@ -44,7 +44,7 @@
 
 /* 菱形マーカーはフェード帯の上に載るため、面とは別要素として全不透明で描く */
 /* The diamond markers overlap the fade band, so they draw at full opacity as elements separate from the face */
-.choice svg {
+.marker {
   position: absolute;
   width: calc(var(--skit-choice-height) / 3);
   height: calc(var(--skit-choice-height) / 3);
@@ -53,11 +53,11 @@
   stroke-width: 1.2;
 }
 
-.choice svg:first-of-type {
+.markerStart {
   left: 0;
 }
 
-.choice svg:last-of-type {
+.markerEnd {
   right: 0;
 }
 
@@ -79,8 +79,8 @@
   border-bottom-color: var(--select-cyan);
 }
 
-.choice:hover svg,
-.choice:focus-visible svg {
+.choice:hover .marker,
+.choice:focus-visible .marker {
   stroke: var(--select-cyan);
 }
 

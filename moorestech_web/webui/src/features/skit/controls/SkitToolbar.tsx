@@ -1,11 +1,11 @@
-import { dispatchAction, type ActionPayloads } from "@/bridge";
+import { dispatchAction, type ActionPayloads, type SkitIntent } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
 import { AutoIcon, HideUiIcon, ShowUiIcon, SkipIcon } from "../icons";
-import styles from "./toolbar.module.css";
+import styles from "./SkitToolbar.module.css";
 
 type Props = {
   base: ActionPayloads["skit.advance"];
-  allowedIntents: ReadonlySet<string>;
+  allowedIntents: ReadonlySet<SkitIntent>;
   autoEnabled: boolean;
   skipActive: boolean;
 };
@@ -16,8 +16,7 @@ export function SkitToolbar({ base, allowedIntents, autoEnabled, skipActive }: P
   const { t } = useI18n();
 
   return (
-    <div className={styles.toolbar}
-      onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+    <div className={styles.toolbar}>
       {/* 自動送りのon/offは同一SVGの色替えで示し、アイコン自体は差し替えない */}
       {/* Auto-advance on/off is a color swap on one SVG; the icon itself is never replaced */}
       <button className={styles.toolButton} type="button" aria-label={t("Auto")}

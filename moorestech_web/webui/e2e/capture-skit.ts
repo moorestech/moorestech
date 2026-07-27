@@ -1,5 +1,5 @@
-// 目視QA: スキット会話UIの各状態を撮影
-// Visual QA: capture the skit dialogue UI in each state
+// 目視QA: スキットUI状態を撮影
+// Visual QA: capture the skit UI states
 
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
@@ -8,6 +8,9 @@ const PORT = Number(process.env.CAPTURE_PORT ?? 5402);
 const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? ".";
 const VIEWPORT_W = Number(process.env.CAPTURE_VIEWPORT_W ?? 1284);
 const VIEWPORT_H = Number(process.env.CAPTURE_VIEWPORT_H ?? 725);
+// 全文表示判定用の本文定数
+// Body constant used to detect a completed reveal
+const BLOCKING_BODY = "Blocking message";
 
 async function main() {
   // DEMO は mock-host の module ロード時に評価される。env 設定後に動的 import する
@@ -32,16 +35,25 @@ async function main() {
   await page.goto(`http://127.0.0.1:${PORT}/`);
   await page.evaluate("document.fonts.ready.then(() => undefined)");
 
-  // mock-host は notification.events の snapshot を返さないため、購読が先着すると restoring が解けず
-  // 再接続オーバーレイが撮影とクリックを塞ぐ。撮影用にそれだけ落とす（既存ハーネスの穴で本UIとは無関係）
-  // The mock host serves no notification.events snapshot, so when the subscribe wins the race the restore never
-  // finishes and the reconnect overlay blocks shots and clicks; drop just that overlay for capture purposes
-  await page.addStyleTag({ content: '[data-testid="reconnect-overlay"] { display: none !important; }' });
-
   const shoot = async (name: string) => {
     await page.mouse.move(2, 2);
     await page.waitForTimeout(300);
     await page.screenshot({ path: `${OUT_DIR}/${name}.png` });
+  };
+
+  // blocking fixture は intervalMs=1000 のタイプライターで全文まで十数秒かかるため、実ユーザー同様クリックで即時全表示させる
+  // The blocking fixture types at intervalMs=1000 and needs a dozen seconds, so a real-user click reveals it all at once
+  const showBlockingBody = async () => {
+    const skitWindow = page.getByTestId("blocking-skit");
+    await skitWindow.waitFor();
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      // 同一台詞の再送ではタイプライターが再開せず全文のまま。その状態のクリックはadvanceとなり次の場面へ進むため必ず先に判定する
+      // A resent identical line keeps the full body, and clicking then dispatches advance and jumps scenes, so always check first
+      if ((await skitWindow.textContent())?.includes(BLOCKING_BODY)) return;
+      await skitWindow.click();
+      await page.waitForTimeout(100);
+    }
+    throw new Error(`blocking body never completed: ${BLOCKING_BODY}`);
   };
 
   // 1.背景スキット（面なし1行）
@@ -50,10 +62,10 @@ async function main() {
   await page.getByTestId("background-skit").waitFor();
   await shoot("skit-1-background");
 
-  // 2.通常スキット本文。§10の端チェック用に会話窓の左右も拡大クロップする
-  // 2. Blocking body text, plus zoomed left/right window crops for the §10 edge check
+  // 2.通常スキット本文＋左右クロップ
+  // 2. Blocking body text plus left/right crops
   await control("/__skit?stage=text");
-  await page.getByTestId("blocking-skit").waitFor();
+  await showBlockingBody();
   await shoot("skit-2-text");
   await page.screenshot({ path: `${OUT_DIR}/skit-2a-window-left.png`, clip: { x: 0, y: 495, width: 430, height: 225 } });
   await page.screenshot({ path: `${OUT_DIR}/skit-2b-window-right.png`, clip: { x: 850, y: 495, width: 430, height: 225 } });
@@ -71,37 +83,25 @@ async function main() {
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/skit-4-choice-hover.png` });
 
-  // 5.UI非表示（Hide UI 押下で復帰アイコンだけが残る）
-  // 5. UI hidden (pressing Hide UI leaves only the restore icon)
+  // 5.UI非表示（復帰アイコンのみ）
+  // 5. UI hidden (restore icon only)
   await control("/__skit?stage=text");
-  await page.getByTestId("blocking-skit").waitFor();
+  await showBlockingBody();
   await page.getByRole("button", { name: "Hide UI" }).click();
   await page.getByTestId("skit-show-ui").waitFor();
   await shoot("skit-5-ui-hidden");
 
-  // 6.Auto ON（同一SVGの色替えだけで表す）
-  // 6. Auto ON (expressed purely as a color swap on the same SVG)
+  // 6.Auto ON（色替えのみで表現）
+  // 6. Auto ON (expressed by a color swap alone)
   await control("/__skit?stage=text");
-  await page.getByTestId("blocking-skit").waitFor();
+  await showBlockingBody();
   await page.getByRole("button", { name: "Auto" }).click();
   await page.waitForTimeout(200);
   await shoot("skit-6-auto-on");
 
-  // 7.暗転が会話窓より上に載ることを確認する（stage合わせのfixtureが無いのでtopicを直接押し込む）
-  // 7. Verify the blackout paints above the window (no staged fixture exists, so push the topic directly)
-  await control("/__skit?stage=text");
-  await page.getByTestId("blocking-skit").waitFor();
-  const { state, subscribersOf } = await import("./mock-host/state");
-  const { send } = await import("./mock-host/wire");
-  const { Topics } = await import("../src/bridge/transport/protocol");
-  state.skitPresentation = {
-    ...state.skitPresentation,
-    sceneRevision: state.skitPresentation.sceneRevision + 1,
-    presentationState: { ...state.skitPresentation.presentationState, transitionVisible: true },
-  };
-  for (const ws of subscribersOf(Topics.skitPresentation)) {
-    send(ws, { op: "event", topic: Topics.skitPresentation, data: state.skitPresentation });
-  }
+  // 7.暗転が会話窓より上か確認
+  // 7. Verify the blackout sits above the window
+  await control("/__skit?stage=transition");
   await page.getByTestId("skit-transition").waitFor();
   await shoot("skit-7-transition");
 

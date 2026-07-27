@@ -4,8 +4,10 @@ import styles from "./style.module.css";
 type Props = {
   gridArea?: string;
   title?: ReactNode;
-  // craft は中央詳細用の細めバリアント、skit は画面下部・全幅ブリードの会話帯
-  // "craft" is the narrower variant for the center detail; "skit" is the full-bleed dialogue band at the screen bottom
+  // craft: 中央詳細用の細め
+  // craft: narrower variant for the center detail
+  // skit: 画面下部の全幅会話帯
+  // skit: full-bleed dialogue band at the screen bottom
   variant?: "default" | "craft" | "skit";
   style?: CSSProperties;
   children: ReactNode;

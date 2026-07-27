@@ -13,11 +13,11 @@ export function AdvanceMarkerIcon() {
   );
 }
 
-// 選択肢の板の両端に載る菱形マーカー（uGUI btn__select_*.png 由来）
-// Diamond marker riding each end of a choice plate (from uGUI btn__select_*.png)
-export function ChoiceMarkerIcon() {
+// 選択肢板端の菱形（btn__select_*.png由来）
+// Diamond at a choice plate's end (from btn__select_*.png)
+export function ChoiceMarkerIcon({ className }: { className: string }) {
   return (
-    <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+    <svg className={className} viewBox="0 0 12 12" aria-hidden="true" focusable="false">
       <path d="M6 0.5 L11.5 6 L6 11.5 L0.5 6 Z" />
       <path d="M6 3.5 L8.5 6 L6 8.5 L3.5 6 Z" />
     </svg>
