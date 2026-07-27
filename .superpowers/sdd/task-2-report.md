@@ -76,3 +76,52 @@ QA観点でブリーフ記載のHTML/CSSをそのまま入れると壊れる箇�
 - `<head>` 冒頭の使い方コメントは create-infographic-light 由来のまま（「`<main>` 内の各サンプルセクションを
   複製・改変して…」等）。ダイジェスト固有の使い方はTask 3のSKILL.md側で規定される前提で、
   「CSS/JSはverbatim維持」の指示に従い無変更とした。必要ならTask 3でヘッダコメントを差し替えるとよい。
+
+---
+
+## レビュー指摘対応（Minor 3件・追記）
+
+`digest-template.html` の追加CSSのみを変更。`<script>` ブロックとvendor由来CSSは無変更。
+
+### 1. `.code-card .hl` が長行で切れる → `min-width:100%; width:max-content;`
+
+`width:100%` は「pre のコンテンツボックス幅」に固定されるため、横スクロールする長行では
+帯が初期表示幅で途切れていた。headless Chrome（900x800）で新旧を実測:
+
+| | pre のコンテンツ幅 | 表示幅 | `.hl` 実測幅 |
+|---|---|---|---|
+| 旧 `width:100%` | 1977px | 814px | **814px（切れる）** |
+| 新 `max-content` | 1989px | 814px | **1989px（全幅到達）** |
+
+短行（suppressedカード）は新旧とも814px = 表示幅いっぱいで、`min-width:100%` により
+従来の「行全体に帯」挙動は維持されている（リグレッション無し）。
+
+### 2. `.figure > .verdict-card, .figure > .suppressed-card { margin-top: 0 }` を削除
+
+前回レポートに書いた「カードが52px下がってコメントボタンが浮く」という根拠は誤りだった。
+`.figure` は枠線・パディングを持たないため section の上マージンは**親を貫通して相殺**され、
+カードは `.figure` に対して下がらない。ルール有無で実測:
+
+- ルール無し: `cardMarginTop=52px` だが `figTop=379 === cardTop=379`（相殺）
+- ボタン⇔カードの位置関係は**新旧とも `gapBtnToCard=-15px` で同一**（ボタンはカード上端に重なったまま）
+
+浮かないことが実証されたためルールを削除し、ブリーフどおりに戻した。
+
+### 3. `.badge` を `.verdict-card .badge, .suppressed-card .badge` にスコープ
+
+無スコープの `.badge` がvendorの `.lead-item .badge`（26px円形バッジ）を汚染していた。実測:
+
+| | `.lead-item .badge` | `.verdict-card .badge` |
+|---|---|---|
+| 旧（無スコープ） | **padding 8px / margin-right 8px が混入** | 意図どおり |
+| 新（スコープ済） | padding 0 / margin-right 0（vendor本来） | 意図どおり（inline-block/8px/10px/8px） |
+
+`badge-new` / `badge-sup` はカード内文脈でのみ使う前提のためスコープ不要と判断し据え置き。
+
+### 検証
+
+- `<script>` 抽出 → `new Function()` 構文チェック: **SYNTAX_OK**（1ブロック）
+- headless Chrome（`--dump-dom` + 計測プローブ）:
+  - (a) 長行 `.hl` が `pre.scrollWidth` 相当まで到達 — **PASS**（旧版は切れることも対照実験で確認）
+  - (b) 両figureのコメントボタン: クリックでcomposerが開き、引用が `data-label` と一致、
+    キャンセルで閉じる — **両方PASS**（ルール削除後も機能する）
