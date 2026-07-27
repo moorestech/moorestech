@@ -1,15 +1,8 @@
----
-name: sim-shadow-score
-description: |
-  設計セッション（grill等）のtranscriptから質問と実回答を抽出し、user-simulatorに「実回答を見せずに」
-  盲検再予測させて採点する非同期シャドー評価。セッション本体の体感遅延ゼロでシミュレーターの育成データを蓄積し、
-  的中率・ベースライン比較・確信度校正をmisses.mdに記録する。
-  Use when:
-  1. 「シャドー採点して」「シミュレーターを裏で採点」「このセッションでsimを評価して」と言われた時
-  2. grill/設計セッション終了後にuser-simulatorの育成データを取りたい時
----
+# shadowモード — 盲検シャドー採点
 
-# sim-shadow-score — 盲検シャドー採点
+設計セッション（grill等）のtranscriptから質問と実回答を抽出し、「実回答を見せずに」盲検再予測させて採点する
+非同期シャドー評価。セッション本体の体感遅延ゼロで育成データを蓄積し、的中率・ベースライン比較・確信度校正を
+misses.mdに記録する。発動はuser-simulator本体のモード判定表から（「シャドー採点して」等）。
 
 設計セッションを素で走らせた後、シミュレーターが同じ文脈で各質問を予測できたかを事後検証する。
 インライン予測（preanswer）と違いユーザーの待ち時間を一切増やさず、訓練信号（質問・文脈・実回答・予測）を全量回収する。
@@ -25,7 +18,7 @@ description: |
 ### 2. 質問・実回答ペアの抽出と盲検タスク生成
 
 ```bash
-python3 scripts/extract_tasks.py <transcript.jsonl> <出力dir>
+python3 <このスキルdir>/modes/shadow/scripts/extract_tasks.py <transcript.jsonl> <出力dir(scratchpad推奨)>
 ```
 
 - AskUserQuestionのtool_useとtool_resultを突き合わせ、`task-XX.md`（元タスク文＋**その質問より前の**Q&A履歴＋今回の質問と選択肢）と`gold.json`（実回答）を生成する
@@ -37,7 +30,7 @@ python3 scripts/extract_tasks.py <transcript.jsonl> <出力dir>
 1質問=1エージェント。**model: opus必須明示**（Fable継承禁止・メモリ「サブエージェントのモデルコスト方針」）。
 プロンプト要点（実証済みの型）:
 
-- user-simulatorの知識ベース（`.claude/skills/user-simulator/knowledge/index.md`から選択ロード）を読ませる
+- 知識ベース（`<このスキルdir>/knowledge/index.md`から選択ロード）を読ませる
 - `task-XX.md`だけを文脈とし、**書かれていない情報（他の質問の答え等）を推測で使わない**と明記
 - サブエージェント起動禁止（モデル継承による高コスト化防止）・必要ファイルは自分でRead/Grep
 - FP厳禁: 根拠を持てないなら確信「低」と正直に書かせる
@@ -46,7 +39,7 @@ python3 scripts/extract_tasks.py <transcript.jsonl> <出力dir>
 ### 4. 採点
 
 ```bash
-python3 scripts/score.py <出力dir>
+python3 <このスキルdir>/modes/shadow/scripts/score.py <出力dir>
 ```
 
 - 正規化（NFKC・空白・「（推奨）」除去）して完全一致/部分一致/外れを判定
