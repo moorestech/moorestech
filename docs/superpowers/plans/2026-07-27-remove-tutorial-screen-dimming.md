@@ -234,7 +234,7 @@ Run: `pnpm test:e2e -- e2e/tests/tutorial.spec.ts`
 
 Workdir: `moorestech_web/webui`
 
-Expected: `tutorialOutline` が未知scenarioとしてHTTP 400になり、`topic control failed: 400` でFAILする。
+Expected: `tutorialOutline` / `tutorialEmpty` がまだ `TopicScenario` に存在しないため、E2EのTypeScript検査が引数型エラーでFAILする。
 
 - [ ] **Step 3: 既存topic controlへtutorial scenarioを追加する**
 
