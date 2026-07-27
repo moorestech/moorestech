@@ -40,7 +40,13 @@ export function applyPresentationControl(url: string, res: ServerResponse): bool
     const stage = params.get("stage") ?? (params.get("show") === "1" ? "background" : "none");
     state.skitPresentation = stage === "text" ? clone(fx.blockingSkitText)
       : stage === "choices" ? clone(fx.blockingSkitChoices)
-      : stage === "background" ? {
+      : stage === "transition" ? {
+      ...clone(fx.blockingSkitText),
+      presentationState: { ...clone(fx.blockingSkitText.presentationState), transitionVisible: true },
+    } : stage === "staging" ? {
+      ...clone(fx.blockingSkitText),
+      presentationState: { ...clone(fx.blockingSkitText.presentationState), textAreaVisible: false },
+    } : stage === "background" ? {
       ...clone(fx.skitPresentation), sessionId: "bg-1", sceneRevision: 1,
       presentationState: { ...clone(fx.skitPresentation.presentationState), mode: "background",
         speakerName: "Moore", body: "Background message", textAreaVisible: true,

@@ -17,7 +17,7 @@ import { MiningHud } from "@/features/miningHud";
 import { TrainRidingHud } from "@/features/trainHud";
 import { CursorTooltip } from "@/shared/tooltip";
 import { useI18n } from "@/shared/i18n";
-import { SkitPresentation } from "@/features/skit";
+import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenForUiState } from "@/shared/uiState";
@@ -101,6 +101,9 @@ export default function App() {
         <MiningHud />
         <CursorTooltip />
         <BlockInventoryPanel />
+        {/* スキット会話窓は1280基準の固定長で組むためstage内に置く（暗転だけPortalへ分離） */}
+        {/* The skit window lives in the stage so its fixed lengths stay on the 1280 baseline (only the blackout splits into the portal) */}
+        <SkitPresentation />
         <ModalHost />
         <ProgressBar />
         <BlockInventoryKeyHandler />
@@ -111,7 +114,7 @@ export default function App() {
         <ToastHost />
         <NotificationHost />
         <CurrentChallengeHud />
-        <SkitPresentation />
+        <SkitTransition />
         <TutorialOverlay />
         <WorldPinOverlay />
       </Portal>

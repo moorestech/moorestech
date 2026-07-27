@@ -70,9 +70,15 @@
   /* ワールドピンのラベル・マーカー面は半透明ネイビー族に揃える */
   /* World-pin label and marker faces share the translucent navy family */
   --world-pin-face: rgb(10 14 27 / 80%);
+  /* 画面外矢印は旧シェブロンの2倍幅にし、チュートリアル誘導として見落としにくくする */
+  /* Double the old chevron size so the off-screen tutorial cue is hard to miss */
+  --world-pin-arrow-size: 56px;
+  /* 明るい矢印を世界背景から分離する最小限の影 */
+  /* Minimal shadow separating the bright arrow from the world background */
+  --world-pin-arrow-shadow: rgb(0 0 0 / 65%);
   /* 画面外矢印を画面端からこの固定長だけ内側にクランプする */
   /* Clamp off-screen arrows this fixed length inside the screen edge */
-  --world-pin-edge-margin: 28px;
+  --world-pin-edge-margin: 40px;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;
@@ -112,6 +118,78 @@
   /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
   /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
   --notification-max-width: 20vw;
+  /* 選択・強調のシアン（uGUI frame_select.png / nav_arrow.png 由来）。スロット選択枠とスキットの強調に限る */
+  /* Selection cyan from uGUI frame_select.png / nav_arrow.png; limited to slot selection frames and skit highlights */
+  --select-cyan: rgb(0 221 255);
+  /* 面を持たない共通アイコンボタンの既定寸法。用途ごとに局所上書きする */
+  /* Default size of the shared faceless icon button; each use overrides it locally */
+  --icon-button-size: calc(var(--slot-size) / 2);
+  --icon-button-icon-size: calc(var(--slot-size) / 3);
+  /* スキットの層序。会話窓はstage内、暗転はPortalで会話窓より上に置く */
+  /* Skit stacking: the window lives inside the stage while the blackout sits above it in the portal */
+  --z-skit: 100;
+  --z-skit-transition: 210;
+  /* 会話窓の面・上端フェード・帯の高さ・内容インデント（1920設計px×2/3の1280 stage基準の固定長） */
+  /* Dialogue window face, top fade, band height, and content insets (fixed lengths on the 1280 stage = 1920 design px × 2/3) */
+  --skit-window-face: rgb(11 17 28 / 88%);
+  --skit-window-top-fade: 37px;
+  --skit-window-height: 204px;
+  --skit-window-content-inset: 168px;
+  --skit-rule-inset: 111px;
+  /* 文字が上端フェード帯に載らないよう会話窓の縁へ確保する安全余白 */
+  /* Safe area at the window edges so text never sits on the top fade band */
+  --skit-window-edge-safe-area: 8px;
+  /* 区切り罫線の上下余白。正本は上詰まり・下空き（TextSplitLine margin-top:3 / MainText padding-top:20） */
+  /* Divider margins; the reference hugs the speaker above and opens below (TextSplitLine margin-top:3 / MainText padding-top:20) */
+  --skit-rule-margin-top: 2px;
+  --skit-rule-margin-bottom: 13.3px;
+  /* 話者名と本文の階層は合成boldでなくサイズ差で作る */
+  /* Speaker/body hierarchy comes from size difference, not synthetic bold */
+  --skit-speaker-font-size: 28.7px;
+  --skit-body-font-size: 21.3px;
+  /* 送り待ちマーカーの寸法と右マージン（nav_arrow.png は 60×60・右マージン189 の実測） */
+  /* Advance marker size and right margin, measured from nav_arrow.png (60×60 design px, 189 right margin) */
+  --skit-advance-marker-size: 40px;
+  --skit-advance-marker-right: 126px;
+  --skit-advance-marker-stroke-width: 2;
+  /* 選択肢の板寸法・間隔・右端インセット。ラベルは板に収まるよう本文より一段小さくする */
+  /* Choice plate size, spacing, and right inset; labels run one step below body size to fit the fixed plate */
+  --skit-choice-width: 164px;
+  --skit-choice-height: 30.7px;
+  --skit-choice-gap: 14.7px;
+  --skit-choices-right-inset: 5.3px;
+  --skit-choice-font-size: 18.7px;
+  --skit-choice-active-mix: 35%;
+  /* 板と会話窓の間隔。正本 SelectButton の margin-bottom:1 実測（板同士の--skit-choice-gapとは別値） */
+  /* Gap between the plates and the window, measured from the reference SelectButton margin-bottom:1 (distinct from --skit-choice-gap between plates) */
+  --skit-choices-window-gap: 0.7px;
+  /* 板面の水平αランプは原画実測で片側 67/246 = 27%。装飾線のインセットとは別物 */
+  /* The plate face's horizontal alpha ramp measures 67/246 = 27% per side in the source art, distinct from the decoration inset */
+  --skit-choice-edge-fade: 44.7px;
+  /* 上下線と菱形は板端でなく原画の内側（左右18px・上下y=7/52）に置く */
+  /* The rules and diamonds sit inside the plate edge as in the source art (18px horizontally, y=7 of 52 vertically) */
+  --skit-choice-rule-inset: 12.3px;
+  --skit-choice-rule-vertical-inset: 4.1px;
+  --skit-choice-rule-thickness: 1px;
+  /* 菱形は原画で板高の38% */
+  /* The diamond measures 38% of the plate height in the source art */
+  --skit-choice-marker-size: 11.7px;
+  --skit-choice-marker-stroke-width: 1.2;
+  /* 面を持たないツールボタンの寸法・間隔・右上インセット・既定不透明度。正本アイコンは枠に対しbbox比1.00 */
+  /* Faceless tool button size, spacing, top-right inset, and default opacity; the reference icons fill their frame (bbox ratio 1.00) */
+  --skit-tool-button-size: 33.3px;
+  --skit-tool-gap: 5.3px;
+  --skit-toolbar-inset-right: 31.3px;
+  --skit-toolbar-inset-top: 8.7px;
+  --skit-tool-icon-opacity: 0.66;
+  --skit-tool-icon-stroke-width: 1.2;
+  /* 背景スキット1行の文字サイズと下端距離 */
+  /* Background skit single-line font size and distance from the bottom edge */
+  --skit-background-font-size: 24px;
+  --skit-background-bottom: 93.3px;
+  /* 暗転だけは全画面の不透明黒（§8.12の唯一の例外） */
+  /* The blackout alone is opaque full-screen black (the sole exception in §8.12) */
+  --skit-transition-face: rgb(0 0 0);
 
   /* スロット枠の既定(持ち物基準)。正本のスロット間ギャップ実測(パネル縁でなく格子中間で断面採取)は
      中間トーン2px+明灰2pxの2層のみ(暗リングは存在しない・パネル縁で見えた濃色帯は別要素)。カタログ/

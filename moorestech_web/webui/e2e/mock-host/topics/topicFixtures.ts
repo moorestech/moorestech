@@ -35,5 +35,8 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.worldPins) return state.worldPins;
   if (topic === Topics.skitPresentation) return state.skitPresentation;
   if (topic === Topics.trainRiding) return state.trainRiding;
+  // 実hostと同じく、snapshotを持たない通知トピックは接続直後に空{}を届ける
+  // Like the real host, the snapshot-less notification topic delivers an empty {} right after connect
+  if (topic === Topics.notification) return {};
   return undefined;
 }
