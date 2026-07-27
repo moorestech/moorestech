@@ -35,6 +35,8 @@ spec: docs/superpowers/specs/2026-07-27-world-pin-arrow-visual-design.md
   - 画面端余白の正本を40pxへ変更する。
 - `moorestech_web/webui/e2e/capture-world-pin-arrow.ts`
   - mock hostを単体起動し、方向と背景密度を変えた矢印をPNGへ撮影する。
+- `.claude/skills/webui-design/SKILL.md`
+  - §8.8の許可表現を、承認済みの軸付き塗りつぶし矢印・輪郭・最小限の影へ更新する。
 
 配置検査結果: 既存の表示コンポーネント・CSS Module・ルートデザイントークン・同機能のE2Eをそのまま変更するため、層責務と前例に一致する。新規の状態、通信、イベント、型、制御フローは追加しない。
 
@@ -45,6 +47,7 @@ spec: docs/superpowers/specs/2026-07-27-world-pin-arrow-visual-design.md
 | 3 | 画面端余白 | `app/index.css` | 既存ルートCSSカスタムプロパティ |
 | 4 | 視認性契約 | `e2e/tests/system/worldPin.spec.ts` | 既存Playwrightシステムテスト |
 | 5 | 視覚QA画像 | `e2e/capture-world-pin-arrow.ts` | 既存capture harnessと同型のPlaywright単体撮影スクリプト |
+| 6 | HUDデザイン規約 | `.claude/skills/webui-design/SKILL.md` | 既存§8.8ホワイトリストの改訂 |
 
 データフロー: Unity射影 → `tutorial.world_pins` → `WorldPinOverlay`（読み手）→ SVG表示。既存経路へ分岐や逆流を追加しない。
 
@@ -103,6 +106,7 @@ git commit -m "画面外ワールドピン矢印の視認性契約を追加"
 ### Task 2: 56pxの軸付き塗りつぶし矢印を実装する
 
 **Files:**
+- Modify: `.claude/skills/webui-design/SKILL.md`
 - Modify: `moorestech_web/webui/src/features/tutorial/WorldPinOverlay.tsx`
 - Modify: `moorestech_web/webui/src/features/tutorial/worldPin.module.css`
 - Modify: `moorestech_web/webui/src/app/index.css`
@@ -112,7 +116,14 @@ git commit -m "画面外ワールドピン矢印の視認性契約を追加"
 - Consumes: `WorldPin.directionX`、`WorldPin.directionY`、CSS変数 `--world-pin-edge-margin`
 - Produces: `EdgeArrow` の軸付きSVG、56pxの高コントラスト表示、40pxの画面端クランプ
 
-- [ ] **Step 1: SVGパスを軸付き矢印へ置き換える**
+- [ ] **Step 1: webui-design §8.8を承認済みの矢印表現へ更新する**
+
+```markdown
+- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。`--text-high-contrast` の塗りと `--world-pin-face` の輪郭を使い、世界背景から分離する最小限の影を許可する。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
+- 新しい色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
+```
+
+- [ ] **Step 2: SVGパスを軸付き矢印へ置き換える**
 
 ```tsx
 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -120,7 +131,7 @@ git commit -m "画面外ワールドピン矢印の視認性契約を追加"
 </svg>
 ```
 
-- [ ] **Step 2: TypeScript側の余白フォールバックを撤去してCSS変数だけを読む**
+- [ ] **Step 3: TypeScript側の余白フォールバックを撤去してCSS変数だけを読む**
 
 ```ts
 let cachedEdgeMargin: number | null = null;
@@ -133,7 +144,7 @@ function readEdgeMargin(): number {
 }
 ```
 
-- [ ] **Step 3: CSSで56pxの塗りつぶし矢印と高コントラスト輪郭・影を定義する**
+- [ ] **Step 4: CSSで56pxの塗りつぶし矢印と高コントラスト輪郭・影を定義する**
 
 ```css
 .arrow {
@@ -154,13 +165,13 @@ function readEdgeMargin(): number {
 }
 ```
 
-- [ ] **Step 4: ルートデザイントークンの画面端余白を40pxへ変更する**
+- [ ] **Step 5: ルートデザイントークンの画面端余白を40pxへ変更する**
 
 ```css
 --world-pin-edge-margin: 40px;
 ```
 
-- [ ] **Step 5: 対象E2Eを実行して全件成功を確認する**
+- [ ] **Step 6: 対象E2Eを実行して全件成功を確認する**
 
 Run:
 
@@ -171,7 +182,7 @@ pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/system/wor
 
 Expected: 5 tests passed。
 
-- [ ] **Step 6: buildとlintを実行する**
+- [ ] **Step 7: buildとlintを実行する**
 
 Run:
 
@@ -183,10 +194,10 @@ pnpm lint
 
 Expected: 両コマンドともexit code 0。
 
-- [ ] **Step 7: 実装をコミットする**
+- [ ] **Step 8: 実装をコミットする**
 
 ```bash
-git add moorestech_web/webui/src/features/tutorial/WorldPinOverlay.tsx moorestech_web/webui/src/features/tutorial/worldPin.module.css moorestech_web/webui/src/app/index.css
+git add .claude/skills/webui-design/SKILL.md moorestech_web/webui/src/features/tutorial/WorldPinOverlay.tsx moorestech_web/webui/src/features/tutorial/worldPin.module.css moorestech_web/webui/src/app/index.css
 git commit -m "画面外ワールドピンを大きな軸付き矢印に変更"
 ```
 
@@ -311,6 +322,7 @@ git commit -m "画面外ワールドピン矢印のPlaywright視覚QAを追加"
 **Files:**
 - Review: `docs/superpowers/specs/2026-07-27-world-pin-arrow-visual-design.md`
 - Review: `docs/superpowers/plans/2026-07-27-world-pin-arrow-visual.md`
+- Review: `.claude/skills/webui-design/SKILL.md`
 - Review: `moorestech_web/webui/e2e/tests/system/worldPin.spec.ts`
 - Review: `moorestech_web/webui/e2e/capture-world-pin-arrow.ts`
 - Review: `moorestech_web/webui/src/features/tutorial/WorldPinOverlay.tsx`
