@@ -1,20 +1,18 @@
 ---
-name: moores-grill
+name: moores-grill-with-docs
 description: |
-  moorestechの設計セッション用ラッパー。grill-with-docs（/grilling + /domain-modeling）を実行しつつ、
-  プロジェクト固有の追加規約（ADR出所欄・writing-plansへの接続）を適用する。brainstormingの後継。
+  A relentless interview to sharpen a plan or design, which also creates docs (ADRs and glossary) as we go.
+  grill-with-docs（mattpocock/skills）のmoorestechローカルフォーク。上流との同期はせずオリジナル路線で編集する。
   Use when:
   1. 「設計を詰めたい」「壁打ちしたい」「〜機能を作りたい」「仕様を相談したい」と設計対話を始める時
-  2. 「grillして」「moores-grillで」と言われた時
+  2. 「grillして」「grill-with-docsで」と言われた時
 ---
 
-# moores-grill — grill-with-docs のプロジェクト適用
+Run a `/grilling` session, using the `/domain-modeling` skill.
 
-`grill-with-docs` スキル（/grilling セッションを /domain-modeling スキルで実行）をそのまま実行する。
-grill本体の進め方・質問スタイル・成果物（CONTEXT.md用語集・docs/adr/・docs/plans/）には手を加えない。
-ただし以下の追加規約を適用する。
+## moorestech追加規約
 
-## 追加規約1: ADR出所欄（必須）
+### 1. ADR出所欄（必須）
 
 各ADRの決定（Considered Optionsの採択・却下を含む主要な裁定）には、誰が決めたかを機械可読に記録する:
 
@@ -26,7 +24,7 @@ grill本体の進め方・質問スタイル・成果物（CONTEXT.md用語集�
 
 後日「これは誰が決めたか」を遡れることが目的。出所の偽装（agent判断を裁定済みの顔で書く）は禁止。
 
-## 追加規約2: 設計完了後は writing-plans へ接続
+### 2. 設計完了後は writing-plans へ接続
 
 設計・ADRが確定したら、実装着手前に writing-plans スキルで実装計画を作成する。
 writing-plans 側の user-simulator による plan review（sim-gate配線）は既存のまま維持する。
