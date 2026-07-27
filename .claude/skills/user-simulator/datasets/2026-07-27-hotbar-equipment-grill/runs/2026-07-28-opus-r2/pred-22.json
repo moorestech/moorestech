@@ -1,0 +1,1 @@
+{"idx": 22, "predictions": [{"header": "向きの扱い", "predicted_label": "割当はIDのみ、向きは持たない（推奨）", "rationale": "deviation-cases.md 6節がこの質問を過剰逸脱のFP事例として明示し、データ最小主義は推奨どおり働くと記録している。加えて adjudications.md にも「向きコピーYAGNI却下」があり、直前でGuid 1本統一を裁定した直後なので分岐を増やす選択は取らない。", "confidence": "高"}]}

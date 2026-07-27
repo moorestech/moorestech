@@ -1,0 +1,1 @@
+{"idx": 14, "predictions": [{"header": "選択状態の所有", "predicted_label": "非MonoBehaviourのモデルに移しuGUIは削除（推奨）", "rationale": "質問の主語がプレイヤー体験ではなく実装構造なので推奨追従が基本（deviation-cases 6節）。加えてこのユーザーはUIをWeb移行済みでuGUIは残置のみという方針を持ち、後方互換不要・残置排除の文化（PR978）とも整合するため、HotBarView残存案は選ばれにくい。選択もサーバ権威にする案は「建築モードの出入りはクライアントUI状態」で過剰。", "confidence": "中"}]}
