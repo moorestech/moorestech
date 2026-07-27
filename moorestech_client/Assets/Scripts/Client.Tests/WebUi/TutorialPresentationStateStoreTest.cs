@@ -6,8 +6,6 @@ namespace Client.Tests.WebUi
 {
     public class TutorialPresentationStateStoreTest
     {
-        // outline専用APIはwire種別をstore内部で固定する
-        // The outline-specific API fixes the wire kind inside the store
         [Test]
         public void AddOutlineHighlightPublishesAnchorAndOutlineKind()
         {

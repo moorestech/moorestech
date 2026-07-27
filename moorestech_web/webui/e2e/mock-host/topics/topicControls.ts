@@ -38,8 +38,6 @@ const controls = {
   notificationAchievement: () => control(Topics.notification, { seq: 1, category: "achievement", messageId: "achievement.researchCompleted", messageParams: ["原始研究1"], itemId: 1 }),
   notificationItemUnlocked: () => control(Topics.notification, { seq: 2, category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 2 }),
   notificationDenied: () => control(Topics.notification, { seq: 3, category: "operationDenied", messageId: "denied.researchNotCompletable", messageParams: [], itemId: null }),
-  // チュートリアル輪郭の表示・消去を実topic経路で駆動する
-  // Drive tutorial outline visibility through the real topic path
   tutorialOutline: () => control(Topics.tutorialPresentation, {
     tutorialSessionId: "tutorial-session-1", revision: 1, challengeId: "tutorial-challenge-1",
     highlights: [{
