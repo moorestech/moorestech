@@ -24,14 +24,16 @@ test("設置・削除モードtopicをHUDへ反映する", async ({ page }) => {
   await expect(deletion).toContainText("Protected area");
 });
 
-test("採掘・クロスヘア・tooltipのtopic eventを表示する", async ({ page }) => {
+test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", async ({ page }) => {
   await setUiState(page, "GameScreen");
   await page.goto("/");
   await setTopicScenario(page, "mining");
   await setTopicScenario(page, "tooltip");
 
-  await expect(page.locator('[data-tutorial-anchor="mining.hud"]')).toContainText("Iron Ore");
-  await expect(page.locator('[data-tutorial-anchor="mining.hud"] [role="progressbar"]')).toHaveAttribute("aria-valuenow", "65");
+  const miningProgress = page.locator('[data-tutorial-anchor="mining.hud"] [role="progressbar"]');
+  await expect(miningProgress).toHaveAttribute("aria-valuenow", "0.65");
+  await expect(page.getByText(/Mining Target/i)).toHaveCount(0);
+  await expect(page.getByText("Iron Ore", { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-tutorial-anchor="game.crosshair"]')).toBeVisible();
   await expect(page.getByText("世界の対象", { exact: true })).toBeVisible();
 

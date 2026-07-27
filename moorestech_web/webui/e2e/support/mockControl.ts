@@ -50,13 +50,13 @@ export async function setTopicScenario(page: Page, scenario: TopicScenario) {
   if (!response.ok()) throw new Error(`topic control failed: ${response.status()}`);
 }
 
-export async function injectTopicSnapshot(page: Page, scenario: TopicScenario, revision: number, text: string) {
-  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&text=${encodeURIComponent(text)}`);
+export async function injectTopicSnapshot(page: Page, scenario: TopicScenario, revision: number, progress: number) {
+  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&snapshot=1&revision=${revision}&progress=${progress}`);
   if (!response.ok()) throw new Error(`topic snapshot control failed: ${response.status()}`);
 }
 
-export async function setTopicScenarioRevision(page: Page, scenario: TopicScenario, revision: number, text: string) {
-  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&revision=${revision}&setWireRevision=1&text=${encodeURIComponent(text)}`);
+export async function setTopicScenarioRevision(page: Page, scenario: TopicScenario, revision: number, progress: number) {
+  const response = await page.request.get(`/__topic-control?scenario=${encodeURIComponent(scenario)}&revision=${revision}&setWireRevision=1&progress=${progress}`);
   if (!response.ok()) throw new Error(`topic revision control failed: ${response.status()}`);
 }
 
