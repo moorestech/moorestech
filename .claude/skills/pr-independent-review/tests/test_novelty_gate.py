@@ -146,6 +146,53 @@ def test_asmdef_single_line_keys_after_references_are_excluded(repo: Path):
     assert refs == ["Game.Foo"]
 
 
+def test_asmdef_multiline_other_array_elements_are_not_refs(repo: Path):
+    # 複数行asmdefで includePlatforms の要素("Editor")がrefに混入しないこと
+    # In a multi-line asmdef, includePlatforms elements must not leak into references
+    # 注意: basetag...HEADの正味diffではasmdef全行が追加行として現れ、key行も走査対象に入る
+    # Note: the net diff shows every asmdef line as added, so key lines are part of the scan
+    asmdef = repo / "Client.Game" / "Client.Game.Multi.asmdef"
+    asmdef.write_text('{\n  "name": "Client.Game",\n  "references": [],\n  "includePlatforms": []\n}\n')
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "asmdef base")
+    asmdef.write_text(
+        '{\n  "name": "Client.Game",\n  "references": [\n    "Game.ElectricWire"\n  ],\n'
+        '  "includePlatforms": [\n    "Editor"\n  ]\n}\n'
+    )
+    _git(repo, "commit", "-am", "asmdef ref and platform")
+    result = _run(repo)
+    refs = [r["ref"] for r in result["asmdef_refs"] if r["file"] == "Client.Game/Client.Game.Multi.asmdef"]
+    assert refs == ["Game.ElectricWire"]
+
+
+def test_path_with_space_is_attributed_to_its_own_file(repo: Path):
+    # スペース入りパスではgitがヘッダ末尾にTABを付ける。除去しないと拡張子判定が全て外れ偽クリーンになる
+    # git appends a TAB to headers of paths with spaces; without stripping it every check silently misses
+    protocol_dir = repo / "Third Party" / "Protocol"
+    protocol_dir.mkdir(parents=True)
+    packet = protocol_dir / "NewPacket.cs"
+    packet.write_text(
+        "using Game.NewPacketDomain;\nnamespace ThirdParty.Protocol { public interface INewPacket {} }\n"
+    )
+    # diffで先行するASCIIファイルも同時に変更し、誤帰属先になり得る状態を作る
+    # Also touch a preceding ASCII file so misattribution would have somewhere to land
+    wire = repo / "Client.Game" / "ElectricWire" / "WireView.cs"
+    wire.write_text(
+        "using Game.ElectricWire;\nusing UnityEngine;\nnamespace Client.Game.ElectricWire { class WireView {} }\n"
+    )
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "spaced path protocol file")
+    result = _run(repo)
+
+    protocol = [g for g in result["grammar"] if g["kind"] == "new_protocol_file"]
+    assert [g["file"] for g in protocol] == ["Third Party/Protocol/NewPacket.cs"]
+    interfaces = [g for g in result["grammar"] if g["kind"] == "interface"]
+    assert [g["file"] for g in interfaces] == ["Third Party/Protocol/NewPacket.cs"]
+    edges = [e for e in result["new_edges"] if e["using"] == "Game.NewPacketDomain"]
+    assert [e["file"] for e in edges] == ["Third Party/Protocol/NewPacket.cs"]
+    assert all(g["file"] != "Client.Game/ElectricWire/WireView.cs" for g in result["grammar"])
+
+
 def test_non_ascii_path_is_attributed_to_its_own_file(repo: Path):
     # core.quotepathがonだと`+++ "b/..."`となり前ファイルへ誤帰属する。設定を明示して再現条件を固定
     # With core.quotepath on, `+++ "b/..."` would misattribute lines to the previous file

@@ -86,7 +86,7 @@ def parse_diff(repo, base_ref):
         if raw.startswith("diff --git "):
             in_hunk, is_new, cur = False, False, None
         elif not in_hunk and raw.startswith("--- "):
-            is_new = raw[4:] == "/dev/null"
+            is_new = raw[4:].rstrip("\t") == "/dev/null"
         elif not in_hunk and raw.startswith("+++ "):
             cur = parse_plus_header(raw)
             if is_new and cur:
@@ -104,7 +104,9 @@ def parse_diff(repo, base_ref):
 def parse_plus_header(raw):
     # `+++ b/<path>` か `+++ /dev/null` のみ許す。想定外形式は誤帰属させず即座に落とす
     # Only `+++ b/<path>` and `+++ /dev/null` are valid; anything else fails instead of misattributing
-    target = raw[4:]
+    # パスにスペースを含むとgitは末尾にTABを付ける（`+++ b/Third Party/A.cs\t`）ため必ず落とす
+    # git appends a TAB when the path contains a space; strip it or the extension checks all miss
+    target = raw[4:].rstrip("\t")
     if target == "/dev/null":
         return None
     if target.startswith("b/"):
@@ -114,6 +116,37 @@ def parse_plus_header(raw):
         "diff.noprefix / diff.mnemonicPrefix / パスのクォート等の設定が原因の可能性がある "
         "(possible cause: diff.noprefix, diff.mnemonicPrefix, or a quoted path)"
     )
+
+
+# asmdef走査の状態。裸の文字列行をrefとして拾ってよいのは「references配列の中」か「所属不明」のときだけ
+# asmdef scan states; bare string lines count as refs only inside references, or when membership is unknown
+ASMDEF_UNKNOWN, ASMDEF_IN_REFS, ASMDEF_IN_OTHER = "unknown", "in_refs", "in_other"
+# GUID形式（"GUID:9a3d..."）も参照として文字列のまま報告する
+# GUID-style references are reported verbatim, without resolving them
+ASMDEF_REF_RE = re.compile(r'"([A-Za-z0-9_.:]+)"')
+
+
+def scan_asmdef_line(content, state):
+    # 1行を走査し (拾ったref, 次の状態) を返す / scan one line, return (refs, next state)
+    if '"references"' in content:
+        colon = content.find(":", content.index('"references"'))
+        if colon == -1:
+            return [], ASMDEF_UNKNOWN
+        # 1行形式 `"references": ["A"]` は`]`まで、複数行形式は配列ブロックに入る
+        # Inline arrays end at `]`; otherwise we enter the references block
+        close = content.find("]", colon)
+        if close != -1:
+            return ASMDEF_REF_RE.findall(content[colon + 1: close + 1]), ASMDEF_UNKNOWN
+        return ASMDEF_REF_RE.findall(content[colon + 1:]), ASMDEF_IN_REFS
+    if '":' in content:
+        # references以外のkey行。配列が開きっぱなしならその要素は参照ではない
+        # A non-references key line; if its array stays open, its elements are not references
+        return [], ASMDEF_IN_OTHER if "[" in content and "]" not in content else ASMDEF_UNKNOWN
+    if state == ASMDEF_IN_OTHER:
+        return [], ASMDEF_UNKNOWN if "]" in content else ASMDEF_IN_OTHER
+    # 裸の文字列行。キー行がdiff外なら（配列途中への1行追加）所属不明のまま拾う＝偽陰性よりノイズを許容する
+    # Bare string line: if the key line is outside the diff we still collect, trading noise for no misses
+    return ASMDEF_REF_RE.findall(content), ASMDEF_UNKNOWN if "]" in content else state
 
 
 def main():
@@ -139,26 +172,12 @@ def main():
                 seen_files.add(path)
                 result["grammar"].append({"file": path, "line": 1, "kind": "new_datastore_file", "detail": "DataStore新設"})
 
+    # asmdefは配列ブロックの所属をファイル単位の状態で追う / track array membership per asmdef file
+    asmdef_states = defaultdict(lambda: ASMDEF_UNKNOWN)
     for path, line_no, content in added:
         if path.endswith(".asmdef"):
-            # references行は1行形式もあるため、コロン以降～配列を閉じる`]`までだけを走査対象にする
-            # A references line may hold the whole array inline; scan only from its colon to the closing `]`
-            scan = content
-            if '"references"' in content:
-                colon = content.find(":", content.index('"references"'))
-                if colon == -1:
-                    scan = ""
-                else:
-                    close = content.find("]", colon)
-                    scan = content[colon + 1: close + 1] if close != -1 else content[colon + 1:]
-            # 他のkey行（`":`を含む）はスキップし、references配列要素（裸の文字列行）だけ拾う
-            # Skip other key-value lines; keep only bare string lines = reference array elements
-            elif '":' in content:
-                continue
-            # GUID形式（"GUID:9a3d..."）も参照として文字列のまま報告する
-            # GUID-style references are reported verbatim, without resolving them
-            for ref in re.findall(r'"([A-Za-z0-9_.:]+)"', scan):
-                result["asmdef_refs"].append({"file": path, "ref": ref})
+            refs, asmdef_states[path] = scan_asmdef_line(content, asmdef_states[path])
+            result["asmdef_refs"].extend({"file": path, "ref": ref} for ref in refs)
             continue
         if not path.endswith(".cs"):
             continue

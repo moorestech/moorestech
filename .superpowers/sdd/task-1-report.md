@@ -420,3 +420,75 @@ $ python3 .claude/skills/pr-independent-review/scripts/novelty_gate.py "$(pwd)" 
 EXIT=0
 ```
 （現ブランチはスキル関連コミットのみのため空出力。空虚な合格でないことは上記QA 5で担保）
+
+---
+
+## 再レビュー所見2件の修正（追記）
+
+### 1. スペース入りパスのTAB付着で偽クリーン（Important）
+
+gitはパスにスペースを含むとdiffヘッダ末尾にTABを付ける（実測: `'+++ b/Third Party/Protocol/NewPacket.cs\t'`）。
+`parse_plus_header` が `\t` 付きパスを返すため `path.endswith(".cs")` 等が全て外れ、
+`Third Party/` 配下（Unity標準の有料アセット置き場）の変更が丸ごと無検出＝偽クリーンになっていた。
+
+- `parse_plus_header`: `raw[4:].rstrip("\t")` でTABを除去。
+- `--- ` 行の `/dev/null` 判定も同様に `rstrip("\t")`（削除/変更側パスにもTABが付くため）。
+  実測では `--- /dev/null` 自体にTABは付かないが、判定の対称性のため揃えた。
+
+### 2. 複数行asmdefの他配列要素混入
+
+旧実装は「`":` を含む行はスキップ、裸の文字列行はref」という行単位判定だったため、
+`"includePlatforms": [` の次行の `"Editor"` をrefとして拾っていた。
+本リポジトリのasmdefは全てこの複数行形式（例: `Game.MapGeneration.asmdef`）で、
+asmdefを触る全PRでノイズ化する。
+
+対策: ファイル単位の状態機械 `scan_asmdef_line(content, state)` を導入。
+
+| 状態 | 意味 | 裸の文字列行 |
+|---|---|---|
+| `ASMDEF_UNKNOWN` | 配列外 or 所属不明 | 拾う（フォールバック） |
+| `ASMDEF_IN_REFS` | references配列の中 | 拾う |
+| `ASMDEF_IN_OTHER` | references以外の配列の中 | 捨てる |
+
+- `"references"` キー行: 同一行に `]` があれば1行形式としてコロン〜`]`だけ走査し`UNKNOWN`へ、無ければ`IN_REFS`へ。
+- 他のキー行: `[` があり `]` が無ければ `IN_OTHER`、それ以外は `UNKNOWN`。
+  （`"name": "X"` 等で `IN_OTHER` に落ちないことが重要。落とすと以降の裸ref行を取りこぼす）
+- `]` を含む行で配列ブロック終了＝`UNKNOWN` に戻す。
+- **割り切り**: diffは追加行しか見えず、配列途中への1行追加ではキー行がdiffに現れない。
+  この場合は状態が `UNKNOWN` のままなので従来どおり拾う（偽陰性よりノイズを許容）。スクリプトにも明記。
+
+### テスト（11本、+2本）
+
+- `test_path_with_space_is_attributed_to_its_own_file` — `Third Party/Protocol/NewPacket.cs`（using＋interface）
+  を新規追加し、`new_protocol_file` / `interface` / `new_edges` が全て当該ファイルに帰属すること。
+  先行ASCIIファイル（`WireView.cs`）を同時変更して誤帰属先を用意している。
+- `test_asmdef_multiline_other_array_elements_are_not_refs` — `"references"` と `"includePlatforms"` が
+  併存する複数行asmdefで、`refs == ["Game.ElectricWire"]`（`Editor`・`Client.Game` の混入なし）。
+
+### QA（バグ狩り）
+
+1. **RED確認**: 修正前スクリプトに戻して新規2本を実行 → `2 failed`
+   （space側は `new_protocol_file` が `[]`、asmdef側は `Editor` 混入）。修正後にのみ通ることを実測。
+2. **既存9本の非退行**: 全11本 PASS（`11 passed`）。1行形式・GUID形式・tail key除外・非ASCIIパス・
+   強制color の既存ケースは状態機械化後も全て維持。
+3. **実asmdefでの目視照合**: `Game.MapGeneration.asmdef`（references 6件＋includePlatforms等の空配列）を
+   含む範囲 `HEAD~30...HEAD` で実行 → 抽出refは実ファイルの6件と完全一致、他配列由来のノイズ0件。
+4. **実PR回帰**: `7de5b33a2` を base `7de5b33a2^1` で実行 →
+   `{'new_edges': 5, 'asmdef_refs': 0, 'grammar': 1}`, kinds=`['schema_change']`, exit 0。前回報告と完全一致。
+5. **行数規約**: スクリプト 200行（規約上限ちょうど）。テストは243行だが、
+   完了条件が「`test_novelty_gate.py` 全件を1コマンドで実行」であるため分割せず1ファイル維持。
+
+### 完了条件
+
+```
+$ uv run --with pytest python -m pytest .claude/skills/pr-independent-review/tests/test_novelty_gate.py -v
+============================== 11 passed in 4.44s ==============================
+
+$ python3 .claude/skills/pr-independent-review/scripts/novelty_gate.py "$(pwd)" origin/master
+{
+ "new_edges": [],
+ "asmdef_refs": [],
+ "grammar": []
+}
+EXIT=0
+```
