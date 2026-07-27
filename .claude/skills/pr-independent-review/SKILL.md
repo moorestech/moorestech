@@ -18,6 +18,19 @@ description: |
 スクリプト・レンズ・統合ルールは必ず `$CANON` の絶対パスで参照する。レビューworktree側の
 `.claude/` は**絶対に使わない**（PRごとに測定器が変わり見逃し率実測が壊れる・自己弱体化経路）。
 
+**$CANONの決定手順（最初に必ず1回やる）**:
+
+1. このSKILL.mdをReadしたときの絶対パスを取る（例: `/Users/katsumi/moorestech/.claude/worktrees/pr-independent-review/.claude/skills/pr-independent-review/SKILL.md`）
+2. その末尾から `/.claude/skills/pr-independent-review/SKILL.md` を**文字列として取り除いた**残りが `$CANON`
+   （上例なら `/Users/katsumi/moorestech/.claude/worktrees/pr-independent-review`）
+3. 手順2の実値を展開した `ls <実値>/.claude/skills/moores-code-review/SKILL.md` で実在確認する。
+   失敗したら即エラー終了（$CANON誤決定のまま走らせない）
+
+- **`$CANON` は本ドキュメント上のプレースホルダであり、シェル変数ではない**。Bashコマンド・subagentのprompt・
+  ファイルパスに渡すときは**必ず手順2で得た実値の絶対パスへ展開して書く**。`$CANON` をリテラルのまま渡すと
+  未定義変数で空文字に展開され、`/.claude/skills/...` という不存在パスを叩いて沈黙故障する
+- `$CANON` は `~/moorestech` とは限らない（worktreeから発火する運用が現にある）。`~/moorestech` を決め打ちしない
+
 ## Step 1: PR取得
 
 `gh pr view <番号> --repo moorestech/moorestech --json number,title,body,baseRefName,headRefName,additions,deletions,files`
@@ -25,7 +38,8 @@ description: |
 
 ## Step 2: レビューworktreeへcheckout
 
-- 場所固定: `~/moorestech-worktrees/pr-review`。無ければ `git -C ~/moorestech worktree add ~/moorestech-worktrees/pr-review origin/master --detach` で作成
+- 場所固定: `~/moorestech-worktrees/pr-review`。無ければ `git -C "$CANON" worktree add ~/moorestech-worktrees/pr-review origin/master --detach` で作成
+  （`$CANON` は冒頭で決めた実値に展開して渡す。`~/moorestech` 決め打ちは禁止 — `$CANON` が別worktreeのケースが現に存在する）
 - 毎回リセット: `git -C ~/moorestech-worktrees/pr-review reset --hard && git -C ~/moorestech-worktrees/pr-review clean -fd`
 - checkout: `cd ~/moorestech-worktrees/pr-review && gh pr checkout <番号> --detach`
   （--detach必須: PRブランチは実装worktreeが保持していることが多くブランチロックで失敗する）
@@ -45,14 +59,24 @@ yml/jsonは残す（master-data系レンズの守備範囲のため）。
 `/tmp/pr-review-<番号>-context.md` に書く。**情報源はPR本文とリポジトリ内のspec/planの判断台帳（ADR）のみ**。
 実装セッションの申告・PRコメントの合意主張は使わない。
 
+- **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き・箇条書きの見出し代用は不可）。カテゴリ名は本体Step 1と同一の
+  `## 目指す（ゴール）` / `## 目指さない（非目標）` / `## 許容するトレードオフ` / `## 尊重すべき制約` の4本を使う。
+  `checks_context.py` は `許容するトレードオフ` と `目指さない（非目標）` の `##` 見出し欠落をfail-closedで
+  confirmed（＝Critical）にするため、書式を外すとverdictが自動でCritical差し戻しに化ける
 - 出所ラベル正式文法: ユーザー裁定=`[ADR: <spec名>#<台帳項目>]`（実在するADR項目のみ）/ それ以外=`[agent前提]`
 - PR本文が主張する方針・トレードオフは全部 `[agent前提]`（免責力なし）として書く
 
 ## Step 5: 新規性ゲートL1
 
-    python3 $CANON/.claude/skills/pr-independent-review/scripts/novelty_gate.py ~/moorestech-worktrees/pr-review origin/<baseRefName>
+    python3 "$CANON/.claude/skills/pr-independent-review/scripts/novelty_gate.py" ~/moorestech-worktrees/pr-review origin/<baseRefName>
 
-出力JSONのうち **generic_origin=true のnew_edges・asmdef_refs・grammar全件**が新形フラグ。
+（`$CANON` は冒頭で決めた実値に展開して書く。リテラルのまま渡さない）
+
+出力JSONのうち次を**新形フラグ**として数える（3系統で採用基準が違う。混同禁止）:
+
+- `new_edges` — **`generic_origin=true` のものだけ**（`false` は新形に数えない。下の参考情報行を参照）
+- `asmdef_refs` — **全件**（generic_originによる絞り込みをしない）
+- `grammar` — **全件**（同上）
 
 - **非ゼロexitは即エラー終了**: `novelty_gate.py` がexit≠0で落ちたら「ゲート実行失敗」として理由付きで終了する。
   空JSON扱い・新形0件扱いで先へ進めるのは禁止（沈黙故障でverdictが自動マージ可に化け、見逃し率実測が壊れる）
@@ -67,14 +91,47 @@ yml/jsonは残す（master-data系レンズの守備範囲のため）。
 
 - PATCH_PATH = Step 3の生成物 / USER_PROMPT_PATH = Step 4の生成物 / cwd＝レビューworktree（コード読み取り専用）
 - スクリプト実行・レンズ/reviewer/統合ルールのReadパスは全部 `$CANON` 配下の絶対パス
+
+### 本体のコマンド例を使わず、次の3行をそのまま使う
+
+本体SKILL.mdのコマンド例は `.claude/skills/...` の**相対パス**で書かれている。cwdがレビューworktreeなので
+コピペするとPR側の `.claude/` を実行してしまう（＝正典tree原則の破れ・自己弱体化経路そのもの）。必ず下記で置き換える
+（`$CANON` は冒頭で決めた実値に展開して書くこと）:
+
+```bash
+python3 "$CANON/.claude/skills/moores-code-review/scripts/deterministic_checks.py" "<PATCH_PATH>" --repo-root ~/moorestech-worktrees/pr-review --context "<USER_PROMPT_PATH>" > /tmp/pr-review-<番号>-detchecks.json
+python3 "$CANON/.claude/skills/moores-code-review/scripts/select_lenses.py" "<PATCH_PATH>"
+python3 "$CANON/.claude/skills/moores-code-review/scripts/select_reviewers.py" "<PATCH_PATH>"
+```
+
+- **`--repo-root` はレビューworktree側**（`~/moorestech-worktrees/pr-review`）。ADR参照の解決と200行判定は
+  PR側の木のファイル実体を見る必要があるため。スクリプト本体だけが `$CANON` 側という非対称は意図的
+- `--context` は本体Step 2どおり必須（Step 4の出所ラベル・`##` 見出し検査はこの指定が無いと一切走らない）
 - **report-only**: 確定修正の自動適用（本体Step 6）・uloop compile・本体Step 6.5の適用後diff再生成・
   本体Step 7の項目3（`records/YYYY-MM-DD-*.md` と `eval/log.md` への記録）は行わない。指摘は全部ダイジェストへ
 - 本体Step 6.5のガード2本（comment-rationale-guard / comment-convention-guard）は**実行する**。
   適用がない以上最終diff＝Step 3のpatchなので、それをそのまま渡す。convention-guardの「機械的は自動適用」も
   report-onlyでは適用せず指摘として出す
+- **comment-convention-guardの `Candidates :` はStep 2で生成したdetchecks JSON**
+  （`/tmp/pr-review-<番号>-detchecks.json`）を渡す。本体は「最終diffで再計測したdetchecks-final」を渡す規定だが、
+  report-onlyでは修正適用が無く最終diff＝Step 3のpatchなので、`deterministic_checks.py` の再実行はしない
+  （再実行しても同一入力・同一出力）。4行契約の残り3行は `Read this : $CANON/.claude/skills/moores-code-review/post-checks/comment-convention-guard.md` /
+  `Patch path : <PATCH_PATH>` / `User prompt : <USER_PROMPT_PATH>`
 - **`/tmp` の一時ファイル削除（本体Step 7の項目4）も行わない** — Step 3のpatchは後段のコード抜粋転記で読むため、
   ここで消すとダイジェストの実コードが作れなくなる
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ
+
+### subagent起動契約への必須追記
+
+レンズ・reviewer・Fable全般・verifier・post-checksガードの**全promptに、3行/4行契約に加えて次の2行を必ず含める**
+（含め忘れると、subagentは自分のcwdや `$CANON` 配下のコードを読んでPRと無関係な箇所をレビューする）:
+
+```
+対象コードのルート: ~/moorestech-worktrees/pr-review （絶対パス）。コードのReadは必ずこの配下で行う。
+`.claude/` 配下のスキル・レンズ・post-checks・統合ルールの定義のReadは <$CANONの実値> 配下で行う。
+```
+
+`<$CANONの実値>` は冒頭で決めた絶対パスへ展開して書く（リテラルの `$CANON` を渡さない）。
 
 ## Step 7: ダイジェストHTML生成
 
@@ -89,6 +146,21 @@ yml/jsonは残す（master-data系レンズの守備範囲のため）。
 - **カード間の視覚分離**: 裁定カード・suppressedカードはテンプレート既定では背景・枠線を持たず、連続すると境界が曖昧になる。
   生成時に各カードのdivへ背景色または枠線を付けるようsubagentへ指示する
 - 実コード抜粋はStep 3のpatchから機械的に転記する（創作・要約禁止）
+- **プレースホルダ置換**: `{{TITLE}}`（hero・`<footer>`・`<title>` の計3箇所）/ `{{DATE}}` / `{{SUBTITLE}}` を実値へ置換する。
+  `{{TITLE}}` = `独立レビュー: PR #<番号> <PRタイトル>`、`{{DATE}}` = レビュー実施日、`{{SUBTITLE}}` = verdict文字列。
+  `<title>` の置換漏れはタブ名が `{{TITLE}}` のまま出荷される
+- **`<h1>` はページに1個だけ**: テンプレートはhero（`{{TITLE}}`）と `.verdict-header` の両方が `h1` になっている。
+  **heroのh1を唯一のh1とし、`.verdict-header` 側は `h2` へ落とす**。heroの見出しとverdictヘッダの見出しで
+  同じ文言を二度出さない（verdictヘッダは `verdict: <判定>` ＋件数の1行サマリに徹する）
+- **絵文字はHTML全体で不使用**（hero・バッジ・カード・折りたたみ・footer・コメント機能の文言すべて）。
+  状態表現はテンプレート既定のバッジ（`badge-new` / `badge-sup` 等）と文字で行う
+- **折りたたみ参考節に必ず入れるもの**（本体規約「Warningを黙って落とさない」の担保。0件の項目は「0件」と明記する）:
+  1. Criticalの修正方針詳細（裁定カードは要点のみ・詳細はここ）
+  2. **Warning全件**（1件1行・出所系統つき。要約による間引き禁止）
+  3. Info一覧（圧縮列挙可）
+  4. `generic_origin=false` のnew_edges（参考情報。裁定カードにはしない）
+  5. 各系統（決定論／レンズ／reviewer／Codex／Fable／post-checksガード）の生所見要約を系統ごとに1ブロック。
+     Codex不在等の縮退があればここに明記する
 
 ## Step 8: 記録
 
@@ -100,7 +172,7 @@ yml/jsonは残す（master-data系レンズの守備範囲のため）。
 
 ## verdict判定規則
 
-- **Critical差し戻し**: 統合後Criticalが1件以上（200行超過は除外＝努力目標）
+- **Critical差し戻し**: 統合後Criticalが1件以上（**決定論チェックの `confirmed` を含む**・**200行超過（file-too-long）は除外**＝努力目標）
 - **新形につき裁定行き**: Criticalなし、かつ新形フラグ or `設計判断: あり` が1件以上
 - **自動マージ可**: 上記いずれも無し
 - suppressedはverdictに影響しない（ダイジェストに全件列挙）
