@@ -60,7 +60,7 @@ spec: docs/superpowers/specs/2026-07-27-world-pin-arrow-visual-design.md
 - Consumes: `GET /__worldpin?on=0&dx=<number>&dy=<number>&text=<string>`、`data-testid="world-pin-arrow-map-object-pin"`
 - Produces: 56px寸法、軸付きSVGパス、40px余白、斜め時viewport内収まりの回帰テスト
 
-- [ ] **Step 1: 右向き矢印の形状・寸法・40px余白を要求する失敗テストへ更新する**
+- [x] **Step 1: 右向き矢印の形状・寸法・40px余白を要求する失敗テストへ更新する**
 
 ```ts
 const viewport = page.viewportSize()!;
@@ -73,7 +73,7 @@ await expect(arrow.locator("path")).toHaveAttribute("d", "M2 8 H13 V3 L22 12 L13
 expect(await arrow.locator("path").evaluate((path) => getComputedStyle(path).fill)).not.toBe("none");
 ```
 
-- [ ] **Step 2: 左上斜めのテストを40px余白へ更新し、回転後の境界ボックスがviewport内に収まることを追加する**
+- [x] **Step 2: 左上斜めのテストを40px余白へ更新し、回転後の境界ボックスがviewport内に収まることを追加する**
 
 ```ts
 const margin = 40;
@@ -85,7 +85,7 @@ expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
 expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
 ```
 
-- [ ] **Step 3: 対象E2Eを実行し、旧28pxシェブロンとの差で失敗することを確認する**
+- [x] **Step 3: 対象E2Eを実行し、旧28pxシェブロンとの差で失敗することを確認する**
 
 Run:
 
@@ -96,7 +96,7 @@ pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/system/wor
 
 Expected: 右向き矢印の幅が28pxであること、SVGパスまたは40px余白が一致しないことによりFAIL。
 
-- [ ] **Step 4: テスト変更をコミットする**
+- [x] **Step 4: テスト変更をコミットする**
 
 ```bash
 git add moorestech_web/webui/e2e/tests/system/worldPin.spec.ts
@@ -116,14 +116,14 @@ git commit -m "画面外ワールドピン矢印の視認性契約を追加"
 - Consumes: `WorldPin.directionX`、`WorldPin.directionY`、CSS変数 `--world-pin-edge-margin`
 - Produces: `EdgeArrow` の軸付きSVG、56pxの高コントラスト表示、40pxの画面端クランプ
 
-- [ ] **Step 1: webui-design §8.8を承認済みの矢印表現へ更新する**
+- [x] **Step 1: webui-design §8.8を承認済みの矢印表現へ更新する**
 
 ```markdown
 - **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。`--text-high-contrast` の塗りと `--world-pin-face` の輪郭を使い、世界背景から分離する最小限の影を許可する。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
 - 新しい色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
 ```
 
-- [ ] **Step 2: SVGパスを軸付き矢印へ置き換える**
+- [x] **Step 2: SVGパスを軸付き矢印へ置き換える**
 
 ```tsx
 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -131,7 +131,7 @@ git commit -m "画面外ワールドピン矢印の視認性契約を追加"
 </svg>
 ```
 
-- [ ] **Step 3: TypeScript側の余白フォールバックを撤去してCSS変数だけを読む**
+- [x] **Step 3: TypeScript側の余白フォールバックを撤去してCSS変数だけを読む**
 
 ```ts
 let cachedEdgeMargin: number | null = null;
@@ -144,7 +144,7 @@ function readEdgeMargin(): number {
 }
 ```
 
-- [ ] **Step 4: CSSで56pxの塗りつぶし矢印と高コントラスト輪郭・影を定義する**
+- [x] **Step 4: CSSで56pxの塗りつぶし矢印と高コントラスト輪郭・影を定義する**
 
 ```css
 .arrow {
@@ -165,7 +165,7 @@ function readEdgeMargin(): number {
 }
 ```
 
-- [ ] **Step 5: ルートデザイントークンの画面端余白を40pxへ変更する**
+- [x] **Step 5: ルートデザイントークンの画面端余白を40pxへ変更する**
 
 ```css
 --world-pin-arrow-size: 56px;
@@ -173,7 +173,7 @@ function readEdgeMargin(): number {
 --world-pin-edge-margin: 40px;
 ```
 
-- [ ] **Step 6: 対象E2Eを実行して全件成功を確認する**
+- [x] **Step 6: 対象E2Eを実行して全件成功を確認する**
 
 Run:
 
@@ -184,7 +184,7 @@ pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/system/wor
 
 Expected: 5 tests passed。
 
-- [ ] **Step 7: buildとlintを実行する**
+- [x] **Step 7: buildとlintを実行する**
 
 Run:
 
@@ -196,7 +196,7 @@ pnpm lint
 
 Expected: 両コマンドともexit code 0。
 
-- [ ] **Step 8: 実装をコミットする**
+- [x] **Step 8: 実装をコミットする**
 
 ```bash
 git add .claude/skills/webui-design/SKILL.md moorestech_web/webui/src/features/tutorial/WorldPinOverlay.tsx moorestech_web/webui/src/features/tutorial/worldPin.module.css moorestech_web/webui/src/app/index.css
@@ -213,10 +213,10 @@ git commit -m "画面外ワールドピンを大きな軸付き矢印に変更"
 - Test if tuning is required: `moorestech_web/webui/e2e/tests/system/worldPin.spec.ts`
 
 **Interfaces:**
-- Consumes: Playwright mock hostの右・右上・左上・下方向の画面外ワールドピン
+- Consumes: Playwright mock hostの右・左上・右下方向の画面外ワールドピン
 - Produces: 寸法・方向・背景コントラスト・画面端欠けが確認できるスクリーンショット
 
-- [ ] **Step 1: mock hostを単体起動して3背景・3方向をPNG撮影するスクリプトを作る**
+- [x] **Step 1: mock hostを単体起動して3背景・3方向をPNG撮影するスクリプトを作る**
 
 ```ts
 import { mkdir } from "node:fs/promises";
@@ -278,7 +278,7 @@ async function main() {
 void main();
 ```
 
-- [ ] **Step 2: Playwrightで対象E2EとPNG撮影スクリプトを実行する**
+- [x] **Step 2: Playwrightで対象E2EとPNG撮影スクリプトを実行する**
 
 Run:
 
@@ -292,7 +292,7 @@ ls -l /tmp/world-pin-arrow-qa/world-pin-arrow-*.png
 
 Expected: 対象テスト5件が成功し、1280×720のPNGが3枚生成される。
 
-- [ ] **Step 3: 3枚の画像を開き、次の合格基準をすべて満たすか確認する**
+- [x] **Step 3: 3枚の画像を開き、次の合格基準をすべて満たすか確認する**
 
 ```text
 - 「＞」ではなく、太い軸と三角形の先端を一目で識別できる。
@@ -302,7 +302,7 @@ Expected: 対象テスト5件が成功し、1280×720のPNGが3枚生成され�
 - 矢印先端が対象方向を正しく向く。
 ```
 
-- [ ] **Step 4: 不合格項目があればSVG形状・寸法・余白・影を調整し、E2Eとスクリーンショット確認を繰り返す**
+- [x] **Step 4: 不合格項目があればSVG形状・寸法・余白・影を調整し、E2Eとスクリーンショット確認を繰り返す**
 
 ```text
 寸法不足なら4px単位で拡大し、画面端余白を ceil(size / sqrt(2))px へ同時に更新する。
@@ -312,7 +312,7 @@ Expected: 対象テスト5件が成功し、1280×720のPNGが3枚生成され�
 合格基準を全件満たすまでTask 3 Step 2へ戻る。
 ```
 
-- [ ] **Step 5: 撮影スクリプトとQA調整をコミットする**
+- [x] **Step 5: 撮影スクリプトとQA調整をコミットする**
 
 ```bash
 git add moorestech_web/webui/e2e/capture-world-pin-arrow.ts moorestech_web/webui/src/features/tutorial/WorldPinOverlay.tsx moorestech_web/webui/src/features/tutorial/worldPin.module.css moorestech_web/webui/src/app/index.css moorestech_web/webui/e2e/tests/system/worldPin.spec.ts
@@ -335,7 +335,7 @@ git commit -m "画面外ワールドピン矢印のPlaywright視覚QAを追加"
 - Consumes: ブランチの全コミットとベースとの差分
 - Produces: moores-code-reviewの全レンズ結果と、修正後の再検証結果
 
-- [ ] **Step 1: moores-code-reviewスキルを読み、全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-reviewスキルを読み、全ブランチレビューを実行する**
 
 Run: スキルが指定するコマンドを、`feature/world-pin-arrow-visual` のベース `0a7251226` との差分全体に対して実行する。
 

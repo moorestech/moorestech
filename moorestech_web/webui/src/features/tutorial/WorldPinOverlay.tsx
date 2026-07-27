@@ -63,6 +63,10 @@ let cachedEdgeMargin: number | null = null;
 function readEdgeMargin(): number {
   if (cachedEdgeMargin !== null) return cachedEdgeMargin;
   const raw = getComputedStyle(document.documentElement).getPropertyValue("--world-pin-edge-margin");
-  cachedEdgeMargin = Number.parseFloat(raw);
+  const parsedMargin = Number.parseFloat(raw);
+  if (!Number.isFinite(parsedMargin) || parsedMargin <= 0) {
+    throw new Error("--world-pin-edge-margin must be a positive CSS length");
+  }
+  cachedEdgeMargin = parsedMargin;
   return cachedEdgeMargin;
 }

@@ -44,14 +44,14 @@ test("off-screen world pin renders a 56px filled shaft arrow at the screen edge"
   await page.goto("/");
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
 
-  // 右方向の画面外ターゲットを表示し、軸付き矢印の形状と寸法を検証する
+  // 軸付き矢印の形状と寸法を検証
   // Show an off-screen target to the right and verify the shaft-arrow shape and dimensions
   await request.get("/__worldpin?on=0&dx=1&dy=0&text=Far");
   const arrow = page.getByTestId("world-pin-arrow-map-object-pin");
   await expect(arrow).toBeVisible();
   await expect(page.getByTestId("world-pin-map-object-pin")).toHaveCount(0);
 
-  // 矢印中心が40pxの右端マージン位置と垂直中央に来ることを検証する
+  // 40px余白と中央配置を検証
   // Verify the arrow center lands at the 40px right-edge margin and vertical center
   const viewport = page.viewportSize()!;
   const margin = 40;
@@ -61,7 +61,13 @@ test("off-screen world pin renders a 56px filled shaft arrow at the screen edge"
   expect(Math.abs(box.x + box.width / 2 - (viewport.width - margin))).toBeLessThanOrEqual(1.5);
   expect(Math.abs(box.y + box.height / 2 - viewport.height / 2)).toBeLessThanOrEqual(1.5);
   await expect(arrow.locator("path")).toHaveAttribute("d", "M2 8 H13 V3 L22 12 L13 21 V16 H2 Z");
-  expect(await arrow.locator("path").evaluate((path) => getComputedStyle(path).fill)).not.toBe("none");
+  const visualStyle = await arrow.locator("svg").evaluate((svg) => {
+    const style = getComputedStyle(svg);
+    return { fill: style.fill, stroke: style.stroke, filter: style.filter };
+  });
+  expect(visualStyle.fill).not.toBe("none");
+  expect(visualStyle.stroke).not.toBe("none");
+  expect(visualStyle.filter).not.toBe("none");
 });
 
 test("off-screen arrow follows a diagonal direction to the corner region", async ({ page, request }) => {
@@ -82,12 +88,39 @@ test("off-screen arrow follows a diagonal direction to the corner region", async
   expect(Math.abs(box.y + box.height / 2 - margin)).toBeLessThanOrEqual(1.5);
   expect(Math.abs(box.x + box.width / 2 - expectedX)).toBeLessThanOrEqual(1.5);
 
-  // 回転後の外接矩形までviewport内に収まり、四隅で欠けないことを検証する
+  // 回転後も画面内に収める
   // Verify the rotated bounding box remains inside the viewport without corner clipping
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+});
+
+test("off-screen arrow remains inside the viewport at all four diagonal corners", async ({ page, request }) => {
+  await page.goto("/");
+  await expect(page.getByTestId("hotbar-grid")).toBeVisible();
+  const viewport = page.viewportSize()!;
+  const arrow = page.getByTestId("world-pin-arrow-map-object-pin");
+  const directions = [
+    { x: 1, y: 1 },
+    { x: -1, y: 1 },
+    { x: -1, y: -1 },
+    { x: 1, y: -1 },
+  ];
+
+  // 四隅を順に更新し、45度回転後の欠けを検証
+  // Update every corner and verify the arrow remains unclipped after each 45-degree rotation
+  for (const direction of directions) {
+    await request.get(`/__worldpin?on=0&dx=${direction.x}&dy=${direction.y}&text=Far`);
+    await expect(arrow).toBeVisible();
+    const expectedAngle = (Math.atan2(direction.y, direction.x) * 180) / Math.PI;
+    await expect(arrow).toHaveAttribute("style", new RegExp(`rotate\\(${expectedAngle}deg\\)`));
+    const box = (await arrow.boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+  }
 });
 
 test("clearing world pins removes the overlay", async ({ page, request }) => {
