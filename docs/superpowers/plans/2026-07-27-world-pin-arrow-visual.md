@@ -149,8 +149,8 @@ function readEdgeMargin(): number {
 ```css
 .arrow {
   position: fixed;
-  width: 56px;
-  height: 56px;
+  width: var(--world-pin-arrow-size);
+  height: var(--world-pin-arrow-size);
 }
 
 .arrow svg {
@@ -161,13 +161,15 @@ function readEdgeMargin(): number {
   stroke-width: 1.5;
   stroke-linejoin: round;
   paint-order: stroke fill;
-  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 65%));
+  filter: drop-shadow(0 2px 3px var(--world-pin-arrow-shadow));
 }
 ```
 
 - [ ] **Step 5: ルートデザイントークンの画面端余白を40pxへ変更する**
 
 ```css
+--world-pin-arrow-size: 56px;
+--world-pin-arrow-shadow: rgb(0 0 0 / 65%);
 --world-pin-edge-margin: 40px;
 ```
 
