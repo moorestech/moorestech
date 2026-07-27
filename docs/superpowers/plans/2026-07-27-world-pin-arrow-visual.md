@@ -354,7 +354,7 @@ pnpm exec playwright test --config e2e/playwright.config.ts e2e/tests/system/wor
 
 Expected: build・lint成功、5 tests passed。
 
-- [ ] **Step 3: レビュー修正と記録をコミットする**
+- [x] **Step 3: レビュー修正と記録をコミットする**
 
 ```bash
 git add -A
