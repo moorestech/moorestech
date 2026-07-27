@@ -24,20 +24,29 @@
   ↓
 1. PR取得        gh pr view（本文・ブランチ・ベース）
   ↓
-2. checkout      レビュー専用worktreeに gh pr checkout（使い回し・実装treeに触らない）
+2. checkout      レビュー専用worktreeで `git reset --hard && git clean -fd` 後に
+                 `gh pr checkout --detach`（--detach必須: PRブランチは実装worktreeが
+                 保持していることが多くブランチロックで失敗するため。実測再現済み）
   ↓
 3. patch生成     git diff <base>...HEAD -- . ':(exclude)*.meta' ':(exclude)*.prefab'
                  ':(exclude)*.asset' ':(exclude)画像/バイナリ'（exclude方式・yml/jsonは残す）
   ↓
 4. context再構成  PR本文＋リポジトリ内spec/planの判断台帳（ADR）のみから4カテゴリcontextを作る
-                 出所ラベル必須: ユーザー裁定=[ADR引用] / それ以外=[agent前提]（免責力なし）
+                 出所ラベルは本体の正式文法に従う: ユーザー裁定=`[ADR: <spec名>#<台帳項目>]` /
+                 それ以外=`[agent前提]`（免責力なし。checks_contextが非実在参照を機械検出する）
   ↓
 5. 新規性ゲートL1  新設スクリプト: using新ペア（汎用層起点・層境界逆行）/ asmdef参照追加 /
                  文法要素新設（interface・基底クラス・Subject・プロトコル・スキーマ）→ 新形フラグ
   ↓
-6. 本体レビュー    moores-code-review 5系統を発火（PATCH=手順3、cwd=レビューworktree）
-                 起動promptで統合ルールを上書き: 免責は消音でなく降格（suppressed-byタグ保持）、
-                 [agent前提]出所は免責事由にならない
+6. 本体レビュー    moores-code-review 5系統を発火。ただし:
+                 - スクリプト・レンズ・統合ルールは**起動側正典treeの絶対パス**で参照する。
+                   cwd（レビューworktree）はレビュー対象コードの読み取り専用。PR側の古い/改変された
+                   ハーネスコピーを使うと測定器がPRごとに変わり見逃し率実測が壊れる＋自己弱体化経路になる
+                 - **report-onlyモードで起動**: 本体Step 6の確定修正自動適用・uloop compile・
+                   Step 6.5の適用後diff再生成・Step 7.3のrecords/eval記録生成を全て停止する
+                   （静的レビュー専業のADRと整合させ、レビューworktreeを汚さず、帳簿をシャドー台帳へ一本化）
+                 - 免責降格・[agent前提]無免責は本体に実装済み（原則①②改修はmaster到達済み）のため
+                   上書き注入はしない。本体に無い項目が判明した場合のみ起動promptで補う
   ↓
 7. ダイジェスト    verdict（自動マージ可 / 新形につき裁定行き / Critical差し戻し）＋
                  判断台帳＋suppressed一覧＋新形フラグ一覧 → records/ に保存・端末報告
@@ -53,7 +62,7 @@
 | SKILL.md | 新規 | 上記フローのオーケストレーション |
 | 新規性ゲートL1スクリプト | 新規 | usingペア表構築＋diff照合＋文法要素検出（Python） |
 | レビューworktree管理 | 新規（手順） | `git worktree add`＋`gh pr checkout`。場所は `~/moorestech-worktrees/pr-review` 固定・使い回し |
-| moores-code-review | 既存 | レビューエンジン本体。無改変で呼び、上書きは起動prompt側で行う |
+| moores-code-review | 既存 | レビューエンジン本体。無改変・起動側正典treeの絶対パスで呼ぶ（report-onlyモード） |
 | records/シャドー台帳 | 新規 | スキル配下 `records/shadow-ledger.md`（moores-code-reviewのrecords/前例踏襲） |
 
 ## verdict判定規則
@@ -62,12 +71,14 @@
 - **新形につき裁定行き**: Criticalなし、かつ新形フラグ or 設計判断ありが1件以上
 - **自動マージ可**: 上記いずれも無し
 - suppressedされた指摘はverdictに影響しないが、ダイジェストに必ず全件列挙する（Critical/Warning級）
+- 将来検討（自動マージ化の段階で）: suppressed Criticalが1件以上なら最低「裁定行き」への格上げ。
+  偽`[ADR:]`参照による免責はchecks_contextが検出するが、verdict層にも保険を置く
 
 ## エラー処理・縮退
 
 - `gh`未認証・PR不存在: 即座に明示エラーで終了（黙って縮退しない）
 - codex不在等のmoores-code-review内縮退: 同スキルの既存規約に従い報告に明記
-- レビューworktreeが他PRのcheckoutを保持: `gh pr checkout`で上書き（使い回し前提・状態は毎回リセット）
+- レビューworktreeの前回状態: checkout前の `git reset --hard && git clean -fd` で毎回リセット（手順2）
 
 ## 判断記録（ADR）
 
@@ -82,4 +93,9 @@
 - コンパイル・テスト実行はv1スコープ外（レビューworktreeでのUnity起動はライセンス・ポート・時間の制約）
 - AskUserQuestion不使用。設計判断も含め全部ダイジェストへ書き出して終了（発火者は結果を後読みする運用）
 - シャドー台帳の置き場はスキル配下records/（moores-code-reviewのrecords/前例）
-- 並列セッションの原則①②本体改修を待たず、起動prompt上書きで暫定実装。本体改修マージ後に上書きを削る
+
+### simulator review適用済み（判事の実検証による修正 2026-07-27）
+- 原則①②の起動prompt上書き前提を撤回: 本体改修は既にmaster到達済みと判事がgit走査で確認。上書きは「本体に無い項目のみ」へ縮小
+- ハーネスは起動側正典treeの絶対パス参照に固定: cwd相対だとPR側の古い/改変ハーネスに解決され、見逃し率実測が壊れる＋自己弱体化経路になるため
+- report-onlyモードを明記: 本体の自動修正適用・uloop compile・records生成は静的レビュー専業ADRと矛盾するため全停止
+- `gh pr checkout --detach`＋事前reset/clean: PRブランチの実装worktree保持によるブランチロック失敗を判事が実測再現
