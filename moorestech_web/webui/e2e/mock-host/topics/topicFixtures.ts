@@ -13,8 +13,8 @@ export function topicData(topic: string, inventory: PlayerInventoryData, demo: b
   if (topic === Topics.itemList) return demo ? fx.demoItemList : fx.itemList;
   if (topic === Topics.blockInventory) return state.currentBlock;
   if (topic === Topics.modal) return { modal: state.currentModal };
-  // イベント専用topicも初期snapshotを返す。返さないとクライアントがrestoringのままで再接続オーバーレイが操作を塞ぐ
-  // Event-only topics still need an initial snapshot; without it the client stays restoring and the reconnect overlay blocks input
+  // 実ホストのNotificationTopicと同じ空snapshot。返さないとrestoringのままで操作が塞がる
+  // Same empty snapshot as the real NotificationTopic; without it the client stays restoring and input is blocked
   if (topic === Topics.notification) return {};
   if (topic === Topics.progress) return demo ? fx.demoProgress : fx.progressSample;
   if (topic === Topics.uiState) return state.currentUiState;

@@ -2,21 +2,26 @@ import { useId } from "react";
 import { clamp01 } from "@/shared/clamp01";
 import styles from "./CraftProgressArrow.module.css";
 
-// 矢印グリフのpath。viewBox座標での水平範囲は x=2..119
-// The arrow glyph path; its horizontal extent in viewBox units is x=2..119
+// 矢印pathと水平範囲・viewBox
+// The arrow path, its horizontal extent, and viewBox size
 const ARROW_PATH = "M2 27H69V2L119 39L69 76V51H2Z";
 const ARROW_LEFT = 2;
-const ARROW_SPAN = 117;
-const ARROW_TOP = 0;
-const ARROW_BOTTOM = 78;
+const ARROW_RIGHT = 119;
+const VIEWBOX_WIDTH = 121;
+const VIEWBOX_HEIGHT = 78;
+// clip矩形の幅はpath水平範囲から導き、path編集時のズレを防ぐ
+// Derive the clip width from the path extent so editing the path cannot desync it
+const ARROW_SPAN = ARROW_RIGHT - ARROW_LEFT;
 
-// 矢印そのものが長押しクラフトの進捗ゲージ。溝の矢印へ充填色を左から重ねる（webui-design §8.12）
-// The arrow itself is the hold-craft gauge: the fill tone is layered onto the track arrow from the left (webui-design §8.12)
+// 矢印が長押しクラフト進捗ゲージ(§8.12)
+// The arrow itself is the hold-craft progress gauge (§8.12)
 export default function CraftProgressArrow({ value }: { value: number }) {
   const filled = clamp01(value);
-  // 同一ページに矢印が並んでもclipが混線しないようidを一意化する（url(#…)を壊すコロンは除去）
-  // Keep clip ids unique so several arrows never share one clip; colons that break url(#…) are stripped
+  // 矢印が並んでもclipが混線しないようidを一意化する
+  // Keep clip ids unique so several arrows never share one clip
   const instanceId = useId();
+  // useIdのidは":r0:"形式で、コロンはurl(#…)参照を壊すため除去する
+  // useId returns ":r0:"-style ids and the colons break url(#…) references, so strip them
   const clipId = `craft-arrow-fill-${instanceId.replace(/:/g, "")}`;
 
   return (
@@ -28,18 +33,18 @@ export default function CraftProgressArrow({ value }: { value: number }) {
       aria-valuemax={1}
       aria-valuenow={filled}
     >
-      {/* 溝→充填→輪郭の3層で同じ矢印を描き、充填だけを進捗幅の矩形で切り出す */}
-      {/* Draw the same arrow as track, fill, and outline layers, clipping only the fill to the progress width */}
-      <svg className={styles.craftArrowGlyph} viewBox="0 0 121 78" aria-hidden="true">
+      {/* 溝→充填→輪郭の3層。充填だけを進捗幅で切り出す */}
+      {/* Track, fill, and outline layers; only the fill is clipped to the progress width */}
+      <svg className={styles.craftArrowGlyph} viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} aria-hidden="true">
         <defs>
           <clipPath id={clipId}>
-            <rect x={ARROW_LEFT} y={ARROW_TOP} width={ARROW_SPAN * filled} height={ARROW_BOTTOM} />
+            <rect x={ARROW_LEFT} y={0} width={ARROW_SPAN * filled} height={VIEWBOX_HEIGHT} />
           </clipPath>
         </defs>
         <path className={styles.craftArrowTrack} d={ARROW_PATH} />
         <path className={styles.craftArrowFill} d={ARROW_PATH} clipPath={`url(#${clipId})`} />
-        {/* 輪郭はclipを通さず最上層に置き、充填境界で矢印の形が途切れないようにする */}
-        {/* The outline skips the clip and sits on top so the silhouette never breaks at the fill boundary */}
+        {/* 輪郭はclip外・最上層に置き、充填境界で形が途切れないようにする */}
+        {/* The outline skips the clip and sits on top so the silhouette never breaks at the fill edge */}
         <path className={styles.craftArrowOutline} d={ARROW_PATH} />
       </svg>
     </div>
