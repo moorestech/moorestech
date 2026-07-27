@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
             // UIHighlightはWebオーバーレイのDOMハイライトのみで表示する
             // UI highlighting is rendered exclusively via the web overlay's DOM highlight
             var anchorId = TutorialAnchorIdMapper.FromUiObjectId(highlightParam.HighLightUIObjectId);
-            return TutorialPresentationStateStore.Instance.AddHighlight(anchorId, "spotlight", highlightParam.HighLightText);
+            return TutorialPresentationStateStore.Instance.AddOutlineHighlight(anchorId, highlightParam.HighLightText);
         }
     }
 }
