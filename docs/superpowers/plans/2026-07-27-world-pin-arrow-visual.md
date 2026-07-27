@@ -341,7 +341,7 @@ Run: スキルが指定するコマンドを、`feature/world-pin-arrow-visual` 
 
 Expected: Critical、Warning、機械チェック違反をすべて確認できる。
 
-- [ ] **Step 2: 指摘を修正して関連検証を再実行する**
+- [x] **Step 2: 指摘を修正して関連検証を再実行する**
 
 Run:
 

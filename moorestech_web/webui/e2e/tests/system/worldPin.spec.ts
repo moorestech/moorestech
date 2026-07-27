@@ -44,8 +44,6 @@ test("off-screen world pin renders a 56px filled shaft arrow at the screen edge"
   await page.goto("/");
   await expect(page.getByTestId("hotbar-grid")).toBeVisible();
 
-  // 軸付き矢印の形状と寸法を検証
-  // Show an off-screen target to the right and verify the shaft-arrow shape and dimensions
   await request.get("/__worldpin?on=0&dx=1&dy=0&text=Far");
   const arrow = page.getByTestId("world-pin-arrow-map-object-pin");
   await expect(arrow).toBeVisible();
@@ -108,8 +106,6 @@ test("off-screen arrow remains inside the viewport at all four diagonal corners"
     { x: 1, y: -1 },
   ];
 
-  // 四隅を順に更新し、45度回転後の欠けを検証
-  // Update every corner and verify the arrow remains unclipped after each 45-degree rotation
   for (const direction of directions) {
     await request.get(`/__worldpin?on=0&dx=${direction.x}&dy=${direction.y}&text=Far`);
     await expect(arrow).toBeVisible();
