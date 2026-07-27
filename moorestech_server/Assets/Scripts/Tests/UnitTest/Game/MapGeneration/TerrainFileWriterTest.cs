@@ -47,8 +47,8 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             TerrainFileWriter.Write(worldDataDirectory, output);
 
-            var heightFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "height_0_0.r16");
-            var biomeFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "biome_0_0.bin");
+            var heightFilePath = worldDataDirectory.TerrainHeightFilePath(0, 0);
+            var biomeFilePath = worldDataDirectory.TerrainBiomeFilePath(0, 0);
 
             Assert.That(File.Exists(heightFilePath), Is.True);
             Assert.That(File.Exists(biomeFilePath), Is.True);
@@ -79,8 +79,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             TerrainFileWriter.Write(worldDataDirectory, output);
 
-            var heightFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, "height_0_0.r16");
-            var bytes = File.ReadAllBytes(heightFilePath);
+            var bytes = File.ReadAllBytes(worldDataDirectory.TerrainHeightFilePath(0, 0));
 
             Assert.That(DecodeUshortLittleEndian(bytes, 0), Is.EqualTo(0));
             Assert.That(DecodeUshortLittleEndian(bytes, 1), Is.EqualTo(32768));

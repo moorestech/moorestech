@@ -39,9 +39,11 @@ namespace Game.MapGeneration.Transfer
 
             int CalculateChunkTotal()
             {
-                // 全terrainファイルを連結した論理ストリームをChunkByteSizeで切った個数（端数は1チャンク）
-                // Number of ChunkByteSize slices over the logical stream of all terrain files (remainder counts as one)
-                var totalBytes = Directory.EnumerateFiles(worldDataDirectory.TerrainDirectory).Sum(filePath => new FileInfo(filePath).Length);
+                // 論理ストリーム(タイル順のheight→biome)と同じ列挙で総バイトを出す。terrain/内の無関係ファイルは数えない
+                // Sum bytes over the same enumeration the logical stream uses, so unrelated files in terrain/ never shift the count
+                var totalBytes = TerrainTransferMeta.EnumerateTileCoordinates(worldMeta.TerrainTileCount).Sum(tile =>
+                    new FileInfo(worldDataDirectory.TerrainHeightFilePath(tile.TileX, tile.TileZ)).Length +
+                    new FileInfo(worldDataDirectory.TerrainBiomeFilePath(tile.TileX, tile.TileZ)).Length);
                 return (int)((totalBytes + TerrainTransferMeta.ChunkByteSize - 1) / TerrainTransferMeta.ChunkByteSize);
             }
 

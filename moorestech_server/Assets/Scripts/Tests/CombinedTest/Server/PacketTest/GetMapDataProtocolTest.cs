@@ -18,18 +18,19 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class GetMapDataProtocolTest
     {
-        private readonly List<string> _createdWorldRoots = new();
+        private readonly List<WorldDataDirectory> _createdWorldDataDirectories = new();
 
         [TearDown]
         public void TearDown()
         {
-            foreach (var worldRoot in _createdWorldRoots)
+            // 削除対象のパスはWorldDataDirectoryから取る。テスト側でパス規則を再導出しない
+            // Take the paths to delete from WorldDataDirectory; never re-derive the path rules here
+            foreach (var worldDataDirectory in _createdWorldDataDirectories)
             {
-                if (Directory.Exists(worldRoot)) Directory.Delete(worldRoot, true);
-                var provisioningTempDirectory = worldRoot + ".provisioning";
-                if (Directory.Exists(provisioningTempDirectory)) Directory.Delete(provisioningTempDirectory, true);
+                if (Directory.Exists(worldDataDirectory.Root)) Directory.Delete(worldDataDirectory.Root, true);
+                if (Directory.Exists(worldDataDirectory.ProvisioningTempDirectory)) Directory.Delete(worldDataDirectory.ProvisioningTempDirectory, true);
             }
-            _createdWorldRoots.Clear();
+            _createdWorldDataDirectories.Clear();
         }
 
         [Test]
@@ -168,9 +169,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         private WorldDataDirectory ProvisionWorld(string mapMode, int seed)
         {
             var worldRoot = Path.Combine(Path.GetTempPath(), "GetMapDataProtocolTest_" + Guid.NewGuid());
-            _createdWorldRoots.Add(worldRoot);
-
             var worldDataDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
+            _createdWorldDataDirectories.Add(worldDataDirectory);
+
             WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
                 worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, mapMode, seed));
             return worldDataDirectory;

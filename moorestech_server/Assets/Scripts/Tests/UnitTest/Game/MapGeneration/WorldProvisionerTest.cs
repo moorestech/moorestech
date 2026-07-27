@@ -17,33 +17,34 @@ namespace Tests.UnitTest.Game.MapGeneration
     // Verifies WorldProvisioner.EnsureWorld's atomic commit, corruption detection, and no-op behavior
     public class WorldProvisionerTest
     {
-        private string _worldRoot;
+        private WorldDataDirectory _worldDataDirectory;
 
         [SetUp]
         public void SetUp()
         {
-            _worldRoot = Path.Combine(Path.GetTempPath(), "WorldProvisionerTest_" + Guid.NewGuid());
+            var worldRoot = Path.Combine(Path.GetTempPath(), "WorldProvisionerTest_" + Guid.NewGuid());
+            _worldDataDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (Directory.Exists(_worldRoot)) Directory.Delete(_worldRoot, true);
-            var tempDir = _worldRoot + ".provisioning";
-            if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true);
+            // 削除対象のパスはWorldDataDirectoryから取る。テスト側でパス規則を再導出しない
+            // Take the paths to delete from WorldDataDirectory; never re-derive the path rules here
+            if (Directory.Exists(_worldDataDirectory.Root)) Directory.Delete(_worldDataDirectory.Root, true);
+            if (Directory.Exists(_worldDataDirectory.ProvisioningTempDirectory)) Directory.Delete(_worldDataDirectory.ProvisioningTempDirectory, true);
         }
 
         [Test]
         public void TemplateModeで新規作成するとworld_jsonとmap_jsonが元と同一内容で作られる()
         {
-            var dir = WorldDataDirectory.FromWorldRoot(_worldRoot);
-            var settings = new WorldProvisionSettings(dir, TestModDirectory.ForUnitTestModDirectory, "template", 0);
+            var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, "template", 0);
 
             WorldProvisioner.EnsureWorld(settings);
 
-            Assert.IsTrue(File.Exists(dir.WorldMetaFilePath));
+            Assert.IsTrue(File.Exists(_worldDataDirectory.WorldMetaFilePath));
             var sourcePath = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "map", "map.json");
-            Assert.AreEqual(File.ReadAllText(sourcePath), File.ReadAllText(dir.MapJsonFilePath));
+            Assert.AreEqual(File.ReadAllText(sourcePath), File.ReadAllText(_worldDataDirectory.MapJsonFilePath));
         }
 
         [Test]
@@ -51,8 +52,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             LoadMasterHolderForGeneration();
 
-            var dir = WorldDataDirectory.FromWorldRoot(_worldRoot);
-            var settings = new WorldProvisionSettings(dir, TestModDirectory.ForUnitTestModDirectory, "generated", 12345);
+            var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, "generated", 12345);
 
             // 生成時間を計測して記録する(仕様書のリスク欄へ反映するため)
             // Measure generation time to record it (feeds the spec's risk section)
@@ -61,24 +61,23 @@ namespace Tests.UnitTest.Game.MapGeneration
             stopwatch.Stop();
             Debug.Log($"[WorldProvisionerTest] generated mode EnsureWorld elapsed={stopwatch.ElapsedMilliseconds}ms");
 
-            var mapInfoJson = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(dir.MapJsonFilePath));
+            var mapInfoJson = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(_worldDataDirectory.MapJsonFilePath));
             Assert.IsNotNull(mapInfoJson);
-            Assert.IsTrue(File.Exists(dir.WorldMetaFilePath));
-            Assert.IsTrue(File.Exists(Path.Combine(dir.TerrainDirectory, "height_0_0.r16")));
-            Assert.IsTrue(File.Exists(Path.Combine(dir.TerrainDirectory, "biome_0_0.bin")));
+            Assert.IsTrue(File.Exists(_worldDataDirectory.WorldMetaFilePath));
+            Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainHeightFilePath(0, 0)));
+            Assert.IsTrue(File.Exists(_worldDataDirectory.TerrainBiomeFilePath(0, 0)));
         }
 
         [Test]
         public void 二回目の呼び出しはno_opでファイルのタイムスタンプが変わらない()
         {
-            var dir = WorldDataDirectory.FromWorldRoot(_worldRoot);
-            var settings = new WorldProvisionSettings(dir, TestModDirectory.ForUnitTestModDirectory, "template", 0);
+            var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, "template", 0);
 
             WorldProvisioner.EnsureWorld(settings);
-            var firstWriteTime = File.GetLastWriteTimeUtc(dir.WorldMetaFilePath);
+            var firstWriteTime = File.GetLastWriteTimeUtc(_worldDataDirectory.WorldMetaFilePath);
 
             WorldProvisioner.EnsureWorld(settings);
-            var secondWriteTime = File.GetLastWriteTimeUtc(dir.WorldMetaFilePath);
+            var secondWriteTime = File.GetLastWriteTimeUtc(_worldDataDirectory.WorldMetaFilePath);
 
             Assert.AreEqual(firstWriteTime, secondWriteTime);
         }
@@ -86,25 +85,23 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void provisioning残骸がある状態で呼ぶと残骸が消えて正常に生成される()
         {
-            var dir = WorldDataDirectory.FromWorldRoot(_worldRoot);
-            Directory.CreateDirectory(dir.ProvisioningTempDirectory);
-            File.WriteAllText(Path.Combine(dir.ProvisioningTempDirectory, "leftover.txt"), "stale");
+            Directory.CreateDirectory(_worldDataDirectory.ProvisioningTempDirectory);
+            File.WriteAllText(Path.Combine(_worldDataDirectory.ProvisioningTempDirectory, "leftover.txt"), "stale");
 
-            var settings = new WorldProvisionSettings(dir, TestModDirectory.ForUnitTestModDirectory, "template", 0);
+            var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, "template", 0);
             WorldProvisioner.EnsureWorld(settings);
 
-            Assert.IsFalse(Directory.Exists(dir.ProvisioningTempDirectory));
-            Assert.IsTrue(File.Exists(dir.WorldMetaFilePath));
+            Assert.IsFalse(Directory.Exists(_worldDataDirectory.ProvisioningTempDirectory));
+            Assert.IsTrue(File.Exists(_worldDataDirectory.WorldMetaFilePath));
         }
 
         [Test]
         public void Rootは存在するがworld_jsonが無い場合は破損として例外を投げる()
         {
-            var dir = WorldDataDirectory.FromWorldRoot(_worldRoot);
-            Directory.CreateDirectory(dir.Root);
-            File.WriteAllText(dir.MapJsonFilePath, "{}");
+            Directory.CreateDirectory(_worldDataDirectory.Root);
+            File.WriteAllText(_worldDataDirectory.MapJsonFilePath, "{}");
 
-            var settings = new WorldProvisionSettings(dir, TestModDirectory.ForUnitTestModDirectory, "template", 0);
+            var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, "template", 0);
 
             Assert.Throws<InvalidOperationException>(() => WorldProvisioner.EnsureWorld(settings));
         }

@@ -28,6 +28,18 @@ namespace Game.Paths
             ProvisioningTempDirectory = provisioningTempDirectory;
         }
 
+        // タイル座標からterrainバイナリのパスを導出する。ファイル名規則の定義はここだけに置く
+        // Derive terrain binary paths from tile coordinates; the naming rule lives only here
+        public string TerrainHeightFilePath(int tileX, int tileZ)
+        {
+            return Path.Combine(TerrainDirectory, $"height_{tileX}_{tileZ}.r16");
+        }
+
+        public string TerrainBiomeFilePath(int tileX, int tileZ)
+        {
+            return Path.Combine(TerrainDirectory, $"biome_{tileX}_{tileZ}.bin");
+        }
+
         // テンプレートマップの配置(ServerDataDirectory/map/map.json)を一元定義する
         // Single definition of the template map location (ServerDataDirectory/map/map.json)
         public static string ServerDataMapJsonPath(string serverDataDirectory)

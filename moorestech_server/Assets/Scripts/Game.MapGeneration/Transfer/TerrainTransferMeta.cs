@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Game.MapGeneration.Provisioning;
 
 namespace Game.MapGeneration.Transfer
@@ -23,6 +25,23 @@ namespace Game.MapGeneration.Transfer
             TerrainResolution = terrainResolution;
             TerrainTileCount = terrainTileCount;
             TerrainChunkTotal = terrainChunkTotal;
+        }
+
+        // 論理ストリームを構成するタイルの並び順。一辺√TileCountの正方格子をz行→x列で走査する
+        // Tile order composing the logical stream: a square grid of side sqrt(TileCount), scanned row (z) then column (x)
+        public static List<(int TileX, int TileZ)> EnumerateTileCoordinates(int terrainTileCount)
+        {
+            // 正方格子でないタイル数は並び順が定義できない。推測で補正せず例外にする
+            // A non-square tile count has no defined ordering; throw instead of guessing a correction
+            var tilesPerSide = (int)Math.Round(Math.Sqrt(terrainTileCount));
+            if (tilesPerSide * tilesPerSide != terrainTileCount)
+                throw new InvalidOperationException($"Terrain tile count must be a perfect square, but was {terrainTileCount}.");
+
+            var tileCoordinates = new List<(int TileX, int TileZ)>(terrainTileCount);
+            for (var tileZ = 0; tileZ < tilesPerSide; tileZ++)
+            for (var tileX = 0; tileX < tilesPerSide; tileX++)
+                tileCoordinates.Add((tileX, tileZ));
+            return tileCoordinates;
         }
 
         // ワールドディレクトリを持たない構成(テスト・クライアント単体デバッグ)用。地形もワールド同一性も存在しない
