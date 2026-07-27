@@ -14,10 +14,6 @@
   pointer-events: none;
 }
 
-.highlight[data-kind="spotlight"] {
-  box-shadow: 0 0 0 9999px rgb(0 0 0 / 58%);
-}
-
 .callout {
   position: absolute;
   left: 50%;
