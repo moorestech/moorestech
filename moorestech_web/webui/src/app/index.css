@@ -97,6 +97,16 @@
   /* 進捗矢印の既定高を共有トークンで管理する */
   /* Controls the default progress-arrow height through a shared token */
   --progress-arrow-height: 0.75rem;
+  /* クラフト矢印の輪郭。溝と充填のどちらでも矢印の形が読めるシアン */
+  /* Craft-arrow outline; a cyan that keeps the arrow silhouette readable over both track and fill */
+  --craft-arrow-outline: rgb(79 224 244 / 70%);
+  /* クラフト矢印の描画寸法（正本の白矢印から引き継いだ固定長） */
+  /* Craft-arrow render size, carried over as fixed lengths from the reference white arrow */
+  --craft-arrow-width: 53.622px;
+  --craft-arrow-height: 30.53px;
+  /* 行のcenter揃えに対する矢印の上寄せ量。正本の矢印位置を保つ固定長 */
+  /* Upward nudge against the row's center alignment; a fixed length that holds the reference arrow position */
+  --craft-arrow-offset-y: -12.218px;
   /* 研究ノードカードの面と枠（GamePanelのネイビー族に揃える） */
   /* Research node card face and border, matching the GamePanel navy family */
   --research-node-face: rgb(10 14 27 / 80%);

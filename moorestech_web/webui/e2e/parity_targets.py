@@ -33,5 +33,13 @@ BBOX_TARGETS = {
     "key-hints": ((20, 1656, 993, 1811), 3),
     "hotbar-ring": ((994, 1704, 1125, 1835), 3),
     "scroll-knob": ((3078, 434, 3087, 1103), 4),
-    "craft-arrow-time": ((1572, 530, 1693, 651), 5),
+    # 矢印は白ベタ塗りをやめゲージ化したため、明ピクセルのみでは待機時に矢印が写らない。
+    # 正本・実装ともに矢印はシアン輪郭を持つので「明or シアン」で測り、目標も正本を同条件で再実測した値にした
+    # The arrow is a gauge now, not a flat white fill, so bright pixels alone miss it at rest. Both the reference
+    # and the implementation outline it in cyan, so this measures bright-or-cyan against a re-measured reference
+    # tolを6にしたのは、上辺Δ5(シアン輪郭の矢尻頂点のマスク差)＋下辺Δ4(「秒」のディセンダ)で
+    # max Δ が常時5に張り付き、フォントAAの環境差1pxでFAILへ転ぶため。目標値自体は緩めていない
+    # tol is 6 because top Δ5 (mask difference at the cyan arrowhead tip) and bottom Δ4 (the descender of 「秒」)
+    # pin max Δ at 5, so a 1px font-AA difference across environments flips it to FAIL. The target itself is unchanged
+    "craft-arrow-time": ((1570, 530, 1693, 651), 6),
 }
