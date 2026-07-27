@@ -27,7 +27,7 @@
 
 `MiningHud` のReact feature、`ui.mining_hud` のWeb契約とUnity topic、専用DTO、controllerの専用読み取りメソッドを削除する。採掘状態が既に更新している `ProgressBarView` を唯一の進捗値源とし、Webでは `ProgressBar` だけを描画する。
 
-`ProgressBar` はMantine `Progress` を使わず、既存の汎用 `GaugeBar` を使う。採掘時はラベルが `null` のため文字を描画しない。任意ラベルを持つ汎用契約は維持し、ラベルがある場合はゲージの上へ `--text-muted` で表示する。
+`ProgressBar` はMantine `Progress` を使わず、既存の汎用 `GaugeBar` を使う。採掘時のC# `Label = null` は既存serializerによりwire上でキー省略となるため文字を描画しない。任意ラベルを持つ汎用契約は維持し、ラベルがある場合はゲージの上へ `--text-muted` で表示する。
 
 配置は1280×720のstage内で `position: absolute` とする。ホットバーと同じ中央軸へ置き、幅は9スロットのホットバー全幅と一致させる。下端はホットバーの番号タブ上端から12px離し、ゲージ、空隙、番号タブ、スロットの順に読めるようにする。表示専用HUDとして `pointer-events: none` を維持し、z層は既存トークンだけを使う。
 
@@ -41,6 +41,31 @@
 - `ui.progress` の配信周期や `ProgressBarView` の状態管理は変更しない。
 - ホットバーのスロット数、選択操作、見た目は変更しない。
 - 新しい色、装飾、アニメーションは追加しない。
+
+## 配置と前例
+
+統合後のデータフローは `MapObjectMiningMiningState → ProgressBarView → ProgressTopic → ProgressBar → GaugeBar` とする。`ProgressTopic` は既存どおり `ProgressBarView.OnProgressChanged` を購読する表示用読み手であり、新しい状態、通信、駆動方向を追加しない。
+
+| 項目 | 配置先 | 前例との一致 |
+|---|---|---|
+| 採掘進捗の実行時状態 | `Client.Game/InGame/UI/ProgressBar/ProgressBarView.cs` | 採掘stateが既にShow/Hide/SetProgressを明示駆動する既存経路を維持 |
+| Webへの進捗配信 | `Client.WebUiHost/Game/Topics/ProgressTopic.cs` | `OnProgressChanged`購読と100msサンプリングを維持 |
+| HUD描画 | `moorestech_web/webui/src/features/progress/ProgressBar.tsx` | 表示専用読み手として既存 `shared/ui/GaugeBar` を利用 |
+| ホットバーとの相対寸法 | `app/index.css` と `HotbarPanel/style.module.css` の共有トークン | `webui-design` の固定長トークン原則とstage内絶対配置へ一致 |
+
+`ui.mining_hud` は同じ進捗を別経路でポーリングする並行複製なので削除する。既存 `ui.progress` の駆動・購読を変えず、Web表示だけを差し替える受動的統合とする。
+
+## 機能死活表
+
+| 操作・表示 | 計画後 | 根拠 |
+|---|---|---|
+| マップオブジェクトへのフォーカス | 維持 | 採掘state machineとレイキャストは変更しない |
+| `Mining Target: ...` 対象名表示 | 撤去 | ユーザーが明示的に削除を裁定 |
+| 左クリック長押し中の進捗 | 維持 | 既存 `ProgressBarView` を唯一の値源として描画 |
+| 採掘完了・中断時のバー非表示 | 維持 | 既存stateのShow/Hide呼び出しを変更しない |
+| 採掘アニメーション・ダメージ・効果音 | 維持 | 対象コードを変更しない |
+| `ui.progress` の任意ラベル表示 | 維持 | optional label契約と描画分岐を残す |
+| ホットバーの選択・キー・ホイール操作 | 維持 | 表示専用バーは `pointer-events: none` で、操作コードを変更しない |
 
 ## 最も強い反例
 
@@ -56,7 +81,7 @@
   - ゲージ幅がホットバー幅と一致しない。
   - ゲージとホットバー番号タブの間に12pxの空隙がない。
   - Mantineの緑色充填が使われている。
-- mock hostの採掘シナリオを `ui.mining_hud` から `ui.progress` へ移し、`visible: true`、`label: null`、0から1へ変化する進捗を配信する。固定の `Crafting` fixtureは採掘シナリオと分離し、旧mining-hud controlを削除する。
+- mock hostの採掘シナリオを `ui.mining_hud` から `ui.progress` へ移し、`visible: true`、labelキー省略、0から1へ変化する進捗を配信する。固定の `Crafting` fixtureは採掘シナリオと分離し、旧mining-hud controlを削除する。
 - 実装後、PlaywrightでDOM矩形を計測し、ゲージとホットバーの中心・幅が一致すること、両矩形が交差せず12px空くことを検証する。
 - 採掘シナリオでは対象名が存在せず、`role="progressbar"` が画面内にちょうど1本だけ存在することを検証する。
 - `role="progressbar"` の値、`pointer-events: none`、既存ゲージトークン由来の色をcomputed styleで検証する。
@@ -71,6 +96,6 @@
 - **agent前提（前例一致・真実源一元化原則、拒否権つき）**: 採掘進捗の値源は既存の `ProgressBarView → ui.progress` だけにし、重複する `ui.mining_hud` を契約ごと削除する。
 - **agent前提（webui-design §8.6、拒否権つき）**: 進捗表示は既存 `GaugeBar` を使い、半透明ネイビーの溝、寒色グレーの充填、既存輪郭トークンだけで描画する。
 - **agent前提（固定長トークン原則、拒否権つき）**: ゲージ幅を9スロットのホットバー全幅へ一致させ、番号タブ上端との空隙を12pxに固定する。
-- **agent前提（既存契約の非目標、拒否権つき）**: `ui.progress` の任意ラベル契約は維持し、採掘時の `null` ラベルだけを非表示にする。
+- **agent前提（既存契約の非目標、拒否権つき）**: `ui.progress` の `label?: string` 契約は維持し、採掘時はC# nullをwire上で省略する既存serializer挙動に合わせる。
 - **agent前提（Playwrightの状態同一性、拒否権つき）**: mock hostの採掘シナリオも統合先の `ui.progress` へ移し、本番と同じラベルなし採掘状態を検証する。
 - **機構比較**: `ui.mining_hud` への乗り換えやCSS非表示ではなく、既存のイベント駆動 `ui.progress` を唯一の経路にして重複機構を削除する。
