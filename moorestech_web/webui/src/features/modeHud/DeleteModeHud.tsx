@@ -1,7 +1,7 @@
 import { Topics, useTopic } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { FadeRule } from "@/shared/ui";
+import { FadeRule, GamePanel } from "@/shared/ui";
 import styles from "./style.module.css";
 
 export function DeleteModeHud() {
@@ -13,8 +13,8 @@ export function DeleteModeHud() {
   const title = t("Delete Mode");
   const guide = t("Drag to select objects to delete");
 
-  // 削除案内を面なしで表示する
-  // Show deletion guidance without a face
+  // 削除案内をクラフト枠で表示する
+  // Show deletion guidance in the craft frame
   return (
     <section
       className={styles.modeHud}
@@ -22,14 +22,16 @@ export function DeleteModeHud() {
       data-testid="delete-mode-hud"
       {...tutorialAnchor(TutorialAnchorIds.deleteHud)}
     >
-      <h2 id={headingId} className={styles.label} data-testid="operation-mode-label">{title}</h2>
-      <FadeRule />
-      <div className={styles.details}>
-        <p className={styles.detail} data-testid="operation-mode-detail">{guide}</p>
-        {data.unavailableReason.length > 0 && (
-          <p className={styles.warning} data-testid="operation-mode-warning">{data.unavailableReason}</p>
-        )}
-      </div>
+      <GamePanel variant="craft">
+        <h2 id={headingId} className={styles.label} data-testid="operation-mode-label">{title}</h2>
+        <FadeRule />
+        <div className={styles.details}>
+          <p className={styles.detail} data-testid="operation-mode-detail">{guide}</p>
+          {data.unavailableReason.length > 0 && (
+            <p className={styles.warning} data-testid="operation-mode-warning">{data.unavailableReason}</p>
+          )}
+        </div>
+      </GamePanel>
     </section>
   );
 }

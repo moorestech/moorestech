@@ -23,7 +23,7 @@
   --text-muted: #a6a7ab;
   /* 不足や警告を示す文字には共通の赤を使う */
   /* Use the shared red for insufficient or warning text */
-  --text-insufficient: #ff6b6b;
+  --text-insufficient: #ff7878;
   --color-content-primary: #f2f3f7;
   --recipe-action-background: linear-gradient(90deg, #0072d8 0%, #008fed 50%, #04d8ec 100%);
   /* 常駐チャレンジHUDの配置と文字階層は世界背景に左右されない固定長で揃える */
@@ -39,8 +39,8 @@
   --challenge-hud-letter-spacing: 1px;
   --challenge-hud-objective-line-height: 25px;
   --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
-  /* 操作モードHUDをチャレンジHUDと同じ面なし階層に揃える */
-  /* Align operation-mode HUDs with the same faceless hierarchy as the challenge HUD */
+  /* クラフト枠内の操作モード情報を固定長で配置する */
+  /* Place operation-mode information inside the craft frame with fixed lengths */
   --operation-hud-left: 24px;
   --operation-hud-top: 24px;
   --operation-hud-width: 288px;
@@ -51,7 +51,6 @@
   --operation-hud-detail-gap: 5px;
   --operation-hud-letter-spacing: 1px;
   --operation-hud-detail-line-height: 25px;
-  --operation-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
   /* ゲージの溝は世界が透ける半透明ネイビー面にする */
   /* Use a translucent navy face for gauge tracks so the world remains visible */
   --gauge-track: rgb(10 14 27 / 80%);

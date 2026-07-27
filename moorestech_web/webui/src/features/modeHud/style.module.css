@@ -1,14 +1,12 @@
-/* 操作モード情報を世界上へ直接重ね、カード面と入力判定を持たせない */
-/* Overlay operation-mode information directly on the world without a card face or input hit area */
+/* 操作モード枠を世界上へ重ね、ゲーム入力だけは素通しする */
+/* Overlay the operation-mode frame on the world while passing game input through */
 .modeHud {
   position: absolute;
   top: var(--operation-hud-top);
   left: var(--operation-hud-left);
   z-index: var(--z-overlay-panel);
   width: var(--operation-hud-width);
-  color: var(--text-high-contrast);
   pointer-events: none;
-  text-shadow: var(--operation-hud-text-shadow);
 }
 
 /* 控えめなモード名から共有罫線へ固定間隔でつなぐ */
@@ -37,6 +35,12 @@
   overflow-wrap: anywhere;
   font-size: var(--operation-hud-detail-font-size);
   line-height: var(--operation-hud-detail-line-height);
+}
+
+/* 本文をクラフト面上の高コントラスト文字へ固定する */
+/* Keep detail text high-contrast over the craft face */
+.detail {
+  color: var(--text-high-contrast);
 }
 
 /* 操作不能理由だけを共有警告色へ切り替え、独自色は増やさない */

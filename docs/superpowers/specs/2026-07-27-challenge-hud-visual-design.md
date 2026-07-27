@@ -84,12 +84,13 @@ topic契約、Unity publisher、状態所有、通信経路は変更しない。
 
 ## 操作モードHUDの追補
 
-PlaceBlock/DeleteBarの衝突確認画像から、既存 `PlacementModeHud` / `DeleteModeHud` がMantine既定の矩形カード、色直書き、合成boldを露出している問題が見つかった。チャレンジHUDだけを隠しても画面全体はデザイン哲学へ揃わないため、両操作HUDも同じ面なし語彙へ統一する。
+PlaceBlock/DeleteBarの衝突確認画像から、既存 `PlacementModeHud` / `DeleteModeHud` がMantine既定の矩形カード、色直書き、合成boldを露出している問題が見つかった。Mantine面は除去するが、操作中の状態表示には明確な器が必要なため、正本のクラフトレシピ詳細と同じ `GamePanel variant="craft"` へ置き換える。
 
-- 意味を持つHTML要素と `FadeRule` だけで「従属見出し → 詳細一覧」を構成する
+- `GamePanel variant="craft"` と意味を持つHTML要素、`FadeRule` で「従属見出し → 詳細一覧」を構成する
 - 通常情報は `--text-high-contrast`、操作不能理由だけは `--text-insufficient` を使う
-- 位置・幅・間隔・文字サイズ・文字影を `--operation-hud-*` 固定長トークンへ集約する
-- 面・枠・角丸・光彩・アニメーションを持たず、`pointer-events: none` を維持する
+- `--text-insufficient` は明背景合成でも4.5:1を満たす値へ更新し、通知・ブロック詳細を含む既存consumerへ意図的に共有する
+- 位置・幅・間隔・文字サイズを `--operation-hud-*` 固定長トークンへ集約する
+- クラフトレシピ詳細の半透明面・1px枠・内周線・右下グリップを再利用し、独自装飾を作らず `pointer-events: none` を維持する
 
 ## 検証
 
@@ -97,9 +98,9 @@ PlaceBlock/DeleteBarの衝突確認画像から、既存 `PlacementModeHud` / `D
 - E2E: 1件表示、完了後0件非表示、blockingスキット中非表示
 - E2E: 複数件を受信順で表示
 - Playwright目視QA: 日本語の単一目標、複数目標、長文目標を1280×720 mock-hostの明暗を含む世界背景上で撮影し、問題がなくなるまで修正と再撮影を反復
-- 目視QA: 背景・枠・角丸がなく、罫線と文字だけが浮いていること
+- 目視QA: チャレンジHUDは背景・枠・角丸がなく、罫線と文字だけが浮いていること
 - 目視QA: 18状態のmanifestと計測値を生成し、GameScreen、明暗背景、長文、modal、操作モード、スキットで重なり・折返し・入力透過を確認
-- 操作HUD E2E: 配置・削除の面、枠、角丸、入力透過、固定位置、文字階層、警告色を実ブラウザで検証
+- 操作HUD E2E: 配置・削除がクラフトレシピと同じ面・枠・右下グリップを持ち、入力透過、固定位置、文字階層、警告色を満たすことを実ブラウザで検証
 - Web UI: `pnpm lint`、`pnpm test`、対象Playwright E2E、`pnpm build`
 - `.cs` は変更しないためUnityコンパイルは不要
 
@@ -109,7 +110,8 @@ PlaceBlock/DeleteBarの衝突確認画像から、既存 `PlacementModeHud` / `D
 - ユーザー裁定（発言「Playwrightで問題ないと言えるまで」2026-07-27）: Playwrightの実画面で問題を探し、修正と再撮影を反復して目視上の問題が残らないことを完了条件にする。
 - ユーザー裁定（発言「playwrgihtチェックでsubagentがok出るまで」2026-07-27）: Playwrightの全状態画像と計測結果を独立subagentが確認し、OKが出るまで修正・再撮影・再評価を継続する。
 - ユーザー裁定（発言「Mantineのペラ1に見える」「なおして」2026-07-27）: Playwright画像で露出した配置・削除HUDもMantine面を除去し、チャレンジHUDと同じ面なし語彙へ揃える。
-- agent前提（常時表示HUD原則・拒否権つき）: 背景、枠、角丸、光彩、アニメーションは追加しない。
+- ユーザー裁定（発言「なんでHUD透明にするの？クラフトレシピの枠で囲って」2026-07-27）: 操作モードHUDは面なしにせず、クラフトレシピ詳細と同じ `GamePanel variant="craft"` の枠で囲う。直前の面なし裁定は操作HUDに限り撤回する。
+- agent前提（チャレンジHUD原則・拒否権つき）: チャレンジHUDには背景、枠、角丸、光彩、アニメーションを追加しない。
 - agent前提（既存契約の調査結果・拒否権つき）: topicに存在しない進捗値、報酬、アイコンは表示しない。
 - agent前提（固定長トークン原則・拒否権つき）: HUDの位置、幅、間隔、文字サイズは固定長トークンで管理する。
 - agent前提（情報欠落禁止・拒否権つき）: 複数currentをUI側で切り捨てず、受信順ですべて表示する。

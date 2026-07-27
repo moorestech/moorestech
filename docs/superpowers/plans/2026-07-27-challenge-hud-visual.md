@@ -8,14 +8,14 @@ spec: docs/superpowers/specs/2026-07-27-challenge-hud-visual-design.md
 
 **Goal:** `challenge.current` の内部キーとMantine既定カードを除去し、チャレンジHUDを面のない見出し・罫線・目標一覧へ置き換える。
 
-**Architecture:** `CurrentChallengeHud` は既存topicの受動的な読み手とし、`App` が画面所有に基づく可視性を決める。既存 `FadeRule` と `tokens.css` の固定長トークンを使い、18状態の分割撮影ハーネスで表示と衝突回避を検証する。操作モード画像で見つかったMantine面は、配置・削除HUDを同じ面なし語彙へ直して検証する。
+**Architecture:** `CurrentChallengeHud` は既存topicの受動的な読み手とし、`App` が画面所有に基づく可視性を決める。既存 `FadeRule` と `tokens.css` の固定長トークンを使い、18状態の分割撮影ハーネスで表示と衝突回避を検証する。操作モード画像で見つかったMantine面は、配置・削除HUDを正本の `GamePanel variant="craft"` へ置き換えて検証する。
 
 **Tech Stack:** React 18、TypeScript、CSS Modules、Playwright、Vite mock-host
 
 ## Global Constraints
 
-- 常時表示HUDはパネル面・枠・角丸を持たず、世界の上に浮く表現にする。
-- 見出し、位置、幅、間隔、文字サイズ、文字影は `tokens.css` の既存または `--challenge-hud-*` 固定長トークンだけを使う。
+- チャレンジHUDはパネル面・枠・角丸を持たず、世界の上に浮く表現にする。操作モードHUDはユーザー裁定によりクラフトレシピ詳細の枠を再利用する。
+- チャレンジHUDは `--challenge-hud-*`、操作モードHUDは `--operation-hud-*` の固定長トークンで位置・幅・間隔・文字サイズを管理し、チャレンジHUDの文字影だけを専用トークンで持つ。
 - 新しい色相、アイコン、ゲージ、箇条書き装飾、光彩、アニメーションを追加しない。
 - 目標名は合成boldを使わず、見出しとの文字サイズ差だけで階層を作る。
 - 複数currentを切り捨てず受信順ですべて描画し、長文と長語を固定幅内で折り返す。
@@ -290,11 +290,13 @@ git commit -m "チャレンジHUDを面なし表示へ変更"
 - Modify if findings exist: `moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css`
 - Modify if findings exist: `moorestech_web/webui/src/app/tokens.css`
 - Modify if findings exist: `moorestech_web/webui/e2e/tests/challenge.spec.ts`
-- Modify: `moorestech_web/webui/src/features/modeHud/PlacementModeHud.tsx` — 配置情報を面なしのHTML構造へ置換する。
-- Modify: `moorestech_web/webui/src/features/modeHud/DeleteModeHud.tsx` — 削除案内と警告を面なしのHTML構造へ置換する。
-- Modify: `moorestech_web/webui/src/features/modeHud/style.module.css` — Mantine面を除去し操作HUDトークンだけで構成する。
+- Modify: `moorestech_web/webui/src/features/modeHud/PlacementModeHud.tsx` — 配置情報を `GamePanel variant="craft"` と意味要素で構成する。
+- Modify: `moorestech_web/webui/src/features/modeHud/DeleteModeHud.tsx` — 削除案内と警告を `GamePanel variant="craft"` と意味要素で構成する。
+- Modify: `moorestech_web/webui/src/features/modeHud/style.module.css` — 独自面を作らず操作HUDの配置と文字階層だけを構成する。
+- Modify: `moorestech_web/webui/src/shared/ui/GamePanel/index.tsx` — 共有craft variantをE2Eから識別できるDOM契約を公開する。
+- Modify: `moorestech_web/webui/e2e/mock-host/topics/topicControls.ts` — 操作HUDのテスト間状態を初期化する空scenarioを公開する。
 - Create: `moorestech_web/webui/src/features/modeHud/modeHudDesign.test.ts` — デザインホワイトリストを固定する。
-- Create: `moorestech_web/webui/e2e/tests/modeHud/operation-mode-hud.spec.ts` — 実ブラウザで面なし契約を検証する。
+- Create: `moorestech_web/webui/e2e/tests/modeHud/operation-mode-hud.spec.ts` — 実ブラウザでクラフト枠再利用契約を検証する。
 
 **Interfaces:**
 - Consumes: mock-host HTTP controls、Playwright Chromium、1280×720 viewport

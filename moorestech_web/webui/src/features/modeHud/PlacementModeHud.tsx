@@ -1,7 +1,7 @@
 import { Topics, useTopic } from "@/bridge";
 import { useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { FadeRule } from "@/shared/ui";
+import { FadeRule, GamePanel } from "@/shared/ui";
 import styles from "./style.module.css";
 
 export function PlacementModeHud() {
@@ -14,8 +14,8 @@ export function PlacementModeHud() {
   const selected = t("Selected: {name}", { name: data.selectedName });
   const height = t("Height: {height}", { height: data.height });
 
-  // 配置情報を面なしで表示する
-  // Show placement information without a face
+  // 配置情報をクラフト枠で表示する
+  // Show placement information in the craft frame
   return (
     <section
       className={styles.modeHud}
@@ -23,15 +23,17 @@ export function PlacementModeHud() {
       data-testid="placement-mode-hud"
       {...tutorialAnchor(TutorialAnchorIds.placementHud)}
     >
-      <h2 id={headingId} className={styles.label} data-testid="operation-mode-label">{title}</h2>
-      <FadeRule />
-      <div className={styles.details}>
-        <p className={styles.detail} data-testid="operation-mode-detail">{selected}</p>
-        <p className={styles.detail} data-testid="operation-mode-detail">{height}</p>
-        {data.unavailableReason.length > 0 && (
-          <p className={styles.warning} data-testid="operation-mode-warning">{data.unavailableReason}</p>
-        )}
-      </div>
+      <GamePanel variant="craft">
+        <h2 id={headingId} className={styles.label} data-testid="operation-mode-label">{title}</h2>
+        <FadeRule />
+        <div className={styles.details}>
+          <p className={styles.detail} data-testid="operation-mode-detail">{selected}</p>
+          <p className={styles.detail} data-testid="operation-mode-detail">{height}</p>
+          {data.unavailableReason.length > 0 && (
+            <p className={styles.warning} data-testid="operation-mode-warning">{data.unavailableReason}</p>
+          )}
+        </div>
+      </GamePanel>
     </section>
   );
 }

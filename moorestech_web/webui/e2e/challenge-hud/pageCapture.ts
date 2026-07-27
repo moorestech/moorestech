@@ -98,6 +98,10 @@ async function measure(page: Page): Promise<unknown> {
     );
     const operationHudRect = operationHud?.getBoundingClientRect();
     const operationHudStyle = operationHud ? getComputedStyle(operationHud) : null;
+    const operationFrame = operationHud?.querySelector<HTMLElement>(':scope > [data-variant="craft"]') ?? null;
+    const operationFrameStyle = operationFrame ? getComputedStyle(operationFrame) : null;
+    const operationLabel = operationHud?.querySelector<HTMLElement>('[data-testid="operation-mode-label"]');
+    const operationDetail = operationHud?.querySelector<HTMLElement>('[data-testid="operation-mode-detail"]');
     const warning = operationHud?.querySelector<HTMLElement>('[data-testid="operation-mode-warning"]');
     return {
       hud: hudRect ? { x: hudRect.x, y: hudRect.y, width: hudRect.width, height: hudRect.height } : null,
@@ -118,9 +122,19 @@ async function measure(page: Page): Promise<unknown> {
         y: operationHudRect.y,
         width: operationHudRect.width,
         height: operationHudRect.height,
-        background: operationHudStyle.backgroundColor,
-        borderWidth: operationHudStyle.borderWidth,
-        boxShadow: operationHudStyle.boxShadow,
+        frameBackground: operationFrameStyle?.backgroundColor ?? null,
+        frameBorderWidth: operationFrameStyle?.borderWidth ?? null,
+        frameBoxShadow: operationFrameStyle?.boxShadow ?? null,
+        labelColor: operationLabel ? getComputedStyle(operationLabel).color : null,
+        detailColor: operationDetail ? getComputedStyle(operationDetail).color : null,
+        worldBackground: getComputedStyle(document.querySelector<HTMLElement>("#__worldbg")!).backgroundColor,
+        hitTargetInsideHud: (() => {
+          const target = document.elementFromPoint(
+            operationHudRect.left + operationHudRect.width / 2,
+            operationHudRect.top + operationHudRect.height / 2,
+          );
+          return target !== null && operationHud.contains(target);
+        })(),
         pointerEvents: operationHudStyle.pointerEvents,
         warningColor: warning ? getComputedStyle(warning).color : null,
       } : null,
