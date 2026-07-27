@@ -259,3 +259,67 @@ new_file 扱いされる懸念があったが、空ファイル/バイナリ新�
 
 上記1・2はブリーフ記載のコードそのままの挙動であり、ブリーフの指示（コード・値はそのまま使う）に
 従って改変していない。修正が必要ならTask 3以降での判断事項とする。
+
+---
+
+# Task 1 追記 (pr-independent-review): fix subagentによる懸念1・2・5の修正
+
+## Status
+DONE
+
+前任報告の「懸念」1（asmdef GUID形式参照の見逃し）・2（1行形式referencesの見逃し）・5（exit契約の食い違い）を修正した。
+
+## 変更内容
+
+### 1. asmdef GUID形式参照の検出
+参照抽出regexを `"([A-Za-z0-9_.]+)"` → `"([A-Za-z0-9_.:]+)"` に拡張。`"GUID:9a3d..."` 形式を
+文字列のまま ref として報告する（GUIDのasmdef名への解決は行わない）。
+
+### 2. 1行形式 `"references": ["Game.Foo"]` の検出
+asmdef行に `"references"` が含まれる場合、その直後のコロン以降のみを findall の走査対象にする。
+これにより同一行の他key値（`"name": "Client.Game"` 等）を誤検知せずrefだけ拾える。
+`"references"` を含まない `":` 行は従来どおりスキップ。
+
+### 3. exit契約の実態合わせ
+冒頭コメントの「exit codeは常に0 / Always exits 0」を
+「正常時はexit 0。git失敗・引数不足など実行エラー時は非ゼロで落ちる（黙って縮退せず失敗を見せる）」に修正。
+
+## 追加テスト
+
+- `test_asmdef_guid_style_reference_detected` — 複数行asmdefに `"GUID:abc123def"` を追加し、
+  その文字列がそのまま ref として report されること
+- `test_asmdef_single_line_references_detected` — 1行形式asmdef
+  `{"name": "Client.Game", "references": ["Game.ElectricWire"]}` から `Game.ElectricWire` が取れ、
+  同一行のkey値 `Client.Game` が ref として誤検知されないこと
+
+## カバーするテスト
+`.claude/skills/pr-independent-review/tests/test_novelty_gate.py` 全件（6本）
+
+## 実行コマンドと出力
+
+```
+$ uv run --with pytest python -m pytest .claude/skills/pr-independent-review/tests/test_novelty_gate.py -v
+platform darwin -- Python 3.11.14, pytest-9.1.1, pluggy-1.6.0
+collected 6 items
+
+::test_new_using_edge_from_generic_dir_is_flagged PASSED  [ 16%]
+::test_existing_pair_is_not_flagged               PASSED  [ 33%]
+::test_grammar_elements_detected                  PASSED  [ 50%]
+::test_asmdef_reference_addition_detected         PASSED  [ 66%]
+::test_asmdef_guid_style_reference_detected       PASSED  [ 83%]
+::test_asmdef_single_line_references_detected     PASSED  [100%]
+
+============================== 6 passed in 1.87s ===============================
+```
+
+## QA（空虚な合格でないことの確認）
+
+追加2本が旧コードで確実にREDになることを検証した。
+- GUID形式: 旧regex `"([A-Za-z0-9_.]+)"` を `    "GUID:abc123def"` に適用 → `[]`（マッチ0件）
+- 1行形式: `'":' in content` が `True` → 旧コードは行ごと `continue` でスキップ
+
+実リポジトリスモークも再実行し、exit 0・JSON出力が壊れていないことを確認済み。
+
+## 残る懸念（Task 3のSKILL.md側で扱う）
+前任報告の懸念3（新規ディレクトリは全usingが新エッジ化）・4（`.claude/skills/` 配下のシナリオ`.cs`ノイズ）は
+スクリプト修正の範囲外のため未対応。解釈ルール／除外パスとしてTask 3で判断が必要。

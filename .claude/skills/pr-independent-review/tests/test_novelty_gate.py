@@ -109,3 +109,27 @@ def test_asmdef_reference_addition_detected(repo: Path):
     assert {"file": "Client.Game/Client.Game.asmdef", "ref": "Game.ElectricWire"} in result["asmdef_refs"]
     # key行の値("Client.Game"等)が誤検知されていないこと / key-line values must not be false positives
     assert all(r["ref"] != "Client.Game" for r in result["asmdef_refs"])
+
+
+def test_asmdef_guid_style_reference_detected(repo: Path):
+    # GUID形式の参照(`"GUID:abc123def"`)も文字列のまま報告される / GUID-style refs are reported verbatim
+    asmdef = repo / "Client.Game" / "Client.Game.asmdef"
+    asmdef.write_text('{\n  "name": "Client.Game",\n  "references": [\n  ]\n}\n')
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "asmdef base")
+    asmdef.write_text('{\n  "name": "Client.Game",\n  "references": [\n    "GUID:abc123def"\n  ]\n}\n')
+    _git(repo, "commit", "-am", "asmdef guid ref")
+    result = _run(repo)
+    assert {"file": "Client.Game/Client.Game.asmdef", "ref": "GUID:abc123def"} in result["asmdef_refs"]
+
+
+def test_asmdef_single_line_references_detected(repo: Path):
+    # 1行形式 `"references": ["Game.Foo"]` からもrefが取れる / single-line references arrays are parsed
+    asmdef = repo / "Client.Game" / "Client.Game.OneLine.asmdef"
+    asmdef.write_text('{"name": "Client.Game", "references": ["Game.ElectricWire"]}\n')
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "one-line asmdef")
+    result = _run(repo)
+    assert {"file": "Client.Game/Client.Game.OneLine.asmdef", "ref": "Game.ElectricWire"} in result["asmdef_refs"]
+    # 同一行のkey値("Client.Game")はコロン以降のみ走査するため拾われない / key value on the same line is excluded
+    assert all(r["ref"] != "Client.Game" for r in result["asmdef_refs"])

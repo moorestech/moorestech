@@ -4,8 +4,10 @@
 # Novelty gate L1 — deterministic signals of novel design shapes in a PR diff
 #
 # usage: novelty_gate.py <repo_root> <base_ref>
-#   base_ref...HEAD のdiffを検査し、JSONをstdoutへ出す。exit codeは常に0。
-#   Inspects base_ref...HEAD and prints JSON to stdout. Always exits 0.
+#   base_ref...HEAD のdiffを検査し、JSONをstdoutへ出す。正常時はexit 0。
+#   git失敗・引数不足など実行エラー時は非ゼロで落ちる（黙って縮退せず失敗を見せる）。
+#   Inspects base_ref...HEAD and prints JSON to stdout; exits 0 on success.
+#   Execution errors (git failure, missing args) exit non-zero instead of degrading silently.
 import json
 import re
 import subprocess
@@ -109,11 +111,19 @@ def main():
 
     for path, line_no, content in added:
         if path.endswith(".asmdef"):
-            # key行（`":`を含む）はスキップし、references配列要素（裸の文字列行）だけ拾う
-            # Skip key-value lines; keep only bare string lines = reference array elements
-            if '":' in content:
+            # references行は1行形式もあるためコロン以降を走査対象にする
+            # references lines may hold a single-line array, so scan the part after its colon
+            scan = content
+            if '"references"' in content:
+                colon = content.find(":", content.index('"references"'))
+                scan = content[colon + 1:] if colon != -1 else ""
+            # 他のkey行（`":`を含む）はスキップし、references配列要素（裸の文字列行）だけ拾う
+            # Skip other key-value lines; keep only bare string lines = reference array elements
+            elif '":' in content:
                 continue
-            for ref in re.findall(r'"([A-Za-z0-9_.]+)"', content):
+            # GUID形式（"GUID:9a3d..."）も参照として文字列のまま報告する
+            # GUID-style references are reported verbatim, without resolving them
+            for ref in re.findall(r'"([A-Za-z0-9_.:]+)"', scan):
                 result["asmdef_refs"].append({"file": path, "ref": ref})
             continue
         if not path.endswith(".cs"):
