@@ -266,7 +266,7 @@ namespace Client.Starter
             // register component on hierarchy
             builder.RegisterComponent(gameStateController);
             builder.RegisterComponent(blockGameObjectDataStore);
-            builder.RegisterComponent(mapObjectGameObjectDatastore);
+            builder.RegisterComponent(mapObjectGameObjectDatastore).AsSelf().As<IInitialEventApplyWaitTarget>();
             builder.RegisterComponent(environmentRoot);
             
             builder.RegisterComponent(mainCamera);

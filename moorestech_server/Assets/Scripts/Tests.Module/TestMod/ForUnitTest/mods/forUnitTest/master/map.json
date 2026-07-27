@@ -4,6 +4,7 @@
       "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "vanilla:Tree",
+      "addressablePath": "Vanilla/Environment/Tree",
       "miningTools": [
         {
           "attackSpeed": 1.6,
@@ -27,6 +28,7 @@
       "earnItemHpInterval": 10,
       "hp": 30,
       "mapObjectName": "vanilla:TreeTest",
+      "addressablePath": "Vanilla/Environment/TreeTest",
       "soundEffectType": "tree",
       "miningType": "PickUp",
       "earnItems": [

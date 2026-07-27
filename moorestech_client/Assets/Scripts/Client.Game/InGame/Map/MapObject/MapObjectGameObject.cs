@@ -27,8 +27,16 @@ namespace Client.Game.InGame.Map.MapObject
         
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
         private readonly Subject<Unit> _onDestroyMapObject = new();
-        
-        
+
+
+        // 実行時Instantiate用にID/GUIDを注入する（ベイク時代のSerializeField直接参照の置換）
+        // Injects identity for runtime instantiation (replaces baked SerializeField values)
+        public void SetRuntimeIdentity(int instanceId, string mapObjectGuid)
+        {
+            this.instanceId = instanceId;
+            this.mapObjectGuid = mapObjectGuid;
+        }
+
         public void Initialize(GetMapObjectInfoProtocol.MapObjectsInfoMessagePack mapObjectInfo)
         {
             CurrentHp = mapObjectInfo.CurrentHp;
@@ -99,18 +107,5 @@ namespace Client.Game.InGame.Map.MapObject
                 hpBarView.SetHp(CurrentHp, MapObjectMasterElement.Hp);
             }
         }
-        
-#if UNITY_EDITOR
-        public void SetMapObjectData(int instanceId)
-        {
-            UnityEditor.Undo.RecordObject(this, "SetMapObjectData");
-            
-            this.instanceId = instanceId;
-            
-            //Dirtyフラグを立てる
-            UnityEditor.EditorUtility.SetDirty(this);
-        }
-        
-#endif
     }
 }
