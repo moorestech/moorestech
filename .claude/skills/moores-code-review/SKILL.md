@@ -35,15 +35,16 @@ AskUserQuestionは**最後の報告フェーズに集約**する。修正適用�
 1. **作業範囲を特定** — このセッションで生成・変更した成果物をコミット範囲・staged・unstagedから確定し、統合unified diffを `/tmp/moores-review-patch-<ts>.diff` に書く（**PATCH_PATH**）。`git diff <base>^..<last>` + `git diff --cached` + `git diff` を連結。ユーザーがレビュー範囲を明示したらそれを優先。
 2. **4カテゴリcontextを書く** — `/tmp/moores-review-context-<ts>.md`（**USER_PROMPT_PATH**）に埋める。埋め忘れるとレンズ/reviewerがfalse-positiveを量産する:
    - **目指す（ゴール）** / **目指さない（非目標）** / **許容するトレードオフ** / **尊重すべき制約**
-   - 自分の判断は「（自分の判断として）」と明記し「ユーザー合意済み」と偽装しない（`references/integration-rules.md` §6）。
+   - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
+   - **「許容するトレードオフ」「非目標」の各行に出所ラベル必須**: `[ユーザー裁定: "発言引用" または AskUserQuestion結果 YYYY-MM-DD]` / `[ADR: <spec名>#<台帳項目>]` / `[agent前提]`。ラベル無し・引用不能な行は自動的に `[agent前提]` 扱いで免責力を持たない（`references/integration-rules.md` §6）。ユーザー裁定の出所はspec/planの判断台帳（ADRセクション）から引く（台帳がSSOT）。
 
 ## Step 2: 決定論チェック ①
 
 ```bash
-python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "<PATCH_PATH>" --repo-root "$(pwd)" > /tmp/moores-review-detchecks-<ts>.json
+python3 .claude/skills/moores-code-review/scripts/deterministic_checks.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > /tmp/moores-review-detchecks-<ts>.json
 ```
 
-- **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。
+- **`confirmed`**（partial・try-catch・Func・デフォルト引数・SerializeField命名・10ファイル・master_default_fallback・packet_response_root・context_source_label）— 検出正確・裏取り不要。Criticalとして統合に直接載せる（修正の適用可否は §3/§4）。`context_source_label`（出所ラベル欠落）はcontextファイルを修正して再実行する。
 - **`confirmed` のうち200行超過（file-too-long）は努力目標** — Criticalにせず報告のWarning備考に1行載せるだけ。分割を強制せず、AskUserQuestionにも**絶対に**載せない（ユーザー裁定 2026-07-23）。
 - **`candidates.comparison_operator`** — 1件以上あればStep 3で比較演算子verifier（sonnet）を並列起動。0件なら起動しない。
 - **`candidates.comment_length` / `region_internal`** — この時点では保持のみ（commentはStep 5.5で最終diffに再計測、regionはregion-internal reviewerの裏付け）。
@@ -80,6 +81,7 @@ python3 .claude/skills/moores-code-review/scripts/select_reviewers.py "<PATCH_PA
    Critical: あり/なし — 確信をもって修正すべき違反。ありなら `修正方針: - <ファイル:行>: <直し方>` を列挙
    Warning: 0行以上 — 観点に該当しそうだが確信・裏取りが一段弱い指摘、重大だが裁量余地のある懸念。`- <ファイル:行>: <懸念と根拠>`
    Info: 0行以上 — 対応不要の観察・過検知ガードで落としたが記録価値のある事実。1行ずつ
+   suppressed: 0行以上 — トレードオフ免責で降格した指摘。`- [Critical|Warning] <ファイル:行>: <指摘要約> / suppressed-by: <トレードオフ1行, 出所ラベル>`。Critical/Warning節には入れない（重大度は行頭表記で保持）
    設計判断: あり/なし — 従来通り（代替案の具体形・シグネチャ付き比較）
    ```
    `precedent-alignment.md`（always発火）は発火レンズが0件でも必ず起動する。
@@ -114,7 +116,7 @@ python3 .claude/skills/moores-code-review/scripts/select_reviewers.py "<PATCH_PA
 Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更とStep 6で自分が適用した修正の両方**を検査する。`reviewers/` にもセレクタにも属さない別系統。
 
 1. **最終diffを作り直す** — Step 6適用後の作業ツリーをbaseと比較し `/tmp/moores-review-final-<ts>.diff` に書く。
-2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `/tmp/moores-review-detchecks-final-<ts>.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。
+2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `/tmp/moores-review-detchecks-final-<ts>.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。**再実行時は `--context` を渡さない**（出所ラベルはStep 2で検査済み。再検出させると/tmpのcontext編集へ誘導され無意味）。
 3. **2本のガードを並列起動**（1メッセージ内）:
    - **comment-rationale-guard**（`model: "opus"`・3行契約）— load-bearingな根拠コメントがコード本体を残したまま削除・希薄化されていないか（削除行 `-` が対象）。`Read this : .claude/skills/moores-code-review/post-checks/comment-rationale-guard.md` + Patch path（最終diff）+ User prompt。
    - **comment-convention-guard**（`model: "sonnet"`・4行契約）— スクリプト計測の文字数超過候補の例外判定・短縮案 + 名前重複コメント検出。**文字数はスクリプトの値が正**。`Read this` + `Candidates : /tmp/moores-review-detchecks-final-<ts>.json` + Patch path（最終diff）+ User prompt。
@@ -125,6 +127,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 ## Step 7: 報告＋AskUserQuestion ⑥
 
 1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/レンズ名/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
+   - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。
    - **載せてよいのは本質的な設計判断のみ**: アーキテクチャ・パターン選択（多態化/型分割/移動先クラス）・スコープ影響・両立不能な指摘、およびサブエージェントの `設計判断: あり` 項目。
    - **載せるの禁止**: コメントの短縮・文体（convention-guardが自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。この2種は選択肢に混ぜた時点で規約違反。

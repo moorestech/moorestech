@@ -82,8 +82,7 @@ React Testing Library・Unity EditMode/PlayMode 等）が、検証対象の **pr
 二次的・防御的分岐（loading・冗長 guard・ログ等）が赤くならないのは Critical にしない（補足に回す）。
 
 ## 依頼動詞優先ガード
-起動 prompt 3 行目 `User prompt : <abs-path>` を Read。「テストは別 PR」「手動確認で可」等が 4カテゴリ context で
-合意済みなら指摘しない。
+起動 prompt 3 行目 `User prompt : <abs-path>` を Read。「許容するトレードオフ」「非目標」に合致する指摘は**破棄せず**、`suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて**重大度そのまま**で返す（統合側が報告の「免責で消された指摘」節に載せる）。suppressed化できるのは出所が `[ユーザー裁定: ...]` / `[ADR: ...]` の行だけ。`[agent前提]` またはラベル無しの行は免責事由にならない（通常のCritical/Warningとして返す）。
 
 ## 出力フォーマット
 Critical が 1 件でもあれば:
