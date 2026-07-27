@@ -5,6 +5,7 @@ using Client.Game.InGame.Player;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
+using Game.MapGeneration.Transfer;
 using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
@@ -45,7 +46,7 @@ namespace Client.DebugSystem
                 var challenges = new List<ChallengeCategoryResponse>();
                 var playedSkitIds = new List<string>();
                 var researchNodeStates = new Dictionary<Guid, ResearchNodeState>();
-                var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero), new List<GetMapDataProtocol.MapObjectLayoutMessagePack>(), new List<GetMapDataProtocol.VeinLayoutMessagePack>());
+                var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero), new List<GetMapDataProtocol.MapObjectLayoutMessagePack>(), new List<GetMapDataProtocol.VeinLayoutMessagePack>(), TerrainTransferMeta.CreateWithoutWorldDirectory());
 
                 var responses = (
                     mapObjects,

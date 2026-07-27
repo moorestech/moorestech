@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Game.Map.Interface.Json;
+using Game.MapGeneration.Transfer;
+using Game.Paths;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Util.MessagePack;
@@ -23,10 +25,12 @@ namespace Server.Protocol.PacketResponse
         }
 
         private readonly MapInfoJson _mapInfoJson;
+        private readonly WorldDataDirectory _worldDataDirectory;
 
         public GetMapDataProtocol(ServiceProvider serviceProvider)
         {
             _mapInfoJson = serviceProvider.GetService<MapInfoJson>();
+            _worldDataDirectory = serviceProvider.GetService<WorldDataDirectory>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -56,7 +60,11 @@ namespace Server.Protocol.PacketResponse
                 foreach (var vein in _mapInfoJson.MapVeins)
                     mapVeins.Add(new VeinLayoutMessagePack(vein.VeinGuidStr, vein.MinX, vein.MinY, vein.MinZ, vein.MaxX, vein.MaxY, vein.MaxZ));
 
-                return new ResponseMapDataMessagePack(spawn, mapObjects, mapVeins);
+                // 地形チャンクを要求するために必要なメタ情報をワールドディレクトリの実体から読む
+                // Read the metadata clients need to request terrain chunks from the real world directory
+                var terrainMeta = TerrainTransferMetaReader.Read(_worldDataDirectory);
+
+                return new ResponseMapDataMessagePack(spawn, mapObjects, mapVeins, terrainMeta);
             }
 
             #endregion
@@ -86,15 +94,28 @@ namespace Server.Protocol.PacketResponse
             [Key(3)] public List<MapObjectLayoutMessagePack> MapObjects { get; set; }
             [Key(4)] public List<VeinLayoutMessagePack> MapVeins { get; set; }
 
+            // 地形メタ。TerrainResolution=0はterrainを持たないワールド（template）を意味する
+            // Terrain meta; TerrainResolution=0 means the world owns no terrain (template)
+            [Key(5)] public string MapMode { get; set; }
+            [Key(6)] public string WorldId { get; set; }
+            [Key(7)] public int TerrainResolution { get; set; }
+            [Key(8)] public int TerrainTileCount { get; set; }
+            [Key(9)] public int TerrainChunkTotal { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseMapDataMessagePack() { }
 
-            public ResponseMapDataMessagePack(Vector3MessagePack spawn, List<MapObjectLayoutMessagePack> mapObjects, List<VeinLayoutMessagePack> mapVeins)
+            public ResponseMapDataMessagePack(Vector3MessagePack spawn, List<MapObjectLayoutMessagePack> mapObjects, List<VeinLayoutMessagePack> mapVeins, TerrainTransferMeta terrainMeta)
             {
                 Tag = ProtocolTag;
                 Spawn = spawn;
                 MapObjects = mapObjects;
                 MapVeins = mapVeins;
+                MapMode = terrainMeta.MapMode;
+                WorldId = terrainMeta.WorldId;
+                TerrainResolution = terrainMeta.TerrainResolution;
+                TerrainTileCount = terrainMeta.TerrainTileCount;
+                TerrainChunkTotal = terrainMeta.TerrainChunkTotal;
             }
         }
 

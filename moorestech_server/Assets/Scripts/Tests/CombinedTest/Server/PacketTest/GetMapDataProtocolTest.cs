@@ -1,4 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Game.MapGeneration.Export;
+using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
+using Game.Paths;
 using MessagePack;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
@@ -9,6 +18,20 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class GetMapDataProtocolTest
     {
+        private readonly List<string> _createdWorldRoots = new();
+
+        [TearDown]
+        public void TearDown()
+        {
+            foreach (var worldRoot in _createdWorldRoots)
+            {
+                if (Directory.Exists(worldRoot)) Directory.Delete(worldRoot, true);
+                var provisioningTempDirectory = worldRoot + ".provisioning";
+                if (Directory.Exists(provisioningTempDirectory)) Directory.Delete(provisioningTempDirectory, true);
+            }
+            _createdWorldRoots.Clear();
+        }
+
         [Test]
         public void GetMapDataLayoutTest()
         {
@@ -82,6 +105,88 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(20, vein2.MaxX);
             Assert.AreEqual(0, vein2.MaxY);
             Assert.AreEqual(0, vein2.MaxZ);
+
+            // ワールドディレクトリを持たない構成では地形を持たずWorldIdも定まらない
+            // A config without a world directory owns no terrain and has no world identity
+            Assert.AreEqual(WorldProvisioner.TemplateMapMode, response.MapMode);
+            Assert.AreEqual(string.Empty, response.WorldId);
+            Assert.AreEqual(0, response.TerrainResolution);
+            Assert.AreEqual(0, response.TerrainTileCount);
+            Assert.AreEqual(0, response.TerrainChunkTotal);
+        }
+
+        [Test]
+        public void Generatedワールドのterrainメタがworld_jsonとterrainファイル実体に整合する()
+        {
+            // generatedのプロビジョニングはMasterHolderを要求するため、先にDI構築でマスタをロードする
+            // Provisioning in generated mode requires MasterHolder, so load masters via a DI build first
+            new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var worldDataDirectory = ProvisionWorld(WorldProvisioner.GeneratedMapMode, 12345);
+            var response = RequestMapDataLayout(worldDataDirectory);
+
+            // MapMode・解像度・タイル数がworld.jsonの記録と一致する
+            // MapMode, resolution and tile count match what world.json recorded
+            var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
+            Assert.AreEqual(WorldProvisioner.GeneratedMapMode, response.MapMode);
+            Assert.AreEqual(worldMeta.TerrainResolution, response.TerrainResolution);
+            Assert.AreEqual(worldMeta.TerrainTileCount, response.TerrainTileCount);
+            Assert.Greater(response.TerrainResolution, 0);
+
+            // チャンク総数をterrain実ファイルの総バイト数から独立に算出して突き合わせる
+            // Recompute the chunk total independently from the real terrain file sizes
+            var terrainTotalBytes = Directory.GetFiles(worldDataDirectory.TerrainDirectory).Sum(filePath => new FileInfo(filePath).Length);
+            var expectedChunkTotal = (int)((terrainTotalBytes + TerrainTransferMeta.ChunkByteSize - 1) / TerrainTransferMeta.ChunkByteSize);
+            Assert.Greater(expectedChunkTotal, 0);
+            Assert.AreEqual(expectedChunkTotal, response.TerrainChunkTotal);
+
+            Assert.IsTrue(response.WorldId.Length == 16 && response.WorldId.All(Uri.IsHexDigit), $"WorldId is not a 16-digit hex: '{response.WorldId}'");
+        }
+
+        [Test]
+        public void Templateワールドはterrainメタが0でWorldIdはワールドごとに異なる()
+        {
+            var firstWorld = ProvisionWorld(WorldProvisioner.TemplateMapMode, 42);
+            var firstResponse = RequestMapDataLayout(firstWorld);
+
+            // templateは地形を持たないので3項目とも0、WorldIdだけは埋まる
+            // Template owns no terrain, so all three values are 0 while WorldId is still filled
+            Assert.AreEqual(WorldProvisioner.TemplateMapMode, firstResponse.MapMode);
+            Assert.AreEqual(0, firstResponse.TerrainResolution);
+            Assert.AreEqual(0, firstResponse.TerrainTileCount);
+            Assert.AreEqual(0, firstResponse.TerrainChunkTotal);
+            Assert.IsTrue(firstResponse.WorldId.Length == 16 && firstResponse.WorldId.All(Uri.IsHexDigit), $"WorldId is not a 16-digit hex: '{firstResponse.WorldId}'");
+
+            // 別ワールドは別のWorldIdになる（クライアント側のワールド識別に使うため）
+            // A different world yields a different WorldId, since clients identify worlds by it
+            var secondWorld = ProvisionWorld(WorldProvisioner.TemplateMapMode, 43);
+            var secondResponse = RequestMapDataLayout(secondWorld);
+            Assert.AreNotEqual(firstResponse.WorldId, secondResponse.WorldId);
+        }
+
+        private WorldDataDirectory ProvisionWorld(string mapMode, int seed)
+        {
+            var worldRoot = Path.Combine(Path.GetTempPath(), "GetMapDataProtocolTest_" + Guid.NewGuid());
+            _createdWorldRoots.Add(worldRoot);
+
+            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
+            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
+                worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, mapMode, seed));
+            return worldDataDirectory;
+        }
+
+        private static ResponseMapDataMessagePack RequestMapDataLayout(WorldDataDirectory worldDataDirectory)
+        {
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = worldDataDirectory,
+            };
+            var (packet, _) = new MoorestechServerDIContainerGenerator().Create(options);
+
+            var request = new RequestMapDataMessagePack(MapDataMode.Layout);
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null))[0];
+            return MessagePackSerializer.Deserialize<ResponseMapDataMessagePack>(responseBytes);
         }
     }
 }

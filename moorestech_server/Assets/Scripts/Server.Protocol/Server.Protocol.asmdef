@@ -31,7 +31,9 @@
     "Game.EnergySystem",
     "Game.PlayerConnection",
     "Game.PlayerRiding.Interface",
-    "Game.Blueprint"
+    "Game.Blueprint",
+    "Game.Paths",
+    "Game.MapGeneration"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
