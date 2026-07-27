@@ -45,4 +45,3 @@
 - スキップ系統: Fable / Opus / Sonnetは実行環境で利用不可。3本のgpt-5.6-sol独立レビューとgpt-5.6-sol post-check 2本で代替
 - 検証: Playwright system 6 passed / E2E TypeScript型検査成功 / production build成功 / lint 0 errors（差分外の既存warning 1件）/ 1280x720 PNG 3枚を目視合格
 - 視覚QA証跡: `/tmp/world-pin-arrow-final-20260727/manifest.json`。3画像の方向・大きさ・輪郭・影・画面端の欠けを確認
-
