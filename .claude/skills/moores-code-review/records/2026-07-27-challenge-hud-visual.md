@@ -1,5 +1,7 @@
 # チャレンジHUD表示改善 レビュー記録 (2026-07-27)
 
+> 再レビュー: [操作モードHUD面なし化](2026-07-27-challenge-hud-visual-r2.md)
+
 ## 対象
 - base: `c438c4a3dc38213df16b8da0f7b496bd18b7b5c9` / reviewed head: `7662940b2e11df57ed471b2c134d1ae40b7a9202`
 - ブランチ: `fix/challenge-hud-visual` / PR: なし
