@@ -323,3 +323,100 @@ collected 6 items
 ## 残る懸念（Task 3のSKILL.md側で扱う）
 前任報告の懸念3（新規ディレクトリは全usingが新エッジ化）・4（`.claude/skills/` 配下のシナリオ`.cs`ノイズ）は
 スクリプト修正の範囲外のため未対応。解釈ルール／除外パスとしてTask 3で判断が必要。
+
+---
+
+# Task 1 追記2 (pr-independent-review): レビュー所見（git設定依存の偽クリーン・誤帰属）の修正
+
+## Status
+DONE
+
+レビュー所見 Important 1〜3 / Minor 4〜5 を修正した。いずれも「ユーザーのgit設定次第でゲートが
+無言で誤結果を返す」系であり、L1ゲートとしては最も危険な失敗モード（偽クリーン・誤帰属）だった。
+
+## 変更内容（`scripts/novelty_gate.py`）
+
+1. **Important 1 — 非ASCIIパスの誤帰属**
+   全git呼び出しに `-c core.quotepath=false` を付与（`GIT_SAFE_CONFIG`）。`git diff` だけでなく
+   `git grep`（base側インベントリ）にも適用した。クォートされたパスはgrepのディレクトリキーも壊し、
+   既存ペアを「新エッジ」に化けさせるため。あわせて `+++ ` 行の形式検査を `parse_plus_header()` に切り出し、
+   `+++ b/<path>` と `+++ /dev/null` 以外は `RuntimeError` で落とすようにした（黙って前ファイルへ帰属させない）。
+2. **Important 2 — color設定での偽クリーン**
+   `git diff` に `--no-color --no-ext-diff`、`git grep` に `-c color.grep=never` を付与。
+   `color.diff=always` 環境では全行にANSIが載って全パターンが外れ、空JSON+exit 0（偽クリーン）になっていた。
+3. **Important 3 — 1行asmdefの偽陽性**
+   `"references":` のコロン以降を「最初の `]` まで」に限定（同一行に `]` が無ければ行末まで）。
+   `{"references": ["Game.Foo"], "name": "A", "includePlatforms": ["Editor"]}` で `A` や `Editor` を
+   拾っていた。
+4. **Minor 4 — diff.noprefix**
+   上記1の形式検査でカバーされることを実測確認。エラーメッセージに
+   「diff.noprefix / diff.mnemonicPrefix / パスのクォート等の設定が原因の可能性」を明記した。
+5. **Minor 5 — 引数不足**
+   `if len(sys.argv) != 3: sys.exit("usage: novelty_gate.py <repo_root> <base_ref>")` を追加
+   （従来は `IndexError` のトレースバック）。
+
+### 付随（1の修正に伴う構造整理）
+`parse_diff` をヘッダ領域／ハンク内で明確に分離（`in_hunk` フラグ）した。従来の
+`startswith("+++")` 除外だけでは、内容が `++ x` の追加行（raw が `+++ x`）がヘッダに化けて
+`RuntimeError` の誤発火を招くため。新規ファイル判定も `__pending__` センチネル方式をやめ、
+`--- /dev/null` → 直後の `+++ b/<path>` で確定させる方式に変更（追加行が1行も無い場合の
+センチネル漏れ経路を構造的に消した）。
+
+## 追加テスト（各Importantに1本）
+
+- `test_non_ascii_path_is_attributed_to_its_own_file` — `git config core.quotepath true` を明示設定した
+  リポジトリで `Client.Game/Protocol/新規パケット.cs` を新規追加し、`new_protocol_file` と `new_edge` が
+  そのファイル名で報告され、diff上で先行するASCIIファイル（`WireView.cs`）へ誤帰属しないこと
+- `test_forced_diff_color_does_not_silence_detection` — `color.diff always` / `color.grep always` 設定下で
+  new_edgeが空にならず、かつ既存ペア（grepインベントリ依存）が誤検知されないこと
+- `test_asmdef_single_line_keys_after_references_are_excluded` — 1行asmdefで refs が `Game.Foo` のみになること
+
+## カバーするテスト
+`.claude/skills/pr-independent-review/tests/test_novelty_gate.py` 全件（9本）
+
+## 実行コマンドと出力
+
+```
+$ uv run --with pytest python -m pytest .claude/skills/pr-independent-review/tests/test_novelty_gate.py -v
+platform darwin -- Python 3.11.14, pytest-9.1.1, pluggy-1.6.0
+collected 9 items
+
+::test_new_using_edge_from_generic_dir_is_flagged                PASSED [ 11%]
+::test_existing_pair_is_not_flagged                              PASSED [ 22%]
+::test_grammar_elements_detected                                 PASSED [ 33%]
+::test_asmdef_reference_addition_detected                        PASSED [ 44%]
+::test_asmdef_guid_style_reference_detected                      PASSED [ 55%]
+::test_asmdef_single_line_references_detected                    PASSED [ 66%]
+::test_asmdef_single_line_keys_after_references_are_excluded     PASSED [ 77%]
+::test_non_ascii_path_is_attributed_to_its_own_file              PASSED [ 88%]
+::test_forced_diff_color_does_not_silence_detection              PASSED [100%]
+
+============================== 9 passed in 3.16s ===============================
+```
+
+## QA（空虚な合格でないことの確認）
+
+1. **RED確認**: 修正前スクリプト（`HEAD:novelty_gate.py`）を一時的に戻して新規3本を実行 →
+   `3 failed`（keys_after / non_ascii / forced_diff_color）。修正後にのみ通ることを実測した。
+2. **diff.noprefix 実測**: `git config diff.noprefix true` のリポジトリで実行 →
+   `RuntimeError: unexpected diff header: '+++ A/a.cs' — diff.noprefix / ...` で exit 1。無言の空合格にならない。
+3. **引数不足 実測**: 引数なし実行 → `usage: novelty_gate.py <repo_root> <base_ref>` / exit 1。
+4. **非ASCIIディレクトリのbase側インベントリ**: `core.quotepath true` かつ base に `日本語Dir/既存.cs`
+   （`using Game.Z;`）があるリポジトリで同dirに新ファイルを追加 → `new_edges: []`（誤検知なし）。
+   grepにもquotepath対策が要ることを実証。
+5. **実PRサイズの回帰**: `7de5b33a2`（feature/map-generatorマージ）を base `7de5b33a2^1` で実行 →
+   `{'new_edges': 5, 'asmdef_refs': 0, 'grammar': 1}`, kinds=['schema_change'], exit 0。
+   前任報告の実測値と完全一致し、parse_diff構造変更による退行が無いことを確認。
+
+## 実リポジトリスモーク
+
+```
+$ python3 .claude/skills/pr-independent-review/scripts/novelty_gate.py "$(pwd)" origin/master
+{
+ "new_edges": [],
+ "asmdef_refs": [],
+ "grammar": []
+}
+EXIT=0
+```
+（現ブランチはスキル関連コミットのみのため空出力。空虚な合格でないことは上記QA 5で担保）

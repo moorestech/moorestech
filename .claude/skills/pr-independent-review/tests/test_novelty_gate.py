@@ -133,3 +133,64 @@ def test_asmdef_single_line_references_detected(repo: Path):
     assert {"file": "Client.Game/Client.Game.OneLine.asmdef", "ref": "Game.ElectricWire"} in result["asmdef_refs"]
     # 同一行のkey値("Client.Game")はコロン以降のみ走査するため拾われない / key value on the same line is excluded
     assert all(r["ref"] != "Client.Game" for r in result["asmdef_refs"])
+
+
+def test_asmdef_single_line_keys_after_references_are_excluded(repo: Path):
+    # references配列の後ろに続くkey値は走査範囲外（`]`で打ち切る） / keys after the array must not leak in
+    asmdef = repo / "Client.Game" / "Client.Game.Tail.asmdef"
+    asmdef.write_text('{"references": ["Game.Foo"], "name": "A", "includePlatforms": ["Editor"]}\n')
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "one-line asmdef with trailing keys")
+    result = _run(repo)
+    refs = [r["ref"] for r in result["asmdef_refs"] if r["file"] == "Client.Game/Client.Game.Tail.asmdef"]
+    assert refs == ["Game.Foo"]
+
+
+def test_non_ascii_path_is_attributed_to_its_own_file(repo: Path):
+    # core.quotepathがonだと`+++ "b/..."`となり前ファイルへ誤帰属する。設定を明示して再現条件を固定
+    # With core.quotepath on, `+++ "b/..."` would misattribute lines to the previous file
+    _git(repo, "config", "core.quotepath", "true")
+    protocol_dir = repo / "Client.Game" / "Protocol"
+    protocol_dir.mkdir(parents=True)
+    packet = protocol_dir / "新規パケット.cs"
+    packet.write_text(
+        "using Game.NewPacketDomain;\nnamespace Client.Game.Protocol { class NewPacket {} }\n"
+    )
+    # diffで先行するASCIIファイルも同時に変更し、誤帰属先になり得る状態を作る
+    # Also touch a preceding ASCII file so misattribution would have somewhere to land
+    wire = repo / "Client.Game" / "ElectricWire" / "WireView.cs"
+    wire.write_text(
+        "using Game.ElectricWire;\nusing UnityEngine;\nnamespace Client.Game.ElectricWire { class WireView {} }\n"
+    )
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "non-ascii protocol file")
+    result = _run(repo)
+
+    protocol = [g for g in result["grammar"] if g["kind"] == "new_protocol_file"]
+    assert [g["file"] for g in protocol] == ["Client.Game/Protocol/新規パケット.cs"]
+    edges = [e for e in result["new_edges"] if e["using"] == "Game.NewPacketDomain"]
+    assert [e["file"] for e in edges] == ["Client.Game/Protocol/新規パケット.cs"]
+    # 先行ASCIIファイルが新規ファイル扱いされていないこと / the preceding file must not be seen as new
+    assert all(g["file"] != "Client.Game/ElectricWire/WireView.cs" for g in result["grammar"])
+
+
+def test_forced_diff_color_does_not_silence_detection(repo: Path):
+    # color.diff=always のANSIで全行が不一致になり「空JSON+exit 0」の偽クリーンになる回帰
+    # Forced ANSI color would make every line miss, yielding a false-clean empty result
+    _git(repo, "config", "color.diff", "always")
+    _git(repo, "config", "color.grep", "always")
+    f = repo / "Client.Game" / "BlockSystem" / "PlaceSystem" / "Common" / "CommonBlockPlaceSystem.cs"
+    f.write_text(
+        "using UnityEngine;\nusing Game.ElectricWire;\n"
+        "namespace Client.Game.BlockSystem.PlaceSystem { class CommonBlockPlaceSystem {} }\n"
+    )
+    # base側インベントリ(git grep)も色で壊れないことを見るため、既存ペアの非検出も同時に確認する
+    # Also assert an existing pair stays unflagged, which only holds if the git grep inventory survived
+    sibling = repo / "Client.Game" / "ElectricWire" / "WireView2.cs"
+    sibling.write_text("using Game.ElectricWire;\nnamespace Client.Game.ElectricWire { class WireView2 {} }\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "add wire dep")
+    result = _run(repo)
+    edges = [e for e in result["new_edges"] if e["using"] == "Game.ElectricWire"]
+    assert len(edges) == 1
+    assert edges[0]["file"] == "Client.Game/BlockSystem/PlaceSystem/Common/CommonBlockPlaceSystem.cs"
