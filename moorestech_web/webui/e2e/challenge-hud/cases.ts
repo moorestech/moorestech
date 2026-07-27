@@ -42,6 +42,12 @@ export const captureCases: CaptureCase[] = [
   { name: "12-place-block-hidden", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "world", companionScenario: "placement" },
   { name: "13-delete-bar-hidden", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "world", companionScenario: "delete" },
   { name: "14-multiple-long-inventory-hidden", scenario: "challengeMultipleLong", uiState: "PlayerInventory", skit: "none", background: "world", companionScenario: null },
+  // 操作HUDを明暗背景で検証する
+  // Verify operation HUDs on bright and dark backgrounds
+  { name: "15-place-block-bright", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "bright", companionScenario: "placement" },
+  { name: "16-place-block-dark", scenario: "challengeJapanese", uiState: "PlaceBlock", skit: "none", background: "dark", companionScenario: "placement" },
+  { name: "17-delete-bar-bright", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "bright", companionScenario: "delete" },
+  { name: "18-delete-bar-dark", scenario: "challengeJapanese", uiState: "DeleteBar", skit: "none", background: "dark", companionScenario: "delete" },
 ];
 
 export const captureImageNames = captureCases.map((captureCase) => `${captureCase.name}.png`);

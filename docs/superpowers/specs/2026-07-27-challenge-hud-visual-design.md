@@ -82,6 +82,15 @@ topic契約、Unity publisher、状態所有、通信経路は変更しない。
 
 最も強い反例は「複数の長いチャレンジが同時にcurrentになり、左上から画面中央へ横溢れする」状態である。固定最大幅、通常折返し、長語の強制折返し、縦方向の固定間隔によって横溢れを防ぐ。描画件数をUI側で切り捨てるとサーバー状態を隠すため、件数制限は設けない。
 
+## 操作モードHUDの追補
+
+PlaceBlock/DeleteBarの衝突確認画像から、既存 `PlacementModeHud` / `DeleteModeHud` がMantine既定の矩形カード、色直書き、合成boldを露出している問題が見つかった。チャレンジHUDだけを隠しても画面全体はデザイン哲学へ揃わないため、両操作HUDも同じ面なし語彙へ統一する。
+
+- 意味を持つHTML要素と `FadeRule` だけで「従属見出し → 詳細一覧」を構成する
+- 通常情報は `--text-high-contrast`、操作不能理由だけは `--text-insufficient` を使う
+- 位置・幅・間隔・文字サイズ・文字影を `--operation-hud-*` 固定長トークンへ集約する
+- 面・枠・角丸・光彩・アニメーションを持たず、`pointer-events: none` を維持する
+
 ## 検証
 
 - コンポーネント検査: Mantine `Paper`、`Text`、`fw`、`challenge.current` をHUDから除去したこと
@@ -89,7 +98,8 @@ topic契約、Unity publisher、状態所有、通信経路は変更しない。
 - E2E: 複数件を受信順で表示
 - Playwright目視QA: 日本語の単一目標、複数目標、長文目標を1280×720 mock-hostの明暗を含む世界背景上で撮影し、問題がなくなるまで修正と再撮影を反復
 - 目視QA: 背景・枠・角丸がなく、罫線と文字だけが浮いていること
-- 目視QA: 14状態のmanifestと計測値を生成し、GameScreen、明暗背景、長文、modal、操作モード、スキットで重なり・折返し・入力透過を確認
+- 目視QA: 18状態のmanifestと計測値を生成し、GameScreen、明暗背景、長文、modal、操作モード、スキットで重なり・折返し・入力透過を確認
+- 操作HUD E2E: 配置・削除の面、枠、角丸、入力透過、固定位置、文字階層、警告色を実ブラウザで検証
 - Web UI: `pnpm lint`、`pnpm test`、対象Playwright E2E、`pnpm build`
 - `.cs` は変更しないためUnityコンパイルは不要
 
@@ -98,8 +108,9 @@ topic契約、Unity publisher、状態所有、通信経路は変更しない。
 - ユーザー裁定（発言「ok」2026-07-27）: 面なしの「従属見出し＋FadeRule＋目標一覧」方式を採用する。
 - ユーザー裁定（発言「Playwrightで問題ないと言えるまで」2026-07-27）: Playwrightの実画面で問題を探し、修正と再撮影を反復して目視上の問題が残らないことを完了条件にする。
 - ユーザー裁定（発言「playwrgihtチェックでsubagentがok出るまで」2026-07-27）: Playwrightの全状態画像と計測結果を独立subagentが確認し、OKが出るまで修正・再撮影・再評価を継続する。
+- ユーザー裁定（発言「Mantineのペラ1に見える」「なおして」2026-07-27）: Playwright画像で露出した配置・削除HUDもMantine面を除去し、チャレンジHUDと同じ面なし語彙へ揃える。
 - agent前提（常時表示HUD原則・拒否権つき）: 背景、枠、角丸、光彩、アニメーションは追加しない。
 - agent前提（既存契約の調査結果・拒否権つき）: topicに存在しない進捗値、報酬、アイコンは表示しない。
 - agent前提（固定長トークン原則・拒否権つき）: HUDの位置、幅、間隔、文字サイズは固定長トークンで管理する。
 - agent前提（情報欠落禁止・拒否権つき）: 複数currentをUI側で切り捨てず、受信順ですべて表示する。
-- agent前提（画面所有・目視QA結果・拒否権つき）: 14状態の視覚QAで全画面modalとPlaceBlock/DeleteBarには回避不能な左上衝突が確認されたため、これらの画面固有UIが表示を所有し、常駐HUDを抑制する。GameScreen、未知・Debug、通常TrainHUD、backgroundスキットでは常駐HUDを維持する。
+- agent前提（画面所有・目視QA結果・拒否権つき）: 18状態の視覚QAで全画面modalとPlaceBlock/DeleteBarには回避不能な左上衝突が確認されたため、これらの画面固有UIが表示を所有し、常駐HUDを抑制する。GameScreen、未知・Debug、通常TrainHUD、backgroundスキットでは常駐HUDを維持する。

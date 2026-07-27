@@ -8,7 +8,7 @@ spec: docs/superpowers/specs/2026-07-27-challenge-hud-visual-design.md
 
 **Goal:** `challenge.current` の内部キーとMantine既定カードを除去し、チャレンジHUDを面のない見出し・罫線・目標一覧へ置き換える。
 
-**Architecture:** `CurrentChallengeHud` は既存topicの受動的な読み手とし、`App` が画面所有に基づく可視性を決める。既存 `FadeRule` と `tokens.css` の固定長トークンを使い、14状態の分割撮影ハーネスで表示と衝突回避を検証する。
+**Architecture:** `CurrentChallengeHud` は既存topicの受動的な読み手とし、`App` が画面所有に基づく可視性を決める。既存 `FadeRule` と `tokens.css` の固定長トークンを使い、18状態の分割撮影ハーネスで表示と衝突回避を検証する。操作モード画像で見つかったMantine面は、配置・削除HUDを同じ面なし語彙へ直して検証する。
 
 **Tech Stack:** React 18、TypeScript、CSS Modules、Playwright、Vite mock-host
 
@@ -290,27 +290,32 @@ git commit -m "チャレンジHUDを面なし表示へ変更"
 - Modify if findings exist: `moorestech_web/webui/src/features/challenge/CurrentChallengeHud.module.css`
 - Modify if findings exist: `moorestech_web/webui/src/app/tokens.css`
 - Modify if findings exist: `moorestech_web/webui/e2e/tests/challenge.spec.ts`
+- Modify: `moorestech_web/webui/src/features/modeHud/PlacementModeHud.tsx` — 配置情報を面なしのHTML構造へ置換する。
+- Modify: `moorestech_web/webui/src/features/modeHud/DeleteModeHud.tsx` — 削除案内と警告を面なしのHTML構造へ置換する。
+- Modify: `moorestech_web/webui/src/features/modeHud/style.module.css` — Mantine面を除去し操作HUDトークンだけで構成する。
+- Create: `moorestech_web/webui/src/features/modeHud/modeHudDesign.test.ts` — デザインホワイトリストを固定する。
+- Create: `moorestech_web/webui/e2e/tests/modeHud/operation-mode-hud.spec.ts` — 実ブラウザで面なし契約を検証する。
 
 **Interfaces:**
 - Consumes: mock-host HTTP controls、Playwright Chromium、1280×720 viewport
 - Produces: 単一・複数・長文・複数長文・空・背景スキット・blocking・明暗背景・パネル画面のスクリーンショット一式と独立subagentのOK判定
 
-- [ ] **Step 1: 14状態の分割撮影ハーネスを書く**
+- [ ] **Step 1: 18状態の分割撮影ハーネスを書く**
 
 実装責務:
 
-- `cases.ts`: 14ケース、期待目標、1280×720 viewport、正確なPNG一覧を定義する。
+- `cases.ts`: 18ケース、期待目標、1280×720 viewport、正確なPNG一覧を定義する。
 - `pageCapture.ts`: 共通mock制御helperを使い、本文・画面・操作モード・スキットを完全一致で待って撮影・計測する。
 - `serverLifecycle.ts`: HTTP listen成功後のWSS構築を支え、既知成果物だけを削除し、全資源の終了を独立試行して最初の失敗を返す。
-- `capture.ts`: 14 PNG、`metrics.json`、正確な画像一覧とviewportを持つ`manifest.json`を生成する。
+- `capture.ts`: 18 PNG、`metrics.json`、正確な画像一覧とviewportを持つ`manifest.json`を生成する。
 
 起動失敗は処理済みの非0終了に変換し、browser・WSS・HTTPは正常系と失敗系の双方で閉じる。`CHALLENGE_CAPTURE_PORT`占有時は既存サーバーを壊さず終了する。
 
-- [ ] **Step 2: build後に全14状態を撮影する**
+- [ ] **Step 2: build後に全18状態を撮影する**
 
 Run: `cd moorestech_web/webui && pnpm build && node --import tsx e2e/challenge-hud/capture.ts`
 
-Expected: `/tmp/challenge-hud-visual-qa/` に14枚のPNG、`metrics.json`、正確な成果物一覧を持つ `manifest.json` を生成し、プロセスがexit 0で終了する。
+Expected: `/tmp/challenge-hud-visual-qa/` に18枚のPNG、`metrics.json`、正確な成果物一覧を持つ `manifest.json` を生成し、プロセスがexit 0で終了する。
 
 - [ ] **Step 3: 主担当が全画像を拡大確認して不具合を列挙する**
 

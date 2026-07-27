@@ -1,9 +1,46 @@
-.modePanel {
+/* 操作モード情報を世界上へ直接重ね、カード面と入力判定を持たせない */
+/* Overlay operation-mode information directly on the world without a card face or input hit area */
+.modeHud {
   position: absolute;
-  top: 32px;
-  left: 32px;
-  min-width: 280px;
-  padding: 16px;
-  color: white;
-  background: rgb(16 20 28 / 82%);
+  top: var(--operation-hud-top);
+  left: var(--operation-hud-left);
+  z-index: var(--z-overlay-panel);
+  width: var(--operation-hud-width);
+  color: var(--text-high-contrast);
+  pointer-events: none;
+  text-shadow: var(--operation-hud-text-shadow);
+}
+
+/* 控えめなモード名から共有罫線へ固定間隔でつなぐ */
+/* Connect the subdued mode name to the shared rule with a fixed gap */
+.label {
+  margin-top: 0;
+  margin-bottom: var(--operation-hud-label-rule-gap);
+  color: var(--text-muted);
+  font-size: var(--operation-hud-label-font-size);
+  font-weight: 400;
+  letter-spacing: var(--operation-hud-letter-spacing);
+}
+
+/* 詳細と警告を受信順に積み、世界背景上でも一定の行間を保つ */
+/* Stack details and warnings in received order with stable spacing over the world */
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--operation-hud-detail-gap);
+  margin-top: var(--operation-hud-rule-list-gap);
+}
+
+.detail,
+.warning {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--operation-hud-detail-font-size);
+  line-height: var(--operation-hud-detail-line-height);
+}
+
+/* 操作不能理由だけを共有警告色へ切り替え、独自色は増やさない */
+/* Switch only unavailable-operation reasons to the shared warning color without adding a new hue */
+.warning {
+  color: var(--text-insufficient);
 }

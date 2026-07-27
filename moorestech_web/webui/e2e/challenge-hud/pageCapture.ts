@@ -93,6 +93,12 @@ async function measure(page: Page): Promise<unknown> {
     const hud = document.querySelector<HTMLElement>('[data-testid="challenge-hud"]');
     const hudRect = hud?.getBoundingClientRect();
     const objectives = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="challenge-objective"]'));
+    const operationHud = document.querySelector<HTMLElement>(
+      '[data-testid="placement-mode-hud"], [data-testid="delete-mode-hud"]',
+    );
+    const operationHudRect = operationHud?.getBoundingClientRect();
+    const operationHudStyle = operationHud ? getComputedStyle(operationHud) : null;
+    const warning = operationHud?.querySelector<HTMLElement>('[data-testid="operation-mode-warning"]');
     return {
       hud: hudRect ? { x: hudRect.x, y: hudRect.y, width: hudRect.width, height: hudRect.height } : null,
       label: hud?.getAttribute("aria-label") ?? null,
@@ -106,6 +112,18 @@ async function measure(page: Page): Promise<unknown> {
           lineHeight: Number.parseFloat(getComputedStyle(objective).lineHeight),
         };
       }),
+      operationHud: operationHud && operationHudRect && operationHudStyle ? {
+        kind: operationHud.dataset.testid,
+        x: operationHudRect.x,
+        y: operationHudRect.y,
+        width: operationHudRect.width,
+        height: operationHudRect.height,
+        background: operationHudStyle.backgroundColor,
+        borderWidth: operationHudStyle.borderWidth,
+        boxShadow: operationHudStyle.boxShadow,
+        pointerEvents: operationHudStyle.pointerEvents,
+        warningColor: warning ? getComputedStyle(warning).color : null,
+      } : null,
     };
   });
 }

@@ -273,6 +273,15 @@ description: |
 - アイコン、ゲージ、箇条書き装飾、光彩、アニメーションは追加しない。
 - `pointer-events: none` を維持し、blockingスキット中は表示しない。
 
+## 8.15 操作モードHUD
+
+- 配置・削除モードの状態表示は常時表示HUD族として、stage左上に面・枠・角丸なしで浮かせる。
+- 構成は「`--text-muted` の従属見出し → `FadeRule` → `--text-high-contrast` の詳細一覧」とし、警告だけ `--text-insufficient` を使う。
+- Mantineの `Paper` / `Stack` / `Title` / `Text` は使わず、意味を持つHTML要素と `FadeRule` だけで構成する。
+- 位置・幅・間隔・文字サイズ・文字影は `--operation-hud-*` 固定長トークンで管理する。
+- 光彩、アニメーション、独自色、合成boldは追加せず、`pointer-events: none` でゲーム入力を素通しする。
+- 操作モードHUDの表示中は同じ左上領域を使うチャレンジHUDを表示しない。
+
 ## 9. やらないことリスト（再掲・明示）
 
 - 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）

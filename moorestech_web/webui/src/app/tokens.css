@@ -39,6 +39,19 @@
   --challenge-hud-letter-spacing: 1px;
   --challenge-hud-objective-line-height: 25px;
   --challenge-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
+  /* 操作モードHUDをチャレンジHUDと同じ面なし階層に揃える */
+  /* Align operation-mode HUDs with the same faceless hierarchy as the challenge HUD */
+  --operation-hud-left: 24px;
+  --operation-hud-top: 24px;
+  --operation-hud-width: 288px;
+  --operation-hud-label-font-size: 12px;
+  --operation-hud-detail-font-size: 17px;
+  --operation-hud-label-rule-gap: 5px;
+  --operation-hud-rule-list-gap: 8px;
+  --operation-hud-detail-gap: 5px;
+  --operation-hud-letter-spacing: 1px;
+  --operation-hud-detail-line-height: 25px;
+  --operation-hud-text-shadow: 0 1px 2px rgb(0 0 0 / 85%);
   /* ゲージの溝は世界が透ける半透明ネイビー面にする */
   /* Use a translucent navy face for gauge tracks so the world remains visible */
   --gauge-track: rgb(10 14 27 / 80%);

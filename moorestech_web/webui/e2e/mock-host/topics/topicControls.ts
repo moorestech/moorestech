@@ -20,6 +20,7 @@ export function serveDictionary(url: string, response: ServerResponse): void {
 const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ topic, data });
 const controls = {
   placement: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "" }),
+  placementUnavailable: () => control(Topics.placementMode, { selectedName: "Assembler", height: 3, unavailableReason: "Blocked by terrain" }),
   delete: () => control(Topics.deleteMode, { unavailableReason: "Protected area" }),
   crosshairHidden: () => control(Topics.crosshair, { visible: false }),
   crosshairVisible: () => control(Topics.crosshair, { visible: true }),
