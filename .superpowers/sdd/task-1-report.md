@@ -1,6 +1,8 @@
 <!--
-このscratchファイルは2つの別機能が同じ Task 1 という名前で使い回したため、両方の報告を併記している。
-This scratch file was reused as "Task 1" by two unrelated features, so both reports are kept side by side.
+このscratchファイルは3つの別機能が同じ Task 1 という名前で使い回したため、全ての報告を併記している。
+This scratch file was reused as "Task 1" by three unrelated features, so all reports are kept side by side.
+最新の報告（pr-independent-review 新規性ゲートL1）はファイル末尾にある。
+The latest report (pr-independent-review novelty gate L1) is at the end of this file.
 -->
 
 # Task 1 Report (map-generator): Game.MapGeneration アセンブリ新設とパッケージ参照
@@ -138,3 +140,122 @@ $ grep -c "IElectricWireConnectParam" VanillaSchema/blocks.yml
 ## 懸念事項
 
 - `.moorestech-external-revisions.json` の未コミット変更が作業ツリーに残ったままである（本タスク開始前から存在、本タスクの変更ではない）。後続タスク・最終レビュー時に混入しないよう注意が必要。
+
+---
+
+# Task 1 報告 (pr-independent-review): 新規性ゲートL1スクリプト
+
+## Status
+DONE_WITH_CONCERNS
+
+Worktree: `/Users/katsumi/moorestech/.claude/worktrees/pr-independent-review`（ブランチ `worktree-pr-independent-review`）
+
+## 成果物
+
+- `.claude/skills/pr-independent-review/scripts/novelty_gate.py`（ブリーフ Step 3 のコードをそのまま転記）
+- `.claude/skills/pr-independent-review/tests/test_novelty_gate.py`（ブリーフ Step 1 のコードをそのまま転記）
+
+ブリーフのコードは一字一句そのまま使用。独自の改変は加えていない。
+
+## 実行したコマンドと出力
+
+### Step 2: 失敗確認（実装前）
+
+```
+$ uv run --with pytest python -m pytest .claude/skills/pr-independent-review/tests/test_novelty_gate.py -v
+...
+E  subprocess.CalledProcessError: Command '[... 'novelty_gate.py', '.../repo', 'basetag']' returned non-zero exit status 2.
+FAILED ...::test_new_using_edge_from_generic_dir_is_flagged
+FAILED ...::test_existing_pair_is_not_flagged
+FAILED ...::test_grammar_elements_detected
+FAILED ...::test_asmdef_reference_addition_detected
+============================== 4 failed in 1.77s ===============================
+```
+
+期待どおり `scripts/novelty_gate.py` 不在（exit 2）で4本ともFAIL。
+
+### Step 4: 成功確認（実装後）
+
+```
+$ uv run --with pytest python -m pytest .claude/skills/pr-independent-review/tests/test_novelty_gate.py -v
+platform darwin -- Python 3.11.14, pytest-9.1.1, pluggy-1.6.0
+collected 4 items
+
+::test_new_using_edge_from_generic_dir_is_flagged PASSED  [ 25%]
+::test_existing_pair_is_not_flagged               PASSED  [ 50%]
+::test_grammar_elements_detected                  PASSED  [ 75%]
+::test_asmdef_reference_addition_detected         PASSED  [100%]
+
+============================== 4 passed in 2.03s ===============================
+```
+
+### Step 5: 実リポジトリスモーク
+
+```
+$ python3 .claude/skills/pr-independent-review/scripts/novelty_gate.py "$(pwd)" origin/master
+{
+ "new_edges": [],
+ "asmdef_refs": [],
+ "grammar": []
+}
+EXIT=0
+```
+
+実行時間 0.65s。現ブランチはdocsコミットのみなので予定どおり空出力。
+
+## 自己レビュー（QA: バグ狩り）
+
+スモークが空出力＝「空虚な合格」になりうるため、追加で以下を実施した。
+
+### 追加検証1: 実PRサイズのdiffで動作確認
+
+`7de5b33a2`（feature/map-generator マージ）を detach worktree に展開し、`7de5b33a2^1` をbaseに実行:
+
+```
+{'new_edges': 5, 'asmdef_refs': 0, 'grammar': 1}
+generic_origin edges: 0
+grammar kinds: ['schema_change']
+```
+
+実行時間 1.3s（`git grep` フルリポジトリ走査込み）、exit 0、JSONパース可、出力内容も妥当。
+`.cs` パス・行番号・namespace抽出が実データで壊れていないことを確認。検証用worktreeは削除済み。
+
+### 追加検証2: parse_diff の `__pending__` リーク疑い（→ 問題なし）
+
+「空の新規ファイル」の直後に新規`.cs`が来ると `__pending__` が次ファイルへ漏れて誤って
+new_file 扱いされる懸念があったが、空ファイル/バイナリ新規ファイルは `git diff` が
+`--- /dev/null` 行自体を出さないため、リークは発生しない。実際に再現リポジトリで確認し、
+誤検知が出ないことを確認済み。
+削除ファイル（`+++ /dev/null`）も `startswith("+++")` ガードで除外され、`+`行を持たないため
+`cur` のstale化による誤帰属も起きない。
+
+## 懸念（Task 3 のSKILL.md側で扱うべき事項）
+
+1. **asmdef GUID形式の参照は検出できない**（実害あり）
+   検出正規表現 `"([A-Za-z0-9_.]+)"` はコロンを許さないため、`"GUID:9a3d..."` 形式の参照追加行が
+   無言で見逃される。本リポジトリの70個のasmdefのうち4個がGUID形式を使用しており、その中には
+   プロジェクト本体の `moorestech_server/Assets/Scripts/Core.Master/Core.Master.asmdef` が含まれる。
+   Core.Master への/からの参照追加はまさにレンズが見たい変更なので、取りこぼしの影響は小さくない。
+
+2. **1行形式の references 配列も検出できない**
+   `"references": ["Game.Foo"]` のように1行に書かれた場合、`'":' in content` により行ごとスキップされる。
+   本リポジトリに1行形式のasmdefが2個存在する。
+
+3. **新規ディレクトリは全usingが新エッジになる**
+   `base_pairs` はディレクトリキーなので、新設ディレクトリ配下のファイルはリポジトリ内namespaceの
+   usingが全て new_edge として出る。L1はレポートツールなので致命ではないが、Task 3側で
+   「new_edge の件数そのものではなく generic_origin=true を主シグナルにする」等の解釈ルールが必要。
+
+4. **`.claude/skills/` 配下のシナリオ`.cs`も拾う**
+   実PR検証で `.claude/skills/unity-playmode-recorded-playtest/scenarios/misc/*.cs` が new_edge として
+   出た。プロダクトコードではないためノイズ。除外パスの検討余地あり。
+
+5. **「exit codeは常に0」の契約が一部破れる**
+   `build_base_pairs` は `git grep` が returncode 0/1 以外を返すと `RuntimeError` を投げ、
+   `main()` は `sys.argv` 不足で `IndexError` を投げる。いずれもトレースバックで exit 1 になる。
+   不正な base_ref を渡した場合に落ちるのは「無言の空合格」を防ぐ意図として妥当だが、
+   インターフェース記述の「exit codeは常に0」とは食い違うため、Task 3のSKILL.mdは
+   非ゼロ終了を「ゲート実行失敗」として扱う必要がある。
+
+上記1・2はブリーフ記載のコードそのままの挙動であり、ブリーフの指示（コード・値はそのまま使う）に
+従って改変していない。修正が必要ならTask 3以降での判断事項とする。
