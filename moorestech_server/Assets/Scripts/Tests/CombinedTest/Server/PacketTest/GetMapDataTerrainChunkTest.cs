@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
-using Game.MapGeneration.Provisioning;
 using Game.Paths;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse.MapData;
+using Tests.Module;
 using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -23,23 +20,24 @@ namespace Tests.CombinedTest.Server.PacketTest
     // Verify over the wire that va:mapData's TerrainChunk mode restores the terrain files byte for byte
     public class GetMapDataTerrainChunkTest
     {
-        private readonly List<WorldDataDirectory> _createdWorldDataDirectories = new();
+        private TerrainTransferTestScope _testScope;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _testScope = new TerrainTransferTestScope(nameof(GetMapDataTerrainChunkTest));
+        }
 
         [TearDown]
         public void TearDown()
         {
-            foreach (var worldDataDirectory in _createdWorldDataDirectories)
-            {
-                if (Directory.Exists(worldDataDirectory.Root)) Directory.Delete(worldDataDirectory.Root, true);
-                if (Directory.Exists(worldDataDirectory.ProvisioningTempDirectory)) Directory.Delete(worldDataDirectory.ProvisioningTempDirectory, true);
-            }
-            _createdWorldDataDirectories.Clear();
+            _testScope.End();
         }
 
         [Test]
         public void 全TerrainChunkを解凍して連結すると実terrainファイルと一致しTerrainHashも整合する()
         {
-            var worldDataDirectory = ProvisionGeneratedWorld();
+            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
             var packetResponseCreator = CreatePacketResponseCreator(worldDataDirectory);
 
             var layoutResponse = RequestLayout(packetResponseCreator);
@@ -53,10 +51,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 var chunkResponse = RequestTerrainChunk(packetResponseCreator, chunkIndex);
                 Assert.AreEqual(chunkIndex, chunkResponse.ChunkIndex);
-                restoredStreamBytes.AddRange(Decompress(chunkResponse.Payload));
+                restoredStreamBytes.AddRange(TerrainTransferTestScope.DecompressChunk(chunkResponse.Payload));
             }
 
-            var expectedStreamBytes = ReadFilesInOrder(new[]
+            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(new[]
             {
                 worldDataDirectory.TerrainHeightFilePath(0, 0),
                 worldDataDirectory.TerrainBiomeFilePath(0, 0),
@@ -71,9 +69,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 地形を持たないtemplateワールドはTerrainHashが空文字になる()
         {
-            var worldDataDirectory = CreateWorldDataDirectory();
-            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, WorldProvisioner.TemplateMapMode, 42));
+            var worldDataDirectory = _testScope.ProvisionTemplateWorld(42);
 
             var layoutResponse = RequestLayout(CreatePacketResponseCreator(worldDataDirectory));
 
@@ -84,17 +80,34 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 範囲外のChunkIndexは空のチャンクを返さずエラーになる()
         {
-            var worldDataDirectory = ProvisionGeneratedWorld();
+            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
             var packetResponseCreator = CreatePacketResponseCreator(worldDataDirectory);
             var chunkTotal = RequestLayout(packetResponseCreator).TerrainChunkTotal;
 
             // 範囲外要求はプロトコルが例外にし、パケット層はエラーログを出して応答を返さない
             // An out-of-range request throws in the protocol; the packet layer logs the error and returns no response
             LogAssert.Expect(LogType.Error, new Regex($"[\\s\\S]*ChunkIndex {chunkTotal} is out of range[\\s\\S]*"));
-            var request = RequestMapDataMessagePack.CreateTerrainChunkRequest(chunkTotal);
-            var responses = packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null));
 
-            Assert.AreEqual(0, responses.Count);
+            Assert.AreEqual(0, SendTerrainChunkRequest(packetResponseCreator, chunkTotal));
+        }
+
+        [Test]
+        public void templateワールドへのTerrainChunk要求は空のチャンクを返さずエラーになる()
+        {
+            var worldDataDirectory = _testScope.ProvisionTemplateWorld(42);
+            var packetResponseCreator = CreatePacketResponseCreator(worldDataDirectory);
+
+            // 地形なしワールドへの要求も範囲外と同じくプロトコルが例外にする。応答0件はクライアントには届かないことを意味する
+            // A terrain-less world throws in the protocol just like an out-of-range index; zero responses means the client gets nothing
+            LogAssert.Expect(LogType.Error, new Regex("[\\s\\S]*owns no terrain chunk to read[\\s\\S]*"));
+
+            Assert.AreEqual(0, SendTerrainChunkRequest(packetResponseCreator, 0));
+        }
+
+        private static int SendTerrainChunkRequest(PacketResponseCreator packetResponseCreator, int chunkIndex)
+        {
+            var request = RequestMapDataMessagePack.CreateTerrainChunkRequest(chunkIndex);
+            return packetResponseCreator.GetPacketResponse(MessagePackSerializer.Serialize(request), new PacketResponseContext(null)).Count;
         }
 
         private static ResponseMapDataMessagePack RequestLayout(PacketResponseCreator packetResponseCreator)
@@ -121,44 +134,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             return packetResponseCreator;
         }
 
-        private static byte[] ReadFilesInOrder(IReadOnlyList<string> filePaths)
-        {
-            return filePaths.SelectMany(File.ReadAllBytes).ToArray();
-        }
-
         private static string ComputeSha256Hex(byte[] streamBytes)
         {
             using var sha256 = SHA256.Create();
             return BitConverter.ToString(sha256.ComputeHash(streamBytes)).Replace("-", string.Empty).ToLowerInvariant();
-        }
-
-        private static byte[] Decompress(byte[] compressedBytes)
-        {
-            using var decompressedStream = new MemoryStream();
-            using (var gzipStream = new GZipStream(new MemoryStream(compressedBytes), CompressionMode.Decompress))
-                gzipStream.CopyTo(decompressedStream);
-            return decompressedStream.ToArray();
-        }
-
-        private WorldDataDirectory ProvisionGeneratedWorld()
-        {
-            // generatedのプロビジョニングはMasterHolderを要求するため、先にDI構築でマスタをロードする
-            // Provisioning in generated mode requires MasterHolder, so load masters via a DI build first
-            new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var worldDataDirectory = CreateWorldDataDirectory();
-            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, WorldProvisioner.GeneratedMapMode, 12345));
-            return worldDataDirectory;
-        }
-
-        private WorldDataDirectory CreateWorldDataDirectory()
-        {
-            var worldRoot = Path.Combine(Path.GetTempPath(), "GetMapDataTerrainChunkTest_" + Guid.NewGuid());
-            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
-            _createdWorldDataDirectories.Add(worldDataDirectory);
-            return worldDataDirectory;
         }
     }
 }

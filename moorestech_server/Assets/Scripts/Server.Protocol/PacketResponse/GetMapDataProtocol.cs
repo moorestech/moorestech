@@ -65,7 +65,9 @@ namespace Server.Protocol.PacketResponse
                 // Read the metadata clients need to request terrain chunks from the real world directory
                 var terrainMeta = TerrainTransferMetaReader.Read(_worldDataDirectory);
 
-                return new ResponseMapDataMessagePack(spawn, mapObjects, mapVeins, terrainMeta, TerrainChunkReader.ComputeStreamHash(_worldDataDirectory));
+                // 読み終えたメタをそのままハッシュ計算にも渡す。読み直すとチャンク総数とハッシュが別時点の地形を指しうる
+                // Reuse the meta just read for the hash too; re-reading could make the chunk total and hash describe different snapshots
+                return new ResponseMapDataMessagePack(spawn, mapObjects, mapVeins, terrainMeta, TerrainChunkReader.ComputeStreamHash(_worldDataDirectory, terrainMeta));
             }
 
             ProtocolMessagePackBase CreateTerrainChunkResponse()

@@ -1,12 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
-using Game.Paths;
 using NUnit.Framework;
-using Server.Boot;
-using Tests.Module.TestMod;
+using Tests.Module;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
@@ -14,41 +11,34 @@ namespace Tests.UnitTest.Game.MapGeneration
     // TerrainChunkTotal is a wire contract (clients request 0..N-1), so verify unrelated files never move it
     public class TerrainTransferMetaReaderTest
     {
-        private WorldDataDirectory _worldDataDirectory;
+        private TerrainTransferTestScope _testScope;
 
         [SetUp]
         public void SetUp()
         {
-            var worldRoot = Path.Combine(Path.GetTempPath(), "TerrainTransferMetaReaderTest_" + Guid.NewGuid());
-            _worldDataDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
+            _testScope = new TerrainTransferTestScope(nameof(TerrainTransferMetaReaderTest));
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (Directory.Exists(_worldDataDirectory.Root)) Directory.Delete(_worldDataDirectory.Root, true);
-            if (Directory.Exists(_worldDataDirectory.ProvisioningTempDirectory)) Directory.Delete(_worldDataDirectory.ProvisioningTempDirectory, true);
+            _testScope.End();
         }
 
         [Test]
         public void terrainディレクトリに無関係なファイルが混ざってもチャンク総数は変わらない()
         {
-            // generated modeの生成はMasterHolderを要求するのでDI構築でマスタをロードする
-            // Generated mode requires MasterHolder, so load masters via a DI build first
-            new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                _worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, WorldProvisioner.GeneratedMapMode, 12345));
+            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
 
-            var chunkTotalBeforeStrayFile = TerrainTransferMetaReader.Read(_worldDataDirectory).TerrainChunkTotal;
+            var chunkTotalBeforeStrayFile = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
             Assert.Greater(chunkTotalBeforeStrayFile, 0);
 
             // .DS_Store等の混入で総数がずれるとクライアントが存在しないチャンク番号を要求する。丸ごと1チャンク分の大きさで踏む
             // A stray file (.DS_Store etc.) shifting the total would make clients request a non-existent index; use a full chunk worth
-            var strayFilePath = Path.Combine(_worldDataDirectory.TerrainDirectory, ".DS_Store");
+            var strayFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, ".DS_Store");
             File.WriteAllBytes(strayFilePath, new byte[TerrainTransferMeta.ChunkByteSize]);
 
-            Assert.AreEqual(chunkTotalBeforeStrayFile, TerrainTransferMetaReader.Read(_worldDataDirectory).TerrainChunkTotal);
+            Assert.AreEqual(chunkTotalBeforeStrayFile, TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal);
         }
 
         [Test]
@@ -68,17 +58,19 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 論理ストリームのファイル列はタイル順にheightとbiomeを交互に並べる()
         {
+            var worldDataDirectory = _testScope.CreateEmptyWorldDataDirectory();
+
             // この並びがチャンク境界の定義そのもの。取り違えても総バイト数は変わらないためここで固定する
             // This order defines the chunk boundaries; a swap keeps the byte total identical, so pin it here
             var expectedFilePaths = new[]
             {
-                _worldDataDirectory.TerrainHeightFilePath(0, 0), _worldDataDirectory.TerrainBiomeFilePath(0, 0),
-                _worldDataDirectory.TerrainHeightFilePath(1, 0), _worldDataDirectory.TerrainBiomeFilePath(1, 0),
-                _worldDataDirectory.TerrainHeightFilePath(0, 1), _worldDataDirectory.TerrainBiomeFilePath(0, 1),
-                _worldDataDirectory.TerrainHeightFilePath(1, 1), _worldDataDirectory.TerrainBiomeFilePath(1, 1),
+                worldDataDirectory.TerrainHeightFilePath(0, 0), worldDataDirectory.TerrainBiomeFilePath(0, 0),
+                worldDataDirectory.TerrainHeightFilePath(1, 0), worldDataDirectory.TerrainBiomeFilePath(1, 0),
+                worldDataDirectory.TerrainHeightFilePath(0, 1), worldDataDirectory.TerrainBiomeFilePath(0, 1),
+                worldDataDirectory.TerrainHeightFilePath(1, 1), worldDataDirectory.TerrainBiomeFilePath(1, 1),
             };
 
-            Assert.AreEqual(expectedFilePaths, TerrainTransferMeta.EnumerateStreamFilePaths(_worldDataDirectory, 4).ToArray());
+            Assert.AreEqual(expectedFilePaths, TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, 4).ToArray());
         }
 
         [Test]
