@@ -1,9 +1,15 @@
-/* eslint-disable local/no-jsx-visible-literal -- Speaker, body, and fallback choice labels are Unity-owned display data. */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { dispatchAction, Topics, useConnectionStatus, useTopic } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { dispatchAction, Topics, useConnectionStatus, useTopic, type ActionPayloads } from "@/bridge";
+import { FadeRule, GamePanel } from "@/shared/ui";
 import { clickOutcome, nextRevealCount, shouldRevealImmediately } from "./interaction";
+import { SkitChoiceList } from "./controls/SkitChoiceList";
+import { SkitRestoreButton, SkitToolbar } from "./controls/SkitToolbar";
+import { AdvanceMarkerIcon } from "./icons";
 import styles from "./style.module.css";
+
+// 背景スキットは正本 BackgroundText と同じ「話者名 : 本文」の1行に畳む
+// Background skits collapse into the reference BackgroundText's single "speaker : body" line
+const BACKGROUND_SEPARATOR = " : ";
 
 export function SkitPresentation() {
   const data = useTopic(Topics.skitPresentation);
@@ -12,7 +18,6 @@ export function SkitPresentation() {
   const [visibleCount, setVisibleCount] = useState(0);
   const connectionStatus = useConnectionStatus();
   const previousConnectionStatus = useRef(connectionStatus);
-  const { t } = useI18n();
 
   useEffect(() => {
     const revealImmediately = shouldRevealImmediately(
@@ -42,14 +47,16 @@ export function SkitPresentation() {
   }, [connectionStatus, data?.sessionId, state?.body, state?.textReveal.mode, state?.textReveal.intervalMs, bodyCharacters.length]);
 
   if (!data || !state || state.mode === "none") return null;
-  const allowed = new Set(data.allowedIntents);
-  const base = { sessionId: data.sessionId, sceneRevision: data.sceneRevision };
+  const allowedIntents = new Set(data.allowedIntents);
+  const base: ActionPayloads["skit.advance"] = { sessionId: data.sessionId, sceneRevision: data.sceneRevision };
   const visibleBody = bodyCharacters.slice(0, visibleCount).join("");
 
+  // クリックの帰結は単一評価器で1回だけ決め、挙動と送り待ちマーカー表示の両方で共有する
+  // Evaluate the click outcome once through the single evaluator and share it between behavior and the advance marker
+  const clickIntent = clickOutcome(visibleCount, bodyCharacters.length, allowedIntents.has("advance"));
   const handleTextIntent = () => {
-    const outcome = clickOutcome(visibleCount, bodyCharacters.length, allowed.has("advance"));
-    if (outcome === "reveal") setVisibleCount(bodyCharacters.length);
-    if (outcome === "advance") void dispatchAction("skit.advance", base);
+    if (clickIntent === "reveal") setVisibleCount(bodyCharacters.length);
+    if (clickIntent === "advance") void dispatchAction("skit.advance", base);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -58,46 +65,55 @@ export function SkitPresentation() {
     handleTextIntent();
   };
 
-  return <>
-    {state.transitionVisible && <div className={styles.transition} data-testid="skit-transition" />}
-    {state.uiHidden ? (
-      state.mode === "blocking" && <button className={styles.restore} type="button" data-testid="skit-show-ui"
-        onClick={() => void dispatchAction("skit.set_ui_hidden", { ...base, hidden: false })}>
-        {t("Show UI")}
-      </button>
-    ) : state.textAreaVisible && (
-      <section className={state.mode === "blocking" ? styles.blockingBox : styles.backgroundBox}
-        data-testid={`${state.mode}-skit`} tabIndex={state.mode === "blocking" ? 0 : undefined}
-        onClick={state.mode === "blocking" ? handleTextIntent : undefined}
-        onKeyDown={state.mode === "blocking" ? handleKeyDown : undefined}>
-        <div className={styles.speaker}>{state.speakerName}</div>
-        <div className={styles.body}>{visibleBody}</div>
-        {state.mode === "blocking" && state.choices.length > 0 && (
-          <div className={styles.choices} onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}>
-            {state.choices.map((choice) => <button type="button" key={choice.choiceId}
-              onClick={() => void dispatchAction("skit.select", { ...base, choiceId: choice.choiceId })}>
-              {choice.labelKey ? t(choice.labelKey) : choice.label}
-            </button>)}
-          </div>
-        )}
-        {state.mode === "blocking" && (
-          <div className={styles.controls} onClick={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}>
-            <button type="button" disabled={!allowed.has("set-auto")}
-              aria-pressed={state.autoEnabled}
-              onClick={() => void dispatchAction("skit.set_auto", { ...base, enabled: !state.autoEnabled })}>
-              {t("Auto")}
-            </button>
-            <button type="button" disabled={!allowed.has("skip") || state.skipActive}
-              onClick={() => void dispatchAction("skit.skip", base)}>{t("Skip")}</button>
-            <button type="button" disabled={!allowed.has("set-ui-hidden")}
-              onClick={() => void dispatchAction("skit.set_ui_hidden", { ...base, hidden: true })}>
-              {t("Hide UI")}
-            </button>
-          </div>
-        )}
-      </section>
-    )}
-  </>;
+  // UI非表示中は復帰アイコンだけを残す
+  // While the UI is hidden only the restore icon remains
+  if (state.uiHidden) {
+    if (state.mode !== "blocking") return null;
+    return <div className={styles.root}><SkitRestoreButton base={base} /></div>;
+  }
+  // 演出中は会話窓と選択肢だけを畳み、ツールバーは残す（正本もTextAreaとツールは兄弟でTextAreaだけが消える）
+  // During staging only the window and choices fold away while the toolbar stays, as in the reference where the TextArea and tools are siblings
+  if (!state.textAreaVisible) {
+    if (state.mode !== "blocking") return null;
+    return (
+      <div className={styles.root}>
+        <SkitToolbar base={base} allowedIntents={allowedIntents}
+          autoEnabled={state.autoEnabled} skipActive={state.skipActive} />
+      </div>
+    );
+  }
+
+  // 背景スキットは面も枠も持たず、採掘・設置を殺さないよう入力を素通しする
+  // Background skits carry no face or frame and pass input through so mining and placing keep working
+  if (state.mode === "background") {
+    // 初回SetBackgroundText前の空snapshotでは行を出さない（正本は台詞が来るまで非表示）
+    // Skip the empty pre-SetBackgroundText snapshot; the reference shows nothing until the first line arrives
+    if (state.body === "") return null;
+    return (
+      <div className={styles.root}>
+        <div className={styles.backgroundLine} data-testid="background-skit">
+          {state.speakerName === "" ? visibleBody : state.speakerName + BACKGROUND_SEPARATOR + visibleBody}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.root}>
+      <GamePanel variant="skit">
+        <section className={styles.window} data-testid="blocking-skit" tabIndex={0}
+          onClick={handleTextIntent} onKeyDown={handleKeyDown}>
+          {/* 話者名・本文はUnity所有の表示データのためt()を通さない */}
+          {/* Speaker and body are Unity-owned display data and bypass t() */}
+          <div className={styles.speaker}>{state.speakerName}</div>
+          <div className={styles.rule}><FadeRule /></div>
+          <div className={styles.body}>{visibleBody}</div>
+          {clickIntent === "advance" && <AdvanceMarkerIcon />}
+        </section>
+      </GamePanel>
+      {state.choices.length > 0 && allowedIntents.has("select") && <SkitChoiceList choices={state.choices} base={base} />}
+      <SkitToolbar base={base} allowedIntents={allowedIntents}
+        autoEnabled={state.autoEnabled} skipActive={state.skipActive} />
+    </div>
+  );
 }

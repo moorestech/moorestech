@@ -1,5 +1,5 @@
 import { useTopic, Topics, UiStateNames, dispatchAction } from "@/bridge";
-import { GamePanel, PanelCloseButton } from "@/shared/ui";
+import { GamePanel, IconButton } from "@/shared/ui";
 import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
 import BlockItemGrid from "./BlockItemGrid";
@@ -58,7 +58,7 @@ export default function BlockInventoryPanel() {
       </GamePanel>
       {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
       {/* Mouse-driven close, like uGUI Esc/Tab; asks the host to transit to GameScreen */}
-      <PanelCloseButton
+      <IconButton
         className={styles.close}
         onClick={() => {
           void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });

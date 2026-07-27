@@ -34,7 +34,7 @@ describe("block inventory design whitelist", () => {
   it("パネル面と閉じる操作をshared uiへ集約する", () => {
     expect(sources.panel).toContain("<GamePanel");
     expect(sources.panel).toContain('variant="default"');
-    expect(sources.panel).toContain("<PanelCloseButton");
+    expect(sources.panel).toContain("<IconButton");
   });
 
   it("ブロックパネルをviewer領域へ上端揃えで配置する", () => {

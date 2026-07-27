@@ -1,0 +1,97 @@
+/* 選択肢は会話窓の上・右端で下から積み上げる */
+/* Choices stack upward just above the window, aligned to its right edge */
+.choices {
+  position: absolute;
+  right: var(--skit-choices-right-inset);
+  bottom: calc(var(--skit-window-height) + var(--skit-choices-window-gap));
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--skit-choice-gap);
+  pointer-events: auto;
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: var(--skit-choice-width);
+  height: var(--skit-choice-height);
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-high-contrast);
+  font: inherit;
+  font-size: var(--skit-choice-font-size);
+  cursor: pointer;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+/* 板の面は::beforeが描き、左右だけ水平フェードで世界へ溶かす */
+/* ::before draws the plate face and fades only its left and right ends into the world */
+.choice::before {
+  position: absolute;
+  inset: 0;
+  background: var(--gauge-track);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--skit-choice-edge-fade), #000 calc(100% - var(--skit-choice-edge-fade)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--skit-choice-edge-fade), #000 calc(100% - var(--skit-choice-edge-fade)), transparent 100%);
+  content: "";
+}
+
+/* 上下線は板端でなく原画どおり内側に引く。フェード帯に載るため面とは別要素で全不透明に描く */
+/* The rules run inset from the plate edge as in the source art, drawn as a separate full-opacity element because they cross the fade band */
+.choice::after {
+  position: absolute;
+  inset: var(--skit-choice-rule-vertical-inset) var(--skit-choice-rule-inset);
+  box-sizing: border-box;
+  border-top: var(--skit-choice-rule-thickness) solid var(--bevel-c1);
+  border-bottom: var(--skit-choice-rule-thickness) solid var(--bevel-c1);
+  content: "";
+}
+
+/* 菱形マーカーも上下線と同じインセットに置き、フェード帯の上へ全不透明で載せる */
+/* The diamonds share the rules' inset and ride the fade band at full opacity */
+.marker {
+  position: absolute;
+  width: var(--skit-choice-marker-size);
+  height: var(--skit-choice-marker-size);
+  fill: none;
+  stroke: var(--bevel-c2);
+  stroke-width: var(--skit-choice-marker-stroke-width);
+}
+
+.markerStart {
+  left: var(--skit-choice-rule-inset);
+}
+
+.markerEnd {
+  right: var(--skit-choice-rule-inset);
+}
+
+/* ラベルは両端の菱形を避けた幅で板の中央へ置く */
+/* The label centers on the plate within a width that clears the diamonds at both ends */
+.choiceLabel {
+  position: relative;
+  max-width: calc(100% - 2 * (var(--skit-choice-rule-inset) + var(--skit-choice-marker-size)));
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ホバー/フォーカスは線と菱形をシアンへ、押下は面をシアン寄りへ寄せる。新しい色相は足さない */
+/* Hover/focus turns the rules and diamonds cyan and pressing pushes the face toward cyan; no new hues */
+.choice:hover::after,
+.choice:focus-visible::after {
+  border-top-color: var(--select-cyan);
+  border-bottom-color: var(--select-cyan);
+}
+
+.choice:hover .marker,
+.choice:focus-visible .marker {
+  stroke: var(--select-cyan);
+}
+
+.choice:active::before {
+  background: color-mix(in srgb, var(--gauge-track), var(--select-cyan) var(--skit-choice-active-mix));
+}
