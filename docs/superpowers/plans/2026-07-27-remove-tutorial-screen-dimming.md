@@ -199,7 +199,7 @@ git commit -m "チュートリアルハイライトをoutline専用APIへ移行"
 ### Task 3: 暗転CSSを削除しブラウザ回帰テストで観測する
 
 **Files:**
-- Create: `moorestech_web/webui/e2e/tests/tutorial.spec.ts`
+- Create: `moorestech_web/webui/e2e/tests/system/tutorial.spec.ts`
 - Modify: `moorestech_web/webui/e2e/mock-host/topics/topicControls.ts`
 - Modify: `moorestech_web/webui/src/features/tutorial/style.module.css`
 
@@ -211,7 +211,9 @@ git commit -m "チュートリアルハイライトをoutline専用APIへ移行"
 
 ```ts
 import { expect, test } from "@playwright/test";
-import { setTopicScenario } from "../support/mockControl";
+import { setTopicScenario } from "../../support/mockControl";
+
+const expectedOutlineBoxShadow = "rgba(255, 221, 87, 0.24) 0px 0px 0px 4px";
 
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "tutorialEmpty");
@@ -221,16 +223,27 @@ test("tutorial outline highlights the target without dimming the rest of the scr
   await page.goto("/");
   await setTopicScenario(page, "tutorialOutline");
 
-  const highlight = page.getByTestId("tutorial-overlay").locator("[data-kind='outline']");
+  const overlay = page.getByTestId("tutorial-overlay");
+  const highlight = overlay.locator("[data-kind]");
   await expect(highlight).toBeVisible();
+  await expect(highlight).toHaveAttribute("data-kind", "outline");
   await expect(highlight).toHaveCSS("border-top-color", "rgb(255, 221, 87)");
-  expect(await highlight.evaluate((element) => getComputedStyle(element).boxShadow)).not.toContain("9999px");
+  await expect(highlight).toHaveCSS("box-shadow", expectedOutlineBoxShadow);
+  await expect(overlay).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(overlay).toHaveCSS("background-image", "none");
+  await expect(overlay).toHaveCSS("filter", "none");
+  await expect(overlay).toHaveCSS("backdrop-filter", "none");
+
+  // 廃止済みkindへの変更でも暗転CSSが復活しないことを直接検査する
+  // Probe the removed kind directly so restored dimming CSS cannot escape the test
+  await highlight.evaluate((element) => element.setAttribute("data-kind", "spotlight"));
+  await expect(highlight).toHaveCSS("box-shadow", expectedOutlineBoxShadow);
 });
 ```
 
 - [ ] **Step 2: E2Eテストを実行して失敗を確認する**
 
-Run: `pnpm test:e2e -- e2e/tests/tutorial.spec.ts`
+Run: `pnpm test:e2e -- e2e/tests/system/tutorial.spec.ts`
 
 Workdir: `moorestech_web/webui`
 
@@ -269,7 +282,7 @@ Expected: `tutorialOutline` / `tutorialEmpty` がまだ `TopicScenario` に存�
 
 - [ ] **Step 5: E2Eテストを実行して通ることを確認する**
 
-Run: `pnpm test:e2e -- e2e/tests/tutorial.spec.ts`
+Run: `pnpm test:e2e -- e2e/tests/system/tutorial.spec.ts`
 
 Workdir: `moorestech_web/webui`
 
@@ -286,7 +299,7 @@ Expected: Vitest全件PASS、build成功、`spotlight` と `9999px` の残存参
 - [ ] **Step 7: Task 3をコミットする**
 
 ```bash
-git add moorestech_web/webui/e2e/tests/tutorial.spec.ts \
+git add moorestech_web/webui/e2e/tests/system/tutorial.spec.ts \
   moorestech_web/webui/e2e/mock-host/topics/topicControls.ts \
   moorestech_web/webui/src/features/tutorial/style.module.css
 git commit -m "チュートリアル画面暗転を撤去"
@@ -318,7 +331,7 @@ Expected: 対象テスト全件PASS、compilation errors 0件。
 
 - [ ] **Step 3: Webの全テスト・対象E2E・buildを再実行する**
 
-Run: `pnpm test && pnpm test:e2e -- e2e/tests/tutorial.spec.ts && pnpm build`
+Run: `pnpm test && pnpm test:e2e -- e2e/tests/system/tutorial.spec.ts && pnpm build`
 
 Workdir: `moorestech_web/webui`
 
