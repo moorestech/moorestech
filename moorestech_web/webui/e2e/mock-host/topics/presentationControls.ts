@@ -43,6 +43,9 @@ export function applyPresentationControl(url: string, res: ServerResponse): bool
       : stage === "transition" ? {
       ...clone(fx.blockingSkitText),
       presentationState: { ...clone(fx.blockingSkitText.presentationState), transitionVisible: true },
+    } : stage === "staging" ? {
+      ...clone(fx.blockingSkitText),
+      presentationState: { ...clone(fx.blockingSkitText.presentationState), textAreaVisible: false },
     } : stage === "background" ? {
       ...clone(fx.skitPresentation), sessionId: "bg-1", sceneRevision: 1,
       presentationState: { ...clone(fx.skitPresentation.presentationState), mode: "background",

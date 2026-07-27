@@ -71,7 +71,17 @@ export function SkitPresentation() {
     if (state.mode !== "blocking") return null;
     return <div className={styles.root}><SkitRestoreButton base={base} /></div>;
   }
-  if (!state.textAreaVisible) return null;
+  // 演出中は会話窓と選択肢だけを畳み、ツールバーは残す（正本もTextAreaとツールは兄弟でTextAreaだけが消える）
+  // During staging only the window and choices fold away while the toolbar stays, as in the reference where the TextArea and tools are siblings
+  if (!state.textAreaVisible) {
+    if (state.mode !== "blocking") return null;
+    return (
+      <div className={styles.root}>
+        <SkitToolbar base={base} allowedIntents={allowedIntents}
+          autoEnabled={state.autoEnabled} skipActive={state.skipActive} />
+      </div>
+    );
+  }
 
   // 背景スキットは面も枠も持たず、採掘・設置を殺さないよう入力を素通しする
   // Background skits carry no face or frame and pass input through so mining and placing keep working

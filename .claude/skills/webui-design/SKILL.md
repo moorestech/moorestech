@@ -51,7 +51,7 @@ description: |
 - App の stage グリッドにある `viewer` 領域へ置き、持ち物パネルの右隣で上端を揃える。機能側の固定配置・独自z-index・パネル面・下端フェードは禁止し、配置は stage、面表現は GamePanel が一元供給する。
 - GamePanel の下向き三角と内容が重ならないよう、ブロックパネルだけ `--block-panel-bottom-safe-area` の下部安全帯を確保する。共通 GamePanel の余白は変更しない。
 - 内容量で幅が決まる小型ブロックパネル（チェスト等）は、GamePanel共通の右余白10pxがフェード帯に食われて面が途切れて見えるため、`--block-panel-right-safe-area`（左インデント28pxと対称）の右余白を追加する。大型機械パネルは固定幅・中央揃えのため対象外。
-- 閉じる操作はパネル右上の `shared/ui/PanelCloseButton` を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
+- 閉じる操作はパネル右上の `shared/ui/IconButton`（children省略で既定の×）を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
 - **レシピ選択を持つ機械ブロックのみ大型レイアウト**: 研究パネル同様 `viewer-start / items-end` の2列を占有し、上端は持ち物パネルと揃え、下端はホットバー手前で止める。中身は `ModeSwitch` を横向きタブバーとした「インベントリ / レシピ選択」の2タブ切替（§8.7）。レシピ0件のブロックは従来の小型パネルのまま。
 
 ## 3. モーダル
@@ -125,7 +125,7 @@ description: |
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
   - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
   - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
-- **PanelCloseButton**: パネル右上の面を持たない×。インラインSVGまたはCSSで描画する。
+- **IconButton**: 面を持たない浮遊アイコンボタン。`children` 省略時は既定の×（従来の PanelCloseButton）で、閉じる以外の用途は呼び出し側がインラインSVGを渡す。寸法は `--icon-button-size` / `--icon-button-icon-size` の局所上書きで変え、共有側にドメイン語彙は持たせない。
 - **FadeRule**: 両端フェードする水平罫線（装飾語彙1）の単体部品。パネル内のセクション区切りに使う。GamePanel のタイトル罫線と同族の青灰グラデで、新しい色相は持たない。
 
 ## 8.7 機械レシピ選択タブ
@@ -188,18 +188,31 @@ description: |
   階層は合成boldでなく**フォントサイズ差**（話者名 `--skit-speaker-font-size` > 本文 `--skit-body-font-size`）で作る（§7）。
 - 文字が上端フェード帯に載らないよう、窓の縁に `--skit-window-edge-safe-area` の安全余白を確保する（§2の安全帯前例と同族）。
 - 区切り罫線は §6 装飾語彙1 そのもの。専用CSSを書かず `FadeRule` を使い、幅だけ `--skit-rule-inset` で絞る。
+  上下余白は正本実測どおり**上詰まり・下空き**（`--skit-rule-margin-top` < `--skit-rule-margin-bottom`）。
 - 送り待ちマーカーは本文右下のインラインSVG下向きシェブロン（§6 装飾語彙5）。色は `--select-cyan`。光彩・点滅は付けない。
+  寸法・右マージンは正本 `nav_arrow.png` 実測の `--skit-advance-marker-size` / `--skit-advance-marker-right` で、
+  本文の罫線インセット（`--skit-rule-inset`）とは別値。
 - **選択肢は会話窓の上・右寄せで下から積み上げる。** 各行は固定寸法（`--skit-choice-width` × `--skit-choice-height`）の
-  板で、面は `--gauge-track`、左右 `--skit-choice-edge-fade` の水平フェードマスク、上下に `--bevel-c1` の1px線、
-  両端に `--bevel-c2` の菱形マーカー（§6 装飾語彙4・インラインSVG・`aria-hidden`）、ラベルは板の中央。
+  板で、面は `--gauge-track`、左右 `--skit-choice-edge-fade` の水平フェードマスク（原画の水平αランプ実測＝片側27%）。
+  上下線（`--bevel-c1`・太さ `--skit-choice-rule-thickness`）と両端の `--bevel-c2` 菱形マーカー
+  （§6 装飾語彙4・インラインSVG・`aria-hidden`・寸法 `--skit-choice-marker-size`＝板高の38%）は
+  **板端でなく原画どおり内側**（左右 `--skit-choice-rule-inset` / 上下 `--skit-choice-rule-vertical-inset`）に置く。
+  これらはフェード帯に載るため、面（`::before`）とは別要素（`::after`・SVG）として全不透明で描く。
+  板と会話窓の間隔は `--skit-choices-window-gap`（正本 SelectButton の margin-bottom 実測）で、板同士の `--skit-choice-gap` とは別値。
   ホバーは線と菱形を `--select-cyan` へ、押下は面を `--gauge-track` と `--select-cyan` の混色
   （混色比 `--skit-choice-active-mix`、ModeSwitch の selected-mix 前例に倣う）へ切り替える。新しい色相は足さない。
-  ラベルは板に収まるよう本文より一段小さい `--skit-choice-font-size`。
+  ラベルは板の中央、板に収まるよう本文より一段小さい `--skit-choice-font-size`。
   （Unity実機は板とラベルの位置が未整合の未完成状態のため、「固定寸法の板＋中央ラベル」という意図を正とする）
 - **ツールボタン（Auto / Skip / UI非表示）は画面右上に横並びの、面を持たないアイコンボタン**とする
-  （`PanelCloseButton` と同族の様式）。アイコンはインラインSVG、既定不透明度は `--skit-tool-icon-opacity`。
+  （共通 `IconButton` に各アイコンを children で渡す。面・枠・focus表現は共通側、スキット固有の減衰と点灯だけを機能側が足す）。
+  アイコンはインラインSVG、既定不透明度は `--skit-tool-icon-opacity`。正本アイコンは枠に対し**bbox比1.00**のため、
+  `--icon-button-*` を `--skit-tool-button-size` と同寸へ局所上書きして枠いっぱいに描く（縮小率のマジックナンバーを置かない）。
+  ただし図像はviewBox内余白の分だけ内側（実効約0.8）に留める。viewBoxを外接まで詰めると現行の
+  `--skit-tool-gap` でSkip終端バーと隣接アイコンが接触するため、詰めるならギャップ再実測とセットで裁定する。
   Auto の on/off は同一SVGの `data-enabled` による色切替で表し、アイコン自体を差し替えない。
   テキストラベルのボタンにはしない。
+- **会話窓が非表示の演出中（`textAreaVisible=false`）もツールバーは右上に残す。**
+  正本でも TextArea とツールは兄弟で、消えるのは TextArea だけであるため。
 - Unity にある Log ボタンは本体機能が未配線（`SkitUITools.cs`）のため Web では出さない。
 - **UI非表示からの復帰ボタンは Web 専用に置いてよい。** Unity は Escape キーで復帰するが、CEF は
   スキット中にキー入力主権を持たないため。面を持たない浮遊アイコンとし、ツールボタンと同じ右上に置く。
@@ -230,6 +243,9 @@ description: |
   常に**会話窓**（stage内 `--z-skit`）より上に来る。スキット中にモーダルは出ない想定であり、これを許容する。
 - ただし暗転（`--z-skit-transition`=210）はPortal直下のためモーダルより上・トーストより下に載る。
   モーダルの実効zはMantine既定の200で、`--z-modal` は定義のみの未配線トークンである点に注意する。
+- **blockingスキット中はワールドピンHUD（§8.8）とチャレンジHUDを出さない。** どちらもPortal層で会話窓より上に
+  来てしまううえ、Unityでもスキットは画面演出を専有するため。判断は各featureが `skit.presentation` の
+  `mode` を購読して自前で行い、共有層やHUD基盤にスキット語彙を持ち込まない。
 
 ## 9. やらないことリスト（再掲・明示）
 

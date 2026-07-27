@@ -44,20 +44,20 @@
 /* The divider is the shared FadeRule; it has no dedicated CSS and is only narrowed by its insets */
 .rule {
   padding: 0 var(--skit-rule-inset);
-  margin: 6px 0 8px;
+  margin: var(--skit-rule-margin-top) 0 var(--skit-rule-margin-bottom);
 }
 
 /* 送り待ちマーカーは本文の右下。フローを食わないよう絶対配置にする */
 /* The advance marker sits at the body's bottom-right, positioned absolutely so it never eats body space */
 .advanceMarker {
   position: absolute;
-  right: var(--skit-rule-inset);
+  right: var(--skit-advance-marker-right);
   bottom: var(--skit-window-edge-safe-area);
-  width: 24px;
-  height: 16px;
+  width: var(--skit-advance-marker-size);
+  height: var(--skit-advance-marker-size);
   fill: none;
   stroke: var(--select-cyan);
-  stroke-width: 2;
+  stroke-width: var(--skit-advance-marker-stroke-width);
   stroke-linecap: square;
 }
 

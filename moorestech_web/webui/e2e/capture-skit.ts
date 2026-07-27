@@ -105,6 +105,13 @@ async function main() {
   await page.getByTestId("skit-transition").waitFor();
   await shoot("skit-7-transition");
 
+  // 8.会話窓非表示の演出中もツールバーが右上に残る
+  // 8. The toolbar stays in the top-right while the window is hidden during staging
+  await control("/__skit?stage=staging");
+  await page.getByRole("button", { name: "Auto" }).waitFor();
+  await page.getByTestId("blocking-skit").waitFor({ state: "detached" });
+  await shoot("skit-8-staging");
+
   await browser.close();
   wss.close();
   await new Promise<void>((resolve) => server.close(() => resolve()));
