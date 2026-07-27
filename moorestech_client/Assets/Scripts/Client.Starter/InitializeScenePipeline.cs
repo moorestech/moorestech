@@ -122,7 +122,7 @@ namespace Client.Starter
             AsyncOperation sceneLoadTask;
             try
             {
-                (serverResult, assetResult, sceneLoadTask) = await UniTask.WhenAll(serverInitializer.RunAsync(), modAssetLoader.RunAsync(), sceneLoader.RunAsync());
+                (serverResult, assetResult, sceneLoadTask) = await UniTask.WhenAll(ConnectServerThenFetchTerrainAsync(), modAssetLoader.RunAsync(), sceneLoader.RunAsync());
             }
             catch (Exception e)
             {
@@ -140,6 +140,16 @@ namespace Client.Starter
             sceneLoadTask.allowSceneActivation = true;
 
             #region Internal
+
+            // 地形取得はハンドシェイクのLayoutメタが要るため接続完了に継続させる。他2ユニットとは並列のまま
+            // Terrain fetch needs the handshake's layout meta, so it continues from the connection; the other two units stay parallel
+            async UniTask<ServerConnectionResult> ConnectServerThenFetchTerrainAsync()
+            {
+                var connectionResult = await serverInitializer.RunAsync();
+                var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response).RunAsync(connectionResult.HandshakeResponse.MapLayout);
+                loadingLog.text += $"\n地形データ準備完了({fetchedChunkCount}チャンク取得)  {loadingStopwatch.Elapsed}";
+                return connectionResult;
+            }
 
             void MainGameSceneLoaded(Scene scene, LoadSceneMode mode)
             {

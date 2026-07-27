@@ -13,6 +13,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.MapGeneration.Provisioning;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -40,11 +41,18 @@ namespace Client.Tests.EditModeInPlayingTest.Util
         
         public static async UniTask LoadMainGame(string serverDirectory = null, string worldDirectory = null)
         {
+            await LoadMainGameWithMapMode(serverDirectory, worldDirectory, WorldProvisioner.TemplateMapMode);
+        }
+
+        // 地形生成を伴うワールドで起動したいテスト向けにmapModeを明示する入口
+        // Entry point for tests that need to boot a world provisioned with a specific map mode
+        public static async UniTask LoadMainGameWithMapMode(string serverDirectory, string worldDirectory, string mapMode)
+        {
             // テストごとに未使用の一時ワールドディレクトリを割り当てて隔離する
             // Isolate each test with an unused temporary world directory
             worldDirectory ??= Path.Combine(Path.GetTempPath(), $"moorestech_play_mode_test_{Guid.NewGuid()}");
             serverDirectory ??= EditModeInPlayingTestServerDirectoryPath;
-            
+
             // 初期化シーンをロード
             // Load the initialization scene
             SceneManager.sceneLoaded += SetInitializeProperty;
@@ -73,6 +81,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                     WorldDirectory = worldDirectory,
                     AutoSave = false,
                     ServerDataDirectory = serverDirectory,
+                    MapMode = mapMode,
                 };
                 defaultProperties.CreateLocalServerArgs = CliConvert.Serialize(properties);
                 

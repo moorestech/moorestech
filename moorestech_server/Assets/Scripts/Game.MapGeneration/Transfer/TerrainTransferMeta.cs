@@ -55,10 +55,26 @@ namespace Game.MapGeneration.Transfer
         public static IEnumerable<string> EnumerateStreamFilePaths(WorldDataDirectory worldDataDirectory, int terrainTileCount)
         {
             foreach (var tile in EnumerateTileCoordinates(terrainTileCount))
-            {
-                yield return worldDataDirectory.TerrainHeightFilePath(tile.TileX, tile.TileZ);
-                yield return worldDataDirectory.TerrainBiomeFilePath(tile.TileX, tile.TileZ);
-            }
+            foreach (var tileFile in EnumerateTileFiles(worldDataDirectory, tile.TileX, tile.TileZ))
+                yield return tileFile.FilePath;
+        }
+
+        // 並び順に各ファイルの想定バイト長を添えた列挙。ファイル境界を実体に依らず決める用途(受信側の復元)に使う
+        // Same order, annotated with each file's expected byte length, for deciding boundaries without the files (client restore)
+        public static IEnumerable<(string FilePath, long ByteLength)> EnumerateStreamSegments(
+            WorldDataDirectory worldDataDirectory, int terrainTileCount, int terrainResolution)
+        {
+            foreach (var tile in EnumerateTileCoordinates(terrainTileCount))
+            foreach (var tileFile in EnumerateTileFiles(worldDataDirectory, tile.TileX, tile.TileZ))
+                yield return (tileFile.FilePath, (long)terrainResolution * terrainResolution * tileFile.BytesPerPixel);
+        }
+
+        // タイル1枚が論理ストリームへ寄与するファイル。並び(height→biome)と1画素あたりのバイト数の唯一の定義
+        // The files one tile contributes: the single definition of both the order (height then biome) and bytes per pixel
+        private static IEnumerable<(string FilePath, int BytesPerPixel)> EnumerateTileFiles(WorldDataDirectory worldDataDirectory, int tileX, int tileZ)
+        {
+            yield return (worldDataDirectory.TerrainHeightFilePath(tileX, tileZ), 2);
+            yield return (worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ), 1);
         }
 
         // ワールドディレクトリを持たない構成(テスト・クライアント単体デバッグ)用。地形もワールド同一性も存在しない
