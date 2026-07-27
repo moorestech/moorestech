@@ -138,7 +138,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 
 | レンズ | 担当（由来PR） | 発火条件 |
 |---|---|---|
-| domain-boundary | 汎用基盤へのドメイン語彙漏れ・Update()ポーリング・共通サービス委譲漏れ（978/1000） | Game.Block/Gear/EnergySystem/Client.Game等の.cs |
+| domain-boundary | 汎用基盤へのドメイン語彙漏れ・Update()ポーリング・共通サービス委譲漏れ（978/1000） | 全ての.cs |
 | server-state-sync | サーバー状態同期3点セット・Applier禁止・ハンドシェイク順序（988） | Server.Protocol/Server.Event/Client.Network |
 | datastore-access-separation | Lookup/Mutation分離・static変更露出（988） | DataStore系キーワード |
 | master-data-defense | optional濫用・??フォールバック・ローダープリフィル（978） | VanillaSchema/Core.Master/BlockTemplate |
