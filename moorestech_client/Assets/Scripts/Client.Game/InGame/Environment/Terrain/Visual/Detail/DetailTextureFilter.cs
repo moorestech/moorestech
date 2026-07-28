@@ -14,6 +14,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
         /// </summary>
         public class TextureFilterEntry
         {
+            // どのTerrainLayerを指すかはこのアドレスだけが知っている。落とすとlayerを解決する手がかりが消える
+            // Only this address knows which TerrainLayer is meant; dropping it removes every clue for resolving layer
+            public string layerAddressablePath;
             public TerrainLayer layer;
             public float weight;
 

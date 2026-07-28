@@ -45,8 +45,10 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
                 parameters.textureEntryCount = entries.Length;
                 biomeParams[biome] = parameters;
 
-                // 生成したオフセットは捨てるが、RNGの進み方が移植元と一致しないと後続の乱数列がずれる
-                // The generated offsets are discarded, but advancing the RNG identically keeps every later draw aligned
+                // 移植元にあるデッドコードをそのまま残している。textureRandomはこのメソッドのローカルで以降どこからも引かれず、
+                // 消しても現在の出力は変わらない。移植元との差分を作らないためだけに保存している
+                // Dead code preserved verbatim from the source: textureRandom is local to this method and never drawn from again,
+                // so removing it would not change today's output. It is kept solely to avoid diverging from the source
                 ConsumeOffsets(textureRandom, Math.Max(entries.Length * 4, 4));
 
                 for (var entryIndex = 0; entryIndex < entries.Length; entryIndex++)

@@ -5,6 +5,7 @@ using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Stages;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 
 namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
 {
@@ -35,21 +36,22 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             // A zero-length layer array would crash SplatmapJob, so at least one is reserved as in the source
             var layerCount = Math.Max(layerTable.OrderedLayerAddresses.Count, 1);
 
-            var biomeParams = JobDataConverter.ConvertBiomeParams(config, biomeTypes, Allocator.TempJob);
-            OverwriteSplatmapLayerIndices();
-
-            var textureEntries = TextureEntryParamsBuilder.Build(
-                config.seed, biomeTextureConfigs, layerTable.LayerIndexByAddress, biomeParams, Allocator.TempJob);
-            var noiseOffsets = JobDataConverter.GenerateNoiseOffsets(config, biomeParams, biomeTypes, Allocator.TempJob);
-            JobDataConverter.GenerateClassificationOffsets(config, Allocator.TempJob, out var continentalnessOffsets, out var erosionOffsets);
-
+            // 確保した端からbuffersへ預ける。整備漏れの例外が途中で出ても、常にbuffers.Disposeが全部を解放できる状態を保つ
+            // Each allocation is handed to buffers immediately so a mid-way data-gap exception still leaves everything for buffers.Dispose
             var buffers = JobDataConverter.AllocateBuffers(resolution, biomeCount, layerCount, Allocator.TempJob);
-            buffers.biomeParams = biomeParams;
-            buffers.textureEntries = textureEntries;
-            buffers.noiseOffsets = noiseOffsets;
+            var continentalnessOffsets = default(NativeArray<float2>);
+            var erosionOffsets = default(NativeArray<float2>);
 
             try
             {
+                buffers.biomeParams = JobDataConverter.ConvertBiomeParams(config, biomeTypes, Allocator.TempJob);
+                OverwriteSplatmapLayerIndices();
+
+                buffers.textureEntries = TextureEntryParamsBuilder.Build(
+                    config.seed, biomeTextureConfigs, layerTable.LayerIndexByAddress, buffers.biomeParams, Allocator.TempJob);
+                buffers.noiseOffsets = JobDataConverter.GenerateNoiseOffsets(config, buffers.biomeParams, biomeTypes, Allocator.TempJob);
+                JobDataConverter.GenerateClassificationOffsets(config, Allocator.TempJob, out continentalnessOffsets, out erosionOffsets);
+
                 // 分類段を再実行して海陸マスク・ビーチ遷移・バイオーム重みを揃える。転送されていないのはこの6本だけ
                 // Re-run classification to supply the land/sea masks, beach transition, and biome weights: the only six buffers never transferred
                 ClassificationStage.Run(config, biomeCount, buffers, continentalnessOffsets, erosionOffsets, ProtectEdgeSea);
@@ -74,9 +76,9 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Splat
             {
                 for (var biome = 0; biome < biomeTypes.Length; biome++)
                 {
-                    var parameters = biomeParams[biome];
+                    var parameters = buffers.biomeParams[biome];
                     parameters.splatmapLayerIndex = layerTable.LayerIndexByAddress[biomeMainLayerAddresses[biome]];
-                    biomeParams[biome] = parameters;
+                    buffers.biomeParams[biome] = parameters;
                 }
             }
 

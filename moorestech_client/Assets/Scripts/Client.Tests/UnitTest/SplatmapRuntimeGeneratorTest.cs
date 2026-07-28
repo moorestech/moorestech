@@ -76,10 +76,12 @@ namespace Client.Tests.UnitTest
         }
 
         [Test]
-        public void RepeatedGenerationIsDeterministicAndLeavesNoBuffersBehind()
+        public void RepeatedGenerationIsDeterministic()
         {
-            // 同じ入力で2回走らせる。Disposeが漏れているとTempJobの確保が積み上がり例外になる
-            // Run twice with the same input; a missed Dispose would pile up TempJob allocations and throw
+            // 同じ入力なら何度走らせても同じ結果になること。Dispose漏れはTempJobのリーク検出が
+            // 4フレーム後のコンソールエラーとして出るもので、フレームを進めないEditModeでは発火しないためここでは見ていない
+            // The same input must always yield the same result. Dispose leaks surface as a TempJob console error four
+            // frames later, which never fires in an EditMode test that advances no frames, so this does not check them
             var firstAlphamap = Generate(CreateBiomeIndices(BiomeType.Grassland));
             var secondAlphamap = Generate(CreateBiomeIndices(BiomeType.Grassland));
 

@@ -132,7 +132,21 @@ namespace Client.Game.InGame.Environment.Terrain.Visual.Detail
         {
             var entries = new List<DetailTextureFilter.TextureFilterEntry>();
             foreach (var generatedEntry in generated.Entries)
-                entries.Add(new DetailTextureFilter.TextureFilterEntry { weight = generatedEntry.Weight });
+            {
+                // エントリが存在すること自体が「このレイヤー上に寄せたい」という意図の表明なので、enabledでは分岐しない。
+                // アドレスが無いとlayerを解決できず、Evaluateが永久に一致せず全レイヤーがotherTextureWeightへ倒れる
+                // An entry's mere existence declares intent to bias toward a layer, so this does not branch on enabled.
+                // Without an address layer can never be resolved, Evaluate never matches, and every layer falls to otherTextureWeight
+                if (string.IsNullOrEmpty(generatedEntry.LayerAddressablePath))
+                    throw new InvalidOperationException(
+                        "[DetailRuntimeConfigFactory] A detail textureFilter entry has an empty layerAddressablePath.");
+
+                entries.Add(new DetailTextureFilter.TextureFilterEntry
+                {
+                    layerAddressablePath = generatedEntry.LayerAddressablePath,
+                    weight = generatedEntry.Weight,
+                });
+            }
 
             return new DetailTextureFilter
             {
